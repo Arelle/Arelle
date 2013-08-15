@@ -287,6 +287,22 @@ qnTableConceptRelationshipNode = qname("{http://xbrl.org/PWD/2013-05-17/table}ta
 qnTableDimensionRelationshipNode = qname("{http://xbrl.org/PWD/2013-05-17/table}table:dimensionRelationshipNode")
 qnTableAspectNode = qname("{http://xbrl.org/PWD/2013-05-17/table}table:aspectNode")
 
+# 2013-MM-DD current IWD
+tableMMDD = "http://xbrl.org/PWD/2013-MM-DD/table"
+tableModelMMDD = "http://xbrl.org/PWD/2013-MM-DD/table/model"
+tableBreakdownMMDD = "http://xbrl.org/arcrole/PWD/2013-MM-DD/table-breakdown"
+tableBreakdownTreeMMDD = "http://xbrl.org/arcrole/PWD/2013-MM-DD/breakdown-tree"
+tableDefinitionNodeSubtreeMMDD = "http://xbrl.org/arcrole/PWD/2013-MM-DD/definition-node-subtree"
+tableFilterMMDD = "http://xbrl.org/arcrole/PWD/2013-MM-DD/table-filter"
+tableAspectNodeFilterMMDD = "http://xbrl.org/arcrole/PWD/2013-MM-DD/aspect-node-filter"
+qnTableTableMMDD = qname("{http://xbrl.org/PWD/2013-MM-DD/table}table:table")
+qnTableBreakdownMMDD = qname("{http://xbrl.org/PWD/2013-MM-DD/table}table:breakdown")
+qnTableRuleNodeMMDD = qname("{http://xbrl.org/PWD/2013-MM-DD/table}table:ruleNode")
+qnTableClosedDefinitionNodeMMDD = qname("{http://xbrl.org/PWD/2013-MM-DD/table}table:closedDefinitionNode")
+qnTableConceptRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2013-MM-DD/table}table:conceptRelationshipNode")
+qnTableDimensionRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2013-MM-DD/table}table:dimensionRelationshipNode")
+qnTableAspectNodeMMDD = qname("{http://xbrl.org/PWD/2013-MM-DD/table}table:aspectNode")
+
 # prior 2013-01-16 PWD
 table201301 = "http://xbrl.org/PWD/2013-01-16/table"
 tableBreakdown201301 = "http://xbrl.org/arcrole/PWD/2013-01-16/table-breakdown"
@@ -559,6 +575,9 @@ def isTableRenderingArcrole(arcrole):
     return arcrole in {# current PWD 2013-05-17
                        tableBreakdown, tableBreakdownTree, tableFilter,
                        tableDefinitionNodeSubtree, tableAspectNodeFilter,
+                       # current IWD
+                       tableBreakdownMMDD, tableBreakdownTreeMMDD, tableFilterMMDD,
+                       tableDefinitionNodeSubtreeMMDD, tableAspectNodeFilterMMDD,
                        # Prior PWD, Montreal and 2013-01-16 
                        tableBreakdown201301, tableAxis2011, tableFilter2011, 
                        tableDefinitionNodeSubtree201301, tableAxisSubtree2011, 
