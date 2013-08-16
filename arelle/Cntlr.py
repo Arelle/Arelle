@@ -330,8 +330,10 @@ class Cntlr:
             try:
                 print(message)
             except UnicodeEncodeError:
-                print(message.encode(sys.stdout.encoding, 'backslashreplace')
-                      .decode(sys.stdout.encoding, 'strict'))
+                # extra parentheses in print to allow for 3-to-2 conversion
+                print((message
+                       .encode(sys.stdout.encoding, 'backslashreplace')
+                       .decode(sys.stdout.encoding, 'strict')))
             
     def showStatus(self, message, clearAfter=None):
         """Dummy method for specialized controller classes to specialize, 
@@ -522,8 +524,10 @@ class LogToPrintHandler(logging.Handler):
         try:
             print(logEntry, file=file)
         except UnicodeEncodeError:
-            print(logEntry.encode(sys.stdout.encoding, 'backslashreplace')
-                  .decode(sys.stdout.encoding, 'strict'), 
+            # extra parentheses in print to allow for 3-to-2 conversion
+            print((logEntry
+                   .encode(sys.stdout.encoding, 'backslashreplace')
+                   .decode(sys.stdout.encoding, 'strict')), 
                   file=file)
 
 class LogHandlerWithXml(logging.Handler):        
@@ -582,8 +586,10 @@ class LogToXmlHandler(LogHandlerWithXml):
                 try:
                     print(logRecXml)
                 except UnicodeEncodeError:
-                    print(logRecXml.encode(sys.stdout.encoding, 'backslashreplace')
-                          .decode(sys.stdout.encoding, 'strict'))
+                    # extra parentheses in print to allow for 3-to-2 conversion
+                    print((logRecXml
+                           .encode(sys.stdout.encoding, 'backslashreplace')
+                           .decode(sys.stdout.encoding, 'strict')))
             print('</log>')
         else:
             print ("filename=" + self.filename)
