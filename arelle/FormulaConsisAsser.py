@@ -66,6 +66,7 @@ def evaluate(xpCtx, varSet, derivedFact):
             if not paramAlreadyInVars:
                 paramQnamesAdded.append(paramQname)
                 xpCtx.inScopeVars[paramQname] = paramValue
+        acceptance = None
         for fact in aspectMatchedInputFacts:
             if isSatisfied != True: 
                 break
@@ -97,17 +98,24 @@ def evaluate(xpCtx, varSet, derivedFact):
             else:
                 if not xEqual(fact, derivedFact, equalMode=S_EQUAL2):
                     isSatisfied = False
+        if isSatisfied is not None:  # None means no evaluation
+            if xpCtx.formulaOptions.traceVariableSetExpressionResult:
+                xpCtx.modelXbrl.info("formula:trace",
+                     _("Consistency assertion %(id)s result %(result)s"),
+                     modelObject=consisAsser, id=consisAsser.id, result=isSatisfied)
+            message = consisAsser.message(isSatisfied)
+            if message is not None:
+                xpCtx.inScopeVars[XbrlConst.qnCaAspectMatchedFacts] = aspectMatchedInputFacts
+                xpCtx.inScopeVars[XbrlConst.qnCaAcceptanceRadius] = acceptance
+                xpCtx.inScopeVars[XbrlConst.qnCaAbsoluteAcceptanceRadiusExpression] = consisAsser.get("absoluteAcceptanceRadius")
+                xpCtx.inScopeVars[XbrlConst.qnCaProportionalAcceptanceRadiusExpression] = consisAsser.get("proportionalAcceptanceRadius")
+                xpCtx.modelXbrl.info("message:" + consisAsser.id, message.evaluate(xpCtx),
+                                     modelObject=message)
+                xpCtx.inScopeVars.pop(XbrlConst.qnCaAspectMatchedFacts)
+                xpCtx.inScopeVars.pop(XbrlConst.qnCaAcceptanceRadius)
+                xpCtx.inScopeVars.pop(XbrlConst.qnCaAbsoluteAcceptanceRadiusExpression)
+                xpCtx.inScopeVars.pop(XbrlConst.qnCaProportionalAcceptanceRadiusExpression)
+            if isSatisfied: consisAsser.countSatisfied += 1
+            else: consisAsser.countNotSatisfied += 1
         for paramQname in paramQnamesAdded:
             xpCtx.inScopeVars.pop(paramQname)
-        if isSatisfied is None:
-            continue    # no evaluation
-        if xpCtx.formulaOptions.traceVariableSetExpressionResult:
-            xpCtx.modelXbrl.info("formula:trace",
-                 _("Consistency assertion %(id)s result %(result)s"),
-                 modelObject=consisAsser, id=consisAsser.id, result=isSatisfied)
-        message = consisAsser.message(isSatisfied)
-        if message is not None:
-            xpCtx.modelXbrl.info("message:" + consisAsser.id, message.evaluate(xpCtx),
-                                 modelObject=message)
-        if isSatisfied: consisAsser.countSatisfied += 1
-        else: consisAsser.countNotSatisfied += 1
