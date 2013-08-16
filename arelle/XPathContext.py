@@ -15,6 +15,7 @@ from arelle.XmlValidate import UNKNOWN, VALID, validate
 from arelle.PluginManager import pluginClassMethods
 from decimal import Decimal
 from lxml import etree
+from types import LambdaType
 
 class XPathException(Exception):
     def __init__(self, progStep, code, message):
@@ -28,7 +29,7 @@ class XPathException(Exception):
             self.line = progStep.sourceStr
         else:
             self.line = "(not available)"
-        self.code = code
+        self.code = str(code)  # called with qname or string, qname -> prefixed name string
         self.message = message
         self.args = ( self.__repr__(), )
     def __repr__(self):
@@ -62,7 +63,7 @@ class FunctionNotAvailable(Exception):
         self.name = name
         self.args = ( self.__repr__(), )
     def __repr__(self):
-        return _("Exception, function not available: {0}").format(self.name)
+        return _("Exception, function implementation not available: {0}").format(self.name)
     
 class RunTimeExceededException(Exception):
     def __init__(self):
@@ -142,6 +143,9 @@ class XPathContext:
             elif isinstance(p,VariableRef):
                 if p.name in self.inScopeVars:
                     result = self.inScopeVars[p.name]
+                    # uncomment to allow lambdas as variable values (for deferred processing if needed)
+                    #if isinstance(result, LambdaType):
+                    #    result = result()  # dereference lambda-valued variables
             elif isinstance(p,OperationDef):
                 op = p.name
                 if isinstance(op, QNameDef): # function call
@@ -176,7 +180,7 @@ class XPathContext:
                         raise XPathException(p, err.errCode, _('Argument {0} does not match expected type {1} for {2} {3}.')
                                              .format(err.argNum, err.expectedType, op, err.foundObject))
                     except FunctionNotAvailable:
-                        raise XPathException(p, 'arelle:functDeferred', _('Function {0} is not available in this build.').format(op))
+                        raise XPathException(p, 'err:XPST0017', _('Function named {0} does not have a custom or built-in implementation.').format(op))
                 elif op in VALUE_OPS:
                     # binary arithmetic operations and value comparisons
                     s1 = self.atomize( p, resultStack.pop() ) if len(resultStack) > 0 else []
