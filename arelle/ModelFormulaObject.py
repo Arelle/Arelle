@@ -405,7 +405,9 @@ class ModelFormulaRules:
         else:
             type = 'xs:string'
         if aspect in (Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY): # return list of results
-            return [xpCtx.evaluateAtomicValue(prog, type) for prog in self.aspectProgs[aspect]]
+            if aspect in self.aspectProgs:
+                return [xpCtx.evaluateAtomicValue(prog, type) for prog in self.aspectProgs[aspect]]
+            return []
         elif xpCtx: # return single result
             if aspect in self.aspectProgs: # defaultDict, for loop would add an empty list even if not there
                 for prog in self.aspectProgs[aspect]:

@@ -644,6 +644,11 @@ def produceOutputFact(xpCtx, formula, result):
                                 lookForCommonUnits = True
                                 break
                     if len(multiplyBy) == 0: # if no units add pure
+                        if (Aspect.MULTIPLY_BY not in formula.aspectValues and Aspect.MULTIPLY_BY not in formula.aspectProgs and
+                            Aspect.DIVIDE_BY not in formula.aspectValues and Aspect.DIVIDE_BY not in formula.aspectProgs):
+                            xpCtx.modelXbrl.error("xbrlfe:missingUnitRule",
+                               _("Formula %(xlinkLabel)s"), 
+                               modelObject=formula, xlinkLabel=formula.xlinkLabel)
                         multiplyBy.append(XbrlConst.qnXbrliPure)
                             
         
