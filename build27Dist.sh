@@ -36,6 +36,9 @@ rm -f ${BUILT27DIR}/arelle/WatchRss.py
 python2.7 /usr/local/bin/3to2 -w ${BUILT27DIR}
 # convert plugins
 cp -R arelle/plugin ${BUILT27DIR}/arelle
+# encode programs with utf-8 source
+python3.2 encodeUtf8PySource.py arelle/plugin/loadFromExcel.py ${BUILT27DIR}/arelle/plugin/loadFromExcel.py
+python3.2 encodeUtf8PySource.py arelle/plugin/saveLoadableExcel.py ${BUILT27DIR}/arelle/plugin/saveLoadableExcel.py
 python2.7 /usr/local/bin/3to2 -w ${BUILT27DIR}/arelle/plugin
 #python2.7 /usr/local/bin/3to2 -w ${BUILT27DIR}/webserver
 #python2.7 /usr/local/bin/3to2 -w ${BUILT27DIR}/xlrd
