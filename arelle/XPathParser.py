@@ -375,12 +375,12 @@ infLiteral = Combine( Optional(plusorminusLiteral) + Literal("INF") )
 nanLiteral = Literal("NaN")
 floatLiteral = ( Combine( integerLiteral +
                      ( ( decimalPoint + Optional(digits) + exponentLiteral + integerLiteral ) |
-                       ( exponentLiteral + integerLiteral ) |
-                       ( decimalPoint + Optional(digits) ) )
+                       ( exponentLiteral + integerLiteral ) )
                      ) | 
                  Combine( decimalFractionLiteral + exponentLiteral + integerLiteral ) |
-                 decimalFractionLiteral |
                  infLiteral | nanLiteral ) 
+decimalLiteral =  ( Combine( integerLiteral + decimalPoint + Optional(digits) ) |
+                    decimalFractionLiteral )
 
 
 #emptySequence = Literal( "(" ) + Literal( ")" )
@@ -514,7 +514,7 @@ atom = (
            (thenOp + expr).setParseAction(pushOperation) - 
            (elseOp + expr).setParseAction(pushOperation) ).setParseAction(pushOperation) |
          ( qName + Suppress(lParen) + Optional(delimitedList(expr)) + Suppress(rParen) ).setParseAction(pushFunction) |
-         ( decimalFractionLiteral ).setParseAction(pushDecimal) |
+         ( decimalLiteral ).setParseAction(pushDecimal) |
          ( floatLiteral ).setParseAction(pushFloat) |
          ( integerLiteral ).setParseAction(pushInt) |
          ( quotedString ).setParseAction(pushQuotedString) |
