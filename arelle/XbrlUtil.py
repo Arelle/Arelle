@@ -8,10 +8,12 @@ import xml.dom.minidom, math
 from arelle import XbrlConst, XmlUtil, XmlValidate
 from arelle.ModelValue import qname, QName
 from arelle.ModelObject import ModelObject, ModelAttribute
+from arelle.XmlValidate import VALID
 
 S_EQUAL = 0 # ordinary S-equality from 2.1 spec
 S_EQUAL2 = 1 # XDT definition adds QName comparisions
 XPATH_EQ = 2 # XPath EQ on all types
+VALIDATE_BY_STRING_VALUE = 3
 
 NO_IDs_EXCLUDED = 0
 ALL_IDs_EXCLUDED = 1
@@ -79,13 +81,17 @@ def sEqual(dts1, elt1, elt2, equalMode=S_EQUAL, excludeIDs=NO_IDs_EXCLUDED, dts2
         XmlValidate.validate(dts1, elt1)
     if not hasattr(elt2,"xValid"):
         XmlValidate.validate(dts2, elt2)
-    if (not xEqual(elt1, elt2, equalMode) or 
-        attributeDict(dts1, elt1, (), equalMode, excludeIDs) != 
-        attributeDict(dts2, elt2, (), equalMode, excludeIDs, ns2ns1Tbl)):
-        return False
     children1 = childElements(elt1)
     children2 = childElements(elt2)
     if len(children1) != len(children2):
+        return False
+    if (not xEqual(elt1, elt2,
+                   # must use stringValue for nested contents of mixed content 
+                   VALIDATE_BY_STRING_VALUE if len(children1) and elt1.xValid == VALID else
+                   equalMode
+                   ) or 
+        attributeDict(dts1, elt1, (), equalMode, excludeIDs) != 
+        attributeDict(dts2, elt2, (), equalMode, excludeIDs, ns2ns1Tbl)):
         return False
     excludeChildIDs = excludeIDs if excludeIDs != TOP_IDs_EXCLUDED else NO_IDs_EXCLUDED
     for i in range( len(children1) ):
@@ -138,7 +144,9 @@ def xEqual(elt1, elt2, equalMode=S_EQUAL):
         XmlValidate.validate(elt1.modelXbrl, elt1)
     if not hasattr(elt2,"xValid"):
         XmlValidate.validate(elt2.modelXbrl, elt2)
-    if equalMode == S_EQUAL or (equalMode == S_EQUAL2 and not isinstance(elt1.sValue, QName)):
+    if equalMode == VALIDATE_BY_STRING_VALUE:
+        return elt1.stringValue == elt2.stringValue
+    elif equalMode == S_EQUAL or (equalMode == S_EQUAL2 and not isinstance(elt1.sValue, QName)):
         return elt1.sValue == elt2.sValue
     else:
         return elt1.xValue == elt2.xValue

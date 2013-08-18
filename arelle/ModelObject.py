@@ -228,14 +228,24 @@ class ModelObject(etree.ElementBase):
         return ''.join(self.itertext())  # no text nodes returns ''
     
     @property
-    def elementText(self):    # includes text 'around' comment nodes nested in value
+    def elementText(self):    # "string value" of node, text of all Element descendants
         return ''.join(self._elementTextNodes())  # no text nodes returns ''
     
-    def _elementTextNodes(self):
+    @property
+    def stringValue(self):    # "string value" of node, text of all Element descendants
+        return ''.join(self._elementTextNodes(recurse=True))  # return text of Element descendants
+    
+    @property
+    def textValue(self):  # xml axis text() differs from string value, no descendant element text
+        return self.elementText
+    
+    def _elementTextNodes(self, recurse=False):
         if self.text: yield self.text
         for c in self.iterchildren():
-            if not isinstance(c, etree.ElementBase): # skip nested element nodes
-                if c.tail: yield c.tail  # get tail of nested comment or processor nodes
+            if recurse and isinstance(c, ModelObject):
+                for nestedText in c._elementTextNodes(recurse):
+                    yield nestedText
+            if c.tail: yield c.tail  # get tail of nested element, comment or processor nodes
 
     @property
     def document(self):

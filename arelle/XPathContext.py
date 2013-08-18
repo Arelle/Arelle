@@ -11,7 +11,7 @@ from arelle import (ModelXbrl, XbrlConst, XmlUtil)
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI)
-from arelle.XmlValidate import UNKNOWN, VALID, validate
+from arelle.XmlValidate import UNKNOWN, VALID, VALID_NO_CONTENT, validate
 from arelle.PluginManager import pluginClassMethods
 from decimal import Decimal
 from lxml import etree
@@ -196,10 +196,10 @@ class XPathContext:
                         from arelle.FunctionUtil import (testTypeCompatiblity)
                         testTypeCompatiblity( self, p, op, op1, op2 )
                         if type(op1) != type(op2) and op in ('+', '-', '*', 'div', 'idiv', 'mod'):
-                            # check if type promotion needed
-                            if isinstance(op1,Decimal) and isinstance(op2,(int,float)):
+                            # check if type promotion needed (Decimal-float, not needed for integer-Decimal)
+                            if isinstance(op1,Decimal) and isinstance(op2,float):
                                 op1 = float(op1) # per http://http://www.w3.org/TR/xpath20/#dt-type-promotion 1b
-                            elif isinstance(op2,Decimal) and isinstance(op1,(int,float)):
+                            elif isinstance(op2,Decimal) and isinstance(op1,float):
                                 op2 = float(op2)
                         if op == '+':
                             result = op1 + op2 
@@ -336,8 +336,8 @@ class XPathContext:
                                 if t.namespaceURI == XbrlConst.xsd:
                                     tType = {
                                            "integer": _INT_TYPES,
-                                           "string": str,
-                                           "decimal": (Decimal, float),
+                                           "string": _STR_BASE,
+                                           "decimal": Decimal,
                                            "double": float,
                                            "float": float,
                                            "boolean": bool,
@@ -506,7 +506,7 @@ class XPathContext:
                             targetNodes = XmlUtil.children(node, ns, localname)
                     elif axis == "parent":
                         if isinstance(node,ModelAttribute):
-                            paretNode = [ node.modelElement ]
+                            parentNode = [ node.modelElement ]
                         else:
                             parentNode = [ XmlUtil.parent(node) ]
                         if (isinstance(node,ModelObject) and
@@ -571,8 +571,8 @@ class XPathContext:
                         targetNodes = [ XmlUtil.parent(node) ]
             elif isinstance(p, OperationDef) and isinstance(p.name,QNameDef):
                 if isinstance(node,ModelObject):
-                    if p.name.localName == "text":
-                        targetNodes = [XmlUtil.text(node)]
+                    if p.name.localName == "text": # note this is not string value, just child text
+                        targetNodes = [node.elementText]
                     # todo: add element, attribute, node, etc...
             elif p == '*':  # wildcard
                 if op == '/' or op is None:
@@ -632,21 +632,30 @@ class XPathContext:
             if e is not None:
                 if e.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == "true":
                     return []
+                '''
                 try:
-                    if e.xValid >= VALID:
+                    # TBD: mixed content elements xValue does not include child content
+                    # should rework this section
+                    elif e.xValid >= VALID:
                         return e.xValue
                 except AttributeError:
                     pass
+                '''
                 modelXbrl = x.modelXbrl
                 modelConcept = modelXbrl.qnameConcepts.get(qname(x))
                 if modelConcept is not None:
                     baseXsdType = modelConcept.baseXsdType
-                v = XmlUtil.text(x)
-        if baseXsdType in ("decimal", "float", "double"):
+                v = x.stringValue
+        if baseXsdType in ("float", "double"):
             try:
                 x = float(v)
             except ValueError:
                 raise XPathException(p, 'err:FORG0001', _('Atomizing {0} to a {1} does not have a proper value').format(x,baseXsdType))
+        elif baseXsdType == "decimal":
+            try:
+                x = Decimal(v)
+            except ValueError:
+                raise XPathException(p, 'err:FORG0001', _('Atomizing {0} to decimal does not have a proper value'))
         elif baseXsdType in ("integer",
                              "nonPositiveInteger","negativeInteger","nonNegativeInteger","positiveInteger",
                              "long","unsignedLong",

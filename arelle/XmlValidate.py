@@ -20,6 +20,7 @@ INVALID = 2
 NONE = 3
 VALID = 4 # values >= VALID are valid
 VALID_ID = 5
+VALID_NO_CONTENT = 6 # may be a complex type with children
 
 normalizeWhitespacePattern = re.compile(r"\s")
 collapseWhitespacePattern = re.compile(r"\s+")
@@ -254,7 +255,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                     pass
     if recurse: # if there is no complex or simple type (such as xbrli:measure) then this code is used
         for child in (elt.modelTupleFacts if ixFacts and isIxFact else elt):
-            if isinstance(child, ModelObject):
+            if isinstance(child, ModelObject):     
                 validate(modelXbrl, child, recurse, attrQname, ixFacts)
 
 def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False, isNil=False, facets=None):
@@ -283,6 +284,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                 if len(value) > 0 and not value.isspace():
                     raise ValueError("value content not permitted")
                 xValue = sValue = None
+                xValid = VALID_NO_CONTENT
             elif not value and isNil and isNillable: # rest of types get None if nil/empty value
                 xValue = sValue = None
             else:

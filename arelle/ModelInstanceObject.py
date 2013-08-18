@@ -574,7 +574,12 @@ class ModelInlineFact(ModelFact):
 
     @property
     def elementText(self):
-        """(str) -- override xml-level elementText for transformed value text"""
+        """(str) -- override xml-level elementText for transformed value text()"""
+        return self.value
+    
+    @property
+    def stringValue(self):
+        """(str) -- override xml-level stringValue for transformed value descendants text"""
         return self.value
     
     @property

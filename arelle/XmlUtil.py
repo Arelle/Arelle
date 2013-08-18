@@ -397,6 +397,10 @@ def schemaAttributesGroups(element, attributes=None, attributeWildcards=None, at
     return (attributes, attributeWildcards, attributeGroups)
 
 def emptyContentModel(element):
+    if element.tag in ("{http://www.w3.org/2001/XMLSchema}complexType",
+                     "{http://www.w3.org/2001/XMLSchema}complexContent"):
+        if element.get("mixed") == "true":
+            return False
     for child in element.iterchildren():
         if child.tag in ("{http://www.w3.org/2001/XMLSchema}complexType",
                          "{http://www.w3.org/2001/XMLSchema}complexContent"):
