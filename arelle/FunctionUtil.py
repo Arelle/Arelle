@@ -46,6 +46,19 @@ def numericArg(xc, p, args, i=0, missingArgFallback=None, emptyFallback=0, conve
             numeric = convertFallback
     return numeric
 
+def integerArg(xc, p, args, i=0, missingArgFallback=None, emptyFallback=0, convertFallback=None):
+    item = anytypeArg(xc, args, i, "integer?", missingArgFallback)
+    if item == (): return emptyFallback
+    numeric = xc.atomize(p, item)
+    if not isinstance(numeric,_INT_TYPES): 
+        if convertFallback is None:
+            raise FunctionArgType(i,"integer?",numeric)
+        try:
+            numeric = _INT(numeric)
+        except ValueError:
+            numeric = convertFallback
+    return numeric
+
 def qnameArg(xc, p, args, i, type, missingArgFallback=None, emptyFallback=()):
     item = anytypeArg(xc, args, i, type, missingArgFallback)
     if item == (): return emptyFallback

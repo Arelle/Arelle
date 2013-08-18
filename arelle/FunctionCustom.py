@@ -8,6 +8,7 @@ import xml.dom, math, re
 from arelle.ModelValue import qname
 from arelle import XPathContext, XbrlUtil
 from arelle.ModelInstanceObject import ModelDimensionValue
+from decimal import Decimal
     
 class fnFunctionNotAvailable(Exception):
     def __init__(self):
@@ -107,7 +108,14 @@ def  my_fn_PDxEV(xc, p, contextItem, args):
                     else:
                         dimEqual = (pdDim == evDim)
                     if dimEqual:
-                        PDxEV.append(pd.xValue * ev.xValue)
+                        pdX = pd.xValue
+                        evX = ev.xValue
+                        # type promotion required
+                        if isinstance(pdX,Decimal) and isinstance(evX,float):
+                            pdX = float(pdX)
+                        elif isinstance(evX,Decimal) and isinstance(pdX,float):
+                            pdX = float(evX)
+                        PDxEV.append(pdX * evX)
                         break
     return PDxEV
 

@@ -8,10 +8,13 @@ import math, re, sre_constants
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelValue import (qname, dateTime, DateTime, DATE, DATETIME, dayTimeDuration,
                          YearMonthDuration, DayTimeDuration, time, Time)
-from arelle.FunctionUtil import anytypeArg, atomicArg, stringArg, numericArg, qnameArg, nodeArg
+from arelle.FunctionUtil import anytypeArg, atomicArg, stringArg, numericArg, integerArg, qnameArg, nodeArg
 from arelle import FunctionXs, XPathContext, XbrlUtil, XmlUtil, UrlUtil, ModelDocument, XmlValidate
 from arelle.Locale import format_picture
+from decimal import Decimal
 from lxml import etree
+
+DECIMAL_5 = Decimal(.5)
     
 class fnFunctionNotAvailable(Exception):
     def __init__(self):
@@ -93,7 +96,7 @@ def fn_round(xc, p, contextItem, args):
     x = numericArg(xc, p, args)
     if math.isinf(x) or math.isnan(x): 
         return x
-    return _INT(x + .5)  # round towards +inf
+    return _INT(x + (DECIMAL_5 if isinstance(x,Decimal) else .5))  # round towards +inf
 
 def fn_round_half_to_even(xc, p, contextItem, args):
     if len(args) > 2 or len(args) == 0: raise XPathContext.FunctionNumArgs()
@@ -521,7 +524,9 @@ def Node_functions(xc, contextItem, args, name=None, localName=None, namespaceUR
 NaN = float('NaN')
 
 def number(xc, p, contextItem, args):
-    return numericArg(xc, p, args, missingArgFallback=contextItem, emptyFallback=NaN, convertFallback=NaN)
+    # TBD: add argument of type of number to convert to (fallback is float)
+    n = numericArg(xc, p, args, missingArgFallback=contextItem, emptyFallback=NaN, convertFallback=NaN)
+    return float(n)
 
 def lang(xc, p, contextItem, args):
     raise fnFunctionNotAvailable()
@@ -581,7 +586,7 @@ def insert_before(xc, p, contextItem, args):
     sequence = args[0]
     if isinstance(sequence, tuple): sequence = list(sequence)
     elif not isinstance(sequence, list): sequence = [sequence]
-    index = numericArg(xc, p, args, 1, "xs:integer", convertFallback=0) - 1
+    index = integerArg(xc, p, args, 1, "xs:integer", convertFallback=0) - 1
     insertion = args[2]
     if isinstance(insertion, tuple): insertion = list(insertion)
     elif not isinstance(insertion, list): insertion = [insertion]
@@ -590,7 +595,7 @@ def insert_before(xc, p, contextItem, args):
 def remove(xc, p, contextItem, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     sequence = args[0]
-    index = numericArg(xc, p, args, 1, "xs:integer", convertFallback=0) - 1
+    index = integerArg(xc, p, args, 1, "xs:integer", convertFallback=0) - 1
     return sequence[:index] + sequence[index+1:]
 
 def reverse(xc, p, contextItem, args):

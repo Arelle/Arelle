@@ -6,6 +6,7 @@ Sample custom functions plugin for formula custom functions
 from arelle import XPathContext, XbrlUtil
 from arelle.ModelValue import qname
 from arelle.ModelInstanceObject import ModelDimensionValue
+from decimal import Decimal
 
 # custom function for test case 22015 v01, same as in FunctionCustom.py        
 def  test_22015v01_my_fn_PDxEV(xc, p, contextItem, args):
@@ -28,6 +29,12 @@ def  test_22015v01_my_fn_PDxEV(xc, p, contextItem, args):
                         dimEqual = (pdDim == evDim)
                     if dimEqual:
                         PDxEV.append(pd.xValue * ev.xValue)
+                        # type promotion required
+                        if isinstance(pdX,Decimal) and isinstance(evX,float):
+                            pdX = float(pdX)
+                        elif isinstance(evX,Decimal) and isinstance(pdX,float):
+                            pdX = float(evX)
+                        PDxEV.append(pdX * evX)
                         break
     return PDxEV
     
