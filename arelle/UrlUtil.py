@@ -6,12 +6,13 @@ Created on Oct 22, 2010
 '''
 import re, os, sys
 if sys.version[0] >= '3':
-    from urllib.parse import urldefrag, unquote, quote, urljoin
     from urllib.request import pathname2url
+    from urllib.parse import urldefrag, unquote, quote, urljoin
     isPy3 = True
 else:
     from urlparse import urldefrag, urljoin
-    from urllib import quote, pathname2url
+    from urllib import quote
+    from urllib import pathname2url
     from arelle.PythonUtil import py3unquote as unquote
     isPy3 = False
 

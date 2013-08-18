@@ -9,7 +9,7 @@ from lxml import etree
 if sys.version[0] >= '3':
     from urllib.parse import urljoin
 else:
-    from urllib2.urlparse import urljoin
+    from urlparse import urljoin
 from arelle import Locale
 
 def parseTxmyPkg(mainWin, metadataFile):
