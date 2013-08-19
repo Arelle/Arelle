@@ -11,6 +11,7 @@ from arelle.ModelValue import (qname, dateTime, DateTime, DATE, DATETIME, dayTim
 from arelle.FunctionUtil import anytypeArg, atomicArg, stringArg, numericArg, integerArg, qnameArg, nodeArg
 from arelle import FunctionXs, XPathContext, XbrlUtil, XmlUtil, UrlUtil, ModelDocument, XmlValidate
 from arelle.Locale import format_picture
+from arelle.XmlValidate import VALID_NO_CONTENT
 from decimal import Decimal
 from lxml import etree
 
@@ -43,7 +44,13 @@ def nilled(xc, p, contextItem, args):
 
 def string(xc, p, contextItem, args):
     if len(args) > 1: raise XPathContext.FunctionNumArgs()
-    x = atomicArg(xc, p, args, 0, "item()?", missingArgFallback=contextItem, emptyFallback='')
+    item = anytypeArg(xc, args, 0, "item()?", missingArgFallback=contextItem)
+    if item == (): 
+        return ''
+    if isinstance(item, ModelObject) and item.xValid == VALID_NO_CONTENT:
+        x = item.stringValue # represents inner text of this and all subelements
+    else:
+        x = xc.atomize(p, item)
     return FunctionXs.xsString( xc, p, x ) 
 
 def data(xc, p, contextItem, args):
