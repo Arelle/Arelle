@@ -137,7 +137,7 @@ def childText(element, childNamespaceURIs, childLocalNames):
 def textNotStripped(element):
     if element is None: 
         return ""
-    return element.elementText  # allows embedded comment nodes, returns '' if None
+    return element.textValue  # allows embedded comment nodes, returns '' if None
 
 def innerText(element, ixExclude=False, ixEscape=False, strip=True):   
     try:

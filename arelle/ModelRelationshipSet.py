@@ -313,7 +313,7 @@ class ModelRelationshipSet:
             label = modelLabelRel.toModelObject
             if role == label.role:
                 labelLang = label.xmlLang
-                text = label.elementText if returnText else label
+                text = label.textValue if returnText else label
                 if lang is None or len(lang) == 0 or lang == labelLang:
                     langLabels.append(text)
                     if not returnMultiple:

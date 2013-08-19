@@ -55,7 +55,7 @@ class ModelInlineXbrlDocumentSet(ModelDocument):
                     attrs.append((XbrlConst.qnXsiNil,"true"))
                     text = None
                 else:
-                    text = fact.xValue if fact.xValid else fact.elementText
+                    text = fact.xValue if fact.xValid else fact.textValue
                 newFact = targetInstance.createFact(fact.qname, attributes=attrs, text=text)
         targetInstance.saveInstance(overrideFilepath=targetUrl)
         self.modelXbrl.modelManager.showStatus(_("Saved extracted instance"), 5000)
@@ -67,7 +67,7 @@ class ModelInlineXbrlDocumentSet(ModelDocument):
             self.targetDocumentPreferredFilename = instanceElt.get('preferredFilename')
             self.targetDocumentSchemaRefs = set()  # union all the instance schemaRefs
             for ixbrlElt in instanceElt.iter(tag="{http://disclosure.edinet-fsa.go.jp/2013/manifest}ixbrl"):
-                uri = ixbrlElt.elementText.strip()
+                uri = ixbrlElt.textValue.strip()
                 if uri:
                     doc = load(self.modelXbrl, uri, base=self.filepath, referringElement=instanceElt)
                     if doc is not None and doc not in self.referencesDocument:

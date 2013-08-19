@@ -1108,7 +1108,7 @@ class ModelFilterDefinitionNode(ModelOpenDefinitionNode):
                 aspectElt = XmlUtil.child(self, XbrlConst.table, ("conceptAspect", "unitAspect", "entityIdentifierAspect", "periodAspect", "dimensionAspect"))
                 if aspectElt is not None:
                     if aspectElt.localName == "dimensionAspect":
-                        self._aspectsCovered.add(qname(aspectElt, aspectElt.elementText))
+                        self._aspectsCovered.add(qname(aspectElt, aspectElt.textValue))
                     else:
                         self._aspectsCovered.add(aspectNodeAspectCovered[aspectElt.localName])                                                  
             else:

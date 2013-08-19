@@ -163,7 +163,7 @@ def sphinxValidater(val):
 def sphinxTestcaseVariationReadMeFirstUris(modelTestcaseVariation):
     xbrlElement = XmlUtil.descendant(modelTestcaseVariation, 'http://www.corefiling.com/sphinx-conformance-harness/2.0', "xbrl")
     if xbrlElement is not None:
-        modelTestcaseVariation._readMeFirstUris.append(xbrlElement.elementText)
+        modelTestcaseVariation._readMeFirstUris.append(xbrlElement.textValue)
         return True # found it
     return False  # not a sphinx test case variation
     

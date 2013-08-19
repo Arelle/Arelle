@@ -87,7 +87,8 @@ def sEqual(dts1, elt1, elt2, equalMode=S_EQUAL, excludeIDs=NO_IDs_EXCLUDED, dts2
         return False
     if (not xEqual(elt1, elt2,
                    # must use stringValue for nested contents of mixed content 
-                   VALIDATE_BY_STRING_VALUE if len(children1) and elt1.xValid == VALID else
+                   # ... this is now in xValue for mixed content
+                   # VALIDATE_BY_STRING_VALUE if len(children1) and elt1.xValid == VALID else
                    equalMode
                    ) or 
         attributeDict(dts1, elt1, (), equalMode, excludeIDs) != 

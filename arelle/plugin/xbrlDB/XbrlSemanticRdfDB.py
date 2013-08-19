@@ -754,13 +754,13 @@ class XbrlSemanticRdfDatabaseConnection():
                                     g.add( (aspectValSelUri, DTS.aspectProxy, self.aspectQnameProxyURI(dimVal.dimensionQname) ) )
                                     g.add( (aspectValSelUri, DTS.aspectValueProxy, self.aspectQnameProxyURI(dimVal.memberQname) ) )
                             else:
-                                key = (dimVal.dimensionQname, False, dimVal.typedMember.innerText)
+                                key = (dimVal.dimensionQname, False, dimVal.typedMember.stringValue)
                                 aspectValSelUri = URIRef( "{}/AspectTypedValue/{}".format(self.accessionURI, XmlUtil.elementFragmentIdentifier(dimVal)) )
                                 if key not in dimensionIds:
                                     dimensions.append(key)
                                     g.add( (aspectValSelUri, RDF.type, Aspect.ValueSelection) )
                                     g.add( (aspectValSelUri, DTS.aspectProxy, self.aspectQnameProxyURI(dimVal.dimensionQname) ) )
-                                    g.add( (aspectValSelUri, DTS.typedValue, L(dimVal.typedMember.innerText) ) )
+                                    g.add( (aspectValSelUri, DTS.typedValue, L(dimVal.typedMember.stringValue) ) )
                             g.add( (factUri, XBRL.aspectValueSelection, aspectValSelUri) )
                     if fact.isNumeric:
                         if fact.precision == "INF":
@@ -951,7 +951,7 @@ class XbrlSemanticRdfDatabaseConnection():
                     for resource in resources:
                         resourceUri = modelObjectUri(resource)
                         g.add( (resourceUri, RDF.type, XBRL.resource) )
-                        g.add( (resourceUri, XBRL.value, L(resource.innerText)) )
+                        g.add( (resourceUri, XBRL.value, L(resource.stringValue)) )
                         if resource.role:
                             g.add( (resourceUri, XBRL.role, URIRef(resource.role)) )
                     

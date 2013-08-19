@@ -116,7 +116,7 @@ class ViewRelationshipSet(ViewFile.View):
                     attr = {"text": text,
                             "innerXml": XmlUtil.xmlstring(concept, stripXmlns=True, prettyPrint=False, contentsOnly=True)}
                 else:
-                    text = (concept.elementText.strip() or concept.localName)
+                    text = (concept.textValue.strip() or concept.localName)
                     attr = {"text": text}
                 xmlRowElementName = "resource"
             else:   # just a resource

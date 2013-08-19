@@ -103,14 +103,14 @@ class ModelRoleType(ModelObject):
             return self._definition
         except AttributeError:
             definition = XmlUtil.child(self, XbrlConst.link, "definition")
-            self._definition = definition.elementText.strip() if definition is not None else None
+            self._definition = definition.textValue.strip() if definition is not None else None
             return self._definition
 
     @property
     def definitionNotStripped(self):
         """(str) -- Text of child definition element (not stripped)"""
         definition = XmlUtil.child(self, XbrlConst.link, "definition")
-        return definition.elementText if definition is not None else None
+        return definition.textValue if definition is not None else None
     
     @property
     def usedOns(self): 

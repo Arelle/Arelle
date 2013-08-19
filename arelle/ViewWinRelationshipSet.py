@@ -158,7 +158,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 if self.showReferences:
                     text = (concept.viewText() or concept.localName)
                 else:
-                    text = (Locale.rtlString(concept.elementText.strip(), lang=concept.xmlLang) or concept.localName)
+                    text = (Locale.rtlString(concept.textValue.strip(), lang=concept.xmlLang) or concept.localName)
             else:   # just a resource
                 text = concept.localName
             childnode = self.treeView.insert(parentnode, "end", modelObject.objectId(self.id), text=text, tags=("odd" if n & 1 else "even",))

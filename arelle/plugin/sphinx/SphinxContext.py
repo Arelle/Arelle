@@ -355,7 +355,7 @@ def typedDimTest(aspect, value, fact):
             return value is NONE or value is DEFAULT
         if value is NONDEFAULT:
             return True
-        return memElt.elementText == value
+        return memElt.textValue == value
     else:
         return value is NONE or value is DEFAULT
     

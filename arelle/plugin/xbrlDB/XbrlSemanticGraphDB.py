@@ -836,7 +836,7 @@ class XbrlSemanticGraphDatabaseConnection():
                             aspectQnamesUsed.add(dimVal.memberQname)
                             key = (dimVal.dimensionQname, True, dimVal.memberQname)
                         else:
-                            key = (dimVal.dimensionQname, False, dimVal.typedMember.innerText)
+                            key = (dimVal.dimensionQname, False, dimVal.typedMember.stringValue)
                         if key not in dimensions:
                             dimensions.append(key)
                     if fact.isNumeric:
@@ -1025,7 +1025,7 @@ class XbrlSemanticGraphDatabaseConnection():
                 # dimension aspectValueSelections
                 for dimVal in context.qnameDims.values():
                     key = (dimVal.dimensionQname, dimVal.isExplicit,
-                           dimVal.memberQname if dimVal.isExplicit else dimVal.typedMember.innerText)
+                           dimVal.memberQname if dimVal.isExplicit else dimVal.typedMember.stringValue)
                     edges.append({
                         'from_id': dataPoint_id,
                         'to_id': dimValAspValSelVertexIds[key],
@@ -1172,7 +1172,7 @@ class XbrlSemanticGraphDatabaseConnection():
                     resourceObjs = []
                     for resource in resources:
                         resourceParam = {'_class': resource.localName,
-                                         'value': dbString( resource.innerText )} # compress if very long
+                                         'value': dbString( resource.stringValue )} # compress if very long
                         if resource.role:
                             resourceParam['role'] = resource.role
                         resourceV.append(resourceParam)

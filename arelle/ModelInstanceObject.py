@@ -298,7 +298,7 @@ class ModelFact(ModelObject):
     @property
     def value(self):
         """(str) -- Text value of fact or default or fixed if any, otherwise None"""
-        v = self.elementText
+        v = self.textValue
         if not v:
             if self.concept.default is not None:
                 v = self.concept.default
@@ -573,8 +573,8 @@ class ModelInlineFact(ModelFact):
             return self._ixValue
 
     @property
-    def elementText(self):
-        """(str) -- override xml-level elementText for transformed value text()"""
+    def textValue(self):
+        """(str) -- override xml-level textValue for transformed value text()"""
         return self.value
     
     @property
@@ -1062,7 +1062,7 @@ class ModelDimensionValue(ModelObject):
         try:
             return self._memberQname
         except AttributeError:
-            self._memberQname = self.prefixedNameQname(self.elementText) if self.isExplicit else None
+            self._memberQname = self.prefixedNameQname(self.textValue) if self.isExplicit else None
             return self._memberQname
         
     @property

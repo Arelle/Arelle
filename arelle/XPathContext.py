@@ -572,7 +572,7 @@ class XPathContext:
             elif isinstance(p, OperationDef) and isinstance(p.name,QNameDef):
                 if isinstance(node,ModelObject):
                     if p.name.localName == "text": # note this is not string value, just child text
-                        targetNodes = [node.elementText]
+                        targetNodes = [node.textValue]
                     # todo: add element, attribute, node, etc...
             elif p == '*':  # wildcard
                 if op == '/' or op is None:
@@ -630,17 +630,15 @@ class XPathContext:
             if isinstance(x, ModelObject):
                 e = x
             if e is not None:
+                if e.xValid == VALID_NO_CONTENT:
+                    raise XPathException(p, 'err:FOTY0012', _('Atomizing element {0} that does not have a typed value').format(x))
                 if e.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == "true":
                     return []
-                '''
                 try:
-                    # TBD: mixed content elements xValue does not include child content
-                    # should rework this section
-                    elif e.xValid >= VALID:
+                    if e.xValid >= VALID:
                         return e.xValue
                 except AttributeError:
                     pass
-                '''
                 modelXbrl = x.modelXbrl
                 modelConcept = modelXbrl.qnameConcepts.get(qname(x))
                 if modelConcept is not None:
@@ -680,6 +678,8 @@ class XPathContext:
             x = dateTime(v, type=DATE)
         elif baseXsdType == "dateTime":
             x = dateTime(v, type=DATETIME)
+        elif baseXsdType == "noContent":
+            x = None # can't be atomized
         elif baseXsdType:
             x = str(v)
         return x

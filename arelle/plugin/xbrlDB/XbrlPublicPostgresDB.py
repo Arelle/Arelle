@@ -726,7 +726,7 @@ WITH row_values (%(newCols)s) AS (
                               tuple((self.resourceId[self.documentIds[resource.modelDocument.uri],
                                                      resource.sourceline,
                                                      0],
-                                     resource.elementText,
+                                     resource.textValue,
                                      resource.xmlLang)
                                     for arcrole in (XbrlConst.conceptLabel, XbrlConst.conceptReference)
                                     for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
@@ -854,7 +854,7 @@ WITH row_values (%(newCols)s) AS (
                                self.qnameId.get(dim.typedMember.qname) if dim.isTyped else None,
                                False, # not default
                                dim.contextElement == "segment",
-                               dim.typedMember.innerText if dim.isTyped else None))
+                               dim.typedMember.stringValue if dim.isTyped else None))
             for dimQname, memQname in self.modelXbrl.qnameDimensionDefaults.items():
                 if dimQname not in cntx.qnameDims:
                     values.append((self.cntxId[(accsId,cntx.id)],
