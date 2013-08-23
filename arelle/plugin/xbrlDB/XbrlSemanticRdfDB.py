@@ -97,7 +97,7 @@ DEFAULT_GRAPH_CLASS = None
 XML = XBRL = XBRLI = LINK = QName = Filing = DTS = Aspect = AspectType = None
 DocumentTypes = RoleType = ArcRoleType = Relationship = ArcRoleCycles = None
 DataPoint = Context = Period = Unit = None
-SEC = SEC_CIK = None
+SEC = None
 
 def initRdflibNamespaces():
     global Namespace, URIRef, Literal, Graph, L, XSD, RDF, RDFS, DEFAULT_GRAPH_CLASS
@@ -109,7 +109,7 @@ def initRdflibNamespaces():
     global XML, XBRL, XBRLI, LINK, QName, Filing, DTS, Aspect, AspectType, \
            DocumentTypes, RoleType, ArcRoleType, Relationship, ArcRoleCycles, \
            DataPoint, Context, Period, Unit, \
-           SEC, SEC_CIK
+           SEC
     if XML is None:
         XML = Namespace("http://www.w3.org/XML/1998/namespace")
         XBRL = Namespace("http://xbrl.org/2013/rdf/")
@@ -133,12 +133,8 @@ def initRdflibNamespaces():
         Context = Namespace("http://xbrl.org/2013/rdf/Context/")
         Period = Namespace("http://xbrl.org/2013/rdf/Period/")
         Unit = Namespace("http://xbrl.org/2013/rdf/Unit/")
-         
-        # namespace for predicates
-        P = Namespace("http://xbrl.org/2013/rdf:")
         
         SEC = Namespace("http://www.sec.gov/")
-        SEC_CIK = Namespace("http://www.sec.gov/CIK/")
  
 def modelObjectDocumentUri(modelObject):
     return URIRef( UrlUtil.ensureUrl(modelObject.modelDocument.uri) )
@@ -235,7 +231,6 @@ class XbrlSemanticRdfDatabaseConnection():
         g.bind("period", Period)
         g.bind("unit", Unit)
         g.bind("sec", SEC)
-        g.bind("cik", SEC_CIK)
         return g
             
     def execute(self, activity, graph=None, query=None):
@@ -379,31 +374,37 @@ class XbrlSemanticRdfDatabaseConnection():
             # set self.
             accessionType = "SEC_filing"
             # for an RSS Feed entry from SEC, use rss item's accession information
-            new_accession['accepted_timestamp'] = XmlUtil.dateunionValue(rssItem.acceptanceDatetime)
-            new_accession['filing_date'] = XmlUtil.dateunionValue(rssItem.filingDate)
-            new_accession['entity_id'] = rssItem.cikNumber
-            new_accession['entity_name'] = rssItem.companyName
-            new_accession['standard_industrial_classification'] = rssItem.assignedSic 
-            new_accession['sec_html_url'] = rssItem.htmlUrl 
-            new_accession['entry_url'] = URIRef( rssItem.url )
-            new_accession['filing_accession_number'] = filing_accession_number = rssItem.accessionNumber
+            new_accession['accessionNumber'] = accessionNumber = rssItem.accessionNumber
+            new_accession['acceptedTimestamp'] = XmlUtil.dateunionValue(rssItem.acceptanceDatetime)
+            new_accession['filingDate'] = XmlUtil.dateunionValue(rssItem.filingDate)
+            new_accession['entityId'] = rssItem.cikNumber
+            new_accession['entityName'] = rssItem.companyName
+            new_accession['SICCode'] = rssItem.assignedSic 
+            new_accession['SECHtmlUrl'] = rssItem.htmlUrl 
+            new_accession['entryUrl'] = URIRef( rssItem.url )
             self.accessionDTS = rssItem.htmlUrl
             self.accessionURI = URIRef( self.accessionDTS )
         else:
             # not an RSS Feed item, make up our own accession ID (the time in seconds of epoch)
-            self.accessionId = int(time.time())    # only available if entered from an SEC filing
             intNow = int(time.time())
+            new_accession['accessionNumber'] = accessionNumber = str(intNow)
+            self.accessionId = int(time.time())    # only available if entered from an SEC filing
             accessionType = "independent_filing"
-            new_accession['accepted_timestamp'] = datetimeNowStr
-            new_accession['filing_date'] = datetimeNowStr
-            new_accession['entry_url'] = URIRef( UrlUtil.ensureUrl(self.modelXbrl.fileSource.url) )
-            new_accession['filing_accession_number'] = filing_accession_number = str(intNow)
-            self.accessionDTS = Filing[filing_accession_number]
+            new_accession['acceptedTimestamp'] = datetimeNowStr
+            new_accession['filingDate'] = datetimeNowStr
+            new_accession['entryUrl'] = URIRef( UrlUtil.ensureUrl(self.modelXbrl.fileSource.url) )
+            self.accessionDTS = Filing[accessionNumber]
             self.accessionURI = URIRef( self.accessionDTS )
             
         g.add( (self.accessionURI, RDF.type, XBRL.Filing) )
         for n, v in new_accession.items():
             g.add( (self.accessionURI, Filing[n], L(v)) )
+            
+        # for now only one report per filing (but SEC may have multiple in future, such as form SD)
+        self.reportURI = URIRef( modelObjectDocumentUri(self.modelXbrl) )
+        g.add( (self.reportURI, RDF.type, XBRL.Report) )
+        g.add( (self.accessionURI, Filing.report, self.reportURI) )
+        g.add( (self.reportURI, Filing.filing, self.accessionURI) )
             
         # relationshipSets are a dts property
         self.relationshipSets = [(arcrole, ELR, linkqname, arcqname)
@@ -437,19 +438,19 @@ class XbrlSemanticRdfDatabaseConnection():
         # 
         self.showStatus("insert documents")
         documents = []
-        entryUrl = URIRef( modelObjectDocumentUri(self.modelXbrl) )
         for modelDocument in self.modelXbrl.urlDocs.values():
             docUri = URIRef( modelObjectDocumentUri(modelDocument) )
             if UrlUtil.ensureUrl(modelDocument.uri) not in self.existingDocumentUris:
-                g.add( (docUri, RDF.type, DTS.Document) )
-                g.add( (docUri, RDF.type, DocumentTypes.get(modelDocument.type,
+                g.add( (docUri, RDF.type, XBRL.Document) )
+                g.add( (docUri, XBRL.url, docUri ) )
+                g.add( (docUri, XBRL.documentType, DocumentTypes.get(modelDocument.type,
                                                              DocumentTypes.get(Type.UnknownXML))) )
                 for doc, ref in modelDocument.referencesDocument.items():
                     if doc.inDTS and ref.referenceType in ("href", "import", "include"):
                         g.add( (docUri, XBRL.references, URIRef( modelObjectDocumentUri(doc) )) )
-            g.add( (self.accessionURI, Filing.references, docUri) )
+            g.add( (self.accessionURI, Filing.document, docUri) )
             if modelDocument.uri == self.modelXbrl.modelDocument.uri: # entry document
-                g.add( (docUri, RDF.type, DTS.EntryPoint) )
+                g.add( (self.reportURI, DTS.EntryPoint, docUri) )
                 
     def conceptsUsed(self):
         conceptsUsed = set(f.qname for f in self.modelXbrl.factsInInstance)
@@ -472,7 +473,7 @@ class XbrlSemanticRdfDatabaseConnection():
                 if isinstance(rel.toModelObject, ModelConcept):
                     conceptsUsed.add(rel.toModelObject)
         for qn in (XbrlConst.qnXbrliIdentifier, XbrlConst.qnXbrliPeriod, XbrlConst.qnXbrliUnit):
-            conceptsUsed.add(self.modelXbrl.qnameConcepts[qn])
+            conceptsUsed.add(qn)
         
         conceptsUsed -= {None}  # remove None if in conceptsUsed
         return conceptsUsed
@@ -512,11 +513,10 @@ class XbrlSemanticRdfDatabaseConnection():
                             typeUri = modelObjectUri(modelType)
                             typeQnameUri = qnameUri(modelType)
                             docUri = modelObjectDocumentUri(modelType)
-                            g.add( (docUri, XBRL.defines, typeUri) )
+                            g.add( (docUri, XBRL.dataType, typeUri) )
+                            g.add( (typeUri, XBRL.document, docUri) )
                      
-                            g.add( (typeUri, RDF.type, Aspect.Type) )
-                            #g.add( (type_uri, XBRL.qname, type_qname_uri) )
-                            #g = dump_xbrl_qname(t.qname, g)
+                            g.add( (typeUri, RDF.type, XBRL.DataType) )
                             g.add( (typeUri, RDF.type, XBRL.QName) )
                             g.add( (typeUri, QName.namespace, L(modelDocument.targetNamespace)) )
                             g.add( (typeUri, QName.localName, L(modelType.name)) )
@@ -550,11 +550,10 @@ class XbrlSemanticRdfDatabaseConnection():
                         conceptUri = modelObjectUri(modelConcept)
                         conceptQnameUri = modelObjectQnameUri(modelConcept)
                         docUri = modelObjectDocumentUri(modelConcept)
-                        #g.add( (doc_uri, XBRL.defines, conceptUri) )
+                        g.add( (docUri, XBRL.aspect, conceptUri) )
+                        g.add( (conceptUri, XBRL.document, docUri) )
                  
                         g.add( (conceptUri, RDF.type, XBRL.Concept) )
-                        #g.add( (conceptUri, XBRL.qname, concept_qname_uri) )
-                        #g = dump_xbrl_qname(modelConcept.qname, g)
                         g.add( (conceptUri, RDF.type, XBRL.QName) )
                         g.add( (conceptUri, QName.namespace, L(modelConcept.qname.namespaceURI)) )
                         g.add( (conceptUri, QName.localName, L(modelConcept.qname.localName)) )
@@ -577,19 +576,20 @@ class XbrlSemanticRdfDatabaseConnection():
                         conceptType = modelConcept.type
                         if conceptType is not None:
                             typeUri = modelObjectUri(conceptType)
-                            g.add( (conceptUri, XBRL.type, typeUri) )
+                            g.add( (conceptUri, XBRL.dataType, typeUri) )
                         
                         substitutionGroup = modelConcept.substitutionGroup
                         if substitutionGroup is not None:
                             sgUri = modelObjectUri(substitutionGroup)
-                            g.add( (conceptUri, Aspect.substitutionGroup, sgUri) )
+                            g.add( (conceptUri, XBRL.substitutionGroup, sgUri) )
                     for modelRoleTypes in self.modelXbrl.roleTypes.values():
                         for modelRoleType in modelRoleTypes:
                             rtUri = modelObjectUri(modelRoleType)
                             docUri = modelObjectDocumentUri(modelRoleType)
-                            g.add( (docUri, XBRL.defines, rtUri) )
+                            g.add( (docUri, XBRL.roleType, rtUri) )
+                            g.add( (rtUri, XBRL.document, docUri) )
                  
-                            g.add( (rtUri, RDF.type, DTS.LinkRoleType) )
+                            g.add( (rtUri, RDF.type, DTS.RoleType) )
                             g.add( (rtUri, RoleType.roleUri, URIRef(modelRoleType.roleURI)) )
                             g.add( (rtUri, RoleType.definition, L(modelRoleType.definition)) )
                             #g.add( (rt_uri, LinkRoleType.cyclesAllowed, LinkRoleType.cycles[rt.cyclesAllowed or "none"]) )
@@ -601,7 +601,8 @@ class XbrlSemanticRdfDatabaseConnection():
                         for modelArcroleType in modelArcroleTypes:
                             rt_uri = modelObjectUri(modelArcroleType)
                             doc_uri = modelObjectDocumentUri(modelArcroleType)
-                            g.add( (doc_uri, XBRL.defines, rt_uri) )
+                            g.add( (doc_uri, XBRL.arcroleType, rt_uri) )
+                            g.add( (rtUri, XBRL.document, docUri) )
                  
                             g.add( (rt_uri, RDF.type, DTS.ArcRoleType) )
                             g.add( (rt_uri, ArcRoleType.roleUri, URIRef(modelArcroleType.arcroleURI)) )
@@ -640,11 +641,17 @@ class XbrlSemanticRdfDatabaseConnection():
                         for qname in qnames 
                         if qname not in self.aspect_proxy_uri and qname in self.modelXbrl.qnameConcepts]
         for qname in aspectQnames:
-            concept = self.modelXbrl.qnameConcepts[qname]
-            aspectProxyUri = URIRef( "{}/AspectProxy/{}".format(self.accessionURI, qnamePrefix_Name(qname)) )
-            g.add( (aspectProxyUri, RDF.type, Aspect.Proxy) )
-            g.add( (aspectProxyUri, DTS.proxy, modelObjectUri(concept) ) )
-            self.aspect_proxy_uri[qname] = aspectProxyUri
+            self.insertAspectProxy(qname, 
+                                   URIRef( "{}/AspectProxy/{}".format(self.reportURI, qnamePrefix_Name(qname)) ),
+                                   g)
+            
+    def insertAspectProxy(self, aspectQName, aspectProxyUri, g):
+        concept = self.modelXbrl.qnameConcepts[aspectQName]
+        g.add( (aspectProxyUri, RDF.type, DTS.AspectProxy) )
+        g.add( (aspectProxyUri, DTS.aspect, modelObjectUri(concept) ) )
+        g.add( (aspectProxyUri, DTS.report, self.reportURI ) )
+        g.add( (self.reportURI, DTS.aspectProxy, aspectProxyUri ) )
+        self.aspect_proxy_uri[aspectQName] = aspectProxyUri
             
     
     def aspectQnameProxyURI(self, qname):
@@ -659,124 +666,114 @@ class XbrlSemanticRdfDatabaseConnection():
         # document-> dataTypeSet -> dataType
         self.showStatus("insert DataPoints")
         
-        # do all schema element vertices
-        dataPointObjectIndices = []
         # note these initial aspects Qnames used also must be in conceptsUsed above
-        aspectQnamesUsed = {XbrlConst.qnXbrliIdentifier, XbrlConst.qnXbrliPeriod, XbrlConst.qnXbrliUnit}
         dimensions = [] # index by hash of dimension
         dimensionIds = {}  # index for dimension
         if self.modelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL):
-            contextIDs = set()  # contexts processed already
+            contextAspectValueSelections = {}  # contexts processed already
             unitIDs = set()  # units processed already
-            periodURIs = set()
-            entityIdentifiers = set()
-            for i, fact in enumerate(self.modelXbrl.factsInInstance):
-                aspectQnamesUsed.add(fact.concept.qname)
-                dataPointObjectIndices.append(fact.objectIndex)
+            periodURIs = {}
+            entityIdentifierURIs = {}
+            for fact in self.modelXbrl.factsInInstance:
                 factUri = modelObjectUri(fact)
                 docUri = modelObjectDocumentUri(fact)
                 baseXsdType = fact.concept.baseXsdType if fact.concept is not None else None 
      
                 g.add( (factUri, RDF.type, XBRL.DataPoint) )
-                g.add( (docUri, XBRL.defines, factUri) )
+                g.add( (docUri, XBRL.dataPoint, factUri) )
+                g.add( (factUri, XBRL.document, docUri) )
+                self.insertAspectProxies( (fact.qname,), g )
+                g.add( (factUri, XBRL.baseItem, self.aspectQnameProxyURI(fact.qname) ) )
      
                 # fact related to aspectProxy below
                 g.add( (factUri, XML.id, L(XmlUtil.elementFragmentIdentifier(fact))) )
+                g.add( (factUri, XML.sourceLine, L(fact.sourceline)) )
                 context = fact.context
                 concept = fact.concept
-                if context is not None:                
-                    entityScheme, entityIdentifier = context.entityIdentifier
-                    if entityScheme == 'http://www.sec.gov/CIK':
-                        g.add( (factUri, SEC.CIK, SEC_CIK[entityIdentifier]) )
-                    elif entityScheme and entityIdentifier:
-                        # this seems weird, may have no way of knowing the scheme is an entityScheme
-                        g.add( (factUri, XBRL.EntityScheme, URIRef(entityScheme)) )
-                        g.add( (factUri, XBRL.EntityIdentifier, L(entityIdentifier)) )
+                if context is not None:
+                    if context.entityIdentifier not in entityIdentifierURIs:
+                        entityScheme, entityIdentifier = context.entityIdentifier
+                        entityIdentifierUri = URIRef( "{}/AspectProxy/{}/{}".format(
+                                                      self.reportURI, 
+                                                      qnamePrefix_Name(XbrlConst.qnXbrliIdentifier),
+                                                      entityIdentifier) )
+                        self.insertAspectProxy(XbrlConst.qnXbrliIdentifier, entityIdentifierUri, g)
+                        g.add( (entityIdentifierUri, RDF.type, DTS.EntityIdentifier) )
+                        g.add( (entityIdentifierUri, XBRLI.scheme, L(entityScheme)) )
+                        g.add( (entityIdentifierUri, XBRLI.identifier, L(entityIdentifier)) )
+                        entityIdentifierURIs[context.entityIdentifier] = entityIdentifierUri
+                    else:
+                        entityIdentifierUri = entityIdentifierURIs[context.entityIdentifier]
+                    g.add( (factUri, XBRLI.EntityIdentifier, entityIdentifierUri ) )
 
                     if context.isForeverPeriod:
-                        periodURI = URIRef( "{}/Period/forever".format(self.accessionURI) )
+                        period = "forever"
                     if context.isInstantPeriod:
-                        periodURI = URIRef( "{}/Period/instant/{}".format(self.accessionURI, 
-                                                                          XmlUtil.dateunionValue(context.instantDatetime, subtractOneDay=True).replace(':','_') ) )
+                        endDate = XmlUtil.dateunionValue(context.instantDatetime, subtractOneDay=True).replace(':','_')
+                        period = "instant/{}".format(endDate)
                     else:
-                        periodURI = URIRef( "{}/Period/duration/{}/{}".format(self.accessionURI, 
-                                                                              XmlUtil.dateunionValue(context.startDatetime).replace(':','_'),
-                                                                              XmlUtil.dateunionValue(context.endDatetime, subtractOneDay=True).replace(':','_') ) )
-                    g.add( (factUri, XBRL.period, periodURI) )
+                        startDate = XmlUtil.dateunionValue(context.startDatetime).replace(':','_')
+                        endDate = XmlUtil.dateunionValue(context.endDatetime, subtractOneDay=True).replace(':','_')                        
+                        period = "duration/{}/{}".format(startDate, endDate)
+                    if period not in periodURIs:
+                        periodUri = URIRef( "{}/AspectProxy/{}".format(self.reportURI, period) )
+                        self.insertAspectProxy(XbrlConst.qnXbrliPeriod, periodUri, g)
+                        g.add( (periodUri, RDF.type, DTS.Period) )
+                        g.add( (periodUri, XBRL.isForever, L(context.isForeverPeriod)) )
+                        g.add( (periodUri, XBRL.isInstant, L(context.isInstantPeriod)) )
+                        if context.isStartEndPeriod:
+                            d = context.startDatetime
+                            if d.hour == 0 and d.minute == 0 and d.second == 0:
+                                d = d.date()
+                            g.add( (periodUri, XBRLI.startDate, L(d)) )
+                        if context.isStartEndPeriod or context.isInstantPeriod:
+                            d = context.endDatetime
+                            if d.hour == 0 and d.minute == 0 and d.second == 0:
+                                d = (d - datetime.timedelta(1)).date()
+                            g.add( (periodUri, XBRLI.endDate, L(d)) )
+                        periodURIs[period] = periodUri
+                    else:
+                        periodUri = periodURIs[period]
+                    g.add( (factUri, XBRLI.Period, periodUri ) )
                     
-                    if context is not None and context.id not in contextIDs:
-                        contextIDs.add(context.id)
-                        contextUri = modelObjectUri(context)
-                        g.add( (docUri, XBRL.defines, contextUri) )
-                        g.add( (contextUri, RDF.type, XBRL.Context) )
-                        g.add( (contextUri, XML.id, L(context.id)) )
+                    contextUri = modelObjectUri(context)
+                    g.add( (factUri, XBRLI.contextId, L(context.id) ) )
+                    if context.id not in contextAspectValueSelections:
+                        contextAspectValueSelection = []
+                        contextAspectValueSelections[context.id] = contextAspectValueSelection
                         
-                        if entityIdentifier not in entityIdentifiers:
-                            entityIdentifiers.add(entityIdentifier)
-                            if entityScheme == 'http://www.sec.gov/CIK':
-                                g.add( (SEC_CIK[entityIdentifier], RDF.type, SEC.CIK) )
-                                g.add( (SEC_CIK[entityIdentifier], RDF.value, L(entityIdentifier)) )
-         
-                        if periodURI not in periodURIs:
-                            g.add( (factUri, DataPoint.period, periodURI) )
-                            periodURIs.add(periodURI)
-                            g.add( (docUri, XBRL.defines, periodURI) )
-                            if context.isForeverPeriod:
-                                g.add( (periodURI, RDF.type, XBRL.ForeverPeriod) )
-                            elif context.isInstantPeriod:
-                                g.add( (periodURI, RDF.type, XBRL.InstantPeriod) )
-                                d = context.instantDatetime
-                                if d.hour == 0 and d.minute == 0 and d.second == 0:
-                                    d = (d - datetime.timedelta(1)).date()
-                                g.add( (periodURI, Period.instant, L(d)) )
-                            elif context.isStartEndPeriod:
-                                g.add( (periodURI, RDF.type, XBRL.StartEndPeriod) )
-                                d = context.startDatetime
-                                if d.hour == 0 and d.minute == 0 and d.second == 0:
-                                    d = d.date()
-                                g.add( (periodURI, Period.start, L(d)) )
-                                d = context.endDatetime
-                                if d.hour == 0 and d.minute == 0 and d.second == 0:
-                                    d = (d - datetime.timedelta(1)).date()
-                                g.add( (periodURI, Period.end, L(d)) )
-
-                    if context is not None:                        
                         for dimVal in context.qnameDims.values():
-                            self.insertAspectProxies( (dimVal.dimensionQname,), g)  # need imediate use of proxy
+                            dimUri = modelObjectUri(dimVal)
+                            self.insertAspectProxy(dimVal.dimensionQname, dimUri, g)
+                            g.add( (dimUri, RDF.type, DTS.AspectValueSelection) )
+                            contextAspectValueSelection.append(dimUri)
                             if dimVal.isExplicit:
                                 self.insertAspectProxies( (dimVal.memberQname,), g)  # need imediate use of proxy
-                                key = (dimVal.dimensionQname, True, dimVal.memberQname)
-                                aspectValSelUri = URIRef("{}/AspectExplicitValue/{}/{}".format(
-                                                         self.accessionURI, qnamePrefix_Name(dimVal.dimension), qnamePrefix_Name(dimVal.member)) )
-                                if key not in dimensionIds:
-                                    dimensions.append(key)
-                                    g.add( (aspectValSelUri, RDF.type, Aspect.ValueSelection) )
-                                    g.add( (aspectValSelUri, DTS.aspectProxy, self.aspectQnameProxyURI(dimVal.dimensionQname) ) )
-                                    g.add( (aspectValSelUri, DTS.aspectValueProxy, self.aspectQnameProxyURI(dimVal.memberQname) ) )
+                                g.add( (dimUri, XBRLI.AspectValue, self.aspectQnameProxyURI(dimVal.memberQname) ) )
                             else:
-                                key = (dimVal.dimensionQname, False, dimVal.typedMember.stringValue)
-                                aspectValSelUri = URIRef( "{}/AspectTypedValue/{}".format(self.accessionURI, XmlUtil.elementFragmentIdentifier(dimVal)) )
-                                if key not in dimensionIds:
-                                    dimensions.append(key)
-                                    g.add( (aspectValSelUri, RDF.type, Aspect.ValueSelection) )
-                                    g.add( (aspectValSelUri, DTS.aspectProxy, self.aspectQnameProxyURI(dimVal.dimensionQname) ) )
-                                    g.add( (aspectValSelUri, DTS.typedValue, L(dimVal.typedMember.stringValue) ) )
-                            g.add( (factUri, XBRL.aspectValueSelection, aspectValSelUri) )
+                                g.add( (dimUri, DTS.typedValue, L(dimVal.typedMember.stringValue) ) )
+                    else:
+                        contextAspectValueSelection = contextAspectValueSelections[context.id]
+                        for aspectValueSelectionUri in contextAspectValueSelection:
+                            g.add( (factUri, XBRLI.aspectValueSelection, aspectValueSelectionUri) )
                     if fact.isNumeric:
                         if fact.precision == "INF":
-                            g.add( (factUri, DataPoint.precision, L("INF")) )
+                            g.add( (factUri, XBRLI.precision, L("INF")) )
                         elif fact.precision is not None:
-                            g.add( (factUri, DataPoint.precision, L(fact.precision, datatype=XSD.integer)) )
+                            g.add( (factUri, XBRLI.precision, L(fact.precision, datatype=XSD.integer)) )
                         if fact.decimals == "INF":
-                            g.add( (factUri, DataPoint.decimals, L("INF")) )
+                            g.add( (factUri, XBRLI.decimals, L("INF")) )
                         elif fact.decimals is not None:
-                            g.add( (factUri, DataPoint.decimals, L(fact.decimals, datatype=XSD.integer)) )
+                            g.add( (factUri, XBRLI.decimals, L(fact.decimals, datatype=XSD.integer)) )
                         if fact.unit is not None:
                             unit = fact.unit
                             unitUri = modelObjectUri(unit)
-                            g.add( (factUri, XBRL.unit, unitUri) )
+                            g.add( (factUri, XBRLI.unit, unitUri) )
+                            g.add( (factUri, XBRLI.unitId, L(unit.id)) )
                             if unit.id not in unitIDs:
                                 unitIDs.add(unit.id)
+                                self.insertAspectProxy(XbrlConst.qnXbrliUnit, unitUri, g)
+                                g.add( (unitUri, RDF.type, DTS.Unit) )
                                 g.add( (docUri, XBRL.defines, unitUri) )
              
                                 mults, divs = unit.measures
@@ -807,10 +804,12 @@ class XbrlSemanticRdfDatabaseConnection():
                     if fact.modelTupleFacts:
                         g.add( (factUri, RDF.type, XBRL.tuple) )
                         for tupleFact in fact.modelTupleFacts:
-                            g.add( (factUri, XBRL.tuple, modelObjectUri(tupleFact)) )
+                            g.add( (factUri, XBRLI.tuple, modelObjectUri(tupleFact)) )
                         
-        self.showStatus("insert aspect proxies")
-        self.insertAspectProxies(aspectQnamesUsed, g)
+        
+        if self.modelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL):
+            for fact in self.modelXbrl.factsInInstance:
+                factUri = modelObjectUri(fact)
 
         
     def resourceId(self,i):
@@ -849,7 +848,7 @@ class XbrlSemanticRdfDatabaseConnection():
         aspectQnamesUsed = set()
         resourceIDs = {} # index by object
         
-        def walkTree(rels, seq, depth, relationshipSet, visited, relSetUri, doVertices):
+        def walkTree(rels, parentRelUri, seq, depth, relationshipSet, visited, relSetUri, doVertices):
             for rel in rels:
                 if rel not in visited:
                     visited.add(rel)
@@ -859,7 +858,7 @@ class XbrlSemanticRdfDatabaseConnection():
                                     'depth': L(depth),
                                     'order': L(rel.orderDecimal),
                                     'priority': L(rel.priority),
-                                    'rel_set': relSetUri
+                                    'relSet': relSetUri
                                     }
                     if isinstance(rel.fromModelObject, ModelConcept):
                         if doVertices:
@@ -884,17 +883,17 @@ class XbrlSemanticRdfDatabaseConnection():
                             targetUri = 0 # just can't be None, but doesn't matter on doVertices pass
                         else:
                             if rel.preferredLabel:
-                                _relProp['preferred_label'] = URIRef(rel.preferredLabel)
+                                _relProp['preferredLabel'] = URIRef(rel.preferredLabel)
                             if rel.arcrole in (XbrlConst.all, XbrlConst.notAll):
-                                _relProp['cube_closed'] = L(rel.closed)
+                                _relProp['cubeClosed'] = L(rel.closed)
                             elif rel.arcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
-                                _relProp['aspect_value_usable'] = L(rel.usable)
+                                _relProp['aspectValueUsable'] = L(rel.usable)
                             elif rel.arcrole == XbrlConst.summationItem:
                                 _relProp['weight'] = L(rel.weightDecimal)
                             if relationshipSet.arcrole == "XBRL-dimensions":
                                 _relProp['arcrole'] = URIRef(rel.arcrole)
                             if toModelObject.role:
-                                _relProp['resource_role'] = URIRef(toModelObject.role)
+                                _relProp['resourceRole'] = URIRef(toModelObject.role)
                             targetUri = modelObjectUri(toModelObject)
                             targetId = toModelObject.modelDocument.basename + '#' + XmlUtil.elementFragmentIdentifier(toModelObject)
                     else:
@@ -909,30 +908,33 @@ class XbrlSemanticRdfDatabaseConnection():
                                     targetRelationshipSetUri = relSetURIs[relSetKey]
                                     break
                             if not doVertices:
-                                _relProp['target_linkrole'] = URIRef(rel.targetRole)
-                                _relProp['target_rel_set'] = URIRef(targetRelationshipSetUri)
+                                _relProp['targetLinkrole'] = URIRef(rel.targetRole)
+                                _relProp['targetRelSet'] = URIRef(targetRelationshipSetUri)
                         else:
                             targetRelSet = relationshipSet
                         if doVertices:
-                            thisRelUri = None
+                            relUri = None
                         else:
                             _relProp['from'] = sourceUri
                             _relProp['to'] = targetUri
                             _arcrole = os.path.basename(rel.arcrole)
-                            _relProp['relURI'] = URIRef("{}/Relationship/{}/{}/{}/{}".format(
-                                                         self.accessionURI, 
-                                                         _arcrole,
-                                                         os.path.basename(rel.linkrole),
-                                                         sourceId,
-                                                         targetId) )
+                            relUri = URIRef("{}/Relationship/{}/{}/{}/{}".format(
+                                            self.accessionURI, 
+                                            _arcrole,
+                                            os.path.basename(rel.linkrole),
+                                            sourceId,
+                                            targetId) )
+                            _relProp['relURI'] = relUri
                             relPredNS = Namespace("http://xbrl.org/2013/rdf/DTS/Relationship/{}/"
                                                   .format(_arcrole))
                             g.bind(_arcrole, relPredNS)
                             _relProp['relPredicate'] = relPredNS[os.path.basename(rel.linkrole)]
+                            if parentRelUri is not None:
+                                g.add( (parentRelUri, Relationship.child, relUri) )
 
                             relE.append(_relProp)
                         seq += 1
-                        seq = walkTree(targetRelSet.fromModelObject(toModelObject), seq, depth+1, relationshipSet, visited, targetRelSetUri, doVertices)
+                        seq = walkTree(targetRelSet.fromModelObject(toModelObject), relUri, seq, depth+1, relationshipSet, visited, targetRelSetUri, doVertices)
                     visited.remove(rel)
             return seq
         
@@ -945,7 +947,7 @@ class XbrlSemanticRdfDatabaseConnection():
                     relationshipSet = self.modelXbrl.relationshipSet(*relationshipSetKey)
                     seq = 1               
                     for rootConcept in relationshipSet.rootConcepts:
-                        seq = walkTree(relationshipSet.fromModelObject(rootConcept), seq, 1, relationshipSet, set(), relSetUri, doVertices)
+                        seq = walkTree(relationshipSet.fromModelObject(rootConcept), None, seq, 1, relationshipSet, set(), relSetUri, doVertices)
             if doVertices:
                 if resources:
                     for resource in resources:
