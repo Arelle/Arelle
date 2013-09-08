@@ -465,6 +465,11 @@ class XbrlSemanticRdfDatabaseConnection():
         for defaultDim, defaultDimMember in self.modelXbrl.qnameDimensionDefaults.items():
             conceptsUsed.add(defaultDim)
             conceptsUsed.add(defaultDimMember)
+        for roleTypes in (self.modelXbrl.roleTypes, self.modelXbrl.arcroleTypes):
+            for modelRoleTypes in roleTypes.values():
+                for modelRoleType in modelRoleTypes:
+                    for qn in modelRoleType.usedOns:
+                        conceptsUsed.add(qn)
         for relationshipSetKey in self.relationshipSets:
             relationshipSet = self.modelXbrl.relationshipSet(*relationshipSetKey)
             for rel in relationshipSet.modelRelationships:
@@ -553,7 +558,7 @@ class XbrlSemanticRdfDatabaseConnection():
                         g.add( (docUri, XBRL.aspect, conceptUri) )
                         g.add( (conceptUri, XBRL.document, docUri) )
                  
-                        g.add( (conceptUri, RDF.type, XBRL.Concept) )
+                        g.add( (conceptUri, RDF.type, XBRL.Aspect) )
                         g.add( (conceptUri, RDF.type, XBRL.QName) )
                         g.add( (conceptUri, QName.namespace, L(modelConcept.qname.namespaceURI)) )
                         g.add( (conceptUri, QName.localName, L(modelConcept.qname.localName)) )
@@ -595,7 +600,8 @@ class XbrlSemanticRdfDatabaseConnection():
                             #g.add( (rt_uri, LinkRoleType.cyclesAllowed, LinkRoleType.cycles[rt.cyclesAllowed or "none"]) )
                  
                             for qn in modelRoleType.usedOns:
-                                g.add( (rtUri, RoleType.usedOn, qnameUri(qn)) )
+                                usedOnConcept = self.modelXbrl.qnameConcepts[qn]
+                                g.add( (rtUri, RoleType.usedOn, modelObjectUri(usedOnConcept)) )
                                 # note that QNames are defined in the documents that define the element
                     for modelArcroleTypes in self.modelXbrl.arcroleTypes.values():
                         for modelArcroleType in modelArcroleTypes:
@@ -610,7 +616,8 @@ class XbrlSemanticRdfDatabaseConnection():
                             g.add( (rt_uri, ArcRoleType.cyclesAllowed, ArcRoleCycles[modelArcroleType.cyclesAllowed]) )
                  
                             for qn in modelArcroleType.usedOns:
-                                g.add( (rt_uri, ArcRoleType.usedOn, qnameUri(qn)) )
+                                usedOnConcept = self.modelXbrl.qnameConcepts[qn]
+                                g.add( (rt_uri, ArcRoleType.usedOn, modelObjectUri(usedOnConcept)) )
                     activity = "Insert data dictionary types, aspects, roles, and arcroles for " + modelDocument.uri
 
         
@@ -831,7 +838,7 @@ class XbrlSemanticRdfDatabaseConnection():
         relSetURIs = {}
         for i, relationshipSetKey in enumerate(self.relationshipSets):
             arcrole, linkrole, linkqname, arcqname = relationshipSetKey
-            if arcrole not in ("XBRL-formulae", "Table-rendering", "XBRL-footnotes"):
+            if arcrole not in ("XBRL-formulae", "Table-rendering", "XBRL-footnotes") and linkrole and linkqname and arcqname:
                 # skip paths and qnames for now (add later for non-SEC)
                 relSetUri = URIRef("{}/RelationshipSet/{}/{}".format(
                                    self.accessionURI, 
@@ -839,7 +846,12 @@ class XbrlSemanticRdfDatabaseConnection():
                                    os.path.basename(linkrole)) )
                 relSetURIs[relationshipSetKey] = relSetUri
                 g.add( (relSetUri, RDF.type, XBRL.RelationshipSet) )
-                g.add( (entryUrl, XBRL.defines, relSetUri) )
+                g.add( (relSetUri, XBRL.arcrole, L(arcrole)) )
+                g.add( (relSetUri, XBRL.linkrole, L(linkrole)) )
+                g.add( (relSetUri, XBRL.arcname, self.aspectQnameProxyURI(arcqname)) )
+                g.add( (relSetUri, XBRL.linkname, self.aspectQnameProxyURI(linkqname)) )
+                g.add( (self.reportURI, XBRL.relationshipSet, relSetUri) )
+                g.add( (relSetUri, XBRL.report, self.reportURI) )
 
         
         # do tree walk to build relationships with depth annotated, no targetRole navigation
@@ -848,7 +860,7 @@ class XbrlSemanticRdfDatabaseConnection():
         aspectQnamesUsed = set()
         resourceIDs = {} # index by object
         
-        def walkTree(rels, parentRelUri, seq, depth, relationshipSet, visited, relSetUri, doVertices):
+        def walkTree(rels, parentRelUri, seq, depth, relationshipSetKey, relationshipSet, visited, relSetUri, doVertices):
             for rel in rels:
                 if rel not in visited:
                     visited.add(rel)
@@ -900,17 +912,20 @@ class XbrlSemanticRdfDatabaseConnection():
                         targetUri = None # tbd
                     if sourceUri is not None and targetUri is not None:
                         targetRelSetUri = relSetUri
+                        targetRelSetKey = relationshipSetKey
                         if relationshipSet.arcrole == "XBRL-dimensions" and rel.targetRole:
                             targetRelSet = self.modelXbrl.relationshipSet(relationshipSet.arcrole, rel.targetRole)
                             for i, relSetKey in enumerate(self.relationshipSets):
                                 arcrole, ELR, linkqname, arcqname = relSetKey
                                 if arcrole == "XBRL-dimensions" and ELR == rel.targetRole:
                                     targetRelationshipSetUri = relSetURIs[relSetKey]
+                                    targetRelSetKey = relSetKey
                                     break
                             if not doVertices:
                                 _relProp['targetLinkrole'] = URIRef(rel.targetRole)
                                 _relProp['targetRelSet'] = URIRef(targetRelationshipSetUri)
                         else:
+                            targetRelSetKey = relationshipSetKey
                             targetRelSet = relationshipSet
                         if doVertices:
                             relUri = None
@@ -919,7 +934,7 @@ class XbrlSemanticRdfDatabaseConnection():
                             _relProp['to'] = targetUri
                             _arcrole = os.path.basename(rel.arcrole)
                             relUri = URIRef("{}/Relationship/{}/{}/{}/{}".format(
-                                            self.accessionURI, 
+                                            self.reportURI, 
                                             _arcrole,
                                             os.path.basename(rel.linkrole),
                                             sourceId,
@@ -931,10 +946,11 @@ class XbrlSemanticRdfDatabaseConnection():
                             _relProp['relPredicate'] = relPredNS[os.path.basename(rel.linkrole)]
                             if parentRelUri is not None:
                                 g.add( (parentRelUri, Relationship.child, relUri) )
+                            _relProp['relSetKey'] = relationshipSetKey
 
                             relE.append(_relProp)
                         seq += 1
-                        seq = walkTree(targetRelSet.fromModelObject(toModelObject), relUri, seq, depth+1, relationshipSet, visited, targetRelSetUri, doVertices)
+                        seq = walkTree(targetRelSet.fromModelObject(toModelObject), relUri, seq, depth+1, targetRelSetKey, targetRelSet, visited, targetRelSetUri, doVertices)
                     visited.remove(rel)
             return seq
         
@@ -942,12 +958,12 @@ class XbrlSemanticRdfDatabaseConnection():
         for doVertices in range(1,-1,-1):  # pass 0 = vertices, pass 1 = edges
             for i, relationshipSetKey in enumerate(self.relationshipSets):
                 arcrole, linkrole, linkqname, arcqname = relationshipSetKey
-                if arcrole not in ("XBRL-formulae", "Table-rendering", "XBRL-footnotes"):                
+                if arcrole not in ("XBRL-formulae", "Table-rendering", "XBRL-footnotes") and linkrole and linkqname and arcqname:                
                     relSetUri = relSetURIs[relationshipSetKey]
                     relationshipSet = self.modelXbrl.relationshipSet(*relationshipSetKey)
                     seq = 1               
                     for rootConcept in relationshipSet.rootConcepts:
-                        seq = walkTree(relationshipSet.fromModelObject(rootConcept), None, seq, 1, relationshipSet, set(), relSetUri, doVertices)
+                        seq = walkTree(relationshipSet.fromModelObject(rootConcept), None, seq, 1, relationshipSetKey, relationshipSet, set(), relSetUri, doVertices)
             if doVertices:
                 if resources:
                     for resource in resources:
@@ -955,7 +971,7 @@ class XbrlSemanticRdfDatabaseConnection():
                         g.add( (resourceUri, RDF.type, XBRL.resource) )
                         g.add( (resourceUri, XBRL.value, L(resource.stringValue)) )
                         if resource.role:
-                            g.add( (resourceUri, XBRL.role, URIRef(resource.role)) )
+                            g.add( (resourceUri, XBRL.role, L(resource.role)) )
                     
                 self.insertAspectProxies(aspectQnamesUsed, g)
             else:
@@ -963,8 +979,13 @@ class XbrlSemanticRdfDatabaseConnection():
                     relUri = rel['relURI']
                     g.add( (rel['from'], rel['relPredicate'], rel['to']) )
                     g.add( (relUri, RDF.type, XBRL.relationship) )
+                    relSetUri = relSetURIs[rel['relSetKey']]
+                    g.add( (relUri, XBRL.relSet, relSetUri) )
+                    g.add( (relSetUri, XBRL.relationship, relUri) )
+                    if rel.get('depth', 0) == 1:
+                        g.add( (relSetUri, XBRL.root, relUri) )
                     for k,v in rel.items():
-                        if k not in ('relURI', 'relPredicate'):
+                        if k not in ('relURI', 'relPredicate', 'relSetKey'):
                             g.add( (relUri, Relationship[k], v) )
                 
                 # TBD: do we want to link resources to the dts (by role, class, or otherwise?)
@@ -982,28 +1003,43 @@ class XbrlSemanticRdfDatabaseConnection():
         messages = []
         messageRefs = [] # direct link to objects
         for i, logEntry in enumerate(logEntries):
+            messageUri = URIRef("{}/Message/{}".format(self.reportURI, i+1))
+            g.add( (messageUri, RDF.type, XBRL.Message) )
+            g.add( (messageUri, XBRL.code, L(logEntry['code'])) )
+            g.add( (messageUri, XBRL.level, L(logEntry['level'])) )
+            g.add( (messageUri, XBRL.value, L(logEntry['message']['text'])) )
+            g.add( (messageUri, XBRL.report, self.reportURI) )
+            g.add( (self.reportURI, XBRL.message, messageUri) )
             # capture message ref's
-            msgRefIds = []
             for ref in logEntry['refs']:
                 modelObject = self.modelXbrl.modelObject(ref.get('objectId',''))
                 # for now just find a concept
                 aspectObj = None
-                if isinstance(modelObject, (ModelConcept, ModelFact)):
-                    aspectObj = modelObject
+                if isinstance(modelObject, ModelFact):
+                    objUri = modelObjectUri(modelObject)
+                elif isinstance(modelObject, ModelConcept):
+                    # be sure there's a proxy
+                    self.insertAspectProxies( (modelObject.qname,), g)  # need imediate use of proxy
+                    objUri = self.aspectQnameProxyURI(modelObject.qname)
                 elif isinstance(modelObject, ModelRelationship):
-                    if isinstance(modelObject.toModelObject, ModelConcept):
-                        aspectObj = modelObject.toModelObject
-                    elif isinstance(modelObject.fromModelObject, ModelConcept):
-                        aspectObj = modelObject.fromModelObject
-                if aspectObj is not None:
-                    msgRefIds.append(self.aspectQnameProxyURI(aspectObj))
+                    sourceId = qnamePrefix_Name(modelObject.fromModelObject.qname)
+                    toModelObject = modelObject.toModelObject
+                    if isinstance(toModelObject, ModelConcept):
+                        targetId = qnamePrefix_Name(toModelObject.qname)
+                    elif isinstance(toModelObject, ModelResource):
+                        targetId = toModelObject.modelDocument.basename + '#' + XmlUtil.elementFragmentIdentifier(toModelObject)
+                    else:
+                        continue
+                    objUri = URIRef("{}/Relationship/{}/{}/{}/{}".format(
+                                    self.reportURI, 
+                                    os.path.basename(modelObject.arcrole),
+                                    os.path.basename(modelObject.linkrole),
+                                    sourceId,
+                                    targetId) )
+                else:
+                    continue
+                g.add( (objUri, XBRL.ref, messageUri) )
+                g.add( (messageUri, XBRL.message, objUri) )
                         
-            messageUri = URIRef("{}/ValidationMessage/{}".format(self.accessionURI, i+1))
-            g.add( (messageUri, RDF.type, XBRL.validationMessage) )
-            g.add( (messageUri, XBRL.code, L(logEntry['code'])) )
-            g.add( (messageUri, XBRL.level, L(logEntry['level'])) )
-            g.add( (messageUri, XBRL.value, L(logEntry['message']['text'])) )
-            #for j, refId in enumerate(msgRefIds):
-            #    messages.append("    :ref{0} {1};".format(j, refId))
         if messages:
             self.showStatus("insert validation messages")
