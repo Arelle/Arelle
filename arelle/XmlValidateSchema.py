@@ -38,7 +38,6 @@ def validate(modelDocument, schemaElement, targetNamespace):
                                             modelDocument=XMLSchemaURI)
         modelManager.showStatus("")
         del modelManager.modelXmlSchemaIsLoading
-    XmlValidate.validate(modelManager.xmlSchemaSchema, schemaElement)
     '''
     #startedAt = time.time()
     #validationSuccess = modelManager.xmlSchemaSchema.validate(schemaElement)
@@ -55,24 +54,30 @@ def validate(modelDocument, schemaElement, targetNamespace):
         modelManager.xmlSchemaSchema._clear_error_log()
     '''
     """
+    #XmlValidate.validate(modelXbrl, schemaElement) # use arelle schema validation
 
     declaredNamespaces = set(doc.targetNamespace
                              for doc, docRef in modelDocument.referencesDocument.items()
                              if docRef.referenceType in ("include", "import"))
+
     if targetNamespace:
         declaredNamespaces.add(targetNamespace)
         
     if targetNamespace in ("http://www.w3.org/2001/XMLSchema",
-                           "http://www.w3.org/XML/1998/namespace"):
+                           "http://www.w3.org/XML/1998/namespace",
+                           ): # or (
+        #                targetNamespace and targetNamespace.startswith("http://www.w3.org/1999/xhtml")):
         return # don't validate w3c schemas
     
     # check schema semantics
     def resolvedQnames(elt, qnDefs):
-        for attrName, attrType, mdlObjects in qnDefs:
+        for attrName, attrType, mdlObjects, isQualifiedForm in qnDefs:
             attr = elt.get(attrName)
             if attr is not None:
                 try:
-                    qnValue = qname(elt, attr, castException=ValueError, prefixException=ValueError)
+                    qnValue = elt.schemaNameQname(attr, 
+                                                  isQualifiedForm=isQualifiedForm or elt.isQualifiedForm, 
+                                                  prefixException=ValueError)
                     if qnValue.namespaceURI == XbrlConst.xsd:
                         if attrType != ModelType:
                             raise ValueError("{0} can not have xml schema namespace".format(attrName))
@@ -92,7 +97,7 @@ def validate(modelDocument, schemaElement, targetNamespace):
                                 }:
                             raise ValueError("{0} qname {1} not recognized".format(attrName, attr))
                     # qname must be defined in an imported or included schema
-                    elif qnValue.namespaceURI not in declaredNamespaces:
+                    elif qnValue.namespaceURI and qnValue.namespaceURI not in declaredNamespaces:
                         raise ValueError("Namespace is not defined by an import or include element")
                     elif qnValue not in mdlObjects:
                         raise ValueError("{0} is not defined".format(attrName))
@@ -111,12 +116,12 @@ def validate(modelDocument, schemaElement, targetNamespace):
             if isinstance(elt,ModelObject) and elt.namespaceURI == XbrlConst.xsd:
                 ln = elt.localName
                 if ln == "element":
-                    resolvedQnames(elt, (("ref", ModelConcept, modelXbrl.qnameConcepts),
-                                         ("substitutionGroup", ModelConcept, modelXbrl.qnameConcepts),
-                                         ("type", ModelType, modelXbrl.qnameTypes)))
+                    resolvedQnames(elt, (("ref", ModelConcept, modelXbrl.qnameConcepts, False),
+                                         ("substitutionGroup", ModelConcept, modelXbrl.qnameConcepts, True),
+                                         ("type", ModelType, modelXbrl.qnameTypes, True)))
                 elif ln == "attribute":
-                    resolvedQnames(elt, (("ref", ModelAttribute, modelXbrl.qnameAttributes),
-                                         ("type", ModelType, modelXbrl.qnameTypes)))
+                    resolvedQnames(elt, (("ref", ModelAttribute, modelXbrl.qnameAttributes, False),
+                                         ("type", ModelType, modelXbrl.qnameTypes, True)))
             checkSchemaElements(elt)
 
     checkSchemaElements(schemaElement)

@@ -9,56 +9,12 @@ Saves extracted instance document.
 
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import ModelXbrl, ValidateXbrlDimensions, XbrlConst
+from arelle import ModelXbrl, ValidateXbrlDimensions, XmlUtil, XbrlConst
+from arelle.PrototypeDtsObject import LocPrototype
 from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, load
 import os
 
 class ModelInlineXbrlDocumentSet(ModelDocument):
-
-    def saveTargetDocument(self):
-        targetUrl = self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(self.targetDocumentPreferredFilename, self.filepath)
-        targetUrlParts = targetUrl.rpartition(".")
-        targetUrl = targetUrlParts[0] + "_extracted." + targetUrlParts[2]
-        self.modelXbrl.modelManager.showStatus(_("Extracting instance ") + os.path.basename(targetUrl))
-        targetInstance = ModelXbrl.create(self.modelXbrl.modelManager, 
-                                          newDocumentType=Type.INSTANCE,
-                                          url=targetUrl,
-                                          schemaRefs=self.targetDocumentSchemaRefs,
-                                          isEntry=True)
-        ValidateXbrlDimensions.loadDimensionDefaults(targetInstance) # need dimension defaults 
-        for context in self.modelXbrl.contexts.values():
-            newCntx = targetInstance.createContext(context.entityIdentifier[0],
-                                                   context.entityIdentifier[1],
-                                                   'instant' if context.isInstantPeriod else
-                                                   'duration' if context.isStartEndPeriod
-                                                   else 'forever',
-                                                   context.startDatetime,
-                                                   context.endDatetime,
-                                                   None, 
-                                                   context.qnameDims, [], [],
-                                                   id=context.id)
-        for unit in self.modelXbrl.units.values():
-            measures = unit.measures
-            newUnit = targetInstance.createUnit(measures[0], measures[1], id=unit.id)
-
-        self.modelXbrl.modelManager.showStatus(_("Creating and validating facts"))
-        for fact in self.modelXbrl.facts:
-            if fact.isItem:
-                attrs = [("contextRef", fact.contextID)]
-                if fact.isNumeric:
-                    attrs.append(("unitRef", fact.unitID))
-                    if fact.get("decimals"):
-                        attrs.append(("decimals", fact.get("decimals")))
-                    if fact.get("precision"):
-                        attrs.append(("precision", fact.get("precision")))
-                if fact.isNil:
-                    attrs.append((XbrlConst.qnXsiNil,"true"))
-                    text = None
-                else:
-                    text = fact.xValue if fact.xValid else fact.textValue
-                newFact = targetInstance.createFact(fact.qname, attributes=attrs, text=text)
-        targetInstance.saveInstance(overrideFilepath=targetUrl)
-        self.modelXbrl.modelManager.showStatus(_("Saved extracted instance"), 5000)
         
     def discoverInlineXbrlDocumentSet(self):
         for instanceElt in self.xmlRootElement.iter(tag="{http://disclosure.edinet-fsa.go.jp/2013/manifest}instance"):
@@ -79,6 +35,84 @@ class ModelInlineXbrlDocumentSet(ModelDocument):
                                 self.targetDocumentSchemaRefs.add(doc.relativeUri(referencedDoc.uri))
         return True
 
+def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRefs):
+    targetUrl = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(targetDocumentFilename, modelXbrl.modelDocument.filepath)
+    targetUrlParts = targetUrl.rpartition(".")
+    targetUrl = targetUrlParts[0] + "_extracted." + targetUrlParts[2]
+    modelXbrl.modelManager.showStatus(_("Extracting instance ") + os.path.basename(targetUrl))
+    targetInstance = ModelXbrl.create(modelXbrl.modelManager, 
+                                      newDocumentType=Type.INSTANCE,
+                                      url=targetUrl,
+                                      schemaRefs=targetDocumentSchemaRefs,
+                                      isEntry=True)
+    ValidateXbrlDimensions.loadDimensionDefaults(targetInstance) # need dimension defaults 
+    # roleRef and arcroleRef (of each inline document)
+    for sourceRefs in (modelXbrl.targetRoleRefs, modelXbrl.targetArcroleRefs):
+        for roleRefElt in sourceRefs.values():
+            XmlUtil.addChild(targetInstance.modelDocument.xmlRootElement, roleRefElt.qname, 
+                             attributes=roleRefElt.items())
+    
+    # contexts
+    for context in modelXbrl.contexts.values():
+        newCntx = targetInstance.createContext(context.entityIdentifier[0],
+                                               context.entityIdentifier[1],
+                                               'instant' if context.isInstantPeriod else
+                                               'duration' if context.isStartEndPeriod
+                                               else 'forever',
+                                               context.startDatetime,
+                                               context.endDatetime,
+                                               None, 
+                                               context.qnameDims, [], [],
+                                               id=context.id)
+    for unit in modelXbrl.units.values():
+        measures = unit.measures
+        newUnit = targetInstance.createUnit(measures[0], measures[1], id=unit.id)
+
+    modelXbrl.modelManager.showStatus(_("Creating and validating facts"))
+    newFactForOldObjId = {}
+    def createFacts(facts, parent):
+        for fact in modelXbrl.facts:
+            if fact.isItem:
+                attrs = {"contextRef": fact.contextID}
+                if fact.isNumeric:
+                    attrs["unitRef"] = fact.unitID
+                    if fact.get("decimals"):
+                        attrs["decimals"] = fact.get("decimals")
+                    if fact.get("precision"):
+                        attrs["precision"] = fact.get("precision")
+                if fact.isNil:
+                    attrs[XbrlConst.qnXsiNil] = "true"
+                    text = None
+                else:
+                    text = fact.xValue if fact.xValid else fact.textValue
+                newFact = targetInstance.createFact(fact.qname, attributes=attrs, text=text, parent=parent)
+                newFactForOldObjId[fact.objectIndex] = newFact
+            elif fact.isTuple:
+                newTuple = targetInstance.createFact(fact.qname, parent=parent)
+                newFactForOldObjId[fact.objectIndex] = newTuple
+                createFacts(fact.modelTupleFacts, newTuple)
+                
+    createFacts(modelXbrl.facts, None)
+    # footnote links
+    modelXbrl.modelManager.showStatus(_("Creating and validating footnotes & relationships"))
+    for linkKey, linkPrototypes in modelXbrl.baseSets.items():
+        arcrole, linkrole, linkqname, arcqname = linkKey
+        if (linkrole and linkqname and arcqname and # fully specified roles
+            any(lP.modelDocument.type == Type.INLINEXBRL for lP in linkPrototypes)):
+            for linkPrototype in linkPrototypes:
+                newLink = XmlUtil.addChild(targetInstance.modelDocument.xmlRootElement, linkqname, 
+                                           attributes=linkPrototype.attributes)
+                for linkChild in linkPrototype:
+                    if isinstance(linkChild, LocPrototype) and "{http://www.w3.org/1999/xlink}href" not in linkChild.attributes:
+                        linkChild.attributes["{http://www.w3.org/1999/xlink}href"] = \
+                        "#" + XmlUtil.elementFragmentIdentifier(newFactForOldObjId[linkChild.dereference().objectIndex])
+                    XmlUtil.addChild(newLink, linkChild.qname, 
+                                     attributes=linkChild.attributes,
+                                     text=linkChild.textValue)
+            
+    targetInstance.saveInstance(overrideFilepath=targetUrl)
+    modelXbrl.modelManager.showStatus(_("Saved extracted instance"), 5000)
+
 def identifyInlineXbrlDocumentSet(modelXbrl, rootNode, filepath):
     for manifestElt in rootNode.iter(tag="{http://disclosure.edinet-fsa.go.jp/2013/manifest}manifest"):
         # it's an edinet fsa manifest of an inline XBRL document set
@@ -98,12 +132,25 @@ def saveTargetDocumentMenuEntender(cntlr, menu):
 
 def backgroundSaveTargetDocumentMenuCommand(cntlr):
     # save DTS menu item has been invoked
-    if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None or not isinstance(cntlr.modelManager.modelXbrl.modelDocument, ModelInlineXbrlDocumentSet):
+    if (cntlr.modelManager is None or 
+        cntlr.modelManager.modelXbrl is None or 
+        not (isinstance(cntlr.modelManager.modelXbrl.modelDocument, ModelInlineXbrlDocumentSet) or
+             cntlr.modelManager.modelXbrl.modelDocument.type == Type.INLINEXBRL)):
         cntlr.addToLog("No inline XBRL document manifest loaded.")
         return
+    modelDocument = cntlr.modelManager.modelXbrl.modelDocument
+    if isinstance(modelDocument, ModelInlineXbrlDocumentSet):
+        targetFilename = modelDocument.targetDocumentPreferredFilename
+        targetSchemaRefs = modelDocument.targetDocumentSchemaRefs
+    else:
+        filepath, fileext = os.path.splitext(modelDocument.filepath)
+        targetFilename = filepath + "_instance." + fileext
+        targetSchemaRefs = set(modelDocument.relativeUri(referencedDoc.uri)
+                               for referencedDoc in modelDocument.referencesDocument.keys()
+                               if referencedDoc.type == Type.SCHEMA)
     import threading
-    thread = threading.Thread(target=lambda _cntlr=cntlr:
-                                _cntlr.modelManager.modelXbrl.modelDocument.saveTargetDocument())
+    thread = threading.Thread(target=lambda _x = modelDocument.modelXbrl, _f = targetFilename, _s = targetSchemaRefs:
+                                    saveTargetDocument(_x, _f, _s))
     thread.daemon = True
     thread.start()
 

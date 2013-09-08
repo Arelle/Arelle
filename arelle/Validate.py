@@ -229,7 +229,12 @@ class Validate:
                             parameters[XbrlConst.qnStandardInputInstance] = (None, inputDTS) # allow error detection in validateFormula
                     if modelTestcaseVariation.resultIsTable:
                         RenderingEvaluator.init(modelXbrl)
-                    self.instValidator.validate(modelXbrl, parameters)
+                    try:
+                        self.instValidator.validate(modelXbrl, parameters)
+                    except Exception as err:
+                        self.modelXbrl.error("exception",
+                            _("Testcase variation validation exception: %(error)s, instance: %(instance)s"),
+                            modelXbrl=modelXbrl, instance=modelXbrl.modelDocument.basename, error=err, exc_info=True)
                     if modelTestcaseVariation.resultIsInfoset and self.modelXbrl.modelManager.validateInfoset:
                         for pluginXbrlMethod in pluginClassMethods("Validate.Infoset"):
                             pluginXbrlMethod(modelXbrl, modelTestcaseVariation.resultInfosetUri)

@@ -12,7 +12,7 @@ from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle import UrlUtil
 validateElementSequence = None  #dynamic import to break dependency loops
 modelGroupCompositorTitle = None
-ModelInlineFact = None
+ModelInlineValueObject = None
 
 UNVALIDATED = 0
 UNKNOWN = 1
@@ -77,27 +77,11 @@ predefinedAttributeTypes = {
 
 xAttributesSharedEmptyDict = {}
 
-def xhtmlValidate(modelXbrl, elt):
-    from lxml.etree import DTD, XMLSyntaxError
-    # copy xhtml elements to fresh tree
-    with open(os.path.join(modelXbrl.modelManager.cntlr.configDir, "xhtml1-strict-ix.dtd")) as fh:
-        dtd = DTD(fh)
-    try:
-        if not dtd.validate( XmlUtil.ixToXhtml(elt) ):
-            modelXbrl.error("xhmlDTD:elementUnexpected",
-                _("%(element)s error %(error)s"),
-                modelObject=elt, element=elt.localName.title(),
-                error=', '.join(e.message for e in dtd.error_log.filter_from_errors()))
-    except XMLSyntaxError as err:
-        modelXbrl.error("xmlDTD:error",
-            _("%(element)s error %(error)s"),
-            modelObject=elt, element=elt.localName.title(), error=dtd.error_log.filter_from_errors())
-
 def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
-    global ModelInlineFact
-    if ModelInlineFact is None:
-        from arelle.ModelInstanceObject import ModelInlineFact
-    isIxFact = isinstance(elt, ModelInlineFact)
+    global ModelInlineValueObject
+    if ModelInlineValueObject is None:
+        from arelle.ModelInstanceObject import ModelInlineValueObject
+    isIxFact = isinstance(elt, ModelInlineValueObject)
     facets = None
 
     # attrQname can be provided for attributes that are global and LAX
@@ -236,7 +220,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                 if validateElementSequence is None:
                     from arelle.XmlValidateParticles import validateElementSequence, modelGroupCompositorTitle
                 try:
-                    childElts = elt.modelTupleFacts if ixFacts and isIxFact else list(elt)
+                    childElts = list(elt) # uses __iter__ for inline facts
                     if isNil:
                         if childElts and any(True for e in childElts if isinstance(e, ModelObject)) or elt.text:
                             modelXbrl.error("xmlSchema:nilElementHasContent",
@@ -273,6 +257,9 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
             xValid = VALID
             whitespaceReplace = (baseXsdType == "normalizedString")
             whitespaceCollapse = (not whitespaceReplace and baseXsdType != "string")
+            isList = baseXsdType in {"IDREFS", "ENTITIES", "NMTOKENS"}
+            if isList:
+                baseXsdType = baseXsdType[:-1] # remove plural
             pattern = baseXsdTypePatterns.get(baseXsdType)
             if facets:
                 if "pattern" in facets:
@@ -293,7 +280,9 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
             elif not value and isNil and isNillable: # rest of types get None if nil/empty value
                 xValue = sValue = None
             else:
-                if pattern is not None and pattern.match(value) is None:
+                if pattern is not None:
+                    if ((isList and any(pattern.match(v) is None for v in value.split())) or
+                        (not isList and pattern.match(value) is None)):
                         raise ValueError("pattern facet " + facets["pattern"].pattern if facets and "pattern" in facets else "pattern mismatch")
                 if facets:
                     if "enumeration" in facets and value not in facets["enumeration"]:
@@ -439,7 +428,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                         xValue = value
                     sValue = value
         except ValueError as err:
-            if ModelInlineFact is not None and isinstance(elt, ModelInlineFact):
+            if ModelInlineValueObject is not None and isinstance(elt, ModelInlineValueObject):
                 errElt = "{0} fact {1}".format(elt.elementQname, elt.qname)
             else:
                 errElt = elt.elementQname

@@ -58,7 +58,7 @@ class ViewConcepts(ViewWinTree.ViewTree):
         role = self.labelrole
         lang = self.lang
         nameIsPrefixed = self.nameIsPrefixed
-        for concept in self.modelXbrl.qnameConcepts.values():
+        for concept in set(self.modelXbrl.qnameConcepts.values()): # may be twice if unqualified, with and without namespace
             lbls[concept.label(role,lang=lang)].append(concept.objectId())
         srtLbls = sorted(lbls.keys())
         '''
@@ -68,12 +68,14 @@ class ViewConcepts(ViewWinTree.ViewTree):
         for previousNode in self.treeView.get_children(""): 
             self.treeView.delete(previousNode)
         nodeNum = 1
+        excludedNamespaces = XbrlConst.ixbrlAll.union(
+            (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl,
+             XbrlConst.xbrldt,
+             XbrlConst.xhtml))
         for label in srtLbls:
             for objectId in lbls[label]:
                 concept = self.modelXbrl.modelObject(objectId)
-                if concept.modelDocument.targetNamespace not in (
-                         XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl,
-                         XbrlConst.xbrldt):
+                if concept.modelDocument.targetNamespace not in excludedNamespaces:
                     '''
                     node = "node{0}".format(nodeNum)
                     objectId = concept.objectId()

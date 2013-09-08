@@ -38,6 +38,7 @@ from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundV
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from math import isnan
 from arelle.ModelObject import ModelObject
+from decimal import Decimal
 Aspect = None
 POSINF = float("inf")
 NEGINF = float("-inf")
@@ -280,7 +281,7 @@ class ModelFact(ModelObject):
     @property
     def isNil(self):
         """(bool) -- True if xsi:nil is 'true'"""
-        return self.xsiNil == "true"
+        return self.xsiNil in ("true","1")
     
     @isNil.setter
     def isNil(self, value):
@@ -431,7 +432,7 @@ class ModelFact(ModelObject):
         try:
             concept = self.concept
             lbl = (("label", concept.label(lang=self.modelXbrl.modelManager.defaultLang)),)
-        except KeyError:
+        except (KeyError, AttributeError):
             lbl = (("name", self.qname),)
         return lbl + (
                (("contextRef", self.contextID, self.context.propertyView if self.context is not None else ()),
@@ -452,68 +453,15 @@ class ModelFact(ModelObject):
     def viewConcept(self):
         return self.concept
     
-class ModelInlineFact(ModelFact):
-    """
-    .. class:: ModelInlineFact(modelDocument)
-    
-    Model inline fact (inline XBRL facts)
-    
-    :param modelDocument: owner document
-    :type modelDocument: ModelDocument
-    """
+class ModelInlineValueObject:
     def init(self, modelDocument):
-        super(ModelInlineFact, self).init(modelDocument)
+        super(ModelInlineValueObject, self).init(modelDocument)
         
-    @property
-    def qname(self):
-        """(QName) -- QName of concept from the name attribute, overrides and corresponds to the qname property of a ModelFact (inherited from ModelObject)"""
-        try:
-            return self._factQname
-        except AttributeError:
-            self._factQname = self.prefixedNameQname(self.get("name")) if self.get("name") else None
-            return self._factQname
-
     @property
     def sign(self):
         """(str) -- sign attribute of inline element"""
         return self.get("sign")
     
-    @property
-    def tupleID(self):
-        """(str) -- tupleId attribute of inline element"""
-        try:
-            return self._tupleId
-        except AttributeError:
-            self._tupleId = self.get("tupleID")
-            return self._tupleId
-    
-    @property
-    def tupleRef(self):
-        """(str) -- tupleRef attribute of inline element"""
-        try:
-            return self._tupleRef
-        except AttributeError:
-            self._tupleRef = self.get("tupleRef")
-            return self._tupleRef
-
-    @property
-    def order(self):
-        """(float) -- order attribute of inline element or None if absent or float conversion error"""
-        try:
-            return self._order
-        except AttributeError:
-            try:
-                orderAttr = self.get("order")
-                self._order = float(orderAttr)
-            except (ValueError, TypeError):
-                self._order = None
-            return self._order
-
-    @property
-    def footnoteRefs(self):
-        """([str]) -- list of footnoteRefs attribute contents of inline element"""
-        return self.get("footnoteRefs").split() if self.get("footnoteRefs") else []
-
     @property
     def format(self):
         """(QName) -- format attribute of inline element"""
@@ -556,7 +504,11 @@ class ModelInlineFact(ModelFact):
         try:
             return self._ixValue
         except AttributeError:
-            v = XmlUtil.innerText(self, ixExclude=True, ixEscape=(self.get("escape") == "true"), strip=True) # transforms are whitespace-collapse
+            v = XmlUtil.innerText(self, 
+                                  ixExclude=True, 
+                                  ixEscape=(self.get("escape") in ("true","1")), 
+                                  ixContinuation=(self.elementQname == XbrlConst.qnIXbrl11NonNumeric),
+                                  strip=True) # transforms are whitespace-collapse
             f = self.format
             if f is not None:
                 if (f.namespaceURI in FunctionIxt.ixtNamespaceURIs and
@@ -582,6 +534,80 @@ class ModelInlineFact(ModelFact):
         """(str) -- override xml-level stringValue for transformed value descendants text"""
         return self.value
     
+    
+class ModelInlineFact(ModelInlineValueObject, ModelFact):
+    """
+    .. class:: ModelInlineFact(modelDocument)
+    
+    Model inline fact (inline XBRL facts)
+    
+    :param modelDocument: owner document
+    :type modelDocument: ModelDocument
+    """
+    def init(self, modelDocument):
+        super(ModelInlineFact, self).init(modelDocument)
+        
+    @property
+    def qname(self):
+        """(QName) -- QName of concept from the name attribute, overrides and corresponds to the qname property of a ModelFact (inherited from ModelObject)"""
+        try:
+            return self._factQname
+        except AttributeError:
+            self._factQname = self.prefixedNameQname(self.get("name")) if self.get("name") else None
+            return self._factQname
+
+    @property
+    def tupleID(self):
+        """(str) -- tupleId attribute of inline element"""
+        try:
+            return self._tupleId
+        except AttributeError:
+            self._tupleId = self.get("tupleID")
+            return self._tupleId
+    
+    @property
+    def tupleRef(self):
+        """(str) -- tupleRef attribute of inline element"""
+        try:
+            return self._tupleRef
+        except AttributeError:
+            self._tupleRef = self.get("tupleRef")
+            return self._tupleRef
+
+    @property
+    def order(self):
+        """(float) -- order attribute of inline element or None if absent or float conversion error"""
+        try:
+            return self._order
+        except AttributeError:
+            try:
+                orderAttr = self.get("order")
+                self._order = Decimal(orderAttr)
+            except (ValueError, TypeError):
+                self._order = None
+            return self._order
+
+    @property
+    def fractionValue(self):
+        """( (str,str) ) -- (text value of numerator, text value of denominator)"""
+        return (XmlUtil.text(XmlUtil.descendant(self, self.namespaceURI, "numerator")),
+                XmlUtil.text(XmlUtil.descendant(self, self.namespaceURI, "denominator")))
+    
+    @property
+    def footnoteRefs(self):
+        """([str]) -- list of footnoteRefs attribute contents of inline element"""
+        return self.get("footnoteRefs", "").split()
+
+    def __iter__(self):
+        if self.localName == "fraction":
+            n = XmlUtil.descendant(self, self.namespaceURI, "numerator")
+            d = XmlUtil.descendant(self, self.namespaceURI, "denominator")
+            if n is not None and d is not None:
+                yield n
+                yield d
+        for tupleFact in self.modelTupleFacts:
+            yield tupleFact
+     
     @property
     def propertyView(self):
         if self.localName == "nonFraction" or self.localName == "fraction":
@@ -597,6 +623,34 @@ class ModelInlineFact(ModelFact):
         
     def __repr__(self):
         return ("modelInlineFact[{0}]{1})".format(self.objectId(),self.propertyView))
+    
+class ModelInlineFraction(ModelInlineFact):
+    def init(self, modelDocument):
+        super(ModelInlineFraction, self).init(modelDocument)
+        
+    @property
+    def textValue(self):
+        return ""  # no text value for fraction
+
+class ModelInlineFractionTerm(ModelInlineValueObject, ModelObject):
+    def init(self, modelDocument):
+        super(ModelInlineFractionTerm, self).init(modelDocument)
+        
+    @property
+    def qname(self):
+        if self.localName == "numerator":
+            return XbrlConst.qnXbrliNumerator
+        elif self.localName == "denomiantor":
+            return XbrlConst.qnXbrliDenominator
+        return self.elementQname
+    
+    @property
+    def concept(self):
+        return self.modelXbrl.qnameConcepts.get(self.qname) # for fraction term type determination
+
+    def __iter__(self):
+        if False: yield None # generator with nothing to generate
+    
                
 class ModelContext(ModelObject):
     """
@@ -1176,6 +1230,97 @@ class ModelUnit(ModelObject):
         else:
             return tuple(('measure',m) for m in measures[0])
 
+from arelle.ModelDtsObject import ModelResource
+class ModelInlineFootnote(ModelResource):
+    """
+    .. class:: ModelInlineFootnote(modelDocument)
+    
+    Model inline footnote (inline XBRL facts)
+    
+    :param modelDocument: owner document
+    :type modelDocument: ModelDocument
+    """
+    def init(self, modelDocument):
+        super(ModelInlineFootnote, self).init(modelDocument)
+        
+    @property
+    def qname(self):
+        """(QName) -- QName of generated object"""
+        return XbrlConst.qnLinkFootnote
+    
+    @property
+    def footnoteID(self):
+        return self.get("footnoteID")
+
+    @property
+    def value(self):
+        """(str) -- Overrides and corresponds to value property of ModelFact, 
+        for relevant inner text nodes aggregated and transformed as needed."""
+        try:
+            return self._ixValue
+        except AttributeError:
+            self._ixValue = XmlUtil.innerText(self, 
+                                  ixExclude=True, 
+                                  ixContinuation=(self.namespaceURI != XbrlConst.ixbrl),
+                                  strip=True) # transforms are whitespace-collapse
+
+            return self._ixValue
+        
+    @property
+    def textValue(self):
+        """(str) -- override xml-level stringValue for transformed value descendants text"""
+        return self.value
+        
+    @property
+    def stringValue(self):
+        """(str) -- override xml-level stringValue for transformed value descendants text"""
+        return self.value
+    
+    @property
+    def role(self):
+        """(str) -- xlink:role attribute"""
+        return self.get("footnoteRole") or XbrlConst.footnote
+        
+    @property
+    def xlinkLabel(self):
+        """(str) -- xlink:label attribute"""
+        return self.get("footnoteID")
+
+    @property
+    def xmlLang(self):
+        """(str) -- xml:lang attribute"""
+        return XmlUtil.ancestorOrSelfAttr(self, "{http://www.w3.org/XML/1998/namespace}lang")
+    
+    @property
+    def attributes(self):
+        # for output of derived instance, includes all output-applicable attributes
+        attributes = {"{http://www.w3.org/1999/xlink}type":"resource",
+                      "{http://www.w3.org/1999/xlink}label":self.xlinkLabel,
+                      "{http://www.w3.org/1999/xlink}role": self.role}
+        lang = self.xmlLang
+        if lang:
+            attributes["{http://www.w3.org/XML/1998/namespace}lang"] = lang
+        return attributes
+
+    def viewText(self, labelrole=None, lang=None):
+        """(str) -- Text of contained (inner) text nodes except for any whose localName 
+        starts with URI, for label and reference parts displaying purposes."""
+        return " ".join([XmlUtil.text(resourceElt)
+                           for resourceElt in self.iter()
+                              if isinstance(resourceElt,ModelObject) and 
+                                  not resourceElt.localName.startswith("URI")])    
+        
+    @property
+    def propertyView(self):
+        return (("file", self.modelDocument.basename),
+                ("line", self.sourceline)) + \
+               super(ModelInlineFact,self).propertyView + \
+               (("html value", XmlUtil.innerText(self)),)
+        
+    def __repr__(self):
+        return ("modelInlineFootnote[{0}]{1})".format(self.objectId(),self.propertyView))
+               
+        
 from arelle.ModelFormulaObject import Aspect
 from arelle import FunctionIxt
            
@@ -1184,9 +1329,19 @@ elementSubstitutionModelClass.update((
      (XbrlConst.qnXbrliItem, ModelFact),
      (XbrlConst.qnXbrliTuple, ModelFact),
      (XbrlConst.qnIXbrlTuple, ModelInlineFact),
+     (XbrlConst.qnIXbrl11Tuple, ModelInlineFact),
      (XbrlConst.qnIXbrlNonNumeric, ModelInlineFact),
+     (XbrlConst.qnIXbrl11NonNumeric, ModelInlineFact),
      (XbrlConst.qnIXbrlNonFraction, ModelInlineFact),
-     (XbrlConst.qnIXbrlFraction, ModelInlineFact),
+     (XbrlConst.qnIXbrl11NonFraction, ModelInlineFact),
+     (XbrlConst.qnIXbrlFraction, ModelInlineFraction),
+     (XbrlConst.qnIXbrl11Fraction, ModelInlineFraction),
+     (XbrlConst.qnIXbrlNumerator, ModelInlineFractionTerm),
+     (XbrlConst.qnIXbrl11Numerator, ModelInlineFractionTerm),
+     (XbrlConst.qnIXbrlDenominator, ModelInlineFractionTerm),
+     (XbrlConst.qnIXbrl11Denominator, ModelInlineFractionTerm),
+     (XbrlConst.qnIXbrlFootnote, ModelInlineFootnote),
+     (XbrlConst.qnIXbrl11Footnote, ModelInlineFootnote),
      (XbrlConst.qnXbrliContext, ModelContext),
      (XbrlConst.qnXbrldiExplicitMember, ModelDimensionValue),
      (XbrlConst.qnXbrldiTypedMember, ModelDimensionValue),

@@ -269,6 +269,7 @@ class ModelXbrl:
         self.formulaOutputInstance = None
         self.logger = logging.getLogger("arelle")
         self.profileStats = {}
+        self.schemaDocsToValidate = set()
         self.modelXbrl = self # for consistency in addressing modelXbrl
 
     def close(self):

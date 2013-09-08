@@ -11,6 +11,8 @@ from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname
 from lxml import etree
 from arelle.PluginManager import pluginClassMethods
+from collections import defaultdict
+import re
 
 instanceSequence = {"schemaRef":1, "linkbaseRef":2, "roleRef":3, "arcroleRef":4}
 schemaTop = {"import", "include", "redefine"}
@@ -37,6 +39,8 @@ standard_roles_definitions = {
     "loc": ("xbrl.3.5.3.7", ())
     }
 standard_roles_other = ("xbrl.5.1.3", ())
+
+inlineDisplayNonePattern = re.compile(r"display\s*:\s*none")
 
 def arcFromConceptQname(arcElement):
     modelRelationship = baseSetRelationship(arcElement)
@@ -74,7 +78,17 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
     # check for linked up hrefs
     isInstance = (modelDocument.type == ModelDocument.Type.INSTANCE or
                   modelDocument.type == ModelDocument.Type.INLINEXBRL)
-    
+    if modelDocument.type == ModelDocument.Type.INLINEXBRL:
+        if not val.validateIXDS: # set up IXDS validation
+            val.validateIXDS = True
+            val.ixdsDocs = []
+            val.ixdsFootnotes = {}
+            val.ixdsHeaderCount = 0
+            val.ixdsTuples = {}
+            val.ixdsReferences = defaultdict(list)
+            val.ixdsRelationships = []
+        val.ixdsDocs.append(modelDocument)
+        
     for hrefElt, hrefedDoc, hrefId in modelDocument.hrefObjects:
         hrefedObj = None
         hrefedElt = None
@@ -890,35 +904,104 @@ def checkElements(val, modelDocument, parent):
                             parent=elt.parentQname,
                             modelObject=elt)
                     
-            if modelDocument.type == ModelDocument.Type.INLINEXBRL:
-                if elt.namespaceURI == XbrlConst.ixbrl and val.validateGFM:
-                    if elt.localName == "footnote":
+            if modelDocument.type == ModelDocument.Type.INLINEXBRL and elt.namespaceURI in XbrlConst.ixbrlAll: 
+                if elt.localName == "footnote":
+                    if val.validateGFM:
                         if elt.get("{http://www.w3.org/1999/xlink}arcrole") != XbrlConst.factFootnote:
                             # must be in a nonDisplay div
-                            inNondisplayDiv = False
-                            ancestor = elt.getparent()
-                            while ancestor is not None:
-                                if (ancestor.localName == "div" and ancestor.namespaceURI == XbrlConst.xhtml and 
-                                    ancestor.get("style") == "display:none"):
-                                    inNondisplayDiv = True
-                                    break
-                                ancestor = ancestor.getparent()
-                            if not inNondisplayDiv:
+                            if not any(inlineDisplayNonePattern.search(e.get("style") or "")
+                                       for e in XmlUtil.ancestors(elt, XbrlConst.xhtml, "div")):
                                 val.modelXbrl.error(("EFM.N/A", "GFM:1.10.16"),
                                     _("Inline XBRL footnote %(footnoteID)s must be in non-displayable div due to arcrole %(arcrole)s"),
                                     modelObject=elt, footnoteID=elt.get("footnoteID"), 
                                     arcrole=elt.get("{http://www.w3.org/1999/xlink}arcrole"))
-                        id = elt.get("footnoteID")
-                        if id not in val.footnoteRefs and XmlUtil.innerText(elt):
-                            val.modelXbrl.error(("EFM.N/A", "GFM:1.10.15"),
-                                _("Inline XBRL non-empty footnote %(footnoteID)s is not referenced by any fact"),
-                                modelObject=elt, footnoteID=id)
                             
                         if not elt.get("{http://www.w3.org/XML/1998/namespace}lang"):
                             val.modelXbrl.error(("EFM.N/A", "GFM:1.10.13"),
                                 _("Inline XBRL footnote %(footnoteID)s is missing an xml:lang attribute"),
                                 modelObject=elt, footnoteID=id)
-                        
+                    if elt.namespaceURI == XbrlConst.ixbrl:
+                        val.ixdsFootnotes[elt.footnoteID] = elt
+                    else:
+                        checkIxContinuationChain(elt)  
+                    if not elt.xmlLang:
+                        val.modelXbrl.error("ix:footnoteID",
+                            _("Inline XBRL footnotes require an in-scope xml:lang"),
+                            modelObject=elt)
+                elif elt.localName == "fraction":
+                    ixDescendants = XmlUtil.descendants(elt, elt.namespaceURI, '*')
+                    wrongDescendants = [d
+                                        for d in ixDescendants
+                                        if d.localName not in ('numerator','denominator','fraction')]
+                    if wrongDescendants:
+                        val.modelXbrl.error("ix:fractionDescendants",
+                            _("Inline XBRL fraction may only contain ix:numerator, ix:denominator, or ix:fraction, but contained %(wrongDescendants)s"),
+                            modelObject=[elt] + wrongDescendants, wrongDescendants=", ".join(str(d.elementQname) for d in wrongDescendants))
+                    ixDescendants = XmlUtil.descendants(elt, elt.namespaceURI, ('numerator','denominator'))
+                    if not elt.isNil:
+                        if set(d.localName for d in ixDescendants) != {'numerator','denominator'}:
+                            val.modelXbrl.error("ix:fractionTerms",
+                                _("Inline XBRL fraction must have one ix:numerator and one ix:denominator when not nil"),
+                                modelObject=[elt] + ixDescendants)
+                    elif ixDescendants: # nil and has fraction term elements
+                        val.modelXbrl.error("ix:fractionNilTerms",
+                            _("Inline XBRL fraction must not have ix:numerator or ix:denominator when nil"),
+                            modelObject=[elt] + ixDescendants)
+                elif elt.localName in ("denominator", "numerator"):
+                    wrongDescendants = [d for d in XmlUtil.descendants(elt, '*', '*')]
+                    if wrongDescendants:
+                        val.modelXbrl.error("ix:fractionTermDescendants",
+                            _("Inline XBRL fraction term ix:%(name)s may only contain text nodes, but contained %(wrongDescendants)s"),
+                            modelObject=[elt] + wrongDescendants, name=elt.localName, wrongDescendants=", ".join(str(d.elementQname) for d in wrongDescendants))
+                    if elt.get("format") is None and '-' in XmlUtil.innerText(elt):
+                        val.modelXbrl.error("ix:fractionTermNegative",
+                            _("Inline XBRL ix:numerator or ix:denominator without format attribute must be non-negative"),
+                            modelObject=elt)
+                elif elt.localName == "header":
+                    if not any(inlineDisplayNonePattern.search(e.get("style") or "")
+                               for e in XmlUtil.ancestors(elt, XbrlConst.xhtml, "div")):
+                        val.modelXbrl.warning("ix:headerDisplayNone",
+                            _("Warning, Inline XBRL ix:header is recommended to be nested in a <div> with style display:none"),
+                            modelObject=elt)
+                    val.ixdsHeaderCount += 1
+                elif elt.localName == "nonFraction":
+                    if elt.isNil:
+                        e2 = XmlUtil.ancestor(elt, elt.namespaceURI, "nonFraction")
+                        if e2 is not None:
+                            val.modelXbrl.error("ix:nestedNonFractionIsNil",
+                                _("Inline XBRL nil ix:nonFraction may not have an ancestor ix:nonFraction"),
+                                modelObject=(elt,e2))
+                    else:
+                        d = XmlUtil.descendants(elt, '*', '*')
+                        if d and (len(d) != 1 or d[0].namespaceURI != elt.namespaceURI or d[0].localName != "nonFraction"):
+                            val.modelXbrl.error("ix:nonFractionChildren",
+                                _("Inline XBRL nil ix:nonFraction may only have on child ix:nonFraction"),
+                                modelObject=[elt] + d)
+                        for e in d:
+                            if (e.namespaceURI == elt.namespaceURI and e.localName == "nonFraction" and
+                                (e.format != elt.format or e.scale != elt.scale or e.unitID != elt.unitID)):
+                                val.modelXbrl.error("ix:nestedNonFractionProperties",
+                                    _("Inline XBRL nested ix:nonFraction must have matching format, scale, and unitRef properties"),
+                                    modelObject=(elt, e))
+                    if elt.get("format") is None and '-' in XmlUtil.innerText(elt):
+                        val.modelXbrl.error("ix:nonFractionNegative",
+                            _("Inline XBRL ix:nonFraction without format attribute must be non-negative"),
+                            modelObject=elt)
+                elif elt.localName == "nonNumeric":
+                    checkIxContinuationChain(elt)
+                elif elt.localName == "references":
+                    val.ixdsReferences[elt.get("target")].append(elt)
+                elif elt.localName == "relationship":
+                    val.ixdsRelationships.append(elt)
+                elif elt.localName == "tuple":
+                    if not elt.tupleID:
+                        if not elt.isNil:
+                            if not XmlUtil.descendants(elt, elt.namespaceURI, ("fraction", "nonFraction", "nonNumeric",  "tuple")):
+                                val.modelXbrl.error("ix:tupleID",
+                                    _("Inline XBRL non-nil tuples without ix:fraction, ix:nonFraction, ix:nonNumeric or ix:tuple descendants require a tupleID"),
+                                    modelObject=elt)
+                    else:
+                        val.ixdsTuples[elt.tupleID] = elt
             if val.validateDisclosureSystem:
                 if xlinkType == "extended":
                     if not xlinkRole or xlinkRole == "":
@@ -1174,4 +1257,17 @@ def checkElements(val, modelDocument, parent):
         val.roleRefURIs = {}
         val.arcroleRefURIs = {}
 
-
+def checkIxContinuationChain(elt, chain=None):
+    if chain is None:
+        chain = [elt]
+    else:
+        for otherElt in chain:
+            if XmlUtil.isDescendantOf(elt, otherElt) or XmlUtil.isDescendantOf(otherElt, elt):
+                elt.modelDocument.modelXbrl.error("ix:continuationDescendancy",
+                                _("Inline XBRL continuation chain has elements which are descendants of each other."),
+                                modelObject=(elt, otherElt))
+            else:
+                contAt = elt.get("_continuationElement")
+                if contAt is not None:
+                    chain.append(elt)
+                checkIxContinuationChain(contAt, chain)

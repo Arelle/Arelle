@@ -6,7 +6,7 @@ Created on Oct 6, 2010
 '''
 from collections import defaultdict
 import os
-from arelle import ViewWinTree, ModelDtsObject, XbrlConst, XmlUtil, Locale
+from arelle import ViewWinTree, ModelDtsObject, ModelInstanceObject, XbrlConst, XmlUtil, Locale
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelFormulaObject import ModelFilter
 from arelle.ViewUtil import viewReferences, groupRelationshipSet, groupRelationshipLabel
@@ -152,6 +152,13 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     concept.isTypedDimension and 
                     concept.typedDomainElement is not None):
                     text += " (typedDomain={0})".format(concept.typedDomainElement.qname)  
+            elif isinstance(concept, ModelInstanceObject.ModelFact):
+                if concept.concept is not None:
+                    text = labelPrefix + concept.concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole)
+                else:
+                    text = str(concept.qname)
+                if concept.contextID:
+                    text += " [" + concept.contextID + "] = " + concept.effectiveValue
             elif self.arcrole == "Table-rendering":
                 text = concept.localName
             elif isinstance(concept, ModelDtsObject.ModelResource):

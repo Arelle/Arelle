@@ -10,6 +10,7 @@ from collections import defaultdict
 from arelle import ModelDtsObject, XbrlConst, XmlUtil, ModelValue
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelResource
+from arelle.PrototypeDtsObject import LocPrototype
 from arelle.XbrlConst import consecutiveArcrole
 import os
 
@@ -143,7 +144,7 @@ class ModelRelationshipSet:
                 toLabel = arcElement.get("{http://www.w3.org/1999/xlink}to")
                 for fromResource in modelLink.labeledResources[fromLabel]:
                     for toResource in modelLink.labeledResources[toLabel]:
-                        if isinstance(fromResource,ModelResource) and isinstance(toResource,ModelResource):
+                        if isinstance(fromResource,(ModelResource,LocPrototype)) and isinstance(toResource,(ModelResource,LocPrototype)):
                             modelRel = ModelDtsObject.ModelRelationship(modelLink.modelDocument, arcElement, fromResource.dereference(), toResource.dereference())
                             modelRelEquivalenceKey = modelRel.equivalenceKey    # this is a complex tuple to compute, get once for below
                             if modelRelEquivalenceKey not in relationships or \

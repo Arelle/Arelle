@@ -173,6 +173,7 @@ class ModelNamableTerm(ModelObject):
             name = self.name
             if self.name:
                 if self.parentQname == XbrlConst.qnXsdSchema or self.isQualifiedForm:
+                #if self.isQualifiedForm:
                     prefix = XmlUtil.xmlnsprefix(self.modelDocument.xmlRootElement,self.modelDocument.targetNamespace)
                     self._xsdQname = ModelValue.QName(prefix, self.modelDocument.targetNamespace, name)
                 else:
@@ -186,6 +187,22 @@ class ModelNamableTerm(ModelObject):
         parent = self.getparent()
         return parent.namespaceURI == XbrlConst.xsd and parent.localName == "schema"
 
+    def schemaNameQname(self, prefixedName, isQualifiedForm=True, prefixException=None):
+        """Returns ModelValue.QName of prefixedName using this element and its ancestors' xmlns.
+        
+        :param prefixedName: A prefixed name string
+        :type prefixedName: str
+        :returns: QName -- the resolved prefixed name, or None if no prefixed name was provided
+        """
+        if prefixedName:    # passing None would return element qname, not prefixedName None Qname
+            qn = ModelValue.qname(self, prefixedName, prefixException=prefixException)
+            # may be in an included file with no target namespace
+            # a ref to local attribute or element wihich is qualified MAY need to assume targetNamespace
+            if qn and not qn.namespaceURI and self.modelDocument.noTargetNamespace and not isQualifiedForm:
+                qn = ModelValue.qname(self.modelDocument.targetNamespace, prefixedName)
+            return qn
+        else:
+            return None
 class ParticlesList(list):
     """List of particles which can provide string representation of contained particles"""
     def __repr__(self):
@@ -273,6 +290,8 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         super(ModelConcept, self).init(modelDocument)
         if self.name:  # don't index elements with ref and no name
             self.modelXbrl.qnameConcepts[self.qname] = self
+            if not self.isQualifiedForm:
+                self.modelXbrl.qnameConcepts[ModelValue.QName(None, None, self.name)] = self
             self.modelXbrl.nameConcepts[self.name].append(self)
         if not self.isGlobalDeclaration:
             self.addToParticles()
@@ -286,7 +305,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     @property
     def isAbstract(self):
         """(bool) -- True if abstract"""
-        return self.abstract == "true"
+        return self.abstract in ("true", "1")
     
     @property
     def periodType(self):
@@ -308,7 +327,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
             return self._typeQname
         except AttributeError:
             if self.get("type"):
-                self._typeQname = self.prefixedNameQname(self.get("type"))
+                self._typeQname = self.schemaNameQname(self.get("type"))
             else:
                 # check if anonymous type exists (clark qname tag + suffix)
                 qn = self.qname
@@ -481,7 +500,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         except AttributeError:
             self._substitutionGroupQname = None
             if self.get("substitutionGroup"):
-                self._substitutionGroupQname = self.prefixedNameQname(self.get("substitutionGroup"))
+                self._substitutionGroupQname = self.schemaNameQname(self.get("substitutionGroup"))
             return self._substitutionGroupQname
         
     @property
@@ -696,7 +715,8 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         """(ModelConcept) -- If element is a ref (instead of name), provides referenced modelConcept object, else self"""
         ref = self.get("ref")
         if ref:
-            return self.modelXbrl.qnameConcepts.get(ModelValue.qname(self, ref))
+            qn = self.schemaNameQname(ref, isQualifiedForm=self.isQualifiedForm)
+            return self.modelXbrl.qnameConcepts.get(qn)
         return self
 
     @property
@@ -732,12 +752,14 @@ class ModelAttribute(ModelNamableTerm):
         super(ModelAttribute, self).init(modelDocument)
         if self.isGlobalDeclaration:
             self.modelXbrl.qnameAttributes[self.qname] = self
+            if not self.isQualifiedForm:
+                self.modelXbrl.qnameAttributes[ModelValue.QName(None, None, self.name)] = self
         
     @property
     def typeQname(self):
         """(QName) -- QName of type of attribute"""
         if self.get("type"):
-            return self.prefixedNameQname(self.get("type"))
+            return self.schemaNameQname(self.get("type"))
         else:
             # check if anonymous type exists
             typeqname = ModelValue.qname(self.qname.clarkNotation +  anonymousTypeSuffix)
@@ -821,7 +843,8 @@ class ModelAttribute(ModelNamableTerm):
         """(ModelAttribute) -- If element is a ref (instead of name), provides referenced modelAttribute object, else self"""
         ref = self.get("ref")
         if ref:
-            return self.modelXbrl.qnameAttributes.get(ModelValue.qname(self, ref))
+            qn = self.schemaNameQname(ref, isQualifiedForm=self.isQualifiedForm)
+            return self.modelXbrl.qnameAttributes.get(qn)
         return self
 
 class ModelAttributeGroup(ModelNamableTerm):
@@ -878,6 +901,7 @@ class ModelAttributeGroup(ModelNamableTerm):
         """(ModelAttributeGroup) -- If element is a ref (instead of name), provides referenced modelAttributeGroup object, else self"""
         ref = self.get("ref")
         if ref:
+            qn = self.schemaNameQname(ref)
             return self.modelXbrl.qnameAttributeGroups.get(ModelValue.qname(self, ref))
         return self
         
@@ -919,8 +943,8 @@ class ModelType(ModelNamableTerm):
         """(QName) -- the type that this type is derived from"""
         typeOrUnion = XmlUtil.schemaBaseTypeDerivedFrom(self)
         if isinstance(typeOrUnion,list): # union
-            return [self.prefixedNameQname(t) for t in typeOrUnion]
-        return self.prefixedNameQname(typeOrUnion)
+            return [self.schemaNameQname(t) for t in typeOrUnion]
+        return self.schemaNameQname(typeOrUnion)
     
     @property
     def typeDerivedFrom(self):
@@ -1232,9 +1256,15 @@ class ModelGroupDefinition(ModelNamableTerm, ModelParticle):
         """(ModelGroupDefinition) -- If element is a ref (instead of name), provides referenced modelGroupDefinition object, else self"""
         ref = self.get("ref")
         if ref:
-            return self.modelXbrl.qnameGroupDefinitions.get(ModelValue.qname(self, ref))
+            qn = self.schemaNameQname(ref)
+            return self.modelXbrl.qnameGroupDefinitions.get(qn)
         return self
         
+    @property
+    def isQualifiedForm(self):
+        """(bool) -- True (for compatibility with other schema objects)"""
+        return True
+    
 class ModelGroupCompositor(ModelObject, ModelParticle):
     """
     .. class:: ModelGroupCompositor(modelDocument)
@@ -1724,7 +1754,7 @@ class ModelRelationship(ModelObject):
     @property
     def isUsable(self):
         """(bool) -- True if xbrldt:usable is true (on applicable XDT arcs, defaults to True if absent)"""
-        return self.get("{http://xbrl.org/2005/xbrldt}usable") == "true" if self.get("{http://xbrl.org/2005/xbrldt}usable") else True
+        return self.get("{http://xbrl.org/2005/xbrldt}usable") in ("true","1") if self.get("{http://xbrl.org/2005/xbrldt}usable") else True
     
     @property
     def closed(self):
@@ -1737,7 +1767,7 @@ class ModelRelationship(ModelObject):
         try:
             return self._isClosed
         except AttributeError:
-            self._isClosed = self.get("{http://xbrl.org/2005/xbrldt}closed") == "true" if self.get("{http://xbrl.org/2005/xbrldt}closed") else False
+            self._isClosed = self.get("{http://xbrl.org/2005/xbrldt}closed") in ("true","1") if self.get("{http://xbrl.org/2005/xbrldt}closed") else False
             return self._isClosed
 
     @property
@@ -1758,7 +1788,7 @@ class ModelRelationship(ModelObject):
         try:
             return self._isComplemented
         except AttributeError:
-            self._isComplemented = self.get("complement") == "true"
+            self._isComplemented = self.get("complement") in ("true","1")
             return self._isComplemented
     
     @property
@@ -1767,7 +1797,7 @@ class ModelRelationship(ModelObject):
         try:
             return self._isCovered
         except AttributeError:
-            self._isCovered = self.get("cover") == "true"
+            self._isCovered = self.get("cover") in ("true","1")
             return self._isCovered
         
     @property

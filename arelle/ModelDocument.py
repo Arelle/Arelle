@@ -5,14 +5,16 @@ Created on Oct 3, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os, sys
+from collections import defaultdict
 from lxml import etree
 from xml.sax import SAXParseException
-from arelle import (XbrlConst, XmlUtil, UrlUtil, ValidateFilingText, XmlValidate, XmlValidateSchema)
+from arelle import (XbrlConst, XmlUtil, UrlUtil, ValidateFilingText, XhtmlValidate, XmlValidate, XmlValidateSchema)
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname
 from arelle.ModelDtsObject import ModelLink, ModelResource, ModelRelationship
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObjectFactory import parser
+from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype
 from arelle.PluginManager import pluginClassMethods
 
 def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDiscovered=False, isIncluded=None, namespace=None, reloadCache=False):
@@ -200,7 +202,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         elif ns == XbrlConst.xhtml and \
              (ln == "html" or ln == "xhtml"):
             _type = Type.UnknownXML
-            if XbrlConst.ixbrl in rootNode.nsmap.values():
+            if XbrlConst.ixbrlAll.intersection(rootNode.nsmap.values()):
                 _type = Type.INLINEXBRL
         elif ln == "report" and ns == XbrlConst.ver:
             _type = Type.VERSIONINGREPORT
@@ -240,7 +242,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                         nestedInline = htmlElt
                         break
                 if nestedInline is not None:
-                    if XbrlConst.ixbrl in nestedInline.nsmap.values():
+                    if XbrlConst.ixbrlAll.intersection(nestedInline.nsmap.values()):
                         _type = Type.INLINEXBRL
                         rootNode = nestedInline
 
@@ -257,12 +259,10 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             modelDocument.inDTS = True
         
         # discovery (parsing)
-        for pluginMethod in pluginClassMethods("ModelDocument.Discover"):
-            if pluginMethod(modelDocument):
-                # discovery was performed by plug-in, we're done
-                return modelDocument
-        
-        if _type == Type.SCHEMA:
+        if any(pluginMethod(modelDocument)
+               for pluginMethod in pluginClassMethods("ModelDocument.Discover")):
+            pass # discovery was performed by plug-in, we're done
+        elif _type == Type.SCHEMA:
             modelDocument.schemaDiscover(rootNode, isIncluded, namespace)
         elif _type == Type.LINKBASE:
             modelDocument.linkbaseDiscover(rootNode)
@@ -284,6 +284,14 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             modelDocument.versioningReportDiscover(rootNode)
         elif _type == Type.RSSFEED:
             modelDocument.rssFeedDiscover(rootNode)
+            
+        if isEntry:
+            while modelXbrl.schemaDocsToValidate:
+                doc = modelXbrl.schemaDocsToValidate.pop()
+                XmlValidateSchema.validate(doc, doc.xmlRootElement, doc.targetNamespace) # validate schema elements
+            if hasattr(modelXbrl, "ixdsHtmlElements"):
+                inlineIxdsDiscover(modelXbrl) # compile cross-document IXDS references
+
     return modelDocument
 
 def loadSchemalocatedSchema(modelXbrl, element, relativeUrl, namespace, baseUrl):
@@ -648,11 +656,12 @@ class ModelDocument:
                     self.modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06" if self.uri.startswith("http") else "SBR.NL.2.2.0.17"),
                             _("Namespace: %(namespace)s disallowed schemaLocation %(schemaLocation)s"),
                             modelObject=rootElement, namespace=targetNamespace, schemaLocation=self.uri, url=self.uri)
-
+            self.noTargetNamespace = False
         else:
             if isIncluded == True and namespace:
                 self.targetNamespace = namespace
                 self.modelXbrl.namespaceDocs[targetNamespace].append(self)
+            self.noTargetNamespace = True
         if targetNamespace == XbrlConst.xbrldt:
             # BUG: should not set this if obtained from schemaLocation instead of import (but may be later imported)
             self.modelXbrl.hasXDT = True
@@ -665,13 +674,14 @@ class ModelDocument:
             self.modelXbrl.modelManager.addToLog("discovery: {0} error {1}".format(
                         self.basename,
                         err))
-        if self.targetNamespace: 
-            nsDocs = self.modelXbrl.namespaceDocs
-            if targetNamespace in nsDocs and nsDocs[targetNamespace].index(self) == 0: # not an included document
-                for doc in nsDocs[targetNamespace]: # includes self and included documents of this namespace
-                    XmlValidateSchema.validate(doc, doc.xmlRootElement, targetNamespace) # validate schema elements
-        else:  # no target namespace, no includes to worry about order of validation
-            XmlValidateSchema.validate(self, rootElement, targetNamespace) # validate schema elements
+        if not isIncluded:
+            if targetNamespace: 
+                nsDocs = self.modelXbrl.namespaceDocs
+                if targetNamespace in nsDocs and nsDocs[targetNamespace].index(self) == 0:
+                    for doc in nsDocs[targetNamespace]: # includes self and included documents of this namespace
+                        self.modelXbrl.schemaDocsToValidate.add(doc) # validate after all schemas are loaded
+            else:  # no target namespace, no includes to worry about order of validation
+                self.modelXbrl.schemaDocsToValidate.add(self) # validate schema elements
 
             
     def schemaDiscoverChildElements(self, parentModelObject):
@@ -932,6 +942,7 @@ class ModelDocument:
                     elements=", ".join(sorted(set(str(f.prefixedName) for f in undefFacts))))
                     
     def contextDiscover(self, modelContext):
+        XmlValidate.validate(self.modelXbrl, modelContext) # validation may have not completed due to errors elsewhere
         id = modelContext.id
         self.modelXbrl.contexts[id] = modelContext
         for container in (("{http://www.xbrl.org/2003/instance}segment", modelContext.segDimValues, modelContext.segNonDimValues),
@@ -952,65 +963,50 @@ class ModelDocument:
                             containerNonDimValues.append(sElt)
                             
     def unitDiscover(self, unitElement):
+        XmlValidate.validate(self.modelXbrl, unitElement) # validation may have not completed due to errors elsewhere
         self.modelXbrl.units[unitElement.id] = unitElement
                 
     def inlineXbrlDiscover(self, htmlElement):
         if htmlElement.namespaceURI == XbrlConst.xhtml:  # must validate xhtml
             #load(self.modelXbrl, "http://www.w3.org/2002/08/xhtml/xhtml1-strict.xsd")
-            XmlValidate.xhtmlValidate(self.modelXbrl, htmlElement)  # fails on prefixed content
-        for inlineElement in htmlElement.iterdescendants(tag="{http://www.xbrl.org/2008/inlineXBRL}references"):
+            XhtmlValidate.xhtmlValidate(self.modelXbrl, htmlElement)  # fails on prefixed content
+            # validate ix element
+            #self.schemalocateElementNamespace(htmlElement) # schemaLocate ix/xhtml schemas
+            #self.loadSchemalocatedSchemas() # load ix/html schemas
+            #XmlValidate.validate(self.modelXbrl, htmlElement, ixFacts=False)
+        ixNS = None
+        conflictingNSelts = []
+        # find namespace, only 1 namespace
+        for inlineElement in htmlElement.iterdescendants():
+            if isinstance(inlineElement,ModelObject) and inlineElement.namespaceURI in XbrlConst.ixbrlAll:
+                if ixNS is None:
+                    ixNS = inlineElement.namespaceURI
+                elif ixNS != inlineElement.namespaceURI:
+                    conflictingNSelts.append(inlineElement)
+        if conflictingNSelts:
+            self.modelXbrl.error("ix.3.1:multipleIxNamespaces",
+                    _("Multiple ix namespaces were found"),
+                    modelObject=conflictingNSelts)
+        self.ixNStag = ixNStag = "{" + ixNS + "}"
+        for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "references"):
             self.schemaLinkbaseRefsDiscover(inlineElement)
             XmlValidate.validate(self.modelXbrl, inlineElement) # validate instance elements
-        for inlineElement in htmlElement.iterdescendants(tag="{http://www.xbrl.org/2008/inlineXBRL}resources"):
+        if not hasattr(self.modelXbrl, "targetRoleRefs"):
+            self.modelXbrl.targetRoleRefs = {}
+            self.modelXbrl.targetArcroleRefs = {}
+        for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "resources"):
             self.instanceContentsDiscover(inlineElement)
             XmlValidate.validate(self.modelXbrl, inlineElement) # validate instance elements
-            
-        tupleElements = []
-        tuplesByTupleID = {}
-        for modelInlineTuple in htmlElement.iterdescendants(tag="{http://www.xbrl.org/2008/inlineXBRL}tuple"):
-            if isinstance(modelInlineTuple,ModelObject):
-                modelInlineTuple.unorderedTupleFacts = []
-                if modelInlineTuple.tupleID:
-                    tuplesByTupleID[modelInlineTuple.tupleID] = modelInlineTuple
-                tupleElements.append(modelInlineTuple)
-        # hook up tuples to their container
-        for tupleFact in tupleElements:
-            self.inlineXbrlLocateFactInTuple(tupleFact, tuplesByTupleID)
-
-        for tag in ("{http://www.xbrl.org/2008/inlineXBRL}nonNumeric", "{http://www.xbrl.org/2008/inlineXBRL}nonFraction", "{http://www.xbrl.org/2008/inlineXBRL}fraction"):
-            for modelInlineFact in htmlElement.iterdescendants(tag=tag):
-                if isinstance(modelInlineFact,ModelObject):
-                    self.modelXbrl.factsInInstance.add( modelInlineFact )
-                    self.inlineXbrlLocateFactInTuple(modelInlineFact, tuplesByTupleID)
-        # order tuple facts
-        for tupleFact in tupleElements:
-            tupleFact.modelTupleFacts = [
-                 self.modelXbrl.modelObject(objectIndex) 
-                 for order,objectIndex in sorted(tupleFact.unorderedTupleFacts)]
-            
-        # validate particle structure of elements after transformations and established tuple structure
-        for rootModelFact in self.modelXbrl.facts:
-            XmlValidate.validate(self.modelXbrl, rootModelFact, ixFacts=True)
-
-                
-    def inlineXbrlLocateFactInTuple(self, modelFact, tuplesByTupleID):
-        tupleRef = modelFact.tupleRef
-        tuple = None
-        if tupleRef:
-            if tupleRef not in tuplesByTupleID:
-                self.modelXbrl.error("ix.13.1.2:tupleRefMissing",
-                        _("Inline XBRL tupleRef %(tupleRef)s not found"),
-                        modelObject=modelFact, tupleRef=tupleRef)
-            else:
-                tuple = tuplesByTupleID[tupleRef]
-        else:
-            for tupleParent in modelFact.iterancestors(tag="{http://www.xbrl.org/2008/inlineXBRL}tuple"):
-                tuple = tupleParent
-                break
-        if tuple is not None:
-            tuple.unorderedTupleFacts.append((modelFact.order, modelFact.objectIndex))
-        else:
-            self.modelXbrl.facts.append(modelFact)
+            for refElement in inlineElement.iterchildren("{http://www.xbrl.org/2003/linkbase}roleRef"):
+                self.modelXbrl.targetRoleRefs[refElement.get("roleURI")] = refElement
+            for refElement in inlineElement.iterchildren("{http://www.xbrl.org/2003/linkbase}arcroleRef"):
+                self.modelXbrl.targetArcroleRefs[refElement.get("arcroleURI")] = refElement
+     
+        # subsequent inline elements have to be processed after all of the document set is loaded
+        if not hasattr(self.modelXbrl, "ixdsHtmlElements"):
+            self.modelXbrl.ixdsHtmlElements = []
+        self.modelXbrl.ixdsHtmlElements.append(htmlElement)
+        
                 
     def factDiscover(self, modelFact, parentModelFacts=None, parentElement=None):
         if parentModelFacts is None: # may be called with parentElement instead of parentModelFacts list
@@ -1061,7 +1057,7 @@ class ModelDocument:
                 variationNumber += 1
         if len(self.testcaseVariations) == 0:
             # may be a inline test case
-            if XbrlConst.ixbrl in testcaseElement.values():
+            if XbrlConst.ixbrlAll.intersection(testcaseElement.values()):
                 self.testcaseVariations.append(testcaseElement)
 
     def registryDiscover(self, rootNode):
@@ -1083,7 +1079,163 @@ class ModelDocument:
     def xPathTestSuiteDiscover(self, rootNode):
         # no child documents to reference
         pass
+    
+# inline document set level compilation
+def inlineIxdsDiscover(modelXbrl):
+    # compile inline result set
+    footnoteRefs = defaultdict(list)
+    tupleElements = []
+    continuationElements = {}
+    tuplesByTupleID = {}
+    for htmlElement in modelXbrl.ixdsHtmlElements:  
+        mdlDoc = htmlElement.modelDocument
+        for modelInlineTuple in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "tuple"):
+            if isinstance(modelInlineTuple,ModelObject):
+                modelInlineTuple.unorderedTupleFacts = []
+                if modelInlineTuple.tupleID:
+                    tuplesByTupleID[modelInlineTuple.tupleID] = modelInlineTuple
+                tupleElements.append(modelInlineTuple)
+                for r in modelInlineTuple.footnoteRefs:
+                    footnoteRefs[r].append(modelInlineTuple)
+        for elt in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "continuation"):
+            if isinstance(elt,ModelObject) and elt.id:
+                continuationElements[elt.id] = elt
+                    
+    def locateFactInTuple(modelFact, tuplesByTupleID, ixNStag):
+        tupleRef = modelFact.tupleRef
+        tuple = None
+        if tupleRef:
+            if tupleRef not in tuplesByTupleID:
+                modelXbrl.error("ix:tupleRefMissing",
+                                _("Inline XBRL tupleRef %(tupleRef)s not found"),
+                                modelObject=modelFact, tupleRef=tupleRef)
+            else:
+                tuple = tuplesByTupleID[tupleRef]
+        else:
+            for tupleParent in modelFact.iterancestors(tag=ixNStag + "tuple"):
+                tuple = tupleParent
+                break
+        if tuple is not None:
+            tuple.unorderedTupleFacts.append((modelFact.order, modelFact.objectIndex))
+        else:
+            modelXbrl.modelXbrl.facts.append(modelFact)
             
+    def locateContinuation(element, chain=None):
+        contAt = element.get("continuedAt")
+        if contAt:
+            if contAt not in continuationElements:
+                modelXbrl.error("ix:continuationMissing",
+                                _("Inline XBRL continuation %(continuationAt)s not found"),
+                                modelObject=element, continuationAt=contAt)
+            else:
+                if chain is None: chain = [element]
+                contElt = continuationElements[contAt]
+                if contElt in chain:
+                    cycle = ", ".join(e.get("continuedAt") for e in chain)
+                    chain.append(contElt) # makes the cycle clear
+                    modelXbrl.error("ix:continuationCycle",
+                                    _("Inline XBRL continuation cycle: %(continuationCycle)s"),
+                                    modelObject=chain, continuationCycle=cycle)
+                else:
+                    chain.append(contElt)
+                    element._continuationElement = contElt
+                    locateContinuation(contElt, chain)
+
+    for htmlElement in modelXbrl.ixdsHtmlElements:  
+        mdlDoc = htmlElement.modelDocument
+        ixNStag = mdlDoc.ixNStag
+        # hook up tuples to their container
+        for tupleFact in tupleElements:
+            locateFactInTuple(tupleFact, tuplesByTupleID, ixNStag)
+
+        factTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "fraction"))
+        for tag in factTags:
+            for modelInlineFact in htmlElement.iterdescendants(tag=tag):
+                if isinstance(modelInlineFact,ModelObject):
+                    mdlDoc.modelXbrl.factsInInstance.add( modelInlineFact )
+                    locateFactInTuple(modelInlineFact, tuplesByTupleID, ixNStag)
+                    locateContinuation(modelInlineFact)
+                    for r in modelInlineFact.footnoteRefs:
+                        footnoteRefs[r].append(modelInlineFact)
+        # order tuple facts
+        for tupleFact in tupleElements:
+            tupleFact.modelTupleFacts = [
+                 mdlDoc.modelXbrl.modelObject(objectIndex) 
+                 for order,objectIndex in sorted(tupleFact.unorderedTupleFacts)]
+                        
+        # validate particle structure of elements after transformations and established tuple structure
+        for rootModelFact in modelXbrl.facts:
+            # validate XBRL (after complete document set is loaded)
+            XmlValidate.validate(modelXbrl, rootModelFact, ixFacts=True)
+            
+    footnoteLinkPrototypes = {}
+    for htmlElement in modelXbrl.ixdsHtmlElements:  
+        mdlDoc = htmlElement.modelDocument
+        # inline 1.0 ixFootnotes, build resources (with ixContinuation)
+        for modelInlineFootnote in htmlElement.iterdescendants(tag="{http://www.xbrl.org/2008/inlineXBRL}footnote"):
+            if isinstance(modelInlineFootnote,ModelObject):
+                # link
+                linkrole = modelInlineFootnote.get("footnoteLinkRole", XbrlConst.defaultLinkRole)
+                arcrole = modelInlineFootnote.get("arcrole", XbrlConst.factFootnote)
+                footnoteID = modelInlineFootnote.footnoteID or ""
+                footnoteLocLabel = footnoteID + "_loc"
+                if linkrole in footnoteLinkPrototypes:
+                    linkPrototype = footnoteLinkPrototypes[linkrole]
+                else:
+                    linkPrototype = LinkPrototype(mdlDoc, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, linkrole)
+                    footnoteLinkPrototypes[linkrole] = linkPrototype
+                    for baseSetKey in (("XBRL-footnotes",None,None,None), 
+                                       ("XBRL-footnotes",linkrole,None,None),
+                                       (arcrole,linkrole,XbrlConst.qnLinkFootnoteLink, XbrlConst.qnLinkFootnoteArc), 
+                                       (arcrole,linkrole,None,None),
+                                       (arcrole,None,None,None)):
+                        modelXbrl.baseSets[baseSetKey].append(linkPrototype)
+                # locs
+                for modelFact in footnoteRefs[footnoteID]:
+                    locPrototype = LocPrototype(mdlDoc, linkPrototype, footnoteLocLabel, modelFact)
+                    linkPrototype.childElements.append(locPrototype)
+                    linkPrototype.labeledResources[footnoteLocLabel].append(locPrototype)
+                # resource
+                linkPrototype.childElements.append(modelInlineFootnote)
+                linkPrototype.labeledResources[footnoteID].append(modelInlineFootnote)
+                # arc
+                linkPrototype.childElements.append(ArcPrototype(mdlDoc, linkPrototype, XbrlConst.qnLinkFootnoteArc,
+                                                                footnoteLocLabel, footnoteID,
+                                                                linkrole, arcrole))
+                
+        # inline 1.1 ixRelationships and ixFootnotes
+        for modelInlineFootnote in htmlElement.iterdescendants(tag="{http://www.xbrl.org/CR-2013-08-21/inlineXBRL}footnote"):
+            if isinstance(modelInlineFootnote,ModelObject):
+                locateContinuation(modelInlineFootnote)
+                linkPrototype = LinkPrototype(mdlDoc, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, XbrlConst.defaultLinkRole)
+                baseSetKey = (XbrlConst.factFootnote,XbrlConst.defaultLinkRole,XbrlConst.qnLinkFootnoteLink, XbrlConst.qnLinkFootnoteArc)
+                modelXbrl.baseSets[baseSetKey].append(linkPrototype) # allows generating output instance with this loc
+                linkPrototype.childElements.append(modelInlineFootnote)
+
+        for modelInlineRel in htmlElement.iterdescendants(tag="{http://www.xbrl.org/CR-2013-08-21/inlineXBRL}relationship"):
+            if isinstance(modelInlineRel,ModelObject):
+                linkrole = modelInlineRel.get("linkRole", XbrlConst.defaultLinkRole)
+                arcrole = modelInlineRel.get("arcrole", XbrlConst.factFootnote)
+                linkPrototype = LinkPrototype(mdlDoc, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, linkrole)
+                for baseSetKey in ((arcrole,linkrole,XbrlConst.qnLinkFootnoteLink, XbrlConst.qnLinkFootnoteArc), 
+                                   (arcrole,linkrole,None,None),
+                                   (arcrole,None,None,None)):
+                    modelXbrl.baseSets[baseSetKey].append(linkPrototype)
+                for fromId in modelInlineRel.get("fromRefs","").split():
+                    locPrototype = LocPrototype(mdlDoc, linkPrototype, "from_loc", fromId)
+                    linkPrototype.childElements.append(locPrototype)
+                    linkPrototype.labeledResources["from_loc"].append(locPrototype)
+                for toId in modelInlineRel.get("toRefs","").split():
+                    locPrototype = LocPrototype(mdlDoc, linkPrototype, "to_loc", toId)
+                    linkPrototype.childElements.append(locPrototype)
+                    linkPrototype.labeledResources["to_loc"].append(locPrototype)
+                linkPrototype.childElements.append(ArcPrototype(mdlDoc, linkPrototype, XbrlConst.qnLinkFootnoteArc,
+                                                                "from_loc", "to_loc",
+                                                                linkrole, arcrole,
+                                                                modelInlineRel.get("order", "1")))
+                
+    del modelXbrl.ixdsHtmlElements # dereference
+    
 class LoadingException(Exception):
     pass
 

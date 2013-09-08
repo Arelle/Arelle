@@ -23,13 +23,15 @@ class ViewConcepts(ViewFile.View):
         hasTypedDomainRef = False
         hasDifferentNillables = False
         priorNillable = None
+        excludedNamespaces = XbrlConst.ixbrlAll.union(
+            (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl,
+             XbrlConst.xbrldt,
+             XbrlConst.xhtml))
         # sort by labels
         lbls = defaultdict(list)
-        for concept in self.modelXbrl.qnameConcepts.values():
+        for concept in set(self.modelXbrl.qnameConcepts.values()): # may be twice if unqualified (with and without namespace)
             lbls[concept.label(preferredLabel=self.labelrole, lang=self.lang)].append(concept.objectId())
-            if concept.modelDocument.targetNamespace not in (
-                     XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl,
-                     XbrlConst.xbrldt):
+            if concept.modelDocument.targetNamespace not in excludedNamespaces:
                 if not hasTypedDomainRef and concept.typedDomainRef:
                     hasTypedDomainRef = True
                 if priorNillable is None:
