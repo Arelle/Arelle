@@ -619,7 +619,7 @@ def about():
     """
     return htmlBody(_('''<table width="700p">
 <tr><th colspan="2">About arelle</th></tr>
-<tr><td rowspan="12" style="vertical-align:top;"><img src="/images/arelle32.gif"/></td><td>arelle&reg; version: %s %s. An open source XBRL platform</td></tr>
+<tr><td rowspan="12" style="vertical-align:top;"><img src="/images/arelle32.gif"/></td><td>arelle&reg; version: %s %sbit %s. An open source XBRL platform</td></tr>
 <tr><td>&copy; 2010-2013 Mark V Systems Limited.  All rights reserved.</td></tr>
 <tr><td>Web site: <a href="http://www.arelle.org">http://www.arelle.org</a>.  
 E-mail support: <a href="mailto:support@arelle.org">support@arelle.org</a>.</td></tr>
@@ -636,7 +636,7 @@ See the License for the specific language governing permissions and limitations 
 <tr><td style="text-indent: 2.0em;">xlrd &copy; 2005-2013 Stephen J. Machin, Lingfo Pty Ltd, &copy; 2001 D. Giffin, &copy; 2000 A. Khan</td></tr>
 <tr><td style="text-indent: 2.0em;">xlwt &copy; 2007 Stephen J. Machin, Lingfo Pty Ltd, &copy; 2005 R. V. Kiseliov</td></tr>
 <tr><td style="text-indent: 2.0em;">Bottle &copy; 2011 Marcel Hellkamp</td></tr>
-</table>''') % (cntlr.__version__, Version.version) )
+</table>''') % (cntlr.__version__, cntlr.systemWordSize, Version.version) )
 
 @route('/')
 def indexPage():

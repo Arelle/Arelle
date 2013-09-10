@@ -50,7 +50,8 @@ def parseAndRun(args):
     cntlr = CntlrCmdLine()  # need controller for plug ins to be loaded
     usage = "usage: %prog [options]"
     
-    parser = OptionParser(usage, version="Arelle(r) {0}".format(Version.version))
+    parser = OptionParser(usage, version="Arelle(r) {0}bit {1}"
+                          .format(cntlr.systemWordSize, Version.version))
     parser.add_option("-f", "--file", dest="entrypointFile",
                       help=_("FILENAME is an entry point, which may be "
                              "an XBRL instance, schema, linkbase file, "
@@ -269,7 +270,7 @@ def parseAndRun(args):
         
     (options, leftoverArgs) = parser.parse_args(args)
     if options.about:
-        print(_("\narelle(r) {0}\n\n"
+        print(_("\narelle(r) {0}bit {1}\n\n"
                 "An open source XBRL platform\n"
                 "(c) 2010-2013 Mark V Systems Limited\n"
                 "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
@@ -288,8 +289,8 @@ def parseAndRun(args):
                 "\n   lxml (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh"
                 "\n   xlrd (c) 2005-2013 Stephen J. Machin, Lingfo Pty Ltd, (c) 2001 D. Giffin, (c) 2000 A. Khan"
                 "\n   xlwt (c) 2007 Stephen J. Machin, Lingfo Pty Ltd, (c) 2005 R. V. Kiseliov"
-                "{1}"
-                ).format(Version.version,
+                "{2}"
+                ).format(cntlr.systemWordSize, Version.version,
                          _("\n   Bottle (c) 2011-2013 Marcel Hellkamp") if hasWebServer else ""))
     elif options.disclosureSystemName in ("help", "help-verbose"):
         text = _("Disclosure system choices: \n{0}").format(' \n'.join(cntlr.modelManager.disclosureSystem.dirlist(options.disclosureSystemName)))

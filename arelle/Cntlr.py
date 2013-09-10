@@ -9,7 +9,7 @@
    :synopsis: Common controller class to initialize for platform and setup common logger functions
 """
 from arelle import PythonUtil # define 2.x or 3.x string types
-import tempfile, os, io, sys, logging, gettext, json, re, subprocess
+import tempfile, os, io, sys, logging, gettext, json, re, subprocess, math
 from arelle import ModelManager
 from arelle.Locale import getLanguageCodes
 from arelle import PluginManager
@@ -78,6 +78,7 @@ class Cntlr:
         self.hasWin32gui = False
         self.hasGui = hasGui
         self.hasFileSystem = True # no file system on Google App Engine servers
+        self.systemWordSize = int(round(math.log(sys.maxsize, 2)) + 1) # e.g., 32 or 64
 
         self.moduleDir = os.path.dirname(__file__)
         # for python 3.2 remove __pycache__
