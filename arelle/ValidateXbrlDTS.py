@@ -201,7 +201,7 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
                                 acceptableTarget = True
                         if not acceptableTarget:
                             val.modelXbrl.error("xbrl.{0}:{1}LocTarget".format(
-                                            {"labelLink":"5.2.5.1",
+                                            {"labelLink":"5.2.2.1",
                                              "referenceLink":"5.2.3.1",
                                              "calculationLink":"5.2.5.1",
                                              "definitionLink":"5.2.6.1",
