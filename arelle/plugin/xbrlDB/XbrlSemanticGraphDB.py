@@ -61,7 +61,7 @@ def isDBPort(host, port, timeout=10):
         try:
             conn = urllib.request.urlopen("http://{0}:{1}/graphs".format(host, port or '8182'))
             return True # success but doesn't need password
-        except HTTPError:
+        except HTTPError as err:
             return False # success, this is really a postgres socket, wants user name
         except URLError:
             return False # something is there but not postgres
@@ -70,7 +70,7 @@ def isDBPort(host, port, timeout=10):
     return False
     
 XBRLDBGRAPHS = {
-                "accessions",    # filings (graph of documents)
+                "filings",       # filings (graph of reports)
                 "documents"      # graph of namespace->names->types/elts, datapoints
                                  # any future root vertices go here
                 }
@@ -242,13 +242,13 @@ class XbrlSemanticGraphDatabaseConnection():
             #initialVcount, initialEcount = self.getDBsize() # don't include in timing, very slow
             startedAt = time.time()
             # self.load()  this done in the verify step
-            self.insertAccession(rssItem)
+            self.insertFiling(rssItem)
             self.insertDocuments()
             self.insertDataDictionary() # XML namespaces types aspects
             #self.insertRelationshipTypeSets()
             #self.insertResourceRoleSets()
             #self.insertAspectValues()
-            self.modelXbrl.profileStat(_("XbrlPublicDB: DTS insertion"), time.time() - startedAt)
+            self.modelXbrl.profileStat(_("XbrlPublicDB: geport insertion"), time.time() - startedAt)
             startedAt = time.time()
             self.insertDataPoints()
             self.modelXbrl.profileStat(_("XbrlPublicDB: data points insertion"), time.time() - startedAt)
@@ -272,55 +272,54 @@ class XbrlSemanticGraphDatabaseConnection():
             self.rollback()
             raise
         
-    def insertAccession(self, rssItem):
-        self.showStatus("insert accession")
-        # accession graph -> document vertices
-        new_accession = {'_class':'accession',
+    def insertFiling(self, rssItem):
+        self.showStatus("insert filing")
+        # filing graph -> document vertices
+        new_filing = {'_class':'filing',
                          'is_most_current': True}
         if self.modelXbrl.modelDocument.creationSoftwareComment:
-            new_accession['creation_software'] = self.modelXbrl.modelDocument.creationSoftwareComment
+            new_filing['creation_software'] = self.modelXbrl.modelDocument.creationSoftwareComment
         datetimeNow = datetime.datetime.now()
         datetimeNowStr = XmlUtil.dateunionValue(datetimeNow)
-        if rssItem is not None:  # sec accession
+        if rssItem is not None:  # sec filing (accession)
             # set self.
-            accessionType = "SEC_filing"
-            # for an RSS Feed entry from SEC, use rss item's accession information
-            new_accession['accepted_timestamp'] = XmlUtil.dateunionValue(rssItem.acceptanceDatetime)
-            new_accession['filing_date'] = XmlUtil.dateunionValue(rssItem.filingDate)
-            new_accession['entity_id'] = rssItem.cikNumber
-            new_accession['entity_name'] = rssItem.companyName
-            new_accession['standard_industrial_classification'] = rssItem.assignedSic 
-            new_accession['sec_html_url'] = rssItem.htmlUrl 
-            new_accession['entry_url'] = rssItem.url
-            new_accession['filing_accession_number'] = filing_accession_number = rssItem.accessionNumber
+            filingType = "SEC_filing"
+            # for an RSS Feed entry from SEC, use rss item's filing information
+            new_filing['accepted_timestamp'] = XmlUtil.dateunionValue(rssItem.acceptanceDatetime)
+            new_filing['filing_date'] = XmlUtil.dateunionValue(rssItem.filingDate)
+            new_filing['entity_id'] = rssItem.cikNumber
+            new_filing['entity_name'] = rssItem.companyName
+            new_filing['standard_industrial_classification'] = rssItem.assignedSic 
+            new_filing['sec_html_url'] = rssItem.htmlUrl 
+            new_filing['entry_url'] = rssItem.url
+            new_filing['filing_number'] = filing_number = rssItem.accessionNumber
         else:
-            # not an RSS Feed item, make up our own accession ID (the time in seconds of epoch)
-            self.accessionId = int(time.time())    # only available if entered from an SEC filing
+            # not an RSS Feed item, make up our own filing ID (the time in seconds of epoch)
             intNow = int(time.time())
-            accessionType = "independent_filing"
-            new_accession['accepted_timestamp'] = datetimeNowStr
-            new_accession['filing_date'] = datetimeNowStr
-            new_accession['entry_url'] = self.modelXbrl.fileSource.url
-            new_accession['filing_accession_number'] = filing_accession_number = str(intNow)
-        for id in self.execute("Insert accession " + accessionType, """
-            r = g.v(root_accessions_id)
-            // check if accession already has a vertex
-            vIt = r.out(new_accession.filing_accession_number)
+            filingType = "independent_filing"
+            new_filing['accepted_timestamp'] = datetimeNowStr
+            new_filing['filing_date'] = datetimeNowStr
+            new_filing['entry_url'] = self.modelXbrl.fileSource.url
+            new_filing['filing_number'] = filing_number = str(intNow)
+        for id in self.execute("Insert filing " + filingType, """
+            r = g.v(root_filings_id)
+            // check if filing already has a vertex
+            vIt = r.out(new_filing.filing_number)
             // use prior vertex, or if none, create new vertex for it
-            accession = (vIt.hasNext() ? vIt.next() : g.addVertex(new_accession) )
-            // TBD: modify accession timestamp (last-updated-at, if it already existed)
-            // check if vertex has edge to root_accessions vertex
-            vIn = accession.in
+            filing = (vIt.hasNext() ? vIt.next() : g.addVertex(new_filing) )
+            // TBD: modify filing timestamp (last-updated-at, if it already existed)
+            // check if vertex has edge to root_filings vertex
+            vIn = filing.in
             // if no edge, add one
-            vIn.hasNext() && vIn.next() == r ?: g.addEdge(r, accession, new_accession.filing_accession_number)
-            accession.id
+            vIn.hasNext() && vIn.next() == r ?: g.addEdge(r, filing, new_filing.filing_number)
+            filing.id
             """, 
-            params={'root_accessions_id': self.root_accessions_id,
-                    'new_accession': new_accession,
-                    'accession_type': accessionType,
+            params={'root_filings_id': self.root_filings_id,
+                    'new_filing': new_filing,
+                    'filing_type': filingType,
                     'datetime_now': datetimeNowStr,
                    })["results"]:
-            self.accession_id = int(id)
+            self.filing_id = int(id)
             
         # relationshipSets are a dts property
         self.relationshipSets = [(arcrole, ELR, linkqname, arcqname)
@@ -328,7 +327,7 @@ class XbrlSemanticGraphDatabaseConnection():
                                  if ELR and (arcrole.startswith("XBRL-") or (linkqname and arcqname))]
         
     def insertDocuments(self):
-        # accession->documents
+        # filing->documents
         # 
         self.showStatus("insert documents")
         documents = []
@@ -336,18 +335,16 @@ class XbrlSemanticGraphDatabaseConnection():
             doc = {'_class': 'document',
                    'url': modelDocument.uri,
                    'document_type': modelDocument.gettype()}
-            if modelDocument.type == Type.SCHEMA:
-                doc['aspect_vertices'] = {}
             documents.append(doc)
         results = self.execute("Insert documents", """
             results = []
             rDoc = g.v(root_documents_id)
-            vAccession = g.v(accession_id)
-            // add dts if it doesn't exist
-            vDtsIt = vAccession.out('dts')
-            vDts = (vDtsIt.hasNext() ? vDtsIt.next() : g.addVertex(dts) )
-            vDtsIn = vDts.in('dts').has('id',vAccession.id)
-            vDtsIn.hasNext() ?: g.addEdge(vAccession, vDts, 'dts')
+            vFiling = g.v(filing_id)
+            // add report if it doesn't exist
+            vReportIt = vFiling.out('reports')
+            vReport = (vReportIt.hasNext() ? vReportIt.next() : g.addVertex(report) )
+            vReportIn = vReport.in('reports').has('id',vFiling.id)
+            vReportIn.hasNext() ?: g.addEdge(vFiling, vReport, 'reports')
 
             urlV = [:]
             urlV_id = [:]
@@ -363,14 +360,14 @@ class XbrlSemanticGraphDatabaseConnection():
                 urlV_id[it.url] = vDoc.id
             } 
 
-            // entry document edge to doc root and dts
+            // entry document edge to doc root and report
             documents.findAll{it.url == entry_url}.each{
                 vEntryDoc = urlV[it.url]
-                // link entryDoc to dts
-                vDocIn = vAccession.in('entry_document')
-                vDocIn.hasNext() && vDocIn.next() == vAccession ?: g.addEdge(vAccession, vEntryDoc, 'entry_document')
+                // link entry point entryDoc to report
+                vDocIn = vReport.in('entry_point')
+                vDocIn.hasNext() && vDocIn.next() == vReport ?: g.addEdge(vReport, vEntryDoc, 'entry_point')
                 vDocIn = vEntryDoc.in('filed_document')
-                vDocIn.hasNext() && vDocIn.next() == rDoc ?: g.addEdge(vDts, vEntryDoc, 'filed_document')
+                vDocIn.hasNext() && vDocIn.next() == rDoc ?: g.addEdge(vReport, vEntryDoc, 'filed_document')
             }
 
             // referenced document edge to entry document
@@ -380,17 +377,17 @@ class XbrlSemanticGraphDatabaseConnection():
                 vDocIn = vRefDoc.in('referenced_document')
                 vDocIn.hasNext() && vDocIn.next() == vEntryDoc ?: g.addEdge(vEntryDoc, vRefDoc, 'referenced_document')
             }
-            [vDts.id, urlV_id, isNew]
+            [vReport.id, urlV_id, isNew]
             """, 
             params={'root_documents_id': self.root_documents_id,
-                    'accession_id': self.accession_id,
+                    'filing_id': self.filing_id,
                     'entry_url': self.modelXbrl.modelDocument.uri,
-                    'dts': {
-                        '_class': 'dts'},
+                    'report': {
+                        '_class': 'report'},
                     'documents': documents
                     })["results"]
-        dts_id, doc_id_list, doc_isNew_list = results # unpack list
-        self.dts_id = int(dts_id)
+        report_id, doc_id_list, doc_isNew_list = results # unpack list
+        self.report_id = int(report_id)
         self.document_ids = dict( (url, int(id)) for url, id in doc_id_list.items() )
         self.document_isNew = dict( (url, isNew) for url,isNew in doc_isNew_list.items() )
                 
@@ -473,14 +470,14 @@ class XbrlSemanticGraphDatabaseConnection():
                                  for modelRoleType in modelRoleTypes]
                     activity = "Insert data dictionary types, aspects, roles, and arcroles for " + modelDocument.uri
                     results = self.execute(activity, "//" + activity + """
-                        dtsV = g.v(dts_id)
+                        reportV = g.v(report_id)
                         docV = g.v(document_id)
                         // add dictV if it doesn't exist
                         dictIt = docV.out('doc_data_dictionary')
                         dictV = (dictIt.hasNext() ? dictIt.next() : g.addVertex(dict) )
-                        // add edge from dtsV to dictV if not present
-                        vDtsIn = dtsV.in('dts_data_dictionary').has('id',dtsV.id)
-                        vDtsIn.hasNext() ?: g.addEdge(dtsV, dictV, 'dts_data_dictionary')
+                        // add edge from reportV to dictV if not present
+                        vReportIn = reportV.in('report_data_dictionary').has('id',reportV.id)
+                        vReportIn.hasNext() ?: g.addEdge(reportV, dictV, 'report_data_dictionary')
                         // add edge from docV to dictV if not present
                         vDictIn = dictV.in('doc_data_dictionary').has('id',docV.id)
                         vDictIn.hasNext() ?: g.addEdge(docV, dictV, 'doc_data_dictionary')
@@ -514,7 +511,7 @@ class XbrlSemanticGraphDatabaseConnection():
                         [dictV.id, type_ids, aspect_ids, role_type_ids, arcrole_type_ids]
                         """, 
                         params={
-                        'dts_id': self.dts_id,
+                        'report_id': self.report_id,
                         'document_id': self.document_ids[modelDocument.uri],
                         'dict': {
                             '_class': 'data_dictionary',
@@ -549,14 +546,14 @@ class XbrlSemanticGraphDatabaseConnection():
                     '''
                     results = self.execute("Insert data dictionary types, and arcroles for " + 
                                            modelDocument.uri, """
-                        dtsV = g.v(dts_id)
+                        reportV = g.v(report_id)
                         docV = g.v(document_id)
                         // add dictV if it doesn't exist
                         dictIt = docV.out('doc_data_dictionary')
                         dictV = (dictIt.hasNext() ? dictIt.next() : g.addVertex(dict) )
-                        // add edge from dtsV to dictV if not present
-                        vDtsIn = dtsV.in('dts_data_dictionary').has('id',dtsV.id)
-                        vDtsIn.hasNext() ?: g.addEdge(dtsV, dictV, 'dts_data_dictionary')
+                        // add edge from reportV to dictV if not present
+                        vReportIn = reportV.in('report_data_dictionary').has('id',reportV.id)
+                        vReportIn.hasNext() ?: g.addEdge(reportV, dictV, 'report_data_dictionary')
                         // add edge from docV to dictV if not present
                         vDictIn = dictV.in('doc_data_dictionary').has('id',docV.id)
                         vDictIn.hasNext() ?: g.addEdge(docV, dictV, 'doc_data_dictionary')
@@ -575,7 +572,7 @@ class XbrlSemanticGraphDatabaseConnection():
                         [dictV.id, type_ids, arcrole_type_ids]
                         """, 
                         params={
-                        'dts_id': self.dts_id,
+                        'report_id': self.report_id,
                         'document_id': self.document_ids[modelDocument.uri],
                         'dict': {
                             '_class': 'data_dictionary',
@@ -600,14 +597,14 @@ class XbrlSemanticGraphDatabaseConnection():
                         
                     results = self.execute("Insert data dictionary roles for " + 
                                            modelDocument.uri, """
-                        dtsV = g.v(dts_id)
+                        reportV = g.v(report_id)
                         docV = g.v(document_id)
                         // add dictV if it doesn't exist
                         dictIt = docV.out('doc_data_dictionary')
                         dictV = (dictIt.hasNext() ? dictIt.next() : g.addVertex(dict) )
-                        // add edge from dtsV to dictV if not present
-                        vDtsIn = dtsV.in('dts_data_dictionary').has('id',dtsV.id)
-                        vDtsIn.hasNext() ?: g.addEdge(dtsV, dictV, 'dts_data_dictionary')
+                        // add edge from reportV to dictV if not present
+                        vReportIn = reportV.in('report_data_dictionary').has('id',reportV.id)
+                        vReportIn.hasNext() ?: g.addEdge(reportV, dictV, 'report_data_dictionary')
                         // add edge from docV to dictV if not present
                         vDictIn = dictV.in('doc_data_dictionary').has('id',docV.id)
                         vDictIn.hasNext() ?: g.addEdge(docV, dictV, 'doc_data_dictionary')
@@ -620,7 +617,7 @@ class XbrlSemanticGraphDatabaseConnection():
                         role_type_ids
                         """, 
                         params={
-                        'dts_id': self.dts_id,
+                        'report_id': self.report_id,
                         'document_id': self.document_ids[modelDocument.uri],
                         'dict': {
                             '_class': 'data_dictionary',
@@ -638,14 +635,14 @@ class XbrlSemanticGraphDatabaseConnection():
                         
                     results = self.execute("Insert data dictionary aspects for " + 
                                            modelDocument.uri, """
-                        dtsV = g.v(dts_id)
+                        reportV = g.v(report_id)
                         docV = g.v(document_id)
                         // add dictV if it doesn't exist
                         dictIt = docV.out('doc_data_dictionary')
                         dictV = (dictIt.hasNext() ? dictIt.next() : g.addVertex(dict) )
-                        // add edge from dtsV to dictV if not present
-                        vDtsIn = dtsV.in('dts_data_dictionary').has('id',dtsV.id)
-                        vDtsIn.hasNext() ?: g.addEdge(dtsV, dictV, 'dts_data_dictionary')
+                        // add edge from reportV to dictV if not present
+                        vReportIn = reportV.in('report_data_dictionary').has('id',reportV.id)
+                        vReportIn.hasNext() ?: g.addEdge(reportV, dictV, 'report_data_dictionary')
                         // add edge from docV to dictV if not present
                         vDictIn = dictV.in('doc_data_dictionary').has('id',docV.id)
                         vDictIn.hasNext() ?: g.addEdge(docV, dictV, 'doc_data_dictionary')
@@ -661,7 +658,7 @@ class XbrlSemanticGraphDatabaseConnection():
                         aspect_ids
                         """, 
                         params={
-                        'dts_id': self.dts_id,
+                        'report_id': self.report_id,
                         'document_id': self.document_ids[modelDocument.uri],
                         'dict': {
                             '_class': 'data_dictionary',
@@ -774,18 +771,18 @@ class XbrlSemanticGraphDatabaseConnection():
                         if qname not in self.aspect_proxy_id and qname in self.aspect_id]
         #print ("missing qnames: " + ", ".join(str(q) for q in aspectQnames if q not in self.aspect_id))
         results = self.execute("Insert aspect proxies", """
-            dtsV = g.v(dts_id)
+            reportV = g.v(report_id)
             aspectProxyV_ids = []
             aspect_ids.each{
                 aspectV = g.v(it)
                 aspectProxyV = g.addVertex(['_class':'aspect_proxy'])
                 aspectProxyV_ids << aspectProxyV.id
                 g.addEdge(aspectV, aspectProxyV, 'proxy')
-                g.addEdge(dtsV, aspectProxyV, 'dts_aspect_proxy')
+                g.addEdge(reportV, aspectProxyV, 'report_aspect_proxy')
             }
             aspectProxyV_ids
             """, 
-            params={'dts_id': self.dts_id,
+            params={'report_id': self.report_id,
                     'aspect_ids': [self.aspect_id[qname] for qname in aspectQnames]}
             )["results"]
         for i, proxy_id in enumerate(results):
@@ -1054,9 +1051,9 @@ class XbrlSemanticGraphDatabaseConnection():
     def insertRelationshipSets(self):
         self.showStatus("insert relationship sets")
         results = self.execute("Insert relationship sets", """
-            dtsV = g.v(dts_id)
+            reportV = g.v(report_id)
             relSetsV = g.addVertex(relSets)
-            g.addEdge(dtsV, relSetsV, 'relationship_sets')
+            g.addEdge(reportV, relSetsV, 'relationship_sets')
             relSetV_ids = []
             relSet.each{
                 relSetV = g.addVertex(it)
@@ -1065,7 +1062,7 @@ class XbrlSemanticGraphDatabaseConnection():
             [relSetsV.id, relSetV_ids]
             """, 
             params={
-                'dts_id': self.dts_id,
+                'report_id': self.report_id,
                 'relSets': {
                     '_class': 'relationship_sets'},
                 'relSet': [{
@@ -1201,7 +1198,7 @@ class XbrlSemanticGraphDatabaseConnection():
                     params={'relE': relE}
                     )["results"]
                 
-                # TBD: do we want to link resources to the dts (by role, class, or otherwise?)
+                # TBD: do we want to link resources to the report (by role, class, or otherwise?)
                     
         resourceIDs.clear() # dereferemce objects
         resources = None
@@ -1242,9 +1239,9 @@ class XbrlSemanticGraphDatabaseConnection():
         if messages:
             self.showStatus("insert validation messages")
             results = self.execute("Insert validation messages", """
-                accessionV = g.v(accession_id)
+                filingV = g.v(filing_id)
                 msgsV = g.addVertex(['_class':'messages'])
-                g.addEdge(accessionV, msgsV, 'validation_messages')
+                g.addEdge(filingV, msgsV, 'validation_messages')
                 msgV_ids = []
                 messages.each{
                     msgV = g.addVertex(it.subMap(['_class','seq','code','level','text']))
@@ -1256,7 +1253,7 @@ class XbrlSemanticGraphDatabaseConnection():
                 msgV_ids
                 """, 
                 params={
-                    'accession_id': self.accession_id,
+                    'filing_id': self.filing_id,
                     'messages': messages
                 })["results"]
             relationshipSetIDs = [int(msg_id) for msg_id in results]
