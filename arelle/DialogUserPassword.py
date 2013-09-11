@@ -50,6 +50,23 @@ def askDatabase(parent, priorDatabaseSettings):
         return (dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password, dialog.database, dialog.timeout, dialog.dbType)
     return None
 
+def askInternetLogon(parent, url, quotedUrl, dialogCaption, dialogText, untilDoneEvent, result):
+    # received Html suggests url may require web page logon (due to receivedHtml)
+    r = messagebox.askyesnocancel(dialogCaption, dialogText)
+    if r is None:
+        result.append("cancel")
+    elif r == False:
+        result.append("no")
+    else:
+        import webbrowser
+        webbrowser.open(quotedUrl, new=1, autoraise=True)
+        r = messagebox.askretrycancel(dialogCaption,
+                                      _("After logging on (by web browser, if applicable) click 'retry' to reload web file"))
+        if r:
+            result.append("retry")
+        else:
+            result.append("cancel")
+    untilDoneEvent.set()
 
 class DialogUserPassword(Toplevel):
     def __init__(self, parent, title, host=None, realm=None, useOsProxy=None, urlAddr=None, urlPort=None, user=None, password=None, database=None, timeout=None, dbType=None, showUrl=False, showUser=False, showHost=True, showRealm=True, showDatabase=False):

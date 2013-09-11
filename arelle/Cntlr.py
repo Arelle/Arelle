@@ -410,6 +410,21 @@ class Cntlr:
         """
         return ('myusername','mypassword')
     
+    # default web authentication password
+    def internet_logon(self, url, quotedUrl, dialogCaption, dialogText):
+        """Web file retieval results in html that appears to require user logon,
+        if interactive allow the user to log on. 
+           
+        :url: The URL as requested (by an import, include, href, schemaLocation, ...)
+        :quotedUrl: The processed and retrievable URL
+        :dialogCaption: The dialog caption for the situation
+        :dialogText:  The dialog text for the situation at hand
+        :returns: string -- 'retry' if user logged on and file can be retried, 
+                            'cancel' to abandon retrieval
+                            'no' if the file is expected and valid contents (not a logon request)
+        """
+        return 'cancel'
+    
     # if no text, then return what is on the clipboard, otherwise place text onto clipboard
     def clipboardData(self, text=None):
         """Places text onto the clipboard (if text is not None), otherwise retrieves and returns text from the clipboard.

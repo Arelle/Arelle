@@ -234,6 +234,7 @@ class WebCache:
             if self.workOffline or filenameOnly:
                 return filepath
             filepathtmp = filepath + ".tmp"
+            fileExt = os.path.splitext(filepath)[1]
             timeNow = time.time()
             timeNowStr = time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(timeNow))
             if not reload and os.path.exists(filepath):
@@ -268,11 +269,28 @@ class WebCache:
             while retryCount > 0:
                 try:
                     self.progressUrl = url
-                    savedfile, headers = self.retrieve(
+                    savedfile, headers, initialBytes = self.retrieve(
                     #savedfile, headers = self.opener.retrieve(
                                       quotedUrl,
                                       filename=filepathtmp,
                                       reporthook=self.reportProgress)
+                    
+                    # check if this is a real file or a wifi or web logon screen
+                    if fileExt in {".xsd", ".xml", ".xbrl"}:
+                        if b"<html" in initialBytes:
+                            response = None  # found possible logon request
+                            if self.cntlr.hasGui:
+                                response = self.cntlr.internet_logon(url, quotedUrl, 
+                                                                     _("Unexpected HTML in {0}").format(url),
+                                                                     _("Is this a logon page? If so, click 'yes', else click 'no' if it is the expected XBRL content, or 'cancel' to abort retrieval: \n\n{0}")
+                                                                     .format(initialBytes[:1500]))
+                            if response == "retry":
+                                retryCount -= 1
+                                continue
+                            elif response != "no":
+                                self.cntlr.addToLog(_("Web file appears to be an html logon request, not retrieved: {0} \nContents: \n{1}").format(url,initialBytes))
+                                return None
+                    
                     retryCount = 0
                 except ContentTooShortError as err:
                     self.cntlr.addToLog(_("{0} \nretrieving {1}").format(err,url))
@@ -282,30 +300,49 @@ class WebCache:
                     # handle file is bad
                 except (HTTPError, URLError) as err:
                     try:
-                        if err.code == 401 and 'www-authenticate' in err.hdrs:
-                            match = re.match('[ \t]*([^ \t]+)[ \t]+realm="([^"]*)"', err.hdrs['www-authenticate'])
-                            if match:
-                                scheme, realm = match.groups()
-                                if scheme.lower() == 'basic':
-                                    host = os.path.dirname(quotedUrl)
-                                    userPwd = self.cntlr.internet_user_password(host, realm)
-                                    if isinstance(userPwd,(tuple,list)):
-                                        self.http_auth_handler.add_password(realm=realm,uri=host,user=userPwd[0],passwd=userPwd[1]) 
-                                        retryCount -= 1
-                                        continue
-                                self.cntlr.addToLog(_("'{0}' www-authentication for realm '{1}' is required to access {2}\n{3}").format(scheme, realm, url, err))
-                        elif err.code == 407 and 'proxy-authenticate' in err.hdrs:
-                            match = re.match('[ \t]*([^ \t]+)[ \t]+realm="([^"]*)"', err.hdrs['proxy-authenticate'])
-                            if match:
-                                scheme, realm = match.groups()
-                                host = self.proxy_handler.proxies.get('http')
-                                if scheme.lower() == 'basic':
-                                    userPwd = self.cntlr.internet_user_password(host, realm)
-                                    if isinstance(userPwd,(tuple,list)):
-                                        self.proxy_auth_handler.add_password(realm=realm,uri=host,user=userPwd[0],passwd=userPwd[1]) 
-                                        retryCount -= 1
-                                        continue
-                                self.cntlr.addToLog(_("'{0}' proxy-authentication for realm '{1}' is required to access {2}\n{3}").format(scheme, realm, url, err))
+                        tryWebAuthentication = False
+                        if err.code == 401:
+                            tryWebAuthentication = True
+                            if 'www-authenticate' in err.hdrs:
+                                match = re.match('[ \t]*([^ \t]+)[ \t]+realm="([^"]*)"', err.hdrs['www-authenticate'])
+                                if match:
+                                    scheme, realm = match.groups()
+                                    if scheme.lower() == 'basic':
+                                        host = os.path.dirname(quotedUrl)
+                                        userPwd = self.cntlr.internet_user_password(host, realm)
+                                        if isinstance(userPwd,(tuple,list)):
+                                            self.http_auth_handler.add_password(realm=realm,uri=host,user=userPwd[0],passwd=userPwd[1]) 
+                                            retryCount -= 1
+                                            continue
+                                    self.cntlr.addToLog(_("'{0}' www-authentication for realm '{1}' is required to access {2}\n{3}").format(scheme, realm, url, err))
+                        elif err.code == 407:
+                            tryWebAuthentication = True
+                            if 'proxy-authenticate' in err.hdrs:
+                                match = re.match('[ \t]*([^ \t]+)[ \t]+realm="([^"]*)"', err.hdrs['proxy-authenticate'])
+                                if match:
+                                    scheme, realm = match.groups()
+                                    host = self.proxy_handler.proxies.get('http')
+                                    if scheme.lower() == 'basic':
+                                        userPwd = self.cntlr.internet_user_password(host, realm)
+                                        if isinstance(userPwd,(tuple,list)):
+                                            self.proxy_auth_handler.add_password(realm=realm,uri=host,user=userPwd[0],passwd=userPwd[1]) 
+                                            retryCount -= 1
+                                            continue
+                                    self.cntlr.addToLog(_("'{0}' proxy-authentication for realm '{1}' is required to access {2}\n{3}").format(scheme, realm, url, err))
+                        if tryWebAuthentication:
+                            # may be a web login authentication request
+                            response = None  # found possible logon request
+                            if self.cntlr.hasGui:
+                                response = self.cntlr.internet_logon(url, quotedUrl, 
+                                                                     _("HTTP {0} authentication request").format(err.code),                                                                                                                                          _("Unexpected HTML in {0}").format(url),
+                                                                     _("Is browser-based possible? If so, click 'yes', or 'cancel' to abort retrieval: \n\n{0}")
+                                                                     .format(url))
+                            if response == "retry":
+                                retryCount -= 1
+                                continue
+                            elif response != "no":
+                                self.cntlr.addToLog(_("Web file HTTP 401 (authentication required) response, not retrieved: {0}").format(url))
+                                return None
                                     
                     except AttributeError:
                         pass
@@ -381,6 +418,9 @@ class WebCache:
         return None
         
     def retrieve(self, url, filename=None, filestream=None, reporthook=None, data=None):
+        # return filename, headers (in dict), initial file bytes (to detect logon requests)
+        headers = None
+        initialBytes = b''
         fp = self.opener.open(url, data, timeout=self.timeout)
         try:
             headers = fp.info()
@@ -404,6 +444,8 @@ class WebCache:
                         break
                     read += len(block)
                     tfp.write(block)
+                    if blocknum == 0:
+                        initialBytes = block
                     blocknum += 1
                     if reporthook:
                         reporthook(blocknum, bs, size)
@@ -421,7 +463,7 @@ class WebCache:
 
         if filestream:
             tfp.seek(0)
-        return result
+        return filename, headers, initialBytes
 
 '''
 class WebCacheUrlOpener(request.FancyURLopener):

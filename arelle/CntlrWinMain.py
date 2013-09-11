@@ -1198,6 +1198,15 @@ class CntlrWinMain (Cntlr.Cntlr):
         untilDone.wait()
         return result[0]
     
+    # web file login requested
+    def internet_logon(self, url, quotedUrl, dialogCaption, dialogText):
+        from arelle.DialogUserPassword import askInternetLogon
+        untilDone = threading.Event()
+        result = []
+        self.uiThreadQueue.put((askInternetLogon, [self.parent, url, quotedUrl, dialogCaption, dialogText, untilDone, result]))
+        untilDone.wait()
+        return result[0]
+        
     def waitForUiThreadQueue(self):
         for i in range(40): # max 2 secs
             if self.uiThreadQueue.empty():
