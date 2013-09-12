@@ -278,13 +278,21 @@ class XbrlPostgresDatabaseConnection():
                 stmt += dollarescape + sql[j:i]
                 # problem with driver and $$ statements, skip them (for now)
                 stmt = ''
-        for sql in sqlstatements:
+        for i, sql in enumerate(sqlstatements):
             if any(cmd in sql
                    for cmd in ('CREATE TABLE', 'CREATE SEQUENCE', 'INSERT INTO',
-                               'CREATE INDEX', 'CREATE UNIQUE INDEX')):
+                               'CREATE INDEX', 'CREATE UNIQUE INDEX' # 'ALTER TABLE ONLY'
+                               )):
                 statusMsg, sep, rest = sql.strip().partition('\n')
                 self.showStatus(statusMsg[0:50])
                 result = self.execute(sql, close=False, commit=False, fetch=False)
+                """
+                if TRACESQLFILE:
+                    with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
+                        fh.write("\n\n>>> ddl {0}: \n{1} \n\n>>> result: \n{2}\n"
+                                 .format(i, sql, result))
+                        fh.write(sql)
+                """
         # fixed tables
         self.getTable('enumeration_arcrole_cycles_allowed', 'enumeration_arcrole_cycles_allowed_id', 
                       ('description',), ('description',),
@@ -698,9 +706,10 @@ WITH row_values (%(newCols)s) AS (
     def insertResources(self):
         self.showStatus("insert resources")
         # deduplicate resources (may be on multiple arcs)
+        # note that lxml has no column numbers, use objectIndex as pseudo-column number
         uniqueResources = dict(((self.documentIds[resource.modelDocument.uri],
                                  resource.sourceline,
-                                 0), resource)
+                                 resource.objectIndex), resource)
                                for arcrole in (XbrlConst.conceptLabel, XbrlConst.conceptReference)
                                for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
                                if rel.fromModelObject is not None and rel.toModelObject is not None
@@ -713,7 +722,7 @@ WITH row_values (%(newCols)s) AS (
                                      self.qnameId[resource.qname],
                                      self.documentIds[resource.modelDocument.uri],
                                      resource.sourceline,
-                                     0)
+                                     resource.objectIndex)
                                     for resource in uniqueResources.values()),
                               checkIfExisting=True)
         self.resourceId = dict(((docId, line, offset), id)
@@ -725,7 +734,7 @@ WITH row_values (%(newCols)s) AS (
                               ('resource_id',), 
                               tuple((self.resourceId[self.documentIds[resource.modelDocument.uri],
                                                      resource.sourceline,
-                                                     0],
+                                                     resource.objectIndex],
                                      resource.textValue,
                                      resource.xmlLang)
                                     for arcrole in (XbrlConst.conceptLabel, XbrlConst.conceptReference)
