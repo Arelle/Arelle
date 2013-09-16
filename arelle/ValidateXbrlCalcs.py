@@ -265,7 +265,7 @@ def roundFact(fact, inferDecimals=False, vDecimal=None):
                 #    vFloat += 10 ** (-d - 1) * (1.0 if vFloat > 0 else -1.0)
                 #vRounded = round(vFloat, d)
                 vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_EVEN)
-        else:
+        elif dStr:
             d = int(dStr)
             # defeat binary rounding to nearest even
             #if trunc(fmod(vFloat * (10 ** d),2)) != 0:
@@ -273,6 +273,8 @@ def roundFact(fact, inferDecimals=False, vDecimal=None):
             #vRounded = round(vFloat, d)
             #vRounded = round(vFloat,d)
             vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_EVEN)
+        else: # no information available to do rounding (other errors xbrl.4.6.3 error)
+            vRounded = vDecimal
     else: # infer precision
         if dStr:
             match = numberPattern.match(vStr if vStr else str(vDecimal))
@@ -283,13 +285,15 @@ def roundFact(fact, inferDecimals=False, vDecimal=None):
                     (int(dStr))
             else:
                 p = 0
-        else:
+        elif pStr:
             p = int(pStr)
+        else: # no rounding information
+            p = None
         if p == 0:
             vRounded = NaN
         elif vDecimal == 0:
             vRounded = vDecimal
-        else:  # round per 4.6.7.1, half-up
+        elif p is not None:  # round per 4.6.7.1, half-up
             vAbs = vDecimal.copy_abs()
             log = vAbs.log10()
             # defeat rounding to nearest even
@@ -298,6 +302,8 @@ def roundFact(fact, inferDecimals=False, vDecimal=None):
             #    vFloat += 10 ** (-d - 1) * (1.0 if vFloat > 0 else -1.0)
             #vRounded = round(vFloat, d)
             vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_UP)
+        else: # no information available to do rounding (other errors xbrl.4.6.3 error)
+            vRounded = vDecimal
     return vRounded
     
 def decimalRound(x, d, rounding):
