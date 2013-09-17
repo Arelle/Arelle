@@ -586,7 +586,7 @@ def distinct_values(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     sequence = args[0]
     if len(sequence) == 0: return []
-    return list(set(sequence))
+    return list(set(xc.atomize(p, sequence)))
 
 def insert_before(xc, p, contextItem, args):
     if len(args) != 3: raise XPathContext.FunctionNumArgs()
