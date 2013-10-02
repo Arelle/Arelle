@@ -9,7 +9,7 @@ from arelle import (XPathContext, ModelValue)
 from arelle.FunctionUtil import (anytypeArg, atomicArg, stringArg, numericArg, qnameArg, nodeArg)
 from arelle.XPathParser import ProgHeader
 from math import isnan, fabs, isinf
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
     
 class FORG0001(Exception):
     def __init__(self):
@@ -135,7 +135,7 @@ def double(xc, p, source):
 def decimal(xc, p, source):
     try:
         return Decimal(source)
-    except ValueError:
+    except InvalidOperation:
         raise FORG0001
   
 def integer(xc, p, source):

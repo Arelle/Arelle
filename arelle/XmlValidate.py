@@ -5,7 +5,7 @@ Created on Feb 20, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 import os, re
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from arelle import XbrlConst, XmlUtil
 from arelle.ModelValue import qname, dateTime, DATE, DATETIME, DATEUNION, anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay
 from arelle.ModelObject import ModelObject, ModelAttribute
@@ -427,7 +427,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     else: # no lexical pattern, forget compiling value
                         xValue = value
                     sValue = value
-        except ValueError as err:
+        except (ValueError, InvalidOperation) as err:
             if ModelInlineValueObject is not None and isinstance(elt, ModelInlineValueObject):
                 errElt = "{0} fact {1}".format(elt.elementQname, elt.qname)
             else:

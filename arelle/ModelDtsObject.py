@@ -1639,7 +1639,10 @@ class ModelRelationship(ModelObject):
     @property
     def orderDecimal(self):
         """(decimal) -- Value of xlink:order attribute, NaN if not convertable to float, or None if not specified"""
-        return decimal.Decimal(self.order)
+        try:
+            return decimal.Decimal(self.order)
+        except decimal.InvalidOperation:
+            return decimal.Decimal("NaN")
 
     @property
     def priority(self):
@@ -1689,7 +1692,7 @@ class ModelRelationship(ModelObject):
             else:
                 try:
                     weight = decimal.Decimal(w)
-                except (TypeError,ValueError) :
+                except (TypeError,ValueError,decimal.InvalidOperation) :
                     # XBRL validation error needed
                     weight = decimal.Decimal("nan")
             self.arcElement._weightDecimal = weight

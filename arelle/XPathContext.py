@@ -13,7 +13,7 @@ from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI)
 from arelle.XmlValidate import UNKNOWN, VALID, VALID_NO_CONTENT, validate
 from arelle.PluginManager import pluginClassMethods
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from lxml import etree
 from types import LambdaType
 
@@ -652,7 +652,7 @@ class XPathContext:
         elif baseXsdType == "decimal":
             try:
                 x = Decimal(v)
-            except ValueError:
+            except InvalidOperation:
                 raise XPathException(p, 'err:FORG0001', _('Atomizing {0} to decimal does not have a proper value'))
         elif baseXsdType in ("integer",
                              "nonPositiveInteger","negativeInteger","nonNegativeInteger","positiveInteger",

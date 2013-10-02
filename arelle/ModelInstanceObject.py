@@ -38,7 +38,7 @@ from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundV
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from math import isnan
 from arelle.ModelObject import ModelObject
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 Aspect = None
 POSINF = float("inf")
 NEGINF = float("-inf")
@@ -583,7 +583,7 @@ class ModelInlineFact(ModelInlineValueObject, ModelFact):
             try:
                 orderAttr = self.get("order")
                 self._order = Decimal(orderAttr)
-            except (ValueError, TypeError):
+            except (ValueError, TypeError, InvalidOperation):
                 self._order = None
             return self._order
 
