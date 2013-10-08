@@ -47,35 +47,71 @@ arcroleChecks = {
                                       XbrlConst.qnCustomFunctionImplementation,
                                       "xbrlcfie:info"),
     XbrlConst.tableBreakdown:       (XbrlConst.qnTableTable,
-                                     XbrlConst.qnTableBreakdown, 
-                                     "xbrlte:info"),
+                                     XbrlConst.qnTableBreakdown,
+                                     "xbrlte:tableBreakdownSourceError",
+                                     "xbrlte:tableBreakdownTargetError"),
     XbrlConst.tableBreakdownTree:   (XbrlConst.qnTableBreakdown,
                                      (XbrlConst.qnTableClosedDefinitionNode,
                                       XbrlConst.qnTableAspectNode),
-                                     "xbrlte:info"),
-    XbrlConst.tableDefinitionNodeSubtree: (XbrlConst.qnTableClosedDefinitionNode, 
-                                     XbrlConst.qnTableClosedDefinitionNode, 
-                                     "xbrlte:info"),
+                                     "xbrlte:breakdownTreeSourceError",
+                                     "xbrlte:breakdownTreeTargetError"),
+    XbrlConst.tableDefinitionNodeSubtree: (XbrlConst.qnTableRuleNode, 
+                                     (XbrlConst.qnTableClosedDefinitionNode, 
+                                      XbrlConst.qnTableAspectNode),
+                                     "xbrlte:definitionNodeSubtreeSourceError",
+                                     "xbrlte:definitionNodeSubtreeTargetError"),
     XbrlConst.tableFilter:          (XbrlConst.qnTableTable, 
-                                     XbrlConst.qnVariableFilter, 
-                                     "xbrlte:info"),
+                                     XbrlConst.qnVariableFilter,
+                                     "xbrlte:tableFilterSourceError",
+                                     "xbrlte:tableFilterTargetError"),
+    XbrlConst.tableParameter:       (XbrlConst.qnTableTable, 
+                                     XbrlConst.qnParameter,
+                                     "xbrlte:tableParameterSourceError",
+                                     "xbrlte:tableParameterTargetError"),
     XbrlConst.tableAspectNodeFilter:(XbrlConst.qnTableAspectNode,
                                      XbrlConst.qnVariableFilter, 
-                                     "xbrlte:info"),
+                                     "xbrlte:aspectNodeFilterSourceError",
+                                     "xbrlte:aspectNodeFilterTargetError"),
     XbrlConst.tableBreakdownMMDD:   (XbrlConst.qnTableTableMMDD,
-                                     XbrlConst.qnTableBreakdownMMDD, 
-                                     "xbrlte:info"),
+                                     XbrlConst.qnTableBreakdownMMDD,
+                                     "xbrlte:tableBreakdownSourceError",
+                                     "xbrlte:tableBreakdownTargetError"),
     XbrlConst.tableBreakdownTreeMMDD:(XbrlConst.qnTableBreakdownMMDD,
                                      (XbrlConst.qnTableClosedDefinitionNodeMMDD,
                                       XbrlConst.qnTableAspectNodeMMDD),
-                                     "xbrlte:info"),
-    XbrlConst.tableDefinitionNodeSubtreeMMDD: (XbrlConst.qnTableClosedDefinitionNodeMMDD, 
-                                     XbrlConst.qnTableClosedDefinitionNodeMMDD, 
-                                     "xbrlte:info"),
+                                     "xbrlte:breakdownTreeSourceError",
+                                     "xbrlte:breakdownTreeTargetError"),
+    XbrlConst.tableDefinitionNodeSubtreeMMDD: (XbrlConst.qnTableRuleNodeMMDD, 
+                                     (XbrlConst.qnTableClosedDefinitionNodeMMDD, 
+                                      XbrlConst.qnTableAspectNodeMMDD),
+                                     "xbrlte:definitionNodeSubtreeSourceError",
+                                     "xbrlte:definitionNodeSubtreeTargetError"),
     XbrlConst.tableFilterMMDD:      (XbrlConst.qnTableTableMMDD, 
+                                     XbrlConst.qnVariableFilter,
+                                     "xbrlte:tableFilterSourceError",
+                                     "xbrlte:tableFilterTargetError"),
+    XbrlConst.tableParameterMMDD:   (XbrlConst.qnTableTableMMDD, 
+                                     XbrlConst.qnParameter,
+                                     "xbrlte:tableParameterSourceError",
+                                     "xbrlte:tableParameterTargetError"),
+    XbrlConst.tableAspectNodeFilterMMDD:(XbrlConst.qnTableAspectNodeMMDD,
+                                     XbrlConst.qnVariableFilter,  
+                                     "xbrlte:aspectNodeFilterSourceError",
+                                     "xbrlte:aspectNodeFilterTargetError"),
+    XbrlConst.tableBreakdown201305:   (XbrlConst.qnTableTable201305,
+                                     XbrlConst.qnTableBreakdown201305, 
+                                     "xbrlte:info"),
+    XbrlConst.tableBreakdownTree201305:(XbrlConst.qnTableBreakdown201305,
+                                     (XbrlConst.qnTableClosedDefinitionNode201305,
+                                      XbrlConst.qnTableAspectNode201305),
+                                     "xbrlte:info"),
+    XbrlConst.tableDefinitionNodeSubtree201305: (XbrlConst.qnTableClosedDefinitionNode201305, 
+                                     XbrlConst.qnTableClosedDefinitionNode201305, 
+                                     "xbrlte:info"),
+    XbrlConst.tableFilter201305:      (XbrlConst.qnTableTable201305, 
                                      XbrlConst.qnVariableFilter, 
                                      "xbrlte:info"),
-    XbrlConst.tableAspectNodeFilterMMDD:(XbrlConst.qnTableAspectNodeMMDD,
+    XbrlConst.tableAspectNodeFilter201305:(XbrlConst.qnTableAspectNode201305,
                                      XbrlConst.qnVariableFilter, 
                                      "xbrlte:info"),
     XbrlConst.tableBreakdown201301: (XbrlConst.qnTableTable201301,
@@ -121,7 +157,15 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
     # check hypercube-dimension relationships
      
     if arcrole in arcroleChecks:
-        fromQname, toQname, errCode = arcroleChecks[arcrole]
+        arcroleCheck = arcroleChecks[arcrole]
+        if len(arcroleCheck) == 3:
+            fromQname, toQname, fromErrCode = arcroleCheck
+            toErrCode = fromErrCode
+        elif len(arcroleCheck) == 4: 
+            fromQname, toQname, fromErrCode, toErrCode = arcroleCheck
+        else:
+            raise Exception("Invalid arcroleCheck " + str(arcroleCheck))
+        level = "INFO" if fromErrCode.endswith(":info") else "ERROR"
         for modelRel in relsSet.modelRelationships:
             fromMdlObj = modelRel.fromModelObject
             toMdlObj = modelRel.toModelObject
@@ -130,14 +174,14 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
                     # if not in subs group, only warn if the namespace has a loaded schema, otherwise no complaint
                     (not val.modelXbrl.isInSubstitutionGroup(fromMdlObj.elementQname, fromQname) and
                      fromMdlObj.elementQname.namespaceURI in val.modelXbrl.namespaceDocs)):
-                    val.modelXbrl.info(errCode,
+                    val.modelXbrl.log(level, fromErrCode,
                         _("Relationship from %(xlinkFrom)s to %(xlinkTo)s should have an %(element)s source"),
                         modelObject=modelRel, xlinkFrom=modelRel.fromLabel, xlinkTo=modelRel.toLabel, element=fromQname)
             if toQname:
                 if (toMdlObj is None or 
                     (not val.modelXbrl.isInSubstitutionGroup(toMdlObj.elementQname, toQname) and
                      toMdlObj.elementQname.namespaceURI in val.modelXbrl.namespaceDocs)):
-                    val.modelXbrl.info(errCode,
+                    val.modelXbrl.log(level, toErrCode,
                         _("Relationship from %(xlinkFrom)s to %(xlinkTo)s should have an %(element)s target"),
                         modelObject=modelRel, xlinkFrom=modelRel.fromLabel, xlinkTo=modelRel.toLabel, element=toQname)
     if arcrole == XbrlConst.functionImplementation:
@@ -1002,7 +1046,7 @@ def checkTableRules(val, xpathContext, table):
     # check for covering aspect not in variable set aspect model
     checkFilterAspectModel(val, table, table.filterRelationships, xpathContext)
 
-    checkDefinitionNodeRules(val, table, table, (XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableAxis2011), xpathContext)
+    checkDefinitionNodeRules(val, table, table, (XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201305, XbrlConst.tableAxis2011), xpathContext)
     
 def checkDefinitionNodeRules(val, table, parent, arcrole, xpathContext):
     for rel in val.modelXbrl.relationshipSet(arcrole).fromModelObject(parent):
@@ -1061,7 +1105,7 @@ def checkDefinitionNodeRules(val, table, parent, arcrole, xpathContext):
                                                _("%(axis)s rule %(xlinkLabel)s contains a %(qnameAttr)s QName %(qname)s which is not in the DTS."),
                                                modelObject=axis, axis=axis.localName.title(), xlinkLabel=axis.xlinkLabel, 
                                                qnameAttr=qnameAttr, qname=eltQname)
-                checkDefinitionNodeRules(val, table, axis, (XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011), xpathContext)                    
+                checkDefinitionNodeRules(val, table, axis, (XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableBreakdownTree201305, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011), xpathContext)                    
 
 def checkValidationMessages(val, modelVariableSet):
     for msgRelationship in (XbrlConst.assertionSatisfiedMessage, XbrlConst.assertionUnsatisfiedMessage):

@@ -14,6 +14,7 @@ from arelle.FormulaEvaluator import aspectMatches
 from arelle.FunctionXs import xsString
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import QName
+from arelle.ModelXbrl import DEFAULT
 from arelle.ModelRenderingObject import ModelClosedDefinitionNode, ModelEuAxisCoord
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.XbrlConst import tableModel as tableModelNamespace, tableModelQName
@@ -102,8 +103,8 @@ class ViewRenderedGrid(ViewFile.View):
                             tableSetElt.append(etree.Comment("TableSet namespace: {0}".format(self.modelTable.namespaceURI)))
                             tableSetElt.append(etree.Comment("TableSet linkrole: {0}".format(tblELR)))
                             self.zHdrsElt = etree.SubElement(tableSetElt, tableModelQName("headers"))
-                            zAspects = defaultdict(set)
-                            self.zAxis(1, zTopStructuralNode, zAspects, True)
+                            zAspectStructuralNodes = defaultdict(set)
+                            self.zAxis(1, zTopStructuralNode, zAspectStructuralNodes, True)
                         tableElt = etree.SubElement(tableSetElt, tableModelQName("table"),
                                                     attrib={"label": tableLabel})
                         hdrsElts = dict((disposition,
@@ -131,8 +132,8 @@ class ViewRenderedGrid(ViewFile.View):
                                                           attrib={"disposition": "x"})
                         '''
                     # rows/cols only on firstTime for infoset XML, but on each time for xhtml
-                    zAspects = defaultdict(set)
-                    self.zAxis(1, zTopStructuralNode, zAspects, False)
+                    zAspectStructuralNodes = defaultdict(set)
+                    self.zAxis(1, zTopStructuralNode, zAspectStructuralNodes, False)
                     xStructuralNodes = []
                     if self.type == HTML or (xTopStructuralNode.childStructuralNodes):
                         self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1, 
@@ -160,7 +161,7 @@ class ViewRenderedGrid(ViewFile.View):
                             for varName, varValue in structuralNode.variables.items():
                                     modelElt.addprevious(etree.Comment("   variable ${0}: {1}".format(varName, varValue)))
                             
-                    self.bodyCells(self.dataFirstRow, yTopStructuralNode, xStructuralNodes, zAspects, self.yAxisChildrenFirst.get())
+                    self.bodyCells(self.dataFirstRow, yTopStructuralNode, xStructuralNodes, zAspectStructuralNodes, self.yAxisChildrenFirst.get())
                 # find next choice structural node
                 moreDiscriminators = False
                 for zStrNodeWithChoices in self.zStrNodesWithChoices:
@@ -178,7 +179,7 @@ class ViewRenderedGrid(ViewFile.View):
                     break
 
             
-    def zAxis(self, row, zStructuralNode, zAspects, discriminatorsTable):
+    def zAxis(self, row, zStructuralNode, zAspectStructuralNodes, discriminatorsTable):
         if zStructuralNode is not None:
             label = zStructuralNode.header(lang=self.lang)
             choiceLabel = None
@@ -246,17 +247,16 @@ class ViewRenderedGrid(ViewFile.View):
 
             if zStructuralNode.childStructuralNodes:
                 for zStructuralNode in zStructuralNode.childStructuralNodes:
-                    self.zAxis(row + 1, zStructuralNode, zAspects, discriminatorsTable)
+                    self.zAxis(row + 1, zStructuralNode, zAspectStructuralNodes, discriminatorsTable)
             else: # nested-nost element, aspects process inheritance
                 for aspect in aspectModels[self.aspectModel]:
-                    for ruleAspect in aspectRuleAspects.get(aspect, (aspect,)):
-                        if zStructuralNode.hasAspect(ruleAspect): #implies inheriting from other z axes
-                            if ruleAspect == Aspect.DIMENSIONS:
-                                for dim in (zStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
-                                    zAspects[dim].add(zStructuralNode)
-                            else:
-                                zAspects[ruleAspect].add(zStructuralNode)
-    
+                    if zStructuralNode.hasAspect(aspect): #implies inheriting from other z axes
+                        if aspect == Aspect.DIMENSIONS:
+                            for dim in (zStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
+                                zAspectStructuralNodes[dim].add(zStructuralNode)
+                        else:
+                            zAspectStructuralNodes[aspect].add(zStructuralNode)
+                            
     def xAxis(self, leftCol, topRow, rowBelow, xParentStructuralNode, xStructuralNodes, childrenFirst, renderNow, atTop):
         if xParentStructuralNode is not None:
             parentRow = rowBelow
@@ -590,43 +590,48 @@ class ViewRenderedGrid(ViewFile.View):
             return (nestedBottomRow, row)
             
     
-    def bodyCells(self, row, yParentStructuralNode, xStructuralNodes, zAspects, yChildrenFirst):
+    def bodyCells(self, row, yParentStructuralNode, xStructuralNodes, zAspectStructuralNodes, yChildrenFirst):
         if yParentStructuralNode is not None:
             rendrCntx = getattr(self.modelXbrl, "rendrCntx", None) # none for EU 2010 tables
             dimDefaults = self.modelXbrl.qnameDimensionDefaults
             for yStructuralNode in yParentStructuralNode.childStructuralNodes:
                 if yChildrenFirst:
-                    row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspects, yChildrenFirst)
+                    row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspectStructuralNodes, yChildrenFirst)
                 if not yStructuralNode.isAbstract:
                     if self.type == XML:
                         self.xCells = etree.SubElement(self.yCells, tableModelQName("cells"),
                                                        attrib={"disposition": "x"})
-                    yAspects = defaultdict(set)
+                    yAspectStructuralNodes = defaultdict(set)
                     for aspect in aspectModels[self.aspectModel]:
-                        for ruleAspect in aspectRuleAspects.get(aspect, (aspect,)):
-                            if yStructuralNode.hasAspect(ruleAspect):
-                                if ruleAspect == Aspect.DIMENSIONS:
-                                    for dim in (yStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
-                                        yAspects[dim].add(yStructuralNode)
-                                else:
-                                    yAspects[ruleAspect].add(yStructuralNode)
+                        if yStructuralNode.hasAspect(aspect):
+                            if aspect == Aspect.DIMENSIONS:
+                                for dim in (yStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
+                                    yAspectStructuralNodes[dim].add(yStructuralNode)
+                            else:
+                                yAspectStructuralNodes[aspect].add(yStructuralNode)
+                    yTagSelectors = yStructuralNode.tagSelectors
                     # data for columns of rows
                     ignoreDimValidity = self.ignoreDimValidity.get()
                     for i, xStructuralNode in enumerate(xStructuralNodes):
-                        xAspects = defaultdict(set)
+                        xAspectStructuralNodes = defaultdict(set)
                         for aspect in aspectModels[self.aspectModel]:
-                            for ruleAspect in aspectRuleAspects.get(aspect, (aspect,)):
-                                if xStructuralNode.hasAspect(ruleAspect):
-                                    if ruleAspect == Aspect.DIMENSIONS:
-                                        for dim in (xStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
-                                            xAspects[dim].add(xStructuralNode)
-                                    else:
-                                        xAspects[ruleAspect].add(xStructuralNode)
+                            if xStructuralNode.hasAspect(aspect):
+                                if aspect == Aspect.DIMENSIONS:
+                                    for dim in (xStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
+                                        xAspectStructuralNodes[dim].add(xStructuralNode)
+                                else:
+                                    xAspectStructuralNodes[aspect].add(xStructuralNode)
+                        cellTagSelectors = yTagSelectors | xStructuralNode.tagSelectors
                         cellAspectValues = {}
                         matchableAspects = set()
-                        for aspect in _DICT_SET(xAspects.keys()) | _DICT_SET(yAspects.keys()) | _DICT_SET(zAspects.keys()):
-                            aspectValue = inheritedAspectValue(self, aspect, xAspects, yAspects, zAspects, xStructuralNode, yStructuralNode)
-                            if dimDefaults.get(aspect) != aspectValue: # don't include defaulted dimensions
+                        for aspect in _DICT_SET(xAspectStructuralNodes.keys()) | _DICT_SET(yAspectStructuralNodes.keys()) | _DICT_SET(zAspectStructuralNodes.keys()):
+                            aspectValue = inheritedAspectValue(self, aspect, cellTagSelectors, 
+                                                               xAspectStructuralNodes, yAspectStructuralNodes, zAspectStructuralNodes, 
+                                                               xStructuralNode, yStructuralNode)
+                            # value is None for a dimension whose value is to be not reported in this slice
+                            if (isinstance(aspect, _INT) or  # not a dimension
+                                dimDefaults.get(aspect) != aspectValue or # explicit dim defaulted will equal the value
+                                aspectValue is not None): # typed dim absent will be none
                                 cellAspectValues[aspect] = aspectValue
                             matchableAspects.add(aspectModelAspect.get(aspect,aspect)) #filterable aspect from rule aspect
                         cellDefaultedDims = _DICT_SET(dimDefaults) - _DICT_SET(cellAspectValues.keys())
@@ -653,6 +658,8 @@ class ViewRenderedGrid(ViewFile.View):
                                             dimMemQname = None  # match facts that report this dimension
                                     elif isinstance(aspectValue, QName): 
                                         dimMemQname = aspectValue  # match facts that have this explicit value
+                                    elif aspectValue is None: # match typed dims that don't report this value
+                                        dimMemQname = DEFAULT
                                     else:
                                         dimMemQname = None # match facts that report this dimension
                                     facts = facts & self.modelXbrl.factsByDimMemQname(aspect, dimMemQname)
@@ -724,6 +731,6 @@ class ViewRenderedGrid(ViewFile.View):
                         fp.clear()  # dereference
                     row += 1
                 if not yChildrenFirst:
-                    row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspects, yChildrenFirst)
+                    row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspectStructuralNodes, yChildrenFirst)
         return row
             

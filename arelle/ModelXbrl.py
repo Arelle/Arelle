@@ -206,6 +206,10 @@ class ModelXbrl:
 
         True if table rendering discovered
 
+        .. attribute:: hasTableIndexing
+
+        True if table indexing discovered
+
         .. attribute:: hasFormulae
 
         True if formulae discovered
@@ -265,6 +269,7 @@ class ModelXbrl:
         self.labelroles = {standardLabel}
         self.hasXDT = False
         self.hasTableRendering = False
+        self.hasTableIndexing = False
         self.hasFormulae = False
         self.formulaOutputInstance = None
         self.logger = logging.getLogger("arelle")
@@ -707,7 +712,8 @@ class ModelXbrl:
         
         :returns: dict -- indexes are (Dimension, Member) and (Dimension) QNames, values are ModelFacts
         If Member is None, returns facts that have the dimension (explicit or typed)
-        If Member is "non-default", returns facts that have the dimension (explicit non-default or typed)
+        If Member is NONDEFAULT, returns facts that have the dimension (explicit non-default or typed)
+        If Member is DEFAULT, returns facts that have the dimension (explicit non-default or typed) defaulted
         """
         try:
             fbdq = self._factsByDimQname[dimQname]
@@ -730,6 +736,8 @@ class ModelXbrl:
                         fbdq[NONDEFAULT].add(fact) # set of all facts that have non-default value for dimension
                         if dimValue.isExplicit:
                             fbdq[dimValue.memberQname].add(fact) # set of facts that have this dim and mem
+                    else: # default typed dimension
+                        fbdq[DEFAULT].add(fact)
             return fbdq[memQname]
         
     def matchFact(self, otherFact, unmatchedFactsStack=None):
@@ -843,7 +851,10 @@ class ModelXbrl:
                 try:
                     entryUrl = self.modelDocument.uri
                 except AttributeError:
-                    entryUrl = self.entryLoadingUrl
+                    try:
+                        entryUrl = self.entryLoadingUrl
+                    except AttributeError:
+                        entryUrl = self.fileSource.url
                 refs = []
                 for arg in (argValue if isinstance(argValue, (tuple,list,set)) else (argValue,)):
                     if arg is not None:

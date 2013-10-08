@@ -7,7 +7,7 @@ Created on Oct 20, 2010
 import zipfile, os, io, base64, gzip, zlib, re, struct, random, time
 from lxml import etree
 from arelle import XmlUtil
-from arelle.TaxonomyPackage import parseTxmyPkg
+from arelle.PackageManager import parsePackage
 from arelle.UrlUtil import isHttpUrl
 
 archivePathSeparators = (".zip" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, '.taxonomyPackage.xml' + os.sep) + \
@@ -238,13 +238,15 @@ class FileSource:
                     if len(metadataFiles) != 1:
                         raise IOError(_("Taxonomy package must contain one and only one metadata file: {0}.")
                                       .format(', '.join(metadataFiles)))
-                    nameToUrls, remappings = parseTxmyPkg(self.cntlr, self.url)
-                    metadataDir = os.path.dirname(self.baseurl) + os.sep
+                    # HF: this won't work, see DialogOpenArchive for correct code
+                    # not sure if it is used
+                    taxonomyPackage = parsePackage(self.cntlr, self.url)
+                    fileSourceDir = os.path.dirname(self.baseurl) + os.sep
                     self.mappedPaths = \
                         dict((prefix, 
                               remapping if isHttpUrl(remapping)
-                              else (metadataDir + remapping.replace("/", os.sep)))
-                              for prefix, remapping in remappings.items())
+                              else (fileSourceDir + remapping.replace("/", os.sep)))
+                              for prefix, remapping in taxonomyPackage["remappings"].items())
                 except EnvironmentError as err:
                     self.logError(err)
                     return # provide error message later

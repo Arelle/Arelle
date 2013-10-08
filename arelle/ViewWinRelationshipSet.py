@@ -6,19 +6,25 @@ Created on Oct 6, 2010
 '''
 from collections import defaultdict
 import os
-from arelle import ViewWinTree, ModelDtsObject, ModelInstanceObject, XbrlConst, XmlUtil, Locale
+from arelle import ViewWinTree, ModelDtsObject, ModelInstanceObject, ModelRenderingObject, XbrlConst, XmlUtil, Locale
 from arelle.ModelRelationshipSet import ModelRelationshipSet
+from arelle.ModelDtsObject import ModelRelationship
 from arelle.ModelFormulaObject import ModelFilter
 from arelle.ViewUtil import viewReferences, groupRelationshipSet, groupRelationshipLabel
 
-def viewRelationshipSet(modelXbrl, tabWin, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None, treeColHdr=None):
+def viewRelationshipSet(modelXbrl, tabWin, arcrole, 
+                        linkrole=None, linkqname=None, arcqname=None, lang=None, 
+                        treeColHdr=None, showLinkroles=True, showRelationships=True, showColumns=True,
+                        expandAll=False):
     arcroleName = groupRelationshipLabel(arcrole)
     relationshipSet = groupRelationshipSet(modelXbrl, arcrole, linkrole, linkqname, arcqname)
     if not relationshipSet:
         modelXbrl.modelManager.addToLog(_("no relationships for {0}").format(arcroleName))
         return False
     modelXbrl.modelManager.showStatus(_("viewing relationships {0}").format(arcroleName))
-    view = ViewRelationshipSet(modelXbrl, tabWin, arcrole, linkrole, linkqname, arcqname, lang, treeColHdr)
+    view = ViewRelationshipSet(modelXbrl, tabWin, arcrole, linkrole, linkqname, arcqname, lang, 
+                               treeColHdr, showLinkroles, showRelationships, showColumns,
+                               expandAll)
     view.view(firstTime=True, relationshipSet=relationshipSet)
     view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, '+')
     view.treeView.bind("<Enter>", view.treeviewEnter, '+')
@@ -34,7 +40,10 @@ def viewRelationshipSet(modelXbrl, tabWin, arcrole, linkrole=None, linkqname=Non
 
     
 class ViewRelationshipSet(ViewWinTree.ViewTree):
-    def __init__(self, modelXbrl, tabWin, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None, treeColHdr=None):
+    def __init__(self, modelXbrl, tabWin, 
+                 arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None, 
+                 treeColHdr=None, showLinkroles=True, showRelationships=True, showColumns=True,
+                 expandAll=False):
         if isinstance(arcrole, (list,tuple)):
             tabName = arcrole[0]
         else:
@@ -45,6 +54,10 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         self.linkqname = linkqname
         self.arcqname = arcqname
         self.treeColHdr = treeColHdr
+        self.showLinkroles = showLinkroles
+        self.showRelationships = showRelationships
+        self.showColumns = showColumns
+        self.expandAllOnFirstDisplay = expandAll
         self.isResourceArcrole = False
         
     def view(self, firstTime=False, relationshipSet=None):
@@ -63,59 +76,62 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             # set up treeView widget and tabbed pane
             hdr = self.treeColHdr if self.treeColHdr else _("{0} Relationships").format(groupRelationshipLabel(self.arcrole))
             self.treeView.heading("#0", text=hdr)
-            if self.arcrole == XbrlConst.parentChild: # extra columns
-                self.treeView.column("#0", width=300, anchor="w")
-                self.treeView["columns"] = ("preferredLabel", "type", "references")
-                self.treeView.column("preferredLabel", width=64, anchor="w", stretch=False)
-                self.treeView.heading("preferredLabel", text=_("Pref. Label"))
-                self.treeView.column("type", width=100, anchor="w", stretch=False)
-                self.treeView.heading("type", text=_("Type"))
-                self.treeView.column("references", width=200, anchor="w", stretch=False)
-                self.treeView.heading("references", text=_("References"))
-            elif self.arcrole == XbrlConst.summationItem: # extra columns
-                self.treeView.column("#0", width=300, anchor="w")
-                self.treeView["columns"] = ("weight", "balance")
-                self.treeView.column("weight", width=48, anchor="w", stretch=False)
-                self.treeView.heading("weight", text=_("Weight"))
-                self.treeView.column("balance", width=70, anchor="w", stretch=False)
-                self.treeView.heading("balance", text=_("Balance"))
-            elif self.arcrole == "XBRL-dimensions":    # add columns for dimensional information
-                self.treeView.column("#0", width=300, anchor="w")
-                self.treeView["columns"] = ("arcrole", "contextElement", "closed", "usable")
-                self.treeView.column("arcrole", width=100, anchor="w", stretch=False)
-                self.treeView.heading("arcrole", text="Arcrole")
-                self.treeView.column("contextElement", width=50, anchor="center", stretch=False)
-                self.treeView.heading("contextElement", text="Context")
-                self.treeView.column("closed", width=40, anchor="center", stretch=False)
-                self.treeView.heading("closed", text="Closed")
-                self.treeView.column("usable", width=40, anchor="center", stretch=False)
-                self.treeView.heading("usable", text="Usable")
-            elif self.arcrole == "Table-rendering":    # add columns for dimensional information
-                self.treeView.column("#0", width=160, anchor="w")
-                self.treeView["columns"] = ("axis", "abstract", "header", "priItem", "dims")
-                self.treeView.column("axis", width=28, anchor="center", stretch=False)
-                self.treeView.heading("axis", text="Axis")
-                self.treeView.column("abstract", width=24, anchor="center", stretch=False)
-                self.treeView.heading("abstract", text="Abs")
-                self.treeView.column("header", width=160, anchor="w", stretch=False)
-                self.treeView.heading("header", text="Header")
-                self.treeView.column("priItem", width=100, anchor="w", stretch=False)
-                self.treeView.heading("priItem", text="Primary Item")
-                self.treeView.column("dims", width=150, anchor="w", stretch=False)
-                self.treeView.heading("dims", text=_("Dimensions"))
-            elif isinstance(self.arcrole, (list,tuple)) or XbrlConst.isResourceArcrole(self.arcrole):
-                self.isResourceArcrole = True
-                self.showReferences = isinstance(self.arcrole, _STR_BASE) and self.arcrole.endswith("-reference")
-                self.treeView.column("#0", width=160, anchor="w")
-                self.treeView["columns"] = ("arcrole", "resource", "resourcerole", "lang")
-                self.treeView.column("arcrole", width=100, anchor="w", stretch=False)
-                self.treeView.heading("arcrole", text="Arcrole")
-                self.treeView.column("resource", width=60, anchor="w", stretch=False)
-                self.treeView.heading("resource", text="Resource")
-                self.treeView.column("resourcerole", width=100, anchor="w", stretch=False)
-                self.treeView.heading("resourcerole", text="Resource Role")
-                self.treeView.column("lang", width=36, anchor="w", stretch=False)
-                self.treeView.heading("lang", text="Lang")
+            if self.showColumns:
+                if self.arcrole == XbrlConst.parentChild: # extra columns
+                    self.treeView.column("#0", width=300, anchor="w")
+                    self.treeView["columns"] = ("preferredLabel", "type", "references")
+                    self.treeView.column("preferredLabel", width=64, anchor="w", stretch=False)
+                    self.treeView.heading("preferredLabel", text=_("Pref. Label"))
+                    self.treeView.column("type", width=100, anchor="w", stretch=False)
+                    self.treeView.heading("type", text=_("Type"))
+                    self.treeView.column("references", width=200, anchor="w", stretch=False)
+                    self.treeView.heading("references", text=_("References"))
+                elif self.arcrole == XbrlConst.summationItem: # extra columns
+                    self.treeView.column("#0", width=300, anchor="w")
+                    self.treeView["columns"] = ("weight", "balance")
+                    self.treeView.column("weight", width=48, anchor="w", stretch=False)
+                    self.treeView.heading("weight", text=_("Weight"))
+                    self.treeView.column("balance", width=70, anchor="w", stretch=False)
+                    self.treeView.heading("balance", text=_("Balance"))
+                elif self.arcrole == "XBRL-dimensions":    # add columns for dimensional information
+                    self.treeView.column("#0", width=300, anchor="w")
+                    self.treeView["columns"] = ("arcrole", "contextElement", "closed", "usable")
+                    self.treeView.column("arcrole", width=100, anchor="w", stretch=False)
+                    self.treeView.heading("arcrole", text="Arcrole")
+                    self.treeView.column("contextElement", width=50, anchor="center", stretch=False)
+                    self.treeView.heading("contextElement", text="Context")
+                    self.treeView.column("closed", width=40, anchor="center", stretch=False)
+                    self.treeView.heading("closed", text="Closed")
+                    self.treeView.column("usable", width=40, anchor="center", stretch=False)
+                    self.treeView.heading("usable", text="Usable")
+                elif self.arcrole == "Table-rendering":    # add columns for dimensional information
+                    self.treeView.column("#0", width=160, anchor="w")
+                    self.treeView["columns"] = ("axis", "abstract", "merge", "header", "priItem", "dims")
+                    self.treeView.column("axis", width=28, anchor="center", stretch=False)
+                    self.treeView.heading("axis", text="Axis")
+                    self.treeView.column("abstract", width=24, anchor="center", stretch=False)
+                    self.treeView.heading("abstract", text="Abs")
+                    self.treeView.column("merge", width=26, anchor="center", stretch=False)
+                    self.treeView.heading("merge", text="Mrg")
+                    self.treeView.column("header", width=160, anchor="w", stretch=False)
+                    self.treeView.heading("header", text="Header")
+                    self.treeView.column("priItem", width=100, anchor="w", stretch=False)
+                    self.treeView.heading("priItem", text="Primary Item")
+                    self.treeView.column("dims", width=150, anchor="w", stretch=False)
+                    self.treeView.heading("dims", text=_("Dimensions"))
+                elif isinstance(self.arcrole, (list,tuple)) or XbrlConst.isResourceArcrole(self.arcrole):
+                    self.isResourceArcrole = True
+                    self.showReferences = isinstance(self.arcrole, _STR_BASE) and self.arcrole.endswith("-reference")
+                    self.treeView.column("#0", width=160, anchor="w")
+                    self.treeView["columns"] = ("arcrole", "resource", "resourcerole", "lang")
+                    self.treeView.column("arcrole", width=100, anchor="w", stretch=False)
+                    self.treeView.heading("arcrole", text="Arcrole")
+                    self.treeView.column("resource", width=60, anchor="w", stretch=False)
+                    self.treeView.heading("resource", text="Resource")
+                    self.treeView.column("resourcerole", width=100, anchor="w", stretch=False)
+                    self.treeView.heading("resourcerole", text="Resource Role")
+                    self.treeView.column("lang", width=36, anchor="w", stretch=False)
+                    self.treeView.heading("lang", text="Lang")
         self.id = 1
         for previousNode in self.treeView.get_children(""): 
             self.treeView.delete(previousNode)
@@ -134,12 +150,18 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         linkroleUris.sort()
         # for each URI in definition order
         for roledefinition, linkroleUri, roleId in linkroleUris:
-            linknode = self.treeView.insert("", "end", roleId, text=roledefinition, tags=("ELR",))
-            linkRelationshipSet = groupRelationshipSet(self.modelXbrl, self.arcrole, linkroleUri, self.linkqname, self.arcqname)
-            for rootConcept in linkRelationshipSet.rootConcepts:
-                self.viewConcept(rootConcept, rootConcept, "", self.labelrole, linknode, 1, linkRelationshipSet, set())
-                self.tag_has[linkroleUri].append(linknode)
+            if self.showLinkroles:
+                linknode = self.treeView.insert("", "end", roleId, text=roledefinition, tags=("ELR",))
+            else:
+                linknode = ""
+            if self.showRelationships:
+                linkRelationshipSet = groupRelationshipSet(self.modelXbrl, self.arcrole, linkroleUri, self.linkqname, self.arcqname)
+                for rootConcept in linkRelationshipSet.rootConcepts:
+                    self.viewConcept(rootConcept, rootConcept, "", self.labelrole, linknode, 1, linkRelationshipSet, set())
+                    self.tag_has[linkroleUri].append(linknode)
 
+        if self.expandAllOnFirstDisplay:
+            self.expandAll()
 
     def viewConcept(self, concept, modelObject, labelPrefix, preferredLabel, parentnode, n, relationshipSet, visited):
         if concept is None:
@@ -161,6 +183,8 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     text += " [" + concept.contextID + "] = " + concept.effectiveValue
             elif self.arcrole == "Table-rendering":
                 text = concept.localName
+            elif isinstance(concept, ModelRenderingObject.ModelTable):
+                text = (concept.genLabel(lang=self.lang, strip=True) or concept.localName)
             elif isinstance(concept, ModelDtsObject.ModelResource):
                 if self.showReferences:
                     text = (concept.viewText() or concept.localName)
@@ -202,6 +226,8 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 self.treeView.set(childnode, "header", header)
                 if concept.get("abstract") == "true":
                     self.treeView.set(childnode, "abstract", '\u2713') # checkmark unicode character
+                if concept.get("merge") == "true":
+                    self.treeView.set(childnode, "merge", '\u2713') # checkmark unicode character
                 if isRelation:
                     self.treeView.set(childnode, "axis", modelObject.axisDisposition)
                     if isinstance(concept, (ModelEuAxisCoord,ModelRuleDefinitionNode)):
@@ -245,18 +271,31 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             
     def getToolTip(self, tvRowId, tvColId):
         # override tool tip when appropriate
-        if self.arcrole == "Table-rendering" and tvColId == "#0":
+        if self.arcrole == "Table-rendering" and tvColId in ("#0", "#4"):
             try:
                 modelObject = self.modelXbrl.modelObject(tvRowId) # this is a relationship object
-                return modelObject.toModelObject.ordinateView
+                if isinstance(modelObject, ModelRelationship):
+                    modelResource = modelObject.toModelObject
+                else:
+                    modelResource = modelObject
+                if tvColId == "#0":
+                    return modelResource.definitionNodeView
+                elif tvColId == "#4":
+                    return " \n".join(": ".join(l)
+                                      for l in modelResource.definitionLabelsView)
+                else:
+                    return None
             except (AttributeError, KeyError):
                 try: # rendering filter relationships
-                    filterObj = modelObject.toModelObject
-                    return "{0}: {1}\ncomplement: {2}\ncover: {3}\n{4}".format(
-                            filterObj.localName, filterObj.viewExpression,
-                            str(modelObject.isComplemented).lower(),
-                            str(modelObject.isCovered).lower(),
-                            '\n'.join("{0}: {1}".format(label, value) for label,value in filterObj.propertyView))
+                    if tvColId == "#0":
+                        modelResource = modelObject.toModelObject
+                        return "{0}: {1}\ncomplement: {2}\ncover: {3}\n{4}".format(
+                                modelResource.localName, modelResource.viewExpression,
+                                str(modelObject.isComplemented).lower(),
+                                str(modelObject.isCovered).lower(),
+                                '\n'.join("{0}: {1}".format(p[0], p[1]) 
+                                          for p in modelResource.propertyView
+                                          if p and len(p) >= 2))
                 except (AttributeError, KeyError):
                     pass
         return None

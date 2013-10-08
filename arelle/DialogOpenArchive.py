@@ -12,7 +12,7 @@ except ImportError:
 import re, os, sys
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UrlUtil import isHttpUrl
-from arelle.TaxonomyPackage import parseTxmyPkg
+from arelle.PackageManager import parsePackage
 
 '''
 caller checks accepted, if True, caller retrieves url
@@ -105,7 +105,7 @@ class DialogOpenArchive(Toplevel):
                 if self.metadataFilePrefix:
                     self.metadataFilePrefix += os.sep
         
-                self.nameToUrls, self.remappings = parseTxmyPkg(mainWin, metadata)
+                self.taxonomyPackage = parsePackage(mainWin, metadata)
             except Exception as e:
                 self.close()
                 err = _("Failed to parse metadata; the underlying error was: {0}").format(e)
@@ -215,7 +215,7 @@ class DialogOpenArchive(Toplevel):
             self.treeView.column("url", width=350, anchor="w")
             self.treeView.heading("url", text="URL")
             
-            for name, urls in self.nameToUrls.items():
+            for name, urls in self.taxonomyPackage["nameToUrls"].items():
                 displayUrl = urls[1] # display the canonical URL
                 self.treeView.insert("", "end", name, values=[displayUrl], text=name)
                 
@@ -233,13 +233,13 @@ class DialogOpenArchive(Toplevel):
     def ok(self, event=None):
         selection = self.treeView.selection()
         if len(selection) > 0:
-            if hasattr(self, "remappings"):
+            if hasattr(self, "taxonomyPackage"):
                 # load file source remappings
                 self.filesource.mappedPaths = \
                     dict((prefix, 
                           remapping if isHttpUrl(remapping)
                           else (self.filesource.baseurl + os.sep + self.metadataFilePrefix +remapping.replace("/", os.sep)))
-                          for prefix, remapping in self.remappings.items())
+                          for prefix, remapping in self.taxonomyPackage["remappings"].items())
             if self.openType in (ARCHIVE, DISCLOSURE_SYSTEM):
                 filename = self.filenames[int(selection[0][4:])]
                 if isinstance(filename,tuple):
@@ -254,7 +254,7 @@ class DialogOpenArchive(Toplevel):
             elif self.openType == ENTRY_POINTS:
                 epName = selection[0]
                 #index 0 is the remapped Url, as opposed to the canonical one used for display
-                urlOrFile = self.nameToUrls[epName][0]
+                urlOrFile = self.taxonomyPackage["nameToUrls"][epName][0]
                     
                 if not urlOrFile.endswith("/"):
                     # check if it's an absolute URL rather than a path into the archive
@@ -294,7 +294,7 @@ class DialogOpenArchive(Toplevel):
                         pass
             elif self.openType == ENTRY_POINTS:
                 try:
-                    epUrl = self.nameToUrls[tvRowId][1]
+                    epUrl = self.taxonomyPackage["nameToUrls"][tvRowId][1]
                     text = "{0}\n{1}".format(tvRowId, epUrl)
                 except KeyError:
                     pass

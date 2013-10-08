@@ -306,7 +306,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     xValue = anyURI(UrlUtil.anyUriQuoteForPSVI(value))
                     sValue = value
                 elif baseXsdType in ("decimal", "float", "double"):
-                    sValue = float(value)
+                    sValue = float(value) # s-value uses Number (float) representation, tested before decimal is tested
                     if baseXsdType == "decimal":
                         xValue = Decimal(value)
                     else:

@@ -7,10 +7,12 @@ Created on Sep 13, 2011
 import os, sys
 from arelle import XbrlConst
 from arelle.ModelObject import ModelObject
+from arelle.ModelValue import QName
 from arelle.ModelFormulaObject import Aspect
 from arelle.ModelRenderingObject import (ModelEuTable, ModelTable, ModelBreakdown,
-                                         ModelEuAxisCoord, ModelDefinitionNode, ModelClosedDefinitionNode, ModelOpenDefinitionNode,
+                                         ModelEuAxisCoord, ModelDefinitionNode, ModelClosedDefinitionNode, ModelRuleDefinitionNode,
                                          ModelRelationshipDefinitionNode, ModelSelectionDefinitionNode, ModelFilterDefinitionNode,
+                                         ModelConceptRelationshipDefinitionNode, ModelDimensionRelationshipDefinitionNode,
                                          ModelCompositionDefinitionNode, ModelTupleDefinitionNode, StructuralNode,
                                          ROLLUP_NOT_ANALYZED, CHILDREN_BUT_NO_ROLLUP, CHILD_ROLLUP_FIRST, CHILD_ROLLUP_LAST)
 
@@ -29,11 +31,11 @@ def resolveAxesStructure(view, viewTblELR):
         
         # find an ELR for this table object
         table = viewTblELR
-        for rel in view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011)).fromModelObject(table):
+        for rel in view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201305, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011)).fromModelObject(table):
             # find relationships in table's linkrole
-            view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011), rel.linkrole)
+            view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableBreakdownTree201305, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD, XbrlConst.tableDefinitionNodeSubtree201305, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011), rel.linkrole)
             return resolveTableAxesStructure(view, table,
-                                             view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011), rel.linkrole))
+                                             view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201305, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011), rel.linkrole))
         # no relationships from table found
         return (None, None, None, None)
     
@@ -42,8 +44,8 @@ def resolveAxesStructure(view, viewTblELR):
     if len(tblAxisRelSet.modelRelationships) > 0:
         view.axisSubtreeRelSet = view.modelXbrl.relationshipSet(XbrlConst.euAxisMember, viewTblELR)
     else: # try 2011 roles
-        tblAxisRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011), viewTblELR)
-        view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011), viewTblELR)
+        tblAxisRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201305, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011), viewTblELR)
+        view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201305, XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableBreakdownTree201305, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD, XbrlConst.tableDefinitionNodeSubtree201305, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011), viewTblELR)
     if tblAxisRelSet is None or len(tblAxisRelSet.modelRelationships) == 0:
         view.modelXbrl.modelManager.addToLog(_("no table relationships for {0}").format(viewTblELR))
         return (None, None, None, None)
@@ -92,14 +94,14 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
             if (tblAxisRel.axisDisposition == disposition and 
                 isinstance(definitionNode, (ModelEuAxisCoord, ModelBreakdown, ModelDefinitionNode))):
                 if disposition == "x" and xTopStructuralNode is None:
-                    xTopStructuralNode = StructuralNode(None, definitionNode, view.zmostOrdCntx)
+                    xTopStructuralNode = StructuralNode(None, definitionNode, view.zmostOrdCntx, breakdownTableNode=table)
                     if isinstance(definitionNode,(ModelBreakdown, ModelClosedDefinitionNode)) and definitionNode.parentChildOrder is not None:
                         view.xTopRollup = CHILD_ROLLUP_LAST if definitionNode.parentChildOrder == "children-first" else CHILD_ROLLUP_FIRST
                     analyzeHdrs(view, xTopStructuralNode, definitionNode, 1, disposition, facts, i, tblAxisRels)
                     view.dataCols = leafNodeCount(xTopStructuralNode)
                     break
                 elif disposition == "y" and yTopStructuralNode is None:
-                    yTopStructuralNode = StructuralNode(None, definitionNode, view.zmostOrdCntx)
+                    yTopStructuralNode = StructuralNode(None, definitionNode, view.zmostOrdCntx, breakdownTableNode=table)
                     if isinstance(definitionNode,(ModelBreakdown, ModelClosedDefinitionNode)) and definitionNode.parentChildOrder is not None:
                         view.yAxisChildrenFirst.set(definitionNode.parentChildOrder == "children-first")
                         view.yTopRollup = CHILD_ROLLUP_LAST if definitionNode.parentChildOrder == "children-first" else CHILD_ROLLUP_FIRST
@@ -107,7 +109,7 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
                     view.dataRows = leafNodeCount(yTopStructuralNode)
                     break
                 elif disposition == "z" and zTopStructuralNode is None:
-                    zTopStructuralNode = StructuralNode(None, definitionNode)
+                    zTopStructuralNode = StructuralNode(None, definitionNode, breakdownTableNode=table)
                     analyzeHdrs(view, zTopStructuralNode, definitionNode, 1, disposition, facts, i, tblAxisRels)
                     break
     view.colHdrTopRow = view.zAxisRows + 1 # need rest if combobox used (2 if view.zAxisRows else 1)
@@ -176,6 +178,12 @@ def analyzeHdrs(view, structuralNode, definitionNode, depth, axisDisposition, fa
         try:
             #cartesianProductNestedArgs = (view, depth, axisDisposition, facts, tblAxisRels, i)
             ordCardinality, ordDepth = definitionNode.cardinalityAndDepth(structuralNode)
+            if (not definitionNode.isAbstract and
+                isinstance(definitionNode, ModelClosedDefinitionNode) and 
+                ordCardinality == 0):
+                view.modelXbrl.error("xbrlte:closedDefinitionNodeZeroCardinality",
+                    _("Closed definition node %(xlinkLabel)s does not contribute at least one structural node"),
+                    modelObject=(view.modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel, axis=definitionNode.localName)
             nestedDepth = depth + ordDepth
             # HF test
             cartesianProductNestedArgs = [view, nestedDepth, axisDisposition, facts, tblAxisRels, i]
@@ -279,6 +287,29 @@ def analyzeHdrs(view, structuralNode, definitionNode, depth, axisDisposition, fa
                                 structuralNode.choiceStructuralNodes.append(choiceStructuralNode)
                                 flattenChildNodesToChoices(choiceStructuralNode.childStructuralNodes, indent + 1)
                         flattenChildNodesToChoices(structuralNode.childStructuralNodes, 0)
+                    # set up by definitionNode.relationships
+                    if isinstance(definitionNode, ModelConceptRelationshipDefinitionNode):
+                        if (definitionNode._sourceQname != XbrlConst.qnXfiRoot and
+                            definitionNode._sourceQname not in view.modelXbrl.qnameConcepts):
+                            view.modelXbrl.error("xbrlte:invalidConceptRelationshipSource",
+                                _("Concept relationship rule node %(xlinkLabel)s source %(source)s does not refer to an existing concept."),
+                                modelObject=definitionNode, xlinkLabel=definitionNode.xlinkLabel, source=definitionNode._sourceQname)
+                    elif isinstance(definitionNode, ModelDimensionRelationshipDefinitionNode):
+                        dim = view.modelXbrl.qnameConcepts.get(definitionNode._dimensionQname)
+                        if dim is None or not dim.isExplicitDimension:
+                            view.modelXbrl.error("xbrlte:invalidExplicitDimensionQName",
+                                _("Dimension relationship rule node %(xlinkLabel)s dimension %(dimension)s does not refer to an existing explicit dimension."),
+                                modelObject=definitionNode, xlinkLabel=definitionNode.xlinkLabel, dimension=definitionNode._dimensionQname)
+                        domMbr = view.modelXbrl.qnameConcepts.get(definitionNode._sourceQname)
+                        if domMbr is None or not domMbr.isDomainMember:
+                            view.modelXbrl.error("xbrlte:invalidDimensionRelationshipSource",
+                                _("Dimension relationship rule node %(xlinkLabel)s source %(source)s does not refer to an existing domain member."),
+                                modelObject=definitionNode, xlinkLabel=definitionNode.xlinkLabel, source=definitionNode._sourceQname)
+                    if (definitionNode._axis in ("child", "child-or-self", "parent", "parent-or-self", "sibling", "sibling-or-self") and
+                        (not isinstance(definitionNode._generations, _NUM_TYPES) or definitionNode._generations > 1)):
+                        view.modelXbrl.error("xbrlte:relationshipNodeTooManyGenerations ",
+                            _("Relationship rule node %(xlinkLabel)s formulaAxis %(axis)s implies a single generation tree walk but generations %(generations)s is greater than one."),
+                            modelObject=definitionNode, xlinkLabel=definitionNode.xlinkLabel, axis=definitionNode._axis, generations=definitionNode._generations)
                     
                 elif isinstance(definitionNode, ModelSelectionDefinitionNode):
                     cartesianProductAnalyzed = True
@@ -340,6 +371,29 @@ def analyzeHdrs(view, structuralNode, definitionNode, depth, axisDisposition, fa
                     # sort by header (which is likely to be typed dim value, for example)
                     if any(sOC.header(lang=view.lang) for sOC in structuralNode.childStructuralNodes):
                         structuralNode.childStructuralNodes.sort(key=lambda childStructuralNode: childStructuralNode.header(lang=view.lang) or '')
+                elif isinstance(definitionNode, ModelRuleDefinitionNode):
+                    for constraintSet in definitionNode.constraintSets.values():
+                        for aspect in constraintSet.aspectsCovered():
+                            if not constraintSet.aspectValueDependsOnVars(aspect):
+                                if aspect == Aspect.CONCEPT:
+                                    conceptQname = definitionNode.aspectValue(view.modelXbrl.rendrCntx, Aspect.CONCEPT)
+                                    concept = view.modelXbrl.qnameConcepts.get(conceptQname)
+                                    if concept is None or not concept.isItem or concept.isDimensionItem or concept.isHypercubeItem:
+                                        view.modelXbrl.error("xbrlte:invalidQNameAspectValue",
+                                            _("Rule node %(xlinkLabel)s specifies concept %(concept)s does not refer to an existing primary item concept."),
+                                            modelObject=definitionNode, xlinkLabel=definitionNode.xlinkLabel, concept=conceptQname)
+                                elif isinstance(aspect, QName):
+                                    dim = view.modelXbrl.qnameConcepts.get(aspect)
+                                    memQname = definitionNode.aspectValue(view.modelXbrl.rendrCntx, aspect)
+                                    mem = view.modelXbrl.qnameConcepts.get(memQname)
+                                    if dim is None or not dim.isDimensionItem:
+                                        view.modelXbrl.error("xbrlte:invalidQNameAspectValue",
+                                            _("Rule node %(xlinkLabel)s specifies dimension %(concept)s does not refer to an existing dimension concept."),
+                                            modelObject=definitionNode, xlinkLabel=definitionNode.xlinkLabel, concept=aspect)
+                                    if isinstance(memQname, QName) and (mem is None or not mem.isDomainMember):
+                                        view.modelXbrl.error("xbrlte:invalidQNameAspectValue",
+                                            _("Rule node %(xlinkLabel)s specifies domain member %(concept)s does not refer to an existing domain member concept."),
+                                            modelObject=definitionNode, xlinkLabel=definitionNode.xlinkLabel, concept=memQname)
     
                 if axisDisposition == "z":
                     if structuralNode.choiceStructuralNodes:
@@ -391,10 +445,10 @@ def analyzeCartesianProductHdrs(childStructuralNode, view, depth, axisDispositio
                             axisDisposition, matchingFacts, j + i + 1, tblAxisRels) #cartesian product
                 break
                 
-def addRelationship(relAxisObj, rel, structuralNode, cartesianProductNestedArgs, selfStructuralNodes=None):
-    variableQname = relAxisObj.variableQname
-    conceptQname = relAxisObj.conceptQname
-    coveredAspect = relAxisObj.coveredAspect(structuralNode)
+def addRelationship(relDefinitionNode, rel, structuralNode, cartesianProductNestedArgs, selfStructuralNodes=None):
+    variableQname = relDefinitionNode.variableQname
+    conceptQname = relDefinitionNode.conceptQname
+    coveredAspect = relDefinitionNode.coveredAspect(structuralNode)
     if not coveredAspect:
         return None
     if selfStructuralNodes is not None:
@@ -403,7 +457,7 @@ def addRelationship(relAxisObj, rel, structuralNode, cartesianProductNestedArgs,
         if fromConceptQname in selfStructuralNodes:
             childStructuralNode = selfStructuralNodes[fromConceptQname]
         else:
-            childStructuralNode = StructuralNode(structuralNode, relAxisObj)
+            childStructuralNode = StructuralNode(structuralNode, relDefinitionNode)
             structuralNode.childStructuralNodes.append(childStructuralNode)
             selfStructuralNodes[fromConceptQname] = childStructuralNode
             if variableQname:
@@ -411,11 +465,16 @@ def addRelationship(relAxisObj, rel, structuralNode, cartesianProductNestedArgs,
             if conceptQname:
                 childStructuralNode.variables[conceptQname] = fromConceptQname
             childStructuralNode.aspects[coveredAspect] = fromConceptQname
-        relChildStructuralNode = StructuralNode(childStructuralNode, relAxisObj)
+        relChildStructuralNode = StructuralNode(childStructuralNode, relDefinitionNode)
         childStructuralNode.childStructuralNodes.append(relChildStructuralNode)
     else:
-        relChildStructuralNode = StructuralNode(structuralNode, relAxisObj)
+        relChildStructuralNode = StructuralNode(structuralNode, relDefinitionNode)
         structuralNode.childStructuralNodes.append(relChildStructuralNode)
+    preferredLabel = rel.preferredLabel
+    if preferredLabel == XbrlConst.periodStartLabel:
+        relChildStructuralNode.tagSelector = "table.periodStart"
+    elif preferredLabel == XbrlConst.periodStartLabel:
+        relChildStructuralNode.tagSelector = "table.periodEnd"
     if variableQname:
         relChildStructuralNode.variables[variableQname] = rel
     toConceptQname = rel.toModelObject.qname
@@ -425,18 +484,18 @@ def addRelationship(relAxisObj, rel, structuralNode, cartesianProductNestedArgs,
     analyzeCartesianProductHdrs(relChildStructuralNode, *cartesianProductNestedArgs)
     return relChildStructuralNode
 
-def addRelationships(relAxisObj, rels, structuralNode, cartesianProductNestedArgs):
+def addRelationships(relDefinitionNode, rels, structuralNode, cartesianProductNestedArgs):
     childStructuralNode = None # holder for nested relationships
     for rel in rels:
         if not isinstance(rel, list):
             # first entry can be parent of nested list relationships
-            childStructuralNode = addRelationship(relAxisObj, rel, structuralNode, cartesianProductNestedArgs)
+            childStructuralNode = addRelationship(relDefinitionNode, rel, structuralNode, cartesianProductNestedArgs)
         elif childStructuralNode is None:
-            childStructuralNode = StructuralNode(structuralNode, relAxisObj)
+            childStructuralNode = StructuralNode(structuralNode, relDefinitionNode)
             structuralNode.childStructuralNodes.append(childStructuralNode)
-            addRelationships(relAxisObj, rel, childStructuralNode, cartesianProductNestedArgs)
+            addRelationships(relDefinitionNode, rel, childStructuralNode, cartesianProductNestedArgs)
         else:
-            addRelationships(relAxisObj, rel, childStructuralNode, cartesianProductNestedArgs)
+            addRelationships(relDefinitionNode, rel, childStructuralNode, cartesianProductNestedArgs)
             
 def leafNodeCount(structuralNode):
     childLeafCount = 0
@@ -463,36 +522,41 @@ def inheritedExplicitDims(view, structuralNode, dims=None, nested=False):
         return {(dim,mem) for dim,mem in dims.items() if mem != 'omit'}
 
 emptySet = set()
-def inheritedAspectValue(view, aspect, xAspects, yAspects, zAspects, xOrdCntx, yOrdCntx):
-    ords = xAspects.get(aspect, emptySet) | yAspects.get(aspect, emptySet) | zAspects.get(aspect, emptySet)
+def inheritedAspectValue(view, aspect, tagSelectors, 
+                         xAspectStructuralNodes, yAspectStructuralNodes, zAspectStructuralNodes, 
+                         xStructuralNode, yStructuralNode):
+    aspectStructuralNodes = xAspectStructuralNodes.get(aspect, emptySet) | yAspectStructuralNodes.get(aspect, emptySet) | zAspectStructuralNodes.get(aspect, emptySet)
     structuralNode = None
-    if len(ords) == 1:
-        structuralNode = ords.pop()
-    elif len(ords) > 1:
+    if len(aspectStructuralNodes) == 1:
+        structuralNode = aspectStructuralNodes.pop()
+    elif len(aspectStructuralNodes) > 1:
         if aspect == Aspect.LOCATION:
             hasClash = False
-            for _ordCntx in ords:
-                if not _ordCntx.definitionNode.aspectValueDependsOnVars(aspect):
+            for _aspectStructuralNode in aspectStructuralNodes:
+                if not _aspectStructuralNode.definitionNode.aspectValueDependsOnVars(aspect):
                     if structuralNode:
                         hasClash = True
                     else:
-                        structuralNode = _ordCntx 
+                        structuralNode = _aspectStructuralNode 
         else:
+            # take closest structural node
             hasClash = True
             
+        ''' reported in static analysis by RenderingEvaluator.py
         if hasClash:
             from arelle.ModelFormulaObject import aspectStr
-            view.modelXbrl.error("xbrlte:axisAspectClash",
+            view.modelXbrl.error("xbrlte:aspectClash",
                 _("Aspect %(aspect)s covered by multiple axes."),
                 modelObject=view.modelTable, aspect=aspectStr(aspect))
+        '''
     if structuralNode:
-        definitionNode = structuralNode.definitionNode
-        if definitionNode.aspectValueDependsOnVars(aspect):
-            return xOrdCntx.evaluate(definitionNode, 
-                                     definitionNode.aspectValue, 
-                                     otherOrdinate=yOrdCntx,
-                                     evalArgs=(aspect,))
-        return structuralNode.aspectValue(aspect)
+        definitionNodeConstraintSet = structuralNode.constraintSet(tagSelectors)
+        if definitionNodeConstraintSet is not None and definitionNodeConstraintSet.aspectValueDependsOnVars(aspect):
+            return xStructuralNode.evaluate(definitionNodeConstraintSet, 
+                                            definitionNodeConstraintSet.aspectValue, # this passes a method
+                                            otherOrdinate=yStructuralNode,
+                                            evalArgs=(aspect,))
+        return structuralNode.aspectValue(aspect, tagSelectors=tagSelectors)
     return None 
 
 

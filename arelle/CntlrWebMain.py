@@ -271,13 +271,15 @@ def configure():
     
     :returns: html -- Status of configuration request (e.g., proxy or plug-ins).
     """
-    if not request.query.proxy and not request.query.plugins:
-        return _("proxy or plugins must be specified")
+    if not request.query.proxy and not request.query.plugins and not request.query.packages:
+        return _("proxy, plugins or packages must be specified")
     options = Options()
     if request.query.proxy:
         setattr(options, "proxy", request.query.proxy)
     if request.query.plugins:
         setattr(options, "plugins", request.query.plugins)
+    if request.query.packages:
+        setattr(options, "packages", request.query.packages)
     cntlr.run(options)
     response.content_type = 'text/html; charset=UTF-8'
     return htmlBody(tableRows(cntlr.logHandler.getLines(), header=_("Configuration Request")))
@@ -503,6 +505,7 @@ formulaVarExpressionSource, formulaVarExpressionCode, formulaVarExpressionEvalua
 <tr><td style="text-indent: 1em;">abortOnMajorError</td><td>Abort process on major error, such as when load is unable to find an entry or discovered file.</td></tr> 
 <tr><td style="text-indent: 1em;">collectProfileStats</td><td>Collect profile statistics, such as timing of validation activities and formulae.</td></tr> 
 <tr><td style="text-indent: 1em;">plugins</td><td>Activate plug-ins, specify  '|' separated .py modules (relative to plug-in directory).</td></tr>
+<tr><td style="text-indent: 1em;">packages</td><td>Activate taxonomy packages, specify  '|' separated .zip packages (absolute URLs or file paths).</td></tr>
 
 <tr><th colspan="2">Versioning Report (diff of two DTSes)</th></tr>
 <tr><td>/rest/xbrl/diff</td><td>Diff two DTSes, producing an XBRL versioning report relative to report directory.</td></tr>
@@ -603,7 +606,12 @@ Enter 'show' to view current setting, 'system' to configure to use system proxy 
 Enter 'show' to view plug-ins configuration, , or '|' separated modules: 
 +url to add plug-in by its url or filename (relative to plug-in directory else absolute), ~name to reload a plug-in by its name, -name to remove a plug-in by its name, 
  (e.g., '+http://arelle.org/files/hello_web.py', '+C:\Program Files\Arelle\examples\plugin\hello_dolly.py' to load,
-~Hello Dolly to reload, -Hello Dolly to remove).  (Note that plug-ins are transient on Google App Engine, specify with &amp;plugin to other rest commands.) 
+~Hello Dolly to reload, -Hello Dolly to remove).  (Note that plug-ins are transient on Google App Engine, specify with &amp;plugins to other rest commands.) 
+</td></tr>
+<tr><td style="text-indent: 1em;">packages</td><td>Show or modify and re-save taxonomy packages configuration:<br/>
+Enter 'show' to view packages configuration, , or '|' separated package URLs: 
++url to add package by its full url or filename, ~name to reload a package by its name, -name to remove a package by its name. 
+(Note that packages are transient on Google App Engine, specify with &amp;packages to other rest commands.) 
 </td></tr>
 ''') +
 (_('''

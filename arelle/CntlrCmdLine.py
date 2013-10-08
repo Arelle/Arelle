@@ -231,6 +231,14 @@ def parseAndRun(args):
                              "~Hello Dolly to reload, -Hello Dolly to remove).  "
                              "If + is omitted from .py file nothing is saved (same as temp).  "
                              "Packaged plug-in urls are their directory's url.  " ))
+    parser.add_option("--packages", action="store", dest="packages",
+                      help=_("Modify taxonomy packages configuration.  "
+                             "Re-save unless 'temp' is in the module list.  " 
+                             "Enter 'show' to show current packages configuration.  "
+                             "Commands show, and module urls are '|' separated: "
+                             "+url to add package by its url or filename, ~name to reload package by its name, -name to remove a package by its name, "
+                             "URLs are full absolute paths.  "
+                             "If + is omitted from package file nothing is saved (same as temp).  " ))
     parser.add_option("--abortOnMajorError", action="store_true", dest="abortOnMajorError", help=_("Abort process on major error, such as when load is unable to find an entry or discovered file."))
     parser.add_option("--collectProfileStats", action="store_true", dest="collectProfileStats", help=_("Collect profile statistics, such as timing of validation activities and formulae."))
     if hasWebServer:
@@ -423,6 +431,52 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                   moduleItem[0], moduleInfo.get("author"), moduleInfo.get("version"), moduleInfo.get("status"),
                                   moduleInfo.get("fileDate"), moduleInfo.get("description"), moduleInfo.get("license")),
                                   messageCode="info", file=moduleInfo.get("moduleURL"))
+                
+        if options.packages:
+            from arelle import PackageManager
+            savePackagesChanges = True
+            showPackages = False
+            for packageCmd in options.packages.split('|'):
+                cmd = packageCmd.strip()
+                if cmd == "show":
+                    showPackages = True
+                elif cmd == "temp":
+                    savePackagesChanges = False
+                elif cmd.startswith("+"):
+                    packageInfo = PackageManager.addPackage(cmd[1:])
+                    if packageInfo:
+                        self.addToLog(_("Addition of package {0} successful.").format(packageInfo.get("name")), 
+                                      messageCode="info", file=packageInfo.get("URL"))
+                    else:
+                        self.addToLog(_("Unable to load plug-in."), messageCode="info", file=cmd[1:])
+                elif cmd.startswith("~"):
+                    if PackageManager.reloadPackageModule(cmd[1:]):
+                        self.addToLog(_("Reload of package successful."), messageCode="info", file=cmd[1:])
+                    else:
+                        self.addToLog(_("Unable to reload package."), messageCode="info", file=cmd[1:])
+                elif cmd.startswith("-"):
+                    if PackageManager.removePackageModule(cmd[1:]):
+                        self.addToLog(_("Deletion of package successful."), messageCode="info", file=cmd[1:])
+                    else:
+                        self.addToLog(_("Unable to delete package."), messageCode="info", file=cmd[1:])
+                else: # assume it is a module or package
+                    savePackagesChanges = False
+                    packageInfo = PackageManager.addPackage(cmd)
+                    if packageInfo:
+                        self.addToLog(_("Activation of package {0} successful.").format(packageInfo.get("name")), 
+                                      messageCode="info", file=packageInfo.get("URL"))
+                        resetPlugins = True
+                    else:
+                        self.addToLog(_("Unable to load {0} as a package or {0} is not recognized as a command. ").format(cmd), messageCode="info", file=cmd)
+            if savePackagesChanges:
+                PackageManager.save(self)
+            if showPackages:
+                self.addToLog(_("Taxonomy packages:"), messageCode="info")
+                for packageInfo in PackageManager.orderedPackagesConfig()["packages"]:
+                    self.addToLog(_("Package: {0}; version: {1}; status: {2}; date: {3}; description: {4}.").format(
+                                  packageInfo.get("name"), packageInfo.get("version"), packageInfo.get("status"),
+                                  packageInfo.get("fileDate"), packageInfo.get("description")),
+                                  messageCode="info", file=packageInfo.get("URL"))
                 
         # run utility command line options that don't depend on entrypoint Files
         hasUtilityPlugin = False

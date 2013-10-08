@@ -113,8 +113,8 @@ def runTest(section, args):
                         for mv in tc.testcaseVariations:
                             outcomes.append({'section': section,
                                              'testcase': test_case,
-                                             'variation': str(mv.id), # copy string to dereference mv
-                                             'name': str(mv.name), 
+                                             'variation': str(mv.id or mv.name), # copy string to dereference mv
+                                             'name': str(mv.description or mv.name), 
                                              'status': str(mv.status), 
                                              'expected': str(mv.expected), 
                                              'actual': str(mv.actual)})
@@ -126,11 +126,27 @@ def runTest(section, args):
                     for mv in tc.testcaseVariations:
                         outcomes.append({'section': section,
                                          'testcase': test_case,
-                                         'variation': str(mv.id), 
-                                         'name': str(mv.name), 
+                                         'variation': str(mv.id or mv.name), 
+                                         'name': str(mv.description or mv.name), 
                                          'status': str(mv.status), 
                                          'expected': str(mv.expected), 
                                          'actual': str(mv.actual)})
+            elif modelDocument.type == ModelDocument.Type.RSSFEED:
+                tc = modelDocument
+                if hasattr(tc, "rssItems"):
+                    for rssItem in tc.rssItems:
+                        outcomes.append({'section': section,
+                                         'testcase': os.path.basename(rssItem.url),
+                                         'variation': str(rssItem.accessionNumber), 
+                                         'name': str(rssItem.formType + " " +
+                                                     rssItem.cikNumber + " " +
+                                                     rssItem.companyName + " " +
+                                                     str(rssItem.period) + " " + 
+                                                     str(rssItem.filingDate)), 
+                                         'status': str(rssItem.status), 
+                                         'expected': rssItem.url, 
+                                         'actual': " ".join(str(result) for result in (rssItem.results or [])) +
+                                                   ((" " + str(rssItem.assertions)) if rssItem.assertions else "")})
         del modelDocument # dereference
     cntlr.modelManager.close()
     del cntlr # dereference

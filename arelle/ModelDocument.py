@@ -8,7 +8,8 @@ import os, sys
 from collections import defaultdict
 from lxml import etree
 from xml.sax import SAXParseException
-from arelle import (XbrlConst, XmlUtil, UrlUtil, ValidateFilingText, XhtmlValidate, XmlValidate, XmlValidateSchema)
+from arelle import (PackageManager, XbrlConst, XmlUtil, UrlUtil, ValidateFilingText, 
+                    XhtmlValidate, XmlValidate, XmlValidateSchema)
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname
 from arelle.ModelDtsObject import ModelLink, ModelResource, ModelRelationship
@@ -61,6 +62,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             return None
     if modelXbrl.fileSource.isMappedUrl(normalizedUri):
         mappedUri = modelXbrl.fileSource.mappedUrl(normalizedUri)
+    elif PackageManager.isMappedUrl(normalizedUri):
+        mappedUri = PackageManager.mappedUrl(normalizedUri)
     else:
         mappedUri = modelXbrl.modelManager.disclosureSystem.mappedUrl(normalizedUri)
         
@@ -726,8 +729,8 @@ class ModelDocument:
             if base.startswith('http://') or os.path.isabs(base):
                 return base
             else:
-                return os.path.dirname(self.filepath) + "/" + base
-        return self.filepath
+                return os.path.dirname(self.uri) + "/" + base
+        return self.uri
             
     def importDiscover(self, element):
         schemaLocation = element.get("schemaLocation")
@@ -878,6 +881,8 @@ class ModelDocument:
                                             baseSetKeys.append(("Table-rendering", linkrole, None, None)) 
                                             tableRenderingArcFound = True
                                             self.modelXbrl.hasTableRendering = True
+                                        if XbrlConst.isTableIndexingArcrole(arcrole):
+                                            self.modelXbrl.hasTableIndexing = True
                                         for baseSetKey in baseSetKeys:
                                             self.modelXbrl.baseSets[baseSetKey].append(lbElement)
                                         arcrolesFound.add(arcrole)

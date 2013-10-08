@@ -6,13 +6,13 @@ Created on Oct 5, 2010
 '''
 import os, threading, time
 from tkinter import Menu, BooleanVar
-from arelle import (ViewWinGrid, ModelDocument, ModelInstanceObject, XbrlConst, 
+from arelle import (ViewWinGrid, ModelDocument, ModelDtsObject, ModelInstanceObject, XbrlConst, 
                     ModelXbrl, XmlValidate, Locale)
 from arelle.ModelValue import qname, QName
 from arelle.ViewUtilRenderedGrid import (resolveAxesStructure, inheritedAspectValue)
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect
 from arelle.ModelInstanceObject import ModelDimensionValue
-from arelle.ModelRenderingObject import ModelClosedDefinitionNode, ModelEuAxisCoord
+from arelle.ModelRenderingObject import ModelClosedDefinitionNode, ModelEuAxisCoord, ModelTable
 from arelle.FormulaEvaluator import aspectMatches
 
 from arelle.PrototypeInstanceObject import FactPrototype
@@ -59,7 +59,7 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
             
 class ViewRenderedGrid(ViewWinGrid.ViewGrid):
     def __init__(self, modelXbrl, tabWin, lang):
-        super(ViewRenderedGrid, self).__init__(modelXbrl, tabWin, "Rendering", True, lang)
+        super(ViewRenderedGrid, self).__init__(modelXbrl, tabWin, "Table", True, lang)
         self.newFactItemOptions = ModelInstanceObject.NewFactItemOptions(xbrlInstance=modelXbrl)
         self.factPrototypes = []
         self.zOrdinateChoices = None
@@ -79,8 +79,9 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
     def loadTablesMenu(self):
         tblMenuEntries = {}             
         tblRelSet = self.modelXbrl.relationshipSet("Table-rendering")
+        self.tablesToELR = {}
         for tblLinkroleUri in tblRelSet.linkRoleUris:
-            for tableAxisArcrole in (XbrlConst.euTableAxis, XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011):
+            for tableAxisArcrole in (XbrlConst.euTableAxis, XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201305, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011):
                 tblAxisRelSet = self.modelXbrl.relationshipSet(tableAxisArcrole, tblLinkroleUri)
                 if tblAxisRelSet and len(tblAxisRelSet.modelRelationships) > 0:
                     # table name
@@ -92,6 +93,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         for table in tblAxisRelSet.rootConcepts:
                             # add table to menu if there's any entry
                             tblMenuEntries[roledefinition] = tblLinkroleUri
+                            self.tablesToELR[table.objectId()] = tblLinkroleUri
                             break
         self.tablesMenu.delete(0, self.tablesMenuLength)
         self.tablesMenuLength = 0
@@ -149,8 +151,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         #rowspan=(self.dataFirstRow),
                         wraplength=200) # in screen units
                         #wraplength=sum(self.rowHdrColWidth)) # in screen units
-            zAspects = defaultdict(set)
-            self.zAxis(1, zTopStructuralNode, zAspects, clearZchoices)
+            zAspectStructuralNodes = defaultdict(set)
+            self.zAxis(1, zTopStructuralNode, zAspectStructuralNodes, clearZchoices)
             xStructuralNodes = []
             self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1, 
                        xTopStructuralNode, xStructuralNodes, self.xAxisChildrenFirst.get(), True, True)
@@ -160,7 +162,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                 if fp is not None:
                     fp.clear()
             self.factPrototypes = []
-            self.bodyCells(self.dataFirstRow, yTopStructuralNode, xStructuralNodes, zAspects, self.yAxisChildrenFirst.get())
+            self.bodyCells(self.dataFirstRow, yTopStructuralNode, xStructuralNodes, zAspectStructuralNodes, self.yAxisChildrenFirst.get())
                 
             # data cells
             #print("body cells done")
@@ -171,7 +173,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         self.blockMenuEvents -= 1
 
             
-    def zAxis(self, row, zStructuralNode, zAspects, clearZchoices):
+    def zAxis(self, row, zStructuralNode, zAspectStructuralNodes, clearZchoices):
         if zStructuralNode is not None:
             gridBorder(self.gridColHdr, self.dataFirstCol, row, TOPBORDER, columnspan=2)
             gridBorder(self.gridColHdr, self.dataFirstCol, row, LEFTBORDER)
@@ -201,16 +203,15 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
     
             if zStructuralNode.childStructuralNodes:
                 for zStructuralNode in zStructuralNode.childStructuralNodes:
-                    self.zAxis(row + 1, zStructuralNode, zAspects, clearZchoices)
+                    self.zAxis(row + 1, zStructuralNode, zAspectStructuralNodes, clearZchoices)
             else: # nested-nost element, aspects process inheritance
                 for aspect in aspectModels[self.aspectModel]:
-                    for ruleAspect in aspectRuleAspects.get(aspect, (aspect,)):
-                        if zStructuralNode.hasAspect(ruleAspect): #implies inheriting from other z axes
-                            if ruleAspect == Aspect.DIMENSIONS:
-                                for dim in (zStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
-                                    zAspects[dim].add(zStructuralNode)
-                            else:
-                                zAspects[ruleAspect].add(zStructuralNode)
+                    if zStructuralNode.hasAspect(aspect): #implies inheriting from other z axes
+                        if aspect == Aspect.DIMENSIONS:
+                            for dim in (zStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
+                                zAspectStructuralNodes[dim].add(zStructuralNode)
+                        else:
+                            zAspectStructuralNodes[aspect].add(zStructuralNode)
             
     def onComboBoxSelected(self, *args):
         combobox = args[0].widget
@@ -401,42 +402,46 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         dummy, row = self.yAxis(leftCol + 1, row, yStructuralNode, childrenFirst, renderNow, False) # render on this pass
             return (nestedBottomRow, row)
     
-    def bodyCells(self, row, yParentStructuralNode, xStructuralNodes, zAspects, yChildrenFirst):
+    def bodyCells(self, row, yParentStructuralNode, xStructuralNodes, zAspectStructuralNodes, yChildrenFirst):
         if yParentStructuralNode is not None:
             rendrCntx = getattr(self.modelXbrl, "rendrCntx", None) # none for EU 2010 tables
             dimDefaults = self.modelXbrl.qnameDimensionDefaults
             for yStructuralNode in yParentStructuralNode.childStructuralNodes:
                 if yChildrenFirst:
-                    row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspects, yChildrenFirst)
+                    row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspectStructuralNodes, yChildrenFirst)
                 if not yStructuralNode.isAbstract:
-                    yAspects = defaultdict(set)
+                    yAspectStructuralNodes = defaultdict(set)
                     for aspect in aspectModels[self.aspectModel]:
-                        for ruleAspect in aspectRuleAspects.get(aspect, (aspect,)):
-                            if yStructuralNode.hasAspect(ruleAspect):
-                                if ruleAspect == Aspect.DIMENSIONS:
-                                    for dim in (yStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
-                                        yAspects[dim].add(yStructuralNode)
-                                else:
-                                    yAspects[ruleAspect].add(yStructuralNode)
-                        
+                        if yStructuralNode.hasAspect(aspect):
+                            if aspect == Aspect.DIMENSIONS:
+                                for dim in (yStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
+                                    yAspectStructuralNodes[dim].add(yStructuralNode)
+                            else:
+                                yAspectStructuralNodes[aspect].add(yStructuralNode)
+                    yTagSelectors = yStructuralNode.tagSelectors
                     gridSpacer(self.gridBody, self.dataFirstCol, row, LEFTBORDER)
                     # data for columns of row
                     ignoreDimValidity = self.ignoreDimValidity.get()
                     for i, xStructuralNode in enumerate(xStructuralNodes):
-                        xAspects = defaultdict(set)
+                        xAspectStructuralNodes = defaultdict(set)
                         for aspect in aspectModels[self.aspectModel]:
-                            for ruleAspect in aspectRuleAspects.get(aspect, (aspect,)):
-                                if xStructuralNode.hasAspect(ruleAspect):
-                                    if ruleAspect == Aspect.DIMENSIONS:
-                                        for dim in (xStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
-                                            xAspects[dim].add(xStructuralNode)
-                                    else:
-                                        xAspects[ruleAspect].add(xStructuralNode)
+                            if xStructuralNode.hasAspect(aspect):
+                                if aspect == Aspect.DIMENSIONS:
+                                    for dim in (xStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
+                                        xAspectStructuralNodes[dim].add(xStructuralNode)
+                                else:
+                                    xAspectStructuralNodes[aspect].add(xStructuralNode)
+                        cellTagSelectors = yTagSelectors | xStructuralNode.tagSelectors
                         cellAspectValues = {}
                         matchableAspects = set()
-                        for aspect in _DICT_SET(xAspects.keys()) | _DICT_SET(yAspects.keys()) | _DICT_SET(zAspects.keys()):
-                            aspectValue = inheritedAspectValue(self, aspect, xAspects, yAspects, zAspects, xStructuralNode, yStructuralNode)
-                            if dimDefaults.get(aspect) != aspectValue: # don't include defaulted dimensions
+                        for aspect in _DICT_SET(xAspectStructuralNodes.keys()) | _DICT_SET(yAspectStructuralNodes.keys()) | _DICT_SET(zAspectStructuralNodes.keys()):
+                            aspectValue = inheritedAspectValue(self, aspect, cellTagSelectors, 
+                                                               xAspectStructuralNodes, yAspectStructuralNodes, zAspectStructuralNodes, 
+                                                               xStructuralNode, yStructuralNode)
+                            # value is None for a dimension whose value is to be not reported in this slice
+                            if (isinstance(aspect, _INT) or  # not a dimension
+                                dimDefaults.get(aspect) != aspectValue or # explicit dim defaulted will equal the value
+                                aspectValue is not None): # typed dim absent will be none
                                 cellAspectValues[aspect] = aspectValue
                             matchableAspects.add(aspectModelAspect.get(aspect,aspect)) #filterable aspect from rule aspect
                         cellDefaultedDims = _DICT_SET(dimDefaults) - _DICT_SET(cellAspectValues.keys())
@@ -462,6 +467,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                             dimMemQname = None  # match facts that report this dimension
                                     elif isinstance(aspectValue, QName): 
                                         dimMemQname = aspectValue  # match facts that have this explicit value
+                                    elif aspectValue is None: # match typed dims that don't report this value
+                                        dimMemQname = ModelXbrl.DEFAULT
                                     else:
                                         dimMemQname = None # match facts that report this dimension
                                     facts = facts & self.modelXbrl.factsByDimMemQname(aspect, dimMemQname)
@@ -492,7 +499,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         gridSpacer(self.gridBody, self.dataFirstCol + i, row, BOTTOMBORDER)
                     row += 1
                 if not yChildrenFirst:
-                    row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspects, yChildrenFirst)
+                    row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspectStructuralNodes, yChildrenFirst)
             return row
     def onClick(self, event):
         objId = event.widget.objectId
@@ -520,22 +527,15 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
     def viewModelObject(self, modelObject):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
-            '''
             try:
-                if isinstance(modelObject, ModelObject.ModelRelationship):
-                    conceptId = modelObject.toModelObject.objectId()
-                elif isinstance(modelObject, ModelObject.ModelFact):
-                    conceptId = self.modelXbrl.qnameConcepts[modelObject.qname].objectId()
+                if isinstance(modelObject, ModelDtsObject.ModelRelationship):
+                    objectId = modelObject.toModelObject.objectId()
                 else:
-                    conceptId = modelObject.objectId()
-                #node = self.objectIdToNode[conceptId]
-                node = conceptId
-                if self.treeView.exists(node):
-                    self.treeView.see(node)
-                    self.treeView.selection_set(node)
-            except KeyError:
-                    self.treeView.selection_set(())
-            '''
+                    objectId = modelObject.objectId()
+                if objectId in self.tablesToELR:
+                    self.view(viewTblELR=self.tablesToELR[objectId])
+            except (KeyError, AttributeError):
+                    pass
             self.blockViewModelObject -= 1
     
     def saveInstance(self, newFilename=None):

@@ -154,9 +154,9 @@ def innerText(element, ixExclude=False, ixEscape=False, ixContinuation=False, st
     except TypeError:
         return ""
 
-def innerTextList(element, ixExclude=False, ixEscape=False):   
+def innerTextList(element, ixExclude=False, ixEscape=False, ixContinuation=False):   
     try:
-        return ", ".join(text.strip() for text in innerTextNodes(element, ixExclude, ixEscape) if len(text.strip()) > 0)
+        return ", ".join(text.strip() for text in innerTextNodes(element, ixExclude, ixEscape, ixContinuation) if len(text.strip()) > 0)
     except TypeError:
         return ""
 

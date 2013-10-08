@@ -11,6 +11,7 @@ build process to indicate the time that this version was built.
 import datetime, sys
 
 if __name__ == "__main__":
+    is64BitPython = sys.maxsize == 0x7fffffffffffffff
     timestamp = datetime.datetime.utcnow()
     
     versionPy = ("'''\n"
@@ -31,19 +32,24 @@ if __name__ == "__main__":
     distFileDate = timestamp.strftime("%Y-%m-%d")
     if sys.platform == "darwin":
         with open("buildRenameDmg.sh", "w") as fh:
-            fh.write("mv dist_dmg/arelle.dmg dist_dmg/arelle-macOS-{0}.dmg\n".format(distFileDate))
+            fh.write("mv dist_dmg/arelle.dmg dist_dmg/arelle-macOS-{}.dmg\n".format(distFileDate))
     if sys.platform == "linux2":
         with open("buildRenameLinux-x86_64.sh", "w") as fh:
-            fh.write("mv dist/exe.linux-x86_64-3.2.tar.gz dist/arelle-linux-x86_64-{0}.tar.gz\n".format(distFileDate))
+            fh.write("mv dist/exe.linux-x86_64-3.2.tar.gz dist/arelle-linux-x86_64-{}.tar.gz\n".format(distFileDate))
+    elif sys.platform == "linux": # python 3.3
+        with open("buildRenameLinux-x86_64.sh", "w") as fh:
+            fh.write("mv dist/exe.linux-x86_64-3.3.tar.gz dist/arelle-linux-x86_64-{}.tar.gz\n".format(distFileDate))
     elif sys.platform == "sunos5":
         with open("buildRenameSol10Sun4.sh", "w") as fh:
-            fh.write("mv dist/exe.solaris-2.10-sun4v-{0}.tar.gz dist/arelle-solaris10-sun4-{1}.tar.gz\n"
-                     .format(sys.version[0:3], distFileDate))
+            fh.write("mv dist/exe.solaris-2.10-sun4v{0}-{1}.tar.gz dist/arelle-solaris10-sun4{0}-{2}.tar.gz\n"
+                     .format(".64bit" if is64BitPython else "",
+                             sys.version[0:3], 
+                             distFileDate))
     elif sys.platform.startswith("win"):
         renameCmdFile = "buildRenamer.bat"
         with open("buildRenameX86.bat", "w") as fh:
-            fh.write("rename dist\\arelle-win-x86.exe arelle-win-x86-{0}.exe\n".format(distFileDate))
+            fh.write("rename dist\\arelle-win-x86.exe arelle-win-x86-{}.exe\n".format(distFileDate))
         with open("buildRenameX64.bat", "w") as fh:
-            fh.write("rename dist\\arelle-win-x64.exe arelle-win-x64-{0}.exe\n".format(distFileDate))
+            fh.write("rename dist\\arelle-win-x64.exe arelle-win-x64-{}.exe\n".format(distFileDate))
         with open("buildRenameSvr27.bat", "w") as fh:
-            fh.write("rename dist\\arelle-svr-2.7.zip arelle-svr-2.7-{0}.zip\n".format(distFileDate))
+            fh.write("rename dist\\arelle-svr-2.7.zip arelle-svr-2.7-{}.zip\n".format(distFileDate))

@@ -12,7 +12,7 @@ from arelle import PythonUtil # define 2.x or 3.x string types
 import tempfile, os, io, sys, logging, gettext, json, re, subprocess, math
 from arelle import ModelManager
 from arelle.Locale import getLanguageCodes
-from arelle import PluginManager
+from arelle import PluginManager, PackageManager
 from collections import defaultdict
 osPrcs = None
 isPy3 = (sys.version[0] >= '3')
@@ -237,6 +237,9 @@ class Cntlr:
         # start plug in server (requres web cache initialized, but not logger)
         PluginManager.init(self)
  
+        # start taxonomy package server (requres web cache initialized, but not logger)
+        PackageManager.init(self)
+ 
         self.startLogging(logFileName, logFileMode, logFileEncoding, logFormat)
         
         # Cntlr.Init after logging started
@@ -354,6 +357,7 @@ class Cntlr:
            :type saveConfig: bool
         """
         PluginManager.save(self)
+        PackageManager.save(self)
         if saveConfig:
             self.saveConfig()
         if self.logger is not None:

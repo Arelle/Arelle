@@ -227,7 +227,7 @@ class Validate:
                             parameters[dtsName] = (None, inputDTS) #inputDTS is a list of modelXbrl's (instance DTSes)
                         elif len(inputDTS) > 1: # standard-input-instance with multiple instance documents
                             parameters[XbrlConst.qnStandardInputInstance] = (None, inputDTS) # allow error detection in validateFormula
-                    if modelTestcaseVariation.resultIsTable:
+                    if modelXbrl.hasTableRendering or modelTestcaseVariation.resultIsTable:
                         RenderingEvaluator.init(modelXbrl)
                     try:
                         self.instValidator.validate(modelXbrl, parameters)

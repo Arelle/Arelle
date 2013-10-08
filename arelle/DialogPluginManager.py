@@ -121,7 +121,7 @@ class DialogPluginManager(Toplevel):
         
         self.classesView.column("#0", width=200, anchor="w")
         self.classesView.heading("#0", text=_("Class"))
-        self.classesView["columns"] = ("modules")
+        self.classesView["columns"] = ("modules",)
         self.classesView.column("modules", width=500, anchor="w", stretch=False)
         self.classesView.heading("modules", text=_("Modules"))
         

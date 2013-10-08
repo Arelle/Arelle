@@ -28,7 +28,7 @@ import threading, queue
 
 from arelle import Cntlr
 from arelle import (DialogURL, DialogLanguage,
-                    DialogPluginManager,
+                    DialogPluginManager, DialogPackageManager,
                     ModelDocument,
                     ModelManager,
                     RenderingEvaluator,
@@ -180,6 +180,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         for label, command, shortcut_text, shortcut in (
                 (_("Check for updates"), lambda: Updater.checkForUpdates(self), None, None),
                 (_("Manage plug-ins"), lambda: DialogPluginManager.dialogPluginManager(self), None, None),
+                (_("Manage packages"), lambda: DialogPackageManager.dialogPackageManager(self), None, None),
                 ("PLUG-IN", "CntlrWinMain.Menu.Help.Upper", None, None),
                 (None, None, None, None),
                 (_("About..."), self.helpAbout, None, None),
@@ -713,6 +714,17 @@ class CntlrWinMain (Cntlr.Cntlr):
                 ViewWinRssFeed.viewRssFeed(modelXbrl, self.tabWinTopRt)
                 topView = modelXbrl.views[-1]
             else:
+                if modelXbrl.hasTableIndexing:
+                    currentAction = "table index view"
+                    ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopLeft, ("Tables", (XbrlConst.euGroupTable,)), lang=self.labelLang,
+                                                               treeColHdr="Table Index", showLinkroles=False, showColumns=False, expandAll=True)
+                '''
+                elif (modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET) and
+                      not modelXbrl.hasTableRendering):
+                    currentAction = "facttable ELRs view"
+                    ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopLeft, ("Tables", (XbrlConst.parentChild,)), lang=self.labelLang,
+                                                               treeColHdr="Fact Table Index", showLinkroles=True, showColumns=False, showRelationships=False, expandAll=False)
+                '''
                 currentAction = "tree view of tests"
                 ViewWinDTS.viewDTS(modelXbrl, self.tabWinTopLeft, altTabWin=self.tabWinTopRt)
                 currentAction = "view of concepts"

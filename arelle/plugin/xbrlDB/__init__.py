@@ -113,7 +113,7 @@ def storeIntoDB(dbConnection, modelXbrl, rssItem=None):
     startedAt = time.time()
     if dbType in dbTypes:
         insertIntoDB = dbTypes[dbType]
-    if isPostgresPort(host, port):
+    elif isPostgresPort(host, port):
         insertIntoDB = insertIntoPostgresDB
     elif isRexsterPort(host, port):
         insertIntoDB = insertIntoRexsterDB

@@ -7,12 +7,8 @@ that will save a directory containing HTML Tablesets with an EBA index page.
 
 def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
     try:
-        if dts.fileSource.isArchive:
-            return
         import os, io
-        from arelle import Version
-        from arelle import XmlUtil, XbrlConst
-        from arelle import XmlUtil, XbrlConst
+        from arelle import Version, XbrlConst, XmlUtil
         from arelle.ViewFileRenderedGrid import viewRenderedGrid
         from arelle.ModelRenderingObject import ModelEuTable, ModelTable
         
@@ -64,6 +60,8 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
         # order number is missing
         def viewTable(modelTable):
             if isinstance(modelTable, (ModelEuTable, ModelTable)):
+                # status
+                dts.modelManager.cntlr.addToLog("viewing: " + modelTable.id)
                 # for table file name, use table ELR
                 tblFile = os.path.join(os.path.dirname(indexFile), modelTable.id + ".html")
                 viewRenderedGrid(dts, tblFile, lang=lang, sourceView=View(modelTable, False, False, True))
