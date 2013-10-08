@@ -148,30 +148,31 @@ def checkCorporateActions(val):
     hasCancel = False
     for f in modelXbrl.facts:
         if f.qname.namespaceURI == caNamespace:
-            caFacts[f.qname.localName].append(f)
             context = f.context
-            qnEventTypeMember = context.dimMemberQname(qnEventTypeAxis)
-            qnIssueTypeMember = context.dimMemberQname(qnIssueTypeAxis)
-            qnMandatoryVoluntaryMember = context.dimMemberQname(qnMandatoryVoluntaryAxis) 
-            qnMarketTypeMember = context.dimMemberQname(qnMarketTypeAxis)
-            if (not hasUsEquityCashDiv and 
-                qnEventTypeMember == qnCashDividendMember and
-                qnIssueTypeMember == qnEquityMember and
-                qnMandatoryVoluntaryMember == qnMandatoryMember and
-                qnMarketTypeMember == qnUnitedStatesMember):
-                hasUsEquityCashDiv = True
-            if (not hasUsEquityStockDiv and 
-                qnEventTypeMember == qnStockDividendMember and
-                qnIssueTypeMember == qnEquityMember and
-                qnMandatoryVoluntaryMember == qnMandatoryMember and
-                qnMarketTypeMember == qnUnitedStatesMember):
-                hasUsEquityStockDiv = True
-            if (not hasCancel and 
-                qnEventTypeMember == qnCancelMember and
-                qnIssueTypeMember == qnCancelMember and
-                qnMandatoryVoluntaryMember == qnCancelMember and
-                qnMarketTypeMember == qnCancelMember):
-                hasCancel = True
+            if context is not None and f.xValid == VALID:
+                caFacts[f.qname.localName].append(f)
+                qnEventTypeMember = context.dimMemberQname(qnEventTypeAxis)
+                qnIssueTypeMember = context.dimMemberQname(qnIssueTypeAxis)
+                qnMandatoryVoluntaryMember = context.dimMemberQname(qnMandatoryVoluntaryAxis) 
+                qnMarketTypeMember = context.dimMemberQname(qnMarketTypeAxis)
+                if (not hasUsEquityCashDiv and 
+                    qnEventTypeMember == qnCashDividendMember and
+                    qnIssueTypeMember == qnEquityMember and
+                    qnMandatoryVoluntaryMember == qnMandatoryMember and
+                    qnMarketTypeMember == qnUnitedStatesMember):
+                    hasUsEquityCashDiv = True
+                if (not hasUsEquityStockDiv and 
+                    qnEventTypeMember == qnStockDividendMember and
+                    qnIssueTypeMember == qnEquityMember and
+                    qnMandatoryVoluntaryMember == qnMandatoryMember and
+                    qnMarketTypeMember == qnUnitedStatesMember):
+                    hasUsEquityStockDiv = True
+                if (not hasCancel and 
+                    qnEventTypeMember == qnCancelMember and
+                    qnIssueTypeMember == qnCancelMember and
+                    qnMandatoryVoluntaryMember == qnCancelMember and
+                    qnMarketTypeMember == qnCancelMember):
+                    hasCancel = True
 
     hasEventComplete = False
     eventCompleteContextHash = None
@@ -183,14 +184,14 @@ def checkCorporateActions(val):
     
     if hasEventComplete:
         facts = [f for f in modelXbrl.facts 
-                 if f.context.dimMemberQname(qnStatusAxis) == qnPreliminaryMember]
+                 if f.context is not None and f.context.dimMemberQname(qnStatusAxis) == qnPreliminaryMember]
         if facts:
             modelXbrl.error("US-CA.PreliminaryAndComplete.100",
                 _("Facts have a preliminary status, but the event is indicated to be complete: %(facts)s"),
                 modelObject=facts, facts=", ".join(f.localName for f in facts))
 
         facts = [f for f in modelXbrl.facts 
-                 if f.context.dimMemberQname(qnStatusAxis) == qnUnconfirmedMember]
+                 if f.context is not None and f.context.dimMemberQname(qnStatusAxis) == qnUnconfirmedMember]
         if facts:
             modelXbrl.error("US-CA.UnconfirmedAndComplete.101",
                 _("Facts have an unconfirmed status, but the event is indicated to be complete: %(facts)s"),
@@ -298,7 +299,6 @@ def checkCorporateActions(val):
         for f1 in caFacts[localName1]:
             for f2 in caFacts[localName2]:
                 if (f1.context.contextDimAwareHash == f2.context.contextDimAwareHash and
-                    f1.xValid == VALID and f2.xValid == VALID and
                     f1.xValue < f2.xValue):
                     modelXbrl.error("US-CA.date.{0}".format(i),
                         _("The %(fact1)s %(value1)s must be later than the %(fact2)s %(value2)s."),
@@ -498,14 +498,15 @@ def checkCorporateActions(val):
                 modelObject=modelXbrl, fact="EventConfirmationStatus")
 
         facts = [f for f in modelXbrl.facts 
-                 if f.context.dimValue(qnStatusAxis) == qnUnconfirmedMember]
+                 if f.context is not None and f.context.dimValue(qnStatusAxis) == qnUnconfirmedMember]
         if facts:
             modelXbrl.error("US-CA.cancel.invalid_member.33",
                 _("Facts have been reported with the UnconfirmedMember on the StatusAxis for a cancel event: %(facts)s."),
                 modelObject=facts, facts=", ".join(f.localName for f in facts))
             
         facts = [f for f in modelXbrl.facts
-                 if f.context.dimValue(qnStatusAxis) == qnPreliminaryMember and
+                 if f.context is not None and 
+                    f.context.dimValue(qnStatusAxis) == qnPreliminaryMember and
                     f.context.dimValue(qnEventTypeAxis) == qnCancelMember]
         if facts:
             modelXbrl.error("US-CA.cancel.invalid_member.34",
@@ -514,7 +515,8 @@ def checkCorporateActions(val):
                 modelObject=facts, facts=", ".join(f.localName for f in facts))
             
         facts = [f for f in modelXbrl.facts
-                 if f.context.dimValue(qnStatusAxis) == qnUnconfirmedMember and
+                 if f.context is not None and 
+                    f.context.dimValue(qnStatusAxis) == qnUnconfirmedMember and
                     f.context.dimValue(qnEventTypeAxis) == qnCancelMember]
         if facts:
             modelXbrl.error("US-CA.cancel.invalid_member.36",
