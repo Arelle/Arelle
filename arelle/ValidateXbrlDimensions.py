@@ -487,6 +487,31 @@ def findUsableMembersInDomainELR(val, rels, ELR, usableMembers, unusableMembers,
             findUsableMembersInDomainELR(val, domMbrRels, toELR, usableMembers, unusableMembers, toConceptELRs)
             toELRs.discard(toELR)
 
+def enumerationMemberUsable(val, enumConcept, memConcept):
+    if enumConcept is None or memConcept is None:
+        return False
+    try:
+        enumerationMembersUsable = val.enumerationMembersUsable
+    except AttributeError:
+        enumerationMembersUsable = val.enumerationMembersUsable = {}
+    try:
+        return memConcept in enumerationMembersUsable[enumConcept]
+    except KeyError:
+        domConcept = enumConcept.enumDomain
+        usableMembers = set()
+        unusableMembers = set()
+        enumerationMembersUsable[enumConcept] = usableMembers
+        if domConcept is None:
+            return False
+        if enumConcept.isEnumDomainUsable:
+            usableMembers.add(domConcept)
+        # build set of usable members in dimension/domain/ELR
+        domELR = enumConcept.enumLinkrole
+        findUsableMembersInDomainELR(val, val.modelXbrl.relationshipSet(XbrlConst.domainMember, domELR).fromModelObject(domConcept),
+                                     domELR, usableMembers, unusableMembers, defaultdict(set))
+        usableMembers -= unusableMembers
+        return memConcept in usableMembers
+    
 ''' removed to cache all members usability for domain
 def dimensionMemberState(val, dimConcept, memConcept, domELR):
     try:

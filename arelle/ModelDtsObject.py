@@ -689,7 +689,49 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         except AttributeError:
             self._typedDomainElement = self.resolveUri(uri=self.typedDomainRef)
             return self._typedDomainElement
+    
+    @property
+    def isEnumeration(self):
+        """(bool) -- True if derived from enum:enumerationItemType"""
+        try:
+            return self._isEnum
+        except AttributeError:
+            self._isEnum = self.instanceOfType(XbrlConst.qnEnumerationItemType)
+            return self._isEnum
         
+    @property
+    def enumDomainQname(self):
+        """(QName) -- enumeration domain qname """
+        return self.schemaNameQname(self.get("{http://www.xbrl.org/2013/enumeration}domain"))
+
+    @property
+    def enumDomain(self):
+        """(ModelConcept) -- enumeration domain """
+        try:
+            return self._enumDomain
+        except AttributeError:
+            self._enumDomain = self.modelXbrl.qnameConcepts.get(self.enumDomainQname)
+            return self._enumDomain
+        
+    @property
+    def enumLinkrole(self):
+        """(anyURI) -- enumeration linkrole """
+        return self.get("{http://www.xbrl.org/2013/enumeration}linkrole")
+    
+    @property
+    def enumDomainUsable(self):
+        """(string) -- enumeration usable attribute """
+        return self.get("{http://www.xbrl.org/2013/enumeration}usable") or "false"
+
+    @property
+    def isEnumDomainUsable(self):
+        """(bool) -- enumeration domain usability """
+        try:
+            return self._isEnumDomainUsable
+        except AttributeError:
+            self._isEnumDomainUsable = self.enumDomainUsable == "true"
+            return self._isEnumDomainUsable
+
     def substitutesForQname(self, subsQname):
         """(bool) -- True if element substitutes for specified qname"""
         subs = self

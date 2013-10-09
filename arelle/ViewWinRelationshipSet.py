@@ -215,7 +215,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 elif relArcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
                     self.treeView.set(childnode, "usable", modelObject.usable)
                 childRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.consecutiveArcrole.get(relArcrole,"XBRL-dimensions"),
-                                                                      modelObject.linkrole)
+                                                                      modelObject.consecutiveLinkrole)
             elif self.arcrole == "Table-rendering": # extra columns
                 try:
                     header = concept.header(lang=self.lang,strip=True,evaluate=False)

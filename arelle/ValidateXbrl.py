@@ -12,6 +12,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelValue import qname
 from arelle.PluginManager import pluginClassMethods
+from arelle.XmlValidate import VALID
 from collections import defaultdict
 validateUniqueParticleAttribution = None # dynamic import
 
@@ -68,6 +69,7 @@ class ValidateXbrl:
                              any((concept.qname.namespaceURI in self.disclosureSystem.standardTaxonomiesDict) 
                                  for concept in self.modelXbrl.nameConcepts.get("UTR",()))))
         self.validateIXDS = False # set when any inline document found
+        self.validateEnum = XbrlConst.enum in modelXbrl.namespaceDocs
         
         for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Start"):
             pluginXbrlMethod(self)
@@ -217,7 +219,8 @@ class ValidateXbrl:
                 specSect = None
             if cyclesAllowed != "any" or arcrole in (XbrlConst.summationItem,) \
                                       or arcrole in self.genericArcArcroles  \
-                                      or arcrole.startswith(XbrlConst.formulaStartsWith):
+                                      or arcrole.startswith(XbrlConst.formulaStartsWith) \
+                                      or (modelXbrl.hasXDT and arcrole.startswith(XbrlConst.dimStartsWith)):
                 relsSet = modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname)
             if cyclesAllowed != "any" and \
                    (XbrlConst.isStandardExtLinkQname(linkqname) and XbrlConst.isStandardArcQname(arcqname)) \
@@ -451,6 +454,19 @@ class ValidateXbrl:
                     self.modelXbrl.error("xbrl.5.1.1.3:itemType",
                         _("Item %(concept)s type %(itemType)s invalid"),
                         modelObject=concept, concept=concept.qname, itemType=concept.baseXbrliType)
+                if self.validateEnum and concept.isEnumeration:
+                    if not concept.enumDomainQname:
+                        self.modelXbrl.error("enumte:MissingDomainError",
+                            _("Item %(concept)s enumeration type must specify a domain."),
+                            modelObject=concept, concept=concept.qname)
+                    elif concept.enumDomain is None or (not concept.enumDomain.isItem) or concept.enumDomain.isHypercubeItem or concept.enumDomain.isDimensionItem:
+                        self.modelXbrl.error("enumte:InvalidDomainError",
+                            _("Item %(concept)s enumeration type must be a xbrli:item that is neither a hypercube nor dimension."),
+                            modelObject=concept, concept=concept.qname)
+                    if not concept.enumLinkrole:
+                        self.modelXbrl.error("enumte:MissingLinkRoleError",
+                            _("Item %(concept)s enumeration type must specify a linkrole."),
+                            modelObject=concept, concept=concept.qname)
                 if modelXbrl.hasXDT:
                     if concept.isHypercubeItem and not concept.abstract == "true":
                         self.modelXbrl.error("xbrldte:HypercubeElementIsNotAbstractError",
@@ -722,6 +738,12 @@ class ValidateXbrl:
                             self.modelXbrl.error("xbrl.4.6.3:missingPrecisionDecimals",
                                 _("Fact %(fact)s context %(contextID)s is a numeric concept and must have either precision or decimals"),
                                 modelObject=f, fact=f.qname, contextID=f.contextID)
+                    if self.validateEnum and concept.isEnumeration and f.xValid == VALID:
+                        memConcept = self.modelXbrl.qnameConcepts.get(f.xValue)
+                        if not ValidateXbrlDimensions.enumerationMemberUsable(self, concept, memConcept):
+                            self.modelXbrl.error("enumie:InvalidFactValue",
+                                _("Fact %(fact)s context %(contextID)s enumeration %(value)s is not in the domain of %(concept)s"),
+                                modelObject=f, fact=f.qname, contextID=f.contextID, value=f.xValue, concept=f.qname)
                 elif concept.isTuple:
                     if f.contextID:
                         self.modelXbrl.error("xbrl.4.6.1:tupleContextRef",

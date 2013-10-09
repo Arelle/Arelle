@@ -156,6 +156,10 @@ verPrefixNS = {"ver":ver,
                "verdim":verdim,
                }
 
+# extended enumeration spec
+enum = "http://www.xbrl.org/2013/enumeration"
+qnEnumerationItemType = qname("{http://www.xbrl.org/2013/enumeration}enum:enumerationItemType")
+
 # formula specs
 variable = "http://xbrl.org/2008/variable"
 qnVariableSet = qname("{http://xbrl.org/2008/variable}variable:variableSet")
@@ -420,6 +424,8 @@ errMsgPrefixNS = {
     "xbrlvarscopee": "http://xbrl.org/2010/variable/variables-scope/error",
     "xbrlte": "http://xbrl.org/PWD/2013-MM-DD/table/error",
     "utre": "http://www.xbrl.org/2009/utr/errors",
+    "enumte": "http://xbrl.org/2013/enumeration/taxonomy-errors",
+    "enumie": "http://xbrl.org/2013/enumeration/instance-errors"
     }
 
 arcroleGroupDetect = "*detect*"
