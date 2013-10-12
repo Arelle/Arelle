@@ -24,9 +24,9 @@ from collections import defaultdict
 emptySet = set()
 emptyList = []
 
-def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=None, diffToFile=False):
+def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=None, diffToFile=False, cssExtras=""):
     modelXbrl.modelManager.showStatus(_("saving rendering"))
-    view = ViewRenderedGrid(modelXbrl, outfile, lang)
+    view = ViewRenderedGrid(modelXbrl, outfile, lang, cssExtras)
     
     if sourceView is not None:
         viewTblELR = sourceView.tblELR
@@ -43,10 +43,12 @@ def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=
     modelXbrl.modelManager.showStatus(_("rendering saved to {0}").format(outfile), clearAfter=5000)
     
 class ViewRenderedGrid(ViewFile.View):
-    def __init__(self, modelXbrl, outfile, lang):
+    def __init__(self, modelXbrl, outfile, lang, cssExtras):
         super(ViewRenderedGrid, self).__init__(modelXbrl, outfile, 
                                                'tableModel xmlns="{0}"'.format(tableModelNamespace), 
-                                               lang, style="rendering")
+                                               lang, 
+                                               style="rendering",
+                                               cssExtras=cssExtras)
         class nonTkBooleanVar():
             def __init__(self, value=True):
                 self.value = value

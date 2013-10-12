@@ -13,15 +13,11 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
         from arelle.ModelRenderingObject import ModelEuTable, ModelTable
         
         numTableFiles = 0
-        
+
         file = io.StringIO('''
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head id="Left">
-  <link type="text/css" rel="stylesheet" href="http://www.eba.europa.eu/CMSPages/GetCSS.aspx?stylesheetname=EBA" /> 
-  <link type="text/css" rel="stylesheet" href=">http://www.eba.europa.eu/extras.css" />
-  <link href=">http://www.eba.europa.eu/CMSPages/GetCSS.aspx?stylesheetname=PrinterFriendlySheet" type="text/css" rel="stylesheet" media="print" />
-  <link rel="shortcut icon" href="http://www.eba.europa.eu/favicon.ico" />
-  <link rel="icon" href="http://www.eba.europa.eu/favicon.ico" />
+  <link type="text/css" rel="stylesheet" href="http://arelle.org/files/EBA/style20121210/eba.css" /> 
 </head>
 <body class="LTR IE7 ENGB">
     <ul class="CMSListMenuUL" id="Vertical2"/>
@@ -57,6 +53,10 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
         indexBase = indexFile.rpartition(".")[0]
         groupTableRels = dts.modelXbrl.relationshipSet(XbrlConst.euGroupTable)
         modelTables = []
+        tblCssExtras='''
+body {background-image:url('http://arelle.org/files/EBA/style20121210/lhsbackground.jpg')}
+table {background:#fff}
+'''
         # order number is missing
         def viewTable(modelTable):
             if isinstance(modelTable, (ModelEuTable, ModelTable)):
@@ -64,7 +64,11 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
                 dts.modelManager.cntlr.addToLog("viewing: " + modelTable.id)
                 # for table file name, use table ELR
                 tblFile = os.path.join(os.path.dirname(indexFile), modelTable.id + ".html")
-                viewRenderedGrid(dts, tblFile, lang=lang, sourceView=View(modelTable, False, False, True))
+                viewRenderedGrid(dts, 
+                                 tblFile, 
+                                 lang=lang, 
+                                 sourceView=View(modelTable, False, False, True),
+                                 cssExtras=tblCssExtras)
                 
                 # generaate menu entry
                 elt = etree.SubElement(listElt, "{http://www.w3.org/1999/xhtml}li")
@@ -95,9 +99,9 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
                 sourceline = rel.sourceline
                 break
             modelTables.append((rootConcept, sourceline))
+            
         for modelTable, order in sorted(modelTables, key=lambda x: x[1]):
             viewTable(modelTable)
-            
         
         with open(indexBase + "FormsFrame.html", "wt", encoding="utf-8") as fh:
             XmlUtil.writexml(fh, indexDocument, encoding="utf-8")
@@ -109,15 +113,12 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
 <head id="Head1">
   <title>European Banking Authority - EBA  - FINREP Taxonomy</title>
   <meta name="generator" content="Arelle(r) {0}" /> 
+  <meta name="provider" content="Aguilonius(r)" />
   <meta http-equiv="content-type" content="text/html; charset=UTF-8" /> 
   <meta http-equiv="pragma" content="no-cache" /> 
   <meta http-equiv="content-style-type" content="text/css" /> 
   <meta http-equiv="content-script-type" content="text/javascript" /> 
-  <link type="text/css" rel="stylesheet" href="http://www.eba.europa.eu/CMSPages/GetCSS.aspx?stylesheetname=EBA" /> 
-  <link type="text/css" rel="stylesheet" href=">http://www.eba.europa.eu/extras.css" />
-  <link href=">http://www.eba.europa.eu/CMSPages/GetCSS.aspx?stylesheetname=PrinterFriendlySheet" type="text/css" rel="stylesheet" media="print" />
-  <link rel="shortcut icon" href="http://www.eba.europa.eu/favicon.ico" />
-  <link rel="icon" href="http://www.eba.europa.eu/favicon.ico" />
+  <link type="text/css" rel="stylesheet" href="http://arelle.org/files/EBA/style20121210/eba.css" /> 
 </head>
 <frameset border="0" frameborder="0" rows="90,*">
    <frame name="head" src="{1}" scrolling="no" marginwidth="0" marginheight="10"/>
@@ -137,11 +138,7 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
 '''
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head id="Top">
-  <link type="text/css" rel="stylesheet" href="http://www.eba.europa.eu/CMSPages/GetCSS.aspx?stylesheetname=EBA" /> 
-  <link type="text/css" rel="stylesheet" href=">http://www.eba.europa.eu/extras.css" />
-  <link href=">http://www.eba.europa.eu/CMSPages/GetCSS.aspx?stylesheetname=PrinterFriendlySheet" type="text/css" rel="stylesheet" media="print" />
-  <link rel="shortcut icon" href="http://www.eba.europa.eu/favicon.ico" />
-  <link rel="icon" href="http://www.eba.europa.eu/favicon.ico" />
+  <link type="text/css" rel="stylesheet" href="http://arelle.org/files/EBA/style20121210/eba.css" /> 
 </head>
   <body class="LTR IE7 ENGB">
    <div id="topsection">
@@ -164,11 +161,7 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
 '''
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head id="Center">
-  <link type="text/css" rel="stylesheet" href="http://www.eba.europa.eu/CMSPages/GetCSS.aspx?stylesheetname=EBA" /> 
-  <link type="text/css" rel="stylesheet" href=">http://www.eba.europa.eu/extras.css" />
-  <link href=">http://www.eba.europa.eu/CMSPages/GetCSS.aspx?stylesheetname=PrinterFriendlySheet" type="text/css" rel="stylesheet" media="print" />
-  <link rel="shortcut icon" href="http://www.eba.europa.eu/favicon.ico" />
-  <link rel="icon" href="http://www.eba.europa.eu/favicon.ico" />
+  <link type="text/css" rel="stylesheet" href="http://http://arelle.org/files/EBA/style20121210/eba.css" /> 
 </head>
 <body class="LTR IE7 ENGB">
   <div id="plc_lt_zoneContent_usercontrol_userControlElem_ContentPanel">

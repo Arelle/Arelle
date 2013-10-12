@@ -22,7 +22,8 @@ TYPENAMES = ["CSV", "HTML", "XML", "JSON"]
 nonNameCharPattern =  re.compile(r"[^\w\-\.:]")
 
 class View:
-    def __init__(self, modelXbrl, outfile, rootElementName, lang=None, style="table"):
+    # note that cssExtras override any css entries provided by this module if they have the same name
+    def __init__(self, modelXbrl, outfile, rootElementName, lang=None, style="table", cssExtras=""):
         self.modelXbrl = modelXbrl
         self.lang = lang
         if isinstance(outfile, FileNamedStringIO):
@@ -84,6 +85,7 @@ class View:
             .abstractCell{border-top:1.0pt solid windowtext;border-right:.5pt solid windowtext;border-bottom:.5pt solid windowtext;border-left:.5pt solid windowtext;background:#e8e8e8;}
             .blockedCell{border-top:1.0pt solid windowtext;border-right:.5pt solid windowtext;border-bottom:.5pt solid windowtext;border-left:.5pt solid windowtext;background:#eee;}
             .tblCell{border-top:.5pt solid windowtext;border-right:.5pt solid windowtext;border-bottom:.5pt solid windowtext;border-left:.5pt solid windowtext;}
+            ''' + cssExtras + '''
         </STYLE>
     </head>
     <body>
