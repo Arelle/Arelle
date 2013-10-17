@@ -1724,7 +1724,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             hasDefaultLangPreferredLabel = True
                             break
                     if not hasDefaultLangPreferredLabel:
-                        self.modelXbrl.error(("EFM.6.12.04", "GFM.1.06.04"),
+                        self.modelXbrl.error("GFM.1.06.04", # 6.12.04 now reserved: ("EFM.6.12.04", "GFM.1.06.04"),
                             _("Concept %(concept)s missing %(lang)s preferred labels for role %(preferredLabel)s"),
                             modelObject=(preferredLabelRel, concept), concept=concept.qname, fromConcept=preferredLabelRel.fromModelObject.qname,
                             lang=disclosureSystem.defaultLanguage, preferredLabel=preferredLabel)
