@@ -78,6 +78,7 @@ class Cntlr:
         self.hasWin32gui = False
         self.hasGui = hasGui
         self.hasFileSystem = True # no file system on Google App Engine servers
+        self.isGAE = False
         self.systemWordSize = int(round(math.log(sys.maxsize, 2)) + 1) # e.g., 32 or 64
 
         self.moduleDir = os.path.dirname(__file__)
@@ -115,6 +116,11 @@ class Cntlr:
             self.localeDir = os.path.join(self.moduleDir, "locale")
             self.pluginDir = os.path.join(self.moduleDir, "plugin")
         
+        serverSoftware = os.getenv("SERVER_SOFTWARE", "")
+        if serverSoftware.startswith("Google App Engine/") or serverSoftware.startswith("Development/"):
+            self.hasFileSystem = False # no file system, userAppDir does not exist
+            self.isGAE = True
+            
         configHomeDir = None  # look for path configDir/CONFIG_HOME in argv and environment parameters
         for i, arg in enumerate(sys.argv):  # check if config specified in a argv 
             if arg.startswith("--xdgConfigHome="):
@@ -135,7 +141,7 @@ class Cntlr:
                         configHomeDir = os.path.abspath(configHomeDir)  # make into a full path if relative
                 except EnvironmentError:
                     configHomeDir = None
-        if configHomeDir and os.path.exists(configHomeDir):
+        if self.hasFileSystem and configHomeDir and os.path.exists(configHomeDir):
             # check if a cache exists in this directory (e.g. from XPE or other tool)
             impliedAppDir = os.path.join(configHomeDir, "arelle")
             if os.path.exists(impliedAppDir):
@@ -147,8 +153,7 @@ class Cntlr:
         if sys.platform == "darwin":
             self.isMac = True
             self.isMSW = False
-            self.isGAE = False
-            if not configHomeDir:
+            if self.hasFileSystem and not configHomeDir:
                 self.userAppDir = os.path.expanduser("~") + "/Library/Application Support/Arelle"
             # note that cache is in ~/Library/Caches/Arelle
             self.contextMenuClick = "<Button-2>"
@@ -157,8 +162,7 @@ class Cntlr:
         elif sys.platform.startswith("win"):
             self.isMac = False
             self.isMSW = True
-            self.isGAE = False
-            if not configHomeDir:
+            if self.hasFileSystem and not configHomeDir:
                 tempDir = tempfile.gettempdir()
                 if tempDir.endswith('local\\temp'):
                     impliedAppDir = tempDir[:-10] + 'local'
@@ -186,13 +190,7 @@ class Cntlr:
         else: # Unix/Linux
             self.isMac = False
             self.isMSW = False
-            serverSoftware = os.getenv("SERVER_SOFTWARE", "")
-            if serverSoftware.startswith("Google App Engine/") or serverSoftware.startswith("Development/"):
-                self.hasFileSystem = False # no file system, userAppDir does not exist
-                self.isGAE = True
-            else:
-                self.isGAE = False
-                if not configHomeDir:
+            if self.hasFileSystem and not configHomeDir:
                     self.userAppDir = os.path.join( os.path.expanduser("~/.config"), "arelle")
             if hasGui:
                 try:
