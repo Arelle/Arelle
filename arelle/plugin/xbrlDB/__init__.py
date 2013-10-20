@@ -18,11 +18,13 @@ from arelle.Locale import format_string
 from .XbrlPublicPostgresDB import insertIntoDB as insertIntoPostgresDB, isDBPort as isPostgresPort
 from .XbrlSemanticGraphDB import insertIntoDB as insertIntoRexsterDB, isDBPort as isRexsterPort
 from .XbrlSemanticRdfDB import insertIntoDB as insertIntoRdfDB, isDBPort as isRdfPort
+from .XbrlSemanticJsonDB import insertIntoDB as insertIntoJsonDB, isDBPort as isJsonPort
 
 dbTypes = {
     "postgres": insertIntoPostgresDB,
     "rexster": insertIntoRexsterDB,
-    "rdfDB": insertIntoRdfDB
+    "rdfDB": insertIntoRdfDB,
+    "json": insertIntoJsonDB
     }
 
 def xbrlDBmenuEntender(cntlr, menu):
@@ -59,6 +61,9 @@ def xbrlDBmenuEntender(cntlr, menu):
                     elif isRdfPort(host, port, db):
                         dbType = "rdfDB"
                         insertIntoDB = insertIntoRdfDB
+                    elif isJsonPort(host, port, db):
+                        dbType = "json"
+                        insertIntoDB = insertIntoJsonDB
                     else:
                         cntlr.addToLog(_("Unable to determine server type!\n  ") +
                                        _("Probing host {0} port {1} unable to determine server type.")
@@ -119,6 +124,8 @@ def storeIntoDB(dbConnection, modelXbrl, rssItem=None):
         insertIntoDB = insertIntoRexsterDB
     elif isRdfPort(host, port, db):
         insertIntoDB = insertIntoRdfDB
+    elif isJsonPort(host, port, db):
+        insertIntoDB = insertIntoJsonDB
     else:
         modelXbrl.modelManager.addToLog('Server at "{0}:{1}" is not recognized to be either a Postgres or a Rexter service.'.format(host, port))
         return

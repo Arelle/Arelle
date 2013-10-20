@@ -35,10 +35,11 @@ def askProxy(parent, priorProxySettings):
         return (dialog.useOsProxyCb.value, dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password)
     return None
 
-DBTypes = ("postgres", "rexster", "rdfDB")
+DBTypes = ("postgres", "rexster", "rdfDB", "json")
 DBDescriptions = ("Postgres SQL Database",
                   "Rexter (Titan Cassandra)",
-                  "RDF (Turtle, NanoSparqlServer)")
+                  "RDF (Turtle, NanoSparqlServer)",
+                  "JSON (JSON, MongoDB)")
 
 def askDatabase(parent, priorDatabaseSettings):
     if isinstance(priorDatabaseSettings,(tuple,list)) and len(priorDatabaseSettings) == 7:

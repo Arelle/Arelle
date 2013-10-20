@@ -613,8 +613,8 @@ def isDimensionArcrole(arcrole):
 consecutiveArcrole = { # can be list of or single arcrole
     all: (dimensionDomain,hypercubeDimension), notAll: (dimensionDomain,hypercubeDimension),
     hypercubeDimension: dimensionDomain,
-    dimensionDomain: domainMember,
-    domainMember: domainMember,
+    dimensionDomain: (domainMember, all, notAll),
+    domainMember: (domainMember, all, notAll),
     dimensionDefault: ()}
 
 def isTableRenderingArcrole(arcrole):
