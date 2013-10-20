@@ -47,7 +47,7 @@ from decimal import Decimal
 import datetime
 
 TRACEJSONFILE = None
-TRACEJSONFILE = r"c:\temp\jsonDBtrace.log"  # uncomment to trace JSON on connection (very big file!!!)
+#TRACEJSONFILE = r"c:\temp\jsonDBtrace.log"  # uncomment to trace JSON on connection (very big file!!!)
 
 JSONFILE_HOSTNAME = "jsonFile"
 
