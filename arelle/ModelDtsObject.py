@@ -702,7 +702,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     @property
     def enumDomainQname(self):
         """(QName) -- enumeration domain qname """
-        return self.schemaNameQname(self.get("{http://www.xbrl.org/2013/enumeration}domain"))
+        return self.schemaNameQname(self.get("{http://xbrl.org/2013/extensible-enumerations}domain"))
 
     @property
     def enumDomain(self):
@@ -716,12 +716,12 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     @property
     def enumLinkrole(self):
         """(anyURI) -- enumeration linkrole """
-        return self.get("{http://www.xbrl.org/2013/enumeration}linkrole")
+        return self.get("{http://xbrl.org/2013/extensible-enumerations}linkrole")
     
     @property
     def enumDomainUsable(self):
         """(string) -- enumeration usable attribute """
-        return self.get("{http://www.xbrl.org/2013/enumeration}usable") or "false"
+        return self.get("{http://xbrl.org/2013/extensible-enumerations}usable") or "false"
 
     @property
     def isEnumDomainUsable(self):
