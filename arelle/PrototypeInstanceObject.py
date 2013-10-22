@@ -1,14 +1,18 @@
 
 from arelle import XmlUtil
 from arelle.ModelValue import QName
+from arelle.ModelObject import ModelObject
 Aspect = None
 
 class FactPrototype():      # behaves like a fact for dimensional validity testing
-    def __init__(self, v, aspectValues):
+    def __init__(self, v, aspectValues=None):
         global Aspect
         if Aspect is None:
             from arelle.ModelFormulaObject import Aspect
         self.modelXbrl = v.modelXbrl
+        if aspectValues is None:
+            aspectValues = {}
+        self.aspectEntryObjectId = aspectValues.get("aspectEntryObjectId", None)
         if Aspect.CONCEPT in aspectValues:
             qname = aspectValues[Aspect.CONCEPT]
             self.qname = qname
@@ -51,7 +55,8 @@ class FactPrototype():      # behaves like a fact for dimensional validity testi
         return (("concept", str(self.qname) if self.concept is not None else "not specified"),
                 ("dimensions", "({0})".format(len(dims)),
                   tuple(dimVal.propertyView if dimVal is not None else (str(dim.qname),"None")
-                        for dim,dimVal in sorted(dims.items(), key=lambda i:i[0])))
+                        for dim,dimVal in sorted(dims.items(), key=lambda i:i[0])
+                        if hasattr(dimVal,'propertyView')))
                   if dims else (),
                 )
 
@@ -85,16 +90,6 @@ class ContextPrototype():  # behaves like a context
             elif aspect == Aspect.INSTANT:
                 self.isInstantPeriod = True
                 self.endDatetime = self.instantDatetime = aspectValue
-            elif aspect == Aspect.PERIOD: # period xml object
-                context = aspectValue.getparent()
-                for contextPeriodAttribute in ("isForeverPeriod", "isStartEndPeriod", "isInstantPeriod",
-                                               "startDatetime", "endDatetime", "instantDatetime",
-                                               "periodHash"):
-                    setattr(self, contextPeriodAttribute, getattr(context, contextPeriodAttribute, None))
-            elif aspect == Aspect.ENTITY_IDENTIFIER: # entitytIdentifier xml object
-                context = aspectValue.getparent().getparent()
-                for entityIdentAttribute in ("entityIdentifier", "entityIdentifierHash"):
-                    setattr(self, entityIdentAttribute, getattr(context, entityIdentAttribute, None))
             elif isinstance(aspect, QName):
                 try: # if a DimVal, then it has a suggested context element
                     contextElement = aspectValue.contextElement
@@ -112,6 +107,18 @@ class ContextPrototype():  # behaves like a context
                             self.scenDimVals[dimConcept] = dimValPrototype
                     except KeyError:
                         pass
+            elif isinstance(aspectValue, ModelObject):
+                # these do not expect a string aspectValue, but the object model aspect value
+                if aspect == Aspect.PERIOD: # period xml object
+                    context = aspectValue.getparent()
+                    for contextPeriodAttribute in ("isForeverPeriod", "isStartEndPeriod", "isInstantPeriod",
+                                                   "startDatetime", "endDatetime", "instantDatetime",
+                                                   "periodHash"):
+                        setattr(self, contextPeriodAttribute, getattr(context, contextPeriodAttribute, None))
+                elif aspect == Aspect.ENTITY_IDENTIFIER: # entitytIdentifier xml object
+                    context = aspectValue.getparent().getparent()
+                    for entityIdentAttribute in ("entityIdentifier", "entityIdentifierHash"):
+                        setattr(self, entityIdentAttribute, getattr(context, entityIdentAttribute, None))
 
     def clear(self):
         try:
@@ -186,7 +193,7 @@ class DimValuePrototype():
         else:
             return (str(self.dimensionQname), 
                     XmlUtil.xmlstring( self.typedMember, stripXmlns=True, prettyPrint=True )
-                    if self.typedMember is not None else "None" )
+                    if isinstance(self.typedMember, ModelObject) else "None" )
 
 class UnitPrototype():  # behaves like a context
     def __init__(self, v, aspectValues):

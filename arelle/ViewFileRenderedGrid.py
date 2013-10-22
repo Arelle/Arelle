@@ -6,7 +6,7 @@ Created on Sep 13, 2011
 '''
 from arelle import ViewFile
 from lxml import etree
-from arelle.ViewUtilRenderedGrid import (resolveAxesStructure, inheritedAspectValue)
+from arelle.RenderingResolver import resolveAxesStructure
 from arelle.ViewFile import HTML, XML
 from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
@@ -15,7 +15,8 @@ from arelle.FunctionXs import xsString
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import DEFAULT
-from arelle.ModelRenderingObject import ModelClosedDefinitionNode, ModelEuAxisCoord
+from arelle.ModelRenderingObject import (ModelClosedDefinitionNode, ModelEuAxisCoord,
+                                         OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.XbrlConst import tableModel as tableModelNamespace, tableModelQName
 from arelle.XmlUtil import innerTextList, elementFragmentIdentifier, addQnameValue
@@ -399,11 +400,12 @@ class ViewRenderedGrid(ViewFile.View):
                               (yStructuralNode.childStructuralNodes and
                                not isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord))))
                 isNonAbstract = not isAbstract
+                isLabeled = yStructuralNode.isLabeled
                 label = yStructuralNode.header(lang=self.lang,
                                                returnGenLabel=isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode))
                 topRow = row
                 #print ( "row {0} topRow {1} nxtRow {2} col {3} renderNow {4} label {5}".format(row, topRow, nextRow, leftCol, renderNow, label))
-                if renderNow:
+                if renderNow and isLabeled:
                     columnspan = self.rowHdrCols - leftCol + 1 if isNonAbstract or nextRow == row else 1
                     if childrenFirst and isNonAbstract and nextRow > row:
                         elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
@@ -435,6 +437,8 @@ class ViewRenderedGrid(ViewFile.View):
                                             self.rowHdrWrapLength - sum(self.rowHdrColWidth[0:depth]),
                                             edgeBorder),
                               "colspan": str(columnspan)}
+                    if label == OPEN_ASPECT_ENTRY_SURROGATE: # entry of dimension
+                        attrib["style"] += ";background:#fff" # override for white background
                     if isAbstract:
                         attrib["rowspan"] = str(nestRow - hdrRow)
                         attrib["class"] = "yAxisHdrAbstractChildrenFirst" if childrenFirst else "yAxisHdrAbstract"
@@ -447,7 +451,7 @@ class ViewRenderedGrid(ViewFile.View):
                     elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
                                         attrib=attrib
                                         )
-                    elt.text = label if label else "\u00A0"
+                    elt.text = label if bool(label) and label != OPEN_ASPECT_ENTRY_SURROGATE else "\u00A0"
                     if isNonAbstract:
                         self.rowElts[hdrRow-1].append(elt)
                         if not childrenFirst and nestRow > hdrRow:   # add spanned left leg portion one row down
@@ -510,18 +514,19 @@ class ViewRenderedGrid(ViewFile.View):
                               (yStructuralNode.childStructuralNodes and
                                not isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord))))
                 isNonAbstract = not isAbstract
+                isLabeled = yStructuralNode.isLabeled
                 label = yStructuralNode.header(lang=self.lang,
                                                returnGenLabel=isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)))
                 topRow = row
                 if childrenFirst and isNonAbstract:
                     row = nextRow
                 #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
-                if renderNow:
+                if renderNow and isLabeled:
                     rowspan= nestRow - row + 1
                     cellElt = etree.Element(tableModelQName("cell"),
                                             attrib={"span": str(rowspan)} if rowspan > 1 else None)
                     elt = etree.SubElement(cellElt, tableModelQName("label"))
-                    elt.text = label
+                    elt.text = label if label != OPEN_ASPECT_ENTRY_SURROGATE else ""
                     try:
                         self.rowHdrElts[leftCol - 1].append(cellElt)
                     except IndexError:
@@ -599,10 +604,13 @@ class ViewRenderedGrid(ViewFile.View):
             for yStructuralNode in yParentStructuralNode.childStructuralNodes:
                 if yChildrenFirst:
                     row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspectStructuralNodes, yChildrenFirst)
-                if not yStructuralNode.isAbstract:
+                if not (yStructuralNode.isAbstract or 
+                        (yStructuralNode.childStructuralNodes and
+                         not isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)))) and yStructuralNode.isLabeled:
                     if self.type == XML:
                         self.xCells = etree.SubElement(self.yCells, tableModelQName("cells"),
                                                        attrib={"disposition": "x"})
+                    isEntryPrototype = yStructuralNode.isEntryPrototype(default=False) # row to enter open aspects
                     yAspectStructuralNodes = defaultdict(set)
                     for aspect in aspectModels[self.aspectModel]:
                         if yStructuralNode.hasAspect(aspect):
@@ -627,9 +635,9 @@ class ViewRenderedGrid(ViewFile.View):
                         cellAspectValues = {}
                         matchableAspects = set()
                         for aspect in _DICT_SET(xAspectStructuralNodes.keys()) | _DICT_SET(yAspectStructuralNodes.keys()) | _DICT_SET(zAspectStructuralNodes.keys()):
-                            aspectValue = inheritedAspectValue(self, aspect, cellTagSelectors, 
-                                                               xAspectStructuralNodes, yAspectStructuralNodes, zAspectStructuralNodes, 
-                                                               xStructuralNode, yStructuralNode)
+                            aspectValue = xStructuralNode.inheritedAspectValue(yStructuralNode,
+                                               self, aspect, cellTagSelectors, 
+                                               xAspectStructuralNodes, yAspectStructuralNodes, zAspectStructuralNodes)
                             # value is None for a dimension whose value is to be not reported in this slice
                             if (isinstance(aspect, _INT) or  # not a dimension
                                 dimDefaults.get(aspect) != aspectValue or # explicit dim defaulted will equal the value
@@ -677,7 +685,7 @@ class ViewRenderedGrid(ViewFile.View):
                                     justify = "right" if fact.isNumeric else "left"
                                     break
                         if conceptNotAbstract:
-                            if value is not None or ignoreDimValidity or isFactDimensionallyValid(self, fp):
+                            if value is not None or ignoreDimValidity or isFactDimensionallyValid(self, fp) or isEntryPrototype:
                                 if self.type == HTML:
                                     etree.SubElement(self.rowElts[row - 1], 
                                                      "{http://www.w3.org/1999/xhtml}td",

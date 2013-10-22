@@ -9,10 +9,11 @@ from tkinter import Menu, BooleanVar
 from arelle import (ViewWinGrid, ModelDocument, ModelDtsObject, ModelInstanceObject, XbrlConst, 
                     ModelXbrl, XmlValidate, Locale)
 from arelle.ModelValue import qname, QName
-from arelle.ViewUtilRenderedGrid import (resolveAxesStructure, inheritedAspectValue)
+from arelle.RenderingResolver import resolveAxesStructure
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect
 from arelle.ModelInstanceObject import ModelDimensionValue
-from arelle.ModelRenderingObject import ModelClosedDefinitionNode, ModelEuAxisCoord, ModelTable
+from arelle.ModelRenderingObject import (ModelClosedDefinitionNode, ModelEuAxisCoord, ModelTable,
+                                         OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.FormulaEvaluator import aspectMatches
 
 from arelle.PrototypeInstanceObject import FactPrototype
@@ -33,6 +34,7 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     menu = view.contextMenu()
     optionsMenu = Menu(view.viewFrame, tearoff=0)
     optionsMenu.add_command(label=_("New fact item options"), underline=0, command=lambda: getNewFactItemOptions(modelXbrl.modelManager.cntlr, view.newFactItemOptions))
+    optionsMenu.add_command(label=_("Open breakdown entry rows"), underline=0, command=view.setOpenBreakdownEntryRows)
     view.ignoreDimValidity.trace("w", view.viewReloadDueToMenuAction)
     optionsMenu.add_checkbutton(label=_("Ignore Dimensional Validity"), underline=0, variable=view.ignoreDimValidity, onvalue=True, offvalue=False)
     view.xAxisChildrenFirst.trace("w", view.viewReloadDueToMenuAction)
@@ -49,6 +51,7 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     saveMenu.add_command(label=_("Table layout infoset"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view, fileType="xml"))
     saveMenu.add_command(label=_("XBRL instance"), underline=0, command=view.saveInstance)
     menu.add_cascade(label=_("Save"), menu=saveMenu, underline=0)
+    menu.add_command(label=_("Enter new facts..."), underline=0, command=view.enterNewFacts)
     view.view()
     view.blockSelectEvent = 1
     view.blockViewModelObject = 0
@@ -65,6 +68,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         self.zOrdinateChoices = None
         # context menu Boolean vars
         self.options = self.modelXbrl.modelManager.cntlr.config.setdefault("viewRenderedGridOptions", {})
+        self.options.setdefault("openBreakdownLines", 5) # ensure there is a default entry
         self.ignoreDimValidity = BooleanVar(value=self.options.setdefault("ignoreDimValidity",True))
         self.xAxisChildrenFirst = BooleanVar(value=self.options.setdefault("xAxisChildrenFirst",True))
         self.yAxisChildrenFirst = BooleanVar(value=self.options.setdefault("yAxisChildrenFirst",False))
@@ -112,6 +116,17 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             self.options["xAxisChildrenFirst"] = self.xAxisChildrenFirst.get()
             self.options["yAxisChildrenFirst"] = self.yAxisChildrenFirst.get()
             self.view()
+            
+    def setOpenBreakdownEntryRows(self, *args):
+        import tkinter.simpledialog
+        newValue = tkinter.simpledialog.askinteger(_("arelle - Open breakdown entry rows setting"),
+                _("The number of extra entry rows for open breakdowns is: {0} \n\n"
+                  "(When a row header includes an open breakdown, such as \nfor typed dimension(s), this number of extra entry rows \nare provided below the table.)"
+                  ).format(self.options["openBreakdownLines"]),
+                parent=self.tabWin)
+        if newValue is not None:
+            self.options["openBreakdownLines"] = newValue
+            self.viewReloadDueToMenuAction()
         
     def view(self, viewTblELR=None, newInstance=None):
         startedAt = time.time()
@@ -140,6 +155,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         tblAxisRelSet, xTopStructuralNode, yTopStructuralNode, zTopStructuralNode = resolveAxesStructure(self, viewTblELR) 
         
         if tblAxisRelSet:
+            self.aspectEntryObjectIdsAspect = {}
+            self.factPrototypeAspectEntryObjectIds = defaultdict(set)
             #print("tbl hdr width rowHdrCols {0}".format(self.rowHdrColWidth))
             self.gridTblHdr.tblHdrWraplength = 200 # to  adjust dynamically during configure callbacks
             self.gridTblHdr.tblHdrLabel = \
@@ -237,8 +254,9 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         parentRow = row - 1
                     #if not leafNode: 
                     #    rightCol -= 1
-                    nonAbstract = not xStructuralNode.isAbstract
-                    if nonAbstract:
+                    isLabeled = xStructuralNode.isLabeled
+                    nonAbstract = not xStructuralNode.isAbstract and isLabeled
+                    if nonAbstract and isLabeled:
                         width += 100 # width for this label, in screen units
                     widthToSpanParent += width
                     label = xStructuralNode.header(lang=self.lang,
@@ -249,7 +267,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     else:
                         thisCol = leftCol
                         sideBorder = LEFTBORDER
-                    if renderNow:
+                    if renderNow and isLabeled:
                         columnspan = (rightCol - leftCol + (1 if nonAbstract else 0))
                         gridBorder(self.gridColHdr, leftCol, topRow, TOPBORDER, columnspan=columnspan)
                         gridBorder(self.gridColHdr, leftCol, topRow, 
@@ -318,19 +336,20 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                            columnspan=(self.rowHdrCols + len(self.rowHdrNonStdRoles))) # was: self.rowHdrDocCol + self.rowHdrCodeCol))
             for yStructuralNode in yParentStructuralNode.childStructuralNodes:
                 if not yStructuralNode.isRollUp:
-                    nestRow, nextRow = self.yAxis(leftCol + 1, row, yStructuralNode,  # nested items before totals
-                                            childrenFirst, childrenFirst, False)
-                    
                     isAbstract = (yStructuralNode.isAbstract or 
                                   (yStructuralNode.childStructuralNodes and
                                    not isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord))))
                     isNonAbstract = not isAbstract
+                    isLabeled = yStructuralNode.isLabeled
                     label = yStructuralNode.header(lang=self.lang,
                                                    returnGenLabel=isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)))
+                    nestRow, nextRow = self.yAxis(leftCol + isLabeled, row, yStructuralNode,  # nested items before totals
+                                            childrenFirst, childrenFirst, False)
+                    
                     topRow = row
                     if childrenFirst and isNonAbstract:
                         row = nextRow
-                    if renderNow:
+                    if renderNow and isLabeled:
                         columnspan = self.rowHdrCols - leftCol + 1 if isNonAbstract or nextRow == row else None
                         gridBorder(self.gridRowHdr, leftCol, topRow, LEFTBORDER, 
                                    rowspan=(nestRow - topRow + 1) )
@@ -340,18 +359,25 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                             gridBorder(self.gridRowHdr, leftCol + 1, row, TOPBORDER, 
                                        columnspan=(self.rowHdrCols - leftCol))
                         depth = yStructuralNode.depth
-                        gridHdr(self.gridRowHdr, leftCol, row, 
-                                label if label is not None else "         ", 
-                                anchor=("w" if isNonAbstract or nestRow == row else "center"),
-                                columnspan=columnspan,
-                                rowspan=(nestRow - row if isAbstract else None),
-                                # wraplength is in screen units
-                                wraplength=(self.rowHdrColWidth[depth] if isAbstract else
-                                            self.rowHdrWrapLength - sum(self.rowHdrColWidth[0:depth])),
-                                #minwidth=self.rowHdrColWidth[leftCol],
-                                minwidth=(16 if isNonAbstract and nextRow > topRow else None),
-                                objectId=yStructuralNode.objectId(),
-                                onClick=self.onClick)
+                        wraplength = (self.rowHdrColWidth[depth] if isAbstract else
+                                      self.rowHdrWrapLength - sum(self.rowHdrColWidth[0:depth]))
+                        if label != OPEN_ASPECT_ENTRY_SURROGATE:
+                            gridHdr(self.gridRowHdr, leftCol, row, 
+                                    label if label is not None else "         ", 
+                                    anchor=("w" if isNonAbstract or nestRow == row else "center"),
+                                    columnspan=columnspan,
+                                    rowspan=(nestRow - row if isAbstract else None),
+                                    # wraplength is in screen units
+                                    wraplength=wraplength,
+                                    #minwidth=self.rowHdrColWidth[leftCol],
+                                    minwidth=(16 if isNonAbstract and nextRow > topRow else None),
+                                    objectId=yStructuralNode.objectId(),
+                                    onClick=self.onClick)
+                        else:
+                            self.aspectEntryObjectIdsAspect[yStructuralNode.aspectEntryObjectId] = next(iter(yStructuralNode.aspectsCovered()))
+                            gridCell(self.gridRowHdr, leftCol, row,  
+                                     width=int(max(wraplength/16, 5)), # width is in characters, not screen units
+                                     objectId=yStructuralNode.aspectEntryObjectId)
                         if isNonAbstract:
                             for i, role in enumerate(self.rowHdrNonStdRoles):
                                 isCode = "code" in role
@@ -399,7 +425,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     #if renderNow and not childrenFirst:
                     #    dummy, row = self.yAxis(leftCol + 1, row, yStructuralNode, childrenFirst, True, False) # render on this pass
                     if not childrenFirst:
-                        dummy, row = self.yAxis(leftCol + 1, row, yStructuralNode, childrenFirst, renderNow, False) # render on this pass
+                        dummy, row = self.yAxis(leftCol + isLabeled, row, yStructuralNode, childrenFirst, renderNow, False) # render on this pass
             return (nestedBottomRow, row)
     
     def bodyCells(self, row, yParentStructuralNode, xStructuralNodes, zAspectStructuralNodes, yChildrenFirst):
@@ -409,7 +435,10 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             for yStructuralNode in yParentStructuralNode.childStructuralNodes:
                 if yChildrenFirst:
                     row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspectStructuralNodes, yChildrenFirst)
-                if not yStructuralNode.isAbstract:
+                if not (yStructuralNode.isAbstract or 
+                        (yStructuralNode.childStructuralNodes and
+                         not isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)))) and yStructuralNode.isLabeled:
+                    isEntryPrototype = yStructuralNode.isEntryPrototype(default=False) # row to enter open aspects
                     yAspectStructuralNodes = defaultdict(set)
                     for aspect in aspectModels[self.aspectModel]:
                         if yStructuralNode.hasAspect(aspect):
@@ -435,9 +464,9 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         cellAspectValues = {}
                         matchableAspects = set()
                         for aspect in _DICT_SET(xAspectStructuralNodes.keys()) | _DICT_SET(yAspectStructuralNodes.keys()) | _DICT_SET(zAspectStructuralNodes.keys()):
-                            aspectValue = inheritedAspectValue(self, aspect, cellTagSelectors, 
-                                                               xAspectStructuralNodes, yAspectStructuralNodes, zAspectStructuralNodes, 
-                                                               xStructuralNode, yStructuralNode)
+                            aspectValue = xStructuralNode.inheritedAspectValue(yStructuralNode,
+                                               self, aspect, cellTagSelectors, 
+                                               xAspectStructuralNodes, yAspectStructuralNodes, zAspectStructuralNodes)
                             # value is None for a dimension whose value is to be not reported in this slice
                             if (isinstance(aspect, _INT) or  # not a dimension
                                 dimDefaults.get(aspect) != aspectValue or # explicit dim defaulted will equal the value
@@ -485,10 +514,14 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                     justify = "right" if fact.isNumeric else "left"
                                     break
                         if (conceptNotAbstract and
-                            (value is not None or ignoreDimValidity or isFactDimensionallyValid(self, fp))):
+                            (value is not None or ignoreDimValidity or isFactDimensionallyValid(self, fp) or
+                             isEntryPrototype)):
                             if objectId is None:
                                 objectId = "f{0}".format(len(self.factPrototypes))
                                 self.factPrototypes.append(fp)  # for property views
+                                for aspect, aspectValue in cellAspectValues.items():
+                                    if isinstance(aspectValue, str) and aspectValue.startswith(OPEN_ASPECT_ENTRY_SURROGATE):
+                                        self.factPrototypeAspectEntryObjectIds[objectId].add(aspectValue) 
                             gridCell(self.gridBody, self.dataFirstCol + i, row, value, justify=justify, 
                                      width=12, # width is in characters, not screen units
                                      objectId=objectId, onClick=self.onClick)
@@ -501,13 +534,20 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                 if not yChildrenFirst:
                     row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspectStructuralNodes, yChildrenFirst)
             return row
+        
+    def enterNewFacts(self):
+        pass # print("enter new facts")
+        
     def onClick(self, event):
-        objId = event.widget.objectId
-        if objId and objId[0] == "f":
-            viewableObject = self.factPrototypes[int(objId[1:])]
-        else:
-            viewableObject = objId
-        self.modelXbrl.viewModelObject(viewableObject)
+        try:
+            objId = event.widget.objectId
+            if objId and objId[0] == "f":
+                viewableObject = self.factPrototypes[int(objId[1:])]
+            else:
+                viewableObject = objId
+            self.modelXbrl.viewModelObject(viewableObject)
+        except AttributeError: # not clickable
+            pass
         self.modelXbrl.modelManager.cntlr.currentView = self
             
     def cellEnter(self, *args):
@@ -565,13 +605,25 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         cntlr.waitForUiThreadQueue() # force status update
         newCntx = ModelXbrl.AUTO_LOCATE_ELEMENT
         newUnit = ModelXbrl.AUTO_LOCATE_ELEMENT
-        # check user keyed changes
+        # check user keyed changes to aspects
+        aspectEntryChanges = {}  # index = widget ID,  value = widget contents
+        for bodyCell in self.gridRowHdr.winfo_children():
+            if isinstance(bodyCell, gridCell) and bodyCell.isChanged:
+                objId = bodyCell.objectId
+                if objId:
+                    if objId[0] == OPEN_ASPECT_ENTRY_SURROGATE:
+                        bodyCell.isChanged = False  # clear change flag
+                        aspectEntryChanges[objId] = bodyCell.value
+        aspectEntryChangeIds = _DICT_SET(aspectEntryChanges.keys())
+        # check user keyed changes to facts
         for bodyCell in self.gridBody.winfo_children():
             if isinstance(bodyCell, gridCell) and bodyCell.isChanged:
                 value = bodyCell.value
                 objId = bodyCell.objectId
                 if objId:
-                    if objId[0] == "f":
+                    if (objId[0] == "f" and 
+                        (bodyCell.isChanged or # change in fact value widget or any open aspect widget
+                         self.factPrototypeAspectEntryObjectIds[objId] & aspectEntryChangeIds)):
                         factPrototypeIndex = int(objId[1:])
                         factPrototype = self.factPrototypes[factPrototypeIndex]
                         concept = factPrototype.concept
@@ -580,7 +632,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         periodType = factPrototype.concept.periodType
                         periodStart = self.newFactItemOptions.startDateDate if periodType == "duration" else None
                         periodEndInstant = self.newFactItemOptions.endDateDate
-                        qnameDims = factPrototype.context.qnameDims
+                        qnameDims = factPrototype.context.qnameDims.update(self.newFactOpenAspects(objId))
+                        # open aspects widgets
                         prevCntx = instance.matchContext(
                              entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, 
                              qnameDims, [], [])
@@ -620,7 +673,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         if self.factPrototypes[factPrototypeIndex] is not None:
                             self.factPrototypes[factPrototypeIndex].clear()
                         self.factPrototypes[factPrototypeIndex] = None #dereference fact prototype
-                    else: # instance fact, not prototype
+                        bodyCell.isChanged = False  # clear change flag
+                    elif objId[0] != "a": # instance fact, not prototype
                         fact = self.modelXbrl.modelObject(objId)
                         if fact.concept.isNumeric:
                             value = Locale.atof(self.modelXbrl.locale, value, str.strip)
@@ -633,7 +687,15 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                                      self.newFactItemOptions.nonMonetaryDecimals)
                             fact.text = value
                             XmlValidate.validate(instance, fact)
-                    bodyCell.isChanged = False  # clear change flag
+                        bodyCell.isChanged = False  # clear change flag
         instance.saveInstance(newFilename) # may override prior filename for instance from main menu
         cntlr.showStatus(_("Saved {0}").format(instance.modelDocument.basename), clearAfter=3000)
-            
+
+    def newFactOpenAspects(self, factObjectId):
+        aspectValues = {}
+        for aspectObjId in self.factPrototypeAspectEntryObjectIds[factObjectId]:
+            aspect = self.aspectEntryObjectIdsAspect[aspectObjId]
+            if isinstance(aspect, QName): # dimension
+                value = self.gridRowHdr.get(aspectObjId).value
+                x = value
+        return aspectValues

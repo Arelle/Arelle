@@ -2132,9 +2132,9 @@ class ModelExplicitDimension(ModelFilter):
             arcrole = XmlUtil.childText(memberElt, XbrlConst.df, "arcrole")
             axis = XmlUtil.childText(memberElt, XbrlConst.df, "axis")
             members.append(" \nmember: " +  member +
-                            (" \n  linkrole: " + linkrole if linkrole else "" +
-                             " \n  arcrole: " + arcrole if arcrole else "" +
-                             " \n  axis: " + axis if axis else ""
+                            ((" \n  linkrole: " + linkrole if linkrole else "") +
+                             (" \n  arcrole: " + arcrole if arcrole else "") +
+                             (" \n  axis: " + axis if axis else "")
                              ) if linkrole or arcrole or axis else "")
          
         if self.dimQname:
