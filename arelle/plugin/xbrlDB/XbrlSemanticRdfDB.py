@@ -183,7 +183,9 @@ class XbrlSemanticRdfDatabaseConnection():
             self.turtleFile = database
         else:
             connectionUrl = "http://{0}:{1}".format(host, port or '80')
-            self.url = connectionUrl + '/' + database
+            self.url = connectionUrl
+            if database:
+                self.url += '/' + database
             # Create an OpenerDirector with support for Basic HTTP Authentication...
             auth_handler = urllib.request.HTTPBasicAuthHandler()
             if user:
