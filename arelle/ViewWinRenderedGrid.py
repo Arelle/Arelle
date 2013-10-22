@@ -7,7 +7,7 @@ Created on Oct 5, 2010
 import os, threading, time
 from tkinter import Menu, BooleanVar
 from arelle import (ViewWinGrid, ModelDocument, ModelDtsObject, ModelInstanceObject, XbrlConst, 
-                    ModelXbrl, XmlValidate, Locale)
+                    ModelXbrl, XmlValidate, Locale, FunctionXfi)
 from arelle.ModelValue import qname, QName
 from arelle.RenderingResolver import resolveAxesStructure
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect
@@ -65,10 +65,13 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         super(ViewRenderedGrid, self).__init__(modelXbrl, tabWin, "Table", True, lang)
         self.newFactItemOptions = ModelInstanceObject.NewFactItemOptions(xbrlInstance=modelXbrl)
         self.factPrototypes = []
+        self.aspectEntryObjectIdsNode = {}
+        self.aspectEntryObjectIdsCell = {}
+        self.factPrototypeAspectEntryObjectIds = defaultdict(set)
         self.zOrdinateChoices = None
         # context menu Boolean vars
         self.options = self.modelXbrl.modelManager.cntlr.config.setdefault("viewRenderedGridOptions", {})
-        self.options.setdefault("openBreakdownLines", 5) # ensure there is a default entry
+        self.openBreakdownLines = self.options.setdefault("openBreakdownLines", 5) # ensure there is a default entry
         self.ignoreDimValidity = BooleanVar(value=self.options.setdefault("ignoreDimValidity",True))
         self.xAxisChildrenFirst = BooleanVar(value=self.options.setdefault("xAxisChildrenFirst",True))
         self.yAxisChildrenFirst = BooleanVar(value=self.options.setdefault("yAxisChildrenFirst",False))
@@ -79,6 +82,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             for fp in self.factPrototypes:
                 fp.clear()
             self.factPrototypes = None
+            self.aspectEntryObjectIdsNode.clear()
+            self.aspectEntryObjectIdsCell.clear()
         
     def loadTablesMenu(self):
         tblMenuEntries = {}             
@@ -125,7 +130,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                   ).format(self.options["openBreakdownLines"]),
                 parent=self.tabWin)
         if newValue is not None:
-            self.options["openBreakdownLines"] = newValue
+            self.options["openBreakdownLines"] = self.openBreakdownLines = newValue
             self.viewReloadDueToMenuAction()
         
     def view(self, viewTblELR=None, newInstance=None):
@@ -155,8 +160,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         tblAxisRelSet, xTopStructuralNode, yTopStructuralNode, zTopStructuralNode = resolveAxesStructure(self, viewTblELR) 
         
         if tblAxisRelSet:
-            self.aspectEntryObjectIdsAspect = {}
-            self.factPrototypeAspectEntryObjectIds = defaultdict(set)
+            self.aspectEntryObjectIdsNode.clear()
+            self.aspectEntryObjectIdsCell.clear()
             #print("tbl hdr width rowHdrCols {0}".format(self.rowHdrColWidth))
             self.gridTblHdr.tblHdrWraplength = 200 # to  adjust dynamically during configure callbacks
             self.gridTblHdr.tblHdrLabel = \
@@ -374,8 +379,10 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                     objectId=yStructuralNode.objectId(),
                                     onClick=self.onClick)
                         else:
-                            self.aspectEntryObjectIdsAspect[yStructuralNode.aspectEntryObjectId] = next(iter(yStructuralNode.aspectsCovered()))
-                            gridCell(self.gridRowHdr, leftCol, row,  
+                            self.aspectEntryObjectIdsNode[yStructuralNode.aspectEntryObjectId] = yStructuralNode
+                            self.aspectEntryObjectIdsCell[yStructuralNode.aspectEntryObjectId] = gridCombobox(
+                                     self.gridRowHdr, leftCol, row, 
+                                     values=self.aspectEntryValues(yStructuralNode),  
                                      width=int(max(wraplength/16, 5)), # width is in characters, not screen units
                                      objectId=yStructuralNode.aspectEntryObjectId)
                         if isNonAbstract:
@@ -632,7 +639,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         periodType = factPrototype.concept.periodType
                         periodStart = self.newFactItemOptions.startDateDate if periodType == "duration" else None
                         periodEndInstant = self.newFactItemOptions.endDateDate
-                        qnameDims = factPrototype.context.qnameDims.update(self.newFactOpenAspects(objId))
+                        qnameDims = factPrototype.context.qnameDims
+                        qnameDims.update(self.newFactOpenAspects(objId))
                         # open aspects widgets
                         prevCntx = instance.matchContext(
                              entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, 
@@ -694,8 +702,48 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
     def newFactOpenAspects(self, factObjectId):
         aspectValues = {}
         for aspectObjId in self.factPrototypeAspectEntryObjectIds[factObjectId]:
-            aspect = self.aspectEntryObjectIdsAspect[aspectObjId]
-            if isinstance(aspect, QName): # dimension
-                value = self.gridRowHdr.get(aspectObjId).value
-                x = value
+            structuralNode = self.aspectEntryObjectIdsNode[aspectObjId]
+            for aspect in structuralNode.aspectsCovered():
+                if aspect != Aspect.DIMENSIONS:
+                    break
+            gridCell = self.aspectEntryObjectIdsCell[aspectObjId]
+            value = gridCell.value
+            # is aspect in a childStructuralNode? 
+            aspectValue = None
+            for childStructuralNode in structuralNode.childStructuralNodes:
+                if value and value == childStructuralNode.header(lang=self.lang, 
+                                           returnGenLabel=False, 
+                                           returnMsgFormatString=False):
+                    aspectValue = childStructuralNode.aspectValue(aspect, inherit=False)
+                    break
+            if not aspectValue: # try converting value
+                if isinstance(aspect, QName): # dimension
+                    dimConcept = self.modelXbrl.qnameConcepts[aspect]
+                    typedDimElement = dimConcept.typedDomainElement
+                    aspectValue = FunctionXfi.create_element(
+                          self.modelXbrl.rendrCntx, None, (typedDimElement.qname, (), value))
+            if aspectValue is not None:
+                aspectValues[aspect] = aspectValue
         return aspectValues
+    
+    def aspectEntryValues(self, structuralNode):
+        depth = 0
+        n = structuralNode
+        while (n.parentStructuralNode is not None):
+            depth += 1
+            root = n = n.parentStructuralNode
+            
+        headers = set()
+        def getHeaders(n, d):
+            for childStructuralNode in n.childStructuralNodes:
+                if d == depth:
+                    h = childStructuralNode.header(lang=self.lang, 
+                                                   returnGenLabel=False, 
+                                                   returnMsgFormatString=False)
+                    if not childStructuralNode.isEntryPrototype() and h:
+                        headers.add(h)
+                else:
+                    getHeaders(childStructuralNode, d+1)
+        getHeaders(root, 1)
+            
+        return sorted(headers)

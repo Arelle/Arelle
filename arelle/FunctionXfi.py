@@ -53,7 +53,8 @@ def item(xc, args, i=0):
         return modelItem
     raise XPathContext.FunctionArgType(i,"xbrl:item")
 
-def tuple(xc, args, i=0):
+def xbrlTuple(xc, args, i=0):
+    # can't name this just tuple because then it hides tuple() constructor of Python
     if len(args[i]) != 1: raise XPathContext.FunctionArgType(i+1,"xbrl:tuple")
     modelTuple = args[i][0]
     if isinstance(modelTuple, (ModelFact, ModelInlineFact)) and modelTuple.isTuple:
@@ -509,8 +510,8 @@ def duplicate_item(xc, p, args):
     return False
 
 def duplicate_tuple(xc, p, args):
-    node1 = tuple(xc, args, 0)
-    node2 = tuple(xc, args, 1)
+    node1 = xbrlTuple(xc, args, 0)
+    node2 = xbrlTuple(xc, args, 1)
     return duplicate_tuple_test(node1, node2)
 
 def duplicate_tuple_test(node1, node2, topLevel=True):
@@ -589,12 +590,12 @@ def tuples_in_instance(xc, p, args):
 
 def items_in_tuple(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    parentTuple = tuple(xc, args, 0)
+    parentTuple = xbrlTuple(xc, args, 0)
     return [f for f in parentTuple.modelTupleFacts if f.isItem]
 
 def tuples_in_tuple(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    parentTuple = tuple(xc, args, 0)
+    parentTuple = xbrlTuple(xc, args, 0)
     return [f for f in parentTuple.modelTupleFacts if f.isTuple]
 
 def non_nil_facts_in_instance(xc, p, args):

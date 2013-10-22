@@ -362,7 +362,9 @@ def expandDefinition(view, structuralNode, definitionNode, depth, axisDispositio
                     if axisDisposition != "z":
                         childList = structuralNode.childStructuralNodes
                         if structuralNode.isEntryPrototype(default=True):
-                            for i in range(view.options.get("openBreakdownLines",0)):
+                            for i in range(getattr(view, "openBreakdownLines", 
+                                                   # for file output, 1 entry row if no facts
+                                                   0 if filteredFactsPartitions else 1)):
                                 view.aspectEntryObjectId += 1
                                 filteredFactsPartitions.append([FactPrototype(view, {"aspectEntryObjectId": OPEN_ASPECT_ENTRY_SURROGATE + str(view.aspectEntryObjectId)})])
                                 if structuralNode.isEntryPrototype(default=False):

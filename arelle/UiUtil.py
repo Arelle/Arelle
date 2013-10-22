@@ -216,13 +216,14 @@ class gridCell(Entry):
         self.isChanged = True
     
 class gridCombobox(_Combobox): 
-    def __init__(self, master, x, y, value="", values=(), columnspan=None, selectindex=None, comboboxselected=None): 
+    def __init__(self, master, x, y, value="", values=(), width=None, objectId=None, columnspan=None, selectindex=None, comboboxselected=None): 
         _Combobox.__init__(self, master=master) 
         self.valueVar = StringVar() 
         self.valueVar.trace('w', self.valueChanged)
         self.config(textvariable=self.valueVar,
                     background="#ff8ff8ff8", foreground="#000000000", 
                    # justify='center'
+                    width=width
                     ) 
         self["values"] = values
         if isinstance(master.master.master, scrolledHeaderedFrame):
@@ -237,6 +238,7 @@ class gridCombobox(_Combobox):
             self.valueVar.set(values[selectindex])
         elif value: 
             self.valueVar.set(value)
+        self.objectId = objectId
         # copy bindings
         try:
             contextMenuBinding = master.bind(master.contextMenuClick)
