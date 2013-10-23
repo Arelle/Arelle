@@ -7,7 +7,7 @@ Created on Oct 5, 2010
 import os, threading, time
 from tkinter import Menu, BooleanVar
 from arelle import (ViewWinGrid, ModelDocument, ModelDtsObject, ModelInstanceObject, XbrlConst, 
-                    ModelXbrl, XmlValidate, Locale, FunctionXfi)
+                    ModelXbrl, XmlValidate, XmlUtil, Locale, FunctionXfi)
 from arelle.ModelValue import qname, QName
 from arelle.RenderingResolver import resolveAxesStructure
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect
@@ -615,7 +615,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         # check user keyed changes to aspects
         aspectEntryChanges = {}  # index = widget ID,  value = widget contents
         for bodyCell in self.gridRowHdr.winfo_children():
-            if isinstance(bodyCell, gridCell) and bodyCell.isChanged:
+            if isinstance(bodyCell, (gridCell,gridCombobox)) and bodyCell.isChanged:
                 objId = bodyCell.objectId
                 if objId:
                     if objId[0] == OPEN_ASPECT_ENTRY_SURROGATE:
@@ -709,24 +709,25 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             gridCell = self.aspectEntryObjectIdsCell[aspectObjId]
             value = gridCell.value
             # is aspect in a childStructuralNode? 
-            aspectValue = None
-            for childStructuralNode in structuralNode.childStructuralNodes:
-                if value and value == childStructuralNode.header(lang=self.lang, 
-                                           returnGenLabel=False, 
-                                           returnMsgFormatString=False):
-                    aspectValue = childStructuralNode.aspectValue(aspect, inherit=False)
-                    break
-            if not aspectValue: # try converting value
-                if isinstance(aspect, QName): # dimension
-                    dimConcept = self.modelXbrl.qnameConcepts[aspect]
-                    typedDimElement = dimConcept.typedDomainElement
-                    aspectValue = FunctionXfi.create_element(
-                          self.modelXbrl.rendrCntx, None, (typedDimElement.qname, (), value))
-            if aspectValue is not None:
-                aspectValues[aspect] = aspectValue
+            if value:
+                aspectValue = self.aspectEntryValues(structuralNode, value, aspect)
+                if aspectValue is None: # try converting value
+                    if isinstance(aspect, QName): # dimension
+                        dimConcept = self.modelXbrl.qnameConcepts[aspect]
+                        if dimConcept.isExplicitDimension:
+                            # value must be qname
+                            aspectValue = None # need to find member for the description
+                        else:
+                            typedDimElement = dimConcept.typedDomainElement
+                            aspectValue = FunctionXfi.create_element(
+                                  self.modelXbrl.rendrCntx, None, (typedDimElement.qname, (), value))
+                if aspectValue is not None:
+                    aspectValues[aspect] = aspectValue
         return aspectValues
     
-    def aspectEntryValues(self, structuralNode):
+    def aspectEntryValues(self, structuralNode, findHeader=None, aspect=None):
+        # if findHeader is None, return all header values in a list
+        # otherwise return aspect value matching header if any
         depth = 0
         n = structuralNode
         while (n.parentStructuralNode is not None):
@@ -734,6 +735,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             root = n = n.parentStructuralNode
             
         headers = set()
+        aspectValue = []
         def getHeaders(n, d):
             for childStructuralNode in n.childStructuralNodes:
                 if d == depth:
@@ -741,9 +743,19 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                                    returnGenLabel=False, 
                                                    returnMsgFormatString=False)
                     if not childStructuralNode.isEntryPrototype() and h:
+                        if (findHeader is not None and
+                            h == findHeader): # find aspect value
+                            aspectValue.append(childStructuralNode.aspectValue(aspect))
+                            break
                         headers.add(h)
                 else:
                     getHeaders(childStructuralNode, d+1)
+                    if findHeader and aspectValue:
+                        break
         getHeaders(root, 1)
             
+        if findHeader:
+            if aspectValue:
+                return aspectValue[0]
+            return None
         return sorted(headers)

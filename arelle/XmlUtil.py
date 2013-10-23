@@ -828,7 +828,7 @@ def writexml(writer, node, encoding=None, indent='', xmlcharrefreplace=False, pa
             hasChildNodes = True
             if firstChild:
                 writer.write(">\n")
-                if text:
+                if text and not text.isspace():
                     writer.write(text)
                 firstChild = False
             writexml(writer, child, indent=indent+'    ', xmlcharrefreplace=xmlcharrefreplace)

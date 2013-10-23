@@ -123,7 +123,9 @@ class ContextPrototype():  # behaves like a context
     def clear(self):
         try:
             for dim in self.qnameDims.values():
-                dim.clear()
+                # only clear if its a prototype, but not a 'reused' model object from other instance
+                if isinstance(dim, DimValuePrototype):
+                    dim.clear()
         except AttributeError:
             pass
         self.__dict__.clear()  # delete local attributes
