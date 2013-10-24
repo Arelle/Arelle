@@ -499,34 +499,20 @@ class ModelInlineValueObject:
             else:  # determine string value of transformed value
                 negate = -1 if self.sign else 1
                 try:
-                    scale = self.scale
-                    if self.concept is not None:
-                        baseXsdType = self.concept.baseXsdType
-                        if baseXsdType == "decimal":
-                            num = Decimal(v)
-                            if scale is not None:
-                                num *= 10 ** Decimal(self.scale)
-                        elif baseXsdType in {"integer",
-                                           "nonPositiveInteger","negativeInteger","nonNegativeInteger","positiveInteger",
-                                           "long","unsignedLong",
-                                           "int","unsignedInt",
-                                           "short","unsignedShort",
-                                           "byte","unsignedByte"}:
-                            num = _INT(v)
-                            if scale is not None:
-                                num = _INT(num * (10 ** _INT(self.scale)))
-                        else:
-                            num = float(v)
-                            if scale is not None:
-                                num *= 10 ** _INT(self.scale)
-                    else:
-                        num = float(v)
-                        if scale is not None:
-                            num *= 10 ** _INT(self.scale)
-                    self._ixValue = "{0}".format(num * negate)
+                    # concept may be unknown or invalid but transformation would still occur
+                    # use decimal so all number forms work properly
+                    num = Decimal(v)
                 except (ValueError, InvalidOperation):
                     self._ixValue = ModelValue.INVALIDixVALUE
-                    raise # re-raise any errors occuring here (but this is a good debug stop if needed
+                    raise ValueError("Invalid value for {} number: {}".format(self.localName, v))
+                try:
+                    scale = self.scale
+                    if scale is not None:
+                        num *= 10 ** Decimal(scale)
+                    self._ixValue = "{}".format(num * negate)
+                except (ValueError, InvalidOperation):
+                    self._ixValue = ModelValue.INVALIDixVALUE
+                    raise ValueError("Invalid value for {} scale {} for number {}".format(self.localName, scale, v))
             return self._ixValue
 
     @property
