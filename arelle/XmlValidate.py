@@ -121,16 +121,20 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                         elif modelConcept.fixed is not None:
                             text = modelConcept.fixed
             except Exception as err:
+                if ModelInlineValueObject is not None and isinstance(elt, ModelInlineValueObject):
+                    errElt = "{0} fact {1}".format(elt.elementQname, elt.qname)
+                else:
+                    errElt = elt.elementQname
                 if isIxFact and err.__class__.__name__ == "FunctionArgType":
                     modelXbrl.error("ixTransform:valueError",
                         _("Inline element %(element)s fact %(fact)s type %(typeName)s transform %(transform)s value error: %(value)s"),
-                        modelObject=elt, element=elt.elementQname, fact=elt.qname, transform=elt.format,
+                        modelObject=elt, element=errElt, fact=elt.qname, transform=elt.format,
                         typeName=modelConcept.baseXsdType if modelConcept is not None else "unknown",
                         value=XmlUtil.innerText(elt, ixExclude=True))
                 else:
                     modelXbrl.error("xmlValidation:valueError",
                         _("Element %(element)s error %(error)s value: %(value)s"),
-                        modelObject=elt, element=elt.elementQname, error=str(err), value=elt.text)
+                        modelObject=elt, element=errElt, error=str(err), value=elt.text)
                 elt.sValue = elt.xValue = text = INVALIDixVALUE
                 elt.xValid = INVALID
             if text is not INVALIDixVALUE:

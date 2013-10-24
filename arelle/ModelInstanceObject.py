@@ -472,30 +472,6 @@ class ModelInlineValueObject:
         """(str) -- scale attribute of inline element"""
         return self.get("scale")
     
-    def transformedValue(self, value):
-        """helper function for value"""
-        num = 0
-        negate = -1 if self.sign else 1
-        try:
-            if self.concept is not None:
-                baseXsdType = self.concept.baseXsdType
-                if baseXsdType in {"integer",
-                                   "nonPositiveInteger","negativeInteger","nonNegativeInteger","positiveInteger",
-                                   "long","unsignedLong",
-                                   "int","unsignedInt",
-                                   "short","unsignedShort",
-                                   "byte","unsignedByte"}:
-                    num = _INT(value)
-                else:
-                    num = float(value)
-            else:
-                num = float(value)
-            scale = self.scale
-            if scale is not None:
-                num *= 10 ** _INT(self.scale)
-        except ValueError:
-            pass
-        return "{0}".format(num * negate)
     
     @property
     def value(self):
@@ -520,18 +496,51 @@ class ModelInlineValueObject:
                         raise err
             if self.localName == "nonNumeric" or self.localName == "tuple":
                 self._ixValue = v
-            else:
-                self._ixValue = self.transformedValue(v)
+            else:  # determine string value of transformed value
+                negate = -1 if self.sign else 1
+                try:
+                    scale = self.scale
+                    if self.concept is not None:
+                        baseXsdType = self.concept.baseXsdType
+                        if baseXsdType == "decimal":
+                            num = Decimal(v)
+                            if scale is not None:
+                                num *= 10 ** Decimal(self.scale)
+                        elif baseXsdType in {"integer",
+                                           "nonPositiveInteger","negativeInteger","nonNegativeInteger","positiveInteger",
+                                           "long","unsignedLong",
+                                           "int","unsignedInt",
+                                           "short","unsignedShort",
+                                           "byte","unsignedByte"}:
+                            num = _INT(v)
+                            if scale is not None:
+                                num = _INT(num * (10 ** _INT(self.scale)))
+                        else:
+                            num = float(v)
+                            if scale is not None:
+                                num *= 10 ** _INT(self.scale)
+                    else:
+                        num = float(v)
+                        if scale is not None:
+                            num *= 10 ** _INT(self.scale)
+                    self._ixValue = "{0}".format(num * negate)
+                except (ValueError, InvalidOperation):
+                    self._ixValue = ModelValue.INVALIDixVALUE
+                    raise # re-raise any errors occuring here (but this is a good debug stop if needed
             return self._ixValue
 
     @property
     def textValue(self):
-        """(str) -- override xml-level textValue for transformed value text()"""
+        """(str) -- override xml-level textValue for transformed value text()
+            will raise any value errors if transforming string or numeric has an error
+        """
         return self.value
     
     @property
     def stringValue(self):
-        """(str) -- override xml-level stringValue for transformed value descendants text"""
+        """(str) -- override xml-level stringValue for transformed value descendants text
+            will raise any value errors if transforming string or numeric has an error
+        """
         return self.value
     
     
