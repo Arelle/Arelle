@@ -5,11 +5,14 @@ Created on Oct 5, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import ViewWinTree, ModelDtsObject, XbrlConst
+from arelle.ModelRelationshipSet import ModelRelationshipSet
+from arelle.ModelDtsObject import ModelResource
+from arelle.ModelInstanceObject import ModelFact
 
 def viewFacts(modelXbrl, tabWin, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing facts"))
     view = ViewFactList(modelXbrl, tabWin, lang)
-    view.treeView["columns"] = ("sequence", "contextID", "unitID", "decimals", "precision", "language", "value")
+    view.treeView["columns"] = ("sequence", "contextID", "unitID", "decimals", "precision", "language", "footnoted", "value")
     view.treeView.column("#0", width=200, anchor="w")
     view.treeView.heading("#0", text=_("Label"))
     view.treeView.column("sequence", width=40, anchor="e", stretch=False)
@@ -25,10 +28,13 @@ def viewFacts(modelXbrl, tabWin, lang=None):
     view.treeView.heading("precision", text=_("Prec"))
     view.treeView.column("language", width=36, anchor="w", stretch=False)
     view.treeView.heading("language",text=_("Lang"))
+    view.treeView.column("footnoted", width=18, anchor="center", stretch=False)
+    view.treeView.heading("footnoted",text=_("Fn"))
     view.treeView.column("value", width=200, anchor="w", stretch=False)
     view.treeView.heading("value", text=_("Value"))
     view.treeView["displaycolumns"] = ("sequence", "contextID", "unitID", "decimals", "precision", \
-                                       "language", "value")
+                                       "language", "footnoted", "value")
+    view.footnotesRelationshipSet = ModelRelationshipSet(modelXbrl, "XBRL-footnotes")
     view.blockSelectEvent = 1
     view.blockViewModelObject = 0
     view.view()
@@ -101,6 +107,8 @@ class ViewFactList(ViewWinTree.ViewTree):
                     self.treeView.set(node, "decimals", modelFact.decimals)
                     self.treeView.set(node, "precision", modelFact.precision)
                     self.treeView.set(node, "language", modelFact.xmlLang)
+                    if self.footnotesRelationshipSet.fromModelObject(modelFact):
+                        self.treeView.set(node, "footnoted", "*")
                     self.treeView.set(node, "value", modelFact.effectiveValue.strip())
                 self.id += 1;
                 n += 1
@@ -108,6 +116,33 @@ class ViewFactList(ViewWinTree.ViewTree):
             except AttributeError:  # not a fact or no concept
                 pass
 
+    def getToolTip(self, tvRowId, tvColId):
+        # override tool tip when appropriate
+        if tvColId == "#7":  # footnote column
+            try:
+                modelFact = self.modelXbrl.modelObject(tvRowId) # this is a fact object
+                footnoteRels = self.footnotesRelationshipSet.fromModelObject(modelFact)
+                if footnoteRels:
+                    fns = []
+                    for i, footnoteRel in enumerate(footnoteRels):
+                        modelObject = footnoteRel.toModelObject
+                        if isinstance(modelObject, ModelResource):
+                            fns.append("Footnote {}: {}".format(
+                               i+1,
+                               modelObject.stringValue))
+                        elif isinstance(modelObject, ModelFact):
+                            fns.append("Footnoted fact {}: {} context: {} value: {}".format(
+                                i+1,
+                                modelObject.qname,
+                                modelObject.contextID,
+                                modelObject.value))
+                    return "\n".join(fns)
+                else:
+                    return None
+            except (AttributeError, KeyError):
+                pass
+        return None
+    
     def treeviewEnter(self, *args):
         self.blockSelectEvent = 0
 
