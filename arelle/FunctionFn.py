@@ -272,8 +272,8 @@ def regexFlags(xc, p, args, n):
             
 def matches(xc, p, contextItem, args):
     if not 2 <= len(args) <= 3: raise XPathContext.FunctionNumArgs()
-    input = stringArg(xc, args, 0, "xs:string?", emptyFallback=())
-    pattern = stringArg(xc, args, 1, "xs:string", emptyFallback=())
+    input = stringArg(xc, args, 0, "xs:string?", emptyFallback="")
+    pattern = stringArg(xc, args, 1, "xs:string", emptyFallback="")
     try:
         return bool(re.search(pattern,input,flags=regexFlags(xc, p, args, 2)))
     except sre_constants.error as err:
@@ -282,9 +282,9 @@ def matches(xc, p, contextItem, args):
 
 def replace(xc, p, contextItem, args):
     if not 3 <= len(args) <= 4: raise XPathContext.FunctionNumArgs()
-    input = stringArg(xc, args, 0, "xs:string?", emptyFallback=())
-    pattern = stringArg(xc, args, 1, "xs:string", emptyFallback=())
-    fnReplacement = stringArg(xc, args, 2, "xs:string", emptyFallback=())
+    input = stringArg(xc, args, 0, "xs:string?", emptyFallback="")  # empty string is default
+    pattern = stringArg(xc, args, 1, "xs:string", emptyFallback="")
+    fnReplacement = stringArg(xc, args, 2, "xs:string", emptyFallback="")
     if re.findall(r"(^|[^\\])[$]|[$][^0-9]", fnReplacement):
         raise XPathContext.XPathException(p, 'err:FORX0004', _('fn:replace pattern \'$\' error in: {0}').format(fnReplacement))
     reReplacement = re.sub(r"[\\][$]", "$", 
