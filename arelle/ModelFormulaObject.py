@@ -1846,9 +1846,9 @@ class ModelPeriodEnd(ModelDateTimeFilter):
         super(ModelPeriodEnd, self).init(modelDocument)
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
-        return [fact for fact in facts 
-                if cmplmt ^ (fact.isItem and (fact.context.isStartEndPeriod 
-                             and fact.context.endDatetime == self.evalDatetime(xpCtx, fact, addOneDay=True)))] 
+        return set(fact for fact in facts 
+                   if cmplmt ^ (fact.isItem and (fact.context.isStartEndPeriod 
+                                                 and fact.context.endDatetime == self.evalDatetime(xpCtx, fact, addOneDay=True)))) 
 
 class ModelPeriodInstant(ModelDateTimeFilter):
     def init(self, modelDocument):
@@ -2647,7 +2647,8 @@ class ModelMessage(ModelFormulaResource):
 class ModelCustomFunctionSignature(ModelFormulaResource):
     def init(self, modelDocument):
         super(ModelCustomFunctionSignature, self).init(modelDocument)
-        self.modelXbrl.modelCustomFunctionSignatures[self.qname] = self
+        self.modelXbrl.modelCustomFunctionSignatures[self.qname, len(self.inputTypes)] = self
+        self.modelXbrl.modelCustomFunctionSignatures[self.qname] = None # place holder for parser qname recognition
         self.customFunctionImplementation = None
 
     @property
