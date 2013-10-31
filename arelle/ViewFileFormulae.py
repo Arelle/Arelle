@@ -29,8 +29,10 @@ class ViewFormulae(ViewFile.View):
         self.addRow(["Formula object", "Label", "Cover", "Com\u00ADple\u00ADment", "Bind as se\u00ADquence", "Expression"], asHeader=True)
         for rootObject in sorted(rootObjects, key=formulaObjSortKey):
             self.viewFormulaObjects(rootObject, None, 0, set())
-        for cfQname in sorted(self.modelXbrl.modelCustomFunctionSignatures.keys()):
-            cfObject = self.modelXbrl.modelCustomFunctionSignatures[cfQname]
+        for cfQnameArity in sorted(qnameArity
+                                   for qnameArity in self.modelXbrl.modelCustomFunctionSignatures.keys()
+                                   if isinstance(qnameArity, (tuple,list))):
+            cfObject = self.modelXbrl.modelCustomFunctionSignatures[cfQnameArity]
             self.viewFormulaObjects(cfObject, None, 0, set())
 
     def treeDepth(self, fromObject, indent, visited):

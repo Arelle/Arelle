@@ -47,8 +47,10 @@ class ViewFormulae(ViewWinTree.ViewTree):
         for rootObject in sorted(rootFormulaObjects(self), key=formulaObjSortKey):
             self.viewFormulaObjects("", rootObject, None, n, set())
             n += 1
-        for cfQname in sorted(self.modelXbrl.modelCustomFunctionSignatures.keys()):
-            cfObject = self.modelXbrl.modelCustomFunctionSignatures[cfQname]
+        for cfQnameArity in sorted(qnameArity
+                                   for qnameArity in self.modelXbrl.modelCustomFunctionSignatures.keys()
+                                   if isinstance(qnameArity, (tuple,list))):
+            cfObject = self.modelXbrl.modelCustomFunctionSignatures[cfQnameArity]
             self.viewFormulaObjects("", cfObject, None, n, set())
             n += 1
         self.treeView.bind("<<TreeviewSelect>>", self.treeviewSelect, '+')

@@ -294,20 +294,22 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
     val.modelXbrl.profileActivity("... formula parameter checks", minTimeToShow=1.0)
             
     for custFnSig in val.modelXbrl.modelCustomFunctionSignatures.values():
-        custFnQname = custFnSig.qname
-        if custFnQname.namespaceURI == XbrlConst.xfi:
-            val.modelXbrl.error("xbrlve:noProhibitedNamespaceForCustomFunction",
-                _("Custom function %(name)s has namespace reserved for functions in the function registry %(namespace)s"),
-                modelObject=custFnSig, name=custFnQname, namespace=custFnQname.namespaceURI )
-        # any custom function implementations?
-        for modelRel in val.modelXbrl.relationshipSet(XbrlConst.functionImplementation).fromModelObject(custFnSig):
-            custFnImpl = modelRel.toModelObject
-            custFnSig.customFunctionImplementation = custFnImpl
-            if len(custFnImpl.inputNames) != len(custFnSig.inputTypes):
-                val.modelXbrl.error("xbrlcfie:inputMismatch",
-                    _("Custom function %(name)s signature has %(parameterCountSignature)s parameters but implementation has %(parameterCountImplementation)s, must be matching"),
-                    modelObject=custFnSig, name=custFnQname, 
-                    parameterCountSignature=len(custFnSig.inputTypes), parameterCountImplementation=len(custFnImpl.inputNames) )
+        # entries indexed by qname, arity are signature, by qname are just for parser (value=None)
+        if custFnSig is not None:
+            custFnQname = custFnSig.qname
+            if custFnQname.namespaceURI == XbrlConst.xfi:
+                val.modelXbrl.error("xbrlve:noProhibitedNamespaceForCustomFunction",
+                    _("Custom function %(name)s has namespace reserved for functions in the function registry %(namespace)s"),
+                    modelObject=custFnSig, name=custFnQname, namespace=custFnQname.namespaceURI )
+            # any custom function implementations?
+            for modelRel in val.modelXbrl.relationshipSet(XbrlConst.functionImplementation).fromModelObject(custFnSig):
+                custFnImpl = modelRel.toModelObject
+                custFnSig.customFunctionImplementation = custFnImpl
+                if len(custFnImpl.inputNames) != len(custFnSig.inputTypes):
+                    val.modelXbrl.error("xbrlcfie:inputMismatch",
+                        _("Custom function %(name)s signature has %(parameterCountSignature)s parameters but implementation has %(parameterCountImplementation)s, must be matching"),
+                        modelObject=custFnSig, name=custFnQname, 
+                        parameterCountSignature=len(custFnSig.inputTypes), parameterCountImplementation=len(custFnImpl.inputNames) )
         
     for custFnImpl in val.modelXbrl.modelCustomFunctionImplementations:
         if not val.modelXbrl.relationshipSet(XbrlConst.functionImplementation).toModelObject(custFnImpl):

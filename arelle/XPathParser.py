@@ -244,7 +244,7 @@ def pushFunction( sourceStr, loc, toks ):
         if (not name.unprefixed and 
             ns not in {XbrlConst.fn, XbrlConst.xfi, XbrlConst.xff, XbrlConst.xsd} and
             not ns.startswith("http://www.xbrl.org/inlineXBRL/transformation")):
-            if name not in modelXbrl.modelCustomFunctionSignatures:
+            if name not in modelXbrl.modelCustomFunctionSignatures: # indexed by both [qname] and [qname,arity]
                 modelXbrl.error("xbrlve:noCustomFunctionSignature",
                     _("No custom function signature for %(custFunction)s in %(resource)s"),
                     modelObject=xmlElement,
