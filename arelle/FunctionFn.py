@@ -58,8 +58,12 @@ def data(xc, p, contextItem, args):
     return xc.atomize(p, args[0])
 
 def base_uri(xc, p, contextItem, args):
-    # TBD
-    return []
+    item = anytypeArg(xc, args, 0, "node()?", missingArgFallback=contextItem)
+    if item == (): 
+        return ''
+    if isinstance(item, (ModelObject, ModelDocument)):
+        return UrlUtil.ensureUrl(item.modelDocument.uri)
+    return ''
 
 def document_uri(xc, p, contextItem, args):
     return xc.modelXbrl.modelDocument.uri

@@ -12,14 +12,16 @@ from math import isnan, fabs, isinf
 from decimal import Decimal, InvalidOperation
     
 class FORG0001(Exception):
-    def __init__(self):
-        pass
+    def __init__(self, message=None):
+        self.message = message
+        self.args = ( self.__repr__(), )
     def __repr__(self):
         return _("Exception: FORG0001, invalid constructor")
 
 class FONS0004(Exception):
-    def __init__(self):
-        pass
+    def __init__(self, message=None):
+        self.message = message
+        self.args = ( self.__repr__(), )
     def __repr__(self):
         return _("Exception: FONS0004, no namespace found for prefix")
 
@@ -35,11 +37,16 @@ def call(xc, p, localname, args):
     try:
         if localname not in xsFunctions: raise xsFunctionNotAvailable
         return xsFunctions[localname](xc, p, source)
-    except (FORG0001, ValueError, TypeError):
+    except (FORG0001, ValueError, TypeError) as ex:
+        if hasattr(ex, "message"):
+            exMsg = ", " + ex.message
+        else:
+            exMsg = ""
         raise XPathContext.XPathException(p, 'err:FORG0001', 
-                                          _('invalid cast from {0} to xs:{1}').format(
+                                          _('invalid cast from {0} to xs:{1}{2}').format(
                                             type(source).__name__,
-                                            localname))
+                                            localname,
+                                            exMsg))
     except xsFunctionNotAvailable:
         raise XPathContext.FunctionNotAvailable("xs:{0}".format(localname))
       
