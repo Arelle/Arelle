@@ -38,7 +38,7 @@ def call(xc, p, localname, args):
         if localname not in xsFunctions: raise xsFunctionNotAvailable
         return xsFunctions[localname](xc, p, source)
     except (FORG0001, ValueError, TypeError) as ex:
-        if hasattr(ex, "message"):
+        if hasattr(ex, "message") and ex.message:
             exMsg = ", " + ex.message
         else:
             exMsg = ""

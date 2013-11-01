@@ -16,6 +16,7 @@ from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.ModelValue import (QName)
 import datetime, time, logging
 from decimal import Decimal
+from math import log10, isnan, isinf, fabs
 from arelle.Locale import format_string
 from collections import defaultdict
 ModelDimensionValue = None
@@ -768,7 +769,6 @@ def produceOutputFact(xpCtx, formula, result):
                         
                 x = value[0]
                 if isinstance(x,float):
-                    from math import (log10, isnan, isinf, fabs)
                     if (isnan(x) or
                         (precision and (isinf(precision) or precision == 0)) or 
                         (decimals and isinf(decimals))):
