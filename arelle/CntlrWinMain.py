@@ -425,9 +425,9 @@ class CntlrWinMain (Cntlr.Cntlr):
                                 defaultextension=".html")
                     elif fileType == "xml":
                         filename = self.uiFileDialog("save",
-                                title=_("arelle - Save Table Layout Infoset"),
+                                title=_("arelle - Save Table Layout Model"),
                                 initialdir=initialdir,
-                                filetypes=[(_("XML file .xml"), "*.xml")],
+                                filetypes=[(_("Layout model file .xml"), "*.xml")],
                                 defaultextension=".xml")
                     else: # ask file type
                         filename = self.uiFileDialog("save",

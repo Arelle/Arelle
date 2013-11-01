@@ -83,10 +83,29 @@ class StructuralNode:
         return self.definitionNode.cardinalityAndDepth(self)
     
     @property
+    def structuralDepth(self):
+        if self.parentStructuralNode is not None:
+            return self.parentStructuralNode.structuralDepth + 1
+        return 0
+    
+    @property
     def definitionNode(self):
         if self.choiceStructuralNodes:
             return self.choiceStructuralNodes[getattr(self,"choiceNodeIndex",0)]._definitionNode
         return self._definitionNode
+    
+    def breakdownNode(self, tableELR):
+        definitionNode = self._definitionNode
+        if isinstance(definitionNode, ModelBreakdown):
+            return definitionNode
+        axisSubtreeRelSet = definitionNode.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableBreakdownTree201305, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD, XbrlConst.tableDefinitionNodeSubtree201305, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011), tableELR)
+        while (True):
+            for parentRel in axisSubtreeRelSet.toModelObject(definitionNode):
+                definitionNode = parentRel.fromModelObject
+                if isinstance(definitionNode, ModelBreakdown):
+                    return definitionNode
+                break # recurse to move to this node's parent breakdown node
+        return definitionNode # give up here
     
     def constraintSet(self, tagSelectors=None):
         definitionNode = self.definitionNode
@@ -621,7 +640,7 @@ class ModelTable(ModelFormulaResource):
                 self.definitionLabelsView)
         
     def __repr__(self):
-        return ("table[{0}]{1})".format(self.objectId(),self.propertyView))
+        return ("modlTable[{0}]{1})".format(self.objectId(),self.propertyView))
 
 class ModelDefinitionNode(ModelFormulaResource):
     def init(self, modelDocument):
@@ -924,7 +943,7 @@ class ModelRuleDefinitionNode(ModelConstraintSet, ModelClosedDefinitionNode):
                  self.definitionLabelsView)
         
     def __repr__(self):
-        return ("explicitAxisMember[{0}]{1})".format(self.objectId(),self.propertyView))
+        return ("modelRuleDefinitionNode[{0}]{1})".format(self.objectId(),self.propertyView))
 
 # deprecated 2013-05-17
 class ModelTupleDefinitionNode(ModelRuleDefinitionNode):
@@ -1095,7 +1114,7 @@ class ModelRelationshipDefinitionNode(ModelClosedDefinitionNode):
                 self.definitionLabelsView)
         
     def __repr__(self):
-        return ("explicitAxisMember[{0}]{1})".format(self.objectId(),self.propertyView))
+        return ("modelRelationshipDefinitionNode[{0}]{1})".format(self.objectId(),self.propertyView))
     
 class ModelConceptRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
     def init(self, modelDocument):

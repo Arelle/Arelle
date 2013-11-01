@@ -585,7 +585,7 @@ class scrolledHeaderedFrame(Frame):
                 columnspan = cell.columnspan # this is the non borders columns spanned
             else:
                 columnspan = 1
-            cellspan = ((columnspan + 1)/2)
+            cellspan = ((columnspan + 1)//2)
             w = int( ( cellW - ((columnspan - 1)/2) ) / cellspan )
             wWiderAlloced = 0
             wNumWider = 0
@@ -610,12 +610,15 @@ class scrolledHeaderedFrame(Frame):
                     #self.bodyInterior.update()
             '''
         if isRowHdrCell:
-            if (getattr(cell,'rowspan',None) or 0) <= 1: # ignore abstract spanned rows (probably should divide them equally among children)
-                bodyRowH = self.bodyInterior.tk.call( ('grid', 'rowconfigure', self.bodyInterior._w, y, '-minsize' ) )
-                #print("body row height {0}".format(bodyRowH))
-                if cellH > bodyRowH:
-                    self.bodyInterior.tk.call( ('grid', 'rowconfigure', self.bodyInterior._w, y, '-minsize', cellH ) )
-                    #self.bodyInterior.update()
+            rowspan = getattr(cell,'rowspan',None) or 1
+            bodyRowH = self.bodyInterior.tk.call( ('grid', 'rowconfigure', self.bodyInterior._w, y, '-minsize' ) )
+            cellHperRow = ( cellH - (rowspan // 2 * 3) ) / ((rowspan + 1) // 2)  # rowspan includes spanned separators
+            #print("body row span height {0} per row height {1}".format(bodyRowH, cellHperRow))
+            if cellHperRow > bodyRowH:
+                for ySpanned in range(y+rowspan-1, y-1, -2):
+                    self.bodyInterior.tk.call( ('grid', 'rowconfigure', self.bodyInterior._w, ySpanned, '-minsize', cellHperRow ) )
+                #self.bodyInterior.update()
+            #print("...bodyRowH before={} after={}".format(bodyRowH, self.bodyInterior.tk.call( ('grid', 'rowconfigure', self.bodyInterior._w, y, '-minsize' ) )))
         if isBodyCell:
             rowHdrH = self.rowHdrInterior.tk.call( ('grid', 'rowconfigure', self.rowHdrInterior._w, y, '-minsize' ) )
             if cellH > rowHdrH:
@@ -627,6 +630,7 @@ class scrolledHeaderedFrame(Frame):
                 #self.colHdrInterior.update()
             elif colHdrW > cellW:
                 self.bodyInterior.tk.call( ('grid', 'columnconfigure', self.bodyInterior._w, x, '-minsize', colHdrW ) )
+            #print("...rowHdrH={} colHdrW={}".format(rowHdrH, colHdrW))
                 #self.bodyInterior.update()
         self.blockConfigureCell = False
     
@@ -681,6 +685,7 @@ class scrolledHeaderedFrame(Frame):
                         #self.bodyInterior.update()
                             
     def conformBodyCellsToHeader(self):
+        #print("conformBodyCellsToHeader")
         self.bodyCellsConfigured = True
         
         for bodyCell in self.bodyInterior.children.values():
@@ -694,6 +699,7 @@ class scrolledHeaderedFrame(Frame):
                 self.bodyInterior.tk.call( ('grid', 'columnconfigure', self.bodyInterior._w, x, '-minsize', hdrColW ) )
             y = bodyCell.y
             rowColH = self.colHdrInterior.tk.call( ('grid', 'rowconfigure', self.rowHdrInterior._w, y, '-minsize' ) )
+            #print("conform row=" + str(y) + " rowH=" + str(rowColH) + " cellH=" + str(bodyCellH))
             if bodyCellH < rowColH:
                 self.bodyInterior.tk.call( ('grid', 'rowconfigure', self.bodyInterior._w, y, '-minsize', rowColH ) )
         

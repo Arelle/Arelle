@@ -5,4 +5,4 @@ This module represents the time stamp when Arelle was last built
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 
 '''
-version = '2013-10-08 05:43 UTC'
+version = '2013-11-01 05:18 UTC'

@@ -180,7 +180,7 @@ class ModelXbrl:
 
         .. attribute:: modelCustomFunctionSignatures
 
-        Dict of custom function signatures by qname
+        Dict of custom function signatures by qname and by qname,arity
 
         .. attribute:: modelCustomFunctionImplementations
 

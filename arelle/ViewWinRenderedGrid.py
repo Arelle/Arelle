@@ -48,7 +48,7 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     view.menuAddLangs()
     saveMenu = Menu(view.viewFrame, tearoff=0)
     saveMenu.add_command(label=_("HTML file"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view, fileType="html"))
-    saveMenu.add_command(label=_("Table layout infoset"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view, fileType="xml"))
+    saveMenu.add_command(label=_("Layout model"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view, fileType="xml"))
     saveMenu.add_command(label=_("XBRL instance"), underline=0, command=view.saveInstance)
     menu.add_cascade(label=_("Save"), menu=saveMenu, underline=0)
     menu.add_command(label=_("Enter new facts..."), underline=0, command=view.enterNewFacts)
@@ -457,6 +457,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     yTagSelectors = yStructuralNode.tagSelectors
                     gridSpacer(self.gridBody, self.dataFirstCol, row, LEFTBORDER)
                     # data for columns of row
+                    #print ("row " + str(row) + "yNode " + yStructuralNode.definitionNode.objectId() )
                     ignoreDimValidity = self.ignoreDimValidity.get()
                     for i, xStructuralNode in enumerate(xStructuralNodes):
                         xAspectStructuralNodes = defaultdict(set)

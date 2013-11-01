@@ -4,7 +4,7 @@ Created on Sep 13, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import os, sys
+import os, io, sys, json
 from arelle import XbrlConst
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName
@@ -47,7 +47,7 @@ def resolveAxesStructure(view, viewTblELR):
         view.axisSubtreeRelSet = view.modelXbrl.relationshipSet(XbrlConst.euAxisMember, viewTblELR)
     else: # try 2011 roles
         tblAxisRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201305, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011), viewTblELR)
-        view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201305, XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableBreakdownTree201305, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD, XbrlConst.tableDefinitionNodeSubtree201305, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011), viewTblELR)
+        view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableBreakdownTree201305, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD, XbrlConst.tableDefinitionNodeSubtree201305, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011), viewTblELR)
     if tblAxisRelSet is None or len(tblAxisRelSet.modelRelationships) == 0:
         view.modelXbrl.modelManager.addToLog(_("no table relationships for {0}").format(viewTblELR))
         return (None, None, None, None)
@@ -62,7 +62,7 @@ def resolveAxesStructure(view, viewTblELR):
         for table in tblAxisRelSet.rootConcepts:
             return resolveTableAxesStructure(view, table, tblAxisRelSet)
     except ResolutionException as ex:
-        view.modelXbrl.error(ex.code, ex.message, **ex.kwargs);        
+        view.modelXbrl.error(ex.code, ex.message, exc_info=True, **ex.kwargs);        
     
     return (None, None, None, None)
 
@@ -118,6 +118,25 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
                     zTopStructuralNode.hasOpenNode = False
                     expandDefinition(view, zTopStructuralNode, definitionNode, 1, disposition, facts, i, tblAxisRels)
                     break
+    ''' 
+    def jsonDefaultEncoder(obj):
+        if isinstance(obj, StructuralNode):
+            return {'1StructNode': str(obj),
+                    '2Depth': obj.structuralDepth,
+                    '2Group': obj.breakdownNode(view.tblELR).genLabel(),
+                    '3Label': obj.header() or obj.xlinkLabel,
+                    '4ChildNodes': obj.childStructuralNodes}
+        raise TypeError("Type {} is not supported for json output".format(type(obj).__name__))
+               
+    with io.open(r"c:\temp\test.json", 'wt') as fh:
+        json.dump({"x":xTopStructuralNode, "y":yTopStructuralNode, "z":zTopStructuralNode}, 
+                  fh,
+                  sort_keys=True,
+                  ensure_ascii=False, 
+                  indent=2, 
+                  default=jsonDefaultEncoder)
+    '''
+   
     view.colHdrTopRow = view.zAxisRows + 1 # need rest if combobox used (2 if view.zAxisRows else 1)
     for i in range(view.rowHdrCols):
         if view.rowNonAbstractHdrSpanMin[i]:
@@ -247,6 +266,7 @@ def expandDefinition(view, structuralNode, definitionNode, depth, axisDispositio
             isCartesianProductExpanded = False
             if not isinstance(definitionNode, ModelFilterDefinitionNode):
                 # note: reduced set of facts should always be passed to subsequent open nodes
+                isCartesianProductExpanded = True
                 for axisSubtreeRel in subtreeRelationships:
                     isCartesianProductExpanded = True
                     childDefinitionNode = axisSubtreeRel.toModelObject
@@ -267,7 +287,7 @@ def expandDefinition(view, structuralNode, definitionNode, depth, axisDispositio
                             if axisDisposition != "z":
                                 structuralNode.childStructuralNodes.append(childStructuralNode)
                         if axisDisposition != "z":
-                            expandDefinition(view, childStructuralNode, childDefinitionNode, depth+ordDepth, axisDisposition, facts) #recurse
+                            expandDefinition(view, childStructuralNode, childDefinitionNode, depth+ordDepth, axisDisposition, facts, i, tblAxisRels) #recurse
                             cartesianProductExpander(childStructuralNode, *cartesianProductNestedArgs)
                         else:
                             childStructuralNode.indent = depth - 1
@@ -484,6 +504,7 @@ def cartesianProductExpander(childStructuralNode, view, depth, axisDisposition, 
                 else:
                     matchingFacts = facts
                 # returns whether there were no structural node results
+                subOrdTblCntx.abstract = True # can't be abstract across breakdown
                 expandDefinition(view, subOrdTblCntx, tblObj, 
                             depth, # depth + (0 if axisDisposition == 'z' else 1), 
                             axisDisposition, matchingFacts, j + i + 1, tblAxisRels) #cartesian product

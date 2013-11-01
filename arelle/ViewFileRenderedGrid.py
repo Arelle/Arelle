@@ -18,7 +18,9 @@ from arelle.ModelXbrl import DEFAULT
 from arelle.ModelRenderingObject import (ModelClosedDefinitionNode, ModelEuAxisCoord,
                                          OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.PrototypeInstanceObject import FactPrototype
-from arelle.XbrlConst import tableModel as tableModelNamespace, tableModelQName
+# change tableModel for namespace needed for consistency suite
+from arelle.XbrlConst import (tableModelMMDD as tableModelNamespace, 
+                              tableModelMMDDQName as tableModelQName)
 from arelle.XmlUtil import innerTextList, elementFragmentIdentifier, addQnameValue
 from collections import defaultdict
 
@@ -105,14 +107,17 @@ class ViewRenderedGrid(ViewFile.View):
                             tableSetElt.append(etree.Comment("TableSet linkbase file: {0}, line {1}".format(self.modelTable.modelDocument.basename, self.modelTable.sourceline)))
                             tableSetElt.append(etree.Comment("TableSet namespace: {0}".format(self.modelTable.namespaceURI)))
                             tableSetElt.append(etree.Comment("TableSet linkrole: {0}".format(tblELR)))
+                            etree.SubElement(tableSetElt, tableModelQName("label")
+                                             ).text = tableLabel
+                            etree.SubElement(tableSetElt, tableModelQName("headers"))
                             self.zHdrsElt = etree.SubElement(tableSetElt, tableModelQName("headers"))
                             zAspectStructuralNodes = defaultdict(set)
                             self.zAxis(1, zTopStructuralNode, zAspectStructuralNodes, True)
                         tableElt = etree.SubElement(tableSetElt, tableModelQName("table"),
-                                                    attrib={"label": tableLabel})
+                                                    attrib={"label": self.modelTable.xlinkLabel})
                         hdrsElts = dict((disposition,
                                          etree.SubElement(tableElt, tableModelQName("headers"),
-                                                          attrib={"disposition": disposition}))
+                                                          attrib={"axis": disposition}))
                                         for disposition in ("y", "x"))
                         self.zHdrsElt = hdrsElts["y"]  # z-comments go before y subelement of tableElt
                         # new y,x cells on each Z combination
@@ -127,12 +132,12 @@ class ViewRenderedGrid(ViewFile.View):
                         else:
                             hdrsElts["x"].append(etree.Comment("no columns in this table"))
                         self.zCells = etree.SubElement(tableElt, tableModelQName("cells"),
-                                                          attrib={"disposition": "z"})
+                                                          attrib={"axis": "z"})
                         self.yCells = etree.SubElement(self.zCells, tableModelQName("cells"),
-                                                          attrib={"disposition": "y"})
+                                                          attrib={"axis": "y"})
                         ''' move into body cells, for entry row-by-row
                         self.xCells = etree.SubElement(self.yCells, tableModelQName("cells"),
-                                                          attrib={"disposition": "x"})
+                                                          attrib={"axis": "x"})
                         '''
                     # rows/cols only on firstTime for infoset XML, but on each time for xhtml
                     zAspectStructuralNodes = defaultdict(set)
@@ -313,7 +318,7 @@ class ViewRenderedGrid(ViewFile.View):
                         elt = etree.SubElement(cellElt, tableModelQName("label"))
                         if nonAbstract or (leafNode and row > topRow):
                             for rollUpCol in range(topRow - self.colHdrTopRow + 1, self.colHdrRows - 1):
-                                rollUpElt = etree.Element(tableModelQName("label"),
+                                rollUpElt = etree.Element(tableModelQName("cell"),
                                                           attrib={"rollup":"true"})
                                 if childrenFirst:
                                     self.colHdrElts[rollUpCol].append(rollUpElt)
@@ -609,7 +614,7 @@ class ViewRenderedGrid(ViewFile.View):
                          not isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)))) and yStructuralNode.isLabeled:
                     if self.type == XML:
                         self.xCells = etree.SubElement(self.yCells, tableModelQName("cells"),
-                                                       attrib={"disposition": "x"})
+                                                       attrib={"axis": "x"})
                     isEntryPrototype = yStructuralNode.isEntryPrototype(default=False) # row to enter open aspects
                     yAspectStructuralNodes = defaultdict(set)
                     for aspect in aspectModels[self.aspectModel]:

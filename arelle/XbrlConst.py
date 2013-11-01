@@ -397,6 +397,9 @@ euGroupTable = "http://www.eurofiling.info/xbrl/arcrole/group-table"
 def tableModelQName(localName):
     return '{' + tableModel + '}' + localName
 
+def tableModelMMDDQName(localName):
+    return '{' + tableModelMMDD + '}' + localName
+
 xdtSchemaErrorNS = "http://www.xbrl.org/2005/genericXmlSchemaError"
 errMsgPrefixNS = {
     "err": xpath2err,
