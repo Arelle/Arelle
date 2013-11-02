@@ -128,14 +128,25 @@ if sys.platform == 'darwin':
     # be used for opening files.
     
     plist = dict(CFBundleIconFile='arelle.icns', 
-                 NSHumanReadableCopyright='(c) 2010-2011 Mark V Systems Limited') 
+                 NSHumanReadableCopyright='(c) 2010-2013 Mark V Systems Limited') 
 
     # MacOS launches CntlrWinMain and uses "ARELLE_ARGS" to effect console (shell) mode
     options = dict(py2app=dict(app=['arelle/CntlrWinMain.py'], 
                                iconfile='arelle/images/arelle.icns', 
                                plist=plist, 
+                               #
+                               # rdflib & isodate egg files: rename .zip cpy lib & egg-info subdirectories to site-packages directory
+                               #
                                includes=['lxml', 'lxml.etree',  
-                                         'lxml._elementpath', 'pg8000', 'gzip', 'zlib'])) 
+                                         'lxml._elementpath', 'pg8000', 
+                                         'rdflib', 'rdflib.extras', 'rdflib.tools', 
+                                         # more rdflib plugin modules may need to be added later
+                                         'rdflib.plugins', 'rdflib.plugins.memory', 
+                                         'rdflib.plugins.parsers', 
+                                         'rdflib.plugins.serializers', 'rdflib.plugins.serializers.rdfxml', 'rdflib.plugins.serializers.turtle', 'rdflib.plugins.serializers.xmlwriter', 
+                                         'rdflib.plugins.sparql', 
+                                         'rdflib.plugins.stores', 
+                                         'isodate', 'regex', 'gzip', 'zlib'])) 
 
     packages = find_packages('.')
     dataFiles = [
@@ -185,7 +196,18 @@ elif sys.platform in ('linux2', 'linux', 'sunos5'): # works on ubuntu with hand-
                           ('arelle/plugin','plugin'), 
                           ('arelle/scripts-unix','scripts'),
                           ],
-        "includes": ['lxml', 'lxml.etree', 'lxml._elementpath', 'pg8000', 'zlib'], 
+        #
+        # rdflib & isodate egg files: rename .zip cpy lib & egg-info subdirectories to site-packages directory
+        #
+        "includes": ['lxml', 'lxml.etree', 'lxml._elementpath', 'pg8000', 
+                     'rdflib', 'rdflib.extras', 'rdflib.tools', 
+                     # more rdflib plugin modules may need to be added later
+                     'rdflib.plugins', 'rdflib.plugins.memory', 
+                     'rdflib.plugins.parsers', 
+                     'rdflib.plugins.serializers', 'rdflib.plugins.serializers.rdfxml', 'rdflib.plugins.serializers.turtle', 'rdflib.plugins.serializers.xmlwriter', 
+                     'rdflib.plugins.sparql', 
+                     'rdflib.plugins.stores', 
+                     'isodate', 'regex', 'gzip', 'zlib'], 
         "packages": packages, 
         } ) 
     
@@ -213,6 +235,18 @@ elif sys.platform == 'win32':
         "include_files": win32includeFiles,
         "icon": 'arelle\\images\\arelle16x16and32x32.ico',
         "packages": packages,
+        #
+        # rdflib & isodate egg files: rename .zip cpy lib & egg-info subdirectories to site-packages directory
+        #
+        "includes": ['lxml', 'lxml.etree', 'lxml._elementpath', 'pg8000', 
+                     'rdflib', 'rdflib.extras', 'rdflib.tools', 
+                     # more rdflib plugin modules may need to be added later
+                     'rdflib.plugins', 'rdflib.plugins.memory', 
+                     'rdflib.plugins.parsers', 
+                     'rdflib.plugins.serializers', 'rdflib.plugins.serializers.rdfxml', 'rdflib.plugins.serializers.turtle', 'rdflib.plugins.serializers.xmlwriter', 
+                     'rdflib.plugins.sparql', 
+                     'rdflib.plugins.stores', 
+                     'isodate', 'regex', 'gzip', 'zlib'], 
         } )
    
     # windows uses arelleGUI.exe to launch in GUI mode, arelleCmdLine.exe in command line mode
@@ -258,7 +292,7 @@ setup(name='Arelle',
           'Intended Audience :: Developers',
           'License :: OSI Approved :: Apache-2 License',
           'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.2',
+          'Programming Language :: Python :: 3.3',
           'Operating System :: OS Independent',
           'Topic :: XBRL Validation and Versioning',
           ],
