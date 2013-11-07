@@ -87,7 +87,7 @@ class DialogRssWatch(Toplevel):
         label(frame, 1, row, "Log file:")
         self.cellLogFile = gridCell(frame,2, row, options.get("logFileUri",""))
         ToolTip(self.cellLogFile, text=_("Select a log file in which to save an activity log, including validation results, matched item text, and formula results.\n\n "
-                                         "Two files are produced, (1) .txt with the log messages, and (2) .csv with the RSS feed items and status.  "), wraplength=240)
+                                         "If file ends in .xml it is xml-formatted, otherwise it is text. "), wraplength=240)
         chooseLogFileButton = Button(frame, image=openFileImage, width=12, command=self.chooseLogFile)
         chooseLogFileButton.grid(row=row, column=3, sticky=W)
         row += 1

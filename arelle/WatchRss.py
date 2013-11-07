@@ -21,6 +21,7 @@ class ValidationException(Exception):
         self.message = message
         self.severity = severity
         self.code = code
+        self.messageLog = []
     def __repr__(self):
         return "{0}({1})={2}".format(self.code,self.severity,self.message)
     
@@ -50,6 +51,13 @@ class WatchRss:
             self.stopRequested = True            
         
     def watchCycle(self):
+        logFile = self.rssModelXbrl.modelManager.rssWatchOptions.get("logFileUri")
+        if logFile:
+            self.cntlr.startLogging(logFileName=os.path.splitext(logFile)[0] + ".txt",
+                                    logFileMode = "a",
+                                    logFormat="[%(messageCode)s] %(message)s - %(file)s",
+                                    logLevel="DEBUG")
+            
         while not self.stopRequested:
             rssWatchOptions = self.rssModelXbrl.modelManager.rssWatchOptions
             
@@ -163,6 +171,9 @@ class WatchRss:
                         self.rssModelXbrl.modelManager.viewModelObject(self.rssModelXbrl, rssItem.objectId())
                         if rssItem.assertionUnsuccessful and rssWatchOptions.get("alertAssertionUnsuccessful"):
                             emailAlert = True
+                            
+                        if logFile:
+                            self.cntlr.logHandler.flush()  # write entries out
                         
                         msg = _("Filing CIK {0}\n "
                                  "company {1}\n "
@@ -216,7 +227,8 @@ class WatchRss:
                 import time
                 time.sleep(600)
             
+        if logFile:
+            self.cntlr.logHandler.close()
         self.thread = None  # close thread
         self.stopRequested = False
         
-                

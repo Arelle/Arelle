@@ -284,7 +284,7 @@ class Cntlr:
                 self.logHandler = LogToBufferHandler()
                 self.logger.logHrefObjectProperties = True
             elif logFileName.endswith(".xml"):
-                self.logHandler = LogToXmlHandler(filename=logFileName)
+                self.logHandler = LogToXmlHandler(filename=logFileName, mode=logFileMode)
                 self.logger.logHrefObjectProperties = True
                 if not logFormat:
                     logFormat = "%(message)s"
@@ -591,10 +591,11 @@ class LogToXmlHandler(LogHandlerWithXml):
     
     A log handler that writes log entries to named XML file (utf-8 encoded) upon closing the application.
     """
-    def __init__(self, filename):
+    def __init__(self, filename, mode='w'):
         super(LogToXmlHandler, self).__init__()
         self.filename = filename
         self.logRecordBuffer = []
+        self.filemode = mode
     def flush(self):
         if self.filename == "logToStdOut.xml":
             print('<?xml version="1.0" encoding="utf-8"?>')
@@ -611,7 +612,7 @@ class LogToXmlHandler(LogHandlerWithXml):
             print('</log>')
         else:
             print ("filename=" + self.filename)
-            with open(self.filename, "w", encoding='utf-8') as fh:
+            with open(self.filename, self.filemode, encoding='utf-8') as fh:
                 fh.write('<?xml version="1.0" encoding="utf-8"?>\n')
                 fh.write('<log>\n')
                 for logRec in self.logRecordBuffer:
