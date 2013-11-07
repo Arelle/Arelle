@@ -194,12 +194,12 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                                     _("Schema file with same targetNamespace %(targetNamespace)s loaded from %(fileName)s and %(otherFileName)s"),
                                     modelObject=referringElement, targetNamespace=targetNamespace, fileName=uri, otherFileName=otherModelDoc.uri)
                         return otherModelDoc 
-        elif ns == XbrlConst.link:
+        elif (isEntry or isDiscovered) and ns == XbrlConst.link:
             if ln == "linkbase":
                 _type = Type.LINKBASE
             elif ln == "xbrl":
                 _type = Type.INSTANCE
-        elif ns == XbrlConst.xbrli:
+        elif isEntry and ns == XbrlConst.xbrli:
             if ln == "xbrl":
                 _type = Type.INSTANCE
         elif ns == XbrlConst.xhtml and \
