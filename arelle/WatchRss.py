@@ -116,6 +116,7 @@ class WatchRss:
                             break
                         
                         emailAlert = False
+                        emailMsgs = []
                         if modelXbrl.modelDocument is None:
                             modelXbrl.error("arelle.rssWatch",
                                             _("RSS item %(company)s %(form)s document not loaded: %(date)s"),
@@ -148,6 +149,7 @@ class WatchRss:
                                                            modelXbrl=modelXbrl) # msg as code passes it through to the status
                                             if rssWatchOptions.get("alertMatchedFactText"):
                                                 emailAlert = True
+                                                emailMsgs.append(msg)
                                         
                             if (rssWatchOptions.get("formulaFileUri") and rssWatchOptions.get("validateFormulaAssertions") and
                                 self.instValidator): 
@@ -179,16 +181,24 @@ class WatchRss:
                                  rssItem.fiscalYearEnd,
                                  rssItem.status)
                         self.rssModelXbrl.info("arelle:rssWatch", msg, modelXbrl=self.rssModelXbrl)
+                        smtpEmailSettings = rssWatchOptions.get("smtpEmailSettings")
                         emailAddress = rssWatchOptions.get("emailAddress")
-                        if emailAlert and emailAddress:
+                        if emailAlert and emailAddress and smtpEmailSettings and len(smtpEmailSettings) == 4:
+                            smtpAddr, smtpPort, smtpUser, smtpPassword = smtpEmailSettings
+                            portNum = int(smtpPort) if smtpPort else 0
                             self.rssModelXbrl.modelManager.showStatus(_("sending e-mail alert"))
                             import smtplib
                             from email.mime.text import MIMEText
-                            emailMsg = MIMEText(msg)
+                            emailMsg = MIMEText(msg + "\n" + "\n".join(emailMsgs))
                             emailMsg["Subject"] = _("Arelle RSS Watch alert on {0}").format(rssItem.companyName)
                             emailMsg["From"] = emailAddress
                             emailMsg["To"] = emailAddress
-                            smtp = smtplib.SMTP()
+                            if portNum < 125:
+                                smtp = smtplib.SMTP(smtpAddr, portNum)
+                            else:
+                                smtp = smtplib.SMTP_SSL(smtpAddr, portNum)
+                            if smtpUser or smtpPassword:
+                                smtp.login(smtpUser, smtpPassword)
                             smtp.sendmail(emailAddress, [emailAddress], emailMsg.as_string())
                             smtp.quit()
                         self.rssModelXbrl.modelManager.showStatus(_("RSS item {0}, {1} completed, status {2}").format(rssItem.companyName, rssItem.formType, rssItem.status), 3500)

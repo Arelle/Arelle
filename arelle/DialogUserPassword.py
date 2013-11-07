@@ -35,6 +35,16 @@ def askProxy(parent, priorProxySettings):
         return (dialog.useOsProxyCb.value, dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password)
     return None
 
+def askSmtp(parent, priorSmtpSettings):
+    if isinstance(priorSmtpSettings,(tuple,list)) and len(priorSmtpSettings) == 4:
+        urlAddr, urlPort, user, password = priorSmtpSettings
+    else:
+        urlAddr = urlPort = user = password = None
+    dialog = DialogUserPassword(parent, _("Outgoing E-mail Server (SMTP)"), urlAddr=urlAddr, urlPort=urlPort, user=user, password=password, showHost=False, showUrl=True, showUser=True, showRealm=False)
+    if dialog.accepted:
+        return (dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password)
+    return None
+
 DBTypes = ("postgres", "rexster", "rdfDB", "json")
 DBDescriptions = ("Postgres SQL Database",
                   "Rexter (Titan Cassandra)",

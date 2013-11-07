@@ -94,6 +94,10 @@ class DialogRssWatch(Toplevel):
         label(frame, 1, row, "E-mail alerts to:")
         self.cellEmailAddress = gridCell(frame,2, row, options.get("emailAddress",""))
         ToolTip(self.cellEmailAddress, text=_("Specify e-mail recipient(s) for alerts per below."), wraplength=240)
+        propertiesImage = PhotoImage(file=os.path.join(mainWin.imagesDir, "toolbarProperties.gif"))
+        smtpSetupButton = Button(frame, image=propertiesImage, width=12, command=self.setupSmtp)
+        smtpSetupButton.grid(row=row, column=3, sticky=W)
+        ToolTip(smtpSetupButton, text=_("Enter/edit settings of outgoing e-mail server (SMTP)."), wraplength=240)
         row += 1
         label(frame, 1, row, "Latest pub date:")
         pubdate = getattr(options,"latestPubDate",None)
@@ -185,6 +189,12 @@ class DialogRssWatch(Toplevel):
             self.options["rssWatchLogFileDir"] = os.path.dirname(filename)
             self.cellLogFile.setValue(filename)
         
+    def setupSmtp(self):
+        from arelle.DialogUserPassword import askSmtp
+        smtpSettings = askSmtp(self, self.options.get("smtpEmailSettings",()))
+        if smtpSettings:
+            self.options["smtpEmailSettings"] = smtpSettings
+        
     def clearPubDate(self):
         self.cellLatestPubDate.setValue("")
         
@@ -204,6 +214,8 @@ class DialogRssWatch(Toplevel):
         if self.cellEmailAddress.value:
             if not emailPattern.match(self.cellEmailAddress.value):
                 errors.append(_("E-mail address format error").format(self.cellLogFile.value))
+            if not self.options.get("smtpEmailSettings"):
+                errors.append(_("Please enter E-mail server settings (SMTP)"))
         if self.cellLatestPubDate.value and dateTime(self.cellLatestPubDate.value) is None:
             errors.append(_("Latest pub date field contents invalid"))
         if errors:
