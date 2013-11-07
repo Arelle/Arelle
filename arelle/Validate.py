@@ -114,14 +114,20 @@ class Validate:
                 for pluginXbrlMethod in pluginClassMethods("Validate.RssItem"):
                     pluginXbrlMethod(self, modelXbrl, rssItem)
                 modelXbrl.close()
-                del modelXbrl  # completely dereference
             except Exception as err:
                 self.modelXbrl.error("exception",
                     _("RSS item validation exception: %(error)s, instance: %(instance)s"),
                     modelXbrl=(self.modelXbrl, modelXbrl),
                     instance=rssItem.zippedUrl, error=err,
                     exc_info=True)
-
+                try:
+                    self.instValidator.close()
+                    if modelXbrl is not None:
+                        modelXbrl.close()
+                except Exception as err:
+                    pass
+            del modelXbrl  # completely dereference
+   
     def validateTestcase(self, testcase):
         self.modelXbrl.info("info", "Testcase", modelDocument=testcase)
         self.modelXbrl.viewModelObject(testcase.objectId())
