@@ -31,6 +31,7 @@ from arelle import (DialogURL, DialogLanguage,
                     DialogPluginManager, DialogPackageManager,
                     ModelDocument,
                     ModelManager,
+                    PackageManager,
                     RenderingEvaluator,
                     ViewWinDTS,
                     ViewWinProperties, ViewWinConcepts, ViewWinRelationshipSet, ViewWinFormulae,
@@ -369,7 +370,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             pass
 
     def loadFileMenuHistory(self):
-        self.fileMenu.delete(self.fileMenuLength, self.fileMenuLength + 1)
+        self.fileMenu.delete(self.fileMenuLength, self.fileMenuLength + 2)
         fileHistory = self.config.setdefault("fileHistory", [])
         self.recentFilesMenu = Menu(self.menubar, tearoff=0)
         for i in range( min( len(fileHistory), 10 ) ):
@@ -384,7 +385,22 @@ class CntlrWinMain (Cntlr.Cntlr):
                  label=importHistory[i], 
                  command=lambda j=i: self.fileOpenFile(self.config["importHistory"][j],importToDTS=True))
         self.fileMenu.add_cascade(label=_("Recent imports"), menu=self.recentAttachMenu, underline=0)
+        self.packagesMenu = Menu(self.menubar, tearoff=0)
+        hasPackages = False
+        for packageInfo in sorted(PackageManager.packagesConfig.get("packages", []),
+                                  key=lambda packageInfo: packageInfo.get("name")):
+            name = packageInfo.get("name", "package{}".format(i))
+            URL = packageInfo.get("URL")
+            if name and URL and packageInfo.get("status") == "enabled":
+                self.packagesMenu.add_command(
+                     label=name, 
+                     command=lambda url=URL: self.fileOpenFile(url))
+                hasPackages = True
+        if hasPackages:
+            self.fileMenu.add_cascade(label=_("Packages"), menu=self.packagesMenu, underline=0)
        
+    def onPackageEnablementChanged(self):
+        self.loadFileMenuHistory()
         
     def fileNew(self, *ignore):
         if not self.okayToContinue():

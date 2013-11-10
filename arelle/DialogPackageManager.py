@@ -221,6 +221,7 @@ class DialogPackageManager(Toplevel):
         if self.packagesConfigChanged:
             PackageManager.packagesConfig = self.packagesConfig
             PackageManager.packagesConfigChanged = True
+            self.cntlr.onPackageEnablementChanged()
         self.close()
         
     def close(self, event=None):

@@ -240,6 +240,7 @@ class DialogOpenArchive(Toplevel):
                           remapping if isHttpUrl(remapping)
                           else (self.filesource.baseurl + os.sep + self.metadataFilePrefix +remapping.replace("/", os.sep)))
                           for prefix, remapping in self.taxonomyPackage["remappings"].items())
+            filename = None
             if self.openType in (ARCHIVE, DISCLOSURE_SYSTEM):
                 filename = self.filenames[int(selection[0][4:])]
                 if isinstance(filename,tuple):
@@ -247,24 +248,33 @@ class DialogOpenArchive(Toplevel):
                         filename = filename[4]
                     else:
                         filename = filename[0]
-                if not filename.endswith("/"):
-                    self.filesource.select(filename)
-                    self.accepted = True
-                    self.close()
             elif self.openType == ENTRY_POINTS:
                 epName = selection[0]
                 #index 0 is the remapped Url, as opposed to the canonical one used for display
-                urlOrFile = self.taxonomyPackage["nameToUrls"][epName][0]
+                filename = self.taxonomyPackage["nameToUrls"][epName][0]
                     
-                if not urlOrFile.endswith("/"):
+                if not filename.endswith("/"):
                     # check if it's an absolute URL rather than a path into the archive
-                    if isHttpUrl(urlOrFile):
-                        self.filesource.select(urlOrFile)  # absolute path selection
-                    else:
+                    if not isHttpUrl(filename):
                         # assume it's a path inside the archive:
-                        self.filesource.select(self.metadataFilePrefix + urlOrFile)
-                    self.accepted = True
-                    self.close()
+                        filename = self.metadataFilePrefix + filename
+            if filename is not None and not filename.endswith("/"):
+                if hasattr(self, "taxonomyPackage"):
+                    # attempt to unmap the filename to original file
+                    # will be mapped again in loading, but this allows schemaLocation to be unmapped
+                    for prefix, remapping in self.taxonomyPackage["remappings"].items():
+                        if isHttpUrl(remapping):
+                            remapStart = remapping
+                        else:
+                            remapStart = self.metadataFilePrefix + remapping
+                        if filename.startswith(remapStart):
+                            # set unmmapped file
+                            filename = prefix + filename[len(remapStart):]
+                            break
+                self.filesource.select(filename)
+                self.accepted = True
+                self.close()
+                        
         
     def close(self, event=None):
         self.parent.focus_set()

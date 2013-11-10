@@ -396,6 +396,10 @@ class Cntlr:
     def rssWatchUpdateOption(self, **args):
         """Notification to change rssWatch options, as passed in, usually from a modal dialog."""
         pass
+    
+    def onPackageEnablementChanged(self):
+        """Notification that package enablement changed, usually from a modal dialog."""
+        pass
         
     # default web authentication password
     def internet_user_password(self, host, realm):
