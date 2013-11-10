@@ -53,7 +53,7 @@ class WatchRss:
     def watchCycle(self):
         logFile = self.rssModelXbrl.modelManager.rssWatchOptions.get("logFileUri")
         if logFile:
-            self.cntlr.startLogging(logFileName=os.path.splitext(logFile)[0] + ".txt",
+            self.cntlr.startLogging(logFileName=logFile,
                                     logFileMode = "a",
                                     logFormat="[%(messageCode)s] %(message)s - %(file)s",
                                     logLevel="DEBUG")
