@@ -82,11 +82,13 @@ def init(modelXbrl):
                 for tblAxisRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201305, XbrlConst.tableBreakdown201301,XbrlConst.tableAxis2011)).fromModelObject(modelTable):
                     breakdownAspectsCovered = set()
                     hasCoveredAspect = checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisRel.axisDisposition, uncoverableAspects, breakdownAspectsCovered)
+                    ''' removed 2013-10
                     if not hasCoveredAspect:
                         definitionNode = tblAxisRel.toModelObject
                         modelXbrl.error("xbrlte:breakdownDefinesNoAspects",
                             _("Breakdown %(xlinkLabel)s has no participating aspects"),
                             modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel, axis=definitionNode.localName)
+                    '''
                     aspectsCovered |= breakdownAspectsCovered
                     checkBreakdownLeafNodeAspects(modelXbrl, modelTable, tblAxisRel, set(), breakdownAspectsCovered)
                 if Aspect.CONCEPT not in aspectsCovered and not hasNsWithAspectModel:

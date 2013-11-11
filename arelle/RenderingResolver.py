@@ -457,7 +457,10 @@ def expandDefinition(view, structuralNode, definitionNode, depth, axisDispositio
                 if axisDisposition == "z":
                     if structuralNode.choiceStructuralNodes:
                         choiceNodeIndex = view.zOrdinateChoices.get(definitionNode, 0)
-                        if choiceNodeIndex < len(structuralNode.choiceStructuralNodes):
+                        if isinstance(choiceNodeIndex, dict):  # aspect entry for open node
+                            structuralNode.aspects = choiceNodeIndex
+                            structuralNode.choiceNodeIndex = -1
+                        elif choiceNodeIndex < len(structuralNode.choiceStructuralNodes):
                             structuralNode.choiceNodeIndex = choiceNodeIndex
                         else:
                             structuralNode.choiceNodeIndex = 0

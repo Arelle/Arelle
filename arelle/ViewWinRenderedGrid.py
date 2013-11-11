@@ -13,6 +13,7 @@ from arelle.RenderingResolver import resolveAxesStructure
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelRenderingObject import (ModelClosedDefinitionNode, ModelEuAxisCoord, ModelTable,
+                                         ModelFilterDefinitionNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.FormulaEvaluator import aspectMatches
 
@@ -212,13 +213,30 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                 valueHeaders = [''.ljust(zChoiceStructuralNode.indent * 4) + # indent if nested choices 
                                 (zChoiceStructuralNode.header(lang=self.lang) or '')
                                 for zChoiceStructuralNode in zStructuralNode.choiceStructuralNodes]
+                zAxisIsOpenExplicitDimension = False
+                aspect = None
+                for aspect in zStructuralNode.aspectsCovered():
+                    if aspect != Aspect.DIMENSIONS:
+                        break
+                # for open filter nodes of explicit dimension allow selection of all values
+                if isinstance(zStructuralNode.definitionNode, ModelFilterDefinitionNode):
+                    if isinstance(aspect, QName):
+                        dimConcept = self.modelXbrl.qnameConcepts[aspect]
+                        if dimConcept.isExplicitDimension:
+                            valueHeaders.append("(all members)")
+                            zAxisIsOpenExplicitDimension = True
+                i = zStructuralNode.choiceNodeIndex # for aspect entry, use header selected
                 combobox = gridCombobox(
                              self.gridColHdr, self.dataFirstCol + 2, row,
                              values=valueHeaders,
-                             selectindex=zStructuralNode.choiceNodeIndex,
+                             value=None if i >= 0 else zStructuralNode.aspects.get('aspectValueLabel'),
+                             selectindex=zStructuralNode.choiceNodeIndex if i >= 0 else None,
                              columnspan=2,
-                             comboboxselected=self.onComboBoxSelected)
+                             comboboxselected=self.onZComboBoxSelected)
                 combobox.zStructuralNode = zStructuralNode
+                combobox.zAxisIsOpenExplicitDimension = zAxisIsOpenExplicitDimension
+                combobox.zAxisAspectEntryMode = False
+                combobox.zAxisAspect = aspect
                 combobox.zChoiceOrdIndex = row - 1
                 combobox.objectId = hdr.objectId = zStructuralNode.objectId()
                 gridBorder(self.gridColHdr, self.dataFirstCol + 3, row, RIGHTBORDER)
@@ -235,11 +253,24 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         else:
                             zAspectStructuralNodes[aspect].add(zStructuralNode)
             
-    def onComboBoxSelected(self, *args):
-        combobox = args[0].widget
-        self.zOrdinateChoices[combobox.zStructuralNode._definitionNode] = \
-            combobox.zStructuralNode.choiceNodeIndex = combobox.valueIndex
-        self.view() # redraw grid
+    def onZComboBoxSelected(self, event):
+        combobox = event.widget
+        structuralNode = combobox.zStructuralNode
+        if combobox.zAxisAspectEntryMode:
+            aspectValue = structuralNode.aspectEntryHeaderValues.get(combobox.value)
+            if aspectValue is not None:
+                self.zOrdinateChoices[combobox.zStructuralNode._definitionNode] = \
+                    structuralNode.aspects = {combobox.zAxisAspect: aspectValue, 'aspectValueLabel': combobox.value}
+                self.view() # redraw grid
+        elif combobox.zAxisIsOpenExplicitDimension and combobox.value == "(all members)":
+            # reload combo box
+            self.comboboxLoadExplicitDimension(combobox, combobox.zStructuralNode)
+            structuralNode.choiceNodeIndex = -1 # use entry aspect value
+            combobox.zAxisAspectEntryMode = True
+        else:
+            self.zOrdinateChoices[combobox.zStructuralNode._definitionNode] = \
+                combobox.zStructuralNode.choiceNodeIndex = combobox.valueIndex
+            self.view() # redraw grid
             
     def xAxis(self, leftCol, topRow, rowBelow, xParentStructuralNode, xStructuralNodes, childrenFirst, renderNow, atTop):
         if xParentStructuralNode is not None:
@@ -384,7 +415,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                      self.gridRowHdr, leftCol, row, 
                                      values=self.aspectEntryValues(yStructuralNode),  
                                      width=int(max(wraplength/16, 5)), # width is in characters, not screen units
-                                     objectId=yStructuralNode.aspectEntryObjectId)
+                                     objectId=yStructuralNode.aspectEntryObjectId,
+                                     comboboxselected=self.onAspectComboboxSelection)
                         if isNonAbstract:
                             for i, role in enumerate(self.rowHdrNonStdRoles):
                                 isCode = "code" in role
@@ -711,7 +743,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             value = gridCell.value
             # is aspect in a childStructuralNode? 
             if value:
-                aspectValue = self.aspectEntryValues(structuralNode, value, aspect)
+                aspectValue = structuralNode.aspectEntryHeaderValues.get(value)
                 if aspectValue is None: # try converting value
                     if isinstance(aspect, QName): # dimension
                         dimConcept = self.modelXbrl.qnameConcepts[aspect]
@@ -726,7 +758,10 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     aspectValues[aspect] = aspectValue
         return aspectValues
     
-    def aspectEntryValues(self, structuralNode, findHeader=None, aspect=None):
+    def aspectEntryValues(self, structuralNode):
+        for aspect in structuralNode.aspectsCovered():
+            if aspect != Aspect.DIMENSIONS:
+                break
         # if findHeader is None, return all header values in a list
         # otherwise return aspect value matching header if any
         depth = 0
@@ -736,7 +771,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             root = n = n.parentStructuralNode
             
         headers = set()
-        aspectValue = []
+        headerValues = {}
         def getHeaders(n, d):
             for childStructuralNode in n.childStructuralNodes:
                 if d == depth:
@@ -744,19 +779,48 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                                    returnGenLabel=False, 
                                                    returnMsgFormatString=False)
                     if not childStructuralNode.isEntryPrototype() and h:
-                        if (findHeader is not None and
-                            h == findHeader): # find aspect value
-                            aspectValue.append(childStructuralNode.aspectValue(aspect))
-                            break
+                        headerValues[h] = childStructuralNode.aspectValue(aspect)
                         headers.add(h)
                 else:
                     getHeaders(childStructuralNode, d+1)
-                    if findHeader and aspectValue:
-                        break
         getHeaders(root, 1)
             
-        if findHeader:
-            if aspectValue:
-                return aspectValue[0]
-            return None
-        return sorted(headers)
+        structuralNode.aspectEntryHeaderValues = headerValues       
+        # is this an explicit dimension, if so add "(all members)" option at end
+        headersList = sorted(headers)
+        if isinstance(aspect, QName): # dimension
+            dimConcept = self.modelXbrl.qnameConcepts[aspect]
+            if dimConcept.isExplicitDimension:
+                headersList.append("(all members)")
+        return headersList
+
+    def onAspectComboboxSelection(self, event):
+        gridCombobox = event.widget
+        if gridCombobox.value == "(all members)":
+            self.loadComboboxExplicitDimension(gridCombobox, self.aspectEntryObjectIdsNode[gridCombobox.objectId])
+            
+    def comboboxLoadExplicitDimension(self, gridCombobox, structuralNode):
+        for aspect in structuralNode.aspectsCovered():
+            if isinstance(aspect, QName): # dimension
+                break
+        if structuralNode is not None:
+            valueHeaders = set()
+            headerValues = {}
+            relationships = concept_relationships(self.modelXbrl.rendrCntx, 
+                                 None, 
+                                 (aspect,
+                                  "XBRL-all-linkroles", # linkrole,
+                                  "XBRL-dimensions",
+                                  'descendant'),
+                                 False) # return flat list
+            for rel in relationships:
+                if (rel.arcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember)
+                    and rel.isUsable):
+                    header = rel.toModelObject.label(lang=self.lang)
+                    valueHeaders.add(header)
+                    headerValues[header] = rel.toModelObject.qname
+            structuralNode.aspectEntryHeaderValues = headerValues       
+            gridCombobox["values"] = sorted(valueHeaders)
+                
+# import after other modules resolved to prevent circular references
+from arelle.FunctionXfi import concept_relationships

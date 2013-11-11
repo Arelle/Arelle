@@ -128,10 +128,16 @@ class StructuralNode:
     def aspectValue(self, aspect, inherit=True, dims=None, depth=0, tagSelectors=None):
         xc = self._rendrCntx
         if self.choiceStructuralNodes:  # use aspects from choice structural node
-            chosenStructuralNode = self.choiceStructuralNodes[getattr(self,"choiceNodeIndex",0)]
-            aspects = chosenStructuralNode.aspects
-            definitionNode = chosenStructuralNode._definitionNode
-            contextItemBinding = chosenStructuralNode.contextItemBinding
+            choiceNodeIndex = getattr(self,"choiceNodeIndex",0)
+            if choiceNodeIndex != -1:
+                chosenStructuralNode = self.choiceStructuralNodes[choiceNodeIndex]
+                aspects = chosenStructuralNode.aspects
+                definitionNode = chosenStructuralNode._definitionNode
+                contextItemBinding = chosenStructuralNode.contextItemBinding
+            else: # aspect entry mode
+                aspects = self.aspects
+                definitionNode = self.choiceStructuralNodes[0]._definitionNode
+                contextItemBinding = None
         else:
             aspects = self.aspects
             definitionNode = self._definitionNode
