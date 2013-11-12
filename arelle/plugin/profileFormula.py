@@ -1,5 +1,5 @@
 '''
-Save DTS is an example of a plug-in to GUI menu that will profile formula execution.
+Profile Formula Validation is an example of a plug-in to GUI menu that will profile formula execution.
 
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''

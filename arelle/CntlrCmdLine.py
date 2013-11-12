@@ -482,7 +482,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
         hasUtilityPlugin = False
         for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Utility.Run"):
             hasUtilityPlugin = True
-            pluginXbrlMethod(self, options)
+            try:
+                pluginXbrlMethod(self, options, sourceZipStream=sourceZipStream)
+            except SystemExit: # terminate operation, plug in has terminated all processing
+                return True # success
             
         # if no entrypointFile is applicable, quit now
         if options.proxy or options.plugins or hasUtilityPlugin:
