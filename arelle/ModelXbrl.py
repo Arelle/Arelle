@@ -914,7 +914,7 @@ class ModelXbrl:
             elif argName == "sourceLine":
                 if isinstance(argValue, _INT_TYPES):    # must be sortable with int's in logger
                     extras["sourceLine"] = argValue
-            elif argName != "exc_info":
+            elif argName not in ("exc_info", "messageCodes"):
                 if isinstance(argValue, (ModelValue.QName, ModelObject, bool, FileNamedStringIO,
                                          # might be a set of lxml objects not dereferencable at shutdown 
                                          tuple, list, set)):
@@ -982,10 +982,11 @@ class ModelXbrl:
         
         Args must include a named argument for each msg %(namedArg)s replacement.
         
-        :param codes: Error code or tuple/list of error codes
+        :param codes: Message code or tuple/list of message codes
         :type codes: str or [str]
         :param msg: Message text string to be formatted and replaced with named parameters in **args
         :param **args: Named arguments including modelObject, modelXbrl, or modelDocument, named arguments in msg string, and any exec_info argument.
+        :param messageCodes: If first parameter codes, above, is dynamically formatted, this is a documentation string of the message codes only used for extraction of the message catalog document (not used in run-time processing).
         """
         self.log('ERROR', codes, msg, **args)
 

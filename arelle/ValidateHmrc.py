@@ -173,7 +173,8 @@ class ValidateHmrc(ValidateXbrl.ValidateXbrl):
                            "13"),
                            ):
                     if name not in items:
-                        modelXbrl.error("HMRC.{0}".format(ref), msg, modelObject=modelXbrl)
+                        modelXbrl.error("HMRC.{0}".format(ref), msg, modelObject=modelXbrl,
+                                        messageCodes=("HMRC.01","HMRC.03","HMRC.06","HMRC.09","HMRC.10","HMRC.12","HMRC.13"))
                 if ("DateApprovalAccounts" not in gaapItems and
                     "DateAuthorisationFinancialStatementsForIssue" not in ifrsItems):
                     modelXbrl.error("HMRC.07",

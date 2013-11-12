@@ -127,18 +127,21 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 if not self.fileNameBasePart:
                     modelXbrl.error((self.EFM60303, "GFM.1.01.01"),
                         _('Invalid instance document base name part (ticker or mnemonic name) in "{base}-{yyyymmdd}.xml": %(filename)s'),
-                        modelObject=modelXbrl.modelDocument, filename=modelXbrl.modelDocument.basename)
+                        modelObject=modelXbrl.modelDocument, filename=modelXbrl.modelDocument.basename,
+                        messageCodes=("EFM.6.03.03", "EFM.6.23.01", "GFM.1.01.01"))
                 else:
                     try:
                         self.fileNameDate = datetime.datetime.strptime(self.fileNameDatePart,"%Y%m%d").date()
                     except ValueError:
                         modelXbrl.error((self.EFM60303, "GFM.1.01.01"),
                             _('Invalid instance document base name part (date) in "{base}-{yyyymmdd}.xml": %(filename)s'),
-                            modelObject=modelXbrl.modelDocument, filename=modelXbrl.modelDocument.basename)
+                            modelObject=modelXbrl.modelDocument, filename=modelXbrl.modelDocument.basename,
+                            messageCodes=("EFM.6.03.03", "EFM.6.23.01", "GFM.1.01.01"))
             else:
                 modelXbrl.error((self.EFM60303, "GFM.1.01.01"),
                     _('Invalid instance document name, must match "{base}-{yyyymmdd}.xml": %(filename)s'),
-                    modelObject=modelXbrl.modelDocument, filename=modelXbrl.modelDocument.basename)
+                    modelObject=modelXbrl.modelDocument, filename=modelXbrl.modelDocument.basename,
+                    messageCodes=("EFM.6.03.03", "EFM.6.23.01", "GFM.1.01.01"))
             
             #6.5.1 scheme, 6.5.2, 6.5.3 identifier
             entityIdentifierValue = None
@@ -863,7 +866,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                          "EX-101":"EFM.6.23.04",
                                          "EX-2.01":"EFM.6.23.05"}.get(self.exhibitType,"EX-101"),
                             _("The value for dei:DocumentType, %(documentType)s, is not allowed for %(exhibitType)s attachments."),
-                            modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, exhibitType=self.exhibitType)
+                            modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, exhibitType=self.exhibitType,
+                            messageCodes=("EFM.6.23.04", "EFM.6.23.04", "EFM.6.23.05"))
                     
                 # 6.5.21
                 for doctypesRequired, deiItemsRequired in (
@@ -914,7 +918,12 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                                   else "EFM.6.05.21"),
                                                 _("dei:%(elementName)s is required for DocumentType '%(documentType)s' of context %(contextID)s"),
                         modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType,
-                        elementName=deiItem)
+                        elementName=deiItem,
+                        messageCodes=("EFM.6.05.21.CurrentFiscalYearEndDate", "EFM.6.05.21.DocumentFiscalPeriodFocus", "EFM.6.05.21.DocumentFiscalYearFocus",
+                                      "EFM.6.05.21.EntityRegistrantName", "EFM.6.05.21.EntityCentralIndexKey",
+                                      "EFM.6.05.21.EntityCurrentReportingStatus", "EFM.6.05.21.EntityFilerCategory", "EFM.6.05.21.EntityPublicFloat", 
+                                      "EFM.6.05.21.EntityVoluntaryFilers", "EFM.6.05.21.EntityWellKnownSeasonedIssuer",
+                                      "EFM.6.23.36", "EFM.6.05.21"))
                                 
                 if documentType in {"10-K", "10-KT", "10-Q", "10-QT", "20-F", "40-F",
                                     "10-K/A", "10-KT/A", "10-Q/A", "10-QT/A", "20-F/A", "40-F/A"}:
@@ -1119,7 +1128,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 not relSet.isRelated(dom, "descendant", f.xValue, isDRS=True)):
                                 modelXbrl.error(errCode,
                                     _("The %(fact)s %(value)s in context %(context)s is not a %(domain)s."),
-                                    modelObject=f, fact=priItem, value=f.xValue, context=f.context.id, domain=dom)
+                                    modelObject=f, fact=priItem, value=f.xValue, context=f.context.id, domain=dom,
+                                    messageCodes=("EFM.6.23.30", "EFM.6.23.31", "EFM.6.23.33", "EFM.6.23.34"))
                     self.modelXbrl.profileActivity("... SD checks 30, 31, 33, 34", minTimeToShow=1.0)
                     cntxEqualFacts = defaultdict(list)
                     for f in modelXbrl.facts:
@@ -1140,7 +1150,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             if context.hasDimension(dim) and (priItem not in qnameFacts or qnameFacts[priItem].isNil): 
                                 modelXbrl.error(errCode,
                                     _("The Context %(context)s has dimension %(dimension)s member %(member)s but is missing required fact %(fact)s"),
-                                    modelObject=context, context=context.id, dimension=dim, member=context.dimMemberQname(dim), fact=priItem)
+                                    modelObject=context, context=context.id, dimension=dim, member=context.dimMemberQname(dim), fact=priItem,
+                                    messageCodes=("EFM.6.23.20", "EFM.6.23.22"))
                         if (rxd.Co in qnameFacts and not qnameFacts[rxd.Co].isNil and
                             not domMemRelSet.isRelated(qnAllCountriesDomain, "descendant", qnameFacts[rxd.Co].xValue, isDRS=True)):
                             modelXbrl.error("EFM.6.23.44",

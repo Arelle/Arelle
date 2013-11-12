@@ -149,7 +149,8 @@ class ValidateXbrl:
                             _("Arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s attribute '%(attribute)s' has no matching loc or resource label"),
                             modelObject=arcElt, 
                             linkrole=modelLink.role, xlinkLabelFrom=fromLabel, xlinkLabelTo=toLabel, 
-                            attribute=name)
+                            attribute=name,
+                            messageCodes=("xbrl.3.5.3.9.2:arcResource", "xbrl.3.5.3.9.3:arcResource"))
                 if arcElt.localName == "footnoteArc" and arcElt.namespaceURI == XbrlConst.link and \
                    arcElt.get("{http://www.w3.org/1999/xlink}arcrole") == XbrlConst.factFootnote:
                     if fromLabel not in locLabels:
@@ -242,7 +243,10 @@ class ValidateXbrl:
                         modelXbrl.error(specSect,
                             _("Relationships have a %(cycle)s cycle in arcrole %(arcrole)s \nlink role %(linkrole)s \nlink %(linkname)s, \narc %(arcname)s, \npath %(path)s"),
                             modelObject=cycleFound[1:pathEndsAt], cycle=cycleFound[0], path=path,
-                            arcrole=arcrole, linkrole=ELR, linkname=linkqname, arcname=arcqname), 
+                            arcrole=arcrole, linkrole=ELR, linkname=linkqname, arcname=arcqname,
+                            messageCodes=("xbrlgene:violatedCyclesConstraint", "xbrl.5.1.4.3:cycles",
+                                          # from XbrlCoinst.standardArcroleCyclesAllowed
+                                          "xbrl.5.2.4.2", "xbrl.5.2.5.2", "xbrl.5.2.6.2.1", "xbrl.5.2.6.2.1", "xbrl.5.2.6.2.3", "xbrl.5.2.6.2.4")) 
                         break
                 
             # check calculation arcs for weight issues (note calc arc is an "any" cycles)
@@ -267,7 +271,8 @@ class ValidateXbrl:
                                     _("Calculation relationship has illegal weight %(weight)s from %(source)s, %(sourceBalance)s, to %(target)s, %(targetBalance)s, in link role %(linkrole)s (per 5.1.1.2 Table 6)"),
                                     modelObject=modelRel, weight=weight,
                                     source=fromConcept.qname, target=toConcept.qname, linkrole=ELR, 
-                                    sourceBalance=fromBalance, targetBalance=toBalance)
+                                    sourceBalance=fromBalance, targetBalance=toBalance,
+                                    messageCodes=("xbrl.5.1.1.2:balanceCalcWeightIllegalNegative", "xbrl.5.1.1.2:balanceCalcWeightIllegalPositive"))
                         if not fromConcept.isNumeric or not toConcept.isNumeric:
                             modelXbrl.error("xbrl.5.2.5.2:nonNumericCalc",
                                 _("Calculation relationship has illegal concept from %(source)s%(sourceNumericDecorator)s to %(target)s%(targetNumericDecorator)s in link role %(linkrole)s"),
@@ -689,7 +694,7 @@ class ValidateXbrl:
                         _("Fact %(fact)s context %(contextID)s can not have both precision and decimals"),
                         modelObject=f, fact=f.qname, contextID=f.contextID)
                 if hasDecimals and not self.decimalsPattern.match(decimals):
-                    self.modelXbrl.error(_("xbrl.4.6.5:decimals"),
+                    self.modelXbrl.error("xbrl.4.6.5:decimals",
                         _("Fact %(fact)s context %(contextID)s decimals %(decimals)s is invalid"),
                         modelObject=f, fact=f.qname, contextID=f.contextID, decimals=decimals)
                 if concept.isItem:
@@ -756,7 +761,7 @@ class ValidateXbrl:
                     # custom attributes may be allowed by anyAttribute but not by 2.1
                     for attrQname, attrValue in XbrlUtil.attributes(self.modelXbrl, f):
                         if attrQname.namespaceURI in (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl):
-                            self.modelXbrl.error(_("xbrl.4.9:tupleAttribute"),
+                            self.modelXbrl.error("xbrl.4.9:tupleAttribute",
                                 _("Fact %(fact)s is a tuple and must not have attribute in this namespace %(attribute)s"),
                                 modelObject=f, fact=f.qname, attribute=attrQname), 
                 else:
@@ -874,13 +879,15 @@ class ValidateXbrl:
             if element.namespaceURI == XbrlConst.xbrli:
                 self.modelXbrl.error("xbrl.{0}:{1}XbrliElement".format(sect,name),
                     _("Context %(contextID)s %(contextElement)s cannot have xbrli element %(elementName)s"),
-                    modelObject=element, contextID=contextId, contextElement=name, elementName=element.prefixedName)
+                    modelObject=element, contextID=contextId, contextElement=name, elementName=element.prefixedName,
+                    messageCodes=("xbrl.4.7.3.2:segmentXbrliElement", "xbrl.4.7.4:scenarioXbrliElement"))
             else:
                 concept = self.modelXbrl.qnameConcepts.get(qname(element))
                 if concept is not None and (concept.isItem or concept.isTuple):
                     self.modelXbrl.error("xbrl.{0}:{1}ItemOrTuple".format(sect,name),
                         _("Context %(contextID)s %(contextElement)s cannot have item or tuple element %(elementName)s"),
-                        modelObject=element, contextID=contextId, contextElement=name, elementName=element.prefixedName)
+                        modelObject=element, contextID=contextId, contextElement=name, elementName=element.prefixedName,
+                        messageCodes=("xbrl.4.7.3.2:segmentItemOrTuple", "xbrl.4.7.4:scenarioItemOrTuple"))
         hasChild = False
         for child in element.iterchildren():
             if isinstance(child,ModelObject):
@@ -889,7 +896,8 @@ class ValidateXbrl:
         if topLevel and not hasChild:
             self.modelXbrl.error("xbrl.{0}:{1}Empty".format(sect,name),
                 _("Context %(contextID)s %(contextElement)s cannot be empty"),
-                modelObject=element, contextID=contextId, contextElement=name)
+                modelObject=element, contextID=contextId, contextElement=name,
+                messageCodes=("xbrl.4.7.3.2:segmentEmpty", "xbrl.4.7.4:scenarioEmpty"))
         
     def isGenericObject(self, elt, genQname):
         return self.modelXbrl.isInSubstitutionGroup(qname(elt),genQname)

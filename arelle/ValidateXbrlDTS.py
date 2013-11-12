@@ -210,7 +210,8 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
                                              linkElt.localName),
                                  _("%(linkElement)s loc href %(locHref)s must identify a concept or label"),
                                  modelObject=hrefElt, linkElement=linkElt.localName,
-                                 locHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
+                                 locHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"),
+                                 messageCodes=("xbrl.5.2.2.1:labelLinkLocTarget", "xbrl.5.2.3.1:referenceLinkLocTarget", "xbrl.5.2.5.1:calculationLinkLocTarget", "xbrl.5.2.6.1:definitionLinkLocTarget", "xbrl.5.2.4.1:presentationLinkLocTarget", "xbrl.4.11.1.1:footnoteLinkLocTarget"))
                         if isInstance and not XmlUtil.isDescendantOf(hrefedElt, modelDocument.xmlRootElement):
                             val.modelXbrl.error("xbrl.4.11.1.1:instanceLoc",
                                 _("Instance loc's href %(locHref)s not an element in same instance"),
@@ -371,7 +372,8 @@ def checkElements(val, modelDocument, parent):
                                     val.modelXbrl.error("SBR.NL.{0}".format(errCode),
                                         _('Schema element %(concept)s %(requirement)s contain attribute %(attribute)s'),
                                         modelObject=elt, concept=elt.get("name"), 
-                                        requirement=(_("MUST NOT"),_("MUST"))[presence], attribute=attr)
+                                        requirement=(_("MUST NOT"),_("MUST"))[presence], attribute=attr,
+                                        messageCodes=("SBR.NL.2.2.2.09", "SBR.NL.2.2.2.10", "SBR.NL.2.2.2.11", "SBR.NL.2.2.2.12"))
                             eltName = elt.get("name")
                             if eltName is not None: # skip for concepts which are refs
                                 type = qname(elt, elt.get("type"))
@@ -394,7 +396,8 @@ def checkElements(val, modelDocument, parent):
                                             val.modelXbrl.error("SBR.NL.{0}".format(errCode),
                                                 _('Schema root element %(concept)s %(requirement)s contain attribute %(attribute)s'),
                                                 modelObject=elt, concept=elt.get("name"), 
-                                                requirement=(_("MUST NOT"),_("MUST"))[presence], attribute=attr)
+                                                requirement=(_("MUST NOT"),_("MUST"))[presence], attribute=attr,
+                                                messageCodes=("SBR.NL.2.2.2.08", "SBR.NL.2.2.2.13", "SBR.NL.2.2.2.15", "SBR.NL.2.2.2.18"))
                                 # semantic checks
                                 if elt.isTuple:
                                     val.hasTuple = True
@@ -509,7 +512,9 @@ def checkElements(val, modelDocument, parent):
                                                                   "complexContent":10, "complexType":11, "extension":12, "field":13, "group":14, "key":15, "keyref":16,
                                                                   "list":17, "notation":18, "redefine":20, "selector":22, "unique":23}[localName]),
                             _('Schema file element must not be used "%(element)s"'),
-                            modelObject=elt, element=elt.qname)
+                            modelObject=elt, element=elt.qname,
+                            messageCodes=("SBR.NL.2.2.11.1", "SBR.NL.2.2.11.2", "SBR.NL.2.2.11.3", "SBR.NL.2.2.11.4", "SBR.NL.2.2.11.7", "SBR.NL.2.2.11.10", "SBR.NL.2.2.11.11", "SBR.NL.2.2.11.12", 
+                                          "SBR.NL.2.2.11.13", "SBR.NL.2.2.11.14", "SBR.NL.2.2.11.15", "SBR.NL.2.2.11.16", "SBR.NL.2.2.11.17", "SBR.NL.2.2.11.18", "SBR.NL.2.2.11.20", "SBR.NL.2.2.11.22", "SBR.NL.2.2.11.23"))
                     if val.inSchemaTop:
                         if localName in schemaBottom:
                             val.inSchemaTop = False
@@ -527,17 +532,20 @@ def checkElements(val, modelDocument, parent):
                     if not parent.localName == "appinfo" and parent.namespaceURI == XbrlConst.xsd:
                         val.modelXbrl.error("xbrl.{0}:{1}Appinfo".format(xbrlSection,elt.localName),
                             _("%(element)s not child of xsd:appinfo"),
-                            modelObject=elt, element=elt.qname)
+                            modelObject=elt, element=elt.qname,
+                            messageCodes=("xbrl.5.1.3:roleTypeAppinfo", "xbrl.5.1.4:arcroleTypeAppinfo"))
                     else: # parent is appinfo, element IS in the right location
                         roleURI = elt.get(uriAttr)
                         if roleURI is None or not UrlUtil.isValid(roleURI):
                             val.modelXbrl.error("xbrl.{0}:{1}Missing".format(xbrlSection,uriAttr),
                                 _("%(element)s missing or invalid %(attribute)s"),
-                                modelObject=elt, element=elt.qname, attribute=uriAttr)
+                                modelObject=elt, element=elt.qname, attribute=uriAttr,
+                                messageCodes=("xbrl.5.1.3:roleTypeMissing", "xbrl.5.1.4:arcroleTypeMissing"))
                         if roleURI in localRoleTypes:
                             val.modelXbrl.error("xbrl.{0}:{1}Duplicate".format(xbrlSection,elt.localName),
                                 _("Duplicate %(element)s %(attribute)s %(roleURI)s"),
-                                modelObject=elt, element=elt.qname, attribute=uriAttr, roleURI=roleURI)
+                                modelObject=elt, element=elt.qname, attribute=uriAttr, roleURI=roleURI,
+                                messageCodes=("xbrl.5.1.3:roleTypeDuplicate", "xbrl.5.1.4:arcroleTypeDuplicate"))
                         else:
                             localRoleTypes[roleURI] = elt
                         for otherRoleType in roleTypes[roleURI]:
@@ -545,13 +553,15 @@ def checkElements(val, modelDocument, parent):
                                 val.modelXbrl.error("xbrl.{0}:{1}s-inequality".format(xbrlSection,elt.localName),
                                     _("%(element)s %(roleURI)s not s-equal in %(otherSchema)s"),
                                     modelObject=elt, element=elt.qname, roleURI=roleURI,
-                                    otherSchema=otherRoleType.modelDocument.basename)
+                                    otherSchema=otherRoleType.modelDocument.basename,
+                                    messageCodes=("xbrl.5.1.3:roleTypes-inequality", "xbrl.5.1.4:arcroleTypes-inequality"))
                         if elt.localName == "arcroleType":
                             cycles = elt.get("cyclesAllowed")
                             if cycles not in ("any", "undirected", "none"):
                                 val.modelXbrl.error("xbrl.{0}:{1}CyclesAllowed".format(xbrlSection,elt.localName),
                                     _("%(element)s %(roleURI)s invalid cyclesAllowed %(value)s"),
-                                    modelObject=elt, element=elt.qname, roleURI=roleURI, value=cycles)
+                                    modelObject=elt, element=elt.qname, roleURI=roleURI, value=cycles,
+                                    messageCodes=("xbrl.5.1.3:roleTypeCyclesAllowed", "xbrl.5.1.4:arcroleTypeCyclesAllowed"))
                             if val.validateSBRNL:
                                 val.modelXbrl.error("SBR.NL.2.2.4.01",
                                         _('ArcroleType is not allowed %(roleURI)s'),
@@ -579,7 +589,8 @@ def checkElements(val, modelDocument, parent):
                             else:
                                 val.modelXbrl.error("xbrl.{0}:{1}s-inequality".format(xbrlSection,elt.localName),
                                     _("%(element)s %(roleURI)s usedOn %(value)s on has s-equal duplicate"),
-                                    modelObject=elt, element=elt.qname, roleURI=roleURI, value=qName)
+                                    modelObject=elt, element=elt.qname, roleURI=roleURI, value=qName,
+                                    messageCodes=("xbrl.5.1.3:roleTypes-inequality", "xbrl.5.1.4:arcroleTypes-inequality"))
                             if val.validateSBRNL:
                                 val.valUsedPrefixes.add(qName.prefix)
                                 if qName == XbrlConst.qnLinkCalculationLink:
@@ -623,7 +634,8 @@ def checkElements(val, modelDocument, parent):
                     elif not (parentIsLinkbase or isInstance or elt.parentQname == XbrlConst.qnIXbrlResources):
                         val.modelXbrl.info("info:{1}Location".format(xbrlSection,elt.localName),
                             _("Link:%(elementName)s not child of link:linkbase or xbrli:instance"),
-                            modelObject=elt, elementName=elt.localName)
+                            modelObject=elt, elementName=elt.localName,
+                            messageCodes=("info:roleRefLocation", "info:arcroleRefLocation"))
                     else: # parent is linkbase or instance, element IS in the right location
         
                         # check for duplicate roleRefs when parent is linkbase or instance element
@@ -633,22 +645,26 @@ def checkElements(val, modelDocument, parent):
                         if refUri == "":
                             val.modelXbrl.error("xbrl.3.5.2.4.5:{0}Missing".format(elt.localName),
                                 _("%(element)s %(refURI)s missing"),
-                                modelObject=elt, element=elt.qname, refURI=refUri)
+                                modelObject=elt, element=elt.qname, refURI=refUri,
+                                messageCodes=("xbrl.3.5.2.4.5:roleRefMissing", "xbrl.3.5.2.4.5:arcroleRefMissing"))
                         elif refUri in refs:
                             val.modelXbrl.error("xbrl.3.5.2.4.5:{0}Duplicate".format(elt.localName),
                                 _("%(element)s is duplicated for %(refURI)s"),
-                                modelObject=elt, element=elt.qname, refURI=refUri)
+                                modelObject=elt, element=elt.qname, refURI=refUri,
+                                messageCodes=("xbrl.3.5.2.4.5:roleRefDuplicate", "xbrl.3.5.2.4.5:arcroleRefDuplicate"))
                         elif refUri not in roleTypeDefs:
                             val.modelXbrl.error("xbrl.3.5.2.4.5:{0}NotDefined".format(elt.localName),
                                 _("%(element)s %(refURI)s is not defined"),
-                                modelObject=elt, element=elt.qname, refURI=refUri)
+                                modelObject=elt, element=elt.qname, refURI=refUri,
+                                messageCodes=("xbrl.3.5.2.4.5:roleRefNotDefined", "xbrl.3.5.2.4.5:arcroleRefNotDefined"))
                         else:
                             refs[refUri] = hrefUri
                             roleTypeElt = elt.resolveUri(uri=hrefAttr)
                             if roleTypeElt not in roleTypeDefs[refUri]:
                                 val.modelXbrl.error("xbrl.3.5.2.4.5:{0}Mismatch".format(elt.localName),
                                     _("%(element)s %(refURI)s defined with different URI"),
-                                    modelObject=(elt,roleTypeElt), element=elt.qname, refURI=refUri)
+                                    modelObject=(elt,roleTypeElt), element=elt.qname, refURI=refUri,
+                                messageCodes=("xbrl.3.5.2.4.5:roleRefMismatch", "xbrl.3.5.2.4.5:arcroleRefMismatch"))
                             
                         
                         if val.validateDisclosureSystem:
@@ -662,14 +678,16 @@ def checkElements(val, modelDocument, parent):
                                         if elt.get(attrName):
                                             val.modelXbrl.error(errCode,
                                                 _("Arcrole %(refURI)s arcroleRef %(xlinkHref)s must not have an %(attribute)s attribute"),
-                                                modelObject=elt, refURI=refUri, xlinkHref=hrefUri, attribute=attrName)
+                                                modelObject=elt, refURI=refUri, xlinkHref=hrefUri, attribute=attrName,
+                                                messageCodes=("SBR.NL.2.3.2.05", "SBR.NL.2.3.2.06"))
                             elif elt.localName == "roleRef":
                                 if val.validateSBRNL:
                                     for attrName, errCode in (("{http://www.w3.org/1999/xlink}arcrole","SBR.NL.2.3.10.09"),("{http://www.w3.org/1999/xlink}role","SBR.NL.2.3.10.10")):
                                         if elt.get(attrName):
                                             val.modelXbrl.error(errCode,
                                                 _("Role %(refURI)s roleRef %(xlinkHref)s must not have an %(attribute)s attribute"),
-                                                modelObject=elt, refURI=refUri, xlinkHref=hrefUri, attribute=attrName)
+                                                modelObject=elt, refURI=refUri, xlinkHref=hrefUri, attribute=attrName,
+                                                messageCodes=("SBR.NL.2.3.10.09", "SBR.NL.2.3.10.10"))
                     if val.validateSBRNL:
                         if not xlinkType:
                             val.modelXbrl.error("SBR.NL.2.3.0.01",
@@ -691,8 +709,9 @@ def checkElements(val, modelDocument, parent):
                     for name in ("{http://www.w3.org/1999/xlink}role", "{http://www.w3.org/1999/xlink}arcrole"):
                         if elt.get(name) == "":
                             val.modelXbrl.error("xbrl.3.5.1.2:simpleLink" + name,
-                                _("Element %(element)shas empty %(attribute)s"),
-                                modelObject=elt, attribute=name)
+                                _("Element %(element)s has empty %(attribute)s"),
+                                modelObject=elt, attribute=name,
+                                messageCodes=("xbrl.3.5.1.2:simpleLink{http://www.w3.org/1999/xlink}role", "xbrl.3.5.1.2:simpleLink{http://www.w3.org/1999/xlink}arcrole"))
                     if elt.localName == "linkbaseRef" and \
                         elt.get("{http://www.w3.org/1999/xlink}arcrole") != XbrlConst.xlinkLinkbase:
                             val.modelXbrl.error("xbrl.4.3.3:linkbaseRefArcrole",
@@ -708,7 +727,8 @@ def checkElements(val, modelDocument, parent):
                         if elt.get(name) is None:
                             val.modelXbrl.error(errName,
                                 _("Element %(element)s missing: %(attribute)s"),
-                                modelObject=elt, element=elt.qname, attribute=name)
+                                modelObject=elt, element=elt.qname, attribute=name,
+                                messageCodes=("xbrl.3.5.3.7.2:linkLocHref","xbrl.3.5.3.7.3:linkLocLabel"))
                 elif xlinkType == "resource":
                     if elt.localName == "footnote" and elt.get("{http://www.w3.org/XML/1998/namespace}lang") is None:
                         val.modelXbrl.error("xbrl.4.11.1.2.1:footnoteLang",
@@ -760,7 +780,8 @@ def checkElements(val, modelDocument, parent):
                         if xlinkRole not in definedRoles:
                             val.modelXbrl.error(errCode,
                                 _("Standard role %(xlinkRole)s is not defined for %(element)s"),
-                                modelObject=elt, xlinkRole=xlinkRole, element=elt.qname)
+                                modelObject=elt, xlinkRole=xlinkRole, element=elt.qname,
+                                messageCodes=("xbrl.5.2.2.2.2", "xbrl.5.2.3.2.1", "xbrl.4.11.1.2", "xbrl.4.3.4", "xbrl.3.5.3.7"))
                 else:  # custom role
                     if xlinkRole not in val.roleRefURIs:
                         if XbrlConst.isStandardResourceOrExtLinkElement(elt):
@@ -782,7 +803,7 @@ def checkElements(val, modelDocument, parent):
                                 _("Role %(xlinkRole)s missing usedOn for %(element)s"),
                                 modelObject=elt, xlinkRole=xlinkRole, element=elt.qname)
                         elif val.isGenericLink(elt):
-                            val.modelXbrl.error(_("xbrlgene:missingLinkRoleUsedOnValue"),
+                            val.modelXbrl.error("xbrlgene:missingLinkRoleUsedOnValue",
                                 _("Generic link role %(xlinkRole)s missing usedOn for {2}"),
                                 modelObject=elt, xlinkRole=xlinkRole, element=elt.qname)
                         elif val.isGenericResource(elt):
@@ -846,7 +867,8 @@ def checkElements(val, modelDocument, parent):
                       parent.namespaceURI == XbrlConst.link and parent.localName in link_loc_spec_sections): 
                     val.modelXbrl.error("xbrl.{0}:customLocator".format(link_loc_spec_sections[parent.localName]),
                         _("Element %(element)s is a custom locator in a standard %(link)s"),
-                        modelObject=(elt,parent), element=elt.qname, link=parent.qname)
+                        modelObject=(elt,parent), element=elt.qname, link=parent.qname,
+                        messageCodes=("xbrl.5.2.2.1:customLocator", "xbrl.5.2.3.1:customLocator", "xbrl.5.2.5.1:customLocator", "xbrl.5.2.6.1:customLocator", "xbrl.5.2.4.1:customLocator", "xbrl.4.11.1.1:customLocator"))
                 
             if xlinkType == "resource":
                 if not elt.get("{http://www.w3.org/1999/xlink}label"):
@@ -859,7 +881,8 @@ def checkElements(val, modelDocument, parent):
                     if not elt.get(name):
                         val.modelXbrl.error(errName,
                             _("Element %(element)s missing xlink:%(attribute)s"),
-                            modelObject=elt, element=elt.qname, attribute=name)
+                            modelObject=elt, element=elt.qname, attribute=name,
+                            messageCodes=("xbrl.3.5.3.9.2:arcFrom", "xbrl.3.5.3.9.2:arcTo"))
                 if val.modelXbrl.hasXDT and elt.get("{http://xbrl.org/2005/xbrldt}targetRole") is not None:
                     targetRole = elt.get("{http://xbrl.org/2005/xbrldt}targetRole")
                     if not XbrlConst.isStandardRole(targetRole) and \
@@ -876,7 +899,8 @@ def checkElements(val, modelDocument, parent):
                         _("Element %(element)s %(xlinkLabel)s has unauthorized xml:lang='%(lang)s'"),
                         modelObject=elt, element=elt.qname,
                         xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"),
-                        lang=elt.get("{http://www.w3.org/XML/1998/namespace}lang"))
+                        lang=elt.get("{http://www.w3.org/XML/1998/namespace}lang"),
+                        messageCodes=("SBR.NL.2.3.8.01", "SBR.NL.2.3.8.02", "arelle:langError"))
                  
             if isInstance:
                 if elt.namespaceURI == XbrlConst.xbrli:
@@ -1141,7 +1165,8 @@ def checkElements(val, modelDocument, parent):
                                     modelObject=elt, 
                                     xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
                                     xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"), 
-                                    arcrole=arcrole), 
+                                    arcrole=arcrole,
+                                    messageCodes=("SBR.NL.2.3.2.02", "SBR.NL.2.3.2.03", "SBR.NL.2.3.2.04")), 
                         elif elt.localName == "referenceArc" and val.validateSBRNL:
                             if elt.get("order"):
                                 val.modelXbrl.error("SBR.NL.2.3.3.05",
@@ -1205,7 +1230,8 @@ def checkElements(val, modelDocument, parent):
                                     _("%(fileType)s element %(element)s must not have xmlns:%(prefix)s"),
                                     modelObject=elt, element=elt.qname, 
                                     fileType="schema" if isSchema else "linkbase" ,
-                                    prefix=prefix)
+                                    prefix=prefix,
+                                    messageCodes=("SBR.NL.2.2.0.19", "SBR.NL.2.3.1.01"))
                             
                     if elt.localName == "roleType" and not elt.get("id"): 
                         val.modelXbrl.error("SBR.NL.2.3.10.11",
@@ -1218,7 +1244,8 @@ def checkElements(val, modelDocument, parent):
                     elif elt.localName == "documentation": 
                         val.modelXbrl.error("SBR.NL.2.3.10.12" if elt.namespaceURI == XbrlConst.link else "SBR.NL.2.2.11.02",
                             _("Documentation element must not be used: %(value)s"),
-                            modelObject=elt, value=XmlUtil.text(elt))
+                            modelObject=elt, value=XmlUtil.text(elt),
+                            messageCodes=("SBR.NL.2.3.10.12", "SBR.NL.2.2.11.02"))
                     if elt.localName == "linkbase":
                         schemaLocation = elt.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
                         if schemaLocation:
@@ -1235,14 +1262,16 @@ def checkElements(val, modelDocument, parent):
                             if elt.get(attrName) is not None: 
                                 val.modelXbrl.error(errCode,
                                     _("Linkbase element %(element)s must not have attribute %(attribute)s"),
-                                    modelObject=elt, element=elt.qname, attribute=attrName)
+                                    modelObject=elt, element=elt.qname, attribute=attrName,
+                                    messageCodes=("SBR.NL.2.3.10.04", "SBR.NL.2.3.10.05", "SBR.NL.2.3.10.06", "SBR.NL.2.3.10.07"))
                     for attrName, errCode in (("{http://www.w3.org/1999/xlink}actuate", "SBR.NL.2.3.10.01"),
                                               ("{http://www.w3.org/1999/xlink}show", "SBR.NL.2.3.10.02"),
                                               ("{http://www.w3.org/1999/xlink}title", "SBR.NL.2.3.10.03")):
                         if elt.get(attrName) is not None: 
                             val.modelXbrl.error(errCode,
                                 _("Linkbase element %(element)s must not have attribute xlink:%(attribute)s"),
-                                modelObject=elt, element=elt.qname, attribute=attrName)
+                                modelObject=elt, element=elt.qname, attribute=attrName,
+                                messageCodes=("SBR.NL.2.3.10.01", "SBR.NL.2.3.10.02", "SBR.NL.2.3.10.03"))
     
             checkElements(val, modelDocument, elt)
         elif isinstance(elt,ModelComment): # comment node
@@ -1250,7 +1279,8 @@ def checkElements(val, modelDocument, parent):
                 if elt.itersiblings(preceding=True):
                     val.modelXbrl.error("SBR.NL.2.2.0.05" if isSchema else "SBR.NL.2.3.0.05",
                             _('%(fileType)s must have only one comment node before schema element: "%(value)s"'),
-                            modelObject=elt, fileType=modelDocument.gettype().title(), value=elt.text)
+                            modelObject=elt, fileType=modelDocument.gettype().title(), value=elt.text,
+                            messageCodes=("SBR.NL.2.2.0.05", "SBR.NL.2.3.0.05"))
 
     # dereference at end of processing children of instance linkbase
     if isInstance or parentIsLinkbase:

@@ -65,7 +65,8 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
                 xpCtx.inScopeVars[XbrlConst.qnEaTestExpression] = varSet.test
                 xpCtx.modelXbrl.info("message:" + (varSet.id or varSet.xlinkLabel or _("unlabeled variableSet")),
                     msg.evaluate(xpCtx),
-                    modelObject=varSet)
+                    modelObject=varSet,
+                    messageCodes=("message:{variableSetID|xlinkLabel}"))
                 xpCtx.inScopeVars.pop(XbrlConst.qnEaTestExpression)
         if xpCtx.formulaOptions.traceVariableSetExpressionResult and initialTraceCount == xpCtx.modelXbrl.logCount.get(logging.getLevelName('INFO'), 0):
             xpCtx.modelXbrl.info("formula:trace",
@@ -175,7 +176,8 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                     xpCtx.inScopeVars[XbrlConst.qnVaTestExpression] = varSet.test
                     xpCtx.modelXbrl.info("message:" + (varSet.id or varSet.xlinkLabel or _("unlabeled variableSet")),
                         msg.evaluate(xpCtx),
-                        modelObject=varSet)
+                        modelObject=varSet,
+                        messageCodes=("message:{variableSetID|xlinkLabel}"))
                     xpCtx.inScopeVars.pop(XbrlConst.qnVaTestExpression)
                 traceOf = "Value Assertion"
             if xpCtx.formulaOptions.traceVariableSetExpressionResult:

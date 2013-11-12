@@ -611,11 +611,13 @@ def checkDTS(val, modelDocument, visited):
             except ValueError:
                 val.modelXbrl.error((val.EFM60303, "GFM.1.01.01"),
                     _('Invalid schema file base name part (date) in "{base}-{yyyymmdd}.xsd": %(filename)s'),
-                    modelObject=modelDocument, filename=modelDocument.basename)
+                    modelObject=modelDocument, filename=modelDocument.basename,
+                    messageCodes=("EFM.6.03.03", "EFM.6.23.01", "GFM.1.01.01"))
         else:
             val.modelXbrl.error((val.EFM60303, "GFM.1.01.01"),
                 _('Invalid schema file name, must match "{base}-{yyyymmdd}.xsd": %(filename)s'),
-                modelObject=modelDocument, filename=modelDocument.basename)
+                modelObject=modelDocument, filename=modelDocument.basename,
+                messageCodes=("EFM.6.03.03", "EFM.6.23.01", "GFM.1.01.01"))
 
     elif modelDocument.type == ModelDocument.Type.LINKBASE:
         # if it is part of the submission (in same directory) check name
@@ -646,11 +648,13 @@ def checkDTS(val, modelDocument, visited):
                     except ValueError:
                         val.modelXbrl.error((val.EFM60303, "GFM.1.01.01"),
                             _('Invalid linkbase base file name part (date) in "{base}-{yyyymmdd}_{suffix}.xml": %(filename)s'),
-                            modelObject=modelDocument, filename=modelDocument.basename)
+                            modelObject=modelDocument, filename=modelDocument.basename,
+                            messageCodes=("EFM.6.03.03", "EFM.6.23.01", "GFM.1.01.01"))
                 else:
                     val.modelXbrl.error((val.EFM60303, "GFM.1.01.01"),
                         _('Invalid linkbase name, must match "{base}-{yyyymmdd}%(expectedSuffix)s.xml": %(filename)s'),
-                        modelObject=modelDocument, filename=modelDocument.basename, expectedSuffix=expectedSuffix)
+                        modelObject=modelDocument, filename=modelDocument.basename, expectedSuffix=expectedSuffix,
+                        messageCodes=("EFM.6.03.03", "EFM.6.23.01", "GFM.1.01.01"))
     visited.remove(modelDocument)
     
 def tupleCycle(val, concept, ancestorTuples=None):

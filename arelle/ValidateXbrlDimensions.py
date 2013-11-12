@@ -273,7 +273,8 @@ def checkContext(val, cntx):
                 val.modelXbrl.error("xbrldie:TypedMemberNotTypedDimensionError" if modelDimValue.isTyped else "xbrldie:ExplicitMemberNotExplicitDimensionError",
                     _("Context %(contextID)s %(dimension)s %(value)s is not an appropriate dimension item"),
                     modelObject=logDimAndFacts(modelDimValue), contextID=cntx.id, 
-                    dimension=modelDimValue.prefixedName, value=modelDimValue.dimensionQname)
+                    dimension=modelDimValue.prefixedName, value=modelDimValue.dimensionQname,
+                    messageCodes=("xbrldie:TypedMemberNotTypedDimensionError", "xbrldie:ExplicitMemberNotExplicitDimensionError"))
             if modelDimValue.isExplicit:
                 memberConcept = modelDimValue.member
                 if memberConcept is None or not memberConcept.isGlobalDeclaration:
