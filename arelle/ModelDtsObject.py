@@ -64,6 +64,8 @@ import decimal
 from arelle import (XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue, XmlValidate)
 from arelle.ModelObject import ModelObject
 
+ModelFact = None
+
 class ModelRoleType(ModelObject):
     """
     .. class:: ModelRoleType(modelDocument)
@@ -764,7 +766,9 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     @property
     def propertyView(self):
         return (("label", self.label(lang=self.modelXbrl.modelManager.defaultLang)),
+                ("namespace", self.qname.namespaceURI),
                 ("name", self.name),
+                ("QName", self.qname),
                 ("id", self.id),
                 ("abstract", self.abstract),
                 ("type", self.typeQname),
@@ -1267,7 +1271,9 @@ class ModelType(ModelNamableTerm):
     
     @property
     def propertyView(self):
-        return (("name", self.name),
+        return (("namespace", self.qname.namespaceURI),
+                ("name", self.name),
+                ("QName", self.qname),
                 ("xsd type", self.baseXsdType),
                 ("derived from", self.qnameDerivedFrom),
                 ("facits", self.facets))
@@ -1521,6 +1527,19 @@ class ModelLocator(ModelResource):
         href's element, modelDocument, id"""
         return self.resolveUri(self.modelHref)
     
+    @property
+    def propertyView(self):
+        global ModelFact
+        if ModelFact is None:
+            from arelle.ModelInstanceObject import ModelFact
+        hrefObj = self.dereference()
+        if isinstance(hrefObj,(ModelFact,ModelConcept)):
+            return (("href", hrefObj.qname ), )
+        elif isinstance(hrefObj, ModelResource):
+            return (("href", hrefObj.viewText()),)
+        else:
+            return hrefObj.propertyView
+
 class RelationStatus:
     Unknown = 0
     EFFECTIVE = 1
@@ -1914,7 +1933,8 @@ class ModelRelationship(ModelObject):
                 ("usable", self.usable) if self.arcrole == XbrlConst.domainMember  else (),
                 ("targetRole", self.targetRole) if self.arcrole.startswith(XbrlConst.dimStartsWith) else (),
                 ("order", self.order),
-                ("priority", self.priority))
+                ("priority", self.priority)) + \
+               (("from", self.fromModelObject.qname),) if isinstance(self.fromModelObject,ModelConcept) else ()
         
     def __repr__(self):
         return ("modelRelationship[{0}, linkrole: {1}, arcrole: {2}, from: {3}, to: {4}, {5}, line {6}]"

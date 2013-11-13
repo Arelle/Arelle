@@ -433,9 +433,12 @@ class ModelFact(ModelObject):
             concept = self.concept
             lbl = (("label", concept.label(lang=self.modelXbrl.modelManager.defaultLang)),)
         except (KeyError, AttributeError):
-            lbl = (("name", self.qname),)
+            lbl = ()
         return lbl + (
-               (("contextRef", self.contextID, self.context.propertyView if self.context is not None else ()),
+               (("namespace", self.qname.namespaceURI),
+                ("name", self.qname.localName),
+                ("QName", self.qname),
+                ("contextRef", self.contextID, self.context.propertyView if self.context is not None else ()),
                 ("unitRef", self.unitID, self.unit.propertyView if self.isNumeric and self.unit is not None else ()),
                 ("decimals", self.decimals),
                 ("precision", self.precision),
