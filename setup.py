@@ -233,6 +233,7 @@ elif sys.platform == 'win32':
         win32includeFiles.append('QuickBooks.qwc')
     options = dict( build_exe =  {
         "include_files": win32includeFiles,
+        "include_msvcr": True, # include MSVCR100
         "icon": 'arelle\\images\\arelle16x16and32x32.ico',
         "packages": packages,
         #
