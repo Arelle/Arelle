@@ -116,8 +116,9 @@ class ValidateXbrlCalcs:
                                             if fact in self.duplicatedFacts:
                                                 dupBindingKeys.add(itemBindKey)
                                             else:
-                                                boundSums[itemBindKey] += roundFact(fact, self.inferDecimals) * weight
-                                                boundSummationItems[itemBindKey].append(wrappedFactWithWeight(fact,weight))
+                                                roundedValue = roundFact(fact, self.inferDecimals)
+                                                boundSums[itemBindKey] += roundedValue * weight
+                                                boundSummationItems[itemBindKey].append(wrappedFactWithWeight(fact,weight,roundedValue))
                             for sumBindKey in boundSumKeys:
                                 ancestor, contextHash, unit = sumBindKey
                                 factKey = (sumConcept, ancestor, contextHash, unit)
@@ -132,9 +133,10 @@ class ValidateXbrlCalcs:
                                             if roundedItemsSum  != roundFact(fact, self.inferDecimals):
                                                 d = inferredDecimals(fact)
                                                 if isnan(d) or isinf(d): d = 4
+                                                _boundSummationItems = boundSummationItems[sumBindKey]
                                                 self.modelXbrl.log('INCONSISTENCY', "xbrl.5.2.5.2:calcInconsistency",
                                                     _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s"),
-                                                    modelObject=[fact] + boundSummationItems[sumBindKey], 
+                                                    modelObject=wrappedSummationAndItems(fact, roundedSum, _boundSummationItems),
                                                     concept=sumConcept.qname, linkrole=ELR, 
                                                     linkroleDefinition=self.modelXbrl.roleTypeDefinition(ELR),
                                                     reportedSum=Locale.format_decimal(self.modelXbrl.locale, roundedSum, 1, max(d,0)),
@@ -414,5 +416,20 @@ def roundValue(value, precision=None, decimals=None):
     return vRounded
 
 
-def wrappedFactWithWeight(fact, weight):
-    return ObjectPropertyViewWrapper(fact, ( ("weight", weight), ) )
+def wrappedFactWithWeight(fact, weight, roundedValue):
+    return ObjectPropertyViewWrapper(fact, ( ("weight", weight), ("roundedValue", roundedValue)) )
+
+def wrappedSummationAndItems(fact, roundedSum, boundSummationItems):
+    # need hash of facts and their values from boundSummationItems
+    itemValuesHash = hash( tuple(( hash(b.modelObject.qname), hash(b.extraProperties[1][1]) )
+                                 # sort by qname so we don't care about reordering of summation terms
+                                 for b in sorted(boundSummationItems,
+                                                       key=lambda b: b.modelObject.qname)) )
+    sumValueHash = hash( (hash(fact.qname), hash(roundedSum)) )
+    # return list of bound summation followed by bound contributing items
+    return [ObjectPropertyViewWrapper(fact,
+                                      ( ("sumValueHash", sumValueHash),
+                                        ("itemValuesHash", itemValuesHash),
+                                        ("roundedSum", roundedSum) ))] + \
+            boundSummationItems
+                    
