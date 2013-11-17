@@ -37,7 +37,7 @@ def helloCommandLineOptionExtender(parser):
                       dest="hello_dolly", 
                       help=_('Print a random lyric from "Hello, Dolly"'))
 
-def helloCommandLineUtilityRun(cntlr, options):
+def helloCommandLineUtilityRun(cntlr, options, **kwargs):
     if getattr(options, "hello_dolly", False):
         hello_dolly = randomLyric();
         try:
