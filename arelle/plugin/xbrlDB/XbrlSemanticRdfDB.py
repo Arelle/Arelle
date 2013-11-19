@@ -53,6 +53,7 @@ TRACERDFFILE = None
 #TRACERDFFILE = r"c:\temp\rdfDBtrace.log"  # uncomment to trace RDF on connection (very big file!!!)
 
 RDFTURTLEFILE_HOSTNAME = "rdfTurtleFile"
+RDFXMLFILE_HOSTNAME = "rdfXmlFile"
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
@@ -71,7 +72,7 @@ def insertIntoDB(modelXbrl,
         raise # reraise original exception with original traceback    
     
 def isDBPort(host, port, db, timeout=10):
-    if host == RDFTURTLEFILE_HOSTNAME:
+    if host in (RDFTURTLEFILE_HOSTNAME, RDFXMLFILE_HOSTNAME):
         return True
     # determine if postgres port
     t = 2
@@ -179,7 +180,8 @@ class XbrlSemanticRdfDatabaseConnection():
         #self.conn = RexProConnection(host, int(port or '8182'), (database or 'emptygraph'),
         #                             user=user, password=password)
         self.isRdfTurtleFile = host == RDFTURTLEFILE_HOSTNAME
-        if self.isRdfTurtleFile:
+        self.isRdfXmlFile = host == RDFXMLFILE_HOSTNAME
+        if self.isRdfTurtleFile or self.isRdfXmlFile:
             self.turtleFile = database
         else:
             connectionUrl = "http://{0}:{1}".format(host, port or '80')
@@ -199,7 +201,7 @@ class XbrlSemanticRdfDatabaseConnection():
         
     def close(self, rollback=False):
         try:
-            if not self.isRdfTurtleFile:
+            if not (self.isRdfTurtleFile or self.isRdfXmlFile):
                 self.conn.close()
             self.__dict__.clear() # dereference everything
         except Exception as ex:
@@ -240,7 +242,8 @@ class XbrlSemanticRdfDatabaseConnection():
             headers = {'User-agent':   'Arelle/1.0',
                        'Accept':       'application/sparql-results+json',
                        'Content-Type': "text/turtle; charset='UTF-8'"}
-            data = graph.serialize(format='turtle', encoding='utf=8')
+            data = graph.serialize(format='pretty-xml' if self.isRdfXmlFile else 'turtle', 
+                                   encoding='utf=8')
         elif query is not None:
             headers = {'User-agent':   'Arelle/1.0',
                        'Accept':       'application/sparql-results+json'}
@@ -252,7 +255,7 @@ class XbrlSemanticRdfDatabaseConnection():
             with io.open(TRACERDFFILE, "ab") as fh:
                 fh.write(b"\n\n>>> sent: \n")
                 fh.write(data)
-        if self.isRdfTurtleFile and data is not None:
+        if (self.isRdfTurtleFile or self.isRdfXmlFile) and data is not None:
             with io.open(self.turtleFile, "ab") as fh:
                 fh.write(data)
             return None
@@ -415,7 +418,7 @@ class XbrlSemanticRdfDatabaseConnection():
         
     def identifyPreexistingDocuments(self):
         self.existingDocumentUris = set()
-        if not self.isRdfTurtleFile:
+        if not (self.isRdfTurtleFile or self.isRdfXmlFile):
             docFilters = []
             for modelDocument in self.modelXbrl.urlDocs.values():
                 if modelDocument.type == Type.SCHEMA:

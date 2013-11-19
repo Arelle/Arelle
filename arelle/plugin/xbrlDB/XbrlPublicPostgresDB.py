@@ -106,7 +106,18 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
         missingTables = XBRLDBTABLES - self.tablesInDB()
         # if no tables, initialize database
         if missingTables == XBRLDBTABLES:
-            self.create()
+            self.create("xbrlPublicPostgresDB.ddl")
+            
+            # load fixed tables
+            self.getTable('enumeration_arcrole_cycles_allowed', 'enumeration_arcrole_cycles_allowed_id', 
+                          ('description',), ('description',),
+                          (('any',), ('undirected',), ('none',)))
+            self.getTable('enumeration_element_balance', 'enumeration_element_balance_id', 
+                          ('description',), ('description',),
+                          (('credit',), ('debit',)))
+            self.getTable('enumeration_element_period_type', 'enumeration_element_period_type_id', 
+                          ('description',), ('description',),
+                          (('instant',), ('duration',), ('forever',)))
             missingTables = XBRLDBTABLES - self.tablesInDB()
         if missingTables:
             raise XPDBException("xpgDB:MissingTables",
@@ -148,11 +159,25 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
             raise
             
     def insertAccession(self, rssItem):
+        self.accessionId = "(TBD)"
+        self.showStatus("insert accession")
         if rssItem is None:
-            self.accessionId = int(time.time())    # only available if entered from an SEC filing
+            _time = time.time()
+            now = datetime.datetime.fromtimestamp(_time)
+            today = datetime.date(now.year, now.month, now.day)
+            table = self.getTable('accession', 'accession_id', 
+                                  ('filing_date','entity_id','creation_software', 
+                                   'entry_url', 'filing_accession_number'), 
+                                  ('filing_accession_number',), 
+                                  ((today,  # NOT NULL
+                                    0,  # NOT NULL
+                                    self.modelXbrl.modelDocument.creationSoftwareComment,
+                                    self.modelXbrl.uri,
+                                    str(int(_time))  # NOT NULL
+                                    ),),
+                                  checkIfExisting=True,
+                                  returnExistenceStatus=True)
         else:
-            self.accessionId = "(TBD)"
-            self.showStatus("insert accession")
             table = self.getTable('accession', 'accession_id', 
                                   ('accepted_timestamp', 'is_most_current', 'filing_date','entity_id', 
                                    'entity_name', 'creation_software', 'standard_industrial_classification', 
@@ -169,10 +194,12 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                                     rssItem.url,
                                     rssItem.accessionNumber or 'UNKNOWN'  # NOT NULL
                                     ),),
-                                  checkIfExisting=True)
-            for id, filing_accession_number in table:
-                self.accessionId = id
-                break
+                                  checkIfExisting=True,
+                                  returnExistenceStatus=True)
+        for id, filing_accession_number, existenceStatus in table:
+            self.accessionId = id
+            self.accessionPreviouslyInDB = existenceStatus
+            break
         
     def insertUris(self):
         uris = (_DICT_SET(self.modelXbrl.namespaceDocs.keys()) |
@@ -491,7 +518,7 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                           self.qnameId.get(rel.preferredLabel) if rel.preferredLabel else None)
                          for rel, sequence, depth, networkId in dbRels
                          if rel.fromModelObject is not None and rel.toModelObject is not None)
-        dbRels.clear() # dererefence
+        del dbRels[:]   # dererefence
         table = self.getTable('relationship', 'relationship_id', 
                               ('network_id', 'from_element_id', 'to_element_id', 'reln_order', 
                                'from_resource_id', 'to_resource_id', 'calculation_weight', 
@@ -501,18 +528,19 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
 
     def insertFacts(self):
         accsId = self.accessionId
-        self.showStatus("deleting prior facts of this accession")
-        # remove prior facts
-        self.execute("DELETE FROM fact WHERE fact.accession_id = {};".format(accsId), 
-                     close=False, fetch=False)
-        self.execute("DELETE from unit_measure "
-                     "USING unit "
-                     "WHERE unit.accession_id = {0} AND unit_measure.unit_id = unit.unit_id;".format(accsId), 
-                     close=False, fetch=False)
-        self.execute("DELETE from unit WHERE unit.accession_id = {0};".format(accsId), 
-                     close=False, fetch=False)
-        self.execute("DELETE from context WHERE context.accession_id = {0};".format(accsId), 
-                     close=False, fetch=False)
+        if self.accessionPreviouslyInDB:
+            self.showStatus("deleting prior facts of this accession")
+            # remove prior facts
+            self.execute("DELETE FROM fact WHERE fact.accession_id = {};".format(accsId), 
+                         close=False, fetch=False)
+            self.execute("DELETE from unit_measure "
+                         "USING unit "
+                         "WHERE unit.accession_id = {0} AND unit_measure.unit_id = unit.unit_id;".format(accsId), 
+                         close=False, fetch=False)
+            self.execute("DELETE from unit WHERE unit.accession_id = {0};".format(accsId), 
+                         close=False, fetch=False)
+            self.execute("DELETE from context WHERE context.accession_id = {0};".format(accsId), 
+                         close=False, fetch=False)
         self.showStatus("insert facts")
         # units
         table = self.getTable('unit', 'unit_id', 

@@ -14,11 +14,11 @@ from pg8000.errors import (CursorClosedError, ConnectionClosedError, Programming
 
 
 TRACESQLFILE = None
-TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
+#TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
 
 
 def pyBoolFromDbBool(str):
-    return str in ("TRUE", "t")
+    return str in ("TRUE", "t", True)  # may be DB string or Python boolean (preconverted)
 
 def pyNoneFromDbNULL(str):
     return None
@@ -136,12 +136,12 @@ class SqlDbConnection():
             self.closeCursor()
         return result
     
-    def create(self):
+    def create(self, ddlFile):
         # drop tables
         startedAt = time.time()
         self.showStatus("Dropping prior tables")
         for table in self.tablesInDB():
-            result = self.execute('DROP TABLE %s' % table[0],
+            result = self.execute('DROP TABLE %s' % table,
                                   close=False, commit=False, fetch=False)
         self.showStatus("Dropping prior sequences")
         for sequence in self.sequencesInDB():
@@ -150,7 +150,7 @@ class SqlDbConnection():
         self.modelXbrl.profileStat(_("XbrlPublicDB: drop prior tables"), time.time() - startedAt)
                     
         startedAt = time.time()
-        with io.open(os.path.dirname(__file__) + os.sep + "xbrlPublicPostgresDB.ddl", 
+        with io.open(os.path.dirname(__file__) + os.sep + ddlFile, 
                      'rt', encoding='utf-8') as fh:
             sql = fh.read().replace('%', '%%')
         # separate dollar-quoted bodies and statement lines
@@ -179,12 +179,14 @@ class SqlDbConnection():
             i = sql.find(dollarescape, j)
             if i > j: # found end of match
                 i += len(dollarescape)
-                stmt += dollarescape + sql[j:i]
+                stmt += sql[j:i]
+                sqlstatements.append(stmt)
                 # problem with driver and $$ statements, skip them (for now)
                 stmt = ''
         for i, sql in enumerate(sqlstatements):
             if any(cmd in sql
                    for cmd in ('CREATE TABLE', 'CREATE SEQUENCE', 'INSERT INTO',
+                               'CREATE FUNCTION',
                                'CREATE INDEX', 'CREATE UNIQUE INDEX' # 'ALTER TABLE ONLY'
                                )):
                 statusMsg, sep, rest = sql.strip().partition('\n')
@@ -197,16 +199,6 @@ class SqlDbConnection():
                                  .format(i, sql, result))
                         fh.write(sql)
                 """
-        # fixed tables
-        self.getTable('enumeration_arcrole_cycles_allowed', 'enumeration_arcrole_cycles_allowed_id', 
-                      ('description',), ('description',),
-                      (('any',), ('undirected',), ('none',)))
-        self.getTable('enumeration_element_balance', 'enumeration_element_balance_id', 
-                      ('description',), ('description',),
-                      (('credit',), ('debit',)))
-        self.getTable('enumeration_element_period_type', 'enumeration_element_period_type_id', 
-                      ('description',), ('description',),
-                      (('instant',), ('duration',), ('forever',)))
         self.showStatus("")
         self.conn.commit()
         self.modelXbrl.profileStat(_("XbrlPublicDB: create tables"), time.time() - startedAt)
@@ -254,7 +246,7 @@ class SqlDbConnection():
                                              for typename in (fulltype.partition(' ')[0],))
         return self.tableColTypes[table]
     
-    def getTable(self, table, idCol, newCols=None, matchCols=None, data=None, commit=False, comparisonOperator='=', checkIfExisting=False):
+    def getTable(self, table, idCol, newCols=None, matchCols=None, data=None, commit=False, comparisonOperator='=', checkIfExisting=False, returnExistenceStatus=False):
         # generate SQL
         # note: comparison by = will never match NULL fields
         # use 'IS NOT DISTINCT FROM' to match nulls, but this is not indexed and verrrrry slooooow
@@ -270,7 +262,9 @@ class SqlDbConnection():
         colTypeFunctions = self.columnTypeFunctions(table)
         try:
             colTypeCast = tuple(colTypeFunctions[colName][0] for colName in newCols)
-            colTypeFunction = tuple(colTypeFunctions[colName][1] for colName in returningCols)
+            colTypeFunction = [colTypeFunctions[colName][1] for colName in returningCols]
+            if returnExistenceStatus:
+                colTypeFunction.append(pyBoolFromDbBool) # existence is a boolean
         except KeyError as err:
             raise XPDBException("xpgDB:MissingColumnDefinition",
                                 _("Table %(table)s column definition missing: %(missingColumnName)s"),
@@ -308,10 +302,10 @@ WITH row_values (%(newCols)s) AS (
   RETURNING %(returningCols)s
 )
 (''' + ('''
-   SELECT %(x_returningCols)s
+   SELECT %(x_returningCols)s %(statusIfExisting)s
    FROM %(table)s x JOIN row_values v ON (%(match)s)
 ) UNION ( ''' if checkIfExisting else '') + '''
-   SELECT %(returningCols)s
+   SELECT %(returningCols)s %(statusIfInserted)s
    FROM insertions
 );''') %     {"table": table,
              "idCol": idCol,
@@ -320,7 +314,9 @@ WITH row_values (%(newCols)s) AS (
              "x_returningCols": ', '.join('x.{0}'.format(c) for c in returningCols),
              "match": ' AND '.join('x.{0} {1} v.{0}'.format(col, comparisonOperator) 
                                 for col in matchCols),
-             "values": values
+             "values": values,
+             "statusIfInserted": ", FALSE" if returnExistenceStatus else "",
+             "statusIfExisting": ", TRUE" if returnExistenceStatus else ""
              }
         if TRACESQLFILE:
             with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:

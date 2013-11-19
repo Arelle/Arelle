@@ -16,12 +16,14 @@ and does not apply to the XBRL US Database schema and description.
 import time, os, io, sys, logging
 from arelle.Locale import format_string
 from .XbrlPublicPostgresDB import insertIntoDB as insertIntoPostgresDB, isDBPort as isPostgresPort
+from .XbrlSemanticSqlDB import insertIntoDB as insertIntoSemanticSqlDB, isDBPort as isSemanticSqlPort
 from .XbrlSemanticGraphDB import insertIntoDB as insertIntoRexsterDB, isDBPort as isRexsterPort
 from .XbrlSemanticRdfDB import insertIntoDB as insertIntoRdfDB, isDBPort as isRdfPort
 from .XbrlSemanticJsonDB import insertIntoDB as insertIntoJsonDB, isDBPort as isJsonPort
 
 dbTypes = {
     "postgres": insertIntoPostgresDB,
+    "pgSemantic": insertIntoSemanticSqlDB,
     "rexster": insertIntoRexsterDB,
     "rdfDB": insertIntoRdfDB,
     "json": insertIntoJsonDB
@@ -54,6 +56,9 @@ def xbrlDBmenuEntender(cntlr, menu):
                                    .format(host, port))
                     if isPostgresPort(host, port):
                         dbType = "postgres"
+                        insertIntoDB = insertIntoPostgresDB
+                    elif isSemanticSqlPort(host, port):
+                        dbType = "pgSemantic"
                         insertIntoDB = insertIntoPostgresDB
                     elif isRexsterPort(host, port):
                         dbType = "rexster"
@@ -120,6 +125,8 @@ def storeIntoDB(dbConnection, modelXbrl, rssItem=None):
         insertIntoDB = dbTypes[dbType]
     elif isPostgresPort(host, port):
         insertIntoDB = insertIntoPostgresDB
+    elif isSemanticSqlPort(host, port):
+        insertIntoDB = insertIntoSemanticSqlDB
     elif isRexsterPort(host, port):
         insertIntoDB = insertIntoRexsterDB
     elif isRdfPort(host, port, db):
