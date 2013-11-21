@@ -49,10 +49,10 @@ from .SqlDb import (pyBoolFromDbBool, pyNoneFromDbNULL, dbNum, dbStr,
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
-                 rssItem=None):
+                 product=None, rssItem=None):
     xpgdb = None
     try:
-        xpgdb = XbrlSqlDatabaseConnection(modelXbrl, user, password, host, port, database, timeout)
+        xpgdb = XbrlSqlDatabaseConnection(modelXbrl, user, password, host, port, database, timeout, product)
         xpgdb.verifyTables()
         xpgdb.insertXbrl(rssItem=rssItem)
         xpgdb.close()
@@ -64,7 +64,7 @@ def insertIntoDB(modelXbrl,
                 pass
         raise # reraise original exception with original traceback    
     
-def isDBPort(host, port, timeout=10):
+def isDBPort(host, port, timeout=10, product="postgres"):
     return isSqlConnection(host, port, timeout)
 
 XBRLDBTABLES = {
@@ -85,7 +85,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         missingTables = XBRLDBTABLES - self.tablesInDB()
         # if no tables, initialize database
         if missingTables == XBRLDBTABLES:
-            self.create("xbrlSemanticSqlDB.ddl")
+            self.create({"mssql": "xbrlSemanticMssqlDB.ddl",
+                         "mysql": "xbrlSemanticMySqlDB.ddl",
+                         "orcl": "xbrlSemanticOrclDB.ddl",
+                         "postgres": "xbrlSemanticSqlDB.ddl"}[self.product])
             missingTables = XBRLDBTABLES - self.tablesInDB()
         if missingTables:
             raise XPDBException("sqlDB:MissingTables",

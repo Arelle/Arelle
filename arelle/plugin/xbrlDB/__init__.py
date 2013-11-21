@@ -23,10 +23,24 @@ from .XbrlSemanticJsonDB import insertIntoDB as insertIntoJsonDB, isDBPort as is
 
 dbTypes = {
     "postgres": insertIntoPostgresDB,
+    "mssqlSemantic": insertIntoSemanticSqlDB,
+    "mysqlSemantic": insertIntoSemanticSqlDB,
+    "orclSemantic": insertIntoSemanticSqlDB,
     "pgSemantic": insertIntoSemanticSqlDB,
     "rexster": insertIntoRexsterDB,
     "rdfDB": insertIntoRdfDB,
     "json": insertIntoJsonDB
+    }
+
+dbProduct = {
+    "postgres": "postgres",
+    "mssqlSemantic": "mssql",
+    "mysqlSemantic": "mysql",
+    "orclSemantic": "orcl",
+    "pgSemantic": "postgres",
+    "rexster": None,
+    "rdfDB": None,
+    "json": None
     }
 
 def xbrlDBmenuEntender(cntlr, menu):
@@ -46,11 +60,13 @@ def xbrlDBmenuEntender(cntlr, menu):
         def backgroundStoreIntoDB():
             try: 
                 host, port, user, password, db, timeout, dbType = dbConnection
+                product = None
                 if timeout and timeout.isdigit():
                     timeout = int(timeout)
                 # identify server
                 if dbType in dbTypes:
                     insertIntoDB = dbTypes[dbType]
+                    product = dbProduct[dbType]
                 else:
                     cntlr.addToLog(_("Probing host {0} port {1} to determine server database type.")
                                    .format(host, port))
@@ -81,7 +97,8 @@ def xbrlDBmenuEntender(cntlr, menu):
                 cntlr.saveConfig()
                 startedAt = time.time()
                 insertIntoDB(cntlr.modelManager.modelXbrl, 
-                             host=host, port=port, user=user, password=password, database=db, timeout=timeout)
+                             host=host, port=port, user=user, password=password, database=db, timeout=timeout,
+                             product=product)
                 cntlr.addToLog(format_string(cntlr.modelManager.locale, 
                                             _("stored to database in %.2f secs"), 
                                             time.time() - startedAt))
@@ -121,8 +138,10 @@ def storeIntoDB(dbConnection, modelXbrl, rssItem=None):
         if len(dbConnection) > 6: dbType = dbConnection[6]
 
     startedAt = time.time()
+    product = None
     if dbType in dbTypes:
         insertIntoDB = dbTypes[dbType]
+        product = dbProduct[dbType]
     elif isPostgresPort(host, port):
         insertIntoDB = insertIntoPostgresDB
     elif isSemanticSqlPort(host, port):
@@ -136,7 +155,7 @@ def storeIntoDB(dbConnection, modelXbrl, rssItem=None):
     else:
         modelXbrl.modelManager.addToLog('Server at "{0}:{1}" is not recognized to be either a Postgres or a Rexter service.'.format(host, port))
         return
-    insertIntoDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout, rssItem=rssItem)
+    insertIntoDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout, product=product, rssItem=rssItem)
     modelXbrl.modelManager.addToLog(format_string(modelXbrl.modelManager.locale, 
                           _("stored to database in %.2f secs"), 
                           time.time() - startedAt), messageCode="info", file=modelXbrl.uri)

@@ -39,7 +39,7 @@ TRACEGREMLINFILE = None
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
-                 rssItem=None):
+                 product=None, rssItem=None):
     db = None
     try:
         xsgdb = XbrlSemanticGraphDatabaseConnection(modelXbrl, user, password, host, port, database, timeout)
@@ -109,7 +109,7 @@ class XPDBException(Exception):
 
 
 class XbrlSemanticGraphDatabaseConnection():
-    def __init__(self, modelXbrl, user, password, host, port, database, timeout):
+    def __init__(self, modelXbrl, user, password, host, port, database, timeout, product):
         self.modelXbrl = modelXbrl
         self.disclosureSystem = modelXbrl.modelManager.disclosureSystem
         #self.conn = RexProConnection(host, int(port or '8182'), (database or 'emptygraph'),

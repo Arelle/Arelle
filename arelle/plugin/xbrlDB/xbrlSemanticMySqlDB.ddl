@@ -1,17 +1,8 @@
 
-SET statement_timeout = 0;
-SET client_encoding = 'UTF8';
-SET standard_conforming_strings = off;
-SET check_function_bodies = false;
-SET client_min_messages = warning;
-SET escape_string_warning = off;
-
-SET search_path = public, pg_catalog;
-
 -- emulate postgres nextval for mysql and oracle consistency
 
 DROP TABLE IF EXISTS sequences;
-CREATE TABLE Sequences (
+CREATE TABLE sequences (
     sequence_name varchar(100) NOT NULL,    
     sequence_increment int NOT NULL DEFAULT 1,
     sequence_min_value int NOT NULL DEFAULT 1,
@@ -20,15 +11,14 @@ CREATE TABLE Sequences (
     sequence_cycle boolean NOT NULL DEFAULT FALSE,    
     PRIMARY KEY (sequence_name)
 ); 
-ALTER TABLE public.sequences OWNER TO postgres;
 
-DROP FUNCTION IF EXISTS nextval(seq_name varchar(100));
+DROP FUNCTION IF EXISTS nextval;
+DELIMITER $$
 CREATE FUNCTION nextval(seq_name varchar(100)) RETURNS bigint
-    LANGUAGE plpgsql
-    AS $$
-DECLARE 
-        cur_val bigint;
+    LANGUAGE SQL
 BEGIN
+    DECLARE 
+        cur_val bigint;
     SELECT
         sequence_cur_value INTO cur_val
     FROM
@@ -52,75 +42,77 @@ BEGIN
             sequence_name = seq_name
         ;
     RETURN cur_val;
-END
-$$;
+END;
+$$
+DELIMITER ;
 
-
-INSERT INTO sequences (sequence_name) VALUES ('seq_filing');
 
 CREATE TABLE filing (
-    filing_id bigint DEFAULT nextval('seq_filing') NOT NULL,
-    filing_number character varying(30) NOT NULL,
-    accepted_timestamp timestamp without time zone DEFAULT now() NOT NULL,
-    is_most_current boolean DEFAULT false NOT NULL,
+    filing_id bigint NOT NULL,
+    filing_number varchar(30) NOT NULL,
+    accepted_timestamp timestamp NOT NULL DEFAULT now(),
+    is_most_current boolean NOT NULL DEFAULT false,
     filing_date date NOT NULL,
     entity_id bigint NOT NULL,
-    entity_name character varying,
+    entity_name varchar(1024),
     creation_software text,
-    standard_industrial_classification integer DEFAULT (-1) NOT NULL,
+    standard_industrial_classification integer NOT NULL DEFAULT -1,
     authority_html_url text,
     entry_url text,
     PRIMARY KEY (filing_id)
 );
 
+INSERT INTO sequences (sequence_name) VALUES ('seq_filing');
 
-ALTER TABLE public.filing OWNER TO postgres;
-
-INSERT INTO sequences (sequence_name) VALUES ('seq_report');
+CREATE TRIGGER filing_seq BEFORE INSERT ON filing 
+  FOR EACH ROW SET NEW.filing_id = nextval('seq_filing');
 
 CREATE TABLE report (
-    report_id bigint DEFAULT nextval('seq_report') NOT NULL,
+    report_id bigint NOT NULL,
     filing_id bigint NOT NULL,
     PRIMARY KEY (report_id)
 );
 
+INSERT INTO sequences (sequence_name) VALUES ('seq_report');
 
-ALTER TABLE public.report OWNER TO postgres;
+CREATE TRIGGER report_seq BEFORE INSERT ON report 
+  FOR EACH ROW SET NEW.report_id = nextval('seq_report');
+
 
 -- object sequence can be any element that can terminate a relationship (aspect, type, resource, data point, document, role type, ...)
 INSERT INTO sequences (sequence_name) VALUES ('seq_object');
 
 CREATE TABLE document (
-    document_id bigint DEFAULT nextval('seq_object') NOT NULL,
-    document_url character varying(2048) NOT NULL,
-    document_type character varying(32),  -- ModelDocument.Type string value
-    namespace character varying(1024),  -- targetNamespace if schema else NULL
+    document_id bigint NOT NULL,
+    document_url varchar(2048) NOT NULL,
+    document_type varchar(32),  -- ModelDocument.Type string value
+    namespace varchar(1024),  -- targetNamespace if schema else NULL
     PRIMARY KEY (document_id)
 );
 
-ALTER TABLE public.document OWNER TO postgres;
+CREATE TRIGGER document_seq BEFORE INSERT ON document 
+  FOR EACH ROW SET NEW.document_id = nextval('seq_object');
+
 -- documents referenced by report or document
 
 CREATE TABLE referenced_documents (
-    object_id bigint NOT NULL,
+    object_id bigint NOT NULL
     document_id bigint NOT NULL
 );
-CREATE INDEX referenced_documents_index01 ON referenced_documents USING btree (object_id);
-CREATE UNIQUE INDEX referenced_documents_index02 ON referenced_documents USING btree (object_id, document_id);
-
-ALTER TABLE public.referenced_documents OWNER TO postgres;
+CREATE INDEX referenced_documents_index01 USING btree ON referenced_documents (object_id);
+CREATE UNIQUE INDEX referenced_documents_index02 USING btree ON referenced_documents (object_id, document_id);
 
 CREATE TABLE aspect (
-    aspect_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    aspect_id bigint NOT NULL,
     document_id bigint NOT NULL,
-    xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
-    qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    name character varying(1024) NOT NULL,  -- local qname
+    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
+    qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    name varchar(1024) NOT NULL,  -- local qname
     datatype_id bigint,
-    base_type character varying(128), -- xml base type if any
+    base_type varchar(128), -- xml base type if any
     substitution_group_aspect_id bigint,
-    balance character varying(16),
-    period_type character varying(16),
+    balance varchar(16),
+    period_type varchar(16),
     abstract boolean NOT NULL,
     nillable boolean NOT NULL,
     is_numeric boolean NOT NULL,
@@ -129,86 +121,89 @@ CREATE TABLE aspect (
     PRIMARY KEY (aspect_id)
 );
 
-ALTER TABLE public.aspectt OWNER TO postgres;
+CREATE TRIGGER aspect_seq BEFORE INSERT ON aspect 
+  FOR EACH ROW SET NEW.aspect_id = nextval('seq_object');
 
 CREATE TABLE data_type (
-    data_type_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    data_type_id bigint NOT NULL,
     document_id bigint NOT NULL,
-    xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
-    qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    name character varying(1024) NOT NULL,  -- local qname
-    base_type character varying(128), -- xml base type if any
+    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
+    qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    name varchar(1024) NOT NULL,  -- local qname
+    base_type varchar(128), -- xml base type if any
     derived_from_type_id bigint,
     PRIMARY KEY (data_type_id)
 );
 
-ALTER TABLE public.data_type OWNER TO postgres;
+CREATE TRIGGER data_type_seq BEFORE INSERT ON data_type 
+  FOR EACH ROW SET NEW.data_type_id = nextval('seq_object');
 
 CREATE TABLE role_type (
-    role_type_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    role_type_id bigint NOT NULL,
     document_id bigint NOT NULL,
-    xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
-    role_uri character varying(1024) NOT NULL,
+    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
+    role_uri varchar(1024) NOT NULL,
     definition text,
     PRIMARY KEY (role_type_id)
 );
 
-ALTER TABLE public.role_type OWNER TO postgres;
+CREATE TRIGGER role_type_seq BEFORE INSERT ON role_type 
+  FOR EACH ROW SET NEW.role_type_id = nextval('seq_object');
 
 CREATE TABLE arcrole_type (
-    arcrole_type_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    arcrole_type_id bigint NOT NULL,
     document_id bigint NOT NULL,
-    xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
-    arcrole_uri character varying(1024) NOT NULL,
-    cycles_allowed character varying(10) NOT NULL,
+    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
+    arcrole_uri varchar(1024) NOT NULL,
+    cycles_allowed varchar(10) NOT NULL,
     definition text,
     PRIMARY KEY (arcrole_type_id)
 );
 
-ALTER TABLE public.arcrole_type OWNER TO postgres;
+CREATE TRIGGER arcrole_type_seq BEFORE INSERT ON arcrole_type 
+  FOR EACH ROW SET NEW.arcrole_type_id = nextval('seq_object');
 
 CREATE TABLE used_on (
     object_id bigint NOT NULL,
     aspect_id bigint NOT NULL
 );
-CREATE INDEX used_on_index01 ON used_on USING btree (object_id);
-CREATE UNIQUE INDEX used_on_index02 ON used_on USING btree (object_id, aspect_id);
-
-ALTER TABLE public.used_on OWNER TO postgres;
+CREATE INDEX used_on_index01 USING btree ON used_on (object_id);
+CREATE UNIQUE INDEX used_on_index02 USING btree ON used_on (object_id, aspect_id);
 
 CREATE TABLE resource (
-    resource_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    resource_id bigint NOT NULL,
     document_id bigint NOT NULL,
-    xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
-    qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    role character varying(1024) NOT NULL,
+    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
+    qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    role varchar(1024) NOT NULL,
     value text,
-    xml_lang character varying(16),
+    xml_lang varchar(16),
     PRIMARY KEY (resource_id)
 );
 
-ALTER TABLE public.resource OWNER TO postgres;
+CREATE TRIGGER resource_seq BEFORE INSERT ON resource 
+  FOR EACH ROW SET NEW.resource_id = nextval('seq_object');
 
 INSERT INTO sequences (sequence_name) VALUES ('seq_relationship_set');
 
 CREATE TABLE relationship_set (
-    relationship_set_id bigint DEFAULT nextval('seq_relationship_set') NOT NULL,
+    relationship_set_id bigint NOT NULL,
     report_id bigint,
-    arc_qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    link_qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    arc_role character varying(1024) NOT NULL,
-    link_role character varying(1024) NOT NULL,
+    arc_qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    link_qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    arc_role varchar(1024) NOT NULL,
+    link_role varchar(1024) NOT NULL,
     PRIMARY KEY (relationship_set_id)
 );
 
-ALTER TABLE public.relationship_set OWNER TO postgres;
-
+CREATE TRIGGER relationship_set_seq BEFORE INSERT ON relationship_set 
+  FOR EACH ROW SET NEW.relationship_set_id = nextval('seq_object');
 
 CREATE TABLE relationship (
-    relationship_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    relationship_id bigint NOT NULL,
     report_id bigint,
     document_id bigint NOT NULL,
-    xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
+    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
     relationship_set_id bigint NOT NULL,
     reln_order double precision,
     from_id bigint,
@@ -216,45 +211,48 @@ CREATE TABLE relationship (
     calculation_weight double precision,
     tree_sequence integer NOT NULL,
     tree_depth integer NOT NULL,
-    preferred_label_role character varying(1024),
+    preferred_label_role varchar(1024),
     PRIMARY KEY (relationship_id)
 );
 
-ALTER TABLE public.relationship OWNER TO postgres;
+CREATE TRIGGER relationship_seq BEFORE INSERT ON relationship 
+  FOR EACH ROW SET NEW.relationship_id = nextval('seq_object');
 
 CREATE TABLE data_point (
-    datapoint_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    datapoint_id bigint NOT NULL,
     report_id bigint,
     document_id bigint NOT NULL,  -- multiple inline documents are sources of data points
-    xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
+    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
     source_line integer,
     parent_datapoint_id bigint, -- id of tuple parent
-    context_xml_id character varying(1024), -- (do we need this?)
+    context_xml_id varchar(1024), -- (do we need this?)
     entity_id bigint,
     period_id bigint,
     aspect_value_selections_id bigint,
     unit_id bigint,
-    precision character varying(16),
-    decimals character varying(16),
+    precision varchar(16),
+    decimals varchar(16),
     effective_value double precision,
     value text,
     PRIMARY KEY (datapoint_id)
 );
 
-ALTER TABLE public.data_point OWNER TO postgres;
+CREATE TRIGGER data_point_seq BEFORE INSERT ON data_point 
+  FOR EACH ROW SET NEW.data_point_id = nextval('seq_object');
 
 CREATE TABLE entity (
-    entity_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    entity_id bigint NOT NULL,
     report_id bigint,
-    entity_scheme character varying NOT NULL,
-    entity_identifier character varying NOT NULL,
+    entity_scheme varchar(1024) NOT NULL,
+    entity_identifier varchar(1024) NOT NULL,
     PRIMARY KEY (entity_id)
 );
 
-ALTER TABLE public.entity OWNER TO postgres;
+CREATE TRIGGER entity_seq BEFORE INSERT ON entity 
+  FOR EACH ROW SET NEW.entity_id = nextval('seq_object');
 
 CREATE TABLE period (
-    period_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    period_id bigint NOT NULL,
     report_id bigint,
     start_date date,
     end_date date,
@@ -263,35 +261,35 @@ CREATE TABLE period (
     PRIMARY KEY (period_id)
 );
 
-ALTER TABLE public.period OWNER TO postgres;
+CREATE TRIGGER period_seq BEFORE INSERT ON period 
+  FOR EACH ROW SET NEW.period_id = nextval('seq_object');
 
 CREATE TABLE unit (
-    unit_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    unit_id bigint NOT NULL,
     report_id bigint,
-    xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
+    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
     PRIMARY KEY (unit_id)
 );
 
-ALTER TABLE public.unit OWNER TO postgres;
-
+CREATE TRIGGER unit_seq BEFORE INSERT ON unit 
+  FOR EACH ROW SET NEW.unit_id = nextval('seq_object');
 
 CREATE TABLE unit_measure (
     unit_id bigint NOT NULL,
-    qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
     is_multiplicand boolean NOT NULL
 );
-CREATE INDEX unit_measure_index01 ON unit_measure USING btree (unit_id);
-CREATE UNIQUE INDEX unit_measure_index02 ON unit_measure USING btree (unit_id, qname, is_multiplicand);
-
-ALTER TABLE public.unit_measure OWNER TO postgres;
+CREATE INDEX unit_measure_index01 USING btree ON unit_measure (unit_id);
+CREATE UNIQUE INDEX unit_measure_index02 USING btree ON unit_measure (unit_id, qname, is_multiplicand);
 
 CREATE TABLE aspect_value_selection_set (
-    aspect_value_selection_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    aspect_value_selection_id bigint NOT NULL,
     report_id bigint,
     PRIMARY KEY (aspect_value_selection_id)
 );
 
-ALTER TABLE public.aspect_value_selection_set OWNER TO postgres;
+CREATE TRIGGER aspect_value_selection_set_seq BEFORE INSERT ON aspect_value_selection_set 
+  FOR EACH ROW SET NEW.aspect_value_selection_id = nextval('seq_object');
 
 CREATE TABLE aspect_value_selection (
     aspect_value_selection_id bigint NOT NULL,
@@ -301,22 +299,21 @@ CREATE TABLE aspect_value_selection (
     is_typed_value boolean NOT NULL,
     typed_value text
 );
-CREATE INDEX aspect_value_selection_index01 ON aspect_value_selection USING btree (aspect_value_selection_id);
-
-ALTER TABLE public.aspect_value_selection OWNER TO postgres;
-
-INSERT INTO sequences (sequence_name) VALUES ('seq_message');
+CREATE INDEX aspect_value_selection_index01 USING btree ON aspect_value_selection (aspect_value_selection_id);
 
 CREATE TABLE message (
-    message_id bigint DEFAULT nextval('seq_message') NOT NULL,
+    message_id bigint NOT NULL,
     report_id bigint,
-    code character varying(256),
-    level character varying(256),
+    code varchar(256),
+    level varchar(256),
     value text,
     PRIMARY KEY (message_id)
 );
 
-ALTER TABLE public.message OWNER TO postgres;
+INSERT INTO sequences (sequence_name) VALUES ('seq_message');
+
+CREATE TRIGGER message_seq BEFORE INSERT ON message 
+  FOR EACH ROW SET NEW.message_id = nextval('seq_message');
 
 CREATE TABLE message_reference (
     message_id bigint NOT NULL,
@@ -324,21 +321,20 @@ CREATE TABLE message_reference (
     PRIMARY KEY (message_id)
 );
 
-ALTER TABLE public.message_reference OWNER TO postgres;
-
-INSERT INTO sequences (sequence_name) VALUES ('seq_industry');
-
 CREATE TABLE industry (
-    industry_id bigint DEFAULT nextval('seq_industry') NOT NULL,
-    industry_classification character varying,
+    industry_id bigint NOT NULL,
+    industry_classification varchar,
     industry_code integer,
-    industry_description character varying,
+    industry_description varchar,
     depth integer,
     parent_id bigint,
     PRIMARY KEY (industry_id)
 );
 
-ALTER TABLE public.industry OWNER TO postgres;
+INSERT INTO sequences (sequence_name) VALUES ('seq_industry');
+
+CREATE TRIGGER industry_seq BEFORE INSERT ON industry 
+  FOR EACH ROW SET NEW.industry_id = nextval('seq_industry');
 
 INSERT INTO industry (industry_id, industry_classification, industry_code, industry_description, depth, parent_id) VALUES
 (4315, 'SEC', 3576, 'Computer Communications Equipment', 4, 2424),
@@ -4676,15 +4672,9 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (4303, 'SIC', 9990, 'Nonclassifiable Establishments', 3, 4302)
 RETURNING industry_id;
 
---
--- Data for Name: industry_level; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-INSERT INTO sequences (sequence_name) VALUES ('seq_industry_level');
-
 CREATE TABLE industry_level (
-    industry_level_id bigint DEFAULT nextval('seq_industry_level') NOT NULL,
-    industry_classification character varying,
+    industry_level_id bigint NOT NULL,
+    industry_classification varchar,
     ancestor_id bigint,
     ancestor_code integer,
     ancestor_depth integer,
@@ -4694,8 +4684,11 @@ CREATE TABLE industry_level (
     PRIMARY KEY (industry_level_id)
 );
 
+INSERT INTO sequences (sequence_name) VALUES ('seq_industry_level');
 
-ALTER TABLE public.industry_level OWNER TO postgres;
+CREATE TRIGGER industry_level_seq BEFORE INSERT ON industry_level 
+  FOR EACH ROW SET NEW.industry_level_id = nextval('seq_industry_level');
+
 
 INSERT INTO industry_level (industry_level_id, industry_classification, ancestor_id, ancestor_code, ancestor_depth, descendant_id, descendant_code, descendant_depth) VALUES
 (1, 'SEC', 2677, 6300, 2, 2689, 6390, 3),
@@ -14026,17 +14019,18 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (9326, 'SIC', 3681, 4810, 3, 3682, 4812, 4)
 RETURNING industry_level_id;
 
-INSERT INTO sequences (sequence_name) VALUES ('seq_industry_structure');
-
 CREATE TABLE industry_structure (
-    industry_structure_id bigint DEFAULT nextval('seq_industry_structure') NOT NULL,
-    industry_classification character varying NOT NULL,
+    industry_structure_id bigint,
+    industry_classification varchar(8) NOT NULL,
     depth integer NOT NULL,
-    level_name character varying,
+    level_name varchar(32),
     PRIMARY KEY (industry_structure_id)
 );
 
-ALTER TABLE public.industry_structure OWNER TO postgres;
+INSERT INTO sequences (sequence_name) VALUES ('seq_industry_structure');
+
+CREATE TRIGGER industry_structure_seq BEFORE INSERT ON industry_structure 
+  FOR EACH ROW SET NEW.industry_structure_id = nextval('seq_industry_structure');
 
 INSERT INTO industry_structure (industry_structure_id, industry_classification, depth, level_name) VALUES
 (1, 'SIC', 1, 'Division'),

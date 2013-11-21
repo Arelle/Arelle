@@ -57,7 +57,7 @@ RDFXMLFILE_HOSTNAME = "rdfXmlFile"
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
-                 rssItem=None):
+                 product=None, rssItem=None):
     rdfdb = None
     try:
         rdfdb = XbrlSemanticRdfDatabaseConnection(modelXbrl, user, password, host, port, database, timeout)

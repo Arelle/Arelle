@@ -8,13 +8,37 @@ import sys, os, io, time, re, datetime
 from math import isnan, isinf
 from arelle.ModelValue import dateTime
 import socket
-from pg8000 import DBAPI
-from pg8000.errors import (CursorClosedError, ConnectionClosedError, ProgrammingError,
-                           InterfaceError, ProgrammingError)
+def noop(*args, **kwargs): return 
+class NoopException(Exception):
+    pass
+try:
+    import pg8000, pg8000.errors
+    hasPostgres = True
+    pgConnect = pg8000.DBAPI.connect
+    pgCursorClosedError = pg8000.errors.CursorClosedError
+    pgConnectionClosedError = pg8000.errors.ConnectionClosedError
+    pgProgrammingError = pg8000.errors.ProgrammingError
+    pgInterfaceError = pg8000.errors.InterfaceError
+except ImportError:
+    hasPostgres = False
+    pgConnect = noop
+    pgCursorClosedError = pgConnectionClosedError = pgProgrammingError = pgInterfaceError = NoopException
+    
+try:
+    import pymysql
+    hasMySql = True
+    mysqlConnect = pymysql.connect
+    mysqlProgrammingError = pymysql.ProgrammingError
+    mysqlInterfaceError = pymysql.InterfaceError
+except ImportError:
+    hasMySql = False
+    mysqlConnect = noop
+    mysqlProgrammingError = mysqlInterfaceError = NoopException
+
 
 
 TRACESQLFILE = None
-#TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
+TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
 
 
 def pyBoolFromDbBool(str):
@@ -33,15 +57,18 @@ def dbNum(num):
 def dbStr(s):
     return "'" + str(s).replace("'","''").replace('%', '%%') + "'"
 
-def isSqlConnection(host, port, timeout=10):
+def isSqlConnection(host, port, timeout=10, product=None):
     # determine if postgres port
     t = 2
     while t < timeout:
         try:
-            DBAPI.connect(user='', host=host, port=int(port or 5432), socket_timeout=t)
-        except ProgrammingError:
+            if product == "postgres" and hasPostgres:
+                pgConnect(user='', host=host, port=int(port or 5432), socket_timeout=t)
+            elif product == "mysql" and hasMySql:
+                mysqlConnect(user='', host=host, port=int(port or 5432), socket_timeout=t)
+        except (pgProgrammingError, mysqlProgrammingError):
             return True # success, this is really a postgres socket, wants user name
-        except InterfaceError:
+        except (pgInterfaceError, mysqlInterfaceError):
             return False # something is there but not postgres
         except socket.timeout:
             t = t + 2  # relax - try again with longer timeout
@@ -57,13 +84,23 @@ class XPDBException(Exception):
         return _('[{0}] exception: {1}').format(self.code, self.message % self.kwargs)
             
 class SqlDbConnection():
-    def __init__(self, modelXbrl, user, password, host, port, database, timeout):
+    def __init__(self, modelXbrl, user, password, host, port, database, timeout, product):
         self.modelXbrl = modelXbrl
         self.disclosureSystem = modelXbrl.modelManager.disclosureSystem
-        self.conn = DBAPI.connect(user=user, password=password, host=host, 
+        if product == "postgres" and hasPostgres:
+            self.conn = pgConnect(user=user, password=password, host=host, 
                                   port=int(port or 5432), 
                                   database=database, 
                                   socket_timeout=timeout or 60)
+            self.product = product
+        elif product == "mysql" and hasMySql:
+            self.conn = mysqlConnect(user=user, password=password, host=host, 
+                                     port=int(port or 5432), 
+                                     database=database, 
+                                     socket_timeout=timeout or 60)
+            self.product = product
+        else:
+            self.product = None
         self.tableColTypes = {}
         self.accessionId = "(None)"
                 
@@ -100,7 +137,9 @@ class SqlDbConnection():
         try:
             self._cursor.close()
             del self._cursor
-        except (AttributeError, CursorClosedError, ConnectionClosedError):
+        except (AttributeError, 
+                pgCursorClosedError, pgConnectionClosedError,
+                mysqlProgrammingError):
             if hasattr(self, '_cursor'):
                 del self._cursor
         
@@ -110,14 +149,15 @@ class SqlDbConnection():
     def rollback(self):
         try:
             self.conn.rollback()
-        except (ConnectionClosedError):
+        except (pg8000.errors.ConnectionClosedError):
             pass
         
     def execute(self, sql, commit=False, close=True, fetch=True):
         cursor = self.cursor
         try:
             cursor.execute(sql)
-        except ProgrammingError as ex:  # something wrong with SQL
+        except (pgProgrammingError,
+                mysqlProgrammingError) as ex:  # something wrong with SQL
             if TRACESQLFILE:
                 with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
                     fh.write("\n\n>>> EXCEPTION Programming Error {}\n sql {}\n"
@@ -185,8 +225,9 @@ class SqlDbConnection():
                 stmt = ''
         for i, sql in enumerate(sqlstatements):
             if any(cmd in sql
-                   for cmd in ('CREATE TABLE', 'CREATE SEQUENCE', 'INSERT INTO',
-                               'CREATE FUNCTION',
+                   for cmd in ('CREATE TABLE', 'CREATE SEQUENCE', 'INSERT INTO', 'CREATE TYPE',
+                               'CREATE FUNCTION', 
+                               'SET',
                                'CREATE INDEX', 'CREATE UNIQUE INDEX' # 'ALTER TABLE ONLY'
                                )):
                 statusMsg, sep, rest = sql.strip().partition('\n')
@@ -205,23 +246,33 @@ class SqlDbConnection():
         self.closeCursor()
         
     def databasesInDB(self):
-        return self.execute("SELECT datname FROM pg_database;")
+        return self.execute({"postgres":"SELECT datname FROM pg_database;",
+                             "mysql": "SHOW databases;"
+                             }[self.product])
     
     def dropAllTablesInDB(self):
         # drop all tables (clean out database)
-        self.execute("drop schema public cascade;")
-        self.execute("create schema public;", commit=True)
+        if self.product == "postgres":
+            self.execute("drop schema public cascade;")
+            self.execute("create schema public;", commit=True)
+        elif self.product == "mysql":
+            for tableName in self.tablesInDB():
+                self.execute("DROP TABLE {};".format(tableName))
         
     def tablesInDB(self):
         return set(tableRow[0]
                    for tableRow in 
-                   self.execute("SELECT tablename FROM pg_tables WHERE schemaname = 'public';"))
+                   self.execute({"postgres":"SELECT tablename FROM pg_tables WHERE schemaname = 'public';",
+                                 "mysql": "SHOW databases;"
+                                 }[self.product]))
     
     def sequencesInDB(self):
         return set(sequenceRow[0]
                    for sequenceRow in
-                   self.execute("SELECT c.relname FROM pg_class c WHERE c.relkind = 'S';"))
-    
+                   self.execute({"postgres":"SELECT c.relname FROM pg_class c WHERE c.relkind = 'S';",
+                                 "mysql": "SHOW triggers;"
+                                 }[self.product]))
+        
     def columnTypeFunctions(self, table):
         if table not in self.tableColTypes:
             colTypes = self.execute("SELECT c.column_name, c.data_type "
@@ -281,15 +332,17 @@ class SqlDbConnection():
                     colValues.append('NULL')
                 else:
                     colValues.append(dbStr(col))
-            if not rowValues:  # first row
+            if not rowValues and self.product == "postgres":  # first row
                 for i, cast in enumerate(colTypeCast):
                     if cast:
                         colValues[i] = colValues[i] + cast
             rowValues.append("(" + ", ".join(colValues) + ")")
         values = ", \n".join(rowValues)
-        # insert new rows, return id and cols of new and existing rows
-        # use IS NOT DISTINCT FROM instead of = to compare NULL usefully
-        sql = ('''
+        
+        if self.product == "postgres":
+            # insert new rows, return id and cols of new and existing rows
+            # use IS NOT DISTINCT FROM instead of = to compare NULL usefully
+            sql = [('''
 WITH row_values (%(newCols)s) AS (
   VALUES %(values)s
   ), insertions AS (
@@ -307,23 +360,31 @@ WITH row_values (%(newCols)s) AS (
 ) UNION ( ''' if checkIfExisting else '') + '''
    SELECT %(returningCols)s %(statusIfInserted)s
    FROM insertions
-);''') %     {"table": table,
-             "idCol": idCol,
-             "newCols": ', '.join(newCols),
-             "returningCols": ', '.join(returningCols),
-             "x_returningCols": ', '.join('x.{0}'.format(c) for c in returningCols),
-             "match": ' AND '.join('x.{0} {1} v.{0}'.format(col, comparisonOperator) 
-                                for col in matchCols),
-             "values": values,
-             "statusIfInserted": ", FALSE" if returnExistenceStatus else "",
-             "statusIfExisting": ", TRUE" if returnExistenceStatus else ""
-             }
+);''') %        {"table": table,
+                 "idCol": idCol,
+                 "newCols": ', '.join(newCols),
+                 "returningCols": ', '.join(returningCols),
+                 "x_returningCols": ', '.join('x.{0}'.format(c) for c in returningCols),
+                 "match": ' AND '.join('x.{0} {1} v.{0}'.format(col, comparisonOperator) 
+                                    for col in matchCols),
+                 "values": values,
+                 "statusIfInserted": ", FALSE" if returnExistenceStatus else "",
+                 "statusIfExisting": ", TRUE" if returnExistenceStatus else ""
+                 }]
+        elif self.product == "mysql":
+            sql = ["CREATE TEMPORARY TABLE input;",
+                   "INSERT INTO input ( %(newCols)s ) VALUES ( %(values)s )" %     
+                        {"newCols": ', '.join(newCols),
+                         "values": values},
+                   "DROP TABLE input;"]
         if TRACESQLFILE:
             with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
                 fh.write("\n\n>>> accession {0} table {1} sql length {2} row count {3}\n"
                          .format(self.accessionId, table, len(sql), len(data)))
-                fh.write(sql)
-        tableRows = self.execute(sql,commit=commit, close=False)
+                for sqlStmt in sql:
+                    fh.write(sqlStmt)
+        for sqlStmt in sql:
+            tableRows = self.execute(sqlStmt,commit=commit, close=False)
 
         if TRACESQLFILE:
             with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
