@@ -52,10 +52,10 @@ from .SqlDb import (pyBoolFromDbBool, pyNoneFromDbNULL, dbNum, dbStr,
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
-                 rssItem=None):
+                 product="postgres", rssItem=None):
     xpgdb = None
     try:
-        xpgdb = XbrlPostgresDatabaseConnection(modelXbrl, user, password, host, port, database, timeout)
+        xpgdb = XbrlPostgresDatabaseConnection(modelXbrl, user, password, host, port, database, timeout, product)
         xpgdb.verifyTables()
         xpgdb.insertXbrl(rssItem=rssItem)
         xpgdb.close()
@@ -68,7 +68,7 @@ def insertIntoDB(modelXbrl,
         raise # reraise original exception with original traceback    
     
 def isDBPort(host, port, timeout=10):
-    return isSqlConnection(host, port, timeout)
+    return isSqlConnection(host, port, timeout, product="postgres")
 
 XBRLDBTABLES = {
                 "fact", "fact_aug",
@@ -419,7 +419,8 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
         uniqueResources = dict(((self.documentIds[resource.modelDocument.uri],
                                  resource.sourceline,
                                  resource.objectIndex), resource)
-                               for arcrole in (XbrlConst.conceptLabel, XbrlConst.conceptReference)
+                               for arcrole in (XbrlConst.conceptLabel, XbrlConst.conceptReference,
+                                               XbrlConst.elementLabel, XbrlConst.elementReference)
                                for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
                                if rel.fromModelObject is not None and rel.toModelObject is not None
                                for resource in (rel.fromModelObject, rel.toModelObject)
@@ -448,11 +449,11 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                                                      resource.objectIndex],
                                      resource.textValue,
                                      resource.xmlLang)
-                                    for arcrole in (XbrlConst.conceptLabel, XbrlConst.conceptReference)
+                                    for arcrole in (XbrlConst.conceptLabel, XbrlConst.elementLabel)
                                     for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
                                     if rel.fromModelObject is not None and rel.toModelObject is not None
                                     for resource in (rel.fromModelObject, rel.toModelObject)
-                                    if isinstance(resource, ModelResource) and XbrlConst.isLabelRole(resource.role)),
+                                    if isinstance(resource, ModelResource)),
                               checkIfExisting=True)
     
     def insertNetworks(self):

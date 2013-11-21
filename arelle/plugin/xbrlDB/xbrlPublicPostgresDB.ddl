@@ -4,7 +4,8 @@
 
 SET statement_timeout = 0;
 SET client_encoding = 'UTF8';
-SET standard_conforming_strings = off;
+-- HF - must have conforming strings on for Postgres interface to work, as it will include Windows paths sometimes
+SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 SET escape_string_warning = off;
@@ -20377,7 +20378,7 @@ CREATE UNIQUE INDEX qname_namespace_localname ON qname USING btree (namespace, l
 -- Name: qname_ts_index06; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
 --
 
-CREATE INDEX qname_ts_index06 ON qname USING gin (to_tsvector('english'::regconfig, regexp_replace((local_name)::text, '([A-Z])'::text, ' \\1'::text, 'g'::text)));
+CREATE INDEX qname_ts_index06 ON qname USING gin (to_tsvector('english'::regconfig, regexp_replace((local_name)::text, '([A-Z])'::text, ' \1'::text, 'g'::text)));
 
 
 --
