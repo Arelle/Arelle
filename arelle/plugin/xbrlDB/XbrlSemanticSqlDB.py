@@ -36,15 +36,19 @@ windows
 
 '''
 
-import time, datetime
+import time, datetime, logging
 from arelle.ModelDocument import Type
-from arelle.ModelDtsObject import ModelConcept, ModelType, ModelResource
+from arelle.ModelDtsObject import ModelConcept, ModelType, ModelResource, ModelRelationship
+from arelle.ModelInstanceObject import ModelFact
+from arelle.ModelXbrl import ModelXbrl
+from arelle.ModelDocument import ModelDocument
 from arelle.ModelValue import qname
 from arelle.ValidateXbrlCalcs import roundValue
 from arelle.XmlUtil import elementFragmentIdentifier
 from arelle import XbrlConst
 from arelle.UrlUtil import ensureUrl
 from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
+from collections import defaultdict
 
 
 def insertIntoDB(modelXbrl, 
@@ -117,6 +121,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             startedAt = time.time()
             self.insertDataPoints()
             self.modelXbrl.profileStat(_("XbrlSqlDB: instance insertion"), time.time() - startedAt)
+            self.insertValidationResults()
+            self.modelXbrl.profileStat(_("XbrlSqlDB: Validation results insertion"), time.time() - startedAt)
             startedAt = time.time()
             self.showStatus("Committing entries")
             self.commit()
@@ -558,7 +564,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                'relationship_set_id', 'reln_order', 
                                'from_id', 'to_id', 'calculation_weight', 
                                'tree_sequence', 'tree_depth', 'preferred_label_role'), 
-                              ('relationship_set_id', 'tree_sequence'), 
+                              ('relationship_set_id', 'document_id', 'xml_id'), 
                               tuple((self.reportId,
                                      self.documentIds[ensureUrl(rel.modelDocument.uri)],
                                      elementFragmentIdentifier(rel.arcElement),
@@ -572,6 +578,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                      rel.preferredLabel)
                                     for rel, sequence, depth, relSetId in dbRels
                                     if rel.fromModelObject is not None and rel.toModelObject is not None))
+        self.relationshipId = dict(((docId,xmlId), relationshipId)
+                                   for relationshipId, relSetId, docId, xmlId in table)
         del dbRels[:]   # dererefence
 
     def insertDataPoints(self):
@@ -710,11 +718,78 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                          )
                                         for fact in modelFacts
                                         for cntx in (fact.context,)))
-            xmlIdDataPointId = dict((xmlId, datapointId)
+            xmlIdDataPointId = dict(((docId, xmlId), datapointId)
                                     for datapointId, docId, xmlId in table)
+            self.factDataPointId.update(xmlIdDataPointId)
             for fact in modelFacts:
                 if fact.isTuple:
                     insertFactSet(fact.modelTupleFacts, 
-                                  xmlIdDataPointId[elementFragmentIdentifier(fact)])
+                                  xmlIdDataPointId[(self.documentIds[ensureUrl(fact.modelDocument.uri)],
+                                                    elementFragmentIdentifier(fact))])
+        self.factDataPointId = {}
         insertFactSet(self.modelXbrl.facts, None)
         # hashes
+
+    def insertValidationResults(self):
+        reportId = self.reportId
+        logEntries = []
+        for handler in logging.getLogger("arelle").handlers:
+            if hasattr(handler, "dbHandlerLogEntries"):
+                logEntries = handler.dbHandlerLogEntries()
+                break
+        
+        if self.filingPreviouslyInDB:
+            self.showStatus("deleting prior messages of this report")
+            # remove prior messages for this report
+            self.execute("DELETE from message_reference "
+                         "USING message "
+                         "WHERE message.report_id = {0} AND message_reference.message_id = message.message_id;".format(reportId), 
+                         close=False, fetch=False)
+            self.execute("DELETE FROM message WHERE message.report_id = {};".format(reportId), 
+                         close=False, fetch=False)
+        messages = []
+        messageRefs = defaultdict(set) # direct link to objects
+        for i, logEntry in enumerate(logEntries):
+            sequenceInReport = i+1
+            for ref in logEntry['refs']:
+                modelObject = self.modelXbrl.modelObject(ref.get('objectId',''))
+                # for now just find a concept
+                objectId = None
+                if isinstance(modelObject, ModelFact):
+                    objectId = self.factPointId[(self.documentIds[ensureUrl(modelObject.modelDocument.uri)],
+                                                 elementFragmentIdentifier(modelObject))]
+                elif isinstance(modelObject, ModelRelationship):
+                    objectId = self.factPointId[(self.documentIds[ensureUrl(modelObject.modelDocument.uri)],
+                                                 elementFragmentIdentifier(modelObject.arcElement))]
+                elif isinstance(modelObject, ModelConcept):
+                    objectId = self.aspectQnameId[modelObject.qname]
+                elif isinstance(modelObject, ModelXbrl):
+                    objectId = reportId
+                elif hasattr(modelObject, "modelDocument"):
+                    objectId = self.documentIds[ensureUrl(modelObject.modelDocument.uri)]
+                    
+                if objectId is not None:
+                    messageRefs[sequenceInReport].add(objectId)
+                    
+            messages.append((reportId,
+                             sequenceInReport,
+                             logEntry['code'],
+                             logEntry['level'],
+                             logEntry['message']['text']))
+        if messages:
+            self.showStatus("insert validation messages")
+            table = self.getTable('message', 'message_id', 
+                                  ('report_id', 'sequence_in_report', 'code', 'level', 'value'), 
+                                  ('report_id', 'sequence_in_report'), 
+                                  messages)
+            messageIds = dict((sequenceInReport, messageId)
+                              for messageId, _reportId, sequenceInReport in table)
+            table = self.getTable('message_reference', None, 
+                                  ('message_id', 'object_id'), 
+                                  ('message_id', 'object_id'), 
+                                  tuple((messageId, 
+                                         objectId)
+                                        for sequenceInReport, objectIds in messageRefs.items()
+                                        for objectId in objectIds
+                                        for messageId in (messageIds[sequenceInReport],)))
+                        

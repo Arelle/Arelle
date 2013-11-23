@@ -510,14 +510,13 @@ WITH row_values (%(newCols)s) AS (
             # insert new rows, return id and cols of new and existing rows
             # use IS NOT DISTINCT FROM instead of = to compare NULL usefully
             sql = [('''
-WITH updates (%(valCols)s) AS ( VALUES %(values)s ) 
+WITH input (%(valCols)s) AS ( VALUES %(values)s ) 
    UPDATE %(table)s t SET %(settings)s 
-   FROM updates u WHERE u.col0 == t.%(idCol)s
+   FROM input i WHERE i.%(idCol)s = t.%(idCol)s
 ;''') %         {"table": table,
                  "idCol": idCol,
-                 "valCols": ', '.join('col{}'.format(i)
-                                      for i in range(len(data))),
-                 "settings": ', '.join('SET t.{} = u.col{}'.format(cols[i], i)
+                 "valCols": ', '.join(col for col in cols),
+                 "settings": ', '.join('{0} = i.{0}'.format(cols[i])
                                        for i, col in enumerate(cols)
                                        if i > 0),
                  "values": values}]
@@ -540,4 +539,4 @@ WITH updates (%(valCols)s) AS ( VALUES %(values)s )
                 for sqlStmt in sql:
                     fh.write(sqlStmt)
         for sqlStmt in sql:
-            self.execute(sqlStmt,commit=commit, close=False)
+            self.execute(sqlStmt,commit=commit, fetch=False, close=False)

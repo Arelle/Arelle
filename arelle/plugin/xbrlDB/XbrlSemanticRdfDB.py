@@ -1001,7 +1001,11 @@ class XbrlSemanticRdfDatabaseConnection():
         
         messages = []
         messageRefs = [] # direct link to objects
+        firstLogMessage = True
         for i, logEntry in enumerate(logEntries):
+            if firstLogMessage:
+                self.showStatus("insert validation messages")
+                firstLogMessage = False
             messageUri = URIRef("{}/Message/{}".format(self.reportURI, i+1))
             g.add( (messageUri, RDF.type, XBRL.Message) )
             g.add( (messageUri, XBRL.code, L(logEntry['code'])) )
@@ -1040,5 +1044,3 @@ class XbrlSemanticRdfDatabaseConnection():
                 g.add( (objUri, XBRL.ref, messageUri) )
                 g.add( (messageUri, XBRL.message, objUri) )
                         
-        if messages:
-            self.showStatus("insert validation messages")

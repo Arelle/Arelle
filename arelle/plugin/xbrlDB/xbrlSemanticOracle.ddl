@@ -62,17 +62,17 @@ CREATE UNIQUE INDEX filing_index02 USING btree ON filing (filing_number);
 
 INSERT INTO sequences (sequence_name) VALUES ('seq_filing');
 
-INSERT INTO sequences (sequence_name) VALUES ('seq_report');
+
+-- object sequence can be any element that can terminate a relationship (aspect, type, resource, data point, document, role type, ...)
+-- or be a reference of a message (report or any of above)
+INSERT INTO sequences (sequence_name) VALUES ('seq_object');
 
 CREATE TABLE report (
-    report_id number(19) DEFAULT nextval('seq_report') NOT NULL,
+    report_id number(19) DEFAULT nextval('seq_object') NOT NULL,
     filing_id number(19) NOT NULL
 );
 CREATE INDEX report_index01 USING btree ON report (report_id);
 CREATE UNIQUE INDEX report_index02 USING btree ON report (filing_id);
-
--- object sequence can be any element that can terminate a relationship (aspect, type, resource, data point, document, role type, ...)
-INSERT INTO sequences (sequence_name) VALUES ('seq_object');
 
 CREATE TABLE document (
     document_id number(19) DEFAULT nextval('seq_object') NOT NULL,
@@ -261,6 +261,7 @@ INSERT INTO sequences (sequence_name) VALUES ('seq_message');
 CREATE TABLE message (
     message_id number(19) DEFAULT nextval('seq_message') NOT NULL,
     report_id number(19),
+    sequence_in_report int,
     code varchar2(256),
     level varchar2(256),
     value nclob,
@@ -269,9 +270,10 @@ CREATE TABLE message (
 
 CREATE TABLE message_reference (
     message_id number(19) NOT NULL,
-    object_id number(19) NOT NULL, -- may be any table with 'seq_object' id
-    PRIMARY KEY (message_id)
+    object_id bigint NOT NULL -- may be any table with 'seq_object' id
 );
+CREATE INDEX message_reference_index01 USING btree ON message_reference (message_id);
+CREATE UNIQUE INDEX message_reference_index02 USING btree ON message_reference (message_id, object_id);
 
 INSERT INTO sequences (sequence_name) VALUES ('seq_industry');
 
