@@ -1,6 +1,11 @@
 --
+-- XBRL-US Public Postgres DB 
+--
 -- PostgreSQL database dump
 --
+
+-- clear everything prior
+DROP SCHEMA public CASCADE; create SCHEMA public;
 
 SET statement_timeout = 0;
 SET client_encoding = 'UTF8';
@@ -389,6 +394,7 @@ COMMENT ON COLUMN relationship.calculation_weight IS 'Obviously only for calcula
 -- Name: ancestry_get_relationships(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
+DROP FUNCTION IF EXISTS () CASCADE;
 CREATE FUNCTION ancestry_get_relationships(network_id_arg integer, child_id integer) RETURNS SETOF relationship
     LANGUAGE plpgsql
     AS $$
@@ -427,6 +433,7 @@ ALTER FUNCTION public.ancestry_get_relationships(network_id_arg integer, child_i
 -- Name: ancestry_in_accession(integer, character varying); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
+DROP FUNCTION IF EXISTS () CASCADE;
 CREATE FUNCTION ancestry_in_accession(accession_id_arg integer, child_name character varying) RETURNS SETOF ancestry
     LANGUAGE plpgsql
     AS $$
@@ -454,6 +461,7 @@ ALTER FUNCTION public.ancestry_in_accession(accession_id_arg integer, child_name
 -- Name: ancestry_in_accession(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
+DROP FUNCTION IF EXISTS () CASCADE;
 CREATE FUNCTION ancestry_in_accession(accession_id_arg integer, child_id integer) RETURNS SETOF ancestry
     LANGUAGE plpgsql
     AS $$
@@ -486,6 +494,7 @@ ALTER FUNCTION public.ancestry_in_accession(accession_id_arg integer, child_id i
 -- Name: ancestry_in_network(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
+DROP FUNCTION IF EXISTS () CASCADE;
 CREATE FUNCTION ancestry_in_network(network_id_arg integer, child_id integer) RETURNS SETOF ancestry
     LANGUAGE plpgsql
     AS $$
@@ -533,6 +542,7 @@ ALTER FUNCTION public.ancestry_in_network(network_id_arg integer, child_id integ
 -- Name: ancestry_in_network(integer, character varying); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
+DROP FUNCTION IF EXISTS () CASCADE;
 CREATE FUNCTION ancestry_in_network(network_id_arg integer, child_name character varying) RETURNS SETOF ancestry
     LANGUAGE plpgsql
     AS $$
@@ -559,6 +569,7 @@ ALTER FUNCTION public.ancestry_in_network(network_id_arg integer, child_name cha
 -- Name: armor(bytea); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
+DROP FUNCTION IF EXISTS () CASCADE;
 CREATE FUNCTION armor(bytea) RETURNS text
     LANGUAGE c IMMUTABLE STRICT
     AS '$libdir/pgcrypto', 'pg_armor';
@@ -570,6 +581,7 @@ ALTER FUNCTION public.armor(bytea) OWNER TO postgres;
 -- Name: array_remove_value(anyarray, anyarray); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
+DROP FUNCTION IF EXISTS () CASCADE;
 CREATE FUNCTION array_remove_value(orig_array_arg anyarray, item anyarray) RETURNS anyarray
     LANGUAGE plpgsql
     AS $$
@@ -595,6 +607,7 @@ ALTER FUNCTION public.array_remove_value(orig_array_arg anyarray, item anyarray)
 -- Name: base_element_hash_string(character varying, character varying); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
+DROP FUNCTION IF EXISTS () CASCADE;
 CREATE FUNCTION base_element_hash_string(element_namespace character varying, element_local_name character varying) RETURNS character varying
     LANGUAGE plpgsql
     AS $$             
