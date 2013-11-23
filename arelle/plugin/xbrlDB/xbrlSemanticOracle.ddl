@@ -4,22 +4,18 @@ SET @@sql_mode=CONCAT_WS(',', @@sql_mode, 'NO_BACKSLASH_ESCAPES');
 
 DROP TABLE IF EXISTS sequences;
 CREATE TABLE sequences (
-    sequence_name varchar(100) NOT NULL,    
+    sequence_name varchar2(100) NOT NULL,    
     sequence_increment int NOT NULL DEFAULT 1,
     sequence_min_value int NOT NULL DEFAULT 1,
-    sequence_max_value bigint NOT NULL DEFAULT 9223372036854775807,
-    sequence_cur_value bigint DEFAULT 1,    
+    sequence_max_value number(19) NOT NULL DEFAULT 9223372036854775807,
+    sequence_cur_value number(19) DEFAULT 1,    
     sequence_cycle boolean NOT NULL DEFAULT FALSE,    
     PRIMARY KEY (sequence_name)
 ); 
 
-DROP FUNCTION IF EXISTS nextval;
-DELIMITER $$
-CREATE FUNCTION nextval(seq_name varchar(100)) RETURNS bigint
-    LANGUAGE SQL
+CREATE OR REPLACE FUNCTION nextval(seq_name varchar2(100)) RETURNS number(19) IS
+    cur_val number(19);    
 BEGIN
-    DECLARE 
-        cur_val bigint;
     SELECT
         sequence_cur_value INTO cur_val
     FROM
@@ -44,78 +40,68 @@ BEGIN
         ;
     RETURN cur_val;
 END;
-$$
-DELIMITER ;
 
+
+INSERT INTO sequences (sequence_name) VALUES ('seq_filing');
 
 CREATE TABLE filing (
-    filing_id bigint NOT NULL,
-    filing_number varchar(30) NOT NULL,
+    filing_id number(19) DEFAULT nextval('seq_filing') NOT NULL,
+    filing_number varchar2(30) NOT NULL,
     accepted_timestamp timestamp NOT NULL DEFAULT now(),
     is_most_current boolean NOT NULL DEFAULT false,
     filing_date date NOT NULL,
-    entity_id bigint NOT NULL,
-    entity_name varchar(1024),
-    creation_software text,
+    entity_id number(19) NOT NULL,
+    entity_name varchar2(1024),
+    creation_software nclob,
     standard_industrial_classification integer NOT NULL DEFAULT -1,
-    authority_html_url text,
-    entry_url text
+    authority_html_url nclob,
+    entry_url nclob
 );
 CREATE INDEX filing_index01 USING btree ON filing (filing_id);
 CREATE UNIQUE INDEX filing_index02 USING btree ON filing (filing_number);
 
 INSERT INTO sequences (sequence_name) VALUES ('seq_filing');
 
-CREATE TRIGGER filing_seq BEFORE INSERT ON filing 
-  FOR EACH ROW SET NEW.filing_id = nextval('seq_filing');
+INSERT INTO sequences (sequence_name) VALUES ('seq_report');
 
 CREATE TABLE report (
-    report_id bigint NOT NULL,
-    filing_id bigint NOT NULL
+    report_id number(19) DEFAULT nextval('seq_report') NOT NULL,
+    filing_id number(19) NOT NULL
 );
 CREATE INDEX report_index01 USING btree ON report (report_id);
 CREATE UNIQUE INDEX report_index02 USING btree ON report (filing_id);
-
-INSERT INTO sequences (sequence_name) VALUES ('seq_report');
-
-CREATE TRIGGER report_seq BEFORE INSERT ON report 
-  FOR EACH ROW SET NEW.report_id = nextval('seq_report');
-
 
 -- object sequence can be any element that can terminate a relationship (aspect, type, resource, data point, document, role type, ...)
 INSERT INTO sequences (sequence_name) VALUES ('seq_object');
 
 CREATE TABLE document (
-    document_id bigint NOT NULL,
-    document_url varchar(2048) NOT NULL,
-    document_type varchar(32),  -- ModelDocument.Type string value
-    namespace varchar(1024),  -- targetNamespace if schema else NULL
+    document_id number(19) DEFAULT nextval('seq_object') NOT NULL,
+    document_url varchar2(2048) NOT NULL,
+    document_type varchar2(32),  -- ModelDocument.Type string value
+    namespace varchar2(1024),  -- targetNamespace if schema else NULL
     PRIMARY KEY (document_id)
 );
-
-CREATE TRIGGER document_seq BEFORE INSERT ON document 
-  FOR EACH ROW SET NEW.document_id = nextval('seq_object');
 
 -- documents referenced by report or document
 
 CREATE TABLE referenced_documents (
-    object_id bigint NOT NULL,
-    document_id bigint NOT NULL
+    object_id number(19) NOT NULL,
+    document_id number(19) NOT NULL
 );
 CREATE INDEX referenced_documents_index01 USING btree ON referenced_documents (object_id);
 CREATE UNIQUE INDEX referenced_documents_index02 USING btree ON referenced_documents (object_id, document_id);
 
 CREATE TABLE aspect (
-    aspect_id bigint NOT NULL,
-    document_id bigint NOT NULL,
-    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
-    qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    name varchar(1024) NOT NULL,  -- local qname
-    datatype_id bigint,
-    base_type varchar(128), -- xml base type if any
-    substitution_group_aspect_id bigint,
-    balance varchar(16),
-    period_type varchar(16),
+    aspect_id number(19) DEFAULT nextval('seq_object') NOT NULL,
+    document_id number(19) NOT NULL,
+    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
+    qname varchar2(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    name varchar2(1024) NOT NULL,  -- local qname
+    datatype_id number(19),
+    base_type varchar2(128), -- xml base type if any
+    substitution_group_aspect_id number(19),
+    balance varchar2(16),
+    period_type varchar2(16),
     abstract boolean NOT NULL,
     nillable boolean NOT NULL,
     is_numeric boolean NOT NULL,
@@ -124,139 +110,112 @@ CREATE TABLE aspect (
     PRIMARY KEY (aspect_id)
 );
 
-CREATE TRIGGER aspect_seq BEFORE INSERT ON aspect 
-  FOR EACH ROW SET NEW.aspect_id = nextval('seq_object');
-
 CREATE TABLE data_type (
-    data_type_id bigint NOT NULL,
-    document_id bigint NOT NULL,
-    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
-    qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    name varchar(1024) NOT NULL,  -- local qname
-    base_type varchar(128), -- xml base type if any
-    derived_from_type_id bigint,
+    data_type_id number(19) DEFAULT nextval('seq_object') NOT NULL,
+    document_id number(19) NOT NULL,
+    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
+    qname varchar2(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    name varchar2(1024) NOT NULL,  -- local qname
+    base_type varchar2(128), -- xml base type if any
+    derived_from_type_id number(19),
     PRIMARY KEY (data_type_id)
 );
 
-CREATE TRIGGER data_type_seq BEFORE INSERT ON data_type 
-  FOR EACH ROW SET NEW.data_type_id = nextval('seq_object');
-
 CREATE TABLE role_type (
-    role_type_id bigint NOT NULL,
-    document_id bigint NOT NULL,
-    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
-    role_uri varchar(1024) NOT NULL,
-    definition text,
+    role_type_id number(19) DEFAULT nextval('seq_object') NOT NULL,
+    document_id number(19) NOT NULL,
+    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
+    role_uri varchar2(1024) NOT NULL,
+    definition nclob,
     PRIMARY KEY (role_type_id)
 );
 
-CREATE TRIGGER role_type_seq BEFORE INSERT ON role_type 
-  FOR EACH ROW SET NEW.role_type_id = nextval('seq_object');
-
 CREATE TABLE arcrole_type (
-    arcrole_type_id bigint NOT NULL,
-    document_id bigint NOT NULL,
-    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
-    arcrole_uri varchar(1024) NOT NULL,
-    cycles_allowed varchar(10) NOT NULL,
-    definition text,
+    arcrole_type_id number(19) DEFAULT nextval('seq_object') NOT NULL,
+    document_id number(19) NOT NULL,
+    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
+    arcrole_uri varchar2(1024) NOT NULL,
+    cycles_allowed varchar2(10) NOT NULL,
+    definition nclob,
     PRIMARY KEY (arcrole_type_id)
 );
 
-CREATE TRIGGER arcrole_type_seq BEFORE INSERT ON arcrole_type 
-  FOR EACH ROW SET NEW.arcrole_type_id = nextval('seq_object');
-
 CREATE TABLE used_on (
-    object_id bigint NOT NULL,
-    aspect_id bigint NOT NULL
+    object_id number(19) NOT NULL,
+    aspect_id number(19) NOT NULL
 );
 CREATE INDEX used_on_index01 USING btree ON used_on (object_id);
 CREATE UNIQUE INDEX used_on_index02 USING btree ON used_on (object_id, aspect_id);
 
 CREATE TABLE resource (
-    resource_id bigint NOT NULL,
-    document_id bigint NOT NULL,
-    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
-    qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    role varchar(1024) NOT NULL,
-    value text,
-    xml_lang varchar(16),
+    resource_id number(19) DEFAULT nextval('seq_object') NOT NULL,
+    document_id number(19) NOT NULL,
+    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
+    qname varchar2(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    role varchar2(1024) NOT NULL,
+    value nclob,
+    xml_lang varchar2(16),
     PRIMARY KEY (resource_id)
 );
-
-CREATE TRIGGER resource_seq BEFORE INSERT ON resource 
-  FOR EACH ROW SET NEW.resource_id = nextval('seq_object');
 
 INSERT INTO sequences (sequence_name) VALUES ('seq_relationship_set');
 
 CREATE TABLE relationship_set (
-    relationship_set_id bigint NOT NULL,
-    report_id bigint,
-    arc_qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    link_qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    arc_role varchar(1024) NOT NULL,
-    link_role varchar(1024) NOT NULL,
+    relationship_set_id number(19) DEFAULT nextval('seq_relationship_set') NOT NULL,
+    report_id number(19),
+    arc_qname varchar2(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    link_qname varchar2(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    arc_role varchar2(1024) NOT NULL,
+    link_role varchar2(1024) NOT NULL,
     PRIMARY KEY (relationship_set_id)
 );
 
-CREATE TRIGGER relationship_set_seq BEFORE INSERT ON relationship_set 
-  FOR EACH ROW SET NEW.relationship_set_id = nextval('seq_object');
-
 CREATE TABLE relationship (
-    relationship_id bigint NOT NULL,
-    report_id bigint,
-    document_id bigint NOT NULL,
-    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
-    relationship_set_id bigint NOT NULL,
-    reln_order double,
-    from_id bigint,
-    to_id bigint,
-    calculation_weight double,
+    relationship_id number(19) DEFAULT nextval('seq_object') NOT NULL,
+    report_id number(19),
+    document_id number(19) NOT NULL,
+    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
+    relationship_set_id number(19) NOT NULL,
+    reln_order binary_double,
+    from_id number(19),
+    to_id number(19),
+    calculation_weight binary_double,
     tree_sequence integer NOT NULL,
     tree_depth integer NOT NULL,
-    preferred_label_role varchar(1024),
+    preferred_label_role varchar2(1024),
     PRIMARY KEY (relationship_id)
 );
 
-CREATE TRIGGER relationship_seq BEFORE INSERT ON relationship 
-  FOR EACH ROW SET NEW.relationship_id = nextval('seq_object');
-
 CREATE TABLE data_point (
-    datapoint_id bigint NOT NULL,
-    report_id bigint,
-    document_id bigint NOT NULL,  -- multiple inline documents are sources of data points
-    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
+    datapoint_id number(19) DEFAULT nextval('seq_object') NOT NULL,
+    report_id number(19),
+    document_id number(19) NOT NULL,  -- multiple inline documents are sources of data points
+    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
     source_line integer,
-    parent_datapoint_id bigint, -- id of tuple parent
-    context_xml_id varchar(1024), -- (do we need this?)
-    entity_id bigint,
-    period_id bigint,
-    aspect_value_selections_id bigint,
-    unit_id bigint,
-    precision_value varchar(16),
-    decimals_value varchar(16),
-    effective_value double,
-    value text,
+    parent_datapoint_id number(19), -- id of tuple parent
+    context_xml_id varchar2(1024), -- (do we need this?)
+    entity_id number(19),
+    period_id number(19),
+    aspect_value_selections_id number(19),
+    unit_id number(19),
+    precision_value varchar2(16),
+    decimals_value varchar2(16),
+    effective_value binary_double,
+    value nclob,
     PRIMARY KEY (datapoint_id)
 );
 
-CREATE TRIGGER data_point_seq BEFORE INSERT ON data_point 
-  FOR EACH ROW SET NEW.datapoint_id = nextval('seq_object');
-
 CREATE TABLE entity (
-    entity_id bigint NOT NULL,
-    report_id bigint,
-    entity_scheme varchar(1024) NOT NULL,
-    entity_identifier varchar(1024) NOT NULL,
+    entity_id number(19) DEFAULT nextval('seq_object') NOT NULL,
+    report_id number(19),
+    entity_scheme varchar2(1024) NOT NULL,
+    entity_identifier varchar2(1024) NOT NULL,
     PRIMARY KEY (entity_id)
 );
 
-CREATE TRIGGER entity_seq BEFORE INSERT ON entity 
-  FOR EACH ROW SET NEW.entity_id = nextval('seq_object');
-
 CREATE TABLE period (
-    period_id bigint NOT NULL,
-    report_id bigint,
+    period_id number(19) DEFAULT nextval('seq_object') NOT NULL,
+    report_id number(19),
     start_date date,
     end_date date,
     is_instant boolean NOT NULL,
@@ -264,82 +223,67 @@ CREATE TABLE period (
     PRIMARY KEY (period_id)
 );
 
-CREATE TRIGGER period_seq BEFORE INSERT ON period 
-  FOR EACH ROW SET NEW.period_id = nextval('seq_object');
-
 CREATE TABLE unit (
-    unit_id bigint NOT NULL,
-    report_id bigint,
-    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
+    unit_id number(19) DEFAULT nextval('seq_object') NOT NULL,
+    report_id number(19),
+    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
     PRIMARY KEY (unit_id)
 );
 
-CREATE TRIGGER unit_seq BEFORE INSERT ON unit 
-  FOR EACH ROW SET NEW.unit_id = nextval('seq_object');
-
 CREATE TABLE unit_measure (
-    unit_id bigint NOT NULL,
-    qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    unit_id number(19) NOT NULL,
+    qname varchar2(1024) NOT NULL,  -- clark notation qname (do we need this?)
     is_multiplicand boolean NOT NULL
 );
 CREATE INDEX unit_measure_index01 USING btree ON unit_measure (unit_id);
 CREATE UNIQUE INDEX unit_measure_index02 USING btree ON unit_measure (unit_id, qname(32), is_multiplicand);
 
 CREATE TABLE aspect_value_selection_set (
-    aspect_value_selection_id bigint NOT NULL,
-    report_id bigint,
+    aspect_value_selection_id DEFAULT nextval('seq_object') number(19) NOT NULL,
+    report_id number(19),
     PRIMARY KEY (aspect_value_selection_id)
 );
 CREATE UNIQUE INDEX aspect_value_selection_set_index01 USING btree ON aspect_value_selection_set (aspect_value_selection_id);
 CREATE UNIQUE INDEX aspect_value_selection_set_index02 USING btree ON aspect_value_selection_set (report_id);
 
-CREATE TRIGGER aspect_value_selection_set_seq BEFORE INSERT ON aspect_value_selection_set 
-  FOR EACH ROW SET NEW.aspect_value_selection_id = nextval('seq_object');
-
 CREATE TABLE aspect_value_selection (
-    aspect_value_selection_id bigint NOT NULL,
-    report_id bigint,
-    aspect_id bigint NOT NULL,
-    aspect_value_id bigint,
+    aspect_value_selection_id number(19) NOT NULL,
+    report_id number(19),
+    aspect_id number(19) NOT NULL,
+    aspect_value_id number(19),
     is_typed_value boolean NOT NULL,
-    typed_value text
+    typed_value nclob
 );
 CREATE INDEX aspect_value_selection_index01 USING btree ON aspect_value_selection (aspect_value_selection_id);
 
-CREATE TABLE message (
-    message_id bigint NOT NULL,
-    report_id bigint,
-    code varchar(256),
-    level varchar(256),
-    value text,
-    PRIMARY KEY (message_id)
-);
-
 INSERT INTO sequences (sequence_name) VALUES ('seq_message');
 
-CREATE TRIGGER message_seq BEFORE INSERT ON message 
-  FOR EACH ROW SET NEW.message_id = nextval('seq_message');
-
-CREATE TABLE message_reference (
-    message_id bigint NOT NULL,
-    object_id bigint NOT NULL, -- may be any table with 'seq_object' id
+CREATE TABLE message (
+    message_id number(19) DEFAULT nextval('seq_message') NOT NULL,
+    report_id number(19),
+    code varchar2(256),
+    level varchar2(256),
+    value nclob,
     PRIMARY KEY (message_id)
 );
 
-CREATE TABLE industry (
-    industry_id bigint NOT NULL,
-    industry_classification varchar(16),
-    industry_code integer,
-    industry_description varchar(512),
-    depth integer,
-    parent_id bigint,
-    PRIMARY KEY (industry_id)
+CREATE TABLE message_reference (
+    message_id number(19) NOT NULL,
+    object_id number(19) NOT NULL, -- may be any table with 'seq_object' id
+    PRIMARY KEY (message_id)
 );
 
 INSERT INTO sequences (sequence_name) VALUES ('seq_industry');
 
-CREATE TRIGGER industry_seq BEFORE INSERT ON industry 
-  FOR EACH ROW SET NEW.industry_id = nextval('seq_industry');
+CREATE TABLE industry (
+    industry_id number(19) DEFAULT nextval('seq_industry') NOT NULL,
+    industry_classification varchar2(16),
+    industry_code integer,
+    industry_description varchar2(512),
+    depth integer,
+    parent_id number(19),
+    PRIMARY KEY (industry_id)
+);
 
 INSERT INTO industry (industry_id, industry_classification, industry_code, industry_description, depth, parent_id) VALUES
 (4315, 'SEC', 3576, 'Computer Communications Equipment', 4, 2424),
@@ -4677,23 +4621,19 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (4303, 'SIC', 9990, 'Nonclassifiable Establishments', 3, 4302)
 ;
 
+INSERT INTO sequences (sequence_name) VALUES ('seq_industry_level');
+
 CREATE TABLE industry_level (
-    industry_level_id bigint NOT NULL,
-    industry_classification varchar(16),
-    ancestor_id bigint,
+    industry_level_id number(19) DEFAULT nextval('seq_industry_level') NOT NULL,
+    industry_classification varchar2(16),
+    ancestor_id number(19),
     ancestor_code integer,
     ancestor_depth integer,
-    descendant_id bigint,
+    descendant_id number(19),
     descendant_code integer,
     descendant_depth integer,
     PRIMARY KEY (industry_level_id)
 );
-
-INSERT INTO sequences (sequence_name) VALUES ('seq_industry_level');
-
-CREATE TRIGGER industry_level_seq BEFORE INSERT ON industry_level 
-  FOR EACH ROW SET NEW.industry_level_id = nextval('seq_industry_level');
-
 
 INSERT INTO industry_level (industry_level_id, industry_classification, ancestor_id, ancestor_code, ancestor_depth, descendant_id, descendant_code, descendant_depth) VALUES
 (1, 'SEC', 2677, 6300, 2, 2689, 6390, 3),
@@ -14024,18 +13964,15 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (9326, 'SIC', 3681, 4810, 3, 3682, 4812, 4)
 ;
 
-CREATE TABLE industry_structure (
-    industry_structure_id bigint,
-    industry_classification varchar(8) NOT NULL,
-    depth integer NOT NULL,
-    level_name varchar(32),
-    PRIMARY KEY (industry_structure_id)
-);
-
 INSERT INTO sequences (sequence_name) VALUES ('seq_industry_structure');
 
-CREATE TRIGGER industry_structure_seq BEFORE INSERT ON industry_structure 
-  FOR EACH ROW SET NEW.industry_structure_id = nextval('seq_industry_structure');
+CREATE TABLE industry_structure (
+    industry_structure_id number(19) DEFAULT nextval('seq_industry_structure') ,
+    industry_classification varchar2(8) NOT NULL,
+    depth integer NOT NULL,
+    level_name varchar2(32),
+    PRIMARY KEY (industry_structure_id)
+);
 
 INSERT INTO industry_structure (industry_structure_id, industry_classification, depth, level_name) VALUES
 (1, 'SIC', 1, 'Division'),

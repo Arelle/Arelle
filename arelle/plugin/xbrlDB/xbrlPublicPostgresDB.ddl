@@ -5360,11 +5360,14 @@ ALTER TABLE public.seq_fact OWNER TO postgres;
 --
 -- Name: fact; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
+-- HF: modified to accept tuples by adding tuple_fact_id and
+--      context_id, is_precision_infinity, isdecimals_infinity now NULLable
 
 CREATE TABLE fact (
     fact_id integer DEFAULT nextval('seq_fact'::regclass) NOT NULL,
     accession_id integer NOT NULL,
-    context_id integer NOT NULL,
+    tuple_fact_id integer,
+    context_id integer,
     unit_id integer,
     element_id integer NOT NULL,
     effective_value numeric,
@@ -5372,8 +5375,8 @@ CREATE TABLE fact (
     xml_id character varying(2048),
     precision_value integer,
     decimals_value integer,
-    is_precision_infinity boolean DEFAULT false NOT NULL,
-    is_decimals_infinity boolean DEFAULT false NOT NULL,
+    is_precision_infinity boolean DEFAULT false,
+    is_decimals_infinity boolean DEFAULT false,
     ultimus_index integer,
     calendar_ultimus_index integer,
     uom character varying,

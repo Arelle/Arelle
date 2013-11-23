@@ -45,8 +45,13 @@ def askSmtp(parent, priorSmtpSettings):
         return (dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password)
     return None
 
-DBTypes = ("postgres", "rexster", "rdfDB", "json")
-DBDescriptions = ("Postgres SQL Database",
+DBTypes = ("postgres", "mssqlSemantic", "mysqlSemantic", "orclSemantic",
+           "pgSemantic", "rexster", "rdfDB", "json")
+DBDescriptions = ("XBRL-US Postgres SQL",
+                  "Semantic MSSQL SQL",
+                  "Semantic MySQL SQL",
+                  "Semantic Oracle SQL",
+                  "Semantic Postgres SQL",
                   "Rexter (Titan Cassandra)",
                   "RDF (Turtle, NanoSparqlServer)",
                   "JSON (JSON, MongoDB)")
@@ -221,6 +226,8 @@ class DialogUserPassword(Toplevel):
             errors.append(_("Port number invalid"))
         if self.timeout and not self.timeout.isdigit():
             errors.append(_("Timeout seconds invalid"))
+        if hasattr(self,"cbDbType") and self.cbDbType.value not in DBDescriptions:
+            errors.append(_("DB type is invalid"))
         if errors:
             messagebox.showwarning(_("Dialog validation error(s)"),
                                 "\n ".join(errors), parent=self)

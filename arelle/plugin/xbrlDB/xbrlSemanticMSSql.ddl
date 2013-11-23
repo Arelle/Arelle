@@ -13,19 +13,16 @@ CREATE TABLE sequences (
     PRIMARY KEY (sequence_name)
 ); 
 
-DROP FUNCTION IF EXISTS nextval;
-DELIMITER $$
-CREATE FUNCTION nextval(seq_name varchar(100)) RETURNS bigint
-    LANGUAGE SQL
+CREATE FUNCTION nextval(@seq_name varchar(100)) RETURNS bigint IS
 BEGIN
-    DECLARE 
-        cur_val bigint;
+    DECLARE
+	@cur_val bigint;    
     SELECT
-        sequence_cur_value INTO cur_val
+        sequence_cur_value INTO @cur_val
     FROM
         sequences
     WHERE
-        sequence_name = seq_name AND
+        sequence_name = @seq_name AND
 	sequence_cur_value IS NOT NULL;
 
         UPDATE
@@ -42,10 +39,8 @@ BEGIN
         WHERE
             sequence_name = seq_name
         ;
-    RETURN cur_val;
+    RETURN @cur_val;
 END;
-$$
-DELIMITER ;
 
 
 CREATE TABLE filing (
@@ -56,10 +51,10 @@ CREATE TABLE filing (
     filing_date date NOT NULL,
     entity_id bigint NOT NULL,
     entity_name varchar(1024),
-    creation_software text,
+    creation_software ntext,
     standard_industrial_classification integer NOT NULL DEFAULT -1,
-    authority_html_url text,
-    entry_url text
+    authority_html_url ntext,
+    entry_url ntext
 );
 CREATE INDEX filing_index01 USING btree ON filing (filing_id);
 CREATE UNIQUE INDEX filing_index02 USING btree ON filing (filing_number);
@@ -146,7 +141,7 @@ CREATE TABLE role_type (
     document_id bigint NOT NULL,
     xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
     role_uri varchar(1024) NOT NULL,
-    definition text,
+    definition ntext,
     PRIMARY KEY (role_type_id)
 );
 
@@ -159,7 +154,7 @@ CREATE TABLE arcrole_type (
     xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
     arcrole_uri varchar(1024) NOT NULL,
     cycles_allowed varchar(10) NOT NULL,
-    definition text,
+    definition ntext,
     PRIMARY KEY (arcrole_type_id)
 );
 
@@ -179,7 +174,7 @@ CREATE TABLE resource (
     xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
     qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
     role varchar(1024) NOT NULL,
-    value text,
+    value ntext,
     xml_lang varchar(16),
     PRIMARY KEY (resource_id)
 );
@@ -200,7 +195,7 @@ CREATE TABLE relationship_set (
 );
 
 CREATE TRIGGER relationship_set_seq BEFORE INSERT ON relationship_set 
-  FOR EACH ROW SET NEW.relationship_set_id = nextval('seq_object');
+  FOR EACH ROW SET NEW.relationship_set_id = nextval('seq_relationship_set');
 
 CREATE TABLE relationship (
     relationship_id bigint NOT NULL,
@@ -208,10 +203,10 @@ CREATE TABLE relationship (
     document_id bigint NOT NULL,
     xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
     relationship_set_id bigint NOT NULL,
-    reln_order double,
+    reln_order float(24),
     from_id bigint,
     to_id bigint,
-    calculation_weight double,
+    calculation_weight float(24),
     tree_sequence integer NOT NULL,
     tree_depth integer NOT NULL,
     preferred_label_role varchar(1024),
@@ -235,8 +230,8 @@ CREATE TABLE data_point (
     unit_id bigint,
     precision_value varchar(16),
     decimals_value varchar(16),
-    effective_value double,
-    value text,
+    effective_value float(53),
+    value ntext,
     PRIMARY KEY (datapoint_id)
 );
 
@@ -302,7 +297,7 @@ CREATE TABLE aspect_value_selection (
     aspect_id bigint NOT NULL,
     aspect_value_id bigint,
     is_typed_value boolean NOT NULL,
-    typed_value text
+    typed_value ntext
 );
 CREATE INDEX aspect_value_selection_index01 USING btree ON aspect_value_selection (aspect_value_selection_id);
 
@@ -311,7 +306,7 @@ CREATE TABLE message (
     report_id bigint,
     code varchar(256),
     level varchar(256),
-    value text,
+    value ntext,
     PRIMARY KEY (message_id)
 );
 

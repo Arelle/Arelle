@@ -46,8 +46,7 @@ from arelle.ModelValue import qname
 from arelle.ValidateXbrlCalcs import roundValue
 from arelle.XmlUtil import elementFragmentIdentifier
 from arelle import XbrlConst
-from .SqlDb import (pyBoolFromDbBool, pyNoneFromDbNULL, dbNum, dbStr,
-                    XPDBException, isSqlConnection, SqlDbConnection)
+from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
 
 
 def insertIntoDB(modelXbrl, 
@@ -257,7 +256,7 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
         docUris = set()
         for modelDocument in self.modelXbrl.urlDocs.values():
             if modelDocument.type == Type.SCHEMA:
-                docUris.add(dbStr(modelDocument.uri))
+                docUris.add(self.dbStr(modelDocument.uri))
         if docUris:
             results = self.execute("SELECT document_id, document_uri FROM document WHERE document_uri IN (" +
                                    ', '.join(docUris) + ");")
@@ -510,10 +509,10 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
         relsData = tuple((networkId,
                           self.conceptElementId(rel.fromModelObject), # may be None
                           self.conceptElementId(rel.toModelObject), # may be None
-                          dbNum(rel.order),
+                          self.dbNum(rel.order),
                           resourceResourceId(rel.fromModelObject), # may be None
                           resourceResourceId(rel.toModelObject), # may be None
-                          dbNum(rel.weight), # none if no weight
+                          self.dbNum(rel.weight), # none if no weight
                           sequence,
                           depth,
                           self.qnameId.get(rel.preferredLabel) if rel.preferredLabel else None)
@@ -606,22 +605,31 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                               ('dimension_qname_id',), 
                               values)
         # facts
-        table = self.getTable('fact', 'fact_id', 
-                              ('accession_id', 'context_id', 'unit_id', 'element_id', 'effective_value', 'fact_value', 
-                               'xml_id', 'precision_value', 'decimals_value', 
-                               'is_precision_infinity', 'is_decimals_infinity', ), 
-                              ('accession_id', 'context_id', 'unit_id', 'element_id', 'fact_value'), 
-                              tuple((accsId,
-                                     self.cntxId.get((accsId,fact.contextID)),
-                                     self.unitId.get((accsId,fact.unitID)),
-                                     self.conceptElementId(fact.concept),
-                                     roundValue(fact.value, fact.precision, fact.decimals) if fact.isNumeric else None,
-                                     fact.value,
-                                     elementFragmentIdentifier(fact),
-                                     fact.xAttributes['precision'].xValue if ('precision' in fact.xAttributes and isinstance(fact.xAttributes['precision'].xValue,int)) else None,
-                                     fact.xAttributes['decimals'].xValue if ('decimals' in fact.xAttributes and isinstance(fact.xAttributes['decimals'].xValue,int)) else None,
-                                     'precision' in fact.xAttributes and fact.xAttributes['precision'].xValue == 'INF',
-                                     'decimals' in fact.xAttributes and fact.xAttributes['decimals'].xValue == 'INF',
-                                     )
-                                    for fact in self.modelXbrl.facts))
+        def insertFactSet(modelFacts, tupleFactId):
+            table = self.getTable('fact', 'fact_id', 
+                                  ('accession_id', 'tuple_fact_id', 'context_id', 'unit_id', 'element_id', 'effective_value', 'fact_value', 
+                                   'xml_id', 'precision_value', 'decimals_value', 
+                                   'is_precision_infinity', 'is_decimals_infinity', ), 
+                                  ('accession_id', 'xml_id'), 
+                                  tuple((accsId,
+                                         tupleFactId,
+                                         self.cntxId.get((accsId,fact.contextID)),
+                                         self.unitId.get((accsId,fact.unitID)),
+                                         self.conceptElementId(fact.concept),
+                                         roundValue(fact.value, fact.precision, fact.decimals) if fact.isNumeric else None,
+                                         fact.value,
+                                         elementFragmentIdentifier(fact),
+                                         fact.xAttributes['precision'].xValue if ('precision' in fact.xAttributes and isinstance(fact.xAttributes['precision'].xValue,int)) else None,
+                                         fact.xAttributes['decimals'].xValue if ('decimals' in fact.xAttributes and isinstance(fact.xAttributes['decimals'].xValue,int)) else None,
+                                         'precision' in fact.xAttributes and fact.xAttributes['precision'].xValue == 'INF',
+                                         'decimals' in fact.xAttributes and fact.xAttributes['decimals'].xValue == 'INF',
+                                         )
+                                        for fact in modelFacts))
+            factId = dict((xmlId, id)
+                          for id, _accsId, xmlId in table)
+            for fact in modelFacts:
+                if fact.isTuple:
+                    insertFactSet(fact.modelTupleFacts, 
+                                  factId[elementFragmentIdentifier(fact)])
+        insertFactSet(self.modelXbrl.facts, None)
         # hashes
