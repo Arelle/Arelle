@@ -119,7 +119,8 @@ try:
 except ImportError as e:
     print("Documentation production by Sphinx is not available: %s" % e)
 
-        
+
+''' this section was for py2app which no longer works on Mavericks, switch below to cx_Freeze        
 if sys.platform == 'darwin':
     from setuptools import setup, find_packages
     
@@ -166,14 +167,16 @@ if sys.platform == 'darwin':
         dataFiles.append((dir[7:],
                           [dir + "/" + f for f in files]))
     cx_FreezeExecutables = []
-
-elif sys.platform in ('linux2', 'linux', 'sunos5'): # works on ubuntu with hand-built cx_Freeze
+#End of py2app defunct section
+'''
+if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'): # works on ubuntu with hand-built cx_Freeze
     from setuptools import find_packages 
     try:
         from cx_Freeze import setup, Executable  
         cx_FreezeExecutables = [ 
             Executable( 
                 script="arelleGUI.pyw", 
+                targetName="arelle"
                 ), 
             Executable( 
                 script="arelleCmdLine.py", 
@@ -194,12 +197,14 @@ elif sys.platform in ('linux2', 'linux', 'sunos5'): # works on ubuntu with hand-
                           ('arelle/examples/plugin','examples/plugin'), 
                           ('arelle/examples/plugin/locale/fr/LC_MESSAGES','examples/plugin/locale/fr/LC_MESSAGES'), 
                           ('arelle/plugin','plugin'), 
-                          ('arelle/scripts-unix','scripts'),
+                          ('arelle/scripts-macOS' if sys.platform == 'darwin' else 'arelle/scripts-unix',
+                           'scripts'),
                           ],
         #
         # rdflib & isodate egg files: rename .zip cpy lib & egg-info subdirectories to site-packages directory
         #
-        "includes": ['lxml', 'lxml.etree', 'lxml._elementpath', 'pg8000', 
+        "includes": ['lxml', 'lxml.etree', 'lxml._elementpath', 'pg8000', 'pymysql', 'pyodbc',
+                     # note cx_Oracle isn't here because it is version and machine specific, ubuntu not likely working
                      'rdflib', 'rdflib.extras', 'rdflib.tools', 
                      # more rdflib plugin modules may need to be added later
                      'rdflib.plugins', 'rdflib.plugins.memory', 
@@ -210,7 +215,10 @@ elif sys.platform in ('linux2', 'linux', 'sunos5'): # works on ubuntu with hand-
                      'isodate', 'regex', 'gzip', 'zlib'], 
         "packages": packages, 
         } ) 
-    
+    if sys.platform == 'darwin':
+        options["bdist_mac"] = {"iconfile": 'arelle/images/arelle.icns',
+                                "bundle_name": 'Arelle'}
+        
     
 elif sys.platform == 'win32':
     from setuptools import find_packages
@@ -239,7 +247,7 @@ elif sys.platform == 'win32':
         #
         # rdflib & isodate egg files: rename .zip cpy lib & egg-info subdirectories to site-packages directory
         #
-        "includes": ['lxml', 'lxml.etree', 'lxml._elementpath', 'pg8000', 
+        "includes": ['lxml', 'lxml.etree', 'lxml._elementpath', 'pg8000', 'pymysql', 'cx_Oracle', 'pyodbc',
                      'rdflib', 'rdflib.extras', 'rdflib.tools', 
                      # more rdflib plugin modules may need to be added later
                      'rdflib.plugins', 'rdflib.plugins.memory', 
