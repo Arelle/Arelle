@@ -26,16 +26,24 @@ except ImportError:
     pgCursorClosedError = pgConnectionClosedError = pgProgrammingError = pgInterfaceError = NoopException
     
 try:
-    import pymysql
+    import pymysql  # MIT License but not installed at GAE
     hasMySql = True
     mysqlConnect = pymysql.connect
     mysqlProgrammingError = pymysql.ProgrammingError
     mysqlInterfaceError = pymysql.InterfaceError
     mysqlInternalError = pymysql.InternalError
 except ImportError:
-    hasMySql = False
-    mysqlConnect = noop
-    mysqlProgrammingError = mysqlInterfaceError = mysqlInternalError = NoopException
+    try :
+        import MySQLdb  # LGPL License and used on GAE, Python 2.7 only
+        hasMySql = True
+        mysqlConnect = MySQLdb.connect
+        mysqlProgrammingError = MySQLdb.ProgrammingError
+        mysqlInterfaceError = MySQLdb.InterfaceError
+        mysqlInternalError = MySQLdb.InternalError
+    except ImportError:
+        hasMySql = False
+        mysqlConnect = noop
+        mysqlProgrammingError = mysqlInterfaceError = mysqlInternalError = NoopException
 
 try:
     # requires NLS_LANG to be UTF-8
@@ -128,7 +136,7 @@ class SqlDbConnection():
                                     _("MySQL interface is not installed")) 
             self.conn = mysqlConnect(user=user, passwd=password, host=host, 
                                      port=int(port or 5432), 
-                                     database=database, 
+                                     db=database,  # pymysql takes database or db but MySQLdb only takes db 
                                      connect_timeout=timeout or 60,
                                      charset='utf8')
             self.product = product
