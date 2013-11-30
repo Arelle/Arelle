@@ -284,14 +284,14 @@ class Cntlr:
                 self.logHandler = LogToBufferHandler()
                 self.logger.logHrefObjectProperties = True
             elif logFileName.endswith(".xml"):
-                self.logHandler = LogToXmlHandler(filename=logFileName, mode=logFileMode)
+                self.logHandler = LogToXmlHandler(filename=logFileName, mode=logFileMode or "a")  # should this be "w" mode??
                 self.logger.logHrefObjectProperties = True
                 if not logFormat:
                     logFormat = "%(message)s"
             else:
                 self.logHandler = logging.FileHandler(filename=logFileName, 
-                                                      mode=logFileMode if logFileMode else "w", 
-                                                      encoding=logFileEncoding if logFileEncoding else "utf-8")
+                                                      mode=logFileMode or "a",  # should this be "w" mode??
+                                                      encoding=logFileEncoding or "utf-8")
             self.logHandler.setFormatter(LogFormatter(logFormat or "%(asctime)s [%(messageCode)s] %(message)s - %(file)s\n"))
             self.logger.addHandler(self.logHandler)
         else:
