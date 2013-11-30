@@ -1,3 +1,8 @@
+-- This DDL (SQL) script initializes a database for the XBRL Abstract Model using Postgres
+
+-- (c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
+-- Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
+
 
 SET statement_timeout = 0;
 SET client_encoding = 'UTF8';
@@ -71,7 +76,7 @@ CREATE TABLE filing (
     entity_id bigint NOT NULL,
     entity_name character varying,
     creation_software text,
-    standard_industrial_classification integer DEFAULT (-1) NOT NULL,
+    standard_industry_code integer DEFAULT (-1) NOT NULL,
     authority_html_url text,
     entry_url text,
     PRIMARY KEY (filing_id)
@@ -244,11 +249,13 @@ CREATE TABLE data_point (
     xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
     source_line integer,
     parent_datapoint_id bigint, -- id of tuple parent
+    aspect_id bigint NOT NULL,
     context_xml_id character varying(1024), -- (do we need this?)
     entity_id bigint,
     period_id bigint,
     aspect_value_selections_id bigint,
     unit_id bigint,
+    is_nil boolean DEFAULT FALSE,
     precision_value character varying(16),
     decimals_value character varying(16),
     effective_value double precision,
@@ -307,9 +314,10 @@ ALTER TABLE public.unit_measure OWNER TO postgres;
 DROP TABLE IF EXISTS aspect_value_selection_set CASCADE;
 CREATE TABLE aspect_value_selection_set (
     aspect_value_selection_id bigint DEFAULT nextval('seq_object') NOT NULL,
-    report_id bigint,
-    PRIMARY KEY (aspect_value_selection_id)
+    report_id bigint
 );
+CREATE UNIQUE INDEX aspect_value_sel_set_index01 ON aspect_value_selection_set (aspect_value_selection_id);
+CREATE INDEX aspect_value_sel_set_index02 ON aspect_value_selection_set (report_id);
 
 ALTER TABLE public.aspect_value_selection_set OWNER TO postgres;
 
@@ -333,8 +341,8 @@ CREATE TABLE message (
     message_id bigint DEFAULT nextval('seq_message') NOT NULL,
     report_id bigint,
     sequence_in_report int,
-    code character varying(256),
-    level character varying(256),
+    message_code character varying(256),
+    message_level character varying(256),
     value text,
     PRIMARY KEY (message_id)
 );

@@ -94,7 +94,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                          "orcl": "xbrlSemanticOrclDB.ddl",
                          "postgres": "xbrlSemanticSqlDB.ddl"}[self.product])
             missingTables = XBRLDBTABLES - self.tablesInDB()
-        if missingTables:
+        if missingTables and missingTables != {"sequences"}:
             raise XPDBException("sqlDB:MissingTables",
                                 _("The following tables are missing: %(missingTableNames)s"),
                                 missingTableNames=', '.join(t for t in sorted(missingTables))) 
@@ -110,6 +110,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             self.identifyAspectsUsed()
             
             startedAt = time.time()
+            self.dropTemporaryTable()
             self.insertFiling(rssItem)
             self.insertDocuments()
             self.insertAspects()
@@ -135,15 +136,16 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
     def insertFiling(self, rssItem):
         self.showStatus("insert filing")
         if rssItem is None:
+            now = datetime.datetime.now()
             table = self.getTable('filing', 'filing_id', 
                                   ('filing_number', 'accepted_timestamp', 'is_most_current', 'filing_date','entity_id', 
-                                   'entity_name', 'creation_software', 'standard_industrial_classification', 
+                                   'entity_name', 'creation_software', 'standard_industry_code', 
                                    'authority_html_url', 'entry_url', ), 
                                   ('filing_number',), 
                                   ((str(int(time.time())),  # NOT NULL
-                                    datetime.datetime.now(),
+                                    now,
                                     True,
-                                    datetime.datetime.min,  # NOT NULL
+                                    now,  # NOT NULL
                                     0,  # NOT NULL
                                     '',
                                     self.modelXbrl.modelDocument.creationSoftwareComment,
@@ -156,7 +158,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         else:
             table = self.getTable('filing', 'filing_id', 
                                   ('filing_number', 'accepted_timestamp', 'is_most_current', 'filing_date','entity_id', 
-                                   'entity_name', 'creation_software', 'standard_industrial_classification', 
+                                   'entity_name', 'creation_software', 'standard_industry_code', 
                                    'authority_html_url', 'entry_url', ), 
                                   ('filing_number',), 
                                   ((rssItem.accessionNumber or str(int(time.time())),  # NOT NULL
@@ -168,8 +170,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                     self.modelXbrl.modelDocument.creationSoftwareComment,
                                     rssItem.assignedSic or -1,  # NOT NULL
                                     rssItem.htmlUrl,
-                                    rssItem.url,
-                                    
+                                    rssItem.url
                                     ),),
                                   checkIfExisting=True,
                                   returnExistenceStatus=True)
@@ -196,8 +197,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         for modelDocument in self.modelXbrl.urlDocs.values():
             docUris.add(self.dbStr(ensureUrl(modelDocument.uri)))
         if docUris:
-            results = self.execute("SELECT document_id, document_url FROM document WHERE document_url IN (" +
-                                   ', '.join(docUris) + ");")
+            results = self.execute("SELECT document_id, document_url FROM {} WHERE document_url IN ({})"
+                                   .format(self.dbTableName("document"),
+                                           ', '.join(docUris)))
             self.existingDocumentIds = dict((docUri,docId) for docId, docUri in results)
         
     def identifyAspectsUsed(self):
@@ -316,7 +318,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                   tuple((self.documentIds[ensureUrl(modelType.modelDocument.uri)],
                                          modelType.qname.clarkNotation)
                                         for modelType in existingDocumentUsedTypes),
-                                  checkIfExisting=True)
+                                  checkIfExisting=True,
+                                  insertIfNotMatched=False)
             for typeId, docId, qn in table:
                 self.typeQnameId[qname(qn)] = typeId
         
@@ -368,7 +371,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                   tuple((self.documentIds[ensureUrl(concept.modelDocument.uri)],
                                          concept.qname.clarkNotation)
                                         for concept in existingDocumentUsedAspects),
-                                  checkIfExisting=True)
+                                  checkIfExisting=True,
+                                  insertIfNotMatched=False)
             for aspectId, docId, qn in table:
                 self.aspectQnameId[qname(qn)] = aspectId
                 
@@ -587,23 +591,34 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         if self.filingPreviouslyInDB:
             self.showStatus("deleting prior data points of this report")
             # remove prior facts
-            self.execute("DELETE FROM data_point WHERE data_point.report_id = {};".format(reportId), 
+            self.execute("DELETE FROM {0} WHERE {0}.report_id = {1}"
+                         .format( self.dbTableName("data_point"), reportId), 
                          close=False, fetch=False)
-            self.execute("DELETE FROM entity WHERE entity.report_id = {};".format(reportId), 
+            self.execute("DELETE FROM {0} WHERE {0}.report_id = {1}" 
+                         .format( self.dbTableName("entity"), reportId), 
                          close=False, fetch=False)
-            self.execute("DELETE FROM period WHERE period.report_id = {};".format(reportId), 
+            self.execute("DELETE FROM {0} WHERE {0}.report_id = {1}"
+                         .format( self.dbTableName("period"), reportId), 
                          close=False, fetch=False)
-            self.execute("DELETE from aspect_value_selection "
-                         "USING aspect_value_selection_set "
-                         "WHERE aspect_value_selection_set.report_id = {0} AND aspect_value_selection.aspect_value_selection_id = aspect_value_selection_set.aspect_value_selection_id;".format(reportId), 
+            self.execute("DELETE from {0} "
+                         "USING {1} "
+                         "WHERE {1}.report_id = {2} AND {0}.aspect_value_selection_id = {1}.aspect_value_selection_id" 
+                         .format( self.dbTableName("aspect_value_selection"), 
+                                  self.dbTableName("aspect_value_selection_set"), 
+                                  reportId), 
                          close=False, fetch=False)
-            self.execute("DELETE FROM aspect_value_selection_set WHERE aspect_value_selection_set.report_id = {};".format(reportId), 
+            self.execute("DELETE FROM {0} WHERE {0}.report_id = {1};"
+                         .format( self.dbTableName("aspect_value_selection_set"), reportId), 
                          close=False, fetch=False)
-            self.execute("DELETE from unit_measure "
-                         "USING unit "
-                         "WHERE unit.report_id = {0} AND unit_measure.unit_id = unit.unit_id;".format(reportId), 
+            self.execute("DELETE from {0} "
+                         "USING {1} "
+                         "WHERE {1}.report_id = {2} AND {0}.unit_id = {1}.unit_id"
+                         .format( self.dbTableName("unit_measure"), 
+                                  self.dbTableName("unit"), 
+                                  reportId), 
                          close=False, fetch=False)
-            self.execute("DELETE from unit WHERE unit.report_id = {0};".format(reportId), 
+            self.execute("DELETE from {0} WHERE {0}.report_id = {1}"
+                         .format( self.dbTableName("unit"), reportId), 
                          close=False, fetch=False)
         self.showStatus("insert data points")
         # units
@@ -660,7 +675,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         aspectValueSelections = set(aspectValueSelectionSet
                                     for cntx, aspectValueSelectionSet in cntxAspectValueSelectionSet.items()
                                     if aspectValueSelectionSet)
-        self.execute("DELETE FROM aspect_value_selection_set WHERE report_id = {};".format(reportId), 
+        self.execute("DELETE FROM {0} WHERE report_id = {1}"
+                     .format(self.dbTableName("aspect_value_selection_set"), reportId), 
                      close=False, fetch=False)
         table = self.getTable('aspect_value_selection_set', 'aspect_value_selection_id', 
                               ('report_id',), 
@@ -669,9 +685,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                     for aspectValueSelection in aspectValueSelections)
                               )
         # assure we only get single entry per result (above gives cross product)
-        table = self.execute("SELECT aspect_value_selection_id, report_id from aspect_value_selection_set "
-                             "WHERE report_id = {0}"
-                             .format(reportId))
+        table = self.execute("SELECT aspect_value_selection_id, report_id from {0} "
+                             "WHERE report_id = {1}"
+                             .format(self.dbTableName("aspect_value_selection_set"), reportId))
         aspectValueSelectionSets = dict((aspectValueSelections.pop(), id)
                                         for id, _reportId in table)
         
@@ -693,14 +709,16 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             table = self.getTable('data_point', 'datapoint_id', 
                                   ('report_id', 'document_id', 'xml_id', 'source_line', 
                                    'parent_datapoint_id',  # tuple
+                                   'aspect_id',
                                    'context_xml_id', 'entity_id', 'period_id', 'aspect_value_selections_id', 'unit_id',
-                                   'precision_value', 'decimals_value', 'effective_value', 'value'), 
+                                   'is_nil', 'precision_value', 'decimals_value', 'effective_value', 'value'), 
                                   ('document_id', 'xml_id'), 
                                   tuple((reportId,
                                          self.documentIds[ensureUrl(fact.modelDocument.uri)],
                                          elementFragmentIdentifier(fact),
                                          fact.sourceline,
                                          parentDatapointId, # parent ID
+                                         self.aspectQnameId.get(fact.qname),
                                          fact.contextID,
                                          self.entityId.get((reportId, cntx.entityIdentifier[0], cntx.entityIdentifier[1]))
                                              if cntx is not None else None,
@@ -711,9 +729,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                                             cntx.isForeverPeriod)) if cntx is not None else None,
                                          cntxAspectValueSelectionSetId.get(cntx) if cntx is not None else None,
                                          self.unitId.get((reportId,fact.unitID)),
+                                         fact.isNil,
                                          fact.precision,
                                          fact.decimals,
-                                         roundValue(fact.value, fact.precision, fact.decimals) if fact.isNumeric else None,
+                                         roundValue(fact.value, fact.precision, fact.decimals) if fact.isNumeric and not fact.isNil else None,
                                          fact.value
                                          )
                                         for fact in modelFacts
@@ -741,11 +760,15 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         if self.filingPreviouslyInDB:
             self.showStatus("deleting prior messages of this report")
             # remove prior messages for this report
-            self.execute("DELETE from message_reference "
-                         "USING message "
-                         "WHERE message.report_id = {0} AND message_reference.message_id = message.message_id;".format(reportId), 
+            self.execute("DELETE from {0} "
+                         "USING {1} "
+                         "WHERE {1}.report_id = {2} AND {1}.message_id = {0}.message_id"
+                         .format(self.dbTableName("message_reference"),
+                                 self.dbTableName("message"),
+                                 reportId), 
                          close=False, fetch=False)
-            self.execute("DELETE FROM message WHERE message.report_id = {};".format(reportId), 
+            self.execute("DELETE FROM {} WHERE message.report_id = {}"
+                         .format(self.dbTableName("message"),reportId), 
                          close=False, fetch=False)
         messages = []
         messageRefs = defaultdict(set) # direct link to objects
@@ -779,7 +802,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         if messages:
             self.showStatus("insert validation messages")
             table = self.getTable('message', 'message_id', 
-                                  ('report_id', 'sequence_in_report', 'code', 'level', 'value'), 
+                                  ('report_id', 'sequence_in_report', 'message_code', 'message_level', 'value'), 
                                   ('report_id', 'sequence_in_report'), 
                                   messages)
             messageIds = dict((sequenceInReport, messageId)

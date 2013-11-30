@@ -248,6 +248,7 @@ __pluginInfo__ = {
                 'uses: cx_Oracle Copyright (c) 2007-2012, Anthony Tuininga. All rights reserved (Oracle DB), \n'
                 '           (and)Copyright (c) 2001-2007, Computronix (Canada) Ltd., Edmonton, Alberta, Canada. All rights reserved, \n'
                 '      pg8000, Copyright (c) 2007-2009, Mathieu Fenniak (Postgres DB), \n'
+                '      pyodbc, no copyright, Michael Kleehammer (MS SQL), \n'
                 '      PyMySQL, Copyright (c) 2010, 2013 PyMySQL contributors (MySQL DB), and\n' 
                 '      rdflib, Copyright (c) 2002-2012, RDFLib Team (RDF DB)',
     # classes of mount points (required)

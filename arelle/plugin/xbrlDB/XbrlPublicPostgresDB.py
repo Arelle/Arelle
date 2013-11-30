@@ -616,7 +616,7 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                                          self.cntxId.get((accsId,fact.contextID)),
                                          self.unitId.get((accsId,fact.unitID)),
                                          self.conceptElementId(fact.concept),
-                                         roundValue(fact.value, fact.precision, fact.decimals) if fact.isNumeric else None,
+                                         roundValue(fact.value, fact.precision, fact.decimals) if fact.isNumeric and not fact.isNil else None,
                                          fact.value,
                                          elementFragmentIdentifier(fact),
                                          fact.xAttributes['precision'].xValue if ('precision' in fact.xAttributes and isinstance(fact.xAttributes['precision'].xValue,int)) else None,

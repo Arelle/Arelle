@@ -1,8 +1,13 @@
+-- This DDL (SQL) script initializes a database for the XBRL Abstract Model using MySQL (or GAE Cloud SQL)
+
+-- (c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
+-- Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
+
 SET @@sql_mode=CONCAT_WS(',', @@sql_mode, 'NO_BACKSLASH_ESCAPES');
 
 -- emulate postgres nextval for mysql and oracle consistency
 
-DROP TABLE IF EXISTS sequences CASCADE CASCADE;
+DROP TABLE IF EXISTS sequences CASCADE;
 CREATE TABLE sequences (
     sequence_name varchar(100) NOT NULL,    
     sequence_increment int NOT NULL DEFAULT 1,
@@ -61,7 +66,7 @@ CREATE TABLE filing (
     entity_id bigint NOT NULL,
     entity_name varchar(1024),
     creation_software text,
-    standard_industrial_classification integer NOT NULL DEFAULT -1,
+    standard_industry_code integer NOT NULL DEFAULT -1,
     authority_html_url text,
     entry_url text
 );
@@ -242,11 +247,13 @@ CREATE TABLE data_point (
     xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
     source_line integer,
     parent_datapoint_id bigint, -- id of tuple parent
+    aspect_id bigint NOT NULL,
     context_xml_id varchar(1024), -- (do we need this?)
     entity_id bigint,
     period_id bigint,
     aspect_value_selections_id bigint,
     unit_id bigint,
+    is_nil boolean DEFAULT FALSE,
     precision_value varchar(16),
     decimals_value varchar(16),
     effective_value double,
@@ -310,7 +317,7 @@ CREATE TABLE aspect_value_selection_set (
     PRIMARY KEY (aspect_value_selection_id)
 );
 CREATE UNIQUE INDEX aspect_value_selection_set_index01 USING btree ON aspect_value_selection_set (aspect_value_selection_id);
-CREATE UNIQUE INDEX aspect_value_selection_set_index02 USING btree ON aspect_value_selection_set (report_id);
+CREATE INDEX aspect_value_selection_set_index02 USING btree ON aspect_value_selection_set (report_id);
 
 CREATE TRIGGER aspect_value_selection_set_seq BEFORE INSERT ON aspect_value_selection_set 
   FOR EACH ROW SET NEW.aspect_value_selection_id = nextval('seq_object');
@@ -331,8 +338,8 @@ CREATE TABLE message (
     message_id bigint NOT NULL,
     report_id bigint,
     sequence_in_report int,
-    code varchar(256),
-    level varchar(256),
+    message_code varchar(256),
+    message_level varchar(256),
     value text,
     PRIMARY KEY (message_id)
 );

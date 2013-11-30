@@ -6,6 +6,7 @@ Mark V copyright applies to this software, which is licensed according to the te
 '''
 import sys, os, io, time, re, datetime
 from math import isnan, isinf
+from decimal import Decimal
 from arelle.ModelValue import dateTime
 import socket
 def noop(*args, **kwargs): return 
@@ -37,16 +38,37 @@ except ImportError:
     mysqlProgrammingError = mysqlInterfaceError = mysqlInternalError = NoopException
 
 try:
+    # requires NLS_LANG to be UTF-8
+    os.environ["NLS_LANG"] = ".UTF8"
+    os.environ['ORA_NCHAR_LITERAL_REPLACE'] = 'TRUE'
     import cx_Oracle
     hasOracle = True
     oracleConnect = cx_Oracle.connect
-    oracleProgrammingError = cx_Oracle.ProgrammingError
+    oracleDatabaseError = cx_Oracle.DatabaseError
     oracleInterfaceError = cx_Oracle.InterfaceError
+    oracleNCLOB = cx_Oracle.NCLOB
 except ImportError:
     # also requires "Oracle Instant Client"
     hasOracle = False
     oracleConnect = noop
-    oracleProgrammingError = oracleInterfaceError = NoopException
+    oracleDatabaseError = oracleInterfaceError = NoopException
+    oracleCLOB = None
+
+try: 
+    import pyodbc
+    hasMSSql = True
+    mssqlConnect = pyodbc.connect
+    mssqlOperationalError = pyodbc.OperationalError
+    mssqlProgrammingError = pyodbc.ProgrammingError
+    mssqlInterfaceError = pyodbc.InterfaceError
+    mssqlInternalError = pyodbc.InternalError
+    mssqlDataError = pyodbc.DataError
+    mssqlIntegrityError = pyodbc.IntegrityError
+except ImportError:
+    hasMSSql = False
+    mssqlConnect = noop
+    mssqlOperationalError = mssqlProgrammingError = mssqlInterfaceError = mssqlInternalError = \
+        mssqlDataError = mssqlIntegrityError = NoopException
 
 
 
@@ -64,10 +86,15 @@ def isSqlConnection(host, port, timeout=10, product=None):
             elif product == "mysql" and hasMySql:
                 mysqlConnect(user='', host=host, port=int(port or 5432), socket_timeout=t)
             elif product == "orcl" and hasOracle:
-                mysqlConnect(user='', host=host, port=int(port or 5432), socket_timeout=t)
-        except (pgProgrammingError, mysqlProgrammingError, oracleProgrammingError):
+                orclConnect = oracleConnect('{}/{}@{}:{}'
+                                            .format("", "", host, 
+                                                    ":{}".format(port) if port else ""))
+            elif product == "mssql" and hasMSSql:
+                mssqlConnect(user='', host=host, socket_timeout=t)
+        except (pgProgrammingError, mysqlProgrammingError, oracleDatabaseError):
             return True # success, this is really a postgres socket, wants user name
-        except (pgInterfaceError, mysqlInterfaceError, oracleInterfaceError):
+        except (pgInterfaceError, mysqlInterfaceError, oracleInterfaceError, 
+                mssqlOperationalError, mssqlInterfaceError):
             return False # something is there but not postgres
         except socket.timeout:
             t = t + 2  # relax - try again with longer timeout
@@ -86,22 +113,43 @@ class SqlDbConnection():
     def __init__(self, modelXbrl, user, password, host, port, database, timeout, product):
         self.modelXbrl = modelXbrl
         self.disclosureSystem = modelXbrl.modelManager.disclosureSystem
-        if product == "postgres" and hasPostgres:
+        if product == "postgres":
+            if not hasPostgres:
+                raise XPDBException("xpgDB:MissingPostgresInterface",
+                                    _("Postgres interface is not installed")) 
             self.conn = pgConnect(user=user, password=password, host=host, 
                                   port=int(port or 5432), 
                                   database=database, 
                                   socket_timeout=timeout or 60)
             self.product = product
-        elif product == "mysql" and hasMySql:
+        elif product == "mysql":
+            if not hasMySql:
+                raise XPDBException("xpgDB:MissingMySQLInterface",
+                                    _("MySQL interface is not installed")) 
             self.conn = mysqlConnect(user=user, passwd=password, host=host, 
                                      port=int(port or 5432), 
                                      database=database, 
                                      connect_timeout=timeout or 60,
                                      charset='utf8')
             self.product = product
-        elif product == "orcl" and hasOracle:
-            self.conn = oracleConnect('{}/{}@{}:{}/{}'
-                                      .format(user, password, host, port, database))
+        elif product == "orcl":
+            if not hasOracle:
+                raise XPDBException("xpgDB:MissingOracleInterface",
+                                    _("Oracle interface is not installed")) 
+            self.conn = oracleConnect('{}/{}@{}{}'
+                                            .format(user, password, host, 
+                                                    ":{}".format(port) if port else ""))
+            # self.conn.paramstyle = 'named'
+            self.product = product
+        elif product == "mssql":
+            if not hasMSSql:
+                raise XPDBException("xpgDB:MissingMSSQLInterface",
+                                    _("MSSQL server interface is not installed")) 
+            self.conn = mssqlConnect('DRIVER={{SQL Server}};SERVER={2};DATABASE={3};UID={0};PWD={1};CHARSET=UTF8'
+                                      .format(user,
+                                              password, 
+                                              host, # e.g., localhost\\SQLEXPRESS
+                                              database))
             self.product = product
         else:
             self.product = None
@@ -144,10 +192,18 @@ class SqlDbConnection():
         return None 
     
     def dbStr(self, s):
-        if self.product == "mysql":
+        if self.product == "orcl":
             return "'" + str(s).replace("'","''") + "'"
+        elif self.product == "mysql":
+            return "N'" + str(s).replace("'","''") + "'"
         else:
             return "'" + str(s).replace("'","''").replace('%', '%%') + "'"
+        
+    def dbTableName(self, tableName):
+        if self.product == "orcl":
+            return '"' + tableName + '"'
+        else:
+            return tableName
 
     @property
     def cursor(self):
@@ -164,7 +220,7 @@ class SqlDbConnection():
         except (AttributeError, 
                 pgCursorClosedError, pgConnectionClosedError,
                 mysqlProgrammingError,
-                oracleProgrammingError):
+                oracleDatabaseError):
             if hasattr(self, '_cursor'):
                 del self._cursor
         
@@ -177,13 +233,35 @@ class SqlDbConnection():
         except (pg8000.errors.ConnectionClosedError):
             pass
         
-    def execute(self, sql, commit=False, close=True, fetch=True):
+    def dropTemporaryTable(self):
+        if self.product == "orcl":
+            self.execute("""
+                BEGIN
+                    EXECUTE IMMEDIATE 'drop table INPUT'; 
+                    EXCEPTION WHEN OTHERS THEN NULL;
+                END;
+                """, close=True, commit=False, fetch=False)
+        elif self.product == "mssql":
+            self.execute("""
+                IF OBJECT_ID('tempdb..#input', 'U') IS NOT NULL 
+                    DROP TABLE filing;
+                """, close=True, commit=False, fetch=False)
+            
+        
+    def execute(self, sql, commit=False, close=True, fetch=True, params=None):
         cursor = self.cursor
         try:
-            cursor.execute(sql)
+            if isinstance(params, dict):
+                cursor.execute(sql, **params)
+            elif isinstance(params, (tuple,list)):
+                cursor.execute(sql, params)
+            else:
+                cursor.execute(sql)
         except (pgProgrammingError,
                 mysqlProgrammingError, mysqlInternalError,
-                oracleProgrammingError) as ex:  # something wrong with SQL
+                oracleDatabaseError,
+                mssqlOperationalError, mssqlInterfaceError, mssqlDataError,
+                mssqlProgrammingError, mssqlIntegrityError) as ex:  # something wrong with SQL
             if TRACESQLFILE:
                 with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
                     fh.write("\n\n>>> EXCEPTION execute error {}\n sql {}\n"
@@ -207,7 +285,7 @@ class SqlDbConnection():
         startedAt = time.time()
         self.showStatus("Dropping prior tables")
         for table in self.tablesInDB():
-            result = self.execute('DROP TABLE %s' % table,
+            result = self.execute('DROP TABLE %s' % self.dbTableName(table),
                                   close=False, commit=False, fetch=False)
         self.showStatus("Dropping prior sequences")
         for sequence in self.sequencesInDB():
@@ -279,40 +357,77 @@ class SqlDbConnection():
         
     def databasesInDB(self):
         return self.execute({"postgres":"SELECT datname FROM pg_database;",
-                             "mysql": "SHOW databases;"
+                             "mysql": "SHOW databases;",
+                             "orcl": "SELECT DISTINCT OWNER FROM ALL_OBJECTS"
                              }[self.product])
     
     def dropAllTablesInDB(self):
         # drop all tables (clean out database)
         if self.product == "postgres":
-            self.execute("drop schema public cascade;")
+            self.execute("drop schema public cascade")
             self.execute("create schema public;", commit=True)
-        elif self.product == "mysql":
+        elif self.product in ("mysql", "mssql", "orcl"):
             for tableName in self.tablesInDB():
-                self.execute("DROP TABLE {};".format(tableName))
+                self.execute("DROP TABLE {}".format( self.dbTableName(tableName) ))
         
     def tablesInDB(self):
         return set(tableRow[0]
                    for tableRow in 
                    self.execute({"postgres":"SELECT tablename FROM pg_tables WHERE schemaname = 'public';",
-                                 "mysql": "SHOW tables;"
+                                 "mysql": "SHOW tables;",
+                                 "mssql": "SELECT * FROM sys.TABLES;",
+                                 "orcl": "SELECT table_name FROM user_tables"
                                  }[self.product]))
     
     def sequencesInDB(self):
         return set(sequenceRow[0]
                    for sequenceRow in
                    self.execute({"postgres":"SELECT c.relname FROM pg_class c WHERE c.relkind = 'S';",
-                                 "mysql": "SHOW triggers;"
+                                 "mysql": "SHOW triggers;",
+                                 "mssql": "SELECT name FROM sys.triggers;",
+                                 "orcl": "SHOW trigger_name FROM user_triggers"
                                  }[self.product]))
         
     def columnTypeFunctions(self, table):
         if table not in self.tableColTypes:
-            colTypes = self.execute("SELECT c.column_name, c.data_type, {0} "
-                                        "FROM information_schema.columns c "
-                                        "WHERE c.table_name = '{1}' "
-                                        "ORDER BY c.ordinal_position;"
-                                        .format('c.column_type' if self.product == 'mysql' else 'c.data_type',
-                                                table))
+            if self.product == "orcl":
+                colTypesResult = self.execute("SELECT column_name, data_type, data_precision, char_col_decl_length "
+                                              "FROM user_tab_columns "
+                                              "WHERE table_name = '{0}'"
+                                              .format( table )) # table name is not " " quoted here
+                colTypes = []
+                for name, fulltype, dataPrecision, charColDeclLength in colTypesResult:
+                    name = name.lower()
+                    fulltype = fulltype.lower()
+                    if fulltype in ("varchar", "varchar2"):
+                        colDecl = "{}({})".format(fulltype, charColDeclLength)
+                    elif fulltype == "number" and dataPrecision:
+                        colDecl = "{}({})".format(fulltype, dataPrecision)
+                    else:
+                        colDecl = fulltype
+                    colTypes.append( (name, fulltype, colDecl) )
+                # print ("col types for {} = {} ".format(table, colTypes))
+            elif self.product == "mssql":
+                colTypesResult = self.execute("SELECT column_name, data_type, character_maximum_length "
+                                              "FROM information_schema.columns "
+                                              "WHERE table_name = '{0}'"
+                                              .format( table )) # table name is not " " quoted here
+                colTypes = []
+                for name, fulltype, characterMaxLength in colTypesResult:
+                    name = name.lower()
+                    if fulltype in ("varchar", "nvarchar"):
+                        colDecl = "{}({})".format(fulltype, characterMaxLength)
+                    else:
+                        colDecl = fulltype
+                    colTypes.append( (name, fulltype, colDecl) )
+                # print ("col types for {} = {} ".format(table, colTypes))
+            else:
+                colTypes = self.execute("SELECT c.column_name, c.data_type, {0} "
+                                            "FROM information_schema.columns c "
+                                            "WHERE c.table_name = '{1}' "
+                                            "ORDER BY c.ordinal_position;"
+                                            .format('c.column_type' if self.product == 'mysql' else 'c.data_type',
+                                                    self.dbTableName(table)))
             self.tableColTypes[table] = dict((name, 
                                               # (type cast, conversion function)
                                               ('::' + typename if typename in # takes first word of full type
@@ -322,26 +437,30 @@ class SqlDbConnection():
                                                      "boolean", "date", "timestamp"}
                                                else "::double precision" if fulltype.startswith("double precision") 
                                                else '',
-                                              int if typename in ("integer", "smallint", "int", "bigint") else
+                                              int if typename in ("integer", "smallint", "int", "bigint", "number") else
                                               float if typename in ("double precision", "real", "numeric") else
-                                              self.pyBoolFromDbBool if typename == "boolean" else
+                                              self.pyBoolFromDbBool if typename in ("bit", "boolean") else
                                               dateTime if typename in ("date","timestamp") else  # ModelValue.datetime !!! not python class
                                               str))
                                              for name, fulltype, colDecl in colTypes
                                              for typename in (fulltype.partition(' ')[0],))
-            if self.product == 'mysql':
+            if self.product in ('mysql', 'mssql', 'orcl'):
                 self.tableColDeclaration[table] = dict((name, colDecl)
                                                        for name, fulltype, colDecl in colTypes)
                                                        
         return self.tableColTypes[table]
     
-    def getTable(self, table, idCol, newCols=None, matchCols=None, data=None, commit=False, comparisonOperator='=', checkIfExisting=False, returnExistenceStatus=False):
+    def getTable(self, table, idCol, newCols=None, matchCols=None, data=None, commit=False, 
+                 comparisonOperator='=', checkIfExisting=False, insertIfNotMatched=True, returnExistenceStatus=False):
         # generate SQL
         # note: comparison by = will never match NULL fields
         # use 'IS NOT DISTINCT FROM' to match nulls, but this is not indexed and verrrrry slooooow
         if not data or not newCols or not matchCols:
             # nothing can be done, just return
             return () # place breakpoint here to debug
+        isOracle = self.product == "orcl"
+        isMSSql = self.product == "mssql"
+        isPostgres = self.product == "postgres"
         returningCols = []
         if idCol: # idCol is the first returned column if present
             returningCols.append(idCol)
@@ -360,31 +479,59 @@ class SqlDbConnection():
                                 _("Table %(table)s column definition missing: %(missingColumnName)s"),
                                 table=table, missingColumnName=str(err)) 
         rowValues = []
+        rowLongValues = []  # contains None if no parameters, else {} parameter dict
+        if isOracle:
+            longColValues = {}
+        else:
+            longColValues = []
         for row in data:
             colValues = []
             for col in row:
                 if isinstance(col, bool):
-                    colValues.append('TRUE' if col else 'FALSE')
-                elif isinstance(col, (int,float)):
+                    if isOracle or isMSSql:
+                        colValues.append('1' if col else '0')
+                    else:
+                        colValues.append('TRUE' if col else 'FALSE')
+                elif isinstance(col, (int,float,Decimal)):
                     colValues.append(str(col))
+                elif isinstance(col, (datetime.date, datetime.datetime)) and self.product == "orcl":
+                    colValues.append("DATE '{:04}-{:02}-{:02}'".format(col.year, col.month, col.day))
                 elif col is None:
                     colValues.append('NULL')
+                elif isinstance(col, _STR_BASE) and len(col) >= 4000 and (isOracle or isMSSql):
+                    if isOracle:
+                        colName = "col{}".format(len(colValues))
+                        longColValues[colName] = col
+                        colValues.append(":" + colName)
+                    else:
+                        longColValues.append(col)
+                        colValues.append("?")
                 else:
                     colValues.append(self.dbStr(col))
-            if not rowValues and self.product == "postgres":  # first row
+            if not rowValues and isPostgres:  # first row
                 for i, cast in enumerate(colTypeCast):
                     if cast:
                         colValues[i] = colValues[i] + cast
-            rowValues.append("(" + ", ".join(colValues) + ")")
+            rowColValues = ", ".join(colValues)
+            rowValues.append("(" + rowColValues + ")" if not isOracle else rowColValues)
+            if longColValues:
+                rowLongValues.append(longColValues)
+                if isOracle:
+                    longColValues = {} # must be new instance of dict
+                else:
+                    longColValues = []
+            else:
+                rowLongValues.append(None)
         values = ", \n".join(rowValues)
         
+        _table = self.dbTableName(table)
         if self.product == "postgres":
             # insert new rows, return id and cols of new and existing rows
             # use IS NOT DISTINCT FROM instead of = to compare NULL usefully
-            sql = [('''
+            sql = [(('''
 WITH row_values (%(newCols)s) AS (
   VALUES %(values)s
-  ), insertions AS (
+  )''' + (''', insertions AS (
   INSERT INTO %(table)s (%(newCols)s)
   SELECT %(newCols)s
   FROM row_values v''' + ('''
@@ -392,14 +539,14 @@ WITH row_values (%(newCols)s) AS (
                     FROM %(table)s x 
                     WHERE %(match)s)''' if checkIfExisting else '') + '''
   RETURNING %(returningCols)s
-)
-(''' + ('''
+) ''' if insertIfNotMatched else '') + '''
+(''' + (('''
    SELECT %(x_returningCols)s %(statusIfExisting)s
-   FROM %(table)s x JOIN row_values v ON (%(match)s)
-) UNION ( ''' if checkIfExisting else '') + '''
+   FROM %(table)s x JOIN row_values v ON (%(match)s) ''' if checkIfExisting else '') + ('''
+) UNION ( ''' if (checkIfExisting and insertIfNotMatched) else '') + ('''
    SELECT %(returningCols)s %(statusIfInserted)s
-   FROM insertions
-);''') %        {"table": table,
+   FROM insertions''' if insertIfNotMatched else '')) + '''
+);''') %        {"table": _table,
                  "idCol": idCol,
                  "newCols": ', '.join(newCols),
                  "returningCols": ', '.join(returningCols),
@@ -409,57 +556,123 @@ WITH row_values (%(newCols)s) AS (
                  "values": values,
                  "statusIfInserted": ", FALSE" if returnExistenceStatus else "",
                  "statusIfExisting": ", TRUE" if returnExistenceStatus else ""
-                 }]
-        elif self.product in ("mysql", "orcl"):
-            sql = ["CREATE TEMPORARY TABLE input ( %(inputCols)s );" %
+                 }, None, True)]
+        elif self.product == "mysql":
+            sql = [("CREATE TEMPORARY TABLE input ( %(inputCols)s );" %
                         {"inputCols": ', '.join('{0} {1}'.format(newCol, colDeclarations[newCol])
-                                                for newCol in newCols)},
-                   "INSERT INTO input ( %(newCols)s ) VALUES %(values)s;" %     
+                                                for newCol in newCols)}, None, False),
+                   ("INSERT INTO input ( %(newCols)s ) VALUES %(values)s;" %     
                         {"newCols": ', '.join(newCols),
-                         "values": values}]
-            if self.product == "mysql":
-                sql.append(
-                   "INSERT IGNORE INTO %(table)s ( %(newCols)s ) SELECT %(newCols)s FROM input;" %     
-                        {"table": table,
-                         "newCols": ', '.join(newCols)})
-            elif self.product == "orcl":
-                sql.append(
-                   "INSERT INTO IGNORE_ROW_ON_DUPKEY_INDEX %(table)s ( %(newCols)s ) SELECT %(newCols)s FROM input;" %     
-                        {"table": table,
-                         "newCols": ', '.join(newCols)})
-            elif self.product == "mssql":
-                sql.append("""
-                   INSERT INTO %(table)s ( %(newCols)s ) SELECT %(newCols)s FROM input "
-                   WHERE NOT EXISTS (SELECT (%(matchCols)s) FROM %(table)s WHERE %(match)s);
-                   """ %     
-                        {"table": table,
-                         "matchCols": ', '.join('{}'.format(col)
-                                                for col in matchCols),
-                         "match": ' AND '.join('input.{0} = {1}.{0}'.format(col, table) 
-                                               for col in matchCols),
-                         "newCols": ', '.join(newCols)})
-            sql.append(
-                   # don't know how to get status if existing
-                   "SELECT %(returningCols)s %(statusIfExisting)s from input JOIN %(table)s ON ( %(match)s );" %
-                        {"table": table,
+                         "values": values}, None, False)]
+            if insertIfNotMatched:
+                sql.append( ("INSERT IGNORE INTO %(table)s ( %(newCols)s ) SELECT %(newCols)s FROM input;" %     
+                                {"table": _table,
+                                 "newCols": ', '.join(newCols)}, None, False))
+            # don't know how to get status if existing
+            sql.append( ("SELECT %(returningCols)s %(statusIfExisting)s from input JOIN %(table)s ON ( %(match)s );" %
+                            {"table": _table,
+                             "newCols": ', '.join(newCols),
+                             "match": ' AND '.join('{0}.{1} = input.{1}'.format(_table,col) 
+                                        for col in matchCols),
+                             "statusIfExisting": ", FALSE" if returnExistenceStatus else "",
+                             "returningCols": ', '.join('{0}.{1}'.format(_table,col)
+                                                        for col in returningCols)}, None, True) )
+            sql.append( ("DROP TABLE input;", None, False) )
+        elif self.product == "mssql":
+            sql = [("CREATE TABLE #input ( %(inputCols)s );" %
+                        {"inputCols": ', '.join('{0} {1}'.format(newCol, colDeclarations[newCol])
+                                                for newCol in newCols)}, None, False)]
+            # break values insertion into 1000's each
+            def insertOrclRows(i, j, params):
+                sql.append(("INSERT INTO #input ( %(newCols)s ) VALUES %(values)s;" %     
+                        {"newCols": ', '.join(newCols),
+                         "values": ", ".join(rowValues[i:j])}, params, False))
+            iMax = len(rowValues)
+            i = 0
+            while (i < iMax):
+                for j in range(i, min(i+1000, iMax)):
+                    if rowLongValues[j] is not None:
+                        if j > i:
+                            insertOrclRows(i, j, None)
+                        insertOrclRows(j, j+1, rowLongValues[j])
+                        i = j + 1
+                        break
+                if i < j+1 and i < iMax:
+                    insertOrclRows(i, j+1, None)
+                    i = j+1
+            if insertIfNotMatched:
+                sql.append(("MERGE INTO %(table)s USING #input ON (%(match)s) "
+                            "WHEN NOT MATCHED THEN INSERT (%(newCols)s) VALUES (%(values)s);" %
+                            {"table": _table,
+                             "newCols": ', '.join(newCols),
+                             "match": ' AND '.join('{0}.{1} = #input.{1}'.format(_table,col) 
+                                        for col in matchCols),
+                             "values": ', '.join("#input.{0}".format(newCol)
+                                                 for newCol in newCols)}, None, False))
+            sql.append(# don't know how to get status if existing
+                   ("SELECT %(returningCols)s %(statusIfExisting)s from #input JOIN %(table)s ON ( %(match)s );" %
+                        {"table": _table,
                          "newCols": ', '.join(newCols),
-                         "match": ' AND '.join('{0}.{1} = input.{1}'.format(table,col) 
+                         "match": ' AND '.join('{0}.{1} = #input.{1}'.format(_table,col) 
                                     for col in matchCols),
-                         "statusIfExisting": ", FALSE" if returnExistenceStatus else "",
-                         "returningCols": ', '.join('{0}.{1}'.format(table,col)
-                                                    for col in returningCols)})
-            sql.append(
-                   "DROP TABLE input;")
+                         "statusIfExisting": ", 0" if returnExistenceStatus else "",
+                         "returningCols": ', '.join('{0}.{1}'.format(_table,col)
+                                                    for col in returningCols)}, None, True))
+            sql.append(("DROP TABLE #input;", None, False))
+        elif self.product == "orcl":
+            sql = [("CREATE GLOBAL TEMPORARY TABLE input ( %(inputCols)s )" %
+                        {"inputCols": ', '.join('{0} {1}'.format(newCol, colDeclarations[newCol])
+                                                for newCol in newCols)}, None, False)]
+            # break values insertion into 1000's each
+            def insertOrclRows(i, j, params):
+                sql.append(("INSERT INTO input ( %(newCols)s ) %(values)s" %     
+                        {"newCols": ', '.join(newCols),
+                         "values": "\nUNION ALL".join(" SELECT {} FROM dual ".format(r)
+                                                      for r in rowValues[i:j])}, params, False))
+            iMax = len(rowValues)
+            i = 0
+            while (i < iMax):
+                for j in range(i, min(i+1000, iMax)):
+                    if rowLongValues[j] is not None:
+                        if j > i:
+                            insertOrclRows(i, j, None)
+                        insertOrclRows(j, j+1, rowLongValues[j])
+                        i = j + 1
+                        break
+                if i < j+1 and i < iMax:
+                    insertOrclRows(i, j+1, None)
+                    i = j+1
+            if insertIfNotMatched:
+                sql.append(("MERGE INTO %(table)s USING INPUT ON (%(match)s)"
+                            "WHEN NOT MATCHED THEN INSERT (%(newCols)s) VALUES (%(values)s)" %
+                            {"table": _table,
+                             "newCols": ', '.join(newCols),
+                             "match": ' AND '.join('{0}.{1} = input.{1}'.format(_table,col) 
+                                        for col in matchCols),
+                             "values": ', '.join("input.{0}".format(newCol)
+                                                 for newCol in newCols)}, None, False))
+            sql.append(# don't know how to get status if existing
+                   ("SELECT %(returningCols)s %(statusIfExisting)s from input JOIN %(table)s ON ( %(match)s )" %
+                        {"table": _table,
+                         "newCols": ', '.join(newCols),
+                         "match": ' AND '.join('{0}.{1} = input.{1}'.format(_table,col) 
+                                    for col in matchCols),
+                         "statusIfExisting": ", 0" if returnExistenceStatus else "",
+                         "returningCols": ', '.join('{0}.{1}'.format(_table,col)
+                                                    for col in returningCols)}, None, True))
+            sql.append(("DROP TABLE input", None, False))
         if TRACESQLFILE:
             with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
                 fh.write("\n\n>>> accession {0} table {1} sql length {2} row count {3}\n"
                          .format(self.accessionId, table, len(sql), len(data)))
-                for sqlStmt in sql:
-                    fh.write(sqlStmt)
+                for sqlStmt, params, fetch in sql:
+                    fh.write("\n    " + sqlStmt + "\n     {}".format(params if params else ""))
         tableRows = []
-        for sqlStmt in sql:
-            result = self.execute(sqlStmt,commit=commit, close=False)
-            if result:
+        for sqlStmt, params, fetch in sql:
+            if params and isOracle:
+                self.cursor.setinputsizes(**dict((name,oracleNCLOB) for name in params))
+            result = self.execute(sqlStmt,commit=commit, close=False, fetch=fetch, params=params)
+            if fetch and result:
                 tableRows.extend(result)
 
         if TRACESQLFILE:
@@ -478,6 +691,7 @@ WITH row_values (%(newCols)s) AS (
         if not cols or not data:
             # nothing can be done, just return
             return () # place breakpoint here to debug
+        isOracle = self.product == "orcl"
         idCol = cols[0]
         colTypeFunctions = self.columnTypeFunctions(table)
         colDeclarations = self.tableColDeclaration.get(table)
@@ -503,9 +717,11 @@ WITH row_values (%(newCols)s) AS (
                 for i, cast in enumerate(colTypeCast):
                     if cast:
                         colValues[i] = colValues[i] + cast
-            rowValues.append("(" + ", ".join(colValues) + ")")
+            rowColValues = ", ".join(colValues)
+            rowValues.append("(" + rowColValues + ")" if not isOracle else rowColValues)
         values = ", \n".join(rowValues)
         
+        _table = self.dbTableName(table)
         if self.product == "postgres":
             # insert new rows, return id and cols of new and existing rows
             # use IS NOT DISTINCT FROM instead of = to compare NULL usefully
@@ -513,7 +729,7 @@ WITH row_values (%(newCols)s) AS (
 WITH input (%(valCols)s) AS ( VALUES %(values)s ) 
    UPDATE %(table)s t SET %(settings)s 
    FROM input i WHERE i.%(idCol)s = t.%(idCol)s
-;''') %         {"table": table,
+;''') %         {"table": _table,
                  "idCol": idCol,
                  "valCols": ', '.join(col for col in cols),
                  "settings": ', '.join('{0} = i.{0}'.format(cols[i])
@@ -525,13 +741,52 @@ WITH input (%(valCols)s) AS ( VALUES %(values)s )
             sql = ["CREATE TEMPORARY TABLE input ( %(valCols)s );" %
                         {"valCols": ', '.join('{0} {1}'.format(col, colDeclarations[col])
                                               for col in cols)},
+                   "INSERT INTO input ( %(newCols)s ) VALUES %(values)s;" %     
+                        {"newCols": ', '.join(cols),
+                         "values": values},
                    "UPDATE input i, %(table)s t SET %(settings)s WHERE i.%(idCol)s = t.%(idCol)s;" %     
-                        {"table": table,
+                        {"table": _table,
                          "idCol": idCol,
                          "settings": ', '.join('t.{0} = i.{0}'.format(cols[i])
                                                for i, col in enumerate(cols)
                                                if i > 0)},
                    "DROP TABLE input;"]
+        elif self.product == "mssql":
+            sql = ["CREATE TABLE #input ( %(valCols)s );" %
+                        {"valCols": ', '.join('{0} {1}'.format(col, colDeclarations[col])
+                                              for col in cols)}]
+            # must break values insertion into 1000's each
+            for i in range(0, len(rowValues), 950):
+                values = ", \n".join(rowValues[i: i+950])
+                sql.append("INSERT INTO #input ( %(cols)s ) VALUES %(values)s;" %     
+                        {"cols": ', '.join(cols),
+                         "values": values})
+            sql.append("MERGE INTO %(table)s USING #input ON (#input.%(idCol)s = %(table)s.%(idCol)s) "
+                       "WHEN MATCHED THEN UPDATE SET %(settings)s;" %
+                        {"table": _table,
+                         "idCol": idCol,
+                         "settings": ', '.join('{0}.{1} = #input.{1}'.format(_table, cols[i])
+                                               for i, col in enumerate(cols)
+                                               if i > 0)})
+            sql.append("DROP TABLE #input;")
+        elif self.product == "orcl":
+            sql = ["CREATE GLOBAL TEMPORARY TABLE input ( %(valCols)s )" %
+                        {"valCols": ', '.join('{0} {1}'.format(col, colDeclarations[col])
+                                              for col in cols)}]
+            for i in range(0, len(rowValues), 500):
+                sql.append(
+                   "INSERT INTO input ( %(cols)s ) %(values)s" %     
+                        {"cols": ', '.join(cols),
+                         "values": "\nUNION ALL".join(" SELECT {} FROM dual ".format(r)
+                                                      for r in rowValues[i:i+500])})
+            sql.append("MERGE INTO %(table)s USING input ON (input.%(idCol)s = %(table)s.%(idCol)s) "
+                       "WHEN MATCHED THEN UPDATE SET %(settings)s" %
+                        {"table": _table,
+                         "idCol": idCol,
+                         "settings": ', '.join('{0}.{1} = input.{1}'.format(_table, cols[i])
+                                               for i, col in enumerate(cols)
+                                               if i > 0)})
+            sql.append("DROP TABLE input")
         if TRACESQLFILE:
             with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
                 fh.write("\n\n>>> accession {0} table {1} sql length {2} row count {3}\n"

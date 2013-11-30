@@ -1,289 +1,306 @@
-SET @@sql_mode=CONCAT_WS(',', @@sql_mode, 'NO_BACKSLASH_ESCAPES');
+-- This SQL script initializes a database for the XBRL Abstract Model using Microsoft SQL Server (MSSQL)
 
--- emulate postgres nextval for mysql and oracle consistency
+-- (c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
+-- Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
-DROP TABLE IF EXISTS sequences;
-CREATE TABLE sequences (
-    sequence_name varchar2(100) NOT NULL,    
-    sequence_increment int NOT NULL DEFAULT 1,
-    sequence_min_value int NOT NULL DEFAULT 1,
-    sequence_max_value number(19) NOT NULL DEFAULT 9223372036854775807,
-    sequence_cur_value number(19) DEFAULT 1,    
-    sequence_cycle boolean NOT NULL DEFAULT FALSE,    
-    PRIMARY KEY (sequence_name)
-); 
+set quoted_identifier on;
+GO
 
-CREATE OR REPLACE FUNCTION nextval(seq_name varchar2(100)) RETURNS number(19) IS
-    cur_val number(19);    
-BEGIN
-    SELECT
-        sequence_cur_value INTO cur_val
-    FROM
-        sequences
-    WHERE
-        sequence_name = seq_name AND
-	sequence_cur_value IS NOT NULL;
+CREATE SEQUENCE seq_filing AS bigint START WITH 1 INCREMENT BY 1;
+GO
+ALTER SEQUENCE seq_filing RESTART;
+GO
 
-        UPDATE
-            sequences
-        SET
-            sequence_cur_value = 
-                CASE WHEN sequence_cur_value = sequence_max_value
-                     THEN CASE WHEN (sequence_cycle = TRUE)
-                               THEN sequence_min_value
-                               ELSE NULL
-                               END
-                     ELSE sequence_cur_value + sequence_increment
-                END
-        WHERE
-            sequence_name = seq_name
-        ;
-    RETURN cur_val;
-END;
-
-
-INSERT INTO sequences (sequence_name) VALUES ('seq_filing');
-
-CREATE TABLE filing (
-    filing_id number(19) DEFAULT nextval('seq_filing') NOT NULL,
-    filing_number varchar2(30) NOT NULL,
-    accepted_timestamp timestamp NOT NULL DEFAULT now(),
-    is_most_current boolean NOT NULL DEFAULT false,
-    filing_date date NOT NULL,
-    entity_id number(19) NOT NULL,
-    entity_name varchar2(1024),
-    creation_software nclob,
-    standard_industrial_classification integer NOT NULL DEFAULT -1,
-    authority_html_url nclob,
-    entry_url nclob
+IF OBJECT_ID('filing', 'U') IS NOT NULL DROP TABLE filing;
+CREATE TABLE "filing" (
+    filing_id bigint default next value for seq_filing, -- IDs are null on insert because trigger fires AFTER insert in MS SQL
+    filing_number nvarchar(30) NOT NULL,
+    accepted_timestamp datetime NOT NULL,
+    is_most_current bit NOT NULL DEFAULT 0,
+    filing_date datetime NOT NULL,  -- no date in MSSQL 2005
+    entity_id bigint NOT NULL,
+    entity_name nvarchar(1024),
+    creation_software ntext,
+    standard_industry_code integer NOT NULL DEFAULT -1,
+    authority_html_url ntext,
+    entry_url ntext
 );
-CREATE INDEX filing_index01 USING btree ON filing (filing_id);
-CREATE UNIQUE INDEX filing_index02 USING btree ON filing (filing_number);
+CREATE INDEX filing_index01 ON "filing" (filing_id);
+CREATE UNIQUE INDEX filing_index02 ON "filing" (filing_number);
 
-INSERT INTO sequences (sequence_name) VALUES ('seq_filing');
-
-
+GO
 -- object sequence can be any element that can terminate a relationship (aspect, type, resource, data point, document, role type, ...)
 -- or be a reference of a message (report or any of above)
-INSERT INTO sequences (sequence_name) VALUES ('seq_object');
+CREATE SEQUENCE seq_object AS bigint START WITH 1 INCREMENT BY 1;
+GO
+ALTER SEQUENCE seq_object RESTART;
+GO
 
-CREATE TABLE report (
-    report_id number(19) DEFAULT nextval('seq_object') NOT NULL,
-    filing_id number(19) NOT NULL
+IF OBJECT_ID('report', 'U') IS NOT NULL DROP TABLE report;
+CREATE TABLE "report" (
+    report_id bigint DEFAULT NEXT VALUE FOR seq_object,
+    filing_id bigint NOT NULL
 );
-CREATE INDEX report_index01 USING btree ON report (report_id);
-CREATE UNIQUE INDEX report_index02 USING btree ON report (filing_id);
+CREATE INDEX report_index01 ON "report" (report_id);
+CREATE UNIQUE INDEX report_index02 ON "report" (filing_id);
 
-CREATE TABLE document (
-    document_id number(19) DEFAULT nextval('seq_object') NOT NULL,
-    document_url varchar2(2048) NOT NULL,
-    document_type varchar2(32),  -- ModelDocument.Type string value
-    namespace varchar2(1024),  -- targetNamespace if schema else NULL
-    PRIMARY KEY (document_id)
+GO
+IF OBJECT_ID('document', 'U') IS NOT NULL DROP TABLE document;
+CREATE TABLE "document" (
+    document_id bigint DEFAULT NEXT VALUE FOR seq_object,
+    document_url nvarchar(2048) NOT NULL,
+    document_type nvarchar(32),  -- ModelDocument.Type string value
+    namespace nvarchar(1024)  -- targetNamespace if schema else NULL
 );
+CREATE INDEX document_index01 ON "document" (document_id);
 
 -- documents referenced by report or document
 
-CREATE TABLE referenced_documents (
-    object_id number(19) NOT NULL,
-    document_id number(19) NOT NULL
+GO
+IF OBJECT_ID('referenced_documents', 'U') IS NOT NULL DROP TABLE referenced_documents;
+CREATE TABLE "referenced_documents" (
+    object_id bigint,
+    document_id bigint NOT NULL
 );
-CREATE INDEX referenced_documents_index01 USING btree ON referenced_documents (object_id);
-CREATE UNIQUE INDEX referenced_documents_index02 USING btree ON referenced_documents (object_id, document_id);
+CREATE INDEX referenced_documents_index01 ON "referenced_documents" (object_id);
+CREATE UNIQUE INDEX referenced_documents_index02 ON "referenced_documents" (object_id, document_id);
 
-CREATE TABLE aspect (
-    aspect_id number(19) DEFAULT nextval('seq_object') NOT NULL,
-    document_id number(19) NOT NULL,
-    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
-    qname varchar2(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    name varchar2(1024) NOT NULL,  -- local qname
-    datatype_id number(19),
-    base_type varchar2(128), -- xml base type if any
-    substitution_group_aspect_id number(19),
-    balance varchar2(16),
-    period_type varchar2(16),
-    abstract boolean NOT NULL,
-    nillable boolean NOT NULL,
-    is_numeric boolean NOT NULL,
-    is_monetary boolean NOT NULL,
-    is_text_block boolean NOT NULL,
-    PRIMARY KEY (aspect_id)
+GO
+IF OBJECT_ID('aspect', 'U') IS NOT NULL DROP TABLE aspect;
+CREATE TABLE "aspect" (
+    aspect_id bigint DEFAULT NEXT VALUE FOR seq_object,
+    document_id bigint NOT NULL,
+    xml_id nvarchar(1024),  -- xml id or element pointer (do we need this?)
+    qname nvarchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    name nvarchar(1024) NOT NULL,  -- local qname
+    datatype_id bigint,
+    base_type nvarchar(128), -- xml base type if any
+    substitution_group_aspect_id bigint,
+    balance nvarchar(16),
+    period_type nvarchar(16),
+    abstract bit NOT NULL,
+    nillable bit NOT NULL,
+    is_numeric bit NOT NULL,
+    is_monetary bit NOT NULL,
+    is_text_block bit NOT NULL
 );
+CREATE INDEX aspect_index01 ON "aspect" (aspect_id);
 
-CREATE TABLE data_type (
-    data_type_id number(19) DEFAULT nextval('seq_object') NOT NULL,
-    document_id number(19) NOT NULL,
-    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
-    qname varchar2(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    name varchar2(1024) NOT NULL,  -- local qname
-    base_type varchar2(128), -- xml base type if any
-    derived_from_type_id number(19),
-    PRIMARY KEY (data_type_id)
+GO
+IF OBJECT_ID('data_type', 'U') IS NOT NULL DROP TABLE data_type;
+CREATE TABLE "data_type" (
+    data_type_id bigint DEFAULT NEXT VALUE FOR seq_object,
+    document_id bigint NOT NULL,
+    xml_id nvarchar(1024),  -- xml id or element pointer (do we need this?)
+    qname nvarchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    name nvarchar(1024) NOT NULL,  -- local qname
+    base_type nvarchar(128), -- xml base type if any
+    derived_from_type_id bigint
 );
+CREATE INDEX data_type_index01 ON "data_type" (data_type_id);
 
-CREATE TABLE role_type (
-    role_type_id number(19) DEFAULT nextval('seq_object') NOT NULL,
-    document_id number(19) NOT NULL,
-    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
-    role_uri varchar2(1024) NOT NULL,
-    definition nclob,
-    PRIMARY KEY (role_type_id)
+GO
+IF OBJECT_ID('role_type', 'U') IS NOT NULL DROP TABLE role_type;
+CREATE TABLE "role_type" (
+    role_type_id bigint DEFAULT NEXT VALUE FOR seq_object,
+    document_id bigint NOT NULL,
+    xml_id nvarchar(1024),  -- xml id or element pointer (do we need this?)
+    role_uri nvarchar(1024) NOT NULL,
+    definition ntext
 );
+CREATE INDEX role_type_index01 ON "role_type" (role_type_id);
 
-CREATE TABLE arcrole_type (
-    arcrole_type_id number(19) DEFAULT nextval('seq_object') NOT NULL,
-    document_id number(19) NOT NULL,
-    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
-    arcrole_uri varchar2(1024) NOT NULL,
-    cycles_allowed varchar2(10) NOT NULL,
-    definition nclob,
-    PRIMARY KEY (arcrole_type_id)
+GO
+IF OBJECT_ID('arcrole_type', 'U') IS NOT NULL DROP TABLE arcrole_type;
+CREATE TABLE "arcrole_type" (
+    arcrole_type_id bigint DEFAULT NEXT VALUE FOR seq_object,
+    document_id bigint NOT NULL,
+    xml_id nvarchar(1024),  -- xml id or element pointer (do we need this?)
+    arcrole_uri nvarchar(1024) NOT NULL,
+    cycles_allowed nvarchar(10) NOT NULL,
+    definition ntext
 );
+CREATE INDEX arcrole_type_index01 ON "arcrole_type" (arcrole_type_id);
 
-CREATE TABLE used_on (
-    object_id number(19) NOT NULL,
-    aspect_id number(19) NOT NULL
+GO
+IF OBJECT_ID('used_on', 'U') IS NOT NULL DROP TABLE used_on;
+CREATE TABLE "used_on" (
+    object_id bigint NOT NULL,
+    aspect_id bigint NOT NULL
 );
-CREATE INDEX used_on_index01 USING btree ON used_on (object_id);
-CREATE UNIQUE INDEX used_on_index02 USING btree ON used_on (object_id, aspect_id);
+CREATE INDEX used_on_index01 ON "used_on" (object_id);
+CREATE UNIQUE INDEX used_on_index02 ON "used_on" (object_id, aspect_id);
 
-CREATE TABLE resource (
-    resource_id number(19) DEFAULT nextval('seq_object') NOT NULL,
-    document_id number(19) NOT NULL,
-    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
-    qname varchar2(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    role varchar2(1024) NOT NULL,
-    value nclob,
-    xml_lang varchar2(16),
-    PRIMARY KEY (resource_id)
+GO
+IF OBJECT_ID('resource', 'U') IS NOT NULL DROP TABLE resource;
+CREATE TABLE "resource" (
+    resource_id bigint DEFAULT NEXT VALUE FOR seq_object,
+    document_id bigint NOT NULL,
+    xml_id nvarchar(1024),  -- xml id or element pointer (do we need this?)
+    qname nvarchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    role nvarchar(1024) NOT NULL,
+    value ntext,
+    xml_lang nvarchar(16)
 );
+CREATE INDEX resource_index01 ON "resource" (resource_id);
 
-INSERT INTO sequences (sequence_name) VALUES ('seq_relationship_set');
-
-CREATE TABLE relationship_set (
-    relationship_set_id number(19) DEFAULT nextval('seq_relationship_set') NOT NULL,
-    report_id number(19),
-    arc_qname varchar2(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    link_qname varchar2(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    arc_role varchar2(1024) NOT NULL,
-    link_role varchar2(1024) NOT NULL,
-    PRIMARY KEY (relationship_set_id)
+GO
+CREATE SEQUENCE seq_relationship_set AS bigint START WITH 1 INCREMENT BY 1;
+GO
+ALTER SEQUENCE seq_relationship_set RESTART;
+GO
+IF OBJECT_ID('relationship_set', 'U') IS NOT NULL DROP TABLE relationship_set;
+CREATE TABLE "relationship_set" (
+    relationship_set_id bigint DEFAULT NEXT VALUE FOR seq_relationship_set,
+    report_id bigint,
+    arc_qname nvarchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    link_qname nvarchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    arc_role nvarchar(1024) NOT NULL,
+    link_role nvarchar(1024) NOT NULL
 );
+CREATE INDEX relationship_set_index01 ON "relationship_set" (relationship_set_id);
 
-CREATE TABLE relationship (
-    relationship_id number(19) DEFAULT nextval('seq_object') NOT NULL,
-    report_id number(19),
-    document_id number(19) NOT NULL,
-    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
-    relationship_set_id number(19) NOT NULL,
-    reln_order binary_double,
-    from_id number(19),
-    to_id number(19),
-    calculation_weight binary_double,
+GO
+IF OBJECT_ID('relationship', 'U') IS NOT NULL DROP TABLE relationship;
+CREATE TABLE "relationship" (
+    relationship_id bigint DEFAULT NEXT VALUE FOR seq_object,
+    report_id bigint,
+    document_id bigint NOT NULL,
+    xml_id nvarchar(1024),  -- xml id or element pointer (do we need this?)
+    relationship_set_id bigint NOT NULL,
+    reln_order float(24),
+    from_id bigint,
+    to_id bigint,
+    calculation_weight float(24),
     tree_sequence integer NOT NULL,
     tree_depth integer NOT NULL,
-    preferred_label_role varchar2(1024),
-    PRIMARY KEY (relationship_id)
+    preferred_label_role nvarchar(1024)
 );
+CREATE INDEX relationship_index01 ON "relationship" (relationship_id);
 
-CREATE TABLE data_point (
-    datapoint_id number(19) DEFAULT nextval('seq_object') NOT NULL,
-    report_id number(19),
-    document_id number(19) NOT NULL,  -- multiple inline documents are sources of data points
-    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
+GO
+IF OBJECT_ID('data_point', 'U') IS NOT NULL DROP TABLE data_point;
+CREATE TABLE "data_point" (
+    datapoint_id bigint DEFAULT NEXT VALUE FOR seq_object,
+    report_id bigint,
+    document_id bigint NOT NULL,  -- multiple inline documents are sources of data points
+    xml_id nvarchar(1024),  -- xml id or element pointer (do we need this?)
     source_line integer,
-    parent_datapoint_id number(19), -- id of tuple parent
-    context_xml_id varchar2(1024), -- (do we need this?)
-    entity_id number(19),
-    period_id number(19),
-    aspect_value_selections_id number(19),
-    unit_id number(19),
-    precision_value varchar2(16),
-    decimals_value varchar2(16),
-    effective_value binary_double,
-    value nclob,
-    PRIMARY KEY (datapoint_id)
+    parent_datapoint_id bigint, -- id of tuple parent
+    aspect_id bigint NOT NULL,
+    context_xml_id nvarchar(1024), -- (do we need this?)
+    entity_id bigint,
+    period_id bigint,
+    aspect_value_selections_id bigint,
+    unit_id bigint,
+    is_nil bit DEFAULT 0,
+    precision_value nvarchar(16),
+    decimals_value nvarchar(16),
+    effective_value float(53),
+    value ntext
 );
+CREATE INDEX datapoint_index01 ON "data_point" (datapoint_id);
 
-CREATE TABLE entity (
-    entity_id number(19) DEFAULT nextval('seq_object') NOT NULL,
-    report_id number(19),
-    entity_scheme varchar2(1024) NOT NULL,
-    entity_identifier varchar2(1024) NOT NULL,
-    PRIMARY KEY (entity_id)
+GO
+IF OBJECT_ID('entity', 'U') IS NOT NULL DROP TABLE entity;
+CREATE TABLE "entity" (
+    entity_id bigint DEFAULT NEXT VALUE FOR seq_object,
+    report_id bigint,
+    entity_scheme nvarchar(1024) NOT NULL,
+    entity_identifier nvarchar(1024) NOT NULL
 );
+CREATE INDEX entity_index01 ON "entity" (entity_id);
 
-CREATE TABLE period (
-    period_id number(19) DEFAULT nextval('seq_object') NOT NULL,
-    report_id number(19),
+GO
+IF OBJECT_ID('period', 'U') IS NOT NULL DROP TABLE period;
+CREATE TABLE "period" (
+    period_id bigint DEFAULT NEXT VALUE FOR seq_object,
+    report_id bigint,
     start_date date,
     end_date date,
-    is_instant boolean NOT NULL,
-    is_forever boolean NOT NULL,
-    PRIMARY KEY (period_id)
+    is_instant bit NOT NULL,
+    is_forever bit NOT NULL
 );
+CREATE INDEX period_index01 ON "period" (period_id);
 
-CREATE TABLE unit (
-    unit_id number(19) DEFAULT nextval('seq_object') NOT NULL,
-    report_id number(19),
-    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
-    PRIMARY KEY (unit_id)
+GO
+IF OBJECT_ID('unit', 'U') IS NOT NULL DROP TABLE unit;
+CREATE TABLE "unit" (
+    unit_id bigint DEFAULT NEXT VALUE FOR seq_object,
+    report_id bigint,
+    xml_id nvarchar(1024)  -- xml id or element pointer (do we need this?)
 );
+CREATE INDEX unit_index01 ON "unit" (unit_id);
 
-CREATE TABLE unit_measure (
-    unit_id number(19) NOT NULL,
-    qname varchar2(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    is_multiplicand boolean NOT NULL
+GO
+IF OBJECT_ID('unit_measure', 'U') IS NOT NULL DROP TABLE unit_measure;
+CREATE TABLE "unit_measure" (
+    unit_id bigint NOT NULL,
+    qname nvarchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    is_multiplicand bit NOT NULL
 );
-CREATE INDEX unit_measure_index01 USING btree ON unit_measure (unit_id);
-CREATE UNIQUE INDEX unit_measure_index02 USING btree ON unit_measure (unit_id, qname(32), is_multiplicand);
+CREATE INDEX unit_measure_index01 ON "unit_measure" (unit_id);
+-- not sure how to limit length in index
+--   CREATE UNIQUE INDEX unit_measure_index02 ON "unit_measure" (unit_id, qname(32), is_multiplicand);
 
-CREATE TABLE aspect_value_selection_set (
-    aspect_value_selection_id DEFAULT nextval('seq_object') number(19) NOT NULL,
-    report_id number(19),
-    PRIMARY KEY (aspect_value_selection_id)
+GO
+IF OBJECT_ID('aspect_value_selection_set', 'U') IS NOT NULL DROP TABLE aspect_value_selection_set;
+CREATE TABLE "aspect_value_selection_set" (
+    aspect_value_selection_id bigint DEFAULT NEXT VALUE FOR seq_object,
+    report_id bigint
 );
-CREATE UNIQUE INDEX aspect_value_selection_set_index01 USING btree ON aspect_value_selection_set (aspect_value_selection_id);
-CREATE UNIQUE INDEX aspect_value_selection_set_index02 USING btree ON aspect_value_selection_set (report_id);
+CREATE INDEX aspect_value_selection_set_index01 ON "aspect_value_selection_set" (aspect_value_selection_id);
+CREATE INDEX aspect_value_selection_set_index02 ON "aspect_value_selection_set" (report_id);
 
-CREATE TABLE aspect_value_selection (
-    aspect_value_selection_id number(19) NOT NULL,
-    report_id number(19),
-    aspect_id number(19) NOT NULL,
-    aspect_value_id number(19),
-    is_typed_value boolean NOT NULL,
-    typed_value nclob
+GO
+IF OBJECT_ID('aspect_value_selection', 'U') IS NOT NULL DROP TABLE aspect_value_selection;
+CREATE TABLE "aspect_value_selection" (
+    aspect_value_selection_id bigint,
+    report_id bigint,
+    aspect_id bigint NOT NULL,
+    aspect_value_id bigint,
+    is_typed_value bit NOT NULL,
+    typed_value ntext
 );
-CREATE INDEX aspect_value_selection_index01 USING btree ON aspect_value_selection (aspect_value_selection_id);
+CREATE INDEX aspect_value_selection_index01 ON "aspect_value_selection" (aspect_value_selection_id);
 
-INSERT INTO sequences (sequence_name) VALUES ('seq_message');
 
-CREATE TABLE message (
-    message_id number(19) DEFAULT nextval('seq_message') NOT NULL,
-    report_id number(19),
+GO
+CREATE SEQUENCE seq_message AS bigint START WITH 1 INCREMENT BY 1;
+GO
+ALTER SEQUENCE seq_message RESTART;
+GO
+IF OBJECT_ID('message', 'U') IS NOT NULL DROP TABLE message;
+CREATE TABLE "message" (
+    message_id bigint DEFAULT NEXT VALUE FOR seq_message,
+    report_id bigint,
     sequence_in_report int,
-    code varchar2(256),
-    level varchar2(256),
-    value nclob,
-    PRIMARY KEY (message_id)
+    message_code nvarchar(256),
+    message_level nvarchar(256),
+    value ntext
 );
+CREATE INDEX message_index01 ON "message" (message_id);
+GO
 
-CREATE TABLE message_reference (
-    message_id number(19) NOT NULL,
+GO
+IF OBJECT_ID('message_reference', 'U') IS NOT NULL DROP TABLE message_reference;
+CREATE TABLE "message_reference" (
+    message_id bigint NOT NULL,
     object_id bigint NOT NULL -- may be any table with 'seq_object' id
 );
-CREATE INDEX message_reference_index01 USING btree ON message_reference (message_id);
-CREATE UNIQUE INDEX message_reference_index02 USING btree ON message_reference (message_id, object_id);
+CREATE INDEX message_reference_index01 ON "message_reference" (message_id);
+CREATE UNIQUE INDEX message_reference_index02 ON "message_reference" (message_id, object_id);
+GO
 
-INSERT INTO sequences (sequence_name) VALUES ('seq_industry');
-
-CREATE TABLE industry (
-    industry_id number(19) DEFAULT nextval('seq_industry') NOT NULL,
-    industry_classification varchar2(16),
+GO
+IF OBJECT_ID('industry', 'U') IS NOT NULL DROP TABLE industry;
+CREATE TABLE "industry" (
+    industry_id bigint NOT NULL,
+    industry_classification nvarchar(16),
     industry_code integer,
-    industry_description varchar2(512),
+    industry_description nvarchar(512),
     depth integer,
-    parent_id number(19),
+    parent_id bigint,
     PRIMARY KEY (industry_id)
 );
 
@@ -1279,7 +1296,11 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (3236, 'SIC', 2851, 'Paints & Allied Products', 4, 3235),
 (3240, 'SIC', 2869, 'Industrial Organic Chemicals, nec', 4, 3237),
 (3238, 'SIC', 2861, 'Gum & Wood Chemicals', 4, 3237),
-(3239, 'SIC', 2865, 'Cyclic Crudes & Intermediates', 4, 3237),
+(3239, 'SIC', 2865, 'Cyclic Crudes & Intermediates', 4, 3237);
+
+-- max 1000 values in MS SQL SERVER
+
+INSERT INTO industry (industry_id, industry_classification, industry_code, industry_description, depth, parent_id) VALUES
 (3244, 'SIC', 2875, 'Fertilizers, Mixing Only', 4, 3241),
 (3245, 'SIC', 2879, 'Agricultural Chemicals, nec', 4, 3241),
 (3243, 'SIC', 2874, 'Phosphatic Fertilizers', 4, 3241),
@@ -2279,7 +2300,10 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (610, 'NAICS', 33111, 'Iron and Steel Mills and Ferroalloy Manufacturing', 4, 608),
 (609, 'NAICS', 331110, 'Iron and Steel Mills and Ferroalloy Manufacturing', 5, 610),
 (614, 'NAICS', 33122, 'Rolling and Drawing of Purchased Steel', 4, 611),
-(613, 'NAICS', 33121, 'Iron and Steel Pipe and Tube Manufacturing from Purchased Steel', 4, 611),
+(613, 'NAICS', 33121, 'Iron and Steel Pipe and Tube Manufacturing from Purchased Steel', 4, 611);
+
+
+INSERT INTO industry (industry_id, industry_classification, industry_code, industry_description, depth, parent_id) VALUES
 (612, 'NAICS', 331210, 'Iron and Steel Pipe and Tube Manufacturing from Purchased Steel', 5, 613),
 (616, 'NAICS', 331222, 'Steel Wire Drawing', 5, 614),
 (615, 'NAICS', 331221, 'Rolled Steel Shape Manufacturing', 5, 614),
@@ -3278,7 +3302,9 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (1706, 'NAICS', 5419, 'Other Professional, Scientific, and Technical Services', 3, 1625),
 (1683, 'NAICS', 5417, 'Scientific Research and Development Services', 3, 1625),
 (1640, 'NAICS', 5413, 'Architectural, Engineering, and Related Services', 3, 1625),
-(1631, 'NAICS', 54119, 'Other Legal Services', 4, 1626),
+(1631, 'NAICS', 54119, 'Other Legal Services', 4, 1626);
+
+INSERT INTO industry (industry_id, industry_classification, industry_code, industry_description, depth, parent_id) VALUES
 (1628, 'NAICS', 54111, 'Offices of Lawyers', 4, 1626),
 (1630, 'NAICS', 54112, 'Offices of Notaries', 4, 1626),
 (1627, 'NAICS', 541110, 'Offices of Lawyers', 5, 1628),
@@ -4277,7 +4303,10 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (3542, 'SIC', 3750, 'Motorcycles, Bicycles & Parts', 3, 3526),
 (2479, 'SEC', 3820, 'Measuring & Controlling Devices', 3, 2476),
 (2488, 'SEC', 3840, 'Medical Instruments & Supplies', 3, 2476),
-(2477, 'SEC', 3810, 'Search & Navigation Equipment', 3, 2476),
+(2477, 'SEC', 3810, 'Search & Navigation Equipment', 3, 2476);
+
+
+INSERT INTO industry (industry_id, industry_classification, industry_code, industry_description, depth, parent_id) VALUES
 (2498, 'SEC', 3870, 'Watches, Clocks, Watchcases & Parts', 3, 2476),
 (2494, 'SEC', 3850, 'Ophthalmic Goods', 3, 2476),
 (2496, 'SEC', 3860, 'Photographic Equipment & Supplies', 3, 2476),
@@ -4622,16 +4651,16 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (4298, 'SIC', 9710, 'National Security', 3, 4297),
 (4303, 'SIC', 9990, 'Nonclassifiable Establishments', 3, 4302)
 ;
+GO
 
-INSERT INTO sequences (sequence_name) VALUES ('seq_industry_level');
-
-CREATE TABLE industry_level (
-    industry_level_id number(19) DEFAULT nextval('seq_industry_level') NOT NULL,
-    industry_classification varchar2(16),
-    ancestor_id number(19),
+IF OBJECT_ID('industry_level', 'U') IS NOT NULL DROP TABLE industry_level;
+CREATE TABLE "industry_level" (
+    industry_level_id bigint NOT NULL,
+    industry_classification nvarchar(16),
+    ancestor_id bigint,
     ancestor_code integer,
     ancestor_depth integer,
-    descendant_id number(19),
+    descendant_id bigint,
     descendant_code integer,
     descendant_depth integer,
     PRIMARY KEY (industry_level_id)
@@ -5636,7 +5665,9 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (996, 'SIC', 2982, 2000, 2, 2985, 2013, 4),
 (997, 'NAICS', 1569, 53, 1, 1576, 531130, 5),
 (998, 'SEC', 2371, 3300, 2, 2375, 3320, 3),
-(999, 'SEC', 2758, 8060, 3, 2759, 8062, 4),
+(999, 'SEC', 2758, 8060, 3, 2759, 8062, 4);
+
+INSERT INTO industry_level (industry_level_id, industry_classification, ancestor_id, ancestor_code, ancestor_depth, descendant_id, descendant_code, descendant_depth) VALUES
 (1000, 'SIC', 4277, 9500, 2, 4281, 9530, 3),
 (1001, 'SIC', 3621, 4210, 3, 3622, 4212, 4),
 (1002, 'NAICS', 56, 112, 2, 76, 11234, 4),
@@ -6633,7 +6664,9 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (1993, 'SIC', 4311, 52, 1, 3847, 5551, 4),
 (1994, 'NAICS', 2135, 92, 1, 2209, 92812, 4),
 (1995, 'SIC', 3000, 2040, 3, 3001, 2041, 4),
-(1996, 'SIC', 3848, 5560, 3, 3849, 5561, 4),
+(1996, 'SIC', 3848, 5560, 3, 3849, 5561, 4);
+
+INSERT INTO industry_level (industry_level_id, industry_classification, ancestor_id, ancestor_code, ancestor_depth, descendant_id, descendant_code, descendant_depth) VALUES
 (1997, 'SIC', 3576, 3900, 2, 3581, 3930, 3),
 (1998, 'NAICS', 181, 221, 2, 186, 221113, 5),
 (1999, 'SIC', 3762, 5100, 2, 3764, 5111, 4),
@@ -7631,7 +7664,9 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (2991, 'SIC', 2798, 100, 2, 2800, 111, 4),
 (2992, 'NAICS', 273, 2389, 3, 275, 23891, 4),
 (2993, 'SIC', 4313, 70, 1, 4061, 7359, 4),
-(2994, 'SIC', 3252, 2900, 2, 3256, 2951, 4),
+(2994, 'SIC', 3252, 2900, 2, 3256, 2951, 4);
+
+INSERT INTO industry_level (industry_level_id, industry_classification, ancestor_id, ancestor_code, ancestor_depth, descendant_id, descendant_code, descendant_depth) VALUES
 (2995, 'SIC', 3576, 3900, 2, 3595, 3990, 3),
 (2996, 'NAICS', 173, 2131, 3, 174, 21311, 4),
 (2997, 'SEC', 2476, 3800, 2, 2498, 3870, 3),
@@ -8629,7 +8664,9 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (3989, 'SIC', 4309, 40, 1, 3706, 4941, 4),
 (3990, 'SIC', 4305, 1, 1, 2866, 782, 4),
 (3991, 'SIC', 4310, 50, 1, 3722, 5021, 4),
-(3992, 'NAICS', 1990, 7139, 3, 1996, 71393, 4),
+(3992, 'NAICS', 1990, 7139, 3, 1996, 71393, 4);
+
+INSERT INTO industry_level (industry_level_id, industry_classification, ancestor_id, ancestor_code, ancestor_depth, descendant_id, descendant_code, descendant_depth) VALUES
 (3993, 'NAICS', 1015, 424, 2, 1059, 424590, 5),
 (3994, 'SEC', 2553, 4910, 3, 2554, 4911, 4),
 (3995, 'SIC', 4308, 20, 1, 3345, 3321, 4),
@@ -9627,7 +9664,9 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (4987, 'NAICS', 205, 23, 1, 223, 23712, 4),
 (4988, 'SEC', 2791, 20, 1, 2479, 3820, 3),
 (4989, 'SIC', 4313, 70, 1, 4054, 7338, 4),
-(4990, 'SIC', 2884, 1000, 2, 2898, 1090, 3),
+(4990, 'SIC', 2884, 1000, 2, 2898, 1090, 3);
+
+INSERT INTO industry_level (industry_level_id, industry_classification, ancestor_id, ancestor_code, ancestor_depth, descendant_id, descendant_code, descendant_depth) VALUES
 (4991, 'NAICS', 1480, 52, 1, 1559, 52512, 4),
 (4992, 'SEC', 2500, 3900, 2, 2504, 3931, 4),
 (4993, 'SIC', 3886, 5900, 2, 3892, 5932, 4),
@@ -10625,7 +10664,9 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (5985, 'SIC', 4311, 52, 1, 3806, 5211, 4),
 (5986, 'SIC', 4313, 70, 1, 4180, 8211, 4),
 (5987, 'NAICS', 206, 236, 2, 210, 236116, 5),
-(5988, 'NAICS', 1726, 561, 2, 1731, 561210, 5),
+(5988, 'NAICS', 1726, 561, 2, 1731, 561210, 5);
+
+INSERT INTO industry_level (industry_level_id, industry_classification, ancestor_id, ancestor_code, ancestor_depth, descendant_id, descendant_code, descendant_depth) VALUES
 (5989, 'SIC', 4257, 9210, 3, 4258, 9211, 4),
 (5990, 'NAICS', 1850, 62, 1, 1927, 62419, 4),
 (5991, 'NAICS', 2104, 8131, 3, 2106, 81311, 4),
@@ -11623,7 +11664,9 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (6983, 'NAICS', 52, 11199, 4, 55, 111998, 5),
 (6984, 'SIC', 4308, 20, 1, 3256, 2951, 4),
 (6985, 'NAICS', 1485, 522, 2, 1490, 52212, 4),
-(6986, 'NAICS', 1713, 54193, 4, 1712, 541930, 5),
+(6986, 'NAICS', 1713, 54193, 4, 1712, 541930, 5);
+
+INSERT INTO industry_level (industry_level_id, industry_classification, ancestor_id, ancestor_code, ancestor_depth, descendant_id, descendant_code, descendant_depth) VALUES
 (6987, 'NAICS', 1, 11, 1, 90, 112910, 5),
 (6988, 'NAICS', 1733, 5613, 3, 1740, 56133, 4),
 (6989, 'SEC', 2796, 70, 1, 2776, 8711, 4),
@@ -12621,7 +12664,9 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (7981, 'SIC', 3190, 2700, 2, 3193, 2720, 3),
 (7982, 'NAICS', 85, 11251, 4, 88, 112519, 5),
 (7983, 'SIC', 3948, 6200, 2, 3956, 6282, 4),
-(7984, 'SIC', 3073, 2280, 3, 3075, 2282, 4),
+(7984, 'SIC', 3073, 2280, 3, 3075, 2282, 4);
+
+INSERT INTO industry_level (industry_level_id, industry_classification, ancestor_id, ancestor_code, ancestor_depth, descendant_id, descendant_code, descendant_depth) VALUES
 (7985, 'SIC', 4309, 40, 1, 3681, 4810, 3),
 (7986, 'SIC', 4075, 7380, 3, 4079, 7384, 4),
 (7987, 'NAICS', 930, 42, 1, 1074, 424820, 5),
@@ -13619,7 +13664,9 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (8979, 'NAICS', 2205, 9281, 3, 2208, 928120, 5),
 (8980, 'SEC', 2654, 6030, 3, 2656, 6036, 4),
 (8981, 'NAICS', 1591, 532, 2, 1592, 5321, 3),
-(8982, 'SIC', 3852, 5590, 3, 3853, 5599, 4),
+(8982, 'SIC', 3852, 5590, 3, 3853, 5599, 4);
+
+INSERT INTO industry_level (industry_level_id, industry_classification, ancestor_id, ancestor_code, ancestor_depth, descendant_id, descendant_code, descendant_depth) VALUES
 (8983, 'NAICS', 1744, 56142, 4, 1746, 561422, 5),
 (8984, 'SIC', 3877, 5730, 3, 3879, 5734, 4),
 (8985, 'SIC', 3886, 5900, 2, 3900, 5947, 4),
@@ -13966,15 +14013,15 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (9326, 'SIC', 3681, 4810, 3, 3682, 4812, 4)
 ;
 
-INSERT INTO sequences (sequence_name) VALUES ('seq_industry_structure');
-
-CREATE TABLE industry_structure (
-    industry_structure_id number(19) DEFAULT nextval('seq_industry_structure') ,
-    industry_classification varchar2(8) NOT NULL,
+IF OBJECT_ID('industry_structure', 'U') IS NOT NULL DROP TABLE industry_structure;
+CREATE TABLE "industry_structure" (
+    industry_structure_id bigint,
+    industry_classification nvarchar(8) NOT NULL,
     depth integer NOT NULL,
-    level_name varchar2(32),
+    level_name nvarchar(32),
     PRIMARY KEY (industry_structure_id)
 );
+GO
 
 INSERT INTO industry_structure (industry_structure_id, industry_classification, depth, level_name) VALUES
 (1, 'SIC', 1, 'Division'),
@@ -13991,4 +14038,4 @@ INSERT INTO industry_structure (industry_structure_id, industry_classification, 
 (52, 'NAICS', 4, 'NAICS Industry'),
 (53, 'NAICS', 5, 'National Industry')
 ;
-
+GO
