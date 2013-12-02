@@ -156,6 +156,16 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.workOffline = BooleanVar(value=self.webCache.workOffline)
         self.workOffline.trace("w", self.setWorkOffline)
         cacheMenu.add_checkbutton(label=_("Work offline"), underline=0, variable=self.workOffline, onvalue=True, offvalue=False)
+        '''
+        self.webCache.recheck  = self.config.setdefault("webRecheck",False)
+        self.webRecheck = BooleanVar(value=self.webCache.webRecheck)
+        self.webRecheck.trace("w", self.setWebRecheck)
+        cacheMenu.add_checkbutton(label=_("Recheck file dates weekly"), underline=0, variable=self.workOffline, onvalue=True, offvalue=False)
+        self.webCache.notify  = self.config.setdefault("",False)
+        self.downloadNotify = BooleanVar(value=self.webCache.retrievalNotify)
+        self.downloadNotify.trace("w", self.setRetrievalNotify)
+        cacheMenu.add_checkbutton(label=_("Notify file downloads"), underline=0, variable=self.workOffline, onvalue=True, offvalue=False)
+        '''
         cacheMenu.add_command(label=_("Clear cache"), underline=0, command=self.confirmClearWebCache)
         cacheMenu.add_command(label=_("Manage cache"), underline=0, command=self.manageWebCache)
         cacheMenu.add_command(label=_("Proxy Server"), underline=0, command=self.setupProxy)

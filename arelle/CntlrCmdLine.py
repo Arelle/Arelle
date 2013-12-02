@@ -217,6 +217,12 @@ def parseAndRun(args):
     parser.add_option("--internetTimeout", type="int", dest="internetTimeout", 
                       help=_("Specify internet connection timeout in seconds (0 means unlimited)."))
     parser.add_option("--internettimeout", type="int", action="store", dest="internetTimeout", help=SUPPRESS_HELP)
+    parser.add_option("--internetRecheck", choices=("weekly", "daily", "never"), dest="internetRecheck", 
+                      help=_("Specify rechecking cache files (weekly is default)"))
+    parser.add_option("--internetrecheck", choices=("weekly", "daily", "never"), action="store", dest="internetRecheck", help=SUPPRESS_HELP)
+    parser.add_option("--internetLogDownloads", action="store_true", dest="internetLogDownloads", 
+                      help=_("Log info message for downloads to web cache."))
+    parser.add_option("--internelogdownloads", action="store_true", dest="internetLogDownloads", help=SUPPRESS_HELP)
     parser.add_option("--xdgConfigHome", action="store", dest="xdgConfigHome", 
                       help=_("Specify non-standard location for configuration and cache files (overrides environment parameter XDG_CONFIG_HOME)."))
     parser.add_option("--plugins", action="store", dest="plugins",
@@ -545,6 +551,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.webCache.workOffline = False
         if options.internetTimeout is not None:
             self.webCache.timeout = (options.internetTimeout or None)  # use None if zero specified to disable timeout
+        if options.internetLogDownloads:
+            self.webCache.logDownloads = True
         fo = FormulaOptions()
         if options.parameters:
             parameterSeparator = (options.parameterSeparator or ',')

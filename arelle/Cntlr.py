@@ -316,18 +316,24 @@ class Cntlr:
         if self.logger:
             self.logger.messageCodeFilter = re.compile(logCodeFilter) if logCodeFilter else None
                         
-    def addToLog(self, message, messageCode="", file="", level=logging.INFO):
+    def addToLog(self, message, messageCode="", messageArgs=None, file="", level=logging.INFO):
         """Add a simple info message to the default logger
            
         :param message: Text of message to add to log.
         :type message: str
+        : param messageArgs: dict of message format-string key-value pairs
+        :type messageArgs: dict
         :param messageCode: Message code (e.g., a prefix:id of a standard error)
         :param messageCode: str
         :param file: File name (and optional line numbers) pertaining to message
         :type file: str
         """
         if self.logger is not None:
-            self.logger.log(level, message, extra={"messageCode":messageCode,"refs":[{"href": file}]})
+            if messageArgs:
+                logArgs = (level, message, messageArgs)
+            else:
+                logArgs = (level, message)
+            self.logger.log(*logArgs, extra={"messageCode":messageCode,"refs":[{"href": file}]})
         else:
             try:
                 print(message)
