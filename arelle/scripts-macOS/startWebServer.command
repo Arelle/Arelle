@@ -1,5 +1,3 @@
 cd `dirname $0`
-ARELLE_ARGS="--webserver localhost:8080"
-export ARELLE_ARGS
-./Arelle.App/contents/MacOS/arelle
+./Arelle.App/contents/MacOS/arelleCmdLine --webserver localhost:8080
 exit 
