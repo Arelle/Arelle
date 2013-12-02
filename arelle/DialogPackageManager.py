@@ -56,7 +56,7 @@ class DialogPackageManager(Toplevel):
         # left button frame
         buttonFrame = Frame(frame, width=40)
         buttonFrame.columnconfigure(0, weight=1)
-        addLabel = Label(buttonFrame, text=_("Find taxonomy packages:"), wraplength=60, justify="center")
+        addLabel = Label(buttonFrame, text=_("Find taxonomy packages:"), wraplength=64, justify="center")
         addLocalButton = Button(buttonFrame, text=_("Locally"), command=self.findLocally)
         ToolTip(addLocalButton, text=_("File chooser allows selecting taxonomy packages to add (or reload), from the local file system.  "
                                        "Select either a taxonomy package zip file, or a taxonomy manifest (.taxonomyPackage.xml) within an unzipped taxonomy package.  "), wraplength=240)
@@ -282,11 +282,12 @@ class DialogPackageManager(Toplevel):
         if not self.cntlr.isMac: # can't navigate within app easily, always start in default directory
             initialdir = self.cntlr.config.setdefault("packageOpenDir", initialdir)
         filename = self.cntlr.uiFileDialog("open",
-                                           owner=self,
+                                           parent=self,
                                            title=_("Choose taxonomy package file"),
                                            initialdir=initialdir,
                                            filetypes=[(_("Taxonomy package files (*.zip)"), "*.zip"),
-                                                      (_("Manifest (*.taxonomyPackage.xml)"), "*.taxonomyPackage.xml")],
+                                                      (_("Manifest (*.taxonomyPackage.xml)"), "*.taxonomyPackage.xml"),
+                                                      (_("Oasis Catalog (*catalog.xml)"), "*catalog.xml")],
                                            defaultextension=".zip")
         if filename:
             # check if a package is selected (any file in a directory containing an __init__.py
@@ -308,7 +309,7 @@ class DialogPackageManager(Toplevel):
             self.loadTreeViews()
         else:
             messagebox.showwarning(_("Package is not itself a taxonomy package.  "),
-                                   _("File does not itself contain a .taxonomyPackage.xml manifest with appropriate manifest xml content: \n\n{0}")
+                                   _("File does not itself contain taxonomyPackage or catalog xml content: \n\n{0}")
                                    .format(url),
                                    parent=self)
             

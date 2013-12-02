@@ -23,7 +23,8 @@ EMPTYDICT = {}
 def parsePackage(mainWin, metadataFile):
     unNamedCounter = 1
     
-    NS = "{http://www.corefiling.com/xbrl/taxonomypackage/v1}"
+    txmyPkgNS = "{http://www.corefiling.com/xbrl/taxonomypackage/v1}"
+    catalogNS = '{urn:oasis:names:tc:entity:xmlns:xml:catalog}'
     
     pkg = {}
 
@@ -31,24 +32,41 @@ def parsePackage(mainWin, metadataFile):
     tree = etree.parse(metadataFile)
     root = tree.getroot()
     
-    for eltName in ("name", "description", "version"):
-        pkg[eltName] = ''
-        for m in root.iterchildren(tag=NS + eltName):
-            pkg[eltName] = m.text.strip()
-            break # take first entry if several
+    if root.tag.startswith(txmyPkgNS):  # package file
+        for eltName in ("name", "description", "version"):
+            pkg[eltName] = ''
+            for m in root.iterchildren(tag=txmyPkgNS + eltName):
+                pkg[eltName] = m.text.strip()
+                break # take first entry if several
+    else: # oasis catalog, use dirname as the package name
+        # metadataFile may be a File object (with name) or string filename 
+        fileName = getattr(metadataFile, 'fileName',      # for FileSource named objects 
+                           getattr(metadataFile, 'name',  # for io.file named objects
+                                   metadataFile))         # for string
+        pkg["name"] = os.path.basename(os.path.dirname(fileName))
+        pkg["description"] = "oasis catalog"
+        pkg["version"] = "(none)"
 
-    remappings = dict((m.get("prefix"),m.get("replaceWith"))
-                      for m in tree.iter(tag=NS + "remapping"))
+    remappings = {}
+    for tag, prefixAttr, replaceAttr in (
+         (txmyPkgNS + "remapping", "prefix", "replaceWith"),
+         (catalogNS + "rewriteSystem", "systemIdStartString", "rewritePrefix")):
+        for m in tree.iter(tag=tag):
+            prefixValue = m.get(prefixAttr)
+            replaceValue = m.get(replaceAttr)
+            if prefixValue and replaceValue:
+                remappings[prefixValue] = replaceValue
+
     pkg["remappings"] = remappings
 
     nameToUrls = {}
     pkg["nameToUrls"] = nameToUrls
 
-    for entryPointSpec in tree.iter(tag=NS + "entryPoint"):
+    for entryPointSpec in tree.iter(tag=txmyPkgNS + "entryPoint"):
         name = None
         
         # find closest match name node given xml:lang match to current language or no xml:lang
-        for nameNode in entryPointSpec.iter(tag=NS + "name"):
+        for nameNode in entryPointSpec.iter(tag=txmyPkgNS + "name"):
             xmlLang = nameNode.get('{http://www.w3.org/XML/1998/namespace}lang')
             if name is None or not xmlLang or currentLang == xmlLang:
                 name = nameNode.text
@@ -60,7 +78,7 @@ def parsePackage(mainWin, metadataFile):
             unNamedCounter += 1
 
         epDocCount = 0
-        for epDoc in entryPointSpec.iterchildren(NS + "entryPointDocument"):
+        for epDoc in entryPointSpec.iterchildren(txmyPkgNS + "entryPointDocument"):
             if epDocCount:
                 mainWin.addToLog(_("WARNING: skipping multiple-document entry point (not supported)"))
                 continue
@@ -172,6 +190,7 @@ def packageInfo(URL, reload=False):
     #TODO several directories, eg User Application Data
     packageFilename = _cntlr.webCache.getfilename(URL, reload=reload, normalize=True)
     if packageFilename:
+        from arelle.FileSource import TAXONOMY_PACKAGE_FILE_NAMES
         filesource = None
         try:
             global openFileSource
@@ -180,23 +199,25 @@ def packageInfo(URL, reload=False):
             filesource = openFileSource(packageFilename, _cntlr)
             if filesource.isZip:
                 metadataFiles = filesource.taxonomyPackageMetadataFiles
+                ''' allow multiple
                 if len(metadataFiles) != 1:
                     raise IOError(_("Taxonomy package contained more than one metadata file: {0}.")
                                   .format(', '.join(metadataFiles)))
+                '''
                 metadataFile = metadataFiles[0]
                 metadata = filesource.file(filesource.url + os.sep + metadataFile)[0]
                 metadataFilePrefix = os.sep.join(os.path.split(metadataFile)[:-1])
                 if metadataFilePrefix:
                     metadataFilePrefix += os.sep
                 metadataFilePrefix = filesource.baseurl + os.sep +  metadataFilePrefix
-            elif os.path.basename(filesource.url) == ".taxonomyPackage.xml": # individual manifest file
+            elif os.path.basename(filesource.url) in TAXONOMY_PACKAGE_FILE_NAMES: # individual manifest file
                 metadataFile = metadata = filesource.url
                 metadataFilePrefix = os.sep.join(os.path.split(metadataFile)[:-1])
                 if metadataFilePrefix:
                     metadataFilePrefix += os.sep
             else:
-                raise IOError(_("File must be a taxonomy package (zip file) or manifest (.taxonomyPackage.xml): {0}.")
-                              .format(metadataFile))
+                raise IOError(_("File must be a taxonomy package (zip file), catalog file, or manifest (): {0}.")
+                              .format(metadataFile, ', '.join(TAXONOMY_PACKAGE_FILE_NAMES)))
             parsedPackage = parsePackage(_cntlr, metadata)
             package = {'name': parsedPackage['name'],
                        'status': 'enabled',

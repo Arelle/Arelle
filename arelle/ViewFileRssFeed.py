@@ -20,7 +20,7 @@ class ViewRssFeed(ViewFile.View):
         
     def viewRssFeed(self, modelDocument):
         if self.cols:
-            if isinstance(self.cols,str): self.cols = self.cols.replace(',',' ').split()
+            if isinstance(self.cols,str): self.cols = self.cols.replace(',').split()
             unrecognizedCols = []
             for col in self.cols:
                 if col not in ("Company Name", "Accession Number", "Form", "Filing Date", "CIK", "Status", "Period", "Yr End", "Results"):

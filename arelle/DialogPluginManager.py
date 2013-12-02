@@ -301,7 +301,7 @@ class DialogPluginManager(Toplevel):
         if not self.cntlr.isMac: # can't navigate within app easily, always start in default directory
             initialdir = self.cntlr.config.setdefault("pluginOpenDir", initialdir)
         filename = self.cntlr.uiFileDialog("open",
-                                           owner=self,
+                                           parent=self,
                                            title=_("Choose plug-in module file"),
                                            initialdir=initialdir,
                                            filetypes=[(_("Python files"), "*.py")],

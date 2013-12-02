@@ -18,7 +18,7 @@ SERVER_WEB_CACHE = os.sep + "_HTTP_CACHE"
 
 XMLdeclaration = re.compile(r"<\?xml[^><\?]*\?>", re.DOTALL)
 
-TAXONOMY_PACKAGE_FILE_NAME = '.taxonomyPackage.xml'
+TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml')
 
 def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=False):
     if sourceZipStream:
@@ -52,8 +52,16 @@ def archiveFilenameParts(filename, checkIfXmlIsEis=False):
     return None
 
 class FileNamedStringIO(io.StringIO):  # provide string IO in memory but behave as a fileName string
-    def __init__(self, fileName):
-        super(FileNamedStringIO, self).__init__()
+    def __init__(self, fileName, *args, **kwargs):
+        super(FileNamedStringIO, self).__init__(*args, **kwargs)
+        self.fileName = fileName
+
+    def __str__(self):
+        return self.fileName
+    
+class FileNamedTextIOWrapper(io.TextIOWrapper):  # provide string IO in memory but behave as a fileName string
+    def __init__(self, fileName, *args, **kwargs):
+        super(FileNamedTextIOWrapper, self).__init__(*args, **kwargs)
         self.fileName = fileName
 
     def __str__(self):
@@ -88,7 +96,7 @@ class FileSource:
         # for SEC xml files, check if it's an EIS anyway
         if (not (self.isZip or self.isEis or self.isXfd or self.isRss) and
             self.type == ".xml"):
-            if os.path.split(self.url)[-1] == TAXONOMY_PACKAGE_FILE_NAME:
+            if os.path.split(self.url)[-1] in TAXONOMY_PACKAGE_FILE_NAMES:
                 self.isInstalledTaxonomyPackage = True
             elif checkIfXmlIsEis:
                 try:
@@ -294,7 +302,7 @@ class FileSource:
     
     @property
     def taxonomyPackageMetadataFiles(self):
-        return [f for f in (self.dir or []) if os.path.split(f)[-1] == TAXONOMY_PACKAGE_FILE_NAME]
+        return [f for f in (self.dir or []) if os.path.split(f)[-1] in TAXONOMY_PACKAGE_FILE_NAMES]
     
     def isInArchive(self,filepath):
         return self.fileSourceContainingFilepath(filepath) is not None
@@ -357,7 +365,7 @@ class FileSource:
                     if binary:
                         return (io.BytesIO(b), )
                     encoding = XmlUtil.encoding(b)
-                    return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
+                    return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding), 
                             encoding)
                 except KeyError:
                     raise ArchiveFileIOError(self, archiveFileName)
@@ -407,7 +415,10 @@ class FileSource:
                 # remove TAXONOMY_PACKAGE_FILE_NAME from file path
                 if filepath.startswith(archiveFileSource.basefile):
                     l = len(archiveFileSource.basefile)
-                    filepath = filepath[0:l - len(TAXONOMY_PACKAGE_FILE_NAME)] + filepath[l:]
+                    for f in TAXONOMY_PACKAGE_FILE_NAMES:
+                        if filepath[l - len(f):l] == f:
+                            filepath = filepath[0:l - len(f) - 1] + filepath[l:]
+                            break
         if binary:
             return (openFileStream(self.cntlr, filepath, 'rb'), )
         else:
@@ -473,7 +484,7 @@ class FileSource:
                 pass
         elif self.isInstalledTaxonomyPackage:
             files = []
-            baseurlPathLen = len(self.baseurl) - len(TAXONOMY_PACKAGE_FILE_NAME)
+            baseurlPathLen = len(os.path.dirname(self.baseurl)) + 1
             def packageDirsFiles(dir):
                 for file in os.listdir(dir):
                     path = dir + "/" + file   # must have / and not \\ even on windows
@@ -514,7 +525,7 @@ def openFileStream(cntlr, filepath, mode='r', encoding=None):
         if mode.endswith('t') or encoding:
             contents = filestream.getvalue()
             filestream.close()
-            filestream = io.StringIO(contents.decode(encoding or 'utf-8'))
+            filestream = FileNamedStringIO(filepath, contents.decode(encoding or 'utf-8'))
         return filestream
     # local file system
     elif encoding is None and 'b' not in mode:
@@ -550,7 +561,7 @@ def openXmlFileStream(cntlr, filepath, stripDeclaration=False):
         if xmlDeclarationMatch: # remove it for lxml
             start,end = xmlDeclarationMatch.span()
             text = text[0:start] + text[end:]
-        return (io.StringIO(initial_value=text), encoding)
+        return (FileNamedStringIO(filepath, initial_value=text), encoding)
     
 def saveFile(cntlr, filepath, contents, encoding=None):
     if isHttpUrl(filepath):
