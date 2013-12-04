@@ -40,6 +40,7 @@ from math import isnan
 from arelle.ModelObject import ModelObject
 from decimal import Decimal, InvalidOperation
 Aspect = None
+utrEntries = None
 POSINF = float("inf")
 NEGINF = float("-inf")
 
@@ -158,6 +159,13 @@ class ModelFact(ModelObject):
     def unitID(self):
         """(str) -- unitRef attribute"""
         return self.get("unitRef")
+    
+    @property
+    def utrEntries(self):
+        """(set(UtrEntry)) -- set of UtrEntry objects that match this fact and unit"""
+        if self.unit is not None and self.concept is not None:
+            return self.unit.utrEntries(self.concept.type)
+        return None
 
     @property
     def conceptContextUnitLangHash(self):
@@ -1219,6 +1227,19 @@ class ModelUnit(ModelObject):
         mul, div = self.measures
         return ' '.join([measuresStr(m) for m in mul] + (['/'] + [measuresStr(d) for d in div] if div else []))
 
+    def utrEntries(self, modelType):
+        try:
+            return self._utrEntries[modelType]
+        except AttributeError:
+            self._utrEntries = {}
+            return self.utrEntries(modelType)
+        except KeyError:
+            global utrEntries
+            if utrEntries is None:
+                from arelle.ValidateUtr import utrEntries
+            self._utrEntries[modelType] = utrEntries(modelType, self)
+            return self._utrEntries[modelType]
+    
     @property
     def propertyView(self):
         measures = self.measures

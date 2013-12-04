@@ -12,7 +12,11 @@ from collections import defaultdict
 class UtrEntry(): # use slotted class for execution efficiency
     __slots__ = ("id", "unitId", "nsUnit", "itemType", "nsItemType", "isSimple",
                  "numeratorItemType", "nsNumeratorItemType", 
-                 "denominatorItemType", "nsDenominatorItemType")
+                 "denominatorItemType", "nsDenominatorItemType", "symbol")
+
+    def __repr__(self):
+        return "utrEntry({})".format(', '.join("{}={}".format(n, getattr(self,n))
+                                               for n in self.__slots__))
 
 def loadUtr(modelManager): # Build a dictionary of item types that are constrained by the UTR
     utrItemTypeEntries = defaultdict(dict)
@@ -36,6 +40,7 @@ def loadUtr(modelManager): # Build a dictionary of item types that are constrain
             u.denominatorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}denominatorItemType")
             u.nsDenominatorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsDenominatorItemType")
             u.isSimple = u.numeratorItemType is None and u.denominatorItemType is None
+            u.symbol = unitElt.findtext("{http://www.xbrl.org/2009/utr}symbol")
             # TO DO: This indexing scheme assumes that there are no name clashes in item types of the registry.
             (utrItemTypeEntries[u.itemType])[u.id] = u
         modelManager.disclosureSystem.utrItemTypeEntries = utrItemTypeEntries  
@@ -64,14 +69,17 @@ def xmlEltMatch(node, localName, namespaceUri):
         return False
 '''
 
-def validate(modelXbrl):
-    ValidateUtr(modelXbrl).validate()
+def validateFacts(modelXbrl):
+    ValidateUtr(modelXbrl).validateFacts()
+    
+def utrEntries(modelType, modelUnit):
+    return ValidateUtr(modelType.modelXbrl).utrEntries(modelType, modelUnit)
     
 class ValidateUtr:
     def __init__(self, modelXbrl):
         self.modelXbrl = modelXbrl
         
-    def validate(self):
+    def validateFacts(self):
         modelXbrl = self.modelXbrl
         if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
             if not hasattr(modelXbrl.modelManager.disclosureSystem, "utrItemTypeEntries"): 
@@ -87,27 +95,24 @@ class ValidateUtr:
                     if f.unitID is not None and unit is not None:  # Would have failed XBRL validation otherwise
                         bSatisfied = True
                         utrMatchingEntries = []
-                        type = concept.type
-                        while type is not None:
-                            if type.name in self.utrItemTypeEntries:
-                                for utrEntry in self.utrItemTypeEntries[type.name].values():
-                                    if utrEntry.itemType is None or utrEntry.itemType == type.name:
-                                        if utrEntry.nsItemType is None or utrEntry.nsItemType == type.qname.namespaceURI:
+                        _type = concept.type
+                        while _type is not None:
+                            if _type.name in self.utrItemTypeEntries:
+                                for utrEntry in self.utrItemTypeEntries[_type.name].values():
+                                    if utrEntry.itemType is None or utrEntry.itemType == _type.name:
+                                        if utrEntry.nsItemType is None or utrEntry.nsItemType == _type.qname.namespaceURI:
                                             utrMatchingEntries.append(utrEntry)                                                
                             if utrMatchingEntries:
                                 bConstrained = True
-                                type = None # No more looking for registry entries
+                                _type = None # No more looking for registry entries
                                 bSatisfied = any(self.unitSatisfies(utrEntry, unit)
                                                  for utrEntry in utrMatchingEntries)
                                 break # while
-                            #print(_("type={0}\ntype.qnameDerivedFrom={1}".format(type,type.qnameDerivedFrom)))
-                            qnameDerivedFrom = type.qnameDerivedFrom
-                            if isinstance(qnameDerivedFrom,list): # union type
-                                typeQn = qnameDerivedFrom[0] # for now take first of union's types
-                            else:
-                                typeQn = qnameDerivedFrom
-                            type = modelXbrl.qnameTypes.get(typeQn)
-                            #print(_("type={0}").format(type))
+                            #print(_("type={0}\ntype.qnameDerivedFrom={1}".format(_type,_type.qnameDerivedFrom)))
+                            _type = _type.typeDerivedFrom
+                            if isinstance(_type,list): # union type
+                                _type = _type[0] # for now take first of union's types
+                            #print(_("type={0}").format(_type))
                         # end while
                     # end if
                     if bConstrained and not bSatisfied:
@@ -178,4 +183,26 @@ class ValidateUtr:
         bResult = ((not bConstrained) or bSatisfied)
         # print(_("bResult={0}").format(bResult))
         return bResult
+
+    def utrEntries(self, modelType, unit):
+        utrSatisfyingEntries = set()
+        modelXbrl = self.modelXbrl
+        if not hasattr(modelXbrl.modelManager.disclosureSystem, "utrItemTypeEntries"): 
+            loadUtr(modelXbrl.modelManager)
+        self.utrItemTypeEntries = modelXbrl.modelManager.disclosureSystem.utrItemTypeEntries
+        _type = modelType
+        while _type is not None:
+            if _type.name in self.utrItemTypeEntries:
+                utrMatchingEntries = [utrEntry
+                                      for utrEntry in self.utrItemTypeEntries[_type.name].values()
+                                      if utrEntry.itemType is None or utrEntry.itemType == _type.name
+                                      if utrEntry.nsItemType is None or utrEntry.nsItemType == _type.qname.namespaceURI]
+                if utrMatchingEntries:
+                    for utrEntry in utrMatchingEntries:
+                        if self.unitSatisfies(utrEntry, unit):
+                            utrSatisfyingEntries.add(utrEntry)
+            _type = _type.typeDerivedFrom
+            if isinstance(_type,list): # union type
+                _type = _type[0] # for now take first of union's types
+        return utrSatisfyingEntries
 

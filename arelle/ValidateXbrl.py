@@ -512,7 +512,7 @@ class ValidateXbrl:
             modelXbrl.profileStat(_("validateCalculations"))
             
         if self.validateUTR:
-            ValidateUtr.validate(modelXbrl)
+            ValidateUtr.validateFacts(modelXbrl)
             modelXbrl.profileStat(_("validateUTR"))
             
         if self.validateIXDS:
