@@ -321,7 +321,7 @@ class Cntlr:
            
         :param message: Text of message to add to log.
         :type message: str
-        : param messageArgs: dict of message format-string key-value pairs
+        : param messageArgs: optional dict of message format-string key-value pairs
         :type messageArgs: dict
         :param messageCode: Message code (e.g., a prefix:id of a standard error)
         :param messageCode: str
@@ -329,14 +329,13 @@ class Cntlr:
         :type file: str
         """
         if self.logger is not None:
-            if messageArgs:
-                logArgs = (level, message, messageArgs)
-            else:
-                logArgs = (level, message)
             refs = []
             if file:
                 refs.append( {"href": file} )
-            self.logger.log(*logArgs, extra={"messageCode":messageCode,"refs":refs})
+            self.logger.log(level, 
+                            message, 
+                            messageArgs or {}, 
+                            extra={"messageCode":messageCode,"refs":refs})
         else:
             try:
                 print(message)
