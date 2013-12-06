@@ -333,7 +333,10 @@ class Cntlr:
                 logArgs = (level, message, messageArgs)
             else:
                 logArgs = (level, message)
-            self.logger.log(*logArgs, extra={"messageCode":messageCode,"refs":[{"href": file}]})
+            refs = []
+            if file:
+                refs.append( {"href": file} )
+            self.logger.log(*logArgs, extra={"messageCode":messageCode,"refs":refs})
         else:
             try:
                 print(message)
@@ -509,7 +512,9 @@ class LogFormatter(logging.Formatter):
         # provide a file parameter made up from refs entries
         fileLines = defaultdict(set)
         for ref in record.refs:
-            fileLines[ref["href"].partition("#")[0]].add(ref.get("sourceLine", 0))
+            href = ref.get("href")
+            if href:
+                fileLines[href.partition("#")[0]].add(ref.get("sourceLine", 0))
         record.file = ", ".join(file + " " + ', '.join(str(line) 
                                                        for line in sorted(lines, key=lambda l: l)
                                                        if line)
