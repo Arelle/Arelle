@@ -329,13 +329,14 @@ class Cntlr:
         :type file: str
         """
         if self.logger is not None:
+            if messageArgs:
+                args = (message, messageArgs)
+            else:
+                args = (message,)  # pass no args if none provided
             refs = []
             if file:
                 refs.append( {"href": file} )
-            self.logger.log(level, 
-                            message, 
-                            messageArgs or {}, 
-                            extra={"messageCode":messageCode,"refs":refs})
+            self.logger.log(level, *args, extra={"messageCode":messageCode,"refs":refs})
         else:
             try:
                 print(message)
@@ -520,13 +521,15 @@ class LogFormatter(logging.Formatter):
                                 for file, lines in sorted(fileLines.items()))
         try:
             formattedMessage = super(LogFormatter, self).format(record)
-        except (KeyError, ValueError) as ex:
+        except (KeyError, TypeError, ValueError) as ex:
             formattedMessage = "Message: "
             if getattr(record, "messageCode", ""):
                 formattedMessage += "[{0}] ".format(record.messageCode)
             if getattr(record, "msg", ""):
                 formattedMessage += record.msg + " "
-            formattedMessage += record.args.get('error','') + " \nMessage log error: " + str(ex)
+            if isinstance(record.args, dict) and 'error' in record.args: # args may be list or empty
+                formattedMessage += record.args['error']
+            formattedMessage += " \nMessage log error: " + str(ex)
         del record.file
         return formattedMessage
 
