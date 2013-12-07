@@ -175,12 +175,14 @@ class DialogPackageManager(Toplevel):
         
         self.loadTreeViews()
 
+        self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
         frame.grid(row=0, column=0, sticky=(N,S,E,W))
-        frame.columnconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=0)
         frame.columnconfigure(1, weight=1)
+        frame.rowconfigure(0, weight=1)
         window = self.winfo_toplevel()
         window.columnconfigure(0, weight=1)
-        self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
+        window.rowconfigure(0, weight=1)
         
         self.bind("<Return>", self.ok)
         self.bind("<Escape>", self.close)
