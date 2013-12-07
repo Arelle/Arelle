@@ -5,7 +5,7 @@ Created on Oct 17, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from collections import defaultdict
-from math import (log10, isnan, isinf, fabs, trunc, fmod, floor)
+from math import (log10, isnan, isinf, fabs, trunc, fmod, floor, pow)
 import decimal
 import re
 import hashlib
@@ -370,11 +370,16 @@ def inferredDecimals(fact):
         pass
     return floatNaN
     
-def roundValue(value, precision=None, decimals=None):
+def roundValue(value, precision=None, decimals=None, scale=None):
     try:
         vDecimal = decimal.Decimal(value)
+        if scale:
+            iScale = int(scale)
+            vDecimal = vDecimal.scaleb(iScale)
         if precision:
             vFloat = float(value)
+            if scale:
+                vFloat = pow(vFloat, iScale)
     except (decimal.InvalidOperation, ValueError): # would have been a schema error reported earlier
         return NaN
     if precision:
