@@ -155,12 +155,12 @@ class ViewRenderedGrid(ViewFile.View):
                                             yTopStructuralNode, self.yAxisChildrenFirst.get(), True, True)
                         for structuralNode,modelElt in self.structuralNodeModelElements: # must do after elements are all arragned
                             modelElt.addprevious(etree.Comment("{0}: label {1}, file {2}, line {3}"
-                                                          .format(structuralNode._definitionNode.localName,
-                                                                  structuralNode._definitionNode.xlinkLabel,
-                                                                  structuralNode._definitionNode.modelDocument.basename, 
-                                                                  structuralNode._definitionNode.sourceline)))
-                            if structuralNode._definitionNode.get('value'):
-                                modelElt.addprevious(etree.Comment("   @value {0}".format(structuralNode._definitionNode.get('value'))))
+                                                          .format(structuralNode.definitionNode.localName,
+                                                                  structuralNode.definitionNode.xlinkLabel,
+                                                                  structuralNode.definitionNode.modelDocument.basename, 
+                                                                  structuralNode.definitionNode.sourceline)))
+                            if structuralNode.definitionNode.get('value'):
+                                modelElt.addprevious(etree.Comment("   @value {0}".format(structuralNode.definitionNode.get('value'))))
                             for aspect in sorted(structuralNode.aspectsCovered(), key=lambda a: aspectStr(a)):
                                 if structuralNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
                                     aspectValue = structuralNode.aspectValue(aspect)
@@ -176,12 +176,12 @@ class ViewRenderedGrid(ViewFile.View):
                     currentIndex = zStrNodeWithChoices.choiceNodeIndex + 1
                     if currentIndex < len(zStrNodeWithChoices.choiceStructuralNodes):
                         zStrNodeWithChoices.choiceNodeIndex = currentIndex
-                        self.zOrdinateChoices[zStrNodeWithChoices._definitionNode] = currentIndex
+                        self.zOrdinateChoices[zStrNodeWithChoices.definitionNode] = currentIndex
                         moreDiscriminators = True
                         break
                     else:
                         zStrNodeWithChoices.choiceNodeIndex = 0
-                        self.zOrdinateChoices[zStrNodeWithChoices._definitionNode] = 0
+                        self.zOrdinateChoices[zStrNodeWithChoices.definitionNode] = 0
                         # continue incrementing next outermore z choices index
                 if not moreDiscriminators:
                     break
@@ -191,12 +191,13 @@ class ViewRenderedGrid(ViewFile.View):
         if zStructuralNode is not None:
             label = zStructuralNode.header(lang=self.lang)
             choiceLabel = None
+            effectiveStructuralNode = zStructuralNode
             if zStructuralNode.choiceStructuralNodes: # same as combo box selection in GUI mode
                 if not discriminatorsTable:
                     self.zStrNodesWithChoices.insert(0, zStructuralNode) # iteration from last is first
                 try:
-                    zChoiceStructuralNode = zStructuralNode.choiceStructuralNodes[zStructuralNode.choiceNodeIndex]
-                    choiceLabel = zChoiceStructuralNode.header(lang=self.lang)
+                    effectiveStructuralNode = zStructuralNode.choiceStructuralNodes[zStructuralNode.choiceNodeIndex]
+                    choiceLabel = effectiveStructuralNode.header(lang=self.lang)
                     if not label and choiceLabel:
                         label = choiceLabel # no header for choice
                         choiceLabel = None
@@ -253,17 +254,15 @@ class ViewRenderedGrid(ViewFile.View):
                         self.zHdrsElt.addprevious(comment)
                     self.zHdrsElt = comment                    
 
-            if zStructuralNode.childStructuralNodes:
-                for zStructuralNode in zStructuralNode.childStructuralNodes:
-                    self.zAxis(row + 1, zStructuralNode, zAspectStructuralNodes, discriminatorsTable)
-            else: # nested-nost element, aspects process inheritance
-                for aspect in aspectModels[self.aspectModel]:
-                    if zStructuralNode.hasAspect(aspect): #implies inheriting from other z axes
-                        if aspect == Aspect.DIMENSIONS:
-                            for dim in (zStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
-                                zAspectStructuralNodes[dim].add(zStructuralNode)
-                        else:
-                            zAspectStructuralNodes[aspect].add(zStructuralNode)
+            for aspect in aspectModels[self.aspectModel]:
+                if effectiveStructuralNode.hasAspect(aspect, inherit=True): #implies inheriting from other z axes
+                    if aspect == Aspect.DIMENSIONS:
+                        for dim in (effectiveStructuralNode.aspectValue(Aspect.DIMENSIONS, inherit=True) or emptyList):
+                            zAspectStructuralNodes[dim].add(effectiveStructuralNode)
+                    else:
+                        zAspectStructuralNodes[aspect].add(effectiveStructuralNode)
+            for zStructuralNode in zStructuralNode.childStructuralNodes:
+                self.zAxis(row + 1, zStructuralNode, zAspectStructuralNodes, discriminatorsTable)
                             
     def xAxis(self, leftCol, topRow, rowBelow, xParentStructuralNode, xStructuralNodes, childrenFirst, renderNow, atTop):
         if xParentStructuralNode is not None:
@@ -690,6 +689,14 @@ class ViewRenderedGrid(ViewFile.View):
                                     justify = "right" if fact.isNumeric else "left"
                                     break
                         if conceptNotAbstract:
+                            if self.type == XML:
+                                self.xCells.append(etree.Comment("Cell concept {0}: segDims {1}, scenDims {2}"
+                                                                 .format(fp.qname,
+                                                                         ', '.join("({}={})".format(dimVal.dimensionQname, dimVal.memberQname)
+                                                                                   for dimVal in sorted(fp.context.segDimVals.values(), key=lambda d: d.dimensionQname)),
+                                                                         ', '.join("({}={})".format(dimVal.dimensionQname, dimVal.memberQname)
+                                                                                   for dimVal in sorted(fp.context.scenDimVals.values(), key=lambda d: d.dimensionQname)),
+                                                                         )))
                             if value is not None or ignoreDimValidity or isFactDimensionallyValid(self, fp) or isEntryPrototype:
                                 if self.type == HTML:
                                     etree.SubElement(self.rowElts[row - 1], 
@@ -702,14 +709,14 @@ class ViewRenderedGrid(ViewFile.View):
                                         self.xCells.append(etree.Comment("{0}: context {1}, value {2}, file {3}, line {4}"
                                                                          .format(fact.qname,
                                                                                  fact.contextID,
-                                                                                 value,
+                                                                                 value[:32], # no more than 32 characters
                                                                                  fact.modelDocument.basename, 
                                                                                  fact.sourceline)))
                                     elif fact is not None:
                                         self.xCells.append(etree.Comment("Fact was not matched {0}: context {1}, value {2}, file {3}, line {4}, aspects not matched: {5}, dimensions expected to have been defaulted: {6}"
                                                                          .format(fact.qname,
                                                                                  fact.contextID,
-                                                                                 fact.effectiveValue,
+                                                                                 fact.effectiveValue[:32],
                                                                                  fact.modelDocument.basename, 
                                                                                  fact.sourceline,
                                                                                  ', '.join(str(aspect)
@@ -722,7 +729,8 @@ class ViewRenderedGrid(ViewFile.View):
                                     cellElt = etree.SubElement(self.xCells, tableModelQName("cell"))
                                     if value is not None and fact is not None:
                                         etree.SubElement(cellElt, tableModelQName("fact")
-                                                         ).text = '#' + elementFragmentIdentifier(fact)
+                                                         ).text = '{}#{}'.format(fact.modelDocument.basename,
+                                                                                 elementFragmentIdentifier(fact))
                             else:
                                 if self.type == HTML:
                                     etree.SubElement(self.rowElts[row - 1], 

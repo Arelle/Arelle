@@ -115,6 +115,7 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
                     break
                 elif disposition == "z" and zTopStructuralNode is None:
                     zTopStructuralNode = StructuralNode(None, definitionNode, breakdownTableNode=table)
+                    zTopStructuralNode._choiceStructuralNodes = []
                     zTopStructuralNode.hasOpenNode = False
                     expandDefinition(view, zTopStructuralNode, definitionNode, 1, disposition, facts, i, tblAxisRels)
                     break
@@ -291,8 +292,9 @@ def expandDefinition(view, structuralNode, definitionNode, depth, axisDispositio
                             cartesianProductExpander(childStructuralNode, *cartesianProductNestedArgs)
                         else:
                             childStructuralNode.indent = depth - 1
-                            structuralNode.choiceStructuralNodes.append(childStructuralNode)
-                            expandDefinition(view, structuralNode, childDefinitionNode, depth + 1, axisDisposition, facts) #recurse
+                            if structuralNode.choiceStructuralNodes is not None:
+                                structuralNode.choiceStructuralNodes.append(childStructuralNode)
+                            expandDefinition(view, childStructuralNode, childDefinitionNode, depth + 1, axisDisposition, facts) #recurse
                     # required when switching from abstract to roll up to determine abstractness
                     #if not structuralNode.subtreeRollUp and structuralNode.childStructuralNodes and definitionNode.tag.endswith("Node"):
                     #    structuralNode.subtreeRollUp = CHILDREN_BUT_NO_ROLLUP
@@ -466,7 +468,7 @@ def expandDefinition(view, structuralNode, definitionNode, depth, axisDispositio
                             structuralNode.choiceNodeIndex = 0
                     view.zmostOrdCntx = structuralNode
                         
-                if not isCartesianProductExpanded or axisDisposition == "z":
+                if not isCartesianProductExpanded or (axisDisposition == "z" and structuralNode.choiceStructuralNodes is not None):
                     cartesianProductExpander(structuralNode, *cartesianProductNestedArgs)
                         
                 if not structuralNode.childStructuralNodes: # childless root ordinate, make a child to iterate in producing table
@@ -496,6 +498,9 @@ def cartesianProductExpander(childStructuralNode, view, depth, axisDisposition, 
                 #if tblObj.cardinalityAndDepth(childStructuralNode)[1] or axisDisposition == "z":
                 if axisDisposition == "z":
                     subOrdTblCntx = StructuralNode(childStructuralNode, tblObj)
+                    subOrdTblCntx._choiceStructuralNodes = []  # this is a breakdwon node
+                    subOrdTblCntx.indent = 0 # separate breakdown not indented]
+                    depth = 0 # cartesian next z is also depth 0
                     childStructuralNode.childStructuralNodes.append(subOrdTblCntx)
                 else: # non-ordinate composition
                     subOrdTblCntx = childStructuralNode

@@ -33,13 +33,12 @@ def definitionNodes(nodes):
 class StructuralNode:
     def __init__(self, parentStructuralNode, definitionNode, zInheritance=None, contextItemFact=None, breakdownTableNode=None):
         self.parentStructuralNode = parentStructuralNode
-        self._definitionNode = definitionNode
+        self.definitionNode = definitionNode
         self._rendrCntx = getattr(definitionNode.modelXbrl, "rendrCntx", None) # None for EU 2010 table linkbases
         self.variables = {}
         self.aspects = {}
         self.childStructuralNodes = []
         self.rollUpStructuralNode = None
-        self.choiceStructuralNodes = []
         self.zInheritance = zInheritance
         if contextItemFact is not None:
             self.contextItemBinding = VariableBinding(self._rendrCntx,
@@ -60,7 +59,16 @@ class StructuralNode:
         
     @property
     def modelXbrl(self):
-        return self._definitionNode.modelXbrl
+        return self.definitionNode.modelXbrl
+    
+    @property
+    def choiceStructuralNodes(self):
+        if hasattr(self, "_choiceStructuralNodes"):
+            return self._choiceStructuralNodes
+        if self.parentStructuralNode is not None:
+            return self.parentStructuralNode.choiceStructuralNodes
+        # choiceStrNodes are on the breakdown node (if any)
+        return None
         
     @property
     def isAbstract(self):
@@ -88,14 +96,8 @@ class StructuralNode:
             return self.parentStructuralNode.structuralDepth + 1
         return 0
     
-    @property
-    def definitionNode(self):
-        if self.choiceStructuralNodes:
-            return self.choiceStructuralNodes[getattr(self,"choiceNodeIndex",0)]._definitionNode
-        return self._definitionNode
-    
     def breakdownNode(self, tableELR):
-        definitionNode = self._definitionNode
+        definitionNode = self.definitionNode
         if isinstance(definitionNode, ModelBreakdown):
             return definitionNode
         axisSubtreeRelSet = definitionNode.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableBreakdownTree201305, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD, XbrlConst.tableDefinitionNodeSubtree201305, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011), tableELR)
@@ -115,8 +117,11 @@ class StructuralNode:
                     return definitionNode.constraintSets[tag]
         return definitionNode.constraintSets.get(None) # returns None if no default constraint set
     
-    def aspectsCovered(self):
-        return _DICT_SET(self.aspects.keys()) | self.definitionNode.aspectsCovered()
+    def aspectsCovered(self, inherit=False):
+        aspectsCovered = _DICT_SET(self.aspects.keys()) | self.definitionNode.aspectsCovered()
+        if inherit and self.parentStructuralNode is not None:
+            aspectsCovered.update(self.parentStructuralNode.aspectsCovered(inherit=inherit))
+        return aspectsCovered
       
     def hasAspect(self, aspect, inherit=True):
         return (aspect in self.aspects or 
@@ -127,20 +132,20 @@ class StructuralNode:
     
     def aspectValue(self, aspect, inherit=True, dims=None, depth=0, tagSelectors=None):
         xc = self._rendrCntx
-        if self.choiceStructuralNodes:  # use aspects from choice structural node
+        if False: # TEST: self.choiceStructuralNodes:  # use aspects from choice structural node
             choiceNodeIndex = getattr(self,"choiceNodeIndex",0)
             if choiceNodeIndex != -1:
                 chosenStructuralNode = self.choiceStructuralNodes[choiceNodeIndex]
                 aspects = chosenStructuralNode.aspects
-                definitionNode = chosenStructuralNode._definitionNode
+                definitionNode = chosenStructuralNode.definitionNode
                 contextItemBinding = chosenStructuralNode.contextItemBinding
             else: # aspect entry mode
                 aspects = self.aspects
-                definitionNode = self.choiceStructuralNodes[0]._definitionNode
+                definitionNode = self.choiceStructuralNodes[0].definitionNode
                 contextItemBinding = None
         else:
             aspects = self.aspects
-            definitionNode = self._definitionNode
+            definitionNode = self.definitionNode
             contextItemBinding = self.contextItemBinding
         constraintSet = self.constraintSet(tagSelectors)
         if aspect == Aspect.DIMENSIONS:
@@ -159,7 +164,7 @@ class StructuralNode:
         elif constraintSet is not None and constraintSet.hasAspect(self, aspect):
             if isinstance(definitionNode, ModelSelectionDefinitionNode):
                 # result is in the indicated variable of ordCntx
-                return self.variables.get(self._definitionNode.variableQname)
+                return self.variables.get(self.definitionNode.variableQname)
             elif isinstance(definitionNode, ModelFilterDefinitionNode):
                 if contextItemBinding:
                     return contextItemBinding.aspectValue(aspect)
@@ -186,19 +191,19 @@ class StructuralNode:
     '''
         
     def objectId(self, refId=""):
-        return self._definitionNode.objectId(refId)
+        return self.definitionNode.objectId(refId)
         
     def header(self, role=None, lang=None, evaluate=True, returnGenLabel=True, returnMsgFormatString=False):
         # if ord is a nested selectionAxis selection, use selection-message or text contents instead of axis headers
-        isZSelection = isinstance(self._definitionNode, ModelSelectionDefinitionNode) and hasattr(self, "zSelection")
+        isZSelection = isinstance(self.definitionNode, ModelSelectionDefinitionNode) and hasattr(self, "zSelection")
         if role is None:
             # check for message before checking for genLabel
-            msgsRelationshipSet = self._definitionNode.modelXbrl.relationshipSet(
+            msgsRelationshipSet = self.definitionNode.modelXbrl.relationshipSet(
                     (XbrlConst.tableDefinitionNodeSelectionMessage201301, XbrlConst.tableAxisSelectionMessage2011) 
                     if isZSelection else 
                     (XbrlConst.tableDefinitionNodeMessage201301, XbrlConst.tableAxisMessage2011))
             if msgsRelationshipSet:
-                msg = msgsRelationshipSet.label(self._definitionNode, XbrlConst.standardMessage, lang, returnText=False)
+                msg = msgsRelationshipSet.label(self.definitionNode, XbrlConst.standardMessage, lang, returnText=False)
                 if msg is not None:
                     if evaluate:
                         if returnMsgFormatString:
@@ -208,12 +213,12 @@ class StructuralNode:
                     else:
                         return XmlUtil.text(msg)
         if isZSelection: # no message, return text of selection
-            return self.variables.get(self._definitionNode.variableQname, "selection")
+            return self.variables.get(self.definitionNode.variableQname, "selection")
         if returnGenLabel:
-            label = self._definitionNode.genLabel(role=role, lang=lang)
+            label = self.definitionNode.genLabel(role=role, lang=lang)
             if label:
                 return label
-        if self.isEntryAspect:
+        if self.isEntryAspect and role is None:
             # True if open node bound to a prototype, false if boudn to a real fact
             return OPEN_ASPECT_ENTRY_SURROGATE # sort pretty high, work ok for python 2.7/3.2 as well as 3.3
         # if there's a child roll up, check for it
