@@ -324,7 +324,7 @@ class WebCache:
                                 continue
                             elif response != "no":
                                 self.cntlr.addToLog(_("Web file appears to be an html logon request, not retrieved: %(URL)s \nContents: \n%(contents)s"),
-                                                    messageCode="webCacle:invalidRetrieval",
+                                                    messageCode="webCache:invalidRetrieval",
                                                     messageArgs={"URL": url, "contents": initialBytes},
                                                     level=logging.ERROR)
                                 return None

@@ -222,7 +222,7 @@ def parseAndRun(args):
     parser.add_option("--internetrecheck", choices=("weekly", "daily", "never"), action="store", dest="internetRecheck", help=SUPPRESS_HELP)
     parser.add_option("--internetLogDownloads", action="store_true", dest="internetLogDownloads", 
                       help=_("Log info message for downloads to web cache."))
-    parser.add_option("--internelogdownloads", action="store_true", dest="internetLogDownloads", help=SUPPRESS_HELP)
+    parser.add_option("--internetlogdownloads", action="store_true", dest="internetLogDownloads", help=SUPPRESS_HELP)
     parser.add_option("--xdgConfigHome", action="store", dest="xdgConfigHome", 
                       help=_("Specify non-standard location for configuration and cache files (overrides environment parameter XDG_CONFIG_HOME)."))
     parser.add_option("--plugins", action="store", dest="plugins",
