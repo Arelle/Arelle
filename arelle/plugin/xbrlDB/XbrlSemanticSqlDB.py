@@ -104,6 +104,13 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             # must also have default dimensions loaded
             from arelle import ValidateXbrlDimensions
             ValidateXbrlDimensions.loadDimensionDefaults(self.modelXbrl)
+            
+            # get logging entries (needed to find which aspects to identify)
+            self.loggingEntries = []
+            for handler in logging.getLogger("arelle").handlers:
+                if hasattr(handler, "dbHandlerLogEntries"):
+                    self.loggingEntries = handler.dbHandlerLogEntries()
+                    break
                         
             # find pre-existing documents in server database
             self.identifyPreexistingDocuments()
@@ -237,6 +244,13 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 for roleType in roleUriTypes:
                     for qn in roleType.usedOns:
                         aspectsUsed.add(self.modelXbrl.qnameConcepts[qn])
+                        
+        # add aspects referenced by logging entries
+        for logEntry in self.loggingEntries:
+            for ref in logEntry['refs']:
+                modelObject = self.modelXbrl.modelObject(ref.get('objectId',''))
+                if isinstance(modelObject, ModelConcept):
+                    aspectsUsed.add(modelObject)
         
         aspectsUsed -= {None}  # remove None if in conceptsUsed
         self.aspectsUsed = aspectsUsed
@@ -751,11 +765,6 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
 
     def insertValidationResults(self):
         reportId = self.reportId
-        logEntries = []
-        for handler in logging.getLogger("arelle").handlers:
-            if hasattr(handler, "dbHandlerLogEntries"):
-                logEntries = handler.dbHandlerLogEntries()
-                break
         
         if self.filingPreviouslyInDB:
             self.showStatus("deleting prior messages of this report")
@@ -772,20 +781,22 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                          close=False, fetch=False)
         messages = []
         messageRefs = defaultdict(set) # direct link to objects
-        for i, logEntry in enumerate(logEntries):
+        for i, logEntry in enumerate(self.loggingEntries):
             sequenceInReport = i+1
             for ref in logEntry['refs']:
                 modelObject = self.modelXbrl.modelObject(ref.get('objectId',''))
                 # for now just find a concept
                 objectId = None
                 if isinstance(modelObject, ModelFact):
-                    objectId = self.factPointId[(self.documentIds[ensureUrl(modelObject.modelDocument.uri)],
-                                                 elementFragmentIdentifier(modelObject))]
+                    objectId = self.factDataPointId[(self.documentIds[ensureUrl(modelObject.modelDocument.uri)],
+                                                     elementFragmentIdentifier(modelObject))]
                 elif isinstance(modelObject, ModelRelationship):
-                    objectId = self.factPointId[(self.documentIds[ensureUrl(modelObject.modelDocument.uri)],
-                                                 elementFragmentIdentifier(modelObject.arcElement))]
+                    objectId = self.relSetId[(modelObject.arcElement.qname.clarkNotation,
+                                              modelObject.linkQname.clarkNotation,
+                                              modelObject.arcrole,
+                                              modelObject.linkrole)]
                 elif isinstance(modelObject, ModelConcept):
-                    objectId = self.aspectQnameId[modelObject.qname]
+                    objectId = self.aspectQnameId.get(modelObject.qname)
                 elif isinstance(modelObject, ModelXbrl):
                     objectId = reportId
                 elif hasattr(modelObject, "modelDocument"):

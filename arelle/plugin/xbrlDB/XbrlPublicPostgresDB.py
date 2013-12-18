@@ -120,7 +120,7 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
             missingTables = XBRLDBTABLES - self.tablesInDB()
         if missingTables:
             raise XPDBException("xpgDB:MissingTables",
-                                _("The following tables are missing: %(missingTableNames)s"),
+                                _("The following tables are missing, suggest reinitializing database schema: %(missingTableNames)s"),
                                 missingTableNames=', '.join(t for t in sorted(missingTables))) 
             
     def insertXbrl(self, rssItem):

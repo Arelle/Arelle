@@ -256,7 +256,7 @@ class SqlDbConnection():
                 """, close=True, commit=False, fetch=False)
             
         
-    def execute(self, sql, commit=False, close=True, fetch=True, params=None):
+    def execute(self, sql, commit=False, close=True, fetch=True, params=None, action="execute"):
         cursor = self.cursor
         try:
             if isinstance(params, dict):
@@ -272,8 +272,8 @@ class SqlDbConnection():
                 mssqlProgrammingError, mssqlIntegrityError) as ex:  # something wrong with SQL
             if TRACESQLFILE:
                 with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
-                    fh.write("\n\n>>> EXCEPTION execute error {}\n sql {}\n"
-                             .format(str(ex), sql))
+                    fh.write("\n\n>>> EXCEPTION {} error {}\n sql {}\n"
+                             .format(action, str(ex), sql))
             raise
 
         if fetch:
@@ -294,11 +294,11 @@ class SqlDbConnection():
         self.showStatus("Dropping prior tables")
         for table in self.tablesInDB():
             result = self.execute('DROP TABLE %s' % self.dbTableName(table),
-                                  close=False, commit=False, fetch=False)
+                                  close=False, commit=False, fetch=False, action="dropping table")
         self.showStatus("Dropping prior sequences")
         for sequence in self.sequencesInDB():
             result = self.execute('DROP SEQUENCE %s' % sequence,
-                                  close=False, commit=False, fetch=False)
+                                  close=False, commit=False, fetch=False, action="dropping sequence")
         self.modelXbrl.profileStat(_("XbrlPublicDB: drop prior tables"), time.time() - startedAt)
                     
         startedAt = time.time()
@@ -341,6 +341,7 @@ class SqlDbConnection():
                 sqlstatements.append(stmt)
                 # problem with driver and $$ statements, skip them (for now)
                 stmt = ''
+        action = "executing ddl in {}".format(os.path.basename(ddlFile))
         for i, sql in enumerate(sqlstatements):
             if any(cmd in sql
                    for cmd in ('CREATE TABLE', 'CREATE SEQUENCE', 'INSERT INTO', 'CREATE TYPE',
@@ -350,7 +351,7 @@ class SqlDbConnection():
                                )):
                 statusMsg, sep, rest = sql.strip().partition('\n')
                 self.showStatus(statusMsg[0:50])
-                result = self.execute(sql, close=False, commit=False, fetch=False)
+                result = self.execute(sql, close=False, commit=False, fetch=False, action=action)
                 """
                 if TRACESQLFILE:
                     with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
@@ -367,16 +368,18 @@ class SqlDbConnection():
         return self.execute({"postgres":"SELECT datname FROM pg_database;",
                              "mysql": "SHOW databases;",
                              "orcl": "SELECT DISTINCT OWNER FROM ALL_OBJECTS"
-                             }[self.product])
+                             }[self.product],
+                            action="listing tables in database")
     
     def dropAllTablesInDB(self):
         # drop all tables (clean out database)
         if self.product == "postgres":
             self.execute("drop schema public cascade")
-            self.execute("create schema public;", commit=True)
+            self.execute("create schema public;", commit=True, action="recreating schema")
         elif self.product in ("mysql", "mssql", "orcl"):
             for tableName in self.tablesInDB():
-                self.execute("DROP TABLE {}".format( self.dbTableName(tableName) ))
+                self.execute("DROP TABLE {}".format( self.dbTableName(tableName) ),
+                             action="dropping tables")
         
     def tablesInDB(self):
         return set(tableRow[0]
