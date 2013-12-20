@@ -4,7 +4,7 @@ Created on Oct 3, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, sys
+import os, io, sys
 from collections import defaultdict
 from lxml import etree
 from xml.sax import SAXParseException
@@ -17,6 +17,7 @@ from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObjectFactory import parser
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype
 from arelle.PluginManager import pluginClassMethods
+creationSoftwareNames = None
 
 def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDiscovered=False, isIncluded=None, namespace=None, reloadCache=False):
     """Returns a new modelDocument, performing DTS discovery for instance, inline XBRL, schema, 
@@ -642,6 +643,28 @@ class ModelDocument:
             if i > 10:  # give up, no heading comment
                 break
         return None
+    
+    @property
+    def creationSoftware(self):
+        global creationSoftwareNames
+        if creationSoftwareNames is None:
+            import json, re
+            creationSoftwareNames = []
+            try:
+                with io.open(os.path.join(self.modelXbrl.modelManager.cntlr.configDir, "creationSoftwareNames.json"), 
+                             'rt', encoding='utf-8') as f:
+                    for key, pattern in json.load(f):
+                        if key != "_description_":
+                            creationSoftwareNames.append( (key, re.compile(pattern)) )
+            except Exception as ex:
+                self.modelXbrl.error("arelle:creationSoftwareNamesTable",
+                                     _("Error loading creation software names table %(error)s"),
+                                     modelObject=self, error=ex)
+        creationSoftwareComment = self.creationSoftwareComment
+        for productKey, productNamePattern in creationSoftwareNames:
+            if productNamePattern.search(creationSoftwareComment):
+                return productKey
+        return "Other"
     
     def schemaDiscover(self, rootElement, isIncluded, namespace):
         targetNamespace = rootElement.get("targetNamespace")
