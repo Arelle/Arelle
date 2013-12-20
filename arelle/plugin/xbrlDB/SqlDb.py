@@ -9,6 +9,10 @@ from math import isnan, isinf
 from decimal import Decimal
 from arelle.ModelValue import dateTime
 import socket
+
+TRACESQLFILE = None
+#TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
+
 def noop(*args, **kwargs): return 
 class NoopException(Exception):
     pass
@@ -79,9 +83,6 @@ except ImportError:
         mssqlDataError = mssqlIntegrityError = NoopException
 
 
-
-TRACESQLFILE = None
-#TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
 
 
 def isSqlConnection(host, port, timeout=10, product=None):
@@ -507,6 +508,8 @@ class SqlDbConnection():
                     colValues.append(str(col))
                 elif isinstance(col, (datetime.date, datetime.datetime)) and self.product == "orcl":
                     colValues.append("DATE '{:04}-{:02}-{:02}'".format(col.year, col.month, col.day))
+                elif isinstance(col, datetime.datetime) and self.product == "mssql":
+                    colValues.append("'{:04}-{:02}-{:02} {:02}:{:02}:{:02}'".format(col.year, col.month, col.day, col.hour, col.minute, col.second))
                 elif col is None:
                     colValues.append('NULL')
                 elif isinstance(col, _STR_BASE) and len(col) >= 4000 and (isOracle or isMSSql):
