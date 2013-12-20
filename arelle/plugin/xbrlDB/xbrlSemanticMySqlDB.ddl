@@ -20,8 +20,10 @@ CREATE TABLE sequences (
 
 DROP FUNCTION IF EXISTS nextval;
 DELIMITER $$
-CREATE FUNCTION nextval(seq_name varchar(100)) RETURNS bigint
+CREATE FUNCTION nextval(seq_name varchar(100)) 
+    RETURNS bigint
     LANGUAGE SQL
+    DETERMINISTIC MODIFIES SQL DATA
 BEGIN
     DECLARE 
         cur_val bigint;
