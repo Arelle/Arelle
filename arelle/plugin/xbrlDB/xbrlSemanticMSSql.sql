@@ -5,13 +5,43 @@
 
 set quoted_identifier on;
 GO
+-- drop tables before sequences, then drop seqences
+IF OBJECT_ID('filing', 'U') IS NOT NULL DROP TABLE filing;
+IF OBJECT_ID('report', 'U') IS NOT NULL DROP TABLE report;
+IF OBJECT_ID('document', 'U') IS NOT NULL DROP TABLE document;
+IF OBJECT_ID('referenced_documents', 'U') IS NOT NULL DROP TABLE referenced_documents;
+IF OBJECT_ID('aspect', 'U') IS NOT NULL DROP TABLE aspect;
+IF OBJECT_ID('data_type', 'U') IS NOT NULL DROP TABLE data_type;
+IF OBJECT_ID('role_type', 'U') IS NOT NULL DROP TABLE role_type;
+IF OBJECT_ID('arcrole_type', 'U') IS NOT NULL DROP TABLE arcrole_type;
+IF OBJECT_ID('used_on', 'U') IS NOT NULL DROP TABLE used_on;
+IF OBJECT_ID('resource', 'U') IS NOT NULL DROP TABLE resource;
+IF OBJECT_ID('relationship_set', 'U') IS NOT NULL DROP TABLE relationship_set;
+IF OBJECT_ID('relationship', 'U') IS NOT NULL DROP TABLE relationship;
+IF OBJECT_ID('data_point', 'U') IS NOT NULL DROP TABLE data_point;
+IF OBJECT_ID('entity', 'U') IS NOT NULL DROP TABLE entity;
+IF OBJECT_ID('period', 'U') IS NOT NULL DROP TABLE period;
+IF OBJECT_ID('unit', 'U') IS NOT NULL DROP TABLE unit;
+IF OBJECT_ID('unit_measure', 'U') IS NOT NULL DROP TABLE unit_measure;
+IF OBJECT_ID('aspect_value_selection_set', 'U') IS NOT NULL DROP TABLE aspect_value_selection_set;
+IF OBJECT_ID('aspect_value_selection', 'U') IS NOT NULL DROP TABLE aspect_value_selection;
+IF OBJECT_ID('message', 'U') IS NOT NULL DROP TABLE message;
+IF OBJECT_ID('message_reference', 'U') IS NOT NULL DROP TABLE message_reference;
+IF OBJECT_ID('industry', 'U') IS NOT NULL DROP TABLE industry;
+IF OBJECT_ID('industry_level', 'U') IS NOT NULL DROP TABLE industry_level;
+IF OBJECT_ID('industry_structure', 'U') IS NOT NULL DROP TABLE industry_structure;
+GO
+IF OBJECT_ID('seq_filing', 'SO') IS NOT NULL DROP SEQUENCE seq_filing;
+IF OBJECT_ID('seq_object', 'SO') IS NOT NULL DROP SEQUENCE seq_object;
+IF OBJECT_ID('seq_relationship_set', 'SO') IS NOT NULL DROP SEQUENCE seq_relationship_set;
+IF OBJECT_ID('seq_message', 'SO') IS NOT NULL DROP SEQUENCE seq_message;
+GO
 
 CREATE SEQUENCE seq_filing AS bigint START WITH 1 INCREMENT BY 1;
 GO
 ALTER SEQUENCE seq_filing RESTART;
 GO
 
-IF OBJECT_ID('filing', 'U') IS NOT NULL DROP TABLE filing;
 CREATE TABLE "filing" (
     filing_id bigint default next value for seq_filing, -- IDs are null on insert because trigger fires AFTER insert in MS SQL
     filing_number nvarchar(30) NOT NULL,
@@ -36,7 +66,6 @@ GO
 ALTER SEQUENCE seq_object RESTART;
 GO
 
-IF OBJECT_ID('report', 'U') IS NOT NULL DROP TABLE report;
 CREATE TABLE "report" (
     report_id bigint DEFAULT NEXT VALUE FOR seq_object,
     filing_id bigint NOT NULL
@@ -45,7 +74,6 @@ CREATE INDEX report_index01 ON "report" (report_id);
 CREATE UNIQUE INDEX report_index02 ON "report" (filing_id);
 
 GO
-IF OBJECT_ID('document', 'U') IS NOT NULL DROP TABLE document;
 CREATE TABLE "document" (
     document_id bigint DEFAULT NEXT VALUE FOR seq_object,
     document_url nvarchar(2048) NOT NULL,
@@ -57,7 +85,6 @@ CREATE INDEX document_index01 ON "document" (document_id);
 -- documents referenced by report or document
 
 GO
-IF OBJECT_ID('referenced_documents', 'U') IS NOT NULL DROP TABLE referenced_documents;
 CREATE TABLE "referenced_documents" (
     object_id bigint,
     document_id bigint NOT NULL
@@ -66,7 +93,6 @@ CREATE INDEX referenced_documents_index01 ON "referenced_documents" (object_id);
 CREATE UNIQUE INDEX referenced_documents_index02 ON "referenced_documents" (object_id, document_id);
 
 GO
-IF OBJECT_ID('aspect', 'U') IS NOT NULL DROP TABLE aspect;
 CREATE TABLE "aspect" (
     aspect_id bigint DEFAULT NEXT VALUE FOR seq_object,
     document_id bigint NOT NULL,
@@ -87,7 +113,6 @@ CREATE TABLE "aspect" (
 CREATE INDEX aspect_index01 ON "aspect" (aspect_id);
 
 GO
-IF OBJECT_ID('data_type', 'U') IS NOT NULL DROP TABLE data_type;
 CREATE TABLE "data_type" (
     data_type_id bigint DEFAULT NEXT VALUE FOR seq_object,
     document_id bigint NOT NULL,
@@ -100,7 +125,6 @@ CREATE TABLE "data_type" (
 CREATE INDEX data_type_index01 ON "data_type" (data_type_id);
 
 GO
-IF OBJECT_ID('role_type', 'U') IS NOT NULL DROP TABLE role_type;
 CREATE TABLE "role_type" (
     role_type_id bigint DEFAULT NEXT VALUE FOR seq_object,
     document_id bigint NOT NULL,
@@ -111,7 +135,6 @@ CREATE TABLE "role_type" (
 CREATE INDEX role_type_index01 ON "role_type" (role_type_id);
 
 GO
-IF OBJECT_ID('arcrole_type', 'U') IS NOT NULL DROP TABLE arcrole_type;
 CREATE TABLE "arcrole_type" (
     arcrole_type_id bigint DEFAULT NEXT VALUE FOR seq_object,
     document_id bigint NOT NULL,
@@ -123,7 +146,6 @@ CREATE TABLE "arcrole_type" (
 CREATE INDEX arcrole_type_index01 ON "arcrole_type" (arcrole_type_id);
 
 GO
-IF OBJECT_ID('used_on', 'U') IS NOT NULL DROP TABLE used_on;
 CREATE TABLE "used_on" (
     object_id bigint NOT NULL,
     aspect_id bigint NOT NULL
@@ -132,7 +154,6 @@ CREATE INDEX used_on_index01 ON "used_on" (object_id);
 CREATE UNIQUE INDEX used_on_index02 ON "used_on" (object_id, aspect_id);
 
 GO
-IF OBJECT_ID('resource', 'U') IS NOT NULL DROP TABLE resource;
 CREATE TABLE "resource" (
     resource_id bigint DEFAULT NEXT VALUE FOR seq_object,
     document_id bigint NOT NULL,
@@ -149,7 +170,6 @@ CREATE SEQUENCE seq_relationship_set AS bigint START WITH 1 INCREMENT BY 1;
 GO
 ALTER SEQUENCE seq_relationship_set RESTART;
 GO
-IF OBJECT_ID('relationship_set', 'U') IS NOT NULL DROP TABLE relationship_set;
 CREATE TABLE "relationship_set" (
     relationship_set_id bigint DEFAULT NEXT VALUE FOR seq_relationship_set,
     report_id bigint,
@@ -161,7 +181,6 @@ CREATE TABLE "relationship_set" (
 CREATE INDEX relationship_set_index01 ON "relationship_set" (relationship_set_id);
 
 GO
-IF OBJECT_ID('relationship', 'U') IS NOT NULL DROP TABLE relationship;
 CREATE TABLE "relationship" (
     relationship_id bigint DEFAULT NEXT VALUE FOR seq_object,
     report_id bigint,
@@ -179,7 +198,6 @@ CREATE TABLE "relationship" (
 CREATE INDEX relationship_index01 ON "relationship" (relationship_id);
 
 GO
-IF OBJECT_ID('data_point', 'U') IS NOT NULL DROP TABLE data_point;
 CREATE TABLE "data_point" (
     datapoint_id bigint DEFAULT NEXT VALUE FOR seq_object,
     report_id bigint,
@@ -202,7 +220,6 @@ CREATE TABLE "data_point" (
 CREATE INDEX datapoint_index01 ON "data_point" (datapoint_id);
 
 GO
-IF OBJECT_ID('entity', 'U') IS NOT NULL DROP TABLE entity;
 CREATE TABLE "entity" (
     entity_id bigint DEFAULT NEXT VALUE FOR seq_object,
     report_id bigint,
@@ -212,7 +229,6 @@ CREATE TABLE "entity" (
 CREATE INDEX entity_index01 ON "entity" (entity_id);
 
 GO
-IF OBJECT_ID('period', 'U') IS NOT NULL DROP TABLE period;
 CREATE TABLE "period" (
     period_id bigint DEFAULT NEXT VALUE FOR seq_object,
     report_id bigint,
@@ -224,7 +240,6 @@ CREATE TABLE "period" (
 CREATE INDEX period_index01 ON "period" (period_id);
 
 GO
-IF OBJECT_ID('unit', 'U') IS NOT NULL DROP TABLE unit;
 CREATE TABLE "unit" (
     unit_id bigint DEFAULT NEXT VALUE FOR seq_object,
     report_id bigint,
@@ -233,7 +248,6 @@ CREATE TABLE "unit" (
 CREATE INDEX unit_index01 ON "unit" (unit_id);
 
 GO
-IF OBJECT_ID('unit_measure', 'U') IS NOT NULL DROP TABLE unit_measure;
 CREATE TABLE "unit_measure" (
     unit_id bigint NOT NULL,
     qname nvarchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
@@ -244,7 +258,6 @@ CREATE INDEX unit_measure_index01 ON "unit_measure" (unit_id);
 --   CREATE UNIQUE INDEX unit_measure_index02 ON "unit_measure" (unit_id, qname(32), is_multiplicand);
 
 GO
-IF OBJECT_ID('aspect_value_selection_set', 'U') IS NOT NULL DROP TABLE aspect_value_selection_set;
 CREATE TABLE "aspect_value_selection_set" (
     aspect_value_selection_id bigint DEFAULT NEXT VALUE FOR seq_object,
     report_id bigint
@@ -253,7 +266,6 @@ CREATE INDEX aspect_value_selection_set_index01 ON "aspect_value_selection_set" 
 CREATE INDEX aspect_value_selection_set_index02 ON "aspect_value_selection_set" (report_id);
 
 GO
-IF OBJECT_ID('aspect_value_selection', 'U') IS NOT NULL DROP TABLE aspect_value_selection;
 CREATE TABLE "aspect_value_selection" (
     aspect_value_selection_id bigint,
     report_id bigint,
@@ -270,7 +282,6 @@ CREATE SEQUENCE seq_message AS bigint START WITH 1 INCREMENT BY 1;
 GO
 ALTER SEQUENCE seq_message RESTART;
 GO
-IF OBJECT_ID('message', 'U') IS NOT NULL DROP TABLE message;
 CREATE TABLE "message" (
     message_id bigint DEFAULT NEXT VALUE FOR seq_message,
     report_id bigint,
@@ -283,7 +294,6 @@ CREATE INDEX message_index01 ON "message" (message_id);
 GO
 
 GO
-IF OBJECT_ID('message_reference', 'U') IS NOT NULL DROP TABLE message_reference;
 CREATE TABLE "message_reference" (
     message_id bigint NOT NULL,
     object_id bigint NOT NULL -- may be any table with 'seq_object' id
@@ -293,7 +303,6 @@ CREATE UNIQUE INDEX message_reference_index02 ON "message_reference" (message_id
 GO
 
 GO
-IF OBJECT_ID('industry', 'U') IS NOT NULL DROP TABLE industry;
 CREATE TABLE "industry" (
     industry_id bigint NOT NULL,
     industry_classification nvarchar(16),
@@ -4653,7 +4662,6 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 ;
 GO
 
-IF OBJECT_ID('industry_level', 'U') IS NOT NULL DROP TABLE industry_level;
 CREATE TABLE "industry_level" (
     industry_level_id bigint NOT NULL,
     industry_classification nvarchar(16),
@@ -14013,7 +14021,6 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (9326, 'SIC', 3681, 4810, 3, 3682, 4812, 4)
 ;
 
-IF OBJECT_ID('industry_structure', 'U') IS NOT NULL DROP TABLE industry_structure;
 CREATE TABLE "industry_structure" (
     industry_structure_id bigint,
     industry_classification nvarchar(8) NOT NULL,
@@ -14039,3 +14046,4 @@ INSERT INTO industry_structure (industry_structure_id, industry_classification, 
 (53, 'NAICS', 5, 'National Industry')
 ;
 GO
+
