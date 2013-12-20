@@ -155,7 +155,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                     now,  # NOT NULL
                                     0,  # NOT NULL
                                     '',
-                                    self.modelXbrl.modelDocument.creationSoftwareComment,
+                                    self.modelXbrl.modelDocument.creationSoftware,
                                     -1,  # NOT NULL
                                     None,
                                     None,
@@ -174,7 +174,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                     rssItem.filingDate or datetime.datetime.min,  # NOT NULL
                                     rssItem.cikNumber or 0,  # NOT NULL
                                     rssItem.companyName,
-                                    self.modelXbrl.modelDocument.creationSoftwareComment,
+                                    self.modelXbrl.modelDocument.creationSoftware,
                                     rssItem.assignedSic or -1,  # NOT NULL
                                     rssItem.htmlUrl,
                                     rssItem.url
@@ -196,13 +196,19 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         for id, foundFilingId, existenceStatus in table:
             self.reportId = id
             self.filingPreviouslyInDB = existenceStatus
-            break        
+            break
+        
+    def isSemanticDocument(self, modelDocument):
+        if modelDocument.type == Type.SCHEMA:
+            return modelDocument.inDTS
+        return modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL, Type.LINKBASE)       
         
     def identifyPreexistingDocuments(self):
         self.existingDocumentIds = {}
         docUris = set()
         for modelDocument in self.modelXbrl.urlDocs.values():
-            docUris.add(self.dbStr(ensureUrl(modelDocument.uri)))
+            if self.isSemanticDocument(modelDocument):
+                docUris.add(self.dbStr(ensureUrl(modelDocument.uri)))
         if docUris:
             results = self.execute("SELECT document_id, document_url FROM {} WHERE document_url IN ({})"
                                    .format(self.dbTableName("document"),
@@ -251,8 +257,12 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 modelObject = self.modelXbrl.modelObject(ref.get('objectId',''))
                 if isinstance(modelObject, ModelConcept):
                     aspectsUsed.add(modelObject)
+
+        # add substitution groups
+        aspectsUsed |= set(aspect.substitutionGroup
+                           for aspect in aspectsUsed)
         
-        aspectsUsed -= {None}  # remove None if in conceptsUsed
+        aspectsUsed -= {None}  # remove None if in aspectsUsed
         self.aspectsUsed = aspectsUsed
     
         typesUsed = set()
@@ -285,7 +295,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                    mdlDoc.targetNamespace) 
                                   for docUri, mdlDoc in self.modelXbrl.urlDocs.items()
                                   for uri in (ensureUrl(docUri),)
-                                  if uri not in self.existingDocumentIds),
+                                  if uri not in self.existingDocumentIds and 
+                                     self.isSemanticDocument(mdlDoc)),
                               checkIfExisting=True)
         self.documentIds = dict((uri, id)
                                 for id, uri in table)
@@ -314,6 +325,18 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
     def insertAspects(self):
         self.showStatus("insert aspects")
         
+        # determine new filing documents and types they use
+        filingDocumentAspects = set()
+        existingDocumentUsedAspects = set()
+        for concept in self.modelXbrl.qnameConcepts.values():
+            if ensureUrl(concept.modelDocument.uri) not in self.existingDocumentIds:
+                filingDocumentAspects.add(concept)
+                filingDocumentAspectType = concept.type
+                if filingDocumentAspectType is not None and filingDocumentAspectType not in self.typesUsed:
+                        self.typesUsed.add(filingDocumentAspectType)
+            elif concept in self.aspectsUsed:
+                existingDocumentUsedAspects.add(concept)
+                
         filingDocumentTypes = set()
         existingDocumentUsedTypes = set()
         for modelType in self.modelXbrl.qnameTypes.values():
@@ -321,6 +344,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 filingDocumentTypes.add(modelType)
             elif modelType in self.typesUsed:
                 existingDocumentUsedTypes.add(modelType)
+
                 
         # get existing element IDs
         self.typeQnameId = {}
@@ -366,14 +390,6 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             
         existingDocumentUsedTypes.clear() # dereference
         filingDocumentTypes.clear() # dereference
-
-        filingDocumentAspects = set()
-        existingDocumentUsedAspects = set()
-        for concept in self.modelXbrl.qnameConcepts.values():
-            if ensureUrl(concept.modelDocument.uri) not in self.existingDocumentIds:
-                filingDocumentAspects.add(concept)
-            elif concept in self.aspectsUsed:
-                existingDocumentUsedAspects.add(concept)
                 
         self.aspectQnameId = {}
         
