@@ -477,7 +477,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             for otherStart, otherCntxs in durationCntxStartDatetimes.items():
                                 duration = end - otherStart
                                 if duration > datetime.timedelta(0) and duration <= datetime.timedelta(1):
-                                    probCntxs |= otherCntxs - {cntx}
+                                    # ignore if all contexts are same 1-day and just differ in dimensions (ARELLE-290)
+                                    if not all(cntx.isPeriodEqualTo(otherCntx) and 
+                                               cntx.isEntityIdentifierEqualTo(otherCntx)
+                                               for otherCntx in otherCntxs):
+                                        probCntxs |= otherCntxs - {cntx}
                             if probCntxs:
                                 probStartEndCntxsByEnd[end] |= probCntxs
                                 startEndCntxsByEnd[end] |= {cntx}
