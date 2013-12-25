@@ -11,7 +11,7 @@ from arelle.ModelValue import dateTime
 import socket
 
 TRACESQLFILE = None
-#TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
+TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
 
 def noop(*args, **kwargs): return 
 class NoopException(Exception):
@@ -165,6 +165,7 @@ class SqlDbConnection():
         self.tableColTypes = {}
         self.tableColDeclaration = {}
         self.accessionId = "(None)"
+        self.tempInputTableName = "input{}".format(os.getpid())
                 
     def close(self, rollback=False):
         try:
@@ -204,7 +205,7 @@ class SqlDbConnection():
         if self.product == "orcl":
             return "'" + str(s).replace("'","''") + "'"
         elif self.product == "mysql":
-            return "N'" + str(s).replace("'","''") + "'"
+            return "N" + self.conn.escape(str(s))
         else:
             return "'" + str(s).replace("'","''").replace('%', '%%') + "'"
         
@@ -270,7 +271,8 @@ class SqlDbConnection():
                 mysqlProgrammingError, mysqlInternalError,
                 oracleDatabaseError,
                 mssqlOperationalError, mssqlInterfaceError, mssqlDataError,
-                mssqlProgrammingError, mssqlIntegrityError) as ex:  # something wrong with SQL
+                mssqlProgrammingError, mssqlIntegrityError,
+                socket.timeout) as ex:  # something wrong with SQL
             if TRACESQLFILE:
                 with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
                     fh.write("\n\n>>> EXCEPTION {} error {}\n sql {}\n"
@@ -504,8 +506,18 @@ class SqlDbConnection():
                         colValues.append('1' if col else '0')
                     else:
                         colValues.append('TRUE' if col else 'FALSE')
-                elif isinstance(col, (int,float,Decimal)):
+                elif isinstance(col, int):
                     colValues.append(str(col))
+                elif isinstance(col, float):
+                    if _ISFINITE(col):
+                        colValues.append(str(col))
+                    else:  # no NaN, INF, in SQL implementations (Postgres has it but not IEEE implementation)
+                        colValues.append('NULL')
+                elif isinstance(col, Decimal):
+                    if col.is_finite():
+                        colValues.append(str(col))
+                    else:  # no NaN, INF, in SQL implementations (Postgres has it but not IEEE implementation)
+                        colValues.append('NULL')
                 elif isinstance(col, (datetime.date, datetime.datetime)) and self.product == "orcl":
                     colValues.append("DATE '{:04}-{:02}-{:02}'".format(col.year, col.month, col.day))
                 elif isinstance(col, datetime.datetime) and self.product == "mssql":
@@ -539,6 +551,7 @@ class SqlDbConnection():
         values = ", \n".join(rowValues)
         
         _table = self.dbTableName(table)
+        _inputTableName = self.tempInputTableName
         if self.product == "postgres":
             # insert new rows, return id and cols of new and existing rows
             # use IS NOT DISTINCT FROM instead of = to compare NULL usefully
@@ -572,34 +585,49 @@ WITH row_values (%(newCols)s) AS (
                  "statusIfExisting": ", TRUE" if returnExistenceStatus else ""
                  }, None, True)]
         elif self.product == "mysql":
-            sql = [("CREATE TEMPORARY TABLE input ( %(inputCols)s );" %
-                        {"inputCols": ', '.join('{0} {1}'.format(newCol, colDeclarations[newCol])
+            sql = [("CREATE TEMPORARY TABLE %(inputTable)s ( %(inputCols)s );" %
+                        {"inputTable": _inputTableName,
+                         "inputCols": ', '.join('{0} {1}'.format(newCol, colDeclarations[newCol])
                                                 for newCol in newCols)}, None, False),
-                   ("INSERT INTO input ( %(newCols)s ) VALUES %(values)s;" %     
-                        {"newCols": ', '.join(newCols),
+                   ("INSERT INTO %(inputTable)s ( %(newCols)s ) VALUES %(values)s;" %     
+                        {"inputTable": _inputTableName,
+                         "newCols": ', '.join(newCols),
                          "values": values}, None, False)]
             if insertIfNotMatched:
-                sql.append( ("INSERT IGNORE INTO %(table)s ( %(newCols)s ) SELECT %(newCols)s FROM input;" %     
-                                {"table": _table,
-                                 "newCols": ', '.join(newCols)}, None, False))
+                if checkIfExisting:
+                    _where = ('WHERE NOT EXISTS (SELECT 1 FROM %(table)s x WHERE %(match)s)' %
+                              {"table": _table,
+                               "match": ' AND '.join('x.{0} {1} i.{0}'.format(col, comparisonOperator) 
+                                                     for col in matchCols)})
+                else:
+                    _where = "";
+                sql.append( ("INSERT INTO %(table)s ( %(newCols)s ) SELECT %(newCols)s FROM %(inputTable)s i %(where)s;" %     
+                                {"inputTable": _inputTableName,
+                                 "table": _table,
+                                 "newCols": ', '.join(newCols),
+                                 "where": _where}, None, False) )
             # don't know how to get status if existing
-            sql.append( ("SELECT %(returningCols)s %(statusIfExisting)s from input JOIN %(table)s ON ( %(match)s );" %
-                            {"table": _table,
+            sql.append( ("SELECT %(returningCols)s %(statusIfExisting)s from %(inputTable)s JOIN %(table)s ON ( %(match)s );" %
+                            {"inputTable": _inputTableName,
+                             "table": _table,
                              "newCols": ', '.join(newCols),
-                             "match": ' AND '.join('{0}.{1} = input.{1}'.format(_table,col) 
+                             "match": ' AND '.join('{0}.{2} = {1}.{2}'.format(_table,_inputTableName,col) 
                                         for col in matchCols),
                              "statusIfExisting": ", FALSE" if returnExistenceStatus else "",
                              "returningCols": ', '.join('{0}.{1}'.format(_table,col)
                                                         for col in returningCols)}, None, True) )
-            sql.append( ("DROP TABLE input;", None, False) )
+            sql.append( ("DROP TABLE %(inputTable)s;" %
+                         {"inputTable": _inputTableName}, None, False) )
         elif self.product == "mssql":
-            sql = [("CREATE TABLE #input ( %(inputCols)s );" %
-                        {"inputCols": ', '.join('{0} {1}'.format(newCol, colDeclarations[newCol])
+            sql = [("CREATE TABLE #%(inputTable)s ( %(inputCols)s );" %
+                        {"inputTable": _inputTableName,
+                         "inputCols": ', '.join('{0} {1}'.format(newCol, colDeclarations[newCol])
                                                 for newCol in newCols)}, None, False)]
             # break values insertion into 1000's each
             def insertOrclRows(i, j, params):
-                sql.append(("INSERT INTO #input ( %(newCols)s ) VALUES %(values)s;" %     
-                        {"newCols": ', '.join(newCols),
+                sql.append(("INSERT INTO #%(inputTable)s ( %(newCols)s ) VALUES %(values)s;" %     
+                        {"inputTable": _inputTableName,
+                         "newCols": ', '.join(newCols),
                          "values": ", ".join(rowValues[i:j])}, params, False))
             iMax = len(rowValues)
             i = 0
@@ -615,32 +643,37 @@ WITH row_values (%(newCols)s) AS (
                     insertOrclRows(i, j+1, None)
                     i = j+1
             if insertIfNotMatched:
-                sql.append(("MERGE INTO %(table)s USING #input ON (%(match)s) "
+                sql.append(("MERGE INTO %(table)s USING #%(inputTable)s ON (%(match)s) "
                             "WHEN NOT MATCHED THEN INSERT (%(newCols)s) VALUES (%(values)s);" %
-                            {"table": _table,
+                            {"inputTable": _inputTableName,
+                             "table": _table,
                              "newCols": ', '.join(newCols),
-                             "match": ' AND '.join('{0}.{1} = #input.{1}'.format(_table,col) 
+                             "match": ' AND '.join('{0}.{2} = #{1}.{2}'.format(_table,_inputTableName,col) 
                                         for col in matchCols),
-                             "values": ', '.join("#input.{0}".format(newCol)
+                             "values": ', '.join("#{0}.{1}".format(_inputTableName,newCol)
                                                  for newCol in newCols)}, None, False))
             sql.append(# don't know how to get status if existing
-                   ("SELECT %(returningCols)s %(statusIfExisting)s from #input JOIN %(table)s ON ( %(match)s );" %
-                        {"table": _table,
+                   ("SELECT %(returningCols)s %(statusIfExisting)s from #%(inputTable)s JOIN %(table)s ON ( %(match)s );" %
+                        {"inputTable": _inputTableName,
+                         "table": _table,
                          "newCols": ', '.join(newCols),
-                         "match": ' AND '.join('{0}.{1} = #input.{1}'.format(_table,col) 
+                         "match": ' AND '.join('{0}.{2} = #{1}.{2}'.format(_table,_inputTableName,col) 
                                     for col in matchCols),
                          "statusIfExisting": ", 0" if returnExistenceStatus else "",
                          "returningCols": ', '.join('{0}.{1}'.format(_table,col)
                                                     for col in returningCols)}, None, True))
-            sql.append(("DROP TABLE #input;", None, False))
+            sql.append(("DROP TABLE #%(inputTable)s;" %
+                         {"inputTable": _inputTableName}, None, False))
         elif self.product == "orcl":
-            sql = [("CREATE GLOBAL TEMPORARY TABLE input ( %(inputCols)s )" %
-                        {"inputCols": ', '.join('{0} {1}'.format(newCol, colDeclarations[newCol])
+            sql = [("CREATE GLOBAL TEMPORARY TABLE %(inputTable)s ( %(inputCols)s )" %
+                        {"inputTable": _inputTableName,
+                         "inputCols": ', '.join('{0} {1}'.format(newCol, colDeclarations[newCol])
                                                 for newCol in newCols)}, None, False)]
             # break values insertion into 1000's each
             def insertOrclRows(i, j, params):
-                sql.append(("INSERT INTO input ( %(newCols)s ) %(values)s" %     
-                        {"newCols": ', '.join(newCols),
+                sql.append(("INSERT INTO %(inputTable)s ( %(newCols)s ) %(values)s" %     
+                        {"inputTable": _inputTableName,
+                         "newCols": ', '.join(newCols),
                          "values": "\nUNION ALL".join(" SELECT {} FROM dual ".format(r)
                                                       for r in rowValues[i:j])}, params, False))
             iMax = len(rowValues)
@@ -657,24 +690,27 @@ WITH row_values (%(newCols)s) AS (
                     insertOrclRows(i, j+1, None)
                     i = j+1
             if insertIfNotMatched:
-                sql.append(("MERGE INTO %(table)s USING INPUT ON (%(match)s)"
+                sql.append(("MERGE INTO %(table)s USING %(inputTable)s ON (%(match)s) "
                             "WHEN NOT MATCHED THEN INSERT (%(newCols)s) VALUES (%(values)s)" %
-                            {"table": _table,
+                            {"inputTable": _inputTableName,
+                             "table": _table,
                              "newCols": ', '.join(newCols),
-                             "match": ' AND '.join('{0}.{1} = input.{1}'.format(_table,col) 
+                             "match": ' AND '.join('{0}.{2} = {1}.{2}'.format(_table,_inputTableName,col) 
                                         for col in matchCols),
-                             "values": ', '.join("input.{0}".format(newCol)
+                             "values": ', '.join("{0}.{1}".format(_inputTableName,newCol)
                                                  for newCol in newCols)}, None, False))
             sql.append(# don't know how to get status if existing
-                   ("SELECT %(returningCols)s %(statusIfExisting)s from input JOIN %(table)s ON ( %(match)s )" %
-                        {"table": _table,
+                   ("SELECT %(returningCols)s %(statusIfExisting)s from %(inputTable)s JOIN %(table)s ON ( %(match)s )" %
+                        {"inputTable": _inputTableName,
+                         "table": _table,
                          "newCols": ', '.join(newCols),
-                         "match": ' AND '.join('{0}.{1} = input.{1}'.format(_table,col) 
+                         "match": ' AND '.join('{0}.{2} = {1}.{2}'.format(_table,_inputTableName,col) 
                                     for col in matchCols),
                          "statusIfExisting": ", 0" if returnExistenceStatus else "",
                          "returningCols": ', '.join('{0}.{1}'.format(_table,col)
                                                     for col in returningCols)}, None, True))
-            sql.append(("DROP TABLE input", None, False))
+            sql.append(("DROP TABLE %(inputTable)s" %
+                         {"inputTable": _inputTableName}, None, False))
         if TRACESQLFILE:
             with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
                 fh.write("\n\n>>> accession {0} table {1} sql length {2} row count {3}\n"
@@ -736,6 +772,7 @@ WITH row_values (%(newCols)s) AS (
         values = ", \n".join(rowValues)
         
         _table = self.dbTableName(table)
+        _inputTableName = self.tempInputTableName
         if self.product == "postgres":
             # insert new rows, return id and cols of new and existing rows
             # use IS NOT DISTINCT FROM instead of = to compare NULL usefully
@@ -752,55 +789,64 @@ WITH input (%(valCols)s) AS ( VALUES %(values)s )
                  "values": values}]
                  
         elif self.product == "mysql":
-            sql = ["CREATE TEMPORARY TABLE input ( %(valCols)s );" %
-                        {"valCols": ', '.join('{0} {1}'.format(col, colDeclarations[col])
+            sql = ["CREATE TEMPORARY TABLE %(inputTable)s ( %(valCols)s );" %
+                        {"inputTable": _inputTableName,
+                         "valCols": ', '.join('{0} {1}'.format(col, colDeclarations[col])
                                               for col in cols)},
-                   "INSERT INTO input ( %(newCols)s ) VALUES %(values)s;" %     
-                        {"newCols": ', '.join(cols),
+                   "INSERT INTO %(inputTable)s ( %(newCols)s ) VALUES %(values)s;" %     
+                        {"inputTable": _inputTableName,
+                         "newCols": ', '.join(cols),
                          "values": values},
-                   "UPDATE input i, %(table)s t SET %(settings)s WHERE i.%(idCol)s = t.%(idCol)s;" %     
-                        {"table": _table,
+                   "UPDATE %(inputTable)s i, %(table)s t SET %(settings)s WHERE i.%(idCol)s = t.%(idCol)s;" %     
+                        {"inputTable": _inputTableName,
+                         "table": _table,
                          "idCol": idCol,
                          "settings": ', '.join('t.{0} = i.{0}'.format(cols[i])
                                                for i, col in enumerate(cols)
                                                if i > 0)},
-                   "DROP TABLE input;"]
+                   "DROP TABLE %(inputTable)s;" % {"inputTable": _inputTableName}]
         elif self.product == "mssql":
-            sql = ["CREATE TABLE #input ( %(valCols)s );" %
-                        {"valCols": ', '.join('{0} {1}'.format(col, colDeclarations[col])
+            sql = ["CREATE TABLE #%(inputTable)s ( %(valCols)s );" %
+                        {"inputTable": _inputTableName,
+                         "valCols": ', '.join('{0} {1}'.format(col, colDeclarations[col])
                                               for col in cols)}]
             # must break values insertion into 1000's each
             for i in range(0, len(rowValues), 950):
                 values = ", \n".join(rowValues[i: i+950])
-                sql.append("INSERT INTO #input ( %(cols)s ) VALUES %(values)s;" %     
-                        {"cols": ', '.join(cols),
+                sql.append("INSERT INTO #%(inputTable)s ( %(cols)s ) VALUES %(values)s;" %     
+                        {"inputTable": _inputTableName,
+                         "cols": ', '.join(cols),
                          "values": values})
-            sql.append("MERGE INTO %(table)s USING #input ON (#input.%(idCol)s = %(table)s.%(idCol)s) "
+            sql.append("MERGE INTO %(table)s USING #%(inputTable)s ON (#%(inputTable)s.%(idCol)s = %(table)s.%(idCol)s) "
                        "WHEN MATCHED THEN UPDATE SET %(settings)s;" %
-                        {"table": _table,
+                        {"inputTable": _inputTableName,
+                         "table": _table,
                          "idCol": idCol,
-                         "settings": ', '.join('{0}.{1} = #input.{1}'.format(_table, cols[i])
+                         "settings": ', '.join('{0}.{2} = #{1}.{2}'.format(_table, _inputTableName, cols[i])
                                                for i, col in enumerate(cols)
                                                if i > 0)})
-            sql.append("DROP TABLE #input;")
+            sql.append("DROP TABLE #%(inputTable)s;" % {"inputTable": _inputTableName})
         elif self.product == "orcl":
-            sql = ["CREATE GLOBAL TEMPORARY TABLE input ( %(valCols)s )" %
-                        {"valCols": ', '.join('{0} {1}'.format(col, colDeclarations[col])
+            sql = ["CREATE GLOBAL TEMPORARY TABLE %(inputTable)s ( %(valCols)s )" %
+                        {"inputTable": _inputTableName,
+                         "valCols": ', '.join('{0} {1}'.format(col, colDeclarations[col])
                                               for col in cols)}]
             for i in range(0, len(rowValues), 500):
                 sql.append(
-                   "INSERT INTO input ( %(cols)s ) %(values)s" %     
-                        {"cols": ', '.join(cols),
+                   "INSERT INTO %(inputTable)s ( %(cols)s ) %(values)s" %     
+                        {"inputTable": _inputTableName,
+                         "cols": ', '.join(cols),
                          "values": "\nUNION ALL".join(" SELECT {} FROM dual ".format(r)
                                                       for r in rowValues[i:i+500])})
-            sql.append("MERGE INTO %(table)s USING input ON (input.%(idCol)s = %(table)s.%(idCol)s) "
+            sql.append("MERGE INTO %(table)s USING %(inputTable)s ON (%(inputTable)s.%(idCol)s = %(table)s.%(idCol)s) "
                        "WHEN MATCHED THEN UPDATE SET %(settings)s" %
-                        {"table": _table,
+                        {"inputTable": _inputTableName,
+                         "table": _table,
                          "idCol": idCol,
-                         "settings": ', '.join('{0}.{1} = input.{1}'.format(_table, cols[i])
+                         "settings": ', '.join('{0}.{2} = {1}.{2}'.format(_table, _inputTableName, cols[i])
                                                for i, col in enumerate(cols)
                                                if i > 0)})
-            sql.append("DROP TABLE input")
+            sql.append("DROP TABLE %(inputTable)s" % {"inputTable": _inputTableName})
         if TRACESQLFILE:
             with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
                 fh.write("\n\n>>> accession {0} table {1} sql length {2} row count {3}\n"

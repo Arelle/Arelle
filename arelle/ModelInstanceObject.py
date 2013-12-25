@@ -39,6 +39,7 @@ from arelle.PrototypeInstanceObject import DimValuePrototype
 from math import isnan
 from arelle.ModelObject import ModelObject
 from decimal import Decimal, InvalidOperation
+from hashlib import md5
 Aspect = None
 utrEntries = None
 POSINF = float("inf")
@@ -1201,6 +1202,23 @@ class ModelUnit(ModelObject):
             # should this use frozenSet of each measures element?
             self._hash = hash( ( tuple(self.measures[0]),tuple(self.measures[1]) ) )
             return self._hash
+
+    @property
+    def md5hash(self):
+        """(bool) -- md5 Hash of measures in both multiply and divide lists."""
+        try:
+            return self._md5hash
+        except AttributeError:
+            md5hash = md5()
+            for i, measures in enumerate(self.measures):
+                if i:
+                    md5hash.update(b"divisor")
+                for measure in measures:
+                    md5hash.update(measure.namespaceURI.encode('utf-8','replace'))
+                    md5hash.update(measure.localName.encode('utf-8','replace'))
+            # should this use frozenSet of each measures element?
+            self._md5hash = md5hash.hexdigest()
+            return self._md5hash
 
     @property
     def isDivide(self):

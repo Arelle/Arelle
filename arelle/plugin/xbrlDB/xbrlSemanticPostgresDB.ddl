@@ -13,62 +13,53 @@ SET escape_string_warning = off;
 
 SET search_path = public, pg_catalog;
 
--- emulate postgres nextval for mysql and oracle consistency
-
-DROP TABLE IF EXISTS sequences CASCADE;
-CREATE TABLE sequences (
-    sequence_name varchar(100) NOT NULL,    
-    sequence_increment int NOT NULL DEFAULT 1,
-    sequence_min_value int NOT NULL DEFAULT 1,
-    sequence_max_value bigint NOT NULL DEFAULT 9223372036854775807,
-    sequence_cur_value bigint DEFAULT 1,    
-    sequence_cycle boolean NOT NULL DEFAULT FALSE,    
-    PRIMARY KEY (sequence_name)
-); 
-ALTER TABLE public.sequences OWNER TO postgres;
-
-DROP FUNCTION IF EXISTS nextval(seq_name varchar(100)) CASCADE;
-CREATE FUNCTION nextval(seq_name varchar(100)) RETURNS bigint
-    LANGUAGE plpgsql
-    AS $$
-DECLARE 
-        cur_val bigint;
-BEGIN
-    SELECT
-        sequence_cur_value INTO cur_val
-    FROM
-        sequences
-    WHERE
-        sequence_name = seq_name AND
-	sequence_cur_value IS NOT NULL;
-
-        UPDATE
-            sequences
-        SET
-            sequence_cur_value = 
-                CASE WHEN sequence_cur_value = sequence_max_value
-                     THEN CASE WHEN (sequence_cycle = TRUE)
-                               THEN sequence_min_value
-                               ELSE NULL
-                               END
-                     ELSE sequence_cur_value + sequence_increment
-                END
-        WHERE
-            sequence_name = seq_name
-        ;
-    RETURN cur_val;
-END
-$$;
-
-
-INSERT INTO sequences (sequence_name) VALUES ('seq_filing');
-
+-- drop tables and sequences
 DROP TABLE IF EXISTS filing CASCADE;
+DROP TABLE IF EXISTS report CASCADE;
+DROP TABLE IF EXISTS document CASCADE;
+DROP TABLE IF EXISTS referenced_documents CASCADE;
+DROP TABLE IF EXISTS aspect CASCADE;
+DROP TABLE IF EXISTS data_type CASCADE;
+DROP TABLE IF EXISTS role_type CASCADE;
+DROP TABLE IF EXISTS arcrole_type CASCADE;
+DROP TABLE IF EXISTS used_on CASCADE;
+DROP TABLE IF EXISTS resource CASCADE;
+DROP TABLE IF EXISTS relationship_set CASCADE;
+DROP TABLE IF EXISTS relationship CASCADE;
+DROP TABLE IF EXISTS data_point CASCADE;
+DROP TABLE IF EXISTS entity CASCADE;
+DROP TABLE IF EXISTS period CASCADE;
+DROP TABLE IF EXISTS unit CASCADE;
+DROP TABLE IF EXISTS unit_measure CASCADE;
+DROP TABLE IF EXISTS aspect_value_selection_set CASCADE;
+DROP TABLE IF EXISTS aspect_value_selection CASCADE;
+DROP TABLE IF EXISTS message CASCADE;
+DROP TABLE IF EXISTS message_reference CASCADE;
+DROP TABLE IF EXISTS industry CASCADE;
+DROP TABLE IF EXISTS industry_level CASCADE;
+DROP TABLE IF EXISTS industry_structure CASCADE;
+
+DROP SEQUENCE IF EXISTS seq_filing;
+DROP SEQUENCE IF EXISTS seq_object;
+DROP SEQUENCE IF EXISTS seq_relationship_set;
+DROP SEQUENCE IF EXISTS seq_message;
+DROP SEQUENCE IF EXISTS seq_industry;
+DROP SEQUENCE IF EXISTS seq_industry_level;
+DROP SEQUENCE IF EXISTS seq_industry_structure;
+
+CREATE SEQUENCE seq_filing
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER TABLE public.seq_filing OWNER TO postgres;
+
 --
 -- note that dropping table also drops the indexes and triggers
 --
 CREATE TABLE filing (
-    filing_id bigint DEFAULT nextval('seq_filing') NOT NULL,
+    filing_id bigint DEFAULT nextval('seq_filing'::regclass) NOT NULL,
     filing_number character varying(30) NOT NULL,
     accepted_timestamp timestamp without time zone DEFAULT now() NOT NULL,
     is_most_current boolean DEFAULT false NOT NULL,
@@ -81,37 +72,43 @@ CREATE TABLE filing (
     entry_url text,
     PRIMARY KEY (filing_id)
 );
+CREATE UNIQUE INDEX filing_index02 ON filing USING btree (filing_number);
 
 
 ALTER TABLE public.filing OWNER TO postgres;
 
 -- object sequence can be any element that can terminate a relationship (aspect, type, resource, data point, document, role type, ...)
 -- or be a reference of a message (report or any of above)
-INSERT INTO sequences (sequence_name) VALUES ('seq_object');
+CREATE SEQUENCE seq_object
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER TABLE public.seq_object OWNER TO postgres;
 
-DROP TABLE IF EXISTS report CASCADE;
 CREATE TABLE report (
-    report_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    report_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     filing_id bigint NOT NULL,
     PRIMARY KEY (report_id)
 );
+CREATE INDEX report_index02 ON report USING btree (filing_id);
 
 
 ALTER TABLE public.report OWNER TO postgres;
 
-DROP TABLE IF EXISTS document CASCADE;
 CREATE TABLE document (
-    document_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    document_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     document_url character varying(2048) NOT NULL,
     document_type character varying(32),  -- ModelDocument.Type string value
     namespace character varying(1024),  -- targetNamespace if schema else NULL
     PRIMARY KEY (document_id)
 );
+CREATE INDEX document_index02 ON document USING hash (document_url);
 
 ALTER TABLE public.document OWNER TO postgres;
 -- documents referenced by report or document
 
-DROP TABLE IF EXISTS referenced_documents CASCADE;
 CREATE TABLE referenced_documents (
     object_id bigint NOT NULL,
     document_id bigint NOT NULL
@@ -121,9 +118,8 @@ CREATE UNIQUE INDEX referenced_documents_index02 ON referenced_documents USING b
 
 ALTER TABLE public.referenced_documents OWNER TO postgres;
 
-DROP TABLE IF EXISTS aspect CASCADE;
 CREATE TABLE aspect (
-    aspect_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    aspect_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     document_id bigint NOT NULL,
     xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
     qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
@@ -140,12 +136,13 @@ CREATE TABLE aspect (
     is_text_block boolean NOT NULL,
     PRIMARY KEY (aspect_id)
 );
+CREATE INDEX aspect_index02 ON aspect USING btree (document_id);
+CREATE INDEX aspect_index03 ON aspect USING hash (qname);
 
 ALTER TABLE public.aspect OWNER TO postgres;
 
-DROP TABLE IF EXISTS data_type CASCADE;
 CREATE TABLE data_type (
-    data_type_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    data_type_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     document_id bigint NOT NULL,
     xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
     qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
@@ -154,24 +151,26 @@ CREATE TABLE data_type (
     derived_from_type_id bigint,
     PRIMARY KEY (data_type_id)
 );
+CREATE INDEX data_type_index02 ON data_type USING btree (document_id);
+CREATE INDEX data_type_index03 ON data_type USING hash (qname);
 
 ALTER TABLE public.data_type OWNER TO postgres;
 
-DROP TABLE IF EXISTS role_type CASCADE;
 CREATE TABLE role_type (
-    role_type_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    role_type_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     document_id bigint NOT NULL,
     xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
     role_uri character varying(1024) NOT NULL,
     definition text,
     PRIMARY KEY (role_type_id)
 );
+CREATE INDEX role_type_index02 ON role_type USING btree (document_id);
+CREATE INDEX role_type_index03 ON role_type USING hash (role_uri);
 
 ALTER TABLE public.role_type OWNER TO postgres;
 
-DROP TABLE IF EXISTS arcrole_type CASCADE;
 CREATE TABLE arcrole_type (
-    arcrole_type_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    arcrole_type_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     document_id bigint NOT NULL,
     xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
     arcrole_uri character varying(1024) NOT NULL,
@@ -179,10 +178,11 @@ CREATE TABLE arcrole_type (
     definition text,
     PRIMARY KEY (arcrole_type_id)
 );
+CREATE INDEX arcrole_type_index02 ON arcrole_type USING btree (document_id);
+CREATE INDEX arcrole_type_index03 ON arcrole_type USING hash (arcrole_uri);
 
 ALTER TABLE public.arcrole_type OWNER TO postgres;
 
-DROP TABLE IF EXISTS used_on CASCADE;
 CREATE TABLE used_on (
     object_id bigint NOT NULL,
     aspect_id bigint NOT NULL
@@ -192,9 +192,8 @@ CREATE UNIQUE INDEX used_on_index02 ON used_on USING btree (object_id, aspect_id
 
 ALTER TABLE public.used_on OWNER TO postgres;
 
-DROP TABLE IF EXISTS resource CASCADE;
 CREATE TABLE resource (
-    resource_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    resource_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     document_id bigint NOT NULL,
     xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
     qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
@@ -203,14 +202,20 @@ CREATE TABLE resource (
     xml_lang character varying(16),
     PRIMARY KEY (resource_id)
 );
+CREATE INDEX resource_index02 ON resource USING btree (document_id, xml_id);
 
 ALTER TABLE public.resource OWNER TO postgres;
 
-INSERT INTO sequences (sequence_name) VALUES ('seq_relationship_set');
+CREATE SEQUENCE seq_relationship_set
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER TABLE public.seq_relationship_set OWNER TO postgres;
 
-DROP TABLE IF EXISTS relationship_set CASCADE;
 CREATE TABLE relationship_set (
-    relationship_set_id bigint DEFAULT nextval('seq_relationship_set') NOT NULL,
+    relationship_set_id bigint DEFAULT nextval('seq_relationship_set'::regclass) NOT NULL,
     report_id bigint,
     arc_qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
     link_qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
@@ -218,13 +223,15 @@ CREATE TABLE relationship_set (
     link_role character varying(1024) NOT NULL,
     PRIMARY KEY (relationship_set_id)
 );
+CREATE INDEX relationship_set_index02 ON relationship_set USING btree (report_id); 
+CREATE INDEX relationship_set_index03 ON relationship_set USING hash (arc_role); 
+CREATE INDEX relationship_set_index04 ON relationship_set USING hash (link_role); 
 
 ALTER TABLE public.relationship_set OWNER TO postgres;
 
 
-DROP TABLE IF EXISTS relationship CASCADE;
 CREATE TABLE relationship (
-    relationship_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    relationship_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     report_id bigint,
     document_id bigint NOT NULL,
     xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
@@ -241,9 +248,8 @@ CREATE TABLE relationship (
 
 ALTER TABLE public.relationship OWNER TO postgres;
 
-DROP TABLE IF EXISTS data_point CASCADE;
 CREATE TABLE data_point (
-    datapoint_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    datapoint_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     report_id bigint,
     document_id bigint NOT NULL,  -- multiple inline documents are sources of data points
     xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
@@ -262,23 +268,25 @@ CREATE TABLE data_point (
     value text,
     PRIMARY KEY (datapoint_id)
 );
+CREATE INDEX data_point_index02 ON data_point USING btree (document_id, xml_id);
+CREATE INDEX data_point_index03 ON data_point USING btree (report_id);
+CREATE INDEX data_point_index04 ON data_point USING btree (aspect_id);
 
 ALTER TABLE public.data_point OWNER TO postgres;
 
-DROP TABLE IF EXISTS entity CASCADE;
 CREATE TABLE entity (
-    entity_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    entity_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     report_id bigint,
     entity_scheme character varying NOT NULL,
     entity_identifier character varying NOT NULL,
     PRIMARY KEY (entity_id)
 );
+CREATE INDEX entity_index02 ON entity USING btree (report_id, entity_identifier);
 
 ALTER TABLE public.entity OWNER TO postgres;
 
-DROP TABLE IF EXISTS period CASCADE;
 CREATE TABLE period (
-    period_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    period_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     report_id bigint,
     start_date date,
     end_date date,
@@ -286,34 +294,34 @@ CREATE TABLE period (
     is_forever boolean NOT NULL,
     PRIMARY KEY (period_id)
 );
+CREATE INDEX period_index02 ON period USING btree (report_id, start_date, end_date, is_instant, is_forever);
 
 ALTER TABLE public.period OWNER TO postgres;
 
-DROP TABLE IF EXISTS unit CASCADE;
 CREATE TABLE unit (
-    unit_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    unit_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     report_id bigint,
-    xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
+    xml_id character varying(1024),  -- xml id or element pointer (first if multiple)
+    measures_hash char(32),
     PRIMARY KEY (unit_id)
 );
+CREATE INDEX unit_index02 ON unit USING btree (report_id, measures_hash);
 
 ALTER TABLE public.unit OWNER TO postgres;
 
 
-DROP TABLE IF EXISTS unit_measure CASCADE;
 CREATE TABLE unit_measure (
     unit_id bigint NOT NULL,
     qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
     is_multiplicand boolean NOT NULL
 );
 CREATE INDEX unit_measure_index01 ON unit_measure USING btree (unit_id);
-CREATE UNIQUE INDEX unit_measure_index02 ON unit_measure USING btree (unit_id, qname, is_multiplicand);
+CREATE INDEX unit_measure_index02 ON unit_measure USING btree (unit_id, (right(qname,16)), is_multiplicand);
 
 ALTER TABLE public.unit_measure OWNER TO postgres;
 
-DROP TABLE IF EXISTS aspect_value_selection_set CASCADE;
 CREATE TABLE aspect_value_selection_set (
-    aspect_value_selection_id bigint DEFAULT nextval('seq_object') NOT NULL,
+    aspect_value_selection_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     report_id bigint
 );
 CREATE UNIQUE INDEX aspect_value_sel_set_index01 ON aspect_value_selection_set (aspect_value_selection_id);
@@ -321,7 +329,6 @@ CREATE INDEX aspect_value_sel_set_index02 ON aspect_value_selection_set (report_
 
 ALTER TABLE public.aspect_value_selection_set OWNER TO postgres;
 
-DROP TABLE IF EXISTS aspect_value_selection CASCADE;
 CREATE TABLE aspect_value_selection (
     aspect_value_selection_id bigint NOT NULL,
     report_id bigint,
@@ -334,11 +341,16 @@ CREATE INDEX aspect_value_selection_index01 ON aspect_value_selection USING btre
 
 ALTER TABLE public.aspect_value_selection OWNER TO postgres;
 
-INSERT INTO sequences (sequence_name) VALUES ('seq_message');
+CREATE SEQUENCE seq_message
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER TABLE public.seq_message OWNER TO postgres;
 
-DROP TABLE IF EXISTS message CASCADE;
 CREATE TABLE message (
-    message_id bigint DEFAULT nextval('seq_message') NOT NULL,
+    message_id bigint DEFAULT nextval('seq_message'::regclass) NOT NULL,
     report_id bigint,
     sequence_in_report int,
     message_code character varying(256),
@@ -346,10 +358,10 @@ CREATE TABLE message (
     value text,
     PRIMARY KEY (message_id)
 );
+CREATE INDEX message_index02 ON message USING btree (report_id, sequence_in_report);
 
 ALTER TABLE public.message OWNER TO postgres;
 
-DROP TABLE IF EXISTS message_reference CASCADE;
 CREATE TABLE message_reference (
     message_id bigint NOT NULL,
     object_id bigint NOT NULL -- may be any table with 'seq_object' id
@@ -359,11 +371,16 @@ CREATE UNIQUE INDEX message_reference_index02 ON message_reference USING btree (
 
 ALTER TABLE public.message_reference OWNER TO postgres;
 
-INSERT INTO sequences (sequence_name) VALUES ('seq_industry');
+CREATE SEQUENCE seq_industry
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER TABLE public.seq_industry OWNER TO postgres;
 
-DROP TABLE IF EXISTS industry CASCADE;
 CREATE TABLE industry (
-    industry_id bigint DEFAULT nextval('seq_industry') NOT NULL,
+    industry_id bigint DEFAULT nextval('seq_industry'::regclass) NOT NULL,
     industry_classification character varying,
     industry_code integer,
     industry_description character varying,
@@ -4714,11 +4731,16 @@ RETURNING industry_id;
 -- Data for Name: industry_level; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO sequences (sequence_name) VALUES ('seq_industry_level');
+CREATE SEQUENCE seq_industry_level
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER TABLE public.seq_industry_level OWNER TO postgres;
 
-DROP TABLE IF EXISTS industry_level CASCADE;
 CREATE TABLE industry_level (
-    industry_level_id bigint DEFAULT nextval('seq_industry_level') NOT NULL,
+    industry_level_id bigint DEFAULT nextval('seq_industry_level'::regclass) NOT NULL,
     industry_classification character varying,
     ancestor_id bigint,
     ancestor_code integer,
@@ -14061,11 +14083,16 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (9326, 'SIC', 3681, 4810, 3, 3682, 4812, 4)
 RETURNING industry_level_id;
 
-INSERT INTO sequences (sequence_name) VALUES ('seq_industry_structure');
+CREATE SEQUENCE seq_industry_structure
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER TABLE public.seq_industry_structure OWNER TO postgres;
 
-DROP TABLE IF EXISTS industry_structure CASCADE;
 CREATE TABLE industry_structure (
-    industry_structure_id bigint DEFAULT nextval('seq_industry_structure') NOT NULL,
+    industry_structure_id bigint DEFAULT nextval('seq_industry_structure'::regclass) NOT NULL,
     industry_classification character varying NOT NULL,
     depth integer NOT NULL,
     level_name character varying,

@@ -661,6 +661,8 @@ class ModelDocument:
                                      _("Error loading creation software names table %(error)s"),
                                      modelObject=self, error=ex)
         creationSoftwareComment = self.creationSoftwareComment
+        if not creationSoftwareComment:
+            return "None"
         for productKey, productNamePattern in creationSoftwareNames:
             if productNamePattern.search(creationSoftwareComment):
                 return productKey

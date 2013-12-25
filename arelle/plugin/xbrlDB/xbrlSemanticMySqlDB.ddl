@@ -5,62 +5,48 @@
 
 SET @@sql_mode=CONCAT_WS(',', @@sql_mode, 'NO_BACKSLASH_ESCAPES');
 
--- emulate postgres nextval for mysql and oracle consistency
-
+--
+-- note that dropping table also drops the indexes and triggers
+--
 DROP TABLE IF EXISTS sequences CASCADE;
+DROP TABLE IF EXISTS filing CASCADE;
+DROP TABLE IF EXISTS report CASCADE;
+DROP TABLE IF EXISTS document CASCADE;
+DROP TABLE IF EXISTS referenced_documents CASCADE;
+DROP TABLE IF EXISTS aspect CASCADE;
+DROP TABLE IF EXISTS data_type CASCADE;
+DROP TABLE IF EXISTS role_type CASCADE;
+DROP TABLE IF EXISTS arcrole_type CASCADE;
+DROP TABLE IF EXISTS used_on CASCADE;
+DROP TABLE IF EXISTS resource CASCADE;
+DROP TABLE IF EXISTS relationship_set CASCADE;
+DROP TABLE IF EXISTS relationship CASCADE;
+DROP TABLE IF EXISTS data_point CASCADE;
+DROP TABLE IF EXISTS entity CASCADE;
+DROP TABLE IF EXISTS period CASCADE;
+DROP TABLE IF EXISTS unit CASCADE;
+DROP TABLE IF EXISTS unit_measure CASCADE;
+DROP TABLE IF EXISTS aspect_value_selection_set CASCADE;
+DROP TABLE IF EXISTS aspect_value_selection CASCADE;
+DROP TABLE IF EXISTS message CASCADE;
+DROP TABLE IF EXISTS message_reference CASCADE;
+DROP TABLE IF EXISTS industry CASCADE;
+DROP TABLE IF EXISTS industry_level CASCADE;
+DROP TABLE IF EXISTS industry_structure CASCADE;
+
+-- currently only shared sequence in use is seq_object, for semantic 'objects'
+-- single-table sequences are implemented using AUTO_INCREMENT for efficiency
 CREATE TABLE sequences (
     sequence_name varchar(100) NOT NULL,    
-    sequence_increment int NOT NULL DEFAULT 1,
-    sequence_min_value int NOT NULL DEFAULT 1,
     sequence_max_value bigint NOT NULL DEFAULT 9223372036854775807,
     sequence_cur_value bigint DEFAULT 1,    
     sequence_cycle boolean NOT NULL DEFAULT FALSE,    
     PRIMARY KEY (sequence_name)
 ); 
 
-DROP FUNCTION IF EXISTS nextval;
-DELIMITER $$
-CREATE FUNCTION nextval(seq_name varchar(100)) 
-    RETURNS bigint
-    LANGUAGE SQL
-    DETERMINISTIC MODIFIES SQL DATA
-BEGIN
-    DECLARE 
-        cur_val bigint;
-    SELECT
-        sequence_cur_value INTO cur_val
-    FROM
-        sequences
-    WHERE
-        sequence_name = seq_name AND
-	sequence_cur_value IS NOT NULL;
 
-        UPDATE
-            sequences
-        SET
-            sequence_cur_value = 
-                CASE WHEN sequence_cur_value = sequence_max_value
-                     THEN CASE WHEN (sequence_cycle = TRUE)
-                               THEN sequence_min_value
-                               ELSE NULL
-                               END
-                     ELSE sequence_cur_value + sequence_increment
-                END
-        WHERE
-            sequence_name = seq_name
-        ;
-    RETURN cur_val;
-END;
-$$
-DELIMITER ;
-
-
-DROP TABLE IF EXISTS filing CASCADE;
---
--- note that dropping table also drops the indexes and triggers
---
 CREATE TABLE filing (
-    filing_id bigint NOT NULL,
+    filing_id bigint NOT NULL AUTO_INCREMENT,
     filing_number varchar(30) NOT NULL,
     accepted_timestamp timestamp NOT NULL DEFAULT now(),
     is_most_current boolean NOT NULL DEFAULT false,
@@ -70,32 +56,31 @@ CREATE TABLE filing (
     creation_software text,
     standard_industry_code integer NOT NULL DEFAULT -1,
     authority_html_url text,
-    entry_url text
+    entry_url text,
+    PRIMARY KEY (filing_id)
 );
-CREATE INDEX filing_index01 USING btree ON filing (filing_id);
 CREATE UNIQUE INDEX filing_index02 USING btree ON filing (filing_number);
 
-INSERT INTO sequences (sequence_name) VALUES ('seq_filing');
-
-CREATE TRIGGER filing_seq BEFORE INSERT ON filing 
-  FOR EACH ROW SET NEW.filing_id = nextval('seq_filing');
 
 -- object sequence can be any element that can terminate a relationship (aspect, type, resource, data point, document, role type, ...)
 -- or be a reference of a message (report or any of above)
 INSERT INTO sequences (sequence_name) VALUES ('seq_object');
 
-DROP TABLE IF EXISTS report CASCADE;
 CREATE TABLE report (
     report_id bigint NOT NULL,
     filing_id bigint NOT NULL
 );
 CREATE INDEX report_index01 USING btree ON report (report_id);
-CREATE UNIQUE INDEX report_index02 USING btree ON report (filing_id);
+CREATE INDEX report_index02 USING btree ON report (filing_id);
 
+DELIMITER //
 CREATE TRIGGER report_seq BEFORE INSERT ON report 
-  FOR EACH ROW SET NEW.report_id = nextval('seq_object');
+  FOR EACH ROW BEGIN
+    SET NEW.report_id = (SELECT sequence_cur_value FROM sequences WHERE sequence_name = 'seq_object');
+    UPDATE sequences SET sequence_cur_value = sequence_cur_value + 1 WHERE sequence_name = 'seq_object';
+  END;//
+DELIMITER ;
 
-DROP TABLE IF EXISTS document CASCADE;
 CREATE TABLE document (
     document_id bigint NOT NULL,
     document_url varchar(2048) NOT NULL,
@@ -103,13 +88,18 @@ CREATE TABLE document (
     namespace varchar(1024),  -- targetNamespace if schema else NULL
     PRIMARY KEY (document_id)
 );
+CREATE INDEX document_index02 USING btree ON document (document_url(512));
 
+DELIMITER //
 CREATE TRIGGER document_seq BEFORE INSERT ON document 
-  FOR EACH ROW SET NEW.document_id = nextval('seq_object');
+  FOR EACH ROW BEGIN
+    SET NEW.document_id = (SELECT sequence_cur_value FROM sequences WHERE sequence_name = 'seq_object');
+    UPDATE sequences SET sequence_cur_value = sequence_cur_value + 1 WHERE sequence_name = 'seq_object';
+  END;//
+DELIMITER ;
 
 -- documents referenced by report or document
 
-DROP TABLE IF EXISTS referenced_documents CASCADE;
 CREATE TABLE referenced_documents (
     object_id bigint NOT NULL,
     document_id bigint NOT NULL
@@ -117,7 +107,6 @@ CREATE TABLE referenced_documents (
 CREATE INDEX referenced_documents_index01 USING btree ON referenced_documents (object_id);
 CREATE UNIQUE INDEX referenced_documents_index02 USING btree ON referenced_documents (object_id, document_id);
 
-DROP TABLE IF EXISTS aspect CASCADE;
 CREATE TABLE aspect (
     aspect_id bigint NOT NULL,
     document_id bigint NOT NULL,
@@ -136,11 +125,17 @@ CREATE TABLE aspect (
     is_text_block boolean NOT NULL,
     PRIMARY KEY (aspect_id)
 );
+CREATE INDEX aspect_index02 USING btree ON aspect (document_id);
+CREATE INDEX aspect_index03 USING hash ON aspect (qname(512));
 
+DELIMITER //
 CREATE TRIGGER aspect_seq BEFORE INSERT ON aspect 
-  FOR EACH ROW SET NEW.aspect_id = nextval('seq_object');
+  FOR EACH ROW BEGIN
+    SET NEW.aspect_id = (SELECT sequence_cur_value FROM sequences WHERE sequence_name = 'seq_object');
+    UPDATE sequences SET sequence_cur_value = sequence_cur_value + 1 WHERE sequence_name = 'seq_object';
+  END;//
+DELIMITER ;
 
-DROP TABLE IF EXISTS data_type CASCADE;
 CREATE TABLE data_type (
     data_type_id bigint NOT NULL,
     document_id bigint NOT NULL,
@@ -151,11 +146,17 @@ CREATE TABLE data_type (
     derived_from_type_id bigint,
     PRIMARY KEY (data_type_id)
 );
+CREATE INDEX data_type_index02 USING btree ON data_type (document_id);
+CREATE INDEX data_type_index03 USING hash ON data_type (qname(512));
 
+DELIMITER //
 CREATE TRIGGER data_type_seq BEFORE INSERT ON data_type 
-  FOR EACH ROW SET NEW.data_type_id = nextval('seq_object');
+  FOR EACH ROW BEGIN
+    SET NEW.data_type_id = (SELECT sequence_cur_value FROM sequences WHERE sequence_name = 'seq_object');
+    UPDATE sequences SET sequence_cur_value = sequence_cur_value + 1 WHERE sequence_name = 'seq_object';
+  END;//
+DELIMITER ;
 
-DROP TABLE IF EXISTS role_type CASCADE;
 CREATE TABLE role_type (
     role_type_id bigint NOT NULL,
     document_id bigint NOT NULL,
@@ -164,11 +165,17 @@ CREATE TABLE role_type (
     definition text,
     PRIMARY KEY (role_type_id)
 );
+CREATE INDEX role_type_index02 USING btree ON role_type (document_id);
+CREATE INDEX role_type_index03 USING hash ON role_type (role_uri(512));
 
+DELIMITER //
 CREATE TRIGGER role_type_seq BEFORE INSERT ON role_type 
-  FOR EACH ROW SET NEW.role_type_id = nextval('seq_object');
+  FOR EACH ROW BEGIN
+    SET NEW.role_type_id = (SELECT sequence_cur_value FROM sequences WHERE sequence_name = 'seq_object');
+    UPDATE sequences SET sequence_cur_value = sequence_cur_value + 1 WHERE sequence_name = 'seq_object';
+  END;//
+DELIMITER ;
 
-DROP TABLE IF EXISTS arcrole_type CASCADE;
 CREATE TABLE arcrole_type (
     arcrole_type_id bigint NOT NULL,
     document_id bigint NOT NULL,
@@ -178,11 +185,17 @@ CREATE TABLE arcrole_type (
     definition text,
     PRIMARY KEY (arcrole_type_id)
 );
+CREATE INDEX arcrole_type_index02 USING btree ON arcrole_type (document_id);
+CREATE INDEX arcrole_type_index03 USING hash ON arcrole_type (arcrole_uri(512));
 
+DELIMITER //
 CREATE TRIGGER arcrole_type_seq BEFORE INSERT ON arcrole_type 
-  FOR EACH ROW SET NEW.arcrole_type_id = nextval('seq_object');
+  FOR EACH ROW BEGIN
+    SET NEW.arcrole_type_id = (SELECT sequence_cur_value FROM sequences WHERE sequence_name = 'seq_object');
+    UPDATE sequences SET sequence_cur_value = sequence_cur_value + 1 WHERE sequence_name = 'seq_object';
+  END;//
+DELIMITER ;
 
-DROP TABLE IF EXISTS used_on CASCADE;
 CREATE TABLE used_on (
     object_id bigint NOT NULL,
     aspect_id bigint NOT NULL
@@ -190,26 +203,28 @@ CREATE TABLE used_on (
 CREATE INDEX used_on_index01 USING btree ON used_on (object_id);
 CREATE UNIQUE INDEX used_on_index02 USING btree ON used_on (object_id, aspect_id);
 
-DROP TABLE IF EXISTS resource CASCADE;
 CREATE TABLE resource (
     resource_id bigint NOT NULL,
     document_id bigint NOT NULL,
     xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
     qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
     role varchar(1024) NOT NULL,
-    value text,
+    value longtext,
     xml_lang varchar(16),
     PRIMARY KEY (resource_id)
 );
+CREATE INDEX resource_index02 USING btree ON resource (document_id, xml_id(512));
 
+DELIMITER //
 CREATE TRIGGER resource_seq BEFORE INSERT ON resource 
-  FOR EACH ROW SET NEW.resource_id = nextval('seq_object');
+  FOR EACH ROW BEGIN
+    SET NEW.resource_id = (SELECT sequence_cur_value FROM sequences WHERE sequence_name = 'seq_object');
+    UPDATE sequences SET sequence_cur_value = sequence_cur_value + 1 WHERE sequence_name = 'seq_object';
+  END;//
+DELIMITER ;
 
-INSERT INTO sequences (sequence_name) VALUES ('seq_relationship_set');
-
-DROP TABLE IF EXISTS relationship_set CASCADE;
 CREATE TABLE relationship_set (
-    relationship_set_id bigint NOT NULL,
+    relationship_set_id bigint NOT NULL AUTO_INCREMENT,
     report_id bigint,
     arc_qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
     link_qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
@@ -217,11 +232,10 @@ CREATE TABLE relationship_set (
     link_role varchar(1024) NOT NULL,
     PRIMARY KEY (relationship_set_id)
 );
+CREATE INDEX relationship_set_index02 USING btree ON relationship_set (report_id);
+CREATE INDEX relationship_set_index03 USING hash ON relationship_set (arc_role(512));
+CREATE INDEX relationship_set_index04 USING hash ON relationship_set (link_role(512));
 
-CREATE TRIGGER relationship_set_seq BEFORE INSERT ON relationship_set 
-  FOR EACH ROW SET NEW.relationship_set_id = nextval('seq_object');
-
-DROP TABLE IF EXISTS relationship CASCADE;
 CREATE TABLE relationship (
     relationship_id bigint NOT NULL,
     report_id bigint,
@@ -237,11 +251,16 @@ CREATE TABLE relationship (
     preferred_label_role varchar(1024),
     PRIMARY KEY (relationship_id)
 );
+CREATE INDEX relationship_index02 USING btree ON relationship (relationship_set_id, document_id, xml_id(32));
 
+DELIMITER //
 CREATE TRIGGER relationship_seq BEFORE INSERT ON relationship 
-  FOR EACH ROW SET NEW.relationship_id = nextval('seq_object');
+  FOR EACH ROW BEGIN
+    SET NEW.relationship_id = (SELECT sequence_cur_value FROM sequences WHERE sequence_name = 'seq_object');
+    UPDATE sequences SET sequence_cur_value = sequence_cur_value + 1 WHERE sequence_name = 'seq_object';
+  END;//
+DELIMITER ;
 
-DROP TABLE IF EXISTS data_point CASCADE;
 CREATE TABLE data_point (
     datapoint_id bigint NOT NULL,
     report_id bigint,
@@ -259,14 +278,21 @@ CREATE TABLE data_point (
     precision_value varchar(16),
     decimals_value varchar(16),
     effective_value double,
-    value text,
+    value longtext,
     PRIMARY KEY (datapoint_id)
 );
+CREATE INDEX data_point_index02 USING btree ON data_point (document_id, xml_id(32));
+CREATE INDEX data_point_index03 USING btree ON data_point (report_id);
+CREATE INDEX data_point_index04 USING btree ON data_point (aspect_id);
 
+DELIMITER //
 CREATE TRIGGER data_point_seq BEFORE INSERT ON data_point 
-  FOR EACH ROW SET NEW.datapoint_id = nextval('seq_object');
+  FOR EACH ROW BEGIN
+    SET NEW.datapoint_id = (SELECT sequence_cur_value FROM sequences WHERE sequence_name = 'seq_object');
+    UPDATE sequences SET sequence_cur_value = sequence_cur_value + 1 WHERE sequence_name = 'seq_object';
+  END;//
+DELIMITER ;
 
-DROP TABLE IF EXISTS entity CASCADE;
 CREATE TABLE entity (
     entity_id bigint NOT NULL,
     report_id bigint,
@@ -274,11 +300,16 @@ CREATE TABLE entity (
     entity_identifier varchar(1024) NOT NULL,
     PRIMARY KEY (entity_id)
 );
+CREATE INDEX entity_index02 USING btree ON entity (report_id, entity_scheme(32), entity_identifier(32));
 
+DELIMITER //
 CREATE TRIGGER entity_seq BEFORE INSERT ON entity 
-  FOR EACH ROW SET NEW.entity_id = nextval('seq_object');
+  FOR EACH ROW BEGIN
+    SET NEW.entity_id = (SELECT sequence_cur_value FROM sequences WHERE sequence_name = 'seq_object');
+    UPDATE sequences SET sequence_cur_value = sequence_cur_value + 1 WHERE sequence_name = 'seq_object';
+  END;//
+DELIMITER ;
 
-DROP TABLE IF EXISTS period CASCADE;
 CREATE TABLE period (
     period_id bigint NOT NULL,
     report_id bigint,
@@ -288,56 +319,67 @@ CREATE TABLE period (
     is_forever boolean NOT NULL,
     PRIMARY KEY (period_id)
 );
+CREATE INDEX period_index02 USING btree ON period (report_id, start_date, end_date, is_instant, is_forever);
 
+DELIMITER //
 CREATE TRIGGER period_seq BEFORE INSERT ON period 
-  FOR EACH ROW SET NEW.period_id = nextval('seq_object');
+  FOR EACH ROW BEGIN
+    SET NEW.period_id = (SELECT sequence_cur_value FROM sequences WHERE sequence_name = 'seq_object');
+    UPDATE sequences SET sequence_cur_value = sequence_cur_value + 1 WHERE sequence_name = 'seq_object';
+  END;//
+DELIMITER ;
 
-DROP TABLE IF EXISTS unit CASCADE;
 CREATE TABLE unit (
     unit_id bigint NOT NULL,
     report_id bigint,
-    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
+    xml_id varchar(1024),  -- xml id or element pointer (first if multiple)
+    measures_hash char(32),
     PRIMARY KEY (unit_id)
 );
+CREATE INDEX unit_index02 USING btree ON unit (report_id, measures_hash);
 
+DELIMITER //
 CREATE TRIGGER unit_seq BEFORE INSERT ON unit 
-  FOR EACH ROW SET NEW.unit_id = nextval('seq_object');
+  FOR EACH ROW BEGIN
+    SET NEW.unit_id = (SELECT sequence_cur_value FROM sequences WHERE sequence_name = 'seq_object');
+    UPDATE sequences SET sequence_cur_value = sequence_cur_value + 1 WHERE sequence_name = 'seq_object';
+  END;//
+DELIMITER ;
 
-DROP TABLE IF EXISTS unit_measure CASCADE;
 CREATE TABLE unit_measure (
     unit_id bigint NOT NULL,
     qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
     is_multiplicand boolean NOT NULL
 );
 CREATE INDEX unit_measure_index01 USING btree ON unit_measure (unit_id);
-CREATE UNIQUE INDEX unit_measure_index02 USING btree ON unit_measure (unit_id, qname(32), is_multiplicand);
+CREATE INDEX unit_measure_index02 USING btree ON unit_measure (unit_id, qname(32), is_multiplicand);
 
-DROP TABLE IF EXISTS aspect_value_selection_set CASCADE;
 CREATE TABLE aspect_value_selection_set (
     aspect_value_selection_id bigint NOT NULL,
     report_id bigint,
     PRIMARY KEY (aspect_value_selection_id)
 );
-CREATE UNIQUE INDEX aspect_value_selection_set_index01 USING btree ON aspect_value_selection_set (aspect_value_selection_id);
 CREATE INDEX aspect_value_selection_set_index02 USING btree ON aspect_value_selection_set (report_id);
 
+DELIMITER //
 CREATE TRIGGER aspect_value_selection_set_seq BEFORE INSERT ON aspect_value_selection_set 
-  FOR EACH ROW SET NEW.aspect_value_selection_id = nextval('seq_object');
+  FOR EACH ROW BEGIN
+    SET NEW.aspect_value_selection_id = (SELECT sequence_cur_value FROM sequences WHERE sequence_name = 'seq_object');
+    UPDATE sequences SET sequence_cur_value = sequence_cur_value + 1 WHERE sequence_name = 'seq_object';
+  END;//
+DELIMITER ;
 
-DROP TABLE IF EXISTS aspect_value_selection CASCADE;
 CREATE TABLE aspect_value_selection (
     aspect_value_selection_id bigint NOT NULL,
-    report_id bigint,
     aspect_id bigint NOT NULL,
     aspect_value_id bigint,
     is_typed_value boolean NOT NULL,
-    typed_value text
+    typed_value longtext
 );
 CREATE INDEX aspect_value_selection_index01 USING btree ON aspect_value_selection (aspect_value_selection_id);
 
-DROP TABLE IF EXISTS message CASCADE;
 CREATE TABLE message (
-    message_id bigint NOT NULL,
+    message_id bigint NOT NULL AUTO_INCREMENT,
     report_id bigint,
     sequence_in_report int,
     message_code varchar(256),
@@ -345,13 +387,8 @@ CREATE TABLE message (
     value text,
     PRIMARY KEY (message_id)
 );
+CREATE INDEX message_index02 USING btree ON message (report_id, sequence_in_report);
 
-INSERT INTO sequences (sequence_name) VALUES ('seq_message');
-
-CREATE TRIGGER message_seq BEFORE INSERT ON message 
-  FOR EACH ROW SET NEW.message_id = nextval('seq_message');
-
-DROP TABLE IF EXISTS message_reference CASCADE;
 CREATE TABLE message_reference (
     message_id bigint NOT NULL,
     object_id bigint NOT NULL -- may be any table with 'seq_object' id
@@ -359,7 +396,6 @@ CREATE TABLE message_reference (
 CREATE INDEX message_reference_index01 USING btree ON message_reference (message_id);
 CREATE UNIQUE INDEX message_reference_index02 USING btree ON message_reference (message_id, object_id);
 
-DROP TABLE IF EXISTS industry CASCADE;
 CREATE TABLE industry (
     industry_id bigint NOT NULL,
     industry_classification varchar(16),
@@ -369,11 +405,6 @@ CREATE TABLE industry (
     parent_id bigint,
     PRIMARY KEY (industry_id)
 );
-
-INSERT INTO sequences (sequence_name) VALUES ('seq_industry');
-
-CREATE TRIGGER industry_seq BEFORE INSERT ON industry 
-  FOR EACH ROW SET NEW.industry_id = nextval('seq_industry');
 
 INSERT INTO industry (industry_id, industry_classification, industry_code, industry_description, depth, parent_id) VALUES
 (4315, 'SEC', 3576, 'Computer Communications Equipment', 4, 2424),
@@ -4711,7 +4742,6 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (4303, 'SIC', 9990, 'Nonclassifiable Establishments', 3, 4302)
 ;
 
-DROP TABLE IF EXISTS industry_level CASCADE;
 CREATE TABLE industry_level (
     industry_level_id bigint NOT NULL,
     industry_classification varchar(16),
@@ -4723,12 +4753,6 @@ CREATE TABLE industry_level (
     descendant_depth integer,
     PRIMARY KEY (industry_level_id)
 );
-
-INSERT INTO sequences (sequence_name) VALUES ('seq_industry_level');
-
-CREATE TRIGGER industry_level_seq BEFORE INSERT ON industry_level 
-  FOR EACH ROW SET NEW.industry_level_id = nextval('seq_industry_level');
-
 
 INSERT INTO industry_level (industry_level_id, industry_classification, ancestor_id, ancestor_code, ancestor_depth, descendant_id, descendant_code, descendant_depth) VALUES
 (1, 'SEC', 2677, 6300, 2, 2689, 6390, 3),
@@ -14059,7 +14083,6 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (9326, 'SIC', 3681, 4810, 3, 3682, 4812, 4)
 ;
 
-DROP TABLE IF EXISTS industry_structure CASCADE;
 CREATE TABLE industry_structure (
     industry_structure_id bigint,
     industry_classification varchar(8) NOT NULL,
@@ -14067,11 +14090,6 @@ CREATE TABLE industry_structure (
     level_name varchar(32),
     PRIMARY KEY (industry_structure_id)
 );
-
-INSERT INTO sequences (sequence_name) VALUES ('seq_industry_structure');
-
-CREATE TRIGGER industry_structure_seq BEFORE INSERT ON industry_structure 
-  FOR EACH ROW SET NEW.industry_structure_id = nextval('seq_industry_structure');
 
 INSERT INTO industry_structure (industry_structure_id, industry_classification, depth, level_name) VALUES
 (1, 'SIC', 1, 'Division'),

@@ -3,6 +3,9 @@
 -- (c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
 -- Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
+-- note that MS SQL Server index limit is 900 characters (450 nchars, 441 together with a bigint)
+-- all index nvarchar fields reduced to 450 (sufficient for SEC filings)
+
 set quoted_identifier on;
 GO
 -- drop tables before sequences, then drop seqences
@@ -71,16 +74,17 @@ CREATE TABLE "report" (
     filing_id bigint NOT NULL
 );
 CREATE INDEX report_index01 ON "report" (report_id);
-CREATE UNIQUE INDEX report_index02 ON "report" (filing_id);
+CREATE INDEX report_index02 ON "report" (filing_id);
 
 GO
 CREATE TABLE "document" (
     document_id bigint DEFAULT NEXT VALUE FOR seq_object,
-    document_url nvarchar(2048) NOT NULL,
+    document_url nvarchar(450) NOT NULL,
     document_type nvarchar(32),  -- ModelDocument.Type string value
-    namespace nvarchar(1024)  -- targetNamespace if schema else NULL
+    namespace nvarchar(450)  -- targetNamespace if schema else NULL
 );
 CREATE INDEX document_index01 ON "document" (document_id);
+CREATE INDEX document_index02 ON "document" (document_url);
 
 -- documents referenced by report or document
 
@@ -93,12 +97,13 @@ CREATE INDEX referenced_documents_index01 ON "referenced_documents" (object_id);
 CREATE UNIQUE INDEX referenced_documents_index02 ON "referenced_documents" (object_id, document_id);
 
 GO
+-- all fields shortened for MSFT's 900 character index limitation
 CREATE TABLE "aspect" (
     aspect_id bigint DEFAULT NEXT VALUE FOR seq_object,
     document_id bigint NOT NULL,
-    xml_id nvarchar(1024),  -- xml id or element pointer (do we need this?)
-    qname nvarchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    name nvarchar(1024) NOT NULL,  -- local qname
+    xml_id nvarchar(450),  -- xml id or element pointer (do we need this?)
+    qname nvarchar(450) NOT NULL,  -- clark notation qname
+    name nvarchar(450) NOT NULL,  -- local qname
     datatype_id bigint,
     base_type nvarchar(128), -- xml base type if any
     substitution_group_aspect_id bigint,
@@ -111,39 +116,43 @@ CREATE TABLE "aspect" (
     is_text_block bit NOT NULL
 );
 CREATE INDEX aspect_index01 ON "aspect" (aspect_id);
+CREATE INDEX aspect_index02 ON "aspect" (qname);
 
 GO
 CREATE TABLE "data_type" (
     data_type_id bigint DEFAULT NEXT VALUE FOR seq_object,
     document_id bigint NOT NULL,
-    xml_id nvarchar(1024),  -- xml id or element pointer (do we need this?)
-    qname nvarchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    name nvarchar(1024) NOT NULL,  -- local qname
+    xml_id nvarchar(450),  -- xml id or element pointer (do we need this?)
+    qname nvarchar(450) NOT NULL,  -- clark notation qname
+    name nvarchar(450) NOT NULL,  -- local qname
     base_type nvarchar(128), -- xml base type if any
     derived_from_type_id bigint
 );
 CREATE INDEX data_type_index01 ON "data_type" (data_type_id);
+CREATE INDEX data_type_index02 ON "data_type" (qname);
 
 GO
 CREATE TABLE "role_type" (
     role_type_id bigint DEFAULT NEXT VALUE FOR seq_object,
     document_id bigint NOT NULL,
-    xml_id nvarchar(1024),  -- xml id or element pointer (do we need this?)
-    role_uri nvarchar(1024) NOT NULL,
+    xml_id nvarchar(450),  -- xml id or element pointer (do we need this?)
+    role_uri nvarchar(450) NOT NULL,
     definition ntext
 );
 CREATE INDEX role_type_index01 ON "role_type" (role_type_id);
+CREATE INDEX role_type_index02 ON "role_type" (role_uri);
 
 GO
 CREATE TABLE "arcrole_type" (
     arcrole_type_id bigint DEFAULT NEXT VALUE FOR seq_object,
     document_id bigint NOT NULL,
-    xml_id nvarchar(1024),  -- xml id or element pointer (do we need this?)
-    arcrole_uri nvarchar(1024) NOT NULL,
+    xml_id nvarchar(450),  -- xml id or element pointer (do we need this?)
+    arcrole_uri nvarchar(450) NOT NULL,
     cycles_allowed nvarchar(10) NOT NULL,
     definition ntext
 );
 CREATE INDEX arcrole_type_index01 ON "arcrole_type" (arcrole_type_id);
+CREATE INDEX arcrole_type_index02 ON "arcrole_type" (arcrole_uri);
 
 GO
 CREATE TABLE "used_on" (
@@ -157,13 +166,13 @@ GO
 CREATE TABLE "resource" (
     resource_id bigint DEFAULT NEXT VALUE FOR seq_object,
     document_id bigint NOT NULL,
-    xml_id nvarchar(1024),  -- xml id or element pointer (do we need this?)
-    qname nvarchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    role nvarchar(1024) NOT NULL,
+    xml_id nvarchar(441),  -- xml id or element pointer (do we need this?)
+    qname nvarchar(450) NOT NULL,  -- clark notation qname (do we need this?)
+    role nvarchar(450) NOT NULL,
     value ntext,
     xml_lang nvarchar(16)
 );
-CREATE INDEX resource_index01 ON "resource" (resource_id);
+CREATE INDEX resource_index01 ON "resource" (resource_id, xml_id);
 
 GO
 CREATE SEQUENCE seq_relationship_set AS bigint START WITH 1 INCREMENT BY 1;
@@ -173,19 +182,22 @@ GO
 CREATE TABLE "relationship_set" (
     relationship_set_id bigint DEFAULT NEXT VALUE FOR seq_relationship_set,
     report_id bigint,
-    arc_qname nvarchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    link_qname nvarchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    arc_role nvarchar(1024) NOT NULL,
-    link_role nvarchar(1024) NOT NULL
+    arc_qname nvarchar(450) NOT NULL,  -- clark notation qname (do we need this?)
+    link_qname nvarchar(450) NOT NULL,  -- clark notation qname (do we need this?)
+    arc_role nvarchar(450) NOT NULL,
+    link_role nvarchar(450) NOT NULL
 );
 CREATE INDEX relationship_set_index01 ON "relationship_set" (relationship_set_id);
+CREATE INDEX relationship_set_index02 ON "relationship_set" (report_id);
+CREATE INDEX relationship_set_index03 ON "relationship_set" (arc_role);
+CREATE INDEX relationship_set_index04 ON "relationship_set" (link_role);
 
 GO
 CREATE TABLE "relationship" (
     relationship_id bigint DEFAULT NEXT VALUE FOR seq_object,
     report_id bigint,
     document_id bigint NOT NULL,
-    xml_id nvarchar(1024),  -- xml id or element pointer (do we need this?)
+    xml_id nvarchar(450),  -- xml id or element pointer (do we need this?)
     relationship_set_id bigint NOT NULL,
     reln_order float(24),
     from_id bigint,
@@ -202,11 +214,11 @@ CREATE TABLE "data_point" (
     datapoint_id bigint DEFAULT NEXT VALUE FOR seq_object,
     report_id bigint,
     document_id bigint NOT NULL,  -- multiple inline documents are sources of data points
-    xml_id nvarchar(1024),  -- xml id or element pointer (do we need this?)
+    xml_id nvarchar(441),  -- xml id or element pointer (do we need this?)
     source_line integer,
     parent_datapoint_id bigint, -- id of tuple parent
     aspect_id bigint NOT NULL,
-    context_xml_id nvarchar(1024), -- (do we need this?)
+    context_xml_id nvarchar(441), -- (do we need this?) (some tools use xml_id as pointer to source data, 338 max length observed in 2013)
     entity_id bigint,
     period_id bigint,
     aspect_value_selections_id bigint,
@@ -218,15 +230,19 @@ CREATE TABLE "data_point" (
     value ntext
 );
 CREATE INDEX datapoint_index01 ON "data_point" (datapoint_id);
+CREATE INDEX datapoint_index02 ON "data_point" (document_id, xml_id);
+CREATE INDEX datapoint_index03 ON "data_point" (report_id);
+CREATE INDEX datapoint_index04 ON "data_point" (aspect_id);
 
 GO
 CREATE TABLE "entity" (
     entity_id bigint DEFAULT NEXT VALUE FOR seq_object,
     report_id bigint,
-    entity_scheme nvarchar(1024) NOT NULL,
-    entity_identifier nvarchar(1024) NOT NULL
+    entity_scheme nvarchar(450) NOT NULL,
+    entity_identifier nvarchar(441) NOT NULL
 );
 CREATE INDEX entity_index01 ON "entity" (entity_id);
+CREATE INDEX entity_index02 ON "entity" (report_id, entity_identifier);
 
 GO
 CREATE TABLE "period" (
@@ -238,24 +254,26 @@ CREATE TABLE "period" (
     is_forever bit NOT NULL
 );
 CREATE INDEX period_index01 ON "period" (period_id);
+CREATE INDEX period_index02 ON "period" (report_id, start_date, end_date, is_instant, is_forever);
 
 GO
 CREATE TABLE "unit" (
     unit_id bigint DEFAULT NEXT VALUE FOR seq_object,
     report_id bigint,
-    xml_id nvarchar(1024)  -- xml id or element pointer (do we need this?)
+    xml_id nvarchar(441),  -- xml id or element pointer (first if multiple)
+    measures_hash char(32),
 );
 CREATE INDEX unit_index01 ON "unit" (unit_id);
+CREATE INDEX unit_index02 ON "unit" (report_id, measures_hash);
 
 GO
 CREATE TABLE "unit_measure" (
     unit_id bigint NOT NULL,
-    qname nvarchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    qname nvarchar(440) NOT NULL,  -- clark notation qname (do we need this?)
     is_multiplicand bit NOT NULL
 );
 CREATE INDEX unit_measure_index01 ON "unit_measure" (unit_id);
--- not sure how to limit length in index
---   CREATE UNIQUE INDEX unit_measure_index02 ON "unit_measure" (unit_id, qname(32), is_multiplicand);
+CREATE INDEX unit_measure_index02 ON "unit_measure" (unit_id, qname, is_multiplicand);
 
 GO
 CREATE TABLE "aspect_value_selection_set" (
@@ -291,6 +309,7 @@ CREATE TABLE "message" (
     value ntext
 );
 CREATE INDEX message_index01 ON "message" (message_id);
+CREATE INDEX message_index02 ON "message" (report_id, sequence_in_report);
 GO
 
 GO
@@ -532,7 +551,7 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (2924, 'SIC', 1429, 'Crushed & Broken Stone, nec', 4, 2921),
 (2922, 'SIC', 1422, 'Crushed & Broken Limestone', 4, 2921),
 (2923, 'SIC', 1423, 'Crushed & Broken Granite', 4, 2921),
-(2926, 'SIC', 1442, 'Construction Sand & Gravel', 4, 2925),
+(2926, 'SIC', 1441, 'Construction Sand & Gravel', 4, 2925),
 (2927, 'SIC', 1446, 'Industrial Sand', 4, 2925),
 (2929, 'SIC', 1455, 'Kaolin & Ball Clay', 4, 2928),
 (2930, 'SIC', 1459, 'Clay & Related Minerals, nec', 4, 2928),
@@ -736,7 +755,7 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (3382, 'SIC', 3432, 'Plumbing Fixture Fittings & Trim', 4, 3380),
 (3383, 'SIC', 3433, 'Heating Equipment, Except Electric', 4, 3380),
 (3381, 'SIC', 3431, 'Metal Sanitary Ware', 4, 3380),
-(2392, 'SEC', 3442, 'Metal Doors, Sash & Trim', 4, 2391),
+(2392, 'SEC', 3441, 'Metal Doors, Sash & Trim', 4, 2391),
 (2393, 'SEC', 3443, 'Fabricated Plate Work (Boiler Shops)', 4, 2391),
 (2395, 'SEC', 3448, 'Prefabricated Metal Buildings', 4, 2391),
 (2394, 'SEC', 3444, 'Sheet Metal Work', 4, 2391),
@@ -745,7 +764,7 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (3389, 'SIC', 3446, 'Architectural Metal Work', 4, 3384),
 (3388, 'SIC', 3444, 'Sheet Metal Work', 4, 3384),
 (3387, 'SIC', 3443, 'Fabricated Plate Work (Boiler Shops)', 4, 3384),
-(3386, 'SIC', 3442, 'Metal Doors, Sash & Trim', 4, 3384),
+(3386, 'SIC', 3441, 'Metal Doors, Sash & Trim', 4, 3384),
 (3432, 'SIC', 3536, 'Hoists, Cranes & Monorails', 4, 3426),
 (3431, 'SIC', 3535, 'Conveyors & Conveying Equipment', 4, 3426),
 (3430, 'SIC', 3534, 'Elevators & Moving Stairways', 4, 3426),
@@ -760,7 +779,7 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (3439, 'SIC', 3545, 'Machine Tool Accessories', 4, 3434),
 (3440, 'SIC', 3546, 'Power-Driven Handtools', 4, 3434),
 (3441, 'SIC', 3547, 'Rolling Mill Machinery', 4, 3434),
-(3442, 'SIC', 3548, 'Welding Apparatus', 4, 3434),
+(3441, 'SIC', 3548, 'Welding Apparatus', 4, 3434),
 (2416, 'SEC', 3555, 'Printing Trades Machinery', 4, 2415),
 (2417, 'SEC', 3559, 'Special Industry Machinery, nec', 4, 2415),
 (3449, 'SIC', 3556, 'Food Products Machinery', 4, 3444),
@@ -844,7 +863,7 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (2522, 'SEC', 4231, 'Trucking Terminal Facilities', 4, 2521),
 (2525, 'SEC', 4412, 'Deep Sea Foreign Transport of Freight', 4, 2524),
 (3638, 'SIC', 4412, 'Deep Sea Foreign Transport of Freight', 4, 3637),
-(3640, 'SIC', 4424, 'Deep Sea Domestic Transport of Freight', 4, 3639),
+(3640, 'SIC', 4414, 'Deep Sea Domestic Transport of Freight', 4, 3639),
 (3642, 'SIC', 4432, 'Freight Transport on The Great Lakes', 4, 3641),
 (3644, 'SIC', 4449, 'Water Transportation of Freight, nec', 4, 3643),
 (3648, 'SIC', 4489, 'Water Passenger Transportation, nec', 4, 3645),
@@ -2141,7 +2160,7 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (445, 'NAICS', 32192, 'Wood Container and Pallet Manufacturing', 4, 439),
 (440, 'NAICS', 32191, 'Millwork', 4, 439),
 (446, 'NAICS', 32199, 'All Other Wood Product Manufacturing', 4, 439),
-(442, 'NAICS', 321912, 'Cut Stock, Resawing Lumber, and Planing', 5, 440),
+(441, 'NAICS', 321912, 'Cut Stock, Resawing Lumber, and Planing', 5, 440),
 (443, 'NAICS', 321918, 'Other Millwork (including Flooring)', 5, 440),
 (441, 'NAICS', 321911, 'Wood Window and Door Manufacturing', 5, 440),
 (444, 'NAICS', 321920, 'Wood Container and Pallet Manufacturing', 5, 445),
@@ -2737,14 +2756,14 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (1045, 'NAICS', 42445, 'Confectionery Merchant Wholesalers', 4, 1035),
 (1047, 'NAICS', 42446, 'Fish and Seafood Merchant Wholesalers', 4, 1035),
 (1051, 'NAICS', 42448, 'Fresh Fruit and Vegetable Merchant Wholesalers', 4, 1035),
-(1039, 'NAICS', 42442, 'Packaged Frozen Food Merchant Wholesalers', 4, 1035),
+(1039, 'NAICS', 42441, 'Packaged Frozen Food Merchant Wholesalers', 4, 1035),
 (1041, 'NAICS', 42443, 'Dairy Product (except Dried or Canned) Merchant Wholesalers', 4, 1035),
 (1043, 'NAICS', 42444, 'Poultry and Poultry Product Merchant Wholesalers', 4, 1035),
 (1053, 'NAICS', 42449, 'Other Grocery and Related Products Merchant Wholesalers', 4, 1035),
 (1049, 'NAICS', 42447, 'Meat and Meat Product Merchant Wholesalers', 4, 1035),
 (1037, 'NAICS', 42441, 'General Line Grocery Merchant Wholesalers', 4, 1035),
 (1036, 'NAICS', 424410, 'General Line Grocery Merchant Wholesalers', 5, 1037),
-(1038, 'NAICS', 424420, 'Packaged Frozen Food Merchant Wholesalers', 5, 1039),
+(1038, 'NAICS', 424410, 'Packaged Frozen Food Merchant Wholesalers', 5, 1039),
 (1040, 'NAICS', 424430, 'Dairy Product (except Dried or Canned) Merchant Wholesalers', 5, 1041),
 (1042, 'NAICS', 424440, 'Poultry and Poultry Product Merchant Wholesalers', 5, 1043),
 (1044, 'NAICS', 424450, 'Confectionery Merchant Wholesalers', 5, 1045),
@@ -2789,7 +2808,7 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (1180, 'NAICS', 448, 'Clothing and Clothing Accessories Stores', 2, 1095),
 (1174, 'NAICS', 447, 'Gasoline Stations', 2, 1095),
 (1096, 'NAICS', 441, 'Motor Vehicle and Parts Dealers', 2, 1095),
-(1113, 'NAICS', 442, 'Furniture and Home Furnishings Stores', 2, 1095),
+(1113, 'NAICS', 441, 'Furniture and Home Furnishings Stores', 2, 1095),
 (1123, 'NAICS', 443, 'Electronics and Appliance Stores', 2, 1095),
 (1128, 'NAICS', 444, 'Building Material and Garden Equipment and Supplies Dealers', 2, 1095),
 (1143, 'NAICS', 445, 'Food and Beverage Stores', 2, 1095),
@@ -2813,21 +2832,21 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (1110, 'NAICS', 44131, 'Automotive Parts and Accessories Stores', 4, 1108),
 (1109, 'NAICS', 441310, 'Automotive Parts and Accessories Stores', 5, 1110),
 (1111, 'NAICS', 441320, 'Tire Dealers', 5, 1112),
-(1114, 'NAICS', 4421, 'Furniture Stores', 3, 1113),
-(1117, 'NAICS', 4422, 'Home Furnishings Stores', 3, 1113),
-(1116, 'NAICS', 44211, 'Furniture Stores', 4, 1114),
-(1115, 'NAICS', 442110, 'Furniture Stores', 5, 1116),
-(1120, 'NAICS', 44229, 'Other Home Furnishings Stores', 4, 1117),
-(1119, 'NAICS', 44221, 'Floor Covering Stores', 4, 1117),
-(1118, 'NAICS', 442210, 'Floor Covering Stores', 5, 1119),
-(1122, 'NAICS', 442299, 'All Other Home Furnishings Stores', 5, 1120),
-(1121, 'NAICS', 442291, 'Window Treatment Stores', 5, 1120),
+(1114, 'NAICS', 4411, 'Furniture Stores', 3, 1113),
+(1117, 'NAICS', 4412, 'Home Furnishings Stores', 3, 1113),
+(1116, 'NAICS', 44111, 'Furniture Stores', 4, 1114),
+(1115, 'NAICS', 441110, 'Furniture Stores', 5, 1116),
+(1120, 'NAICS', 44129, 'Other Home Furnishings Stores', 4, 1117),
+(1119, 'NAICS', 44121, 'Floor Covering Stores', 4, 1117),
+(1118, 'NAICS', 441210, 'Floor Covering Stores', 5, 1119),
+(1122, 'NAICS', 441299, 'All Other Home Furnishings Stores', 5, 1120),
+(1121, 'NAICS', 441291, 'Window Treatment Stores', 5, 1120),
 (1124, 'NAICS', 4431, 'Electronics and Appliance Stores', 3, 1123),
 (1125, 'NAICS', 44314, 'Electronics and Appliance Stores', 4, 1124),
 (1126, 'NAICS', 443141, 'Household Appliance Stores', 5, 1125),
 (1127, 'NAICS', 443142, 'Electronics Stores', 5, 1125),
 (1129, 'NAICS', 4441, 'Building Material and Supplies Dealers', 3, 1128),
-(1138, 'NAICS', 4442, 'Lawn and Garden Equipment and Supplies Stores', 3, 1128),
+(1138, 'NAICS', 4441, 'Lawn and Garden Equipment and Supplies Stores', 3, 1128),
 (1137, 'NAICS', 44419, 'Other Building Material Dealers', 4, 1129),
 (1131, 'NAICS', 44411, 'Home Centers', 4, 1129),
 (1133, 'NAICS', 44412, 'Paint and Wallpaper Stores', 4, 1129),
@@ -2836,10 +2855,10 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (1132, 'NAICS', 444120, 'Paint and Wallpaper Stores', 5, 1133),
 (1134, 'NAICS', 444130, 'Hardware Stores', 5, 1135),
 (1136, 'NAICS', 444190, 'Other Building Material Dealers', 5, 1137),
-(1140, 'NAICS', 44421, 'Outdoor Power Equipment Stores', 4, 1138),
-(1142, 'NAICS', 44422, 'Nursery, Garden Center, and Farm Supply Stores', 4, 1138),
-(1139, 'NAICS', 444210, 'Outdoor Power Equipment Stores', 5, 1140),
-(1141, 'NAICS', 444220, 'Nursery, Garden Center, and Farm Supply Stores', 5, 1142),
+(1140, 'NAICS', 44411, 'Outdoor Power Equipment Stores', 4, 1138),
+(1142, 'NAICS', 44412, 'Nursery, Garden Center, and Farm Supply Stores', 4, 1138),
+(1139, 'NAICS', 444110, 'Outdoor Power Equipment Stores', 5, 1140),
+(1141, 'NAICS', 444120, 'Nursery, Garden Center, and Farm Supply Stores', 5, 1142),
 (1149, 'NAICS', 4452, 'Specialty Food Stores', 3, 1143),
 (1160, 'NAICS', 4453, 'Beer, Wine, and Liquor Stores', 3, 1143),
 (1148, 'NAICS', 44512, 'Convenience Stores', 4, 1144),
@@ -3084,7 +3103,7 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (1398, 'NAICS', 493130, 'Farm Product Warehousing and Storage', 5, 1399),
 (1400, 'NAICS', 493190, 'Other Warehousing and Storage', 5, 1401),
 (1403, 'NAICS', 511, 'Publishing Industries (except Internet)', 2, 1402),
-(1442, 'NAICS', 515, 'Broadcasting (except Internet)', 2, 1402),
+(1441, 'NAICS', 515, 'Broadcasting (except Internet)', 2, 1402),
 (1470, 'NAICS', 519, 'Other Information Services', 2, 1402),
 (1419, 'NAICS', 512, 'Motion Picture and Sound Recording Industries', 2, 1402),
 (1452, 'NAICS', 517, 'Telecommunications', 2, 1402),
@@ -3126,8 +3145,8 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (1436, 'NAICS', 512230, 'Music Publishers', 5, 1437),
 (1438, 'NAICS', 512240, 'Sound Recording Studios', 5, 1439),
 (1440, 'NAICS', 512290, 'Other Sound Recording Industries', 5, 1441),
-(1449, 'NAICS', 5152, 'Cable and Other Subscription Programming', 3, 1442),
-(1443, 'NAICS', 5151, 'Radio and Television Broadcasting', 3, 1442),
+(1449, 'NAICS', 5152, 'Cable and Other Subscription Programming', 3, 1441),
+(1443, 'NAICS', 5151, 'Radio and Television Broadcasting', 3, 1441),
 (1444, 'NAICS', 51511, 'Radio Broadcasting', 4, 1443),
 (1448, 'NAICS', 51512, 'Television Broadcasting', 4, 1443),
 (1445, 'NAICS', 515111, 'Radio Networks', 5, 1444),
@@ -4280,7 +4299,7 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (3451, 'SIC', 3560, 'General Industry Machinery', 3, 3419),
 (3444, 'SIC', 3550, 'Special Industry Machinery', 3, 3419),
 (3423, 'SIC', 3520, 'Farm & Garden Machinery', 3, 3419),
-(2442, 'SEC', 3640, 'Electric Lighting & Wiring Equipment', 3, 2434),
+(2441, 'SEC', 3640, 'Electric Lighting & Wiring Equipment', 3, 2434),
 (2443, 'SEC', 3650, 'Household Audio & Video Equipment', 3, 2434),
 (2446, 'SEC', 3660, 'Communications Equipment', 3, 2434),
 (2440, 'SEC', 3630, 'Household Appliances', 3, 2434),
@@ -4353,7 +4372,7 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (3634, 'SIC', 4310, 'US Postal Service', 3, 3633),
 (2524, 'SEC', 4410, 'Deep Sea Foreign Transport of Freight', 3, 2523),
 (3637, 'SIC', 4410, 'Deep Sea Foreign Transport of Freight', 3, 3636),
-(3639, 'SIC', 4420, 'Deep Sea Domestic Transport of Freight', 3, 3636),
+(3639, 'SIC', 4410, 'Deep Sea Domestic Transport of Freight', 3, 3636),
 (3641, 'SIC', 4430, 'Freight Transport on The Great Lakes', 3, 3636),
 (3645, 'SIC', 4480, 'Water Transportation of Passengers', 3, 3636),
 (3649, 'SIC', 4490, 'Water Transportation Services', 3, 3636),
@@ -4832,7 +4851,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (155, 'SIC', 4308, 20, 1, 3165, 2591, 4),
 (156, 'NAICS', 2037, 81, 1, 2048, 81119, 4),
 (157, 'NAICS', 1725, 56, 1, 1739, 561330, 5),
-(158, 'SIC', 3384, 3440, 3, 3386, 3442, 4),
+(158, 'SIC', 3384, 3440, 3, 3386, 3441, 4),
 (159, 'SIC', 3992, 6700, 2, 4005, 6798, 4),
 (160, 'NAICS', 930, 42, 1, 945, 42322, 4),
 (161, 'SIC', 3715, 5000, 2, 3718, 5013, 4),
@@ -4875,7 +4894,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (198, 'NAICS', 1547, 5242, 3, 1549, 52421, 4),
 (199, 'NAICS', 1, 11, 1, 92, 112920, 5),
 (200, 'NAICS', 2071, 812, 2, 2094, 812910, 5),
-(201, 'NAICS', 930, 42, 1, 1039, 42442, 4),
+(201, 'NAICS', 930, 42, 1, 1039, 42441, 4),
 (202, 'NAICS', 1624, 54, 1, 1689, 5418, 3),
 (203, 'NAICS', 1859, 6213, 3, 1870, 621399, 5),
 (204, 'SIC', 2884, 1000, 2, 2892, 1041, 4),
@@ -5116,7 +5135,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (439, 'NAICS', 1836, 6116, 3, 1839, 611620, 5),
 (440, 'NAICS', 1851, 621, 2, 1886, 621610, 5),
 (441, 'SIC', 4247, 9100, 2, 4249, 9111, 4),
-(442, 'SIC', 3511, 3670, 3, 3513, 3672, 4),
+(441, 'SIC', 3511, 3670, 3, 3513, 3672, 4),
 (443, 'SIC', 4308, 20, 1, 3488, 3629, 4),
 (444, 'NAICS', 1035, 4244, 3, 1053, 42449, 4),
 (445, 'NAICS', 1624, 54, 1, 1683, 5417, 3),
@@ -5147,7 +5166,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (470, 'SIC', 4308, 20, 1, 3313, 3253, 4),
 (471, 'SIC', 4310, 50, 1, 3716, 5010, 3),
 (472, 'SIC', 3055, 2230, 3, 3056, 2231, 4),
-(473, 'SIC', 4309, 40, 1, 3639, 4420, 3),
+(473, 'SIC', 4309, 40, 1, 3639, 4410, 3),
 (474, 'SIC', 3083, 2300, 2, 3114, 2389, 4),
 (475, 'NAICS', 138, 212, 2, 140, 21211, 4),
 (476, 'NAICS', 1066, 4247, 3, 1069, 424720, 5),
@@ -5222,7 +5241,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (545, 'SIC', 3282, 3100, 2, 3287, 3140, 3),
 (546, 'NAICS', 1640, 5413, 3, 1642, 54131, 4),
 (547, 'NAICS', 205, 23, 1, 267, 238340, 5),
-(548, 'NAICS', 930, 42, 1, 1038, 424420, 5),
+(548, 'NAICS', 930, 42, 1, 1038, 424410, 5),
 (549, 'SIC', 4308, 20, 1, 3343, 3317, 4),
 (550, 'NAICS', 2126, 81393, 4, 2125, 813930, 5),
 (551, 'NAICS', 2038, 811, 2, 2048, 81119, 4),
@@ -5368,7 +5387,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (691, 'SEC', 2792, 40, 1, 2518, 4210, 3),
 (692, 'SIC', 4303, 9990, 3, 4304, 9999, 4),
 (693, 'NAICS', 253, 2382, 3, 258, 238290, 5),
-(694, 'SIC', 3434, 3540, 3, 3442, 3548, 4),
+(694, 'SIC', 3434, 3540, 3, 3441, 3548, 4),
 (695, 'NAICS', 173, 2131, 3, 175, 213111, 5),
 (696, 'SEC', 2796, 70, 1, 2737, 7600, 2),
 (697, 'SIC', 2884, 1000, 2, 2886, 1011, 4),
@@ -5508,7 +5527,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (831, 'SIC', 3762, 5100, 2, 3796, 5182, 4),
 (832, 'SIC', 2847, 700, 2, 2860, 752, 4),
 (833, 'SIC', 3167, 2600, 2, 3170, 2620, 3),
-(834, 'SEC', 2391, 3440, 3, 2392, 3442, 4),
+(834, 'SEC', 2391, 3440, 3, 2392, 3441, 4),
 (835, 'SIC', 4308, 20, 1, 3112, 2386, 4),
 (836, 'SIC', 4309, 40, 1, 3641, 4430, 3),
 (837, 'SIC', 4308, 20, 1, 3525, 3699, 4),
@@ -5966,7 +5985,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (1287, 'NAICS', 117, 115, 2, 130, 115310, 5),
 (1288, 'NAICS', 984, 42371, 4, 983, 423710, 5),
 (1289, 'SIC', 4308, 20, 1, 3391, 3449, 4),
-(1290, 'NAICS', 1442, 515, 2, 1444, 51511, 4),
+(1290, 'NAICS', 1441, 515, 2, 1444, 51511, 4),
 (1291, 'SEC', 2796, 70, 1, 2778, 8731, 4),
 (1292, 'NAICS', 138, 212, 2, 159, 212312, 5),
 (1293, 'NAICS', 1620, 533, 2, 1623, 53311, 4),
@@ -6118,7 +6137,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (1439, 'NAICS', 1082, 42493, 4, 1081, 424930, 5),
 (1440, 'SIC', 3468, 3580, 3, 3470, 3582, 4),
 (1441, 'SIC', 4312, 60, 1, 4006, 6799, 4),
-(1442, 'SIC', 4307, 15, 1, 2964, 1742, 4),
+(1441, 'SIC', 4307, 15, 1, 2964, 1742, 4),
 (1443, 'SIC', 4308, 20, 1, 3433, 3537, 4),
 (1444, 'NAICS', 1431, 5122, 3, 1438, 512240, 5),
 (1445, 'NAICS', 1569, 53, 1, 1583, 5313, 3),
@@ -6518,7 +6537,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (1839, 'SEC', 2403, 3500, 2, 2411, 3533, 4),
 (1840, 'NAICS', 1554, 525, 2, 1559, 52512, 4),
 (1841, 'SEC', 2512, 4000, 2, 2514, 4011, 4),
-(1842, 'SIC', 3636, 4400, 2, 3639, 4420, 3),
+(1842, 'SIC', 3636, 4400, 2, 3639, 4410, 3),
 (1843, 'SIC', 4018, 7210, 3, 4026, 7219, 4),
 (1844, 'NAICS', 1626, 5411, 3, 1628, 54111, 4),
 (1845, 'NAICS', 2037, 81, 1, 2111, 813219, 5),
@@ -6586,7 +6605,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (1907, 'NAICS', 140, 21211, 4, 141, 212111, 5),
 (1908, 'SIC', 4306, 10, 1, 2914, 1380, 3),
 (1909, 'SIC', 3190, 2700, 2, 3197, 2732, 4),
-(1910, 'SIC', 4308, 20, 1, 3442, 3548, 4),
+(1910, 'SIC', 4308, 20, 1, 3441, 3548, 4),
 (1911, 'NAICS', 182, 2211, 3, 192, 22112, 4),
 (1912, 'NAICS', 1626, 5411, 3, 1627, 541110, 5),
 (1913, 'SIC', 4105, 7630, 3, 4106, 7631, 4),
@@ -6897,7 +6916,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (2216, 'NAICS', 1, 11, 1, 62, 11212, 4),
 (2217, 'NAICS', 5, 11111, 4, 4, 111110, 5),
 (2218, 'SIC', 4313, 70, 1, 4126, 7910, 3),
-(2219, 'NAICS', 1035, 4244, 3, 1038, 424420, 5),
+(2219, 'NAICS', 1035, 4244, 3, 1038, 424410, 5),
 (2220, 'SEC', 2795, 60, 1, 2696, 6512, 4),
 (2221, 'NAICS', 132, 21, 1, 136, 211111, 5),
 (2222, 'SIC', 4313, 70, 1, 4236, 8741, 4),
@@ -6952,7 +6971,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (2271, 'NAICS', 1920, 624, 2, 1924, 624120, 5),
 (2272, 'SIC', 4308, 20, 1, 3423, 3520, 3),
 (2273, 'SIC', 3461, 3570, 3, 3465, 3577, 4),
-(2274, 'SIC', 3636, 4400, 2, 3640, 4424, 4),
+(2274, 'SIC', 3636, 4400, 2, 3640, 4414, 4),
 (2275, 'NAICS', 930, 42, 1, 955, 4234, 3),
 (2276, 'NAICS', 1571, 5311, 3, 1579, 53119, 4),
 (2277, 'SIC', 3434, 3540, 3, 3439, 3545, 4),
@@ -7042,7 +7061,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (2361, 'NAICS', 1753, 56145, 4, 1752, 561450, 5),
 (2362, 'NAICS', 1725, 56, 1, 1758, 5615, 3),
 (2363, 'NAICS', 2003, 72, 1, 2032, 72251, 4),
-(2364, 'NAICS', 1402, 51, 1, 1442, 515, 2),
+(2364, 'NAICS', 1402, 51, 1, 1441, 515, 2),
 (2365, 'NAICS', 2201, 9271, 3, 2203, 92711, 4),
 (2366, 'NAICS', 931, 423, 2, 982, 4237, 3),
 (2367, 'NAICS', 1624, 54, 1, 1675, 541612, 5),
@@ -7120,7 +7139,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (2439, 'SEC', 4336, 99, 1, 4337, 8880, 2),
 (2440, 'SIC', 3375, 3420, 3, 3379, 3429, 4),
 (2441, 'SIC', 4314, 90, 1, 4292, 9641, 4),
-(2442, 'NAICS', 1774, 5617, 3, 1779, 561730, 5),
+(2441, 'NAICS', 1774, 5617, 3, 1779, 561730, 5),
 (2443, 'SEC', 2591, 5100, 2, 2599, 5160, 3),
 (2444, 'SIC', 4284, 9600, 2, 4294, 9651, 4),
 (2445, 'NAICS', 1792, 562, 2, 1793, 5621, 3),
@@ -7390,14 +7409,14 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (2709, 'NAICS', 1684, 54171, 4, 1685, 541711, 5),
 (2710, 'SIC', 3384, 3440, 3, 3389, 3446, 4),
 (2711, 'NAICS', 1812, 61, 1, 1821, 611310, 5),
-(2712, 'NAICS', 1442, 515, 2, 1451, 51521, 4),
+(2712, 'NAICS', 1441, 515, 2, 1451, 51521, 4),
 (2713, 'SIC', 4151, 8030, 3, 4152, 8031, 4),
 (2714, 'NAICS', 1, 11, 1, 48, 111930, 5),
 (2715, 'SEC', 2790, 15, 1, 2238, 1730, 3),
 (2716, 'SEC', 2695, 6510, 3, 2697, 6513, 4),
 (2717, 'SIC', 3744, 5070, 3, 3748, 5078, 4),
 (2718, 'NAICS', 3, 1111, 3, 12, 111150, 5),
-(2719, 'NAICS', 1035, 4244, 3, 1039, 42442, 4),
+(2719, 'NAICS', 1035, 4244, 3, 1039, 42441, 4),
 (2720, 'NAICS', 2085, 8123, 3, 2087, 81231, 4),
 (2721, 'SEC', 2568, 5000, 2, 2582, 5065, 4),
 (2722, 'SIC', 3480, 3600, 2, 3501, 3646, 4),
@@ -7488,7 +7507,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (2807, 'SIC', 4308, 20, 1, 3292, 3150, 3),
 (2808, 'NAICS', 2003, 72, 1, 2031, 7225, 3),
 (2809, 'SIC', 4308, 20, 1, 3253, 2910, 3),
-(2810, 'NAICS', 1039, 42442, 4, 1038, 424420, 5),
+(2810, 'NAICS', 1039, 42441, 4, 1038, 424410, 5),
 (2811, 'NAICS', 1624, 54, 1, 1671, 541519, 5),
 (2812, 'NAICS', 2135, 92, 1, 2190, 926110, 5),
 (2813, 'NAICS', 931, 423, 2, 1002, 423860, 5),
@@ -7507,7 +7526,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (2826, 'SEC', 2391, 3440, 3, 2394, 3444, 4),
 (2827, 'SEC', 2403, 3500, 2, 2414, 3541, 4),
 (2828, 'SIC', 3480, 3600, 2, 3489, 3630, 3),
-(2829, 'NAICS', 1442, 515, 2, 1449, 5152, 3),
+(2829, 'NAICS', 1441, 515, 2, 1449, 5152, 3),
 (2830, 'SEC', 2795, 60, 1, 2649, 6000, 2),
 (2831, 'SEC', 2717, 7330, 3, 2718, 7331, 4),
 (2832, 'SIC', 4310, 50, 1, 3724, 5030, 3),
@@ -7536,7 +7555,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (2855, 'SEC', 4320, 6170, 3, 4340, 6172, 4),
 (2856, 'NAICS', 2003, 72, 1, 2035, 722514, 5),
 (2857, 'SIC', 4308, 20, 1, 3041, 2100, 2),
-(2858, 'SIC', 3371, 3400, 2, 3386, 3442, 4),
+(2858, 'SIC', 3371, 3400, 2, 3386, 3441, 4),
 (2859, 'SIC', 3715, 5000, 2, 3761, 5099, 4),
 (2860, 'SEC', 2704, 6790, 3, 4328, 6795, 4),
 (2861, 'SIC', 3715, 5000, 2, 3731, 5044, 4),
@@ -7938,7 +7957,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (3255, 'SIC', 4040, 7300, 2, 4069, 7374, 4),
 (3256, 'SEC', 2791, 20, 1, 2315, 2770, 3),
 (3257, 'NAICS', 931, 423, 2, 957, 42341, 4),
-(3258, 'SEC', 2384, 3400, 2, 2392, 3442, 4),
+(3258, 'SEC', 2384, 3400, 2, 2392, 3441, 4),
 (3259, 'NAICS', 235, 238, 2, 239, 238120, 5),
 (3260, 'NAICS', 260, 2383, 3, 269, 238350, 5),
 (3261, 'NAICS', 2003, 72, 1, 2018, 721310, 5),
@@ -8122,7 +8141,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (3439, 'SIC', 4310, 50, 1, 3781, 5147, 4),
 (3440, 'SEC', 2791, 20, 1, 2379, 3341, 4),
 (3441, 'NAICS', 1850, 62, 1, 1934, 624230, 5),
-(3442, 'SEC', 2794, 52, 1, 2622, 5531, 4),
+(3441, 'SEC', 2794, 52, 1, 2622, 5531, 4),
 (3443, 'NAICS', 930, 42, 1, 1091, 425110, 5),
 (3444, 'NAICS', 1402, 51, 1, 1479, 51919, 4),
 (3445, 'NAICS', 1555, 5251, 3, 1558, 525120, 5),
@@ -8723,7 +8742,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (4038, 'NAICS', 1402, 51, 1, 1455, 51711, 4),
 (4039, 'NAICS', 1793, 5621, 3, 1796, 562112, 5),
 (4040, 'SIC', 3837, 5500, 2, 3838, 5510, 3),
-(4041, 'SIC', 2925, 1440, 3, 2926, 1442, 4),
+(4041, 'SIC', 2925, 1440, 3, 2926, 1441, 4),
 (4042, 'SIC', 4309, 40, 1, 3696, 4920, 3),
 (4043, 'SIC', 4309, 40, 1, 3650, 4491, 4),
 (4044, 'NAICS', 1580, 5312, 3, 1581, 531210, 5),
@@ -8743,7 +8762,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (4058, 'SIC', 3837, 5500, 2, 3842, 5530, 3),
 (4059, 'SIC', 4313, 70, 1, 4113, 7800, 2),
 (4060, 'NAICS', 235, 238, 2, 242, 23813, 4),
-(4061, 'NAICS', 1442, 515, 2, 1447, 515120, 5),
+(4061, 'NAICS', 1441, 515, 2, 1447, 515120, 5),
 (4062, 'NAICS', 2, 111, 2, 49, 11193, 4),
 (4063, 'NAICS', 1566, 52592, 4, 1565, 525920, 5),
 (4064, 'SEC', 2796, 70, 1, 2781, 8741, 4),
@@ -9102,16 +9121,16 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (4417, 'SIC', 3854, 5600, 2, 3867, 5690, 3),
 (4418, 'NAICS', 1640, 5413, 3, 1650, 54135, 4),
 (4419, 'NAICS', 2004, 721, 2, 2019, 72131, 4),
-(4420, 'SIC', 4314, 90, 1, 4302, 9900, 2),
-(4421, 'NAICS', 1640, 5413, 3, 1655, 541380, 5),
-(4422, 'NAICS', 1, 11, 1, 53, 111991, 5),
-(4423, 'SEC', 2791, 20, 1, 2349, 3080, 3),
-(4424, 'NAICS', 1569, 53, 1, 1600, 53221, 4),
-(4425, 'NAICS', 1836, 6116, 3, 1846, 611699, 5),
-(4426, 'SEC', 2476, 3800, 2, 2494, 3850, 3),
-(4427, 'NAICS', 2037, 81, 1, 2043, 811113, 5),
-(4428, 'NAICS', 1625, 541, 2, 1632, 541191, 5),
-(4429, 'SIC', 4308, 20, 1, 3374, 3412, 4),
+(4410, 'SIC', 4314, 90, 1, 4302, 9900, 2),
+(4411, 'NAICS', 1640, 5413, 3, 1655, 541380, 5),
+(4412, 'NAICS', 1, 11, 1, 53, 111991, 5),
+(4413, 'SEC', 2791, 20, 1, 2349, 3080, 3),
+(4414, 'NAICS', 1569, 53, 1, 1600, 53221, 4),
+(4415, 'NAICS', 1836, 6116, 3, 1846, 611699, 5),
+(4416, 'SEC', 2476, 3800, 2, 2494, 3850, 3),
+(4417, 'NAICS', 2037, 81, 1, 2043, 811113, 5),
+(4418, 'NAICS', 1625, 541, 2, 1632, 541191, 5),
+(4419, 'SIC', 4308, 20, 1, 3374, 3412, 4),
 (4430, 'SIC', 4017, 7200, 2, 4028, 7221, 4),
 (4431, 'SIC', 3958, 6300, 2, 3964, 6330, 3),
 (4432, 'NAICS', 235, 238, 2, 240, 23812, 4),
@@ -9124,7 +9143,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (4439, 'SIC', 4308, 20, 1, 3215, 2810, 3),
 (4440, 'SIC', 3762, 5100, 2, 3774, 5140, 3),
 (4441, 'SIC', 3613, 4140, 3, 3615, 4142, 4),
-(4442, 'NAICS', 1851, 621, 2, 1869, 621391, 5),
+(4441, 'NAICS', 1851, 621, 2, 1869, 621391, 5),
 (4443, 'SEC', 2791, 20, 1, 2343, 3010, 3),
 (4444, 'NAICS', 2070, 81149, 4, 2069, 811490, 5),
 (4445, 'SIC', 4310, 50, 1, 3802, 5198, 4),
@@ -9217,7 +9236,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (4532, 'NAICS', 2040, 81111, 4, 2044, 811118, 5),
 (4533, 'NAICS', 2135, 92, 1, 2176, 924, 2),
 (4534, 'SIC', 4308, 20, 1, 3294, 3160, 3),
-(4535, 'SIC', 3419, 3500, 2, 3442, 3548, 4),
+(4535, 'SIC', 3419, 3500, 2, 3441, 3548, 4),
 (4536, 'NAICS', 172, 213, 2, 174, 21311, 4),
 (4537, 'SIC', 3371, 3400, 2, 3401, 3470, 3),
 (4538, 'NAICS', 1850, 62, 1, 1895, 6221, 3),
@@ -9575,7 +9594,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (4890, 'NAICS', 1570, 531, 2, 1576, 531130, 5),
 (4891, 'SEC', 2791, 20, 1, 2241, 2010, 3),
 (4892, 'SIC', 2799, 110, 3, 2803, 116, 4),
-(4893, 'SEC', 2791, 20, 1, 2442, 3640, 3),
+(4893, 'SEC', 2791, 20, 1, 2441, 3640, 3),
 (4894, 'NAICS', 2107, 8132, 3, 2111, 813219, 5),
 (4895, 'SIC', 2876, 910, 3, 2878, 913, 4),
 (4896, 'NAICS', 930, 42, 1, 998, 423840, 5),
@@ -9746,7 +9765,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (5059, 'SIC', 4308, 20, 1, 3217, 2813, 4),
 (5060, 'SIC', 3246, 2890, 3, 3251, 2899, 4),
 (5061, 'NAICS', 1001, 42385, 4, 1000, 423850, 5),
-(5062, 'SEC', 2434, 3600, 2, 2442, 3640, 3),
+(5062, 'SEC', 2434, 3600, 2, 2441, 3640, 3),
 (5063, 'SIC', 3282, 3100, 2, 3295, 3161, 4),
 (5064, 'SEC', 2476, 3800, 2, 2482, 3823, 4),
 (5065, 'SEC', 2792, 40, 1, 2512, 4000, 2),
@@ -10126,7 +10145,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (5439, 'NAICS', 1037, 42441, 4, 1036, 424410, 5),
 (5440, 'NAICS', 1598, 5322, 3, 1603, 532230, 5),
 (5441, 'SIC', 4308, 20, 1, 3235, 2850, 3),
-(5442, 'NAICS', 133, 211, 2, 137, 211112, 5),
+(5441, 'NAICS', 133, 211, 2, 137, 211112, 5),
 (5443, 'SEC', 2403, 3500, 2, 2410, 3532, 4),
 (5444, 'NAICS', 930, 42, 1, 1056, 42451, 4),
 (5445, 'NAICS', 57, 1121, 3, 62, 11212, 4),
@@ -10363,7 +10382,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (5676, 'NAICS', 219, 2371, 3, 224, 237130, 5),
 (5677, 'SIC', 3371, 3400, 2, 3399, 3466, 4),
 (5678, 'SIC', 4313, 70, 1, 4155, 8042, 4),
-(5679, 'SIC', 2918, 1400, 2, 2926, 1442, 4),
+(5679, 'SIC', 2918, 1400, 2, 2926, 1441, 4),
 (5680, 'SIC', 3041, 2100, 2, 3046, 2130, 3),
 (5681, 'SEC', 2649, 6000, 2, 2657, 6090, 3),
 (5682, 'SIC', 3083, 2300, 2, 3115, 2390, 3),
@@ -10660,7 +10679,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (5973, 'SIC', 3886, 5900, 2, 3897, 5944, 4),
 (5974, 'SIC', 4313, 70, 1, 4082, 7510, 3),
 (5975, 'NAICS', 1813, 611, 2, 1840, 61162, 4),
-(5976, 'NAICS', 1442, 515, 2, 1446, 515112, 5),
+(5976, 'NAICS', 1441, 515, 2, 1446, 515112, 5),
 (5977, 'NAICS', 1569, 53, 1, 1591, 532, 2),
 (5978, 'NAICS', 1495, 5222, 3, 1496, 522210, 5),
 (5979, 'SIC', 3124, 2400, 2, 3133, 2434, 4),
@@ -10941,7 +10960,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (6252, 'SIC', 4018, 7210, 3, 4021, 7213, 4),
 (6253, 'NAICS', 1480, 52, 1, 1545, 524130, 5),
 (6254, 'NAICS', 2037, 81, 1, 2080, 8122, 3),
-(6255, 'SIC', 3639, 4420, 3, 3640, 4424, 4),
+(6255, 'SIC', 3639, 4410, 3, 3640, 4414, 4),
 (6256, 'NAICS', 236, 2381, 3, 243, 238140, 5),
 (6257, 'SEC', 2221, 1300, 2, 2226, 1382, 4),
 (6258, 'NAICS', 1625, 541, 2, 1703, 54187, 4),
@@ -11128,7 +11147,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (6439, 'NAICS', 218, 237, 2, 232, 2379, 3),
 (6440, 'NAICS', 1569, 53, 1, 1592, 5321, 3),
 (6441, 'NAICS', 2003, 72, 1, 2017, 7213, 3),
-(6442, 'NAICS', 2135, 92, 1, 2171, 92312, 4),
+(6441, 'NAICS', 2135, 92, 1, 2171, 92312, 4),
 (6443, 'SIC', 4311, 52, 1, 3875, 5720, 3),
 (6444, 'SEC', 4336, 99, 1, 4339, 9995, 2),
 (6445, 'NAICS', 1, 11, 1, 14, 111160, 5),
@@ -11537,7 +11556,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (6848, 'SEC', 2371, 3300, 2, 2378, 3340, 3),
 (6849, 'NAICS', 1634, 5412, 3, 1639, 541219, 5),
 (6850, 'NAICS', 205, 23, 1, 257, 23822, 4),
-(6851, 'NAICS', 1442, 515, 2, 1448, 51512, 4),
+(6851, 'NAICS', 1441, 515, 2, 1448, 51512, 4),
 (6852, 'SIC', 3371, 3400, 2, 3382, 3432, 4),
 (6853, 'SIC', 4041, 7310, 3, 4045, 7319, 4),
 (6854, 'NAICS', 260, 2383, 3, 261, 238310, 5),
@@ -11719,7 +11738,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (7028, 'NAICS', 1015, 424, 2, 1034, 42434, 4),
 (7029, 'SIC', 4308, 20, 1, 3334, 3296, 4),
 (7030, 'SIC', 4309, 40, 1, 3673, 4731, 4),
-(7031, 'SEC', 2791, 20, 1, 2392, 3442, 4),
+(7031, 'SEC', 2791, 20, 1, 2392, 3441, 4),
 (7032, 'SIC', 4314, 90, 1, 4304, 9999, 4),
 (7033, 'NAICS', 931, 423, 2, 968, 423490, 5),
 (7034, 'NAICS', 1485, 522, 2, 1495, 5222, 3),
@@ -12130,7 +12149,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (7439, 'SIC', 3631, 4230, 3, 3632, 4231, 4),
 (7440, 'SIC', 3854, 5600, 2, 3858, 5621, 4),
 (7441, 'NAICS', 1942, 71, 1, 1991, 713910, 5),
-(7442, 'NAICS', 2103, 813, 2, 2107, 8132, 3),
+(7441, 'NAICS', 2103, 813, 2, 2107, 8132, 3),
 (7443, 'SIC', 4081, 7500, 2, 4094, 7537, 4),
 (7444, 'SIC', 3086, 2320, 3, 3087, 2321, 4),
 (7445, 'SIC', 3214, 2800, 2, 3244, 2875, 4),
@@ -12472,7 +12491,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (7781, 'NAICS', 1672, 5416, 3, 1676, 541613, 5),
 (7782, 'NAICS', 108, 114, 2, 113, 114119, 5),
 (7783, 'SEC', 2738, 7800, 2, 2740, 7812, 4),
-(7784, 'NAICS', 1442, 515, 2, 1443, 5151, 3),
+(7784, 'NAICS', 1441, 515, 2, 1443, 5151, 3),
 (7785, 'NAICS', 117, 115, 2, 127, 115210, 5),
 (7786, 'NAICS', 1850, 62, 1, 1864, 621330, 5),
 (7787, 'SEC', 2793, 50, 1, 2575, 5045, 4),
@@ -12725,7 +12744,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (8032, 'SIC', 3762, 5100, 2, 3794, 5180, 3),
 (8033, 'NAICS', 1695, 54183, 4, 1694, 541830, 5),
 (8034, 'NAICS', 2037, 81, 1, 2076, 812113, 5),
-(8035, 'NAICS', 1442, 515, 2, 1445, 515111, 5),
+(8035, 'NAICS', 1441, 515, 2, 1445, 515111, 5),
 (8036, 'NAICS', 1588, 53132, 4, 1587, 531320, 5),
 (8037, 'SEC', 2790, 15, 1, 2236, 1623, 4),
 (8038, 'SEC', 2791, 20, 1, 2484, 3825, 4),
@@ -12834,7 +12853,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (8141, 'NAICS', 181, 221, 2, 197, 22121, 4),
 (8142, 'SEC', 2791, 20, 1, 2489, 3841, 4),
 (8143, 'SIC', 4314, 90, 1, 4299, 9711, 4),
-(8144, 'SIC', 4306, 10, 1, 2926, 1442, 4),
+(8144, 'SIC', 4306, 10, 1, 2926, 1441, 4),
 (8145, 'NAICS', 2037, 81, 1, 2116, 813319, 5),
 (8146, 'SEC', 2796, 70, 1, 2770, 8300, 2),
 (8147, 'SIC', 3552, 3800, 2, 3563, 3829, 4),
@@ -13132,7 +13151,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (8439, 'NAICS', 938, 42313, 4, 937, 423130, 5),
 (8440, 'SIC', 2982, 2000, 2, 3011, 2053, 4),
 (8441, 'NAICS', 1836, 6116, 3, 1845, 611692, 5),
-(8442, 'NAICS', 1015, 424, 2, 1074, 424820, 5),
+(8441, 'NAICS', 1015, 424, 2, 1074, 424820, 5),
 (8443, 'SEC', 2513, 4010, 3, 2515, 4013, 4),
 (8444, 'SIC', 3077, 2290, 3, 3082, 2299, 4),
 (8445, 'NAICS', 1850, 62, 1, 1892, 621991, 5),
@@ -13507,10 +13526,10 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (8814, 'NAICS', 218, 237, 2, 230, 237310, 5),
 (8815, 'SIC', 4308, 20, 1, 3537, 3730, 3),
 (8816, 'NAICS', 1, 11, 1, 129, 1153, 3),
-(8817, 'NAICS', 1015, 424, 2, 1038, 424420, 5),
+(8817, 'NAICS', 1015, 424, 2, 1038, 424410, 5),
 (8818, 'NAICS', 45, 11191, 4, 44, 111910, 5),
 (8819, 'SEC', 2539, 4800, 2, 2551, 4899, 4),
-(8820, 'NAICS', 1442, 515, 2, 1450, 515210, 5),
+(8820, 'NAICS', 1441, 515, 2, 1450, 515210, 5),
 (8821, 'NAICS', 1, 11, 1, 75, 112340, 5),
 (8822, 'SIC', 2982, 2000, 2, 2988, 2021, 4),
 (8823, 'SIC', 4309, 40, 1, 3638, 4412, 4),
@@ -13636,7 +13655,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (8943, 'SIC', 2825, 200, 2, 2827, 211, 4),
 (8944, 'SIC', 3762, 5100, 2, 3791, 5170, 3),
 (8945, 'SIC', 4081, 7500, 2, 4088, 7521, 4),
-(8946, 'SIC', 4309, 40, 1, 3640, 4424, 4),
+(8946, 'SIC', 4309, 40, 1, 3640, 4414, 4),
 (8947, 'SIC', 4308, 20, 1, 3336, 3299, 4),
 (8948, 'NAICS', 1471, 5191, 3, 1479, 51919, 4),
 (8949, 'NAICS', 1500, 52229, 4, 1503, 522293, 5),
@@ -13753,7 +13772,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (9058, 'SEC', 2221, 1300, 2, 2223, 1311, 4),
 (9059, 'NAICS', 1863, 62132, 4, 1862, 621320, 5),
 (9060, 'NAICS', 1513, 523, 2, 1533, 52399, 4),
-(9061, 'SIC', 4308, 20, 1, 3386, 3442, 4),
+(9061, 'SIC', 4308, 20, 1, 3386, 3441, 4),
 (9062, 'SIC', 4308, 20, 1, 3344, 3320, 3),
 (9063, 'SIC', 2799, 110, 3, 2804, 119, 4),
 (9064, 'NAICS', 235, 238, 2, 237, 238110, 5),
@@ -13876,7 +13895,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (9181, 'NAICS', 1, 11, 1, 45, 11191, 4),
 (9182, 'NAICS', 930, 42, 1, 988, 42373, 4),
 (9183, 'NAICS', 2175, 92314, 4, 2174, 923140, 5),
-(9184, 'NAICS', 1015, 424, 2, 1039, 42442, 4),
+(9184, 'NAICS', 1015, 424, 2, 1039, 42441, 4),
 (9185, 'SIC', 4259, 9220, 3, 4260, 9221, 4),
 (9186, 'SIC', 3576, 3900, 2, 3600, 3999, 4),
 (9187, 'SIC', 4309, 40, 1, 3603, 4011, 4),

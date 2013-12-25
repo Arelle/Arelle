@@ -65,7 +65,7 @@ CREATE TABLE "report" (
     filing_id number(19) NOT NULL
 );
 CREATE INDEX report_index01 ON "report" (report_id);
-CREATE UNIQUE INDEX report_index02 ON "report" (filing_id);
+CREATE INDEX report_index02 ON "report" (filing_id);
 
 CREATE TRIGGER report_insert_trigger BEFORE INSERT ON "report"
   FOR EACH ROW
@@ -80,6 +80,7 @@ CREATE TABLE "document" (
     namespace varchar2(1024),  -- targetNamespace if schema else NULL
     PRIMARY KEY (document_id)
 );
+CREATE INDEX document_index02 ON "document" (document_url) COMPRESS;
 
 CREATE TRIGGER document_insert_trigger BEFORE INSERT ON "document" 
   FOR EACH ROW
@@ -114,6 +115,8 @@ CREATE TABLE "aspect" (
     is_text_block number(1) NOT NULL,
     PRIMARY KEY (aspect_id)
 );
+CREATE INDEX aspect_index02 ON "aspect" (document_id);
+CREATE INDEX aspect_index03 ON "aspect" (qname) COMPRESS;
 
 CREATE TRIGGER aspect_insert_trigger BEFORE INSERT ON "aspect" 
   FOR EACH ROW
@@ -131,6 +134,8 @@ CREATE TABLE "data_type" (
     derived_from_type_id number(19),
     PRIMARY KEY (data_type_id)
 );
+CREATE INDEX data_type_index02 ON "data_type" (document_id);
+CREATE INDEX data_type_index03 ON "data_type" (qname) COMPRESS;
 
 CREATE TRIGGER data_type_insert_trigger BEFORE INSERT ON "data_type" 
   FOR EACH ROW
@@ -146,6 +151,8 @@ CREATE TABLE "role_type" (
     definition nclob,
     PRIMARY KEY (role_type_id)
 );
+CREATE INDEX role_type_index02 ON "role_type" (document_id);
+CREATE INDEX role_type_index03 ON "role_type" (role_uri) COMPRESS;
 
 CREATE TRIGGER role_type_insert_trigger BEFORE INSERT ON "role_type" 
   FOR EACH ROW
@@ -162,6 +169,8 @@ CREATE TABLE "arcrole_type" (
     definition nclob,
     PRIMARY KEY (arcrole_type_id)
 );
+CREATE INDEX arcrole_type_index02 ON "arcrole_type" (document_id);
+CREATE INDEX arcrole_type_index03 ON "arcrole_type" (arcrole_uri) COMPRESS;
 
 CREATE TRIGGER arcrole_type_insert_trigger BEFORE INSERT ON "arcrole_type" 
   FOR EACH ROW
@@ -186,6 +195,7 @@ CREATE TABLE "resource" (
     xml_lang varchar2(16),
     PRIMARY KEY (resource_id)
 );
+CREATE UNIQUE INDEX resource_index02 ON "resource" (document_id, xml_id);
 
 CREATE TRIGGER resource_insert_trigger BEFORE INSERT ON "resource" 
   FOR EACH ROW
@@ -204,6 +214,9 @@ CREATE TABLE "relationship_set" (
     link_role varchar2(1024) NOT NULL,
     PRIMARY KEY (relationship_set_id)
 );
+CREATE INDEX relationship_set_index02 ON "relationship_set" (report_id);
+CREATE INDEX relationship_set_index03 ON "relationship_set" (link_role) COMPRESS;
+CREATE INDEX relationship_set_index04 ON "relationship_set" (arc_role) COMPRESS;
 
 CREATE TRIGGER rel_set_insert_trigger BEFORE INSERT ON "relationship_set" 
   FOR EACH ROW
@@ -226,6 +239,7 @@ CREATE TABLE "relationship" (
     preferred_label_role varchar2(1024),
     PRIMARY KEY (relationship_id)
 );
+CREATE INDEX relationship_index02 ON "relationship" (report_id, document_id, xml_id);
 
 CREATE TRIGGER relationship_insert_trigger BEFORE INSERT ON "relationship" 
   FOR EACH ROW
@@ -253,6 +267,9 @@ CREATE TABLE "data_point" (
     value nclob,
     PRIMARY KEY (datapoint_id)
 );
+CREATE INDEX data_point_index02 ON "data_point" (document_id, xml_id);
+CREATE INDEX data_point_index03 ON "data_point" (report_id);
+CREATE INDEX data_point_index04 ON "data_point" (aspect_id);
 
 CREATE TRIGGER data_point_insert_trigger BEFORE INSERT ON "data_point" 
   FOR EACH ROW
@@ -267,6 +284,7 @@ CREATE TABLE "entity" (
     entity_identifier varchar2(1024) NOT NULL,
     PRIMARY KEY (entity_id)
 );
+CREATE INDEX entity_index02 ON "entity" (report_id, entity_scheme, entity_identifier);
 
 CREATE TRIGGER entity_insert_trigger BEFORE INSERT ON "entity" 
   FOR EACH ROW
@@ -283,6 +301,7 @@ CREATE TABLE "period" (
     is_forever number(1) NOT NULL,
     PRIMARY KEY (period_id)
 );
+CREATE INDEX period_index02 ON "period" (report_id, start_date, end_date, is_instant, is_forever);
 
 CREATE TRIGGER period_insert_trigger BEFORE INSERT ON "period" 
   FOR EACH ROW
@@ -293,9 +312,11 @@ CREATE TRIGGER period_insert_trigger BEFORE INSERT ON "period"
 CREATE TABLE "unit" (
     unit_id number(19) NOT NULL,
     report_id number(19),
-    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
+    xml_id varchar2(1024),  -- xml id or element pointer (first if multiple)
+    measures_hash varchar2(36),
     PRIMARY KEY (unit_id)
 );
+CREATE INDEX unit_index02 ON "unit" (report_id, measures_hash);
 
 CREATE TRIGGER unit_insert_trigger BEFORE INSERT ON "unit" 
   FOR EACH ROW
@@ -305,11 +326,12 @@ CREATE TRIGGER unit_insert_trigger BEFORE INSERT ON "unit"
 /
 CREATE TABLE "unit_measure" (
     unit_id number(19) NOT NULL,
-    qname varchar2(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    qname varchar2(1024) NOT NULL,  -- clark notation qname (first if multiple)
+    measures_hash char(32),
     is_multiplicand number(1) NOT NULL
 );
 CREATE INDEX unit_measure_index01 ON "unit_measure" (unit_id);
-CREATE UNIQUE INDEX unit_measure_index02 ON "unit_measure" (unit_id, qname, is_multiplicand);
+CREATE INDEX unit_measure_index02 ON "unit_measure" (unit_id, qname, is_multiplicand);
 
 CREATE TABLE "aspect_value_selection_set" (
     aspect_value_selection_id number(19) NOT NULL,
@@ -345,6 +367,7 @@ CREATE TABLE "message" (
     value nclob,
     PRIMARY KEY (message_id)
 );
+CREATE INDEX message_index02 ON "message" (report_id, sequence_in_report);
 
 CREATE TRIGGER message_insert_trigger BEFORE INSERT ON "message" 
   FOR EACH ROW
