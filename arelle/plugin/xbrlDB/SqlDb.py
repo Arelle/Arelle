@@ -11,7 +11,7 @@ from arelle.ModelValue import dateTime
 import socket
 
 TRACESQLFILE = None
-TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
+#TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
 
 def noop(*args, **kwargs): return 
 class NoopException(Exception):
