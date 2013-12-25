@@ -11,7 +11,7 @@ from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import qname, QName
 from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import (Trace, ModelFormulaResource, ModelFormulaRules, ModelConceptName,
-                                       ModelParameter, Aspect, aspectStr)
+                                       ModelParameter, Aspect, aspectStr, aspectRuleAspects)
 from arelle.ModelInstanceObject import ModelFact
 from arelle.FormulaEvaluator import (filterFacts as formulaEvaluatorFilterFacts, 
                                      aspectsMatch, factsPartitions, VariableBinding)
@@ -31,7 +31,7 @@ def definitionNodes(nodes):
 
 # table linkbase structural nodes for rendering
 class StructuralNode:
-    def __init__(self, parentStructuralNode, definitionNode, zInheritance=None, contextItemFact=None, breakdownTableNode=None):
+    def __init__(self, parentStructuralNode, breakdownNode, definitionNode, zInheritance=None, contextItemFact=None, tableNode=None):
         self.parentStructuralNode = parentStructuralNode
         self.definitionNode = definitionNode
         self._rendrCntx = getattr(definitionNode.modelXbrl, "rendrCntx", None) # None for EU 2010 table linkbases
@@ -52,8 +52,9 @@ class StructuralNode:
             self.contextItemBinding = None
         self.subtreeRollUp = ROLLUP_NOT_ANALYZED
         self.depth = parentStructuralNode.depth + 1 if parentStructuralNode else 0
-        if breakdownTableNode is not None:
-            self.breakdownTableNode = breakdownTableNode
+        if tableNode is not None:
+            self.tableNode = tableNode
+        self.breakdownNode = breakdownNode # CR definition node
         self.tagSelector = definitionNode.tagSelector
         self.isLabeled = True
         
@@ -96,6 +97,7 @@ class StructuralNode:
             return self.parentStructuralNode.structuralDepth + 1
         return 0
     
+    '''
     def breakdownNode(self, tableELR):
         definitionNode = self.definitionNode
         if isinstance(definitionNode, ModelBreakdown):
@@ -108,7 +110,8 @@ class StructuralNode:
                     return definitionNode
                 break # recurse to move to this node's parent breakdown node
         return definitionNode # give up here
-    
+    '''
+   
     def constraintSet(self, tagSelectors=None):
         definitionNode = self.definitionNode
         if tagSelectors:
@@ -251,7 +254,7 @@ class StructuralNode:
             return self.parentStructuralNode.header(role, lang, evaluate, returnGenLabel, returnMsgFormatString)
         return None
     
-    def evaluate(self, evalObject, evalMethod, otherOrdinate=None, evalArgs=()):
+    def evaluate(self, evalObject, evalMethod, otherAxisStructuralNode=None, evalArgs=()):
         xc = self._rendrCntx
         if self.contextItemBinding and not isinstance(xc.contextItem, ModelFact):
             previousContextItem = xc.contextItem # xbrli.xbrl
@@ -269,10 +272,10 @@ class StructuralNode:
                     removeVarQnames.append(qn)
                     xc.inScopeVars[qn] = value
         if self.parentStructuralNode is not None:
-            result = self.parentStructuralNode.evaluate(evalObject, evalMethod, otherOrdinate, evalArgs)
-        elif otherOrdinate is not None:
+            result = self.parentStructuralNode.evaluate(evalObject, evalMethod, otherAxisStructuralNode, evalArgs)
+        elif otherAxisStructuralNode is not None:
             # recurse to other ordinate (which will recurse to z axis)
-            result = otherOrdinate.evaluate(evalObject, evalMethod, None, evalArgs)
+            result = otherAxisStructuralNode.evaluate(evalObject, evalMethod, None, evalArgs)
         elif self.zInheritance is not None:
             result = self.zInheritance.evaluate(evalObject, evalMethod, None, evalArgs)
         else:
@@ -317,7 +320,7 @@ class StructuralNode:
     @property
     def tableDefinitionNode(self):
         if self.parentStructuralNode is None:
-            return self.breakdownTableNode
+            return self.tableNode
         else:
             return self.parentStructuralNode.tableDefinitionNode
         
@@ -833,6 +836,8 @@ class ModelConstraintSet(ModelFormulaRules):
     def _hasAspect(self, structuralNode, aspect, inherit=None): # opaque from ModelRuleDefinitionNode
         if aspect == Aspect.LOCATION and self._locationSourceVar:
             return True
+        elif aspect in aspectRuleAspects:
+            return any(self.hasRule(a) for a in aspectRuleAspects[aspect])
         return self.hasRule(aspect)
     
     def aspectValue(self, xpCtx, aspect, inherit=None):
@@ -1474,6 +1479,7 @@ elementSubstitutionModelClass.update((
     # PWD 2013-08-28
     (XbrlConst.qnTableTable, ModelTable),
     (XbrlConst.qnTableBreakdown, ModelBreakdown),
+    (XbrlConst.qnTableRuleSet, ModelRuleSet),
     (XbrlConst.qnTableRuleNode, ModelRuleDefinitionNode),
     (XbrlConst.qnTableConceptRelationshipNode, ModelConceptRelationshipDefinitionNode),
     (XbrlConst.qnTableDimensionRelationshipNode, ModelDimensionRelationshipDefinitionNode),

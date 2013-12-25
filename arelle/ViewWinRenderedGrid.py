@@ -52,7 +52,6 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     saveMenu.add_command(label=_("Layout model"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view, fileType="xml"))
     saveMenu.add_command(label=_("XBRL instance"), underline=0, command=view.saveInstance)
     menu.add_cascade(label=_("Save"), menu=saveMenu, underline=0)
-    menu.add_command(label=_("Enter new facts..."), underline=0, command=view.enterNewFacts)
     view.view()
     view.blockSelectEvent = 1
     view.blockViewModelObject = 0
@@ -592,9 +591,6 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                 if not yChildrenFirst:
                     row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspectStructuralNodes, yChildrenFirst)
             return row
-        
-    def enterNewFacts(self):
-        pass # print("enter new facts")
         
     def onClick(self, event):
         try:

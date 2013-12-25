@@ -4,6 +4,7 @@ Created on Sep 13, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
+import os
 from arelle import ViewFile
 from lxml import etree
 from arelle.RenderingResolver import resolveAxesStructure
@@ -19,9 +20,12 @@ from arelle.ModelRenderingObject import (ModelClosedDefinitionNode, ModelEuAxisC
                                          OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.PrototypeInstanceObject import FactPrototype
 # change tableModel for namespace needed for consistency suite
+'''
 from arelle.XbrlConst import (tableModelMMDD as tableModelNamespace, 
                               tableModelMMDDQName as tableModelQName)
-from arelle.XmlUtil import innerTextList, elementFragmentIdentifier, addQnameValue
+'''
+from arelle.XbrlConst import (tableModel as tableModelNamespace, tableModelQName)
+from arelle.XmlUtil import innerTextList, child, elementFragmentIdentifier, addQnameValue
 from collections import defaultdict
 
 emptySet = set()
@@ -79,7 +83,9 @@ class ViewRenderedGrid(ViewFile.View):
         for tblELR in tblELRs:
             self.zOrdinateChoices = {}
             
+                
             for discriminator in range(1, 65535):
+                # each table z production
                 tblAxisRelSet, xTopStructuralNode, yTopStructuralNode, zTopStructuralNode = resolveAxesStructure(self, tblELR)
                 
                 self.zStrNodesWithChoices = []
@@ -103,42 +109,45 @@ class ViewRenderedGrid(ViewFile.View):
                     elif self.type == XML:
                         self.structuralNodeModelElements = []
                         if discriminator == 1:
+                            # headers structure only build once for table
                             tableSetElt = etree.SubElement(self.tblElt, tableModelQName("tableSet"))
                             tableSetElt.append(etree.Comment("TableSet linkbase file: {0}, line {1}".format(self.modelTable.modelDocument.basename, self.modelTable.sourceline)))
                             tableSetElt.append(etree.Comment("TableSet namespace: {0}".format(self.modelTable.namespaceURI)))
                             tableSetElt.append(etree.Comment("TableSet linkrole: {0}".format(tblELR)))
                             etree.SubElement(tableSetElt, tableModelQName("label")
                                              ).text = tableLabel
-                            etree.SubElement(tableSetElt, tableModelQName("headers"))
-                            self.zHdrsElt = etree.SubElement(tableSetElt, tableModelQName("headers"))
                             zAspectStructuralNodes = defaultdict(set)
+            
+                            tableElt = etree.SubElement(tableSetElt, tableModelQName("table"))
+                            self.groupElts = {}
+                            self.headerElts = {}
+                            self.headerCells = defaultdict(list) # order #: (breakdownNode, xml element)
+                            for axis in ("z", "y", "x"):
+                                breakdownNodes = self.breakdownNodes.get(axis)
+                                if breakdownNodes:
+                                    hdrsElt = etree.SubElement(tableElt, tableModelQName("headers"),
+                                                               attrib={"axis": axis})
+                                    for brkdownNode in self.breakdownNodes.get(axis):
+                                        groupElt = etree.SubElement(hdrsElt, tableModelQName("group"))
+                                        groupElt.append(etree.Comment("Breakdown node file: {0}, line {1}".format(brkdownNode.modelDocument.basename, brkdownNode.sourceline)))
+                                        label = brkdownNode.genLabel(lang=self.lang, strip=True)
+                                        if label:
+                                            etree.SubElement(groupElt, tableModelQName("label")).text=label
+                                        self.groupElts[brkdownNode] = groupElt
+                                        self.headerElts[brkdownNode] = etree.SubElement(groupElt, tableModelQName("header"))
+                                else:
+                                    tableElt.append(etree.Comment("No breakdown group for \"{0}\" axis".format(axis)))
                             self.zAxis(1, zTopStructuralNode, zAspectStructuralNodes, True)
-                        tableElt = etree.SubElement(tableSetElt, tableModelQName("table"),
-                                                    attrib={"label": self.modelTable.xlinkLabel})
-                        hdrsElts = dict((disposition,
-                                         etree.SubElement(tableElt, tableModelQName("headers"),
-                                                          attrib={"axis": disposition}))
-                                        for disposition in ("y", "x"))
-                        self.zHdrsElt = hdrsElts["y"]  # z-comments go before y subelement of tableElt
-                        # new y,x cells on each Z combination
-                        if yTopStructuralNode.childStructuralNodes: # no row header element if no rows
-                            self.rowHdrElts = [etree.SubElement(hdrsElts["y"], tableModelQName("header"))
-                                               for i in range(self.rowHdrCols - 1 + len(self.rowHdrNonStdRoles))] # self.rowHdrDocCol + self.rowHdrCodeCol)]
-                        else:
-                            hdrsElts["y"].append(etree.Comment("no rows in this table"))
-                        if xTopStructuralNode.childStructuralNodes: # no col header element if no cols
-                            self.colHdrElts = [etree.SubElement(hdrsElts["x"], tableModelQName("header"))
-                                               for i in range(self.colHdrRows - 1 + len(self.colHdrNonStdRoles))] # self.colHdrDocRow + self.colHdrCodeRow)]
-                        else:
-                            hdrsElts["x"].append(etree.Comment("no columns in this table"))
-                        self.zCells = etree.SubElement(tableElt, tableModelQName("cells"),
-                                                          attrib={"axis": "z"})
-                        self.yCells = etree.SubElement(self.zCells, tableModelQName("cells"),
-                                                          attrib={"axis": "y"})
-                        ''' move into body cells, for entry row-by-row
-                        self.xCells = etree.SubElement(self.yCells, tableModelQName("cells"),
-                                                          attrib={"axis": "x"})
-                        '''
+                            self.zCells = etree.SubElement(tableElt, tableModelQName("cells"),
+                                                              attrib={"axis": "z"})
+                            
+                            
+                            self.yCells = etree.SubElement(self.zCells, tableModelQName("cells"),
+                                                              attrib={"axis": "y"})
+                            ''' move into body cells, for entry row-by-row
+                            self.xCells = etree.SubElement(self.yCells, tableModelQName("cells"),
+                                                              attrib={"axis": "x"})
+                            '''
                     # rows/cols only on firstTime for infoset XML, but on each time for xhtml
                     zAspectStructuralNodes = defaultdict(set)
                     self.zAxis(1, zTopStructuralNode, zAspectStructuralNodes, False)
@@ -153,6 +162,10 @@ class ViewRenderedGrid(ViewFile.View):
                         if yTopStructuralNode.childStructuralNodes: # no row header element if no rows
                             self.yAxisByCol(1, self.dataFirstRow,
                                             yTopStructuralNode, self.yAxisChildrenFirst.get(), True, True)
+                        # add header cells to header elements
+                        for position, breakdownCellElts in sorted(self.headerCells.items()):
+                            for breakdownNode, headerCell in breakdownCellElts:
+                                self.headerElts[breakdownNode].append(headerCell)
                         for structuralNode,modelElt in self.structuralNodeModelElements: # must do after elements are all arragned
                             modelElt.addprevious(etree.Comment("{0}: label {1}, file {2}, line {3}"
                                                           .format(structuralNode.definitionNode.localName,
@@ -224,35 +237,40 @@ class ViewRenderedGrid(ViewFile.View):
                                              "colspan": str(zChoiceLabelSpan)} # "2"}
                                      ).text = choiceLabel
             elif self.type == XML:
-                # per JS, no header elements inside each table
+                # headers element built for first pass on z axis
                 if discriminatorsTable:
-                    hdrElt = etree.SubElement(self.zHdrsElt, tableModelQName("header"))
-                    self.structuralNodeModelElements.append((zStructuralNode, hdrElt))
+                    brkdownNode = zStructuralNode.breakdownNode
                     if zStructuralNode.choiceStructuralNodes: # same as combo box selection in GUI mode
                         # hdrElt.set("label", label)
                         if discriminatorsTable:
-                            for choiceStructuralNode in zStructuralNode.choiceStructuralNodes:
+                            def zSpan(zNode, startNode=False):
+                                if startNode:
+                                    thisSpan = 0
+                                elif zStructuralNode.choiceStructuralNodes:
+                                    thisSpan = len(zStructuralNode.choiceStructuralNodes)
+                                else:
+                                    thisSpan = 1
+                                return sum(zSpan(z) for z in zNode.childStructuralNodes) + thisSpan
+                            span = zSpan(zStructuralNode, True)
+                            for i, choiceStructuralNode in enumerate(zStructuralNode.choiceStructuralNodes):
                                 choiceLabel = choiceStructuralNode.header(lang=self.lang)
-                                elt = etree.SubElement(hdrElt, tableModelQName("label"))
+                                cellElt = etree.Element(tableModelQName("cell"),
+                                                        attrib={"span": str(span)} if span > 1 else None)
+                                self.headerCells[i].append((brkdownNode, cellElt))
+                                # self.structuralNodeModelElements.append((zStructuralNode, cellElt))
+                                elt = etree.SubElement(cellElt, tableModelQName("label"))
                                 if choiceLabel:
                                     elt.text = choiceLabel
                         #else: # choiceLabel from above 
                         #    etree.SubElement(hdrElt, tableModelQName("label")
                         #                     ).text = choiceLabel
                     else: # no combo choices, single label
-                        elt = etree.SubElement(hdrElt, tableModelQName("label"))
+                        cellElt = etree.Element(tableModelQName("cell"))
+                        self.headerCells[0].append((brkdownNode, cellElt))
+                        # self.structuralNodeModelElements.append((zStructuralNode, cellElt))
+                        elt = etree.SubElement(cellElt, tableModelQName("label"))
                         if label:
                             elt.text = label
-                else:
-                    if choiceLabel: # same as combo box selection in GUI mode
-                        comment = etree.Comment("Z axis {0}: {1}".format(label, choiceLabel))
-                    else:
-                        comment = etree.Comment("Z axis: {0}".format(label))
-                    if isinstance(self.zHdrsElt, etree._Comment):
-                        self.zHdrsElt.addnext(comment)
-                    else:
-                        self.zHdrsElt.addprevious(comment)
-                    self.zHdrsElt = comment                    
 
             for aspect in aspectModels[self.aspectModel]:
                 if effectiveStructuralNode.hasAspect(aspect, inherit=True): #implies inheriting from other z axes
@@ -307,28 +325,26 @@ class ViewRenderedGrid(ViewFile.View):
                                             attrib=attrib)
                         self.rowElts[topRow-1].insert(leftCol,elt)
                     elif self.type == XML:
+                        brkdownNode = xStructuralNode.breakdownNode
                         cellElt = etree.Element(tableModelQName("cell"),
                                             attrib={"span": str(columnspan)} if columnspan > 1 else None)
-                        try:
-                            self.colHdrElts[topRow - self.colHdrTopRow].insert(leftCol,cellElt)
-                        except IndexError:
-                            pass
-                        self.structuralNodeModelElements.append((xStructuralNode, cellElt))
+                        self.headerCells[thisCol].append((brkdownNode, cellElt))
+                        # self.structuralNodeModelElements.append((xStructuralNode, cellElt))
                         elt = etree.SubElement(cellElt, tableModelQName("label"))
                         if nonAbstract or (leafNode and row > topRow):
                             for rollUpCol in range(topRow - self.colHdrTopRow + 1, self.colHdrRows - 1):
                                 rollUpElt = etree.Element(tableModelQName("cell"),
                                                           attrib={"rollup":"true"})
-                                if childrenFirst:
-                                    self.colHdrElts[rollUpCol].append(rollUpElt)
-                                else:
-                                    self.colHdrElts[rollUpCol].insert(leftCol,rollUpElt)
+                                self.headerCells[thisCol].append((brkdownNode, cellElt))
                         for i, role in enumerate(self.colHdrNonStdRoles):
-                            etree.SubElement(cellElt, tableModelQName("label"), 
-                                             attrib={"role": role,
-                                                     "lang": self.lang}
-                                             ).text = xStructuralNode.header(
-                                                   role=role, lang=self.lang)
+                            cellElt.append(etree.Comment("Label role: {0}, lang {1}"
+                                                         .format(os.path.basename(role), self.lang)))
+                            labelElt = etree.SubElement(cellElt, tableModelQName("label"), 
+                                                        #attrib={"role": role,
+                                                        #        "lang": self.lang}
+                                                        )
+                            labelElt.text = xStructuralNode.header(role=role, lang=self.lang)
+                                                        
                         for aspect in sorted(xStructuralNode.aspectsCovered(), key=lambda a: aspectStr(a)):
                             if xStructuralNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
                                 aspectValue = xStructuralNode.aspectValue(aspect)
@@ -526,16 +542,28 @@ class ViewRenderedGrid(ViewFile.View):
                     row = nextRow
                 #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
                 if renderNow and isLabeled:
+                    brkdownNode = yStructuralNode.breakdownNode
                     rowspan= nestRow - row + 1
                     cellElt = etree.Element(tableModelQName("cell"),
                                             attrib={"span": str(rowspan)} if rowspan > 1 else None)
                     elt = etree.SubElement(cellElt, tableModelQName("label"))
                     elt.text = label if label != OPEN_ASPECT_ENTRY_SURROGATE else ""
-                    try:
-                        self.rowHdrElts[leftCol - 1].append(cellElt)
-                    except IndexError:
-                        pass
-                    self.structuralNodeModelElements.append((yStructuralNode, cellElt))
+                    self.headerCells[leftCol].append((brkdownNode, cellElt))
+                    # self.structuralNodeModelElements.append((yStructuralNode, cellElt))
+                    for rollUpCol in range(leftCol, self.rowHdrCols - 1):
+                        rollUpElt = etree.Element(tableModelQName("cell"),
+                                                  attrib={"rollup":"true"})
+                        self.headerCells[leftCol].append((brkdownNode, rollUpElt))
+                    if isNonAbstract:
+                        i = -1 # for case where no enumeration takes place
+                        for i, role in enumerate(self.rowHdrNonStdRoles):
+                            cellElt.append(etree.Comment("Label role: {0}, lang {1}"
+                                                         .format(os.path.basename(role), self.lang)))
+                            labelElt = etree.SubElement(cellElt, tableModelQName("label"),
+                                                        #attrib={"role":role,
+                                                        #        "lang":self.lang}
+                                ).text = yStructuralNode.header(role=role, lang=self.lang)
+                        self.headerCells[leftCol].append((brkdownNode, cellElt))
                     for aspect in sorted(yStructuralNode.aspectsCovered(), key=lambda a: aspectStr(a)):
                         if yStructuralNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
                             aspectValue = yStructuralNode.aspectValue(aspect)
@@ -547,31 +575,6 @@ class ViewRenderedGrid(ViewFile.View):
                                              ).text = aspectStr(aspect)
                             etree.SubElement(elt, tableModelQName("value")
                                              ).text = xsString(None,None,addQnameValue(self.xmlDoc, aspectValue))
-                    for rollUpCol in range(leftCol, self.rowHdrCols - 1):
-                        rollUpElt = etree.Element(tableModelQName("cell"),
-                                                  attrib={"rollup":"true"})
-                        self.rowHdrElts[rollUpCol].append(rollUpElt)
-                    if isNonAbstract:
-                        cellElt = etree.Element(tableModelQName("cell"),
-                                                attrib={"span": str(rowspan)} if rowspan > 1 else None)
-                        i = -1 # for case where no enumeration takes place
-                        for i, role in enumerate(self.rowHdrNonStdRoles):
-                            labelElt = etree.SubElement(cellElt, tableModelQName("label"),
-                                                        attrib={"role":role,
-                                                                "lang":self.lang})
-                            labelElt.text = yStructuralNode.header(role=role, lang=self.lang)
-                        self.rowHdrElts[self.rowHdrCols - 1 + i].append(cellElt)
-                        for aspect in sorted(yStructuralNode.aspectsCovered(), key=lambda a: aspectStr(a)):
-                            if yStructuralNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
-                                aspectValue = yStructuralNode.aspectValue(aspect)
-                                if aspectValue is None: aspectValue = "(bound dynamically)"
-                                if isinstance(aspectValue, ModelObject): # typed dimension value
-                                    aspectValue = innerTextList(aspectValue)
-                                elt = etree.SubElement(cellElt, tableModelQName("constraint"))
-                                etree.SubElement(elt, tableModelQName("aspect")
-                                                 ).text = aspectStr(aspect)
-                                etree.SubElement(elt, tableModelQName("value")
-                                                 ).text = xsString(None,None,addQnameValue(self.xmlDoc, aspectValue))
                         '''
                         if self.rowHdrDocCol:
                             labelElt = etree.SubElement(cellElt, tableModelQName("label"),

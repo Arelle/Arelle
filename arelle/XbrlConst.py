@@ -314,7 +314,26 @@ qnTableConceptRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2013-MM-DD/tabl
 qnTableDimensionRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2013-MM-DD/table}table:dimensionRelationshipNode")
 qnTableAspectNodeMMDD = qname("{http://xbrl.org/PWD/2013-MM-DD/table}table:aspectNode")
 
-# 2013-08-28 current PWD
+# 2013-MM-DD current CR
+table = "http://xbrl.org/CR/2013-11-13/table"
+tableModel = "http://xbrl.org/CR/2013-11-13/table/model"
+tableBreakdown = "http://xbrl.org/arcrole/CR/2013-11-13/table-breakdown"
+tableBreakdownTree = "http://xbrl.org/arcrole/CR/2013-11-13/breakdown-tree"
+tableDefinitionNodeSubtree = "http://xbrl.org/arcrole/CR/2013-11-13/definition-node-subtree"
+tableFilter = "http://xbrl.org/arcrole/CR/2013-11-13/table-filter"
+tableAspectNodeFilter = "http://xbrl.org/arcrole/CR/2013-11-13/aspect-node-filter"
+tableParameter = "http://xbrl.org/arcrole/CR/2013-11-13/table-parameter"
+qnTableTable = qname("{http://xbrl.org/CR/2013-11-13/table}table:table")
+qnTableBreakdown = qname("{http://xbrl.org/CR/2013-11-13/table}table:breakdown")
+qnTableRuleNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:ruleNode")
+qnTableRuleSet = qname("{http://xbrl.org/CR/2013-11-13/table}table:ruleSet")
+qnTableClosedDefinitionNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:closedDefinitionNode")
+qnTableConceptRelationshipNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:conceptRelationshipNode")
+qnTableDimensionRelationshipNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:dimensionRelationshipNode")
+qnTableAspectNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:aspectNode")
+
+# prior 2013-08-28 PWD
+''' not supported
 table = "http://xbrl.org/PWD/2013-08-28/table"
 tableModel = "http://xbrl.org/PWD/2013-08-28/table/model"
 tableBreakdown = "http://xbrl.org/arcrole/PWD/2013-08-28/table-breakdown"
@@ -330,8 +349,9 @@ qnTableClosedDefinitionNode = qname("{http://xbrl.org/PWD/2013-08-28/table}table
 qnTableConceptRelationshipNode = qname("{http://xbrl.org/PWD/2013-08-28/table}table:conceptRelationshipNode")
 qnTableDimensionRelationshipNode = qname("{http://xbrl.org/PWD/2013-08-28/table}table:dimensionRelationshipNode")
 qnTableAspectNode = qname("{http://xbrl.org/PWD/2013-08-28/table}table:aspectNode")
+'''
 
-# 2013-05-17 current PWD
+# prior 2013-05-17 PWD
 table201305 = "http://xbrl.org/PWD/2013-05-17/table"
 tableModel201305 = "http://xbrl.org/PWD/2013-05-17/table/model"
 tableBreakdown201305 = "http://xbrl.org/arcrole/PWD/2013-05-17/table-breakdown"
@@ -425,7 +445,7 @@ errMsgPrefixNS = {
     "xbrlcfie": "http://xbrl.org/2010/custom-function/error",
     "xbrlmfe": "http://xbrl.org/2008/filter/match/error",
     "xbrlvarscopee": "http://xbrl.org/2010/variable/variables-scope/error",
-    "xbrlte": "http://xbrl.org/PWD/2013-MM-DD/table/error",
+    "xbrlte": "http://xbrl.org/CR/2013-11-13/table/error",
     "utre": "http://www.xbrl.org/2009/utr/errors",
     "enumte": "http://xbrl.org/2013/extensible-enumerations/taxonomy-errors",
     "enumie": "http://xbrl.org/2013/extensible-enumerations/instance-errors"
