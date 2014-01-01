@@ -241,7 +241,7 @@ def sphinxDialogRssWatchValidateChoices(dialog, frame, row, options, cntlr):
 def sphinxRssWatchHasWatchAction(rssWatchOptions):
     return rssWatchOptions.get("sphinxRulesFiles") and rssWatchOptions.get("validateSphinxRules")
     
-def sphinxRssDoWatchAction(modelXbrl, rssWatchOptions):
+def sphinxRssDoWatchAction(modelXbrl, rssWatchOptions, rssItem):
     sphinxFiles = rssWatchOptions.get("sphinxRulesFiles")
     if sphinxFiles:
         from .SphinxParser import parse
