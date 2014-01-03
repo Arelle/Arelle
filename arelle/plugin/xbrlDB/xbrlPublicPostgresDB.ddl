@@ -1,8 +1,22 @@
---
+﻿--
 -- XBRL-US Public Postgres DB 
 --
 -- PostgreSQL database dump
 --
+
+-- changes for Arelle:
+-- 
+-- 2013-12-01: Clear everything prior (drop schema and recreate) before loading ddl
+--
+-- 2014-01-02: Comment out fk_accession_entity as entity is not set up for non-RSS 
+--             accessions and not known until later in instance loading.
+--
+--             Comment out namespace_taxonomy_version_id_fkey, no version information known
+--             to arelle.
+--
+--             Comment out constraints and triggers not used in arelle; also the constraints
+--             appear to block bulk loading of taxonomy.
+ 
 
 -- clear everything prior
 DROP SCHEMA public CASCADE; create SCHEMA public;
@@ -394,7 +408,6 @@ COMMENT ON COLUMN relationship.calculation_weight IS 'Obviously only for calcula
 -- Name: ancestry_get_relationships(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-DROP FUNCTION IF EXISTS () CASCADE;
 CREATE FUNCTION ancestry_get_relationships(network_id_arg integer, child_id integer) RETURNS SETOF relationship
     LANGUAGE plpgsql
     AS $$
@@ -433,7 +446,6 @@ ALTER FUNCTION public.ancestry_get_relationships(network_id_arg integer, child_i
 -- Name: ancestry_in_accession(integer, character varying); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-DROP FUNCTION IF EXISTS () CASCADE;
 CREATE FUNCTION ancestry_in_accession(accession_id_arg integer, child_name character varying) RETURNS SETOF ancestry
     LANGUAGE plpgsql
     AS $$
@@ -461,7 +473,6 @@ ALTER FUNCTION public.ancestry_in_accession(accession_id_arg integer, child_name
 -- Name: ancestry_in_accession(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-DROP FUNCTION IF EXISTS () CASCADE;
 CREATE FUNCTION ancestry_in_accession(accession_id_arg integer, child_id integer) RETURNS SETOF ancestry
     LANGUAGE plpgsql
     AS $$
@@ -494,7 +505,6 @@ ALTER FUNCTION public.ancestry_in_accession(accession_id_arg integer, child_id i
 -- Name: ancestry_in_network(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-DROP FUNCTION IF EXISTS () CASCADE;
 CREATE FUNCTION ancestry_in_network(network_id_arg integer, child_id integer) RETURNS SETOF ancestry
     LANGUAGE plpgsql
     AS $$
@@ -542,7 +552,6 @@ ALTER FUNCTION public.ancestry_in_network(network_id_arg integer, child_id integ
 -- Name: ancestry_in_network(integer, character varying); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-DROP FUNCTION IF EXISTS () CASCADE;
 CREATE FUNCTION ancestry_in_network(network_id_arg integer, child_name character varying) RETURNS SETOF ancestry
     LANGUAGE plpgsql
     AS $$
@@ -569,7 +578,6 @@ ALTER FUNCTION public.ancestry_in_network(network_id_arg integer, child_name cha
 -- Name: armor(bytea); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-DROP FUNCTION IF EXISTS () CASCADE;
 CREATE FUNCTION armor(bytea) RETURNS text
     LANGUAGE c IMMUTABLE STRICT
     AS '$libdir/pgcrypto', 'pg_armor';
@@ -581,7 +589,6 @@ ALTER FUNCTION public.armor(bytea) OWNER TO postgres;
 -- Name: array_remove_value(anyarray, anyarray); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-DROP FUNCTION IF EXISTS () CASCADE;
 CREATE FUNCTION array_remove_value(orig_array_arg anyarray, item anyarray) RETURNS anyarray
     LANGUAGE plpgsql
     AS $$
@@ -607,7 +614,6 @@ ALTER FUNCTION public.array_remove_value(orig_array_arg anyarray, item anyarray)
 -- Name: base_element_hash_string(character varying, character varying); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-DROP FUNCTION IF EXISTS () CASCADE;
 CREATE FUNCTION base_element_hash_string(element_namespace character varying, element_local_name character varying) RETURNS character varying
     LANGUAGE plpgsql
     AS $$             
@@ -20488,6 +20494,8 @@ CREATE INDEX unit_measure_index01 ON unit_measure USING btree (unit_id);
 CREATE UNIQUE INDEX uri_index01 ON uri USING btree (uri);
 
 
+/*********** Arelle block out these Triggers and Constraints
+
 --
 -- Name: a1_accession_complete_restatement_period_index; Type: TRIGGER; Schema: public; Owner: postgres
 --
@@ -20581,8 +20589,9 @@ ALTER TABLE ONLY fact_aug
 -- Name: fk_accession_entity; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY accession
-    ADD CONSTRAINT fk_accession_entity FOREIGN KEY (entity_id) REFERENCES entity(entity_id);
+-- Arelle note: entities are not populated for reference by accession
+--ALTER TABLE ONLY accession
+--    ADD CONSTRAINT fk_accession_entity FOREIGN KEY (entity_id) REFERENCES entity(entity_id);
 
 
 --
@@ -21005,8 +21014,8 @@ ALTER TABLE ONLY context_aug
 -- Name: namespace_taxonomy_version_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY namespace
-    ADD CONSTRAINT namespace_taxonomy_version_id_fkey FOREIGN KEY (taxonomy_version_id) REFERENCES taxonomy_version(taxonomy_version_id);
+--ALTER TABLE ONLY namespace
+--    ADD CONSTRAINT namespace_taxonomy_version_id_fkey FOREIGN KEY (taxonomy_version_id) --REFERENCES taxonomy_version(taxonomy_version_id);
 
 
 --
@@ -21040,6 +21049,7 @@ ALTER TABLE ONLY uri
 ALTER TABLE ONLY taxonomy_version
     ADD CONSTRAINT taxonomy_version_taxonomy_id_fkey FOREIGN KEY (taxonomy_id) REFERENCES taxonomy(taxonomy_id);
 
+********* end of removed triggers and constraints *****/
 
 --
 -- PostgreSQL database dump complete
