@@ -38,6 +38,9 @@ def main():
         
     gettext.install("arelle") # needed for options messages
     parseAndRun(args)
+    
+def wsgiApplication():
+    return parseAndRun( ["--webserver=::wsgi"] )
        
 def parseAndRun(args):
     """interface used by Main program and py.test (arelle_test.py)
@@ -262,6 +265,8 @@ def parseAndRun(args):
     
     if args is None and cntlr.isGAE:
         args = ["--webserver=::gae"]
+    elif args is None and cntlr.isCGI:
+        args = ["--webserver=::cgi"]
     elif cntlr.isMSW:
         # if called from java on Windows any empty-string arguments are lost, see:
         # http://bugs.sun.com/view_bug.do?bug_id=6518827
@@ -328,7 +333,9 @@ def parseAndRun(args):
         else:
             cntlr.startLogging(logFileName='logToBuffer')
             from arelle import CntlrWebMain
-            CntlrWebMain.startWebserver(cntlr, options)
+            app = CntlrWebMain.startWebserver(cntlr, options)
+            if options.webserver == '::wsgi':
+                return app
     else:
         # parse and run the FILENAME
         cntlr.startLogging(logFileName=(options.logFile or "logToPrint"),

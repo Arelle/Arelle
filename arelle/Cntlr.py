@@ -79,6 +79,7 @@ class Cntlr:
         self.hasGui = hasGui
         self.hasFileSystem = True # no file system on Google App Engine servers
         self.isGAE = False
+        self.isCGI = False
         self.systemWordSize = int(round(math.log(sys.maxsize, 2)) + 1) # e.g., 32 or 64
 
         self.moduleDir = os.path.dirname(__file__)
@@ -120,6 +121,10 @@ class Cntlr:
         if serverSoftware.startswith("Google App Engine/") or serverSoftware.startswith("Development/"):
             self.hasFileSystem = False # no file system, userAppDir does not exist
             self.isGAE = True
+        else:
+            gatewayInterface = os.getenv("GATEWAY_INTERFACE", "")
+            if gatewayInterface.startswith("CGI/"):
+                self.isCGI = True
             
         configHomeDir = None  # look for path configDir/CONFIG_HOME in argv and environment parameters
         for i, arg in enumerate(sys.argv):  # check if config specified in a argv 

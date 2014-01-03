@@ -138,7 +138,7 @@ def sphinxToLBCommandLineOptionExtender(parser):
                       help=_("Generated XBRL formula linkbases directory.  "
                              "(If absent, formula linkbases save in sphinx files directory.) "))
 
-def sphinxToLBCommandLineUtilityRun(cntlr, options):
+def sphinxToLBCommandLineUtilityRun(cntlr, options, **kwargs):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "sphinxFilesForFormulaLinkbase", None):
         from .FormulaGenerator import generateFormulaLB

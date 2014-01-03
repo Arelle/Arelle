@@ -6,14 +6,15 @@ Use this module to start Arelle in web server mode
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from arelle.webserver.bottle import route, get, post, request, response, run, static_file
-import os, io, sys, time, threading, uuid
-from arelle import Version, XmlUtil
+from arelle.webserver.bottle import Bottle, request, response, static_file
+import os, sys, time, threading, uuid
+from arelle import Version
 from arelle.FileSource import FileNamedStringIO
 _os_pid = os.getpid()
 
 def startWebserver(_cntlr, options):
     """Called once from main program in CmtlrCmdLine to initiate web server on specified local port.
+    To test WebServer run from source in IIS, use an entry like this: c:\python33\python.exe c:\\users\\myname\\mySourceFolder\\arelleCmdLine.py %s
        
     :param options: OptionParser options from parse_args of main argv arguments (the argument *webserver* provides hostname and port), port being used to startup the webserver on localhost.
     :type options: optparse.Values
@@ -28,12 +29,83 @@ def startWebserver(_cntlr, options):
                             if isinstance(value,optionValuesTypes) and not option.startswith('_'))
     host, sep, portServer = options.webserver.partition(":")
     port, sep, server = portServer.partition(":")
-    if server:
-        run(host=host, port=port or 80, server=server)
-    else:
-        run(host=host, port=port or 80)
+    # start a Bottle application
+    app = Bottle()
     
-@get('/rest/login')
+    GETorPOST = ('GET', 'POST')
+    GET = 'GET'
+    POST = 'POST'
+
+    # install REST API interfaces
+    # if necessary to support CGI hosted servers below root, add <prefix:path> as first part of routes
+    # and corresponding arguments to the handler methods
+    app.route('/rest/login', GET, login_form)
+    app.route('/rest/login', POST, login_submit)
+    app.route('/rest/logout', GET, logout)
+    app.route('/favicon.ico', GET, arelleIcon)
+    app.route('/rest/xbrl/<file:path>/open', GETorPOST, validation)
+    app.route('/rest/xbrl/<file:path>/close', GETorPOST, validation)
+    app.route('/rest/xbrl/<file:path>/validation/xbrl', GETorPOST, validation)
+    app.route('/rest/xbrl/<file:path>/DTS', GETorPOST, validation)
+    app.route('/rest/xbrl/<file:path>/concepts', GETorPOST, validation)
+    app.route('/rest/xbrl/<file:path>/pre', GETorPOST, validation)
+    app.route('/rest/xbrl/<file:path>/cal', GETorPOST, validation)
+    app.route('/rest/xbrl/<file:path>/dim', GETorPOST, validation)
+    app.route('/rest/xbrl/<file:path>/facts', GETorPOST, validation)
+    app.route('/rest/xbrl/<file:path>/factTable', GETorPOST, validation)
+    app.route('/rest/xbrl/<file:path>/roleTypes', GETorPOST, validation)
+    app.route('/rest/xbrl/<file:path>/arcroleTypes', GETorPOST, validation)
+    app.route('/rest/xbrl/<file:path>/formulae', GETorPOST, validation)
+    app.route('/rest/xbrl/validation', GETorPOST, validation)
+    app.route('/rest/xbrl/view', GETorPOST, validation)
+    app.route('/rest/xbrl/open', GETorPOST, validation)
+    app.route('/rest/xbrl/close', GETorPOST, validation)
+    app.route('/images/<imgFile>', GET, image)
+    app.route('/rest/xbrl/diff', GET, diff)
+    app.route('/rest/configure', GET, configure)
+    app.route('/rest/stopWebServer', GET, stopWebServer)
+    app.route('/quickbooks/server.asmx', POST, quickbooksServer)
+    app.route('/rest/quickbooks/<qbReport>/xbrl-gl/<file:path>', GET, quickbooksGLrequest)
+    app.route('/rest/quickbooks/<qbReport>/xbrl-gl/<file:path>/view', GET, quickbooksGLrequest)
+    app.route('/rest/quickbooks/<qbReport>/xbrl-gl/view', GET, quickbooksGLrequest)
+    app.route('/rest/quickbooks/response', GET, quickbooksGLresponse)
+    app.route('/quickbooks/server.html', GET, quickbooksWebPage)
+    app.route('/quickbooks/localhost.crt', GET, localhostCertificate)
+    app.route('/localhost.crt', GET, localhostCertificate)
+    app.route('/help', GET, helpREST)
+    app.route('/about', GET, about)
+    app.route('/', GET, indexPageREST)
+    if server == "cgi":
+        # catch a non-REST interface by cgi Interface (may be a cgi app exe module, etc)
+        app.route('<cgiAppPath:path>', GETorPOST, cgiInterface)
+    if server == "wsgi":
+        return app
+    elif server == "cgi":
+        if sys.stdin is None:
+            sys.stdin = open(os.devnull, 'r')
+        app.run(server=server)
+        sys.exit(0)
+    elif server:
+        app.run(host=host, port=port or 80, server=server)
+    else:
+        app.run(host=host, port=port or 80)
+        
+def cgiInterface(cgiAppPath):
+    # route request according to content
+    #with open(r"c:\temp\tracecgi.log", "at", encoding="utf-8") as fh:
+    #    fh.write("trace 2 arg={}\n".format(cgiAppPath))
+    if not request.query:  # no parameters, index page
+        return indexPageCGI()
+    elif 'about' in request.query:
+        return about(cgiAppPath + "?image=arelle32.gif")
+    elif 'help' in request.query:
+        return helpREST()
+    elif 'image' in request.query:
+        return image(request.query.image)
+    else:
+        return indexPageCGI()
+            
+    
 def login_form():
     """Request for a login form (get to */rest/login*).  Corresponds to login from other providers of XBRL validation services, but 
     this version of Arelle does not perform accounting or charges for validation requests, so the login is ignored.
@@ -46,7 +118,6 @@ def login_form():
                 <tr><td>&nbsp;</td><td><input type="submit" value="Submit" /></td></tr>
                 </table></form></body></html>''')
     
-@post('/rest/login')
 def login_submit():
     """Login of fields from login form (post to */rest/login*).  Saves user ID for future use.
     
@@ -69,7 +140,6 @@ def checkLogin(_user, _password):
     user = _user
     return True
 
-@get('/rest/logout')
 def logout():
     """Request to log out (get */rest/logout*).  Removes any proior user ID from session.
     
@@ -79,15 +149,13 @@ def logout():
     user = None
     return _("<p>You are logged out.</p>")
 
-@route('/favicon.ico')
 def arelleIcon():
     """Request for icon for URL display (get */favicon.ico*).
     
     :returns: ico -- Icon file for browsers
     """
-    return static_file("arelle.ico", root=imagesDir)
+    return static_file("arelle.ico", root=imagesDir, mimetype='image/vnd.microsoft.icon')
 
-@route('/images/<imgFile>')
 def image(imgFile):
     """Request for an image file for URL display (get */images/<imgFile>*).
     
@@ -98,6 +166,9 @@ def image(imgFile):
 validationOptions = {
     # these options have no value (after + in query)
     "efm": ("validateEFM", True),
+    "efm-pragmatic": ("disclosureSystemName", "efm-pragmatic"),
+    "efm-strict": ("disclosureSystemName", "efm-strict"),
+    "disclosure-system": ("disclosureSystemName", None),
     "ifrs": ("gfmName", "ifrs"),
     "hmrc": ("gfmName", "hmrc"),
     "sbr-nl": ("gfmName", "sbr-nl"),
@@ -114,25 +185,7 @@ class Options():
             setattr(self, option, defaultValue)
             
 supportedViews = {'DTS', 'concepts', 'pre', 'cal', 'dim', 'facts', 'factTable', 'formulae', 'roleTypes', 'arcroleTypes'}
-GETorPOST = ('GET', 'POST')
 
-@route('/rest/xbrl/<file:path>/open', method=GETorPOST)
-@route('/rest/xbrl/<file:path>/close', method=GETorPOST)
-@route('/rest/xbrl/<file:path>/validation/xbrl', method=GETorPOST)
-@route('/rest/xbrl/<file:path>/DTS', method=GETorPOST)
-@route('/rest/xbrl/<file:path>/concepts', method=GETorPOST)
-@route('/rest/xbrl/<file:path>/pre', method=GETorPOST)
-@route('/rest/xbrl/<file:path>/cal', method=GETorPOST)
-@route('/rest/xbrl/<file:path>/dim', method=GETorPOST)
-@route('/rest/xbrl/<file:path>/facts', method=GETorPOST)
-@route('/rest/xbrl/<file:path>/factTable', method=GETorPOST)
-@route('/rest/xbrl/<file:path>/roleTypes', method=GETorPOST)
-@route('/rest/xbrl/<file:path>/arcroleTypes', method=GETorPOST)
-@route('/rest/xbrl/<file:path>/formulae', method=GETorPOST)
-@route('/rest/xbrl/validation', method=GETorPOST)
-@route('/rest/xbrl/view', method=GETorPOST)
-@route('/rest/xbrl/open', method=GETorPOST)
-@route('/rest/xbrl/close', method=GETorPOST)
 def validation(file=None):
     """REST request to validate, by *get* or *post*, to URL patterns including */rest/xbrl/<file:path>/{open|close|validation|DTS...}*,
     and */rest/xbrl/{view|open|close}*.
@@ -246,7 +299,6 @@ def runOptionsAndGetResult(options, media, viewFile, sourceZipStream=None):
         result = htmlBody(tableRows(cntlr.logHandler.getLines(), header=_("Messages")))
     return result
 
-@route('/rest/xbrl/diff')
 def diff():
     """Execute versioning diff request for *get* request to */rest/xbrl/diff*.
     
@@ -265,7 +317,6 @@ def diff():
     response.content_type = 'text/xml; charset=UTF-8'
     return reportContents
 
-@route('/rest/configure')
 def configure():
     """Set up features for *get* requests to */rest/configure*, e.g., proxy or plug-ins.
     
@@ -284,7 +335,6 @@ def configure():
     response.content_type = 'text/html; charset=UTF-8'
     return htmlBody(tableRows(cntlr.logHandler.getLines(), header=_("Configuration Request")))
 
-@route('/rest/stopWebServer')
 def stopWebServer():
     """Stop the web server by *get* requests to */rest/stopWebServer*.
     
@@ -302,7 +352,6 @@ def stopWebServer():
                               header=_("Stop Request")))
     
     
-@route('/quickbooks/server.asmx', method='POST')
 def quickbooksServer():
     """Interface to QuickBooks server responding to  *post* requests to */quickbooks/server.asmx*.
     
@@ -313,9 +362,6 @@ def quickbooksServer():
     return CntlrQuickBooks.server(cntlr, request.body, request.urlparts)
 
 
-@route('/rest/quickbooks/<qbReport>/xbrl-gl/<file:path>')
-@route('/rest/quickbooks/<qbReport>/xbrl-gl/<file:path>/view')
-@route('/rest/quickbooks/<qbReport>/xbrl-gl/view')
 def quickbooksGLrequest(qbReport=None, file=None):
     """Initiate request to QuickBooks server for *get* requests to */rest/quickbooks/<qbReport>/xbrl-gl/...*.
     
@@ -351,8 +397,6 @@ function autoRefresh(){{location.href = "/rest/quickbooks/response?ticket={0}&me
 '''.format(ticket, media, viewRequested))
     return result
 
-    
-@route('/rest/quickbooks/response')
 def quickbooksGLresponse():
     """Poll for QuickBooks protocol responses for *get* requests to */rest/quickbooks/response*.
     
@@ -389,7 +433,6 @@ function autoRefresh(){{clearInterval(timer);self.location.reload(true);}}
     setattr(options, "factsFile", viewFile)
     return runOptionsAndGetResult(options, media, viewFile)
 
-@route('/quickbooks/server.html')
 def quickbooksWebPage():
     return htmlBody(_('''<table width="700p">
 <tr><th colspan="2">Arelle QuickBooks Global Ledger Interface</th></tr>
@@ -397,8 +440,6 @@ def quickbooksWebPage():
 <tr><td>close button</td><td>Done</td></tr>
 </table>'''))
 
-@route('/quickbooks/localhost.crt')
-@route('/localhost.crt')
 def localhostCertificate():
     """Interface to QuickBooks server responding to  *get* requests for a host certificate */quickbooks/localhost.crt* or */localhost.crt*.
     
@@ -431,8 +472,7 @@ QhpLdqly7hWJ23blbQQv4ILT2CiPDotJslcKDT7GzvPoDu6rIs2MpsB/4RDYejYU
 -----END CERTIFICATE-----
 '''
     
-@route('/help')
-def help():
+def helpREST():
     """Help web page for *get* requests to */help*.
     
     :returns: html - Table of CntlrWebMain web API
@@ -486,7 +526,11 @@ or label linkbases.  Multiple file names are separated by a '|' character.</td><
 <tr><td style="text-indent: 1em;">uiLang</td><td>User interface language to override system settings, e.g., <code>&uiLang=fr</code>.  Changes setting for current session (but not saved setting).</td></tr> 
 <tr><td style="text-indent: 1em;">calcDecimals</td><td>Specify calculation linkbase validation inferring decimals.</td></tr> 
 <tr><td style="text-indent: 1em;">calcPrecision</td><td>Specify calculation linkbase validation inferring precision.</td></tr> 
-<tr><td style="text-indent: 1em;">efm</td><td>Select Edgar Filer Manual (U.S. SEC) disclosure system validation. (Alternative to flavor parameter.)</td></tr> 
+<tr><td style="text-indent: 1em;">efm-*</td><td>Select Edgar Filer Manual (U.S. SEC) disclosure system validation. (Alternative to flavor parameter.):<br/> 
+<code>efm-pragmatic</code>: SEC-required rules, currently-allowed years<br/>
+<code>efm-strict</code>: SEC-semantic additional rules, currently-allowed years<br/>
+<code>efm-pragmatic-all-years</code>: SEC-required rules, all years<br/>
+<code>efm-strict-all-years</code>: SEC-semantic additional rules, all years</td></tr>
 <tr><td style="text-indent: 1em;">ifrs</td><td>Specify IFRS Global Filer Manual validation.</td></tr>
 <tr><td style="text-indent: 1em;">hmrc</td><td>Specify HMRC validation.</td></tr>
 <tr><td style="text-indent: 1em;">sbr-nl</td><td>Specify SBR-NL taxonomy validation.</td></tr>
@@ -619,15 +663,14 @@ Enter 'show' to view packages configuration, , or '|' separated package URLs:
 ''') if cntlr.isGAE else '') +
 '</table>')
 
-@route('/about')
-def about():
+def about(arelleImgFile=None):
     """About web page for *get* requests to */about*.
     
     :returns: html - About web page
     """
     return htmlBody(_('''<table width="700p">
 <tr><th colspan="2">About arelle</th></tr>
-<tr><td rowspan="12" style="vertical-align:top;"><img src="/images/arelle32.gif"/></td><td>arelle&reg; version: %s %sbit %s. An open source XBRL platform</td></tr>
+<tr><td rowspan="12" style="vertical-align:top;"><img src="%s"/></td><td>arelle&reg; version: %s %sbit %s. An open source XBRL platform</td></tr>
 <tr><td>&copy; 2010-2013 Mark V Systems Limited.  All rights reserved.</td></tr>
 <tr><td>Web site: <a href="http://www.arelle.org">http://www.arelle.org</a>.  
 E-mail support: <a href="mailto:support@arelle.org">support@arelle.org</a>.</td></tr>
@@ -644,10 +687,12 @@ See the License for the specific language governing permissions and limitations 
 <tr><td style="text-indent: 2.0em;">xlrd &copy; 2005-2013 Stephen J. Machin, Lingfo Pty Ltd, &copy; 2001 D. Giffin, &copy; 2000 A. Khan</td></tr>
 <tr><td style="text-indent: 2.0em;">xlwt &copy; 2007 Stephen J. Machin, Lingfo Pty Ltd, &copy; 2005 R. V. Kiseliov</td></tr>
 <tr><td style="text-indent: 2.0em;">Bottle &copy; 2011 Marcel Hellkamp</td></tr>
-</table>''') % (cntlr.__version__, cntlr.systemWordSize, Version.version) )
+</table>''') % (arelleImgFile or '/images/arelle32.gif',
+                cntlr.__version__, 
+                cntlr.systemWordSize, 
+                Version.version) )
 
-@route('/')
-def indexPage():
+def indexPageREST():
     """Index (default) web page for *get* requests to */*.
     
     :returns: html - Web page of choices to navigate to */help* or */about*.
@@ -656,6 +701,18 @@ def indexPage():
 <tr><th colspan="2">Arelle Web Services</th></tr>
 <tr><td>/help</td><td>Help web page, web services API.</td></tr>
 <tr><td>/about</td><td>About web page, copyrights, license, included software.</td></tr>
+</table>'''))
+
+def indexPageCGI():
+    """Default web page response for *get* CGI request with no parameters.
+    
+    :returns: html - Web page of choices to navigate to *?help* or *?about*.
+    """
+    return htmlBody(_('''<table width="700p">
+<tr><th colspan="2">Arelle CGI Services</th></tr>
+<tr><td>?help</td><td>Help web page, CGI services.</td></tr>
+<tr><td>?about</td><td>About web page, copyrights, license, included software.</td></tr>
+<tr><td>REST API</td><td>The Arelle REST API is supported through CGI if the entire CGI path is wildcard-mapped to the arelleCmdLine executable.</td></tr>
 </table>'''))
 
 

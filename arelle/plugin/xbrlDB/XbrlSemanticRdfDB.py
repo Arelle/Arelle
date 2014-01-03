@@ -174,7 +174,11 @@ class XRDBException(Exception):
 
 class XbrlSemanticRdfDatabaseConnection():
     def __init__(self, modelXbrl, user, password, host, port, database, timeout):
-        initRdflibNamespaces()
+        try:
+            initRdflibNamespaces()
+        except ImportError:
+            raise XRDBException("xrdfDB:MissingRdflib",
+                                _("Rdflib is not installed or is not available in this build")) 
         self.modelXbrl = modelXbrl
         self.disclosureSystem = modelXbrl.modelManager.disclosureSystem
         #self.conn = RexProConnection(host, int(port or '8182'), (database or 'emptygraph'),
