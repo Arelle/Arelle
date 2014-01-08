@@ -664,6 +664,7 @@ Enter 'show' to view packages configuration, , or '|' separated package URLs:
 '</table>')
 
 def about(arelleImgFile=None):
+    from lxml import etree
     """About web page for *get* requests to */about*.
     
     :returns: html - About web page
@@ -681,16 +682,18 @@ Unless required by applicable law or agreed to in writing, software distributed 
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  
 See the License for the specific language governing permissions and limitations under the License.</td></tr>
 <tr><td>Includes:</td><tr>
-<tr><td style="text-indent: 2.0em;">Python&reg; &copy; 2001-2010 Python Software Foundation</td></tr>
+<tr><td style="text-indent: 2.0em;">Python&reg; %s.%s.%s &copy; 2001-2010 Python Software Foundation</td></tr>
 <tr><td style="text-indent: 2.0em;">PyParsing &copy; 2003-2010 Paul T. McGuire</td></tr>
-<tr><td style="text-indent: 2.0em;">lxml &copy; 2004 Infrae, ElementTree &copy; 1999-2004 by Fredrik Lundh</td></tr>
+<tr><td style="text-indent: 2.0em;">lxml %s.%s.%s &copy; 2004 Infrae, ElementTree &copy; 1999-2004 by Fredrik Lundh</td></tr>
 <tr><td style="text-indent: 2.0em;">xlrd &copy; 2005-2013 Stephen J. Machin, Lingfo Pty Ltd, &copy; 2001 D. Giffin, &copy; 2000 A. Khan</td></tr>
 <tr><td style="text-indent: 2.0em;">xlwt &copy; 2007 Stephen J. Machin, Lingfo Pty Ltd, &copy; 2005 R. V. Kiseliov</td></tr>
 <tr><td style="text-indent: 2.0em;">Bottle &copy; 2011 Marcel Hellkamp</td></tr>
 </table>''') % (arelleImgFile or '/images/arelle32.gif',
                 cntlr.__version__, 
                 cntlr.systemWordSize, 
-                Version.version) )
+                Version.version,
+                sys.version_info[0],sys.version_info[1],sys.version_info[2], 
+                etree.LXML_VERSION[0],etree.LXML_VERSION[1],etree.LXML_VERSION[2]) )
 
 def indexPageREST():
     """Index (default) web page for *get* requests to */*.
