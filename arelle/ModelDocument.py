@@ -109,18 +109,24 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     modelXbrl.modelManager.showStatus(_("parsing {0}").format(uri))
     file = None
     try:
+        for pluginMethod in pluginClassMethods("ModelDocument.PullLoader"):
+            # assumes not possible to check file in string format or not all available at once
+            modelDocument = pluginMethod(modelXbrl, mappedUri, filepath)
+            if modelDocument is not None:
+                return modelDocument
         if (modelXbrl.modelManager.validateDisclosureSystem and 
             modelXbrl.modelManager.disclosureSystem.validateFileText):
             file, _encoding = ValidateFilingText.checkfile(modelXbrl,filepath)
         else:
             file, _encoding = modelXbrl.fileSource.file(filepath)
-        _parser, _parserLookupName, _parserLookupClass = parser(modelXbrl,filepath)
         xmlDocument = None
         isPluginParserDocument = False
         for pluginMethod in pluginClassMethods("ModelDocument.CustomLoader"):
             modelDocument = pluginMethod(modelXbrl, file, mappedUri, filepath)
             if modelDocument is not None:
+                file.close()
                 return modelDocument
+        _parser, _parserLookupName, _parserLookupClass = parser(modelXbrl,filepath)
         xmlDocument = etree.parse(file,parser=_parser,base_url=filepath)
         for error in _parser.error_log:
             modelXbrl.error("xmlSchema:syntax",
@@ -834,7 +840,7 @@ class ModelDocument:
                 self.linkbaseDiscover(self, linkbaseElement)
 
     def linkbaseDiscover(self, linkbaseElement, inInstance=False):
-        for lbElement in linkbaseElement.iterchildren():
+        for lbElement in linkbaseElement:
             if isinstance(lbElement,ModelObject):
                 lbLn = lbElement.localName
                 lbNs = lbElement.namespaceURI

@@ -55,6 +55,10 @@ class FileNamedStringIO(io.StringIO):  # provide string IO in memory but behave 
     def __init__(self, fileName, *args, **kwargs):
         super(FileNamedStringIO, self).__init__(*args, **kwargs)
         self.fileName = fileName
+        
+    def close(self):
+        del self.fileName
+        super(FileNamedStringIO, self).close()
 
     def __str__(self):
         return self.fileName
@@ -544,7 +548,7 @@ def openXmlFileStream(cntlr, filepath, stripDeclaration=False):
     # check encoding
     hdrBytes = openedFileStream.read(512)
     encoding = XmlUtil.encoding(hdrBytes)
-    if encoding.lower() in ('utf-8','utf8') and (cntlr is None or not cntlr.isGAE) and not stripDeclaration:
+    if encoding.lower() in ('utf-8','utf8','utf-8-sig') and (cntlr is None or not cntlr.isGAE) and not stripDeclaration:
         text = None
         openedFileStream.close()
     else:

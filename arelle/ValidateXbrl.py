@@ -58,6 +58,7 @@ class ValidateXbrl:
         self.validateEFM = self.validateDisclosureSystem and self.disclosureSystem.EFM
         self.validateGFM = self.validateDisclosureSystem and self.disclosureSystem.GFM
         self.validateEFMorGFM = self.validateDisclosureSystem and self.disclosureSystem.EFMorGFM
+        self.validateEBA = self.validateDisclosureSystem and self.disclosureSystem.EBA
         self.validateHMRC = self.validateDisclosureSystem and self.disclosureSystem.HMRC
         self.validateSBRNL = self.validateDisclosureSystem and self.disclosureSystem.SBRNL
         self.validateXmlLang = self.validateDisclosureSystem and self.disclosureSystem.xmlLangPattern
@@ -83,117 +84,7 @@ class ValidateXbrl:
         for baseSetExtLinks in modelXbrl.baseSets.values():
             for baseSetExtLink in baseSetExtLinks:
                 modelLinks.add(baseSetExtLink)    # ext links are unique (no dups)
-        for modelLink in modelLinks:
-            fromToArcs = {}
-            locLabels = {}
-            resourceLabels = {}
-            resourceArcTos = []
-            for arcElt in modelLink.iterchildren():
-                if isinstance(arcElt,ModelObject):
-                    xlinkType = arcElt.get("{http://www.w3.org/1999/xlink}type")
-                    # locator must have an href
-                    if xlinkType == "locator":
-                        if arcElt.get("{http://www.w3.org/1999/xlink}href") is None:
-                            modelXbrl.error("xlink:locatorHref",
-                                _("Xlink locator %(xlinkLabel)s missing href in extended link %(linkrole)s"),
-                                modelObject=arcElt,
-                                linkrole=modelLink.role, 
-                                xlinkLabel=arcElt.get("{http://www.w3.org/1999/xlink}label")) 
-                        locLabels[arcElt.get("{http://www.w3.org/1999/xlink}label")] = arcElt
-                    elif xlinkType == "resource":
-                        resourceLabels[arcElt.get("{http://www.w3.org/1999/xlink}label")] = arcElt
-                    # can be no duplicated arcs between same from and to
-                    elif xlinkType == "arc":
-                        fromLabel = arcElt.get("{http://www.w3.org/1999/xlink}from")
-                        toLabel = arcElt.get("{http://www.w3.org/1999/xlink}to")
-                        fromTo = (fromLabel,toLabel)
-                        if fromTo in fromToArcs:
-                            modelXbrl.error("xlink:dupArcs",
-                                _("Duplicate xlink arcs  in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s"),
-                                modelObject=arcElt,
-                                linkrole=modelLink.role, 
-                                xlinkLabelFrom=fromLabel, xlinkLabelTo=toLabel)
-                        else:
-                            fromToArcs[fromTo] = arcElt
-                        if arcElt.namespaceURI == XbrlConst.link:
-                            if arcElt.localName in arcNamesTo21Resource: #("labelArc","referenceArc"):
-                                resourceArcTos.append((toLabel, arcElt.get("use"), arcElt))
-                        elif self.isGenericArc(arcElt):
-                            arcrole = arcElt.get("{http://www.w3.org/1999/xlink}arcrole")
-                            self.genericArcArcroles.add(arcrole)
-                            if arcrole in (XbrlConst.elementLabel, XbrlConst.elementReference):
-                                resourceArcTos.append((toLabel, arcrole, arcElt))
-                    # values of type (not needed for validating parsers)
-                    if xlinkType not in xlinkTypeValues: # ("", "simple", "extended", "locator", "arc", "resource", "title", "none"):
-                        modelXbrl.error("xlink:type",
-                            _("Xlink type %(xlinkType)s invalid in extended link %(linkrole)s"),
-                            modelObject=arcElt, linkrole=modelLink.role, xlinkType=xlinkType)
-                    # values of actuate (not needed for validating parsers)
-                    xlinkActuate = arcElt.get("{http://www.w3.org/1999/xlink}actuate")
-                    if xlinkActuate not in xlinkActuateValues: # ("", "onLoad", "onRequest", "other", "none"):
-                        modelXbrl.error("xlink:actuate",
-                            _("Actuate %(xlinkActuate)s invalid in extended link %(linkrole)s"),
-                            modelObject=arcElt, linkrole=modelLink.role, xlinkActuate=xlinkActuate)
-                    # values of show (not needed for validating parsers)
-                    xlinkShow = arcElt.get("{http://www.w3.org/1999/xlink}show")
-                    if xlinkShow not in xlinkShowValues: # ("", "new", "replace", "embed", "other", "none"):
-                        modelXbrl.error("xlink:show",
-                            _("Show %(xlinkShow)s invalid in extended link %(linkrole)s"),
-                            modelObject=arcElt, linkrole=modelLink.role, xlinkShow=xlinkShow)
-            # check from, to of arcs have a resource or loc
-            for fromTo, arcElt in fromToArcs.items():
-                fromLabel, toLabel = fromTo
-                for name, value, sect in (("from", fromLabel, "3.5.3.9.2"),("to",toLabel, "3.5.3.9.3")):
-                    if value not in locLabels and value not in resourceLabels:
-                        modelXbrl.error("xbrl.{0}:arcResource".format(sect),
-                            _("Arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s attribute '%(attribute)s' has no matching loc or resource label"),
-                            modelObject=arcElt, 
-                            linkrole=modelLink.role, xlinkLabelFrom=fromLabel, xlinkLabelTo=toLabel, 
-                            attribute=name,
-                            messageCodes=("xbrl.3.5.3.9.2:arcResource", "xbrl.3.5.3.9.3:arcResource"))
-                if arcElt.localName == "footnoteArc" and arcElt.namespaceURI == XbrlConst.link and \
-                   arcElt.get("{http://www.w3.org/1999/xlink}arcrole") == XbrlConst.factFootnote:
-                    if fromLabel not in locLabels:
-                        modelXbrl.error("xbrl.4.11.1.3.1:factFootnoteArcFrom",
-                            _("Footnote arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s \"from\" is not a loc"),
-                            modelObject=arcElt, 
-                            linkrole=modelLink.role, xlinkLabelFrom=fromLabel, xlinkLabelTo=toLabel)
-                    if toLabel not in resourceLabels or qname(resourceLabels[toLabel]) != XbrlConst.qnLinkFootnote:
-                        modelXbrl.error("xbrl.4.11.1.3.1:factFootnoteArcTo",
-                            _("Footnote arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s \"to\" is not a footnote resource"),
-                            modelObject=arcElt, 
-                            linkrole=modelLink.role, xlinkLabelFrom=fromLabel, xlinkLabelTo=toLabel)
-            # check unprohibited label arcs to remote locs
-            for resourceArcTo in resourceArcTos:
-                resourceArcToLabel, resourceArcUse, arcElt = resourceArcTo
-                if resourceArcToLabel in locLabels:
-                    toLabel = locLabels[resourceArcToLabel]
-                    if resourceArcUse == "prohibited":
-                        self.remoteResourceLocElements.add(toLabel)
-                    else:
-                        modelXbrl.error("xbrl.5.2.2.3:labelArcRemoteResource",
-                            _("Unprohibited labelArc in extended link %(linkrole)s has illegal remote resource loc labeled %(xlinkLabel)s href %(xlinkHref)s"),
-                            modelObject=arcElt, 
-                            linkrole=modelLink.role, 
-                            xlinkLabel=resourceArcToLabel,
-                            xlinkHref=toLabel.get("{http://www.w3.org/1999/xlink}href"))
-                elif resourceArcToLabel in resourceLabels:
-                    toResource = resourceLabels[resourceArcToLabel]
-                    if resourceArcUse == XbrlConst.elementLabel:
-                        if not self.isGenericLabel(toResource):
-                            modelXbrl.error("xbrlle.2.1.1:genericLabelTarget",
-                                _("Generic label arc in extended link %(linkrole)s to %(xlinkLabel)s must target a generic label"),
-                                modelObject=arcElt, 
-                                linkrole=modelLink.role, 
-                                xlinkLabel=resourceArcToLabel)
-                    elif resourceArcUse == XbrlConst.elementReference:
-                        if not self.isGenericReference(toResource):
-                            modelXbrl.error("xbrlre.2.1.1:genericReferenceTarget",
-                                _("Generic reference arc in extended link %(linkrole)s to %(xlinkLabel)s must target a generic reference"),
-                                modelObject=arcElt, 
-                                linkrole=modelLink.role, 
-                                xlinkLabel=resourceArcToLabel)
-            resourceArcTos = None # dereference arcs
+        self.checkLinks(modelLinks)
         modelXbrl.profileStat(_("validateLinks"))
 
         modelXbrl.dimensionDefaultConcepts = {}
@@ -331,45 +222,11 @@ class ValidateXbrl:
         if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or \
            modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
             self.checkFacts(modelXbrl.facts)
-                        
-            #instance checks
-            for cntx in modelXbrl.contexts.values():
-                if cntx.isStartEndPeriod:
-                    try: # if no datetime value would have been a schema error at loading time
-                        if (cntx.endDatetime is not None and cntx.startDatetime is not None and
-                            cntx.endDatetime <= cntx.startDatetime):
-                            self.modelXbrl.error("xbrl.4.7.2:periodStartBeforeEnd",
-                                _("Context %(contextID)s must have startDate less than endDate"),
-                                modelObject=cntx, contextID=cntx.id)
-                    except (TypeError, ValueError) as err:
-                        self.modelXbrl.error("xbrl.4.7.2:contextDateError",
-                            _("Context %(contextID) startDate or endDate: %(error)s"),
-                            modelObject=cntx, contextID=cntx.id, error=err)
-                elif cntx.isInstantPeriod:
-                    try:
-                        cntx.instantDatetime #parse field
-                    except ValueError as err:
-                        self.modelXbrl.error("xbrl.4.7.2:contextDateError",
-                            _("Context %(contextID)s instant date: %(error)s"),
-                            modelObject=cntx, contextID=cntx.id, error=err)
-                self.segmentScenario(cntx.segment, cntx.id, "segment", "4.7.3.2")
-                self.segmentScenario(cntx.scenario, cntx.id, "scenario", "4.7.4")
-                
-            for unit in modelXbrl.units.values():
-                mulDivMeasures = unit.measures
-                if mulDivMeasures:
-                    for measures in mulDivMeasures:
-                        for measure in measures:
-                            if measure.namespaceURI == XbrlConst.xbrli and not \
-                                measure in (XbrlConst.qnXbrliPure, XbrlConst.qnXbrliShares):
-                                    self.modelXbrl.error("xbrl.4.8.2:measureElement",
-                                        _("Unit %(unitID)s illegal measure: %(measure)s"),
-                                        modelObject=unit, unitID=unit.id, measure=measure)
-                    for numeratorMeasure in mulDivMeasures[0]:
-                        if numeratorMeasure in mulDivMeasures[1]:
-                            self.modelXbrl.error("xbrl.4.8.4:measureBothNumDenom",
-                                _("Unit %(unitID)s numerator measure: %(measure)s also appears as denominator measure"),
-                                modelObject=unit, unitID=unit.id, measure=numeratorMeasure)
+            for cntx in self.modelXbrl.contexts.values():
+                self.checkContext(cntx)
+            for unit in self.modelXbrl.units.values():
+                self.checkUnit(unit)
+
             modelXbrl.profileStat(_("validateInstance"))
 
             if modelXbrl.hasXDT:            
@@ -645,6 +502,119 @@ class ValidateXbrl:
 
         modelXbrl.modelManager.showStatus(_("ready"), 2000)
         
+    def checkLinks(self, modelLinks):
+        for modelLink in modelLinks:
+            fromToArcs = {}
+            locLabels = {}
+            resourceLabels = {}
+            resourceArcTos = []
+            for arcElt in modelLink.iterchildren():
+                if isinstance(arcElt,ModelObject):
+                    xlinkType = arcElt.get("{http://www.w3.org/1999/xlink}type")
+                    # locator must have an href
+                    if xlinkType == "locator":
+                        if arcElt.get("{http://www.w3.org/1999/xlink}href") is None:
+                            self.modelXbrl.error("xlink:locatorHref",
+                                _("Xlink locator %(xlinkLabel)s missing href in extended link %(linkrole)s"),
+                                modelObject=arcElt,
+                                linkrole=modelLink.role, 
+                                xlinkLabel=arcElt.get("{http://www.w3.org/1999/xlink}label")) 
+                        locLabels[arcElt.get("{http://www.w3.org/1999/xlink}label")] = arcElt
+                    elif xlinkType == "resource":
+                        resourceLabels[arcElt.get("{http://www.w3.org/1999/xlink}label")] = arcElt
+                    # can be no duplicated arcs between same from and to
+                    elif xlinkType == "arc":
+                        fromLabel = arcElt.get("{http://www.w3.org/1999/xlink}from")
+                        toLabel = arcElt.get("{http://www.w3.org/1999/xlink}to")
+                        fromTo = (fromLabel,toLabel)
+                        if fromTo in fromToArcs:
+                            self.modelXbrl.error("xlink:dupArcs",
+                                _("Duplicate xlink arcs  in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s"),
+                                modelObject=arcElt,
+                                linkrole=modelLink.role, 
+                                xlinkLabelFrom=fromLabel, xlinkLabelTo=toLabel)
+                        else:
+                            fromToArcs[fromTo] = arcElt
+                        if arcElt.namespaceURI == XbrlConst.link:
+                            if arcElt.localName in arcNamesTo21Resource: #("labelArc","referenceArc"):
+                                resourceArcTos.append((toLabel, arcElt.get("use"), arcElt))
+                        elif self.isGenericArc(arcElt):
+                            arcrole = arcElt.get("{http://www.w3.org/1999/xlink}arcrole")
+                            self.genericArcArcroles.add(arcrole)
+                            if arcrole in (XbrlConst.elementLabel, XbrlConst.elementReference):
+                                resourceArcTos.append((toLabel, arcrole, arcElt))
+                    # values of type (not needed for validating parsers)
+                    if xlinkType not in xlinkTypeValues: # ("", "simple", "extended", "locator", "arc", "resource", "title", "none"):
+                        self.modelXbrl.error("xlink:type",
+                            _("Xlink type %(xlinkType)s invalid in extended link %(linkrole)s"),
+                            modelObject=arcElt, linkrole=modelLink.role, xlinkType=xlinkType)
+                    # values of actuate (not needed for validating parsers)
+                    xlinkActuate = arcElt.get("{http://www.w3.org/1999/xlink}actuate")
+                    if xlinkActuate not in xlinkActuateValues: # ("", "onLoad", "onRequest", "other", "none"):
+                        self.modelXbrl.error("xlink:actuate",
+                            _("Actuate %(xlinkActuate)s invalid in extended link %(linkrole)s"),
+                            modelObject=arcElt, linkrole=modelLink.role, xlinkActuate=xlinkActuate)
+                    # values of show (not needed for validating parsers)
+                    xlinkShow = arcElt.get("{http://www.w3.org/1999/xlink}show")
+                    if xlinkShow not in xlinkShowValues: # ("", "new", "replace", "embed", "other", "none"):
+                        self.modelXbrl.error("xlink:show",
+                            _("Show %(xlinkShow)s invalid in extended link %(linkrole)s"),
+                            modelObject=arcElt, linkrole=modelLink.role, xlinkShow=xlinkShow)
+            # check from, to of arcs have a resource or loc
+            for fromTo, arcElt in fromToArcs.items():
+                fromLabel, toLabel = fromTo
+                for name, value, sect in (("from", fromLabel, "3.5.3.9.2"),("to",toLabel, "3.5.3.9.3")):
+                    if value not in locLabels and value not in resourceLabels:
+                        self.modelXbrl.error("xbrl.{0}:arcResource".format(sect),
+                            _("Arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s attribute '%(attribute)s' has no matching loc or resource label"),
+                            modelObject=arcElt, 
+                            linkrole=modelLink.role, xlinkLabelFrom=fromLabel, xlinkLabelTo=toLabel, 
+                            attribute=name,
+                            messageCodes=("xbrl.3.5.3.9.2:arcResource", "xbrl.3.5.3.9.3:arcResource"))
+                if arcElt.localName == "footnoteArc" and arcElt.namespaceURI == XbrlConst.link and \
+                   arcElt.get("{http://www.w3.org/1999/xlink}arcrole") == XbrlConst.factFootnote:
+                    if fromLabel not in locLabels:
+                        self.modelXbrl.error("xbrl.4.11.1.3.1:factFootnoteArcFrom",
+                            _("Footnote arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s \"from\" is not a loc"),
+                            modelObject=arcElt, 
+                            linkrole=modelLink.role, xlinkLabelFrom=fromLabel, xlinkLabelTo=toLabel)
+                    if toLabel not in resourceLabels or qname(resourceLabels[toLabel]) != XbrlConst.qnLinkFootnote:
+                        self.modelXbrl.error("xbrl.4.11.1.3.1:factFootnoteArcTo",
+                            _("Footnote arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s \"to\" is not a footnote resource"),
+                            modelObject=arcElt, 
+                            linkrole=modelLink.role, xlinkLabelFrom=fromLabel, xlinkLabelTo=toLabel)
+            # check unprohibited label arcs to remote locs
+            for resourceArcTo in resourceArcTos:
+                resourceArcToLabel, resourceArcUse, arcElt = resourceArcTo
+                if resourceArcToLabel in locLabels:
+                    toLabel = locLabels[resourceArcToLabel]
+                    if resourceArcUse == "prohibited":
+                        self.remoteResourceLocElements.add(toLabel)
+                    else:
+                        self.modelXbrl.error("xbrl.5.2.2.3:labelArcRemoteResource",
+                            _("Unprohibited labelArc in extended link %(linkrole)s has illegal remote resource loc labeled %(xlinkLabel)s href %(xlinkHref)s"),
+                            modelObject=arcElt, 
+                            linkrole=modelLink.role, 
+                            xlinkLabel=resourceArcToLabel,
+                            xlinkHref=toLabel.get("{http://www.w3.org/1999/xlink}href"))
+                elif resourceArcToLabel in resourceLabels:
+                    toResource = resourceLabels[resourceArcToLabel]
+                    if resourceArcUse == XbrlConst.elementLabel:
+                        if not self.isGenericLabel(toResource):
+                            self.modelXbrl.error("xbrlle.2.1.1:genericLabelTarget",
+                                _("Generic label arc in extended link %(linkrole)s to %(xlinkLabel)s must target a generic label"),
+                                modelObject=arcElt, 
+                                linkrole=modelLink.role, 
+                                xlinkLabel=resourceArcToLabel)
+                    elif resourceArcUse == XbrlConst.elementReference:
+                        if not self.isGenericReference(toResource):
+                            self.modelXbrl.error("xbrlre.2.1.1:genericReferenceTarget",
+                                _("Generic reference arc in extended link %(linkrole)s to %(xlinkLabel)s must target a generic reference"),
+                                modelObject=arcElt, 
+                                linkrole=modelLink.role, 
+                                xlinkLabel=resourceArcToLabel)
+            resourceArcTos = None # dereference arcs
+        
     def checkFacts(self, facts, inTuple=None):  # do in document order
         for f in facts:
             concept = f.concept
@@ -829,7 +799,45 @@ class ValidateXbrl:
                     _("Inline XBRL at order %(order)s has non-matching content %(value)s"),
                     modelObject=(prevTupleFact, f), order=f.order, value=prevTupleFact.textValue.strip())
                 
-                        
+    def checkContext(self, cntx):
+        if cntx.isStartEndPeriod:
+            try: # if no datetime value would have been a schema error at loading time
+                if (cntx.endDatetime is not None and cntx.startDatetime is not None and
+                    cntx.endDatetime <= cntx.startDatetime):
+                    self.modelXbrl.error("xbrl.4.7.2:periodStartBeforeEnd",
+                        _("Context %(contextID)s must have startDate less than endDate"),
+                        modelObject=cntx, contextID=cntx.id)
+            except (TypeError, ValueError) as err:
+                self.modelXbrl.error("xbrl.4.7.2:contextDateError",
+                    _("Context %(contextID) startDate or endDate: %(error)s"),
+                    modelObject=cntx, contextID=cntx.id, error=err)
+        elif cntx.isInstantPeriod:
+            try:
+                cntx.instantDatetime #parse field
+            except ValueError as err:
+                self.modelXbrl.error("xbrl.4.7.2:contextDateError",
+                    _("Context %(contextID)s instant date: %(error)s"),
+                    modelObject=cntx, contextID=cntx.id, error=err)
+        self.segmentScenario(cntx.segment, cntx.id, "segment", "4.7.3.2")
+        self.segmentScenario(cntx.scenario, cntx.id, "scenario", "4.7.4")
+                
+    def checkUnit(self, unit):
+        mulDivMeasures = unit.measures
+        if mulDivMeasures:
+            for measures in mulDivMeasures:
+                for measure in measures:
+                    if measure.namespaceURI == XbrlConst.xbrli and not \
+                        measure in (XbrlConst.qnXbrliPure, XbrlConst.qnXbrliShares):
+                            self.modelXbrl.error("xbrl.4.8.2:measureElement",
+                                _("Unit %(unitID)s illegal measure: %(measure)s"),
+                                modelObject=unit, unitID=unit.id, measure=measure)
+            for numeratorMeasure in mulDivMeasures[0]:
+                if numeratorMeasure in mulDivMeasures[1]:
+                    self.modelXbrl.error("xbrl.4.8.4:measureBothNumDenom",
+                        _("Unit %(unitID)s numerator measure: %(measure)s also appears as denominator measure"),
+                        modelObject=unit, unitID=unit.id, measure=numeratorMeasure)        
+    
+        
     def fwdCycle(self, relsSet, rels, noUndirected, fromConcepts, cycleType="directed", revCycleRel=None):
         for rel in rels:
             if revCycleRel is not None and rel.isIdenticalTo(revCycleRel):
