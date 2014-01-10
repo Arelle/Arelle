@@ -33,7 +33,7 @@
 """
 from collections import defaultdict
 from lxml import etree
-from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue
+from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue, XmlValidate
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from math import isnan
@@ -406,7 +406,7 @@ class ModelFact(ModelObject):
             unmatchedFactsStack.append(self)
         if self.isItem:
             if (self == other or
-                self.qname != other or
+                self.qname != other.qname or
                 self.parentElement.qname != other.parentElement.qname):
                 return False    # can't be identical
             # parent test can only be done if in same instauce
@@ -1085,7 +1085,11 @@ class ModelDimensionValue(ModelObject):
     @property
     def dimensionQname(self):
         """(QName) -- QName of the dimension concept"""
-        return self.prefixedNameQname(self.get("dimension"))
+        dimAttr = self.xAttributes.get("dimension", None)
+        if dimAttr is not None and dimAttr.xValid >= XmlValidate.VALID:
+            return dimAttr.xValue
+        return None
+        #return self.prefixedNameQname(self.get("dimension"))
         
     @property
     def dimension(self):
@@ -1123,7 +1127,11 @@ class ModelDimensionValue(ModelObject):
         try:
             return self._memberQname
         except AttributeError:
-            self._memberQname = self.prefixedNameQname(self.textValue) if self.isExplicit else None
+            if self.isExplicit and self.xValid >= XmlValidate.VALID:
+                self._memberQname = self.xValue
+            else:
+                self._memberQname = None
+            #self._memberQname = self.prefixedNameQname(self.textValue) if self.isExplicit else None
             return self._memberQname
         
     @property

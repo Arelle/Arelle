@@ -125,12 +125,10 @@ class ModelObject(etree.ElementBase):
         return emptySet
 
     def setNamespaceLocalName(self):
-        ns, sep, ln = self.tag.partition("}")
+        ns, sep, self._localName = self.tag.rpartition("}")
         if sep:
-            self._localName = ln
             self._namespaceURI = ns[1:]
         else:
-            self._localName = ns
             self._namespaceURI = None
         if self.prefix:
             self._prefixedName = self.prefix + ":" + self.localName
@@ -181,7 +179,7 @@ class ModelObject(etree.ElementBase):
         try:
             return self._elementQname
         except AttributeError:
-            self._elementQname = qname(self)
+            self._elementQname = QName(self.prefix, self.namespaceURI, self.localName)
             return self._elementQname
         
     # qname is overridden for concept, type, attribute, and formula parameter, elementQname is unambiguous
@@ -251,7 +249,7 @@ class ModelObject(etree.ElementBase):
         :returns: QName -- the resolved prefixed name, or None if no prefixed name was provided
         """
         if prefixedName:    # passing None would return element qname, not prefixedName None Qname
-            return qname(self, prefixedName)
+            return qnameEltPfxName(self, prefixedName)
         else:
             return None
     
@@ -331,7 +329,7 @@ class ModelObject(etree.ElementBase):
     def __repr__(self):
         return ("{0}[{1}, {2} line {3})".format(type(self).__name__, self.objectIndex, self.modelDocument.basename, self.sourceline))
 
-from arelle.ModelValue import qname
+from arelle.ModelValue import qname, qnameEltPfxName, QName
     
 class ModelComment(etree.CommentBase):
     """ModelConcept is a custom proxy objects for etree.

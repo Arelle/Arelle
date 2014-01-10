@@ -14,7 +14,7 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
     # value can be prefix:localname (and localname omitted)
     # for xpath qnames which do not take default namespace if no prefix, specify noPrefixIsNoNamespace
     if isinstance(value, ModelObject):
-        if name:
+        if name: # name is prefixed name
             element = value  # may be an attribute
             value = name
             name = None
@@ -32,11 +32,10 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
     elif not isinstance(value,_STR_BASE):
         if castException: raise castException
         return None
-    if value.startswith('{'): # clark notation (with optional prefix)
-        namespaceURI,sep,prefixedLocalName = value[1:].partition('}')
-        prefix,sep,localName = prefixedLocalName.partition(':')
-        if len(localName) == 0:
-            localName = prefix
+    if value and value[0] == '{': # clark notation (with optional prefix)
+        namespaceURI,sep,prefixedLocalName = value[1:].rpartition('}')
+        prefix,sep,localName = prefixedLocalName.rpartition(':')
+        if not sep:
             prefix = None
         namespaceDict = None
     else:
@@ -53,11 +52,9 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
         else:
             namespaceURI = None
             namespaceDict = None
-        prefix,sep,localName = value.strip().partition(":")  # must be whitespace collapsed
-        if len(localName) == 0:
-            #default namespace
-            localName = prefix
-            prefix = None
+        prefix,sep,localName = value.strip().rpartition(":")  # must be whitespace collapsed
+        if not prefix:
+            prefix = None # don't want '' but instead None if no prefix
             if noPrefixIsNoNamespace:
                 return QName(None, None, localName)
     if namespaceURI:
@@ -65,16 +62,41 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
     elif namespaceDict and prefix in namespaceDict:
         return QName(prefix, namespaceDict[prefix], localName)
     elif element is not None:
-        global XmlUtil
-        if XmlUtil is None:
-            from arelle import XmlUtil
-        namespaceURI = XmlUtil.xmlns(element, prefix)
+        # same as XmlUtil.xmlns but local for efficiency
+        namespaceURI = element.nsmap.get(prefix)
+        if not namespaceURI and prefix == 'xml':
+            namespaceURI = "http://www.w3.org/XML/1998/namespace"
     if not namespaceURI:
         if prefix: 
             if prefixException: raise prefixException
             return None  # error, prefix not found
-    if not namespaceURI:
         namespaceURI = None # cancel namespace if it is a zero length string
+    return QName(prefix, namespaceURI, localName)
+
+def qnameNsLocalName(namespaceURI, localName):  # does not handle localNames with prefix
+    return QName(None, namespaceURI or None, localName)
+
+def qnameClarkName(clarkname):  # does not handle clark names with prefix
+    if clarkname and clarkname[0] == '{': # clark notation (with optional prefix)
+        namespaceURI,sep,localName = clarkname[1:].rpartition('}')
+        return QName(None, namespaceURI or None, localName)
+    else:
+        return QName(None, None, clarkname)
+
+def qnameEltPfxName(element, prefixedName, prefixException=None):
+    prefix,sep,localName = prefixedName.rpartition(':')
+    if not prefix:
+        prefix = None # don't want '' but instead None if no prefix
+    namespaceURI = element.nsmap.get(prefix)
+    if not namespaceURI:
+        if prefix:
+            if prefix == 'xml':
+                namespaceURI = "http://www.w3.org/XML/1998/namespace"
+            else:
+                if prefixException: raise prefixException
+                return None
+        else:
+            namespaceURI = None # cancel namespace if it is a zero length string
     return QName(prefix, namespaceURI, localName)
 
 class QName:
@@ -83,7 +105,7 @@ class QName:
         self.prefix = prefix
         self.namespaceURI = namespaceURI
         self.localName = localName
-        self.qnameValueHash = ((hash(namespaceURI) * 1000003) & 0xffffffff) ^ hash(localName)
+        self.qnameValueHash = hash( (namespaceURI, localName) )
     def __hash__(self):
         return self.qnameValueHash
     @property
@@ -100,6 +122,11 @@ class QName:
         else:
             return self.localName
     def __eq__(self,other):
+        try:
+            return (self.qnameValueHash == other.qnameValueHash and 
+                    self.namespaceURI == other.namespaceURI and self.localName == other.localName)
+        except AttributeError:
+            return False
         ''' don't think this is used any longer
         if isinstance(other,_STR_BASE):
             # only compare nsnames {namespace}localname format, if other has same hash
@@ -110,6 +137,7 @@ class QName:
         elif isinstance(other,ModelObject):
             return self.namespaceURI == other.namespaceURI and self.localName == other.localName
         '''
+        '''
         try:
             return (self.qnameValueHash == other.qnameValueHash and 
                     self.namespaceURI == other.namespaceURI and self.localName == other.localName)
@@ -119,7 +147,7 @@ class QName:
             except AttributeError:
                 return False
         return False
-    
+        '''
     def __ne__(self,other):
         return not self.__eq__(other)
     def __lt__(self,other):

@@ -49,6 +49,7 @@ class DisclosureSystem:
         self.EFMorGFM = False
         self.HMRC = False
         self.SBRNL = False
+        self.EBA = False
         self.validateFileText = False
         self.schemaValidateSchema = None
         self.blockDisallowedReferences = False
@@ -126,6 +127,7 @@ class DisclosureSystem:
                             self.EFMorGFM = self.EFM or self.GFM
                             self.HMRC = self.validationType == "HMRC"
                             self.SBRNL = self.validationType == "SBR-NL"
+                            self.EBA = self.validationType == "EBA"
                             self.validateFileText = dsElt.get("validateFileText") == "true"
                             self.blockDisallowedReferences = dsElt.get("blockDisallowedReferences") == "true"
                             try:

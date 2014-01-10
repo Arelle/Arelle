@@ -54,7 +54,7 @@ def parsePackage(mainWin, metadataFile):
         for m in tree.iter(tag=tag):
             prefixValue = m.get(prefixAttr)
             replaceValue = m.get(replaceAttr)
-            if prefixValue and replaceValue:
+            if prefixValue and replaceValue is not None:
                 remappings[prefixValue] = replaceValue
 
     pkg["remappings"] = remappings

@@ -169,7 +169,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         modelXbrl.error(type(err).__name__,
                 _("Unrecoverable error: %(error)s, %(fileName)s, %(sourceAction)s source element"),
                 modelObject=referringElement, fileName=os.path.basename(uri), 
-                error=str(err), sourceAction=("including" if isIncluded else "importing"))
+                error=str(err), sourceAction=("including" if isIncluded else "importing"), exc_info=True)
         modelXbrl.urlUnloadableDocs[normalizedUri] = True  # not loadable due to exception issue
         return None
     
@@ -634,21 +634,26 @@ class ModelDocument:
         
     @property
     def creationSoftwareComment(self):
-        # first try for comments before root element
-        initialComment = ''
-        node = self.xmlRootElement
-        while node.getprevious() is not None:
-            node = node.getprevious()
-            if isinstance(node, ModelComment):
-                initialComment = node.text + '\n' + initialComment
-        if initialComment:
-            return initialComment
-        for i, node in enumerate(self.xmlDocument.iter()):
-            if isinstance(node, ModelComment):
-                return node.text
-            if i > 10:  # give up, no heading comment
-                break
-        return None
+        try:
+            return self._creationSoftwareComment
+        except AttributeError:
+            # first try for comments before root element
+            initialComment = ''
+            node = self.xmlRootElement
+            while node.getprevious() is not None:
+                node = node.getprevious()
+                if isinstance(node, ModelComment):
+                    initialComment = node.text + '\n' + initialComment
+            if initialComment:
+                self._creationSoftwareComment = initialComment
+            else:
+                self._creationSoftwareComment = None
+                for i, node in enumerate(self.xmlDocument.iter()):
+                    if isinstance(node, ModelComment):
+                        self._creationSoftwareComment = node.text
+                    if i > 10:  # give up, no heading comment
+                        break
+            return self._creationSoftwareComment
     
     @property
     def creationSoftware(self):
@@ -952,8 +957,8 @@ class ModelDocument:
     def instanceDiscover(self, xbrlElement):
         self.schemaLinkbaseRefsDiscover(xbrlElement)
         self.linkbaseDiscover(xbrlElement,inInstance=True) # for role/arcroleRefs and footnoteLinks
-        self.instanceContentsDiscover(xbrlElement)
         XmlValidate.validate(self.modelXbrl, xbrlElement) # validate instance elements
+        self.instanceContentsDiscover(xbrlElement)
 
     def instanceContentsDiscover(self,xbrlElement):
         nextUndefinedFact = len(self.modelXbrl.undefinedFacts)

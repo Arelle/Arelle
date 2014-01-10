@@ -197,7 +197,7 @@ class ModelNamableTerm(ModelObject):
         :returns: QName -- the resolved prefixed name, or None if no prefixed name was provided
         """
         if prefixedName:    # passing None would return element qname, not prefixedName None Qname
-            qn = ModelValue.qname(self, prefixedName, prefixException=prefixException)
+            qn = ModelValue.qnameEltPfxName(self, prefixedName, prefixException=prefixException)
             # may be in an included file with no target namespace
             # a ref to local attribute or element wihich is qualified MAY need to assume targetNamespace
             if qn and not qn.namespaceURI and self.modelDocument.noTargetNamespace and not isQualifiedForm:

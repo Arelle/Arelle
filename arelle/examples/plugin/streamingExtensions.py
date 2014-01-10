@@ -4,7 +4,7 @@ that provides an alternative approach to big instance documents without building
 memory footprint.  lxml iterparse is used to parse the big instance.  ModelObjects are specialized by features
 for efficiency and to avoid dependency on an underlying DOM.
 
-(Note that this module is based on a parser target, an alternate based on iterparse is under examples/plugin.)
+(Note that this module is based on iterparse, the module under the installation/plugs is much faster.)
 
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
@@ -24,10 +24,6 @@ from arelle.Validate import Validate
 _streamingExtensionsValidate = False
 _streamingExtensionsCheck = False
     
-class NotInstanceDocumentException(Exception):
-    def __init__(self):
-        pass
-
 def precedingProcessingInstruction(elt, target):
     pi = elt.getprevious()
     while pi is not None:
@@ -36,86 +32,27 @@ def precedingProcessingInstruction(elt, target):
         pi = pi.getprevious()
     return None
 
-def precedingComment(elt):
-    c = elt.getprevious()
-    comment = ''
-    while c is not None:
-        if isinstance(c, etree._Comment) and c.text:
-            comment = c.text + '\n' + comment
-        c = c.getprevious()
-    return comment or None
-
-def streamingExtensionsLoader2(modelXbrl, mappedUri, filepath):
+def streamingExtensionsLoader(modelXbrl, mappedUri, filepath):
     # check if big instance and has header with an initial incomplete tree walk (just 2 elements
     def logSyntaxErrors(parsercontext):
         for error in parsercontext.error_log:
             modelXbrl.error("xmlSchema:syntax",
                     _("%(error)s, %(fileName)s, line %(line)s, column %(column)s, %(sourceAction)s source element"),
-                    modelObject=modelXbrl, fileName=os.path.basename(filepath), 
+                    modelObject=modelDocument, fileName=os.path.basename(filepath), 
                     error=error.message, line=error.line, column=error.column, sourceAction="streaming")
     #### note: written for iterparse of lxml prior to version 3.3, otherwise rewrite to use XmlPullParser ###
     #### note: iterparse wants a binary file, but file is text mode
     _file, = modelXbrl.fileSource.file(filepath, binary=True)
     startedAt = time.time()
     modelXbrl.profileActivity()
-    ''' this seems twice as slow as iterparse
-    class instInfoTarget():
-        def __init__(self, element_factory=None, parser=None):
-            self.newTree = True
-            self.streamingAspects = None
-            self.foundInstance = False
-            self.creationSoftwareComment = ''
-            self.currentEltTag = "(before xbrli:xbrl)"
-            self.numRootFacts = 0
-        def start(self, tag, attrib, nsmap=None):
-            if self.newTree:
-                if tag == "{http://www.xbrl.org/2003/instance}xbrl":
-                    self.foundInstance = True
-                    self.newTree = False
-                else: # break 
-                    raise NotInstanceDocumentException()
-            elif not tag.startswith("{http://www.xbrl.org/"):
-                self.numRootFacts += 1
-                if self.numRootFacts % 1000 == 0:
-                    modelXbrl.profileActivity("... streaming tree check", minTimeToShow=20.0)
-            self.currentEltTag = tag
-        def end(self, tag):
-            pass
-        def data(self, data):
-            pass
-        def comment(self, text):
-            if not self.foundInstance: # accumulate comments before xbrli:xbrl
-                self.creationSoftwareComment += ('\n' if self.creationSoftwareComment else '') + text
-            elif not self.creationSoftwareComment:
-                self.creationSoftwareComment = text # or first comment after xbrli:xbrl
-        def pi(self, target, data):
-            if target == "xbrl-streamable-instance":
-                if self.currentEltTag == "{http://www.xbrl.org/2003/instance}xbrl":
-                    self.streamingAspects = dict(etree.PI(target,data).attrib.copy()) # dereference target results
-                else:
-                    modelXbrl.error("streamingExtensions:headerMisplaced",
-                            _("Header is misplaced: %(target)s, must follow xbrli:xbrl element but was found at %(element)s"),
-                            modelObject=modelXbrl, target=target, element=self.currentEltTag)
-        def close(self):
-            if not self.creationSoftwareComment:
-                self.creationSoftwareComment = None
-            return True
-    instInfo = instInfoTarget()
-    infoParser = etree.XMLParser(recover=True, huge_tree=True, target=instInfo)
-    try:
-        etree.parse(_file, parser=infoParser, base_url=filepath)
-    except NotInstanceDocumentException:
-        pass
-    '''
-    foundErrors = False
+    parsercontext = etree.iterparse(_file, events=("start","end"), huge_tree=True)
     foundInstance = False
+    foundErrors = False
     streamingAspects = None
-    creationSoftwareComment = None
-    instInfoNumRootFacts = 0
+    numRootFacts1 = 0
     numElts = 0
     elt = None
-    instInfoContext = etree.iterparse(_file, events=("start","end"), huge_tree=True)
-    for event, elt in instInfoContext:
+    for event, elt in parsercontext:
         if event == "start":
             if elt.getparent() is not None:
                 if elt.getparent().tag == "{http://www.xbrl.org/2003/instance}xbrl":
@@ -126,20 +63,16 @@ def streamingExtensionsLoader2(modelXbrl, mappedUri, filepath):
                             break
                         else:
                             streamingAspects = dict(pi.attrib.copy())
-                            if creationSoftwareComment is None:
-                                creationSoftwareComment = precedingComment(elt)
                     if not elt.tag.startswith("{http://www.xbrl.org/"):
-                        instInfoNumRootFacts += 1
-                        if instInfoNumRootFacts % 1000 == 0:
+                        numRootFacts1 += 1
+                        if numRootFacts1 % 1000 == 0:
                             modelXbrl.profileActivity("... streaming tree check", minTimeToShow=20.0)
                 elif not foundInstance:       
                     break
-            elif elt.tag == "{http://www.xbrl.org/2003/instance}xbrl":
-                creationSoftwareComment = precedingComment(elt)
-                if precedingProcessingInstruction(elt, "xbrl-streamable-instance") is not None:
-                    modelXbrl.error("streamingExtensions:headerMisplaced",
-                            _("Header is misplaced: %(error)s, must follow xbrli:xbrl element"),
-                            modelObject=elt)
+            elif elt.tag == "{http://www.xbrl.org/2003/instance}xbrl" and precedingProcessingInstruction(elt, "xbrl-streamable-instance") is not None:
+                modelXbrl.error("streamingExtensions:headerMisplaced",
+                        _("Header is misplaced: %(error)s, must follow xbrli:xbrl element"),
+                        modelObject=elt)
         elif event == "end":
             elt.clear()
             numElts += 1
@@ -148,10 +81,9 @@ def streamingExtensionsLoader2(modelXbrl, mappedUri, filepath):
                     del elt.getparent()[0]
     if elt is not None:
         elt.clear()
-    
     _file.seek(0,io.SEEK_SET) # allow reparsing
     if not foundInstance or streamingAspects is None:
-        del elt
+        del elt, parsercontext
         _file.close()
         return None
     modelXbrl.profileStat(_("streaming tree check"), time.time() - startedAt)
@@ -184,80 +116,64 @@ def streamingExtensionsLoader2(modelXbrl, mappedUri, filepath):
                     _("Streaming %(attrib)s %(value)s, number must be a positive integer or INF"),
                     modelObject=elt, attrib=bufAspect, value=streamingAspects.get(bufAspect))
             foundErrors = True
-    if instInfoContext.error_log:
+    if parsercontext.error_log:
         foundErrors = True
-    logSyntaxErrors(instInfoContext)
-    del instInfoContext # dereference
+    logSyntaxErrors(parsercontext)
     
     if foundErrors:
         _file.close()
         return None
-
-    _encoding = XmlUtil.encoding(_file.read(512))
-    _file.seek(0,io.SEEK_SET) # allow reparsing
-
+    parsercontext = etree.iterparse(_file, events=("start","end"), huge_tree=True)
+    _parser, _parserLookupName, _parserLookupClass = parser(modelXbrl,filepath)
     eltMdlObjs = {}
+    beforeInstanceStream = True
+    validator = None
     contextBuffer = []
     unitBuffer = []
     footnoteBuffer = []
     factBuffer = []
-    numFacts = 1
-    
-    class modelLoaderTarget():
-        def __init__(self, element_factory=None, parser=None):
-            self.newTree = True
-            self.currentMdlObj = None
-            self.beforeInstanceStream = True
-            self.numRootFacts = 1
-            self.validator = None
-        def start(self, tag, attrib, nsmap=None):
-            mdlObj = _parser.makeelement(tag, attrib=attrib, nsmap=nsmap)
-            mdlObj.sourceline = 1
-            if self.newTree:
-                self.newTree = False
-                self.currentMdlObj = mdlObj
-                modelDocument = ModelDocument(modelXbrl, Type.INSTANCE, mappedUri, filepath, mdlObj.getroottree())
+    numFacts = numRootFacts2 = 1
+    for event, elt in parsercontext:
+        if event == "start":
+            mdlObj = _parser.makeelement(elt.tag, attrib=elt.attrib, nsmap=elt.nsmap)
+            mdlObj.sourceline = elt.sourceline
+            eltMdlObjs[elt] = mdlObj
+            if elt.getparent() is None:
+                modelDocument = ModelDocument(modelXbrl, Type.INSTANCE, mappedUri, filepath, etree.ElementTree(mdlObj))
+                modelDocument.xmlRootElement = mdlObj
                 modelXbrl.modelDocument = modelDocument # needed for incremental validation
                 mdlObj.init(modelDocument)
-                modelDocument.parser = _parser # needed for XmlUtil addChild's makeelement 
-                modelDocument.parserLookupName = _parserLookupName
-                modelDocument.parserLookupClass = _parserLookupClass
-                modelDocument.xmlRootElement = mdlObj
-                modelDocument.schemaLocationElements.add(mdlObj)
-                modelDocument.documentEncoding = _encoding
-                modelDocument._creationSoftwareComment = creationSoftwareComment
                 modelXbrl.info("streamingExtensions:streaming",
                                _("Stream processing this instance."),
                                modelObject = modelDocument)    
             else:
-                self.currentMdlObj.append(mdlObj)
-                self.currentMdlObj = mdlObj
+                eltMdlObjs[elt.getparent()].append(mdlObj)
                 mdlObj._init()
                 ns = mdlObj.namespaceURI
                 ln = mdlObj.localName
-                if (self.beforeInstanceStream and (
+                if (beforeInstanceStream and (
                     (ns == XbrlConst.link and ln not in ("schemaRef", "linkbaseRef")) or
                     (ns == XbrlConst.xbrli and ln in ("context", "unit")) or
                     (ns not in (XbrlConst.link, XbrlConst.xbrli)))):
-                    self.beforeInstanceStream = False
+                    beforeInstanceStream = False
                     if _streamingExtensionsValidate:
-                        self.validator = Validate(modelXbrl)
-                        self.validator.instValidator.validate(modelXbrl, modelXbrl.modelManager.formulaOptions.typedParameters())
+                        validator = Validate(modelXbrl)
+                        validator.instValidator.validate(modelXbrl, modelXbrl.modelManager.formulaOptions.typedParameters())
                     else: # need default dimensions
                         ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
-            return mdlObj
-        def end(self, tag):
-            modelDocument = modelXbrl.modelDocument
-            mdlObj = self.currentMdlObj
-            parentMdlObj = mdlObj.getparent()
-            self.currentMdlObj = parentMdlObj
+            mdlObj = None # deref
+                        
+        elif event == "end":
+            mdlObj = eltMdlObjs.pop(elt)
+            if elt.text: # text available after child nodes processed
+                mdlObj.text = elt.text
             ns = mdlObj.namespaceURI
             ln = mdlObj.localName
+            parentMdlObj = mdlObj.getparent()
             if ns == XbrlConst.xbrli:
                 if ln == "context":
                     if mdlObj.get("sticky"):
                         del mdlObj.attrib["sticky"]
-                        XmlValidate.validate(modelXbrl, mdlObj)
                         modelDocument.contextDiscover(mdlObj)
                     else:
                         if _streamingExtensionsValidate and len(contextBuffer) >= contextBufferLimit:
@@ -266,15 +182,14 @@ def streamingExtensionsLoader2(modelXbrl, mappedUri, filepath):
                             dropContext(modelXbrl, cntx)
                             del parentMdlObj[parentMdlObj.index(cntx)]
                             cntx = None
-                        XmlValidate.validate(modelXbrl, mdlObj)
                         modelDocument.contextDiscover(mdlObj)
                         if contextBufferLimit.is_finite():
                             contextBuffer.append(mdlObj)
                     if _streamingExtensionsValidate:
                         contextsToCheck = (mdlObj,)
-                        self.validator.instValidator.checkContexts(contextsToCheck)
+                        validator.instValidator.checkContexts(contextsToCheck)
                         if modelXbrl.hasXDT:
-                            self.validator.instValidator.checkContextsDimensions(contextsToCheck)
+                            validator.instValidator.checkContextsDimensions(contextsToCheck)
                         del contextsToCheck # dereference
                 elif ln == "unit":
                     if _streamingExtensionsValidate and len(unitBuffer) >= unitBufferLimit:
@@ -283,29 +198,28 @@ def streamingExtensionsLoader2(modelXbrl, mappedUri, filepath):
                         dropUnit(modelXbrl, unit)
                         del parentMdlObj[parentMdlObj.index(unit)]
                         unit = None 
-                    XmlValidate.validate(modelXbrl, mdlObj)
                     modelDocument.unitDiscover(mdlObj)
                     if unitBufferLimit.is_finite():
                         unitBuffer.append(mdlObj)
                     if _streamingExtensionsValidate:
-                        self.validator.instValidator.checkUnits( (mdlObj,) )
+                        validator.instValidator.checkUnits( (mdlObj,) )
                 elif ln == "xbrl": # end of document
                     # check remaining footnote refs
                     for footnoteLink in footnoteBuffer:
                         checkFootnoteHrefs(modelXbrl, footnoteLink)
+                elt.clear()
             elif ns == XbrlConst.link:
                 if ln in ("schemaRef", "linkbaseRef"):
                     modelDocument.discoverHref(mdlObj)
                 elif ln in ("roleRef", "arcroleRef"):
                     modelDocument.linkbaseDiscover((mdlObj,), inInstance=True)
                 elif ln == "footnoteLink":
-                    XmlValidate.validate(modelXbrl, mdlObj)
                     footnoteLinks = (mdlObj,)
                     modelDocument.linkbaseDiscover(footnoteLinks, inInstance=True)
                     if footnoteBufferLimit.is_finite():
                         footnoteBuffer.append(mdlObj)
                     if _streamingExtensionsValidate:
-                        self.validator.instValidator.checkLinks(footnoteLinks)
+                        validator.instValidator.checkLinks(footnoteLinks)
                         if len(footnoteBuffer) > footnoteBufferLimit:
                             # check that hrefObjects for locators were all satisfied
                                 # drop before addition as dropped may have same id as added
@@ -315,40 +229,34 @@ def streamingExtensionsLoader2(modelXbrl, mappedUri, filepath):
                             del parentMdlObj[parentMdlObj.index(footnoteLink)]
                             footnoteLink = None
                     footnoteLinks = None
+                elt.clear()
             elif parentMdlObj.qname == XbrlConst.qnXbrliXbrl:
-                self.numRootFacts += 1
-                XmlValidate.validate(modelXbrl, mdlObj)
+                numRootFacts2 += 1
                 modelDocument.factDiscover(mdlObj, modelXbrl.facts)
+                XmlValidate.validate(modelXbrl, mdlObj)
                 if _streamingExtensionsValidate:
                     factsToCheck = (mdlObj,)
-                    self.validator.instValidator.checkFacts(factsToCheck)
-                    #if modelXbrl.hasXDT:
-                    #    self.validator.instValidator.checkFactsDimensions(factsToCheck)
+                    validator.instValidator.checkFacts(factsToCheck)
+                    if modelXbrl.hasXDT:
+                        validator.instValidator.checkFactsDimensions(factsToCheck)
                     del factsToCheck
                     dropFact(modelXbrl, mdlObj, modelXbrl.facts)
                     del parentMdlObj[parentMdlObj.index(mdlObj)]
-                if self.numRootFacts % 1000 == 0:
-                    modelXbrl.profileActivity("... streaming fact {0} of {1} {2:.2f}%".format(self.numRootFacts, instInfoNumRootFacts, 
-                                                                                              100.0 * self.numRootFacts / instInfoNumRootFacts), 
+                if numRootFacts2 % 1000 == 0:
+                    modelXbrl.profileActivity("... streaming fact {0} of {1} {2:.2f}%".format(numRootFacts2, numRootFacts1, 100.0 * numRootFacts2 / numRootFacts1), 
                                               minTimeToShow=20.0)
-            return mdlObj
-        def data(self, data):
-            self.currentMdlObj.text = data
-        def comment(self, text):
-            pass
-        def pi(self, target, data):
-            pass
-        def close(self):
-            if self.validator is not None:
-                self.validator.close()
-            return None
-        
-    _parser, _parserLookupName, _parserLookupClass = parser(modelXbrl, filepath, target=modelLoaderTarget())
-    etree.parse(_file, parser=_parser, base_url=filepath)
-    logSyntaxErrors(_parser)
+                # get rid of root element from iterparse's tree
+                elt.clear()
+                while elt.getprevious() is not None:  # cleans up any prior siblings
+                    del elt.getparent()[0]
+            mdlObj = None # deref
+    logSyntaxErrors(parsercontext)
+    del parsercontext
+    if validator is not None:
+        validator.close()
     _file.close()
     modelXbrl.profileStat(_("streaming complete"), time.time() - startedAt)
-    return modelXbrl.modelDocument
+    return modelDocument
 
 def checkFootnoteHrefs(modelXbrl, footnoteLink):
     for locElt in footnoteLink.iterchildren(tag="{http://www.xbrl.org/2003/linkbase}loc"):
@@ -394,13 +302,13 @@ def dropObject(modelXbrl, mdlObj):
     mdlObj.modelDocument.idObjects.pop(mdlObj.id, None)
     mdlObj.clear()
 
-def streamingOptionsExtender2(parser):
+def streamingOptionsExtender(parser):
     parser.add_option("--check-streaming", 
                       action="store_true", 
                       dest="check_streaming", 
                       help=_('Check streamability of instance document."'))
 
-def streamingExtensionsSetup2(self, options, **kwargs):
+def streamingExtensionsSetup(self, options, **kwargs):
     global _streamingExtensionsCheck, _streamingExtensionsValidate
     _streamingExtensionsCheck = getattr(options, 'check_streaming', False)
     _streamingExtensionsValidate = options.validate
@@ -412,7 +320,7 @@ def streamingExtensionsSetup2(self, options, **kwargs):
 '''
 
 __pluginInfo__ = {
-    'name': 'Streaming Extensions Loader 2',
+    'name': 'Streaming Extensions Loader',
     'version': '0.9',
     'description': "This plug-in loads big XBRL instances without building a DOM in memory.  "
                     "lxml iterparse parses XBRL directly into an object model without a DOM.  ",
@@ -420,7 +328,7 @@ __pluginInfo__ = {
     'author': 'Mark V Systems Limited',
     'copyright': '(c) Copyright 2014 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
-    'CntlrCmdLine.Options': streamingOptionsExtender2,
-    'CntlrCmdLine.Utility.Run': streamingExtensionsSetup2,
-    'ModelDocument.PullLoader': streamingExtensionsLoader2,
+    'CntlrCmdLine.Options': streamingOptionsExtender,
+    'CntlrCmdLine.Utility.Run': streamingExtensionsSetup,
+    'ModelDocument.PullLoader': streamingExtensionsLoader,
 }

@@ -222,10 +222,8 @@ class ValidateXbrl:
         if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or \
            modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
             self.checkFacts(modelXbrl.facts)
-            for cntx in self.modelXbrl.contexts.values():
-                self.checkContext(cntx)
-            for unit in self.modelXbrl.units.values():
-                self.checkUnit(unit)
+            self.checkContexts(self.modelXbrl.contexts.values())
+            self.checkUnits(self.modelXbrl.units.values())
 
             modelXbrl.profileStat(_("validateInstance"))
 
@@ -240,9 +238,8 @@ class ValidateXbrl:
                     ValidateXbrlDimensions.checkFact(self, f, dimCheckableFacts)
                 del dimCheckableFacts
                 '''
-                self.checkFactDimensions(modelXbrl.facts) # check fact dimensions in document order
-                for cntx in modelXbrl.contexts.values():
-                    ValidateXbrlDimensions.checkContext(self,cntx)
+                self.checkFactsDimensions(modelXbrl.facts) # check fact dimensions in document order
+                self.checkContextsDimensions(modelXbrl.contexts.values())
                 modelXbrl.profileStat(_("validateDimensions"))
                     
         # dimensional validity
@@ -578,7 +575,7 @@ class ValidateXbrl:
                             _("Footnote arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s \"from\" is not a loc"),
                             modelObject=arcElt, 
                             linkrole=modelLink.role, xlinkLabelFrom=fromLabel, xlinkLabelTo=toLabel)
-                    if toLabel not in resourceLabels or qname(resourceLabels[toLabel]) != XbrlConst.qnLinkFootnote:
+                    if toLabel not in resourceLabels or resourceLabels[toLabel].qname != XbrlConst.qnLinkFootnote:
                         self.modelXbrl.error("xbrl.4.11.1.3.1:factFootnoteArcTo",
                             _("Footnote arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s \"to\" is not a footnote resource"),
                             modelObject=arcElt, 
@@ -758,13 +755,13 @@ class ValidateXbrl:
             #for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Fact"):
             #    pluginXbrlMethod(self, f)
                 
-    def checkFactDimensions(self, facts): # check fact dimensions in document order
+    def checkFactsDimensions(self, facts): # check fact dimensions in document order
         for f in facts:
             if f.concept.isItem and f.context is not None:
                 ValidateXbrlDimensions.checkFact(self, f)
             elif f.modelTupleFacts:
-                self.checkFactDimensions(f.modelTupleFacts)
-        
+                self.checkFactsDimensions(f.modelTupleFacts)
+                
     def checkIxTupleContent(self, tf, parentTuples):
         if tf.isNil:
             if tf.modelTupleFacts:
@@ -799,43 +796,49 @@ class ValidateXbrl:
                     _("Inline XBRL at order %(order)s has non-matching content %(value)s"),
                     modelObject=(prevTupleFact, f), order=f.order, value=prevTupleFact.textValue.strip())
                 
-    def checkContext(self, cntx):
-        if cntx.isStartEndPeriod:
-            try: # if no datetime value would have been a schema error at loading time
-                if (cntx.endDatetime is not None and cntx.startDatetime is not None and
-                    cntx.endDatetime <= cntx.startDatetime):
-                    self.modelXbrl.error("xbrl.4.7.2:periodStartBeforeEnd",
-                        _("Context %(contextID)s must have startDate less than endDate"),
-                        modelObject=cntx, contextID=cntx.id)
-            except (TypeError, ValueError) as err:
-                self.modelXbrl.error("xbrl.4.7.2:contextDateError",
-                    _("Context %(contextID) startDate or endDate: %(error)s"),
-                    modelObject=cntx, contextID=cntx.id, error=err)
-        elif cntx.isInstantPeriod:
-            try:
-                cntx.instantDatetime #parse field
-            except ValueError as err:
-                self.modelXbrl.error("xbrl.4.7.2:contextDateError",
-                    _("Context %(contextID)s instant date: %(error)s"),
-                    modelObject=cntx, contextID=cntx.id, error=err)
-        self.segmentScenario(cntx.segment, cntx.id, "segment", "4.7.3.2")
-        self.segmentScenario(cntx.scenario, cntx.id, "scenario", "4.7.4")
+    def checkContexts(self, contexts):
+        for cntx in contexts:
+            if cntx.isStartEndPeriod:
+                try: # if no datetime value would have been a schema error at loading time
+                    if (cntx.endDatetime is not None and cntx.startDatetime is not None and
+                        cntx.endDatetime <= cntx.startDatetime):
+                        self.modelXbrl.error("xbrl.4.7.2:periodStartBeforeEnd",
+                            _("Context %(contextID)s must have startDate less than endDate"),
+                            modelObject=cntx, contextID=cntx.id)
+                except (TypeError, ValueError) as err:
+                    self.modelXbrl.error("xbrl.4.7.2:contextDateError",
+                        _("Context %(contextID) startDate or endDate: %(error)s"),
+                        modelObject=cntx, contextID=cntx.id, error=err)
+            elif cntx.isInstantPeriod:
+                try:
+                    cntx.instantDatetime #parse field
+                except ValueError as err:
+                    self.modelXbrl.error("xbrl.4.7.2:contextDateError",
+                        _("Context %(contextID)s instant date: %(error)s"),
+                        modelObject=cntx, contextID=cntx.id, error=err)
+            self.segmentScenario(cntx.segment, cntx.id, "segment", "4.7.3.2")
+            self.segmentScenario(cntx.scenario, cntx.id, "scenario", "4.7.4")
                 
-    def checkUnit(self, unit):
-        mulDivMeasures = unit.measures
-        if mulDivMeasures:
-            for measures in mulDivMeasures:
-                for measure in measures:
-                    if measure.namespaceURI == XbrlConst.xbrli and not \
-                        measure in (XbrlConst.qnXbrliPure, XbrlConst.qnXbrliShares):
-                            self.modelXbrl.error("xbrl.4.8.2:measureElement",
-                                _("Unit %(unitID)s illegal measure: %(measure)s"),
-                                modelObject=unit, unitID=unit.id, measure=measure)
-            for numeratorMeasure in mulDivMeasures[0]:
-                if numeratorMeasure in mulDivMeasures[1]:
-                    self.modelXbrl.error("xbrl.4.8.4:measureBothNumDenom",
-                        _("Unit %(unitID)s numerator measure: %(measure)s also appears as denominator measure"),
-                        modelObject=unit, unitID=unit.id, measure=numeratorMeasure)        
+    def checkContextsDimensions(self, contexts):
+        for cntx in contexts:
+            ValidateXbrlDimensions.checkContext(self,cntx)
+        
+    def checkUnits(self, units):
+        for unit in units:
+            mulDivMeasures = unit.measures
+            if mulDivMeasures:
+                for measures in mulDivMeasures:
+                    for measure in measures:
+                        if measure.namespaceURI == XbrlConst.xbrli and not \
+                            measure in (XbrlConst.qnXbrliPure, XbrlConst.qnXbrliShares):
+                                self.modelXbrl.error("xbrl.4.8.2:measureElement",
+                                    _("Unit %(unitID)s illegal measure: %(measure)s"),
+                                    modelObject=unit, unitID=unit.id, measure=measure)
+                for numeratorMeasure in mulDivMeasures[0]:
+                    if numeratorMeasure in mulDivMeasures[1]:
+                        self.modelXbrl.error("xbrl.4.8.4:measureBothNumDenom",
+                            _("Unit %(unitID)s numerator measure: %(measure)s also appears as denominator measure"),
+                            modelObject=unit, unitID=unit.id, measure=numeratorMeasure)        
     
         
     def fwdCycle(self, relsSet, rels, noUndirected, fromConcepts, cycleType="directed", revCycleRel=None):
@@ -890,7 +893,7 @@ class ValidateXbrl:
                     modelObject=element, contextID=contextId, contextElement=name, elementName=element.prefixedName,
                     messageCodes=("xbrl.4.7.3.2:segmentXbrliElement", "xbrl.4.7.4:scenarioXbrliElement"))
             else:
-                concept = self.modelXbrl.qnameConcepts.get(qname(element))
+                concept = self.modelXbrl.qnameConcepts.get(element.qname)
                 if concept is not None and (concept.isItem or concept.isTuple):
                     self.modelXbrl.error("xbrl.{0}:{1}ItemOrTuple".format(sect,name),
                         _("Context %(contextID)s %(contextElement)s cannot have item or tuple element %(elementName)s"),
@@ -908,7 +911,7 @@ class ValidateXbrl:
                 messageCodes=("xbrl.4.7.3.2:segmentEmpty", "xbrl.4.7.4:scenarioEmpty"))
         
     def isGenericObject(self, elt, genQname):
-        return self.modelXbrl.isInSubstitutionGroup(qname(elt),genQname)
+        return self.modelXbrl.isInSubstitutionGroup(elt.qname,genQname)
     
     def isGenericLink(self, elt):
         return self.isGenericObject(elt, XbrlConst.qnGenLink)

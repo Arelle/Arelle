@@ -7,7 +7,9 @@ Created on Feb 20, 2011
 import os, re
 from decimal import Decimal, InvalidOperation
 from arelle import XbrlConst, XmlUtil
-from arelle.ModelValue import qname, dateTime, DATE, DATETIME, DATEUNION, anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay
+from arelle.ModelValue import (qname, qnameEltPfxName, qnameClarkName, 
+                               dateTime, DATE, DATETIME, DATEUNION, 
+                               anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay)
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle import UrlUtil
 validateElementSequence = None  #dynamic import to break dependency loops
@@ -148,7 +150,8 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
         # validate attributes
         # find missing attributes for default values
         for attrTag, attrValue in elt.items():
-            qn = qname(attrTag, noPrefixIsNoNamespace=True)
+            qn = qnameClarkName(attrTag)
+            #qn = qname(attrTag, noPrefixIsNoNamespace=True)
             baseXsdAttrType = None
             facets = None
             if attrQname is not None: # validate all attributes and element
@@ -181,6 +184,9 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                         baseXsdAttrType = "NCName"
                     elif attrTag in {"default", "fixed", "form"}:
                         baseXsdAttrType = "string"
+                elif elt.namespaceURI == "http://xbrl.org/2006/xbrldi":
+                    if attrTag == "dimension":
+                        baseXsdAttrType = "QName"
                 elif qn in predefinedAttributeTypes:
                     baseXsdAttrType, facets = predefinedAttributeTypes[qn]
             validateValue(modelXbrl, elt, attrTag, baseXsdAttrType, attrValue, facets=facets)
@@ -367,7 +373,8 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                         xValue = sValue = False
                     else: raise ValueError
                 elif baseXsdType == "QName":
-                    xValue = qname(elt, value, castException=ValueError, prefixException=ValueError)
+                    xValue = qnameEltPfxName(elt, value, prefixException=ValueError)
+                    #xValue = qname(elt, value, castException=ValueError, prefixException=ValueError)
                     sValue = value
                     ''' not sure here, how are explicitDimensions validated, but bad units not?
                     if xValue.namespaceURI in modelXbrl.namespaceDocs:

@@ -619,7 +619,7 @@ def checkElements(val, modelDocument, parent):
             xlinkRole = elt.get("{http://www.w3.org/1999/xlink}role")
             if elt.namespaceURI == XbrlConst.link:
                 if elt.localName == "linkbase":
-                    if elt.parentQname not in (None, XbrlConst.qnXsdAppinfo):
+                    if elt.parentQname is not None and elt.parentQname != XbrlConst.qnXsdAppinfo:
                         val.modelXbrl.error("xbrl.5.2:linkbaseRootElement",
                             "Linkbase must be a root element or child of appinfo, and may not be nested in %(parent)s",
                             parent=elt.parentQname,
@@ -797,7 +797,7 @@ def checkElements(val, modelDocument, parent):
                                 _("Generic resource role %(xlinkRole)s is missing a roleRef"),
                                 modelObject=elt, xlinkRole=xlinkRole)
                     modelsRole = val.modelXbrl.roleTypes.get(xlinkRole)
-                    if modelsRole is None or len(modelsRole) == 0 or qname(elt) not in modelsRole[0].usedOns:
+                    if modelsRole is None or len(modelsRole) == 0 or elt.qname not in modelsRole[0].usedOns:
                         if XbrlConst.isStandardResourceOrExtLinkElement(elt):
                             val.modelXbrl.error("xbrl.5.1.3.4:custRoleUsedOn",
                                 _("Role %(xlinkRole)s missing usedOn for %(element)s"),
@@ -841,7 +841,7 @@ def checkElements(val, modelDocument, parent):
                                 _("Generic arc arcrole %(arcrole)s is missing an arcroleRef"),
                                 modelObject=elt, element=elt.qname, arcrole=arcrole)
                     modelsRole = val.modelXbrl.arcroleTypes.get(arcrole)
-                    if modelsRole is None or len(modelsRole) == 0 or qname(elt) not in modelsRole[0].usedOns:
+                    if modelsRole is None or len(modelsRole) == 0 or elt.qname not in modelsRole[0].usedOns:
                         if XbrlConst.isStandardArcInExtLinkElement(elt):
                             val.modelXbrl.error("xbrl.5.1.4.5:custArcroleUsedOn",
                                 _("Arcrole %(arcrole)s missing usedOn for %(element)s"),

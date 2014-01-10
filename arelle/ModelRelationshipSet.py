@@ -121,7 +121,6 @@ class ModelRelationshipSet:
             for linkChild in modelLink:
                 linkChildArcrole = linkChild.get("{http://www.w3.org/1999/xlink}arcrole")
                 if linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and linkChildArcrole:
-                    linkChildQname = linkChild
                     if isFootnoteRel:
                         arcs.append(linkChild)
                     elif isDimensionRel: 
@@ -134,7 +133,7 @@ class ModelRelationshipSet:
                         if XbrlConst.isTableRenderingArcrole(linkChildArcrole):
                             arcs.append(linkChild)
                     elif (linkChildArcrole in arcrole and 
-                          (arcqname is None or arcqname == linkChildQname) and 
+                          (arcqname is None or arcqname == linkChild.qname) and 
                           (linkqname is None or linkqname == linkEltQname)):
                         arcs.append(linkChild)
                         

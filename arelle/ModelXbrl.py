@@ -586,8 +586,8 @@ class ModelXbrl:
                 scenarioElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "scenario")
             XmlUtil.copyNodes(scenarioElt, scenOCCs)
                 
-        self.modelDocument.contextDiscover(newCntxElt)
         XmlValidate.validate(self, newCntxElt)
+        self.modelDocument.contextDiscover(newCntxElt)
         return newCntxElt
         
         
@@ -639,8 +639,8 @@ class ModelXbrl:
                 XmlUtil.addChild(numElt, XbrlConst.xbrli, "measure", text=XmlUtil.addQnameValue(xbrlElt, multiply))
             for divide in divideBy:
                 XmlUtil.addChild(denElt, XbrlConst.xbrli, "measure", text=XmlUtil.addQnameValue(xbrlElt, divide))
-        self.modelDocument.unitDiscover(newUnitElt)
         XmlValidate.validate(self, newUnitElt)
+        self.modelDocument.unitDiscover(newUnitElt)
         return newUnitElt
     
     @property
@@ -781,8 +781,8 @@ class ModelXbrl:
         if parent is None: parent = self.modelDocument.xmlRootElement
         newFact = XmlUtil.addChild(parent, conceptQname, attributes=attributes, text=text,
                                    afterSibling=afterSibling, beforeSibling=beforeSibling)
-        self.modelDocument.factDiscover(newFact, parentElement=parent)
         XmlValidate.validate(self, newFact)
+        self.modelDocument.factDiscover(newFact, parentElement=parent)
         return newFact    
         
     def modelObject(self, objectId):
@@ -985,7 +985,7 @@ class ModelXbrl:
         :param codes: Message code or tuple/list of message codes
         :type codes: str or [str]
         :param msg: Message text string to be formatted and replaced with named parameters in **args
-        :param **args: Named arguments including modelObject, modelXbrl, or modelDocument, named arguments in msg string, and any exec_info argument.
+        :param **args: Named arguments including modelObject, modelXbrl, or modelDocument, named arguments in msg string, and any exc_info argument.
         :param messageCodes: If first parameter codes, above, is dynamically formatted, this is a documentation string of the message codes only used for extraction of the message catalog document (not used in run-time processing).
         """
         self.log('ERROR', codes, msg, **args)

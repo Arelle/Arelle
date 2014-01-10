@@ -11,7 +11,7 @@ elementSubstitutionModelClass = {}
 
 from lxml import etree
 from arelle import XbrlConst
-from arelle.ModelValue import qname
+from arelle.ModelValue import qnameNsLocalName
 from arelle.ModelDtsObject import (ModelConcept, ModelAttribute, ModelAttributeGroup, ModelType, 
                                    ModelGroupDefinition, ModelAll, ModelChoice, ModelSequence,
                                    ModelAny, ModelAnyAttribute, ModelEnumeration,
@@ -23,8 +23,8 @@ from arelle.ModelVersObject import (ModelAssignment, ModelAction, ModelNamespace
                                     ModelConceptDetailsChange, ModelRelationshipSetChange,
                                     ModelRelationshipSet, ModelRelationships)
 
-def parser(modelXbrl, baseUrl):
-    parser = etree.XMLParser(recover=True, huge_tree=True)
+def parser(modelXbrl, baseUrl, target=None):
+    parser = etree.XMLParser(recover=True, huge_tree=True, target=target)
     classLookup = DiscoveringClassLookup(modelXbrl, baseUrl)
     nsNameLookup = KnownNamespacesModelObjectClassLookup(modelXbrl, fallback=classLookup)
     parser.set_element_class_lookup(nsNameLookup)
@@ -105,7 +105,7 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
                 
             # match specific element types or substitution groups for types
             return self.modelXbrl.matchSubstitutionGroup(
-                                        qname(ns, ln),
+                                        qnameNsLocalName(ns, ln),
                                         elementSubstitutionModelClass)
         elif node_type == "comment":
             from arelle.ModelObject import ModelComment
@@ -141,7 +141,7 @@ class DiscoveringClassLookup(etree.PythonElementClassLookup):
                 doc = ModelDocument.loadSchemalocatedSchema(self.modelXbrl, proxyElement, relativeUrl, ns, self.baseUrl)
 
         modelObjectClass = self.modelXbrl.matchSubstitutionGroup(
-            qname(ns, ln),
+            qnameNsLocalName(ns, ln),
             elementSubstitutionModelClass)
         
         if modelObjectClass is not None:
