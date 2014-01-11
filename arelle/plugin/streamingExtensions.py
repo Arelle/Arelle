@@ -45,7 +45,7 @@ def precedingComment(elt):
         c = c.getprevious()
     return comment or None
 
-def streamingExtensionsLoader2(modelXbrl, mappedUri, filepath):
+def streamingExtensionsLoader(modelXbrl, mappedUri, filepath):
     # check if big instance and has header with an initial incomplete tree walk (just 2 elements
     def logSyntaxErrors(parsercontext):
         for error in parsercontext.error_log:
@@ -184,6 +184,25 @@ def streamingExtensionsLoader2(modelXbrl, mappedUri, filepath):
                     _("Streaming %(attrib)s %(value)s, number must be a positive integer or INF"),
                     modelObject=elt, attrib=bufAspect, value=streamingAspects.get(bufAspect))
             foundErrors = True
+    if _streamingExtensionsValidate:
+        incompatibleValidations = []
+        _validateDisclosureSystem = modelXbrl.modelManager.validateDisclosureSystem
+        _disclosureSystem = modelXbrl.modelManager.disclosureSystem
+        if _validateDisclosureSystem and _disclosureSystem.EFM:
+            incompatibleValidations.append("EFM")
+        if _validateDisclosureSystem and _disclosureSystem.GFM:
+            incompatibleValidations.append("GFM")
+        if _validateDisclosureSystem and _disclosureSystem.EBA:
+            incompatibleValidations.append("EBA")
+        if _validateDisclosureSystem and _disclosureSystem.HMRC:
+            incompatibleValidations.append("EBA")
+        if modelXbrl.modelManager.validateCalcLB:
+            incompatibleValidations.append("calculation LB")
+        if incompatibleValidations:            
+            modelXbrl.error("streamingExtensions:incompatibleValidation",
+                    _("Streaming instance validation does not support %(incompatibleValidations)s validation"),
+                    modelObject=modelXbrl, incompatibleValidations=', '.join(incompatibleValidations))
+            foundErrors = True
     if instInfoContext.error_log:
         foundErrors = True
     logSyntaxErrors(instInfoContext)
@@ -195,6 +214,10 @@ def streamingExtensionsLoader2(modelXbrl, mappedUri, filepath):
 
     _encoding = XmlUtil.encoding(_file.read(512))
     _file.seek(0,io.SEEK_SET) # allow reparsing
+
+    if _streamingExtensionsValidate:
+        validator = Validate(modelXbrl)
+        instValidator = validator.instValidator
 
     eltMdlObjs = {}
     contextBuffer = []
@@ -209,7 +232,6 @@ def streamingExtensionsLoader2(modelXbrl, mappedUri, filepath):
             self.currentMdlObj = None
             self.beforeInstanceStream = True
             self.numRootFacts = 1
-            self.validator = None
         def start(self, tag, attrib, nsmap=None):
             mdlObj = _parser.makeelement(tag, attrib=attrib, nsmap=nsmap)
             mdlObj.sourceline = 1
@@ -241,8 +263,7 @@ def streamingExtensionsLoader2(modelXbrl, mappedUri, filepath):
                     (ns not in (XbrlConst.link, XbrlConst.xbrli)))):
                     self.beforeInstanceStream = False
                     if _streamingExtensionsValidate:
-                        self.validator = Validate(modelXbrl)
-                        self.validator.instValidator.validate(modelXbrl, modelXbrl.modelManager.formulaOptions.typedParameters())
+                        instValidator.validate(modelXbrl, modelXbrl.modelManager.formulaOptions.typedParameters())
                     else: # need default dimensions
                         ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
             return mdlObj
@@ -272,9 +293,9 @@ def streamingExtensionsLoader2(modelXbrl, mappedUri, filepath):
                             contextBuffer.append(mdlObj)
                     if _streamingExtensionsValidate:
                         contextsToCheck = (mdlObj,)
-                        self.validator.instValidator.checkContexts(contextsToCheck)
+                        instValidator.checkContexts(contextsToCheck)
                         if modelXbrl.hasXDT:
-                            self.validator.instValidator.checkContextsDimensions(contextsToCheck)
+                            instValidator.checkContextsDimensions(contextsToCheck)
                         del contextsToCheck # dereference
                 elif ln == "unit":
                     if _streamingExtensionsValidate and len(unitBuffer) >= unitBufferLimit:
@@ -288,7 +309,7 @@ def streamingExtensionsLoader2(modelXbrl, mappedUri, filepath):
                     if unitBufferLimit.is_finite():
                         unitBuffer.append(mdlObj)
                     if _streamingExtensionsValidate:
-                        self.validator.instValidator.checkUnits( (mdlObj,) )
+                        instValidator.checkUnits( (mdlObj,) )
                 elif ln == "xbrl": # end of document
                     # check remaining footnote refs
                     for footnoteLink in footnoteBuffer:
@@ -305,7 +326,7 @@ def streamingExtensionsLoader2(modelXbrl, mappedUri, filepath):
                     if footnoteBufferLimit.is_finite():
                         footnoteBuffer.append(mdlObj)
                     if _streamingExtensionsValidate:
-                        self.validator.instValidator.checkLinks(footnoteLinks)
+                        instValidator.checkLinks(footnoteLinks)
                         if len(footnoteBuffer) > footnoteBufferLimit:
                             # check that hrefObjects for locators were all satisfied
                                 # drop before addition as dropped may have same id as added
@@ -321,9 +342,9 @@ def streamingExtensionsLoader2(modelXbrl, mappedUri, filepath):
                 modelDocument.factDiscover(mdlObj, modelXbrl.facts)
                 if _streamingExtensionsValidate:
                     factsToCheck = (mdlObj,)
-                    self.validator.instValidator.checkFacts(factsToCheck)
-                    #if modelXbrl.hasXDT:
-                    #    self.validator.instValidator.checkFactsDimensions(factsToCheck)
+                    instValidator.checkFacts(factsToCheck)
+                    if modelXbrl.hasXDT:
+                        instValidator.checkFactsDimensions(factsToCheck)
                     del factsToCheck
                     dropFact(modelXbrl, mdlObj, modelXbrl.facts)
                     del parentMdlObj[parentMdlObj.index(mdlObj)]
@@ -339,14 +360,16 @@ def streamingExtensionsLoader2(modelXbrl, mappedUri, filepath):
         def pi(self, target, data):
             pass
         def close(self):
-            if self.validator is not None:
-                self.validator.close()
             return None
         
     _parser, _parserLookupName, _parserLookupClass = parser(modelXbrl, filepath, target=modelLoaderTarget())
     etree.parse(_file, parser=_parser, base_url=filepath)
     logSyntaxErrors(_parser)
     _file.close()
+    if _streamingExtensionsValidate and validator is not None:
+        del instValidator
+        validator.close()
+        
     modelXbrl.profileStat(_("streaming complete"), time.time() - startedAt)
     return modelXbrl.modelDocument
 
@@ -394,13 +417,13 @@ def dropObject(modelXbrl, mdlObj):
     mdlObj.modelDocument.idObjects.pop(mdlObj.id, None)
     mdlObj.clear()
 
-def streamingOptionsExtender2(parser):
+def streamingOptionsExtender(parser):
     parser.add_option("--check-streaming", 
                       action="store_true", 
                       dest="check_streaming", 
                       help=_('Check streamability of instance document."'))
 
-def streamingExtensionsSetup2(self, options, **kwargs):
+def streamingExtensionsSetup(self, options, **kwargs):
     global _streamingExtensionsCheck, _streamingExtensionsValidate
     _streamingExtensionsCheck = getattr(options, 'check_streaming', False)
     _streamingExtensionsValidate = options.validate
@@ -412,7 +435,7 @@ def streamingExtensionsSetup2(self, options, **kwargs):
 '''
 
 __pluginInfo__ = {
-    'name': 'Streaming Extensions Loader 2',
+    'name': 'Streaming Extensions Loader',
     'version': '0.9',
     'description': "This plug-in loads big XBRL instances without building a DOM in memory.  "
                     "lxml iterparse parses XBRL directly into an object model without a DOM.  ",
@@ -420,7 +443,7 @@ __pluginInfo__ = {
     'author': 'Mark V Systems Limited',
     'copyright': '(c) Copyright 2014 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
-    'CntlrCmdLine.Options': streamingOptionsExtender2,
-    'CntlrCmdLine.Utility.Run': streamingExtensionsSetup2,
-    'ModelDocument.PullLoader': streamingExtensionsLoader2,
+    'CntlrCmdLine.Options': streamingOptionsExtender,
+    'CntlrCmdLine.Utility.Run': streamingExtensionsSetup,
+    'ModelDocument.PullLoader': streamingExtensionsLoader,
 }
