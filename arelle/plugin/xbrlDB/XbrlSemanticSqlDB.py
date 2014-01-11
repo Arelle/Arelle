@@ -693,7 +693,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                               ('report_id', 'start_date', 'end_date', 'is_instant', 'is_forever'), 
                               set((reportId,
                                    cntx.startDatetime if cntx.isStartEndPeriod else None,
-                                   cntx.endDatetime if cntx.isStartEndPeriod else None,
+                                   cntx.endDatetime if (cntx.isStartEndPeriod or cntx.isInstantPeriod) else None,
                                    cntx.isInstantPeriod,
                                    cntx.isForeverPeriod)
                                 for cntx in self.modelXbrl.contexts.values()),
