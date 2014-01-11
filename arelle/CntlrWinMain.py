@@ -397,8 +397,9 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.fileMenu.add_cascade(label=_("Recent imports"), menu=self.recentAttachMenu, underline=0)
         self.packagesMenu = Menu(self.menubar, tearoff=0)
         hasPackages = False
-        for packageInfo in sorted(PackageManager.packagesConfig.get("packages", []),
-                                  key=lambda packageInfo: packageInfo.get("name")):
+        for i, packageInfo in enumerate(sorted(PackageManager.packagesConfig.get("packages", []),
+                                               key=lambda packageInfo: packageInfo.get("name")),
+                                        start=1):
             name = packageInfo.get("name", "package{}".format(i))
             URL = packageInfo.get("URL")
             if name and URL and packageInfo.get("status") == "enabled":
