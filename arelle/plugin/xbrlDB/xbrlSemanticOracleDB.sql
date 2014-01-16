@@ -356,6 +356,15 @@ CREATE TABLE "aspect_value_selection" (
 );
 CREATE INDEX aspect_value_selection_index01 ON "aspect_value_selection" (aspect_value_selection_id);
 
+CREATE TABLE "table_data_points"(
+    report_id bigint,
+    object_id bigint NOT NULL, -- may be any role_type or aspect defining a table table with 'seq_object' id
+    table_code varchar2(16),  -- short code of table, like BS, PL, or 4.15.221
+    datapoint_id bigint -- id of data_point in this table (according to its aspects)
+);
+CREATE INDEX table_data_points_index01 ON "table_data_points" (report_id);
+CREATE INDEX table_data_points_index02 ON "table_data_points" (table_code);
+
 CREATE SEQUENCE seq_message;
 
 CREATE TABLE "message" (

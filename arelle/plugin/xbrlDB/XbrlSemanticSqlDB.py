@@ -48,6 +48,7 @@ from arelle.XmlUtil import elementFragmentIdentifier
 from arelle import XbrlConst
 from arelle.UrlUtil import ensureUrl
 from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
+from .tableFacts import tableFacts
 from collections import defaultdict
 
 
@@ -452,6 +453,26 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                    
     def insertArcroleTypes(self):
         self.showStatus("insert arcrole types")
+        # add existing arcrole types
+        arcroleTypesByIds = set((self.documentIds[arcroleType.modelDocument],
+                                 arcroleType.roleURI) # key on docId, uriId
+                                for arcroleTypes in self.modelXbrl.arcroleTypes.values()
+                                for arcroleType in arcroleTypes
+                                if arcroleType.modelDocument in self.existingDocumentIds)
+        table = self.getTable('arcrole_type', 'arcrole_type_id', 
+                              ('document_id', 'arcrole_uri'), 
+                              ('document_id', 'arcrole_uri'), 
+                              tuple((arcroleTypeIDs[0], # doc Id
+                                     arcroleTypeIDs[1] # uri Id
+                                     ) 
+                                    for arcroleTypeIDs in arcroleTypesByIds),
+                              checkIfExisting=True,
+                              insertIfNotMatched=False)
+        self.arcroleTypeIds = {}
+        for arcroleId, docId, uri in table:
+            self.arcroleTypeIds[(docId, uri)] = arcroleId
+
+        # added document arcrole type        
         arcroleTypesByIds = dict(((self.documentIds[arcroleType.modelDocument],
                                    arcroleType.arcroleURI), # key on docId, uriId
                                   arcroleType) # value is roleType object
@@ -468,7 +489,6 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                      arcroleType.definition)
                                     for arcroleTypeIDs, arcroleType in arcroleTypesByIds.items()))
         
-        self.arcroleTypeIds = {}
         for arcroleId, docId, uri in table:
             self.arcroleTypeIds[(docId, uri)] = arcroleId
             
@@ -485,6 +505,26 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         
     def insertRoleTypes(self):
         self.showStatus("insert role types")
+        # add existing role types
+        roleTypesByIds = set((self.documentIds[roleType.modelDocument],
+                              roleType.roleURI) # key on docId, uriId
+                              for roleTypes in self.modelXbrl.roleTypes.values()
+                              for roleType in roleTypes
+                              if roleType.modelDocument in self.existingDocumentIds)
+        table = self.getTable('role_type', 'role_type_id', 
+                              ('document_id', 'role_uri'), 
+                              ('document_id', 'role_uri'), 
+                              tuple((roleTypeIDs[0], # doc Id
+                                     roleTypeIDs[1] # uri Id
+                                     ) 
+                                    for roleTypeIDs in roleTypesByIds),
+                              checkIfExisting=True,
+                              insertIfNotMatched=False)
+        self.roleTypeIds = {}
+        for roleId, docId, uri in table:
+            self.roleTypeIds[(docId, uri)] = roleId
+        
+        # new document role types
         roleTypesByIds = dict(((self.documentIds[roleType.modelDocument],
                                 roleType.roleURI), # key on docId, uriId
                                roleType) # value is roleType object
@@ -499,9 +539,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                      roleTypeIDs[1], # uri Id
                                      roleType.definition) 
                                     for roleTypeIDs, roleType in roleTypesByIds.items()))
-        self.roleTypeIds = {}
         for roleId, docId, uri in table:
             self.roleTypeIds[(docId, uri)] = roleId
+            
             
         table = self.getTable('used_on', 
                               None, # no record id in this table  
@@ -655,6 +695,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             self.execute("DELETE from {0} WHERE {0}.report_id = {1}"
                          .format( self.dbTableName("unit"), reportId), 
                          close=False, fetch=False)
+            self.execute("DELETE FROM {0} WHERE {0}.report_id = {1}"
+                         .format( self.dbTableName("table_data_points"), reportId), 
+                         close=False, fetch=False)
         self.showStatus("insert data points")
         # units
         table = self.getTable('unit', 'unit_id', 
@@ -789,6 +832,28 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         self.factDataPointId = {}
         insertFactSet(self.modelXbrl.facts, None)
         # hashes
+        
+        # table_datapoints
+        _tableFacts = tableFacts(self.modelXbrl)  # for EFM this is ( (roleType, table_code, fact) )
+        
+        #check if roleTypes and datapoint ids exist
+        for roleType, tableCode, fact in _tableFacts:
+            if (self.documentIds[roleType.modelDocument], roleType.roleURI) not in self.roleTypeIds:
+                print ("missing role type {}, {}".format(self.documentIds[roleType.modelDocument], roleType.roleURI))
+            if (self.documentIds[fact.modelDocument],elementFragmentIdentifier(fact)) not in self.factDataPointId:
+                print ("missing fact {}, {}".format(self.documentIds[fact.modelDocument],elementFragmentIdentifier(fact)))
+        if _tableFacts: # if any entries
+            table = self.getTable('table_data_points', None, 
+                                  ('report_id', 'object_id', 'table_code', 'datapoint_id'), 
+                                  ('report_id', 'object_id', 'datapoint_id'), 
+                                  tuple((reportId,
+                                         self.roleTypeIds[(self.documentIds[roleType.modelDocument], 
+                                                           roleType.roleURI)],
+                                         tableCode,
+                                         self.factDataPointId[(self.documentIds[fact.modelDocument],
+                                                               elementFragmentIdentifier(fact))])
+                                        for roleType, tableCode, fact in _tableFacts))
+                                         
 
     def insertValidationResults(self):
         reportId = self.reportId

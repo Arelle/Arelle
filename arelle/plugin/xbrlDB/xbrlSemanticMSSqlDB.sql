@@ -9,30 +9,31 @@
 set quoted_identifier on;
 GO
 -- drop tables before sequences, then drop seqences
-IF OBJECT_ID('filing', 'U') IS NOT NULL DROP TABLE filing;
-IF OBJECT_ID('report', 'U') IS NOT NULL DROP TABLE report;
-IF OBJECT_ID('document', 'U') IS NOT NULL DROP TABLE document;
-IF OBJECT_ID('referenced_documents', 'U') IS NOT NULL DROP TABLE referenced_documents;
-IF OBJECT_ID('aspect', 'U') IS NOT NULL DROP TABLE aspect;
-IF OBJECT_ID('data_type', 'U') IS NOT NULL DROP TABLE data_type;
-IF OBJECT_ID('role_type', 'U') IS NOT NULL DROP TABLE role_type;
-IF OBJECT_ID('arcrole_type', 'U') IS NOT NULL DROP TABLE arcrole_type;
-IF OBJECT_ID('used_on', 'U') IS NOT NULL DROP TABLE used_on;
-IF OBJECT_ID('resource', 'U') IS NOT NULL DROP TABLE resource;
-IF OBJECT_ID('relationship_set', 'U') IS NOT NULL DROP TABLE relationship_set;
-IF OBJECT_ID('relationship', 'U') IS NOT NULL DROP TABLE relationship;
-IF OBJECT_ID('data_point', 'U') IS NOT NULL DROP TABLE data_point;
-IF OBJECT_ID('entity', 'U') IS NOT NULL DROP TABLE entity;
-IF OBJECT_ID('period', 'U') IS NOT NULL DROP TABLE period;
-IF OBJECT_ID('unit', 'U') IS NOT NULL DROP TABLE unit;
-IF OBJECT_ID('unit_measure', 'U') IS NOT NULL DROP TABLE unit_measure;
-IF OBJECT_ID('aspect_value_selection_set', 'U') IS NOT NULL DROP TABLE aspect_value_selection_set;
-IF OBJECT_ID('aspect_value_selection', 'U') IS NOT NULL DROP TABLE aspect_value_selection;
-IF OBJECT_ID('message', 'U') IS NOT NULL DROP TABLE message;
-IF OBJECT_ID('message_reference', 'U') IS NOT NULL DROP TABLE message_reference;
-IF OBJECT_ID('industry', 'U') IS NOT NULL DROP TABLE industry;
-IF OBJECT_ID('industry_level', 'U') IS NOT NULL DROP TABLE industry_level;
-IF OBJECT_ID('industry_structure', 'U') IS NOT NULL DROP TABLE industry_structure;
+IF OBJECT_ID('filing', 'U') IS NOT NULL DROP TABLE "filing";
+IF OBJECT_ID('report', 'U') IS NOT NULL DROP TABLE "report";
+IF OBJECT_ID('document', 'U') IS NOT NULL DROP TABLE "document";
+IF OBJECT_ID('referenced_documents', 'U') IS NOT NULL DROP TABLE "referenced_documents";
+IF OBJECT_ID('aspect', 'U') IS NOT NULL DROP TABLE "aspect";
+IF OBJECT_ID('data_type', 'U') IS NOT NULL DROP TABLE "data_type";
+IF OBJECT_ID('role_type', 'U') IS NOT NULL DROP TABLE "role_type";
+IF OBJECT_ID('arcrole_type', 'U') IS NOT NULL DROP TABLE "arcrole_type";
+IF OBJECT_ID('used_on', 'U') IS NOT NULL DROP TABLE "used_on";
+IF OBJECT_ID('resource', 'U') IS NOT NULL DROP TABLE "resource";
+IF OBJECT_ID('relationship_set', 'U') IS NOT NULL DROP TABLE "relationship_set";
+IF OBJECT_ID('relationship', 'U') IS NOT NULL DROP TABLE "relationship";
+IF OBJECT_ID('data_point', 'U') IS NOT NULL DROP TABLE "data_point";
+IF OBJECT_ID('entity', 'U') IS NOT NULL DROP TABLE "entity";
+IF OBJECT_ID('period', 'U') IS NOT NULL DROP TABLE "period";
+IF OBJECT_ID('unit', 'U') IS NOT NULL DROP TABLE "unit";
+IF OBJECT_ID('unit_measure', 'U') IS NOT NULL DROP TABLE "unit_measure";
+IF OBJECT_ID('aspect_value_selection_set', 'U') IS NOT NULL DROP TABLE "aspect_value_selection_set";
+IF OBJECT_ID('aspect_value_selection', 'U') IS NOT NULL DROP TABLE "aspect_value_selection";
+IF OBJECT_ID('table_data_points', 'U') IS NOT NULL DROP TABLE "table_data_points";
+IF OBJECT_ID('message', 'U') IS NOT NULL DROP TABLE "message";
+IF OBJECT_ID('message_reference', 'U') IS NOT NULL DROP TABLE "message_reference";
+IF OBJECT_ID('industry', 'U') IS NOT NULL DROP TABLE "industry";
+IF OBJECT_ID('industry_level', 'U') IS NOT NULL DROP TABLE "industry_level";
+IF OBJECT_ID('industry_structure', 'U') IS NOT NULL DROP TABLE "industry_structure";
 GO
 IF OBJECT_ID('seq_filing', 'SO') IS NOT NULL DROP SEQUENCE seq_filing;
 IF OBJECT_ID('seq_object', 'SO') IS NOT NULL DROP SEQUENCE seq_object;
@@ -294,6 +295,15 @@ CREATE TABLE "aspect_value_selection" (
 );
 CREATE INDEX aspect_value_selection_index01 ON "aspect_value_selection" (aspect_value_selection_id);
 
+GO
+CREATE TABLE "table_data_points" (
+    report_id bigint,
+    object_id bigint NOT NULL, -- may be any role_type or aspect defining a table table with 'seq_object' id
+    table_code nvarchar(16),  -- short code of table, like BS, PL, or 4.15.221
+    datapoint_id bigint -- id of data_point in this table (according to its aspects)
+);
+CREATE INDEX table_data_points_index01 ON "table_data_points" (report_id);
+CREATE INDEX table_data_points_index02 ON "table_data_points" (table_code);
 
 GO
 CREATE SEQUENCE seq_message AS bigint START WITH 1 INCREMENT BY 1;
@@ -328,9 +338,9 @@ CREATE TABLE "industry" (
     industry_code integer,
     industry_description nvarchar(512),
     depth integer,
-    parent_id bigint,
-    PRIMARY KEY (industry_id)
+    parent_id bigint
 );
+CREATE INDEX industry_index01 ON "industry" (industry_id);
 
 INSERT INTO industry (industry_id, industry_classification, industry_code, industry_description, depth, parent_id) VALUES
 (4315, 'SEC', 3576, 'Computer Communications Equipment', 4, 2424),
@@ -4689,9 +4699,9 @@ CREATE TABLE "industry_level" (
     ancestor_depth integer,
     descendant_id bigint,
     descendant_code integer,
-    descendant_depth integer,
-    PRIMARY KEY (industry_level_id)
+    descendant_depth integer
 );
+CREATE INDEX industry_level_index01 ON "industry_level" (industry_level_id);
 
 INSERT INTO industry_level (industry_level_id, industry_classification, ancestor_id, ancestor_code, ancestor_depth, descendant_id, descendant_code, descendant_depth) VALUES
 (1, 'SEC', 2677, 6300, 2, 2689, 6390, 3),

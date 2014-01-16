@@ -28,6 +28,7 @@ DROP TABLE IF EXISTS unit CASCADE;
 DROP TABLE IF EXISTS unit_measure CASCADE;
 DROP TABLE IF EXISTS aspect_value_selection_set CASCADE;
 DROP TABLE IF EXISTS aspect_value_selection CASCADE;
+DROP TABLE IF EXISTS table_data_points CASCADE;
 DROP TABLE IF EXISTS message CASCADE;
 DROP TABLE IF EXISTS message_reference CASCADE;
 DROP TABLE IF EXISTS industry CASCADE;
@@ -377,6 +378,15 @@ CREATE TABLE aspect_value_selection (
     typed_value longtext
 );
 CREATE INDEX aspect_value_selection_index01 USING btree ON aspect_value_selection (aspect_value_selection_id);
+
+CREATE TABLE table_data_points(
+    report_id bigint,
+    object_id bigint NOT NULL, -- may be any role_type or aspect defining a table table with 'seq_object' id
+    table_code varchar(16),  -- short code of table, like BS, PL, or 4.15.221
+    datapoint_id bigint -- id of data_point in this table (according to its aspects)
+);
+CREATE INDEX table_data_points_index01 USING btree ON table_data_points (report_id);
+CREATE INDEX table_data_points_index02 USING btree ON table_data_points (table_code);
 
 CREATE TABLE message (
     message_id bigint NOT NULL AUTO_INCREMENT,

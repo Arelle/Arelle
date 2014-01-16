@@ -33,6 +33,7 @@ DROP TABLE IF EXISTS unit CASCADE;
 DROP TABLE IF EXISTS unit_measure CASCADE;
 DROP TABLE IF EXISTS aspect_value_selection_set CASCADE;
 DROP TABLE IF EXISTS aspect_value_selection CASCADE;
+DROP TABLE IF EXISTS table_data_points CASCADE;
 DROP TABLE IF EXISTS message CASCADE;
 DROP TABLE IF EXISTS message_reference CASCADE;
 DROP TABLE IF EXISTS industry CASCADE;
@@ -340,6 +341,15 @@ CREATE TABLE aspect_value_selection (
 CREATE INDEX aspect_value_selection_index01 ON aspect_value_selection USING btree (aspect_value_selection_id);
 
 ALTER TABLE public.aspect_value_selection OWNER TO postgres;
+
+CREATE TABLE table_data_points(
+    report_id bigint,
+    object_id bigint NOT NULL, -- may be any role_type or aspect defining a table table with 'seq_object' id
+    table_code character varying(16),  -- short code of table, like BS, PL, or 4.15.221
+    datapoint_id bigint -- id of data_point in this table (according to its aspects)
+);
+CREATE INDEX table_data_points_index01 ON table_data_points USING btree (report_id);
+CREATE INDEX table_data_points_index02 ON table_data_points USING btree (table_code);
 
 CREATE SEQUENCE seq_message
     START WITH 1
