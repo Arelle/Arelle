@@ -322,8 +322,8 @@ def configure():
     
     :returns: html -- Status of configuration request (e.g., proxy or plug-ins).
     """
-    if not request.query.proxy and not request.query.plugins and not request.query.packages:
-        return _("proxy, plugins or packages must be specified")
+    if not request.query.proxy and not request.query.plugins and not request.query.packages and 'environment' not in request.query:
+        return _("proxy, plugins, packages or environment must be specified")
     options = Options()
     if request.query.proxy:
         setattr(options, "proxy", request.query.proxy)
@@ -331,6 +331,8 @@ def configure():
         setattr(options, "plugins", request.query.plugins)
     if request.query.packages:
         setattr(options, "packages", request.query.packages)
+    if 'environment' in request.query:
+        setattr(options, "showEnvironment", True)
     cntlr.run(options)
     response.content_type = 'text/html; charset=UTF-8'
     return htmlBody(tableRows(cntlr.logHandler.getLines(), header=_("Configuration Request")))
@@ -657,6 +659,7 @@ Enter 'show' to view packages configuration, , or '|' separated package URLs:
 +url to add package by its full url or filename, ~name to reload a package by its name, -name to remove a package by its name. 
 (Note that packages are transient on Google App Engine, specify with &amp;packages to other rest commands.) 
 </td></tr>
+<tr><td style="text-indent: 1em;">environment</td><td>Show host environment (config and cache directories).</td></tr>
 ''') +
 (_('''
 <tr><td>/rest/stopWebServer</td><td>Shut down (terminate process after 2.5 seconds delay).</td></tr>

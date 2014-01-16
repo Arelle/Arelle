@@ -189,23 +189,41 @@ def parseAndRun(args):
                              "none - prevent formula validation or running when also specifying -v or --validate.  "
                              "if this option is not specified, -v or --validate will validate and run formulas if present"))
     parser.add_option("--formulaParamExprResult", action="store_true", dest="formulaParamExprResult", help=_("Specify formula tracing."))
+    parser.add_option("--formulaparamexprresult", action="store_true", dest="formulaParamExprResult", help=SUPPRESS_HELP)
     parser.add_option("--formulaParamInputValue", action="store_true", dest="formulaParamInputValue", help=_("Specify formula tracing."))
+    parser.add_option("--formulaparaminputvalue", action="store_true", dest="formulaParamInputValue", help=SUPPRESS_HELP)
     parser.add_option("--formulaCallExprSource", action="store_true", dest="formulaCallExprSource", help=_("Specify formula tracing."))
+    parser.add_option("--formulacallexprsource", action="store_true", dest="formulaCallExprSource", help=SUPPRESS_HELP)
     parser.add_option("--formulaCallExprCode", action="store_true", dest="formulaCallExprCode", help=_("Specify formula tracing."))
+    parser.add_option("--formulacallexprcode", action="store_true", dest="formulaCallExprCode", help=SUPPRESS_HELP)
     parser.add_option("--formulaCallExprEval", action="store_true", dest="formulaCallExprEval", help=_("Specify formula tracing."))
+    parser.add_option("--formulacallexpreval", action="store_true", dest="formulaCallExprEval", help=SUPPRESS_HELP)
     parser.add_option("--formulaCallExprResult", action="store_true", dest="formulaCallExprResult", help=_("Specify formula tracing."))
+    parser.add_option("--formulacallexprtesult", action="store_true", dest="formulaCallExprResult", help=SUPPRESS_HELP)
     parser.add_option("--formulaVarSetExprEval", action="store_true", dest="formulaVarSetExprEval", help=_("Specify formula tracing."))
+    parser.add_option("--formulavarsetexpreval", action="store_true", dest="formulaVarSetExprEval", help=SUPPRESS_HELP)
     parser.add_option("--formulaVarSetExprResult", action="store_true", dest="formulaVarSetExprResult", help=_("Specify formula tracing."))
+    parser.add_option("--formulavarsetexprresult", action="store_true", dest="formulaVarSetExprResult", help=SUPPRESS_HELP)
     parser.add_option("--formulaVarSetTiming", action="store_true", dest="timeVariableSetEvaluation", help=_("Specify showing times of variable set evaluation."))
+    parser.add_option("--formulavarsettiming", action="store_true", dest="timeVariableSetEvaluation", help=SUPPRESS_HELP)
     parser.add_option("--formulaAsserResultCounts", action="store_true", dest="formulaAsserResultCounts", help=_("Specify formula tracing."))
+    parser.add_option("--formulaasserresultcounts", action="store_true", dest="formulaAsserResultCounts", help=SUPPRESS_HELP)
     parser.add_option("--formulaFormulaRules", action="store_true", dest="formulaFormulaRules", help=_("Specify formula tracing."))
+    parser.add_option("--formulaformularules", action="store_true", dest="formulaFormulaRules", help=SUPPRESS_HELP)
     parser.add_option("--formulaVarsOrder", action="store_true", dest="formulaVarsOrder", help=_("Specify formula tracing."))
+    parser.add_option("--formulavarsorder", action="store_true", dest="formulaVarsOrder", help=SUPPRESS_HELP)
     parser.add_option("--formulaVarExpressionSource", action="store_true", dest="formulaVarExpressionSource", help=_("Specify formula tracing."))
+    parser.add_option("--formulavarexpressionsource", action="store_true", dest="formulaVarExpressionSource", help=SUPPRESS_HELP)
     parser.add_option("--formulaVarExpressionCode", action="store_true", dest="formulaVarExpressionCode", help=_("Specify formula tracing."))
+    parser.add_option("--formulavarexpressioncode", action="store_true", dest="formulaVarExpressionCode", help=SUPPRESS_HELP)
     parser.add_option("--formulaVarExpressionEvaluation", action="store_true", dest="formulaVarExpressionEvaluation", help=_("Specify formula tracing."))
+    parser.add_option("--formulavarexpressionevaluation", action="store_true", dest="formulaVarExpressionEvaluation", help=SUPPRESS_HELP)
     parser.add_option("--formulaVarExpressionResult", action="store_true", dest="formulaVarExpressionResult", help=_("Specify formula tracing."))
+    parser.add_option("--formulavarexpressionresult", action="store_true", dest="formulaVarExpressionResult", help=SUPPRESS_HELP)
     parser.add_option("--formulaVarFilterWinnowing", action="store_true", dest="formulaVarFilterWinnowing", help=_("Specify formula tracing."))
+    parser.add_option("--formulavarfilterwinnowing", action="store_true", dest="formulaVarFilterWinnowing", help=SUPPRESS_HELP)
     parser.add_option("--formulaVarFiltersResult", action="store_true", dest="formulaVarFiltersResult", help=_("Specify formula tracing."))
+    parser.add_option("--formulavarfiltersresult", action="store_true", dest="formulaVarFiltersResult", help=SUPPRESS_HELP)
     parser.add_option("--uiLang", action="store", dest="uiLang",
                       help=_("Language for user interface (override system settings, such as program messages).  Does not save setting."))
     parser.add_option("--uilang", action="store", dest="uiLang", help=SUPPRESS_HELP)
@@ -250,6 +268,8 @@ def parseAndRun(args):
                              "URLs are full absolute paths.  "
                              "If + is omitted from package file nothing is saved (same as temp).  " ))
     parser.add_option("--abortOnMajorError", action="store_true", dest="abortOnMajorError", help=_("Abort process on major error, such as when load is unable to find an entry or discovered file."))
+    parser.add_option("--showEnvironment", action="store_true", dest="showEnvironment", help=_("Show Arelle's config and cache directory and host OS environment parameters."))
+    parser.add_option("--showenvironment", action="store_true", dest="showEnvironment", help=SUPPRESS_HELP)
     parser.add_option("--collectProfileStats", action="store_true", dest="collectProfileStats", help=_("Collect profile statistics, such as timing of validation activities and formulae."))
     if hasWebServer:
         parser.add_option("--webserver", action="store", dest="webserver",
@@ -493,6 +513,13 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                   packageInfo.get("fileDate"), packageInfo.get("description")),
                                   messageCode="info", file=packageInfo.get("URL"))
                 
+        if options.showEnvironment:
+            self.addToLog(_("Config directory: {0}").format(self.configDir))
+            self.addToLog(_("Cache directory: {0}").format(self.userAppDir))
+            for envVar in ("XDG_CONFIG_HOME",):
+                if envVar in os.environ:
+                    self.addToLog(_("XDG_CONFIG_HOME={0}").format(os.environ[envVar]))
+            return True
         # run utility command line options that don't depend on entrypoint Files
         hasUtilityPlugin = False
         for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Utility.Run"):
