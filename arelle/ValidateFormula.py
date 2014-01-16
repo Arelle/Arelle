@@ -786,7 +786,6 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
             maxFormulaRunTimeTimer.start()
         else:
             maxFormulaRunTimeTimer = None
-            
         # evaluate variable sets not in consistency assertions
         val.modelXbrl.profileActivity("... evaluations", minTimeToShow=1.0)
         for instanceQname in orderedInstancesList:
@@ -1058,10 +1057,12 @@ def checkDefinitionNodeRules(val, table, parent, arcrole, xpathContext):
         axis = rel.toModelObject
         if axis is not None:
             if isinstance(axis, ModelFilterDefinitionNode):
-                if not checkFilterAspectModel(val, table, axis.filterRelationships, xpathContext):
-                    val.modelXbrl.error("xbrlte:axisFilterCoversNoAspects",
-                        _("FilterAxis %(xlinkLabel)s does not cover any aspects."),
-                        modelObject=axis, xlinkLabel=axis.xlinkLabel)
+                checkFilterAspectModel(val, table, axis.filterRelationships, xpathContext)
+                #if not checkFilterAspectModel(val, table, axis.filterRelationships, xpathContext):
+                    # this removed after 2013-01-06 PWD
+                    #val.modelXbrl.error("xbrlte:axisFilterCoversNoAspects",
+                    #    _("FilterAxis %(xlinkLabel)s does not cover any aspects."),
+                    #    modelObject=axis, xlinkLabel=axis.xlinkLabel)
             else:
                 if isinstance(axis, ModelRuleDefinitionNode):
                     # check dimension elements
