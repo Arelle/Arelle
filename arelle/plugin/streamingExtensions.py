@@ -21,8 +21,8 @@ from arelle.ModelValue import QName
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit
 from arelle.Validate import Validate
 
+_streamingExtensionsCheck = True  # check streaming if enabled except for CmdLine, then only when requested
 _streamingExtensionsValidate = False
-_streamingExtensionsCheck = False
     
 class NotInstanceDocumentException(Exception):
     def __init__(self):
@@ -47,6 +47,12 @@ def precedingComment(elt):
 
 def streamingExtensionsLoader(modelXbrl, mappedUri, filepath):
     # check if big instance and has header with an initial incomplete tree walk (just 2 elements
+    if not _streamingExtensionsCheck:
+        return None
+    
+    # track whether modelXbrl has been validated by this streaming extension
+    modelXbrl._streamingExtensionValidated = False
+        
     def logSyntaxErrors(parsercontext):
         for error in parsercontext.error_log:
             modelXbrl.error("xmlSchema:syntax",
@@ -369,6 +375,8 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath):
     if _streamingExtensionsValidate and validator is not None:
         del instValidator
         validator.close()
+        # track that modelXbrl has been validated by this streaming extension
+        modelXbrl._streamingExtensionValidated = True
         
     modelXbrl.profileStat(_("streaming complete"), time.time() - startedAt)
     return modelXbrl.modelDocument
@@ -417,18 +425,22 @@ def dropObject(modelXbrl, mdlObj):
     mdlObj.modelDocument.idObjects.pop(mdlObj.id, None)
     mdlObj.clear()
 
+'''
 def streamingOptionsExtender(parser):
     parser.add_option("--check-streaming", 
                       action="store_true", 
                       dest="check_streaming", 
                       help=_('Check streamability of instance document."'))
+'''
 
-def streamingExtensionsSetup(self, options, **kwargs):
+def streamingExtensionsSetup(cntlr, options, **kwargs):
     global _streamingExtensionsCheck, _streamingExtensionsValidate
-    _streamingExtensionsCheck = getattr(options, 'check_streaming', False)
+    # streaming only checked in CmdLine/web server mode if requested
+    # _streamingExtensionsCheck = getattr(options, 'check_streaming', False)
     _streamingExtensionsValidate = options.validate
-    if options.validate:
-        options.validate = False # prevent cmdLine calling validation
+
+def streamingExtensionsIsValidated(modelXbrl):
+    return getattr(modelXbrl, "_streamingExtensionValidated", False)
 
 '''
    Do not use _( ) in pluginInfo itself (it is applied later, after loading
@@ -443,7 +455,8 @@ __pluginInfo__ = {
     'author': 'Mark V Systems Limited',
     'copyright': '(c) Copyright 2014 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
-    'CntlrCmdLine.Options': streamingOptionsExtender,
+    # take out for now: 'CntlrCmdLine.Options': streamingOptionsExtender,
     'CntlrCmdLine.Utility.Run': streamingExtensionsSetup,
     'ModelDocument.PullLoader': streamingExtensionsLoader,
+    'ModelDocument.IsValidated': streamingExtensionsIsValidated,
 }
