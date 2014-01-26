@@ -708,10 +708,13 @@ def elementFragmentIdentifier(element):
                 if element.get('id'):  # has ID, use as start of path instead of root
                     childSequence[0] = element.get('id')
                     break
-                siblingPosition = 1
-                for sibling in element.itersiblings(preceding=True):
-                    if isinstance(sibling,etree.ElementBase):
-                        siblingPosition += 1
+                try:
+                    siblingPosition = element._elementSequence # set by loader in some element hierarchies
+                except AttributeError:
+                    siblingPosition = 1
+                    for sibling in element.itersiblings(preceding=True):
+                        if isinstance(sibling,etree.ElementBase):
+                            siblingPosition += 1
                 childSequence.insert(1, str(siblingPosition))
             element = element.getparent()
         location = "/".join(childSequence)

@@ -845,8 +845,12 @@ class ModelDocument:
                 self.linkbaseDiscover(self, linkbaseElement)
 
     def linkbaseDiscover(self, linkbaseElement, inInstance=False):
+        # sequence linkbase elements for elementPointer efficiency
+        lbElementSequence = 0
         for lbElement in linkbaseElement:
             if isinstance(lbElement,ModelObject):
+                lbElementSequence += 1
+                lbElement._elementSequence = lbElementSequence
                 lbLn = lbElement.localName
                 lbNs = lbElement.namespaceURI
                 if lbNs == XbrlConst.link:
@@ -873,8 +877,11 @@ class ModelDocument:
                                            ("XBRL-footnotes",linkrole,None,None))
                             for baseSetKey in baseSetKeys:
                                 self.modelXbrl.baseSets[baseSetKey].append(lbElement)
+                        linkElementSequence = 0
                         for linkElement in lbElement.iterchildren():
                             if isinstance(linkElement,ModelObject):
+                                linkElementSequence += 1
+                                linkElement._elementSequence = linkElementSequence
                                 self.schemalocateElementNamespace(linkElement)
                                 xlinkType = linkElement.get("{http://www.w3.org/1999/xlink}type")
                                 modelResource = None
@@ -962,8 +969,11 @@ class ModelDocument:
 
     def instanceContentsDiscover(self,xbrlElement):
         nextUndefinedFact = len(self.modelXbrl.undefinedFacts)
+        instElementSequence = 0
         for instElement in xbrlElement.iterchildren():
             if isinstance(instElement,ModelObject):
+                instElementSequence += 1
+                instElement._elementSequence = instElementSequence
                 ln = instElement.localName
                 ns = instElement.namespaceURI
                 if ns == XbrlConst.xbrli:
@@ -1058,9 +1068,13 @@ class ModelDocument:
         if isinstance(modelFact, ModelFact):
             parentModelFacts.append( modelFact )
             self.modelXbrl.factsInInstance.add( modelFact )
+            tupleElementSequence = 0
             for tupleElement in modelFact:
-                if isinstance(tupleElement,ModelObject) and tupleElement.tag not in fractionParts:
-                    self.factDiscover(tupleElement, modelFact.modelTupleFacts)
+                if isinstance(tupleElement,ModelObject):
+                    tupleElementSequence += 1
+                    tupleElement._elementSequence = tupleElementSequence
+                    if tupleElement.tag not in fractionParts:
+                        self.factDiscover(tupleElement, modelFact.modelTupleFacts)
         else:
             self.modelXbrl.undefinedFacts.append(modelFact)
     
