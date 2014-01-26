@@ -43,6 +43,14 @@ def callCfi(xc, p, qname, cfSig, contextItem, args):
             overriddenInScopeVars[argName] = xc.inScopeVars[argName]
         xc.inScopeVars[argName] = args[i]
         
+    if traceEvaluation:
+        xc.modelXbrl.info("formula:trace",
+                            _("%(cfi)s(%(arguments)s)"),
+                            modelObject=cfi,
+                            cfi=qname, 
+                            arguments=', '.join("{}={}".format(argName, args[i])
+                                                for i, argName in enumerate(inputNames)))
+
     for i, step in enumerate(cfi.stepExpressions):
         stepQname, stepExpression = step
         stepProg = cfi.stepProgs[i]
