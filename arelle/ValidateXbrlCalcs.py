@@ -310,12 +310,12 @@ def roundFact(fact, inferDecimals=False, vDecimal=None):
     return vRounded
     
 def decimalRound(x, d, rounding):
-    if x.is_normal():
+    if x.is_normal() and d <= 28: # prevent exception with excessive quantization digits
         if d >= 0:
             return x.quantize(ONE.scaleb(-d),rounding)
         else: # quantize only seems to work on fractional part, convert integer to fraction at scaled point    
             return x.scaleb(d).quantize(ONE,rounding).scaleb(-d)
-    return x # infinite, NaN, or zero
+    return x # infinite, NaN, zero, or excessive decimal digits ( > 28 )
 
 def inferredPrecision(fact):
     vStr = fact.value

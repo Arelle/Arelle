@@ -710,6 +710,14 @@ class ValidateXbrl:
                             self.modelXbrl.error("xbrl.4.6.3:missingPrecisionDecimals",
                                 _("Fact %(fact)s context %(contextID)s is a numeric concept and must have either precision or decimals"),
                                 modelObject=f, fact=f.qname, contextID=f.contextID)
+                        # not a real check
+                        #if f.isNumeric and not f.isNil and f.precision :
+                        #    try:
+                        #        ValidateXbrlCalcs.roundValue(f.value, f.precision, f.decimals)
+                        #    except Exception as err:
+                        #        self.modelXbrl.error("arelle:info",
+                        #            _("Fact %(fact)s value %(value)s context %(contextID)s rounding exception %(error)s"),
+                        #            modelObject=f, fact=f.qname, value=f.value, contextID=f.contextID, error = err)
                     if self.validateEnum and concept.isEnumeration and f.xValid == VALID:
                         memConcept = self.modelXbrl.qnameConcepts.get(f.xValue)
                         if not ValidateXbrlDimensions.enumerationMemberUsable(self, concept, memConcept):
