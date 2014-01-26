@@ -637,15 +637,24 @@ def unordered(xc, p, contextItem, args):
 
 def zero_or_one(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    return len(args[0]) in ( 0, 1 )
+    if len(args[0]) > 1:
+        raise XPathContext.FunctionNumArgs(errCode='err:FORG0003',
+                                           errText=_('fn:zero-or-one called with a sequence containing more than one item'))
+    return args[0]
 
 def one_or_more(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    return len(args[0]) >= 1
+    if len(args[0]) < 1:
+        raise XPathContext.FunctionNumArgs(errCode='err:FORG0004',
+                                           errText=_('fn:one-or-more called with a sequence containing no items'))
+    return args[0]
 
 def exactly_one(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
-    return len(args[0]) == 1
+    if len(args[0]) != 1:
+        raise XPathContext.FunctionNumArgs(errCode='err:FORG0005',
+                                           errText=_('fn:exactly-one called with a sequence containing zero or more than one item'))
+    return args[0]
 
 def deep_equal(xc, p, contextItem, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()

@@ -43,7 +43,9 @@ class XPathException(Exception):
             
     
 class FunctionNumArgs(Exception):
-    def __init__(self):
+    def __init__(self, errCode='err:XPTY0004', errText=None):
+        self.errCode = errCode
+        self.errText = errText or _('Number of arguments do not match signature arity')
         self.args = ( self.__repr__(), )
     def __repr__(self):
         return _("Exception: Number of arguments mismatch")
@@ -176,8 +178,8 @@ class XPathContext:
                             result = FunctionIxt.call(self, p, localname, args)
                         else:
                             raise XPathException(p, 'err:XPST0017', _('Function call not identified: {0}.').format(op))
-                    except FunctionNumArgs:
-                        raise XPathException(p, 'err:XPST0017', _('Number of arguments do not match signature arity: {0}').format(op))
+                    except FunctionNumArgs as err:
+                        raise XPathException(p, err.errCode, "{}: {}".format(err.errText, op))
                     except FunctionArgType as err:
                         raise XPathException(p, err.errCode, _('Argument {0} does not match expected type {1} for {2} {3}.')
                                              .format(err.argNum, err.expectedType, op, err.foundObject))
