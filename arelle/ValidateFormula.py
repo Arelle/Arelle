@@ -773,7 +773,8 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
         
     val.modelXbrl.modelManager.showStatus(_("running formulae"))
     
-    runIDs = (formulaOptions.runIDs or '').split()
+    # IDs may be "|" or whitespace separated
+    runIDs = (formulaOptions.runIDs or '').replace('|',' ').split()
     if runIDs:
         val.modelXbrl.info("formula:trace",
                            _("Formua/assertion IDs restriction: %(ids)s"), 
@@ -820,7 +821,8 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
     # log assertion result counts
     asserTests = {}
     for exisValAsser in val.modelXbrl.modelVariableSets:
-        if isinstance(exisValAsser, ModelVariableSetAssertion):
+        if isinstance(exisValAsser, ModelVariableSetAssertion) and \
+           (not runIDs or exisValAsser.id in runIDs):
             asserTests[exisValAsser.id] = (exisValAsser.countSatisfied, exisValAsser.countNotSatisfied)
             if formulaOptions.traceAssertionResultCounts:
                 val.modelXbrl.info("formula:trace",
@@ -831,7 +833,8 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
 
     for modelRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).modelRelationships:
         if modelRel.fromModelObject is not None and modelRel.toModelObject is not None and \
-           isinstance(modelRel.toModelObject,ModelFormula):
+           isinstance(modelRel.toModelObject,ModelFormula) and \
+           (not runIDs or modelRel.fromModelObject.id in runIDs):
             consisAsser = modelRel.fromModelObject
             asserTests[consisAsser.id] = (consisAsser.countSatisfied, consisAsser.countNotSatisfied)
             if formulaOptions.traceAssertionResultCounts:

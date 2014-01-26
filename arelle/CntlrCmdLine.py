@@ -224,6 +224,8 @@ def parseAndRun(args):
     parser.add_option("--formulavarfilterwinnowing", action="store_true", dest="formulaVarFilterWinnowing", help=SUPPRESS_HELP)
     parser.add_option("--formulaVarFiltersResult", action="store_true", dest="formulaVarFiltersResult", help=_("Specify formula tracing."))
     parser.add_option("--formulavarfiltersresult", action="store_true", dest="formulaVarFiltersResult", help=SUPPRESS_HELP)
+    parser.add_option("--formulaRunIDs", action="store", dest="formulaRunIDs", help=_("Specify formula/assertion IDs to run, separated by a '|' character."))
+    parser.add_option("--formularunids", action="store", dest="formulaRunIDs", help=SUPPRESS_HELP)
     parser.add_option("--uiLang", action="store", dest="uiLang",
                       help=_("Language for user interface (override system settings, such as program messages).  Does not save setting."))
     parser.add_option("--uilang", action="store", dest="uiLang", help=SUPPRESS_HELP)
@@ -594,7 +596,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             parameterSeparator = (options.parameterSeparator or ',')
             fo.parameterValues = dict(((qname(key, noPrefixIsNoNamespace=True),(None,value)) 
                                        for param in options.parameters.split(parameterSeparator) 
-                                       for key,sep,value in (param.partition('='),) ) )   
+                                       for key,sep,value in (param.partition('='),) ) )
         if options.formulaParamExprResult:
             fo.traceParameterExpressionResult = True
         if options.formulaParamInputValue:
@@ -633,6 +635,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.traceVariableFiltersResult = True
         if options.formulaVarFiltersResult:
             fo.traceVariableFiltersResult = True
+        if options.formulaRunIDs:
+            fo.runIDs = options.formulaRunIDs   
         self.modelManager.formulaOptions = fo
         timeNow = XmlUtil.dateunionValue(datetime.datetime.now())
         firstStartedAt = startedAt = time.time()
@@ -713,7 +717,11 @@ class CntlrCmdLine(Cntlr.Cntlr):
             try:
                 modelXbrl = self.modelManager.modelXbrl
                 hasFormulae = modelXbrl.hasFormulae
-                if options.validate:
+                isAlreadyValidated = False
+                for pluginXbrlMethod in pluginClassMethods("ModelDocument.IsValidated"):
+                    if pluginXbrlMethod(modelXbrl): # e.g., streaming extensions already has validated
+                        isAlreadyValidated = True
+                if options.validate and not isAlreadyValidated:
                     startedAt = time.time()
                     if options.formulaAction: # don't automatically run formulas
                         modelXbrl.hasFormulae = False
@@ -724,7 +732,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                                 _("validated in %.2f secs"), 
                                                 time.time() - startedAt),
                                                 messageCode="info", file=self.entrypointFile)
-                if options.formulaAction in ("validate", "run"):  # do nothing here if "none"
+                if (options.formulaAction in ("validate", "run") and  # do nothing here if "none"
+                    not isAlreadyValidated):  # formulas can't run if streaming has validated the instance 
                     from arelle import ValidateXbrlDimensions, ValidateFormula
                     startedAt = time.time()
                     if not options.validate:
