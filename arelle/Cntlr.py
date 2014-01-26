@@ -462,11 +462,11 @@ class Cntlr:
                     if text is None:
                         p = subprocess.Popen(['pbpaste'], stdout=subprocess.PIPE)
                         retcode = p.wait()
-                        text = p.stdout.read()
+                        text = p.stdout.read().decode('utf-8')  # default utf8 may not be right for mac
                         return text
                     else:
                         p = subprocess.Popen(['pbcopy'], stdin=subprocess.PIPE)
-                        p.stdin.write(text)
+                        p.stdin.write(text.encode('utf-8'))  # default utf8 may not be right for mac
                         p.stdin.close()
                         retcode = p.wait()
                 elif sys.platform.startswith("win"):
