@@ -246,6 +246,9 @@ CREATE TABLE relationship (
     preferred_label_role character varying(1024),
     PRIMARY KEY (relationship_id)
 );
+CREATE INDEX relationship_index02 ON relationship USING btree (relationship_set_id); 
+CREATE INDEX relationship_index03 ON relationship USING btree (relationship_set_id, tree_depth); 
+CREATE INDEX relationship_index04 ON relationship USING btree (relationship_set_id, document_id, xml_id);
 
 ALTER TABLE public.relationship OWNER TO postgres;
 

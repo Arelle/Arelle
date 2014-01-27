@@ -253,6 +253,8 @@ CREATE TABLE relationship (
     PRIMARY KEY (relationship_id)
 );
 CREATE INDEX relationship_index02 USING btree ON relationship (relationship_set_id, document_id, xml_id(32));
+CREATE INDEX relationship_index03 USING btree ON relationship (relationship_set_id);
+CREATE INDEX relationship_index04 USING btree ON relationship (relationship_set_id, tree_depth);
 
 DELIMITER //
 CREATE TRIGGER relationship_seq BEFORE INSERT ON relationship 

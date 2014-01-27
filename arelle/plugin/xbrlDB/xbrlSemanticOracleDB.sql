@@ -239,7 +239,9 @@ CREATE TABLE "relationship" (
     preferred_label_role varchar2(1024),
     PRIMARY KEY (relationship_id)
 );
-CREATE INDEX relationship_index02 ON "relationship" (report_id, document_id, xml_id);
+CREATE INDEX relationship_index02 ON "relationship" (relationship_set_id);
+CREATE INDEX relationship_index03 ON "relationship" (relationship_set_id, tree_depth);
+CREATE INDEX relationship_index04 ON "relationship" (relationship_set_id, document_id, xml_id);
 
 CREATE TRIGGER relationship_insert_trigger BEFORE INSERT ON "relationship" 
   FOR EACH ROW

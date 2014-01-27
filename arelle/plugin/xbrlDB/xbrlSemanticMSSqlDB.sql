@@ -209,6 +209,8 @@ CREATE TABLE "relationship" (
     preferred_label_role nvarchar(1024)
 );
 CREATE INDEX relationship_index01 ON "relationship" (relationship_id);
+CREATE INDEX relationship_index02 ON "relationship" (relationship_set_id);
+CREATE INDEX relationship_index03 ON "relationship" (relationship_set_id, tree_depth);
 
 GO
 CREATE TABLE "data_point" (
