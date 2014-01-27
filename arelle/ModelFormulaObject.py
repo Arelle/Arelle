@@ -211,6 +211,14 @@ class ModelFormulaResource(ModelResource):
                 if isinstance(toModelObject,ModelFormulaResource):
                     modelRel.toModelObject.variableRefs(varRefSet=varRefSet)
         return varRefSet
+
+    def logLabel(self, preferredRole='*', lang=None):
+        try:
+            return self._logLabel
+        except AttributeError:
+            self._logLabel = self.genLabel(role=preferredRole,strip=True) or self.id or self.xlinkLabel
+            return self._logLabel
+    
     
 class ModelAssertionSet(ModelFormulaResource):
     def init(self, modelDocument):
@@ -502,8 +510,7 @@ class ModelVariableSetAssertion(ModelVariableSet):
     def test(self):
         return self.get("test")
 
-    def message(self,satisfied,preferredMessage=None,lang=None):
-        if preferredMessage is None: preferredMessage = XbrlConst.standardMessage
+    def message(self,satisfied,preferredMessage='*',lang=None):
         msgsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.assertionSatisfiedMessage if satisfied else XbrlConst.assertionUnsatisfiedMessage)
         if msgsRelationshipSet:
             return msgsRelationshipSet.label(self, preferredMessage, lang, returnText=False)
@@ -570,8 +577,7 @@ class ModelConsistencyAssertion(ModelFormulaResource):
     def isStrict(self):
         return self.get("strict") == "true"
 
-    def message(self,satisfied,preferredMessage=None,lang=None):
-        if preferredMessage is None: preferredMessage = XbrlConst.standardMessage
+    def message(self,satisfied,preferredMessage='*',lang=None):
         msgsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.assertionSatisfiedMessage if satisfied else XbrlConst.assertionUnsatisfiedMessage)
         if msgsRelationshipSet:
             msg = msgsRelationshipSet.label(self, preferredMessage, lang, returnText=False)

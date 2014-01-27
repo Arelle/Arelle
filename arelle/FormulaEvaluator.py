@@ -174,16 +174,19 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                 msg = varSet.message(result)
                 if msg is not None:
                     xpCtx.inScopeVars[XbrlConst.qnVaTestExpression] = varSet.test
-                    xpCtx.modelXbrl.info("message:" + (varSet.id or varSet.xlinkLabel or _("unlabeled variableSet")),
+                    xpCtx.modelXbrl.info("message:" + (varSet.id or varSet.xlinkLabel or  _("unlabeled variableSet")),
                         msg.evaluate(xpCtx),
                         modelObject=varSet,
+                        label=varSet.logLabel(),
                         messageCodes=("message:{variableSetID|xlinkLabel}"))
                     xpCtx.inScopeVars.pop(XbrlConst.qnVaTestExpression)
                 traceOf = "Value Assertion"
             if xpCtx.formulaOptions.traceVariableSetExpressionResult:
+                label = varSet.logLabel()
                 xpCtx.modelXbrl.info("formula:trace",
-                     _("%(variableSetType)s %(xlinkLabel)s \nResult: \n%(result)s"),
-                     modelObject=varSet, variableSetType=traceOf, xlinkLabel=varSet.xlinkLabel, result=result)
+                     _("%(variableSetType)s %(xlinkLabel)s{0} \nResult: \n%(result)s")
+                     .format(" \n%(label)s" if label else ""),
+                     modelObject=varSet, variableSetType=traceOf, xlinkLabel=varSet.xlinkLabel, label=label, result=result)
             if isinstance(varSet, ModelFormula) and varSet.outputInstanceQname in xpCtx.inScopeVars:
                 newFact = produceOutputFact(xpCtx, varSet, result)
             else:

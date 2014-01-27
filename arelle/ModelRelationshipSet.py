@@ -286,6 +286,7 @@ class ModelRelationshipSet:
         shorterLangInLabel = longerLangInLabel = None
         shorterLangLabels = longerLangLabels = None
         langLabels = []
+        wildRole = role == '*'
         labels = self.fromModelObject(modelFrom)
         if linkroleHint:  # order of preference of linkroles to find label
             try:
@@ -298,7 +299,7 @@ class ModelRelationshipSet:
                 labelsOtherLinks = []
                 for modelLabelRel in labels:
                     label = modelLabelRel.toModelObject
-                    if role == label.role:
+                    if wildRole or role == label.role:
                         linkrole = modelLabelRel.linkrole
                         if linkrole == linkroleHint:
                             labelsHintedLink.append(modelLabelRel)
@@ -311,7 +312,7 @@ class ModelRelationshipSet:
             labels.sort(key=lambda rel: rel.priority, reverse=True)
         for modelLabelRel in labels:
             label = modelLabelRel.toModelObject
-            if role == label.role:
+            if wildRole or role == label.role:
                 labelLang = label.xmlLang
                 text = label.textValue if returnText else label
                 if lang is None or len(lang) == 0 or lang == labelLang:
