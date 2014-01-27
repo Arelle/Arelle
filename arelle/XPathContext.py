@@ -43,7 +43,7 @@ class XPathException(Exception):
             
     
 class FunctionNumArgs(Exception):
-    def __init__(self, errCode='err:XPTY0004', errText=None):
+    def __init__(self, errCode='err:XPST0017', errText=None):
         self.errCode = errCode
         self.errText = errText or _('Number of arguments do not match signature arity')
         self.args = ( self.__repr__(), )
