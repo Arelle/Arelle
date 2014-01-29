@@ -296,7 +296,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
     for custFnSig in val.modelXbrl.modelCustomFunctionSignatures.values():
         # entries indexed by qname, arity are signature, by qname are just for parser (value=None)
         if custFnSig is not None:
-            custFnQname = custFnSig.qname
+            custFnQname = custFnSig.functionQname
             if custFnQname.namespaceURI == XbrlConst.xfi:
                 val.modelXbrl.error("xbrlve:noProhibitedNamespaceForCustomFunction",
                     _("Custom function %(name)s has namespace reserved for functions in the function registry %(namespace)s"),
@@ -407,13 +407,13 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                 instance = modelRel.toModelObject
                 if isinstance(instance, ModelInstance):
                     if instanceQname is None:
-                        instanceQname = instance.qname
+                        instanceQname = instance.instanceQname
                         modelVariableSet.fromInstanceQnames = {instanceQname} # required if referred to by variables scope chaining
                     else:
                         val.modelXbrl.info("arelle:multipleOutputInstances",
                             _("Multiple output instances for formula %(xlinkLabel)s, to names %(instanceTo)s, %(instanceTo2)s"),
                             modelObject=modelVariableSet, xlinkLabel=modelVariableSet.xlinkLabel, 
-                            instanceTo=instanceQname, instanceTo2=instance.qname)
+                            instanceTo=instanceQname, instanceTo2=instance.instanceQname)
             if instanceQname is None: 
                 instanceQname = XbrlConst.qnStandardOutputInstance
                 instanceQnames.add(instanceQname)
@@ -457,7 +457,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                 for instRel in val.modelXbrl.relationshipSet(XbrlConst.instanceVariable).toModelObject(toVariable):
                     fromInstance = instRel.fromModelObject
                     if isinstance(fromInstance, ModelInstance):
-                        fromInstanceQname = fromInstance.qname
+                        fromInstanceQname = fromInstance.instanceQname
                         varSetInstanceDependencies.add(fromInstanceQname)
                         instanceDependencies[instanceQname].add(fromInstanceQname)
                         if fromInstanceQnames is None: fromInstanceQnames = set()
@@ -512,7 +512,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                     varSetInstanceDependencies.add(varqname)
                     instanceDependencies[instanceQname].add(varqname)
                 elif isinstance(nameVariables.get(varqname), ModelInstance):
-                    instqname = nameVariables[varqname].qname
+                    instqname = nameVariables[varqname].instanceQname
                     varSetInstanceDependencies.add(instqname)
                     instanceDependencies[instanceQname].add(instqname)
                     
@@ -544,7 +544,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                 varSetInstanceDependencies.add(varSetDepVarQname)
                 instanceDependencies[instanceQname].add(varSetDepVarQname)
             elif isinstance(nameVariables.get(varSetDepVarQname), ModelInstance):
-                instqname = nameVariables[varSetDepVarQname].qname
+                instqname = nameVariables[varSetDepVarQname].instanceQname
                 varSetInstanceDependencies.add(instqname)
                 instanceDependencies[instanceQname].add(instqname)
         
@@ -698,7 +698,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                         _("Consistency assertion %(xlinkLabel)s has relationship to a %(elementTo)s %(xlinkLabelTo)s"),
                         modelObject=consisAsser, xlinkLabel=consisAsser.xlinkLabel, 
                         elementTo=consisParamRel.toModelObject.localName, xlinkLabelTo=consisParamRel.toModelObject.xlinkLabel)
-                else:
+                elif isinstance(consisParamRel.toModelObject, ModelParameter):
                     consisAsser.orderedVariableRelationships.append(consisParamRel)
             consisAsser.compile()
             modelRel.toModelObject.hasConsistencyAssertion = True

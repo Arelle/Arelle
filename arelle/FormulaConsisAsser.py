@@ -61,7 +61,7 @@ def evaluate(xpCtx, varSet, derivedFact):
         for paramRel in consisAsser.orderedVariableRelationships:
             paramQname = paramRel.variableQname
             paramVar = paramRel.toModelObject
-            paramValue = xpCtx.inScopeVars.get(paramVar.qname)
+            paramValue = xpCtx.inScopeVars.get(paramVar.parameterQname)
             paramAlreadyInVars = paramQname in xpCtx.inScopeVars
             if not paramAlreadyInVars:
                 paramQnamesAdded.append(paramQname)

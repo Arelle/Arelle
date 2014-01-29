@@ -310,7 +310,7 @@ def roundFact(fact, inferDecimals=False, vDecimal=None):
     return vRounded
     
 def decimalRound(x, d, rounding):
-    if x.is_normal() and d <= 28: # prevent exception with excessive quantization digits
+    if x.is_normal() and -28 <= d <= 28: # prevent exception with excessive quantization digits
         if d >= 0:
             return x.quantize(ONE.scaleb(-d),rounding)
         else: # quantize only seems to work on fractional part, convert integer to fraction at scaled point    
@@ -376,13 +376,13 @@ def roundValue(value, precision=None, decimals=None, scale=None):
         if scale:
             iScale = int(scale)
             vDecimal = vDecimal.scaleb(iScale)
-        if precision:
+        if precision is not None:
             vFloat = float(value)
             if scale:
                 vFloat = pow(vFloat, iScale)
     except (decimal.InvalidOperation, ValueError): # would have been a schema error reported earlier
         return NaN
-    if precision:
+    if precision is not None:
         if not isinstance(precision, (int,float)):
             if precision == "INF":
                 precision = floatINF
@@ -402,7 +402,7 @@ def roundValue(value, precision=None, decimals=None, scale=None):
             log = log10(vAbs)
             d = precision - int(log) - (1 if vAbs >= 1 else 0)
             vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_UP)
-    elif decimals:
+    elif decimals is not None:
         if not isinstance(decimals, (int,float)):
             if decimals == "INF":
                 decimals = floatINF

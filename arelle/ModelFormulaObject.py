@@ -619,12 +619,12 @@ class ModelConsistencyAssertion(ModelFormulaResource):
 class ModelParameter(ModelFormulaResource):
     def init(self, modelDocument):
         super(ModelParameter, self).init(modelDocument)
-        if self.qname in self.modelXbrl.qnameParameters:
+        if self.parameterQname in self.modelXbrl.qnameParameters:
             self.modelXbrl.error("xbrlve:parameterNameClash",
                 _("Parameter name used on multiple parameters %(name)s"),
-                modelObject=self, name=self.qname)
+                modelObject=self, name=self.parameterQname)
         else:
-            self.modelXbrl.qnameParameters[self.qname] = self
+            self.modelXbrl.qnameParameters[self.parameterQname] = self
     
     def clear(self):
         XPathParser.clearNamedProg(self, "selectProg")
@@ -649,12 +649,12 @@ class ModelParameter(ModelFormulaResource):
         return self.get("name")
     
     @property
-    def qname(self):
+    def parameterQname(self): # cannot overload with element's qname, needed for schema particle validation
         try:
-            return self._qname
+            return self._parameterQname
         except AttributeError:
-            self._qname = self.prefixedNameQname(self.name)
-            return self._qname
+            self._parameterQname = self.prefixedNameQname(self.name)
+            return self._parameterQname
     
     @property
     def select(self):
@@ -692,6 +692,10 @@ class ModelParameter(ModelFormulaResource):
 class ModelInstance(ModelParameter):
     def init(self, modelDocument):
         super(ModelInstance, self).init(modelDocument)
+        
+    @property
+    def instanceQname(self):
+        return self.parameterQname
 
 class ModelVariable(ModelFormulaResource):
     def init(self, modelDocument):
@@ -2653,8 +2657,8 @@ class ModelMessage(ModelFormulaResource):
 class ModelCustomFunctionSignature(ModelFormulaResource):
     def init(self, modelDocument):
         super(ModelCustomFunctionSignature, self).init(modelDocument)
-        self.modelXbrl.modelCustomFunctionSignatures[self.qname, len(self.inputTypes)] = self
-        self.modelXbrl.modelCustomFunctionSignatures[self.qname] = None # place holder for parser qname recognition
+        self.modelXbrl.modelCustomFunctionSignatures[self.functionQname, len(self.inputTypes)] = self
+        self.modelXbrl.modelCustomFunctionSignatures[self.functionQname] = None # place holder for parser qname recognition
         self.customFunctionImplementation = None
 
     @property
@@ -2670,12 +2674,12 @@ class ModelCustomFunctionSignature(ModelFormulaResource):
             return self._name
     
     @property
-    def qname(self):
+    def functionQname(self): # cannot overload qname, needed for element and particle validation
         try:
-            return self._qname
+            return self._functionQname
         except AttributeError:
-            self._qname = self.prefixedNameQname(self.name)
-            return self._qname
+            self._functionQname = self.prefixedNameQname(self.name)
+            return self._functionQname
     
     @property
     def outputType(self):

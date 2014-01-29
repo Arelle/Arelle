@@ -638,7 +638,7 @@ class ModelTable(ModelFormulaResource):
                     varQname = rel.variableQname
                     parameter = rel.toModelObject
                     if isinstance(parameter, ModelParameter):
-                        self._parameters[varQname] = xc.inScopeVars.get(var.qname)
+                        self._parameters[varQname] = xc.inScopeVars.get(parameter.parameterQname)
             return self._parameters
         
     def header(self, role=None, lang=None, strip=False, evaluate=True):

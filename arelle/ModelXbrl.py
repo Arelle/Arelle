@@ -56,17 +56,8 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None, erro
         modelXbrl.closeFileSource= True
     modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True)
     del modelXbrl.entryLoadingUrl
-    if modelXbrl.modelDocument is not None and modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
-        # at this point DTS is fully discovered but schemaLocated xsd's are not yet loaded
-        modelDocumentsSchemaLocated = set()
-        while True: # need this logic because each new pass may add new urlDocs
-            modelDocuments = set(modelXbrl.urlDocs.values()) - modelDocumentsSchemaLocated
-            if not modelDocuments:
-                break
-            modelDocument = modelDocuments.pop()
-            modelDocumentsSchemaLocated.add(modelDocument)
-            modelDocument.loadSchemalocatedSchemas()
-        
+    loadSchemalocatedSchemas(modelXbrl)
+    
     #from arelle import XmlValidate
     #uncomment for trial use of lxml xml schema validation of entry document
     #XmlValidate.xmlValidate(modelXbrl.modelDocument)
@@ -85,8 +76,22 @@ def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, create
             modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry, initialXml=initialXml, base=base)
             if isEntry:
                 del modelXbrl.entryLoadingUrl
+                loadSchemalocatedSchemas(modelXbrl)
     return modelXbrl
     
+def loadSchemalocatedSchemas(modelXbrl):
+    from arelle import ModelDocument
+    if modelXbrl.modelDocument is not None and modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
+        # at this point DTS is fully discovered but schemaLocated xsd's are not yet loaded
+        modelDocumentsSchemaLocated = set()
+        while True: # need this logic because each new pass may add new urlDocs
+            modelDocuments = set(modelXbrl.urlDocs.values()) - modelDocumentsSchemaLocated
+            if not modelDocuments:
+                break
+            modelDocument = modelDocuments.pop()
+            modelDocumentsSchemaLocated.add(modelDocument)
+            modelDocument.loadSchemalocatedSchemas()
+        
 class ModelXbrl:
     """
     .. class:: ModelXbrl(modelManager)

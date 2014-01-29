@@ -80,6 +80,7 @@ class DisclosureSystem:
         self.deiFilerNameElement = None
         self.logLevelFilter = None
         self.logCodeFilter = None
+        self.version = (0,0,0)
 
     @property
     def dir(self):
@@ -203,6 +204,12 @@ class DisclosureSystem:
                     file = openXmlFileStream(self.modelManager.cntlr, filepath, stripDeclaration=True)[0]
                     xmldoc = etree.parse(file)
                     file.close()
+                    for erxlElt in xmldoc.iter(tag="Erxl"):
+                        v = erxlElt.get("version")
+                        if v and re.match(r"[0-9]+([.][0-9]+)*$", v):
+                            vSplit = v.split('.') # at least 3 digits always!
+                            self.version = tuple(int(n) for n in vSplit) + tuple(0 for n in range(3 - len(vSplit)))
+                        break
                     for locElt in xmldoc.iter(tag="Loc"):
                         href = None
                         localHref = None

@@ -230,9 +230,10 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                 if validateElementSequence is None:
                     from arelle.XmlValidateParticles import validateElementSequence, modelGroupCompositorTitle
                 try:
-                    childElts = list(elt) # uses __iter__ for inline facts
+                    #childElts = list(elt) # uses __iter__ for inline facts
+                    childElts = [e for e in elt if isinstance(e, ModelObject)]
                     if isNil:
-                        if childElts and any(True for e in childElts if isinstance(e, ModelObject)) or elt.text:
+                        if childElts or elt.text:
                             modelXbrl.error("xmlSchema:nilElementHasContent",
                                 _("Element %(element)s is nil but has contents"),
                                 modelObject=elt,
@@ -250,7 +251,8 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                             modelXbrl.error(*errDesc,**errArgs)
                     recurse = False # cancel child element validation below, recursion was within validateElementSequence
                 except AttributeError as ex:
-                    pass
+                    raise ex
+                    #pass  # HF Why is this here????
     if recurse: # if there is no complex or simple type (such as xbrli:measure) then this code is used
         for child in (elt.modelTupleFacts if ixFacts and isIxFact else elt):
             if isinstance(child, ModelObject):     

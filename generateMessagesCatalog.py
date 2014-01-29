@@ -52,16 +52,16 @@ if __name__ == "__main__":
                                                                   for elt in ast.walk(levelArg)
                                                                   if isinstance(elt, ast.Str))
                                         iArgOffset = 1
-                                    errCodeArg = item.args[0 + iArgOffset]  # str or tuple
-                                    if isinstance(errCodeArg,ast.Str):
-                                        errCodes = (errCodeArg.s,)
+                                    msgCodeArg = item.args[0 + iArgOffset]  # str or tuple
+                                    if isinstance(msgCodeArg,ast.Str):
+                                        msgCodes = (msgCodeArg.s,)
                                     else:
                                         if any(isinstance(elt, (ast.Call, ast.Name))
-                                               for elt in ast.walk(errCodeArg)):
-                                            errCodes = ("(dynamic)",)
+                                               for elt in ast.walk(msgCodeArg)):
+                                            msgCodes = ("(dynamic)",)
                                         else:
-                                            errCodes = [elt.s 
-                                                        for elt in ast.walk(errCodeArg)
+                                            msgCodes = [elt.s 
+                                                        for elt in ast.walk(msgCodeArg)
                                                         if isinstance(elt, ast.Str)]
                                     msgArg = item.args[1 + iArgOffset]
                                     if isinstance(msgArg, ast.Str):
@@ -73,11 +73,23 @@ if __name__ == "__main__":
                                         msg = "(dynamic)"
                                     else:
                                         continue # not sure what to report
-                                    keywords = [keyword.arg 
-                                                for keyword in item.keywords
-                                                if keyword.arg != 'modelObject']
-                                    for errCode in errCodes:
-                                        idMsg.append((errCode, msg, level, keywords, refFilename, item.lineno))                                        
+                                    keywords = []
+                                    for keyword in item.keywords:
+                                        if keyword.arg == 'modelObject':
+                                            pass
+                                        elif keyword.arg == 'messageCodes':
+                                            msgCodeArg = keyword.value
+                                            if any(isinstance(elt, (ast.Call, ast.Name))
+                                                   for elt in ast.walk(msgCodeArg)):
+                                                pass # dynamic
+                                            else:
+                                                msgCodes = [elt.s 
+                                                            for elt in ast.walk(msgCodeArg)
+                                                            if isinstance(elt, ast.Str)]
+                                        else:
+                                            keywords.append(keyword.arg)
+                                    for msgCode in msgCodes:
+                                        idMsg.append((msgCode, msg, level, keywords, refFilename, item.lineno))                                        
                         except (AttributeError, IndexError):
                             pass
                     

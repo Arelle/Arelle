@@ -340,7 +340,7 @@ class ModelFact(ModelObject):
                     if dec is None or dec == "INF":
                         dec = len(val.partition(".")[2])
                     else: # max decimals at 28
-                        dec = min(int(dec), 28) # 2.7 wants short int, 3.2 takes regular int, don't use _INT here
+                        dec = max( min(int(dec), 28), -28) # 2.7 wants short int, 3.2 takes regular int, don't use _INT here
                     return Locale.format(self.modelXbrl.locale, "%.*f", (dec, num), True)
                 except ValueError: 
                     return "(error)"
@@ -378,8 +378,11 @@ class ModelFact(ModelObject):
                         return True
                 else:
                     d = None; p = min((inferredPrecision(self), inferredPrecision(other)))
-                    if p == 0 and deemP0Equal:
-                        return True
+                    if p == 0:
+                        if deemP0Equal:
+                            return True
+                        else: # for test cases treat as INF comparison
+                            return self.xValue == other.xValue
                 return roundValue(self.value,precision=p,decimals=d) == roundValue(other.value,precision=p,decimals=d)
             else:
                 return False

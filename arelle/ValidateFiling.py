@@ -6,10 +6,12 @@ Created on Oct 17, 2010
 '''
 import xml.dom, xml.parsers
 import os, re, collections, datetime
+from decimal import Decimal
 from collections import defaultdict
 from arelle import (ModelDocument, ModelValue, ValidateXbrl,
                 ModelRelationshipSet, XmlUtil, XbrlConst, UrlUtil,
                 ValidateFilingDimensions, ValidateFilingDTS, ValidateFilingText)
+from arelle.ValidateXbrlCalcs import roundValue
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelDtsObject import ModelConcept
@@ -61,6 +63,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         super(ValidateFiling,self).validate(modelXbrl, parameters)
         xbrlInstDoc = modelXbrl.modelDocument.xmlDocument.getroot()
         disclosureSystem = self.disclosureSystem
+        disclosureSystemVersion = disclosureSystem.version
         
         modelXbrl.modelManager.showStatus(_("validating {0}").format(disclosureSystem.name))
         
@@ -250,6 +253,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                                     _("%(elementName)s of context Id %(context)s has disallowed content: %(content)s"),
                                                     modelObject=context, context=contextID, content=childTags, 
                                                     elementName=contextName.partition("}")[2].title())
+                #6.5.38 period forever
+                if context.isForeverPeriod:
+                    self.modelXbrl.error("EFM.6.05.38",
+                        _("Context %(contextID)s has a forever period."),
+                        modelObject=context, contextID=contextID)
             if validateEFMpragmatic: # output combined count message
                 if contextsWithDisallowedOCEs:
                     modelXbrl.error(("EFM.6.05.04", "GFM.1.02.04"),
@@ -389,7 +397,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     
                         if isEntityCommonStockSharesOutstanding and not hasClassOfStockMember:
                             hasCommonSharesOutstandingDimensionedFactWithDefaultStockClass = True   # absent dimension, may be no def LB
-                    if self.validateEFM:
+
+                    if self.validateEFM: # note that this is in the "if context is not None" region
                         for pluginXbrlMethod in pluginClassMethods("Validate.EFM.Fact"):
                             pluginXbrlMethod(self, f)
                 #6.5.17 facts with precision
@@ -413,7 +422,6 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         modelXbrl.error("EFM.6.05.25",
                             _("Domain item %(fact)s in context %(contextID)s may not appear as a fact"),
                             modelObject=f, fact=f.qname, contextID=factContextID)
-    
                     
                 if validateInlineXbrlGFM:
                     if f.localName == "nonFraction" or f.localName == "fraction":
@@ -477,11 +485,12 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             for otherStart, otherCntxs in durationCntxStartDatetimes.items():
                                 duration = end - otherStart
                                 if duration > datetime.timedelta(0) and duration <= datetime.timedelta(1):
-                                    # ignore if all contexts are same 1-day and just differ in dimensions (ARELLE-290)
-                                    if not all(cntx.isPeriodEqualTo(otherCntx) and 
-                                               cntx.isEntityIdentifierEqualTo(otherCntx)
-                                               for otherCntx in otherCntxs):
+                                    if disclosureSystemVersion[0] < 27:
                                         probCntxs |= otherCntxs - {cntx}
+                                    else:
+                                        for otherCntx in otherCntxs:
+                                            if otherCntx is not cntx and otherCntx.endDatetime != end and otherStart != cntx.startDatetime:
+                                                probCntxs.add(otherCntx)
                             if probCntxs:
                                 probStartEndCntxsByEnd[end] |= probCntxs
                                 startEndCntxsByEnd[end] |= {cntx}
@@ -503,12 +512,13 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         endContexts=', '.join(sorted(c.id for c in endCntxs)),
                         startContexts=', '.join(sorted(c.id for c in probCntxs)), 
                         documentType=documentType)
-                for end, probCntxs in probInstantCntxsByEnd.items():
-                    modelXbrl.error("EFM.6.05.10",
-                        _("Context instant date %(endDate)s startDate has a duration of one day,with end (instant) of context(s): %(contexts)s; that is inconsistent with document type %(documentType)s."),
-                        modelObject=probCntxs, endDate=XmlUtil.dateunionValue(end, subtractOneDay=True), 
-                        contexts=', '.join(sorted(c.id for c in probCntxs)), 
-                        documentType=documentType)
+                if disclosureSystemVersion[0] < 27:
+                    for end, probCntxs in probInstantCntxsByEnd.items():
+                        modelXbrl.error("EFM.6.05.10",
+                            _("Context instant date %(endDate)s startDate has a duration of one day,with end (instant) of context(s): %(contexts)s; that is inconsistent with document type %(documentType)s."),
+                            modelObject=probCntxs, endDate=XmlUtil.dateunionValue(end, subtractOneDay=True), 
+                            contexts=', '.join(sorted(c.id for c in probCntxs)), 
+                            documentType=documentType)
                 del probStartEndCntxsByEnd, startEndCntxsByEnd, probInstantCntxsByEnd
                 del durationCntxStartDatetimes
                 self.modelXbrl.profileActivity("... filer instant-duration checks", minTimeToShow=1.0)
@@ -569,17 +579,17 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     if lang and lang != requiredFactLang: # not lang.startswith(factLangStartsWith):
                         keysNotDefaultLang[langTestKey] = f1
                         
-                    if disclosureSystem.GFM and f1.isNumeric and \
-                        f1.decimals and f1.decimals != "INF" and not f1.isNil:
+                    # 6.5.37 test (insignificant digits due to rounding)
+                    if f1.isNumeric and f1.decimals and f1.decimals != "INF" and not f1.isNil and f1.xValid:
                         try:
-                            vf = float(f1.value)
-                            vround = round(vf, _INT(f1.decimals))
+                            vf = Decimal(f1.xValue) # do rounding in decimal even if type is float
+                            vround = roundValue(vf, decimals=_INT(f1.decimals))
                             if vf != vround: 
-                                modelXbrl.error("GFM.1.02.26",
+                                modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
                                     _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has insignificant digits %(value2)s."),
                                     modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=vf, value2=vf - vround)
                         except (ValueError,TypeError):
-                            modelXbrl.error("GFM.1.02.26",
+                            modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
                                 _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),
                                 modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
                 # 6.5.12 test

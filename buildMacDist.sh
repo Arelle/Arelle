@@ -5,38 +5,22 @@
 /bin/rm -rf dist
 
 # set the build date in version.py
-python3.2 buildVersion.py
+python3.3 buildVersion.py
 
 # Regenerate messages catalog (doc/messagesCatalog.xml)
-python3.2 generateMessagesCatalog.py
+python3.3 generateMessagesCatalog.py
 
 # create new app
-python3.2 setup.py py2app
+# python3.3 setup.py py2app
+python3.3 setup.py bdist_mac
 
-# add the icon file to resources
-cp -R arelle/images/arelle.icns dist/Arelle.app/Contents/Resources
-
-# add icon and config files to resources
-cp -R arelle/config dist/Arelle.app/Contents/Resources
-cp -R arelle/doc dist/Arelle.app/Contents/Resources
-cp -R arelle/examples dist/Arelle.app/Contents/Resources
-cp -R arelle/images dist/Arelle.app/Contents/Resources
-cp -R arelle/locale dist/Arelle.app/Contents/Resources
-cp -R arelle/plugin dist/Arelle.app/Contents/Resources
-
-# add tcl and tk 8.6 versions
-cp -R /library/frameworks/tcl.framework/versions dist/Arelle.app/Contents/Frameworks/Tcl.framework
-cp -R /library/frameworks/tk.framework/versions dist/Arelle.app/Contents/Frameworks/Tk.framework
-rm -R dist/Arelle.app/Contents/Frameworks/Tcl.framework/Versions/8.5
-rm -R dist/Arelle.app/Contents/Frameworks/Tk.framework/Versions/8.5
-
-# add lxml _elementpath to lib
-#mkdir lxml
-#cp ~/Library/Python/3.2/lib/python/site-packages/lxml/__pycache__/_elementpath.cpython-32.pyc lxml/_elementpath.pyc
-#zip -u dist/Arelle.app/Contents/Resources/lib/python32.zip lxml lxml/_elementpath.pyc
-#/bin/rm -rf lxml
+# fix up tkinter library to not use built-in one
+cp /Library/Frameworks/Python.framework/Versions/3.3/lib/python3.3/lib-tkinter/library/_tkinter.so build/Arelle.app/Contents/MacOS
 
 # copy scripts to get packaged with app in distribution directory
+/bin/rm -rf dist
+mkdir dist
+cp -R build/Arelle.app dist
 cp arelle/scripts-macOS/* dist
 
 /bin/rm -rf dist_pkg

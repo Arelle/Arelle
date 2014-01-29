@@ -48,7 +48,7 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
                     var = varRel.toModelObject
                     if isinstance(var, ModelParameter) and varQname not in xpCtx.inScopeVars:
                         assertionParamQnames.append(varQname)
-                        xpCtx.inScopeVars[varQname] = xpCtx.inScopeVars.get(var.qname)
+                        xpCtx.inScopeVars[varQname] = xpCtx.inScopeVars.get(var.parameterQname)
                 result = xpCtx.evaluateBooleanValue(prog, contextItem=varSet.evaluationsCount)
                 for varQname in assertionParamQnames:
                     xpCtx.inScopeVars.pop(varQname)
@@ -317,7 +317,7 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                      _("General Variable %(variable)s: select result %(result)s"),
                      modelObject=var, variable=varQname, result=str(vb.values))
         elif vb.isParameter:
-            vb.parameterValue = xpCtx.inScopeVars.get(var.qname)
+            vb.parameterValue = xpCtx.inScopeVars.get(var.parameterQname)
         # recurse partitions, preserve overlaid var bindings and inScopeVars
         overriddenVarBinding = xpCtx.varBindings.get(varQname)            
         xpCtx.varBindings[varQname] = vb

@@ -9,4 +9,4 @@ rem Run SEC Edgar Filer Manual (EFM) Conformance Suite tests
 
 @set ARELLE=c:\Program Files\Arelle\arelleCmdLine.exe
 
-"%ARELLE%" --file "%TESTCASESINDEXFILE%" --efm --validate --csvTestReport "%OUTPUTCSVFILE%" 1>  "%OUTPUTLOGFILE%" 2>&1
+"%ARELLE%" --file "%TESTCASESINDEXFILE%" --disclosureSystem efm-pragmatic --validate --csvTestReport "%OUTPUTCSVFILE%" 1>  "%OUTPUTLOGFILE%" 2>&1

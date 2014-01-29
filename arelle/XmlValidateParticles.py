@@ -29,24 +29,23 @@ def validateElementSequence(modelXbrl, compositor, children, ixFacts, iNextChild
                 elementDeclaration = particle.dereference()
                 while iNextChild < len(children):
                     elt = children[iNextChild]
+                    # children now only contains ModelObjects, no comments or other lxml elements
                     vQname = elt.vQname(modelXbrl) # takes care of elements inside inline or other instances
-                    if isinstance(elt, ModelObject):
-                        # for any, check namespace overlap
-                        if ((isinstance(particle, ModelAny) and 
-                             particle.allowsNamespace(vQname.namespaceURI)) or 
-                            (isinstance(particle, ModelConcept) and
-                             elementDeclaration is not None and 
-                             (vQname == elementDeclaration.qname or 
-                              elt.elementDeclaration(modelXbrl).substitutesForQname(elementDeclaration.qname)))):
-                            occurences += 1
-                            validate(modelXbrl, elt, ixFacts=ixFacts)
-                            iNextChild += 1
-                            if occurences == particle.maxOccurs:
-                                break
-                        elif not isinstance(particle, ModelAll):
-                            break # done with this element
-                    else: # comment or processing instruction, skip over it
+                    # for any, check namespace overlap
+                    if ((isinstance(particle, ModelAny) and 
+                         particle.allowsNamespace(vQname.namespaceURI)) or 
+                        (isinstance(particle, ModelConcept) and
+                         elementDeclaration is not None and 
+                         (vQname == elementDeclaration.qname or
+                          (vQname in modelXbrl.qnameConcepts and  
+                           modelXbrl.qnameConcepts[vQname].substitutesForQname(elementDeclaration.qname))))):
+                        occurences += 1
+                        validate(modelXbrl, elt, ixFacts=ixFacts)
                         iNextChild += 1
+                        if occurences == particle.maxOccurs:
+                            break
+                    elif not isinstance(particle, ModelAll):
+                        break # done with this element
             else:  # group definition or compositor
                 while occurences < particle.maxOccurs:
                     iPrevChild = iNextChild
@@ -92,10 +91,8 @@ def validateElementSequence(modelXbrl, compositor, children, ixFacts, iNextChild
     else:
         occured = True
     if isinstance(compositor, ModelType) and iNextChild < len(children):
-        #elt = children[iNextChild]
-        #eltChildren = elt.modelTupleFacts if ixFacts else elt
-        #if any(True for child in eltChildren if isinstance(child, ModelObject)): # any unexpected content elements
-        if any(True for child in children[iNextChild:] if isinstance(child, ModelObject)): # any unexpected content elements
+        #if any(True for child in children[iNextChild:] if isinstance(child, ModelObject)): # any unexpected content elements
+        if len(children) > iNextChild: # any unexpected content elements
             return (iNextChild, False,
                     ("xmlSchema:elementUnexpected",
                      _("%(compositor)s(%(particles)s) %(element)s unexpected, within %(parentElement)s")),

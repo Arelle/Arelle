@@ -296,23 +296,23 @@ qnPrecisionFilter = qname("{http://xbrl.org/2008/filter/value}vf:precision")
 xpath2err = "http://www.w3.org/2005/xqt-errors"
 variablesScope = "http://xbrl.org/arcrole/2010/variables-scope"
 
-# 2013-MM-DD current IWD
-tableMMDD = "http://xbrl.org/PWD/2013-MM-DD/table"
-tableModelMMDD = "http://xbrl.org/PWD/2013-MM-DD/table/model"
-tableBreakdownMMDD = "http://xbrl.org/arcrole/PWD/2013-MM-DD/table-breakdown"
-tableBreakdownTreeMMDD = "http://xbrl.org/arcrole/PWD/2013-MM-DD/breakdown-tree"
-tableDefinitionNodeSubtreeMMDD = "http://xbrl.org/arcrole/PWD/2013-MM-DD/definition-node-subtree"
-tableFilterMMDD = "http://xbrl.org/arcrole/PWD/2013-MM-DD/table-filter"
-tableAspectNodeFilterMMDD = "http://xbrl.org/arcrole/PWD/2013-MM-DD/aspect-node-filter"
-tableParameterMMDD = "http://xbrl.org/arcrole/PWD/2013-MM-DD/table-parameter"
-qnTableTableMMDD = qname("{http://xbrl.org/PWD/2013-MM-DD/table}table:table")
-qnTableBreakdownMMDD = qname("{http://xbrl.org/PWD/2013-MM-DD/table}table:breakdown")
-qnTableRuleNodeMMDD = qname("{http://xbrl.org/PWD/2013-MM-DD/table}table:ruleNode")
-qnTableRuleSetMMDD = qname("{http://xbrl.org/PWD/2013-MM-DD/table}table:ruleSet")
-qnTableClosedDefinitionNodeMMDD = qname("{http://xbrl.org/PWD/2013-MM-DD/table}table:closedDefinitionNode")
-qnTableConceptRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2013-MM-DD/table}table:conceptRelationshipNode")
-qnTableDimensionRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2013-MM-DD/table}table:dimensionRelationshipNode")
-qnTableAspectNodeMMDD = qname("{http://xbrl.org/PWD/2013-MM-DD/table}table:aspectNode")
+# 2014-MM-DD current IWD
+tableMMDD = "http://xbrl.org/PWD/2014-MM-DD/table"
+tableModelMMDD = "http://xbrl.org/PWD/2014-MM-DD/table/model"
+tableBreakdownMMDD = "http://xbrl.org/arcrole/PWD/2014-MM-DD/table-breakdown"
+tableBreakdownTreeMMDD = "http://xbrl.org/arcrole/PWD/2014-MM-DD/breakdown-tree"
+tableDefinitionNodeSubtreeMMDD = "http://xbrl.org/arcrole/PWD/2014-MM-DD/definition-node-subtree"
+tableFilterMMDD = "http://xbrl.org/arcrole/PWD/2014-MM-DD/table-filter"
+tableAspectNodeFilterMMDD = "http://xbrl.org/arcrole/PWD/2014-MM-DD/aspect-node-filter"
+tableParameterMMDD = "http://xbrl.org/arcrole/PWD/2014-MM-DD/table-parameter"
+qnTableTableMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:table")
+qnTableBreakdownMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:breakdown")
+qnTableRuleNodeMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:ruleNode")
+qnTableRuleSetMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:ruleSet")
+qnTableClosedDefinitionNodeMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:closedDefinitionNode")
+qnTableConceptRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:conceptRelationshipNode")
+qnTableDimensionRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:dimensionRelationshipNode")
+qnTableAspectNodeMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:aspectNode")
 
 # 2013-MM-DD current CR
 table = "http://xbrl.org/CR/2013-11-13/table"
@@ -547,6 +547,25 @@ def isNetRole(role):
     
 def isLabelRole(role):
     return role in standardLabelRoles or role == genLabel
+
+def isNumericRole(role):
+    return role in {"http://www.xbrl.org/2003/role/totalLabel",
+                    "http://www.xbrl.org/2003/role/positiveLabel",
+                    "http://www.xbrl.org/2003/role/negativeLabel",
+                    "http://www.xbrl.org/2003/role/zeroLabel",
+                    "http://www.xbrl.org/2003/role/positiveTerseLabel",
+                    "http://www.xbrl.org/2003/role/negativeTerseLabel",
+                    "http://www.xbrl.org/2003/role/zeroTerseLabel",
+                    "http://www.xbrl.org/2003/role/positiveVerboseLabel",
+                    "http://www.xbrl.org/2003/role/negativeVerboseLabel",
+                    "http://www.xbrl.org/2003/role/zeroVerboseLabel",
+                    "http://www.xbrl.org/2009/role/negatedLabel",
+                    "http://www.xbrl.org/2009/role/negatedPeriodEndLabel",
+                    "http://www.xbrl.org/2009/role/negatedPeriodStartLabel",
+                    "http://www.xbrl.org/2009/role/negatedTotalLabel",
+                    "http://www.xbrl.org/2009/role/negatedNetLabel",
+                    "http://www.xbrl.org/2009/role/negatedTerseLabel"
+                    }
     
 def isStandardArcrole(role):
     return role in {"http://www.w3.org/1999/xlink/properties/linkbase",

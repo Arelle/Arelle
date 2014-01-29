@@ -188,18 +188,23 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'): # works on ubuntu wi
 
     packages = find_packages('.') 
     dataFiles = None 
+    includeFiles = [('arelle/config','config'), 
+                    ('arelle/doc','doc'), 
+                    ('arelle/images','images'), 
+                    ('arelle/locale','locale'), 
+                    ('arelle/examples','examples'), 
+                    ('arelle/examples/plugin','examples/plugin'), 
+                    ('arelle/examples/plugin/locale/fr/LC_MESSAGES','examples/plugin/locale/fr/LC_MESSAGES'), 
+                    ('arelle/plugin','plugin')]
+    if sys.platform == 'darwin':
+        includeFiles.append(('arelle/scripts-macOS','scripts'))
+        # copy mac ports tcl and tk into build
+        #includeFiles.append(('/opt/local/lib/tcl8.6','tcl8.6'))
+        #includeFiles.append(('/opt/local/lib/tk8.6','tk8.6'))
+    else: 
+        includeFiles.append(('arelle/scripts-unix','scripts'))
     options = dict( build_exe =  { 
-        "include_files": [('arelle/config','config'), 
-                          ('arelle/doc','doc'), 
-                          ('arelle/images','images'), 
-                          ('arelle/locale','locale'), 
-                          ('arelle/examples','examples'), 
-                          ('arelle/examples/plugin','examples/plugin'), 
-                          ('arelle/examples/plugin/locale/fr/LC_MESSAGES','examples/plugin/locale/fr/LC_MESSAGES'), 
-                          ('arelle/plugin','plugin'), 
-                          ('arelle/scripts-macOS' if sys.platform == 'darwin' else 'arelle/scripts-unix',
-                           'scripts'),
-                          ],
+        "include_files": includeFiles,
         #
         # rdflib & isodate egg files: rename .zip cpy lib & egg-info subdirectories to site-packages directory
         #
