@@ -488,7 +488,8 @@ def validateTextBlockFacts(modelXbrl):
                         modelXbrl.error("EFM.6.05.16" if htmlError else ("EFM.6.05.15.dtdError", "GFM.1.02.14"),
                             _("Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s"),
                             modelObject=f1, fact=f1.qname, contextID=f1.contextID, 
-                            error=', '.join(e.message for e in errors))
+                            error=', '.join(e.message for e in errors),
+                            messageCodes=("EFM.6.05.16", "EFM.6.05.15.dtdError", "GFM.1.02.14"))
                     for elt in textblockXml.iter():
                         eltTag = elt.tag
                         for attrTag, attrValue in elt.items():

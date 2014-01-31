@@ -950,11 +950,13 @@ class ModelXbrl:
     def info(self, codes, msg, **args):
         """Same as error(), but as info
         """
+        """@messageCatalog=[]"""
         self.log('INFO', codes, msg, **args)
                     
     def warning(self, codes, msg, **args):
         """Same as error(), but as warning, and no error code saved for Validate
         """
+        """@messageCatalog=[]"""
         self.log('WARNING', codes, msg, **args)
                     
     def log(self, level, codes, msg, **args):
@@ -971,6 +973,7 @@ class ModelXbrl:
             self.logCount[numericLevel] = self.logCount.get(numericLevel, 0) + 1
             if numericLevel >= self.errorCaptureLevel:
                 self.errors.append(messageCode)
+            """@messageCatalog=[]"""
             logger.log(numericLevel, *logArgs, exc_info=args.get("exc_info"), extra=extras)
                     
     def error(self, codes, msg, **args):
@@ -993,11 +996,13 @@ class ModelXbrl:
         :param **args: Named arguments including modelObject, modelXbrl, or modelDocument, named arguments in msg string, and any exc_info argument.
         :param messageCodes: If first parameter codes, above, is dynamically formatted, this is a documentation string of the message codes only used for extraction of the message catalog document (not used in run-time processing).
         """
+        """@messageCatalog=[]"""
         self.log('ERROR', codes, msg, **args)
 
     def exception(self, codes, msg, **args):
         """Same as error(), but as exception
         """
+        """@messageCatalog=[]"""
         self.log('CRITICAL', codes, msg, **args)
         
     def logProfileStats(self):

@@ -270,7 +270,13 @@ def checkDTS(val, modelDocument, visited):
                         val.modelXbrl.error(("EFM.6.07.28", "GFM.1.03.30"),
                             _("Concept %(concept)s is a domainItemType and must be periodType duration"),
                             modelObject=modelConcept, concept=modelConcept.qname)
-                        
+                                                
+                    #6.7.31 (version 27) fractions
+                    if modelConcept.isFraction:
+                        val.modelXbrl.error("EFM.6.07.31",
+                            _("Concept %(concept)s is a fraction"),
+                            modelObject=modelConcept, concept=modelConcept.qname)
+    
                     # 6.8.5 semantic check, check LC3 name
                     if name:
                         if not name[0].isupper():
@@ -621,13 +627,15 @@ def checkDTS(val, modelDocument, visited):
 
     elif modelDocument.type == ModelDocument.Type.LINKBASE:
         # if it is part of the submission (in same directory) check name
+        labelRels = None
         if modelDocument.filepath.startswith(val.modelXbrl.modelDocument.filepathdir):
             #6.3.3 filename check
             extLinkElt = XmlUtil.descendant(modelDocument.xmlRootElement, XbrlConst.link, "*", "{http://www.w3.org/1999/xlink}type", "extended")
             if extLinkElt is None:# no ext link element
                 val.modelXbrl.error((val.EFM60303 + ".noLinkElement", "GFM.1.01.01.noLinkElement"),
                     _('Invalid linkbase file name: %(filename)s, has no extended link element, cannot determine link type.'),
-                    modelObject=modelDocument, filename=modelDocument.basename)
+                    modelObject=modelDocument, filename=modelDocument.basename,
+                    messageCodes=("EFM.6.03.03.noLinkElement", "EFM.6.23.01.noLinkElement",  "GFM.1.01.01.noLinkElement"))
             elif extLinkElt.localName not in extLinkEltFileNameEnding:
                 val.modelXbrl.error("EFM.6.03.02",
                     _('Invalid linkbase link element %(linkElement)s in %(filename)s'),
@@ -655,6 +663,17 @@ def checkDTS(val, modelDocument, visited):
                         _('Invalid linkbase name, must match "{base}-{yyyymmdd}%(expectedSuffix)s.xml": %(filename)s'),
                         modelObject=modelDocument, filename=modelDocument.basename, expectedSuffix=expectedSuffix,
                         messageCodes=("EFM.6.03.03", "EFM.6.23.01", "GFM.1.01.01"))
+                if extLinkElt.localName == "labelLink":
+                    if labelRels is None:
+                        labelRels = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+                    for labelElt in XmlUtil.children(extLinkElt, XbrlConst.link, "label"):
+                        # 6.10.9
+                        if XbrlConst.isNumericRole(labelElt.role):
+                            for rel in labelRels.toModelObject(labelElt):
+                                if rel.fromModelObject is not None and not rel.fromModelObject.isNumeric:
+                                    val.modelXbrl.error("EFM.6.10.09",
+                                        _("Label of non-numeric concept %(concept)s has a numeric role: %(role)s"), 
+                                          modelObject=(labelElt, rel.fromModelObject), concept=rel.fromModelObject.qname, role=labelElt.role)
     visited.remove(modelDocument)
     
 def tupleCycle(val, concept, ancestorTuples=None):

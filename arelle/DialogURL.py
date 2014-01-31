@@ -81,7 +81,9 @@ class DialogURL(Toplevel):
         self.wait_window(self)
         
     def ok(self, event=None):
-        self.url = self.urlVar.get()
+        self.url = self.urlVar.get().strip()
+        if self.url and self.url[0] == '"' and self.url[-1] == '"':
+            self.url = self.url[1:-1] # strip double quotes (from cut and paste from database etc
         self.accepted = True
         self.close()
         

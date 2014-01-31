@@ -873,7 +873,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     if expectedDocumentTypes and documentType not in expectedDocumentTypes:
                         modelXbrl.error("EFM.6.05.20.submissionDocumentType" if self.exhibitType != "EX-2.01" else "EFM.6.23.03",
                             _("DocumentType '%(documentType)s' of context %(contextID)s inapplicable to submission form %(submissionType)s"),
-                            modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, submissionType=submissionType)
+                            modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, submissionType=submissionType,
+                            messageCodes=("EFM.6.05.20.submissionDocumentType", "EFM.6.23.03"))
                 if self.exhibitType:
                     if (documentType in ("SD", "SD/A")) != (self.exhibitType == "EX-2.01"):
                         modelXbrl.error({"EX-100":"EFM.6.23.04",
@@ -1185,7 +1186,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 (qnG not in qnameFacts or (not gNilOk and qnameFacts[qnG].isNil))): 
                                 modelXbrl.error(errCode,
                                     _("The Context %(context)s has a %(fact1)s and is missing required %(fact2NotNil)sfact %(fact2)s"),
-                                    modelObject=qnameFacts[qnF], context=context.id, fact1=qnF, fact2=qnG, fact2NotNil="" if gNilOk else "non-nil ")
+                                    modelObject=qnameFacts[qnF], context=context.id, fact1=qnF, fact2=qnG, fact2NotNil="" if gNilOk else "non-nil ",
+                                    messageCodes=("EFM.6.23.24", "EFM.6.23.25", "EFM.6.23.28", "EFM.6.23.29", "EFM.6.23.35",
+                                                  "EFM.6.23.35", "EFM.6.23.39", "EFM.6.23.42", "EFM.6.23.43"))
                         for f in cntxFacts:
                             if (not context.hasDimension(rxd.PmtAxis) and f.isNumeric and 
                                 f.unit is not None and f.unit.measures != currencyMeasures):
@@ -2196,6 +2199,50 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         reasonIssueIsWarning += _("\n\nLink role is parenthetical.  ")
                         msgCode = "WARNING-SEMANTIC"
                         errs = tuple(e + '.parenthetical' for e in errs)
+                    """@messageCatalog=[
+[["EFM.6.15.02,6.13.02,6.13.03", "GFM.2.06.02,2.05.02,2.05.03"],
+"Notes calculation relationship missing from total concept to item concepts, based on required presentation of line items and totals.
+%(reasonIssueIsWarning)s
+
+Presentation link role: 
+%(linkrole)s 
+%(linkroleDefinition)s.
+
+Total concept: 
+%(conceptSum)s.
+
+Reason presumed total: n%(reasonPresumedTotal)s.
+
+Summation items missing n%(missingConcepts)s.
+
+Expected item concepts 
+%(itemConcepts)s.  
+
+Corresponding facts in contexts: 
+%(contextIDs)s
+"],
+[["EFM.6.15.03,6.13.02,6.13.03", "GFM.2.06.03,2.05.02,2.05.03"],
+"Notes calculation relationship missing from total concept to item concepts, based on required presentation of line items and totals. 
+%(reasonIssueIsWarning)s
+
+Presentation link role: 
+%(linkrole)s 
+%(linkroleDefinition)s.
+
+Total concept: 
+%(conceptSum)s.
+
+Reason presumed total: 
+%(reasonPresumedTotal)s.
+
+Summation items missing 
+%(missingConcepts)s.  
+
+Expected item concepts 
+%(itemConcepts)s.  
+
+Corresponding facts in contexts: 
+%(contextIDs)s"]]"""
                     self.modelXbrl.log(msgCode, errs, msg,
                         modelObject=[totalConcept, totalRel, siblingConcept, contributingRel] + [f for f in compatibleFacts], 
                         reasonIssueIsWarning=reasonIssueIsWarning,
