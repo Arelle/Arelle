@@ -691,6 +691,21 @@ class XPathContext:
     def effectiveBooleanValue(self, p, x):
         from arelle.FunctionFn import boolean
         return boolean( self, p, None, (self.flattenSequence(x),) )
+    
+    def traceEffectiveVariableValue(self, elt, varname):
+        # used for tracing variable value
+        if varname.startswith('$'):
+            varQname = qname(elt,varname[1:])
+            if varQname in self.inScopeVars:
+                varValue = self.inScopeVars[varQname]
+                if isinstance(varValue, ModelFact):
+                    return varValue.effectiveValue
+                else:
+                    return str(varValue)
+            else:
+                return varname
+        else: # not a variable name
+            return varname
 
     # flatten into a sequence
     def flattenSequence(self, x, sequence=None):

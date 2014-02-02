@@ -14,12 +14,14 @@ from arelle.ModelFormulaObject import (aspectModels, Aspect, aspectModelAspect,
                                  ModelParameter, ModelFilter, ModelAspectCover, ModelBooleanFilter)
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.ModelValue import (QName)
-import datetime, time, logging
+import datetime, time, logging, re
 from decimal import Decimal
 from math import log10, isnan, isinf, fabs
 from arelle.Locale import format_string
 from collections import defaultdict
 ModelDimensionValue = None
+
+expressionVariablesPattern = re.compile(r"([^$]*)([$]\w[\w:.-]*)([^$]*)")
 
 def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
     # for each dependent variable, find bindings
@@ -183,10 +185,15 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                 traceOf = "Value Assertion"
             if xpCtx.formulaOptions.traceVariableSetExpressionResult:
                 label = varSet.logLabel()
+                expression = varSet.expression
                 xpCtx.modelXbrl.info("formula:trace",
-                     _("%(variableSetType)s %(xlinkLabel)s{0} \nResult: \n%(result)s")
+                     _("%(variableSetType)s %(xlinkLabel)s{0} \nExpression: %(expression)s \nEvaluated: %(evaluatedExpression)s \nResult: %(result)s")
                      .format(" \n%(label)s" if label else ""),
-                     modelObject=varSet, variableSetType=traceOf, xlinkLabel=varSet.xlinkLabel, label=label, result=result)
+                     modelObject=varSet, variableSetType=traceOf, xlinkLabel=varSet.xlinkLabel, 
+                     label=label, result=result, expression=expression,
+                     evaluatedExpression=''.join(xpCtx.traceEffectiveVariableValue(varSet,expr)
+                                                 for grp in expressionVariablesPattern.findall(expression)
+                                                 for expr in grp))
             if isinstance(varSet, ModelFormula) and varSet.outputInstanceQname in xpCtx.inScopeVars:
                 newFact = produceOutputFact(xpCtx, varSet, result)
             else:

@@ -439,7 +439,11 @@ class ModelFormulaRules:
 
     @property
     def value(self):
-        return self.get("value") if self.get("value") else None
+        return self.get("value")
+
+    @property
+    def expression(self):
+        return XPathParser.normalizeExpr(self.get("value"))
 
     def source(self, aspect=None, ruleElement=None, acceptFormulaSource=True):
         if aspect is None and ruleElement is None:
@@ -509,6 +513,10 @@ class ModelVariableSetAssertion(ModelVariableSet):
     @property
     def test(self):
         return self.get("test")
+
+    @property
+    def expression(self):
+        return XPathParser.normalizeExpr(self.get("test"))
 
     def message(self,satisfied,preferredMessage='*',lang=None):
         msgsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.assertionSatisfiedMessage if satisfied else XbrlConst.assertionUnsatisfiedMessage)
