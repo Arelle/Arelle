@@ -11,7 +11,8 @@ from collections import defaultdict
 from arelle import (ModelDocument, ModelValue, ValidateXbrl,
                 ModelRelationshipSet, XmlUtil, XbrlConst, UrlUtil,
                 ValidateFilingDimensions, ValidateFilingDTS, ValidateFilingText)
-from arelle.ValidateXbrlCalcs import roundValue
+from arelle.ValidateXbrlCalcs import insignificantDigits
+from arelle.XmlValidate import VALID
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelDtsObject import ModelConcept
@@ -580,14 +581,13 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         keysNotDefaultLang[langTestKey] = f1
                         
                     # 6.5.37 test (insignificant digits due to rounding)
-                    if f1.isNumeric and f1.decimals and f1.decimals != "INF" and not f1.isNil and f1.xValid:
+                    if f1.isNumeric and f1.decimals and f1.decimals != "INF" and not f1.isNil and f1.xValid == VALID:
                         try:
-                            vf = Decimal(f1.xValue) # do rounding in decimal even if type is float
-                            vround = roundValue(vf, decimals=_INT(f1.decimals))
-                            if vf != vround: 
+                            insignificance = insignificantDigits(f1.xValue, decimals=f1.decimals)
+                            if insignificance: 
                                 modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
-                                    _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has insignificant digits %(value2)s."),
-                                    modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=vf, value2=vf - vround)
+                                    _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(value2)s."),
+                                    modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.xValue, value2=insignificance)
                         except (ValueError,TypeError):
                             modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
                                 _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),

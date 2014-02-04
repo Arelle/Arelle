@@ -421,6 +421,50 @@ def roundValue(value, precision=None, decimals=None, scale=None):
         vRounded = vDecimal
     return vRounded
 
+def insignificantDigits(value, precision=None, decimals=None, scale=None):
+    try:
+        vDecimal = decimal.Decimal(value)
+        if scale:
+            iScale = int(scale)
+            vDecimal = vDecimal.scaleb(iScale)
+        if precision is not None:
+            vFloat = float(value)
+            if scale:
+                vFloat = pow(vFloat, iScale)
+    except (decimal.InvalidOperation, ValueError): # would have been a schema error reported earlier
+        return ZERO
+    if precision is not None:
+        if not isinstance(precision, (int,float)):
+            if precision == "INF":
+                return ZERO
+            else:
+                try:
+                    precision = int(precision)
+                except ValueError: # would be a schema error
+                    return ZERO
+        if isinf(precision) or precision == 0 or isnan(precision) or vFloat == 0: 
+            return ZERO
+        else:
+            vAbs = fabs(vFloat)
+            log = log10(vAbs)
+            decimals = precision - int(log) - (1 if vAbs >= 1 else 0)
+    elif decimals is not None:
+        if not isinstance(decimals, (int,float)):
+            if decimals == "INF":
+                return ZERO
+            else:
+                try:
+                    decimals = int(decimals)
+                except ValueError: # would be a schema error
+                    return ZERO
+        if isinf(decimals) or isnan(decimals):
+            return ZERO
+    else:
+        return ZERO
+    if vDecimal.is_normal() and -28 <= decimals <= 28: # prevent exception with excessive quantization digits
+        return abs(vDecimal) % ONE.scaleb(-decimals)        # return insignificant digits portion of number
+    return ZERO
+
 
 def wrappedFactWithWeight(fact, weight, roundedValue):
     return ObjectPropertyViewWrapper(fact, ( ("weight", weight), ("roundedValue", roundedValue)) )
