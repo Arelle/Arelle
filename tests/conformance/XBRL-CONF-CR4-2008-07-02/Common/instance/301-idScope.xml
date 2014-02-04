@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSPY v5 rel. 4 U (http://www.xmlspy.com) by Walter Hamscher (Standard Advantage) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Identifier Scope" description="Section 4.3  The Item Element" outpath="out" owner="mg@fla.fujitsu.com" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	<variation id="V-1" name="IdScopeValid">
+		<description>301.01 Valid example of id attribute.</description>
+		<data>
+			<xsd readMeFirst="false">IdScope.xsd</xsd>
+			<instance readMeFirst="true">301-01-IdScopeValid.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-2" name="IdScopeOutOfScope">
+		<description>301.02 ID is referenced out side of xbrl element. This test is out of scope of Conformance testing. But this is kept in the conformance suite since it is still useful test. Decided by Spec WG.</description>
+		<data>
+			<xsd readMeFirst="false">IdScope.xsd</xsd>
+			<instance readMeFirst="true">301-02-IdScopeOutOfScope.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-3" name="IdScopePeriodDiff">
+		<description>301.03  Mismatch of periodType attribute and referenced context's period type.</description>
+		<data>
+			<xsd readMeFirst="false">IdScope.xsd</xsd>
+			<instance readMeFirst="true">301-03-IdScopePeriodDiff.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-4" name="IdScopeContextRefToUnit">
+		<description>301.04  contextRef has IDREF to unit element.</description>
+		<data>
+			<xsd readMeFirst="false">IdScope.xsd</xsd>
+			<instance readMeFirst="true">301-04-IdScopeContextRefToUnit.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-5" name="IdScopeUnitRefToContext">
+		<description>301.05 unitRef has IDREF to context element.</description>
+		<data>
+			<xsd readMeFirst="false">IdScope.xsd</xsd>
+			<instance readMeFirst="true">301-05-IdScopeUnitRefToContext.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-6" name="FootnoteScopeValid">
+		<description>301.06  Valid example of footnote link href attribute.</description>
+		<data>
+			<xsd readMeFirst="false">IdScope.xsd</xsd>
+			<instance readMeFirst="true">301-06-FootnoteScopeValid.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-7" name="FootenoteOutOfScope">
+		<description>301.07 href attribute is referencing out side of xbrl element. This test is out of scope of Conformance testing. But this is kept in the conformance suite since it is still useful test. Decided by Spec WG.</description>
+		<data>
+			<xsd readMeFirst="false">IdScope.xsd</xsd>
+			<instance readMeFirst="true">301-07-FootnoteOutOfScope.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-8" name="FootnoteToContext">
+		<description>301.08 href attribute is referencing to context element.</description>
+		<data>
+			<xsd readMeFirst="false">IdScope.xsd</xsd>
+			<instance readMeFirst="true">301-08-FootnoteToContext.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-9" name="FootnoteToUnit">
+		<description>301.09 href attribute is referencing to unit element.</description>
+		<data>
+			<xsd readMeFirst="false">IdScope.xsd</xsd>
+			<instance readMeFirst="true">301-09-FootnoteToUnit.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation  id="V-10" name="FootnoteFromOutOfScope">
+		<description>301.10 The instance contains two footnote links.  The second one contains an arc with a from value that does not have a corresponding loc in the same extended link.</description>
+		<data>
+			<xsd readMeFirst="false">IdScope.xsd</xsd>
+			<instance readMeFirst="true">301-10-FootnoteFromOutOfScope.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation  id="V-11" name="FootnoteToOutOfScope">
+		<description>301.11 The instance contains two footnote links.  The second one contains an arc with a to value that does not have a corresponding footnote resource in the same extended link.</description>
+		<data>
+			<xsd readMeFirst="false">IdScope.xsd</xsd>
+			<instance readMeFirst="true">301-11-FootnoteToOutOfScope.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>	
+	<variation  id="V-12" name="FootnoteLocOutOfScope">
+		<description>301.12 The instance contains a footnote link.  In the footnote link there is a loc element that has an href that points to a fact in another instance document.</description>
+		<data>
+			<xsd readMeFirst="false">IdScope.xsd</xsd>
+			<instance readMeFirst="true">301-12-FootnoteLocOutOfScope.xml</instance>
+			<instance readMeFirst="false">301-12-FootnoteLocOutOfScope2.xml</instance>			
+		</data>
+		<result expected="invalid"/>
+	</variation>	
+	<variation  id="V-13" name="FootnoteLocInScope">
+		<description>301.13 The instance contains a footnote link.  In the footnote link there is a loc element that has an href that points to a fact in the instance document using the instance document file name with a fragment identifier.</description>
+		<data>
+			<xsd readMeFirst="false">IdScope.xsd</xsd>
+			<instance readMeFirst="true">301-13-FootnoteLocInScope.xml</instance>			
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation  id="V-14" name="FootnoteFromResource">
+		<description>301.14 The instance contains a footnote link. The arc in the footnote link has a from value that matches a footnote resource. This is not valid for the fact-footnote arc role on the arc. The from must point to a loc which in turns points to a fact in the same instance document.</description>
+		<data>
+			<xsd readMeFirst="false">IdScope.xsd</xsd>
+			<instance readMeFirst="true">301-14-FootnoteFromResource.xml</instance>			
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation  id="V-15" name="FootnoteToLoc">
+		<description>301.15 The instance contains a footnote link. The arc in the footnote link has a from value that matches a footnote resource. This is not valid for the fact-footnote arc role on the arc. The from must point to a loc which in turns points to a fact in the same instance document.</description>
+		<data>
+			<xsd readMeFirst="false">IdScope.xsd</xsd>
+			<instance readMeFirst="true">301-15-FootnoteToLoc.xml</instance>			
+		</data>
+		<result expected="invalid"/>
+	</variation>		
+	<variation  id="V-16" name="FootnoteWithoutLang">
+		<description>301.16 The xml:lang attribute is missing on the footnote resource.</description>
+		<data>
+			<xsd readMeFirst="false">IdScope.xsd</xsd>
+			<instance readMeFirst="true">301-16-FootnoteWithoutLang.xml</instance>			
+		</data>
+		<result expected="invalid"/>
+	</variation>		
+</testcase>

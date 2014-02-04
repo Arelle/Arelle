@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:eg="http://xbrl.org/formula/conformance/example" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="44250-regexpIdentifier-concepts.xsd"/>
+  
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="44250-regexpIdentifier-startsWith-followedBy-formula.xml"/>  
+
+  <context id="valueEQ">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">asdf-1234</identifier>
+    </entity>
+    <period>
+      <instant>2007-03-31</instant>
+    </period>
+  </context>
+
+  <context id="valueNEQ">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">abcdef</identifier>
+    </entity>
+    <period>
+      <instant>2007-03-31</instant>
+    </period>
+  </context>
+
+  <unit id="unit">
+    <measure>iso4217:USD</measure>
+  </unit>
+  
+  <eg:a decimals="0" contextRef="valueEQ" unitRef="unit">100</eg:a>
+  <eg:b decimals="0" contextRef="valueNEQ" unitRef="unit">200</eg:b>
+
+</xbrl>

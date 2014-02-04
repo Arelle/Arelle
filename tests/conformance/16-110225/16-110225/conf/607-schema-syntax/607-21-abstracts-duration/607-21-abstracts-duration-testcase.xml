@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>607-21</number>
+<name>EDGAR Filer Manual v16 6.7.21 page 6-37</name>
+<description>
+<h2>If the abstract attribute of xsd:element is 'true', then the xbrli:periodType attribute must be 'duration'.</h2>
+<p>REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies other than the ICI 2006
+taxonomy. The ICI 2006 taxonomy can only be used with EX-100 attachments, to which rules in Chapter 6 do not apply.</p>
+</description>
+<reference specification="11177"/>
+<variation id="_001ng">
+<name>6.7.21, abstract with period type instant, NOGOOD. </name>
+<description> abstract with period type instant, NOGOOD. </description>
+<reference specification="11177"/>
+<data>
+<instance readMeFirst="true">e60721001ng-20081231.xml</instance>
+<linkbase>e60721001ng-20081231_pre.xml</linkbase>
+<linkbase>e60721001ng-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60721001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60721" name="Abstract-Is-Instant" frd="du"/>
+</result>
+</variation>
+</testcase>

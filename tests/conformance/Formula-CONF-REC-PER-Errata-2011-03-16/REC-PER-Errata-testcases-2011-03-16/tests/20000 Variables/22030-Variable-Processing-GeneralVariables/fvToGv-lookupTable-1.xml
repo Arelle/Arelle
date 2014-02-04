@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<planetsTable
+xmlns='http://xbrl.org/formula/conformance/example/lookUpTable'
+xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' 
+xsi:schemaLocation='
+  http://xbrl.org/formula/conformance/example/lookUpTable 
+    fvToGv-lookupTable-1.xsd
+' >
+<planet><name>venus</name><moonCount>0</moonCount><people>no people</people><temperature>too hot</temperature></planet>
+<planet><name>earth</name><moonCount>1</moonCount><people>humans</people><temperature>nice</temperature></planet>
+<planet><name>mars</name><moonCount>2</moonCount><people>green aliens</people><temperature>too cold</temperature></planet>
+</planetsTable>

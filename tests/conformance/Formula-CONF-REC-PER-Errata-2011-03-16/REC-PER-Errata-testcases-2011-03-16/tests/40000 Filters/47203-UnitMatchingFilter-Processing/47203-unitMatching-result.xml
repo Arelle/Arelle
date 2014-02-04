@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:eg="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="47203-concepts.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="47203-unitMatching-formula.xml"/>
+  
+  <context id="context">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <unit id="unit-squareMiles">
+    <measure>eg:squareMiles</measure>
+  </unit>
+  
+  <unit id="unit-acres">
+    <measure>eg:acres</measure>
+  </unit>
+  
+  <unit id="unit-hectares">
+    <measure>eg:hectares</measure>
+  </unit>
+  
+  <unit id="unit-speedMPH">
+    <divide>
+       <unitNumerator>
+         <measure>eg:miles</measure>
+       </unitNumerator>
+       <unitDenominator>
+         <measure>eg:hours</measure>
+       </unitDenominator>
+    </divide>
+  </unit>
+
+  <unit id="unit-speedKMH">
+    <divide>
+       <unitNumerator>
+         <measure>eg:kilometers</measure>
+       </unitNumerator>
+       <unitDenominator>
+         <measure>eg:hours</measure>
+       </unitDenominator>
+    </divide>
+  </unit>
+
+  <unit id="unit-acceleration">
+    <divide>
+       <unitNumerator>
+         <measure>eg:meters</measure>
+       </unitNumerator>
+       <unitDenominator>
+         <measure>eg:seconds</measure>
+         <measure>eg:seconds</measure>
+       </unitDenominator>
+    </divide>
+  </unit>
+
+  <eg:a precision="0" contextRef="context" unitRef="unit-squareMiles">6003</eg:a>
+
+  <eg:a precision="0" contextRef="context" unitRef="unit-acres">6006</eg:a>
+
+  <eg:a precision="0" contextRef="context" unitRef="unit-hectares">6009</eg:a>
+
+  <eg:a precision="0" contextRef="context" unitRef="unit-speedMPH">6012</eg:a>
+
+  <eg:a precision="0" contextRef="context" unitRef="unit-speedKMH">6015</eg:a>
+
+  <eg:a precision="0" contextRef="context" unitRef="unit-acceleration">6018</eg:a>
+
+</xbrl>

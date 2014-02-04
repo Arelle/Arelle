@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>70211</number>
+  <name>Generic reference static analysis</name>
+  <description>
+    Test generic reference element.
+  </description>
+  <reference specification="GENERIC-REFERENCE" id="sec-generic-reference"/>
+
+  <variation id="V-01">
+    <name>A generic reference connects elements to a generic reference.  Source elements include two resources, a generic arc, and an xsd schema attribute.</name>
+    <description>
+    </description>
+    <reference specification="GENERIC-REFERENCE" id="sec-generic-reference"/>
+    <data>
+      <schema readMeFirst="true">70211-reference-resource-concepts-v01.xsd</schema>
+      <linkbase>70211-reference-resource-testLB-v01.xml</linkbase>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+  <variation id="V-02">
+    <name>A generic reference connects two elements to two shared generic references.  As of erratum 1, this no longer causes an undirected cycle error, as the arcrole now allows undirected cycles.</name>
+    <description>
+    </description>
+    <reference specification="GENERIC-REFERENCE" id="sec-generic-reference"/>
+    <data>
+      <schema readMeFirst="true">70211-reference-resource-concepts-v02.xsd</schema>
+      <linkbase>70211-reference-resource-testLB-v02.xml</linkbase>
+    </data>
+	<result expected="valid"/>
+  </variation>
+
+</testcase>
+
+
+

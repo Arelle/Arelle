@@ -1,0 +1,54 @@
+<!-- XBRL 2.1 Tests -->
+
+<!--Edited by Charles Hoffman (UBmatrix) -->
+
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+
+<xsd:schema 
+
+   targetNamespace="http://mycompany.com/xbrl/arcs" 
+
+   xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+
+   xmlns:xlink="http://www.w3.org/1999/xlink" 
+
+   xmlns:link="http://www.xbrl.org/2003/linkbase">
+
+   <xsd:annotation>
+
+      <xsd:appinfo>
+
+	<link:linkbaseRef 
+
+	   xlink:type="simple" 
+
+	   xlink:href="209-01-DifferentWeights-calculation.xml" 
+
+	   xlink:role="http://www.xbrl.org/2003/role/calculationLinkbaseRef" 
+
+	   xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+
+      </xsd:appinfo>
+
+   </xsd:annotation>
+
+   
+
+   <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+
+
+
+   <xsd:element name="ItemCredit" id="ItemCredit" xbrli:balance="credit" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="duration"/>
+
+   <xsd:element name="SumCredit" id="SumCredit" xbrli:balance="credit" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="duration"/>
+
+   
+
+   <!--This document is valid as it contains no errors, but the linkbase must be considered -->
+
+
+
+</xsd:schema>
+

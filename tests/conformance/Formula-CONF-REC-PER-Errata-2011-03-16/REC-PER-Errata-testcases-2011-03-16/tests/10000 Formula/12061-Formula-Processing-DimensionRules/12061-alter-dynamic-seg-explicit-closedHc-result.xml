@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+xmlns:eg="http://xbrl.org/formula/conformance/example"
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="12061-dim-tests.xsd"/>
+
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="http://www.xbrl.org/2006/xbrldi-2006.xsd"/>
+
+  <context id="context">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">AAA001</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="eg:ExplDim1">eg:ExplDim1Mbr2</xbrldi:explicitMember>
+        <xbrldi:explicitMember dimension="eg:ExplDim2">eg:ExplDim2Mbr2</xbrldi:explicitMember>
+        <xbrldi:typedMember dimension="eg:TypedDim1">
+          <eg:typedDim1Value>dimVal1</eg:typedDim1Value>
+        </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  <eg:PriItemClSeg contextRef="context">abc</eg:PriItemClSeg>
+</xbrl>

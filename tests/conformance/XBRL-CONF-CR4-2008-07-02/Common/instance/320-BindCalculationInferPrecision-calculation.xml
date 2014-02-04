@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Calculation Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2007-02-26 21:09).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2007 UBmatrix inc., All Rights Reserved
+Produced on 2007-02-27 09:28:09
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="320-BindCalculationInferPrecision.xsd#calcinferprecisiontestcase_A" xlink:label="calcinferprecisiontestcase_A" />
+    <loc xlink:type="locator" xlink:href="320-BindCalculationInferPrecision.xsd#calcinferprecisiontestcase_B" xlink:label="calcinferprecisiontestcase_B" />
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="calcinferprecisiontestcase_A" xlink:to="calcinferprecisiontestcase_B" order="1" weight="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="320-BindCalculationInferPrecision.xsd#calcinferprecisiontestcase_C" xlink:label="calcinferprecisiontestcase_C" />
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="calcinferprecisiontestcase_A" xlink:to="calcinferprecisiontestcase_C" order="2" weight="1" use="optional" />
+  </calculationLink>
+</linkbase>

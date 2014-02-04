@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" 
+      xmlns:link="http://www.xbrl.org/2003/linkbase" 
+      xmlns:xlink="http://www.w3.org/1999/xlink" 
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xmlns:my="http://www.someCompany.com" 
+      xsi:schemaLocation="http://www.xbrl.org/2003/instance http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd 
+                                        http://www.someCompany.com ScenarioValid.xsd">
+              <!-- schemaRef required by spec, but nothing from the schema is used -->
+	<link:schemaRef xlink:href="ScenarioValid.xsd" xlink:type="simple"/>
+	
+	<context id="c1">
+		<entity>
+			<identifier scheme="www.dnb.com">121064880</identifier>
+		</entity>
+		<period>
+			<startDate>2002-11-01</startDate>
+			<endDate>2002-12-01</endDate>
+		</period>
+	</context>
+</xbrl>

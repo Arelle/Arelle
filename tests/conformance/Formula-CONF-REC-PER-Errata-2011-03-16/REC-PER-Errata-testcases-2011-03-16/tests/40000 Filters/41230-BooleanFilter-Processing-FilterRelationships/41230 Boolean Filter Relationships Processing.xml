@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>41230</number>
+  <name>Boolean Tandem Filters Processing</name>
+  <description>
+    Test boolean filters in tandem.
+  </description>
+  <reference specification="BOOLEAN-FILTER" id="sec-boolean-filter-relationships"/>
+
+  <variation id="V-01">
+    <name>Test of and filter in tandem to or and and filters</name>
+    <description>
+      The tandem and filter has the and of 41210 V-01 and filters, plus
+      42210 V-01 or filter.  Forms filter grouping.
+    </description>
+    <reference specification="BOOLEAN-FILTER" id="sec-boolean-filter-relationships"/>
+    <data>
+      <schema>41230-booleanFilter-concepts.xsd</schema>
+      <linkbase>41230-tandemBoolFilters-formula.xml</linkbase>
+      <instance readMeFirst="true">41230-tandemBoolFilters-instance.xml</instance>
+    </data>
+    <result>
+      <instance>41230-tandemBoolFilters-result.xml</instance>
+    </result>
+  </variation>
+
+</testcase>
+

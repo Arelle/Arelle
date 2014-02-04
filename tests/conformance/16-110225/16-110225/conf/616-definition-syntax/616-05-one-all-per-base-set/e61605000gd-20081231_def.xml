@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:e6160500="http://e6160500/20081231"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:p0="http://xbrl.org/2005/xbrldt"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:roleRef roleURI="http://xbrl.us/rr/role/document/n1a" xlink:type="simple"
+xlink:href="http://taxonomies.xbrl.us/rr/2008/rr-2008-12-31.xsd#N1A"/>
+<link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" xlink:type="simple"
+xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"/>
+<link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/all" xlink:type="simple"
+xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"/>
+<link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+xlink:type="simple"
+xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"/>
+<link:definitionLink xlink:type="extended" xlink:role="http://xbrl.us/rr/role/document/n1a">
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/rr/2008/rr-2008-12-31.xsd#rr_PerformanceTableClosingTextBlock"
+xlink:label="lab_PerformanceTableClosingTextBlock"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/rr/2008/rr-2008-12-31.xsd#rr_ProspectusLineItems"
+xlink:label="ProspectusLineItems"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/rr/2008/rr-2008-12-31.xsd#rr_ProspectusTable"
+xlink:label="lab_ProspectusTable"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.us/us-gaap/1.0/non-gaap/dei-2008-03-31.xsd#dei_EntitiesTable"
+xlink:label="EntitiesTable"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/rr/2008/rr-2008-12-31.xsd#rr_PerformanceTableDoesReflectSalesLoads"
+xlink:label="lab_PerformanceTableDoesReflectSalesLoads"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/rr/2008/rr-2008-12-31.xsd#rr_PerformanceTableMarketIndexChanged"
+xlink:label="lab_PerformanceTableMarketIndexChanged"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/rr/2008/rr-2008-12-31.xsd#rr_PerformanceTableUsesHighestFederalRate"
+xlink:label="lab_PerformanceTableUsesHighestFederalRate"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/rr/2008/rr-2008-12-31.xsd#rr_PerformanceTableNotRelevantToTaxDeferred"
+xlink:label="lab_PerformanceTableNotRelevantToTaxDeferred"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/rr/2008/rr-2008-12-31.xsd#rr_PerformanceTableExplanationAfterTaxHigher"
+xlink:label="lab_PerformanceTableExplanationAfterTaxHigher"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/rr/2008/rr-2008-12-31.xsd#rr_PerformanceTableOneClassOfAfterTaxShown"
+xlink:label="lab_PerformanceTableOneClassOfAfterTaxShown"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/rr/2008/rr-2008-12-31.xsd#rr_IndexNoDeductionForFeesExpensesTaxes"
+xlink:label="lab_IndexNoDeductionForFeesExpensesTaxes"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.us/us-gaap/1.0/non-gaap/dei-2008-03-31.xsd#dei_LegalEntityAxis"
+xlink:label="lab_LegalEntityAxis"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/rr/2008/rr-2008-12-31.xsd#rr_ProspectusShareClassAxis"
+xlink:label="lab_ProspectusShareClassAxis"/>
+<link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:from="lab_PerformanceTableClosingTextBlock"
+xlink:to="lab_PerformanceTableDoesReflectSalesLoads"
+use="prohibited"
+priority="1"
+order="10.0"/>
+<link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:from="lab_PerformanceTableClosingTextBlock"
+xlink:to="lab_PerformanceTableMarketIndexChanged"
+use="prohibited"
+priority="1"
+order="20.0"/>
+<link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:from="lab_PerformanceTableClosingTextBlock"
+xlink:to="lab_PerformanceTableUsesHighestFederalRate"
+use="prohibited"
+priority="1"
+order="40.0"/>
+<link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:from="lab_PerformanceTableClosingTextBlock"
+xlink:to="lab_PerformanceTableNotRelevantToTaxDeferred"
+use="prohibited"
+priority="1"
+order="50.0"/>
+<link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:from="lab_PerformanceTableClosingTextBlock"
+xlink:to="lab_PerformanceTableExplanationAfterTaxHigher"
+use="prohibited"
+priority="1"
+order="70.0"/>
+<link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:from="lab_PerformanceTableClosingTextBlock"
+xlink:to="lab_PerformanceTableOneClassOfAfterTaxShown"
+use="prohibited"
+priority="1"
+order="60.0"/>
+<link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:from="lab_PerformanceTableClosingTextBlock"
+xlink:to="lab_IndexNoDeductionForFeesExpensesTaxes"
+use="prohibited"
+priority="1"
+order="30.0"/>
+<link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+xlink:from="ProspectusLineItems"
+xlink:to="lab_ProspectusTable"
+use="prohibited"
+priority="1"
+order="10.0"
+p0:contextElement="segment"/>
+<link:definitionArc xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+xlink:from="lab_ProspectusTable"
+xlink:to="lab_LegalEntityAxis"
+use="prohibited"
+priority="1"
+order="10.0"/>
+<link:definitionArc xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+xlink:from="lab_ProspectusTable"
+xlink:to="lab_ProspectusShareClassAxis"
+use="prohibited"
+priority="1"
+order="20.0"/>
+<link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+xlink:from="ProspectusLineItems"
+xlink:to="EntitiesTable"
+order="0.0"
+p0:contextElement="segment"
+p0:closed="true"/>
+<link:definitionArc xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+xlink:from="EntitiesTable"
+xlink:to="lab_LegalEntityAxis"
+use="optional"
+order="1.0"/>
+<link:definitionArc xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+xlink:from="EntitiesTable"
+xlink:to="lab_ProspectusShareClassAxis"
+use="optional"
+order="2.0"/>
+</link:definitionLink>
+</link:linkbase>

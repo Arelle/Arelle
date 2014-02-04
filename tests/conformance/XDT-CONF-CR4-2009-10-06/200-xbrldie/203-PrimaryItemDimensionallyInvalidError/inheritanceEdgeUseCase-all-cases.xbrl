@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xbrli:xbrl xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:p0="http://www.bdi.org/inheritanceEdgeUseCase" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt">
+  <link:schemaRef xlink:type="simple" xlink:href="inheritanceEdgeUseCase.xsd"/>
+  
+  <xbrli:context id="c1">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http:\\www.bdi.org">bdi</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>2006-12-31</xbrli:instant>
+    </xbrli:period>
+<xbrli:scenario>
+  <xbrldi:explicitMember dimension="p0:dim1">p0:dim1_el1</xbrldi:explicitMember> 
+ </xbrli:scenario>
+
+  </xbrli:context>
+
+
+  <xbrli:context id="c_other">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http:\\www.bdi.org">bdi</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>2006-12-31</xbrli:instant>
+    </xbrli:period>
+  </xbrli:context>
+
+
+
+
+  <xbrli:context id="c2">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http:\\www.bdi.org">bdi</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>2006-12-31</xbrli:instant>
+    </xbrli:period>
+<xbrli:scenario>
+  <xbrldi:explicitMember dimension="p0:dim2">p0:dim2_el1</xbrldi:explicitMember> 
+ </xbrli:scenario>
+
+  </xbrli:context>
+
+  <xbrli:unit id="u1">
+    <xbrli:measure>iso4217:EUR</xbrli:measure>
+  </xbrli:unit>
+
+  <p0:p1 decimals="0" contextRef="c1" unitRef="u1">10</p0:p1> 
+  <p0:p1 decimals="0" contextRef="c2" unitRef="u1">90</p0:p1> 
+
+  <p0:p2 decimals="0" contextRef="c1" unitRef="u1">10</p0:p2> 
+  <p0:p2 decimals="0" contextRef="c2" unitRef="u1">90</p0:p2> 
+
+  <p0:p3 decimals="0" contextRef="c1" unitRef="u1">10</p0:p3> 
+  <p0:p3 decimals="0" contextRef="c2" unitRef="u1">90</p0:p3> 
+
+
+  <p0:p4 decimals="0" contextRef="c1" unitRef="u1">10</p0:p4> 
+  <p0:p4 decimals="0" contextRef="c2" unitRef="u1">90</p0:p4> 
+
+  <p0:p5 decimals="0" contextRef="c1" unitRef="u1">10</p0:p5> 
+  <p0:p5 decimals="0" contextRef="c2" unitRef="u1">90</p0:p5> 
+  <p0:p5 decimals="0" contextRef="c_other" unitRef="u1">90</p0:p5> 
+
+  <p0:p6 decimals="0" contextRef="c1" unitRef="u1">10</p0:p6> 
+  <p0:p6 decimals="0" contextRef="c2" unitRef="u1">90</p0:p6> 
+  
+
+  <p0:p9 decimals="0" contextRef="c1" unitRef="u1">10</p0:p9> 
+  <p0:p9 decimals="0" contextRef="c2" unitRef="u1">90</p0:p9> 
+
+
+  <p0:p10 decimals="0" contextRef="c1" unitRef="u1">10</p0:p10> 
+  <p0:p10 decimals="0" contextRef="c2" unitRef="u1">90</p0:p10> 
+
+
+  <p0:p11 decimals="0" contextRef="c1" unitRef="u1">80</p0:p11> 
+  <p0:p11 decimals="0" contextRef="c2" unitRef="u1">70</p0:p11> 
+
+
+  <p0:p12 decimals="0" contextRef="c1" unitRef="u1">60</p0:p12> 
+  <p0:p12 decimals="0" contextRef="c2" unitRef="u1">50</p0:p12> 
+
+
+  <p0:p13 decimals="0" contextRef="c1" unitRef="u1">60</p0:p13> 
+  <p0:p13 decimals="0" contextRef="c2" unitRef="u1">50</p0:p13> 
+
+
+  <p0:p14 decimals="0" contextRef="c1" unitRef="u1">60</p0:p14> 
+  <p0:p14 decimals="0" contextRef="c2" unitRef="u1">50</p0:p14> 
+
+
+  <p0:p15 decimals="0" contextRef="c1" unitRef="u1">60</p0:p15> 
+  <p0:p15 decimals="0" contextRef="c2" unitRef="u1">50</p0:p15> 
+
+  <p0:p16 decimals="0" contextRef="c1" unitRef="u1">60</p0:p16> 
+  <p0:p16 decimals="0" contextRef="c2" unitRef="u1">50</p0:p16> 
+
+  <p0:p17 decimals="0" contextRef="c1" unitRef="u1">60</p0:p17> 
+  <p0:p17 decimals="0" contextRef="c2" unitRef="u1">50</p0:p17> 
+  
+  <p0:p18 decimals="0" contextRef="c1" unitRef="u1">60</p0:p18> 
+  <p0:p18 decimals="0" contextRef="c2" unitRef="u1">50</p0:p18> 
+
+  <p0:p19 decimals="0" contextRef="c1" unitRef="u1">60</p0:p19> 
+  <p0:p19 decimals="0" contextRef="c2" unitRef="u1">50</p0:p19> 
+  <p0:p19 decimals="0" contextRef="c_other" unitRef="u1">50</p0:p19> 
+
+  <p0:p20 decimals="0" contextRef="c1" unitRef="u1">60</p0:p20> 
+  <p0:p20 decimals="0" contextRef="c2" unitRef="u1">50</p0:p20> 
+
+
+  <p0:p21 decimals="0" contextRef="c1" unitRef="u1">10</p0:p21> 
+  <p0:p21 decimals="0" contextRef="c2" unitRef="u1">90</p0:p21> 
+
+  <p0:p22 decimals="0" contextRef="c1" unitRef="u1">10</p0:p22> 
+  <p0:p22 decimals="0" contextRef="c2" unitRef="u1">90</p0:p22> 
+  <p0:p22 decimals="0" contextRef="c_other" unitRef="u1">90</p0:p22> 
+
+  <p0:p23 decimals="0" contextRef="c1" unitRef="u1">10</p0:p23> 
+  <p0:p23 decimals="0" contextRef="c2" unitRef="u1">90</p0:p23> 
+
+
+  <p0:p24 decimals="0" contextRef="c1" unitRef="u1">10</p0:p24> 
+  <p0:p24 decimals="0" contextRef="c2" unitRef="u1">90</p0:p24> 
+
+  <p0:p25 decimals="0" contextRef="c1" unitRef="u1">10</p0:p25> 
+  <p0:p25 decimals="0" contextRef="c2" unitRef="u1">90</p0:p25> 
+
+  <p0:p26 decimals="0" contextRef="c1" unitRef="u1">10</p0:p26> 
+  <p0:p26 decimals="0" contextRef="c2" unitRef="u1">90</p0:p26> 
+  
+  <p0:p27 decimals="0" contextRef="c1" unitRef="u1">10</p0:p27> 
+  <p0:p27 decimals="0" contextRef="c2" unitRef="u1">90</p0:p27> 
+
+</xbrli:xbrl>

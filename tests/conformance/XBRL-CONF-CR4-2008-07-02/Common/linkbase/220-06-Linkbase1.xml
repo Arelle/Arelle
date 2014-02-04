@@ -1,0 +1,10 @@
+<!-- edited with     VIM version 6.2.457  by David Sheldon  -->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xl="http://www.xbrl.org/2001/XLink" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:schemaLocation="http://example.com/nonStandardLinks NonStandardLinks.xsd http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"  xmlns:nsl='http://example.com/nonStandardLinks'>
+	<nsl:link xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="220-06-Concepts.xsd#conceptA" xlink:label="a"/>
+		<loc xlink:type="locator" xlink:href="220-06-Concepts.xsd#conceptB" xlink:label="b"/>
+    <!-- a->b->a is a cycle -->
+		<nsl:arc xlink:type="arc" xlink:from="a" xlink:to="b" xlink:arcrole="http://www.example.com/testRole"/>
+		<nsl:arc xlink:type="arc" xlink:from="b" xlink:to="a" xlink:arcrole="http://www.example.com/testRole"/>
+	</nsl:link>
+</linkbase>

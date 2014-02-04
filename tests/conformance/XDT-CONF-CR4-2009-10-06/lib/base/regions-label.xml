@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Label Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Automator Professional Edition 6.402.2166.18989 (2005-12-03 18:13).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2005 Universal Business Matrix inc., All Rights Reserved
+Produced on 2005-12-06 10:48:50
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="regions.xsd#r_Americas" xlink:label="r_Americas" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="r_Americas" xlink:to="r_Americas_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="r_Americas_lbl" xml:lang="en">Americas</label>
+    <loc xlink:type="locator" xlink:href="regions.xsd#r_AsiaPacific" xlink:label="r_AsiaPacific" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="r_AsiaPacific" xlink:to="r_AsiaPacific_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="r_AsiaPacific_lbl" xml:lang="en">Asia Pacific</label>
+    <loc xlink:type="locator" xlink:href="regions.xsd#r_Europe" xlink:label="r_Europe" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="r_Europe" xlink:to="r_Europe_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="r_Europe_lbl" xml:lang="en">Europe</label>
+    <loc xlink:type="locator" xlink:href="regions.xsd#r_Japan" xlink:label="r_Japan" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="r_Japan" xlink:to="r_Japan_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="r_Japan_lbl" xml:lang="en">Japan</label>
+    <loc xlink:type="locator" xlink:href="regions.xsd#r_SouthAmerica" xlink:label="r_SouthAmerica" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="r_SouthAmerica" xlink:to="r_SouthAmerica_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="r_SouthAmerica_lbl" xml:lang="en">South America</label>
+    <loc xlink:type="locator" xlink:href="regions.xsd#r_Spain" xlink:label="r_Spain" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="r_Spain" xlink:to="r_Spain_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="r_Spain_lbl" xml:lang="en">Spain</label>
+    <loc xlink:type="locator" xlink:href="regions.xsd#r_UnitedKingdom" xlink:label="r_UnitedKingdom" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="r_UnitedKingdom" xlink:to="r_UnitedKingdom_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="r_UnitedKingdom_lbl" xml:lang="en">United Kingdom</label>
+    <loc xlink:type="locator" xlink:href="regions.xsd#r_USA" xlink:label="r_USA" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="r_USA" xlink:to="r_USA_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="r_USA_lbl" xml:lang="en">USA</label>
+    <loc xlink:type="locator" xlink:href="regions.xsd#r_Worldwide" xlink:label="r_Worldwide" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="r_Worldwide" xlink:to="r_Worldwide_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="r_Worldwide_lbl" xml:lang="en">Worldwide</label>
+  </labelLink>
+</linkbase>

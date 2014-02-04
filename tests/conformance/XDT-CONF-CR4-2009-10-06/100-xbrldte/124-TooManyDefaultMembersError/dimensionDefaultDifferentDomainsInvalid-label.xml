@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?><link:linkbase xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+   <link:labelLink xlink:role="http://www.xbrl.org/2003/role/link" xlink:type="extended">
+      <link:label id="id_8ef305" xlink:label="lbl_label4761744" xlink:role="http://www.xbrl.org/2003/role/label" xlink:type="resource" xml:lang="en">Hypercube 1</link:label>
+      <link:label id="id_4bb4af" xlink:label="lbl_label4764411" xlink:role="http://www.xbrl.org/2003/role/label" xlink:type="resource" xml:lang="en">Dimension</link:label>
+      <link:loc xlink:href="dimensionDefaultDifferentDomainsInvalid.xsd#tpl_Dimension" xlink:label="lbl_Dimension" xlink:type="locator"/>
+      <link:labelArc order="1.0" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="lbl_Dimension" xlink:to="lbl_label4764411" xlink:type="arc"/>
+      <link:label id="id_3cdbec" xlink:label="lbl_label4765300" xlink:role="http://www.xbrl.org/2003/role/label" xlink:type="resource" xml:lang="en">DomainMemberA</link:label>
+      <link:loc xlink:href="dimensionDefaultDifferentDomainsInvalid.xsd#tpl_DomainMemberA" xlink:label="lbl_DomainMemberA" xlink:type="locator"/>
+      <link:labelArc order="1.0" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="lbl_DomainMemberA" xlink:to="lbl_label4765300" xlink:type="arc"/>
+      <link:label id="id_7fee2d" xlink:label="lbl_label4766189" xlink:role="http://www.xbrl.org/2003/role/label" xlink:type="resource" xml:lang="en">DomainMemberB</link:label>
+      <link:loc xlink:href="dimensionDefaultDifferentDomainsInvalid.xsd#tpl_DomainMemberB" xlink:label="lbl_DomainMemberB" xlink:type="locator"/>
+      <link:labelArc order="1.0" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="lbl_DomainMemberB" xlink:to="lbl_label4766189" xlink:type="arc"/>
+      <link:label id="id_36b7cc" xlink:label="lbl_label4766951" xlink:role="http://www.xbrl.org/2003/role/label" xlink:type="resource" xml:lang="en">DomainMemberC</link:label>
+      <link:loc xlink:href="dimensionDefaultDifferentDomainsInvalid.xsd#tpl_DomainMemberC" xlink:label="lbl_DomainMemberC" xlink:type="locator"/>
+      <link:labelArc order="1.0" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="lbl_DomainMemberC" xlink:to="lbl_label4766951" xlink:type="arc"/>
+      <link:loc xlink:href="dimensionDefaultDifferentDomainsInvalid.xsd#tpl_Hypercube1" xlink:label="lbl_Hypercube1" xlink:type="locator"/>
+      <link:labelArc order="1.0" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="lbl_Hypercube1" xlink:to="lbl_label4761744" xlink:type="arc"/>
+      <link:label id="id_39e02d" xlink:label="lbl_label4781937" xlink:role="http://www.xbrl.org/2003/role/label" xlink:type="resource" xml:lang="en">Hypercube 3</link:label>
+      <link:label id="id_1acd90a" xlink:label="lbl_label4790319" xlink:role="http://www.xbrl.org/2003/role/label" xlink:type="resource" xml:lang="en">DomainMemberX</link:label>
+      <link:loc xlink:href="dimensionDefaultDifferentDomainsInvalid.xsd#tpl_DomainMemberX" xlink:label="lbl_DomainMemberX" xlink:type="locator"/>
+      <link:labelArc order="1.0" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="lbl_DomainMemberX" xlink:to="lbl_label4790319" xlink:type="arc"/>
+      <link:label id="id_6e8f1" xlink:label="lbl_label4791081" xlink:role="http://www.xbrl.org/2003/role/label" xlink:type="resource" xml:lang="en">DomainMemberY</link:label>
+      <link:loc xlink:href="dimensionDefaultDifferentDomainsInvalid.xsd#tpl_DomainMemberY" xlink:label="lbl_DomainMemberY" xlink:type="locator"/>
+      <link:labelArc order="1.0" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="lbl_DomainMemberY" xlink:to="lbl_label4791081" xlink:type="arc"/>
+      <link:loc xlink:href="dimensionDefaultDifferentDomainsInvalid.xsd#tpl_Hypercube3" xlink:label="lbl_Hypercube3" xlink:type="locator"/>
+      <link:labelArc order="1.0" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="lbl_Hypercube3" xlink:to="lbl_label4781937" xlink:type="arc"/>
+      <link:label id="id_19f9baf" xlink:label="lbl_label4795145" xlink:role="http://www.xbrl.org/2003/role/label" xlink:type="resource" xml:lang="en">Hypercube 2</link:label>
+      <link:loc xlink:href="dimensionDefaultDifferentDomainsInvalid.xsd#tpl_Hypercube2_1736ec2" xlink:label="lbl_Hypercube2" xlink:type="locator"/>
+      <link:labelArc order="1.0" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="lbl_Hypercube2" xlink:to="lbl_label4795145" xlink:type="arc"/>
+      <link:label id="id_e1a5c7" xlink:label="lbl_label4799463" xlink:role="http://www.xbrl.org/2003/role/label" xlink:type="resource" xml:lang="en">DomainMemberZ</link:label>
+      <link:loc xlink:href="dimensionDefaultDifferentDomainsInvalid.xsd#tpl_DomainMemberZ" xlink:label="lbl_DomainMemberZ" xlink:type="locator"/>
+      <link:labelArc order="1.0" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="lbl_DomainMemberZ" xlink:to="lbl_label4799463" xlink:type="arc"/>
+   </link:labelLink>
+</link:linkbase>

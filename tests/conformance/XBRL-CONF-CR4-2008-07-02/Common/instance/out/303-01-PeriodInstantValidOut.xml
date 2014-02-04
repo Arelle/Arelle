@@ -1,0 +1,16 @@
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:s="http://mycompany.com/xbrl/taxonomy" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:ptv="http://www.xbrl.org/2003/ptv" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://mycompany.com/xbrl/taxonomy ../Period.xsd http://www.xbrl.org/2003/ptv ../../lib/ptv-2003-10-22.xsd">
+	<link:schemaRef xlink:href="Period.xsd" xlink:type="simple"/>
+	<unit id="u1">
+		<measure>iso4217:USD</measure>
+	</unit>
+	<context id="ci">
+		<entity>
+			<identifier scheme="http://www.un.org/">Cannon plc</identifier>
+		</entity>
+		<period>
+			<instant>2001-08-16</instant>
+		</period>
+		<!--scenario/ -->
+	</context>
+	<s:fixedAssets unitRef="u1" contextRef="ci" precision="18" ptv:balance="debit" ptv:periodType="instant">7</s:fixedAssets>
+</xbrl>

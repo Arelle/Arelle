@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<link:linkbase xmlns:variable="http://xbrl.org/2008/variable"
+               xmlns:cf="http://xbrl.org/2008/filter/concept"
+               xmlns:df="http://xbrl.org/2008/filter/dimension"
+               xmlns:uf="http://xbrl.org/2008/filter/unit"
+               xmlns:xs="http://www.w3.org/2001/XMLSchema"
+               xmlns:tf="http://xbrl.org/2008/filter/tuple"
+               xmlns:formula="http://xbrl.org/2008/formula"
+               xmlns:r="http://www.bde.es/xbrl/util/formulae/rules"
+               xmlns:va="http://xbrl.org/2008/assertion/value"
+               xmlns:ra="http://www.bde.es/xbrl/rules/auxiliar"
+               xmlns:fn="http://www.w3.org/2005/xpath-functions"
+               xmlns:xlink="http://www.w3.org/1999/xlink"
+               xmlns:ea="http://xbrl.org/2008/assertion/existence"
+               xmlns:link="http://www.xbrl.org/2003/linkbase"
+               xmlns:ca="http://xbrl.org/2008/assertion/consistency"
+               xmlns:generic="http://xbrl.org/2008/generic"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:s="http://www.acme.org/schemab"
+               xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd http://xbrl.org/2008/generic ../../../../core_schemas/generic-link.xsd http://xbrl.org/2008/formula ../../../../core_schemas/formula.xsd http://xbrl.org/2008/variable ../../../../core_schemas/variable.xsd http://xbrl.org/2008/filter/concept ../../../../core_schemas/concept-filter.xsd http://xbrl.org/2008/assertion/value ../../../../core_schemas/value-assertion.xsd http://xbrl.org/2008/assertion/existence ../../../../core_schemas/existence-assertion.xsd http://xbrl.org/2008/assertion/consistency ../../../../core_schemas/consistency-assertion.xsd http://xbrl.org/2008/filter/dimension ../../../../core_schemas/dimension-filter.xsd http://xbrl.org/2008/filter/tuple ../../../../core_schemas/tuple-filter.xsd http://www.acme.org/schemab schemab.xsd">
+   <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set"
+                    xlink:href="../../../../core_schemas/variable.xsd#variable-set"
+                    xlink:type="simple"/>
+   <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set-filter"
+                    xlink:href="../../../../core_schemas/variable.xsd#variable-set-filter"
+                    xlink:type="simple"/>
+   <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set-precondition"
+                    xlink:href="../../../../core_schemas/variable.xsd#variable-set-precondition"
+                    xlink:type="simple"/>
+   <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter"
+                    xlink:href="../../../../core_schemas/variable.xsd#variable-filter"
+                    xlink:type="simple"/>
+   <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/consistency-assertion-formula"
+                    xlink:href="../../../../core_schemas/consistency-assertion.xsd#consistency-assertion-formula"
+                    xlink:type="simple"/>
+   <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../../../core_schemas/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+   <generic:link xlink:type="extended" xlink:role="http://www.xbrl.org/2008/role/link">
+      <formula:formula xlink:label="for_case1b" value="$a + $b + $c" id="for_case1b"
+                       aspectModel="dimensional"
+                       implicitFiltering="true"
+                       source="formula:uncovered"
+                       xlink:type="resource">
+         <formula:decimals>1</formula:decimals>
+         <formula:aspects>
+            <formula:concept>
+               <formula:qname>s:R</formula:qname>
+            </formula:concept>
+         </formula:aspects>
+      </formula:formula>
+      <variable:variableArc name="a" xlink:from="for_case1b" xlink:to="var_s_A"
+                            xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+                            xlink:type="arc"
+                            order="1"/>
+      <variable:variableArc name="b" xlink:from="for_case1b" xlink:to="var_s_BDDim_X"
+                            xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+                            xlink:type="arc"
+                            order="2"/>
+      <variable:variableArc name="c" xlink:from="for_case1b" xlink:to="var_s_C"
+                            xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+                            xlink:type="arc"
+                            order="3"/>
+      <variable:factVariable xlink:label="var_s_A" bindAsSequence="false" id="var_s_A" xlink:type="resource"/>
+      <variable:variableFilterArc complement="false" xlink:from="var_s_A" xlink:to="fil_s_A" cover="true"
+                                  xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+                                  xlink:type="arc"
+                                  order="1"/>
+      <cf:conceptName xlink:label="fil_s_A" id="fil_s_A" xlink:type="resource">
+         <cf:concept>
+            <cf:qname>s:A</cf:qname>
+         </cf:concept>
+      </cf:conceptName>
+      <variable:factVariable xlink:label="var_s_BDDim_X" bindAsSequence="false" id="var_s_BDDim_X"
+                             xlink:type="resource"
+                             fallbackValue="0"/>
+      <variable:variableFilterArc complement="false" xlink:from="var_s_BDDim_X" xlink:to="fil_s_B" cover="true"
+                                  xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+                                  xlink:type="arc"
+                                  order="1"/>
+      <variable:variableFilterArc complement="false" xlink:from="var_s_BDDim_X" xlink:to="fil_DDim_X"
+                                  cover="true"
+                                  xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+                                  xlink:type="arc"
+                                  order="2"/>
+      <cf:conceptName xlink:label="fil_s_B" id="fil_s_B" xlink:type="resource">
+         <cf:concept>
+            <cf:qname>s:B</cf:qname>
+         </cf:concept>
+      </cf:conceptName>
+      <df:explicitDimension xlink:label="fil_DDim_X" id="fil_DDim_X" xlink:type="resource">
+         <df:dimension>
+            <df:qname>s:D</df:qname>
+         </df:dimension>
+         <df:member>
+            <df:qname>s:X</df:qname>
+         </df:member>
+      </df:explicitDimension>
+      <variable:factVariable xlink:label="var_s_C" bindAsSequence="false" id="var_s_C" xlink:type="resource" fallbackValue="0"/>
+      <variable:variableFilterArc complement="false" xlink:from="var_s_C" xlink:to="fil_s_C" cover="true"
+                                  xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+                                  xlink:type="arc"
+                                  order="1"/>
+      <cf:conceptName xlink:label="fil_s_C" id="fil_s_C" xlink:type="resource">
+         <cf:concept>
+            <cf:qname>s:C</cf:qname>
+         </cf:concept>
+      </cf:conceptName>
+   </generic:link>
+</link:linkbase>

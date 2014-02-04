@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityListingsLineItems"
+xlink:label="EntityListingsLineItems"/>
+<link:loc xlink:type="locator" xlink:href="e61202000gd-20081231.xsd#e6120200_Statistics"
+xlink:label="Statistics"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentType"
+xlink:label="DocumentType"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_DocumentPeriodEndDate"
+xlink:label="DocumentPeriodEndDate"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityRegistrantName"
+xlink:label="EntityRegistrantName"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_EntityCentralIndexKey"
+xlink:label="EntityCentralIndexKey"/>
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/dei-2009-01-31.xsd#dei_AmendmentFlag"
+xlink:label="AmendmentFlag"/>
+<link:label xlink:type="resource" xlink:label="label_EntityListingsLineItems"
+xlink:role="http://www.xbrl.org/2003/role/totalLabel"
+xml:lang="en-US"
+id="label_EntityListingsLineItems">Entity Listings, Redundant:</link:label>
+<link:label xlink:type="resource" xlink:label="label_Statistics"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_Statistics">Statistics</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentType"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DocumentType">Document Type</link:label>
+<link:label xlink:type="resource" xlink:label="label_DocumentPeriodEndDate"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DocumentPeriodEndDate">Document Period End Date</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityRegistrantName"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_EntityRegistrantName">Entity Registrant Name</link:label>
+<link:label xlink:type="resource" xlink:label="label_EntityCentralIndexKey"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_EntityCentralIndexKey">Entity Central Index Key</link:label>
+<link:label xlink:type="resource" xlink:label="label_AmendmentFlag"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_AmendmentFlag">Amendment Flag</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityListingsLineItems"
+xlink:to="label_EntityListingsLineItems"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Statistics"
+xlink:to="label_Statistics"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentType"
+xlink:to="label_DocumentType"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DocumentPeriodEndDate"
+xlink:to="label_DocumentPeriodEndDate"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityRegistrantName"
+xlink:to="label_EntityRegistrantName"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="EntityCentralIndexKey"
+xlink:to="label_EntityCentralIndexKey"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="AmendmentFlag"
+xlink:to="label_AmendmentFlag"/>
+</link:labelLink>
+</link:linkbase>

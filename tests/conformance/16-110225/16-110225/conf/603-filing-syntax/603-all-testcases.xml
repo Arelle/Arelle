@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../lib/testcases.xsl"?>
+<testcases name="v16" date="2011-020-25">
+   <testcase uri="603-02-not-both-ex100-and-ex101/603-02-not-both-ex100-and-ex101-testcase.xml"/>
+   <testcase uri="603-04-no-html-character-entities/603-04-no-html-character-entities-testcase.xml"/>
+   <testcase uri="603-05-only-xml-or-numeric-character-refs/603-05-only-xml-or-numeric-character-refs-testcase.xml"/>
+   <testcase uri="603-06-uri-recognized/603-06-uri-recognized-testcase.xml"/>
+   <testcase uri="603-08-only-one-instance/603-08-only-one-instance-testcase.xml"/>
+   <testcase uri="603-11-no-xml-base/603-11-no-xml-base-testcase.xml"/>
+</testcases>

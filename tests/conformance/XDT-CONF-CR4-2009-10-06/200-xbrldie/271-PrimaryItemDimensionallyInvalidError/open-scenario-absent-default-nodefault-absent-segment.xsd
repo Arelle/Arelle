@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xlink="http://www.w3.org/1999/xlink"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:xbrli="http://www.xbrl.org/2003/instance"
+           xmlns:link="http://www.xbrl.org/2003/linkbase"
+           xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+           xmlns:example="http://www.example.com/2009"
+           xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+           xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified"
+           targetNamespace="http://www.example.com/2009"
+           attributeFormDefault="unqualified">
+   <xs:annotation>
+      <xs:appinfo>
+         <link:roleType roleURI="http://www.example.com/link/role/allCube" id="allCube">
+            <link:usedOn>link:definitionLink</link:usedOn>
+         </link:roleType>
+         <link:roleType roleURI="http://www.example.com/link/role/defaults" id="defaults">
+            <link:usedOn>link:definitionLink</link:usedOn>
+         </link:roleType>
+         <link:linkbaseRef xlink:type="simple"
+                           xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"
+                           xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef"
+                           xlink:href="open-scenario-absent-default-nodefault-absent-segment_def.xml"/>
+      </xs:appinfo>
+   </xs:annotation>
+   <xs:import namespace="http://xbrl.org/2005/xbrldt"
+              schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+   <xs:import namespace="http://www.xbrl.org/2003/instance"
+              schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+   <xs:element name="Prime" id="example_Prime" type="xbrli:pureItemType"
+               substitutionGroup="xbrli:item"
+               abstract="false"
+               nillable="true"
+               xbrli:periodType="duration"/>
+   <xs:element name="Segments" id="example_Segments" type="xbrli:stringItemType"
+               substitutionGroup="xbrldt:hypercubeItem"
+               abstract="true"
+               nillable="true"
+               xbrli:periodType="duration"/>
+   <xs:element name="Scenarios" id="example_Scenarios" type="xbrli:stringItemType"
+               substitutionGroup="xbrldt:hypercubeItem"
+               abstract="true"
+               nillable="true"
+               xbrli:periodType="duration"/>
+   <xs:element name="Axis1" id="example_Axis1" type="xbrli:stringItemType"
+               substitutionGroup="xbrldt:dimensionItem"
+               abstract="true"
+               nillable="true"
+               xbrli:periodType="duration"/>
+   <xs:element name="Axis2" id="example_Axis2" type="xbrli:stringItemType"
+               substitutionGroup="xbrldt:dimensionItem"
+               abstract="true"
+               nillable="true"
+               xbrli:periodType="duration"/>
+   <xs:element name="Domain1" id="example_Domain1" type="xbrli:stringItemType"
+               substitutionGroup="xbrli:item"
+               abstract="false"
+               nillable="true"
+               xbrli:periodType="duration"/>
+   <xs:element name="Domain2" id="example_Domain2" type="xbrli:stringItemType"
+               substitutionGroup="xbrli:item"
+               abstract="false"
+               nillable="true"
+               xbrli:periodType="duration"/>
+   <xs:element name="Member1" id="example_Member1" type="xbrli:stringItemType"
+               substitutionGroup="xbrli:item"
+               abstract="false"
+               nillable="true"
+               xbrli:periodType="duration"/>
+   <xs:element name="Member2" id="example_Member2" type="xbrli:stringItemType"
+               substitutionGroup="xbrli:item"
+               abstract="false"
+               nillable="true"
+               xbrli:periodType="duration"/>
+</xs:schema>

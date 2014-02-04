@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<schema
+  xmlns="http://www.w3.org/2001/XMLSchema"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:eg="http://xbrl.org/formula/conformance/example"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+  xmlns:xl="http://www.xbrl.org/2003/XLink"
+  targetNamespace="http://xbrl.org/formula/conformance/example"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+      <link:roleType
+        roleURI="http://xbrl.org/formula/conformance/example/role/test-role"
+        id="test-role">
+        <link:usedOn>generic:link</link:usedOn>
+      </link:roleType>
+      <link:arcroleType 
+        arcroleURI="http://xbrl.org/formula/conformance/example/arcrole/test-arcrole"
+        id="test-arcrole" 
+        cyclesAllowed="any">
+        <link:usedOn>generic:arc</link:usedOn>
+     </link:arcroleType>
+      <link:linkbaseRef xlink:type="simple"
+        xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef"
+        xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"
+        xlink:href="42320-open-hc-test-2-definition.xml"
+        xlink:title="Definition Links, all" />
+      <link:linkbaseRef 
+        xlink:href="43230-open-hc-test-2-member-hierarchy.xml"
+        xlink:type="simple" 
+        xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+    </appinfo>
+  </annotation>
+  <import
+    namespace="http://www.xbrl.org/2003/instance"
+    schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <import
+    namespace="http://xbrl.org/2005/xbrldt"
+    schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd" />
+  <import 
+    namespace="http://www.xbrl.org/2003/linkbase"
+    schemaLocation="http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd" />
+  <import 
+    namespace="http://www.xbrl.org/2003/XLink"
+    schemaLocation="http://www.xbrl.org/2003/xl-2003-12-31.xsd" />
+  <element
+    id="eg_HC"
+    name="HC"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrldt:hypercubeItem"
+    xbrli:periodType="instant"
+    abstract="true"
+    nillable="true" />
+  <element
+    id="eg_Dim"
+    name="Dim"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrldt:dimensionItem"
+    xbrli:periodType="instant"
+    abstract="true"
+    nillable="true" />
+  <element
+    id="eg_PriItem"
+    name="PriItem"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="eg_randomXmlElement1"
+    name="randomXmlElement1"
+    type="string" 
+    abstract="true" />
+  <element
+    id="eg_randomXmlElement2"
+    name="randomXmlElement2"
+    type="string" 
+    abstract="true" />
+  <element 
+    name="loc" 
+    type="xl:locatorType" 
+    substitutionGroup="link:loc" />
+
+</schema>

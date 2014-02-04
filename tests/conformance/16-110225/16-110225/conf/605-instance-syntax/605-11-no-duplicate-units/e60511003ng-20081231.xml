@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xbrli:xbrl xmlns:edgar="http://edgar/20081231" xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+xmlns:dei="http://xbrl.sec.gov/dei/2011-01-31"
+xmlns:nist="http://nist.gov/si"
+xmlns:xlink="http://www.w3.org/1999/xlink">
+<link:schemaRef xlink:type="simple" xlink:href="edgar-20081231.xsd"/>
+<xbrli:context id="fy08">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:startDate>2008-01-01</xbrli:startDate>
+<xbrli:endDate>2008-12-31</xbrli:endDate>
+</xbrli:period>
+</xbrli:context>
+<xbrli:context id="fy08e">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:instant>2008-12-31</xbrli:instant>
+</xbrli:period>
+</xbrli:context>
+<xbrli:context id="fy07e">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:instant>2007-12-31</xbrli:instant>
+</xbrli:period>
+</xbrli:context>
+<xbrli:unit id="Newton1">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>nist:m</xbrli:measure>
+<xbrli:measure>nist:kg</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>nist:s</xbrli:measure>
+<xbrli:measure>nist:s</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<xbrli:unit id="Newton2">
+<xbrli:divide>
+<xbrli:unitNumerator>
+<xbrli:measure>nist:kg</xbrli:measure>
+<xbrli:measure>nist:m</xbrli:measure>
+</xbrli:unitNumerator>
+<xbrli:unitDenominator>
+<xbrli:measure>nist:s</xbrli:measure>
+<xbrli:measure>nist:s</xbrli:measure>
+</xbrli:unitDenominator>
+</xbrli:divide>
+</xbrli:unit>
+<xbrli:unit id="shares">
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unit>
+<xbrli:unit id="USD">
+<xbrli:measure>iso4217:USD</xbrli:measure>
+</xbrli:unit>
+<dei:DocumentType contextRef="fy08">8-K</dei:DocumentType>
+<dei:AmendmentFlag contextRef="fy08">false</dei:AmendmentFlag>
+<dei:DocumentPeriodEndDate contextRef="fy08">2008-12-31</dei:DocumentPeriodEndDate>
+<dei:EntityRegistrantName contextRef="fy08">e60511003ng</dei:EntityRegistrantName>
+<dei:EntityCentralIndexKey contextRef="fy08">9876543210</dei:EntityCentralIndexKey>
+<dei:CurrentFiscalYearEndDate contextRef="fy08">--12-31</dei:CurrentFiscalYearEndDate>
+<dei:EntityWellKnownSeasonedIssuer contextRef="fy08">No</dei:EntityWellKnownSeasonedIssuer>
+<dei:EntityVoluntaryFilers contextRef="fy08">No</dei:EntityVoluntaryFilers>
+<dei:EntityCurrentReportingStatus contextRef="fy08">Yes</dei:EntityCurrentReportingStatus>
+<dei:EntityFilerCategory contextRef="fy08">Smaller Reporting Company</dei:EntityFilerCategory>
+<dei:EntityCommonStockSharesOutstanding decimals="0" contextRef="fy08e" unitRef="shares">0</dei:EntityCommonStockSharesOutstanding>
+<dei:EntityPublicFloat decimals="0" contextRef="fy08e" unitRef="USD">0</dei:EntityPublicFloat>
+<edgar:Force decimals="0" contextRef="fy08e" unitRef="Newton1">235</edgar:Force>
+<edgar:Force decimals="0" contextRef="fy07e" unitRef="Newton2">237</edgar:Force>
+</xbrli:xbrl>

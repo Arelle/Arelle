@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>70112</number>
+  <name>Generic label relationship static analysis</name>
+  <description>
+    Test generic label relationship.
+  </description>
+  <reference specification="GENERIC-LABEL" id="sec-generic-label-relationship"/>
+
+  <variation id="V-01">
+    <name>A generic label relationship must have a label as its target, here it is reversed, thus invalid.</name>
+    <description>
+    </description>
+    <reference specification="GENERIC-LINK" id="sec-generic-label"/>
+    <data>
+      <schema readMeFirst="true">70112-label-relationship-concepts-v01.xsd</schema>
+      <linkbase>70112-label-relationship-testLB-v01.xml</linkbase>
+    </data>
+    <result expected="invalid"/>
+  </variation>
+
+</testcase>
+
+
+

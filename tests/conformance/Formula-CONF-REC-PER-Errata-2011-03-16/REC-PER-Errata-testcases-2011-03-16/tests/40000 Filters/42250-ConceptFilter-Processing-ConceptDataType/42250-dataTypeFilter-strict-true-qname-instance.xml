@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:eg="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="42250-dataTypeFilter-concepts.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="42250-dataTypeFilter-strict-true-qname-formula.xml"/>
+  
+  <context id="context">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <unit id="USD">
+    <measure>iso4217:USD</measure>
+  </unit>
+
+  <unit id="pure">
+    <measure>xbrli:pure</measure> 
+  </unit>
+  
+  <eg:a decimals="0" contextRef="context" unitRef="USD">1000</eg:a>
+  
+  <eg:b decimals="0" contextRef="context" unitRef="USD">600</eg:b>
+  
+  <eg:c decimals="2" contextRef="context" unitRef="pure">0.12</eg:c>
+
+  <eg:d decimals="2" contextRef="context" unitRef="pure">0.34</eg:d>
+
+  <eg:e contextRef="context">aaa</eg:e>
+
+  <eg:f contextRef="context">bbb</eg:f>
+
+</xbrl>

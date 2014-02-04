@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema elementFormDefault="qualified" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.xbrl.org/2006/confirmance-suite/dimensions/v05" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:tx="http://www.xbrl.org/2006/confirmance-suite/dimensions/v05" xmlns:xl="http://www.xbrl.org/2003/XLink" xmlns:p0="http://www.fujitsu.com/xbrl/taxeditor/default" xmlns:xbrldt="http://xbrl.org/2005/xbrldt">
+  <xsd:annotation>
+    <xsd:appinfo>
+      <link:linkbaseRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="pathologic-typed-dimensions-in-dts-definition.xml" xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef"/>
+      <link:linkbaseRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="pathologic-typed-dimensions-in-dts-label.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef"/>
+    </xsd:appinfo>
+  </xsd:annotation>
+  <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <xsd:import namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+  <xsd:import namespace="http://www.xbrl.org/2006/conformance-suite/dimensions/pato1" schemaLocation="typed-1.xsd"/>
+  <xsd:import namespace="http://www.xbrl.org/2006/conformance-suite/dimensions/pato1" schemaLocation="typed-2.xsd"/>
+ <xsd:element name="Sales" id="tx_Sales" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="duration"/>
+  <xsd:element name="Hypercube" id="tx_Hypercube" type="xbrli:stringItemType" substitutionGroup="xbrldt:hypercubeItem" abstract="true" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="Dim1" id="tx_Dim1" type="xbrli:stringItemType" xbrldt:typedDomainRef="typed-1.xsd#id_typed" substitutionGroup="xbrldt:dimensionItem" abstract="true" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="Dim2" id="tx_Dim2" type="xbrli:stringItemType" xbrldt:typedDomainRef="typed-2.xsd#id_typed" substitutionGroup="xbrldt:dimensionItem" abstract="true" nillable="true" xbrli:periodType="instant"/>
+</xsd:schema>

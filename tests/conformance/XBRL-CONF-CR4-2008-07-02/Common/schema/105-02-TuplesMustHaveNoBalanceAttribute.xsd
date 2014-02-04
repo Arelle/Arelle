@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!-- XBRL 2.1 Test 105.02 -->
+<!-- Edited by UBmatrix LLC -->
+<!-- Copyright 2003 XBRL International. See http://www.xbrl.org/legal. All Rights Reserved. -->
+<xsd:schema
+   targetNamespace="http://mycompany.com/xbrl/taxonomy/ext"
+   xmlns:example="http://mycompany.com/xbrl/taxonomy/ext"
+   xmlns:xbrli="http://www.xbrl.org/2003/instance"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+   <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+
+   <xsd:element name="ItemWithBalance" id="e1" type="xbrli:monetaryItemType" xbrli:balance="debit" substitutionGroup="xbrli:item" xbrli:periodType="duration" />
+
+   <xsd:element name="TupleWithBalance" id="e2" xbrli:balance="debit" substitutionGroup="xbrli:tuple">
+      <xsd:complexType>
+         <xsd:complexContent>
+            <xsd:restriction base="xsd:anyType">
+               <xsd:sequence>
+                  <xsd:element ref="example:ItemWithBalance"/>
+               </xsd:sequence>
+            </xsd:restriction>
+         </xsd:complexContent>
+      </xsd:complexType>
+   </xsd:element>
+
+   <!--Element is a tuple, has a balance attribute which is NOT allowed, document is INVALID -->
+
+</xsd:schema>

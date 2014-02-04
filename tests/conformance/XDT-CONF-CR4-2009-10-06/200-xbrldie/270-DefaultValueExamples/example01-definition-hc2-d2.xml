@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2009 XBRL International. All Rights Reserved. -->
+<linkbase
+  xmlns="http://www.xbrl.org/2003/linkbase"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+  xsi:schemaLocation="
+    http://www.xbrl.org/2003/linkbase 
+      http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+    http://xbrl.org/2005/xbrldt  http://www.xbrl.org/2005/xbrldt-2005.xsd
+    ">
+  <roleRef xlink:type="simple"
+    xlink:href="example01-concepts-hc2-d2.xsd#primaryItem-a"
+    roleURI="http://xbrl.org/dimension/example/role/primaryItem-a" />
+  <roleRef xlink:type="simple"
+    xlink:href="example01-concepts-hc2-d2.xsd#primaryItem-b"
+    roleURI="http://xbrl.org/dimension/example/role/primaryItem-b" />
+  <roleRef xlink:type="simple"
+    xlink:href="example01-concepts-hc2-d2.xsd#primaryItem-c"
+    roleURI="http://xbrl.org/dimension/example/role/primaryItem-c" />
+  <roleRef xlink:type="simple"
+    xlink:href="example01-concepts-hc2-d2.xsd#primaryItem-d"
+    roleURI="http://xbrl.org/dimension/example/role/primaryItem-d" />
+  <roleRef xlink:type="simple"
+    xlink:href="example01-concepts-hc2-d2.xsd#hypercube-2"
+    roleURI="http://xbrl.org/dimension/example/role/hypercube-2" />
+  <roleRef xlink:type="simple"
+    xlink:href="example01-concepts-hc2-d2.xsd#defaults"
+    roleURI="http://xbrl.org/dimension/example/role/defaults" />
+
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/all" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-default"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-default" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" />
+
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/dimension/example/role/primaryItem-a">
+    <loc xlink:type="locator"
+      xlink:label="a"
+      xlink:href="example01-concepts-hc2-d2.xsd#a" />
+    <loc xlink:type="locator"
+      xlink:label="hc2"
+      xlink:href="example01-concepts-hc2-d2.xsd#hc2" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="a" xlink:to="hc2"
+      order="2"
+      use="optional"
+      xbrldt:targetRole="http://xbrl.org/dimension/example/role/hypercube-2"
+      xbrldt:contextElement="segment"
+      xbrldt:closed="false" />
+  </definitionLink>
+
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/dimension/example/role/primaryItem-b">
+    <loc xlink:type="locator"
+      xlink:label="b"
+      xlink:href="example01-concepts-hc2-d2.xsd#b" />
+  </definitionLink>
+
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/dimension/example/role/primaryItem-c">
+    <loc xlink:type="locator"
+      xlink:label="c"
+      xlink:href="example01-concepts-hc2-d2.xsd#c" />
+    <loc xlink:type="locator"
+      xlink:label="hc2"
+      xlink:href="example01-concepts-hc2-d2.xsd#hc2" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="c" xlink:to="hc2"
+      order="2"
+      use="optional"
+      xbrldt:targetRole="http://xbrl.org/dimension/example/role/hypercube-2"
+      xbrldt:contextElement="segment"
+      xbrldt:closed="true" />
+  </definitionLink>
+
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/dimension/example/role/primaryItem-d">
+    <loc xlink:type="locator"
+      xlink:label="d"
+      xlink:href="example01-concepts-hc2-d2.xsd#d" />
+    <loc xlink:type="locator"
+      xlink:label="hc2"
+      xlink:href="example01-concepts-hc2-d2.xsd#hc2" />
+  </definitionLink>
+
+
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/dimension/example/role/hypercube-2">
+    <loc xlink:type="locator"
+      xlink:label="hc2"
+      xlink:href="example01-concepts-hc2-d2.xsd#hc2" />
+    <loc xlink:type="locator"
+      xlink:label="dim2"
+      xlink:href="example01-concepts-hc2-d2.xsd#dim2" />
+    <loc xlink:type="locator"
+      xlink:label="mem2.1"
+      xlink:href="example01-concepts-hc2-d2.xsd#mem2.1" />
+    <loc xlink:type="locator"
+      xlink:label="mem2.2"
+      xlink:href="example01-concepts-hc2-d2.xsd#mem2.2" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="hc2" xlink:to="dim2"
+      order="1"
+      use="optional" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+      xlink:from="dim2" xlink:to="mem2.1"
+      order="1"
+      use="optional" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+      xlink:from="dim2" xlink:to="mem2.2"
+      order="2"
+      use="optional" />
+  </definitionLink>
+
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/dimension/example/role/defaults">
+    <loc xlink:type="locator"
+      xlink:label="dim2"
+      xlink:href="example01-concepts-hc2-d2.xsd#dim2" />
+    <loc xlink:type="locator"
+      xlink:label="mem2.1"
+      xlink:href="example01-concepts-hc2-d2.xsd#mem2.1" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-default"
+      xlink:from="dim2" xlink:to="mem2.1"
+      order="1"
+      use="optional" />
+  </definitionLink>
+
+</linkbase>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+xmlns:footsub="http://footsub/20081231"
+xmlns:dei="http://xbrl.sec.gov/dei/2011-01-31"
+xmlns:country="http://xbrl.sec.gov/country/2011-01-31"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:nonnum="http://www.xbrl.org/dtr/type/non-numeric"
+xmlns:num="http://www.xbrl.org/dtr/type/numeric"
+xmlns:sic="http://xbrl.sec.gov/sic/2011-01-31"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:xl="http://www.xbrl.org/2003/XLink"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+targetNamespace="http://footsub/20081231"
+elementFormDefault="qualified">
+<xsd:import namespace="http://www.xbrl.org/2003/instance"
+schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+<xsd:import namespace="http://edgar/20081231" schemaLocation="edgar-20081231.xsd"/>
+<xsd:import namespace="http://www.xbrl.org/2003/linkbase"
+schemaLocation="http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"/>
+<xsd:import namespace="http://www.xbrl.org/2003/XLink"
+schemaLocation="http://www.xbrl.org/2003/xl-2003-12-31.xsd"/>
+<xsd:element name="Title" substitutionGroup="xl:title" type="xl:titleType"
+id="footsub_Title"
+nillable="true"/>
+</xsd:schema>

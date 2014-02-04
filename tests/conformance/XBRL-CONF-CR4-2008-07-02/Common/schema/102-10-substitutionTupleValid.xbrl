@@ -1,0 +1,26 @@
+<xbrl
+   xmlns="http://www.xbrl.org/2003/instance"
+   xmlns:xbrli="http://www.xbrl.org/2003/instance"
+   xmlns:link="http://www.xbrl.org/2003/linkbase"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:my="http://www.example.com/test"
+   xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://www.example.com/test 102-09-substitutionTuple.xsd">
+
+	<link:schemaRef xlink:href="102-09-substitutionTuple.xsd" xlink:type="simple"/>
+
+	<my:shortAddress>
+       <my:city    contextRef="ci" >New York</my:city>
+       <my:country contextRef="ci" >United States</my:country>
+	</my:shortAddress>
+
+	<context id="ci">
+		<entity>
+			<identifier scheme="http://www.un.org/">Cannon plc</identifier>
+		</entity>
+		<period>
+			<instant>2001-08-16</instant>
+		</period>
+	</context>
+</xbrl>

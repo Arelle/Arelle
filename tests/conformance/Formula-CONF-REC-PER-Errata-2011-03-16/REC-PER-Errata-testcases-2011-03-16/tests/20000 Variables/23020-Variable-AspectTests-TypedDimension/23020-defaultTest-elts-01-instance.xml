@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:t="http://xbrl.org/formula/conformance/example" 
+xmlns:u="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="
+  http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd
+"
+ >
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="23020-typedDim-aspects.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="23020-defaultTest-default-formula.xml"/>
+
+  <context id="c1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:typedMember dimension="t:typeDim1">
+          <t:dimVal >
+            <t:strVal>abc</t:strVal>
+            <t:intVal>123</t:intVal>
+            <t:qnameVal>t:eltQN1</t:qnameVal>
+          </t:dimVal>
+        </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>  
+  <context id="c2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:typedMember dimension="t:typeDim1">
+          <t:dimVal >
+            <t:strVal>abc</t:strVal>
+            <t:intVal>000123</t:intVal>
+            <t:qnameVal>u:eltQN1</t:qnameVal>
+          </t:dimVal>
+        </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>  
+  <context id="c3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:typedMember dimension="t:typeDim1">
+          <t:dimVal >
+            <t:strVal>cba</t:strVal>
+            <t:intVal>
+                123
+            </t:intVal>
+            <t:qnameVal>
+               t:eltQN1
+            </t:qnameVal>
+          </t:dimVal>
+        </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>  
+
+  <t:P1 contextRef="c1">val1</t:P1>
+  <t:P2 contextRef="c2">val2</t:P2>
+  <t:P2 contextRef="c3">val3</t:P2>
+
+</xbrl>
+
+
+
+

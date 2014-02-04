@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:ref="http://xbrl.org/2008/reference"
+  xmlns:test="http://xbrl.org/formula/conformance/custom-test-link"
+  xmlns:eg="http://xbrl.org/formula/conformance/example"  
+  xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase 
+      http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic 
+      ../../../core_schemas/generic-link.xsd
+  http://xbrl.org/2008/reference 
+      ../../../core_schemas/generic-reference.xsd
+  http://xbrl.org/formula/conformance/custom-test-link
+      ../lib/custom-test-link.xsd
+  http://xbrl.org/formula/conformance/example
+      70212-relationship-resource-concepts-v01.xsd
+  ">
+  
+  <link:arcroleRef 
+      arcroleURI="http://xbrl.org/arcrole/2008/element-reference" 
+      xlink:href="../../../core_schemas/generic-reference.xsd#element-reference" 
+      xlink:type="simple"/>
+
+  <link:arcroleRef 
+      arcroleURI="http://xbrl.org/arcrole/2008/test-arcrole-test" 
+      xlink:href="../lib/custom-test-link.xsd#test-arc-cust" 
+      xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2003/role/link">
+
+    <test:thing xlink:type="resource" xlink:label="a" id="a">
+       Thing a.
+    </test:thing>
+    
+    <!-- reference for the preceeding linkbase thing -->
+    <ref:reference xlink:type="resource" xlink:label="thing_a_ref" 
+      xlink:role="http://www.xbrl.org/2003/role/label" >
+        <eg:PartA>AAA for a</eg:PartA>
+        <eg:PartB>BBB for a</eg:PartB>
+        <eg:PartC>CCC for a</eg:PartC>
+    </ref:reference>
+
+    <!-- arcs for reference, but it is reversed -->
+    <generic:arc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/element-reference"
+      xlink:to="a" xlink:from="thing_a_ref" order="1.0"/>
+
+  </generic:link>
+
+</link:linkbase>
+
+
+
+

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>51220</number>
+  <name>Tuple Ancestor Filter Processing</name>
+  <description>
+    Test tuple ancestor filter processing.
+  </description>
+  <reference specification="TUPLE-FILTER" id="sec-ancestor-filter"/>
+
+  <variation id="V-01">
+    <name>Test of ancestor filter for root item, e.g., anywhere below root</name>
+    <description>
+        Facts must at root or contained by a tuple. Parent QName xbrli:xbrl.
+    </description>
+    <reference specification="TUPLE-FILTER" id="sec-ancestor-filter"/>
+    <data>
+      <schema>51220-tuple-test-concepts.xsd</schema>
+      <linkbase>51220-factBelowRoot-formula.xml</linkbase>
+      <instance readMeFirst="true">51220-factBelowRoot-instance.xml</instance>
+    </data>
+    <result>
+      <instance>51220-factBelowRoot-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Test of ancestor filter for nested any depth in tuple</name>
+    <description>
+        Facts must be contained within a specified tuple, at any depth.
+    </description>
+    <reference specification="TUPLE-FILTER" id="sec-ancestor-filter"/>
+    <data>
+      <schema>51220-tuple-test-concepts.xsd</schema>
+      <linkbase>51220-parentWithinTuple-formula.xml</linkbase>
+      <instance readMeFirst="true">51220-parentWithinTuple-instance.xml</instance>
+    </data>
+    <result>
+      <instance>51220-parentWithinTuple-result.xml</instance>
+    </result>
+  </variation>
+
+</testcase>
+

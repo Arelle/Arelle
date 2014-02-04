@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2005 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  name="DTS discovery involving linkbases within schemas" 
+  description="DTS discovery when linkbases are not root elements of XML documents." 
+  outpath="out" 
+  owner="geoff@galexy.net" 
+  xsi:noNamespaceSchemaLocation="../lib/test.xsd" 
+  minimal="true">
+	<variation id="V-1" name="107-01-DTS with linkbase in schema">
+		<description>
+		  107.01 DTS descovery begins from a taxonomy schema that contains a linkbase 
+		  reference to a linkbase that that is placed inside the documentation of another 
+		  XML schema. The other XML schema also contains valid XML Schema markup but the 
+		  markup violates the requirements of the XBRL 2.1 specification.  By following the 
+      rules of DTS discovery the linkbase in the second schema should be
+      discovered, and processed *as a taxonomy schema* so the material that
+      violates the XBRL 2.1 specification should trigger a determination that
+      the result is invalid.
+		</description>
+		<data>
+			<xsd readMeFirst="true">107-01-SchemaLinkingToALinkbaseInAnotherSchema.xsd</xsd>
+			<xsd readMeFirst="false">107-01-SchemaContainingALinkbase.xsd</xsd>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+</testcase>

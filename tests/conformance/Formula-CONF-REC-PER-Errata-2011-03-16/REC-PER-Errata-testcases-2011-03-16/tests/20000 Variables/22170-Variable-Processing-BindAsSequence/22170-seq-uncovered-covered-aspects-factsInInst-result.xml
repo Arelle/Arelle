@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="22170-sequence-tests.xsd"/>
+
+  <context id="context">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <!-- inner planets tuple, no moons -->
+    <concept:c1 contextRef="context">Hello Mercury,Venus</concept:c1>
+  <!-- planets with moons -->
+    <concept:c1 contextRef="context">Hello Earth:Moon</concept:c1>
+    <concept:c1 contextRef="context">Hello Mars:Phobos,Deimos</concept:c1>
+    <concept:c1 contextRef="context">Hello Jupiter:Metis,Adrastea,Amalthea,Thebe,Io,Europa,Ganymede,Callisto,Leda,Himalia,Lysithea,Elara,Ananke,Carme,Pasiphae,Sinope</concept:c1>
+    <concept:c1 contextRef="context">Hello Saturn:Pan,Atlas,Prometheus,Pandora,Epimetheus,Janus,Mimas,Enceladus,Tethys,Telesto,Calypso,Dione,Helene,Rhea,Titan,Hyperion,Iapetus,Phoebe</concept:c1>
+    <concept:c1 contextRef="context">Hello Neptune:Cordelia,Ophelia,Bianca,Cressida,Desdemona,Juliet,Portia,Rosalind,2003U2,Belinda,1986U10,Puck,2003U1,Miranda,Ariel,Umbriel,Titania,Oberon,2001U3,Caliban,Stephano,Trinculo,Sycorax,2003U3,Prospero,Setebos,2002U2</concept:c1>
+    <concept:c1 contextRef="context">Hello Uranus:Naiad,Thalassa,Despina,Galatea,Larissa,Proteus,Triton,Nereid</concept:c1>
+
+</xbrl>
+

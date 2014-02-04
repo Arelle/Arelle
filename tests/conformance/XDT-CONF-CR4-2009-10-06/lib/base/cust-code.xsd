@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?><schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:cc="http://www.example.com/customer-code" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" targetNamespace="http://www.example.com/customer-code">
+	<simpleType name="customer-code">
+		<restriction base="string">
+			<pattern value="[a-z][0-9][0-9][0-9]"/>
+		</restriction>
+	</simpleType>
+	<element name="customer" type="cc:customer-code" id="cc_customer"/>
+</schema>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2006-07-25 17:18).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2006 UBmatrix inc., All Rights Reserved
+Produced on 2006-07-26 17:27:25
+-->
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:test="http://www.example.com/test" targetNamespace="http://www.example.com/test" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+      <link:arcroleType arcroleURI="http://www.example.com/countOf-item" id="countOf-item" cyclesAllowed="none">
+        <link:usedOn>link:calculationArc</link:usedOn>
+      </link:arcroleType>
+      <link:arcroleType arcroleURI="http://www.example.com/averageOf-quantity" id="averageOf-quantity" cyclesAllowed="none">
+        <link:usedOn>link:calculationArc</link:usedOn>
+      </link:arcroleType>
+      <link:arcroleType arcroleURI="http://www.example.com/isStatisticOf-tuple" id="isStatisticOf-tuple" cyclesAllowed="none">
+        <link:usedOn>link:definitionArc</link:usedOn>
+      </link:arcroleType>
+      <link:linkbaseRef xlink:type="simple" xlink:href="ArcRoleCustomEndPoints-label.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:title="Label Links, all" />
+      <link:linkbaseRef xlink:type="simple" xlink:href="ArcRoleCustomEndPoints-presentation.xml" xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:title="Presentation Links, all" />
+      <link:linkbaseRef xlink:type="simple" xlink:href="ArcRoleCustomEndPoints-calculation.xml" xlink:role="http://www.xbrl.org/2003/role/calculationLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:title="Calculation Links, all" />
+      <link:linkbaseRef xlink:type="simple" xlink:href="ArcRoleCustomEndPoints-definition.xml" xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:title="Definition Links, all" />
+    </appinfo>
+  </annotation>
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <element id="test_AverageRevenue" name="AverageRevenue" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="test_CountWidgetsReported" name="CountWidgetsReported" type="xbrli:integerItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="test_Description" name="Description" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="test_GrossRevenue" name="GrossRevenue" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="test_Name" name="Name" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="test_NetCosts" name="NetCosts" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="test_TotalUnitsSold" name="TotalUnitsSold" type="xbrli:integerItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="test_UnitsSold" name="UnitsSold" type="xbrli:integerItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <element id="test_Widget" name="Widget" substitutionGroup="xbrli:tuple" nillable="true">
+    <complexType>
+      <complexContent>
+        <restriction base="anyType">
+          <sequence>
+            <element ref="test:Name" minOccurs="0" maxOccurs="1" />
+            <element ref="test:Description" minOccurs="0" maxOccurs="1" />
+            <element ref="test:UnitsSold" minOccurs="0" maxOccurs="1" />
+            <element ref="test:GrossRevenue" minOccurs="0" maxOccurs="1" />
+            <element ref="test:NetCosts" minOccurs="0" maxOccurs="1" />
+          </sequence>
+          <attribute name="id" type="ID" use="optional" />
+        </restriction>
+      </complexContent>
+    </complexType>
+  </element>
+</schema>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbrli:xbrl xmlns:eg="http://xbrl.example.com" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <link:schemaRef xlink:type="simple" xlink:href="DecimalAttributeOnSegmentOrScenario.xsd"/>
+  <!-- Contexts c1 and cPlus1.0 are S-Equal, because elNumero is a decimal type attribute and the values are X-Equal. -->
+  <xbrli:context id="c1">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://nic.net">example.com</xbrli:identifier>
+      <xbrli:segment>
+        <eg:evil elNumero="1"/>
+      </xbrli:segment>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>2008-06-30</xbrli:instant>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="cPlus1.0">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://nic.net">example.com</xbrli:identifier>
+      <xbrli:segment>
+        <eg:evil elNumero="+1.0"/>
+      </xbrli:segment>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>2008-06-30</xbrli:instant>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:unit id="usd">
+    <xbrli:measure>iso4217:USD</xbrli:measure>
+  </xbrli:unit>
+  <eg:a decimals="0" contextRef="c1" unitRef="usd">1000</eg:a>
+  <eg:b decimals="0" contextRef="cPlus1.0" unitRef="usd">2000</eg:b>
+</xbrli:xbrl>

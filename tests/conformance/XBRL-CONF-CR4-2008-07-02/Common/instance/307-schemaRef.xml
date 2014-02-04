@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Schema References" description="Section 5 Taxonomies" outpath="out" owner="geoff@galexy.net" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	<!-- 
+1.	Ensure that all schemaRef elements refer to schemas (schemaRef.xml);
+2.	Ensure that the processor processes the xml:base attribute correctly in schemaRef elements (schemaRef.xml);
+-->
+	<variation id="V-1" name="SchemaRefExample">
+		<description>
+		307.01 A schemaRef element MUST hold the URI of a
+		schema.  In this case it does.
+		</description>
+		<data>
+			<xsd readMeFirst="false">SchemaRefExample.xsd</xsd>
+			<instance readMeFirst="true">307-01-SchemaRefExample.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-2" name="SchemaRefCounterExample">
+		<description>
+		307.01 A schemaRef element MUST hold the URI of a
+		schema.  In this case it does not because the second
+		reference to a schema actually points to an XML
+		document that is a label linkbase. 
+		</description>
+		<data>
+			<xsd readMeFirst="false">SchemaRefExample.xsd</xsd>
+			<linkbase readMeFirst="false">SchemaRefCounterExample.xsd</linkbase>
+			<instance readMeFirst="true">307-02-SchemaRefCounterExample.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-3" name="SchemaRefXMLBase">
+		<description>
+		307.03 schemaRef elements MUST hold the URI of
+		Schemas.  In this case the requirement is not
+		satisfied because the schema reference has to be
+		resolved using the XML base attribute that ensures the
+		schemaRef URI resolves to the XML document in the base
+		directory.  This document, however, is a label
+		linkbase, not a schema.  If the XML base attribute
+		value is not used then the schema in the same
+		directory as the instance is discovered and no issues
+		are noticed.
+		</description>
+		<data>
+			<linkbase readMeFirst="false">base/SchemaRefTrickyExample.xsd</linkbase>
+			<xsd readMeFirst="false">SchemaRefTrickyExample.xsd</xsd>
+			<instance readMeFirst="true">307-03-SchemaRefXMLBase.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+</testcase>

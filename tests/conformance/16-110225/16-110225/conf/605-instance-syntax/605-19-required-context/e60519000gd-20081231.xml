@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xbrli:xbrl xmlns:edgar="http://edgar/20081231" xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:nonnum="http://www.xbrl.org/dtr/type/non-numeric"
+xmlns:num="http://www.xbrl.org/dtr/type/numeric"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:dei="http://xbrl.sec.gov/dei/2011-01-31"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns="http://www.w3.org/1999/xhtml"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+xmlns:xlink="http://www.w3.org/1999/xlink">
+<link:schemaRef xlink:type="simple" xlink:href="edgar-20081231.xsd"/>
+<xbrli:context id="FY08">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:startDate>2008-01-01</xbrli:startDate>
+<xbrli:endDate>2008-12-31</xbrli:endDate>
+</xbrli:period>
+</xbrli:context>
+<xbrli:context id="FY08e">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:instant>2008-12-31</xbrli:instant>
+</xbrli:period>
+</xbrli:context>
+<xbrli:unit id="USD">
+<xbrli:measure>iso4217:USD</xbrli:measure>
+</xbrli:unit>
+<xbrli:unit id="shares">
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unit>
+<dei:DocumentType contextRef="FY08">8-K</dei:DocumentType>
+<dei:EntityCentralIndexKey contextRef="FY08">9876543210</dei:EntityCentralIndexKey>
+<dei:EntityRegistrantName contextRef="FY08">e60519000gd</dei:EntityRegistrantName>
+<dei:CurrentFiscalYearEndDate contextRef="FY08">--12-31</dei:CurrentFiscalYearEndDate>
+<dei:EntityWellKnownSeasonedIssuer contextRef="FY08">No</dei:EntityWellKnownSeasonedIssuer>
+<dei:EntityVoluntaryFilers contextRef="FY08">Yes</dei:EntityVoluntaryFilers>
+<dei:EntityCurrentReportingStatus contextRef="FY08">Yes</dei:EntityCurrentReportingStatus>
+<dei:EntityFilerCategory contextRef="FY08">Non-accelerated Filer</dei:EntityFilerCategory>
+<dei:EntityPublicFloat decimals="0" contextRef="FY08e" unitRef="USD">0</dei:EntityPublicFloat>
+<dei:EntityCommonStockSharesOutstanding decimals="INF" contextRef="FY08e" unitRef="shares">0</dei:EntityCommonStockSharesOutstanding>
+<dei:AmendmentFlag contextRef="FY08">false</dei:AmendmentFlag>
+<dei:DocumentPeriodEndDate contextRef="FY08">2008-12-31</dei:DocumentPeriodEndDate>
+<dei:DocumentFiscalYearFocus contextRef="FY08">2008</dei:DocumentFiscalYearFocus>
+<dei:DocumentFiscalPeriodFocus contextRef="FY08">FY</dei:DocumentFiscalPeriodFocus>
+</xbrli:xbrl>

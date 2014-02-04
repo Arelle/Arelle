@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  XBRL 2.1 Tests 
+  -->
+<!--  Copyright 2003 XBRL International. All Rights Reserved. 
+  -->
+<schema targetNamespace="http://mycompany.com/xbrl/roleE" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<annotation>
+		<appinfo>
+			<link:roleType roleURI="http://mycompany.com/xbrl/roleE/newExtendedRoleType" id="newExtendedRoleType">
+				<link:definition>
+					Test variation for defining a new role on a presentationLink
+				</link:definition>
+				<link:usedOn>link:presentationLink</link:usedOn>
+			</link:roleType>
+			<link:linkbaseRef xlink:type="simple" xlink:href="RoleE_presentation.xml" xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+		</appinfo>
+	</annotation>
+	<import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<element name="conceptA" type="xbrli:monetaryItemType" abstract="false" substitutionGroup="xbrli:item" nillable="true" id="conceptA" xbrli:periodType="instant" xbrli:balance="debit"/>
+	<element name="conceptB" type="xbrli:monetaryItemType" abstract="false" substitutionGroup="xbrli:item" nillable="true" id="conceptB" xbrli:periodType="instant" xbrli:balance="debit"/>
+</schema>

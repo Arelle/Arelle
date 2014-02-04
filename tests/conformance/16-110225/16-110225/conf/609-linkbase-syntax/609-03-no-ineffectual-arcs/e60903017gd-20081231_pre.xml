@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:e60903="http://e60903/20081231"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:roleRef roleURI="http://e60903/Shareholders'Entity/role/LcThree" xlink:type="simple"
+xlink:href="e60903017gd-20081231.xsd#ShareholdersEntity"/>
+<link:presentationLink xlink:type="extended"
+xlink:role="http://e60903/Shareholders'Entity/role/LcThree">
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.us/us-gaap/1.0/non-gaap/dei-2008-03-31.xsd#dei_EntityInformationLineItems"
+xlink:label="EntityInformationLineItems"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.us/us-gaap/1.0/non-gaap/dei-2008-03-31.xsd#dei_EntityIncorporationDateOfIncorporation"
+xlink:label="EntityIncorporationDateOfIncorporation"/>
+<link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+xlink:from="EntityInformationLineItems"
+xlink:to="EntityIncorporationDateOfIncorporation"
+order="1.0"/>
+</link:presentationLink>
+</link:linkbase>

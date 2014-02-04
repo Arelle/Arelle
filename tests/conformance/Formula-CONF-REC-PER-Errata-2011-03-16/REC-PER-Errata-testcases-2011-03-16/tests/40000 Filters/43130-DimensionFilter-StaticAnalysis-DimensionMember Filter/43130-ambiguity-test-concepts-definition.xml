@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<linkbase
+  xmlns="http://www.xbrl.org/2003/linkbase"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+  xsi:schemaLocation="
+    http://www.xbrl.org/2003/linkbase 
+      http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+    http://xbrl.org/2005/xbrldt  http://www.xbrl.org/2005/xbrldt-2005.xsd
+    ">
+  <roleRef xlink:type="simple"
+    xlink:href="43130-ambiguity-test-concepts.xsd#hypercubes"
+    roleURI="http://xbrl.org/formula/conformance/example/role/hypercubes" />
+  <roleRef xlink:type="simple"
+    xlink:href="43130-ambiguity-test-concepts.xsd#test-role"
+    roleURI="http://xbrl.org/formula/conformance/example/role/test-role" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="43130-ambiguity-test-concepts.xsd#test-arcrole"
+    arcroleURI="http://xbrl.org/formula/conformance/example/arcrole/test-arcrole" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/all" />
+  <roleRef xlink:type="simple"
+    xlink:href="43130-ambiguity-test-concepts.xsd#dimensions"
+    roleURI="http://xbrl.org/formula/conformance/example/role/dimensions" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" />
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/hypercubes">
+    <loc xlink:type="locator"
+      xlink:label="eg_PriItem"
+      xlink:href="43130-ambiguity-test-concepts.xsd#eg_PriItem" />
+    <loc xlink:type="locator"
+      xlink:label="eg_Hypercube"
+      xlink:href="43130-ambiguity-test-concepts.xsd#eg_Hypercube" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="eg_PriItem" xlink:to="eg_Hypercube"
+      order="1"
+      use="optional"
+      xbrldt:contextElement="segment" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/dimensions">
+    <loc xlink:type="locator"
+      xlink:label="eg_Dimension"
+      xlink:href="43130-ambiguity-test-concepts.xsd#eg_Dimension" />
+    <loc xlink:type="locator"
+      xlink:label="eg_MemA"
+      xlink:href="43130-ambiguity-test-concepts.xsd#eg_MemA" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+      xlink:from="eg_Dimension" xlink:to="eg_MemA"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_MemB"
+      xlink:href="43130-ambiguity-test-concepts.xsd#eg_MemB" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_MemA" xlink:to="eg_MemB"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_MemC"
+      xlink:href="43130-ambiguity-test-concepts.xsd#eg_MemC" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_MemB" xlink:to="eg_MemC"
+      order="1"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://xbrl.org/formula/conformance/example/role/test-role">
+    <loc xlink:type="locator"
+      xlink:label="eg_Dimension"
+      xlink:href="43130-ambiguity-test-concepts.xsd#eg_Dimension" />
+    <loc xlink:type="locator"
+      xlink:label="eg_MemA"
+      xlink:href="43130-ambiguity-test-concepts.xsd#eg_MemA" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/formula/conformance/example/arcrole/test-arcrole"
+      xlink:from="eg_Dimension" xlink:to="eg_MemA"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_MemB"
+      xlink:href="43130-ambiguity-test-concepts.xsd#eg_MemB" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/formula/conformance/example/arcrole/test-arcrole"
+      xlink:from="eg_MemA" xlink:to="eg_MemB"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_MemC"
+      xlink:href="43130-ambiguity-test-concepts.xsd#eg_MemC" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/formula/conformance/example/arcrole/test-arcrole"
+      xlink:from="eg_MemB" xlink:to="eg_MemC"
+      order="1"
+      use="optional" />
+  </definitionLink>
+</linkbase>

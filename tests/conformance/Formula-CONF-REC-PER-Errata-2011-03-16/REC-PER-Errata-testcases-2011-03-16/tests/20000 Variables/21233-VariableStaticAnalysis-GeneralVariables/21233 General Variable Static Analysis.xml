@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>21233</number>
+  <name>General Variable static analysis</name>
+  <description>
+    Tests of general variable static analysis
+  </description>
+  <reference specification="VARIABLES" id="sec-xpath-usage"/>
+  <reference specification="VARIABLES" id="sec-general-variables"/>
+
+  <variation id="V-01">
+    <name>Select expression is not an XPath 2 valid expression</name>
+    <description>Tests that select attribute fails static analysis of XPath expression.</description>
+    <reference specification="VARIABLES" id="sec-general-variables"/>
+    <data>
+      <schema>21233-genVar-tests.xsd</schema>
+      <linkbase>21233-selectIsNotXPath-formula.xml</linkbase>
+      <instance readMeFirst="true">21233-selectIsNotXPath-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:err="http://www.w3.org/2005/xqt-errors">err:XPST0003</error>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Select expression has unresolvable QName</name>
+    <description>Tests that select attribute fails static analysis due to unresolvable qname.</description>
+    <reference specification="VARIABLES" id="sec-xpath-usage"/>
+    <reference specification="VARIABLES" id="sec-general-variables"/>
+    <data>
+      <schema>21233-genVar-tests.xsd</schema>
+      <linkbase>21233-selectUnresolvableQName-formula.xml</linkbase>
+      <instance readMeFirst="true">21233-selectUnresolvableQName-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:xbrlve="http://xbrl.org/2008/variable/error">
+          xbrlve:unresolvedDependency
+      </error>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Select expression has QName with unresolvable prefix</name>
+    <description>Tests that select attribute fails static analysis due to qname whose prefix is not statically resolvable, thus raising XPath XPST0081 error.</description>
+    <reference specification="VARIABLES" id="sec-xpath-usage"/>
+    <reference specification="VARIABLES" id="sec-general-variables"/>
+    <data>
+      <schema>21233-genVar-tests.xsd</schema>
+      <linkbase>21233-errorResolvingQName-formula.xml</linkbase>
+      <instance readMeFirst="true">21233-errorResolvingQName-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:xqt-err="http://www.w3.org/2005/xqt-errors">
+          xqt-err:XPST0081
+      </error>
+    </result>
+  </variation>  
+
+</testcase>
+
+
+
+
+

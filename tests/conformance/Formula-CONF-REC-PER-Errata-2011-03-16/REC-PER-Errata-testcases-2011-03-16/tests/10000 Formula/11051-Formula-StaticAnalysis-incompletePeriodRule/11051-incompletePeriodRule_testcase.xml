@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Pablo Navarro Salvador, Herm Fischer</name>
+    <email>pns.atos@gmail.com, fischer@markv.com</email>
+  </creator>
+  <number>11051</number>
+  <name>Period rules in formulae. </name>
+  <description>
+    Formula Static Analysis Test.
+    An error must be thrown if a period rule 
+    does not have a nearest source 
+    and does not have a child element
+  </description>
+  <reference specification="FORMULA" id="error-incomplete-period-rule"/>
+  <variation id="V-01">
+    <description>
+      The output period of the formula does not have a nearest source 
+      and does not have a child element.
+    </description>
+    <data>
+      <instance readMeFirst="true">11051-v01-incompletePeriodRule-input.xml</instance>
+      <schema>11051-concepts.xsd</schema>
+      <linkbase>11051-v01-incompletePeriodRule-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlfe:incompletePeriodRule</error>
+    </result>
+  </variation>
+</testcase>

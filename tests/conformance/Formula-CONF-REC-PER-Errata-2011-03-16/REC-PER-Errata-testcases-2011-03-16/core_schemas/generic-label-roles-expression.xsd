@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- All Rights Reserved, Copyright (c) FUJITSU 2009 -->
+<schema 
+  targetNamespace="http://xbrl.org/2008/label-roles-expression"
+  elementFormDefault="qualified"
+  xmlns="http://www.w3.org/2001/XMLSchema" 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:gen="http://xbrl.org/2008/generic" 
+  xmlns:label="http://xbrl.org/2008/label" 
+  xmlns:label-expression="http://xbrl.org/2008/label-roles-expression" 
+>
+
+  <import 
+    namespace="http://xbrl.org/2008/label"
+    schemaLocation="http://www.xbrl.org/2008/generic-label.xsd" />
+
+  <import 
+    namespace="http://xbrl.org/2008/generic"
+    schemaLocation="http://www.xbrl.org/2008/generic-link.xsd" />
+
+  <annotation>
+    <appinfo>
+      <link:roleType
+        roleURI="http://www.xbrl.org/2008/role/satisfied-message" id="satisfied-message">
+        <link:usedOn>label:label</link:usedOn>
+      </link:roleType>
+      <link:roleType
+        roleURI="http://www.xbrl.org/2008/role/unsatisfied-message" id="unsatisfied-message">
+        <link:usedOn>label:label</link:usedOn>
+      </link:roleType>
+      <link:arcroleType id="assertion-message"
+            cyclesAllowed="undirected" 
+            arcroleURI="http://xbrl.org/arcrole/2008/assertion-message">
+        <link:definition>assertion has label with embedded XPath 2 expressions.</link:definition>
+        <link:usedOn>gen:arc</link:usedOn>
+      </link:arcroleType>
+    </appinfo>
+  </annotation>
+
+</schema>

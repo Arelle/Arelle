@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbrli:xbrl xmlns:tx="http://www.xbrl.org/testcases/arcEquality/01" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <link:schemaRef xlink:type="simple" xlink:href="231-01-ArcsAreNotEqualButTheyLookAsEqual.xsd"/>
+  <xbrli:context id="ctx0">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.xbrl.org/companiesScheme">Sample Company</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>2007-12-31</xbrli:instant>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:unit id="u1">
+    <xbrli:measure>iso4217:USD</xbrli:measure>
+  </xbrli:unit>
+  <tx:A decimals="0" contextRef="ctx0" unitRef="u1">1000</tx:A>
+  <tx:B decimals="0" contextRef="ctx0" unitRef="u1">1000</tx:B>
+  <tx:C decimals="0" contextRef="ctx0" unitRef="u1">1000</tx:C>
+  <tx:D decimals="0" contextRef="ctx0" unitRef="u1">1000</tx:D>
+</xbrli:xbrl>

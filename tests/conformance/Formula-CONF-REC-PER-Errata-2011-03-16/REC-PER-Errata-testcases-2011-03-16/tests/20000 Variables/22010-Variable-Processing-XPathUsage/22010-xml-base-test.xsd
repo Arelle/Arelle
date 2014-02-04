@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" 
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:basetest="http://xbrl.org/formula/conformance/example/basetest" 
+  targetNamespace="http://xbrl.org/formula/conformance/example/basetest" 
+  elementFormDefault="qualified" 
+  attributeFormDefault="unqualified">
+  
+  <element name="table" >
+    <complexType>
+      <complexContent>
+        <restriction base="anyType">
+          <sequence>
+            <element ref="basetest:entry" minOccurs="0" maxOccurs="unbounded"/> 
+          </sequence>
+        </restriction>
+      </complexContent>
+    </complexType>
+  </element>
+  <element name="entry" type="string" />
+</schema>
+

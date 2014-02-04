@@ -1,0 +1,67 @@
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" 
+xmlns:xl="http://www.xbrl.org/2001/XLink" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:self="http://mycompany.com/xbrl/arcCycles"
+xsi:schemaLocation="
+	http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+	http://mycompany.com/xbrl/arcCycles ArcCyclesCustNCcustLink.xsd
+	">
+	<roleRef xlink:type="simple" xlink:href="ArcCyclesCustNCcustLink.xsd#linkrole1" roleURI="http://mycompany.com/xbrl/arcCycles/linkrole1"/>
+	<arcroleRef xlink:type="simple" xlink:href="ArcCyclesCustNCcustLink.xsd#arcrole1" arcroleURI="http://mycompany.com/xbrl/arcCycles/arcrole1"/>
+	<self:customLink1 xlink:type="extended" xlink:role="http://mycompany.com/xbrl/arcCycles/linkrole1">
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptA" xlink:label="conceptA"/>
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptB" xlink:label="conceptB"/>
+		<self:customArc1 xlink:type="arc" xlink:from="conceptA" xlink:to="conceptB" order="1" xlink:arcrole="http://mycompany.com/xbrl/arcCycles/arcrole1"/>
+	</self:customLink1>
+	<self:customLink2 xlink:type="extended" xlink:role="http://mycompany.com/xbrl/arcCycles/linkrole1">
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptA" xlink:label="conceptA"/>
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptC" xlink:label="conceptC"/>
+		<self:customArc1 xlink:type="arc" xlink:from="conceptA" xlink:to="conceptC" order="2" xlink:arcrole="http://mycompany.com/xbrl/arcCycles/arcrole1"/>
+	</self:customLink2>
+	<self:customLink2 xlink:type="extended" xlink:role="http://mycompany.com/xbrl/arcCycles/linkrole1">
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptB" xlink:label="conceptB"/>
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptD" xlink:label="conceptD"/>
+		<self:customArc1 xlink:type="arc" xlink:from="conceptB" xlink:to="conceptD" order="1" xlink:arcrole="http://mycompany.com/xbrl/arcCycles/arcrole1"/>
+	</self:customLink2>
+	<self:customLink2 xlink:type="extended" xlink:role="http://mycompany.com/xbrl/arcCycles/linkrole1">
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptB" xlink:label="conceptB"/>
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptE" xlink:label="conceptE"/>
+		<self:customArc1 xlink:type="arc" xlink:from="conceptB" xlink:to="conceptE" order="2" xlink:arcrole="http://mycompany.com/xbrl/arcCycles/arcrole1"/>
+	</self:customLink2>
+	<self:customLink2 xlink:type="extended" xlink:role="http://mycompany.com/xbrl/arcCycles/linkrole1">
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptB" xlink:label="conceptB"/>
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptF" xlink:label="conceptF"/>
+		<self:customArc1 xlink:type="arc" xlink:from="conceptB" xlink:to="conceptF" order="3" xlink:arcrole="http://mycompany.com/xbrl/arcCycles/arcrole1"/>
+	</self:customLink2>
+	<self:customLink2 xlink:type="extended" xlink:role="http://mycompany.com/xbrl/arcCycles/linkrole1">
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptE" xlink:label="conceptE"/>
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptI" xlink:label="conceptI"/>
+		<self:customArc1 xlink:type="arc" xlink:from="conceptE" xlink:to="conceptI" order="1" xlink:arcrole="http://mycompany.com/xbrl/arcCycles/arcrole1"/>
+	</self:customLink2>
+	<self:customLink2 xlink:type="extended" xlink:role="http://mycompany.com/xbrl/arcCycles/linkrole1">
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptE" xlink:label="conceptE"/>
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptJ" xlink:label="conceptJ"/>
+		<self:customArc1 xlink:type="arc" xlink:from="conceptE" xlink:to="conceptJ" order="2" xlink:arcrole="http://mycompany.com/xbrl/arcCycles/arcrole1"/>
+	</self:customLink2>
+	<self:customLink2 xlink:type="extended" xlink:role="http://mycompany.com/xbrl/arcCycles/linkrole1">
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptI" xlink:label="conceptI"/>
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptL" xlink:label="conceptL"/>
+		<self:customArc1 xlink:type="arc" xlink:from="conceptI" xlink:to="conceptL" order="1" xlink:arcrole="http://mycompany.com/xbrl/arcCycles/arcrole1"/>
+	</self:customLink2>
+	<self:customLink2 xlink:type="extended" xlink:role="http://mycompany.com/xbrl/arcCycles/linkrole1">
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptC" xlink:label="conceptC"/>
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptG" xlink:label="conceptG"/>
+		<self:customArc1 xlink:type="arc" xlink:from="conceptC" xlink:to="conceptG" order="1" xlink:arcrole="http://mycompany.com/xbrl/arcCycles/arcrole1"/>
+	</self:customLink2>
+	<self:customLink2 xlink:type="extended" xlink:role="http://mycompany.com/xbrl/arcCycles/linkrole1">
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptC" xlink:label="conceptC"/>
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptH" xlink:label="conceptH"/>
+		<self:customArc1 xlink:type="arc" xlink:from="conceptC" xlink:to="conceptH" order="2" xlink:arcrole="http://mycompany.com/xbrl/arcCycles/arcrole1"/>
+	</self:customLink2>
+	<self:customLink1 xlink:type="extended" xlink:role="http://mycompany.com/xbrl/arcCycles/linkrole1">
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptD" xlink:label="conceptD"/>
+		<loc xlink:type="locator" xlink:href="ArcCyclesCustNCcustLink.xsd#conceptA" xlink:label="conceptA"/>
+		<self:customArc1 xlink:type="arc" xlink:from="conceptD" xlink:to="conceptA" order="1" xlink:arcrole="http://mycompany.com/xbrl/arcCycles/arcrole1"/>
+	</self:customLink1>
+</linkbase>

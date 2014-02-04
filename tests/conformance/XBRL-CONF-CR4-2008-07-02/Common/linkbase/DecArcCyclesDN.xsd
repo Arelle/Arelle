@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  XBRL 2.1 Tests 
+  -->
+<!--  Copyright 2003 XBRL International. All Rights Reserved. 
+  -->
+<schema targetNamespace="http://mycompany.com/xbrl/decArcCyclesDN" xmlns:self="http://mycompany.com/xbrl/arcCycles" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns="http://www.w3.org/2001/XMLSchema">
+	<annotation>
+		<appinfo>
+			<link:arcroleType id="directed" arcroleURI="http://mycompany.com/xbrl/decArcCyclesDN/directed" cyclesAllowed="any">
+				<link:usedOn>link:definitionArc</link:usedOn>
+			</link:arcroleType>
+			<link:linkbaseRef xlink:type="simple" xlink:href="DecArcCyclesDN_definition.xml" xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+		</appinfo>
+	</annotation>
+	<import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<element name="conceptA" type="xbrli:monetaryItemType" abstract="false" substitutionGroup="xbrli:item" nillable="true" id="conceptA" xbrli:periodType="instant" xbrli:balance="debit"/>
+	<element name="conceptB" type="xbrli:monetaryItemType" abstract="false" substitutionGroup="xbrli:item" nillable="true" id="conceptB" xbrli:periodType="instant" xbrli:balance="debit"/>
+	<element name="conceptC" type="xbrli:monetaryItemType" abstract="false" substitutionGroup="xbrli:item" nillable="true" id="conceptC" xbrli:periodType="instant" xbrli:balance="debit"/>
+	<element name="conceptD" type="xbrli:monetaryItemType" abstract="false" substitutionGroup="xbrli:item" nillable="true" id="conceptD" xbrli:periodType="instant" xbrli:balance="debit"/>
+	<element name="conceptE" type="xbrli:monetaryItemType" abstract="false" substitutionGroup="xbrli:item" nillable="true" id="conceptE" xbrli:periodType="instant" xbrli:balance="debit"/>
+	<element name="conceptF" type="xbrli:monetaryItemType" abstract="false" substitutionGroup="xbrli:item" nillable="true" id="conceptF" xbrli:periodType="instant" xbrli:balance="debit"/>
+	<element name="conceptG" type="xbrli:monetaryItemType" abstract="false" substitutionGroup="xbrli:item" nillable="true" id="conceptG" xbrli:periodType="instant" xbrli:balance="debit"/>
+	<element name="conceptH" type="xbrli:monetaryItemType" abstract="false" substitutionGroup="xbrli:item" nillable="true" id="conceptH" xbrli:periodType="instant" xbrli:balance="debit"/>
+	<element name="conceptI" type="xbrli:monetaryItemType" abstract="false" substitutionGroup="xbrli:item" nillable="true" id="conceptI" xbrli:periodType="instant" xbrli:balance="debit"/>
+	<element name="conceptJ" type="xbrli:monetaryItemType" abstract="false" substitutionGroup="xbrli:item" nillable="true" id="conceptJ" xbrli:periodType="instant" xbrli:balance="debit"/>
+	<element name="conceptK" type="xbrli:monetaryItemType" abstract="false" substitutionGroup="xbrli:item" nillable="true" id="conceptK" xbrli:periodType="instant" xbrli:balance="debit"/>
+	<element name="conceptL" type="xbrli:monetaryItemType" abstract="false" substitutionGroup="xbrli:item" nillable="true" id="conceptL" xbrli:periodType="instant" xbrli:balance="debit"/>
+</schema>

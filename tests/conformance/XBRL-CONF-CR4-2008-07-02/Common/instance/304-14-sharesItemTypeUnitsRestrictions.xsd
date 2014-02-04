@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<schema targetNamespace="http://www.someCompany.com"
+xmlns:my="http://www.someCompany.com"
+xmlns="http://www.w3.org/2001/XMLSchema"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+elementFormDefault="qualified">
+
+	<import namespace="http://www.xbrl.org/2003/instance"
+	schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+
+	<complexType name="sharesOnIssueItemType">
+		<simpleContent>
+			<restriction base="xbrli:sharesItemType"/>
+		</simpleContent>
+	</complexType>
+
+	<element name="sharesOnIssue" type="my:sharesOnIssueItemType"
+	substitutionGroup="xbrli:item" id="sharesOnIssue"
+	xbrli:periodType="instant"/>
+
+</schema>

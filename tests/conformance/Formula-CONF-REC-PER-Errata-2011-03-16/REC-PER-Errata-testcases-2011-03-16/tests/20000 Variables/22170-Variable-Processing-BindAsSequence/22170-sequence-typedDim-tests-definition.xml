@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Definition Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2008-06-04 11:06).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2008 UBmatrix inc., All Rights Reserved
+Produced on 2008-06-14 21:20:56
+-->
+<linkbase
+  xmlns="http://www.xbrl.org/2003/linkbase"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+  xsi:schemaLocation="
+    http://www.xbrl.org/2003/linkbase 
+      http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+    http://xbrl.org/2005/xbrldt  http://www.xbrl.org/2005/xbrldt-2005.xsd
+    ">
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/all" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" />
+  <definitionLink xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator"
+      xlink:label="eg_Moon"
+      xlink:href="22170-sequence-typedDim-tests.xsd#eg_Moon" />
+    <loc xlink:type="locator"
+      xlink:label="eg_MoonHc"
+      xlink:href="22170-sequence-typedDim-tests.xsd#eg_MoonHc" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="eg_Moon" xlink:to="eg_MoonHc"
+      order="1"
+      use="optional"
+      xbrldt:contextElement="segment" />
+    <loc xlink:type="locator"
+      xlink:label="eg_MoonDim"
+      xlink:href="22170-sequence-typedDim-tests.xsd#eg_MoonDim" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="eg_MoonHc" xlink:to="eg_MoonDim"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_MoonCount"
+      xlink:href="22170-sequence-typedDim-tests.xsd#eg_MoonCount" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_Moon" xlink:to="eg_MoonCount"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="eg_SatelliteCount"
+      xlink:href="22170-sequence-typedDim-tests.xsd#eg_SatelliteCount" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="eg_Moon" xlink:to="eg_SatelliteCount"
+      order="3"
+      use="optional" />
+  </definitionLink>
+</linkbase>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2005 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+
+<testcase name='126-TestCase-DRSDirectedCycleError' description='A dimensional processor MUST check the cycles in two arcs that represents a consecutive relationship [Def, 2] connected with an xbrldt:targetRole attribute according to the value of the cyclesAllowed attribute in the arc definition in the xbrldt schema as if the two arcs that represent the consecutive relationship [Def, 2] were created in the same extended-type link element. A dimensional processor MUST raise [Dim Err, 8] xbrldte:DRSDirectedCycleError if invalid directed cycles are found.' xmlns='http://xbrl.org/2005/conformance' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://xbrl.org/2005/conformance ../../lib/test.xsd' minimal='true' outpath='out' owner='ihr@xbrl.org' xmlns:xbrldte='http://xbrl.org/2005/xbrldt/errors'>
+  <variation name='domainMemberDirected' id='V-01'>
+    <description reference='XDT-IWD-2005-12-15.doc#2.4.3'>cycle between 'domain' and 'domainMember'</description>
+    <data>
+      <linkbase readMeFirst='true'>domainMemberDirected-definition.xml</linkbase>
+      <xsd readMeFirst='false'>schema.xsd</xsd>
+      <linkbase readMeFirst='false'>label.xml</linkbase>
+    </data>
+    <result>
+        <error>xbrldte:DRSDirectedCycleError</error>
+    </result>
+  </variation>
+  <variation name='domainMemberDirected2' id='V-02'>
+    <description reference='XDT-IWD-2005-12-15.doc#2.4.3'>Like variation 01 but this time there's no doubt its a cycle since it terminates in the same base set as it starts in.</description>
+    <data>
+      <linkbase readMeFirst='true'>domainMemberDirected2-definition.xml</linkbase>
+      <xsd readMeFirst='false'>schema.xsd</xsd>
+      <linkbase readMeFirst='false'>label.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrldte:DRSDirectedCycleError</error>
+    </result>
+  </variation>
+  <variation name='domainMemberDirectedWithoutHypercube' id='V-03'>
+    <description reference='XDT-IWD-2005-12-15.doc#2.4.3'>Like variation 01 but without the hypercube.</description>
+    <data>
+      <linkbase readMeFirst='true'>domainMemberDirectedWithoutHypercube-definition.xml</linkbase>
+      <xsd readMeFirst='false'>schema.xsd</xsd>
+      <linkbase readMeFirst='false'>label.xml</linkbase>
+    </data>
+    <result>
+    </result>
+  </variation>
+  <variation name='domainMemberParallel' id='V-04'>
+    <description reference='XDT-IWD-2005-12-15.doc#2.4.3'>cycle between 'domain' and 'domainMember'</description>
+    <data>
+      <linkbase readMeFirst='true'>domainMemberParallel-definition.xml</linkbase>
+      <xsd readMeFirst='false'>schema.xsd</xsd>
+      <linkbase readMeFirst='false'>label.xml</linkbase>
+    </data>
+    <result>
+        <error>xbrldte:DRSDirectedCycleError</error>
+    </result>
+  </variation>
+  <variation name='domainMemberParallelWithoutHypercube' id='V-05'>
+    <description reference='XDT-IWD-2005-12-15.doc#2.4.3'>Like example 04 but with a hypercube.</description>
+    <data>
+      <linkbase readMeFirst='true'>domainMemberParallelWithoutHypercube-definition.xml</linkbase>
+      <xsd readMeFirst='false'>schema.xsd</xsd>
+      <linkbase readMeFirst='false'>label.xml</linkbase>
+    </data>
+    <result>
+    </result>
+  </variation>
+  <variation name='domainMemberDirectedReverse' id='V-06'>
+    <description reference='XDT-IWD-2005-12-15.doc#2.4.3'>Similar to example 01 except to find the 'cycle' you have to start from the domain member rather than the domain.</description>
+    <data>
+      <linkbase readMeFirst='true'>domainMemberDirectedReverse-definition.xml</linkbase>
+      <xsd readMeFirst='false'>schema.xsd</xsd>
+      <linkbase readMeFirst='false'>label.xml</linkbase>
+    </data>
+    <result>
+    </result>
+  </variation>
+  <variation name='domainMemberDirected2' id='V-07'>
+    <description reference='XDT-IWD-2005-12-15.doc#2.4.3'>No Hypercube, so no cycles</description>
+    <data>
+      <linkbase readMeFirst='true'>domainMemberDirected2WithoutHypercube-definition.xml</linkbase>
+      <xsd readMeFirst='false'>schema.xsd</xsd>
+      <linkbase readMeFirst='false'>label.xml</linkbase>
+    </data>
+    <result>
+    </result>
+  </variation>
+</testcase>

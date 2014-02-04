@@ -1,0 +1,13 @@
+<xsd:schema xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:duriv="http://www.xbrl.org/dim/conf/190/dimensionURIvalid" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" targetNamespace="http://www.xbrl.org/dim/conf/190/dimensionURIvalid" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <xsd:import xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+  <xsd:element name="headPhone" abstract="true" substitutionGroup="xbrldt:dimensionItem" xbrli:periodType="instant" type="xbrli:stringItemType" id="duriv_headPhone"/>
+        <xsd:complexType name="phoneType" id="duriv_phone_type">
+                <xsd:sequence>
+                        <xsd:element name="country" type="xsd:integer"/>
+                        <xsd:element name="city" type="xsd:integer"/>
+                        <xsd:element name="number" type="xsd:integer"/>
+                </xsd:sequence>
+        </xsd:complexType>
+  <xsd:element name="dPhone" type="xbrli:stringItemType" abstract="true" substitutionGroup="duriv:headPhone" nillable="true" id="duriv_dPhone" xbrldt:typedDomainRef="#duriv_phone_type" xbrli:periodType="instant"/>
+</xsd:schema>

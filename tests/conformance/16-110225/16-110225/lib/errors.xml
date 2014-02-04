@@ -1,0 +1,641 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="errors2errors.xsl"?>
+<errs>
+  <err>
+    <name>cp-0200-Standard-Taxonomies-Version-Conflict</name>
+    <text>The same roles are declared in us-roles-2008-03-31.xsd and us-roles-2009-01-31.xsd.  Please recheck your
+      submission and remove the conflict.</text>
+    <num>6.2.0</num>
+  </err>
+  <err>
+    <id>cp-0303-Valid-File-Extension</id>
+    <text>The document type and naming of &quot;{...}&quot; naming is not consistent with one or more of the following:<br/>
+      <br/> EX-101.INS - XBRL Instance document (Required) *.xml<br/> EX-101.SCH - XBRL Taxonomy Extension Schema
+      document *.xsd<br/> EX-101.CAL - XBRL Taxonomy Extension Calculation Linkbase document *.xml<br/> EX-101.DEF -
+      XBRL Taxonomy Extension Definition Linkbase document *.xml<br/> EX-101.LAB - XBRL Taxonomy Extension Labels
+      Linkbase document *.xml<br/> EX-101.PRE - XBRL Taxonomy Extension Presentation Linkbase document *.xml<br/>
+      EX-101.REF - XBRL Taxonomy Extension Reference Linkbase document *.xml<br/>
+      <br/> Please ensure that you comply with the document type and naming provided.</text>
+    <num>6.3.3</num>
+  </err>
+  <err>
+    <name>cp-0306-Fragment-Not-Shorthand-Xpointer</name>
+    <text>Illegal shorthand pointer syntax {...} referenced by {...} in {...} on line {...}</text>
+    <num>6.3.6</num>
+  </err>
+  <err>
+    <name>du-0311-Use-Of-Xml-Base-Attribute-Illegal</name>
+    <text>Illegal use of xml:base to {...} referenced by {...} in {...} on line {...}</text>
+    <num>6.3.11</num>
+  </err>
+  <err>
+    <name>cp-0501-Entity-Identifier-Scheme</name>
+    <text>Your identifier for the CIK code, {...}, or scheme {...}, in context {...}, did not adhere to the standard
+      naming convention of &lt;identifier
+      scheme=&quot;http://www.sec.gov/CIK&quot; &gt;xxxxxxxxxx&lt;/identifier&gt;&quot;.  Please
+      recheck your submission and comply with the standard naming convention.</text>
+    <num>6.5.1</num>
+  </err>
+  <err>
+    <name>cp-0504-No-Scenario</name>
+    <text>There must be no contexts with scenarios, but {...} was(were) found: {...}.</text>
+    <num>6.5.4</num>
+  </err>
+  <err>
+    <name>cp-0505-Segment-Child-Not-Explicit-Member</name>
+    <text>There must be no segments with non-explicitDimension content, but {…} was(were) found: {…}</text>
+    <num>6.5.5</num>
+  </err>
+  <err>
+    <name>du-0507-Duplicate-Contexts</name>
+    <text>The instance document contained more than one context equivalent to {...}.  Please remove duplicate contexts
+      from the instance.</text>
+    <num>6.5.7</num>
+  </err>
+  <err>
+    <name>du-0508-Unused-Context</name>
+    <text>The instance document contained a context {...} that was not used in any fact. Please remove the context from
+      the instance.</text>
+    <num>6.5.8</num>
+  </err>
+  <err>
+    <name>fs-0509-Start-And-End-Dates-Not-Distinct-Inconsistent-With-Document-Type</name>
+    <text>fs-0509-Start-And-End-Dates-Not-Distinct-Inconsistent-With-Document-Type</text>
+    <text>Context {...} endDate and {...} startDate have a duration of one day; that is inconsistent with document type
+      {...}.</text>
+    <num>6.5.9</num>
+  </err>
+  <err>
+    <name>fs-0510-Start-And-Instant-Dates-Not-Distinct-Inconsistent-With-Document-Type</name>
+    <text>fs-0510-Start-And-Instant-Dates-Not-Distinct-Inconsistent-With-Document-Type</text>
+    <text>Contexts {...} and {...} have an overlap of one day; that is inconsistent with document type {...}.</text>
+    <num>6.5.10</num>
+  </err>
+  <err>
+    <name>du-0511-Duplicate-Units</name>
+    <text>There is more than one unit equivalent to {...}.  Please remove all but one and resubmit.</text>
+    <num>6.5.11</num>
+  </err>
+  <err>
+    <name>du-0512-Duplicate-Facts</name>
+    <text>The instance document contained an element, {...} that was used more than once in contexts equivalent to
+      {...}.  Please ensure there are no duplicate combinations of concept and context in the instance.</text>
+    <num>6.5.12</num>
+  </err>
+  <err>
+    <name>du-0514-English-Text-Missing</name>
+    <text>Element {...} in context {...} has text with xml:lang other than &quot;en-US&quot; without matching
+      English text.  Please provide a fact with xml:lang equal to &quot;en-US&quot;.</text>
+    <num>6.5.14</num>
+  </err>
+  <err>
+    <name>cp-0515-Text-Block-Not-Well-Formed-XML</name>
+    <text>A {...} fact contains unbalanced tags, in {...}, line {...}. (For example, &lt;BR&gt; must be followed
+      by &lt;/BR&gt;; values of attributes such as &quot;align&quot; must be quoted, as in
+      align=&quot;center&quot;.)  XML parser messages: {...}.</text>
+    <num>6.5.15</num>
+  </err>
+  <err>
+    <name>cp-0516-Prohibited-Html-Body</name>
+    <text>A {...} fact, in {...}, line {...}, contains text that is not valid for the content of the HTML "body" tag:
+      {...}.</text>
+    <num>6.5.16</num>
+  </err>
+  <err>
+    <name>fs-0517-Decimals-Not-Precision</name>
+    <text>Your filing contained elements using the precision attribute.  Please recheck your submission and replace the
+      precision attribute with the decimals attribute.</text>
+    <num>6.5.17</num>
+  </err>
+  <err>
+    <name>cp-0520-Document-Period-End-Date-Existence</name>
+    <text>You did not include the following data: DocumentPeriodEndDate.  Please include DocumentPeriodEndDate.</text>
+    <num>6.5.20</num>
+  </err>
+  <err>
+    <name>cp-0520-Document-Type-Existence</name>
+    <text>You did not include the following data: DocumentType  Please include DocumentType.</text>
+    <num>6.5.20</num>
+  </err>
+  <err>
+    <name>cp-0520-Document-Type-Value</name>
+    <text>Your dei:DocumentType has an illegal value, {...}.  Please correct it.</text>
+    <num>6.5.20</num>
+  </err>
+  <err>
+    <name>fs-0520-Amendment-Description-Without-Amendment-Flag</name>
+    <text>AmendmentFlag is not true in context {...}, so do not provide an AmendmentDescription in that context.</text>
+    <num>6.5.20</num>
+  </err>
+  <err>
+    <name>cp-0521-Central-Index-Key</name>
+    <text>You did not include the following data: EntityCentralIndexKey for the required context.  Please include
+      EntityCentralIndexKey.</text>
+    <num>6.5.21</num>
+  </err>
+  <err>
+    <name>cp-0520-Amendment-Flag-Existence</name>
+    <text>You did not include the following data: AmendmentFlag.  Please include AmendmentFlag.</text>
+    <num>6.5.21</num>
+  </err>
+  <err>
+    <text>The value provided for Amendment Flag, {...}, is not a valid boolean value (true or false).  Please include a
+      valid AmendmentFlag.</text>
+    <num>6.5.21</num>
+  </err>
+  <err>
+    <name>im-0521-Document-Period-End-Date-Existence</name>
+    <text>You did not include the following data: DocumentPeriodEndDate.  Please include DocumentPeriodEndDate.</text>
+    <num>6.5.21</num>
+  </err>
+  <err>
+    <name>im-0521-Entity-Current-Reporting-Status</name>
+    <text>You did not include the following data: EntityCurrentReportingStatus.  Please include
+      EntityCurrentReportingStatus.</text>
+    <num>6.5.21</num>
+  </err>
+  <err>
+    <name>im-0521-Entity-Filer-Category</name>
+    <text>You did not include the following data: EntityFilerCategory.  Please include EntityFilerCategory.</text>
+    <num>6.5.21</num>
+  </err>
+  <err>
+    <name>im-0521-Entity-Common-Shares-Outstanding</name>
+    <text>The instance document has Document Type of {...} but does not have a value for the number of common shares
+      outstanding, dei:EntityCommonStockSharesOutstanding.</text>
+    <num>6.5.21</num>
+  </err>
+  <err>
+    <name>im-0521-Entity-Public-Float</name>
+    <text>The instance document has dei:DocumentType of {...} but does not have a value for the public float,
+      dei:EntityPublicFloat.</text>
+    <num>6.5.21</num>
+  </err>
+  <err>
+    <name>im-0521-Current-Fiscal-Year-End-Date</name>
+    <text>Document type {...} requires a value for dei:CurrentFiscalYearEndDate in the Required Context.</text>
+    <num>6.5.21</num>
+  </err>
+  <err>
+    <name>im-0521-Well-Known-Seasoned-Issuer</name>
+    <text>Document type {...} requires a value for dei:EntityWellKnownSeasonedIssuer in the Required Context.</text>
+    <num>6.5.21</num>
+  </err>
+  <err>
+    <name>im-0521-Entity-Voluntary-Filers</name>
+    <text>Document type {...} requires a value for dei:EntityVoluntaryFilers in the Required Context.  Please recheck
+      your submission and provide the current voluntary filer information.</text>
+    <num>6.5.21</num>
+  </err>
+  <err>
+    <name>cp-0521-Entity-Registrant-Name</name>
+    <text>The Official Registrant name, {...}, does not match the value {...} in the Required Context.  Please correct
+      dei:EntityRegistrantName.</text>
+    <num>6.5.21</num>
+  </err>
+  <err>
+    <name>cp-0523-Non-Matching-Cik</name>
+    <text>The submission CIK, {...} does not match either the EntityCentralIndexKey, {...}, or context identifier CIK(s)
+      {...}, or is not 10 digits, for required context(s).  Please include a correct matching EntityCentralIndexKey and
+      context identifier CIK(s) in the filing.</text>
+    <num>6.5.23</num>
+  </err>
+  <err>
+    <name>cp-0524-Registrant-Name-Mismatch</name>
+    <text>The Official Registrant name, {...}, does not match the value {...} in the Required Context. Please correct
+      dei:EntityRegistrantName.</text>
+    <num>6.5.24</num>
+  </err>
+  <err>
+    <name>du-0525-Domain-As-Fact</name>
+    <text>The domain item {...} cannot appear as a fact, in {...} line {...}.  Please remove the fact from context
+      {...}.</text>
+    <num>6.5.25</num>
+  </err>
+  <err>
+    <name>du-0527-Footnote-Substitution-Group</name>
+    <text>Footnote link {...} has a child element {...} that is not allowed.  Please remove it.</text>
+    <num>6.5.27</num>
+  </err>
+  <err>
+    <name>du-0528-Footnote-Custom-Footnote-Role</name>
+    <text>Footnote {...} has a role {... } that is not allowed. Please replace it with the default footnote role.</text>
+    <num>6.5.28</num>
+  </err>
+  <err>
+    <name>fs-0528-Footnote-Role-Missing</name>
+    <text>Footnote {...} has missing role.</text>
+    <num>6.5.28</num>
+  </err>
+  <err>
+    <name>du-0529-Footnote-Custom-Loc-Role</name>
+    <text>Footnote locator {...} has a custom role, {...} that is not allowed.  Please replace it with the default
+      footnote role.</text>
+    <num>6.5.29</num>
+  </err>
+  <err>
+    <name>du-0530-Footnote-Custom-Arcrole</name>
+    <text>Footnote relationship {...} has a custom arc role {...} that is not allowed.  Please replace it with the
+      default (fact-footnote) arcrole.</text>
+    <num>6.5.30</num>
+  </err>
+<!--  <err>
+    <name>du-0531-Footnote-Relationship-Order</name>
+    <text>Footnote relationship {...} has no order attribute.  Please provide a value for the order attribute.</text>
+    <num>6.5.31</num>
+  </err>
+-->
+  <err>
+    <name>du-0532-Footnote-Locator-Portable</name>
+    <text>Footnote {...} refers to a location, {...}, that does not begin with &quot;#&quot; so that any change
+      to the file name would render the XBRL invalid.</text>
+    <num>6.5.32</num>
+  </err>
+  <err>
+    <name>cp-0533-Dangling-Footnote</name>
+    <text>The footnote with label {...} and text &quot;{...}&quot; is not connected to any fact.  Please remove
+      the footnote, or link it to a fact.</text>
+    <num>6.5.33</num>
+  </err>
+  <err>
+    <name>cp-0534-Prohibited-Html-Footnote-Body</name>
+    <text>Footnote {...}, line {...}, contains text that is not valid for the content of the HTML "body" tag:
+      {...}.</text>
+    <num>6.5.34</num>
+  </err>
+  <err>
+    <name>cp-60535-Incompatible-Numeric-Type-And-Unit</name>
+    <text>Element {...} has a unitRef, {...}, that is not valid for its type, {...}.</text>
+    <num>6.5.35</num>
+  </err>
+  <err>
+    <name>du-0701-Schema-Include-Present</name>
+    <text>The schema contains an &quot;include&quot; element, in {...} line {...}.  Please remove it and
+      resubmit.</text>
+    <num>6.7.1</num>
+  </err>
+  <err>
+    <name>cp-0702-Target-Is-Standard-Taxonomy-Namespace</name>
+    <text>The target namespace, {...} at location {...} cannot be the same as a standard taxonomy.  Remove the import
+      element or change the target namespace.</text>
+    <num>6.7.2</num>
+  </err>
+  <err>
+    <name>fs-0703-Extension-Has-Standard-Namespace-Authority</name>
+    <text>The target namespace, {...} cannot have the same authority ({...}) as a standard taxonomy, in {...}.  Please
+      change your target namespace.</text>
+    <num>6.7.3</num>
+  </err>
+  <err>
+    <name>cp-0704-Taxonomy-Valid-Target-Namespace</name>
+    <text>You did not adhere to the requirements for target namespace, for {...} in {...}.  Please recheck your
+      submission and adhere to the target namespace requirements.</text>
+    <num>6.7.4</num>
+  </err>
+  <err>
+    <name>du-0707-Recommended-Prefix-Disallowed</name>
+    <text>The schema does not supply a prefix for {...} without an underscore character, in file {...}. Please provide
+      or change a prefix</text>
+    <num>6.7.7</num>
+  </err>
+  <err>
+    <name>cp-0708-No-Embedded-Linkbases</name>
+    <text>Your filing contained embedded linkbases in {...}.  Please recheck your submission and remove all embedded
+      linkbases.</text>
+    <num>6.7.8</num>
+  </err>
+  <err>
+    <name>du-0709-Role-Namespace-Mismatch</name>
+    <text>Role {...} does not begin with {...}'s scheme and authority, in {...} line {...}. Please change the role URI
+      or target namespace URI.</text>
+    <num>6.7.9</num>
+  </err>
+  <err>
+    <name>du-0710-Role-Type-Duplicates</name>
+    <text>Role {...} was declared more than once ({...} times, in {...}).  Please remove all but one declaration.</text>
+    <num>6.7.10</num>
+  </err>
+  <err>
+    <name>du-0711-Role-Type-Declaration-Incomplete</name>
+    <text>The role {...} did not provide a usedOn element for all three link types (presentation, calculation and
+      definition), in {...} line {...}. Change the declaration to be for all three types of link, and resubmit.</text>
+    <num>6.7.11</num>
+  </err>
+  <err>
+    <name>rq-0712-Role-Definition-Mismatch</name>
+    <text>The definition &quot;{...}&quot; of role {...} does not match the expected format, in {...} line
+      {...}. Please check that the definition matches {number} - {type} - {text}.</text>
+    <num>6.7.12</num>
+  </err>
+  <err>
+    <name>du-0713-Arcrole-Namespace-Mismatch</name>
+    <text>Relationship role {...} does not begin with {...}'s scheme and authority, in {...} line {...}.  Please change
+      the relationship role URI or target namespace URI.</text>
+    <num>6.7.13</num>
+  </err>
+  <err>
+    <name>du-0714-Arcrole-Type-Duplicates</name>
+    <text>Relationship arc role {...} is declared more than once ({...} duplicates, {...}).  Please remove all but one
+      of them.</text>
+    <num>6.7.14</num>
+  </err>
+  <err>
+    <name>du-0715-Arcrole-Definition-Missing</name>
+    <text>Relationship role declaration {...} is missing a definition, in {...} line {...}.  Please provide a
+      definition.</text>
+    <num>6.7.15</num>
+  </err>
+  <err>
+    <name>cp-0716-Element-Name-Same-As-Base</name>
+    <text>Your extension taxonomy contains an element, {...}, which has the same name as an element in the base
+      taxonomy, {...}.  Please ensure that this extension is appropriate and if so, please change the extension concept
+      name.</text>
+    <num>6.7.16</num>
+  </err>
+  <err>
+    <name>cp-0717-Element-Id</name>
+    <text>You did not adhere to the declarations for concepts by containing an &quot;id&quot; attribute whose
+      value begins with the recommended namespace prefix of the taxonomy, followed by an underscore, followed by an
+      element name, for the concept {...}.  Please recheck your submission.</text>
+    <num>6.7.17</num>
+  </err>
+  <err>
+    <name>du-0718-Nillable-Not-True</name>
+    <text>Element {...} is declared without a &quot;true&quot; value for the nillable attribute, in {...} line
+      {...}.  Please set the value to &quot;true&quot;.</text>
+    <num>6.7.18</num>
+  </err>
+  <err>
+    <name>cp-0719-No-Tuple-Element</name>
+    <text>Your instance document contains one or more tuple element(s), please remove all tuple(s) from your instance
+      document.</text>
+    <num>6.7.19</num>
+  </err>
+  <err>
+    <text>You provided an extension concept which is a tuple, {...}.  Please remove tuples and check your
+      submission.</text>
+    <num>6.7.19</num>
+  </err>
+  <err>
+    <name>du-0720-Typed-Domain-Ref-Disallowed</name>
+    <text>There is an xbrldt:typedDomainRef attribute on {...}, in {...} line {...}. Please remove it.</text>
+    <num>6.7.20</num>
+  </err>
+  <err>
+    <name>du-0721-Abstract-Is-Instant</name>
+    <text>Element {...} is declared as an abstract item with period type &quot;instant&quot;, in {...} line
+      {...}.  Please change it to &quot;duration&quot; or make the element not abstract.</text>
+    <num>6.7.21</num>
+  </err>
+  <err>
+    <name>du-0722-Abstract-Type-Not-String</name>
+    <text>Element {...} is declared as an item with type {...}, in {...} line {...}.  Please change it to
+      xbrli:stringItemType or make the element not abstract.</text>
+    <num>6.7.22</num>
+  </err>
+  <err>
+    <name>du-0723-Axis-Dimension-Name-Mismatch</name>
+    <text>The substitution group &quot;xbrldt:dimensionItem&quot; is only consistent with an element name that
+      ends with &quot;Axis&quot;.  Please change {...} or change the substitutionGroup, in {...} line
+      {...}.</text>
+    <num>6.7.23</num>
+  </err>
+  <err>
+    <name>du-0724-Table-Hypercube-Name-Mismatch</name>
+    <text>The substitution group &quot;xbrldt:hypercubeItem&quot; is only allowed with an element name that ends
+      with &quot;Table&quot;.  Please change {...} or change the substitutionGroup, in {...} line {...}.</text>
+    <num>6.7.24</num>
+  </err>
+  <err>
+    <name>du-0725-Substitution-Group-Custom</name>
+    <text>The substitution group attribute value {...} of element {...} is not allowed, in {...} line {...}.  Please
+      change it to one of &quot;xbrli:item&quot;, &quot;xbrldt:dimensionItem&quot; or
+      &quot;xbrldt:hypercubeItem&quot;.</text>
+    <num>6.7.25</num>
+  </err>
+  <err>
+    <name>du-0726-LineItems-Abstract-Name-Mismatch</name>
+    <text>The element {...} ends with &quot;LineItems&quot; but is not abstract. Please change {...} or the
+      value of the &quot;abstract&quot; attribute, in {...}, line {...}.</text>
+    <num>6.7.26</num>
+  </err>
+  <err>
+    <name>du-0727-Domain-Type-Name-Mismatch</name>
+    <text>The type &quot;us-types:domainItemType&quot; is only allowed with an element name that ends with
+      &quot;Domain&quot; or &quot;Member&quot;.  Please change {...} or change the type, in {...}, line
+      {...}.</text>
+    <num>6.7.27</num>
+  </err>
+  <err>
+    <name>du-0728-Domain-Member-Is-Instant</name>
+    <text>Element {...} is declared as a us-types:domainItemType with period type &quot;instant&quot;, in {...}
+      line {...}.  Please change it to &quot;duration&quot; or change the item type.</text>
+    <num>6.7.28</num>
+  </err>
+  <err>
+    <name>du-0903-Relationship-Ineffectual</name>
+    <text>The {...} relationship from {...} to {...}, link role {...}, in the submission is ineffectual.  Please remove
+      or correct the relationship.</text>
+    <num>6.9.3</num>
+  </err>
+  <err>
+    <name>fs-0904-Resource-Role-Missing</name>
+    <text>The {...} element requires an xlink:role such as the default, “http://www.xbrl.org/2003/role/label”, in {...}
+      line {...}.  Please recheck submission.</text>
+    <num>6.9.4</num>
+  </err>
+  <err>
+    <name>fs-0905-Custom-Resource-Role-Used</name>
+    <text>The {...} element has a role, {...}, that is not defined in a standard taxonomy, resource labeled {...}, in
+      {...} line {...}.  Please recheck submission.</text>
+    <num>6.9.5</num>
+  </err>
+  <err>
+    <name>fs-0906-Custom-Arcrole-Referenced</name>
+    <text>An arcroleRef element refers to {...}, an arcrole, {...}, that is not defined in a standard taxonomy, in
+      {...}, line {...}. Please recheck submission.</text>
+    <num>6.9.6</num>
+  </err>
+  <err>
+    <name>cp-0907-Linkbases-Distinct</name>
+    <text>Your filing contained extended type links with roles of different namesapces and local names, {...} in the
+      same linkbase, {...}.  Please recheck your submission and ensure that all extended-type links in a single linkbase
+      have the same namespace and local name.</text>
+    <num>6.9.7</num>
+  </err>
+  <err>
+    <name>du-0909-Relationship-Priority-Not-Less-Than-Ten</name>
+    <text>The priority attribute {...} has a value of ten or greater, on arc {...}, in {...}, line {...}. Please change
+      the priority to value less than 10 and resubmit.</text>
+    <num>6.9.9</num>
+  </err>
+  <err>
+    <name>cp-1001-Element-Used-Standard-Label</name>
+    <text>You have submitted an instance using an element without an en-US standard label {...} in {...} line {...}.
+      Please check your submission and correct the labels.</text>
+    <num>6.10.1</num>
+  </err>
+  <err>
+    <name>cp-1003-Element-Used-Standard-English-Label</name>
+    <text>You have submitted an instance using an element {...} with {...} for role {...} in instance {...} line {...}.
+      Labels are in {...}. Please check your submission and correct the labels.</text>
+    <num>6.10.3</num>
+  </err>
+  <err>
+    <name>du-1004-English-Standard-Labels-Duplicated</name>
+    <text>More than one element has {...} as its English standard label ({...} in {...}, line {...} and {...} in {...},
+      line {...}).  Please change or remove all but one label.</text>
+    <num>6.10.4</num>
+  </err>
+  <err>
+    <name>cp-1005-Custom-Documentation-Standard-Element</name>
+    <text>Your filing attempted to add a new definition, &quot;{...}&quot;, to an existing concept in the
+      standard taxonomy, {...}.  Please remove this definition.</text>
+    <num>6.10.5</num>
+  </err>
+  <err>
+    <name>rq-1006-Label-Disallowed</name>
+    <text>Element {...} has more than 511 characters or contains a left-angle-bracket character in the label for role
+      {...} , in {...} line {...}. Please correct the label.</text>
+    <num>6.10.6</num>
+  </err>
+  <err>
+    <name>du-1008-Label-Not-Trimmed</name>
+    <text>The label {...} of element {...} has leading or trailing white space, in {...} line {...}.  Please remove
+      it.</text>
+    <num>6.10.8</num>
+  </err>
+  <err>
+    <name>rq-1201-Presentation-Order-Missing</name>
+    <text>The presentation relationship from {...} to {...} does not have an order attribute, in {...} line {...}. 
+      Please provide a value.</text>
+    <num>6.12.1</num>
+  </err>
+  <err>
+    <name>rq-1202-Presentation-Order-Duplicates</name>
+    <text>More than one presentation relationship in role {...} has order value {...}, in {...}, line {...} and {...} in
+      {...}.  Change all but one so they are distinct.</text>
+    <num>6.12.2</num>
+  </err>
+  <err>
+    <name>cp-1203-Element-Used-Not-Presented</name>
+    <text>Element {...} is used in a fact or context in the instance, but is not in any presentation relationships. 
+      Element is defined in {...} on line {...}.  Add the element to at least one presentation group</text>
+    <num>6.12.3</num>
+  </err>
+  <err>
+    <text>Element {...} has no English value for role {...}, but there is a presentation relationship from {...} to
+      {...} that requires it, in {...}, line {...}. Provide a label with xml:lang equal to
+      &quot;en-US&quot;.</text>
+    <num>6.12.4</num>
+  </err>
+  <err>
+    <name>rq-1205-Preferred-Label-Duplicates</name>
+    <text>Relationships from {...} to {...} in role {...} do not have distinct values for the preferredLabel attribute,
+      in {...}, line {...} and {...} in {...}.  Change all but one value of preferredLabel.</text>
+    <num>6.12.5</num>
+  </err>
+  <err>
+    <name>du-1401-Calculation-Relationship-Order-Missing</name>
+    <text>The calculation relationship from {...} to {...} does not have an order attribute, in {...} line {...}.</text>
+    <num>6.14.1</num>
+  </err>
+  <err>
+    <name>fs-1402-Calculation-Relationship-Weight-Not-Unitary</name>
+    <text>Weight value {...} on the calculation relationship from {...} to {...} must be equal to 1 or to -1, in {...}
+      line {...}. Please recheck submission.</text>
+    <num>6.14.2</num>
+  </err>
+  <err>
+    <name>fs-1403-Calculation-Relationship-Has-Different-Period-Types</name>
+    <text>Element {...} and element {...} have different period types, but there is a calculation relationship between
+      them in role {...}, in {...}, line {...}. Please recheck submission calculation links.</text>
+    <num>6.14.3</num>
+  </err>
+  <err>
+    <name>fs-1404-Circular-Calculation</name>
+    <text>Element {...} is summed into itself in calculation group {...}.  Please recheck submission.</text>
+    <num>6.14.4</num>
+  </err>
+  <err>
+    <name>du-1405-Facts-In-Calculations-Presentation-Missing</name>
+    <text>Context {...} has facts of elements {...} and {...}, with a calculation relationship in {...}, but these
+      elements are not in any common corresponding presentation relationship group.  The calculation relationship is in
+      {...} line {...}.</text>
+    <num>6.14.5</num>
+  </err>
+  <err>
+    <name>du-1601-Definition-Relationship-Order-Missing</name>
+    <text>The {...} relationship from {...} to {...} does not have an order attribute, in {...} line {...}.</text>
+    <num>6.16.1</num>
+  </err>
+  <err>
+    <name>du-1603-Dimension-Domain-Target-Mismatch</name>
+    <text>There is a dimension-domain relationship from {...} but its target element {...} is not a domain, in {...},
+      line {...}.  Please change the relationship or change the type of the target element.</text>
+    <num>6.16.3</num>
+  </err>
+  <err>
+    <name>fs-1604-Domain-Is-Tangled</name>
+    <text>Element {...} appears in overlapping sets of members in a Directed Relationship Set in role {...}; remove it
+      as a target of one of its domain-member relationships. Please recheck submission</text>
+    <num>6.16.4</num>
+  </err>
+  <err>
+    <name>fs-1605-Primary-Element-Has-Redundant-Tables</name>
+    <text>Element {...} is a primary element of more than one Table in relationship group {...}, to {...} in {...}, line
+      {...}, and to {...} defined in {...}, line {...}. Please modify the &quot;all&quot; relationships that
+      have the element as a source so that it has only one primary axis.</text>
+    <num>6.16.5</num>
+  </err>
+  <err>
+    <name>fs-1606-Not-All-Relationship-Is-Closed</name>
+    <text>The notAll relationship for table {...} must have the closed attribute set to 'false' so that it can achieve
+      its intended purpose of excluding combinations of domain values, on relationship from {...}, in {...}, line {...}.
+      Please recheck submission.</text>
+    <num>6.16.6</num>
+  </err>
+  <err>
+    <name>fs-1607-Axis-Excluded-Not-In-Table</name>
+    <text>Members of axis {...} are excluded, in role {...}, from primary item {...} but not included in any table. 
+      Please modify the relationships to make it consistent.</text>
+    <num>6.16.7</num>
+  </err>
+  <err>
+    <name>fs-1608-Table-Excludes-Itself</name>
+    <text>Element {...} is a table that negates itself in {...} for primary item {...}.  Modify the
+      &quot;all&quot; and &quot;notAll&quot; relationships that have the element as a target.  Please
+      recheck submission.</text>
+    <num>6.16.8</num>
+  </err>
+  <err>
+    <name>fs-1609-Target-Role-With-No-Consecutive-Relationships</name>
+    <text>A table is malformed because the {...} from {...} to {...} in link role {...} has no consecutive
+      relationships, in {...}, line {...}.  Remove the targetRole attribute, or provide a consecutive
+      relationship.</text>
+    <num>6.16.9</num>
+  </err>
+  <err>
+    <name>cp-1801-Custom-Element-Has-Reference</name>
+    <text>Your filing provides a reference, &quot;{...}&quot;, for an custom concept in extension taxonomy,
+      {...}.  Please remove this reference.</text>
+    <num>6.18.1</num>
+  </err>
+  <err>
+    <name>cp-1802-Standard-Element-Has-Reference</name>
+    <text>Your filing attempted to add a new reference, &quot;{...}&quot;, to an existing concept in the
+      standard taxonomy, {...}.  Please remove this reference.</text>
+    <num>6.18.2</num>
+  </err>
+  <err>
+    <name>cp-2202-Prohibited-Href-Or-Schema-Location</name>
+    <text>File &quot;{...}&quot; referenced in {...} is not supported. Please see
+      <a href="http://www.sec.gov/info/edgar/edgartaxonomies.shtml">edgartaxonommies.shtml</a> for a listing of supported files.</text>
+    <num>6.22.0</num>
+  </err>
+  <err>
+    <text>Prohibited-Href-Or-Schema-Location</text>
+    <text>Illegal Href or schemaLocation to {...} referenced by {...} in {...} on line {...}</text>
+    <num>6.22.2</num>
+  </err>
+</errs>

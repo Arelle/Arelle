@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Label Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Automator Professional Edition 6.402.2172.25269 (2005-12-12 14:02).  
+Contact www.ubmatrix.com
+Software Copyright (c) 2002-2005 Universal Business Matrix inc., All Rights Reserved
+Produced on 2005-12-12 14:08:50
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="polymorphismError.xsd#pm_BalanceDim" xlink:label="pm_BalanceDim" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="pm_BalanceDim" xlink:to="pm_BalanceDim_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="pm_BalanceDim_lbl" xml:lang="en">Balance Dim</label>
+    <loc xlink:type="locator" xlink:href="polymorphismError.xsd#pm_Cube" xlink:label="pm_Cube" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="pm_Cube" xlink:to="pm_Cube_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="pm_Cube_lbl" xml:lang="en">Cube</label>
+    <loc xlink:type="locator" xlink:href="polymorphismError.xsd#pm_Domain" xlink:label="pm_Domain" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="pm_Domain" xlink:to="pm_Domain_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="pm_Domain_lbl" xml:lang="en">Domain</label>
+    <loc xlink:type="locator" xlink:href="polymorphismError.xsd#pm_PrimaryItemsForCube" xlink:label="pm_PrimaryItemsForCube" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="pm_PrimaryItemsForCube" xlink:to="pm_PrimaryItemsForCube_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="pm_PrimaryItemsForCube_lbl" xml:lang="en">Primary items for Cube</label>
+  </labelLink>
+</linkbase>

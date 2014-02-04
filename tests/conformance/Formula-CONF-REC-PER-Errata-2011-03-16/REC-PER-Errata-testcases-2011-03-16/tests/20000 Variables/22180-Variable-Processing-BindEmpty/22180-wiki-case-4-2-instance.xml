@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="22180-bindEmpty-tests.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="22180-wiki-case-4-2-formula.xml"/>
+  
+  <context id="c-2007">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="c-2008">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2008-12-31</instant>
+    </period>
+  </context>
+  
+  <unit id="unit">
+    <measure>pure</measure>
+  </unit>
+  
+  <concept:n1 contextRef="c-2008" unitRef="unit" decimals="0">1001</concept:n1>
+  <concept:n2 contextRef="c-2007" unitRef="unit" decimals="0">1070</concept:n2>
+  <concept:n2 contextRef="c-2008" unitRef="unit" decimals="0">1080</concept:n2>
+  <!-- $n1+$n2 = 1001+1070+ = 2071 -->
+
+  <!-- this case should throw xbrlfe:undefinedSAV for period as 
+       n1 is only period-uncovered source and n1 is missing -->
+  <!-- 0+$n2 = 0+1080+ = 1080 -->
+    
+</xbrl>
+
+
+

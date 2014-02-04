@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<linkbase
+  xmlns="http://www.xbrl.org/2003/linkbase"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:t="http://xbrl.org/conformance/example"
+  xsi:schemaLocation="
+    http://www.xbrl.org/2003/linkbase 
+      http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+    http://xbrl.org/conformance/example
+      331-equivalentRelationships-01.xsd
+    ">
+  <calculationLink xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator"
+      xlink:label="t_P1"
+      xlink:href="331-equivalentRelationships-01.xsd#t_P1" />
+    <loc xlink:type="locator"
+      xlink:label="t_P3"
+      xlink:href="331-equivalentRelationships-01.xsd#t_P3" />
+    <calculationArc xlink:type="arc"
+      xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item"
+      xlink:from="t_P1" xlink:to="t_P3"
+      order="1"
+      weight="-1"
+      priority="1"
+      use="prohibited"
+      t:strAttr="abc"
+      t:decAttr="1.23"
+      t:dblAttr="4.56"
+      t:boolAttr="true"
+      />
+  </calculationLink>
+</linkbase>
+

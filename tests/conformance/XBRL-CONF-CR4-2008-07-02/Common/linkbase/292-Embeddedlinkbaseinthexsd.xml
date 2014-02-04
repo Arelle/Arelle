@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Embedded Linkbases" description="Embedded linkbases" outpath="out" owner="neil.wills@ubmatrix.com" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	
+	<variation id="V-00" name="292-00-Embeddedlinkbaseinthexsd.xsd">
+		<description>Embedded linkbase</description>
+		<data>
+			<xsd readMeFirst="true">292-00-Embeddedlinkbaseinthexsd.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	
+	<variation id="V-01" name="292-01-Embeddedlinkbaseinthexsd.xsd">
+		<description>Multiple embedded linkbases</description>
+		<data>
+			<xsd readMeFirst="true">292-01-Embeddedlinkbaseinthexsd.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	
+  <variation id="V-02" name="292-02-EmbeddedLinkbaseAndLinkbaseRef.xsd">
+		<description>Multiple embedded linkbases, and a linkbaseref</description>
+		<data>
+			<xsd readMeFirst="true">292-02-EmbeddedLinkbaseAndLinkbaseRef.xsd</xsd>
+			<linkbase readMeFirst="false">201-02-LinkbaseRef.xsd</linkbase>
+			<linkbase readMeFirst="false">LinkbaseRef-label.xml</linkbase>
+			<linkbase readMeFirst="false">LinkbaseRef-reference.xml</linkbase>
+			<linkbase readMeFirst="false">LinkbaseRef-calculation.xml</linkbase>
+			<linkbase readMeFirst="false">LinkbaseRef-presentation.xml</linkbase>
+			<linkbase readMeFirst="false">LinkbaseRef-definition.xml</linkbase>
+      
+		</data>
+		<result expected="valid"/>
+	</variation>
+	
+  <variation id="V-03" name="292-03-Embeddedlinkbaseinthexsd.xsd">
+		<description>Multiple embedded linkbases, the second uses invalid arcroles</description>
+		<data>
+			<xsd readMeFirst="true">292-03-EmbeddedLinkbaseSecondInvalid.xsd</xsd>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	
+</testcase>

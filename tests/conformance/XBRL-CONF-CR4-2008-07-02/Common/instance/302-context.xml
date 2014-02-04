@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSPY v5 rel. 4 U (http://www.xmlspy.com) by Walter Hamscher (Standard Advantage) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Context Segments and Scenarios" description="Section 4.4  The Context Element" outpath="out" owner="walter@hamscher.com" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	<!-- Ensure that no element descendants of segment or scenario are in the http://www.xbrl.org/2003/instance namespace. -->
+	<variation id="V-01" name="SegmentValid">
+		<description>302.01 Valid segment in a context</description>
+		<data>
+			<xsd readMeFirst="false">SegmentValid.xsd</xsd>
+			<instance readMeFirst="true">302-01-SegmentValid.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-02" name="SegmentNamespaceInvalid">
+		<description>302.02 Invalid segment in a context; contains an element defined in xbrli namespace</description>
+		<data>
+			<xsd readMeFirst="false">Nautilus.xsd</xsd>
+			<instance readMeFirst="true">302-02-SegmentNamespaceInvalid.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-03" name="ScenarioValid">
+		<description>302.03  Valid scenario in a context</description>
+		<data>
+			<xsd readMeFirst="false">ScenarioValid.xsd</xsd>
+			<instance readMeFirst="true">302-03-ScenarioValid.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-04" name="ScenarioNamespaceInvalid">
+		<description>302.04 Invalid scenario in a context; contains an element defined in xbrli namespace</description>
+		<data>
+			<xsd readMeFirst="false">Nautilus.xsd</xsd>
+			<instance readMeFirst="true">302-04-ScenarioNamespaceInvalid.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<!-- Ensure that no element descendants of segment or scenario are in the XBRL element substitutionGroup. -->
+	<variation id="V-05" name="SegmentSubstitutionInvalid">
+		<description>302.05 Invalid segment in a context; contains an element in substitution group of xbrli:item</description>
+		<data>
+			<xsd readMeFirst="false">SegmentSubstitutionInvalid.xsd</xsd>
+			<instance readMeFirst="true">302-05-SegmentSubstitutionInvalid.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-06" name="ScenarioSubstitutionInvalid">
+		<description>302.06  Invalid scenario in a context; contains an element in substitution group of xbrli:item</description>
+		<data>
+			<xsd readMeFirst="false">ScenarioSubstitutionInvalid.xsd</xsd>
+			<instance readMeFirst="true">302-06-ScenarioSubstitutionInvalid.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<!-- Segment and Scenario may have empty children.  -->
+	<variation id="V-07" name="SegmentEmptyContent">
+		<description>302.07 Segment in a context contains an element with empty content</description>
+		<data>
+			<xsd readMeFirst="false">SegmentEmptyContent.xsd</xsd>
+			<instance readMeFirst="true">302-07-SegmentEmptyContent.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-08" name="ScenarioEmptyContent">
+		<description>302.08 Scenario in a context contains an element with empty content</description>
+		<data>
+			<xsd readMeFirst="false">ScenarioEmptyContent.xsd</xsd>
+			<instance readMeFirst="true">302-08-ScenarioEmptyContent.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<!-- The start dateTime must precede the end dateTime.	-->
+	<variation id="V-09" name="PeriodDateTimeValid">
+		<description>302.09 Valid duration context with start date earlier than end date</description>
+		<data>
+			<xsd readMeFirst="false">ScenarioValid.xsd</xsd>
+			<instance readMeFirst="true">302-09-PeriodDateTimeValid.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-10" name="PeriodDateTimeInvalid">
+		<description>302.10 Invalid duration context with start date later than end date</description>
+		<data>
+			<xsd readMeFirst="false">ScenarioValid.xsd</xsd>
+			<instance readMeFirst="true">302-10-PeriodDateTimeInvalid.xml</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-11" name="DecimalAttributeOnSegmentInconsistent">
+		<description>302.11 Two contexts are S-Equal even though a decimal-valued attribute in their segment elements have different lexical representations. The contexts are S-equal, so a calculation inconsistency MUST be signaled.</description>
+		<data>
+			<xsd>DecimalAttributeOnSegmentOrScenario.xsd</xsd>
+			<instance readMeFirst="true">302-11-DecimalAttributeOnSegmentInconsistent.xbrl</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-12" name="DecimalAttributeOnScenarioInconsistent">
+		<description>302.12 Two contexts are S-Equal even though a decimal-valued attribute in their scenario elements have different lexical representations. The contexts are S-equal, so a calculation inconsistency MUST be signaled.</description>
+		<data>
+			<xsd>DecimalAttributeOnSegmentOrScenario.xsd</xsd>
+			<instance readMeFirst="true">302-12-DecimalAttributeOnScenarioInconsistent.xbrl</instance>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+</testcase>

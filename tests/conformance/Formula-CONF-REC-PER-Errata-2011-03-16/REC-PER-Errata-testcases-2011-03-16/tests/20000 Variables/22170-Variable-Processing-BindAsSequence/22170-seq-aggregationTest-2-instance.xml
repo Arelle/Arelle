@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+xsi:schemaLocation="http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd"
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:href="22170-sequence-typedDim-tests.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="22170-seq-aggregationTest-2-formula.xml"/>
+  
+  <context id="context-earth">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:typedMember dimension="concept:MoonDim"
+         xmlns:a="http://xbrl.org/formula/conformance/example">
+           <a:dimVal><a:planetVal>a:Earth</a:planetVal></a:dimVal>
+         </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-mars">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:typedMember dimension="concept:MoonDim"
+         xmlns:b="http://xbrl.org/formula/conformance/example">
+           <b:dimVal><b:planetVal>b:Mars</b:planetVal></b:dimVal>
+         </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-jupiter">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:typedMember dimension="concept:MoonDim"
+         xmlns:c="http://xbrl.org/formula/conformance/example"
+         xmlns:d="http://xbrl.org/formula/conformance/example"
+         xmlns:e="http://xbrl.org/formula/conformance/example"
+         >
+           <c:dimVal><d:planetVal>e:OuterPlanets</d:planetVal></c:dimVal>
+         </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-saturn">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:typedMember dimension="concept:MoonDim"
+         xmlns:f="http://xbrl.org/formula/conformance/example">
+           <f:dimVal><f:planetVal>f:OuterPlanets</f:planetVal></f:dimVal>
+         </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-uranus">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:typedMember dimension="concept:MoonDim"
+         xmlns:g="http://xbrl.org/formula/conformance/example">
+           <g:dimVal><g:planetVal>g:OuterPlanets</g:planetVal></g:dimVal>
+         </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-neptune">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:typedMember dimension="concept:MoonDim"
+         xmlns:a="http://xbrl.org/formula/conformance/example">
+           <a:dimVal><a:planetVal>a:OuterPlanets</a:planetVal></a:dimVal>
+         </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-earth-old-satellites">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:typedMember dimension="concept:MoonDim"
+         xmlns:a="http://xbrl.org/formula/conformance/example">
+           <a:dimVal><a:planetNumVal>.03e2</a:planetNumVal></a:dimVal>
+         </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-earth-spy-satellites">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:typedMember dimension="concept:MoonDim"
+         xmlns:a="http://xbrl.org/formula/conformance/example">
+           <a:dimVal><a:planetNumVal>.3e1</a:planetNumVal></a:dimVal>
+         </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-earth-civilian-satellites">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:typedMember dimension="concept:MoonDim"
+         xmlns:z="http://xbrl.org/formula/conformance/example">
+           <z:dimVal><z:planetNumVal>3</z:planetNumVal></z:dimVal>
+         </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-mars-civilian-satellites">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+      <segment>
+        <xbrldi:typedMember dimension="concept:MoonDim"
+         xmlns:z="http://xbrl.org/formula/conformance/example">
+           <z:dimVal><z:planetNumVal>4</z:planetNumVal></z:dimVal>
+         </xbrldi:typedMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <unit id="u-moon-count">
+    <measure>pure</measure>
+  </unit>
+  
+
+    <!-- real naturally-formed moons -->
+    <concept:MoonCount contextRef="context-earth" unitRef="u-moon-count" decimals="0">1</concept:MoonCount>
+    <concept:MoonCount contextRef="context-mars" unitRef="u-moon-count" decimals="0">2</concept:MoonCount>
+    <concept:MoonCount contextRef="context-jupiter" unitRef="u-moon-count" decimals="0">16</concept:MoonCount>
+    <concept:MoonCount contextRef="context-saturn" unitRef="u-moon-count" decimals="0">18</concept:MoonCount>
+    <concept:MoonCount contextRef="context-neptune" unitRef="u-moon-count" decimals="0">27</concept:MoonCount>
+    <concept:MoonCount contextRef="context-uranus" unitRef="u-moon-count" decimals="0">8</concept:MoonCount>
+
+    <!-- manufactured satellites -->
+    <concept:SatelliteCount contextRef="context-earth-old-satellites" unitRef="u-moon-count" decimals="0">500</concept:SatelliteCount>
+    <concept:SatelliteCount contextRef="context-earth-spy-satellites" unitRef="u-moon-count" decimals="0">1500</concept:SatelliteCount>
+    <concept:SatelliteCount contextRef="context-earth-civilian-satellites" unitRef="u-moon-count" decimals="0">6000</concept:SatelliteCount>
+    <concept:SatelliteCount contextRef="context-mars-civilian-satellites" unitRef="u-moon-count" decimals="0">4</concept:SatelliteCount>
+
+
+</xbrl>
+
+
+
+
+
+

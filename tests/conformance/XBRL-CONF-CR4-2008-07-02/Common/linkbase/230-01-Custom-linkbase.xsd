@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (C) XBRL International inc. Editeb by Ignacio Hernández-Ros (ignacio@hernandez-ros.com) Reporting Estandar S.L. -->
+<schema xmlns="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" targetNamespace="http://hernandez-ros.com/custom-linkbase/schema/test" xmlns:xl="http://www.xbrl.org/2003/XLink">
+	<import namespace="http://www.xbrl.org/2003/linkbase" schemaLocation="http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"/>
+	<import namespace="http://www.xbrl.org/2003/XLink" schemaLocation="http://www.xbrl.org/2003/xl-2003-12-31.xsd"/>
+
+	<element name="customLink" substitutionGroup="xl:extended" type="xl:extendedType"/>
+</schema>

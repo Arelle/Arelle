@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance  ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-15</number>
+<name>EDGAR Filer Manual v16 6.5.15 page 6-11</name>
+<description>
+<h2>If the un-escaped content of a fact with base type us-types:textBlockItemType, or a type derived by restriction
+of type 'escapedItemType' in a standard taxonomy schema namespace contains the "&lt;" character followed by a
+QName and whitespace, "/&gt;" or "&gt;", then the un-escaped content must contain only a sequence of text
+and XML nodes.</h2>
+<p>The "&lt;" character may appear in the text content of an XML element as "&amp;lt;", "&amp;#x3C;",
+"&amp;#60;" or some other guise; when it appears, the content of the element will then be "un-escaped" for
+analysis. If "&lt;"is followed by a QName and whitespace, then the content is tested for XML
+well-formedness.</p>
+<p>Although the name of every element in the US GAAP Taxonomies with base type us-gaap:textBlockItemType ends with
+the string "TextBlock," the reverse may not be true; an element name has no significance in this rule.</p>
+<p>Some software applications may render the resulting content of the element as if it was embedded in an HTML 3.2
+document, and well-formed XML is a prerequisite for well-formed HTML. Registrants may also choose other variations
+of HTML such as XHTML. Considering the status of the text as a kind of management assertion, well-formed XML is in
+the interest of the registrant because it decreases the likelihood of incorrect renderings.</p>
+<p>If the ampersand character must appear in the well-formed XML, it must be doubly quoted as shown in the example
+above.</p>
+<p>REMARK: In XML it is vital to distinguish the DOM from its various serializations. For a text block, the DOM node
+starts as an element with one child text node; exactly one. It is that child text node that you now treat as a
+string, wrap lt;body&gt; and &lt;/body&gt; around it, then re-parse and validate. See edbody.dtd; the
+grammar for the % Flow entity is clear.</p>
+<p>REMARK: By contrast, the content of a footnote according to XBRL 2.1 is any alternating sequence of text nodes
+and element nodes drawn with names in the xhtml namespace. The serialization does not (and cannot) matter. The
+additional constraint on footnotes imposed by EDGAR is that a footnote cannot just contain any old sequence of
+text and element DOM nodes. It has to be a sequence of DOM nodes that would be valid if they were the children of
+a body node instead. You do not read the footnote as a text node (that might have ampersands and angle brackets),
+as if it were itself a serialization. You take that sequence of DOM nodes, make them the children of a
+&lt;body&gt; node and validate.</p>
+<p>REMARK: 'derived by restriction' from escapedItemType is meant to include that type itself.</p>
+</description>
+<reference specification="11151.6"/>
+<variation id="_000gd">
+<name>6.5.15 Well formed XML in a 2011 Text Block</name>
+<description>An instance with well formed HTML.</description>
+<reference specification="11151.6"/>
+<reference specification="11968.2"/>
+<data>
+<instance readMeFirst="true">e60515000gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001ng">
+<name>6.5.15 Not well-formed XML in a 2011 Text Block (unmatched &lt;br&gt;)</name>
+<description>An instance without well formed XML</description>
+<reference specification="11151.6"/>
+<reference specification="11968.2"/>
+<data>
+<instance readMeFirst="true">e60515001ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60515" name="Text-Block-Not-Well-Formed-XML" frd="cp"/>
+</result>
+</variation>
+<variation id="_002gd">
+<name>6.5.15 A 2011 instance with a colon that can mess up some parsers, GOOD.</name>
+<description>A 2011 instance with a colon that can mess up some parsers, GOOD.</description>
+<reference specification="11151.6"/>
+<reference specification="11968.2"/>
+<data>
+<instance readMeFirst="true">e60515002gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_003gd">
+<name>6.5.15 An 2011 instance without a colon that can mess up some parsers, GOOD.</name>
+<description>An 2011 instance without a colon that can mess up some parsers, GOOD.</description>
+<reference specification="11151.6"/>
+<reference specification="11968.2"/>
+<data>
+<instance readMeFirst="true">e60515003gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_004gd">
+<name>6.5.15 A 2009 instance with well formed XML in a text block, GOOD.</name>
+<description>A 2009 instance with well formed XML in a text block, GOOD.</description>
+<reference specification="11151.6"/>
+<data>
+<instance readMeFirst="true">e60515004gd-20091231.xml</instance>
+<linkbase>edgar-20091231_pre.xml</linkbase>
+<linkbase>edgar-20091231_def.xml</linkbase>
+<linkbase>edgar-20091231_lab.xml</linkbase>
+<schema>edgar-20091231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_005gd">
+<name>6.5.15 Well formed XML in a 2011 Text Block, GOOD.</name>
+<description>A 2011 instance with well formed XML, with extra text in EntityTextBlock, GOOD.</description>
+<reference specification="11151.6"/>
+<reference specification="11968.2"/>
+<data>
+<instance readMeFirst="true">e60515005gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_006gd">
+<name>6.5.15 Well formed XML in a Text Block, 2009</name>
+<description>A 2009 instance with well formed XML, with extra text in EntityTextBlock.</description>
+<reference specification="11151.6"/>
+<data>
+<instance readMeFirst="true">e60515006gd-20091231.xml</instance>
+<linkbase>edgar-20091231_pre.xml</linkbase>
+<linkbase>edgar-20091231_def.xml</linkbase>
+<linkbase>edgar-20091231_lab.xml</linkbase>
+<schema>edgar-20091231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_007gd">
+<name>6.5.15 A less-than sign in a 2009 Text Block, GOOD</name>
+<description>An instance with some innocuous less-than signs in 2009 EntityTextBlock, GOOD</description>
+<reference specification="11151.6"/>
+<data>
+<instance readMeFirst="true">e60515007gd-20091231.xml</instance>
+<linkbase>edgar-20091231_pre.xml</linkbase>
+<linkbase>edgar-20091231_def.xml</linkbase>
+<linkbase>edgar-20091231_lab.xml</linkbase>
+<schema>edgar-20091231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_008gd">
+<name>6.5.15 A 2009 instance with unbalanced tags in a String, GOOD.</name>
+<description>A 2009 instance with unbalanced tags in a String, GOOD.</description>
+<reference specification="11151.6"/>
+<data>
+<instance readMeFirst="true">e60515008gd-20091231.xml</instance>
+<linkbase>edgar-20091231_pre.xml</linkbase>
+<linkbase>edgar-20091231_def.xml</linkbase>
+<linkbase>edgar-20091231_lab.xml</linkbase>
+<schema>edgar-20091231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_009ng">
+<name>6.5.15 Not well-formed XML in an escapedItemType (unmatched &lt;br&gt;)</name>
+<description>An instance without well formed XML</description>
+<reference specification="11151.6"/>
+<reference specification="11968.2"/>
+<data>
+<instance readMeFirst="true">e60515009ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60515" name="Text-Block-Not-Well-Formed-XML" frd="cp"/>
+</result>
+</variation>
+<variation id="_010ng">
+<name>6.5.15 Not well-formed XML in an derived restriction of escapedItemType (unmatched &lt;br&gt;)</name>
+<description>An instance without well formed XML, NOGOOD.</description>
+<reference specification="11151.6"/>
+<reference specification="11968.2"/>
+<data>
+<instance readMeFirst="true">e60515010ng-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60515" name="Text-Block-Not-Well-Formed-XML" frd="cp"/>
+</result>
+</variation>
+<variation id="_011gd">
+<name>6.5.15 Not well-formed XML (unmatched &lt;br&gt;) in a type that is not derived from
+{SomeStandardNamespace}:escapedItemType, GOOD.</name>
+<description>Not well-formed XML (unmatched &lt;br&gt;) in a type that is not derived from
+{SomeStandardNamespace}:escapedItemType, GOOD.</description>
+<reference specification="11151.6"/>
+<reference specification="11968.2"/>
+<data>
+<instance readMeFirst="true">e60515011gd-20101231.xml</instance>
+<linkbase>edgar-20101231_pre.xml</linkbase>
+<linkbase>edgar-20101231_def.xml</linkbase>
+<linkbase>edgar-20101231_lab.xml</linkbase>
+<schema>edgar-20101231.xsd</schema>
+</data>
+<result/>
+</variation>
+</testcase>

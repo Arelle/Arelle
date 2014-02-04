@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xbrli:xbrl xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:dei="http://xbrl.us/dei/2009-01-31"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<link:schemaRef xlink:href="e60311512ng-20111231.xsd" xlink:type="simple"/>
+<link:linkbaseRef xml:base="http://taxonomies.xbrl.us/us-gaap/2009/non-gaap/"
+xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"
+xlink:href="dei-lab-2009-01-31.xml"
+xlink:type="simple"/>
+<xbrli:context id="D2009Q2">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:startDate>2011-04-01</xbrli:startDate>
+<xbrli:endDate>2011-06-30</xbrli:endDate>
+</xbrli:period>
+</xbrli:context>
+<dei:EntityCentralIndexKey contextRef="D2009Q2" id="nillo">9876543210</dei:EntityCentralIndexKey>
+<dei:EntityRegistrantName contextRef="D2009Q2">e60306304ng</dei:EntityRegistrantName>
+<dei:DocumentType contextRef="D2009Q2">8-K</dei:DocumentType>
+<dei:DocumentPeriodEndDate contextRef="D2009Q2">2011-06-30</dei:DocumentPeriodEndDate>
+<dei:AmendmentFlag contextRef="D2009Q2">false</dei:AmendmentFlag>
+<dei:CurrentFiscalYearEndDate contextRef="D2009Q2">--12-31</dei:CurrentFiscalYearEndDate>
+<link:footnoteLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+<link:loc xlink:type="locator" xlink:href="#nillo" xlink:label="nillo"/>
+<link:footnote xlink:type="resource" xlink:label="footnote"
+xlink:role="http://www.xbrl.org/2003/role/footnote"
+xml:lang="en-US">Footnote Text.</link:footnote>
+<link:footnoteArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/fact-footnote"
+xlink:from="nillo"
+xlink:to="footnote"
+order="1.0"/>
+</link:footnoteLink>
+</xbrli:xbrl>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:e62204="http://e62204/20080331"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+<link:loc xlink:type="locator"
+xlink:href="http://taxonomies.xbrl.us/soi/2008/soi-2008-11-30.xsd#soi_AssetsNet"
+xlink:label="AssetsNet"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.us/us-gaap/1.0/elts/us-gaap-2008-03-31.xsd#us-gaap_DeferredTaxAssetsNetCurrent"
+xlink:label="DeferredTaxAssetsNetCurrent"/>
+<link:label xlink:type="resource" xlink:label="label_AssetsNet"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_AssetsNet">Assets, net</link:label>
+<link:label xlink:type="resource" xlink:label="label_DeferredTaxAssetsNetCurrent"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_DeferredTaxAssetsNetCurrent">Deferred tax assets, net, current</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="AssetsNet"
+xlink:to="label_AssetsNet"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="DeferredTaxAssetsNetCurrent"
+xlink:to="label_DeferredTaxAssetsNetCurrent"/>
+</link:labelLink>
+</link:linkbase>

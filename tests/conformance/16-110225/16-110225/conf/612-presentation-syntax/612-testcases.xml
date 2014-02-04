@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../lib/testcases.xsl"?>
+
+<testcases date='2011-02-26' name='v16'>
+  <testcase uri='612-01-presentation-order-required/612-01-presentation-order-required-testcase.xml' />
+  <testcase uri='612-02-presentation-order-distinct/612-02-presentation-order-distinct-testcase.xml' />
+  <testcase uri='612-03-element-used-is-presented/612-03-element-used-is-presented-testcase.xml' />
+  <testcase uri='612-05-distinct-preferred-labels/612-05-distinct-preferred-labels-testcase.xml' />
+</testcases>

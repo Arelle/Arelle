@@ -1,0 +1,25 @@
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<xsd:schema targetNamespace="http://mycompany.com/xbrl/taxonomy" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://mycompany.com/xbrl/taxonomy" xmlns:xbrli="http://www.xbrl.org/2003/instance" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<xsd:element name="givenName" type="xbrli:tokenItemType" substitutionGroup="xbrli:item"  xbrli:periodType="instant"/>
+	<xsd:element name="familyName" type="xbrli:tokenItemType" substitutionGroup="xbrli:item"  xbrli:periodType="instant"/>
+	<xsd:group name="managementName">
+		<xsd:sequence>
+			<xsd:element ref="my:givenName"/>
+			<xsd:element ref="my:familyName"/>
+		</xsd:sequence>
+	</xsd:group>
+	<xsd:element name="managementRole" type="xbrli:tokenItemType" substitutionGroup="xbrli:item"  xbrli:periodType="instant"/>
+	<xsd:element name="managementTitle" type="xbrli:tokenItemType" substitutionGroup="xbrli:item"  xbrli:periodType="instant"/>
+	<xsd:element name="managementInformation" type="my:managementInformationType" substitutionGroup="xbrli:tuple"/>
+	<xsd:complexType name="managementInformationType">
+		<xsd:sequence>
+			<xsd:group ref="my:managementName"/>
+                        <xsd:choice>
+				<xsd:element ref="my:managementRole"/>
+				<xsd:element ref="my:managementTitle"/>
+			</xsd:choice>
+		</xsd:sequence>
+	</xsd:complexType>
+</xsd:schema>

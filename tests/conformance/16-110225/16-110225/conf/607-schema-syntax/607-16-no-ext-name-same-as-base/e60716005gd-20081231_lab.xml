@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:e6071600="http://e6071600/20081231"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+<link:loc xlink:type="locator"
+xlink:href="e60716005gd-20081231.xsd#e6071600_SomeAbstract"
+xlink:label="SomeAbstract"/>
+<link:loc xlink:type="locator" xlink:href="e60716005gd-20081231.xsd#e6071600_SomeStuff"
+xlink:label="SomeStuff"/>
+<link:loc xlink:type="locator" xlink:href="e60716005gd-20081231.xsd#e6071600_Top"
+xlink:label="Top"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/country/2011/country-2011-01-31.xsd#country_KY"
+xlink:label="KY"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/stpr/2011/stpr-2011-01-31.xsd#stpr_KY"
+xlink:label="KY_2"/>
+<link:label xlink:type="resource" xlink:label="label_SomeAbstract"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_SomeAbstract">Some Abstract</link:label>
+<link:label xlink:type="resource" xlink:label="label_SomeStuff"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_SomeStuff">Some Stuff</link:label>
+<link:label xlink:type="resource" xlink:label="label_Top"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_Top">Top,</link:label>
+<link:label xlink:type="resource" xlink:label="label_KY"
+xlink:role="http://www.xbrl.org/2003/role/terseLabel"
+xml:lang="en-US"
+id="label_KY">KY</link:label>
+<link:label xlink:type="resource" xlink:label="label_KY_2"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_KY_2">Cayman Islands</link:label>
+<link:label xlink:type="resource" xlink:label="label_KY_3"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_KY_3">Kentucky</link:label>
+<link:label xlink:type="resource" xlink:label="label_KY_4"
+xlink:role="http://www.xbrl.org/2003/role/terseLabel"
+xml:lang="en-US"
+id="label_KY_4">KY</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="SomeAbstract"
+xlink:to="label_SomeAbstract"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="SomeStuff"
+xlink:to="label_SomeStuff"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="Top"
+xlink:to="label_Top"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="KY"
+xlink:to="label_KY"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="KY"
+xlink:to="label_KY_2"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="KY_2"
+xlink:to="label_KY_3"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="KY_2"
+xlink:to="label_KY_4"/>
+</link:labelLink>
+</link:linkbase>

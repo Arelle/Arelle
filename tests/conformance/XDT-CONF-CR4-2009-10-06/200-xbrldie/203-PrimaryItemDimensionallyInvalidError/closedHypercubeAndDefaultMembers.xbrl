@@ -1,0 +1,30 @@
+<xbrl
+  xmlns='http://www.xbrl.org/2003/instance'
+  xmlns:iso4217='http://www.xbrl.org/2003/iso4217'
+  xmlns:link='http://www.xbrl.org/2003/linkbase'
+  xmlns:tx='http://www.xbrl.org/dim/conf/203/closedHypercubeAndDefaultMembers'
+  xmlns:xbrldi='http://xbrl.org/2006/xbrldi'
+  xmlns:xlink='http://www.w3.org/1999/xlink'
+>
+  <link:schemaRef
+    xlink:arcrole='http://www.w3.org/1999/xlink/properties/linkbase'
+    xlink:href='closedHypercubeAndDefaultMembers.xsd'
+    xlink:type='simple'
+   />
+  <tx:A
+    contextRef='C'
+  >This is A.</tx:A>
+  <context
+    id='C'
+  >
+    <entity>
+      <identifier
+        scheme='http://www.sample.com'
+      >Sample Dimensions Company</identifier>
+    </entity>
+    <period>
+      <startDate>2005-01-01</startDate>
+      <endDate>2005-12-31</endDate>
+    </period>
+  </context>
+</xbrl>

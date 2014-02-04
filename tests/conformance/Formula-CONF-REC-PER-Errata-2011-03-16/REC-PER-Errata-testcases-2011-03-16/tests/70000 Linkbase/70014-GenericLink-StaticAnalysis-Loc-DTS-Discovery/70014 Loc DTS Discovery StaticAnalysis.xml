@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>70014</number>
+  <name>Generic link loc DTS discovery static analysis</name>
+  <description>
+    Test DTS discovery of loc elements in a generic link.
+  </description>
+  <reference specification="GENERIC-LINK" id="sec-locators"/>
+
+  <variation id="V-01">
+    <name>A link:loc in a generic link does cause DTS discovery.</name>
+    <description>
+      The discovered taxonomy has a deliberate xbrl error to cause
+      result invalidity if discovery is effective (which it should be).
+    </description>
+    <reference specification="GENERIC-LINK" id="sec-locators"/>
+    <data>
+      <schema readMeFirst="true">70014-locDtsDiscovery-concepts-v01.xsd</schema>
+      <linkbase>70014-locDtsDiscovery-testLB-v01.xml</linkbase>
+    </data>
+    <result expected="invalid"/>
+  </variation>
+
+  <variation id="V-02">
+    <name>A non-link loc in a generic link doesn&apos;t cause DTS discovery.</name>
+    <description>
+      The discovered taxonomy, which has a deliberate xbrl error to cause
+      result invalidity, should not be discovered because the loc is
+      derived from link:loc, but not actually link:loc.
+    </description>
+    <reference specification="GENERIC-LINK" id="sec-locators"/>
+    <data>
+      <schema readMeFirst="true">70014-locDtsDiscovery-concepts-v02.xsd</schema>
+      <linkbase>70014-locDtsDiscovery-testLB-v02.xml</linkbase>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+
+</testcase>
+

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>12080</number>
+  <name>Accuracy rules processing examples</name>
+  <description>
+    Tests of accuracy rules processing
+  </description>
+  <reference specification="FORMULA" id="sec-accuracy-rules"/>
+
+  <variation id="V-01">
+    <name>Accuracy decimals and precision omitted</name>
+    <description>No accuracy rules are specified and the default accuracy is a precision of zero. Given that the fact value is 1000000, a decimals value of -7 implies a precision of 0.</description>
+    <reference specification="FORMULA" id="example-accuracy-rules"/>
+    <data>
+      <schema>12080-accuracy-tests.xsd</schema>
+      <linkbase>12080-dec-omit-prec-omit-formula.xml</linkbase>
+      <instance readMeFirst="true">12080-dec-omit-prec-omit-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12080-dec-omit-prec-omit-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Accuracy precision 1, decimals omitted</name>
+    <description>The precision accuracy rule evaluates to 1 so software is required to report a precision of 1. Given that the fact value is 1000000, a decimals value of -6 implies a precision of 1.</description>
+    <reference specification="FORMULA" id="example-accuracy-rules"/>
+    <data>
+      <schema>12080-accuracy-tests.xsd</schema>
+      <linkbase>12080-dec-omit-prec-1-formula.xml</linkbase>
+      <instance readMeFirst="true">12080-dec-omit-prec-1-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12080-dec-omit-prec-1-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Accuracy precision omitted, decimals -6</name>
+    <description>The decimals accuracy rule evaluates to -6 so the fact is required to be reported with an accuracy implying a @decimals attribute value of -6. Given that the fact value is 1000000, a decimals value of -6 implies a precision of 1.</description>
+    <reference specification="FORMULA" id="example-accuracy-rules"/>
+    <data>
+      <schema>12080-accuracy-tests.xsd</schema>
+      <linkbase>12080-dec--6-prec-omit-formula.xml</linkbase>
+      <instance readMeFirst="true">12080-dec--6-prec-omit-instance.xml</instance>
+    </data>
+    <result>
+      <instance>12080-dec--6-prec-omit-result.xml</instance>
+    </result>
+  </variation>  
+
+</testcase>
+

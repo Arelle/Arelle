@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:nogood="http://nogood/20081231"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+targetNamespace="http://nogood/20081231"
+elementFormDefault="qualified">
+<xsd:annotation>
+<xsd:appinfo>
+<link:linkbaseRef xlink:type="simple" xlink:href="nogood-20081231_pre.xml"
+xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:linkbaseRef xlink:type="simple" xlink:href="nogood-20081231_lab.xml"
+xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef"
+xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+<link:roleType roleURI="http://nogood/role/Role" id="Role">
+<link:definition>000 - Document - Role declared in a remote schema not in the ERXL (#element(/1/1/1/3))</link:definition>
+<link:usedOn>link:presentationLink</link:usedOn>
+<link:usedOn>link:calculationLink</link:usedOn>
+<link:usedOn>link:definitionLink</link:usedOn>
+</link:roleType>
+<link:arcroleType arcroleURI="http://nogood/arcrole/Arcrole" cyclesAllowed="any" id="Arcrole">
+<link:definition>001 - Document - Arcrole declared in remote schema not in the ERXL (#element(/1/1/1/4))</link:definition>
+<link:usedOn>link:presentationArc</link:usedOn>
+<link:usedOn>link:calculationArc</link:usedOn>
+<link:usedOn>link:definitionArc</link:usedOn>
+</link:arcroleType>
+</xsd:appinfo>
+</xsd:annotation>
+<xsd:import namespace="http://www.xbrl.org/2003/instance"
+schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+<xsd:element name="Abstract_1_3" id="nogood_Abstract_1_3" type="xbrli:stringItemType"
+substitutionGroup="xbrli:item"
+abstract="true"
+nillable="true"
+xbrli:periodType="duration"/>
+<xsd:element name="Monetary_1_4" id="nogood_Monetary_1_4" type="xbrli:monetaryItemType"
+substitutionGroup="xbrli:item"
+nillable="true"
+xbrli:balance="debit"
+xbrli:periodType="duration"/>
+</xsd:schema>

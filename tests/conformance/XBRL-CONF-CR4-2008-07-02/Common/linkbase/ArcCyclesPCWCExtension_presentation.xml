@@ -1,0 +1,21 @@
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xl="http://www.xbrl.org/2001/XLink" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+	http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+	">
+	<!-- This comment to be replaced by a <link:documentation> element
+		
+		This presentation linkbase extends ArcCylcesPCNC_presentation.xml. 
+		 It connects	concept conceptA in ArcCyclesPCNC.xsd to 
+		 conceptG in ArcCyclesPCNC.xsd.  
+		The network of these arcs form an directed cycle between concepts A, G and C.
+	-->
+	<presentationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="ArcCyclesPCNC.xsd#conceptG" xlink:label="conceptG"/>
+		<loc xlink:type="locator" xlink:href="ArcCyclesPCNC.xsd#conceptA" xlink:label="conceptA"/>
+		<presentationArc xlink:type="arc" xlink:from="conceptG" xlink:to="conceptA" order="1" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"/>
+	</presentationLink>
+	<presentationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="ArcCyclesPCNC.xsd#conceptL" xlink:label="conceptL"/>
+		<loc xlink:type="locator" xlink:href="ArcCyclesPCWCExtension.xsd#conceptZ" xlink:label="conceptZ"/>
+		<presentationArc xlink:type="arc" xlink:from="conceptL" xlink:to="conceptZ" order="1" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"/>
+	</presentationLink>
+</linkbase>

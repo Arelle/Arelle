@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:roleRef roleURI="http://xbrl.sec.gov/rr/role/OperatingExpensesData" xlink:type="simple"
+xlink:href="http://xbrl.sec.gov/rr/2010/rr-2010-02-28.xsd#OperatingExpensesData"/>
+<link:calculationLink xlink:type="extended"
+xlink:role="http://xbrl.sec.gov/rr/role/OperatingExpensesData">
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/rr/2010/rr-2010-02-28.xsd#rr_NetExpensesOverAssets"
+xlink:label="NetExpensesOverAssets"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/rr/2010/rr-2010-02-28.xsd#rr_ExpensesOverAssets"
+xlink:label="ExpensesOverAssets"/>
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/rr/2010/rr-2010-02-28.xsd#rr_ManagementFeesOverAssets"
+xlink:label="ManagementFeesOverAssets"/>
+<link:calculationArc xlink:type="arc"
+xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item"
+xlink:from="NetExpensesOverAssets"
+xlink:to="ExpensesOverAssets"
+use="prohibited"
+priority="1"
+order="1.0"
+weight="1"/>
+<link:calculationArc xlink:type="arc"
+xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item"
+xlink:from="ExpensesOverAssets"
+xlink:to="NetExpensesOverAssets"
+use="optional"
+priority="1"
+order="1.0"
+weight="1"/>
+</link:calculationLink>
+</link:linkbase>

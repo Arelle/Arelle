@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>22160</number>
+  <name>Evaluation processing examples</name>
+  <description>
+    Tests of evaluation processing
+  </description>
+  <reference specification="VARIABLES" id="sec-variable-evaluation"/>
+
+  <variation id="V-01">
+    <name>No variables, precondition is met</name>
+    <description>Tests that with no variables and a precondition which is met, the variable set is deemed to have evaluated, which causes the formula to produce a single fact item.</description>
+    <reference specification="VARIABLES" id="sec-variable-evaluation"/>
+    <data>
+      <schema>22160-evaluation-tests.xsd</schema>
+      <linkbase>22160-noVarsTruePrecond-formula.xml</linkbase>
+      <instance readMeFirst="true">22160-noVarsTruePrecond-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22160-noVarsTruePrecond-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>No variables, precondition not met</name>
+    <description>Tests that with no variables and a precondition which is not met prevents the the variable set from deemed to be evaluated, which prevents output of a fact variable.</description>
+    <reference specification="VARIABLES" id="sec-variable-evaluation"/>
+    <data>
+      <schema>22160-evaluation-tests.xsd</schema>
+      <linkbase>22160-noVarsFalsePrecond-formula.xml</linkbase>
+      <instance readMeFirst="true">22160-noVarsFalsePrecond-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22160-noVarsFalsePrecond-result.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>No variables, no precondition</name>
+    <description>Tests that with no variables and no precondition the variable set is deemed to be evaluated and a fact item is generated.</description>
+    <reference specification="VARIABLES" id="sec-variable-evaluation"/>
+    <data>
+      <schema>22160-evaluation-tests.xsd</schema>
+      <linkbase>22160-noVarsNoPrecond-formula.xml</linkbase>
+      <instance readMeFirst="true">22160-noVarsNoPrecond-instance.xml</instance>
+    </data>
+    <result>
+      <instance>22160-noVarsNoPrecond-result.xml</instance>
+    </result>
+  </variation>  
+
+
+</testcase>
+
+
+
+

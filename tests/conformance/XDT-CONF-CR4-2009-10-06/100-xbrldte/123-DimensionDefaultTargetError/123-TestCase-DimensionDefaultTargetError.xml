@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2005 XBRL International. All Rights Reserved. --><?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?><testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrldte="http://xbrl.org/2005/xbrldt/errors" xmlns="http://xbrl.org/2005/conformance" name="123-TestCase-DimensionDefaultTargetError" description="2.1 to 2.10 - Dimensional relationships except 2.5" outpath="out" owner="ihr@xbrl.org" minimal="true" xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+        <!-- Dimensional taxonomy syntax rules pertaining to schemas and linkbases, and not covered by XML Schema and XBRL Validation. -->
+        <!-- Note that XBRL validation requires the source and target of a definitionArc to be a concept. -->
+        <!-- As of the 2005-10-26 internal working draft. (Herm) -->
+        <!-- 2. A dimensional processor MUST raise an error [Dim Err, 23] xbrldte:DimensionDefaultTargetError if the target of the relationship is not a domain member declaration [Def, 6]. -->
+        <variation id="V-01" name="targetDimensionDefaultIsDimensionInvalid">
+                <description reference="XDT-IWD-2005-10-26.doc#2.9.1">The target of a dimension-default arc is not a member item, in this case it is a dimension item.</description>
+                <data>
+                        <xsd readMeFirst="true">targetDimensionDefaultIsDimensionInvalid.xsd</xsd>
+                        <linkbase readMeFirst="false">targetDimensionDefaultIsDimensionInvalid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">targetDimensionDefaultIsDimensionInvalid-label.xml</linkbase>
+                </data>
+                <result >
+                        <error>xbrldte:DimensionDefaultTargetError</error>
+                </result>
+        </variation>
+        <variation id="V-02" name="targetDimensionDefaultNotMemberInvalid">
+                <description reference="XDT-IWD-2005-10-26.doc#2.9.1">The target of a dimension-default arc is not a member item, in this case it is a dimension item.</description>
+                <data>
+                        <xsd readMeFirst="true">targetDimensionDefaultNotMemberInvalid.xsd</xsd>
+                        <linkbase readMeFirst="false">targetDimensionDefaultNotMemberInvalid-definition.xml</linkbase>
+                        <linkbase readMeFirst="false">targetDimensionDefaultNotMemberInvalid-label.xml</linkbase>
+                </data>
+                <result/>
+        </variation>
+</testcase>

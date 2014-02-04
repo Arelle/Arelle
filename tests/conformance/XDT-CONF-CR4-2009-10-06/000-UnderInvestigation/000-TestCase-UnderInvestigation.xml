@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2005 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xbrl.org/2005/conformance" xmlns:xbrldte="http://xbrl.org/2005/xbrldte/errors" name="000-UnderInvestigation" description="Test cases that are not clear in which category fits" outpath="out" owner="ihr@xbrl.org" minimal="true" xsi:schemaLocation="http://xbrl.org/2005/conformance ../lib/test.xsd">
+<!-- Moved to 127-OutOfDTSSchemaError -->
+<!--
+        <variation id="V-01" name="CIQ-Integration-testcase-1">
+                <description>First integration test case with CIQ schemas. The instance document instance-A.xbrl refers to the Taxonomy XBRLTaxonomyA.xsd. That taxonomy do not include the schema xNL_Bridge_XBRL.xsd in the DTS. The instance document is schema valid and TaxonomyA.xsd is also schema valid. There is no namespace collision because TaxonomyA.xsd does not import xNL_Bridge_XBRL.xsd. Validating the instance against XBRL 2.1 requires no access to the xNL schemas. Validating the content of the typed dimension requires to use the xNL_Bridge_XBRL.xsd schema and the imported ones starting at that schema.</description>
+                <data>
+					<instance readMeFirst="true">instance-A.xbrl</instance>
+                    <xsd readMeFirst="false">XBRLTaxonomyA.xsd</xsd>
+                    <linkbase readMeFirst="false">XBRLTaxonomyA-definition.xml</linkbase>
+                </data>
+                <result/>
+        </variation>
+-->
+<!-- Moved to 002-Schema-Invalid/002-Instance -->
+<!--
+        <variation id="V-02" name="CIQ-Integration-testcase-2">
+                <description>Second integration test case with CIQ schemas. The instance document instance-B.xbrl (almost identical to instance-A.xbrl) refers to the Taxonomy XBRLTaxonomyB.xsd. That taxonomy includes the schema xNL_Bridge_XBRL.xsd in the DTS via an import statement. The instance document is NOT schema valid because of a namespace collision problem in the TaxonomyB.xsd file</description>
+                <data>
+					<instance readMeFirst="true">instance-B.xbrl</instance>
+                    <xsd readMeFirst="false">XBRLTaxonomyB.xsd</xsd>
+                    <linkbase readMeFirst="false">XBRLTaxonomyB-definition.xml</linkbase>
+                    <xsd readMeFirst="false">xNL_Bridge_XBRL.xsd</xsd>
+                    <xsd readMeFirst="false">xNL.xsd</xsd>
+                    <xsd readMeFirst="false">xNL-types.xsd</xsd>
+                    <xsd readMeFirst="false">xLink.xsd</xsd>
+               </data>
+                <result>
+					<error>xbrldte:Instance-document-is-not-schema-valid</error>
+                </result>
+        </variation>
+-->
+<!-- The invalid XPointers do not belongs to this conformance suite so this test case is removed from here -->
+<!--
+        <variation id="V-03" name="typed-dimension-schema-uses-redefine-1">
+                <description>The schema that defines the typed dimension element contains a xs:redefine element. The taxonomy do not contains the redefine-schema.xsd in the DTS. The xbrldt:typedDomainRef do not point to any element definition.</description>
+                <data>
+                        <xsd readMeFirst="true">typed-dimension-schema-uses-redefine-no-dts.xsd</xsd>
+                        <xsd readMeFirst="false">original-schema.xsd</xsd>
+                        <xsd readMeFirst="false">redefine-schema.xsd</xsd>
+                </data>
+                <result>
+					<error>xbrldte:TypedDimensionError</error>
+                </result>
+        </variation>
+-->
+<!-- The invalid XPointers do not belongs to this conformance suite so this test case is removed from here -->
+<!--
+        <variation id="V-04" name="typed-dimension-schema-uses-redefine-2">
+                <description>The schema that defines the typed dimension element contains a xs:redefine element. The taxonomy do contains the redefine-schema.xsd in the DTS. The xbrldt:typedDomainRef do not point to any element definition.</description>
+                <data>
+                        <xsd readMeFirst="true">typed-dimension-schema-uses-redefine-in-dts.xsd</xsd>
+                        <xsd readMeFirst="false">original-schema.xsd</xsd>
+                        <xsd readMeFirst="false">redefine-schema.xsd</xsd>
+                </data>
+                <result>
+					<error>xbrldte:TypedDimensionError</error>
+                </result>
+        </variation>
+-->
+<!-- Moved to 127-OutOfDTSSchemaError -->
+<!--
+         <variation id="V-05" name="typed-dimension-schema-uses-redefine-3">
+                <description>The schema that defines the typed dimension element contains a xs:redefine element. The taxonomy do not contains the redefine-schema.xsd in the DTS. The xbrldt:typedDomainRef points to a new element definition which is valid.</description>
+                <data>
+                        <xsd readMeFirst="true">typed-dimension-schema-uses-redefine-no-dts-2.xsd</xsd>
+                        <xsd readMeFirst="false">original-schema.xsd</xsd>
+                        <xsd readMeFirst="false">redefine-schema.xsd</xsd>
+                </data>
+                <result/>
+        </variation>
+-->
+<!-- The document is now not schema valid and cannot be made schema valid because the same namespace is used in two different elements and schemas must be provided for 'strict' validation of the content of typedMember elements -->
+<!--
+       <variation id="V-06" name="pathologic-case-1">
+                <description>Pathologic test case. The instance document is schema valid. The element contains two typed dimensions. The same element is used in both typed dimensions but the element is defined differently in two separate schemas for the same namespace. The taxonomy do not contains the typed dimension schemas in the DTS</description>
+                <data>
+						<instance readMeFirst="true">pathologic-typed-dimensions-no-dts.xbrl</instance>
+                        <xsd readMeFirst="false">pathologic-typed-dimensions-no-dts.xsd</xsd>
+                        <linkbase readMeFirst="false">pathologic-typed-dimensions-no-dts-label.xml</linkbase>
+                        <linkbase readMeFirst="false">pathologic-typed-dimensions-no-dts-definition.xml</linkbase>
+                        <xsd readMeFirst="false">typed-1.xsd</xsd>
+                        <xsd readMeFirst="false">typed-2.xsd</xsd>
+                </data>
+                <result/>
+        </variation>
+-->
+<!-- The document is now not schema valid and cannot be made schema valid because the same namespace is used in two different elements and schemas must be provided for 'strict' validation of the content of typedMember elements -->
+<!--
+       <variation id="V-07" name="pathologic-case-2">
+                <description>Pathologic test case. The instance document is schema valid. The element contains two typed dimensions. The same element is used in both typed dimensions but the element is defined differently in two separate schemas for the same namespace. The taxonomy contains the typed dimension schemas in the DTS</description>
+                <data>
+						<instance readMeFirst="true">pathologic-typed-dimensions-in-dts.xbrl</instance>
+                        <xsd readMeFirst="false">pathologic-typed-dimensions-in-dts.xsd</xsd>
+                        <linkbase readMeFirst="false">pathologic-typed-dimensions-in-dts-label.xml</linkbase>
+                        <linkbase readMeFirst="false">pathologic-typed-dimensions-in-dts-definition.xml</linkbase>
+                        <xsd readMeFirst="false">typed-1.xsd</xsd>
+                        <xsd readMeFirst="false">typed-2.xsd</xsd>
+                </data>
+                <result>
+					<error>xbrldte:two-schemas-declare-same-namespace.xsd</error>
+                </result>
+        </variation>
+-->
+</testcase>
+

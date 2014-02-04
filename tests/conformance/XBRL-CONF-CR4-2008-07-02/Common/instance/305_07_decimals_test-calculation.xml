@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Calculation Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 2.5.2509.2110 (2006-07-17 13:10).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2006 UBmatrix inc., All Rights Reserved
+Produced on 2006-07-17 23:55:41
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_TotalPropertyPlantEquipment" xlink:label="decimals_TotalPropertyPlantEquipment" />
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_Land" xlink:label="decimals_Land" />
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="decimals_TotalPropertyPlantEquipment" xlink:to="decimals_Land" order="1" weight="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_Buildings" xlink:label="decimals_Buildings" />
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="decimals_TotalPropertyPlantEquipment" xlink:to="decimals_Buildings" order="2" weight="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_FurnitureFixtures" xlink:label="decimals_FurnitureFixtures" />
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="decimals_TotalPropertyPlantEquipment" xlink:to="decimals_FurnitureFixtures" order="3" weight="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_ComputerEquipment" xlink:label="decimals_ComputerEquipment" />
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="decimals_TotalPropertyPlantEquipment" xlink:to="decimals_ComputerEquipment" order="4" weight="1" use="optional" />
+    <loc xlink:type="locator" xlink:href="305_07_decimals_test.xsd#decimals_Other" xlink:label="decimals_Other" />
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="decimals_TotalPropertyPlantEquipment" xlink:to="decimals_Other" order="5" weight="1" use="optional" />
+  </calculationLink>
+</linkbase>

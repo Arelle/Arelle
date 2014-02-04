@@ -1,7 +1,7 @@
 import sys
 from arelle.xlwt.antlr import EOF, CommonToken as Tok, TokenStream, TokenStreamException
 import struct
-from arelle import ExcelFormulaParser
+from arelle.xlwt import ExcelFormulaParser
 from re import compile as recompile, match, LOCALE, UNICODE, IGNORECASE, VERBOSE
 
 

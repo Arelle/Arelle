@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+<link:loc xlink:type="locator" xlink:href="e61604011ng-20081231.xsd#e6160400_CashLike"
+xlink:label="CashLike"/>
+<link:loc xlink:type="locator"
+xlink:href="e61604011ng-20081231.xsd#e6160400_ChangeInCashLike"
+xlink:label="ChangeInCashLike"/>
+<link:label xlink:type="resource" xlink:label="label_CashLike"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_CashLike">Cash-like</link:label>
+<link:label xlink:type="resource" xlink:label="label_CashLike_2"
+xlink:role="http://www.xbrl.org/2003/role/periodStartLabel"
+xml:lang="en-US"
+id="label_CashLike_2">Cash-like, Beginning of Period</link:label>
+<link:label xlink:type="resource" xlink:label="label_CashLike_3"
+xlink:role="http://www.xbrl.org/2003/role/periodEndLabel"
+xml:lang="en-US"
+id="label_CashLike_3">Cash-like, End of Period</link:label>
+<link:label xlink:type="resource" xlink:label="label_ChangeInCashLike"
+xlink:role="http://www.xbrl.org/2003/role/label"
+xml:lang="en-US"
+id="label_ChangeInCashLike">Change in Cash-like</link:label>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="CashLike"
+xlink:to="label_CashLike"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="CashLike"
+xlink:to="label_CashLike_2"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="CashLike"
+xlink:to="label_CashLike_3"/>
+<link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"
+xlink:from="ChangeInCashLike"
+xlink:to="label_ChangeInCashLike"/>
+</link:labelLink>
+</link:linkbase>

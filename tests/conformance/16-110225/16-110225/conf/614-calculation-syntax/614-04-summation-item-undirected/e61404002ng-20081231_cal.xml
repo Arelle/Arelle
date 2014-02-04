@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:roleRef roleURI="http://edgar/role/OtherInformation" xlink:type="simple"
+xlink:href="edgar-20081231.xsd#OtherInformation"/>
+<link:calculationLink xlink:type="extended" xlink:role="http://edgar/role/OtherInformation">
+<link:loc xlink:type="locator" xlink:href="e61404002ng-20081231.xsd#e6140400_Lies"
+xlink:label="Lies"/>
+<link:loc xlink:type="locator" xlink:href="e61404002ng-20081231.xsd#e6140400_DamnedLies"
+xlink:label="DamnedLies"/>
+<link:loc xlink:type="locator" xlink:href="e61404002ng-20081231.xsd#e6140400_Statistics"
+xlink:label="Statistics"/>
+<link:calculationArc xlink:type="arc"
+xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item"
+xlink:from="Lies"
+xlink:to="DamnedLies"
+order="1.0"
+weight="1.0"/>
+<link:calculationArc xlink:type="arc"
+xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item"
+xlink:from="DamnedLies"
+xlink:to="Statistics"
+order="1.0"
+weight="1.0"/>
+<link:calculationArc xlink:type="arc"
+xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item"
+xlink:from="Statistics"
+xlink:to="Lies"
+order="1.0"
+weight="1.0"/>
+</link:calculationLink>
+</link:linkbase>

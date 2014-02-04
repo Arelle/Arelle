@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:ref="http://xbrl.org/2008/reference"
+  xmlns:test="http://xbrl.org/formula/conformance/custom-test-link"
+  xmlns:eg="http://xbrl.org/formula/conformance/example"  
+  xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase 
+      http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic 
+      ../../../core_schemas/generic-link.xsd
+  http://xbrl.org/2008/reference 
+      ../../../core_schemas/generic-reference.xsd
+  http://xbrl.org/formula/conformance/custom-test-link
+      ../lib/custom-test-link.xsd
+  http://xbrl.org/formula/conformance/example 
+          70211-reference-resource-concepts-v01.xsd
+  ">
+  
+  <link:arcroleRef 
+      arcroleURI="http://xbrl.org/arcrole/2008/element-reference" 
+      xlink:href="../../../core_schemas/generic-reference.xsd#element-reference" 
+      xlink:type="simple"/>
+
+  <link:arcroleRef 
+      arcroleURI="http://xbrl.org/arcrole/2008/test-arcrole-gen" 
+      xlink:href="../lib/custom-test-link.xsd#test-arc-gen" 
+      xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2003/role/link">
+
+    <test:thing xlink:type="resource" xlink:label="a" id="a">
+       Thing a.
+    </test:thing>
+    
+    <test:thing xlink:type="resource" xlink:label="b" id="b">
+       Thing b.
+    </test:thing>
+    
+    <generic:arc id="arc_a_b" xlink:type="arc"
+      xlink:from="a" xlink:to="b" order="1" priority="1"
+      xlink:arcrole="http://xbrl.org/arcrole/2008/test-arcrole-gen" />
+
+    <!-- references for the preceeding linkbase things -->
+    <ref:reference xlink:type="resource" xlink:label="shared_refs" 
+      xlink:role="http://www.xbrl.org/2003/role/reference" >
+        <eg:PartA>A 1</eg:PartA>
+        <eg:PartB>B 1</eg:PartB>
+        <eg:PartC>C 1</eg:PartC>
+    </ref:reference>
+
+    <ref:reference xlink:type="resource" xlink:label="shared_refs" 
+      xlink:role="http://www.xbrl.org/2003/role/reference" >
+        <eg:PartA>A 2</eg:PartA>
+        <eg:PartB>B 2</eg:PartB>
+        <eg:PartC>C 2</eg:PartC>
+    </ref:reference>
+
+    <!-- arcs for references, resources pretty simple -->
+    <generic:arc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/element-reference"
+      xlink:from="a" xlink:to="shared_refs" order="1.0"/>
+
+    <generic:arc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/element-reference"
+      xlink:from="b" xlink:to="shared_refs" order="1.0"/>
+
+  </generic:link>
+
+</link:linkbase>
+
+
+
+

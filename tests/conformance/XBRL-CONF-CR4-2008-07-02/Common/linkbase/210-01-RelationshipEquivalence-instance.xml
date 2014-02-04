@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!-- Copyright 2003 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:my="http://mycompany.com/xbrl/taxonomy" 
+xsi:schemaLocation="http://mycompany.com/xbrl/taxonomy 210-01-RelationshipEquivalence.xsd">
+  <link:schemaRef xlink:href="210-01-RelationshipEquivalence.xsd" xlink:type="simple"/>
+
+  <my:fixedAssets contextRef="c1" unitRef="u1" precision="3">5000</my:fixedAssets>
+  <my:changeInRetainedEarnings contextRef="c1" unitRef="u1" precision="3">1000</my:changeInRetainedEarnings>
+  <context id="c1">
+    <entity>
+      <identifier scheme="www.dnb.com">121064880</identifier>
+    </entity>
+    <period><instant>2003-12-12</instant></period>
+  </context>
+  <unit id="u1">
+    <measure>iso4217:GBP</measure>
+  </unit>
+</xbrl>

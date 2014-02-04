@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!-- XBRL 2.1 Test 105.01 -->
+<!-- Edited by UBmatrix LLC -->
+<!-- Copyright 2003 XBRL International. See http://www.xbrl.org/legal. All Rights Reserved. -->
+<xsd:schema
+   targetNamespace="http://mycompany.com/xbrl/taxonomy/ext"
+   xmlns:xbrli="http://www.xbrl.org/2003/instance"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+   <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+
+   <xsd:element name="ItemWithBalance" type="xbrli:decimalItemType" xbrli:balance="debit" substitutionGroup="xbrli:item" id="e1" xbrli:periodType="duration"/>
+   <!--Element has balance attribute, type is NOT monetaryItemType, result is INVALID -->
+
+</xsd:schema>

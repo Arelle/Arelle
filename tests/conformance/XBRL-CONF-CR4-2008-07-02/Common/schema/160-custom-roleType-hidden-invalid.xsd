@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xl="http://www.xbrl.org/2003/XLink" xmlns:xbrli="http://www.xbrl.org/2003/instance" targetNamespace="http://xbrl.org/2007/customRoleType-hidden" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<annotation>
+		<appinfo>
+			<link:roleType id="hidden" roleURI="http://www.xbrl.org/2007/role/custom-but-hidden">
+				<link:definition>Identifies the content of a custom linkbase</link:definition>
+				<link:usedOn>link:linkbaseRef</link:usedOn>
+			</link:roleType>
+			<link:arcroleType id="concept-label" arcroleURI="http://www.xbrl.org/2007/arcrole/concept-label" cyclesAllowed="none">
+				<link:definition>the 2007 edition of a concept-label arcrole</link:definition>
+				<link:usedOn>cArc</link:usedOn>
+			</link:arcroleType>
+		</appinfo>
+	</annotation>
+	<import namespace="http://www.xbrl.org/2003/XLink" schemaLocation="http://www.xbrl.org/2003/xl-2003-12-31.xsd"/>
+	<import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<element name="cArc" type="xl:arcType" substitutionGroup="xl:arc">
+		<annotation>
+			<documentation>
+      Concrete arc for use in extended links.
+			</documentation>
+		</annotation>
+	</element>
+	<element name="bad" type="decimal" substitutionGroup="xbrli:item" nillable="true" id="tx_foo" xbrli:periodType="instant"/>
+	<element name="customRes" substitutionGroup="xl:resource"/>
+</schema>

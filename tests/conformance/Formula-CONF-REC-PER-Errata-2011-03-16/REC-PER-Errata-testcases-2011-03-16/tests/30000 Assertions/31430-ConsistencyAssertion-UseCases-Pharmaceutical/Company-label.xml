@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Label Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 3.0.2760.2310 (2007-05-15 03:15).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2007 UBmatrix inc., All Rights Reserved
+Produced on 2007-05-31 21:51:24
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="Company.xsd#company_ByProductPlaceholder" xlink:label="company_ByProductPlaceholder" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="company_ByProductPlaceholder" xlink:to="company_ByProductPlaceholder_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="company_ByProductPlaceholder_lbl" xml:lang="en">By Product (Placeholder)</label>
+    <loc xlink:type="locator" xlink:href="Company.xsd#company_ByRegionPlaceholder" xlink:label="company_ByRegionPlaceholder" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="company_ByRegionPlaceholder" xlink:to="company_ByRegionPlaceholder_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="company_ByRegionPlaceholder_lbl" xml:lang="en">By Region (Placeholder)</label>
+    <loc xlink:type="locator" xlink:href="Company.xsd#company_CompanyHypercube" xlink:label="company_CompanyHypercube" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="company_CompanyHypercube" xlink:to="company_CompanyHypercube_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="company_CompanyHypercube_lbl" xml:lang="en">Company Hypercube</label>
+    <loc xlink:type="locator" xlink:href="Company.xsd#company_ValidByProduct" xlink:label="company_ValidByProduct" />
+    <labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="company_ValidByProduct" xlink:to="company_ValidByProduct_lbl" />
+    <label xlink:type="resource" xlink:role="http://www.xbrl.org/2003/role/label" xlink:label="company_ValidByProduct_lbl" xml:lang="en">Valid By Product</label>
+  </labelLink>
+</linkbase>

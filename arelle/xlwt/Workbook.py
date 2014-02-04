@@ -39,8 +39,8 @@ Record Order in BIFF8
       EOF
 '''
 
-from arelle import BIFFRecords
-from arelle import Style
+from arelle.xlwt import BIFFRecords
+from arelle.xlwt import Style
 
 class Workbook(object):
 
@@ -311,7 +311,7 @@ class Workbook(object):
         return self.__sst.str_index(s)
 
     def add_sheet(self, sheetname, cell_overwrite_ok=False):
-        from arelle import Worksheet, Utils
+        from arelle.xlwt import Worksheet, Utils
         if not isinstance(sheetname, str):
             sheetname = sheetname.decode(self.encoding)
         if not Utils.valid_sheet_name(sheetname):
@@ -627,7 +627,7 @@ class Workbook(object):
         return before + bundlesheets + after + ext_sst + eof + sheets
 
     def save(self, filename):
-        from arelle import CompoundDoc
+        from arelle.xlwt import CompoundDoc
 
         doc = CompoundDoc.XlsDoc()
         doc.save(filename, self.get_biff_data())

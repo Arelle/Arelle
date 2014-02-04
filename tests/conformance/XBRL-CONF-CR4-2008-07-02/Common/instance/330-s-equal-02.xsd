@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<schema
+  xmlns="http://www.w3.org/2001/XMLSchema"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:t="http://xbrl.org/conformance/example"
+  targetNamespace="http://xbrl.org/conformance/example"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+      <link:linkbaseRef xlink:type="simple"
+        xlink:role="http://www.xbrl.org/2003/role/calculationLinkbaseRef"
+        xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"
+        xlink:href="330-s-equal-02-calculation.xml"
+        xlink:title="Calculation Links, all" />
+    </appinfo>
+  </annotation>
+  <import
+    namespace="http://www.xbrl.org/2003/instance"
+    schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <element
+    name="scenarioVal"
+    id="scenarioVal">
+    <complexType>
+        <complexContent>
+            <restriction base="anyType">
+                <choice minOccurs="0" maxOccurs="unbounded">
+                    <any />
+                </choice>
+                <attribute name="id" type="ID" use="optional" />
+                <attribute name="a1" type="string" use="optional" />
+                <attribute name="a2" type="decimal" use="optional" />
+                <attribute name="a3" type="double" use="optional" />
+                <attribute name="a4" type="boolean" use="optional" />
+            </restriction>
+        </complexContent>
+    </complexType>
+  </element>
+  <element
+    name="strVal"
+    type="string" />
+  <element
+    name="decVal"
+    type="decimal" />
+  <element
+    name="dblVal"
+    type="double" />
+  <element
+    name="boolVal"
+    type="boolean" />
+  <element
+    id="t_P1"
+    name="P1"
+    type="xbrli:decimalItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    nillable="true" />
+  <element
+    id="t_P2"
+    name="P2"
+    type="xbrli:decimalItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    nillable="true" />
+  <element
+    id="t_P3"
+    name="P3"
+    type="xbrli:decimalItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    nillable="true" />
+</schema>

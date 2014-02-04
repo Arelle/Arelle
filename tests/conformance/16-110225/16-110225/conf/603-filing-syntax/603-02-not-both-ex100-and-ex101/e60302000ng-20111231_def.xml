@@ -1,0 +1,1115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<link:linkbase xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:edgar="http://edgar/20111231"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:roleRef xlink:href="e60302000ng-20111231.xsd#DocumentInformation"
+roleURI="http://edgar/role/DocumentInformation"
+xlink:type="simple"/>
+<link:roleRef xlink:href="e60302000ng-20111231.xsd#EntityInformation"
+roleURI="http://edgar/role/EntityInformation"
+xlink:type="simple"/>
+<link:roleRef xlink:href="e60302000ng-20111231.xsd#Defaults"
+roleURI="http://edgar/role/Defaults"
+xlink:type="simple"/>
+<link:arcroleRef xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"
+arcroleURI="http://xbrl.org/int/dim/arcrole/all"
+xlink:type="simple"/>
+<link:arcroleRef xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-default"
+arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-default"
+xlink:type="simple"/>
+<link:arcroleRef xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain"
+arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain"
+xlink:type="simple"/>
+<link:arcroleRef xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"
+arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:type="simple"/>
+<link:arcroleRef xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"
+arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+xlink:type="simple"/>
+<link:definitionLink xlink:type="extended" xlink:role="http://edgar/role/DocumentInformation">
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentInformationLineItems"
+xlink:type="locator"
+xlink:label="DocumentInformationLineItems"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentInformationTable"
+xlink:type="locator"
+xlink:label="DocumentInformationTable"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentInformationDocumentAxis"
+xlink:type="locator"
+xlink:label="DocumentInformationDocumentAxis"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentDomain"
+xlink:type="locator"
+xlink:label="DocumentDomain"/>
+<link:loc xlink:href="e60302000ng-20111231.xsd#edgar_Form10KMember" xlink:type="locator"
+xlink:label="Form10KMember"/>
+<link:loc xlink:href="e60302000ng-20111231.xsd#edgar_Exhibit31Member"
+xlink:type="locator"
+xlink:label="Exhibit31Member"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentName"
+xlink:type="locator"
+xlink:label="DocumentName"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentTitle"
+xlink:type="locator"
+xlink:label="DocumentTitle"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentSubtitle"
+xlink:type="locator"
+xlink:label="DocumentSubtitle"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentSynopsis"
+xlink:type="locator"
+xlink:label="DocumentSynopsis"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentType"
+xlink:type="locator"
+xlink:label="DocumentType"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentReportType"
+xlink:type="locator"
+xlink:label="DocumentReportType"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_AmendmentFlag"
+xlink:type="locator"
+xlink:label="AmendmentFlag"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_AmendmentDescription"
+xlink:type="locator"
+xlink:label="AmendmentDescription"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentDescription"
+xlink:type="locator"
+xlink:label="DocumentDescription"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentCreationDate"
+xlink:type="locator"
+xlink:label="DocumentCreationDate"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentEffectiveDate"
+xlink:type="locator"
+xlink:label="DocumentEffectiveDate"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentPeriodStartDate"
+xlink:type="locator"
+xlink:label="DocumentPeriodStartDate"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentPeriodEndDate"
+xlink:type="locator"
+xlink:label="DocumentPeriodEndDate"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentFiscalYearFocus"
+xlink:type="locator"
+xlink:label="DocumentFiscalYearFocus"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentFiscalPeriodFocus"
+xlink:type="locator"
+xlink:label="DocumentFiscalPeriodFocus"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentVersion"
+xlink:type="locator"
+xlink:label="DocumentVersion"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentCopyrightInformation"
+xlink:type="locator"
+xlink:label="DocumentCopyrightInformation"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_ContainedFileInformationFileName"
+xlink:type="locator"
+xlink:label="ContainedFileInformationFileName"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_ContainedFileInformationFileDescription"
+xlink:type="locator"
+xlink:label="ContainedFileInformationFileDescription"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_ContainedFileInformationFileType"
+xlink:type="locator"
+xlink:label="ContainedFileInformationFileType"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_ContainedFileInformationFileNumber"
+xlink:type="locator"
+xlink:label="ContainedFileInformationFileNumber"/>
+<link:definitionArc xlink:to="DocumentInformationTable" use="optional" order="1.0"
+xbrldt:contextElement="segment"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"/>
+<link:definitionArc xlink:to="DocumentInformationDocumentAxis" use="optional" order="1.0"
+xlink:from="DocumentInformationTable"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"/>
+<link:definitionArc xlink:to="DocumentDomain" use="optional" order="1.0"
+xlink:from="DocumentInformationDocumentAxis"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"/>
+<link:definitionArc xlink:to="Form10KMember" order="1.0" xlink:from="DocumentDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="Exhibit31Member" order="2.0" xlink:from="DocumentDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="DocumentName" use="optional" order="2.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="DocumentTitle" use="optional" order="3.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="DocumentSubtitle" use="optional" order="4.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="DocumentSynopsis" use="optional" order="5.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="DocumentType" use="optional" order="6.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="DocumentReportType" use="optional" order="7.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="AmendmentFlag" use="optional" order="8.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="AmendmentDescription" use="optional" order="9.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="DocumentDescription" use="optional" order="10.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="DocumentCreationDate" use="optional" order="11.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="DocumentEffectiveDate" use="optional" order="12.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="DocumentPeriodStartDate" use="optional" order="13.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="DocumentPeriodEndDate" use="optional" order="14.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="DocumentFiscalYearFocus" use="optional" order="15.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="DocumentFiscalPeriodFocus" use="optional" order="16.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="DocumentVersion" use="optional" order="17.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="DocumentCopyrightInformation" use="optional" order="18.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="ContainedFileInformationFileName" use="optional" order="19.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="ContainedFileInformationFileDescription" use="optional" order="20.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="ContainedFileInformationFileType" use="optional" order="21.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="ContainedFileInformationFileNumber" use="optional" order="22.0"
+xlink:from="DocumentInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+</link:definitionLink>
+<link:definitionLink xlink:type="extended" xlink:role="http://edgar/role/EntityInformation">
+<link:loc xlink:href="e60302000ng-20111231.xsd#edgar_Top" xlink:type="locator"
+xlink:label="Top"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityInformationLineItems"
+xlink:type="locator"
+xlink:label="EntityInformationLineItems"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntitiesTable"
+xlink:type="locator"
+xlink:label="EntitiesTable"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_LegalEntityAxis"
+xlink:type="locator"
+xlink:label="LegalEntityAxis"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityDomain"
+xlink:type="locator"
+xlink:label="EntityDomain"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityContactPersonnelLineItems"
+xlink:type="locator"
+xlink:label="EntityContactPersonnelLineItems"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityContactPersonnelTable"
+xlink:type="locator"
+xlink:label="EntityContactPersonnelTable"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityContactPersonnelContactPersonTypeAxis"
+xlink:type="locator"
+xlink:label="EntityContactPersonnelContactPersonTypeAxis"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_ContactPersonTypeDomain"
+xlink:type="locator"
+xlink:label="ContactPersonTypeDomain"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityAddressesLineItems"
+xlink:type="locator"
+xlink:label="EntityAddressesLineItems"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityAddressesTable"
+xlink:type="locator"
+xlink:label="EntityAddressesTable"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityAddressesAddressTypeAxis"
+xlink:type="locator"
+xlink:label="EntityAddressesAddressTypeAxis"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_AddressTypeDomain"
+xlink:type="locator"
+xlink:label="AddressTypeDomain"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityPhoneFaxNumbersLineItems"
+xlink:type="locator"
+xlink:label="EntityPhoneFaxNumbersLineItems"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityPhoneFaxNumbersTable"
+xlink:type="locator"
+xlink:label="EntityPhoneFaxNumbersTable"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityPhoneFaxNumbersPhoneFaxNumberTypeAxis"
+xlink:type="locator"
+xlink:label="EntityPhoneFaxNumbersPhoneFaxNumberTypeAxis"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_PhoneFaxNumberTypeDomain"
+xlink:type="locator"
+xlink:label="PhoneFaxNumberTypeDomain"/>
+<link:loc xlink:href="e60302000ng-20111231.xsd#edgar_AbcfsMember" xlink:type="locator"
+xlink:label="AbcfsMember"/>
+<link:loc xlink:href="e60302000ng-20111231.xsd#edgar_AbcMember" xlink:type="locator"
+xlink:label="AbcMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityRegistrantName"
+xlink:type="locator"
+xlink:label="EntityRegistrantName"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityCentralIndexKey"
+xlink:type="locator"
+xlink:label="EntityCentralIndexKey"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityTaxIdentificationNumber"
+xlink:type="locator"
+xlink:label="EntityTaxIdentificationNumber"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityDataUniversalNumberingSystemNumber"
+xlink:type="locator"
+xlink:label="EntityDataUniversalNumberingSystemNumber"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityOtherIdentificationType"
+xlink:type="locator"
+xlink:label="EntityOtherIdentificationType"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityOtherIdentificationValue"
+xlink:type="locator"
+xlink:label="EntityOtherIdentificationValue"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityInformationCurrentLegalOrRegisteredName"
+xlink:type="locator"
+xlink:label="EntityInformationCurrentLegalOrRegisteredName"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityInformationFormerLegalOrRegisteredName"
+xlink:type="locator"
+xlink:label="EntityInformationFormerLegalOrRegisteredName"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityInformationDateToChangeFormerLegalOrRegisteredName"
+xlink:type="locator"
+xlink:label="EntityInformationDateToChangeFormerLegalOrRegisteredName"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityLegalForm"
+xlink:type="locator"
+xlink:label="EntityLegalForm"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityHomeCountryISOCode"
+xlink:type="locator"
+xlink:label="EntityHomeCountryISOCode"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_ParentEntityLegalName"
+xlink:type="locator"
+xlink:label="ParentEntityLegalName"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityAccountingStandard"
+xlink:type="locator"
+xlink:label="EntityAccountingStandard"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityReportingCurrencyISOCode"
+xlink:type="locator"
+xlink:label="EntityReportingCurrencyISOCode"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityIncorporationStateCountryName"
+xlink:type="locator"
+xlink:label="EntityIncorporationStateCountryName"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityIncorporationDateOfIncorporation"
+xlink:type="locator"
+xlink:label="EntityIncorporationDateOfIncorporation"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityNumberOfEmployees"
+xlink:type="locator"
+xlink:label="EntityNumberOfEmployees"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_CurrentFiscalYearEndDate"
+xlink:type="locator"
+xlink:label="CurrentFiscalYearEndDate"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_FormerFiscalYearEndDate"
+xlink:type="locator"
+xlink:label="FormerFiscalYearEndDate"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityWellKnownSeasonedIssuer"
+xlink:type="locator"
+xlink:label="EntityWellKnownSeasonedIssuer"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityVoluntaryFilers"
+xlink:type="locator"
+xlink:label="EntityVoluntaryFilers"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityCurrentReportingStatus"
+xlink:type="locator"
+xlink:label="EntityCurrentReportingStatus"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityFilerCategory"
+xlink:type="locator"
+xlink:label="EntityFilerCategory"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityPublicFloat"
+xlink:type="locator"
+xlink:label="EntityPublicFloat"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityCommonStockSharesOutstanding"
+xlink:type="locator"
+xlink:label="EntityCommonStockSharesOutstanding"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_ContactPersonTypeDomain"
+xlink:type="locator"
+xlink:label="ContactPersonTypeDomain_2"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentContactMember"
+xlink:type="locator"
+xlink:label="DocumentContactMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_LegalContactMember"
+xlink:type="locator"
+xlink:label="LegalContactMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_BusinessContactMember"
+xlink:type="locator"
+xlink:label="BusinessContactMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_AccountingContactMember"
+xlink:type="locator"
+xlink:label="AccountingContactMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_InvestorRelationsContactMember"
+xlink:type="locator"
+xlink:label="InvestorRelationsContactMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_HumanResourcesContactMember"
+xlink:type="locator"
+xlink:label="HumanResourcesContactMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_ContactPersonnelName"
+xlink:type="locator"
+xlink:label="ContactPersonnelName"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_ContactPersonnelEmailAddress"
+xlink:type="locator"
+xlink:label="ContactPersonnelEmailAddress"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_ContactPersonnelUniformResourceLocatorURL"
+xlink:type="locator"
+xlink:label="ContactPersonnelUniformResourceLocatorURL"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_AddressTypeDomain"
+xlink:type="locator"
+xlink:label="AddressTypeDomain_2"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_MailingAddressMember"
+xlink:type="locator"
+xlink:label="MailingAddressMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_PrincipalAddressMember"
+xlink:type="locator"
+xlink:label="PrincipalAddressMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_OtherAddressMember"
+xlink:type="locator"
+xlink:label="OtherAddressMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_LegalAddressMember"
+xlink:type="locator"
+xlink:label="LegalAddressMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_AccountingAddressMember"
+xlink:type="locator"
+xlink:label="AccountingAddressMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_ContactAddressMember"
+xlink:type="locator"
+xlink:label="ContactAddressMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityAddressAddressDescription"
+xlink:type="locator"
+xlink:label="EntityAddressAddressDescription"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityAddressAddressLine1"
+xlink:type="locator"
+xlink:label="EntityAddressAddressLine1"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityAddressAddressLine2"
+xlink:type="locator"
+xlink:label="EntityAddressAddressLine2"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityAddressAddressLine3"
+xlink:type="locator"
+xlink:label="EntityAddressAddressLine3"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityAddressCityOrTown"
+xlink:type="locator"
+xlink:label="EntityAddressCityOrTown"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityAddressStateOrProvince"
+xlink:type="locator"
+xlink:label="EntityAddressStateOrProvince"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityAddressRegion"
+xlink:type="locator"
+xlink:label="EntityAddressRegion"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityAddressCountry"
+xlink:type="locator"
+xlink:label="EntityAddressCountry"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityAddressPostalZipCode"
+xlink:type="locator"
+xlink:label="EntityAddressPostalZipCode"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_PhoneFaxNumberTypeDomain"
+xlink:type="locator"
+xlink:label="PhoneFaxNumberTypeDomain_2"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_InvestorRelationsPhoneMember"
+xlink:type="locator"
+xlink:label="InvestorRelationsPhoneMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_InvestorRelationsFaxMember"
+xlink:type="locator"
+xlink:label="InvestorRelationsFaxMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_GeneralPhoneMember"
+xlink:type="locator"
+xlink:label="GeneralPhoneMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_GeneralFaxMember"
+xlink:type="locator"
+xlink:label="GeneralFaxMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_LegalPhoneMember"
+xlink:type="locator"
+xlink:label="LegalPhoneMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_LegalFaxMember"
+xlink:type="locator"
+xlink:label="LegalFaxMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_AccountingPhoneMember"
+xlink:type="locator"
+xlink:label="AccountingPhoneMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_AccountingFaxMember"
+xlink:type="locator"
+xlink:label="AccountingFaxMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_ContactPhoneMember"
+xlink:type="locator"
+xlink:label="ContactPhoneMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_ContactFaxMember"
+xlink:type="locator"
+xlink:label="ContactFaxMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_PhoneFaxNumberDescription"
+xlink:type="locator"
+xlink:label="PhoneFaxNumberDescription"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_CountryRegion"
+xlink:type="locator"
+xlink:label="CountryRegion"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_CityAreaCode"
+xlink:type="locator"
+xlink:label="CityAreaCode"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_LocalPhoneNumber"
+xlink:type="locator"
+xlink:label="LocalPhoneNumber"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_Extension"
+xlink:type="locator"
+xlink:label="Extension"/>
+<link:definitionArc xlink:to="EntityInformationLineItems" order="1.0" xlink:from="Top"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntitiesTable" use="optional" order="1.0"
+xbrldt:contextElement="segment"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"/>
+<link:definitionArc xlink:to="LegalEntityAxis" use="optional" order="1.0"
+xlink:from="EntitiesTable"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"/>
+<link:definitionArc xlink:to="EntityDomain" order="1.0" xlink:from="LegalEntityAxis"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"/>
+<link:definitionArc xlink:to="AbcfsMember" order="1.0" xlink:from="EntityDomain" xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="AbcMember" order="2.0" xlink:from="EntityDomain" xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityRegistrantName" use="optional" order="2.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityCentralIndexKey" use="optional" order="3.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityTaxIdentificationNumber" use="optional" order="4.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityDataUniversalNumberingSystemNumber" use="optional" order="5.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityOtherIdentificationType" use="optional" order="6.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityOtherIdentificationValue" use="optional" order="7.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityInformationCurrentLegalOrRegisteredName" use="optional"
+order="8.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityInformationFormerLegalOrRegisteredName" use="optional"
+order="9.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityInformationDateToChangeFormerLegalOrRegisteredName"
+use="optional"
+order="10.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityLegalForm" use="optional" order="11.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityHomeCountryISOCode" use="optional" order="12.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="ParentEntityLegalName" use="optional" order="13.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityAccountingStandard" use="optional" order="14.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityReportingCurrencyISOCode" use="optional" order="15.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityIncorporationStateCountryName" use="optional" order="16.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityIncorporationDateOfIncorporation" use="optional" order="17.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityNumberOfEmployees" use="optional" order="18.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="CurrentFiscalYearEndDate" use="optional" order="19.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="FormerFiscalYearEndDate" use="optional" order="20.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityWellKnownSeasonedIssuer" use="optional" order="21.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityVoluntaryFilers" use="optional" order="22.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityCurrentReportingStatus" use="optional" order="23.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityFilerCategory" use="optional" order="24.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityPublicFloat" use="optional" order="25.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityCommonStockSharesOutstanding" use="optional" order="26.0"
+xlink:from="EntityInformationLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityContactPersonnelLineItems" order="2.0" xlink:from="Top"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityContactPersonnelTable" use="optional" order="1.0"
+xbrldt:contextElement="segment"
+xlink:from="EntityContactPersonnelLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"/>
+<link:definitionArc xlink:to="LegalEntityAxis" use="optional" order="1.0"
+xlink:from="EntityContactPersonnelTable"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"/>
+<link:definitionArc xlink:to="EntityContactPersonnelContactPersonTypeAxis" use="optional"
+order="2.0"
+xlink:from="EntityContactPersonnelTable"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"/>
+<link:definitionArc xlink:to="ContactPersonTypeDomain_2" priority="1" use="optional" order="2.0"
+xlink:from="EntityContactPersonnelContactPersonTypeAxis"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"/>
+<link:definitionArc xlink:to="DocumentContactMember" use="optional" order="1.0"
+xlink:from="ContactPersonTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="LegalContactMember" use="optional" order="2.0"
+xlink:from="ContactPersonTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="BusinessContactMember" use="optional" order="3.0"
+xlink:from="ContactPersonTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="AccountingContactMember" use="optional" order="4.0"
+xlink:from="ContactPersonTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="InvestorRelationsContactMember" use="optional" order="5.0"
+xlink:from="ContactPersonTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="HumanResourcesContactMember" use="optional" order="6.0"
+xlink:from="ContactPersonTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="ContactPersonnelName" use="optional" order="2.0"
+xlink:from="EntityContactPersonnelLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="ContactPersonnelEmailAddress" use="optional" order="3.0"
+xlink:from="EntityContactPersonnelLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="ContactPersonnelUniformResourceLocatorURL" use="optional" order="4.0"
+xlink:from="EntityContactPersonnelLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityAddressesLineItems" order="3.0" xlink:from="Top"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityAddressesTable" use="optional" order="1.0"
+xbrldt:contextElement="segment"
+xlink:from="EntityAddressesLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"/>
+<link:definitionArc xlink:to="LegalEntityAxis" use="optional" order="1.0"
+xlink:from="EntityAddressesTable"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"/>
+<link:definitionArc xlink:to="EntityAddressesAddressTypeAxis" use="optional" order="2.0"
+xlink:from="EntityAddressesTable"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"/>
+<link:definitionArc xlink:to="AddressTypeDomain_2" priority="1" use="optional" order="2.0"
+xlink:from="EntityAddressesAddressTypeAxis"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"/>
+<link:definitionArc xlink:to="MailingAddressMember" use="optional" order="1.0"
+xlink:from="AddressTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="PrincipalAddressMember" use="optional" order="2.0"
+xlink:from="AddressTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="OtherAddressMember" use="optional" order="3.0"
+xlink:from="AddressTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="LegalAddressMember" use="optional" order="4.0"
+xlink:from="AddressTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="AccountingAddressMember" use="optional" order="5.0"
+xlink:from="AddressTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="ContactAddressMember" use="optional" order="6.0"
+xlink:from="AddressTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityAddressAddressDescription" use="optional" order="2.0"
+xlink:from="EntityAddressesLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityAddressAddressLine1" use="optional" order="3.0"
+xlink:from="EntityAddressesLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityAddressAddressLine2" use="optional" order="4.0"
+xlink:from="EntityAddressesLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityAddressAddressLine3" use="optional" order="5.0"
+xlink:from="EntityAddressesLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityAddressCityOrTown" use="optional" order="6.0"
+xlink:from="EntityAddressesLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityAddressStateOrProvince" use="optional" order="7.0"
+xlink:from="EntityAddressesLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityAddressRegion" use="optional" order="8.0"
+xlink:from="EntityAddressesLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityAddressCountry" use="optional" order="9.0"
+xlink:from="EntityAddressesLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityAddressPostalZipCode" use="optional" order="10.0"
+xlink:from="EntityAddressesLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityPhoneFaxNumbersLineItems" order="4.0" xlink:from="Top"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="EntityPhoneFaxNumbersTable" use="optional" order="1.0"
+xbrldt:contextElement="segment"
+xlink:from="EntityPhoneFaxNumbersLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"/>
+<link:definitionArc xlink:to="LegalEntityAxis" use="optional" order="1.0"
+xlink:from="EntityPhoneFaxNumbersTable"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"/>
+<link:definitionArc xlink:to="EntityPhoneFaxNumbersPhoneFaxNumberTypeAxis" use="optional"
+order="2.0"
+xlink:from="EntityPhoneFaxNumbersTable"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"/>
+<link:definitionArc xlink:to="PhoneFaxNumberTypeDomain_2" priority="1" use="optional" order="2.0"
+xlink:from="EntityPhoneFaxNumbersPhoneFaxNumberTypeAxis"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"/>
+<link:definitionArc xlink:to="InvestorRelationsPhoneMember" use="optional" order="1.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="InvestorRelationsFaxMember" use="optional" order="2.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="GeneralPhoneMember" use="optional" order="3.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="GeneralFaxMember" use="optional" order="4.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="LegalPhoneMember" use="optional" order="5.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="LegalFaxMember" use="optional" order="6.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="AccountingPhoneMember" use="optional" order="7.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="AccountingFaxMember" use="optional" order="8.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="ContactPhoneMember" use="optional" order="9.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="ContactFaxMember" use="optional" order="10.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="PhoneFaxNumberDescription" use="optional" order="2.0"
+xlink:from="EntityPhoneFaxNumbersLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="CountryRegion" use="optional" order="3.0"
+xlink:from="EntityPhoneFaxNumbersLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="CityAreaCode" use="optional" order="4.0"
+xlink:from="EntityPhoneFaxNumbersLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="LocalPhoneNumber" use="optional" order="5.0"
+xlink:from="EntityPhoneFaxNumbersLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+<link:definitionArc xlink:to="Extension" use="optional" order="6.0"
+xlink:from="EntityPhoneFaxNumbersLineItems"
+xlink:type="arc"
+xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"/>
+</link:definitionLink>
+<link:definitionLink xlink:type="extended" xlink:role="http://edgar/role/Defaults">
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentInformationDocumentAxis"
+xlink:type="locator"
+xlink:label="DocumentInformationDocumentAxis"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentDomain"
+xlink:type="locator"
+xlink:label="DocumentDomain"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_LegalEntityAxis"
+xlink:type="locator"
+xlink:label="LegalEntityAxis"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityDomain"
+xlink:type="locator"
+xlink:label="EntityDomain"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityContactPersonnelContactPersonTypeAxis"
+xlink:type="locator"
+xlink:label="EntityContactPersonnelContactPersonTypeAxis"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_ContactPersonTypeDomain"
+xlink:type="locator"
+xlink:label="ContactPersonTypeDomain"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityAddressesAddressTypeAxis"
+xlink:type="locator"
+xlink:label="EntityAddressesAddressTypeAxis"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_AddressTypeDomain"
+xlink:type="locator"
+xlink:label="AddressTypeDomain"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityPhoneFaxNumbersPhoneFaxNumberTypeAxis"
+xlink:type="locator"
+xlink:label="EntityPhoneFaxNumbersPhoneFaxNumberTypeAxis"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_PhoneFaxNumberTypeDomain"
+xlink:type="locator"
+xlink:label="PhoneFaxNumberTypeDomain"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentDomain"
+xlink:type="locator"
+xlink:label="DocumentDomain_2"/>
+<link:loc xlink:href="e60302000ng-20111231.xsd#edgar_Form10KMember" xlink:type="locator"
+xlink:label="Form10KMember"/>
+<link:loc xlink:href="e60302000ng-20111231.xsd#edgar_Exhibit31Member"
+xlink:type="locator"
+xlink:label="Exhibit31Member"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityDomain"
+xlink:type="locator"
+xlink:label="EntityDomain_2"/>
+<link:loc xlink:href="e60302000ng-20111231.xsd#edgar_AbcfsMember" xlink:type="locator"
+xlink:label="AbcfsMember"/>
+<link:loc xlink:href="e60302000ng-20111231.xsd#edgar_AbcMember" xlink:type="locator"
+xlink:label="AbcMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_DocumentContactMember"
+xlink:type="locator"
+xlink:label="DocumentContactMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_LegalContactMember"
+xlink:type="locator"
+xlink:label="LegalContactMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_BusinessContactMember"
+xlink:type="locator"
+xlink:label="BusinessContactMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_AccountingContactMember"
+xlink:type="locator"
+xlink:label="AccountingContactMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_InvestorRelationsContactMember"
+xlink:type="locator"
+xlink:label="InvestorRelationsContactMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_HumanResourcesContactMember"
+xlink:type="locator"
+xlink:label="HumanResourcesContactMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_MailingAddressMember"
+xlink:type="locator"
+xlink:label="MailingAddressMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_PrincipalAddressMember"
+xlink:type="locator"
+xlink:label="PrincipalAddressMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_OtherAddressMember"
+xlink:type="locator"
+xlink:label="OtherAddressMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_LegalAddressMember"
+xlink:type="locator"
+xlink:label="LegalAddressMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_AccountingAddressMember"
+xlink:type="locator"
+xlink:label="AccountingAddressMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_ContactAddressMember"
+xlink:type="locator"
+xlink:label="ContactAddressMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_InvestorRelationsPhoneMember"
+xlink:type="locator"
+xlink:label="InvestorRelationsPhoneMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_InvestorRelationsFaxMember"
+xlink:type="locator"
+xlink:label="InvestorRelationsFaxMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_GeneralPhoneMember"
+xlink:type="locator"
+xlink:label="GeneralPhoneMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_GeneralFaxMember"
+xlink:type="locator"
+xlink:label="GeneralFaxMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_LegalPhoneMember"
+xlink:type="locator"
+xlink:label="LegalPhoneMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_LegalFaxMember"
+xlink:type="locator"
+xlink:label="LegalFaxMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_AccountingPhoneMember"
+xlink:type="locator"
+xlink:label="AccountingPhoneMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_AccountingFaxMember"
+xlink:type="locator"
+xlink:label="AccountingFaxMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_ContactPhoneMember"
+xlink:type="locator"
+xlink:label="ContactPhoneMember"/>
+<link:loc xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_ContactFaxMember"
+xlink:type="locator"
+xlink:label="ContactFaxMember"/>
+<link:definitionArc priority="1" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-default"
+xlink:to="DocumentDomain_2"
+use="optional"
+order="2.0"
+xlink:from="DocumentInformationDocumentAxis"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="Form10KMember"
+use="optional"
+order="1.0"
+xlink:from="DocumentDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="Exhibit31Member"
+use="optional"
+order="2.0"
+xlink:from="DocumentDomain"
+xlink:type="arc"/>
+<link:definitionArc priority="1" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-default"
+xlink:to="EntityDomain_2"
+use="optional"
+order="2.0"
+xlink:from="LegalEntityAxis"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="AbcfsMember"
+use="optional"
+order="1.0"
+xlink:from="EntityDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="AbcMember"
+use="optional"
+order="2.0"
+xlink:from="EntityDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-default"
+xlink:to="ContactPersonTypeDomain"
+use="optional"
+order="1.0"
+xlink:from="EntityContactPersonnelContactPersonTypeAxis"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="DocumentContactMember"
+use="optional"
+order="1.0"
+xlink:from="ContactPersonTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="LegalContactMember"
+use="optional"
+order="2.0"
+xlink:from="ContactPersonTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="BusinessContactMember"
+use="optional"
+order="3.0"
+xlink:from="ContactPersonTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="AccountingContactMember"
+use="optional"
+order="4.0"
+xlink:from="ContactPersonTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="InvestorRelationsContactMember"
+use="optional"
+order="5.0"
+xlink:from="ContactPersonTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="HumanResourcesContactMember"
+use="optional"
+order="6.0"
+xlink:from="ContactPersonTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-default"
+xlink:to="AddressTypeDomain"
+use="optional"
+order="1.0"
+xlink:from="EntityAddressesAddressTypeAxis"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="MailingAddressMember"
+use="optional"
+order="1.0"
+xlink:from="AddressTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="PrincipalAddressMember"
+use="optional"
+order="2.0"
+xlink:from="AddressTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="OtherAddressMember"
+use="optional"
+order="3.0"
+xlink:from="AddressTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="LegalAddressMember"
+use="optional"
+order="4.0"
+xlink:from="AddressTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="AccountingAddressMember"
+use="optional"
+order="5.0"
+xlink:from="AddressTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="ContactAddressMember"
+use="optional"
+order="6.0"
+xlink:from="AddressTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-default"
+xlink:to="PhoneFaxNumberTypeDomain"
+use="optional"
+order="1.0"
+xlink:from="EntityPhoneFaxNumbersPhoneFaxNumberTypeAxis"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="InvestorRelationsPhoneMember"
+use="optional"
+order="1.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="InvestorRelationsFaxMember"
+use="optional"
+order="2.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="GeneralPhoneMember"
+use="optional"
+order="3.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="GeneralFaxMember"
+use="optional"
+order="4.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="LegalPhoneMember"
+use="optional"
+order="5.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="LegalFaxMember"
+use="optional"
+order="6.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="AccountingPhoneMember"
+use="optional"
+order="7.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="AccountingFaxMember"
+use="optional"
+order="8.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="ContactPhoneMember"
+use="optional"
+order="9.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"/>
+<link:definitionArc xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:to="ContactFaxMember"
+use="optional"
+order="10.0"
+xlink:from="PhoneFaxNumberTypeDomain"
+xlink:type="arc"/>
+</link:definitionLink>
+</link:linkbase>

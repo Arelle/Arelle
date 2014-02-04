@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xbrlfe="http://xbrl.org/2008/formula/error" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Pablo Navarro Salvador, Herm Fischer</name>
+    <email>pns.atos@gmail.com, fischer@markv.com</email>
+  </creator>
+  <number>11204</number>
+  <name>Aspect rules in Formulae. Static Analysis</name>
+  <description>
+      if a source contains the QName of a fact variable that binds to a sequence 
+      unless the formula uses implicit filtering and the aspect rule addresses 
+      an aspect that is not covered by a filter for the fact variable 
+      then an error MUST be thrown.
+  </description>
+  <reference specification="FORMULA" id="error-sequence-sav-conflicts"/>  
+  <variation id="V-01">
+    <name>sequence SAV conflicts implicit filtering false</name>
+    <description>
+      The source v:liabilities for the formula without implicit filtering
+      produces a sequence of facts for liabilities, one for period 2007 and another for 2006.
+      The period aspect of the result uses liabilities (the sequence)
+      for its result.  In a draft of the formula spec this would have caused a sequence conflicts error,
+      but not in the REC version (see
+ http://wiki.xbrl.org/wiki/Formula_CR_2#2009-04-08_Hitoshi_Okumura:_The_definition_of_xbrlfe:sequenceSAVConflicts_should_be_modified_not_to_refer_implicit_filtering
+      ).  Thus, though a static test, the variation now is expected to produce a result.
+    </description>
+    <reference specification="FORMULA" id="error-sequence-sav-conflicts"/>      
+    <data>
+      <instance readMeFirst="true">11204-v01-period-SAV-conflicts-input.xml</instance>
+      <schema>11204-v01-concepts.xsd</schema>
+      <linkbase>11204-v01-period-SAV-conflicts-formula.xml</linkbase>
+    </data>
+    <result>
+      <!-- <error>xbrlfe:sequenceSAVConflicts</error> -->
+      <instance>11204-v01-period-SAV-conflicts-result.xml</instance>
+    </result>
+  </variation>
+  <variation id="V-02">
+    <name>sequence SAV conflicts implicit filtering true</name>
+    <description>
+      Implicit filtering is used in this testcase, but there's a period
+      filter for liabilities to allow the liabilties sequence to pass for both
+      context years.
+      The source for the period aspect rule is v:liabilities 
+      which produces SAV conflicts regardless of the use of implicitFiltering=true,
+      because the period aspect filter is covered (here exemplifying
+      multiple conflicting values).
+    </description>
+    <reference specification="FORMULA" id="error-sequence-sav-conflicts"/>      
+    <data>
+      <instance readMeFirst="true">11204-v02-aspectFilter-SAV-conflicts-input.xml</instance>
+      <schema>11204-v02-concepts.xsd</schema>
+      <linkbase>11204-v02-aspectFilter-SAV-conflicts-formula.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlfe:sequenceSAVConflicts</error>
+    </result>
+  </variation>
+ 
+</testcase>
+
+
+
+
+
+

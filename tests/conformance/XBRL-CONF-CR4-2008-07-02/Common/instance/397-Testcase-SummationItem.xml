@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase name="SummationItem" 
+  description="5.2.5.2 - Fully conformant XBRL processors MUST detect and signal inconsistencies, as defined above, between an XBRL instance and the summation-item arcs of calculation linkbases in its supporting DTS" 
+  outpath="out" 
+  owner="mrg@decisionsoft.com" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xsi:noNamespaceSchemaLocation="../lib/test.xsd" 
+  minimal="false">
+
+  <!-- NOTE: The conformance suite does not distinguish between 'invalid' and
+  'inconsistent'.  The variations in this testcase that are marked as 'invalid'
+  are in fact valid XBRL, they just contain summation-item inconsistencies. -->
+
+
+  <variation id="V-00" name="ConsistentInstance">
+    <description>A simple consistent instance; A = B + C</description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-00-ConsistentInstance-valid.xbrl</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+
+  <variation id="V-01" name="InconsistentInstance">
+    <description>A simple inconsistent instance; A != B + C</description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-01-InconsistentInstance-invalid.xbrl</instance>
+    </data>
+    <result expected="invalid"/>
+  </variation>
+
+
+  <variation id="V-02" name="NonCEqualContributing">
+    <description>
+
+      A != B + C, but A is in a different context from B and C, so B and C are
+      not contributing items for A.  No checks are performed.  The instance is
+      consistent.
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-02-NonCEqualContributing-valid.xbrl</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+
+  <variation id="V-03" name="NonUEqualContributing">
+    <description>
+
+      A != B + C, but A has a different unit from B and C, so B and C are not
+      contributing items for A.  No checks are performed.  The instance is
+      consistent.
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-03-NonUEqualContributing-valid.xbrl</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+
+  <variation id="V-04" name="SEqualContextsAndUnitsContributing">
+    <description>
+
+      B and C are c-equal and u-equal to A.  B and C are contributing items for
+      A, but A != B + C so the instance is inconsistent.
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-04-SEqualContextsAndUnitsContributing-invalid.xbrl</instance>
+    </data>
+    <result expected="invalid"/>
+  </variation>
+
+
+  <variation id="V-05" name="BothNilContributing">
+    <description>
+
+      B and C are both nil-valued, so neither contributes to A.  No checks are
+      performed.  The instance is consistent.
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-05-BothNilContributing-valid.xbrl</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+
+  <variation id="V-06" name="OneNilContributingConsistent">
+    <description>
+
+      B is nil-valued but C is not.  A = C, so the instance is consistent.
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-06-OneNilContributing-valid.xbrl</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+
+  <variation id="V-07" name="OneNilContributingInconsistent">
+    <description>
+
+      B is nil-valued but C is not.  A != C, so the instance is not consistent.
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-07-OneNilContributing-invalid.xbrl</instance>
+    </data>
+    <result expected="invalid"/>
+  </variation>
+
+
+  <variation id="V-08" name="OneContributingConsistent">
+    <description>A simple consistent instance; A = B; C not present</description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-08-OneContributing-valid.xbrl</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+
+  <variation id="V-09" name="OneContributingInconsistent">
+    <description>A simple inconsistent instance; A != B; C not present</description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-09-OneContributing-invalid.xbrl</instance>
+    </data>
+    <result expected="invalid"/>
+  </variation>
+
+  
+  <variation id="V-10" name="NilSummationItem">
+    <description>
+
+      A (the summation item) is nil, so no checks are performed. 
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-10-NilSummationItem-valid.xbrl</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+
+  <variation id="V-11" name="DuplicateSummationItems">
+    <description>
+
+      Two occurrences of A, the first of which is nil.  The first is ignored.
+      The second would result in an inconsistency were it not for the fact that
+      it is a duplicate of the first (because values are not considered).
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-11-DuplicateSummationItems-valid.xbrl</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+
+  <variation id="V-12" name="DuplicateContributingItems">
+    <description>
+
+      Things don't add up, but this goes undetected because one of the
+      contributing items is duplicated.
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-12-DuplicateContributingItems-valid.xbrl</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+
+  <variation id="V-13" name="InconsistentWithinTuple">
+    <description>
+
+      All items within one tuple, and things don't add up.
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <xsd readMeFirst="false">397-Holder.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-13-InconsistentWithinTuple-invalid.xbrl</instance>
+    </data>
+    <result expected="invalid"/>
+  </variation>
+
+
+  <variation id="V-14" name="SeparateTuplesConsistent">
+    <description>
+
+      Summation item is in a separate tuple from occurrences of the
+      contributing concepts.  Because of tuple scoping rules, the summation
+      item has no contributing items.  Nothing is checked.  The instance is
+      consistent.
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <xsd readMeFirst="false">397-Holder.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-14-SeparateTuplesConsistent-valid.xbrl</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+
+  <variation id="V-15" name="ContributingWithinTuples">
+    <description>
+
+      Contributing items (within tuples) are in-scope for the summation item
+      (at top level).  Inconsistency should be detected.
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <xsd readMeFirst="false">397-Holder.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-15-ContributingWithinTuples-invalid.xbrl</instance>
+    </data>
+    <result expected="invalid"/>
+  </variation>
+
+
+  <variation id="V-16" name="MultiLevelBinding">
+    <description>
+
+      Summation item at top level has sibling contributing items and nephew
+      contributing items.  Inconsistency should be detected.
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <xsd readMeFirst="false">397-Holder.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-16-MultiLevelBinding-invalid.xbrl</instance>
+    </data>
+    <result expected="invalid"/>
+  </variation>
+
+  <variation id="V-17" name="ConsistentCountdown">
+    <description>
+
+      Binding across many levels (consistent).
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <xsd readMeFirst="false">397-Holder.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-17-ConsistentCountdown-valid.xbrl</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+
+  <variation id="V-18" name="InconsistentCountdown">
+    <description>
+
+      Binding across many levels (inconsistent).
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <xsd readMeFirst="false">397-Holder.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-18-InconsistentCountdown-invalid.xbrl</instance>
+    </data>
+    <result expected="invalid"/>
+  </variation>
+
+
+  <variation id="V-19" name="DuplicateCountdown">
+    <description>
+
+      Would be inconsistent, were it not for the duplicate contributing items
+      deep in the hierarchy.
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <xsd readMeFirst="false">397-Holder.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-19-DuplicateCountdown-valid.xbrl</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+
+  <variation id="V-20" name="NoSummationItemInference">
+    <description>
+
+      If you infer a value for 'A', then X is consistent, but since this is not
+      allowed, the instance is inconsistent.
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <xsd readMeFirst="false">397-XYZ.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <linkbase readMeFirst="false">397-XYZ-calculation.xml</linkbase>
+      <instance readMeFirst="true">397-20-NoSummationItemInference-invalid.xbrl</instance>
+    </data>
+    <result expected="invalid"/>
+  </variation>
+
+  <variation id="V-21" name="NoEssenceAliasInference">
+    <description>
+
+      If you infer a value for 'A', then X is consistent, but since this is not
+      allowed, the instance is inconsistent.
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <xsd readMeFirst="false">397-XYZ.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <linkbase readMeFirst="false">397-XYZ-calculation.xml</linkbase>
+      <linkbase readMeFirst="false">397-XYZ-definition.xml</linkbase>
+      <instance readMeFirst="true">397-21-NoEssenceAliasInference-invalid.xbrl</instance>
+    </data>
+    <result expected="invalid"/>
+  </variation>
+
+  <variation id="V-22" name="TopAndTupleInconsistent">
+    <description>
+
+    The 'B' and 'C' children both inside and outside the tuple are, according to the spec, bound in the summation of 'A' at the top level.
+    10 + 20 + 1 + 2 is not equal to 3.
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <xsd readMeFirst="false">397-XYZ.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <linkbase readMeFirst="false">397-XYZ-calculation.xml</linkbase>
+      <linkbase readMeFirst="false">397-XYZ-definition.xml</linkbase>
+      <instance readMeFirst="true">397-22-TopAndTuple-inconsistent.xbrl</instance>
+    </data>
+    <result expected="invalid"/>
+  </variation>
+  
+    <variation id="V-23" name="TopAndTupleConsistent">
+    <description>
+
+    The 'B' children both inside and outside the tuple are, according to the spec, bound in the summation of 'A' at the top level.
+    20 + 2 equals 22.
+
+    </description>
+    <data>
+      <xsd readMeFirst="false">397-ABC.xsd</xsd>
+      <xsd readMeFirst="false">397-XYZ.xsd</xsd>
+      <linkbase readMeFirst="false">397-ABC-calculation.xml</linkbase>
+      <linkbase readMeFirst="false">397-XYZ-calculation.xml</linkbase>
+      <linkbase readMeFirst="false">397-XYZ-definition.xml</linkbase>
+      <instance readMeFirst="true">397-23-TopAndTuple-consistent.xbrl</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+  
+</testcase>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<link:linkbase 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:generic="http://xbrl.org/2008/generic" 
+  xmlns:formula="http://xbrl.org/2008/formula" 
+  xmlns:variable="http://xbrl.org/2008/variable" 
+  xmlns:cf="http://xbrl.org/2008/filter/concept" 
+  xmlns:ef="http://xbrl.org/2008/filter/entity"
+  xmlns:label="http://xbrl.org/2008/label" 
+  xmlns:eg="http://xbrl.org/formula/conformance/example" 
+  xmlns:v="http://xbrl.org/2008/formula/conformance/variable"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase
+    http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic
+    ../../../core_schemas/generic-link.xsd 
+  http://xbrl.org/2008/formula
+    ../../../core_schemas/formula.xsd
+  http://xbrl.org/2008/variable
+    ../../../core_schemas/variable.xsd
+  http://xbrl.org/2008/filter/concept
+    ../../../core_schemas/concept-filter.xsd
+  http://xbrl.org/2008/filter/entity
+    ../../../core_schemas/entity-filter.xsd
+  http://xbrl.org/2008/label
+    ../../../core_schemas/generic-label.xsd
+  http://xbrl.org/formula/conformance/example
+    21930-cycleFvGvGvDependency.xsd"
+  >
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../../core_schemas/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../../core_schemas/variable.xsd#variable-filter" xlink:type="simple"/>  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../../core_schemas/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended" xlink:role="http://www.xbrl.org/2008/role/link">
+    <formula:formula xlink:type="resource" xlink:label="formula1" 
+      value="'hello world'" 
+      source="v:c1"
+      aspectModel="non-dimensional" implicitFiltering="true" />
+      
+    <variable:factVariable xlink:type="resource" xlink:label="factvar1" bindAsSequence="true" fallbackValue="()" />
+    <cf:conceptName xlink:type="resource" xlink:label="factvarfilter">
+      <cf:concept>
+        <cf:qname>eg:c1</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+
+    <variable:generalVariable xlink:type="resource" xlink:label="genvar1" 
+      select="xfi:identifier-value(xfi:identifier($v:c1))" bindAsSequence="false"/>
+
+    <variable:generalVariable xlink:type="resource" xlink:label="genvar2" 
+      select="$v:g1"  bindAsSequence="false"/>
+
+    <variable:variableArc xlink:type="arc" xlink:to="factvar1" xlink:from="formula1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" order="1" 
+      name="v:c1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:to="factvarfilter" xlink:from="factvar1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" order="1" complement="false" cover="true" />
+    <variable:variableArc xlink:type="arc" xlink:to="genvar1" xlink:from="formula1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" order="2" 
+      name="v:g1" />
+    <variable:variableArc xlink:type="arc" xlink:to="genvar2" xlink:from="formula1" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" order="3" 
+      name="v:g2" />
+
+
+    <!-- variable set filter had dependency on fact variable -->
+    <ef:identifier xlink:type="resource" xlink:label="factvarfilter" 
+    test="xfi:identifier-value(.) eq $v:g2"/>
+
+  </generic:link>
+</link:linkbase>
+
+
+
+

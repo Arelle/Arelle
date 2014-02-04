@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:generic="http://xbrl.org/2008/generic" 
+  xmlns:formula="http://xbrl.org/2008/formula" 
+  xmlns:variable="http://xbrl.org/2008/variable" 
+  xmlns:cf="http://xbrl.org/2008/filter/concept" 
+  xmlns:eg="http://xbrl.org/formula/conformance/example" 
+  xmlns:v="http://xbrl.org/2008/formula/conformance/variable"
+  xmlns:c="http://xbrl.org/formula/conformance/example"  
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase
+    http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic
+    ../../../core_schemas/generic-link.xsd 
+  http://xbrl.org/2008/formula
+    ../../../core_schemas/formula.xsd
+  http://xbrl.org/2008/variable
+    ../../../core_schemas/variable.xsd
+  http://xbrl.org/2008/filter/concept
+    ../../../core_schemas/concept-filter.xsd
+  http://xbrl.org/2008/label
+    ../../../core_schemas/generic-label.xsd
+  http://xbrl.org/formula/conformance/example
+    11028-concepts.xsd"
+  >
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:href="../../../core_schemas/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" 
+      xlink:href="../../../core_schemas/variable.xsd#variable-filter" xlink:type="simple"/>  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../../core_schemas/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended" xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <!--  Fact variables used in this formula. -->
+    <variable:factVariable xlink:type="resource" xlink:label="variable_equity"
+         bindAsSequence="false"/>
+    <variable:factVariable xlink:type="resource" xlink:label="variable_liabilities"
+         bindAsSequence="false"/>
+  
+    <!--  conformance test formula 111028. Process the assets value missing the period aspect. -->
+    <formula:formula xlink:type="resource" xlink:label="formula_ct11028_output-missing-concept"
+        aspectModel="non-dimensional" implicitFiltering="false" 
+        value="($v:liabilities + $v:equity)">
+        <formula:aspects>
+           <formula:concept>
+             <formula:qname>c:assets</formula:qname>
+           </formula:concept>
+           <formula:entityIdentifier 
+               scheme="'http://xbrl.org/entity/identification/scheme'" 
+               value="'01'" />
+           <!-- the formula is missing the period aspect rule: error -->
+           <formula:unit augment="false" source="v:liabilities">
+              <formula:multiplyBy
+                 measure="QName('http://www.xbrl.org/2003/iso4217','iso4217:EUR')" /> 
+           </formula:unit>
+        </formula:aspects>
+    </formula:formula>
+    
+    <!--  Concept filters for the fact variables -->
+    <cf:conceptName xlink:type="resource" xlink:label="filter_liabilities">
+      <cf:concept>
+        <cf:qname>c:liabilities</cf:qname>
+      </cf:concept>
+    </cf:conceptName> 
+    <cf:conceptName xlink:type="resource" xlink:label="filter_equity">
+      <cf:concept>
+        <cf:qname>c:equities</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+
+    <!--  Arc from the formula to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="v:equity" xlink:from="formula_ct11028_output-missing-concept" xlink:to="variable_equity" order="1.0" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="v:liabilities" xlink:from="formula_ct11028_output-missing-concept" xlink:to="variable_liabilities" order="2.0"/>
+
+    <!--  Arcs from variables to their concept filters -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_equity" xlink:to="filter_equity" order="1.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_liabilities" xlink:to="filter_liabilities" order="2.0"/>
+
+    
+  </generic:link>
+
+</link:linkbase>

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>610-02</number>
+<name>EDGAR Filer Manual v16 6.10.2 page 6-48</name>
+<description>
+<h2>An element used in a fact or xbrldi:explicitMember in an instance must have at most
+one label for any combination of the xlink:role attribute and the xml:lang attribute in the
+DTS of that instance. </h2>
+<p>An element "has a label" in a DTS if there is an effective arc with
+the defining xsd:element source, an xlink:arcrole attribute equal to
+'http://www.xbrl.org/2003/role/label' and target link:label with an xml:lang attribute
+starting with 'en'. </p>
+<p>This rule is particularly relevant to elements declared in the company
+schema, because a document that could contain a link:label for a company-specific element
+would never appear in a standard taxonomy, and therefore has to be in a label linkbase in
+the same submission.</p>
+</description>
+<reference specification="10229"/>
+<variation id="_000gd">
+<name>6.10.2, fact and member used have various labels in en-US and fr, GOOD. </name>
+<description> fact and member used have various labels in en-US and fr, GOOD. </description>
+<reference specification="ndl"/>
+<data>
+<instance readMeFirst="true">e61002000gd-20081231.xml</instance>
+<linkbase>e61002000gd-20081231_lab.xml</linkbase>
+<linkbase>e61002000gd-20081231_def.xml</linkbase>
+<linkbase>e61002000gd-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61002000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001gd">
+<name>6.10.2, unused elements have multiple standard labels in en-US, GOOD. </name>
+<description> unused elements have multiple standard labels in en-US, GOOD. </description>
+<reference specification="10229"/>
+<data>
+<instance readMeFirst="true">e61002001gd-20081231.xml</instance>
+<linkbase>e61002001gd-20081231_lab.xml</linkbase>
+<linkbase>e61002001gd-20081231_def.xml</linkbase>
+<linkbase>e61002001gd-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61002001gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_002ng">
+<name>6.10.2, standard element dei:EntityRegistrantName used in fact has duplicate en-US standard label, NOGOOD. </name>
+<description> standard element dei:EntityRegistrantName in fact has duplicate en-US standard label, NOGOOD. </description>
+<reference specification="10229"/>
+<data>
+<instance readMeFirst="true">e61002002ng-20081231.xml</instance>
+<linkbase>e61002002ng-20081231_lab.xml</linkbase>
+<linkbase>e61002002ng-20081231_def.xml</linkbase>
+<linkbase>e61002002ng-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61002002ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61002" name="Element-Used-Has-Duplicate-Label" frd="cp"/>
+</result>
+</variation>
+<variation id="_003ng">
+<name>6.10.2, custom element 'Promises' used in fact has duplicate fr standard label, NOGOOD. </name>
+<description> custom element 'Promises' used in fact has duplicate fr standard label, NOGOOD. </description>
+<reference specification="10229"/>
+<data>
+<instance readMeFirst="true">e61002003ng-20081231.xml</instance>
+<linkbase>e61002003ng-20081231_lab.xml</linkbase>
+<linkbase>e61002003ng-20081231_def.xml</linkbase>
+<linkbase>e61002003ng-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61002003ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61002" name="Element-Used-Has-Duplicate-Label" frd="cp"/>
+</result>
+</variation>
+<variation id="_004ng">
+<name>6.10.2, custom element used in fact has duplicate en-US non-standard label, NOGOOD. </name>
+<description> custom element used in fact has duplicate en-US non-standard label, NOGOOD. </description>
+<reference specification="10229"/>
+<data>
+<instance readMeFirst="true">e61002004ng-20081231.xml</instance>
+<linkbase>e61002004ng-20081231_lab.xml</linkbase>
+<linkbase>e61002004ng-20081231_def.xml</linkbase>
+<linkbase>e61002004ng-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61002004ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61002" name="Element-Used-Has-Duplicate-Label" frd="cp"/>
+</result>
+</variation>
+</testcase>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<facts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../lib/facts.xsd">
+   <item>
+      <qnElement xmlns:eg="http://xbrl.org/formula/conformance/example">eg:PriItem1</qnElement>
+      <sPointer>3</sPointer>
+      <member>
+         <qnDimension xmlns:eg="http://xbrl.org/formula/conformance/example">eg:ExplDim1</qnDimension>
+         <bDefaulted>false</bDefaulted>
+      </member>
+   </item>
+</facts>

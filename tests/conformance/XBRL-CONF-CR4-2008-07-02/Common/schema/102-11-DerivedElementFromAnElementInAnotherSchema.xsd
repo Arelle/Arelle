@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+(C) XBRL International Inc 2007.
+Created by Ignacio Hernandez-Ros (ignacio@hernandez-ros.com)
+based on test case 105-04 from Neil Wills, UBmatrix
+-->
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ext="http://xbrl.org/theOtherSchema" targetNamespace="http://mycompany.com/xbrl/taxonomy/ext" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<import namespace="http://xbrl.org/theOtherSchema" schemaLocation="102-11-TheOtherSchema.xsd"/>
+	<element id="ext_DerivedElement" name="DerivedElement" substitutionGroup="ext:ItemWithBalance" xbrli:periodType="duration"/>
+</schema>

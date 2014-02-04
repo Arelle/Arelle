@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2005 XBRL International. All Rights Reserved. --><?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?><testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrldte="http://xbrl.org/2005/xbrldt/errors" xmlns="http://xbrl.org/2005/conformance" name="106-TestCase-HasHypercubeMissingContextElementAttributeError" description="2.1 to 2.10 - Dimensional relationships except 2.5" outpath="out" owner="ihr@xbrl.org" minimal="true" xsi:schemaLocation="http://xbrl.org/2005/conformance ../../lib/test.xsd">
+        <!-- Dimensional taxonomy syntax rules pertaining to schemas and linkbases, and not covered by XML Schema and XBRL Validation. -->
+        <!-- Note that XBRL validation requires the source and target of a definitionArc to be a concept. -->
+        <!-- As of the 2005-10-26 internal working draft. (Herm) -->
+        <!-- 2.3.1.1 3. A has-hypercube arc MUST have an xbrldt:contextElement attribute. A dimensional processor MUST raise an error [Dim Err, 6] xbrldte:HasHypercubeMissingContextElementAttributeError if this rule is violated and possibly also 2.3.2.1 1. Every xbrldt:contextElement attribute MUST have one of the values segment or scenario. A dimensional processor MAY raise any XML Schema error or [Dim Err, 7] xbrldte:InvalidContextElementAttribute if this rule is violated -->
+        <variation id="V-01" name="hasHypercubeNoContextElementInvalid">
+                <description reference="XDT-IWD-2005-10-26.doc#2.3.1.1">A hasHypercube relationship must have a contextElement attribute, which is herein missing.</description>
+                <data>
+                        <linkbase readMeFirst="true">hasHypercubeNoContextElementInvalid-definition.xml</linkbase>
+                        <xsd readMeFirst="false">hasHypercubeNoContextElementInvalid.xsd</xsd>
+                        <linkbase readMeFirst="false">hasHypercubeNoContextElementInvalid-label.xml</linkbase>
+                </data>
+                <result >
+                        <error>xbrldte:HasHypercubeMissingContextElementAttributeError</error>
+                </result>
+        </variation>
+        <variation id="V-02" name="notAllHasHypercubeNoContextElementInvalid">
+                <description reference="XDT-IWD-2005-10-26.doc#2.3.1.1">A hasHypercube relationship must have a contextElement attribute, which is herein missing.</description>
+                <data>
+                        <linkbase readMeFirst="true">notAllHasHypercubeNoContextElementInvalid-definition.xml</linkbase>
+                        <xsd readMeFirst="false">hasHypercubeNoContextElementInvalid.xsd</xsd>
+                        <linkbase readMeFirst="false">hasHypercubeNoContextElementInvalid-label.xml</linkbase>
+                </data>
+                <result >
+                        <error>xbrldte:HasHypercubeMissingContextElementAttributeError</error>
+                </result>
+        </variation>
+</testcase>

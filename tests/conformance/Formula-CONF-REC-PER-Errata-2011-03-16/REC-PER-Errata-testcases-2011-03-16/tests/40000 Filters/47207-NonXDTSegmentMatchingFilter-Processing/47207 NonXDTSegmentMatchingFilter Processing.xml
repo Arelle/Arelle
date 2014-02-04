@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>47207</number>
+  <name>Non-XDT Segment matching filter test</name>
+  <description>
+    Tests of non-XDT segment matching filter.
+  </description>
+  <reference specification="MATCH-FILTER" id="sec-non-xdt-segment-matching-filter"/>
+
+  <variation id="V-01">
+    <name>Non-Xdt portion of kanchenjunga has two elements mixed with dimensions, different interleaving than everest source</name>
+    <description>Non-Xdt portion of kanchenjunga has two elements mixed with dimensions, different interleaving than everest source</description>
+    <data>
+      <schema>nonXdtSegMatch-concepts.xsd</schema>
+      <linkbase>nonXdtSegMatch-definition.xml</linkbase>
+      <linkbase>nonXdtSegMatch-formula.xml</linkbase>
+      <instance readMeFirst="true">nonXdtSegMatch-instance-v01.xml</instance>
+    </data>
+    <result>
+      <instance>nonXdtSegMatch-result-v01.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-02">
+    <name>Non-Xdt portion of everest has two elements mixed with dimensions, different order than source, no match results</name>
+    <description>Non-Xdt portion of everest has two elements mixed with dimensions, different order than source, no match results</description>
+        <data>
+      <schema>nonXdtSegMatch-concepts.xsd</schema>
+      <linkbase>nonXdtSegMatch-definition.xml</linkbase>
+      <linkbase>nonXdtSegMatch-formula.xml</linkbase>
+      <instance readMeFirst="true">nonXdtSegMatch-instance-v02.xml</instance>
+    </data>
+    <result>
+      <instance>nonXdtSegMatch-result-noMatch.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-03">
+    <name>Non-Xdt portion of vinson has complex elements mixed with dimensions, to match everest source</name>
+    <description>Non-Xdt portion of vinson has complex elements mixed with dimensions, to match everest source</description>
+    <data>
+      <schema>nonXdtSegMatch-concepts.xsd</schema>
+      <linkbase>nonXdtSegMatch-definition.xml</linkbase>
+      <linkbase>nonXdtSegMatch-formula.xml</linkbase>
+      <instance readMeFirst="true">nonXdtSegMatch-instance-v03.xml</instance>
+    </data>
+    <result>
+      <instance>nonXdtSegMatch-result-v03.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-04">
+    <name>Non-Xdt portion of vinson has complex elements differing in detail from source, no match results</name>
+    <description>Non-Xdt portion of vinson has complex elements differing in detail from source, no match results</description>
+    <data>
+      <schema>nonXdtSegMatch-concepts.xsd</schema>
+      <linkbase>nonXdtSegMatch-definition.xml</linkbase>
+      <linkbase>nonXdtSegMatch-formula.xml</linkbase>
+      <instance readMeFirst="true">nonXdtSegMatch-instance-v04.xml</instance>
+    </data>
+    <result>
+      <instance>nonXdtSegMatch-result-noMatch.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-05">
+    <name>Non-Xdt portion of quark is empty, matching all other empty nonXdt portioins</name>
+    <description>Non-Xdt portion of quark is empty, matching all other empty nonXdt portioins</description>
+    <data>
+      <schema>nonXdtSegMatch-concepts.xsd</schema>
+      <linkbase>nonXdtSegMatch-definition.xml</linkbase>
+      <linkbase>nonXdtSegMatch-formula.xml</linkbase>
+      <instance readMeFirst="true">nonXdtSegMatch-instance-v05.xml</instance>
+    </data>
+    <result>
+      <instance>nonXdtSegMatch-result-v05.xml</instance>
+    </result>
+  </variation>  
+
+  <variation id="V-06">
+    <name>Source (everest) and match (kanchenjunga) have element attributes in different order, numerics equal but different syntax, and text with whitespaces around match (but not xml:space=&quot;preserve&quot;).</name>
+    <description>Source (everest) and match (kanchenjunga) have element attributes in different order, numerics equal but different syntax.  (Deferred, by commenting out, text with whitespaces around match (but not xml:space=&quot;preserve&quot;)).</description>
+    <data>
+      <schema>nonXdtSegMatch-concepts.xsd</schema>
+      <linkbase>nonXdtSegMatch-definition.xml</linkbase>
+      <linkbase>nonXdtSegMatch-formula.xml</linkbase>
+      <instance readMeFirst="true">nonXdtSegMatch-instance-v06.xml</instance>
+    </data>
+    <result>
+      <instance>nonXdtSegMatch-result-v06.xml</instance>
+    </result>
+  </variation>  
+
+</testcase>
+
+

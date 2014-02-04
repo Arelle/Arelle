@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<xsd:schema 
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  elementFormDefault="qualified" 
+  targetNamespace="http://xbrl.org/formula/conformance/example"
+  xmlns:eg="http://xbrl.org/formula/conformance/example"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:xl="http://www.xbrl.org/2003/XLink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  >
+
+  <xsd:import 
+    namespace="http://www.xbrl.org/2003/instance" 
+    schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+
+  <xsd:element
+    name="a"
+    id="a"
+    type="xbrli:monetaryItemType"
+    substitutionGroup="xbrli:item"
+    abstract="false"
+    nillable="true"
+    xbrli:periodType="instant"/>
+
+  <xsd:element
+    name="b"
+    id="b"
+    type="xbrli:monetaryItemType"
+    substitutionGroup="eg:a"
+    abstract="false"
+    nillable="true"
+    xbrli:periodType="instant"/>
+
+  <xsd:element
+    name="c"
+    id="c"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrli:item"
+    abstract="false"
+    nillable="true"
+    xbrli:periodType="instant"/>
+
+  <xsd:element
+    name="t1"
+    id="t1"
+    type="eg:myType"
+    substitutionGroup="xbrli:tuple"/>
+
+  <xsd:element
+    name="t2"
+    id="t2"
+    type="eg:myType"
+    substitutionGroup="eg:t1"/>
+
+  <xsd:complexType name="myType">
+    <xsd:sequence>
+      <xsd:element ref="eg:a"/>
+      <xsd:element ref="eg:b"/>
+    </xsd:sequence>
+    <xsd:attributeGroup ref="xbrli:tupleAttrs"/>
+  </xsd:complexType>
+      
+</xsd:schema>

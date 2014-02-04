@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:e60525="http://e60525/20081231"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+<link:roleRef roleURI="http://edgar/role/EntityInformation" xlink:type="simple"
+xlink:href="edgar-20081231.xsd#EntityInformation"/>
+<link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" xlink:type="simple"
+xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"/>
+<link:definitionLink xlink:type="extended" xlink:role="http://edgar/role/EntityInformation">
+<link:loc xlink:type="locator"
+xlink:href="http://xbrl.sec.gov/dei/2011/dei-2011-01-31.xsd#dei_EntityDomain"
+xlink:label="EntityDomain"/>
+<link:loc xlink:type="locator"
+xlink:href="e60525000gd-20081231.xsd#e60525_DementedDomain"
+xlink:label="DoesNotLookLikeButIsDomainMember"/>
+<link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+xlink:from="EntityDomain"
+xlink:to="DoesNotLookLikeButIsDomainMember"
+order="3.0"/>
+</link:definitionLink>
+</link:linkbase>

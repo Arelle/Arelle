@@ -1,0 +1,8 @@
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xl="http://www.xbrl.org/2001/XLink" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+	<roleRef xlink:type="simple" xlink:href="RoleE.xsd#newExtendedRoleType" roleURI="http://mycompany.com/xbrl/roleE/newExtendedRoleType"/>
+	<presentationLink xlink:type="extended" xlink:role="http://mycompany.com/xbrl/roleE/newExtendedRoleType">
+		<loc xlink:type="locator" xlink:href="RoleE.xsd#conceptA" xlink:label="conceptA"/>
+		<loc xlink:type="locator" xlink:href="RoleE.xsd#conceptB" xlink:label="conceptB"/>
+		<presentationArc xlink:type="arc" xlink:from="conceptA" xlink:to="conceptB" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" order="1"/>
+	</presentationLink>
+</linkbase>

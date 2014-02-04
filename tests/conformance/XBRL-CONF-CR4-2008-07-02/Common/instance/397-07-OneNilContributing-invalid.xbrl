@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!-- Copyright 2005 XBRL International Inc.  See www.xbrl.org/legal.  All Rights Reserved. -->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" 
+      xmlns:link="http://www.xbrl.org/2003/linkbase" 
+      xmlns:xlink="http://www.w3.org/1999/xlink" 
+      xmlns:abc="http://xbrl.example.com/397/ABC" 
+      xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      >
+
+	<link:schemaRef xlink:href="397-ABC.xsd" xlink:type="simple"/>
+
+  <!-- Only C contributes.  A = C -->
+	<abc:B contextRef="c1" unitRef="usd" xsi:nil="true"/>
+	<abc:C contextRef="c1" unitRef="usd" precision="INF">2</abc:C>
+	<abc:A contextRef="c1" unitRef="usd" precision="INF">4</abc:A>
+
+	<context id="c1">
+		<entity>
+			<identifier scheme="www.example.com">example</identifier>
+		</entity>
+		<period>
+			<instant>2001-01-01</instant>
+		</period>
+	</context>
+
+	<unit id="usd">
+		<measure>iso4217:USD</measure>
+	</unit>
+
+</xbrl>

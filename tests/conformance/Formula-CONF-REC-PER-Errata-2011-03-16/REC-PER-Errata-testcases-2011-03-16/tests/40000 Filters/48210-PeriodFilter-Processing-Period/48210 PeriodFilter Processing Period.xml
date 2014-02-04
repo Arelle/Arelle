@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xbrlfe="http://www.xml.org/2008/formula/error" 
+xmlns:xfie="http://www.xbrl.org/2008/function/instance/error"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Takahide Muramoto, Hitoshi Okumura, Shigehisa Miyano</name>
+    <email>taka.muramoto@jp.fujitsu.com, okmr@jp.fujitsu.com, s-miyano@jp.fujitsu.com</email>
+  </creator>
+  <number>48210</number>
+  <name>Period Filter Processing</name>
+  <description>
+    Test period filter processing
+  </description>
+  <reference specification="PERIOD-FILTER" id="sec-period-filter"/>
+
+  <variation id="V-01">
+    <name>Test filter by comparing the start period with the end period of another fact.</name>
+    <description>Matched fact's start period must be equal to the end period of the fact that the variable "v:vo" has evaluated to.  The variable being matched to ($v:vo) has a concept filter so that it only evaluates to a start-end period.</description>
+    <reference specification="PERIOD-FILTER" id="eg-period-filters"/>
+    <data>
+      <schema>48210-periodFilter-concepts.xsd</schema>
+      <linkbase>48210-periodFilter-start-eq-end-formula.xml</linkbase>
+      <instance readMeFirst="true">48210-periodFilter-start-eq-end-instance.xml</instance>
+    </data>
+    <result>
+      <instance>48210-periodFilter-start-eq-end-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Same as V-01 but throws error on forever period in test expression, due to $v:vo period binding to forever.</name>
+    <description>This variant does not filter vo's concept, and throws error when trying the filter with $v:vo bound to item eg:c with a forever period. (Added by Herm.)</description>
+    <reference specification="PERIOD-FILTER" id="eg-period-filters"/>
+    <data>
+      <schema>48210-periodFilter-concepts.xsd</schema>
+      <linkbase>48210-periodFilter-errTest-1-formula.xml</linkbase>
+      <instance readMeFirst="true">48210-periodFilter-errTest-1-instance.xml</instance>
+    </data>
+    <result>
+      <error>xfie:PeriodIsForever</error>
+    </result>
+  </variation>
+
+  <variation id="V-03">
+    <name>Same as V-01 but throws error on forever period in test expression, due to $v:v period type not tested.</name>
+    <description>This variant does not check if v's period is forever, and throws error when trying the filter with $v:v on the item with a forever period, because the period filter test lacks the is-start-end-period test.  (Added by Herm.)</description>
+    <reference specification="PERIOD-FILTER" id="eg-period-filters"/>
+    <data>
+      <schema>48210-periodFilter-concepts.xsd</schema>
+      <linkbase>48210-periodFilter-errTest-2-formula.xml</linkbase>
+      <instance readMeFirst="true">48210-periodFilter-errTest-2-instance.xml</instance>
+    </data>
+    <result>
+      <error>xfie:PeriodIsForever</error>
+    </result>
+  </variation>
+
+  <variation id="V-04">
+    <name>Same as V-01 but no concept filter on vo or implicit filtering.  Error on instant result concept with duration SAV.</name>
+    <description>This variation general test protects against forever period error, and tests matching period-start to instants also.  In this case when producing a result for eg:e, an instant period is specified but SAV is a duration period, so an invalid output instance document results from the attempt to produce period-instant (from duration SAV period).  According section 1, Introduction, "In many cases, these problems will only be detectable through XBRL validation of the XBRL instances produced by formulae", so the resulting instance document is XBRL invalid.
+</description>
+    <reference specification="PERIOD-FILTER" id="eg-period-filters"/>
+    <data>
+      <schema>48210-periodFilter-concepts.xsd</schema>
+      <linkbase>48210-periodFilter-errTest-3-formula.xml</linkbase>
+      <instance readMeFirst="true">48210-periodFilter-errTest-3err-instance.xml</instance>
+    </data>
+    <result expected="invalid">
+      <!-- result is XBRL-invalid, so only result annotation is
+           expected="invalid".  This instance document is XBRL invalid
+           so it is 'commented out'.
+           <instance>48210-periodFilter-errTest-3err-result.xml</instance>
+      -->
+    </result>
+  </variation>
+
+  <variation id="V-05">
+    <name>Same as V-04 but no no instant source.</name>
+    <description>This variation general test protects against forever period error, and tests matching period-start to instants also.  The error caused by eg:e in V-04 is avoided by removing eg:e.
+</description>
+    <reference specification="PERIOD-FILTER" id="eg-period-filters"/>
+    <data>
+      <schema>48210-periodFilter-concepts.xsd</schema>
+      <linkbase>48210-periodFilter-errTest-3-formula.xml</linkbase>
+      <instance readMeFirst="true">48210-periodFilter-errTest-3-instance.xml</instance>
+    </data>
+    <result>
+      <instance>48210-periodFilter-errTest-3-result.xml</instance>
+    </result>
+  </variation>
+
+</testcase>
+

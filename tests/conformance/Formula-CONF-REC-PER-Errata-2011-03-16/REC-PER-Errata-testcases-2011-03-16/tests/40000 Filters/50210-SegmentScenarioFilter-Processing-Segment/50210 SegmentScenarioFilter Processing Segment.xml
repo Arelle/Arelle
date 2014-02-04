@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xbrlfe="http://www.xml.org/2008/formula/error" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Takahide Muramoto, Hitoshi Okumura, Shigehisa Miyano</name>
+    <email>taka.muramoto@jp.fujitsu.com, okmr@jp.fujitsu.com, s-miyano@jp.fujitsu.com</email>
+  </creator>
+  <number>50210</number>
+  <name>Segment Filter Processing</name>
+  <description>
+    Test segment filter processing
+  </description>
+  <reference specification="SEGMENT-SCENARIO-FILTER" id="sec-segment-filter"/>
+
+  <variation id="V-01">
+    <name>Test filter by checking whether the context contains the segment.</name>
+    <description>The fact's context must contain the segment. In addition, this segment content is not based upon the explicit or typed dimensions defined in the XBRL Dimensions Specification.</description>
+    <reference specification="SEGMENT-SCENARIO-FILTER" id="example-segment-filters"/>
+    <data>
+      <schema>50210-segmentFilter-concepts.xsd</schema>
+      <linkbase>50210-segmentFilter-exist-formula.xml</linkbase>
+      <instance readMeFirst="true">50210-segmentFilter-exist-instance.xml</instance>
+    </data>
+    <result>
+      <instance>50210-segmentFilter-exist-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Test filter by checking whether the context contains the segment that has the specified child element.</name>
+    <description>The fact's context must contain the segment that has the child element "eg:m". In addition, this segment content is not based upon the explicit or typed dimensions defined in the XBRL Dimensions Specification.</description>
+    <reference specification="SEGMENT-SCENARIO-FILTER" id="example-segment-filters"/>
+    <data>
+      <schema>50210-segmentFilter-concepts.xsd</schema>
+      <linkbase>50210-segmentFilter-child-formula.xml</linkbase>
+      <instance readMeFirst="true">50210-segmentFilter-child-instance.xml</instance>
+    </data>
+    <result>
+      <instance>50210-segmentFilter-child-result.xml</instance>
+    </result>
+  </variation>
+
+  <variation id="V-03">
+    <name>Same as V-02, but aspect model is dimensional, cover=false, showing that this filter (of a non-dimensional aspect) can't be used with a dimensional aspect model, even if not covering.  This takes careful reading of the spec description of the error, because the description of the xbrlve:filterAspectModelMismatch error has the wording that the error is to be raised if the filter "can cover an aspect that is not defined" but does not have the wording that it is to be raised if the filter is on an arc that has "@cover=true" nor does it have the wording that the error applies to the case of such an aspect being covering.  Thus this variation intentionally raises the error for the case of the filter that has the possibility of being covering despite here being on a non-covering arc.
+</name>
+    <description>
+       Same as V-02 as noted in name field.
+    </description>
+    <reference specification="SEGMENT-SCENARIO-FILTER" id="example-segment-filters"/>
+    <data>
+      <schema>50210-segmentFilter-concepts.xsd</schema>
+      <linkbase>50210-segmentFilter-dim-model-formula.xml</linkbase>
+      <instance readMeFirst="true">50210-segmentFilter-dim-model-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:xbrlve="http://xbrl.org/2008/variable/error">xbrlve:filterAspectModelMismatch</error>
+    </result>
+  </variation>
+
+</testcase>
+

@@ -1,0 +1,15 @@
+<xsd:schema xmlns:duriv="http://www.xbrl.org/dim/conf/190/dimensionURIvalid" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.xbrl.org/dim/conf/190/dimensionURIvalid" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<xsd:import namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+	<xsd:element name="dPhone" type="xbrli:stringItemType" abstract="true" substitutionGroup="xbrldt:dimensionItem" nillable="true" id="duriv_dPhone" xbrli:periodType="instant" xbrldt:typedDomainRef="#duriv_phone"/>
+	<xsd:element name="dFax" type="xbrli:stringItemType" abstract="true" substitutionGroup="xbrldt:dimensionItem" nillable="true" id="duriv_dFax" xbrli:periodType="instant" xbrldt:typedDomainRef="#duriv_phone"/>
+	<xsd:element name="phone" id="duriv_phone">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="country" type="xsd:integer"/>
+				<xsd:element name="city" type="xsd:integer"/>
+				<xsd:element name="number" type="xsd:integer"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+</xsd:schema>

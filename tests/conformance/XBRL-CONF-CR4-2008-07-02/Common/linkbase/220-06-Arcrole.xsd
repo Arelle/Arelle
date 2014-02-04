@@ -1,0 +1,13 @@
+
+<schema targetNamespace='http://mycompany.com/xbrl/arcrole' xmlns='http://www.w3.org/2001/XMLSchema' xmlns:link='http://www.xbrl.org/2003/linkbase' xmlns:nsl='http://example.com/nonStandardLinks' xmlns:xbrli='http://www.xbrl.org/2003/instance' xmlns:xl='http://www.xbrl.org/2003/XLink' xmlns:xlink='http://www.w3.org/1999/xlink' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:schemaLocation="http://example.com/nonStandardLinks NonStandardLinks.xsd">
+  <annotation>
+    <appinfo>
+      <link:arcroleType id='testRole' arcroleURI='http://www.example.com/testRole' cyclesAllowed='none'>
+        <link:definition>
+					A new arc role. Doesn't allow cycles.
+				</link:definition>
+        <link:usedOn>nsl:arc</link:usedOn>
+      </link:arcroleType>
+    </appinfo>
+  </annotation>
+</schema>

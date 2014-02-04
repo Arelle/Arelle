@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../infrastructure/test.xsd"
+  xmlns:xbrlve="http://xbrl.org/2008/variable/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/error"
+  xmlns:reference="http://xbrl.org/2008/reference/error"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>21271</number>
+  <name>Variable-Set-Filter relationship static analysis</name>
+  <description>
+    Tests of variable-set-filter relationship static analysis
+  </description>
+  <reference specification="VARIABLES" id="sec-variable-set-filter-relationships"/>
+
+  <variation id="V-01">
+    <name>Variable-set-filter is not from variable-set to a filter</name>
+    <description>
+These are unique to formula linkbase, there is no general mechanism to test these is in place.  In this test the arc is from a variable instead of variable-set, so it is ignored.  There is no defined error, so the formula will work as if the arc was not there.  This results in an instance value which would not complete evaluation if the arc was honored.
+    </description>
+    <reference specification="VARIABLES" id="sec-variable-set-filter-relationships"/>
+    <data>
+      <schema>21271-relationship-tests.xsd</schema>
+      <linkbase>21271-variableSetFilterRelationship-formula.xml</linkbase>
+      <instance readMeFirst="true">21271-variableSetFilterRelationship-instance.xml</instance>
+    </data>
+    <result>
+      <instance>21271-variableSetFilterRelationship-result.xml</instance>
+    </result>
+  </variation>  
+
+ </testcase>
+
+
+
+
+

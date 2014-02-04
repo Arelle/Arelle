@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl" ?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>622-01</number>
+<name>EDGAR Filer Manual v16 6.22.1 page 6-61</name>
+<description>6.22.1<h2>Supported Versions of XBRL Standard Taxonomies.</h2>
+<p>Refer to the SEC's public website (<a href="http://www.sec.gov/info/edgar/edgartaxonomies.shtml">http://www.sec.gov/info/edgar/edgartaxonomies.shtml</a>) for an up-to-date listing of standard taxonomy files
+that are supported by EDGAR, their locations, required namespaces, and where appropriate, the relevant EDGAR form
+types.</p>
+<p>REMARK: There is no such section 6.22.1, it is meant to refer to 'taxonomies that we allow'. 
+For purposes of this test <a href="../../../lib/edgartaxonomies.xml">edgartaxonomies.xml</a> is the ONLY authoritative source of "standard taxonomies". 
+This test checks the allowed files in groups according to family and version (i.e., release).</p>
+<p>REMARK: This test leaves out USFRTF and ICI given that none of the other EDGAR validations apply to them.</p>6-61</description>
+<reference specification="11172"/>
+<variation id="_000gd">
+<name>6.22.1 Hrefs in schema of http://e62201000gd/20081231 (us-gaap/2011-01-31), GOOD</name>
+<description>6.22.1 Hrefs in schema of http://e62201000gd/20081231 (us-gaap/2011-01-31), GOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62201000gd-20081231.xml</instance>
+<linkbase>edgar-20110131_def.xml</linkbase>
+<linkbase>edgar-20110131_lab.xml</linkbase>
+<linkbase>edgar-20110131_pre.xml</linkbase>
+<schema>edgar-20110131.xsd</schema>
+<schema>e62201000gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001gd">
+<name>6.22.1 Hrefs in schema of http://e62201001gd/20081231 (rr/2010-02-28), GOOD</name>
+<description>6.22.1 Hrefs in schema of http://e62201001gd/20081231 (rr/2010-02-28), GOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62201001gd-20081231.xml</instance>
+<schema>e62201001gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_002gd">
+<name>6.22.1 Hrefs in schema of http://e62201002gd/20081231 (invest/2011-01-31), GOOD</name>
+<description>6.22.1 Hrefs in schema of http://e62201002gd/20081231 (invest/2011-01-31), GOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62201002gd-20081231.xml</instance>
+<linkbase>edgar-20110131_def.xml</linkbase>
+<linkbase>edgar-20110131_lab.xml</linkbase>
+<linkbase>edgar-20110131_pre.xml</linkbase>
+<schema>edgar-20110131.xsd</schema>
+<schema>e62201002gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_003gd">
+<name>6.22.1 Hrefs in schema of http://e62201003gd/20081231 (us-gaap/2009-01-31), GOOD</name>
+<description>6.22.1 Hrefs in schema of http://e62201003gd/20081231 (us-gaap/2009-01-31), GOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62201003gd-20081231.xml</instance>
+<schema>e62201003gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_004gd">
+<name>6.22.1 Hrefs in schema of http://e62201004gd/20081231 (soi/2008-11-30), GOOD</name>
+<description>6.22.1 Hrefs in schema of http://e62201004gd/20081231 (soi/2008-11-30), GOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62201004gd-20081231.xml</instance>
+<schema>e62201004gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_005gd">
+<name>6.22.1 Hrefs in schema of http://e62201005gd/20081231 (us-gaap/2008-03-31), GOOD</name>
+<description>6.22.1 Hrefs in schema of http://e62201005gd/20081231 (us-gaap/2008-03-31), GOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62201005gd-20081231.xml</instance>
+<schema>e62201005gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_006gd">
+<name>6.22.1 Hrefs in schema of http://e62201006gd/20081231 (rr/2008-12-31), GOOD</name>
+<description>6.22.1 Hrefs in schema of http://e62201006gd/20081231 (rr/2008-12-31), GOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62201006gd-20081231.xml</instance>
+<schema>e62201006gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_007gd">
+<name>6.22.1 Hrefs in schema of http://e62201007gd/20081231 (2003/instance), GOOD</name>
+<description>6.22.1 Hrefs in schema of http://e62201007gd/20081231 (2003/instance), GOOD</description>
+<reference specification="11172"/>
+<data>
+<instance readMeFirst="true">e62201007gd-20081231.xml</instance>
+<schema>e62201007gd-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+</testcase>

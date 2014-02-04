@@ -1,0 +1,10 @@
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xl="http://www.xbrl.org/2001/XLink" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+	<roleRef xlink:type="simple" xlink:href="RoleLDR.xsd#newLabelRole" roleURI="http://mycompany.com/xbrl/roleLDR/newLabelRole"/>
+	<labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+		<loc xlink:type="locator" xlink:href="RoleLDR.xsd#conceptA" xlink:label="conceptA"/>
+		<label xlink:type="resource" xlink:label="conceptA_label" xml:lang="en" xlink:role="http://mycompany.com/xbrl/roleLDR/newLabelRole">
+			Special label for conceptA
+		</label>
+		<labelArc xlink:type="arc" xlink:from="conceptA" xlink:to="conceptA_label" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"/>
+	</labelLink>
+</linkbase>

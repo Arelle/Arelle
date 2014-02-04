@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+Instance Document based on XBRL standard 2.1.
+Created by UBmatrix Taxonomy Designer 2.5.2509.2110 (2006-07-17 13:10).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2006 UBmatrix inc., All Rights Reserved
+Produced on 2006-07-18 01:35:31
+-->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:decimals="http://www.example.com/decimals">
+  <link:schemaRef xlink:href="305_07_decimals_test.xsd" xlink:type="simple" />
+  <context id="Context-2003">
+    <entity>
+      <identifier scheme="http://www.example.com">entity</identifier>
+    </entity>
+    <period>
+      <instant>2006-07-17</instant>
+    </period>
+  </context>
+  <unit id="unit-euros">
+    <measure>iso4217:EUR</measure>
+  </unit>
+  <decimals:TotalPropertyPlantEquipment contextRef="Context-2003" unitRef="unit-euros" decimals="0">4001</decimals:TotalPropertyPlantEquipment>
+  <decimals:Land contextRef="Context-2003" unitRef="unit-euros" decimals="0">25</decimals:Land>
+  <decimals:Buildings contextRef="Context-2003" unitRef="unit-euros" decimals="0">3900</decimals:Buildings>
+  <decimals:ComputerEquipment contextRef="Context-2003" unitRef="unit-euros" decimals="0">25</decimals:ComputerEquipment>
+  <decimals:FurnitureFixtures contextRef="Context-2003" unitRef="unit-euros" decimals="0">25</decimals:FurnitureFixtures>
+  <decimals:Other contextRef="Context-2003" unitRef="unit-euros" decimals="0">25</decimals:Other>
+</xbrl>

@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-10</number>
+<name>EDGAR Filer Manual v16 6.5.10 page 6-9</name>
+<description>
+<h2>If the original HTML/ASCII document represents a reporting period of one quarter or longer, then the same date must not appear in
+the content of an xbrli:startDate and an xbrli:instant in the same instance.</h2>
+<p>This rule applies if the document type matches any of 20-F, 40-F, 10-Q, 10-K, 10, N-CSR, N-Q, or N-CSRS.</p>
+<p>For example, a company with a May 31st, 2009 fiscal year end will have contexts whose end date time is midnight at the end of
+2008-05-31 (the prior fiscal year) and contexts whose start date-times are midnight at the beginning of 2008-06-01 (the current fiscal
+year). But it must not have any instant contexts with the date-time of midnight at the end of 2008-06-01. </p>
+<p>REMARK: this applies to all pairs of duration and instant contexts. It is not necessary to test a context's start and end dates
+against itself because XBR2.1 section 4.7.2 requires that startDate is strictly less than end date.</p>
+<p> REMARK: It is possible in principle that the measurement date for a public float or common shares outstanding might coincide with
+the start date of a period. Although that situation has not yet been observed in practice, an appropriate way to carve out an
+exception may appear in a future edition of the Manual.</p>
+</description>
+<reference specification="11191"/>
+<variation id="_000gd">
+<name>6.5.10 A 10-K with no instants within any startDate + (0,24h], GOOD</name>
+<description>A 10-K with no instants within any startDate + (0,24h], GOOD</description>
+<reference specification="11191"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="CIK" datatype="xs:string" value="9876543210"/>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="10-K"/>
+<instance readMeFirst="true">e60510000gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_001gd">
+<name>6.5.10 Form 485BPOS (Prospectus) with instants within any startDate + (0,24h], GOOD.</name>
+<description>Form 485BPOS (Prospectus) with instants within any startDate + (0,24h], GOOD.</description>
+<reference specification="11191"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="CIK" datatype="xs:string" value="9876543210"/>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="485BPOS"/>
+<instance readMeFirst="true">e60510001gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_002gd">
+<name>6.5.10 Form type Other (stand in for '497', which is the EDGAR form type parameter) with instants within any startDate + (0,24h],
+GOOD.</name>
+<description>Form type Other (stand in for '497', which is the EDGAR form type parameter) with instants within any startDate + (0,24h],
+GOOD.</description>
+<reference specification="11191"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="CIK" datatype="xs:string" value="9876543210"/>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="497"/>
+<instance readMeFirst="true">e60510002gd-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+<variation id="_004ng">
+<name>6.5.10 A 10-K with instants within any startDate + (0,24h], NOGOOD</name>
+<description>A 10-K with instants within any startDate + (0,24h], NOGOOD</description>
+<reference specification="11191"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="CIK" datatype="xs:string" value="9876543210"/>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="10-K"/>
+<instance readMeFirst="true">e60510004ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60510" name="Start-And-Instant-Dates-Not-Distinct-Inconsistent-With-Document-Type" frd="fs"/>
+</result>
+</variation>
+<variation id="_005ng">
+<name>6.5.10 A 10-K with instants within any startDate + (0,24h], needed for public float and common shares facts measurement date in
+DEI 2008 namespace - NOGOOD (WILL BE GOOD IN A FUTURE RELEASE).</name>
+<description>A 10-K with instants within any startDate + (0,24h], needed for public float and common shares facts measurement date in
+DEI 2008 namespace - NOGOOD (WILL BE GOOD IN A FUTURE RELEASE).</description>
+<reference specification="11191"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="CIK" datatype="xs:string" value="9876543210"/>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="10-K"/>
+<instance readMeFirst="true">e60510005ng-20081231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60510" name="Start-And-Instant-Dates-Not-Distinct-Inconsistent-With-Document-Type" frd="fs"/>
+</result>
+</variation>
+<variation id="_006ng">
+<name>6.5.10 A 10-K with instants within any startDate + (0,24h], needed for public float and common shares facts measurement date in
+DEI 2009 namespace - NOGOOD (MAY BE GOOD IN A FUTURE RELEASE).</name>
+<description>A 10-K with instants within any startDate + (0,24h], needed for public float and common shares facts measurement date in
+DEI 2009 namespace - NOGOOD (MAY BE GOOD IN A FUTURE RELEASE).</description>
+<reference specification="11191"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="CIK" datatype="xs:string" value="9876543210"/>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="10-K"/>
+<instance readMeFirst="true">e60510006ng-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60510" name="Start-And-Instant-Dates-Not-Distinct-Inconsistent-With-Document-Type" frd="fs"/>
+</result>
+</variation>
+<variation id="_007gd">
+<name>6.5.10 A Form 10-K (Annual Report) with an instant that is 24 hours and 1 second after the start of a duration, GOOD.</name>
+<description>A Form 10-K (Annual Report) with an instant that is 24 hours and 1 second after the start of a duration, GOOD.</description>
+<reference specification="11191"/>
+<data>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="CIK" datatype="xs:string" value="9876543210"/>
+<conf:parameter xmlns:conf="http://edgar/2009/conformance" name="submissionType" datatype="xs:string" value="10-K"/>
+<instance readMeFirst="true">e60510007gd-20091231.xml</instance>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+</data>
+<result/>
+</variation>
+</testcase>

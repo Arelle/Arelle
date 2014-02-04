@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>31130</number>
+  <name>Consistency Assertion Disallowed Variables</name>
+  <description>
+    Consistency check static analysis for disallowed variables.
+  </description>
+  <reference specification="CONSISTENCY-ASSERTION" id="error-variables-not-allowed"/>         
+
+  <variation id="V-01">
+    <name>Disallowed fact variable</name>
+    <description>
+      Superfluous disallowed fact variable related to the consistency assertion.  (Valid cases in 32210 test cases directory.)
+    </description>
+  <reference specification="CONSISTENCY-ASSERTION" id="error-variables-not-allowed"/>         
+    <data>
+      <schema>31130-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31130-disallowedFactVariable-formula.xml</linkbase>
+      <instance readMeFirst="true">31130-disallowedFactVariable-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:xbrlcae="http://xbrl.org/2008/assertion/consistency/error">
+          xbrlcae:variablesNotAllowed 
+      </error>
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>Disallowed general variable</name>
+    <description>
+      Superfluous disallowed general variable related to the consistency assertion.  (Valid cases in 32210 test cases directory.)
+    </description>
+  <reference specification="CONSISTENCY-ASSERTION" id="error-variables-not-allowed"/>         
+    <data>
+      <schema>31130-consistencyAssertion-concepts.xsd</schema>
+      <linkbase>31130-disallowedGeneralVariable-formula.xml</linkbase>
+      <instance readMeFirst="true">31130-disallowedGeneralVariable-instance.xml</instance>
+    </data>
+    <result>
+      <error xmlns:xbrlcae="http://xbrl.org/2008/assertion/consistency/error">
+          xbrlcae:variablesNotAllowed 
+      </error>
+    </result>
+  </variation>
+
+
+</testcase>
+

@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Calculation Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 2.5.2518.2110 (2006-07-24 12:58).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2006 UBmatrix inc., All Rights Reserved
+Produced on 2006-07-27 20:50:04
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="320-03-nestedtupleBindCalc.xsd#nestedtupleBindCalc_TotalGross" xlink:label="nestedtupleBindCalc_TotalGross" />
+    <loc xlink:type="locator" xlink:href="320-03-nestedtupleBindCalc.xsd#nestedtupleBindCalc_Gross" xlink:label="nestedtupleBindCalc_Gross" />
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="nestedtupleBindCalc_TotalGross" xlink:to="nestedtupleBindCalc_Gross" order="1" weight="1" use="optional" />
+  </calculationLink>
+</linkbase>

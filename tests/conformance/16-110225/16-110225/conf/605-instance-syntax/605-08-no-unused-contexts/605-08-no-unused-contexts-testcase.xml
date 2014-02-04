@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>605-08</number>
+<name>EDGAR Filer Manual v16 6.5.8 page 6-9</name>
+<description>
+<h2>Every xbrli:context element must appear in at least one contextRef attribute in the same instance.</h2>
+<p>Unused xbrli:context elements have no benefit to users and are easily removed by the filer before submission.</p>
+</description>
+<reference specification="10993"/>
+<variation id="_001ng">
+<name>6.5.8, Instance with an unused context, NOGOOD.</name>
+<description>6.5.8, An instance having an unused context, NOGOOD.</description>
+<reference specification="10993"/>
+<data>
+<instance readMeFirst="true">e60508001ng-20111231.xml</instance>
+<linkbase>e60508001ng-20111231_pre.xml</linkbase>
+<linkbase>e60508001ng-20111231_def.xml</linkbase>
+<linkbase>e60508001ng-20111231_lab.xml</linkbase>
+<schema>e60508001ng-20111231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60508" name="Unused-Context" frd="du"/>
+</result>
+</variation>
+</testcase>

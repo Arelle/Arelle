@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl" ?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://edgar/2009/conformance"
+xsi:schemaLocation="http://xbrl.org/2008/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>607-03</number>
+<name>EDGAR Filer Manual v16 6.7.3 page 6-33</name>
+<description>
+<h2 xmlns="">The authority part of a xsd:schema targetNamespace attribute must not equal the 
+authority part of a targetNamespace attribute of any standard taxonomy schema.</h2>
+<p xmlns="">REMARK: For purposes of this test <a href="../../../lib/edgartaxonomies.xml">edgartaxonomies.xml</a> is the authoritative source of "standard taxonomies".</p>
+</description>
+<variation id="_001ng">
+<name>6.7.3 targetNamespace = http://www.xbrl.org/20081231, NOGOOD</name>
+<description>6.7.3 targetNamespace = http://www.xbrl.org/20081231, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60703001ng-20091231.xml</instance>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60703001ng-20091231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60703" name="Extension-Has-Standard-Namespace-Authority" frd="fs"/>
+</result>
+</variation>
+<variation id="_002ng">
+<name>6.7.3 targetNamespace = http://xbrl.us/20081231, NOGOOD</name>
+<description>6.7.3 targetNamespace = http://xbrl.us/20081231, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60703002ng-20091231.xml</instance>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60703002ng-20091231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60703" name="Extension-Has-Standard-Namespace-Authority" frd="fs"/>
+</result>
+</variation>
+<variation id="_003ng">
+<name>6.7.3 targetNamespace = http://xbrl.sec.gov/20081231, NOGOOD</name>
+<description>6.7.3 targetNamespace = http://xbrl.sec.gov/20081231, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60703003ng-20091231.xml</instance>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60703003ng-20091231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60703" name="Extension-Has-Standard-Namespace-Authority" frd="fs"/>
+</result>
+</variation>
+<variation id="_004ng">
+<name>6.7.3 targetNamespace = http://xbrl.org/20081231, NOGOOD</name>
+<description>6.7.3 targetNamespace = http://xbrl.org/20081231, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60703004ng-20091231.xml</instance>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60703004ng-20091231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60703" name="Extension-Has-Standard-Namespace-Authority" frd="fs"/>
+</result>
+</variation>
+<variation id="_005ng">
+<name>6.7.3 targetNamespace = http://ici.org/20081231, NOGOOD</name>
+<description>6.7.3 targetNamespace = http://ici.org/20081231, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60703005ng-20091231.xml</instance>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60703005ng-20091231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60703" name="Extension-Has-Standard-Namespace-Authority" frd="fs"/>
+</result>
+</variation>
+<variation id="_006ng">
+<name>6.7.3 targetNamespace = http://www.w3.org/20081231, NOGOOD</name>
+<description>6.7.3 targetNamespace = http://www.w3.org/20081231, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60703006ng-20091231.xml</instance>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60703006ng-20091231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60703" name="Extension-Has-Standard-Namespace-Authority" frd="fs"/>
+</result>
+</variation>
+<variation id="_007ng">
+<name>6.7.3 targetNamespace = http://fasb.org/20081231, NOGOOD</name>
+<description>6.7.3 targetNamespace = http://fasb.org/20081231, NOGOOD</description>
+<data>
+<instance readMeFirst="true">e60703007ng-20091231.xml</instance>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e60703007ng-20091231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="60703" name="Extension-Has-Standard-Namespace-Authority" frd="fs"/>
+</result>
+</variation>
+</testcase>

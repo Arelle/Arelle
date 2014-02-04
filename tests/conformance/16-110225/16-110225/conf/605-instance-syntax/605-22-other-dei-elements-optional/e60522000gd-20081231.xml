@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<xbrli:xbrl xmlns:edgar="http://edgar/20081231" xmlns:link="http://www.xbrl.org/2003/linkbase"
+xmlns:nonnum="http://www.xbrl.org/dtr/type/non-numeric"
+xmlns:num="http://www.xbrl.org/dtr/type/numeric"
+xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+xmlns:dei="http://xbrl.sec.gov/dei/2011-01-31"
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns="http://www.w3.org/1999/xhtml"
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+xmlns:xlink="http://www.w3.org/1999/xlink">
+<link:schemaRef xlink:type="simple" xlink:href="edgar-20081231.xsd"/>
+<xbrli:context id="FY08">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:startDate>2008-01-01</xbrli:startDate>
+<xbrli:endDate>2008-12-31</xbrli:endDate>
+</xbrli:period>
+</xbrli:context>
+<xbrli:context id="FY08e">
+<xbrli:entity>
+<xbrli:identifier scheme="http://www.sec.gov/CIK">9876543210</xbrli:identifier>
+</xbrli:entity>
+<xbrli:period>
+<xbrli:instant>2008-12-31</xbrli:instant>
+</xbrli:period>
+</xbrli:context>
+<xbrli:unit id="usd">
+<xbrli:measure>iso4217:USD</xbrli:measure>
+</xbrli:unit>
+<xbrli:unit id="shr">
+<xbrli:measure>xbrli:shares</xbrli:measure>
+</xbrli:unit>
+<dei:AmendmentFlag contextRef="FY08">false</dei:AmendmentFlag>
+<dei:DocumentType contextRef="FY08">10-K</dei:DocumentType>
+<dei:EntityCentralIndexKey contextRef="FY08">9876543210</dei:EntityCentralIndexKey>
+<dei:EntityRegistrantName contextRef="FY08">e60522000gd</dei:EntityRegistrantName>
+<dei:CurrentFiscalYearEndDate contextRef="FY08">--12-31</dei:CurrentFiscalYearEndDate>
+<dei:EntityWellKnownSeasonedIssuer contextRef="FY08">No</dei:EntityWellKnownSeasonedIssuer>
+<dei:EntityVoluntaryFilers contextRef="FY08">Yes</dei:EntityVoluntaryFilers>
+<dei:EntityCurrentReportingStatus contextRef="FY08">Yes</dei:EntityCurrentReportingStatus>
+<dei:EntityFilerCategory contextRef="FY08">Large Accelerated Filer</dei:EntityFilerCategory>
+<dei:EntityPublicFloat decimals="0" contextRef="FY08e" unitRef="usd">0</dei:EntityPublicFloat>
+<dei:EntityCommonStockSharesOutstanding decimals="INF" contextRef="FY08e" unitRef="shr">0</dei:EntityCommonStockSharesOutstanding>
+<dei:DocumentPeriodEndDate contextRef="FY08">2008-12-31</dei:DocumentPeriodEndDate>
+<dei:DocumentTitle contextRef="FY08">Magister Ludi</dei:DocumentTitle>
+<dei:DocumentName contextRef="FY08">ml.htm</dei:DocumentName>
+<dei:DocumentSubtitle contextRef="FY08">The Glass Bead Game</dei:DocumentSubtitle>
+<dei:DocumentSynopsis contextRef="FY08">The Glass Bead Game takes place at an unspecified date, centuries into the future. Hesse suggested that he imagined the book's narrator writing around the start of the 25th century. The setting is a fictional province of central Europe called Castalia, reserved by political decision for the life of the mind; technology and economic life are kept to a strict minimum. Castalia is home to an austere order of intellectuals with a twofold mission: to run boarding schools for boys (the novel is thus a detailed exploration of education and the life of the mind), and to nurture and play the Glass Bead Game, whose exact nature remains elusive. The rules of the game are only alluded to, and are so sophisticated that they are not easy to imagine. Playing the game well requires years of hard study of music, mathematics, and cultural history. Essentially the game is an abstract synthesis of all arts and scholarship. It proceeds by players making deep connections between seemingly unrelated topics.</dei:DocumentSynopsis>
+<dei:DocumentDescription contextRef="FY08">The novel follows the life of a distinguished member of the order, Joseph Knecht (the surname translates as "servant" or "farm hand" but can also mean "vassal" or "knight"), as narrated by a fictional historian of the order. Hence the novel is an example of a Bildungsroman. The text, written in a scholarly biographical style, chronicles the precocious protagonist's decision to join the order, his mastery of the Game, and his advancing in the order's hierarchy, eventually being given the title Magister Ludi, reserved for the Game's finest player. However, Knecht's loyalty to the order is brought into question as he gradually comes to doubt whether the intellectually gifted have a right to withdraw from life's big problems. Knecht comes to see Castalia as a kind of ivory tower, an ethereal protected community, devoted to pure intellectual pursuits, but oblivious to the problems posed by life outside its borders. This conclusion precipitates a personal crisis, and accordingly, Knecht does the unthinkable: he resigns as Magister Ludi and asks to leave the order, ostensibly to become of value and service, in some way, to the larger culture. The heads of the order deny his request to leave, but Knecht departs Castalia anyway, initially taking a job as a tutor to his childhood friend's son. Only a few days later, he drowns in a mountain lake while attempting a swim for which he was not fit. The story ends abruptly.</dei:DocumentDescription>
+<dei:DocumentCreationDate contextRef="FY08">1943-01-01</dei:DocumentCreationDate>
+<dei:DocumentEffectiveDate contextRef="FY08">1943-01-01</dei:DocumentEffectiveDate>
+<dei:DocumentPeriodStartDate contextRef="FY08">2443-01-01</dei:DocumentPeriodStartDate>
+<dei:DocumentFiscalYearFocus contextRef="FY08">2443</dei:DocumentFiscalYearFocus>
+<dei:DocumentFiscalPeriodFocus contextRef="FY08">FY</dei:DocumentFiscalPeriodFocus>
+<dei:DocumentVersion contextRef="FY08">1</dei:DocumentVersion>
+<dei:DocumentCopyrightInformation contextRef="FY08">N/A</dei:DocumentCopyrightInformation>
+<dei:ContainedFileInformationFileName contextRef="FY08">The Legend</dei:ContainedFileInformationFileName>
+<dei:ContainedFileInformationFileDescription contextRef="FY08">Then follow three short stories, which are presented as exercises by Knecht imagining his life had he been born in another time and place. The first tells of an pagan rainmaker named Knecht who lived "many thousands of years ago, when women ruled."[4] Eventually the shaman's powers to meditatively summon rain fail and he offers himself as a sacrifice for the good of the tribe. The second story is of Josephus, an early Christian hermit who acquires a reputation for piety but is inwardly troubled by self-loathing and seeks a confessor, only to find that same penitent had been seeking him. The final story covers the life of Dasa a cowherd who encounters a yogi in meditation in the forest, wishes to experience the same tranquility, but is asked by the yogi to fill a gourd with water. At the well, Dasa meets a beautiful woman and is led to gain and lose a kingdom, eventually realising the yogi has been teaching him how the world is illusion (Maya). All three stories cover the lives of spiritual seekers who learn the mystic traditions of their respective eras from sagacious teachers.</dei:ContainedFileInformationFileDescription>
+<dei:ContainedFileInformationFileType contextRef="FY08">Short Story</dei:ContainedFileInformationFileType>
+<dei:ContainedFileInformationFileNumber contextRef="FY08">2</dei:ContainedFileInformationFileNumber>
+<dei:EntityTaxIdentificationNumber contextRef="FY08">999999999</dei:EntityTaxIdentificationNumber>
+<dei:EntityDataUniversalNumberingSystemNumber contextRef="FY08">999999999</dei:EntityDataUniversalNumberingSystemNumber>
+<dei:EntityIncorporationDateOfIncorporation contextRef="FY08">1943-01-01</dei:EntityIncorporationDateOfIncorporation>
+<dei:EntityIncorporationStateCountryName contextRef="FY08">Castalia</dei:EntityIncorporationStateCountryName>
+<dei:EntityReportingCurrencyISOCode contextRef="FY08">CST</dei:EntityReportingCurrencyISOCode>
+<dei:EntityAccountingStandard contextRef="FY08">IFRS</dei:EntityAccountingStandard>
+</xbrli:xbrl>

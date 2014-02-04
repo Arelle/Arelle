@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  elementFormDefault="qualified">
+  <xs:element name="testcase">
+    <xs:complexType>
+      <xs:attribute name="uri" use="required" type="xs:anyURI" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="example">
+    <xs:complexType>
+      <xs:attribute name="uri" use="required" type="xs:anyURI" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="dataset">
+    <xs:complexType>
+      <xs:attribute name="uri" use="required" type="xs:anyURI" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="documentation">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="testcases" />
+        <xs:element ref="examples" />
+        <xs:element ref="datasets" />
+        <xs:element ref="performancetests" />
+      </xs:choice>
+      <xs:attribute name="name" use="required" type="xs:string" />
+      <xs:attribute name="date" use="required" type="xs:date" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="testcases">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="testcase" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="title" type="xs:string"/>
+      <xs:attribute name="root" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="examples">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="example" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="title" type="xs:string"/>
+      <xs:attribute name="root" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="datasets">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="dataset" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="title" type="xs:string"/>
+      <xs:attribute name="root" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="performancetests">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="testcase" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="title" type="xs:string"/>
+      <xs:attribute name="root" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="function-registry">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="testcase" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="title" type="xs:string"/>
+      <xs:attribute name="root" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

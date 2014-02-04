@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:eg="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="50220-scenarioFilter-concepts.xsd"/>
+  
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="50220-scenarioFilter-exist-formula.xml"/>  
+
+  <context id="context1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  
+  <context id="context2">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+    <scenario>
+      <eg:m>hoge</eg:m>
+    </scenario>
+  </context>
+
+  <context id="context3">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+    <scenario>
+      <eg:n>foo</eg:n>
+    </scenario>
+  </context>
+
+  <unit id="unit">
+    <measure>iso4217:USD</measure>
+  </unit>
+  
+  <eg:a decimals="0" contextRef="context1" unitRef="unit">0</eg:a>
+  <eg:b decimals="0" contextRef="context2" unitRef="unit">-200</eg:b>
+  <eg:c decimals="0" contextRef="context3" unitRef="unit">400</eg:c>
+
+</xbrl>

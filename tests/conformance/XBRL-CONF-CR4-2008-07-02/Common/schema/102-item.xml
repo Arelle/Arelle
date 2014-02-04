@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 16-07-2004 edit by Ron van Ardenne (www.batavia-xbrl.com / J2R BV) -->
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+<testcase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Item" description="Section 5.4 Taxonomy Elements" outpath="out" owner="n-sanbuichi@hitachi-system.co.jp" xsi:noNamespaceSchemaLocation="../lib/test.xsd" minimal="true">
+	<!-- Detect misuse of the periodType attribute (item.xml); -->
+	<variation id="V-1" name="SpecExample">
+		<description>102.01  The periodType attribute is required all item types.</description>
+		<data>
+			<xsd readMeFirst="false">102-01-SpecExample.xsd</xsd>
+			<instance readMeFirst="true">102-01-SpecExample.xml</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-2" name="MissingPeriodType">
+		<description>102.02  The periodType attribute is required for both numeric and non-numeric item types.</description>
+		<data>
+			<xsd readMeFirst="true">102-02-MissingPeriodType.xsd</xsd>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-3" name="NoPeriodTypeTuple">
+		<description>102.03 The periodTyope attribute is not allowed on tuples.</description>
+		<data>
+			<xsd readMeFirst="true">102-03-NoPeriodTypeTuple.xsd</xsd>
+		</data>
+		<result expected="invalid"/>
+	</variation>
+	<variation id="V-4" name="Item Substitution Allowed">
+		<description>102.04 Valid example for usage of substitutionGroup for item type elements. Added test erratam #021</description>
+		<data>
+			<xsd readMeFirst="true">102-04-substitutionItem.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-5" name="Item Substitution Allowed with Restriction">
+		<description>102.05 Valid example for usage of substitutionGroup for item type elements. Added test erratam #021</description>
+		<data>
+			<xsd readMeFirst="true">102-05-substitutionItem.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-6" name="102.06 Item Substitution Allowed with valid instance">
+		<description>102.06 Valid example for usage of substitutionGroup for item type elements. Added test erratam #021</description>
+		<data>
+			<xsd readMeFirst="false">102-05-substitutionItem.xsd</xsd>
+			<instance readMeFirst="true">102-06-substitutionItemValid.xbrl</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-8" name="Tuple Substitution Allowed">
+		<description>102.08 Valid example for usage of substitutionGroup for tuple type elements. Added test erratam #021</description>
+		<data>
+			<xsd readMeFirst="true">102-08-substitutionTuple.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-9" name="Tuple Substitution Allowed With Restriction">
+		<description>102.09 Valid example for usage of substitutionGroup for tuple type elements. Added test erratam #021</description>
+		<data>
+			<xsd readMeFirst="true">102-09-substitutionTuple.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-10" name="102.10 Item Substitution Allowed with valid instance">
+		<description>102.10 Valid example for usage of substitutionGroup for tuple type elements. Added test erratam #021</description>
+		<data>
+			<xsd readMeFirst="false">102-09-substitutionTuple.xsd</xsd>
+			<instance readMeFirst="true">102-10-substitutionTupleValid.xbrl</instance>
+		</data>
+		<result expected="valid"/>
+	</variation>
+	<variation id="V-11" name="102.11 Item Substitution Allowed root item in a different schema">
+		<description>102.11 Valid example for usage of substitutionGroup. The element substituted is declared in an external schema. Note this test case has been submited by Ignacio Hernandez-Ros ignacio@hernandez-ros.com on May 2007</description>
+		<data>
+			<xsd readMeFirst="true">102-11-DerivedElementFromAnElementInAnotherSchema.xsd</xsd>
+			<xsd readMeFirst="false">102-11-TheOtherSchema.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+</testcase>

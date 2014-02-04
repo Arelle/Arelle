@@ -1,0 +1,14 @@
+<!-- edited with Eclipse 3.1.1 by Geoff Shuetrim (Galexy) -->
+<linkbase 
+  xmlns="http://www.xbrl.org/2003/linkbase" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:other="http://xbrl.org/otherNamespace"
+  xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+	<labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <documentation/>
+		<loc xlink:type="locator" xlink:href="212-10-schema.xsd#conceptA" xlink:label="a"/>
+		<label xlink:type="resource" xlink:label="b" xlink:role="http://www.xbrl.org/2003/role/label" xml:lang="en">Label text</label>
+		<labelArc xlink:type="arc" xlink:from="a" xlink:to="b" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label"/>
+	</labelLink>
+</linkbase>

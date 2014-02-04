@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema 
+	xmlns="http://www.w3.org/2001/XMLSchema" 
+	elementFormDefault="qualified" 
+	attributeFormDefault="unqualified"
+	targetNamespace="http://www.xbrl.org/2006/conformance-suite/dimensions/pato1">
+	
+	<element name="typed" id="id_typed">
+		<simpleType>
+			<restriction base="string">
+				<enumeration value="1"/>
+			</restriction>
+		</simpleType>
+	</element>
+	
+</schema>

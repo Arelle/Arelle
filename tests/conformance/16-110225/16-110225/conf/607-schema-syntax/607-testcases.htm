@@ -1,0 +1,220 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>v16</title>
+</head>
+<body><table style="border:0; empty-cells:show;"><tbody>
+<tr>
+<td colspan="3">v16</td>
+<td colspan="3">2011-02-26</td>
+</tr>
+<tr><td colspan="2"></td></tr>
+<tr>
+<th>Name</th>
+<th>Variations</th>
+<th>Error Codes</th>
+<th>Remarks</th>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-01-no-include/607-01-no-include-testcase.xml">EDGAR Filer Manual v16 6.7.1 page 6-32</a></td>
+<td align="center" valign="top">1</td>
+<td nowrap valign="top">Schema-Include-Present</td>
+<td valign="top"><p>REMARK: Because this applies
+only to company extensions, in principle there could be a test in which a standard taxonomy 
+schema having an 'include' element would be 'GOOD', but there is no such standard taxonomy schema.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-03-ext-not-standard-namespace/607-03-ext-not-standard-namespace-testcase.xml">EDGAR Filer Manual v16 6.7.3 page 6-33</a></td>
+<td align="center" valign="top">7</td>
+<td nowrap valign="top">Extension-Has-Standard-Namespace-Authority</td>
+<td valign="top"><p>REMARK: For purposes of this test <a href="../../../lib/edgartaxonomies.xml">edgartaxonomies.xml</a> is the authoritative source of "standard taxonomies".</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-04-valid-ext-namespace-format/607-04-valid-ext-namespace-format-testcase.xml">EDGAR Filer Manual v16 6.7.4 page 6-33</a></td>
+<td align="center" valign="top">8</td>
+<td nowrap valign="top">Taxonomy-Valid-Target-Namespace</td>
+<td valign="top"><p>REMARK: There is a mismatch between the date formats currently accepted by EDGAR, and the possible ISO8601 formats.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-07-recommended-prefix-required/607-07-recommended-prefix-required-testcase.xml">EDGAR Filer Manual v16 6.7.7 page 6-34</a></td>
+<td align="center" valign="top">2</td>
+<td nowrap valign="top">Recommended-Prefix-Disallowed</td>
+<td valign="top"><p>REMARK: This only applies to a company extension schema. A standard taxonomy could
+in principle have an underscore in their namespace prefix, but there is no such
+standard taxonomy and therefore no such test variation.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-08-no-embedded-linkbases/607-08-no-embedded-linkbases-testcase.xml">EDGAR Filer Manual v16 6.7.8 page 6-34</a></td>
+<td align="center" valign="top">1</td>
+<td nowrap valign="top">No-Embedded-Linkbases</td>
+<td valign="top">
+<p>REMARK: This applies only to company extension schemas. In principle a standard taxonomy is allowed to have an embedded linkbase. But
+there is no such standard taxonomy and therefore no such test variation.</p>
+<p>REMARK: there are no variations for linkbases other than link:labelLink, but the rule does apply to all of them.</p>
+</td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-09-role-authority-matches-namespace/607-09-role-authority-matches-namespace-testcase.xml">EDGAR Filer Manual v16 6.7.9 page 6-34</a></td>
+<td align="center" valign="top">3</td>
+<td nowrap valign="top">Role-Namespace-Mismatch</td>
+<td valign="top">
+<p>REMARK: <a href="http://www.ietf.org/rfc/rfc2396.txt">http://www.ietf.org/rfc/rfc2396.txt</a> notes that the host component of a URL
+is case insensitive, a URI in Interactive Data documents has a case-sensitive host component. The same rfc allows characters in URIs
+that are not normally thought of as legal; variation 000gd exercises that in a minimal way without wading into the complex realm of
+XML character escaping versus URI character escaping.</p>
+<p>REMARK: This applies only to company extension schemas. In principle a standard taxonomy could have a different authority part in the
+targetNamespace and a role or arcrole declaration. There being no such standard taxonomies, there are no such 'gd'
+variations.</p>
+</td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-10-role-types-no-duplicates/607-10-role-types-no-duplicates-testcase.xml">EDGAR Filer Manual v14 6.7.10 page 6-33</a></td>
+<td align="center" valign="top">2</td>
+<td nowrap valign="top">Role-Type-Duplicates</td>
+<td valign="top"><p>REMARK: this applies to the entire DTS, not just the company schema which is what the
+similar XBRL 2.1 constraint applies to.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-11-role-types-pre-cal-def/607-11-role-types-pre-cal-def-testcase.xml">EDGAR Filer Manual v14 6.7.11 page 6-33</a></td>
+<td align="center" valign="top">4</td>
+<td nowrap valign="top">Role-Type-Declaration-Incomplete</td>
+<td valign="top"><p>REMARK: this applies only to company extension schemas, so that exceptions in the us-roles-YYYY-MM-DD.xsd schemas are not
+invalid.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-12-role-has-definition/607-12-role-has-definition-testcase.xml">EDGAR Filer Manual v16 6.7.12 page 6-35</a></td>
+<td align="center" valign="top">8</td>
+<td nowrap valign="top">Role-Definition-Mismatch</td>
+<td valign="top">
+<p>REMARK: This applies only to company extension schemas, so that exceptions in the us-roles-YYYY-MM-DD.xsd schemas are not invalid. </p>
+<p>REMARK: This was never meant to apply to resource roles, and that will be corrected in a future release.</p>
+<p>REMARK: Because the (incorrectly percieved) importance of instance rendering has continued to increase beyond reason, the validator
+now enforces an even more stringent criterion than documented in manual version v13. The regex is "[0-9]+ \-
+{Statement|Disclosure|Schedule|Document} \-.*[^\s]"; this discrepancy between the text of the manual and the actual validation MUST be
+corrected in the manual ASAP.</p>
+</td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-13-arcrole-authority-matches-namespace/607-13-arcrole-authority-matches-namespace-testcase.xml">EDGAR Filer Manual v16 6.7.13 page 6-37</a></td>
+<td align="center" valign="top">2</td>
+<td nowrap valign="top">Arcrole-Namespace-Mismatch</td>
+<td valign="top">
+<p>REMARK: This applies only to company extension schemas. In principle a standard taxonomy schema could violate this, but there are no
+such taxonomy schemas and so no 'good' variation. </p>
+<p>REMARK: An arcrole definition should not have to match the same pattern as presentation definitions, but we do so in this testcase to
+avoid spurious errors.</p>
+</td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-14-arcrole-types-no-duplicates/607-14-arcrole-types-no-duplicates-testcase.xml">EDGAR Filer Manual v16 6.7.14 page 6-37</a></td>
+<td align="center" valign="top">2</td>
+<td nowrap valign="top">Arcrole-Type-Duplicates</td>
+<td valign="top"><p>REMARK: this applies to the entire DTS not just company extension schemas.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-15-arcrole-has-definition/607-15-arcrole-has-definition-testcase.xml">EDGAR Filer Manual v16 6.7.15 page 6-37</a></td>
+<td align="center" valign="top">2</td>
+<td nowrap valign="top">Arcrole-Definition-Missing</td>
+<td valign="top">
+<p>REMARK: The test for emptiness is done after trimming.</p>
+<p>REMARK: this applies only to company extension schemas, so if there were any exceptions standard schemas those would not be
+invalid.</p>
+</td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-16-no-ext-name-same-as-base/607-16-no-ext-name-same-as-base-testcase.xml">EDGAR Filer Manual v16 6.7.16 page 6-37</a></td>
+<td align="center" valign="top">6</td>
+<td nowrap valign="top">Element-Name-Same-As-Base</td>
+<td valign="top"><p>REMARK: Only <a href="../../../lib/edgartaxonomies.xml">edgartaxonomies.xml</a> defines "standard taxonomy" for purposes of this test.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-17-valid-ext-elt-id/607-17-valid-ext-elt-id-testcase.xml">EDGAR Filer Manual v16 6.7.17 page 6-37</a></td>
+<td align="center" valign="top">2</td>
+<td nowrap valign="top">Element-Id</td>
+<td valign="top"><p>REMARK: This only applies to the company extension schemas. If there were a standard taxonomy schema that violated this, it would
+nevertheless be good. There being no such standard taxonomy, there is no such test variation.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-18-nillable-true/607-18-nillable-true-testcase.xml">EDGAR Filer Manual v14 6.7.18 page 6-36</a></td>
+<td align="center" valign="top">1</td>
+<td nowrap valign="top">Nillable-Not-True</td>
+<td valign="top">
+<p>REMARK: This only applies to the company extension schemas. If there were a standard taxonomy schema that violated this, it would
+nevertheless be good. There being no such standard taxonomy, there is no such test variation.</p>
+<p>REMARK: This was only meant to apply to element declarations in an xbrli substitution group. In the current EDGAR release, non-XBRL
+element declarations are effectively useless and if that were ever to change this rule should be changed and some new variations
+included.</p>
+</td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-19-no-ext-elt-tuples/607-19-no-ext-elt-tuples-testcase.xml">EDGAR Filer Manual v16 6.7.19 page 6-37</a></td>
+<td align="center" valign="top">1</td>
+<td nowrap valign="top">No-Tuple-Element</td>
+<td valign="top"><p>REMARK: This only applies to company extension schemas, although it happens to hold for all standard taxonomies.  At one time ICI 2006
+was the basis of other variations, but it now has been removed from edgartaxonomies.xml, so there are no such variations.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-20-no-typed-domain-ref/607-20-no-typed-domain-ref-testcase.xml">EDGAR Filer Manual v16 6.7.20 page 6-37</a></td>
+<td align="center" valign="top">1</td>
+<td nowrap valign="top">Typed-Domain-Ref-Disallowed</td>
+<td valign="top"><p>REMARK: This only applies to company extension schemas, although it also holds for all standard taxonomies. If there were a standard
+taxonomy that used xbrldt:typedDomainRef then there would be 'good' test variation covering it.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-21-abstracts-duration/607-21-abstracts-duration-testcase.xml">EDGAR Filer Manual v16 6.7.21 page 6-37</a></td>
+<td align="center" valign="top">1</td>
+<td nowrap valign="top">Abstract-Is-Instant</td>
+<td valign="top"><p>REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies other than the ICI 2006
+taxonomy. The ICI 2006 taxonomy can only be used with EX-100 attachments, to which rules in Chapter 6 do not apply.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-23-dimensions-named-axis/607-23-dimensions-named-axis-testcase.xml">EDGAR Filer Manual v16 6.7.23 page 6-38</a></td>
+<td align="center" valign="top">2</td>
+<td nowrap valign="top">Axis-Dimension-Name-Mismatch</td>
+<td valign="top"><p>REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies other than the ICI 2006
+taxonomy. The ICI 2006 taxonomy can only be used with EX-100 attachments, to which rules in Chapter 6 do not apply.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-24-hypercubes-named-table/607-24-hypercubes-named-table-testcase.xml">EDGAR Filer Manual v16 6.7.24 page 6-38</a></td>
+<td align="center" valign="top">2</td>
+<td nowrap valign="top">Table-Hypercube-Name-Mismatch</td>
+<td valign="top"><p>REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies other than the ICI 2006
+taxonomy. The ICI 2006 taxonomy can only be used with EX-100 attachments, to which rules in Chapter 6 do not apply.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-25-no-custom-substitutiongroups/607-25-no-custom-substitutiongroups-testcase.xml">EDGAR Filer Manual v16 6.7.25 page 6-38</a></td>
+<td align="center" valign="top">2</td>
+<td nowrap valign="top">Substitution-Group-Custom</td>
+<td valign="top">
+<p>REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies. If there were any such
+standard taxonomy it would be included in a 'good' test variation.</p>
+<p>REMARK: This does allow @substitutionGroup to be absent, so it would allow non-XBRL elements and that may have some use in some
+future EDGAR release.</p>
+</td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-26-lineitems-abstract/607-26-lineitems-abstract-testcase.xml">EDGAR Filer Manual v16 6.7.26 page 6-38</a></td>
+<td align="center" valign="top">2</td>
+<td nowrap valign="top">LineItems-Abstract-Name-Mismatch</td>
+<td valign="top"><p>REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies. If there were any such
+standard taxonomy it would be included in a 'good' test variation.</p></td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-27-domain-member-type/607-27-domain-member-type-testcase.xml">EDGAR Filer Manual v16 6.7.27 page 6-38</a></td>
+<td align="center" valign="top">10</td>
+<td nowrap valign="top">Domain-Type-Name-Mismatch</td>
+<td valign="top">
+<p>REMARK: This only applies to company extension schemas, although it does hold for all standard taxonomies.</p>
+<p>REMARK: The original wording required a specific US type, not a type derived from it.
+Now, types in any standard namespace can trigger this rule. 006gd flips to 006ng as a consequence.</p>
+</td>
+</tr>
+<tr>
+<td nowrap valign="top"><a href="607-28-domain-member-duration/607-28-domain-member-duration-testcase.xml">EDGAR Filer Manual v16 6.7.28 page 6-38</a></td>
+<td align="center" valign="top">5</td>
+<td nowrap valign="top">Domain-Member-Is-Instant</td>
+<td valign="top"><p>REMARK: this only applies to company extension schemas, although it holds for all standard taxonomies. If there were a standard
+taxonomy that violated the rule, it would appear in a 'good' test variation.</p></td>
+</tr>
+</tbody></table></body>
+</html>

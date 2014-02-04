@@ -1,0 +1,101 @@
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003, 2004 XBRL International. All Rights Reserved. -->
+<xsd:schema 
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   xmlns:xbrli="http://www.xbrl.org/2003/instance"
+   elementFormDefault="qualified"
+   targetNamespace="http://www.example.com/test"
+   xmlns:my="http://www.example.com/test" >
+
+	<xsd:import
+       namespace="http://www.xbrl.org/2003/instance"
+       schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+
+	<xsd:element name="contact"
+                 type="my:contactTupleType"
+                 substitutionGroup="xbrli:tuple"
+                 id="contact"/>
+
+	<!-- Content Model for contact -->
+	<xsd:complexType name="contactTupleType">
+		<xsd:complexContent>
+			<xsd:restriction base="xsd:anyType">
+				<xsd:sequence>
+					<xsd:element ref="my:abstractName" minOccurs="0"/>
+					<xsd:element ref="my:address" minOccurs="0"/>
+				</xsd:sequence>
+			</xsd:restriction>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+
+	<xsd:element name="abstractName"
+                 type="my:nameTupleType"
+                 substitutionGroup="xbrli:tuple"
+                 id="abstractName"
+                 abstract="true"/>
+
+	<!-- Content Model for abstractName-->
+	<xsd:complexType name="nameTupleType">
+		<xsd:complexContent>
+			<xsd:restriction base="xsd:anyType">
+				<xsd:sequence>
+					<xsd:element ref="my:title" minOccurs="0"/>
+					<xsd:element ref="my:first" minOccurs="0"/>
+					<xsd:element ref="my:last" />
+				</xsd:sequence>
+			</xsd:restriction>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:element name="first"
+                 type="xbrli:stringItemType"
+                 substitutionGroup="xbrli:item"
+                 id="first"
+                 xbrli:periodType="instant"/>
+
+	<xsd:element name="last"
+                 type="xbrli:stringItemType"
+                 substitutionGroup="xbrli:item"
+                 id="last"
+                 xbrli:periodType="instant"/>
+
+	<xsd:element name="title"
+                 type="xbrli:stringItemType"
+                 substitutionGroup="xbrli:item"
+                 id="title"
+                 xbrli:periodType="instant"/>
+
+
+	<xsd:element name="address"
+                 type="my:addressTupleType"
+                 substitutionGroup="xbrli:tuple"
+                 id="address"/>
+
+	<!-- Content Model for address-->
+	<xsd:complexType name="addressTupleType">
+		<xsd:complexContent>
+			<xsd:restriction base="xsd:anyType">
+				<xsd:sequence>
+					<xsd:element ref="my:city" minOccurs="0"/>
+					<xsd:element ref="my:country" minOccurs="0"/>
+				</xsd:sequence>
+			</xsd:restriction>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+
+	<xsd:element name="city"
+                 type="xbrli:stringItemType"
+                 substitutionGroup="xbrli:item"
+                 id="city"
+                 xbrli:periodType="instant"/>
+
+	<xsd:element name="country"
+                 type="xbrli:stringItemType"
+                 substitutionGroup="xbrli:item"
+                 id="country"
+                 xbrli:periodType="instant"/>
+
+
+</xsd:schema>

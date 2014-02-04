@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<?xml-stylesheet type="text/xsl" href="../../../lib/test.xsl"?>
+<testcase xmlns="http://edgar/2009/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://edgar/2009/conformance ../../../lib/test.xsd">
+<creator>
+<name>Ask OID</name>
+<email>Ask-OID@sec.gov</email>
+</creator>
+<number>618-02</number>
+<name>EDGAR Filer Manual v16 6.18.2 page 6-60</name>
+<description>
+<h2>A company extension reference linkbase must not add, remove or change references for any element declared
+in a standard taxonomy schema.</h2>
+<p>REMARK: 6.19 reads "A company extension also cannot remove or change references in
+standard taxonomies (this is a technical consequence of the rule prohibiting URI fragments other than shorthand
+xpointers)." but this does not explicitly say the obvious point that you can't ADD authoritative references,
+either.</p>
+</description>
+<reference specification="10491.11.1"/>
+<variation id="_001ng">
+<name>6.18.2, Local reference for standard element exists, NOGOOD.</name>
+<description>Local reference for standard element exists, NOGOOD.</description>
+<reference specification="10491.11.2"/>
+<data>
+<instance readMeFirst="true">e61802001ng-20081231.xml</instance>
+<linkbase>e61802001ng-20081231_ref.xml</linkbase>
+<linkbase>edgar-20081231_pre.xml</linkbase>
+<linkbase>edgar-20081231_def.xml</linkbase>
+<linkbase>edgar-20081231_lab.xml</linkbase>
+<schema>edgar-20081231.xsd</schema>
+<schema>e61802001ng-20081231.xsd</schema>
+</data>
+<result>
+<assert severity="err" num="61802" name="Standard-Element-Has-Reference" frd="cp"/>
+</result>
+</variation>
+</testcase>

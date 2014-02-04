@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:validation="http://xbrl.org/2008/validation"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+  xmlns:df="http://xbrl.org/2008/filter/dimension"
+  xmlns:rf="http://xbrl.org/2008/filter/relative"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:v="http://xbrl.org/2008/formula/conformance/variable"
+  xmlns:eg="http://xbrl.org/formula/conformance/example"  
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../../core_schemas/generic-link.xsd
+  http://xbrl.org/2008/formula ../../../core_schemas/formula.xsd
+  http://xbrl.org/2008/variable ../../../core_schemas/variable.xsd
+  http://xbrl.org/2008/filter/concept ../../../core_schemas/concept-filter.xsd
+  http://xbrl.org/2008/filter/period ../../../core_schemas/period-filter.xsd
+  http://xbrl.org/2008/filter/dimension ../../../core_schemas/dimension-filter.xsd
+  http://xbrl.org/2008/filter/relative ../../../core_schemas/relative-filter.xsd
+  http://xbrl.org/2008/label ../../../core_schemas/generic-label.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../../core_schemas/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../../core_schemas/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../../core_schemas/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <!-- ending stock is starting stock (as restated) + flow -->
+    <formula:formula xlink:type="resource" xlink:label="formula"
+      value="$v:stock + $v:flow"
+      source="v:stock"
+      aspectModel="dimensional" implicitFiltering="false">
+      <formula:decimals>0</formula:decimals>
+      <formula:aspects>
+        <formula:period>
+          <formula:instant value="xfi:period-end(xfi:period($v:flow))"/>
+        </formula:period>
+      </formula:aspects>
+    </formula:formula>
+
+    <!--  Fact variables. -->
+    <variable:factVariable xlink:type="resource" xlink:label="factVarStock"  bindAsSequence="false"/>
+    <variable:factVariable xlink:type="resource" xlink:label="factVarFlow"  bindAsSequence="false"/>
+    
+    <!--  Concept filters for the fact variables -->
+    <cf:conceptName xlink:type="resource" xlink:label="nameFilterStock">
+      <cf:concept>
+        <cf:qname>eg:stock</cf:qname>
+      </cf:concept>
+    </cf:conceptName> 
+    <cf:conceptName xlink:type="resource" xlink:label="nameFilterFlow">
+      <cf:concept>
+        <cf:qname>eg:flow</cf:qname>
+      </cf:concept>
+    </cf:conceptName> 
+
+    <!-- Period filter for the beginning balance variable -->
+    <pf:instantDuration xlink:type="resource" xlink:label="filterFlowPeriod"
+    variable="v:flow"
+    boundary="start" />
+
+    <!-- Dimension filter for starting stock as restated at flow end -->
+    <df:typedDimension xlink:type="resource" xlink:label="restatementFilter"
+     test="
+         (: if no restatement date, fail filter :)
+         if (empty(eg:restatementDate) or nilled(eg:restatementDate))
+           then false()
+           else (
+             (: allow restatementDate to be a xbrli dateUnion
+                if restatementDate is xs:date make dateTime next midnite :)
+             (if ( data(eg:restatementDate) instance of xs:date)
+                 then (dateTime(eg:restatementDate,xs:time('00:00:00'))
+                               + xs:dayTimeDuration('P1D'))
+                 else (eg:restatementDate) )
+             eq xfi:period-end(xfi:period($v:flow))
+           )
+           " >
+      <df:dimension>
+        <df:qname>eg:restatementAxis</df:qname>
+      </df:dimension>
+    </df:typedDimension>
+
+    <!-- relative filter for uncovered attributes -->
+    <rf:relativeFilter xlink:type="resource" xlink:label="relativeFilter"
+     variable="v:flow" />
+
+    <!--  Arc from the formula to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="v:stock" xlink:from="formula" xlink:to="factVarStock" order="1.0"/>
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="v:flow" xlink:from="formula" xlink:to="factVarFlow" order="2.0"/>
+
+    <!--  Arcs from variables to their concept filters -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="factVarStock" xlink:to="nameFilterStock" order="1.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="factVarStock" xlink:to="filterFlowPeriod" order="2.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="factVarStock" xlink:to="restatementFilter" order="3.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="factVarStock" xlink:to="relativeFilter" order="4.0"/>
+
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="factVarFlow" xlink:to="nameFilterFlow" order="1.0"/>
+
+  </generic:link>
+
+</link:linkbase>

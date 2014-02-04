@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<link:linkbase 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:generic="http://xbrl.org/2008/generic" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase
+    http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic
+    ../../../core_schemas/generic-link.xsd"
+  >
+
+  <link:roleRef xlink:type="simple"
+      roleURI="http://xbrl.org/formula/conformance/example/extlink1" 
+      xlink:href="22090-variableSetRelationship-tests.xsd#extlink1" />
+
+  <generic:link xlink:type="extended" 
+    xlink:role="http://xbrl.org/formula/conformance/example/extlink1">
+
+    <link:loc xlink:type="locator" 
+      xlink:href="22090-separateLbFiles-formula-arcs.xml" 
+      xlink:label="just-to-start-arc-discovery" />
+
+  </generic:link>
+
+</link:linkbase>
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,14 @@
+<!-- XBRL 2.1 Tests -->
+<!-- Copyright 2003 XBRL International.   See www.xbrl.org/legal.  All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../testcase.xsl"?>
+
+<testcase name="TypeExtension" description="Section 5.1.1 - TypeExtension" outpath="out" owner="cliff.binstock@ubmatrix.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../lib/test.xsd">
+
+	<variation name="155-TypeExtension-Valid">
+		<description>Type Extension - Valid</description>
+		<data>
+			<xsd readMeFirst="true">155-TypeExtension-Valid.xsd</xsd>
+		</data>
+		<result expected="valid"/>
+	</variation>
+</testcase>
