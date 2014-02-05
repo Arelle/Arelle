@@ -513,7 +513,7 @@ def openFileStream(cntlr, filepath, mode='r', encoding=None):
     if isHttpUrl(filepath) and cntlr:
         filepath = cntlr.webCache.getfilename(filepath)
     # file path may be server (or memcache) or local file system
-    if filepath.startswith(SERVER_WEB_CACHE) and cntlr:
+    if filepath.startswith(SERVER_WEB_CACHE) and cntlr and not cntlr.localOnly:
         filestream = None
         cacheKey = filepath[len(SERVER_WEB_CACHE) + 1:].replace("\\","/")
         if cntlr.isGAE: # check if in memcache
@@ -540,6 +540,9 @@ def openFileStream(cntlr, filepath, mode='r', encoding=None):
         return io.open(filepath, mode=mode, encoding=encoding)
     else:
         # local file system
+        if cntlr and cntlr.isGAE and cntlr.localOnly and filepath[0] == '/':
+            # can't do an absolute path here, so presume it is a relative to the path of the app source
+            filepath = '.%s' % filepath
         return io.open(filepath, mode=mode, encoding=encoding)
     
 def openXmlFileStream(cntlr, filepath, stripDeclaration=False):
