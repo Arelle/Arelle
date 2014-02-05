@@ -125,6 +125,18 @@ class ModelRoleType(ModelObject):
                                 for usedOn in self.iterdescendants("{http://www.xbrl.org/2003/linkbase}usedOn")
                                 if isinstance(usedOn,ModelObject))
             return self._usedOns
+        
+    @property
+    def tableCode(self):
+        """ table code from structural model for presentable table by ELR"""
+        if self.isArcrole:
+            return None
+        try:
+            return self._tableCode
+        except AttributeError:
+            from arelle import TableStructure
+            TableStructure.evaluateRoleTypesTableCodes(self.modelXbrl)
+            return self._tableCode
     
     @property
     def propertyView(self):
