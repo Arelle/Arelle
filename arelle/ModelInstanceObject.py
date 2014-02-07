@@ -1225,7 +1225,8 @@ class ModelUnit(ModelObject):
                 if i:
                     md5hash.update(b"divisor")
                 for measure in measures:
-                    md5hash.update(measure.namespaceURI.encode('utf-8','replace'))
+                    if measure.namespaceURI:
+                        md5hash.update(measure.namespaceURI.encode('utf-8','replace'))
                     md5hash.update(measure.localName.encode('utf-8','replace'))
             # should this use frozenSet of each measures element?
             self._md5hash = md5hash.hexdigest()
