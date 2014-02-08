@@ -62,4 +62,5 @@ def tableFacts(dts):
                         roleURIcodeFacts.append((roleType, code, fact))
                      
         return roleURIcodeFacts
+    return None
     

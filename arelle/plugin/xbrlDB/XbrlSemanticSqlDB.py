@@ -259,8 +259,12 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     aspectsUsed.add(rel.fromModelObject)
                 if isinstance(rel.toModelObject, ModelConcept):
                     aspectsUsed.add(rel.toModelObject)
-        for qn in (XbrlConst.qnXbrliIdentifier, XbrlConst.qnXbrliPeriod, XbrlConst.qnXbrliUnit):
-            aspectsUsed.add(self.modelXbrl.qnameConcepts[qn])
+                    
+        try:
+            for qn in (XbrlConst.qnXbrliIdentifier, XbrlConst.qnXbrliPeriod, XbrlConst.qnXbrliUnit):
+                aspectsUsed.add(self.modelXbrl.qnameConcepts[qn])
+        except KeyError:
+            pass # no DTS
 
         for roleTypes in (self.modelXbrl.roleTypes.values(), self.modelXbrl.arcroleTypes.values()):
             for roleUriTypes in roleTypes:
@@ -277,7 +281,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
 
         # add substitution groups
         aspectsUsed |= set(aspect.substitutionGroup
-                           for aspect in aspectsUsed)
+                           for aspect in aspectsUsed
+                           if aspect is not None)
         
         aspectsUsed -= {None}  # remove None if in aspectsUsed
         self.aspectsUsed = aspectsUsed
@@ -802,6 +807,33 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
 
         # facts
         def insertFactSet(modelFacts, parentDatapointId):
+            facts = []
+            for fact in modelFacts:
+                if fact.concept is not None:
+                    cntx = fact.context
+                    documentId = self.documentIds[fact.modelDocument]
+                    facts.append((reportId,
+                                  documentId,
+                                  elementFragmentIdentifier(fact),
+                                  fact.sourceline,
+                                  parentDatapointId, # parent ID
+                                  self.aspectQnameId.get(fact.qname),
+                                  fact.contextID,
+                                  self.entityId.get((reportId, cntx.entityIdentifier[0], cntx.entityIdentifier[1]))
+                                      if cntx is not None else None,
+                                      self.periodId.get((reportId,
+                                                    cntx.startDatetime if cntx.isStartEndPeriod else None,
+                                                    cntx.endDatetime if cntx.isStartEndPeriod else None,
+                                                    cntx.isInstantPeriod,
+                                                    cntx.isForeverPeriod)) if cntx is not None else None,
+                                  cntxAspectValueSelectionSetId.get(cntx) if cntx is not None else None,
+                                  self.unitId.get((reportId,fact.unit.md5hash)) if fact.unit is not None else None,
+                                  fact.isNil,
+                                  fact.precision,
+                                  fact.decimals,
+                                  roundValue(fact.value, fact.precision, fact.decimals) if fact.isNumeric and not fact.isNil else None,
+                                  fact.value
+                                  ))
             table = self.getTable('data_point', 'datapoint_id', 
                                   ('report_id', 'document_id', 'xml_id', 'source_line', 
                                    'parent_datapoint_id',  # tuple
@@ -809,31 +841,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                    'context_xml_id', 'entity_id', 'period_id', 'aspect_value_selections_id', 'unit_id',
                                    'is_nil', 'precision_value', 'decimals_value', 'effective_value', 'value'), 
                                   ('document_id', 'xml_id'), 
-                                  tuple((reportId,
-                                         documentId,
-                                         elementFragmentIdentifier(fact),
-                                         fact.sourceline,
-                                         parentDatapointId, # parent ID
-                                         self.aspectQnameId.get(fact.qname),
-                                         fact.contextID,
-                                         self.entityId.get((reportId, cntx.entityIdentifier[0], cntx.entityIdentifier[1]))
-                                             if cntx is not None else None,
-                                         self.periodId.get((reportId,
-                                                            cntx.startDatetime if cntx.isStartEndPeriod else None,
-                                                            cntx.endDatetime if cntx.isStartEndPeriod else None,
-                                                            cntx.isInstantPeriod,
-                                                            cntx.isForeverPeriod)) if cntx is not None else None,
-                                         cntxAspectValueSelectionSetId.get(cntx) if cntx is not None else None,
-                                         self.unitId.get((reportId,fact.unit.md5hash)) if fact.unit is not None else None,
-                                         fact.isNil,
-                                         fact.precision,
-                                         fact.decimals,
-                                         roundValue(fact.value, fact.precision, fact.decimals) if fact.isNumeric and not fact.isNil else None,
-                                         fact.value
-                                         )
-                                        for fact in modelFacts
-                                        for cntx in (fact.context,)
-                                        for documentId in (self.documentIds[fact.modelDocument],)))
+                                  facts)
             xmlIdDataPointId = dict(((docId, xmlId), datapointId)
                                     for datapointId, docId, xmlId in table)
             self.factDataPointId.update(xmlIdDataPointId)
@@ -849,13 +857,13 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         # table_datapoints
         _tableFacts = tableFacts(self.modelXbrl)  # for EFM this is ( (roleType, table_code, fact) )
         
-        #check if roleTypes and datapoint ids exist
-        for roleType, tableCode, fact in _tableFacts:
-            if (self.documentIds[roleType.modelDocument], roleType.roleURI) not in self.roleTypeIds:
-                print ("missing role type {}, {}".format(self.documentIds[roleType.modelDocument], roleType.roleURI))
-            if (self.documentIds[fact.modelDocument],elementFragmentIdentifier(fact)) not in self.factDataPointId:
-                print ("missing fact {}, {}".format(self.documentIds[fact.modelDocument],elementFragmentIdentifier(fact)))
         if _tableFacts: # if any entries
+            #check if roleTypes and datapoint ids exist
+            for roleType, tableCode, fact in _tableFacts:
+                if (self.documentIds[roleType.modelDocument], roleType.roleURI) not in self.roleTypeIds:
+                    print ("missing role type {}, {}".format(self.documentIds[roleType.modelDocument], roleType.roleURI))
+                if (self.documentIds[fact.modelDocument],elementFragmentIdentifier(fact)) not in self.factDataPointId:
+                    print ("missing fact {}, {}".format(self.documentIds[fact.modelDocument],elementFragmentIdentifier(fact)))
             table = self.getTable('table_data_points', None, 
                                   ('report_id', 'object_id', 'table_code', 'datapoint_id'), 
                                   ('report_id', 'object_id', 'datapoint_id'), 
@@ -893,19 +901,19 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 # for now just find a concept
                 objectId = None
                 if isinstance(modelObject, ModelFact):
-                    objectId = self.factDataPointId[(self.documentIds[modelObject.modelDocument],
-                                                     elementFragmentIdentifier(modelObject))]
+                    objectId = self.factDataPointId.get((self.documentIds.get(modelObject.modelDocument),
+                                                         elementFragmentIdentifier(modelObject)))
                 elif isinstance(modelObject, ModelRelationship):
-                    objectId = self.relSetId[(modelObject.linkrole,
-                                              modelObject.arcrole,
-                                              modelObject.linkQname.clarkNotation,
-                                              modelObject.arcElement.qname.clarkNotation)]
+                    objectId = self.relSetId.get((modelObject.linkrole,
+                                                  modelObject.arcrole,
+                                                  modelObject.linkQname.clarkNotation,
+                                                  modelObject.arcElement.qname.clarkNotation))
                 elif isinstance(modelObject, ModelConcept):
                     objectId = self.aspectQnameId.get(modelObject.qname)
                 elif isinstance(modelObject, ModelXbrl):
                     objectId = reportId
                 elif hasattr(modelObject, "modelDocument"):
-                    objectId = self.documentIds[modelObject.modelDocument]
+                    objectId = self.documentIds.get(modelObject.modelDocument)
                     
                 if objectId is not None:
                     messageRefs[sequenceInReport].add(objectId)
