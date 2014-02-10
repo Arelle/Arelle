@@ -22,7 +22,8 @@ class FactPrototype():      # behaves like a fact for dimensional validity testi
         else:
             self.qname = None # undefined concept
             self.concept = None # undefined concept
-            self.isTuple = False # don't block aspectMatches
+            self.isItem = False # don't block aspectMatches
+            self.isTuple = False
         if Aspect.LOCATION in aspectValues:
             self.parent = aspectValues[Aspect.LOCATION]
             try:
