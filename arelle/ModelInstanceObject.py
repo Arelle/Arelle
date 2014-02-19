@@ -248,8 +248,12 @@ class ModelFact(ModelObject):
             if decimals:
                 self._decimals = decimals
             else:   #check for fixed decimals on type
-                type = self.concept.type
-                self._decimals = type.fixedOrDefaultAttrValue("decimals") if type is not None else None
+                concept = self.concept
+                if concept is not None:
+                    type = concept.type
+                    self._decimals = type.fixedOrDefaultAttrValue("decimals") if type is not None else None
+                else:
+                    self._decimals = None    
             return  self._decimals
 
     @decimals.setter
@@ -267,8 +271,12 @@ class ModelFact(ModelObject):
             if precision:
                 self._precision = precision
             else:   #check for fixed decimals on type
-                type = self.concept.type
-                self._precision = type.fixedOrDefaultAttrValue("precision") if type is not None else None
+                concept = self.concept
+                if concept is not None:
+                    type = self.concept.type
+                    self._precision = type.fixedOrDefaultAttrValue("precision") if type is not None else None
+                else:
+                    self._precision = None    
             return  self._precision
 
     @property
