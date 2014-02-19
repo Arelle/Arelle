@@ -2,11 +2,13 @@
 Created on Feb 02, 2014
 
 @author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+(c) Copyright 2014 Mark V Systems Limited, All rights reserved.
 '''
 import re
 from arelle import XbrlConst
 
+# NOTE: This is an early experimental implementation of statement detection
+# it is not in a finished status at this time.
 EFMtableCodes = [
     # ELRs are parsed for these patterns in sort order until there is one match per code
     # sheet(s) may be plural
