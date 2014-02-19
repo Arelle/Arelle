@@ -668,12 +668,22 @@ def avg(xc, p, contextItem, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     addends = xc.atomize( p, args[0] )
     try:
-        if len(addends) == 0: 
+        l = len(addends)
+        if l == 0: 
             return ()  # xpath allows empty sequence argument
-        if any(isinstance(a, float) and (math.isnan(a) or math.isinf(a)) 
-               for a in addends):
-            return NaN
-        return sum( addends / len( args[0] ) )
+        hasFloat = False
+        hasDecimal = False
+        for a in addends:
+            if math.isnan(a) or math.isinf(a):
+                return NaN
+            if isinstance(a, float):
+                hasFloat = True
+            elif isinstance(a, Decimal):
+                hasDecimal = True
+        if hasFloat and hasDecimal: # promote decimals to float
+            addends = [float(a) if isinstance(a, Decimal) else a
+                       for a in addends]
+        return sum( addends ) / len( args[0] )
     except TypeError:
         raise XPathContext.FunctionArgType(1,"sumable values", addends, errCode='err:FORG0001')
 
@@ -707,8 +717,18 @@ def fn_sum(xc, p, contextItem, args):
     try:
         if len(addends) == 0: 
             return 0  # xpath allows empty sequence argument
-        if any(isinstance(a, float) and math.isnan(a) for a in addends):
-            return NaN
+        hasFloat = False
+        hasDecimal = False
+        for a in addends:
+            if math.isnan(a):
+                return NaN
+            if isinstance(a, float):
+                hasFloat = True
+            elif isinstance(a, Decimal):
+                hasDecimal = True
+        if hasFloat and hasDecimal: # promote decimals to float
+            addends = [float(a) if isinstance(a, Decimal) else a
+                       for a in addends]
         return sum( addends )
     except TypeError:
         raise XPathContext.FunctionArgType(1,"summable sequence", addends, errCode='err:FORG0001')
