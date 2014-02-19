@@ -199,25 +199,32 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'): # works on ubuntu wi
     if sys.platform == 'darwin':
         includeFiles.append(('arelle/scripts-macOS','scripts'))
         # copy mac ports tcl and tk into build
-        #includeFiles.append(('/opt/local/lib/tcl8.6','tcl8.6'))
-        #includeFiles.append(('/opt/local/lib/tk8.6','tk8.6'))
+        includeFiles.append(('/opt/local/lib/tcl8.6','tcl8.6'))
+        includeFiles.append(('/opt/local/lib/tk8.6','tk8.6'))
     else: 
         includeFiles.append(('arelle/scripts-unix','scripts'))
+    includeLibs = ['lxml', 'lxml.etree', 'lxml._elementpath', 'pg8000', 'pymysql', 
+                    # note cx_Oracle isn't here because it is version and machine specific, ubuntu not likely working
+                    'rdflib', 'rdflib.extras', 'rdflib.tools', 
+                    # more rdflib plugin modules may need to be added later
+                    'rdflib.plugins', 'rdflib.plugins.memory', 
+                    'rdflib.plugins.parsers', 
+                    'rdflib.plugins.serializers', 'rdflib.plugins.serializers.rdfxml', 'rdflib.plugins.serializers.turtle', 'rdflib.plugins.serializers.xmlwriter', 
+                    'rdflib.plugins.sparql', 
+                    'rdflib.plugins.stores', 
+                    'isodate', 'regex', 'gzip', 'zlib']
+    if sys.platform != 'sunos5':
+        try:
+            import pyodbc # see if this is importable
+            includeLibs.append('pyodbc')  # has C compiling errors on Sparc
+        except ImportError:
+            pass
     options = dict( build_exe =  { 
         "include_files": includeFiles,
         #
         # rdflib & isodate egg files: rename .zip cpy lib & egg-info subdirectories to site-packages directory
         #
-        "includes": ['lxml', 'lxml.etree', 'lxml._elementpath', 'pg8000', 'pymysql', 'pyodbc',
-                     # note cx_Oracle isn't here because it is version and machine specific, ubuntu not likely working
-                     'rdflib', 'rdflib.extras', 'rdflib.tools', 
-                     # more rdflib plugin modules may need to be added later
-                     'rdflib.plugins', 'rdflib.plugins.memory', 
-                     'rdflib.plugins.parsers', 
-                     'rdflib.plugins.serializers', 'rdflib.plugins.serializers.rdfxml', 'rdflib.plugins.serializers.turtle', 'rdflib.plugins.serializers.xmlwriter', 
-                     'rdflib.plugins.sparql', 
-                     'rdflib.plugins.stores', 
-                     'isodate', 'regex', 'gzip', 'zlib'], 
+        "includes": includeLibs,
         "packages": packages, 
         } ) 
     if sys.platform == 'darwin':
