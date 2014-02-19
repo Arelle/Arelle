@@ -1892,6 +1892,17 @@ class ModelRelationship(ModelObject):
             return self._axisDisposition
         
     @property
+    def equivalenceHash(self): # not exact, use equivalenceKey if hashes are the same
+        return hash((self.qname, 
+                     self.linkQname,
+                     self.linkrole,  # needed when linkrole=None merges multiple links
+                     self.fromModelObject.objectIndex if self.fromModelObject is not None else -1, 
+                     self.toModelObject.objectIndex if self.toModelObject is not None else -1, 
+                     self.order, 
+                     self.weight, 
+                     self.preferredLabel))
+        
+    @property
     def equivalenceKey(self):
         """(tuple) -- Key to determine relationship equivalence per 2.1 spec"""
         # cannot be cached because this is unique per relationship
