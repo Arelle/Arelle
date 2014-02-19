@@ -18,35 +18,35 @@ are reported as "(dynamic)".)
 
 <message code="(dynamic)"
          level="(dynamic)"
-         module="ValidateFiling.py" line="2199"
-         args="reasonIssueIsWarning conceptSum linkrole linkroleDefinition reasonPresumedTotal itemConcepts missingConcepts contextIDs">
-(dynamic)
-</message>
-
-<message code="(dynamic)"
-         level="(dynamic)"
-         module="ValidateFormula.py" line="177"
+         module="ValidateFormula.py" line="188"
          args="xlinkFrom xlinkTo element">
 Relationship from %(xlinkFrom)s to %(xlinkTo)s should have an %(element)s source
 </message>
 
 <message code="(dynamic)"
          level="(dynamic)"
-         module="ValidateFormula.py" line="184"
+         module="ValidateFormula.py" line="192"
+         args="xlinkFrom xlinkTo element">
+Relationship from %(xlinkFrom)s to %(xlinkTo)s should not have an %(element)s source
+</message>
+
+<message code="(dynamic)"
+         level="(dynamic)"
+         module="ValidateFormula.py" line="199"
          args="xlinkFrom xlinkTo element">
 Relationship from %(xlinkFrom)s to %(xlinkTo)s should have an %(element)s target
 </message>
 
 <message code="(dynamic)"
-         level="critical"
-         module="ModelXbrl.py" line="1001"
-         args="">
-(dynamic)
+         level="(dynamic)"
+         module="ValidateFormula.py" line="203"
+         args="xlinkFrom xlinkTo element">
+Relationship from %(xlinkFrom)s to %(xlinkTo)s should not have an %(element)s target
 </message>
 
 <message code="(dynamic)"
          level="error"
-         module="FormulaEvaluator.py" line="230"
+         module="FormulaEvaluator.py" line="237"
          args="variableSet error">
 Variable set chained in scope of variable set %(variableset)s 
 Exception: 
@@ -55,58 +55,51 @@ Exception:
 
 <message code="(dynamic)"
          level="error"
-         module="FormulaEvaluator.py" line="570"
+         module="FormulaEvaluator.py" line="577"
          args="xlinkLabel concept">
 Formula %(xlinkLabel)s concept: %(concept)s
 </message>
 
 <message code="(dynamic)"
          level="error"
-         module="FormulaEvaluator.py" line="587"
+         module="FormulaEvaluator.py" line="594"
          args="xlinkLabel scheme">
 Formula %(xlinkLabel)s entity identifier scheme: %(scheme)s
 </message>
 
 <message code="(dynamic)"
          level="error"
-         module="FormulaEvaluator.py" line="594"
+         module="FormulaEvaluator.py" line="601"
          args="xlinkLabel entityIdentifier">
 Formula %(xlinkLabel)s entity identifier value: %(entityIdentifier)s
 </message>
 
 <message code="(dynamic)"
          level="error"
-         module="FormulaEvaluator.py" line="603"
+         module="FormulaEvaluator.py" line="610"
          args="xlinkLabel periodType">
 Formula %(xlinkLabel)s period type: %(periodType)s
 </message>
 
 <message code="(dynamic)"
          level="error"
-         module="FormulaEvaluator.py" line="609"
+         module="FormulaEvaluator.py" line="616"
          args="xlinkLabel period">
 Formula %(xlinkLabel)s period end: %(period)s
 </message>
 
 <message code="(dynamic)"
          level="error"
-         module="FormulaEvaluator.py" line="615"
+         module="FormulaEvaluator.py" line="622"
          args="xlinkLabel period">
 Formula %(xlinkLabel)s period start: %(period)s
 </message>
 
 <message code="(dynamic)"
          level="error"
-         module="FormulaEvaluator.py" line="620"
+         module="FormulaEvaluator.py" line="627"
          args="xlinkLabel period">
 Formula %(xlinkLabel)s period end: %(period)s
-</message>
-
-<message code="(dynamic)"
-         level="error"
-         module="FormulaEvaluator.py" line="629"
-         args="xlinkLabel unit">
-Formula %(xlinkLabel)s unit: %(unit)s
 </message>
 
 <message code="(dynamic)"
@@ -118,14 +111,21 @@ Formula %(xlinkLabel)s unit: %(unit)s
 
 <message code="(dynamic)"
          level="error"
-         module="FormulaEvaluator.py" line="674"
+         module="FormulaEvaluator.py" line="643"
+         args="xlinkLabel unit">
+Formula %(xlinkLabel)s unit: %(unit)s
+</message>
+
+<message code="(dynamic)"
+         level="error"
+         module="FormulaEvaluator.py" line="681"
          args="xlinkLabel dimension value">
 Formula %(xlinkLabel)s dimension %(dimension)s: %(value)s
 </message>
 
 <message code="(dynamic)"
          level="error"
-         module="FormulaEvaluator.py" line="82"
+         module="FormulaEvaluator.py" line="84"
          args="xlinkLabel error">
 Variable set %(xlinkLabel)s 
 Exception: %(error)s
@@ -133,30 +133,9 @@ Exception: %(error)s
 
 <message code="(dynamic)"
          level="error"
-         module="ModelDocument.py" line="169"
+         module="ModelDocument.py" line="170"
          args="fileName error sourceAction exc_info">
 Unrecoverable error: %(error)s, %(fileName)s, %(sourceAction)s source element
-</message>
-
-<message code="(dynamic)"
-         level="error"
-         module="ModelDocument.py" line="57"
-         args="url blockedIndicator">
-Prohibited file for filings %(blockedIndicator)s: %(url)s
-</message>
-
-<message code="(dynamic)"
-         level="error"
-         module="ModelDocument.py" line="695"
-         args="namespace schemaLocation url">
-Namespace: %(namespace)s disallowed schemaLocation %(schemaLocation)s
-</message>
-
-<message code="(dynamic)"
-         level="error"
-         module="ModelDocument.py" line="784"
-         args="namespace schemaLocation url">
-Namespace: %(namespace)s disallowed schemaLocation blocked %(schemaLocation)s
 </message>
 
 <message code="(dynamic)"
@@ -169,13 +148,6 @@ Exception: %(error)s
 
 <message code="(dynamic)"
          level="error"
-         module="ModelXbrl.py" line="996"
-         args="">
-(dynamic)
-</message>
-
-<message code="(dynamic)"
-         level="error"
          module="RenderingResolver.py" line="66"
          args="exc_info">
 (dynamic)
@@ -183,35 +155,7 @@ Exception: %(error)s
 
 <message code="(dynamic)"
          level="error"
-         module="ValidateFiling.py" line="1186"
-         args="context fact1 fact2 fact2NotNil">
-The Context %(context)s has a %(fact1)s and is missing required %(fact2NotNil)sfact %(fact2)s
-</message>
-
-<message code="(dynamic)"
-         level="error"
-         module="ValidateFiling.py" line="874"
-         args="contextID documentType submissionType">
-DocumentType '%(documentType)s' of context %(contextID)s inapplicable to submission form %(submissionType)s
-</message>
-
-<message code="(dynamic)"
-         level="error"
-         module="ValidateFilingDTS.py" line="635"
-         args="filename">
-Invalid linkbase file name: %(filename)s, has no extended link element, cannot determine link type.
-</message>
-
-<message code="(dynamic)"
-         level="error"
-         module="ValidateFilingText.py" line="488"
-         args="fact contextID error">
-Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s
-</message>
-
-<message code="(dynamic)"
-         level="error"
-         module="ValidateFormula.py" line="230"
+         module="ValidateFormula.py" line="249"
          args="name error errorSource">
 %(name)s evaluation error: %(error)s 
 %(errorSource)s
@@ -219,7 +163,7 @@ Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(erro
 
 <message code="(dynamic)"
          level="error"
-         module="ValidateFormula.py" line="811"
+         module="ValidateFormula.py" line="830"
          args="variableSet error">
 Variable set 
 %(variableSet)s 
@@ -241,18 +185,11 @@ Exception:
 (dynamic)
 </message>
 
-<message code="(dynamic)"
-         level="info"
-         module="ModelXbrl.py" line="953"
-         args="">
-(dynamic)
-</message>
-
-<message code="(dynamic)"
-         level="warning"
-         module="ModelXbrl.py" line="958"
-         args="">
-(dynamic)
+<message code="EBA.2.1"
+         level="error"
+         module="ModelDocument.py" line="757"
+         args="modelObejct attribute element">
+Prohibited base attribute: %(attribute)s
 </message>
 
 <message code="EFM.5.01.01"
@@ -285,28 +222,28 @@ Disallowed entity code %(text)s in file %(file)s line %(line)s column %(column)s
 
 <message code="EFM.6.03.02"
          level="error"
-         module="ValidateFilingDTS.py" line="639"
+         module="ValidateFilingDTS.py" line="640"
          args="linkElement filename">
 Invalid linkbase link element %(linkElement)s in %(filename)s
 </message>
 
 <message code="EFM.6.03.03"
          level="error"
-         module="ValidateFiling.py" line="131"
+         module="ValidateFiling.py" line="132"
          args="filename">
 Invalid instance document base name part (ticker or mnemonic name) in &quot;{base}-{yyyymmdd}.xml&quot;: %(filename)s
 </message>
 
 <message code="EFM.6.03.03"
          level="error"
-         module="ValidateFiling.py" line="139"
+         module="ValidateFiling.py" line="140"
          args="filename">
 Invalid instance document base name part (date) in &quot;{base}-{yyyymmdd}.xml&quot;: %(filename)s
 </message>
 
 <message code="EFM.6.03.03"
          level="error"
-         module="ValidateFiling.py" line="144"
+         module="ValidateFiling.py" line="145"
          args="filename">
 Invalid instance document name, must match &quot;{base}-{yyyymmdd}.xml&quot;: %(filename)s
 </message>
@@ -327,14 +264,14 @@ Invalid schema file name, must match &quot;{base}-{yyyymmdd}.xsd&quot;: %(filena
 
 <message code="EFM.6.03.03"
          level="error"
-         module="ValidateFilingDTS.py" line="656"
+         module="ValidateFilingDTS.py" line="657"
          args="filename">
 Invalid linkbase base file name part (date) in &quot;{base}-{yyyymmdd}_{suffix}.xml&quot;: %(filename)s
 </message>
 
 <message code="EFM.6.03.03"
          level="error"
-         module="ValidateFilingDTS.py" line="661"
+         module="ValidateFilingDTS.py" line="662"
          args="filename expectedSuffix">
 Invalid linkbase name, must match &quot;{base}-{yyyymmdd}%(expectedSuffix)s.xml&quot;: %(filename)s
 </message>
@@ -348,9 +285,16 @@ Schema file name warning: %(filename)s, should match %(expectedFilename)s
 
 <message code="EFM.6.03.03.matchInstance"
          level="warning-semantic"
-         module="ValidateFilingDTS.py" line="652"
+         module="ValidateFilingDTS.py" line="653"
          args="filename expectedFilename">
 Linkbase name warning: %(filename)s should match %(expectedFilename)s
+</message>
+
+<message code="EFM.6.03.03.noLinkElement"
+         level="error"
+         module="ValidateFilingDTS.py" line="635"
+         args="filename">
+Invalid linkbase file name: %(filename)s, has no extended link element, cannot determine link type.
 </message>
 
 <message code="EFM.6.03.06"
@@ -362,98 +306,98 @@ Href %(elementHref)s may only have shorthand xpointers
 
 <message code="EFM.6.03.11"
          level="error"
-         module="ModelDocument.py" line="755"
+         module="ModelDocument.py" line="757"
          args="modelObejct attribute element">
 Prohibited base attribute: %(attribute)s
 </message>
 
 <message code="EFM.6.04.03"
          level="error"
-         module="ValidateFiling.py" line="407"
+         module="ValidateFiling.py" line="408"
          args="fact contextID">
 Fact %(fact)s of context %(contextID)s has an XBRL error
 </message>
 
 <message code="EFM.6.05.01"
          level="error"
-         module="ValidateFiling.py" line="162"
+         module="ValidateFiling.py" line="163"
          args="scheme context identifier">
 Invalid entity identifier scheme %(scheme)s in context %(context)s for identifier %(identifier)s
 </message>
 
 <message code="EFM.6.05.02"
          level="error"
-         module="ValidateFiling.py" line="167"
+         module="ValidateFiling.py" line="168"
          args="entityIdentifierName entityIdentifer">
 Invalid entity identifier %(entityIdentifierName)s: %(entityIdentifer)s
 </message>
 
 <message code="EFM.6.05.03"
          level="error"
-         module="ValidateFiling.py" line="180"
+         module="ValidateFiling.py" line="181"
          args="entityIdentifierName entityIdentifer entityIdentifer2 filerIdentifier">
 Multiple %(entityIdentifierName)ss: %(entityIdentifer)s, %(entityIdentifer2)s
 </message>
 
 <message code="EFM.6.05.04"
          level="error"
-         module="ValidateFiling.py" line="232"
+         module="ValidateFiling.py" line="233"
          args="elementName context count">
 %(elementName)s element not allowed in context Id: %(context)s
 </message>
 
 <message code="EFM.6.05.04"
          level="error"
-         module="ValidateFiling.py" line="263"
+         module="ValidateFiling.py" line="264"
          args="elementName count context">
 %(count)s contexts contain disallowed %(elementName)s: %(context)s
 </message>
 
 <message code="EFM.6.05.05"
          level="error"
-         module="ValidateFiling.py" line="252"
+         module="ValidateFiling.py" line="253"
          args="context content elementName">
 %(elementName)s of context Id %(context)s has disallowed content: %(content)s
 </message>
 
 <message code="EFM.6.05.05"
          level="error"
-         module="ValidateFiling.py" line="268"
+         module="ValidateFiling.py" line="269"
          args="elementName count context">
 %(count)s contexts contain disallowed %(elementName)s content: %(context)s
 </message>
 
 <message code="EFM.6.05.07"
          level="error"
-         module="ValidateFiling.py" line="201"
+         module="ValidateFiling.py" line="202"
          args="context context2">
 Context ID %(context)s is equivalent to context ID %(context2)s
 </message>
 
 <message code="EFM.6.05.08"
          level="error"
-         module="ValidateFiling.py" line="443"
+         module="ValidateFiling.py" line="444"
          args="modelXbrl contextIDs">
 The instance document contained a context(s) %(contextIDs)s that was(are) not used in any fact.
 </message>
 
 <message code="EFM.6.05.09"
          level="error"
-         module="ValidateFiling.py" line="509"
+         module="ValidateFiling.py" line="510"
          args="endDate endContexts startContexts documentType">
 Context endDate %(endDate)s, and startDate(s) have a duration of one day, for end context(s): %(endContexts)s and start context(s): %(startContexts)s; that is inconsistent with document type %(documentType)s.
 </message>
 
 <message code="EFM.6.05.10"
          level="error"
-         module="ValidateFiling.py" line="517"
+         module="ValidateFiling.py" line="518"
          args="endDate contexts documentType">
 Context instant date %(endDate)s startDate has a duration of one day,with end (instant) of context(s): %(contexts)s; that is inconsistent with document type %(documentType)s.
 </message>
 
 <message code="EFM.6.05.11"
          level="error"
-         module="ValidateFiling.py" line="544"
+         module="ValidateFiling.py" line="545"
          args="unitID unitID2">
 Units %(unitID)s and %(unitID2)s are equivalent.
 </message>
@@ -474,7 +418,14 @@ Fact %(fact)s of context %(contextID)s has text of xml:lang '%(lang)s' without c
 
 <message code="EFM.6.05.15"
          level="error"
-         module="ValidateFilingText.py" line="535"
+         module="ValidateFilingText.py" line="536"
+         args="fact contextID error">
+Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s
+</message>
+
+<message code="EFM.6.05.15.dtdError"
+         level="error"
+         module="ValidateFilingText.py" line="488"
          args="fact contextID error">
 Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s
 </message>
@@ -486,58 +437,65 @@ Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(erro
 Fact %(fact)s contextID %(contextID)s has disallowed entity %(entity)s
 </message>
 
+<message code="EFM.6.05.16"
+         level="error"
+         module="ValidateFilingText.py" line="488"
+         args="fact contextID error">
+Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s
+</message>
+
 <message code="EFM.6.05.16.activeContent"
          level="error"
-         module="ValidateFilingText.py" line="498"
+         module="ValidateFilingText.py" line="499"
          args="fact contextID attribute element">
 Fact %(fact)s of context %(contextID)s has javascript in '%(attribute)s' for &lt;%(element)s>
 </message>
 
 <message code="EFM.6.05.16.externalReference"
          level="error"
-         module="ValidateFilingText.py" line="505"
+         module="ValidateFilingText.py" line="506"
          args="fact contextID attribute element">
 Fact %(fact)s of context %(contextID)s has an invalid external reference in '%(attribute)s' for &lt;%(element)s>
 </message>
 
 <message code="EFM.6.05.16.graphicFileContent"
          level="error"
-         module="ValidateFilingText.py" line="518"
+         module="ValidateFilingText.py" line="519"
          args="fact contextID attribute element">
 Fact %(fact)s of context %(contextID)s references a graphics file which doesn't have expected content '%(attribute)s' for &lt;%(element)s>
 </message>
 
 <message code="EFM.6.05.16.graphicFileError"
          level="error"
-         module="ValidateFilingText.py" line="523"
+         module="ValidateFilingText.py" line="524"
          args="fact contextID attribute element error">
 Fact %(fact)s of context %(contextID)s references a graphics file which isn't openable '%(attribute)s' for &lt;%(element)s>, error: %(error)s
 </message>
 
 <message code="EFM.6.05.16.graphicFileType"
          level="error"
-         module="ValidateFilingText.py" line="511"
+         module="ValidateFilingText.py" line="512"
          args="fact contextID attribute element">
 Fact %(fact)s of context %(contextID)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for &lt;%(element)s>
 </message>
 
 <message code="EFM.6.05.16.nestedTable"
          level="error"
-         module="ValidateFilingText.py" line="529"
+         module="ValidateFilingText.py" line="530"
          args="fact contextID">
 Fact %(fact)s of context %(contextID)s has nested &lt;table> elements.
 </message>
 
 <message code="EFM.6.05.17"
          level="error"
-         module="ValidateFiling.py" line="416"
+         module="ValidateFiling.py" line="417"
          args="fact contextID precision">
 Numeric fact %(fact)s of context %(contextID)s has a precision attribute '%(precision)s'
 </message>
 
 <message code="EFM.6.05.19"
          level="error"
-         module="ValidateFiling.py" line="534"
+         module="ValidateFiling.py" line="535"
          args="documentType">
 Required context (no segment) not found for document type %(documentType)s.
 </message>
@@ -591,282 +549,289 @@ AmendmentFlag is true in context %(contextID)s so AmendmentDescription is also r
 DocumentType is required and was not found in the default context
 </message>
 
+<message code="EFM.6.05.20.submissionDocumentType"
+         level="error"
+         module="ValidateFiling.py" line="874"
+         args="contextID documentType submissionType">
+DocumentType '%(documentType)s' of context %(contextID)s inapplicable to submission form %(submissionType)s
+</message>
+
 <message code="EFM.6.05.21"
          level="(dynamic)"
-         module="ValidateFiling.py" line="921"
+         module="ValidateFiling.py" line="922"
          args="contextID documentType elementName">
 dei:%(elementName)s is required for DocumentType '%(documentType)s' of context %(contextID)s
 </message>
 
 <message code="EFM.6.05.21.CurrentFiscalYearEndDate"
          level="(dynamic)"
-         module="ValidateFiling.py" line="921"
+         module="ValidateFiling.py" line="922"
          args="contextID documentType elementName">
 dei:%(elementName)s is required for DocumentType '%(documentType)s' of context %(contextID)s
 </message>
 
 <message code="EFM.6.05.21.DocumentFiscalPeriodFocus"
          level="(dynamic)"
-         module="ValidateFiling.py" line="921"
+         module="ValidateFiling.py" line="922"
          args="contextID documentType elementName">
 dei:%(elementName)s is required for DocumentType '%(documentType)s' of context %(contextID)s
 </message>
 
 <message code="EFM.6.05.21.DocumentFiscalYearFocus"
          level="(dynamic)"
-         module="ValidateFiling.py" line="921"
+         module="ValidateFiling.py" line="922"
          args="contextID documentType elementName">
 dei:%(elementName)s is required for DocumentType '%(documentType)s' of context %(contextID)s
 </message>
 
 <message code="EFM.6.05.21.EntityCentralIndexKey"
          level="(dynamic)"
-         module="ValidateFiling.py" line="921"
+         module="ValidateFiling.py" line="922"
          args="contextID documentType elementName">
 dei:%(elementName)s is required for DocumentType '%(documentType)s' of context %(contextID)s
 </message>
 
 <message code="EFM.6.05.21.EntityCurrentReportingStatus"
          level="(dynamic)"
-         module="ValidateFiling.py" line="921"
+         module="ValidateFiling.py" line="922"
          args="contextID documentType elementName">
 dei:%(elementName)s is required for DocumentType '%(documentType)s' of context %(contextID)s
 </message>
 
 <message code="EFM.6.05.21.EntityFilerCategory"
          level="(dynamic)"
-         module="ValidateFiling.py" line="921"
+         module="ValidateFiling.py" line="922"
          args="contextID documentType elementName">
 dei:%(elementName)s is required for DocumentType '%(documentType)s' of context %(contextID)s
 </message>
 
 <message code="EFM.6.05.21.EntityPublicFloat"
          level="(dynamic)"
-         module="ValidateFiling.py" line="921"
+         module="ValidateFiling.py" line="922"
          args="contextID documentType elementName">
 dei:%(elementName)s is required for DocumentType '%(documentType)s' of context %(contextID)s
 </message>
 
 <message code="EFM.6.05.21.EntityRegistrantName"
          level="(dynamic)"
-         module="ValidateFiling.py" line="921"
+         module="ValidateFiling.py" line="922"
          args="contextID documentType elementName">
 dei:%(elementName)s is required for DocumentType '%(documentType)s' of context %(contextID)s
 </message>
 
 <message code="EFM.6.05.21.EntityVoluntaryFilers"
          level="(dynamic)"
-         module="ValidateFiling.py" line="921"
+         module="ValidateFiling.py" line="922"
          args="contextID documentType elementName">
 dei:%(elementName)s is required for DocumentType '%(documentType)s' of context %(contextID)s
 </message>
 
 <message code="EFM.6.05.21.EntityWellKnownSeasonedIssuer"
          level="(dynamic)"
-         module="ValidateFiling.py" line="921"
+         module="ValidateFiling.py" line="922"
          args="contextID documentType elementName">
 dei:%(elementName)s is required for DocumentType '%(documentType)s' of context %(contextID)s
 </message>
 
 <message code="EFM.6.05.23"
          level="error"
-         module="ValidateFiling.py" line="341"
+         module="ValidateFiling.py" line="342"
          args="elementName value entityIdentifier">
 dei:%(elementName)s %(value)s must match the context entity identifier %(entityIdentifier)s
 </message>
 
 <message code="EFM.6.05.23.cikValue"
          level="error"
-         module="ValidateFiling.py" line="176"
+         module="ValidateFiling.py" line="177"
          args="entityIdentifer">
 EntityIdentifier %(entityIdentifer)s must be 10 digits.
 </message>
 
 <message code="EFM.6.05.23.submissionIdentifier"
          level="error"
-         module="ValidateFiling.py" line="346"
+         module="ValidateFiling.py" line="347"
          args="elementName value filerIdentifier">
 dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s
 </message>
 
 <message code="EFM.6.05.23.submissionIdentifier"
          level="error"
-         module="ValidateFiling.py" line="351"
+         module="ValidateFiling.py" line="352"
          args="elementName value filerIdentifier">
 dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s
 </message>
 
 <message code="EFM.6.05.24"
          level="error"
-         module="ValidateFiling.py" line="360"
+         module="ValidateFiling.py" line="361"
          args="elementName prefix value">
 dei:%(elementName)s %(prefix)s should be a case-insensitive prefix of: %(value)s
 </message>
 
 <message code="EFM.6.05.24.parameters"
          level="error"
-         module="ValidateFiling.py" line="114"
+         module="ValidateFiling.py" line="115"
          args="modelXbrl cikList cikNameList">
 parameters for cikList and cikNameList different list entry counts: %(cikList)s, %(cikNameList)s
 </message>
 
 <message code="EFM.6.05.25"
          level="error"
-         module="ValidateFiling.py" line="422"
+         module="ValidateFiling.py" line="423"
          args="fact contextID">
 Domain item %(fact)s in context %(contextID)s may not appear as a fact
 </message>
 
 <message code="EFM.6.05.26"
          level="(dynamic)"
-         module="ValidateFiling.py" line="948"
+         module="ValidateFiling.py" line="949"
          args="contextID documentType">
 dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but not in the default context because there are multiple classes of common shares
 </message>
 
 <message code="EFM.6.05.26"
          level="(dynamic)"
-         module="ValidateFiling.py" line="952"
+         module="ValidateFiling.py" line="953"
          args="documentType">
 dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but but a default-context because only one class of stock
 </message>
 
 <message code="EFM.6.05.26"
          level="(dynamic)"
-         module="ValidateFiling.py" line="964"
+         module="ValidateFiling.py" line="965"
          args="documentType stockClass">
 dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but only one per stock class %(stockClass)s
 </message>
 
 <message code="EFM.6.05.26"
          level="(dynamic)"
-         module="ValidateFiling.py" line="974"
+         module="ValidateFiling.py" line="975"
          args="documentType">
 dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but missing for a non-default-context fact
 </message>
 
 <message code="EFM.6.05.26"
          level="(dynamic)"
-         module="ValidateFiling.py" line="978"
+         module="ValidateFiling.py" line="979"
          args="documentType">
 dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' in the default context because there are not multiple classes of common shares
 </message>
 
 <message code="EFM.6.05.27"
          level="error"
-         module="ValidateFiling.py" line="1285"
+         module="ValidateFiling.py" line="1288"
          args="footnoteLinkNumber elementName">
 FootnoteLink %(footnoteLinkNumber)s has disallowed child element %(elementName)s
 </message>
 
 <message code="EFM.6.05.28"
          level="error"
-         module="ValidateFiling.py" line="1324"
+         module="ValidateFiling.py" line="1327"
          args="xlinkLabel role">
 Footnote %(xlinkLabel)s has disallowed role %(role)s
 </message>
 
 <message code="EFM.6.05.28.linkrole"
          level="error"
-         module="ValidateFiling.py" line="1268"
+         module="ValidateFiling.py" line="1271"
          args="footnoteLinkNumber linkrole">
 FootnoteLink %(footnoteLinkNumber)s has disallowed role %(linkrole)s
 </message>
 
 <message code="EFM.6.05.28.missingRole"
          level="error"
-         module="ValidateFiling.py" line="1319"
+         module="ValidateFiling.py" line="1322"
          args="xlinkLabel">
 Footnote %(xlinkLabel)s is missing a role
 </message>
 
 <message code="EFM.6.05.29"
          level="error"
-         module="ValidateFiling.py" line="1293"
+         module="ValidateFiling.py" line="1296"
          args="footnoteLinkNumber xlinkLabel locNumber role">
 FootnoteLink %(footnoteLinkNumber)s loc %(locNumber)s has disallowed role %(role)s
 </message>
 
 <message code="EFM.6.05.30"
          level="error"
-         module="ValidateFiling.py" line="1311"
+         module="ValidateFiling.py" line="1314"
          args="footnoteLinkNumber arcNumber arcToLabel arcrole">
 FootnoteLink %(footnoteLinkNumber)s arc %(arcNumber)s has disallowed arcrole %(arcrole)s
 </message>
 
 <message code="EFM.6.05.32"
          level="error"
-         module="ValidateFiling.py" line="1300"
+         module="ValidateFiling.py" line="1303"
          args="footnoteLinkNumber locNumber locHref locLabel">
 FootnoteLink %(footnoteLinkNumber)s loc %(locNumber)s has disallowed href %(locHref)s
 </message>
 
 <message code="EFM.6.05.33"
          level="error"
-         module="ValidateFiling.py" line="1339"
+         module="ValidateFiling.py" line="1342"
          args="footnoteLinkNumber footnoteLabel text">
 FootnoteLink %(footnoteLinkNumber)s footnote %(footnoteLabel)s has no linked fact
 </message>
 
 <message code="EFM.6.05.34"
          level="error"
-         module="ValidateFilingText.py" line="608"
+         module="ValidateFilingText.py" line="609"
          args="xlinkLabel error">
 Footnote %(xlinkLabel)s causes the XML error %(error)s
 </message>
 
 <message code="EFM.6.05.34.activeContent"
          level="error"
-         module="ValidateFilingText.py" line="571"
+         module="ValidateFilingText.py" line="572"
          args="xlinkLabel attribute element">
 Footnote %(xlinkLabel)s has javascript in '%(attribute)s' for &lt;%(element)s>
 </message>
 
 <message code="EFM.6.05.34.dtdError"
          level="error"
-         module="ValidateFilingText.py" line="561"
+         module="ValidateFilingText.py" line="562"
          args="xlinkLabel error">
 Footnote %(xlinkLabel)s causes the XML error %(error)s
 </message>
 
 <message code="EFM.6.05.34.externalReference"
          level="error"
-         module="ValidateFilingText.py" line="578"
+         module="ValidateFilingText.py" line="579"
          args="xlinkLabel attribute element value">
 Footnote %(xlinkLabel)s has an invalid external reference in '%(attribute)s' for &lt;%(element)s>: %(value)s
 </message>
 
 <message code="EFM.6.05.34.graphicFileContent"
          level="error"
-         module="ValidateFilingText.py" line="591"
+         module="ValidateFilingText.py" line="592"
          args="xlinkLabel attribute element">
 Footnote %(xlinkLabel)s references a graphics file which doesn't have expected content '%(attribute)s' for &lt;%(element)s>
 </message>
 
 <message code="EFM.6.05.34.graphicFileError"
          level="error"
-         module="ValidateFilingText.py" line="596"
+         module="ValidateFilingText.py" line="597"
          args="xlinkLabel attribute element error">
 Footnote %(xlinkLabel)s references a graphics file which isn't openable '%(attribute)s' for &lt;%(element)s>, error: %(error)s
 </message>
 
 <message code="EFM.6.05.34.graphicFileType"
          level="error"
-         module="ValidateFilingText.py" line="584"
+         module="ValidateFilingText.py" line="585"
          args="xlinkLabel attribute element">
 Footnote %(xlinkLabel)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for &lt;%(element)s>
 </message>
 
 <message code="EFM.6.05.34.nestedTable"
          level="error"
-         module="ValidateFilingText.py" line="602"
+         module="ValidateFilingText.py" line="603"
          args="xlinkLabel">
 Footnote %(xlinkLabel)s has nested &lt;table> elements.
 </message>
 
 <message code="EFM.6.05.36"
          level="error"
-         module="ValidateFiling.py" line="554"
+         module="ValidateFiling.py" line="555"
          args="unitID measure length">
 Unit has a measure  with localName length (%(length)s) over 200 bytes long in utf-8, %(measure)s.
 </message>
@@ -875,7 +840,7 @@ Unit has a measure  with localName length (%(length)s) over 200 bytes long in ut
          level="error"
          module="ValidateFiling.py" line="588"
          args="fact contextID decimals value value2">
-Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has insignificant digits %(value2)s.
+Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(value2)s.
 </message>
 
 <message code="EFM.6.05.37"
@@ -887,7 +852,7 @@ Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s cau
 
 <message code="EFM.6.05.38"
          level="error"
-         module="ValidateFiling.py" line="258"
+         module="ValidateFiling.py" line="259"
          args="contextID">
 Context %(contextID)s has a forever period.
 </message>
@@ -964,7 +929,7 @@ RoleType %(roleType)s should end with /role/{LC3name}
 
 <message code="EFM.6.07.10"
          level="error"
-         module="ValidateFiling.py" line="1448"
+         module="ValidateFiling.py" line="1451"
          args="roleType numberOfDeclarations">
 RoleType %(roleType)s is defined in multiple taxonomies
 </message>
@@ -999,7 +964,7 @@ ArcroleType %(arcroleType)s should end with /arcrole/{LC3name}
 
 <message code="EFM.6.07.14"
          level="error"
-         module="ValidateFiling.py" line="1454"
+         module="ValidateFiling.py" line="1457"
          args="arcroleType numberOfDeclarations">
 ArcroleType %(arcroleType)s is defined in multiple taxonomies
 </message>
@@ -1195,7 +1160,7 @@ Concept %(concept)s of type xbrli:stringItemType must have periodType duration
 
 <message code="EFM.6.09.03"
          level="error"
-         module="ValidateFiling.py" line="1503"
+         module="ValidateFiling.py" line="1506"
          args="arc arcrole linkrole linkroleDefinition conceptFrom conceptTo ineffectivity">
 Ineffective arc %(arc)s in 
 link role %(linkrole)s 
@@ -1256,7 +1221,7 @@ Arc from %(xlinkFrom)s to %(xlinkTo)s priority %(priority)s is not an integer
 
 <message code="EFM.6.10.01"
          level="error"
-         module="ValidateFiling.py" line="1910"
+         module="ValidateFiling.py" line="1913"
          args="concept lang">
 Concept used in facts %(concept)s is missing an %(lang)s standard label.
 </message>
@@ -1270,56 +1235,56 @@ A label linkbase is required but was not found
 
 <message code="EFM.6.10.02"
          level="error"
-         module="ValidateFiling.py" line="1891"
+         module="ValidateFiling.py" line="1894"
          args="concept role lang">
 Concept %(concept)s has duplicated labels for role %(role)s lang %(lang)s.
 </message>
 
 <message code="EFM.6.10.03"
          level="error"
-         module="ValidateFiling.py" line="1925"
+         module="ValidateFiling.py" line="1928"
          args="concept lang role">
 Concept %(concept)s is missing an %(lang)s label for role %(role)s.
 </message>
 
 <message code="EFM.6.10.04"
          level="error"
-         module="ValidateFiling.py" line="1372"
+         module="ValidateFiling.py" line="1375"
          args="concept concept2 lang text">
 Same labels for concepts %(concept)s and %(concept2)s for %(lang)s standard role: %(text)s.
 </message>
 
 <message code="EFM.6.10.05"
          level="error"
-         module="ValidateFiling.py" line="1365"
+         module="ValidateFiling.py" line="1368"
          args="concept text">
 Concept %(concept)s of a standard taxonomy cannot have a documentation label: %(text)s
 </message>
 
 <message code="EFM.6.10.06"
          level="error"
-         module="ValidateFiling.py" line="1382"
+         module="ValidateFiling.py" line="1385"
          args="concept role length text">
 Label for concept %(concept)s role %(role)s length %(length)s must be shorter than 511 characters: %(text)s
 </message>
 
 <message code="EFM.6.10.06"
          level="error"
-         module="ValidateFiling.py" line="1387"
+         module="ValidateFiling.py" line="1390"
          args="concept role text">
 Label for concept %(concept)s role %(role)s has disallowed characters: &quot;%(text)s&quot;
 </message>
 
 <message code="EFM.6.10.08"
          level="error"
-         module="ValidateFiling.py" line="1394"
+         module="ValidateFiling.py" line="1397"
          args="concept role lang text">
 Label for concept %(concept)s role %(role)s lang %(lang)s is not trimmed: %(text)s
 </message>
 
 <message code="EFM.6.10.09"
          level="error"
-         module="ValidateFilingDTS.py" line="673"
+         module="ValidateFilingDTS.py" line="674"
          args="concept role">
 Label of non-numeric concept %(concept)s has a numeric role: %(role)s
 </message>
@@ -1340,21 +1305,21 @@ PresentationArc from %(xlinkFrom)s to %(xlinkTo)s must have an order
 
 <message code="EFM.6.12.02"
          level="error"
-         module="ValidateFiling.py" line="1557"
+         module="ValidateFiling.py" line="1560"
          args="conceptFrom order linkrole linkroleDefinition conceptTo conceptTo2">
 Duplicate presentation relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s
 </message>
 
 <message code="EFM.6.12.03"
          level="error"
-         module="ValidateFiling.py" line="1712"
+         module="ValidateFiling.py" line="1715"
          args="concept">
 Concept used in instance %(concept)s does not participate in an effective presentation relationship
 </message>
 
 <message code="EFM.6.12.05"
          level="error"
-         module="ValidateFiling.py" line="1544"
+         module="ValidateFiling.py" line="1547"
          args="concept fromConcept preferredLabel linkrole linkroleDefinition">
 Concept %(concept)s has duplicate preferred label %(preferredLabel)s in link role %(linkrole)s
 </message>
@@ -1382,28 +1347,81 @@ CalculationArc from %(xlinkFrom)s to %(xlinkTo)s must have an weight (value erro
 
 <message code="EFM.6.14.03"
          level="error"
-         module="ValidateFiling.py" line="1592"
+         module="ValidateFiling.py" line="1595"
          args="linkrole conceptFrom conceptTo linkroleDefinition">
 Calculation relationship period types mismatched in base set role %(linkrole)s from %(conceptFrom)s to %(conceptTo)s
 </message>
 
 <message code="EFM.6.14.04"
          level="error"
-         module="ValidateFiling.py" line="1614"
+         module="ValidateFiling.py" line="1617"
          args="linkrole concept linkroleDefinition">
 Calculation relationships have a directed cycle in base set role %(linkrole)s starting from %(concept)s
 </message>
 
 <message code="EFM.6.14.05"
          level="error"
-         module="ValidateFiling.py" line="1734"
+         module="ValidateFiling.py" line="1737"
          args="linkroleDefinition conceptFrom conceptTo contextId">
 Used calculation relationship from %(conceptFrom)s to %(conceptTo)s does not participate in an effective presentation relationship
 </message>
 
+<message code="EFM.6.15.02,6.13.02,6.13.03"
+         level="(dynamic)"
+         module="ValidateFiling.py" line="2246"
+         args="reasonIssueIsWarning conceptSum linkrole linkroleDefinition reasonPresumedTotal itemConcepts missingConcepts contextIDs">
+Notes calculation relationship missing from total concept to item concepts, based on required presentation of line items and totals.
+%(reasonIssueIsWarning)s
+
+Presentation link role: 
+%(linkrole)s 
+%(linkroleDefinition)s.
+
+Total concept: 
+%(conceptSum)s.
+
+Reason presumed total: n%(reasonPresumedTotal)s.
+
+Summation items missing n%(missingConcepts)s.
+
+Expected item concepts 
+%(itemConcepts)s.  
+
+Corresponding facts in contexts: 
+%(contextIDs)s
+
+</message>
+
+<message code="EFM.6.15.03,6.13.02,6.13.03"
+         level="(dynamic)"
+         module="ValidateFiling.py" line="2246"
+         args="reasonIssueIsWarning conceptSum linkrole linkroleDefinition reasonPresumedTotal itemConcepts missingConcepts contextIDs">
+Notes calculation relationship missing from total concept to item concepts, based on required presentation of line items and totals. 
+%(reasonIssueIsWarning)s
+
+Presentation link role: 
+%(linkrole)s 
+%(linkroleDefinition)s.
+
+Total concept: 
+%(conceptSum)s.
+
+Reason presumed total: 
+%(reasonPresumedTotal)s.
+
+Summation items missing 
+%(missingConcepts)s.  
+
+Expected item concepts 
+%(itemConcepts)s.  
+
+Corresponding facts in contexts: 
+%(contextIDs)s
+</message>
+
 <message code="EFM.6.15.04"
          level="warning-semantic"
-         module="ValidateFiling.py" line="1625"
+         module="ValidateFiling.py" line="1628"
          args="linkrole linkrole2 concept">
 Calculation relationships should have a same set of targets in %(linkrole)s and %(linkrole2)s starting from %(concept)s
 </message>
@@ -1417,7 +1435,7 @@ DefinitionArc from %(xlinkFrom)s to %(xlinkTo)s must have an order
 
 <message code="EFM.6.16.03"
          level="error"
-         module="ValidateFiling.py" line="1651"
+         module="ValidateFiling.py" line="1654"
          args="conceptFrom conceptTo linkrole">
 Definition relationship from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s requires domain item target
 </message>
@@ -1492,42 +1510,63 @@ Axis %(dimension)s in DRS role %(linkrole)s, missing targetrole consecutive rela
 
 <message code="EFM.6.18.01"
          level="error"
-         module="ValidateFiling.py" line="1402"
+         module="ValidateFiling.py" line="1405"
          args="concept text xml">
 References for extension concept %(concept)s are not allowed: %(text)s
 </message>
 
 <message code="EFM.6.18.02"
          level="error"
-         module="ValidateFiling.py" line="1407"
+         module="ValidateFiling.py" line="1410"
          args="concept text xml">
 References for standard taxonomy concept %(concept)s are not allowed in an extension linkbase: %(text)s
 </message>
 
+<message code="EFM.6.22.02"
+         level="error"
+         module="ModelDocument.py" line="57"
+         args="url blockedIndicator">
+Prohibited file for filings %(blockedIndicator)s: %(url)s
+</message>
+
+<message code="EFM.6.22.02"
+         level="error"
+         module="ModelDocument.py" line="696"
+         args="namespace schemaLocation url">
+Namespace: %(namespace)s disallowed schemaLocation %(schemaLocation)s
+</message>
+
+<message code="EFM.6.22.02"
+         level="error"
+         module="ModelDocument.py" line="786"
+         args="namespace schemaLocation url">
+Namespace: %(namespace)s disallowed schemaLocation blocked %(schemaLocation)s
+</message>
+
 <message code="EFM.6.22.03"
          level="error"
-         module="ValidateFiling.py" line="1476"
+         module="ValidateFiling.py" line="1479"
          args="conflictClass namespaceConflicts">
 References for conflicting standard %(conflictClass)s taxonomies %(namespaceConflicts)s are not allowed in same DTS
 </message>
 
 <message code="EFM.6.23.01"
          level="error"
-         module="ValidateFiling.py" line="131"
+         module="ValidateFiling.py" line="132"
          args="filename">
 Invalid instance document base name part (ticker or mnemonic name) in &quot;{base}-{yyyymmdd}.xml&quot;: %(filename)s
 </message>
 
 <message code="EFM.6.23.01"
          level="error"
-         module="ValidateFiling.py" line="139"
+         module="ValidateFiling.py" line="140"
          args="filename">
 Invalid instance document base name part (date) in &quot;{base}-{yyyymmdd}.xml&quot;: %(filename)s
 </message>
 
 <message code="EFM.6.23.01"
          level="error"
-         module="ValidateFiling.py" line="144"
+         module="ValidateFiling.py" line="145"
          args="filename">
 Invalid instance document name, must match &quot;{base}-{yyyymmdd}.xml&quot;: %(filename)s
 </message>
@@ -1548,266 +1587,343 @@ Invalid schema file name, must match &quot;{base}-{yyyymmdd}.xsd&quot;: %(filena
 
 <message code="EFM.6.23.01"
          level="error"
-         module="ValidateFilingDTS.py" line="656"
+         module="ValidateFilingDTS.py" line="657"
          args="filename">
 Invalid linkbase base file name part (date) in &quot;{base}-{yyyymmdd}_{suffix}.xml&quot;: %(filename)s
 </message>
 
 <message code="EFM.6.23.01"
          level="error"
-         module="ValidateFilingDTS.py" line="661"
+         module="ValidateFilingDTS.py" line="662"
          args="filename expectedSuffix">
 Invalid linkbase name, must match &quot;{base}-{yyyymmdd}%(expectedSuffix)s.xml&quot;: %(filename)s
 </message>
 
+<message code="EFM.6.23.01.noLinkElement"
+         level="error"
+         module="ValidateFilingDTS.py" line="635"
+         args="filename">
+Invalid linkbase file name: %(filename)s, has no extended link element, cannot determine link type.
+</message>
+
+<message code="EFM.6.23.03"
+         level="error"
+         module="ValidateFiling.py" line="874"
+         args="contextID documentType submissionType">
+DocumentType '%(documentType)s' of context %(contextID)s inapplicable to submission form %(submissionType)s
+</message>
+
 <message code="EFM.6.23.04"
          level="error"
-         module="ValidateFiling.py" line="879"
+         module="ValidateFiling.py" line="880"
          args="contextID documentType exhibitType">
 The value for dei:DocumentType, %(documentType)s, is not allowed for %(exhibitType)s attachments.
 </message>
 
 <message code="EFM.6.23.04"
          level="error"
-         module="ValidateFiling.py" line="879"
+         module="ValidateFiling.py" line="880"
          args="contextID documentType exhibitType">
 The value for dei:DocumentType, %(documentType)s, is not allowed for %(exhibitType)s attachments.
 </message>
 
 <message code="EFM.6.23.05"
          level="error"
-         module="ValidateFiling.py" line="879"
+         module="ValidateFiling.py" line="880"
          args="contextID documentType exhibitType">
 The value for dei:DocumentType, %(documentType)s, is not allowed for %(exhibitType)s attachments.
 </message>
 
 <message code="EFM.6.23.06"
          level="error"
-         module="ValidateFiling.py" line="1031"
+         module="ValidateFiling.py" line="1032"
          args="documentType">
 The value for dei:DocumentType, %(documentType)s, requires a value for rxd:AmendmentNumber in the Required Context.
 </message>
 
 <message code="EFM.6.23.07"
          level="error"
-         module="ValidateFiling.py" line="1035"
+         module="ValidateFiling.py" line="1036"
          args="instance">
 The DTS must use a standard schema from Family RXD in edgartaxonomies.xml.
 </message>
 
 <message code="EFM.6.23.08"
          level="error"
-         module="ValidateFiling.py" line="1002"
+         module="ValidateFiling.py" line="1003"
          args="instance">
 The DTS must use a standard presentation linkbase from Family RXD in edgartaxonomies.xml.
 </message>
 
 <message code="EFM.6.23.09"
          level="error"
-         module="ValidateFiling.py" line="1006"
+         module="ValidateFiling.py" line="1007"
          args="instance">
 The DTS must use a standard definition linkbase from Family RXD in edgartaxonomies.xml.
 </message>
 
 <message code="EFM.6.23.10"
          level="error"
-         module="ValidateFiling.py" line="994"
+         module="ValidateFiling.py" line="995"
          args="instance">
 The DTS of must use only one version of the RXD schema
 </message>
 
 <message code="EFM.6.23.11"
          level="error"
-         module="ValidateFiling.py" line="1017"
+         module="ValidateFiling.py" line="1018"
          args="instance">
 The DTS must use must use only one version of the COUNTRY schema.
 </message>
 
 <message code="EFM.6.23.12"
          level="error"
-         module="ValidateFiling.py" line="1066"
+         module="ValidateFiling.py" line="1067"
          args="schemaName name concept">
 Extension concept %(concept)s is non-abstract and not a Text Block.
 </message>
 
 <message code="EFM.6.23.13"
          level="error"
-         module="ValidateFiling.py" line="1070"
+         module="ValidateFiling.py" line="1071"
          args="schemaName name concept">
 Extension concept %(concept)s is not allowed in an extension schema.
 </message>
 
 <message code="EFM.6.23.14"
          level="error"
-         module="ValidateFiling.py" line="1081"
+         module="ValidateFiling.py" line="1082"
          args="linkbaseName linkrole source target">
 The target of the dimension-domain relationship in role %(linkrole)s from %(source)s to %(target)s must be the default member of %(source)s.
 </message>
 
 <message code="EFM.6.23.15"
          level="error"
-         module="ValidateFiling.py" line="1128"
+         module="ValidateFiling.py" line="1129"
          args="linkrole linkrole2 source target target2">
 The domain-member relationship in %(linkrole)s from %(source)s to %(target)s is consecutive with domain-member relationship in %(linkrole2)s to %(target2)s. 
 </message>
 
 <message code="EFM.6.23.16"
          level="error"
-         module="ValidateFiling.py" line="1118"
+         module="ValidateFiling.py" line="1119"
          args="member dimension1 linkrole1 dimension2 linkrole2">
 The member %(member)s has two dimensions, %(dimension1)s in linkrole %(linkrole1)s and  %(dimension2)s in linkrole %(linkrole2)s. 
 </message>
 
 <message code="EFM.6.23.17"
          level="error"
-         module="ValidateFiling.py" line="1099"
+         module="ValidateFiling.py" line="1100"
          args="member linkrole">
 The member %(member)s in dimension rxd:PaymentTypeAxis in linkrole %(linkrole)s must be a QName with namespace that begins with &quot;http://xbrl.sec.gov/rxd/&quot;. 
 </message>
 
 <message code="EFM.6.23.18"
          level="error"
-         module="ValidateFiling.py" line="1103"
+         module="ValidateFiling.py" line="1104"
          args="member linkrole">
 The member %(member)s in dimension rxd:CountryAxis in linkrole %(linkrole)s must be a QName with namespace that begins with &quot;http://xbrl.sec.gov/country//&quot;. 
 </message>
 
 <message code="EFM.6.23.19"
          level="error"
-         module="ValidateFiling.py" line="1214"
+         module="ValidateFiling.py" line="1217"
          args="context dimension">
 The Context %(context)s has dimension %(dimension)s but is missing any payment.
 </message>
 
 <message code="EFM.6.23.20"
          level="error"
-         module="ValidateFiling.py" line="1165"
+         module="ValidateFiling.py" line="1166"
          args="context dimension member fact">
 The Context %(context)s has dimension %(dimension)s member %(member)s but is missing required fact %(fact)s
 </message>
 
 <message code="EFM.6.23.21"
          level="error"
-         module="ValidateFiling.py" line="1222"
+         module="ValidateFiling.py" line="1225"
          args="context dimension member">
 The Context %(context)s has dimension %(dimension)s member %(member)s but is missing any payment.
 </message>
 
 <message code="EFM.6.23.22"
          level="error"
-         module="ValidateFiling.py" line="1165"
+         module="ValidateFiling.py" line="1166"
          args="context dimension member fact">
 The Context %(context)s has dimension %(dimension)s member %(member)s but is missing required fact %(fact)s
 </message>
 
 <message code="EFM.6.23.23"
          level="error"
-         module="ValidateFiling.py" line="1227"
+         module="ValidateFiling.py" line="1230"
          args="context paymentType">
 The Context %(context)s has payment type %(paymentType)s but is missing a corresponding fact in the required context.
 </message>
 
+<message code="EFM.6.23.24"
+         level="error"
+         module="ValidateFiling.py" line="1187"
+         args="context fact1 fact2 fact2NotNil">
+The Context %(context)s has a %(fact1)s and is missing required %(fact2NotNil)sfact %(fact2)s
+</message>
+
+<message code="EFM.6.23.25"
+         level="error"
+         module="ValidateFiling.py" line="1187"
+         args="context fact1 fact2 fact2NotNil">
+The Context %(context)s has a %(fact1)s and is missing required %(fact2NotNil)sfact %(fact2)s
+</message>
+
 <message code="EFM.6.23.26"
          level="error"
-         module="ValidateFiling.py" line="1050"
+         module="ValidateFiling.py" line="1051"
          args="fyEndDate reportingPeriod">
 The dei:CurrentFiscalYearEndDate, %(fyEndDate)s does not match the dei:DocumentReportingPeriod %(reportingPeriod)s
 </message>
 
 <message code="EFM.6.23.27"
          level="error"
-         module="ValidateFiling.py" line="1057"
+         module="ValidateFiling.py" line="1058"
          args="reportingPeriod">
 The dei:DocumentPeriodEndDate %(reportingPeriod)s has no corresponding rxd:D fact.
 </message>
 
+<message code="EFM.6.23.28"
+         level="error"
+         module="ValidateFiling.py" line="1187"
+         args="context fact1 fact2 fact2NotNil">
+The Context %(context)s has a %(fact1)s and is missing required %(fact2NotNil)sfact %(fact2)s
+</message>
+
+<message code="EFM.6.23.29"
+         level="error"
+         module="ValidateFiling.py" line="1187"
+         args="context fact1 fact2 fact2NotNil">
+The Context %(context)s has a %(fact1)s and is missing required %(fact2NotNil)sfact %(fact2)s
+</message>
+
 <message code="EFM.6.23.30"
          level="error"
-         module="ValidateFiling.py" line="1143"
+         module="ValidateFiling.py" line="1144"
          args="fact value context domain">
 The %(fact)s %(value)s in context %(context)s is not a %(domain)s.
 </message>
 
 <message code="EFM.6.23.31"
          level="error"
-         module="ValidateFiling.py" line="1143"
+         module="ValidateFiling.py" line="1144"
          args="fact value context domain">
 The %(fact)s %(value)s in context %(context)s is not a %(domain)s.
 </message>
 
 <message code="EFM.6.23.32"
          level="error"
-         module="ValidateFiling.py" line="1237"
+         module="ValidateFiling.py" line="1240"
          args="value context endDate">
 The rxd:D %(value)s in context %(context)s does not match the context end date %(endDate)s.
 </message>
 
 <message code="EFM.6.23.33"
          level="error"
-         module="ValidateFiling.py" line="1143"
+         module="ValidateFiling.py" line="1144"
          args="fact value context domain">
 The %(fact)s %(value)s in context %(context)s is not a %(domain)s.
 </message>
 
 <message code="EFM.6.23.34"
          level="error"
-         module="ValidateFiling.py" line="1143"
+         module="ValidateFiling.py" line="1144"
          args="fact value context domain">
 The %(fact)s %(value)s in context %(context)s is not a %(domain)s.
 </message>
 
+<message code="EFM.6.23.35"
+         level="error"
+         module="ValidateFiling.py" line="1187"
+         args="context fact1 fact2 fact2NotNil">
+The Context %(context)s has a %(fact1)s and is missing required %(fact2NotNil)sfact %(fact2)s
+</message>
+
+<message code="EFM.6.23.35"
+         level="error"
+         module="ValidateFiling.py" line="1187"
+         args="context fact1 fact2 fact2NotNil">
+The Context %(context)s has a %(fact1)s and is missing required %(fact2NotNil)sfact %(fact2)s
+</message>
+
 <message code="EFM.6.23.36"
          level="(dynamic)"
-         module="ValidateFiling.py" line="921"
+         module="ValidateFiling.py" line="922"
          args="contextID documentType elementName">
 dei:%(elementName)s is required for DocumentType '%(documentType)s' of context %(contextID)s
 </message>
 
 <message code="EFM.6.23.37"
          level="error"
-         module="ValidateFiling.py" line="1192"
+         module="ValidateFiling.py" line="1195"
          args="fact context unit currency">
 Fact %(fact)s in context %(context)s has unit %(unit)s not matching dei:EntityReportingCurrencyISOCode %(currency)s
 </message>
 
 <message code="EFM.6.23.38"
          level="error"
-         module="ValidateFiling.py" line="1199"
+         module="ValidateFiling.py" line="1202"
          args="context currency">
 A value cannot be given for rxd:Cm in context %(context)s because the payment is in the reporting currency %(currency)s.
 </message>
 
+<message code="EFM.6.23.39"
+         level="error"
+         module="ValidateFiling.py" line="1187"
+         args="context fact1 fact2 fact2NotNil">
+The Context %(context)s has a %(fact1)s and is missing required %(fact2NotNil)sfact %(fact2)s
+</message>
+
 <message code="EFM.6.23.40"
          level="error"
-         module="ValidateFiling.py" line="1231"
+         module="ValidateFiling.py" line="1234"
          args="context">
 There is a non-nil rxd:A in context %(context)s but missing a dimension rxd:PmtAxis.
 </message>
 
 <message code="EFM.6.23.41"
          level="error"
-         module="ValidateFiling.py" line="1205"
+         module="ValidateFiling.py" line="1208"
          args="context unit currency">
 The unit %(unit)s of rxd:A in context %(context)s is not consistent with the value %(currency)s of rxd:Cu.
 </message>
 
+<message code="EFM.6.23.42"
+         level="error"
+         module="ValidateFiling.py" line="1187"
+         args="context fact1 fact2 fact2NotNil">
+The Context %(context)s has a %(fact1)s and is missing required %(fact2NotNil)sfact %(fact2)s
+</message>
+
+<message code="EFM.6.23.43"
+         level="error"
+         module="ValidateFiling.py" line="1187"
+         args="context fact1 fact2 fact2NotNil">
+The Context %(context)s has a %(fact1)s and is missing required %(fact2NotNil)sfact %(fact2)s
+</message>
+
 <message code="EFM.6.23.44"
          level="error"
-         module="ValidateFiling.py" line="1171"
+         module="ValidateFiling.py" line="1172"
          args="context value">
 Fact rxd:Co value %(value)s in context %(context)s is not in the domain of country:AllCountriesDomain
 </message>
 
 <message code="EFM.N/A"
          level="error"
-         module="ValidateFiling.py" line="1606"
+         module="ValidateFiling.py" line="1609"
          args="linkrole conceptFrom order conceptTo conceptTo2">
 Duplicate calculations relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s
 </message>
 
 <message code="EFM.N/A"
          level="error"
-         module="ValidateFiling.py" line="430"
+         module="ValidateFiling.py" line="431"
          args="fact contextID value text">
 ix-numeric Fact %(fact)s of context %(contextID)s has a sign or currency symbol &quot;%(value)s&quot; in &quot;%(text)s&quot;
 </message>
@@ -1835,7 +1951,7 @@ Inline XBRL footnote %(footnoteID)s is missing an xml:lang attribute
 
 <message code="FileNotLoadable"
          level="error"
-         module="ModelDocument.py" line="84"
+         module="ModelDocument.py" line="85"
          args="fileName">
 File can not be loaded: %(fileName)s 
 Loading terminated.
@@ -1843,35 +1959,35 @@ Loading terminated.
 
 <message code="FileNotLoadable"
          level="error"
-         module="ModelDocument.py" line="89"
+         module="ModelDocument.py" line="90"
          args="fileName">
 File can not be loaded: %(fileName)s
 </message>
 
 <message code="FileNotLoadable"
          level="error"
-         module="ModelDocument.py" line="96"
+         module="ModelDocument.py" line="97"
          args="fileName">
 File can not be loaded, requires loadFromExcel plug-in: %(fileName)s
 </message>
 
 <message code="GFM.1.01.01"
          level="error"
-         module="ValidateFiling.py" line="131"
+         module="ValidateFiling.py" line="132"
          args="filename">
 Invalid instance document base name part (ticker or mnemonic name) in &quot;{base}-{yyyymmdd}.xml&quot;: %(filename)s
 </message>
 
 <message code="GFM.1.01.01"
          level="error"
-         module="ValidateFiling.py" line="139"
+         module="ValidateFiling.py" line="140"
          args="filename">
 Invalid instance document base name part (date) in &quot;{base}-{yyyymmdd}.xml&quot;: %(filename)s
 </message>
 
 <message code="GFM.1.01.01"
          level="error"
-         module="ValidateFiling.py" line="144"
+         module="ValidateFiling.py" line="145"
          args="filename">
 Invalid instance document name, must match &quot;{base}-{yyyymmdd}.xml&quot;: %(filename)s
 </message>
@@ -1892,14 +2008,14 @@ Invalid schema file name, must match &quot;{base}-{yyyymmdd}.xsd&quot;: %(filena
 
 <message code="GFM.1.01.01"
          level="error"
-         module="ValidateFilingDTS.py" line="656"
+         module="ValidateFilingDTS.py" line="657"
          args="filename">
 Invalid linkbase base file name part (date) in &quot;{base}-{yyyymmdd}_{suffix}.xml&quot;: %(filename)s
 </message>
 
 <message code="GFM.1.01.01"
          level="error"
-         module="ValidateFilingDTS.py" line="661"
+         module="ValidateFilingDTS.py" line="662"
          args="filename expectedSuffix">
 Invalid linkbase name, must match &quot;{base}-{yyyymmdd}%(expectedSuffix)s.xml&quot;: %(filename)s
 </message>
@@ -1913,9 +2029,16 @@ Schema file name warning: %(filename)s, should match %(expectedFilename)s
 
 <message code="GFM.1.01.01.matchInstance"
          level="warning-semantic"
-         module="ValidateFilingDTS.py" line="652"
+         module="ValidateFilingDTS.py" line="653"
          args="filename expectedFilename">
 Linkbase name warning: %(filename)s should match %(expectedFilename)s
+</message>
+
+<message code="GFM.1.01.01.noLinkElement"
+         level="error"
+         module="ValidateFilingDTS.py" line="635"
+         args="filename">
+Invalid linkbase file name: %(filename)s, has no extended link element, cannot determine link type.
 </message>
 
 <message code="GFM.1.01.02"
@@ -1934,70 +2057,70 @@ Href %(elementHref)s may only have shorthand xpointers
 
 <message code="GFM.1.02.01"
          level="error"
-         module="ValidateFiling.py" line="162"
+         module="ValidateFiling.py" line="163"
          args="scheme context identifier">
 Invalid entity identifier scheme %(scheme)s in context %(context)s for identifier %(identifier)s
 </message>
 
 <message code="GFM.1.02.02"
          level="error"
-         module="ValidateFiling.py" line="167"
+         module="ValidateFiling.py" line="168"
          args="entityIdentifierName entityIdentifer">
 Invalid entity identifier %(entityIdentifierName)s: %(entityIdentifer)s
 </message>
 
 <message code="GFM.1.02.03"
          level="error"
-         module="ValidateFiling.py" line="180"
+         module="ValidateFiling.py" line="181"
          args="entityIdentifierName entityIdentifer entityIdentifer2 filerIdentifier">
 Multiple %(entityIdentifierName)ss: %(entityIdentifer)s, %(entityIdentifer2)s
 </message>
 
 <message code="GFM.1.02.04"
          level="error"
-         module="ValidateFiling.py" line="232"
+         module="ValidateFiling.py" line="233"
          args="elementName context count">
 %(elementName)s element not allowed in context Id: %(context)s
 </message>
 
 <message code="GFM.1.02.04"
          level="error"
-         module="ValidateFiling.py" line="263"
+         module="ValidateFiling.py" line="264"
          args="elementName count context">
 %(count)s contexts contain disallowed %(elementName)s: %(context)s
 </message>
 
 <message code="GFM.1.02.05"
          level="error"
-         module="ValidateFiling.py" line="252"
+         module="ValidateFiling.py" line="253"
          args="context content elementName">
 %(elementName)s of context Id %(context)s has disallowed content: %(content)s
 </message>
 
 <message code="GFM.1.02.05"
          level="error"
-         module="ValidateFiling.py" line="268"
+         module="ValidateFiling.py" line="269"
          args="elementName count context">
 %(count)s contexts contain disallowed %(elementName)s content: %(context)s
 </message>
 
 <message code="GFM.1.02.07"
          level="error"
-         module="ValidateFiling.py" line="201"
+         module="ValidateFiling.py" line="202"
          args="context context2">
 Context ID %(context)s is equivalent to context ID %(context2)s
 </message>
 
 <message code="GFM.1.02.08"
          level="error"
-         module="ValidateFiling.py" line="443"
+         module="ValidateFiling.py" line="444"
          args="modelXbrl contextIDs">
 The instance document contained a context(s) %(contextIDs)s that was(are) not used in any fact.
 </message>
 
 <message code="GFM.1.02.10"
          level="error"
-         module="ValidateFiling.py" line="544"
+         module="ValidateFiling.py" line="545"
          args="unitID unitID2">
 Units %(unitID)s and %(unitID2)s are equivalent.
 </message>
@@ -2018,70 +2141,77 @@ Fact %(fact)s of context %(contextID)s has text of xml:lang '%(lang)s' without c
 
 <message code="GFM.1.02.14"
          level="error"
-         module="ValidateFilingText.py" line="535"
+         module="ValidateFilingText.py" line="488"
+         args="fact contextID error">
+Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s
+</message>
+
+<message code="GFM.1.02.14"
+         level="error"
+         module="ValidateFilingText.py" line="536"
          args="fact contextID error">
 Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s
 </message>
 
 <message code="GFM.1.02.16"
          level="error"
-         module="ValidateFiling.py" line="416"
+         module="ValidateFiling.py" line="417"
          args="fact contextID precision">
 Numeric fact %(fact)s of context %(contextID)s has a precision attribute '%(precision)s'
 </message>
 
 <message code="GFM.1.02.18"
          level="error"
-         module="ValidateFiling.py" line="534"
+         module="ValidateFiling.py" line="535"
          args="documentType">
 Required context (no segment) not found for document type %(documentType)s.
 </message>
 
 <message code="GFM.1.02.19"
          level="error"
-         module="ValidateFiling.py" line="1285"
+         module="ValidateFiling.py" line="1288"
          args="footnoteLinkNumber elementName">
 FootnoteLink %(footnoteLinkNumber)s has disallowed child element %(elementName)s
 </message>
 
 <message code="GFM.1.02.20"
          level="error"
-         module="ValidateFiling.py" line="1268"
+         module="ValidateFiling.py" line="1271"
          args="footnoteLinkNumber linkrole">
 FootnoteLink %(footnoteLinkNumber)s has disallowed role %(linkrole)s
 </message>
 
 <message code="GFM.1.02.21"
          level="error"
-         module="ValidateFiling.py" line="1293"
+         module="ValidateFiling.py" line="1296"
          args="footnoteLinkNumber xlinkLabel locNumber role">
 FootnoteLink %(footnoteLinkNumber)s loc %(locNumber)s has disallowed role %(role)s
 </message>
 
 <message code="GFM.1.02.22"
          level="error"
-         module="ValidateFiling.py" line="1311"
+         module="ValidateFiling.py" line="1314"
          args="footnoteLinkNumber arcNumber arcToLabel arcrole">
 FootnoteLink %(footnoteLinkNumber)s arc %(arcNumber)s has disallowed arcrole %(arcrole)s
 </message>
 
 <message code="GFM.1.02.23"
          level="error"
-         module="ValidateFiling.py" line="1300"
+         module="ValidateFiling.py" line="1303"
          args="footnoteLinkNumber locNumber locHref locLabel">
 FootnoteLink %(footnoteLinkNumber)s loc %(locNumber)s has disallowed href %(locHref)s
 </message>
 
 <message code="GFM.1.02.24"
          level="error"
-         module="ValidateFiling.py" line="1339"
+         module="ValidateFiling.py" line="1342"
          args="footnoteLinkNumber footnoteLabel text">
 FootnoteLink %(footnoteLinkNumber)s footnote %(footnoteLabel)s has no linked fact
 </message>
 
 <message code="GFM.1.02.25"
          level="error"
-         module="ValidateFiling.py" line="212"
+         module="ValidateFiling.py" line="213"
          args="context elementName value">
 Context id %(context)s %(elementName)s invalid content %(value)s
 </message>
@@ -2090,7 +2220,7 @@ Context id %(context)s %(elementName)s invalid content %(value)s
          level="error"
          module="ValidateFiling.py" line="588"
          args="fact contextID decimals value value2">
-Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has insignificant digits %(value2)s.
+Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(value2)s.
 </message>
 
 <message code="GFM.1.02.26"
@@ -2172,7 +2302,7 @@ RoleType %(roleType)s should end with /role/{LC3name}
 
 <message code="GFM.1.03.10"
          level="error"
-         module="ValidateFiling.py" line="1448"
+         module="ValidateFiling.py" line="1451"
          args="roleType numberOfDeclarations">
 RoleType %(roleType)s is defined in multiple taxonomies
 </message>
@@ -2207,7 +2337,7 @@ ArcroleType %(arcroleType)s should end with /arcrole/{LC3name}
 
 <message code="GFM.1.03.16"
          level="error"
-         module="ValidateFiling.py" line="1454"
+         module="ValidateFiling.py" line="1457"
          args="arcroleType numberOfDeclarations">
 ArcroleType %(arcroleType)s is defined in multiple taxonomies
 </message>
@@ -2305,7 +2435,7 @@ Concept %(concept)s is a domainItemType and must be periodType duration
 
 <message code="GFM.1.04.03"
          level="error"
-         module="ValidateFiling.py" line="1503"
+         module="ValidateFiling.py" line="1506"
          args="arc arcrole linkrole linkroleDefinition conceptFrom conceptTo ineffectivity">
 Ineffective arc %(arc)s in 
 link role %(linkrole)s 
@@ -2359,7 +2489,7 @@ Arc from %(xlinkFrom)s to %(xlinkTo)s priority %(priority)s is not an integer
 
 <message code="GFM.1.05.01"
          level="error"
-         module="ValidateFiling.py" line="1910"
+         module="ValidateFiling.py" line="1913"
          args="concept lang">
 Concept used in facts %(concept)s is missing an %(lang)s standard label.
 </message>
@@ -2373,35 +2503,35 @@ A label linkbase is required but was not found
 
 <message code="GFM.1.05.04"
          level="error"
-         module="ValidateFiling.py" line="1372"
+         module="ValidateFiling.py" line="1375"
          args="concept concept2 lang text">
 Same labels for concepts %(concept)s and %(concept2)s for %(lang)s standard role: %(text)s.
 </message>
 
 <message code="GFM.1.05.05"
          level="error"
-         module="ValidateFiling.py" line="1365"
+         module="ValidateFiling.py" line="1368"
          args="concept text">
 Concept %(concept)s of a standard taxonomy cannot have a documentation label: %(text)s
 </message>
 
 <message code="GFM.1.05.06"
          level="error"
-         module="ValidateFiling.py" line="1382"
+         module="ValidateFiling.py" line="1385"
          args="concept role length text">
 Label for concept %(concept)s role %(role)s length %(length)s must be shorter than 511 characters: %(text)s
 </message>
 
 <message code="GFM.1.05.07"
          level="error"
-         module="ValidateFiling.py" line="1387"
+         module="ValidateFiling.py" line="1390"
          args="concept role text">
 Label for concept %(concept)s role %(role)s has disallowed characters: &quot;%(text)s&quot;
 </message>
 
 <message code="GFM.1.05.08"
          level="error"
-         module="ValidateFiling.py" line="1394"
+         module="ValidateFiling.py" line="1397"
          args="concept role lang text">
 Label for concept %(concept)s role %(role)s lang %(lang)s is not trimmed: %(text)s
 </message>
@@ -2415,21 +2545,21 @@ PresentationArc from %(xlinkFrom)s to %(xlinkTo)s must have an order
 
 <message code="GFM.1.06.02"
          level="error"
-         module="ValidateFiling.py" line="1557"
+         module="ValidateFiling.py" line="1560"
          args="conceptFrom order linkrole linkroleDefinition conceptTo conceptTo2">
 Duplicate presentation relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s
 </message>
 
 <message code="GFM.1.06.04"
          level="error"
-         module="ValidateFiling.py" line="1752"
+         module="ValidateFiling.py" line="1755"
          args="concept fromConcept lang preferredLabel">
 Concept %(concept)s missing %(lang)s preferred labels for role %(preferredLabel)s
 </message>
 
 <message code="GFM.1.06.05"
          level="error"
-         module="ValidateFiling.py" line="1544"
+         module="ValidateFiling.py" line="1547"
          args="concept fromConcept preferredLabel linkrole linkroleDefinition">
 Concept %(concept)s has duplicate preferred label %(preferredLabel)s in link role %(linkrole)s
 </message>
@@ -2457,21 +2587,21 @@ CalculationArc from %(xlinkFrom)s to %(xlinkTo)s must have an weight (value erro
 
 <message code="GFM.1.07.03"
          level="error"
-         module="ValidateFiling.py" line="1592"
+         module="ValidateFiling.py" line="1595"
          args="linkrole conceptFrom conceptTo linkroleDefinition">
 Calculation relationship period types mismatched in base set role %(linkrole)s from %(conceptFrom)s to %(conceptTo)s
 </message>
 
 <message code="GFM.1.07.04"
          level="error"
-         module="ValidateFiling.py" line="1614"
+         module="ValidateFiling.py" line="1617"
          args="linkrole concept linkroleDefinition">
 Calculation relationships have a directed cycle in base set role %(linkrole)s starting from %(concept)s
 </message>
 
 <message code="GFM.1.07.06"
          level="error"
-         module="ValidateFiling.py" line="1606"
+         module="ValidateFiling.py" line="1609"
          args="linkrole conceptFrom order conceptTo conceptTo2">
 Duplicate calculations relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s
 </message>
@@ -2485,7 +2615,7 @@ DefinitionArc from %(xlinkFrom)s to %(xlinkTo)s must have an order
 
 <message code="GFM.1.08.03"
          level="error"
-         module="ValidateFiling.py" line="1651"
+         module="ValidateFiling.py" line="1654"
          args="conceptFrom conceptTo linkrole">
 Definition relationship from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s requires domain item target
 </message>
@@ -2560,28 +2690,49 @@ Axis %(dimension)s in DRS role %(linkrole)s, missing targetrole consecutive rela
 
 <message code="GFM.1.08.10"
          level="error"
-         module="ValidateFiling.py" line="1687"
+         module="ValidateFiling.py" line="1690"
          args="conceptFrom order linkrole conceptTo conceptTo2">
 Duplicate definitions relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s
 </message>
 
 <message code="GFM.1.08.11"
          level="error"
-         module="ValidateFiling.py" line="1695"
+         module="ValidateFiling.py" line="1698"
          args="arc conceptFrom linkrole conceptTo">
 Disallowed xbrldt:usable='false' attribute on %(arc)s relationship from concept %(conceptFrom)s in base set role %(linkrole)s to concept %(conceptTo)s
 </message>
 
+<message code="GFM.1.1.3"
+         level="error"
+         module="ModelDocument.py" line="57"
+         args="url blockedIndicator">
+Prohibited file for filings %(blockedIndicator)s: %(url)s
+</message>
+
+<message code="GFM.1.1.3"
+         level="error"
+         module="ModelDocument.py" line="696"
+         args="namespace schemaLocation url">
+Namespace: %(namespace)s disallowed schemaLocation %(schemaLocation)s
+</message>
+
+<message code="GFM.1.1.3"
+         level="error"
+         module="ModelDocument.py" line="786"
+         args="namespace schemaLocation url">
+Namespace: %(namespace)s disallowed schemaLocation blocked %(schemaLocation)s
+</message>
+
 <message code="GFM.1.1.7"
          level="error"
-         module="ModelDocument.py" line="755"
+         module="ModelDocument.py" line="757"
          args="modelObejct attribute element">
 Prohibited base attribute: %(attribute)s
 </message>
 
 <message code="GFM.1.10.18"
          level="error"
-         module="ValidateFiling.py" line="430"
+         module="ValidateFiling.py" line="431"
          args="fact contextID value text">
 ix-numeric Fact %(fact)s of context %(contextID)s has a sign or currency symbol &quot;%(value)s&quot; in &quot;%(text)s&quot;
 </message>
@@ -2602,63 +2753,63 @@ Fact %(fact)s contextID %(contextID)s has disallowed entity %(entity)s
 
 <message code="GFM.1.2.20"
          level="error"
-         module="ValidateFiling.py" line="1319"
+         module="ValidateFiling.py" line="1322"
          args="xlinkLabel">
 Footnote %(xlinkLabel)s is missing a role
 </message>
 
 <message code="GFM.1.2.20"
          level="error"
-         module="ValidateFiling.py" line="1324"
+         module="ValidateFiling.py" line="1327"
          args="xlinkLabel role">
 Footnote %(xlinkLabel)s has disallowed role %(role)s
 </message>
 
 <message code="GFM.1.2.9"
          level="error"
-         module="ValidateFiling.py" line="509"
+         module="ValidateFiling.py" line="510"
          args="endDate endContexts startContexts documentType">
 Context endDate %(endDate)s, and startDate(s) have a duration of one day, for end context(s): %(endContexts)s and start context(s): %(startContexts)s; that is inconsistent with document type %(documentType)s.
 </message>
 
 <message code="GFM.1.5.2"
          level="error"
-         module="ValidateFiling.py" line="1891"
+         module="ValidateFiling.py" line="1894"
          args="concept role lang">
 Concept %(concept)s has duplicated labels for role %(role)s lang %(lang)s.
 </message>
 
 <message code="GFM.1.5.3"
          level="error"
-         module="ValidateFiling.py" line="1925"
+         module="ValidateFiling.py" line="1928"
          args="concept lang role">
 Concept %(concept)s is missing an %(lang)s label for role %(role)s.
 </message>
 
 <message code="GFM.1.6.3"
          level="error"
-         module="ValidateFiling.py" line="1712"
+         module="ValidateFiling.py" line="1715"
          args="concept">
 Concept used in instance %(concept)s does not participate in an effective presentation relationship
 </message>
 
 <message code="GFM.1.7.5"
          level="error"
-         module="ValidateFiling.py" line="1734"
+         module="ValidateFiling.py" line="1737"
          args="linkroleDefinition conceptFrom conceptTo contextId">
 Used calculation relationship from %(conceptFrom)s to %(conceptTo)s does not participate in an effective presentation relationship
 </message>
 
 <message code="GFM.1.9.1"
          level="error"
-         module="ValidateFiling.py" line="1402"
+         module="ValidateFiling.py" line="1405"
          args="concept text xml">
 References for extension concept %(concept)s are not allowed: %(text)s
 </message>
 
 <message code="GFM.2.01.01"
          level="error"
-         module="ValidateFiling.py" line="407"
+         module="ValidateFiling.py" line="408"
          args="fact contextID">
 Fact %(fact)s of context %(contextID)s has an XBRL error
 </message>
@@ -2726,16 +2877,69 @@ Concept %(concept)s of type xbrli:stringItemType must have periodType duration
 Concept %(concept)s is monetary without a balance and must have a documentation label that disambiguates its sign
 </message>
 
+<message code="GFM.2.06.02,2.05.02,2.05.03"
+         level="(dynamic)"
+         module="ValidateFiling.py" line="2246"
+         args="reasonIssueIsWarning conceptSum linkrole linkroleDefinition reasonPresumedTotal itemConcepts missingConcepts contextIDs">
+Notes calculation relationship missing from total concept to item concepts, based on required presentation of line items and totals.
+%(reasonIssueIsWarning)s
+
+Presentation link role: 
+%(linkrole)s 
+%(linkroleDefinition)s.
+
+Total concept: 
+%(conceptSum)s.
+
+Reason presumed total: n%(reasonPresumedTotal)s.
+
+Summation items missing n%(missingConcepts)s.
+
+Expected item concepts 
+%(itemConcepts)s.  
+
+Corresponding facts in contexts: 
+%(contextIDs)s
+
+</message>
+
+<message code="GFM.2.06.03,2.05.02,2.05.03"
+         level="(dynamic)"
+         module="ValidateFiling.py" line="2246"
+         args="reasonIssueIsWarning conceptSum linkrole linkroleDefinition reasonPresumedTotal itemConcepts missingConcepts contextIDs">
+Notes calculation relationship missing from total concept to item concepts, based on required presentation of line items and totals. 
+%(reasonIssueIsWarning)s
+
+Presentation link role: 
+%(linkrole)s 
+%(linkroleDefinition)s.
+
+Total concept: 
+%(conceptSum)s.
+
+Reason presumed total: 
+%(reasonPresumedTotal)s.
+
+Summation items missing 
+%(missingConcepts)s.  
+
+Expected item concepts 
+%(itemConcepts)s.  
+
+Corresponding facts in contexts: 
+%(contextIDs)s
+</message>
+
 <message code="GFM.2.06.04"
          level="warning-semantic"
-         module="ValidateFiling.py" line="1625"
+         module="ValidateFiling.py" line="1628"
          args="linkrole linkrole2 concept">
 Calculation relationships should have a same set of targets in %(linkrole)s and %(linkrole2)s starting from %(concept)s
 </message>
 
 <message code="GFM.3.02.01"
          level="error"
-         module="ValidateFiling.py" line="1254"
+         module="ValidateFiling.py" line="1257"
          args="modelXbrl elementName">
 dei:%(elementName)s is required in the default context
 </message>
@@ -2763,35 +2967,35 @@ dei:%(elementName)s is required in the default context
 
 <message code="GFM.3.02.02"
          level="error"
-         module="ValidateFiling.py" line="114"
+         module="ValidateFiling.py" line="115"
          args="modelXbrl cikList cikNameList">
 parameters for cikList and cikNameList different list entry counts: %(cikList)s, %(cikNameList)s
 </message>
 
 <message code="GFM.3.02.02"
          level="error"
-         module="ValidateFiling.py" line="341"
+         module="ValidateFiling.py" line="342"
          args="elementName value entityIdentifier">
 dei:%(elementName)s %(value)s must match the context entity identifier %(entityIdentifier)s
 </message>
 
 <message code="GFM.3.02.02"
          level="error"
-         module="ValidateFiling.py" line="346"
+         module="ValidateFiling.py" line="347"
          args="elementName value filerIdentifier">
 dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s
 </message>
 
 <message code="GFM.3.02.02"
          level="error"
-         module="ValidateFiling.py" line="351"
+         module="ValidateFiling.py" line="352"
          args="elementName value filerIdentifier">
 dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s
 </message>
 
 <message code="GFM.3.02.02"
          level="error"
-         module="ValidateFiling.py" line="360"
+         module="ValidateFiling.py" line="361"
          args="elementName prefix value">
 dei:%(elementName)s %(prefix)s should be a case-insensitive prefix of: %(value)s
 </message>
@@ -2945,7 +3149,7 @@ Numeric fact %(fact)s of context %(contextID)s has a precision attribute '%(prec
 
 <message code="IOerror"
          level="error"
-         module="ModelDocument.py" line="145"
+         module="ModelDocument.py" line="146"
          args="fileName error">
 %(fileName)s: file error: %(error)s 
 Loading terminated.
@@ -2953,21 +3157,42 @@ Loading terminated.
 
 <message code="IOerror"
          level="error"
-         module="ModelDocument.py" line="149"
+         module="ModelDocument.py" line="150"
          args="fileName error">
 %(fileName)s: file error: %(error)s
 </message>
 
+<message code="SBR.NL.2.1.0.06"
+         level="error"
+         module="ModelDocument.py" line="57"
+         args="url blockedIndicator">
+Prohibited file for filings %(blockedIndicator)s: %(url)s
+</message>
+
+<message code="SBR.NL.2.1.0.06"
+         level="error"
+         module="ModelDocument.py" line="696"
+         args="namespace schemaLocation url">
+Namespace: %(namespace)s disallowed schemaLocation %(schemaLocation)s
+</message>
+
+<message code="SBR.NL.2.1.0.06"
+         level="error"
+         module="ModelDocument.py" line="786"
+         args="namespace schemaLocation url">
+Namespace: %(namespace)s disallowed schemaLocation blocked %(schemaLocation)s
+</message>
+
 <message code="SBR.NL.2.1.0.08"
          level="error"
-         module="ValidateFiling.py" line="1365"
+         module="ValidateFiling.py" line="1368"
          args="concept text">
 Concept %(concept)s of a standard taxonomy cannot have a documentation label: %(text)s
 </message>
 
 <message code="SBR.NL.2.1.0.08"
          level="error"
-         module="ValidateFiling.py" line="1407"
+         module="ValidateFiling.py" line="1410"
          args="concept text xml">
 References for standard taxonomy concept %(concept)s are not allowed in an extension linkbase: %(text)s
 </message>
@@ -3049,6 +3274,27 @@ Schema file annotation missing appinfo element must be be behind schema and befo
 Annotation/appinfo record must be followed only by import
 </message>
 
+<message code="SBR.NL.2.2.0.17"
+         level="error"
+         module="ModelDocument.py" line="57"
+         args="url blockedIndicator">
+Prohibited file for filings %(blockedIndicator)s: %(url)s
+</message>
+
+<message code="SBR.NL.2.2.0.17"
+         level="error"
+         module="ModelDocument.py" line="696"
+         args="namespace schemaLocation url">
+Namespace: %(namespace)s disallowed schemaLocation %(schemaLocation)s
+</message>
+
+<message code="SBR.NL.2.2.0.17"
+         level="error"
+         module="ModelDocument.py" line="786"
+         args="namespace schemaLocation url">
+Namespace: %(namespace)s disallowed schemaLocation blocked %(schemaLocation)s
+</message>
+
 <message code="SBR.NL.2.2.0.18"
          level="error"
          module="ValidateFilingDTS.py" line="52"
@@ -3107,21 +3353,21 @@ A schema that defines non-abstract items MUST have a linked (2.1) reference link
 
 <message code="SBR.NL.2.2.1.05"
          level="error"
-         module="ValidateFiling.py" line="1891"
+         module="ValidateFiling.py" line="1894"
          args="concept role lang">
 Concept %(concept)s has duplicated labels for role %(role)s lang %(lang)s.
 </message>
 
 <message code="SBR.NL.2.2.10.01"
          level="error"
-         module="ValidateFiling.py" line="1352"
+         module="ValidateFiling.py" line="1355"
          args="">
 Entrypoint schema must have a presentation linkbase
 </message>
 
 <message code="SBR.NL.2.2.10.03"
          level="error"
-         module="ValidateFiling.py" line="1427"
+         module="ValidateFiling.py" line="1430"
          args="concept">
 DTS concept %(concept)s not referred to by presentation relationship.
 </message>
@@ -3303,14 +3549,14 @@ Concept %(concept)s is an abstract tuple
 
 <message code="SBR.NL.2.2.2.04"
          level="error"
-         module="ValidateFiling.py" line="1420"
+         module="ValidateFiling.py" line="1423"
          args="concept">
 Concept %(concept)s not referred to by presentation relationship.
 </message>
 
 <message code="SBR.NL.2.2.2.05"
          level="error"
-         module="ValidateFiling.py" line="1432"
+         module="ValidateFiling.py" line="1435"
          args="concept">
 Concept %(concept)s has a substitutionGroup of a non-standard concept.
 </message>
@@ -3457,7 +3703,7 @@ Non-monetary concept %(concept)s must not have a balance attribute
 
 <message code="SBR.NL.2.2.2.26"
          level="error"
-         module="ValidateFiling.py" line="1413"
+         module="ValidateFiling.py" line="1416"
          args="concept">
 Concept %(concept)s missing standard label in local language.
 </message>
@@ -3809,14 +4055,14 @@ ReferenceArc from %(xlinkFrom)s to %(xlinkTo)s has an order
 
 <message code="SBR.NL.2.3.4.01"
          level="error"
-         module="ValidateFiling.py" line="1438"
+         module="ValidateFiling.py" line="1441"
          args="concept missingQname">
 Tuple %(concept)s has mismatch between content and presentation children: %(missingQname)s.
 </message>
 
 <message code="SBR.NL.2.3.4.03"
          level="error"
-         module="ValidateFiling.py" line="1533"
+         module="ValidateFiling.py" line="1536"
          args="">
 Preferred label on presentation relationships not allowed
 </message>
@@ -3830,14 +4076,14 @@ PresentationArc from %(xlinkFrom)s to %(xlinkTo)s must have an order
 
 <message code="SBR.NL.2.3.4.05"
          level="error"
-         module="ValidateFiling.py" line="1557"
+         module="ValidateFiling.py" line="1560"
          args="conceptFrom order linkrole linkroleDefinition conceptTo conceptTo2">
 Duplicate presentation relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s
 </message>
 
 <message code="SBR.NL.2.3.4.06"
          level="error"
-         module="ValidateFiling.py" line="1503"
+         module="ValidateFiling.py" line="1506"
          args="arc arcrole linkrole linkroleDefinition conceptFrom conceptTo ineffectivity">
 Ineffective arc %(arc)s in 
 link role %(linkrole)s 
@@ -3849,14 +4095,14 @@ to %(conceptTo)s
 
 <message code="SBR.NL.2.3.4.06"
          level="error"
-         module="ValidateFiling.py" line="1544"
+         module="ValidateFiling.py" line="1547"
          args="concept fromConcept preferredLabel linkrole linkroleDefinition">
 Concept %(concept)s has duplicate preferred label %(preferredLabel)s in link role %(linkrole)s
 </message>
 
 <message code="SBR.NL.2.3.4.06"
          level="error"
-         module="ValidateFiling.py" line="1566"
+         module="ValidateFiling.py" line="1569"
          args="conceptFrom linkrole conceptTo">
 Non-distinguished preferredLabel presentation relations from concept %(conceptFrom)s in base set role %(linkrole)s
 </message>
@@ -3891,7 +4137,7 @@ Notall from primary item %(primaryItem)s in ELR role %(linkrole)s to %(hypercube
 
 <message code="SBR.NL.2.3.5.06"
          level="error"
-         module="ValidateFiling.py" line="232"
+         module="ValidateFiling.py" line="233"
          args="elementName context count">
 %(elementName)s element not allowed in context Id: %(context)s
 </message>
@@ -3933,7 +4179,7 @@ All hypercube %(hypercube)s in DRS role %(linkrole)s, does not have closed='true
 
 <message code="SBR.NL.2.3.6.05"
          level="error"
-         module="ValidateFiling.py" line="1658"
+         module="ValidateFiling.py" line="1661"
          args="conceptFrom conceptTo linkrole">
 Dimension-default in from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s is not allowed
 </message>
@@ -3989,14 +4235,14 @@ Element %(element)s %(xlinkLabel)s has unauthorized xml:lang='%(lang)s'
 
 <message code="SBR.NL.2.3.8.03"
          level="error"
-         module="ValidateFiling.py" line="1898"
+         module="ValidateFiling.py" line="1901"
          args="concept role">
 Concept %(concept)s has label for semantical role %(role)s.
 </message>
 
 <message code="SBR.NL.2.3.8.05"
          level="error"
-         module="ValidateFiling.py" line="1904"
+         module="ValidateFiling.py" line="1907"
          args="concept role">
 Concept %(concept)s has en but no nl label in role %(role)s.
 </message>
@@ -4010,7 +4256,7 @@ RoleType %(roleURI)s must have a label in lang &quot;nl&quot;
 
 <message code="SBR.NL.2.3.8.07"
          level="error"
-         module="ValidateFiling.py" line="1387"
+         module="ValidateFiling.py" line="1390"
          args="concept role text">
 Label for concept %(concept)s role %(role)s has disallowed characters: &quot;%(text)s&quot;
 </message>
@@ -4024,14 +4270,14 @@ labelArc may not be contain order (%(order)s)
 
 <message code="SBR.NL.2.3.9.01"
          level="error"
-         module="ValidateFiling.py" line="1634"
+         module="ValidateFiling.py" line="1637"
          args="linkrole">
 Calculation linkbase linkrole %(linkrole)s
 </message>
 
 <message code="SBR.NL.2.3.9.03"
          level="error"
-         module="ValidateFormula.py" line="423"
+         module="ValidateFormula.py" line="442"
          args="xlinkLabel">
 Formula:formula %(xlinkLabel)s is not allowed
 </message>
@@ -4059,7 +4305,7 @@ RSS item %(company)s %(form)s document not loaded: %(date)s
 
 <message code="arelle:creationSoftwareNamesTable"
          level="error"
-         module="ModelDocument.py" line="671"
+         module="ModelDocument.py" line="672"
          args="error">
 Error loading creation software names table %(error)s
 </message>
@@ -4080,7 +4326,7 @@ First column must be Label or Name: %(col1)s
 
 <message code="arelle:hrefWarning"
          level="warning"
-         module="ModelDocument.py" line="898"
+         module="ModelDocument.py" line="901"
          args="href">
 Locator href attribute &quot;%(href)s&quot; missing or malformed in non-standard extended link
 </message>
@@ -4115,21 +4361,21 @@ Create context for %(priItem)s, cannot determine valid context elements, no suit
 
 <message code="arelle:infosetAttributesMismatch"
          level="error"
-         module="ValidateInfoset.py" line="228"
+         module="ValidateInfoset.py" line="238"
          args="elt attrs1 attrs2 elt1line elt2line">
 Infoset comparison element %(elt)s expecting attributes %(attrs1)s found %(attrs2)s source line %(elt1line)s comparison line %(elt2line)s
 </message>
 
 <message code="arelle:infosetElementMismatch"
          level="error"
-         module="ValidateInfoset.py" line="213"
+         module="ValidateInfoset.py" line="218"
          args="elt1 elt2 elt1line elt2line">
 Infoset expecting %(elt1)s found %(elt2)s source line %(elt1line)s comparison line %(elt2line)s
 </message>
 
 <message code="arelle:infosetFileError"
          level="error"
-         module="ValidateInfoset.py" line="237"
+         module="ValidateInfoset.py" line="247"
          args="xmlfile error">
 Infoset comparison file %(xmlfile)s error %(error)s
 </message>
@@ -4255,7 +4501,7 @@ Arc fromPath not found: %(fromPath)s
 
 <message code="arelle:infosetTextMismatch"
          level="error"
-         module="ValidateInfoset.py" line="221"
+         module="ValidateInfoset.py" line="226"
          args="elt text1 text2 elt1line elt2line">
 Infoset comparison element %(elt)s expecting text %(text1)s found %(text2)s source line %(elt1line)s comparison line %(elt2line)s
 </message>
@@ -4325,7 +4571,7 @@ Element %(element)s %(xlinkLabel)s has unauthorized xml:lang='%(lang)s'
 
 <message code="arelle:multipleOutputInstances"
          level="info"
-         module="ValidateFormula.py" line="413"
+         module="ValidateFormula.py" line="432"
          args="xlinkLabel instanceTo instanceTo2">
 Multiple output instances for formula %(xlinkLabel)s, to names %(instanceTo)s, %(instanceTo2)s
 </message>
@@ -4395,7 +4641,7 @@ Unrecognized columns: %(cols)s
 
 <message code="arelle:variableSetFilterCovered"
          level="warning"
-         module="ValidateFormula.py" line="599"
+         module="ValidateFormula.py" line="618"
          args="xlinkLabel filterLabel">
 Variable set %(xlinkLabel)s, filter %(filterLabel)s, cannot be covered
 </message>
@@ -4409,21 +4655,21 @@ Create context, %(dimension)s, cannot determine context element, either no all r
 
 <message code="asrtNoLog"
          level="(dynamic)"
-         module="ValidateFormula.py" line="847"
+         module="ValidateFormula.py" line="866"
          args="assertionResults">
 (dynamic)
 </message>
 
 <message code="cfcn:testFail"
          level="error"
-         module="ValidateFormula.py" line="223"
+         module="ValidateFormula.py" line="242"
          args="name result">
 Test %(name)s result %(result)s
 </message>
 
 <message code="cfcn:testPass"
          level="info"
-         module="ValidateFormula.py" line="219"
+         module="ValidateFormula.py" line="238"
          args="name result">
 Test %(name)s result %(result)s
 </message>
@@ -4458,7 +4704,7 @@ Item %(concept)s enumeration type must specify a linkrole.
 
 <message code="err:FORG0001"
          level="error"
-         module="ValidateFormula.py" line="351"
+         module="ValidateFormula.py" line="370"
          args="name error">
 Parameter 
 %(name)s 
@@ -4476,14 +4722,14 @@ Parse error in %(name)s error: %(error)s
 
 <message code="err:XPST0008"
          level="error"
-         module="ValidateFormula.py" line="1190"
+         module="ValidateFormula.py" line="1209"
          args="xlinkLabel name">
 Undefined variable dependency in message %(xlinkLabel)s, %(name)s
 </message>
 
 <message code="err:XPST0008"
          level="error"
-         module="ValidateFormula.py" line="1196"
+         module="ValidateFormula.py" line="1215"
          args="xlinkLabel name">
 Existence Assertion depends on evaluation variable in message %(xlinkLabel)s, %(name)s
 </message>
@@ -4602,7 +4848,7 @@ Invalid formula object %(element)s
 
 <message code="formula:maxRunTime"
          level="info"
-         module="ValidateFormula.py" line="817"
+         module="ValidateFormula.py" line="836"
          args="mins">
 Formula execution ended after %(mins)s minutes
 </message>
@@ -4616,28 +4862,28 @@ Formula output %(countFacts)s facts, expected %(expectedFacts)s facts
 
 <message code="formula:time"
          level="info"
-         module="FormulaEvaluator.py" line="128"
+         module="FormulaEvaluator.py" line="130"
          args="xlinkLabel count time">
 Variable set %(xlinkLabel)s skipped evaluation %(count)s: %(time)s sec
 </message>
 
 <message code="formula:time"
          level="info"
-         module="FormulaEvaluator.py" line="152"
+         module="FormulaEvaluator.py" line="154"
          args="xlinkLabel count time">
 Variable set %(xlinkLabel)s precondition blocked evaluation %(count)s: %(time)s sec
 </message>
 
 <message code="formula:time"
          level="info"
-         module="FormulaEvaluator.py" line="201"
+         module="FormulaEvaluator.py" line="208"
          args="xlinkLabel count time">
 Variable set %(xlinkLabel)s completed evaluation %(count)s: %(time)s sec
 </message>
 
 <message code="formula:time"
          level="info"
-         module="FormulaEvaluator.py" line="76"
+         module="FormulaEvaluator.py" line="78"
          args="xlinkLabel count time">
 Variable set %(xlinkLabel)s time for %(count)s evaluations: %(time)s
 </message>
@@ -4672,21 +4918,21 @@ Consistency assertion %(id)s formula %(xlinkLabel)s input fact matched to %(deri
 
 <message code="formula:trace"
          level="info"
-         module="FormulaEvaluator.py" line="113"
+         module="FormulaEvaluator.py" line="115"
          args="xlinkLabel">
 Variable set %(xlinkLabel)s skipped evaluation, all fact variables have fallen back
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="FormulaEvaluator.py" line="122"
+         module="FormulaEvaluator.py" line="124"
          args="xlinkLabel">
 Variable set %(xlinkLabel)s skipped non-different or fallback evaluation, duplicates another evaluation
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="FormulaEvaluator.py" line="145"
+         module="FormulaEvaluator.py" line="147"
          args="xlinkLabel precondition result">
 Variable set %(xlinkLabel)s 
 Precondition %(precondition)s 
@@ -4695,77 +4941,77 @@ Result: %(result)s
 
 <message code="formula:trace"
          level="info"
-         module="FormulaEvaluator.py" line="186"
-         args="variableSetType xlinkLabel label result">
+         module="FormulaEvaluator.py" line="189"
+         args="variableSetType xlinkLabel label result expression evaluatedExpression">
 (dynamic)
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="FormulaEvaluator.py" line="248"
+         module="FormulaEvaluator.py" line="255"
          args="variable factCount">
 Fact Variable %(variable)s: start with %(factCount)s facts previously cached after explicit filters
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="FormulaEvaluator.py" line="261"
+         module="FormulaEvaluator.py" line="268"
          args="variable factCount">
 Fact Variable %(variable)s: start with %(factCount)s facts previously cached before variable filters
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="FormulaEvaluator.py" line="268"
+         module="FormulaEvaluator.py" line="275"
          args="variable factCount">
 Fact Variable %(variable)s filtering: start with %(factCount)s facts
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="FormulaEvaluator.py" line="296"
+         module="FormulaEvaluator.py" line="303"
          args="variable result">
 Fact Variable %(variable)s: filters result %(result)s
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="FormulaEvaluator.py" line="302"
+         module="FormulaEvaluator.py" line="309"
          args="variable result">
 Fact Variable %(variable)s: fallbackValue result %(result)s
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="FormulaEvaluator.py" line="316"
+         module="FormulaEvaluator.py" line="323"
          args="variable result">
 General Variable %(variable)s: select result %(result)s
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="FormulaEvaluator.py" line="335"
+         module="FormulaEvaluator.py" line="342"
          args="variableType variable result">
 %(variableType)s %(variable)s: bound value %(result)s
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="FormulaEvaluator.py" line="364"
+         module="FormulaEvaluator.py" line="371"
          args="variable filterType filter xlinkLabel factCount">
 Fact Variable %(variable)s %(filterType)s %(filter)s filter %(xlinkLabel)s passes %(factCount)s facts
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="FormulaEvaluator.py" line="394"
+         module="FormulaEvaluator.py" line="401"
          args="variable aspect factCount">
 Fact Variable %(variable)s implicit filter %(aspect)s passes %(factCount)s facts
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="FormulaEvaluator.py" line="60"
+         module="FormulaEvaluator.py" line="62"
          args="xlinkLabel result">
 Existence Assertion %(xlinkLabel)s 
 Result: %(result)s
@@ -4773,14 +5019,14 @@ Result: %(result)s
 
 <message code="formula:trace"
          level="info"
-         module="FormulaEvaluator.py" line="72"
+         module="FormulaEvaluator.py" line="74"
          args="xlinkLabel">
 Variable set %(xlinkLabel)s had no xpCtx.evaluations
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="FormulaEvaluator.py" line="87"
+         module="FormulaEvaluator.py" line="89"
          args="xlinkLabel evaluations variables">
 Variable set %(xlinkLabel)s evaluations: %(evaluations)s x %(variables)s
 </message>
@@ -4830,70 +5076,70 @@ Result:
 
 <message code="formula:trace"
          level="info"
-         module="ValidateFormula.py" line="209"
+         module="ValidateFormula.py" line="228"
          args="name result">
 %(name)s result %(result)s
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="ValidateFormula.py" line="340"
+         module="ValidateFormula.py" line="359"
          args="name input">
 Parameter %(name)s input value %(input)s
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="ValidateFormula.py" line="346"
+         module="ValidateFormula.py" line="365"
          args="name result">
 Parameter %(name)s select result %(result)s
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="ValidateFormula.py" line="484"
+         module="ValidateFormula.py" line="503"
          args="xlinkLabel name dependencies">
 Variable set %(xlinkLabel)s, variable %(name)s, dependences %(dependencies)s
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="ValidateFormula.py" line="552"
+         module="ValidateFormula.py" line="571"
          args="xlinkLabel dependencies">
 Variable set %(xlinkLabel)s, variables order: %(dependencies)s
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="ValidateFormula.py" line="558"
+         module="ValidateFormula.py" line="577"
          args="xlinkLabel dependencies">
 Variable set %(xlinkLabel)s, instance dependences %(dependencies)s
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="ValidateFormula.py" line="679"
+         module="ValidateFormula.py" line="698"
          args="dependencies">
 Variable instances processing order: %(dependencies)s
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="ValidateFormula.py" line="779"
+         module="ValidateFormula.py" line="798"
          args="modelXbrl ids">
 Formua/assertion IDs restriction: %(ids)s
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="ValidateFormula.py" line="828"
+         module="ValidateFormula.py" line="847"
          args="assertionType id satisfiedCount notSatisfiedCount">
 %(assertionType)s Assertion %(id)s evaluations : %(satisfiedCount)s satisfied, %(notSatisfiedCount)s not satisfied
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="ValidateFormula.py" line="841"
+         module="ValidateFormula.py" line="860"
          args="id satisfiedCount notSatisfiedCount">
 Consistency Assertion %(id)s evaluations : %(satisfiedCount)s satisfied, %(notSatisfiedCount)s not satisfied
 </message>
@@ -4928,7 +5174,7 @@ Updated Table Linkbase file cannot be an archive: %(tableLBOutputFile)s.
 
 <message code="info"
          level="info"
-         module="ModelXbrl.py" line="1077"
+         module="ModelXbrl.py" line="1082"
          args="entryFile packageOutputFile numberOfFiles">
 DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFile)s
 </message>
@@ -4963,7 +5209,7 @@ Variation %(id)s %(name)s: %(expected)s - %(description)s
 
 <message code="info"
          level="info"
-         module="ValidateFormula.py" line="239"
+         module="ValidateFormula.py" line="258"
          args="error">
 Formula validation skipped due to %(error)s error
 </message>
@@ -4984,7 +5230,7 @@ Link:%(elementName)s not child of link:linkbase or xbrli:instance
 
 <message code="info:duplicatedSchema"
          level="warning"
-         module="ModelDocument.py" line="200"
+         module="ModelDocument.py" line="201"
          args="targetNamespace fileName otherFileName">
 Schema file with same targetNamespace %(targetNamespace)s loaded from %(fileName)s and %(otherFileName)s
 </message>
@@ -5005,7 +5251,7 @@ Schema file with same targetNamespace %(targetNamespace)s loaded from %(fileName
 
 <message code="info:profileStats"
          level="info"
-         module="ModelXbrl.py" line="1008"
+         module="ModelXbrl.py" line="1013"
          args="profileStats timeTotal timeEFM">
 (dynamic)
 </message>
@@ -5033,7 +5279,7 @@ Updated Table Linkbase of %(entryFile)s has %(numberOfLinkroles)s linkroles, %(n
 
 <message code="ix.3.1:multipleIxNamespaces"
          level="error"
-         module="ModelDocument.py" line="1038"
+         module="ModelDocument.py" line="1041"
          args="">
 Multiple ix namespaces were found
 </message>
@@ -5054,7 +5300,7 @@ Attribute %(attribute)s required on element ix:%(element)s
 
 <message code="ix:continuationCycle"
          level="error"
-         module="ModelDocument.py" line="1191"
+         module="ModelDocument.py" line="1194"
          args="continuationCycle">
 Inline XBRL continuation cycle: %(continuationCycle)s
 </message>
@@ -5068,7 +5314,7 @@ Inline XBRL continuation chain has elements which are descendants of each other.
 
 <message code="ix:continuationMissing"
          level="error"
-         module="ModelDocument.py" line="1182"
+         module="ModelDocument.py" line="1185"
          args="continuationAt">
 Inline XBRL continuation %(continuationAt)s not found
 </message>
@@ -5313,7 +5559,7 @@ Fact %(fact)s is recursively nested in tuple %(tuple)s
 
 <message code="ix:tupleRefMissing"
          level="error"
-         module="ModelDocument.py" line="1164"
+         module="ModelDocument.py" line="1167"
          args="tupleRef">
 Inline XBRL tupleRef %(tupleRef)s not found
 </message>
@@ -5348,14 +5594,14 @@ Inline element %(element)s fact %(fact)s type %(typeName)s transform %(transform
 
 <message code="message:{variableSetID|xlinkLabel}"
          level="info"
-         module="FormulaEvaluator.py" line="177"
+         module="FormulaEvaluator.py" line="179"
          args="label">
 (dynamic)
 </message>
 
 <message code="message:{variableSetID|xlinkLabel}"
          level="info"
-         module="FormulaEvaluator.py" line="66"
+         module="FormulaEvaluator.py" line="68"
          args="">
 (dynamic)
 </message>
@@ -5419,35 +5665,35 @@ Version %(version)s, number must be 1.n
 
 <message code="table:info"
          level="info"
-         module="ValidateFormula.py" line="1084"
+         module="ValidateFormula.py" line="1103"
          args="xlinkLabel memQname">
 RuleAxis rule %(xlinkLabel)s contains a member QName %(memQname)s which is not in the DTS.
 </message>
 
 <message code="table:info"
          level="info"
-         module="ValidateFormula.py" line="1101"
+         module="ValidateFormula.py" line="1120"
          args="xlinkLabel qnSource">
 RuleAxis rule %(xlinkLabel)s contains a @source attribute %(qnSource)s which is not applicable to table rule axes.
 </message>
 
 <message code="table:info"
          level="info"
-         module="ValidateFormula.py" line="1106"
+         module="ValidateFormula.py" line="1125"
          args="xlinkLabel conceptQname">
 RuleAxis rule %(xlinkLabel)s contains a concept QName %(conceptQname)s which is not in the DTS.
 </message>
 
 <message code="table:info"
          level="info"
-         module="ValidateFormula.py" line="1114"
+         module="ValidateFormula.py" line="1133"
          args="axis xlinkLabel qnameAttr qname">
 %(axis)s rule %(xlinkLabel)s contains a %(qnameAttr)s QName %(qname)s which is not in the DTS.
 </message>
 
 <message code="table:trace"
          level="info"
-         module="RenderingResolver.py" line="389"
+         module="RenderingResolver.py" line="391"
          args="xlinkLabel factsPartitions">
 Filter node %(xlinkLabel)s facts partitions: %(factsPartitions)s
 </message>
@@ -6924,14 +7170,14 @@ Href %(elementHref)s file not found
 
 <message code="xbrl:schemaDefinitionMissing"
          level="error"
-         module="ModelDocument.py" line="939"
+         module="ModelDocument.py" line="942"
          args="element">
 Linkbase extended link %(element)s missing schema definition
 </message>
 
 <message code="xbrl:schemaImportMissing"
          level="error"
-         module="ModelDocument.py" line="990"
+         module="ModelDocument.py" line="993"
          args="elements">
 Instance facts missing schema definition: %(elements)s
 </message>
@@ -6945,49 +7191,49 @@ Fact %(fact)s missing schema definition or missing name attribute
 
 <message code="xbrlacfe:inconsistentAspectCoverFilters"
          level="error"
-         module="ValidateFormula.py" line="905"
+         module="ValidateFormula.py" line="924"
          args="xlinkLabel filterLabel aspect filterLabel2">
 Variable set %(xlinkLabel)s, aspect cover filter %(filterLabel)s, aspect %(aspect)s, conflicts with %(filterLabel2)s with inconsistent cover attribute
 </message>
 
 <message code="xbrlcae:acceptanceRadiusConflict"
          level="error"
-         module="ValidateFormula.py" line="691"
+         module="ValidateFormula.py" line="710"
          args="xlinkLabel">
 Consistency assertion %(xlinkLabel)s has both absolute and proportional acceptance radii
 </message>
 
 <message code="xbrlcae:variablesNotAllowed"
          level="error"
-         module="ValidateFormula.py" line="697"
+         module="ValidateFormula.py" line="716"
          args="xlinkLabel elementTo xlinkLabelTo">
 Consistency assertion %(xlinkLabel)s has relationship to a %(elementTo)s %(xlinkLabelTo)s
 </message>
 
 <message code="xbrlcfie:inputMismatch"
          level="error"
-         module="ValidateFormula.py" line="309"
+         module="ValidateFormula.py" line="328"
          args="name parameterCountSignature parameterCountImplementation">
 Custom function %(name)s signature has %(parameterCountSignature)s parameters but implementation has %(parameterCountImplementation)s, must be matching
 </message>
 
 <message code="xbrlcfie:missingCFIRelationship"
          level="error"
-         module="ValidateFormula.py" line="316"
+         module="ValidateFormula.py" line="335"
          args="xlinkLabel">
 Custom function implementation %(xlinkLabel)s has no relationship from any custom function signature
 </message>
 
 <message code="xbrlcfie:tooManyCFIRelationships"
          level="error"
-         module="ValidateFormula.py" line="190"
+         module="ValidateFormula.py" line="209"
          args="name">
 Function-implementation relationship from signature %(name)s has more than one implementation target
 </message>
 
 <message code="xbrlcfie:tooManyCFIRelationships"
          level="error"
-         module="ValidateFormula.py" line="195"
+         module="ValidateFormula.py" line="214"
          args="xlinkLabel">
 Function implementation %(xlinkLabel)s must be the target of only one function-implementation relationship
 </message>
@@ -7217,196 +7463,196 @@ Concept %(concept)s is not a dimension item but has a typedDomainRef
 
 <message code="xbrleae:variableReferenceNotAllowed"
          level="error"
-         module="ValidateFormula.py" line="574"
+         module="ValidateFormula.py" line="593"
          args="xlinkLabel name">
 Existence Assertion %(xlinkLabel)s, cannot refer to variable %(name)s
 </message>
 
 <message code="xbrlfe:badSubsequentOCCValue"
          level="error"
-         module="FormulaEvaluator.py" line="694"
+         module="FormulaEvaluator.py" line="701"
          args="xlinkLabel occ">
 Formula %(xlinkLabel)s OCC element %(occ)s covers a dimensional aspect
 </message>
 
 <message code="xbrlfe:badUsageOfExplicitDimensionRule"
          level="error"
-         module="ValidateFormula.py" line="1003"
+         module="ValidateFormula.py" line="1022"
          args="xlinkLabel dimensionType dimension">
 Formula %(xlinkLabel)s dimension attribute %(dimension)s on the %(dimensionType)s dimension rule contains a QName that does not identify an (dimensionType)s dimension.
 </message>
 
 <message code="xbrlfe:badUsageOfExplicitDimensionRule"
          level="error"
-         module="ValidateFormula.py" line="1078"
+         module="ValidateFormula.py" line="1097"
          args="xlinkLabel dimensionType dimension">
 RuleAxis %(xlinkLabel)s dimension attribute %(dimension)s on the %(dimensionType)s dimension rule contains a QName that does not identify an (dimensionType)s dimension.
 </message>
 
 <message code="xbrlfe:badUsageOfTypedDimensionRule"
          level="error"
-         module="ValidateFormula.py" line="1003"
+         module="ValidateFormula.py" line="1022"
          args="xlinkLabel dimensionType dimension">
 Formula %(xlinkLabel)s dimension attribute %(dimension)s on the %(dimensionType)s dimension rule contains a QName that does not identify an (dimensionType)s dimension.
 </message>
 
 <message code="xbrlfe:badUsageOfTypedDimensionRule"
          level="error"
-         module="ValidateFormula.py" line="1078"
+         module="ValidateFormula.py" line="1097"
          args="xlinkLabel dimensionType dimension">
 RuleAxis %(xlinkLabel)s dimension attribute %(dimension)s on the %(dimensionType)s dimension rule contains a QName that does not identify an (dimensionType)s dimension.
 </message>
 
 <message code="xbrlfe:bindEmptySourceVariable"
          level="error"
-         module="ValidateFormula.py" line="1044"
+         module="ValidateFormula.py" line="1063"
          args="xlinkLabel name">
 Formula %(xlinkLabel)s: source %(name)s is a fact variable that has a fallback value
 </message>
 
 <message code="xbrlfe:conflictingAspectRules"
          level="error"
-         module="ValidateFormula.py" line="986"
+         module="ValidateFormula.py" line="1005"
          args="xlinkLabel concept">
 Formula %(xlinkLabel)s has a rule for the unit aspect of a non-numeric concept %(concept)s
 </message>
 
 <message code="xbrlfe:conflictingAspectRules"
          level="error"
-         module="ValidateFormula.py" line="992"
+         module="ValidateFormula.py" line="1011"
          args="xlinkLabel concept aspectPeriodType conceptPeriodType">
 Formula %(xlinkLabel)s has a rule for the %(aspectPeriodType)s period aspect of a %(conceptPeriodType)s concept %(concept)s
 </message>
 
 <message code="xbrlfe:defaultAspectValueConflicts"
          level="error"
-         module="ValidateFormula.py" line="1048"
+         module="ValidateFormula.py" line="1067"
          args="xlinkLabel name">
 Formula %(xlinkLabel)s: formula source %(name)s is a fact variable that binds as a sequence
 </message>
 
 <message code="xbrlfe:illegalUseOfUncoveredQName"
          level="error"
-         module="ValidateFormula.py" line="1028"
+         module="ValidateFormula.py" line="1047"
          args="xlinkLabel name">
 Formula %(xlinkLabel)s, not implicit filtering element has formulaUncovered source: %(name)s
 </message>
 
 <message code="xbrlfe:incompleteConceptRule"
          level="error"
-         module="ValidateFormula.py" line="933"
+         module="ValidateFormula.py" line="952"
          args="xlinkLabel">
 Formula %(xlinkLabel)s concept rule does not have a nearest source and does not have a child element
 </message>
 
 <message code="xbrlfe:incompleteEntityIdentifierRule"
          level="error"
-         module="ValidateFormula.py" line="944"
+         module="ValidateFormula.py" line="963"
          args="xlinkLabel">
 Formula %(xlinkLabel)s entity identifier rule does not have a nearest source and does not have either a @scheme or a @value attribute
 </message>
 
 <message code="xbrlfe:incompletePeriodRule"
          level="error"
-         module="ValidateFormula.py" line="953"
+         module="ValidateFormula.py" line="972"
          args="xlinkLabel">
 Formula %(xlinkLabel)s period rule does not have a nearest source and does not have a child element
 </message>
 
 <message code="xbrlfe:missingConceptRule"
          level="error"
-         module="FormulaEvaluator.py" line="577"
+         module="FormulaEvaluator.py" line="584"
          args="xlinkLabel concept element">
 Formula %(xlinkLabel)s concept %(concept)s is not a %(element)s
 </message>
 
 <message code="xbrlfe:missingConceptRule"
          level="error"
-         module="ValidateFormula.py" line="937"
+         module="ValidateFormula.py" line="956"
          args="xlinkLabel">
 Formula %(xlinkLabel)s omits a rule for the concept aspect
 </message>
 
 <message code="xbrlfe:missingEntityIdentifierRule"
          level="error"
-         module="ValidateFormula.py" line="948"
+         module="ValidateFormula.py" line="967"
          args="xlinkLabel">
 Formula %(xlinkLabel)s omits a rule for the entity identifier aspect
 </message>
 
 <message code="xbrlfe:missingPeriodRule"
          level="error"
-         module="ValidateFormula.py" line="957"
+         module="ValidateFormula.py" line="976"
          args="xlinkLabel">
 Formula %(xlinkLabel)s omits a rule for the period aspect
 </message>
 
 <message code="xbrlfe:missingSAVForExplicitDimensionRule"
          level="error"
-         module="ValidateFormula.py" line="1008"
+         module="ValidateFormula.py" line="1027"
          args="xlinkLabel dimensionType dimension">
 Formula %(xlinkLabel)s %(dimension)s dimension rule does not have any child elements and does not have a SAV for the %(dimensionType)s dimension that is identified by its dimension attribute.
 </message>
 
 <message code="xbrlfe:missingSAVForTypedDimensionRule"
          level="error"
-         module="ValidateFormula.py" line="1008"
+         module="ValidateFormula.py" line="1027"
          args="xlinkLabel dimensionType dimension">
 Formula %(xlinkLabel)s %(dimension)s dimension rule does not have any child elements and does not have a SAV for the %(dimensionType)s dimension that is identified by its dimension attribute.
 </message>
 
 <message code="xbrlfe:missingSAVForUnitRule"
          level="error"
-         module="ValidateFormula.py" line="977"
+         module="ValidateFormula.py" line="996"
          args="xlinkLabel">
 Formula %(xlinkLabel)s unit rule does not have a source and does not have a child element
 </message>
 
 <message code="xbrlfe:missingUnitRule"
          level="error"
-         module="FormulaEvaluator.py" line="656"
+         module="FormulaEvaluator.py" line="663"
          args="xlinkLabel">
 Formula %(xlinkLabel)s
 </message>
 
 <message code="xbrlfe:missingUnitRule"
          level="error"
-         module="ValidateFormula.py" line="981"
+         module="ValidateFormula.py" line="1000"
          args="xlinkLabel">
 Formula %(xlinkLabel)s omits a rule for the unit aspect
 </message>
 
 <message code="xbrlfe:nonSingletonOutputValue"
          level="error"
-         module="FormulaEvaluator.py" line="755"
+         module="FormulaEvaluator.py" line="762"
          args="xlinkLabel valueSequenceLength">
 Formula %(xlinkLabel)s value is a sequence of length %(valueSequenceLength)s
 </message>
 
 <message code="xbrlfe:nonexistentSourceVariable"
          level="error"
-         module="ValidateFormula.py" line="1032"
+         module="ValidateFormula.py" line="1051"
          args="xlinkLabel name">
 Variable set %(xlinkLabel)s, source %(name)s is not in the variable set
 </message>
 
 <message code="xbrlfe:nonexistentSourceVariable"
          level="error"
-         module="ValidateFormula.py" line="1040"
+         module="ValidateFormula.py" line="1059"
          args="xlinkLabel name element">
 Variable set %(xlinkLabel)s, source %(name)s not a factVariable but is a %(element)s
 </message>
 
 <message code="xbrlfe:unrecognisedAspectRule"
          level="error"
-         module="ValidateFormula.py" line="1017"
+         module="ValidateFormula.py" line="1036"
          args="xlinkLabel aspectModel undefinedAspects">
 Formula %(xlinkLabel)s aspect model, %(aspectModel)s, includes an rule for aspect not defined in this aspect model: %(undefinedAspects)s
 </message>
 
 <message code="xbrlfe:wrongXpathResultForTypedDimensionRule"
          level="error"
-         module="FormulaEvaluator.py" line="681"
+         module="FormulaEvaluator.py" line="688"
          args="xlinkLabel dimension value">
 Formula %(xlinkLabel)s dimension %(dimension)s value is not a node: %(value)s
 </message>
@@ -7494,14 +7740,14 @@ Generic label arc in extended link %(linkrole)s to %(xlinkLabel)s must target a 
 
 <message code="xbrlmsge:missingLeftCurlyBracketInMessage"
          level="error"
-         module="ValidateFormula.py" line="1164"
+         module="ValidateFormula.py" line="1183"
          args="xlinkLabel character text">
 Message %(xlinkLabel)s: unbalanced %(character)s character(s) in: %(text)s
 </message>
 
 <message code="xbrlmsge:missingRightCurlyBracketInMessage"
          level="error"
-         module="ValidateFormula.py" line="1164"
+         module="ValidateFormula.py" line="1183"
          args="xlinkLabel character text">
 Message %(xlinkLabel)s: unbalanced %(character)s character(s) in: %(text)s
 </message>
@@ -7515,238 +7761,245 @@ Generic reference arc in extended link %(linkrole)s to %(xlinkLabel)s must targe
 
 <message code="xbrlte:abstractRuleNodeNoChildren"
          level="error"
-         module="RenderingEvaluator.py" line="199"
+         module="RenderingEvaluator.py" line="210"
          args="xlinkLabel definitionNode">
 Abstract %(definitionNode)s %(xlinkLabel)s has no children
 </message>
 
-<message code="xbrlte:aspectClash"
+<message code="xbrlte:aspectClashBetweenBreakdowns"
          level="error"
-         module="RenderingEvaluator.py" line="118"
+         module="RenderingEvaluator.py" line="129"
          args="definitionNode xlinkLabel axisDisposition axisDisposition2 aspect">
 %(definitionNode)s %(xlinkLabel)s, aspect %(aspect)s defined on axes of disposition %(axisDisposition)s and %(axisDisposition2)s
 </message>
 
 <message code="xbrlte:aspectValueNotDefinedByOrdinate"
          level="error"
-         module="RenderingEvaluator.py" line="194"
+         module="RenderingEvaluator.py" line="205"
          args="xlinkLabel definitionNode">
 %(definitionNode)s %(xlinkLabel)s does not define an aspect
 </message>
 
 <message code="xbrlte:axisAspectModelMismatch"
          level="error"
-         module="RenderingEvaluator.py" line="110"
+         module="RenderingEvaluator.py" line="121"
          args="definitionNode xlinkLabel aspectModel aspect">
 %(definitionNode)s %(xlinkLabel)s, aspect model %(aspectModel)s, aspect %(aspect)s not allowed
 </message>
 
 <message code="xbrlte:axisAspectModelMismatch"
          level="error"
-         module="RenderingEvaluator.py" line="174"
+         module="RenderingEvaluator.py" line="185"
          args="xlinkLabel">
 DimensionRelationship axis %(xlinkLabel)s can't be used in non-dimensional aspect model
 </message>
 
 <message code="xbrlte:axisAspectModelMismatch"
          level="error"
-         module="ValidateFormula.py" line="1092"
+         module="ValidateFormula.py" line="1111"
          args="xlinkLabel aspectModel undefinedAspects">
 RuleAxis %(xlinkLabel)s aspect model, %(aspectModel)s, includes an rule for aspect not defined in this aspect model: %(undefinedAspects)s
 </message>
 
 <message code="xbrlte:closedDefinitionNodeZeroCardinality"
          level="error"
-         module="RenderingResolver.py" line="223"
+         module="RenderingResolver.py" line="225"
          args="xlinkLabel axis">
 Closed definition node %(xlinkLabel)s does not contribute at least one structural node
 </message>
 
 <message code="xbrlte:constraintSetAspectMismatch"
          level="error"
-         module="RenderingEvaluator.py" line="163"
+         module="RenderingEvaluator.py" line="174"
          args="definitionNode xlinkLabel tag1 tag2 aspects">
 %(definitionNode)s %(xlinkLabel)s constraint set mismatches between %(tag1)s and %(tag2)s in constraints %(aspects)s
 </message>
 
 <message code="xbrlte:duplicateTag"
          level="error"
-         module="RenderingEvaluator.py" line="153"
+         module="RenderingEvaluator.py" line="164"
          args="definitionNode xlinkLabel tag">
 %(definitionNode)s %(xlinkLabel)s duplicate rule set tags %(tag)s
 </message>
 
 <message code="xbrlte:invalidConceptRelationshipSource"
          level="error"
-         module="RenderingResolver.py" line="338"
+         module="RenderingResolver.py" line="340"
          args="xlinkLabel source">
 Concept relationship rule node %(xlinkLabel)s source %(source)s does not refer to an existing concept.
 </message>
 
 <message code="xbrlte:invalidDimensionQNameOnAspectNode"
          level="error"
-         module="RenderingEvaluator.py" line="187"
+         module="RenderingEvaluator.py" line="198"
          args="xlinkLabel dimension">
 Aspect node %(xlinkLabel)s dimensional aspect %(dimension)s is not a dimension
 </message>
 
 <message code="xbrlte:invalidDimensionRelationshipSource"
          level="error"
-         module="RenderingResolver.py" line="349"
+         module="RenderingResolver.py" line="351"
          args="xlinkLabel source">
 Dimension relationship rule node %(xlinkLabel)s source %(source)s does not refer to an existing domain member.
 </message>
 
 <message code="xbrlte:invalidExplicitDimensionQName"
          level="error"
-         module="RenderingResolver.py" line="344"
+         module="RenderingResolver.py" line="346"
          args="xlinkLabel dimension">
 Dimension relationship rule node %(xlinkLabel)s dimension %(dimension)s does not refer to an existing explicit dimension.
 </message>
 
 <message code="xbrlte:invalidQNameAspectValue"
          level="error"
-         module="RenderingResolver.py" line="454"
+         module="RenderingResolver.py" line="456"
          args="xlinkLabel concept">
 Rule node %(xlinkLabel)s specifies concept %(concept)s does not refer to an existing primary item concept.
 </message>
 
 <message code="xbrlte:invalidQNameAspectValue"
          level="error"
-         module="RenderingResolver.py" line="462"
+         module="RenderingResolver.py" line="464"
          args="xlinkLabel concept">
 Rule node %(xlinkLabel)s specifies dimension %(concept)s does not refer to an existing dimension concept.
 </message>
 
 <message code="xbrlte:invalidQNameAspectValue"
          level="error"
-         module="RenderingResolver.py" line="466"
+         module="RenderingResolver.py" line="468"
          args="xlinkLabel concept">
 Rule node %(xlinkLabel)s specifies domain member %(concept)s does not refer to an existing domain member concept.
 </message>
 
 <message code="xbrlte:mergedRuleNodeWithLabel"
          level="error"
-         module="RenderingEvaluator.py" line="134"
+         module="RenderingEvaluator.py" line="145"
          args="definitionNode xlinkLabel">
 Merged %(definitionNode)s %(xlinkLabel)s has label(s)
 </message>
 
 <message code="xbrlte:mergedRuleNodeWithTaggedRuleSet"
          level="error"
-         module="RenderingEvaluator.py" line="128"
+         module="RenderingEvaluator.py" line="139"
          args="definitionNode xlinkLabel">
 Merged %(definitionNode)s %(xlinkLabel)s has tagged rule set(s)
 </message>
 
 <message code="xbrlte:missingAspectValue"
          level="error"
-         module="RenderingEvaluator.py" line="220"
+         module="RenderingEvaluator.py" line="232"
          args="xlinkLabel definitionNode aspect">
 %(definitionNode)s %(xlinkLabel)s does not define an aspect for %(aspect)s
 </message>
 
 <message code="xbrlte:nonAbstractMergedRuleNode"
          level="error"
-         module="RenderingEvaluator.py" line="139"
+         module="RenderingEvaluator.py" line="150"
          args="definitionNode xlinkLabel">
 Merged %(definitionNode)s %(xlinkLabel)s is not abstract
 </message>
 
 <message code="xbrlte:relationshipNodeTooManyGenerations "
          level="error"
-         module="RenderingResolver.py" line="354"
+         module="RenderingResolver.py" line="356"
          args="xlinkLabel axis generations">
 Relationship rule node %(xlinkLabel)s formulaAxis %(axis)s implies a single generation tree walk but generations %(generations)s is greater than one.
 </message>
 
 <message code="xbrlte:tableMissingConceptAspect"
          level="error"
-         module="RenderingEvaluator.py" line="95"
+         module="RenderingEvaluator.py" line="96"
          args="xlinkLabel">
 Table %(xlinkLabel)s does not include the concept aspect as one of its participating aspects
 </message>
 
+<message code="xbrlte:tableParameterNameClash "
+         level="error"
+         module="RenderingEvaluator.py" line="105"
+         args="xlinkLabel name">
+Table %(xlinkLabel)s has parameter name clash for variable %(name)s
+</message>
+
 <message code="xbrlte:unknownAspectModel"
          level="error"
-         module="RenderingEvaluator.py" line="70"
+         module="RenderingEvaluator.py" line="71"
          args="xlinkLabel aspectModel">
 Table %(xlinkLabel)s, aspect model %(aspectModel)s not recognized
 </message>
 
 <message code="xbrlte:unknownAspectModel"
          level="error"
-         module="ValidateFormula.py" line="625"
+         module="ValidateFormula.py" line="644"
          args="xlinkLabel aspectModel">
 Table %(xlinkLabel)s, aspect model %(aspectModel)s not recognized
 </message>
 
 <message code="xbrlvarinste:instanceVariableRecursionCycle"
          level="error"
-         module="ValidateFormula.py" line="660"
+         module="ValidateFormula.py" line="679"
          args="name dependencies">
 Cyclic dependencies of instance %(name)s produced by a formula, with variables consuming instances %(dependencies)s
 </message>
 
 <message code="xbrlvarinste:instanceVariableRecursionCycle"
          level="error"
-         module="ValidateFormula.py" line="674"
+         module="ValidateFormula.py" line="693"
          args="name">
 Cyclic dependencies of instance %(name)s produced by its own variables
 </message>
 
 <message code="xbrlvarscopee:conflictingAspectModels"
          level="error"
-         module="ValidateFormula.py" line="729"
+         module="ValidateFormula.py" line="748"
          args="xlinkLabel1 aspectModel1 xlinkLabel2 aspectModel2">
 Variable set %(xlinkLabel1)s aspectModel (%(aspectModel1)s) differs from varaible set %(xlinkLabel2)s aspectModel (%(aspectModel2)s)
 </message>
 
 <message code="xbrlvarscopee:differentInstances"
          level="error"
-         module="ValidateFormula.py" line="723"
+         module="ValidateFormula.py" line="742"
          args="xlinkLabel1 instance1 xlinkLabel2 instance2">
 Variable set %(xlinkLabel1)s in instance %(instance1)s has variables scope relationship to varaible set %(xlinkLabel2)s in instance %(instance2)s
 </message>
 
 <message code="xbrlve:cyclicDependencies"
          level="error"
-         module="ValidateFormula.py" line="531"
+         module="ValidateFormula.py" line="550"
          args="xlinkLabel nameFrom nameTo">
 Cyclic dependencies in variable set %(xlinkLabel)s, from variable %(nameFrom)s to %(nameTo)s
 </message>
 
 <message code="xbrlve:duplicateVariableNames"
          level="error"
-         module="ValidateFormula.py" line="453"
+         module="ValidateFormula.py" line="472"
          args="xlinkLabel name">
 Multiple variables named %(xlinkLabel)s in variable set %(name)s
 </message>
 
 <message code="xbrlve:factVariableReferenceNotAllowed"
          level="error"
-         module="ValidateFormula.py" line="606"
+         module="ValidateFormula.py" line="625"
          args="xlinkLabel filterLabel name">
 Variable set %(xlinkLabel)s, filter %(filterLabel)s, cannot refer to variable %(name)s
 </message>
 
 <message code="xbrlve:fallbackValueVariableReferenceNotAllowed"
          level="error"
-         module="ValidateFormula.py" line="494"
+         module="ValidateFormula.py" line="513"
          args="xlinkLabel fallbackValue dependency">
 Variable set %(xlinkLabel)s fallbackValue '%(fallbackValue)s' cannot refer to variable %(dependency)s
 </message>
 
 <message code="xbrlve:filterAspectModelMismatch"
          level="error"
-         module="ValidateFormula.py" line="919"
+         module="ValidateFormula.py" line="938"
          args="xlinkLabel aspectModel filterName filterLabel">
 Variable set %(xlinkLabel)s, aspect model %(aspectModel)s filter %(filterName)s %(filterLabel)s can cover aspect not in aspect model
 </message>
 
 <message code="xbrlve:multipleTypedDimensionEqualityDefinitions"
          level="error"
-         module="ValidateFormula.py" line="383"
+         module="ValidateFormula.py" line="402"
          args="typedDomain equalityDefinition1 equalityDefinition2">
 Multiple typed domain definitions from %(typedDomain)s to %(equalityDefinition1)s and %(equalityDefinition2)s
 </message>
@@ -7760,28 +8013,28 @@ No custom function signature for %(custFunction)s in %(resource)s
 
 <message code="xbrlve:noProhibitedNamespaceForCustomFunction"
          level="error"
-         module="ValidateFormula.py" line="301"
+         module="ValidateFormula.py" line="320"
          args="name namespace">
 Custom function %(name)s has namespace reserved for functions in the function registry %(namespace)s
 </message>
 
 <message code="xbrlve:parameterCyclicDependencies"
          level="error"
-         module="ValidateFormula.py" line="290"
+         module="ValidateFormula.py" line="309"
          args="name dependencies">
 Cyclic dependencies in parameter %(name)s, to names %(dependencies)s
 </message>
 
 <message code="xbrlve:parameterNameClash"
          level="error"
-         module="ModelFormulaObject.py" line="623"
+         module="ModelFormulaObject.py" line="631"
          args="name">
 Parameter name used on multiple parameters %(name)s
 </message>
 
 <message code="xbrlve:parameterTypeMismatch"
          level="error"
-         module="ValidateFormula.py" line="351"
+         module="ValidateFormula.py" line="370"
          args="name error">
 Parameter 
 %(name)s 
@@ -7791,35 +8044,35 @@ Exception:
 
 <message code="xbrlve:unknownAspectModel"
          level="error"
-         module="ValidateFormula.py" line="434"
+         module="ValidateFormula.py" line="453"
          args="xlinkLabel aspectModel">
 Variable set %(xlinkLabel)s, aspect model %(aspectModel)s not recognized
 </message>
 
 <message code="xbrlve:unresolvedDependency"
          level="error"
-         module="ValidateFormula.py" line="285"
+         module="ValidateFormula.py" line="304"
          args="name dependencies">
 Undefined dependencies in parameter %(name)s, to names %(dependencies)s
 </message>
 
 <message code="xbrlve:unresolvedDependency"
          level="error"
-         module="ValidateFormula.py" line="526"
+         module="ValidateFormula.py" line="545"
          args="xlinkLabel nameFrom nameTo">
 Undefined variable dependencies in variable set %(xlinkLabel)s, from variable %(nameFrom)s to %(nameTo)s
 </message>
 
 <message code="xbrlve:unresolvedDependency"
          level="error"
-         module="ValidateFormula.py" line="539"
+         module="ValidateFormula.py" line="558"
          args="xlinkLabel name">
 Undefined variable dependency in variable set %(xlinkLabel)s, %(name)s
 </message>
 
 <message code="xbrlve:variableNameResolutionFailure"
          level="error"
-         module="ValidateFormula.py" line="470"
+         module="ValidateFormula.py" line="489"
          args="xlinkLabel name">
 Variables name %(name)s cannot be determined on arc from %(xlinkLabel)s
 </message>
@@ -7833,14 +8086,14 @@ Function %(name)s cannot be used on an XPath expression associated with a %(name
 
 <message code="xfie:invalidExplicitDimensionQName"
          level="error"
-         module="ModelFormulaObject.py" line="1998"
+         module="ModelFormulaObject.py" line="2006"
          args="dimension">
 %(dimension)s is not an explicit dimension concept QName.
 </message>
 
 <message code="xfie:invalidExplicitDimensionQName"
          level="error"
-         module="ModelFormulaObject.py" line="2040"
+         module="ModelFormulaObject.py" line="2048"
          args="dimension">
 %(dimension)s is not an explicit dimension concept QName.
 </message>
@@ -7896,14 +8149,14 @@ Xlink type %(xlinkType)s invalid in extended link %(linkrole)s
 
 <message code="xmlSchema1.4.2.3:refSchemaNamespace"
          level="error"
-         module="ModelDocument.py" line="312"
+         module="ModelDocument.py" line="313"
          args="fileName namespace targetNamespace">
 SchemaLocation of %(fileName)s expected namespace %(namespace)s found targetNamespace %(targetNamespace)s
 </message>
 
 <message code="xmlSchema1.4.2.3:refSchemaNamespace"
          level="error"
-         module="ModelDocument.py" line="689"
+         module="ModelDocument.py" line="690"
          args="fileName namespace targetNamespace">
 Discovery of %(fileName)s expected namespace %(namespace)s found targetNamespace %(targetNamespace)s
 </message>
@@ -7938,28 +8191,28 @@ Element %(element)s is nil but has contents
 
 <message code="xmlSchema:requiredAttribute"
          level="error"
-         module="ModelDocument.py" line="860"
+         module="ModelDocument.py" line="863"
          args="linkbaseRefElement">
 Linkbase reference for %(linkbaseRefElement)s href attribute missing or malformed
 </message>
 
 <message code="xmlSchema:requiredAttribute"
          level="error"
-         module="ModelDocument.py" line="894"
+         module="ModelDocument.py" line="897"
          args="href">
 Locator href attribute &quot;%(href)s&quot; missing or malformed in standard extended link
 </message>
 
 <message code="xmlSchema:syntax"
          level="error"
-         module="ModelDocument.py" line="132"
+         module="ModelDocument.py" line="133"
          args="fileName error line column sourceAction">
 %(error)s, %(fileName)s, line %(line)s, column %(column)s, %(sourceAction)s source element
 </message>
 
 <message code="xmlSchema:syntax"
          level="error"
-         module="ModelDocument.py" line="162"
+         module="ModelDocument.py" line="163"
          args="fileName error sourceAction exc_info">
 Unrecoverable error: %(error)s, %(fileName)s, %(sourceAction)s source element
 </message>
