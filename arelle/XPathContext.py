@@ -112,6 +112,11 @@ class XPathContext:
         for pluginXbrlMethod in pluginClassMethods("Formula.CustomFunctions"):
             self.customFunctions.update(pluginXbrlMethod())
         
+    def copy(self):  # shallow copy (for such as for Table LB table processiong
+        xpCtxCpy = XPathContext(self.modelXbrl, self.inputXbrlInstance, self.sourceElement, 
+                                self.inScopeVars.copy())
+        # note: not currently duplicating cachedFilterResults
+        return xpCtxCpy
             
     def close(self):
         self.outputLastContext.clear() # dereference

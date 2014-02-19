@@ -309,6 +309,7 @@ qnTableTableMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:table")
 qnTableBreakdownMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:breakdown")
 qnTableRuleNodeMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:ruleNode")
 qnTableRuleSetMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:ruleSet")
+qnTableDefinitionNodeMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:definitionNode")
 qnTableClosedDefinitionNodeMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:closedDefinitionNode")
 qnTableConceptRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:conceptRelationshipNode")
 qnTableDimensionRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:dimensionRelationshipNode")
@@ -327,6 +328,7 @@ qnTableTable = qname("{http://xbrl.org/CR/2013-11-13/table}table:table")
 qnTableBreakdown = qname("{http://xbrl.org/CR/2013-11-13/table}table:breakdown")
 qnTableRuleNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:ruleNode")
 qnTableRuleSet = qname("{http://xbrl.org/CR/2013-11-13/table}table:ruleSet")
+qnTableDefinitionNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:definitionNode")
 qnTableClosedDefinitionNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:closedDefinitionNode")
 qnTableConceptRelationshipNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:conceptRelationshipNode")
 qnTableDimensionRelationshipNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:dimensionRelationshipNode")
@@ -414,12 +416,6 @@ qnEuTable = qname("{http://www.eurofiling.info/2010/rendering}rendering:table")
 qnEuAxisCoord = qname("{http://www.eurofiling.info/2010/rendering}rendering:axisCoord")
 euGroupTable = "http://www.eurofiling.info/xbrl/arcrole/group-table"
 
-def tableModelQName(localName):
-    return '{' + tableModel + '}' + localName
-
-def tableModelMMDDQName(localName):
-    return '{' + tableModelMMDD + '}' + localName
-
 xdtSchemaErrorNS = "http://www.xbrl.org/2005/genericXmlSchemaError"
 errMsgPrefixNS = {
     "err": xpath2err,
@@ -445,7 +441,7 @@ errMsgPrefixNS = {
     "xbrlcfie": "http://xbrl.org/2010/custom-function/error",
     "xbrlmfe": "http://xbrl.org/2008/filter/match/error",
     "xbrlvarscopee": "http://xbrl.org/2010/variable/variables-scope/error",
-    "xbrlte": "http://xbrl.org/CR/2013-11-13/table/error",
+    "xbrlte": "http://xbrl.org/PWD/2014-MM-DD/table/error",
     "utre": "http://www.xbrl.org/2009/utr/errors",
     "enumte": "http://xbrl.org/2013/extensible-enumerations/taxonomy-errors",
     "enumie": "http://xbrl.org/2013/extensible-enumerations/instance-errors"

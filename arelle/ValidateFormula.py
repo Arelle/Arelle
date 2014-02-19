@@ -55,11 +55,15 @@ arcroleChecks = {
                                       XbrlConst.qnTableAspectNode),
                                      "xbrlte:breakdownTreeSourceError",
                                      "xbrlte:breakdownTreeTargetError"),
-    XbrlConst.tableDefinitionNodeSubtree: (XbrlConst.qnTableRuleNode, 
-                                     (XbrlConst.qnTableClosedDefinitionNode, 
-                                      XbrlConst.qnTableAspectNode),
+    XbrlConst.tableDefinitionNodeSubtree: (XbrlConst.qnTableDefinitionNode, 
+                                     XbrlConst.qnTableDefinitionNode,
                                      "xbrlte:definitionNodeSubtreeSourceError",
-                                     "xbrlte:definitionNodeSubtreeTargetError"),
+                                     "xbrlte:definitionNodeSubtreeTargetError",
+                                     (XbrlConst.qnTableConceptRelationshipNode,
+                                      XbrlConst.qnTableDimensionRelationshipNode),
+                                     None,
+                                     "xbrlte:prohibitedDefinitionNodeSubtreeSourceError",
+                                     None),
     XbrlConst.tableFilter:          (XbrlConst.qnTableTable, 
                                      XbrlConst.qnVariableFilter,
                                      "xbrlte:tableFilterSourceError",
@@ -81,11 +85,15 @@ arcroleChecks = {
                                       XbrlConst.qnTableAspectNodeMMDD),
                                      "xbrlte:breakdownTreeSourceError",
                                      "xbrlte:breakdownTreeTargetError"),
-    XbrlConst.tableDefinitionNodeSubtreeMMDD: (XbrlConst.qnTableRuleNodeMMDD, 
-                                     (XbrlConst.qnTableClosedDefinitionNodeMMDD, 
-                                      XbrlConst.qnTableAspectNodeMMDD),
+    XbrlConst.tableDefinitionNodeSubtreeMMDD: (XbrlConst.qnTableDefinitionNodeMMDD, 
+                                     XbrlConst.qnTableDefinitionNodeMMDD,
                                      "xbrlte:definitionNodeSubtreeSourceError",
-                                     "xbrlte:definitionNodeSubtreeTargetError"),
+                                     "xbrlte:definitionNodeSubtreeTargetError",
+                                     (XbrlConst.qnTableConceptRelationshipNodeMMDD,
+                                      XbrlConst.qnTableDimensionRelationshipNodeMMDD),
+                                     None,
+                                     "xbrlte:prohibitedDefinitionNodeSubtreeSourceError",
+                                     None),
     XbrlConst.tableFilterMMDD:      (XbrlConst.qnTableTableMMDD, 
                                      XbrlConst.qnVariableFilter,
                                      "xbrlte:tableFilterSourceError",
@@ -158,11 +166,14 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
      
     if arcrole in arcroleChecks:
         arcroleCheck = arcroleChecks[arcrole]
+        notFromQname = notToQname = notFromErrCode = notToErrCode = None
         if len(arcroleCheck) == 3:
             fromQname, toQname, fromErrCode = arcroleCheck
             toErrCode = fromErrCode
         elif len(arcroleCheck) == 4: 
             fromQname, toQname, fromErrCode, toErrCode = arcroleCheck
+        elif len(arcroleCheck) == 8:
+            fromQname, toQname, fromErrCode, toErrCode, notFromQname, notToQname, notFromErrCode, notToErrCode = arcroleCheck
         else:
             raise Exception("Invalid arcroleCheck " + str(arcroleCheck))
         level = "INFO" if fromErrCode.endswith(":info") else "ERROR"
@@ -177,6 +188,10 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
                     val.modelXbrl.log(level, fromErrCode,
                         _("Relationship from %(xlinkFrom)s to %(xlinkTo)s should have an %(element)s source"),
                         modelObject=modelRel, xlinkFrom=modelRel.fromLabel, xlinkTo=modelRel.toLabel, element=fromQname)
+                elif notFromQname and val.modelXbrl.isInSubstitutionGroup(fromMdlObj.elementQname, notFromQname):
+                    val.modelXbrl.log(level, notFromErrCode,
+                        _("Relationship from %(xlinkFrom)s to %(xlinkTo)s should not have an %(element)s source"),
+                        modelObject=modelRel, xlinkFrom=modelRel.fromLabel, xlinkTo=modelRel.toLabel, element=fromQname)
             if toQname:
                 if (toMdlObj is None or 
                     (not val.modelXbrl.isInSubstitutionGroup(toMdlObj.elementQname, toQname) and
@@ -184,6 +199,10 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
                     val.modelXbrl.log(level, toErrCode,
                         _("Relationship from %(xlinkFrom)s to %(xlinkTo)s should have an %(element)s target"),
                         modelObject=modelRel, xlinkFrom=modelRel.fromLabel, xlinkTo=modelRel.toLabel, element=toQname)
+                elif notToQname and val.modelXbrl.isInSubstitutionGroup(fromMdlObj.elementQname, notToQname):
+                    val.modelXbrl.log(level, notFromErrCode,
+                        _("Relationship from %(xlinkFrom)s to %(xlinkTo)s should not have an %(element)s target"),
+                        modelObject=modelRel, xlinkFrom=modelRel.fromLabel, xlinkTo=modelRel.toLabel, element=fromQname)
     if arcrole == XbrlConst.functionImplementation:
         for relFrom, rels in relsSet.fromModelObjects().items():
             if len(rels) > 1:

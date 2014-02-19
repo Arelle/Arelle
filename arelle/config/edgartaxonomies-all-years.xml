@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Erxl xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="erxl.xsd">
+<Erxl xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="erxl.xsd" version="27">
 <Loc>
 <Family>BASE</Family>
 <Version>2010</Version>
@@ -2705,5 +2705,16 @@
 <Elements>0</Elements>
 </Loc>
 
+<Loc>
+<Family>IFRS</Family>
+<Version>2013</Version>
+<Href>http://xbrl.ifrs.org/taxonomy/2013-09-09/ifrs-cor_2013-09-09.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Schema</FileTypeName>
+<Elements>1</Elements>
+<Namespace>http://xbrl.ifrs.org/taxonomy/2013-09-09/ifrs</Namespace>
+<Prefix>currency</Prefix>
+</Loc>
 
 </Erxl>
+

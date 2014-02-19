@@ -202,6 +202,11 @@ def validateRenderingInfoset(modelXbrl, comparisonFile, sourceDoc):
         comparisonIter = comparisonDoc.iter()
         sourceElt = next(sourceIter, None)
         comparisonElt = next(comparisonIter, None)
+        # skip over nsmap elements used to create output trees
+        while (sourceElt is not None and sourceElt.tag == "nsmap"):
+            sourceElt = next(sourceIter, None)
+        while (comparisonElt is not None and sourceElt.tag == "nsmap"):
+            comparisonElt = next(comparisonIter, None)
         while (sourceElt is not None and comparisonElt is not None):
             while (isinstance(sourceElt, etree._Comment)):
                 sourceElt = next(sourceIter, None)
@@ -224,6 +229,11 @@ def validateRenderingInfoset(modelXbrl, comparisonFile, sourceDoc):
                         elt1line=sourceElt.sourceline, elt2line=comparisonElt.sourceline)
                 attrs1 = dict(sourceElt.items())
                 attrs2 = dict(comparisonElt.items())
+                # remove attributes not to be compared
+                for attr in ("{http://www.w3.org/XML/1998/namespace}base",
+                             ):
+                    if attr in attrs1: del attrs1[attr]
+                    if attr in attrs2: del attrs2[attr]
                 if attrs1 != attrs2:
                     modelXbrl.error("arelle:infosetAttributesMismatch",
                         _("Infoset comparison element %(elt)s expecting attributes %(attrs1)s found %(attrs2)s source line %(elt1line)s comparison line %(elt2line)s"),

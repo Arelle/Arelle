@@ -8,6 +8,7 @@ from arelle import XPathContext, XbrlConst, XmlUtil
 from arelle.ModelFormulaObject import (aspectModels, aspectStr, Aspect)
 from arelle.ModelRenderingObject import (CHILD_ROLLUP_FIRST, CHILD_ROLLUP_LAST,
                                          ModelDefinitionNode, ModelEuAxisCoord,
+                                         ModelBreakdown,
                                          ModelClosedDefinitionNode, 
                                          ModelRuleDefinitionNode,
                                          ModelFilterDefinitionNode,
@@ -96,6 +97,16 @@ def init(modelXbrl):
                         _("Table %(xlinkLabel)s does not include the concept aspect as one of its participating aspects"),
                         modelObject=modelTable, xlinkLabel=modelTable.xlinkLabel)
                 del modelTable.priorAspectAxisDisposition
+                # check for table-parameter name clash
+                parameterNames = {}
+                for tblParamRel in modelXbrl.relationshipSet((XbrlConst.tableParameter, XbrlConst.tableParameterMMDD)).fromModelObject(modelTable):
+                    parameterName = tblParamRel.variableQname
+                    if parameterName in parameterNames:
+                        modelXbrl.error("xbrlte:tableParameterNameClash ",
+                            _("Table %(xlinkLabel)s has parameter name clash for variable %(name)s"),
+                            modelObject=(modelTable,tblParamRel,parameterNames[parameterName]), xlinkLabel=modelTable.xlinkLabel, name=parameterName)
+                    else:
+                        parameterNames[parameterName] = tblParamRel
     
         modelXbrl.profileStat(_("compileTables"))
 
@@ -115,7 +126,7 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisDispo
             if aspect in modelTable.priorAspectAxisDisposition:
                 otherAxisDisposition, otherDefinitionNode = modelTable.priorAspectAxisDisposition[aspect]
                 if tblAxisDisposition != otherAxisDisposition and aspect != Aspect.DIMENSIONS:
-                    modelXbrl.error("xbrlte:aspectClash",
+                    modelXbrl.error("xbrlte:aspectClashBetweenBreakdowns",
                         _("%(definitionNode)s %(xlinkLabel)s, aspect %(aspect)s defined on axes of disposition %(axisDisposition)s and %(axisDisposition2)s"),
                         modelObject=(modelTable, definitionNode, otherDefinitionNode), definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel, 
                         axisDisposition=tblAxisDisposition, axisDisposition2=otherAxisDisposition,
@@ -201,24 +212,25 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisDispo
                 modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel, definitionNode=definitionNode.localName)
     return hasCoveredAspect
 
-def checkBreakdownLeafNodeAspects(modelXbrl, modelTable, tblAxisRel, aspectsCovered, breakdownAspects):
+def checkBreakdownLeafNodeAspects(modelXbrl, modelTable, tblAxisRel, parentAspectsCovered, breakdownAspects):
     definitionNode = tblAxisRel.toModelObject
+    aspectsCovered = parentAspectsCovered.copy()
     if isinstance(definitionNode, (ModelDefinitionNode, ModelEuAxisCoord)):
         for aspect in definitionNode.aspectsCovered():
             aspectsCovered.add(aspect)
-    definitionNodeHasChild = False
-    for axisSubtreeRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableBreakdownTree201305, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD, XbrlConst.tableDefinitionNodeSubtree201305, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011)).fromModelObject(definitionNode):
-        checkBreakdownLeafNodeAspects(modelXbrl, modelTable, axisSubtreeRel, aspectsCovered, breakdownAspects)
-        definitionNodeHasChild = True
-    
-    if not definitionNode.isAbstract: # this is a leaf node
-        missingAspects = set(aspect
-                             for aspect in breakdownAspects
-                             if aspect not in aspectsCovered and
-                                aspect != Aspect.DIMENSIONS and not isinstance(aspect,QName))
-        if (missingAspects):
-            modelXbrl.error("xbrlte:missingAspectValue",
-                _("%(definitionNode)s %(xlinkLabel)s does not define an aspect for %(aspect)s"),
-                modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel, definitionNode=definitionNode.localName,
-                aspect=', '.join(aspectStr(aspect) for aspect in missingAspects))
+        definitionNodeHasChild = False
+        for axisSubtreeRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableBreakdownTree201305, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD, XbrlConst.tableDefinitionNodeSubtree201305, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011)).fromModelObject(definitionNode):
+            checkBreakdownLeafNodeAspects(modelXbrl, modelTable, axisSubtreeRel, aspectsCovered, breakdownAspects)
+            definitionNodeHasChild = True
+        
+        if not definitionNode.isAbstract and not isinstance(definitionNode, ModelBreakdown): # this is a leaf node
+            missingAspects = set(aspect
+                                 for aspect in breakdownAspects
+                                 if aspect not in aspectsCovered and
+                                    aspect != Aspect.DIMENSIONS and not isinstance(aspect,QName))
+            if (missingAspects):
+                modelXbrl.error("xbrlte:missingAspectValue",
+                    _("%(definitionNode)s %(xlinkLabel)s does not define an aspect for %(aspect)s"),
+                    modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel, definitionNode=definitionNode.localName,
+                    aspect=', '.join(aspectStr(aspect) for aspect in missingAspects))
     
