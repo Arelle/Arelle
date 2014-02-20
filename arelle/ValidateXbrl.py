@@ -247,8 +247,9 @@ class ValidateXbrl:
         modelXbrl.modelManager.showStatus(_("validating concepts"))
         for concept in modelXbrl.qnameConcepts.values():
             conceptType = concept.type
-            if XbrlConst.isStandardNamespace(concept.qname.namespaceURI) or \
-               not concept.modelDocument.inDTS:
+            if (concept.qname is None or
+                XbrlConst.isStandardNamespace(concept.qname.namespaceURI) or 
+                not concept.modelDocument.inDTS):
                 continue
             
             if concept.isTuple:
@@ -268,7 +269,7 @@ class ValidateXbrl:
                 if conceptType is not None:
                     # check attribute declarations
                     for attribute in conceptType.attributes.values():
-                        if attribute.qname.namespaceURI in (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl):
+                        if attribute.qname is not None and attribute.qname.namespaceURI in (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl):
                             self.modelXbrl.error("xbrl.4.9:tupleAttribute",
                                 _("Tuple %(concept)s must not have attribute in this namespace %(attribute)s"),
                                 modelObject=concept, concept=concept.qname, attribute=attribute.qname)

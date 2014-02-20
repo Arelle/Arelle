@@ -100,7 +100,7 @@ class ValidateUtr:
                             if _type.name in self.utrItemTypeEntries:
                                 for utrEntry in self.utrItemTypeEntries[_type.name].values():
                                     if utrEntry.itemType is None or utrEntry.itemType == _type.name:
-                                        if utrEntry.nsItemType is None or utrEntry.nsItemType == _type.qname.namespaceURI:
+                                        if utrEntry.nsItemType is None or utrEntry.nsItemType == _type.modelDocument.targetNamespace:
                                             utrMatchingEntries.append(utrEntry)                                                
                             if utrMatchingEntries:
                                 bConstrained = True
@@ -196,7 +196,7 @@ class ValidateUtr:
                 utrMatchingEntries = [utrEntry
                                       for utrEntry in self.utrItemTypeEntries[_type.name].values()
                                       if utrEntry.itemType is None or utrEntry.itemType == _type.name
-                                      if utrEntry.nsItemType is None or utrEntry.nsItemType == _type.qname.namespaceURI]
+                                      if utrEntry.nsItemType is None or utrEntry.nsItemType == _type.modelDocument.targetNamespace]
                 if utrMatchingEntries:
                     for utrEntry in utrMatchingEntries:
                         if self.unitSatisfies(utrEntry, unit):

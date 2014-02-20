@@ -12,7 +12,7 @@ from arelle import (ModelDocument, ModelValue, ValidateXbrl,
                 ModelRelationshipSet, XmlUtil, XbrlConst, UrlUtil,
                 ValidateFilingDimensions, ValidateFilingDTS, ValidateFilingText)
 from arelle.ValidateXbrlCalcs import insignificantDigits
-from arelle.XmlValidate import VALID
+from arelle.XmlValidate import UNVALIDATED, VALID
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelDtsObject import ModelConcept
@@ -1093,18 +1093,19 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 if rel.consecutiveLinkrole == ELR and rel.fromModelObject is not None:
                                     checkMemMultDims(memRel, None, rel.fromModelObject, rel.linkrole, visited)
                             for rel in dimDomRelSet.toModelObject(elt):
-                                if rel.consecutiveLinkrole == ELR and rel.fromModelObject is not None:
+                                if rel.consecutiveLinkrole == ELR:
                                     dim = rel.fromModelObject
                                     mem = memRel.toModelObject
-                                    if dim.qname == rxd.PaymentTypeAxis and not mem.qname.namespaceURI.startswith("http://xbrl.sec.gov/rxd/"):
-                                        modelXbrl.error("EFM.6.23.17",
-                                            _("The member %(member)s in dimension rxd:PaymentTypeAxis in linkrole %(linkrole)s must be a QName with namespace that begins with \"http://xbrl.sec.gov/rxd/\". "),
-                                            modelObject=(rel, memRel, dim, mem), member=mem.qname, linkrole=rel.linkrole)
-                                    if dim.qname == rxd.CountryAxis and not mem.qname.namespaceURI.startswith("http://xbrl.sec.gov/country/"):
-                                        modelXbrl.error("EFM.6.23.18",
-                                            _("The member %(member)s in dimension rxd:CountryAxis in linkrole %(linkrole)s must be a QName with namespace that begins with \"http://xbrl.sec.gov/country//\". "),
-                                            modelObject=(rel, memRel, dim, mem), member=mem.qname, linkrole=rel.linkrole)
-                                    checkMemMultDims(memRel, rel, rel.fromModelObject, rel.linkrole, visited)
+                                    if dim is not None and mem is not None:
+                                        if dim.qname == rxd.PaymentTypeAxis and not mem.modelDocument.targetNamespace.startswith("http://xbrl.sec.gov/rxd/"):
+                                            modelXbrl.error("EFM.6.23.17",
+                                                _("The member %(member)s in dimension rxd:PaymentTypeAxis in linkrole %(linkrole)s must be a QName with namespace that begins with \"http://xbrl.sec.gov/rxd/\". "),
+                                                modelObject=(rel, memRel, dim, mem), member=mem.qname, linkrole=rel.linkrole)
+                                        if dim.qname == rxd.CountryAxis and not mem.modelDocument.targetNamespace.startswith("http://xbrl.sec.gov/country/"):
+                                            modelXbrl.error("EFM.6.23.18",
+                                                _("The member %(member)s in dimension rxd:CountryAxis in linkrole %(linkrole)s must be a QName with namespace that begins with \"http://xbrl.sec.gov/country//\". "),
+                                                modelObject=(rel, memRel, dim, mem), member=mem.qname, linkrole=rel.linkrole)
+                                        checkMemMultDims(memRel, rel, rel.fromModelObject, rel.linkrole, visited)
                             for rel in hypDimRelSet.toModelObject(elt):
                                 if rel.consecutiveLinkrole == ELR and rel.fromModelObject is not None:
                                     checkMemMultDims(memRel, dimRel, rel.fromModelObject, rel.linkrole, visited)

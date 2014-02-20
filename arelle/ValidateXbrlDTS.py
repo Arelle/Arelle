@@ -422,7 +422,7 @@ def checkElements(val, modelDocument, parent):
                             else:
                                 referencedElt = elt.dereference()
                                 if referencedElt is not None:
-                                    val.referencedNamespaces.add(referencedElt.qname.namespaceURI)
+                                    val.referencedNamespaces.add(referencedElt.modelDocument.targetNamespace)
                             if not parentIsSchema:
                                 eltDecl = elt.dereference()
                                 if (elt.get("minOccurs") is None or elt.get("maxOccurs") is None):

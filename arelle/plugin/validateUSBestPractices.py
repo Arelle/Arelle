@@ -1,5 +1,6 @@
 from arelle import PluginManager
 from arelle.ModelValue import qname
+from arelle.XmlValidate import UNVALIDATED, VALID
 from arelle import Locale, ModelXbrl, XbrlConst
 from arelle.FileSource import openFileSource, openFileStream, saveFile
 import os, io, re, json, time
@@ -15,6 +16,11 @@ ugtDocs = ({"year": 2012,
             "namespace": "http://fasb.org/us-gaap/2013-01-31",
             "docLB": "http://xbrl.fasb.org/us-gaap/2013/us-gaap-2013-01-31.zip/us-gaap-2013-01-31/elts/us-gaap-doc-2013-01-31.xml",
             "entryXsd": "http://xbrl.fasb.org/us-gaap/2013/us-gaap-2013-01-31.zip/us-gaap-2013-01-31/entire/us-gaap-entryPoint-std-2013-01-31.xsd",
+            },
+           {"year": 2014, 
+            "namespace": "http://fasb.org/us-gaap/2014-01-31",
+            "docLB": "http://xbrl.fasb.org/us-gaap/2014/us-gaap-2014-01-31.zip/us-gaap-2014-01-31/elts/us-gaap-doc-2014-01-31.xml",
+            "entryXsd": "http://xbrl.fasb.org/us-gaap/2014/us-gaap-2014-01-31.zip/us-gaap-2014-01-31/entire/us-gaap-entryPoint-std-2014-01-31.xsd",
             },
            )
 
@@ -254,7 +260,7 @@ def final(val, conceptsUsed):
     standardConceptsDeprecated = defaultdict(set)
     for rel in standardRelationships.modelRelationships:
         for concept in (rel.fromModelObject, rel.toModelObject):
-            if (concept is not None and
+            if (concept is not None and getattr(concept, "xValid", UNVALIDATED) >= VALID and
                 concept.qname.namespaceURI in val.disclosureSystem.standardTaxonomiesDict and
                 concept not in conceptsUsed):
                 if (not concept.isAbstract or 

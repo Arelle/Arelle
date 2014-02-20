@@ -809,7 +809,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         def insertFactSet(modelFacts, parentDatapointId):
             facts = []
             for fact in modelFacts:
-                if fact.concept is not None:
+                if fact.concept is not None and getattr(fact, "xValid", UNVALIDATED) >= VALID and getattr(concept, "xValid", UNVALIDATED) >= VALID:
                     cntx = fact.context
                     documentId = self.documentIds[fact.modelDocument]
                     facts.append((reportId,

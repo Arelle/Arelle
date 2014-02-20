@@ -606,7 +606,7 @@ def non_nil_facts_in_instance(xc, p, args):
 def concept(xc, p, args):
     qnConcept = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
     srcConcept = xc.modelXbrl.qnameConcepts.get(qnConcept)
-    if srcConcept is None or not (srcConcept.isItem or srcConcept.isTuple) or srcConcept.qname.namespaceURI == XbrlConst.xbrli: 
+    if srcConcept is None or not (srcConcept.isItem or srcConcept.isTuple) or srcConcept.qname is None or srcConcept.qname.namespaceURI == XbrlConst.xbrli: 
         raise XPathContext.XPathException(p, 'xfie:invalidConceptQName', _('Argument 1 {0} is not a concept in the DTS.').format(qnConcept))
     return srcConcept
 
@@ -708,10 +708,10 @@ def filter_member_DRS_selection(xc, p, args):
         return ()
     memSelectionQnames = set()
     dimConcept = xc.modelXbrl.qnameConcepts.get(qnDim)
-    if dimConcept is None or dimConcept.qname.namespaceURI == XbrlConst.xbrli:
+    if dimConcept is None or dimConcept.qname is None or dimConcept.qname.namespaceURI == XbrlConst.xbrli:
         raise XPathContext.XPathException(p, 'xfie:invalidDimensionQName', _('Argument 1 {0} is not in the DTS.').format(qnDim))
     priItemConcept = xc.modelXbrl.qnameConcepts.get(qnPriItem)
-    if priItemConcept is None  or priItemConcept.qname.namespaceURI == XbrlConst.xbrli:
+    if priItemConcept is None  or priItemConcept.qname is None  or priItemConcept.qname.namespaceURI == XbrlConst.xbrli:
         raise XPathContext.XPathException(p, 'xfie:invalidPrimaryItemConceptQName', _('Argument 1 {0} is not in the DTS.').format(qnPriItem))
     memConcept = xc.modelXbrl.qnameConcepts.get(qnMem)
     if memConcept is None or not memConcept.isDomainMember or not dimConcept.isDimensionItem:

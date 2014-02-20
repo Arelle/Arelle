@@ -297,7 +297,7 @@ def checkContext(val, cntx):
                         elif typedDomainConcept is None:
                             problem = _("Missing domain element schema definition for {0}").format(dimensionConcept.typedDomainRef)
                         elif element.localName != typedDomainConcept.name or \
-                            element.namespaceURI != typedDomainConcept.qname.namespaceURI:
+                            element.namespaceURI != typedDomainConcept.modelDocument.targetNamespace:
                             problem = _("wrong content {0}").format(element.prefixedName)
                         else:
                             problem = None

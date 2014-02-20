@@ -62,6 +62,7 @@ import os, sys
 from lxml import etree
 import decimal
 from arelle import (XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue, XmlValidate)
+from arelle.XmlValidate import UNVALIDATED, VALID
 from arelle.ModelObject import ModelObject
 
 ModelFact = None
@@ -818,7 +819,7 @@ class ModelAttribute(ModelNamableTerm):
         """(QName) -- QName of type of attribute"""
         if self.get("type"):
             return self.schemaNameQname(self.get("type"))
-        else:
+        elif getattr(self,"xValid", UNVALIDATED) >= VALID:
             # check if anonymous type exists
             typeqname = ModelValue.qname(self.qname.clarkNotation +  anonymousTypeSuffix)
             if typeqname in self.modelXbrl.qnameTypes:
@@ -829,7 +830,7 @@ class ModelAttribute(ModelNamableTerm):
             if subs:
                 return subs.typeQname
             '''
-            return None
+        return None
     
     @property
     def type(self):

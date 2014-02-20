@@ -11,6 +11,7 @@ import re
 import hashlib
 from arelle import Locale, XbrlConst, XbrlUtil
 from arelle.ModelObject import ObjectPropertyViewWrapper
+from arelle.XmlValidate import UNVALIDATED, VALID
 
 numberPattern = re.compile("[-+]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-+]?[0-9]*)?")
 ZERO = decimal.Decimal(0)
@@ -81,7 +82,8 @@ class ValidateXbrlCalcs:
                                    XbrlConst.requiresElement:self.conceptsInRequiresElement}[arcrole]
                     for modelRel in self.modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname).modelRelationships:
                         for concept in (modelRel.fromModelObject, modelRel.toModelObject):
-                            conceptsSet.add(concept)
+                            if concept is not None and concept.qname is not None:
+                                conceptsSet.add(concept)
         self.modelXbrl.profileActivity("... identify requires-element and esseance-aliased concepts", minTimeToShow=1.0)
 
         self.bindFacts(self.modelXbrl.facts,[self.modelXbrl.modelDocument.xmlRootElement])
@@ -101,25 +103,28 @@ class ValidateXbrlCalcs:
                             boundSumKeys = set()
                             # determine boundSums
                             for modelRel in modelRels:
-                                itemBindingKeys = self.itemConceptBindKeys[modelRel.toModelObject]
-                                boundSumKeys |= sumBindingKeys & itemBindingKeys
+                                itemConcept = modelRel.toModelObject
+                                if itemConcept is not None and itemConcept.qname is not None:
+                                    itemBindingKeys = self.itemConceptBindKeys[itemConcept]
+                                    boundSumKeys |= sumBindingKeys & itemBindingKeys
                             # add up rounded items
                             boundSums = defaultdict(decimal.Decimal) # sum of facts meeting factKey
                             boundSummationItems = defaultdict(list) # corresponding fact refs for messages
                             for modelRel in modelRels:
                                 weight = modelRel.weightDecimal
                                 itemConcept = modelRel.toModelObject
-                                for itemBindKey in boundSumKeys:
-                                    ancestor, contextHash, unit = itemBindKey
-                                    factKey = (itemConcept, ancestor, contextHash, unit)
-                                    if factKey in self.itemFacts:
-                                        for fact in self.itemFacts[factKey]:
-                                            if fact in self.duplicatedFacts:
-                                                dupBindingKeys.add(itemBindKey)
-                                            else:
-                                                roundedValue = roundFact(fact, self.inferDecimals)
-                                                boundSums[itemBindKey] += roundedValue * weight
-                                                boundSummationItems[itemBindKey].append(wrappedFactWithWeight(fact,weight,roundedValue))
+                                if itemConcept is not None:
+                                    for itemBindKey in boundSumKeys:
+                                        ancestor, contextHash, unit = itemBindKey
+                                        factKey = (itemConcept, ancestor, contextHash, unit)
+                                        if factKey in self.itemFacts:
+                                            for fact in self.itemFacts[factKey]:
+                                                if fact in self.duplicatedFacts:
+                                                    dupBindingKeys.add(itemBindKey)
+                                                else:
+                                                    roundedValue = roundFact(fact, self.inferDecimals)
+                                                    boundSums[itemBindKey] += roundedValue * weight
+                                                    boundSummationItems[itemBindKey].append(wrappedFactWithWeight(fact,weight,roundedValue))
                             for sumBindKey in boundSumKeys:
                                 ancestor, contextHash, unit = sumBindKey
                                 factKey = (sumConcept, ancestor, contextHash, unit)

@@ -87,7 +87,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
     facets = None
 
     # attrQname can be provided for attributes that are global and LAX
-    if (not hasattr(elt,"xValid") or elt.xValid == UNVALIDATED) and (not isIxFact or ixFacts):
+    if (getattr(elt,"xValid", UNVALIDATED) == UNVALIDATED) and (not isIxFact or ixFacts):
         qnElt = elt.qname if ixFacts and isIxFact else elt.elementQname
         modelConcept = modelXbrl.qnameConcepts.get(qnElt)
         if modelConcept is not None:
