@@ -7,6 +7,7 @@ input and optionally save an (extension) DTS.
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
 import os, io, time, re
+from collections import defaultdict
 from arelle import XbrlConst
 
 headerWidths = {
@@ -210,10 +211,10 @@ def saveLoadableExcel(dts, excelFile):
                 colType = hdr[1]
                 value = ""
                 if colType == "name":
-                    value = str(concept.qname.localName)
-                elif colType == "prefix":
+                    value = str(concept.name)
+                elif colType == "prefix" and concept.qname is not None:
                     value = concept.qname.prefix
-                elif colType == "type":
+                elif colType == "type" and concept.type is not None:
                     value = str(concept.type.qname)
                 elif colType == "substitutionGroup":
                     value = str(concept.substitutionGroupQname)
@@ -287,6 +288,61 @@ def saveLoadableExcel(dts, excelFile):
             for rootConcept in linkRelationshipSet.rootConcepts:
                 sheet1row = treeWalk(sheet1row, 0, rootConcept, None, arcrole, linkRelationshipSet, set())
             sheet1row += 1 # double space rows between tables
+    else:
+        # write header row
+        for i, hdr in enumerate(sheet1Headers):
+            sheet1.write(sheet1row, i, hdr[0], hdrCellFmt)
+        sheet1row += 1
+        # get lang
+        lang = None
+        for i, hdr in enumerate(sheet1Headers):
+            colType = hdr[1]
+            if colType == "label":
+                lang = hdr[3]
+                if colType == "label":
+                   role = hdr[2]
+                   lang = hdr[3]
+        lbls = defaultdict(list)        
+        for concept in set(dts.qnameConcepts.values()): # may be twice if unqualified, with and without namespace
+            lbls[concept.label(role,lang=lang)].append(concept.objectId())
+        srtLbls = sorted(lbls.keys())
+        excludedNamespaces = XbrlConst.ixbrlAll.union(
+            (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl,
+             XbrlConst.xbrldt,
+             XbrlConst.xhtml))
+        for label in srtLbls:
+            for objectId in lbls[label]:
+                concept = dts.modelObject(objectId)
+                if concept.modelDocument.targetNamespace not in excludedNamespaces:
+                    for i, hdr in enumerate(sheet1Headers):
+                        colType = hdr[1]
+                        value = ""
+                        if colType == "name":
+                            value = str(concept.qname.localName)
+                        elif colType == "prefix":
+                            value = concept.qname.prefix
+                        elif colType == "type":
+                            value = str(concept.type.qname)
+                        elif colType == "substitutionGroup":
+                            value = str(concept.substitutionGroupQname)
+                        elif colType == "abstract":
+                            value = "true" if concept.isAbstract else "false"
+                        elif colType == "periodType":
+                            value = concept.periodType
+                        elif colType == "balance":
+                            value = concept.balance
+                        elif colType == "label":
+                            role = hdr[2]
+                            lang = hdr[3]
+                            value = concept.label(role, lang=lang)
+                        elif colType == "depth":
+                            value = 0
+                        if "indented" in hdr:
+                            style = cellFmtIndented[min(0, len(cellFmtIndented) - 1)]
+                        else:
+                            style = cellFmt
+                        sheet1.write(sheet1row, i, value, style) 
+                    sheet1row += 1
     
     try: 
         workbook.save(excelFile)
