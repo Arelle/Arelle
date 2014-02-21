@@ -1356,6 +1356,12 @@ def main():
         application = Tk()
         cntlrWinMain = CntlrWinMain(application)
         application.protocol("WM_DELETE_WINDOW", cntlrWinMain.quit)
+        if sys.platform == "darwin" and not __file__.endswith(".app/Contents/MacOS/arelle"):
+            # not built app - launches behind python or eclipse
+            application.lift()
+            application.call('wm', 'attributes', '.', '-topmost', True)
+            cntlrWinMain.uiThreadQueue.put((application.call, ['wm', 'attributes', '.', '-topmost', False]))
+            os.system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
         application.mainloop()            
 
 if __name__ == "__main__":
