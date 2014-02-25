@@ -203,6 +203,12 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'): # works on ubuntu wi
         includeFiles.append(('/opt/local/lib/tk8.6','tk8.6'))
     else: 
         includeFiles.append(('arelle/scripts-unix','scripts'))
+        if os.path.exists("/etc/redhat-release"):
+            # extra libraries needed for red hat
+            includeFiles.append(('/usr/local/lib/libexslt.so', 'libexslt.so'))
+            includeFiles.append(('/usr/local/lib/libxml2.so', 'libxml2.so'))
+            includeFiles.append(('/usr/local/lib/libxslt.so', 'libxslt.so'))
+            includeFiles.append(('/usr/local/lib/libz.so', 'libz.so'))
     includeLibs = ['lxml', 'lxml.etree', 'lxml._elementpath', 'pg8000', 'pymysql', 
                     # note cx_Oracle isn't here because it is version and machine specific, ubuntu not likely working
                     'rdflib', 'rdflib.extras', 'rdflib.tools', 
