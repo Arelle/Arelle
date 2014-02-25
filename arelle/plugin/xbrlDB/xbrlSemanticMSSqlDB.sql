@@ -20,6 +20,7 @@ IF OBJECT_ID('arcrole_type', 'U') IS NOT NULL DROP TABLE "arcrole_type";
 IF OBJECT_ID('used_on', 'U') IS NOT NULL DROP TABLE "used_on";
 IF OBJECT_ID('resource', 'U') IS NOT NULL DROP TABLE "resource";
 IF OBJECT_ID('relationship_set', 'U') IS NOT NULL DROP TABLE "relationship_set";
+IF OBJECT_ID('root', 'U') IS NOT NULL DROP TABLE "root";
 IF OBJECT_ID('relationship', 'U') IS NOT NULL DROP TABLE "relationship";
 IF OBJECT_ID('data_point', 'U') IS NOT NULL DROP TABLE "data_point";
 IF OBJECT_ID('entity', 'U') IS NOT NULL DROP TABLE "entity";
@@ -182,21 +183,27 @@ ALTER SEQUENCE seq_relationship_set RESTART;
 GO
 CREATE TABLE "relationship_set" (
     relationship_set_id bigint DEFAULT NEXT VALUE FOR seq_relationship_set,
-    report_id bigint,
+    document_id bigint NOT NULL,
     arc_qname nvarchar(450) NOT NULL,  -- clark notation qname (do we need this?)
     link_qname nvarchar(450) NOT NULL,  -- clark notation qname (do we need this?)
     arc_role nvarchar(450) NOT NULL,
     link_role nvarchar(450) NOT NULL
 );
 CREATE INDEX relationship_set_index01 ON "relationship_set" (relationship_set_id);
-CREATE INDEX relationship_set_index02 ON "relationship_set" (report_id);
+CREATE INDEX relationship_set_index02 ON "relationship_set" (document_id);
 CREATE INDEX relationship_set_index03 ON "relationship_set" (arc_role);
 CREATE INDEX relationship_set_index04 ON "relationship_set" (link_role);
 
 GO
+CREATE TABLE root (
+    relationship_set_id bigint NOT NULL,
+    relationship_id bigint NOT NULL
+);
+CREATE INDEX root_index01 ON "root" (relationship_set_id);
+GO
+
 CREATE TABLE "relationship" (
     relationship_id bigint DEFAULT NEXT VALUE FOR seq_object,
-    report_id bigint,
     document_id bigint NOT NULL,
     xml_id nvarchar(450),  -- xml id or element pointer (do we need this?)
     relationship_set_id bigint NOT NULL,

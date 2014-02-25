@@ -26,6 +26,7 @@ DROP TABLE IF EXISTS used_on CASCADE;
 DROP TABLE IF EXISTS resource CASCADE;
 DROP TABLE IF EXISTS relationship_set CASCADE;
 DROP TABLE IF EXISTS relationship CASCADE;
+DROP TABLE IF EXISTS root CASCADE;
 DROP TABLE IF EXISTS data_point CASCADE;
 DROP TABLE IF EXISTS entity CASCADE;
 DROP TABLE IF EXISTS period CASCADE;
@@ -217,23 +218,30 @@ ALTER TABLE public.seq_relationship_set OWNER TO postgres;
 
 CREATE TABLE relationship_set (
     relationship_set_id bigint DEFAULT nextval('seq_relationship_set'::regclass) NOT NULL,
-    report_id bigint,
+    document_id bigint NOT NULL,
     arc_qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
     link_qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
     arc_role character varying(1024) NOT NULL,
     link_role character varying(1024) NOT NULL,
     PRIMARY KEY (relationship_set_id)
 );
-CREATE INDEX relationship_set_index02 ON relationship_set USING btree (report_id); 
+CREATE INDEX relationship_set_index02 ON relationship_set USING btree (document_id); 
 CREATE INDEX relationship_set_index03 ON relationship_set USING hash (arc_role); 
 CREATE INDEX relationship_set_index04 ON relationship_set USING hash (link_role); 
 
 ALTER TABLE public.relationship_set OWNER TO postgres;
 
+CREATE TABLE root (
+    relationship_set_id bigint NOT NULL,
+    relationship_id bigint NOT NULL
+);
+CREATE INDEX root_index01 ON root USING btree (relationship_set_id); 
+
+ALTER TABLE public.root OWNER TO postgres;
+
 
 CREATE TABLE relationship (
     relationship_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
-    report_id bigint,
     document_id bigint NOT NULL,
     xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
     relationship_set_id bigint NOT NULL,

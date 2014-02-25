@@ -132,6 +132,8 @@ class WatchRss:
                                             form=rssItem.formType, date=rssItem.filingDate)
                             rssItem.status = "not loadable"
                         else:
+                            for pluginXbrlMethod in pluginClassMethods("RssItem.Xbrl.Loaded"):  
+                                pluginXbrlMethod(modelXbrl, rssWatchOptions, rssItem)      
                             # validate schema, linkbase, or instance
                             if self.stopRequested:
                                 modelXbrl.close()

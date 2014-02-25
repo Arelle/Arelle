@@ -207,14 +207,14 @@ CREATE SEQUENCE seq_relationship_set;
 
 CREATE TABLE "relationship_set" (
     relationship_set_id number(19) NOT NULL,
-    report_id number(19),
+    document_id number(19) NOT NULL,
     arc_qname varchar2(1024) NOT NULL,  -- clark notation qname (do we need this?)
     link_qname varchar2(1024) NOT NULL,  -- clark notation qname (do we need this?)
     arc_role varchar2(1024) NOT NULL,
     link_role varchar2(1024) NOT NULL,
     PRIMARY KEY (relationship_set_id)
 );
-CREATE INDEX relationship_set_index02 ON "relationship_set" (report_id);
+CREATE INDEX relationship_set_index02 ON "relationship_set" (document_id);
 CREATE INDEX relationship_set_index03 ON "relationship_set" (link_role) COMPRESS;
 CREATE INDEX relationship_set_index04 ON "relationship_set" (arc_role) COMPRESS;
 
@@ -224,9 +224,15 @@ CREATE TRIGGER rel_set_insert_trigger BEFORE INSERT ON "relationship_set"
        SELECT seq_relationship_set.NEXTVAL INTO :NEW.relationship_set_id from dual;
     END;
 /
+
+CREATE TABLE "root" (
+    relationship_set_id number(19) NOT NULL,
+    relationship_id number(19) NOT NULL
+);
+CREATE INDEX root_index02 ON "root" (relationship_set_id);
+/
 CREATE TABLE "relationship" (
     relationship_id number(19) NOT NULL,
-    report_id number(19),
     document_id number(19) NOT NULL,
     xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
     relationship_set_id number(19) NOT NULL,

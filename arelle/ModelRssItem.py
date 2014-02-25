@@ -156,6 +156,19 @@ class ModelRssItem(ModelObject):
                     if instDocElt.get(edgrFile).endswith(".htm")]
             return self._htmURLs
         
+    @property
+    def primaryDocumentURL(self):
+        try:
+            return self._primaryDocumentURL
+        except AttributeError:
+            formType = self.formType
+            self._primaryDocumentURL = None
+            for instDocElt in XmlUtil.descendants(self, edgr, "xbrlFile"):
+                if instDocElt.get(edgrType) == formType:
+                    self._primaryDocumentURL = instDocElt.get(edgrUrl)
+                    break
+            return self._primaryDocumentURL
+        
     def setResults(self, modelXbrl):
         self.results = []
         self.assertionUnsuccessful = False

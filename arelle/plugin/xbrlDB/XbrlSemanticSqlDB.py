@@ -44,6 +44,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.ModelDocument import ModelDocument
 from arelle.ModelValue import qname
 from arelle.ValidateXbrlCalcs import roundValue
+from arelle.XmlValidate import UNVALIDATED, VALID
 from arelle.XmlUtil import elementFragmentIdentifier
 from arelle import XbrlConst
 from arelle.UrlUtil import ensureUrl
@@ -76,7 +77,7 @@ XBRLDBTABLES = {
                 "filing", "report",
                 "document", "referenced_documents",
                 "aspect", "data_type", "role_type", "arcrole_type",
-                "resource", "relationship_set", "relationship",
+                "resource", "relationship_set", "root", "relationship",
                 "data_point", "entity", "period", "unit", "unit_measure", "aspect_value_selection",
                 "message", "message_reference",
                 "industry", "industry_level", "industry_structure",
@@ -111,7 +112,15 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 if hasattr(handler, "dbHandlerLogEntries"):
                     self.loggingEntries = handler.dbHandlerLogEntries()
                     break
+            
+            # identify table facts (table datapoints) (prior to locked database transaction
+            self.tableFacts = tableFacts(self.modelXbrl)  # for EFM & HMRC this is ( (roleType, table_code, fact) )
+            self.identifyTaxonomyRelSetsOwner()
                         
+            # at this point we determine what's in the database and provide new tables
+            # requires locking most of the table structure
+            self.lockTables(('filing', 'report', 'document', 'referenced_documents'))
+            
             # find pre-existing documents in server database
             self.identifyPreexistingDocuments()
             self.identifyAspectsUsed()
@@ -144,6 +153,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             startedAt = time.time()
             self.insertValidationResults()
             self.modelXbrl.profileStat(_("XbrlSqlDB: Validation results insertion"), time.time() - startedAt)
+            
             startedAt = time.time()
             self.showStatus("Committing entries")
             self.commit()
@@ -153,6 +163,57 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             self.showStatus("DB insertion failed due to exception", clearAfter=5000)
             raise
             
+    def identifyTaxonomyRelSetsOwner(self):
+        # walk down referenced document set from instance to find 'lowest' taxonomy relationship set ownership
+        instanceReferencedDocuments = set()
+        instanceDocuments = set()
+        inlineXbrlDocSet = None
+        for mdlDoc in self.modelXbrl.urlDocs.values():
+            if mdlDoc.type in (Type.INSTANCE, Type.INLINEXBRL):
+                instanceDocuments.add(mdlDoc)
+                for refDoc, ref in mdlDoc.referencesDocument.items():
+                    if refDoc.inDTS and ref.referenceType in ("href", "import", "include"):
+                        instanceReferencedDocuments.add(refDoc)
+            elif mdlDoc.type == Type.INLINEXBRLDOCUMENTSET:
+                inlineXbrlDocSet = mdlDoc
+        if len(instanceReferencedDocuments) > 1:
+            # filing must own the taxonomy set
+            if len(instanceDocuments) == 1:
+                self.taxonomyRelSetsOwner = instanceDocuments.pop()
+            elif inlineXbrlDocSet is not None:  # manifest for inline docs can own the rel sets
+                self.taxonomyRelSetsOwner = inlineXbrlDocSet
+            else: # no single instance, pick the entry poin doct
+                self.taxonomyRelSetsOwner = self.modelXbrl.modelDocument # entry document (instance or inline doc set)
+        elif len(instanceReferencedDocuments) == 1:
+            self.taxonomyRelSetsOwner = instanceReferencedDocuments.pop()
+        elif self.modelXbrl.modelDocument.type == Type.SCHEMA:
+            self.taxonomyRelSetsOwner = self.modelXbrl.modelDocument 
+        else:
+            self.taxonomyRelSetsOwner = self.modelXbrl.modelDocument
+        instanceReferencedDocuments.clear() # dereference
+        instanceDocuments.clear()
+        
+        # check whether relationship_set is completely in instance or part/all in taxonomy
+        self.arcroleInInstance = {}
+        self.arcroleHasResource = {}
+        for arcrole, ELR, linkqname, arcqname in self.modelXbrl.baseSets.keys():
+            if ELR is None and linkqname is None and arcqname is None and not arcrole.startswith("XBRL-"):
+                inInstance = False
+                hasResource = False
+                for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships:
+                    if (not inInstance and
+                        rel.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL) and
+                        any(tgtObj is not None and tgtObj.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL)
+                            for tgtObj in (rel.fromModelObject, rel.toModelObject))):
+                        inInstance = True
+                    if not hasResource and any(isinstance(resource, ModelResource)
+                                               for resource in (rel.fromModelObject, rel.toModelObject)):
+                        hasResource = True
+                    if inInstance and hasResource:
+                        break;
+                self.arcroleInInstance[arcrole] = inInstance
+                self.arcroleHasResource[arcrole] = hasResource
+                                     
     def insertFiling(self, rssItem):
         self.showStatus("insert filing")
         if rssItem is None:
@@ -231,7 +292,12 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                            ', '.join(docUris)))
             self.existingDocumentIds = dict((self.urlDocs[docUrl],docId) 
                                             for docId, docUrl in results)
-        
+            
+            # identify whether taxonomyRelsSetsOwner is existing
+            self.isExistingTaxonomyRelSetsOwner = (
+                self.taxonomyRelSetsOwner.type not in (Type.INSTANCE, Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET) and
+                self.taxonomyRelSetsOwner in self.existingDocumentIds)
+                 
     def identifyAspectsUsed(self):
         # relationshipSets are a dts property
         self.relationshipSets = [(arcrole, ELR, linkqname, arcqname)
@@ -340,7 +406,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                               ('object_id','document_id'), 
                               referencedDocuments,
                               checkIfExisting=True)
-
+        
         
     def insertAspects(self):
         self.showStatus("insert aspects")
@@ -401,9 +467,13 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         
         updatesToDerivedFrom = set()
         for modelType in filingDocumentTypes:
-            if isinstance(modelType.typeDerivedFrom, ModelType) and modelType.typeDerivedFrom in filingDocumentTypes:
-                updatesToDerivedFrom.add( (self.typeQnameId[modelType.qname], 
-                                           self.typeQnameId[modelType.typeDerivedFrom.qname]) )
+            if isinstance(modelType.typeDerivedFrom, ModelType):
+                typeDerivedFrom = modelType.typeDerivedFrom
+                if (typeDerivedFrom in filingDocumentTypes and
+                    modelType.qname in self.typeQnameId and
+                    typeDerivedFrom.qname in self.typeQnameId):
+                    updatesToDerivedFrom.add( (self.typeQnameId[modelType.qname], 
+                                               self.typeQnameId[typeDerivedFrom.qname]) )
         # update derivedFrom's of newly added types
         if updatesToDerivedFrom:
             self.updateTable('data_type', 
@@ -429,28 +499,33 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             for aspectId, docId, qn in table:
                 self.aspectQnameId[qname(qn)] = aspectId
                 
+        aspects = []
+        for concept in filingDocumentAspects:
+            niceType  = concept.niceType
+            if niceType is not None and len(niceType) > 128:
+                niceType = niceType[:128]
+            if concept.modelDocument in self.documentIds:
+                aspects.append((self.documentIds[concept.modelDocument],
+                                 elementFragmentIdentifier(concept),
+                                 concept.qname.clarkNotation,
+                                 concept.name,
+                                 self.typeQnameId.get(concept.typeQname),
+                                 niceType[:128] if niceType is not None else None,
+                                 self.aspectQnameId.get(concept.substitutionGroupQname),
+                                 concept.balance,
+                                 concept.periodType,
+                                 concept.isAbstract, 
+                                 concept.isNillable,
+                                 concept.isNumeric,
+                                 concept.isMonetary,
+                                 concept.isTextBlock))
         table = self.getTable('aspect', 'aspect_id', 
                               ('document_id', 'xml_id',
                                'qname', 'name', 'datatype_id', 'base_type', 'substitution_group_aspect_id',  
                                'balance', 'period_type', 'abstract', 'nillable',
                                'is_numeric', 'is_monetary', 'is_text_block'), 
                               ('document_id', 'qname'), 
-                              tuple((self.documentIds[concept.modelDocument],
-                                     elementFragmentIdentifier(concept),
-                                     concept.qname.clarkNotation,
-                                     concept.name,
-                                     self.typeQnameId.get(concept.typeQname),
-                                     concept.niceType,
-                                     self.aspectQnameId.get(concept.substitutionGroupQname),
-                                     concept.balance,
-                                     concept.periodType,
-                                     concept.isAbstract, 
-                                     concept.isNillable,
-                                     concept.isNumeric,
-                                     concept.isMonetary,
-                                     concept.isTextBlock)
-                                    for concept in filingDocumentAspects
-                                    if concept.modelDocument in self.documentIds)
+                              aspects
                              )
         for aspectId, docId, qn in table:
             self.aspectQnameId[qname(qn)] = aspectId
@@ -575,10 +650,16 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
     def insertResources(self):
         self.showStatus("insert resources")
         # deduplicate resources (may be on multiple arcs)
+        arcroles = [arcrole
+                    # check whether relationship_set is completely in instance or part/all in taxonomy
+                    for arcrole, ELR, linkqname, arcqname in self.modelXbrl.baseSets.keys()
+                    if ELR is None and linkqname is None and arcqname is None and not arcrole.startswith("XBRL-")
+                       and self.arcroleHasResource[arcrole]
+                       and (self.arcroleInInstance[arcrole] or not self.isExistingTaxonomyRelSetsOwner)]
         # note that lxml has no column numbers, use objectIndex as pseudo-column number
         uniqueResources = dict(((self.documentIds[resource.modelDocument],
                                  resource.objectIndex), resource)
-                               for arcrole in (XbrlConst.conceptLabel, XbrlConst.conceptReference)
+                               for arcrole in arcroles
                                for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
                                if rel.fromModelObject is not None and rel.toModelObject is not None
                                for resource in (rel.fromModelObject, rel.toModelObject)
@@ -613,17 +694,19 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
     def insertRelationships(self):
         self.showStatus("insert relationship sets")
         table = self.getTable('relationship_set', 'relationship_set_id', 
-                              ('report_id', 'link_role', 'arc_role', 'link_qname', 'arc_qname'), 
-                              ('report_id', 'link_role', 'arc_role', 'link_qname', 'arc_qname'), 
-                              tuple((self.reportId,
+                              ('document_id', 'link_role', 'arc_role', 'link_qname', 'arc_qname'), 
+                              ('document_id', 'link_role', 'arc_role', 'link_qname', 'arc_qname'), 
+                              tuple((self.documentIds[self.modelXbrl.modelDocument if self.arcroleInInstance[arcrole]
+                                                      else self.taxonomyRelSetsOwner],
                                      ELR,
                                      arcrole,
                                      linkqname.clarkNotation,
                                      arcqname.clarkNotation)
                                     for arcrole, ELR, linkqname, arcqname in self.modelXbrl.baseSets.keys()
-                                    if ELR and linkqname and arcqname and not arcrole.startswith("XBRL-")))
+                                    if ELR and linkqname and arcqname and not arcrole.startswith("XBRL-")
+                                           and (not self.isExistingTaxonomyRelSetsOwner or self.arcroleInInstance[arcrole])))
         self.relSetId = dict(((linkRole, arcRole, lnkQn, arcQn), id)
-                             for id, reportId, linkRole, arcRole, lnkQn, arcQn in table)
+                             for id, document_id, linkRole, arcRole, lnkQn, arcQn in table)
         # do tree walk to build relationships with depth annotated, no targetRole navigation
         dbRels = []
         
@@ -638,7 +721,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             return seq
         
         for arcrole, ELR, linkqname, arcqname in self.modelXbrl.baseSets.keys():
-            if ELR and linkqname and arcqname and not arcrole.startswith("XBRL-"):
+            if (ELR and linkqname and arcqname and not arcrole.startswith("XBRL-")
+                and (not self.isExistingTaxonomyRelSetsOwner or self.arcroleInInstance[arcrole])):
                 relSetId = self.relSetId[(ELR,
                                           arcrole,
                                           linkqname.clarkNotation,
@@ -657,13 +741,12 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 return None     
         
         table = self.getTable('relationship', 'relationship_id', 
-                              ('report_id', 'document_id', 'xml_id', 
+                              ('document_id', 'xml_id', 
                                'relationship_set_id', 'reln_order', 
                                'from_id', 'to_id', 'calculation_weight', 
                                'tree_sequence', 'tree_depth', 'preferred_label_role'), 
                               ('relationship_set_id', 'document_id', 'xml_id'), 
-                              tuple((self.reportId,
-                                     self.documentIds[rel.modelDocument],
+                              tuple((self.documentIds[rel.modelDocument],
                                      elementFragmentIdentifier(rel.arcElement),
                                      relSetId,
                                      self.dbNum(rel.order),
@@ -677,6 +760,15 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                     if rel.fromModelObject is not None and rel.toModelObject is not None))
         self.relationshipId = dict(((docId,xmlId), relationshipId)
                                    for relationshipId, relSetId, docId, xmlId in table)
+        table = self.getTable('root', None, 
+                              ('relationship_set_id', 'relationship_id'), 
+                              ('relationship_set_id', 'relationship_id'), 
+                              tuple((relSetId,
+                                     self.relationshipId[self.documentIds[rel.modelDocument],
+                                                         elementFragmentIdentifier(rel.arcElement)])
+                                    for rel, sequence, depth, relSetId in dbRels
+                                    if depth == 1 and
+                                       rel.fromModelObject is not None and rel.toModelObject is not None))
         del dbRels[:]   # dererefence
 
     def insertDataPoints(self):
@@ -809,7 +901,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         def insertFactSet(modelFacts, parentDatapointId):
             facts = []
             for fact in modelFacts:
-                if fact.concept is not None and getattr(fact, "xValid", UNVALIDATED) >= VALID and getattr(concept, "xValid", UNVALIDATED) >= VALID:
+                if fact.concept is not None and getattr(fact, "xValid", UNVALIDATED) >= VALID and fact.qname is not None:
                     cntx = fact.context
                     documentId = self.documentIds[fact.modelDocument]
                     facts.append((reportId,
@@ -847,19 +939,23 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             self.factDataPointId.update(xmlIdDataPointId)
             for fact in modelFacts:
                 if fact.isTuple:
-                    insertFactSet(fact.modelTupleFacts, 
-                                  xmlIdDataPointId[(self.documentIds[fact.modelDocument],
-                                                    elementFragmentIdentifier(fact))])
+                    try:
+                        insertFactSet(fact.modelTupleFacts, 
+                                      xmlIdDataPointId[(self.documentIds[fact.modelDocument],
+                                                        elementFragmentIdentifier(fact))])
+                    except KeyError:
+                        print ("\n\n*****no tuple datapoint {} ******\n\n".format(fact.qname))
+                        self.modelXbrl.info("xpDB:warning",
+                                            _("Loading XBRL DB: tuple's datapoint not found: %(tuple)s"),
+                                            modelObject=fact, tuple=fact.qname)
+
         self.factDataPointId = {}
         insertFactSet(self.modelXbrl.facts, None)
         # hashes
+        if self.tableFacts: # if any entries
         
-        # table_datapoints
-        _tableFacts = tableFacts(self.modelXbrl)  # for EFM this is ( (roleType, table_code, fact) )
-        
-        if _tableFacts: # if any entries
             #check if roleTypes and datapoint ids exist
-            for roleType, tableCode, fact in _tableFacts:
+            for roleType, tableCode, fact in self.tableFacts:
                 if (self.documentIds[roleType.modelDocument], roleType.roleURI) not in self.roleTypeIds:
                     print ("missing role type {}, {}".format(self.documentIds[roleType.modelDocument], roleType.roleURI))
                 if (self.documentIds[fact.modelDocument],elementFragmentIdentifier(fact)) not in self.factDataPointId:
@@ -873,7 +969,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                          tableCode,
                                          self.factDataPointId[(self.documentIds[fact.modelDocument],
                                                                elementFragmentIdentifier(fact))])
-                                        for roleType, tableCode, fact in _tableFacts))
+                                        for roleType, tableCode, fact in self.tableFacts))
                                          
 
     def insertValidationResults(self):

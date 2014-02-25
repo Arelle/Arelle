@@ -35,7 +35,7 @@ def EFMdimMems(relSet, concept, memQNames):
 def tableFacts(dts):
     # identify tables
     disclosureSystem = dts.modelManager.disclosureSystem
-    if disclosureSystem.EFM:
+    if disclosureSystem.EFM or disclosureSystem.HMRC:
         roleURIcodeFacts = []  # list of (roleURI, code, fact)
         
         # resolve structural model

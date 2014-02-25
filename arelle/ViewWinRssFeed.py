@@ -65,7 +65,7 @@ class ViewRssFeed(ViewWinTree.ViewTree):
         self.id = 1
         for rssItem in modelDocument.rssItems:
             node = self.treeView.insert(parentNode, "end", rssItem.objectId(),
-                                        text=rssItem.companyName,
+                                        text=(rssItem.companyName or ''),
                                         tags=("odd" if self.id & 1 else "even",))
             self.treeView.set(node, "form", rssItem.formType)
             self.treeView.set(node, "filingDate", rssItem.filingDate)

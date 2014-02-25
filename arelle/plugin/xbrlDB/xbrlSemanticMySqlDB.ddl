@@ -20,6 +20,7 @@ DROP TABLE IF EXISTS arcrole_type CASCADE;
 DROP TABLE IF EXISTS used_on CASCADE;
 DROP TABLE IF EXISTS resource CASCADE;
 DROP TABLE IF EXISTS relationship_set CASCADE;
+DROP TABLE IF EXISTS root CASCADE;
 DROP TABLE IF EXISTS relationship CASCADE;
 DROP TABLE IF EXISTS data_point CASCADE;
 DROP TABLE IF EXISTS entity CASCADE;
@@ -226,20 +227,25 @@ DELIMITER ;
 
 CREATE TABLE relationship_set (
     relationship_set_id bigint NOT NULL AUTO_INCREMENT,
-    report_id bigint,
+    document_id bigint NOT NULL,
     arc_qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
     link_qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
     arc_role varchar(1024) NOT NULL,
     link_role varchar(1024) NOT NULL,
     PRIMARY KEY (relationship_set_id)
 );
-CREATE INDEX relationship_set_index02 USING btree ON relationship_set (report_id);
+CREATE INDEX relationship_set_index02 USING btree ON relationship_set (document_id);
 CREATE INDEX relationship_set_index03 USING hash ON relationship_set (arc_role(512));
 CREATE INDEX relationship_set_index04 USING hash ON relationship_set (link_role(512));
 
+CREATE TABLE root (
+    relationship_set_id bigint NOT NULL,
+    relationship_id bigint NOT NULL
+);
+CREATE INDEX root_index01 USING btree ON root (relationship_set_id);
+
 CREATE TABLE relationship (
     relationship_id bigint NOT NULL,
-    report_id bigint,
     document_id bigint NOT NULL,
     xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
     relationship_set_id bigint NOT NULL,

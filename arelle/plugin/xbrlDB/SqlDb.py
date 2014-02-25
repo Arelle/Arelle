@@ -12,6 +12,7 @@ import socket
 
 TRACESQLFILE = None
 #TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
+#TRACESQLFILE = "/Users/hermf/temp/sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
 
 def noop(*args, **kwargs): return 
 class NoopException(Exception):
@@ -257,6 +258,20 @@ class SqlDbConnection():
                     DROP TABLE filing;
                 """, close=True, commit=False, fetch=False)
             
+    def lockTables(self, tableNames):
+        if self.product in ("postgres", "orcl"):
+            result = self.execute('LOCK {} IN SHARE ROW EXCLUSIVE MODE'.format(', '.join(tableNames)),
+                                  close=False, commit=False, fetch=False, action="dropping table")
+        elif self.product in ("mysql",):
+            result = self.execute('LOCK TABLES {}'
+                                  .format(', '.join(['{} WRITE'.format(t) for t in tableNames])),
+                                  close=False, commit=False, fetch=False, action="dropping table")
+        # note, there is no lock for MS SQL (as far as I could find)
+        
+    def unlockAllTables(self):
+        if self.product in ("mysql",):
+            result = self.execute('UNLOCK TABLES',
+                                  close=False, commit=False, fetch=False, action="dropping table")
         
     def execute(self, sql, commit=False, close=True, fetch=True, params=None, action="execute"):
         cursor = self.cursor

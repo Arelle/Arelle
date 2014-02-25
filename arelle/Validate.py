@@ -107,6 +107,8 @@ class Validate:
                 modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, 
                                            openFileSource(rssItem.zippedUrl, self.modelXbrl.modelManager.cntlr),
                                            _("validating"))
+                for pluginXbrlMethod in pluginClassMethods("RssItem.Xbrl.Loaded"):  
+                    pluginXbrlMethod(modelXbrl, {}, rssItem)      
                 self.instValidator.validate(modelXbrl, self.modelXbrl.modelManager.formulaOptions.typedParameters())
                 self.instValidator.close()
                 rssItem.setResults(modelXbrl)

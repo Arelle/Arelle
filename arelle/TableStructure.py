@@ -12,39 +12,65 @@ from arelle import XbrlConst
 EFMtableCodes = [
     # ELRs are parsed for these patterns in sort order until there is one match per code
     # sheet(s) may be plural
-    ("DEI", re.compile(r".* - document - .*document\W+.*entity\W+.*information.*", re.IGNORECASE)),
+    
+    # statement detection including root element of presentation link role
+    ("BS", re.compile(r".* - statement - (?!.*details)(?!.*parenthetical).*", re.IGNORECASE), 
+     ("StatementOfFinancialPositionAbstract",)),
+    ("IS", re.compile(r".* - statement - (?!.*details)(?!.*parenthetical).*", re.IGNORECASE), 
+     ("IncomeStatementAbstract","StatementOfIncomeAndComprehensiveIncomeAbstract")),
+    ("SE", re.compile(r".* - statement - (?!.*details)(?!.*parenthetical).*", re.IGNORECASE), 
+     ("StatementOfStockholdersEquityAbstract","StatementOfPartnersCapitalAbstract")),
+    ("CF", re.compile(r".* - statement - (?!.*details)(?!.*parenthetical).*", re.IGNORECASE), 
+     ("StatementOfCashFlowsAbstract",)),
+                 
+    # statement detection without considering root elements
+    ("DEI", re.compile(r".* - document - .*document\W+.*entity\W+.*information.*", re.IGNORECASE), None),
     ("BS", re.compile(r".* - statement - (?!.*details)(?!.*parenthetical)"
-                      r".*balance\W+sheet.*", re.IGNORECASE)),
+                      r".*balance\W+sheet.*", re.IGNORECASE), None),
     ("BSP", re.compile(r".* - statement - (?!.*details)(?=.*parenthetical)"
-                       r".*balance\W+sheet.*", re.IGNORECASE)),
+                       r".*balance\W+sheet.*", re.IGNORECASE), None),
     ("CF", re.compile(r".* - statement - (?!.*details)(?!.*parenthetical)"
-                      r".*cash\W*flow.*", re.IGNORECASE)),
+                      r".*cash\W*flow.*", re.IGNORECASE), None),
     ("IS", re.compile(r".* - statement - (?!.*details)(?!.*parenthetical)"
-                      r".*comprehensive(.*\Wincome|.*\Wloss)", re.IGNORECASE)),
+                      r".*comprehensive(.*\Wincome|.*\Wloss)", re.IGNORECASE), None),
     ("SE", re.compile(r".* - statement - (?!.*details)(?!.*parenthetical)"
-                      r".*(equity|capital|deficit).*", re.IGNORECASE)),
+                      r".*(equity|capital|deficit).*", re.IGNORECASE), None),
     ("IS", re.compile(r".* - statement - (?!.*details)(?!.*parenthetical)"
-                      r".*(income|operations)", re.IGNORECASE)),
+                      r".*(income|operations)", re.IGNORECASE), None),
     ("ISP", re.compile(r".* - statement - (?!.*details)(?=.*parenthetical)"
-                      r".*(income|operations)", re.IGNORECASE)),
+                      r".*(income|operations)", re.IGNORECASE), None),
     ("CFP", re.compile(r".* - statement - (?!.*details)(?=.*parenthetical)"
-                      r".*cash\W*flow.*", re.IGNORECASE)),
+                      r".*cash\W*flow.*", re.IGNORECASE), None),
     ("IS", re.compile(r".* - statement - (?!.*details)(?!.*parenthetical)"
-                      r".*loss", re.IGNORECASE)),
+                      r".*loss", re.IGNORECASE), None),
     ("ISP", re.compile(r".* - statement - (?!.*details)(?=.*parenthetical)"
-                      r".*loss", re.IGNORECASE)),
+                      r".*loss", re.IGNORECASE), None),
     ("BS", re.compile(r".* - statement - (?!.*details)(?!.*parenthetical)"
-                      r".(position|condition)", re.IGNORECASE)),
+                      r".(position|condition)", re.IGNORECASE), None),
     ("BSP", re.compile(r".* - statement - (?!.*details)(?=.*parenthetical)"
-                       r".*(position|condition)", re.IGNORECASE)),
+                       r".*(position|condition)", re.IGNORECASE), None),
     ("SE", re.compile(r".* - statement - (?!.*details)(?!.*parenthetical)"
-                      r".*equity\W(\w+\W+)*comprehensive.*", re.IGNORECASE)),
+                      r".*equity\W(\w+\W+)*comprehensive.*", re.IGNORECASE), None),
+    ]
+HMRCtableCodes = [
+    # ELRs are parsed for these patterns in sort order until there is one match per code
+    # sheet(s) may be plural
+    ("DEI", re.compile(r".*entity\W+.*information.*", re.IGNORECASE), None),
+    ("BS", re.compile(r".*balance\W+sheet.*", re.IGNORECASE), None),
+    ("IS", re.compile(r".*loss", re.IGNORECASE), None),
+    ("CF", re.compile(r".*cash\W*flow.*", re.IGNORECASE), None),
+    ("SE", re.compile(r".*(shareholder|equity).*", re.IGNORECASE), None),
     ]
 
 def evaluateRoleTypesTableCodes(modelXbrl):
     disclosureSystem = modelXbrl.modelManager.disclosureSystem
-    if disclosureSystem.EFM:
-        tableCodes = list( EFMtableCodes ) # separate copy of list so entries can be deleted
+    
+    if disclosureSystem.EFM or disclosureSystem.HMRC:
+        if disclosureSystem.EFM:
+            tableCodes = list( EFMtableCodes ) # separate copy of list so entries can be deleted
+        elif disclosureSystem.HMRC:
+            tableCodes = list( HMRCtableCodes ) # separate copy of list so entries can be deleted
+ 
         codeRoleURIs = {}  # lookup by code for roleURI
         
         # resolve structural model
@@ -55,12 +81,17 @@ def evaluateRoleTypesTableCodes(modelXbrl):
         # assign code to table link roles (Presentation ELRs)
         for roleType in roleTypes:
             definition = roleType.definition
+            rootConcepts = None
             for i, tableCode in enumerate(tableCodes):
-                code, pattern = tableCode
+                code, pattern, rootConceptNames = tableCode
                 if code not in codeRoleURIs and pattern.match(definition):
-                    codeRoleURIs[roleType.roleURI] = code
-                    del tableCodes[i] # done with looking at this code
-                    break
+                    if rootConceptNames and rootConcepts is None:
+                        rootConcepts = modelXbrl.relationshipSet(XbrlConst.parentChild, roleType.roleURI).rootConcepts
+                    if (not rootConceptNames or
+                        any(rootConcept.name in rootConceptNames for rootConcept in rootConcepts)):
+                        codeRoleURIs[roleType.roleURI] = code
+                        del tableCodes[i] # done with looking at this code
+                        break
         # find defined non-default axes in pre hierarchy for table
         for roleTypes in modelXbrl.roleTypes.values():
             for roleType in roleTypes:
