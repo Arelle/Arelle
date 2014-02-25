@@ -56,6 +56,10 @@ class ModelRssItem(ModelObject):
         return XmlUtil.text(XmlUtil.descendant(self, edgr, "accessionNumber"))
     
     @property
+    def fileNumber(self):
+        return XmlUtil.text(XmlUtil.descendant(self, edgr, "fileNumber"))
+    
+    @property
     def companyName(self):
         return XmlUtil.text(XmlUtil.descendant(self, edgr, "companyName"))
     

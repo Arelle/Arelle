@@ -97,7 +97,7 @@ class ValidateHmrc(ValidateXbrl.ValidateXbrl):
                 for f1 in facts:
                     context = f1.context
                     unit = f1.unit
-                    if getattr(f1,"xValid", UNVALIDATED) >= VALID:
+                    if getattr(f1,"xValid", 0) >= 4:
                         factNamespaceURI = f1.qname.namespaceURI
                         factLocalName = f1.qname.localName
                         if busNamespacePattern.match(factNamespaceURI) and factLocalName in busLocalNames:

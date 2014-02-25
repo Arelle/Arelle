@@ -819,7 +819,7 @@ class ModelAttribute(ModelNamableTerm):
         """(QName) -- QName of type of attribute"""
         if self.get("type"):
             return self.schemaNameQname(self.get("type"))
-        elif getattr(self,"xValid", UNVALIDATED) >= VALID:
+        elif getattr(self,"xValid", 0) >= 4:
             # check if anonymous type exists
             typeqname = ModelValue.qname(self.qname.clarkNotation +  anonymousTypeSuffix)
             if typeqname in self.modelXbrl.qnameTypes:

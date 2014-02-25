@@ -120,7 +120,7 @@ def attributeDict(modelXbrl, elt, exclusions=set(), equalMode=S_EQUAL, excludeID
             else:
                 qname = QName(None, None, attrTag)
             try:
-                if excludeIDs and modelAttribute.xValid == XmlValidate.VALID_ID:
+                if excludeIDs and getattr(modelAttribute, "xValid", 0) == XmlValidate.VALID_ID:
                     continue
                 if modelAttribute.xValid != XmlValidate.UNKNOWN:
                     value = modelAttribute.sValue if equalMode <= S_EQUAL2 else modelAttribute.xValue

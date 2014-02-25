@@ -719,7 +719,7 @@ class ValidateXbrl:
                         #        self.modelXbrl.error("arelle:info",
                         #            _("Fact %(fact)s value %(value)s context %(contextID)s rounding exception %(error)s"),
                         #            modelObject=f, fact=f.qname, value=f.value, contextID=f.contextID, error = err)
-                    if self.validateEnum and concept.isEnumeration and f.xValid == VALID:
+                    if self.validateEnum and concept.isEnumeration and getattr(f,"xValid", 0) == 4:
                         memConcept = self.modelXbrl.qnameConcepts.get(f.xValue)
                         if not ValidateXbrlDimensions.enumerationMemberUsable(self, concept, memConcept):
                             self.modelXbrl.error("enumie:InvalidFactValue",

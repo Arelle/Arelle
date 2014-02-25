@@ -16,7 +16,7 @@ validateElementSequence = None  #dynamic import to break dependency loops
 modelGroupCompositorTitle = None
 ModelInlineValueObject = None
 
-UNVALIDATED = 0
+UNVALIDATED = 0 # note that these values may be used a constants in code for better efficiency
 UNKNOWN = 1
 INVALID = 2
 NONE = 3

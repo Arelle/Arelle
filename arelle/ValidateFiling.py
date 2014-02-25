@@ -581,7 +581,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         keysNotDefaultLang[langTestKey] = f1
                         
                     # 6.5.37 test (insignificant digits due to rounding)
-                    if f1.isNumeric and f1.decimals and f1.decimals != "INF" and not f1.isNil and f1.xValid == VALID:
+                    if f1.isNumeric and f1.decimals and f1.decimals != "INF" and not f1.isNil and getattr(f1,"xValid", 0) == 4:
                         try:
                             insignificance = insignificantDigits(f1.xValue, decimals=f1.decimals)
                             if insignificance: 

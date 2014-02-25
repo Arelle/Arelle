@@ -47,7 +47,7 @@ def string(xc, p, contextItem, args):
     item = anytypeArg(xc, args, 0, "item()?", missingArgFallback=contextItem)
     if item == (): 
         return ''
-    if isinstance(item, ModelObject) and item.xValid == VALID_NO_CONTENT:
+    if isinstance(item, ModelObject) and getattr(item,"xValid", 0) == VALID_NO_CONTENT:
         x = item.stringValue # represents inner text of this and all subelements
     else:
         x = xc.atomize(p, item)

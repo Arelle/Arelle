@@ -639,7 +639,7 @@ class XPathContext:
             if isinstance(x, ModelObject):
                 e = x
             if e is not None:
-                if e.xValid == VALID_NO_CONTENT:
+                if getattr(e, "xValid", 0) == VALID_NO_CONTENT:
                     raise XPathException(p, 'err:FOTY0012', _('Atomizing element {0} that does not have a typed value').format(x))
                 if e.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == "true":
                     return []
