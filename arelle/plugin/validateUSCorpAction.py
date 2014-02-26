@@ -149,7 +149,7 @@ def checkCorporateActions(val):
     for f in modelXbrl.facts:
         if f.qname.namespaceURI == caNamespace:
             context = f.context
-            if context is not None and f.xValid == VALID:
+            if context is not None and getattr(f, "xValid", 0) == 4:
                 caFacts[f.qname.localName].append(f)
                 qnEventTypeMember = context.dimMemberQname(qnEventTypeAxis)
                 qnIssueTypeMember = context.dimMemberQname(qnIssueTypeAxis)
