@@ -159,7 +159,7 @@ def factCheck(val, fact):
                         modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
                         value=fact.effectiveValue, denominator=", ".join((str(m) for m in unit.measures[1])))
                         
-            if not fact.isNil and fact.xValue is not None:                 
+            if not fact.isNil and getattr(fact, "xValue", None) is not None:                 
     
                 # 2.4.1 decimal disagreement
                 if fact.decimals and fact.decimals != "INF":
