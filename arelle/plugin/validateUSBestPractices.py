@@ -260,7 +260,7 @@ def final(val, conceptsUsed):
     standardConceptsDeprecated = defaultdict(set)
     for rel in standardRelationships.modelRelationships:
         for concept in (rel.fromModelObject, rel.toModelObject):
-            if (concept is not None and getattr(concept, "xValid", UNVALIDATED) >= VALID and
+            if (concept is not None and concept.qname is not None and
                 concept.qname.namespaceURI in val.disclosureSystem.standardTaxonomiesDict and
                 concept not in conceptsUsed):
                 if (not concept.isAbstract or 
