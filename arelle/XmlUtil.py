@@ -584,7 +584,16 @@ def setXmlns(modelDocument, prefix, namespaceURI):
             newroot.extend(root)
         else:  # new xmlns-extension root
             newroot = etree.Element('nsmap', nsmap={prefix: namespaceURI})
+            comments = []
+            comment = root.getprevious()
+            while isinstance(comment, etree._Comment):
+                comments.append(comment)
+                comment = comment.getprevious()
             newroot.append(root)
+            commentAnchor = root # move comment back onto old root (below nsmap) so it can write out later
+            for comment in comments:
+                commentAnchor.addprevious(comment)
+                commentAnchor = comment
         elementTree._setroot(newroot)
 
 def sortKey(parentElement, childNamespaceUri, childLocalNames, childAttributeName=None, qnames=False):
