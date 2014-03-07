@@ -1161,7 +1161,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                                     sys.version_info, etree.LXML_VERSION))
 
     # worker threads addToLog        
-    def addToLog(self, message, messageCode="", file="", level=logging.INFO):
+    def addToLog(self, message, messageCode="", messageArgs=None, file="", level=logging.INFO):
         self.uiThreadQueue.put((self.uiAddToLog, [message]))
         
     # ui thread addToLog
