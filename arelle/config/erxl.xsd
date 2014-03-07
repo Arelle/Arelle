@@ -5,6 +5,7 @@
 <xsd:sequence>
 <xsd:element ref="Loc" minOccurs="0" maxOccurs="unbounded"/>
 </xsd:sequence>
+<xsd:attribute name="version" use="required"><xsd:simpleType><xsd:restriction base="xsd:string"><xsd:pattern value="[1-9][0-9]*([\.][1-9][0-9]*)*"/></xsd:restriction></xsd:simpleType></xsd:attribute>
 </xsd:complexType>
 </xsd:element>
 <xsd:element name="Loc">
@@ -26,14 +27,6 @@
 </xsd:simpleType>
 </xsd:element>
 <xsd:element name="Href" minOccurs="0">
-<xsd:simpleType>
-<xsd:restriction base="xsd:string">
-</xsd:restriction>
-</xsd:simpleType>
-</xsd:element>
-<!-- allow local href, specifies pattern of file name (optional leading directories and file name) for
-     endswith(localRef) test -->
-<xsd:element name="LocalHref" minOccurs="0">
 <xsd:simpleType>
 <xsd:restriction base="xsd:string">
 </xsd:restriction>
