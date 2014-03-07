@@ -8,11 +8,13 @@ import os, posixpath, sys, re, shutil, time, calendar, io, json, logging
 if sys.version[0] >= '3':
     from urllib.parse import quote, unquote
     from urllib.error import URLError, HTTPError, ContentTooShortError
+    from http.client import IncompleteRead
     from urllib import request
     from urllib import request as proxyhandlers
 else: # python 2.7.2
     from urllib import quote, unquote
     from urllib import ContentTooShortError
+    from httplib import IncompleteRead
     from urllib2 import URLError, HTTPError
     import urllib2 as proxyhandlers
 from arelle.FileSource import SERVER_WEB_CACHE
@@ -330,9 +332,16 @@ class WebCache:
                                 return None
                     
                     retryCount = 0
-                except ContentTooShortError as err:
+                except (ContentTooShortError, IncompleteRead) as err:
                     if retrievingDueToRecheckInterval: 
                         return self.internetRecheckFailedRecovery(filepath, url, err, timeNowStr) 
+                    if retryCount > 1:
+                        self.cntlr.addToLog(_("%(error)s \nunsuccessful retrieval of %(URL)s \n%(retryCount)s retries remaining"),
+                                            messageCode="webCache:retryingOperation",
+                                            messageArgs={"error": err, "URL": url, "retryCount": retryCount},
+                                            level=logging.ERROR)
+                        retryCount -= 1
+                        continue
                     self.cntlr.addToLog(_("%(error)s \nretrieving %(URL)s"),
                                         messageCode="webCache:contentTooShortError",
                                         messageArgs={"URL": url, "error": err},
@@ -409,15 +418,31 @@ class WebCache:
                     return None
                 
                 except Exception as err:
+                    if retryCount > 1:
+                        self.cntlr.addToLog(_("%(error)s \nunsuccessful retrieval of %(URL)s \n%(retryCount)s retries remaining"),
+                                            messageCode="webCache:retryingOperation",
+                                            messageArgs={"error": err, "URL": url, "retryCount": retryCount},
+                                            level=logging.ERROR)
+                        retryCount -= 1
+                        continue
                     if retrievingDueToRecheckInterval: 
                         return self.internetRecheckFailedRecovery(filepath, url, err, timeNowStr) 
-                    self.cntlr.addToLog(_("%(error)s \nunsuccessful retrieval of %(URL)s \nswitching to work offline"),
-                                        messageCode="webCache:attemptingOfflineOperation",
-                                        messageArgs={"error": err, "URL": url},
-                                        level=logging.ERROR)
-                    # try working offline
-                    self.workOffline = True
-                    return filepath
+                    if self.cntlr.hasGui:
+                        self.cntlr.addToLog(_("%(error)s \nunsuccessful retrieval of %(URL)s \nswitching to work offline"),
+                                            messageCode="webCache:attemptingOfflineOperation",
+                                            messageArgs={"error": err, "URL": url},
+                                            level=logging.ERROR)
+                        # try working offline
+                        self.workOffline = True
+                        return filepath
+                    else:  # don't switch offline unexpectedly in scripted (batch) operation
+                        self.cntlr.addToLog(_("%(error)s \nunsuccessful retrieval of %(URL)s"),
+                                            messageCode="webCache:unsuccessfulRetrieval",
+                                            messageArgs={"error": err, "URL": url},
+                                            level=logging.ERROR)
+                        if os.path.exists(filepathtmp):
+                            os.remove(filepathtmp)
+                        return None
                 
                 # rename temporarily named downloaded file to desired name                
                 if os.path.exists(filepath):
