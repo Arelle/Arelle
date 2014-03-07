@@ -4,14 +4,14 @@ Created on Oct 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import zipfile, os, io, base64, gzip, zlib, re, struct, random, time
+import zipfile, tarfile, os, io, base64, gzip, zlib, re, struct, random, time
 from lxml import etree
 from arelle import XmlUtil
 from arelle.PackageManager import parsePackage
 from arelle.UrlUtil import isHttpUrl
 
-archivePathSeparators = (".zip" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, '.taxonomyPackage.xml' + os.sep) + \
-                        ((".zip/", ".eis/", ".xml/", ".xfd/", ".frm/", '.taxonomyPackage.xml/') if os.sep != "/" else ()) #acomodate windows and http styles
+archivePathSeparators = (".zip" + os.sep, ".tar.gz" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, '.taxonomyPackage.xml' + os.sep) + \
+                        ((".zip/", ".tar.gz/", ".eis/", ".xml/", ".xfd/", ".frm/", '.taxonomyPackage.xml/') if os.sep != "/" else ()) #acomodate windows and http styles
 
 POST_UPLOADED_ZIP = os.sep + "POSTupload.zip"
 SERVER_WEB_CACHE = os.sep + "_HTTP_CACHE"
@@ -84,7 +84,10 @@ class FileSource:
         self.url = str(url)  # allow either string or FileNamedStringIO
         self.baseIsHttp = isHttpUrl(self.url)
         self.cntlr = cntlr
-        self.type = self.url.lower()[-4:]
+        self.type = self.url.lower()[-7:]
+        self.isTarGz = self.type == ".tar.gz"
+        if not self.isTarGz:
+            self.type = self.type[3:]
         self.isZip = self.type == ".zip"
         self.isEis = self.type == ".eis"
         self.isXfd = (self.type == ".xfd" or self.type == ".frm")
@@ -120,7 +123,7 @@ class FileSource:
 
     def open(self):
         if not self.isOpen:
-            if (self.isZip or self.isEis or self.isXfd or self.isRss or self.isInstalledTaxonomyPackage) and self.cntlr:
+            if (self.isZip or self.isTarGz or self.isEis or self.isXfd or self.isRss or self.isInstalledTaxonomyPackage) and self.cntlr:
                 self.basefile = self.cntlr.webCache.getfilename(self.url)
             else:
                 self.basefile = self.url
@@ -130,6 +133,13 @@ class FileSource:
             if self.isZip:
                 try:
                     self.fs = zipfile.ZipFile(openFileStream(self.cntlr, self.basefile, 'rb'), mode="r")
+                    self.isOpen = True
+                except EnvironmentError as err:
+                    self.logError(err)
+                    pass
+            elif self.isTarGz:
+                try:
+                    self.fs = tarfile.open(self.basefile, "r:gz")
                     self.isOpen = True
                 except EnvironmentError as err:
                     self.logError(err)
@@ -279,6 +289,10 @@ class FileSource:
             self.fs.close()
             self.isOpen = False
             self.isZip = False
+        if self.isTarGz and self.isOpen:
+            self.fs.close()
+            self.isOpen = False
+            self.isTarGz = False
         if self.isEis and self.isOpen:
             self.eisDocument.getroot().clear() # unlink nodes
             self.eisDocument = None
@@ -298,7 +312,7 @@ class FileSource:
         
     @property
     def isArchive(self):
-        return self.isZip or self.isEis or self.isXfd or self.isInstalledTaxonomyPackage
+        return self.isZip or self.isTarGz or self.isEis or self.isXfd or self.isInstalledTaxonomyPackage
     
     @property
     def isTaxonomyPackage(self):
@@ -366,6 +380,18 @@ class FileSource:
             if archiveFileSource.isZip:
                 try:
                     b = archiveFileSource.fs.read(archiveFileName.replace("\\","/"))
+                    if binary:
+                        return (io.BytesIO(b), )
+                    encoding = XmlUtil.encoding(b)
+                    return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding), 
+                            encoding)
+                except KeyError:
+                    raise ArchiveFileIOError(self, archiveFileName)
+            elif archiveFileSource.isTarGz:
+                try:
+                    fh = archiveFileSource.fs.extractfile(archiveFileName)
+                    b = fh.read()
+                    fh.close() # doesn't seem to close properly using a with construct
                     if binary:
                         return (io.BytesIO(b), )
                     encoding = XmlUtil.encoding(b)
@@ -441,6 +467,8 @@ class FileSource:
             for zipinfo in self.fs.infolist():
                 files.append(zipinfo.filename)
             self.filesDir = files
+        elif self.isTarGz:
+            self.filesDir = self.fs.getnames()
         elif self.isEis:
             files = []
             for docElt in self.eisDocument.iter(tag="{http://www.sec.gov/edgar/common}document"):
