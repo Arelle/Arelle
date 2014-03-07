@@ -19,7 +19,7 @@ from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype
 from arelle.PluginManager import pluginClassMethods
 creationSoftwareNames = None
 
-def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDiscovered=False, isIncluded=None, namespace=None, reloadCache=False):
+def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDiscovered=False, isIncluded=None, namespace=None, reloadCache=False, **kwargs):
     """Returns a new modelDocument, performing DTS discovery for instance, inline XBRL, schema, 
     linkbase, and versioning report entry urls.
     
@@ -112,7 +112,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     try:
         for pluginMethod in pluginClassMethods("ModelDocument.PullLoader"):
             # assumes not possible to check file in string format or not all available at once
-            modelDocument = pluginMethod(modelXbrl, mappedUri, filepath)
+            modelDocument = pluginMethod(modelXbrl, mappedUri, filepath, **kwargs)
             if modelDocument is not None:
                 return modelDocument
         if (modelXbrl.modelManager.validateDisclosureSystem and 
@@ -643,14 +643,14 @@ class ModelDocument:
             node = self.xmlRootElement
             while node.getprevious() is not None:
                 node = node.getprevious()
-                if isinstance(node, ModelComment):
+                if isinstance(node, etree._Comment):
                     initialComment = node.text + '\n' + initialComment
             if initialComment:
                 self._creationSoftwareComment = initialComment
             else:
                 self._creationSoftwareComment = None
                 for i, node in enumerate(self.xmlDocument.iter()):
-                    if isinstance(node, ModelComment):
+                    if isinstance(node, etree._Comment):
                         self._creationSoftwareComment = node.text
                     if i > 10:  # give up, no heading comment
                         break
@@ -678,7 +678,7 @@ class ModelDocument:
         for productKey, productNamePattern in creationSoftwareNames:
             if productNamePattern.search(creationSoftwareComment):
                 return productKey
-        return "Other"
+        return creationSoftwareComment # "Other"
     
     def schemaDiscover(self, rootElement, isIncluded, namespace):
         targetNamespace = rootElement.get("targetNamespace")

@@ -24,7 +24,7 @@ NONDEFAULT = sys.intern(_STR_8BIT("non-default"))
 DEFAULTorNONDEFAULT = sys.intern(_STR_8BIT("default-or-non-default"))
     
 
-def load(modelManager, url, nextaction=None, base=None, useFileSource=None, errorCaptureLevel=None):
+def load(modelManager, url, nextaction=None, base=None, useFileSource=None, errorCaptureLevel=None, **kwargs):
     """Each loaded instance, DTS, testcase, testsuite, versioning report, or RSS feed, is represented by an 
     instance of a ModelXbrl object. The ModelXbrl object has a collection of ModelDocument objects, each 
     representing an XML document (for now, with SQL whenever its time comes). One of the modelDocuments of 
@@ -54,7 +54,7 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None, erro
     else:
         modelXbrl.fileSource = FileSource.FileSource(url, modelManager.cntlr)
         modelXbrl.closeFileSource= True
-    modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True)
+    modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True, **kwargs)
     del modelXbrl.entryLoadingUrl
     loadSchemalocatedSchemas(modelXbrl)
     

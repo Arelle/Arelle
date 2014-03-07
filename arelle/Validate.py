@@ -106,9 +106,11 @@ class Validate:
             try:
                 modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, 
                                            openFileSource(rssItem.zippedUrl, self.modelXbrl.modelManager.cntlr),
-                                           _("validating"))
+                                           _("validating"), rssItem=rssItem)
                 for pluginXbrlMethod in pluginClassMethods("RssItem.Xbrl.Loaded"):  
                     pluginXbrlMethod(modelXbrl, {}, rssItem)      
+                if getattr(rssItem, "doNotProcessRSSitem", False):
+                    continue # skip entry based on processing criteria
                 self.instValidator.validate(modelXbrl, self.modelXbrl.modelManager.formulaOptions.typedParameters())
                 self.instValidator.close()
                 rssItem.setResults(modelXbrl)
