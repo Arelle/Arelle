@@ -444,7 +444,7 @@ class SqlDbConnection():
                 colTypes = []
                 for name, fulltype, characterMaxLength in colTypesResult:
                     name = name.lower()
-                    if fulltype in ("varchar", "nvarchar"):
+                    if fulltype in ("char", "varchar", "nvarchar"):
                         colDecl = "{}({})".format(fulltype, characterMaxLength)
                     else:
                         colDecl = fulltype
