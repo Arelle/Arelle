@@ -376,7 +376,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 if str(widget) == tabId:
                     self.currentView = widget.view
                     break
-        except (AttributeError, TypeError):
+        except (AttributeError, TypeError, TclError):
             pass
 
     def loadFileMenuHistory(self):
