@@ -535,6 +535,7 @@ def checkElements(val, modelDocument, parent):
                             modelObject=elt, element=elt.qname,
                             messageCodes=("xbrl.5.1.3:roleTypeAppinfo", "xbrl.5.1.4:arcroleTypeAppinfo"))
                     else: # parent is appinfo, element IS in the right location
+                        XmlValidate.validate(val.modelXbrl, elt) # validate [arc]roleType
                         roleURI = elt.get(uriAttr)
                         if roleURI is None or not UrlUtil.isValid(roleURI):
                             val.modelXbrl.error("xbrl.{0}:{1}Missing".format(xbrlSection,uriAttr),
@@ -603,6 +604,8 @@ def checkElements(val, modelDocument, parent):
                                         val.modelXbrl.error("SBR.NL.2.2.3.02",
                                             _("%(element)s usedOn %(usedOn)s not addressed for role %(role)s"),
                                             modelObject=elt, element=parent.qname, usedOn=qName, role=roleURI)
+                elif elt.localName == "linkbase"  and elt.namespaceURI == XbrlConst.link:
+                    XmlValidate.validate(val.modelXbrl, elt) # check linkbases inside schema files
                 if val.validateSBRNL and not elt.prefix:
                         val.modelXbrl.error("SBR.NL.2.2.0.06",
                                 'Schema element is not prefixed: "%(element)s"',
