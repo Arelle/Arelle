@@ -2716,5 +2716,16 @@
 <Prefix>currency</Prefix>
 </Loc>
 
+<Loc>
+<Family>Arelle</Family>
+<Version>2014</Version>
+<Href>http://arelle.org/2014/doc-2014-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Schema</FileTypeName>
+<Elements>1</Elements>
+<Namespace>http://arelle.org/doc/2014-01-31</Namespace>
+<Prefix>doc</Prefix>
+</Loc>
+
 </Erxl>
 
