@@ -45,7 +45,7 @@ def precedingComment(elt):
         c = c.getprevious()
     return comment or None
 
-def streamingExtensionsLoader(modelXbrl, mappedUri, filepath):
+def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
     # check if big instance and has header with an initial incomplete tree walk (just 2 elements
     if not _streamingExtensionsCheck:
         return None
