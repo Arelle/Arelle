@@ -36,6 +36,8 @@ CREATE SEQUENCE seq_filing;
 CREATE TABLE "filing" (
     filing_id number(19) NOT NULL,
     filing_number varchar2(30) NOT NULL,
+    reference_number varchar2(30),
+    form_type varchar2(30),
     accepted_timestamp date DEFAULT sysdate,
     is_most_current number(1) DEFAULT 0,
     filing_date date NOT NULL,

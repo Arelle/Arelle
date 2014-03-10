@@ -50,6 +50,8 @@ GO
 CREATE TABLE "filing" (
     filing_id bigint default next value for seq_filing, -- IDs are null on insert because trigger fires AFTER insert in MS SQL
     filing_number nvarchar(30) NOT NULL,
+    reference_number nvarchar(30),
+    form_type nvarchar(30),
     accepted_timestamp datetime NOT NULL,
     is_most_current bit NOT NULL DEFAULT 0,
     filing_date datetime NOT NULL,  -- no date in MSSQL 2005

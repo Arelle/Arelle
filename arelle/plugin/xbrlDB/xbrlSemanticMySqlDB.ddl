@@ -50,6 +50,8 @@ CREATE TABLE sequences (
 CREATE TABLE filing (
     filing_id bigint NOT NULL AUTO_INCREMENT,
     filing_number varchar(30) NOT NULL,
+    reference_number  varchar(30),
+    form_type  varchar(30),
     accepted_timestamp timestamp NOT NULL DEFAULT now(),
     is_most_current boolean NOT NULL DEFAULT false,
     filing_date date NOT NULL,

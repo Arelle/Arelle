@@ -63,6 +63,8 @@ ALTER TABLE public.seq_filing OWNER TO postgres;
 CREATE TABLE filing (
     filing_id bigint DEFAULT nextval('seq_filing'::regclass) NOT NULL,
     filing_number character varying(30) NOT NULL,
+    reference_number character varying(30),
+    form_type character varying(30),
     accepted_timestamp timestamp without time zone DEFAULT now() NOT NULL,
     is_most_current boolean DEFAULT false NOT NULL,
     filing_date date NOT NULL,

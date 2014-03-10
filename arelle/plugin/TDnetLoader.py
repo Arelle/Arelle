@@ -17,6 +17,7 @@ class TDnetItem:
                  title, htmlUrl, entryUrl, stockExchange):
         self.cikNumber = None
         self.accessionNumber = filingCode
+        self.fileNumber = None
         self.companyName = companyName
         self.formType = stockExchange
         self.pubDate = dateTime
@@ -76,7 +77,7 @@ def descendantAttr(elt, descendantName, attrName, default=None):
             return descendant.get(attrName).strip()
     return default
 
-def tdNetLoader(modelXbrl, mappedUri, filepath):
+def tdNetLoader(modelXbrl, mappedUri, filepath, **kwargs):
     if not (mappedUri.startswith("https://www.release.tdnet.info/inbs/I_") and 
             mappedUri.endswith(".html")):
         return None # not a td net info file
@@ -88,7 +89,7 @@ def tdNetLoader(modelXbrl, mappedUri, filepath):
         # treat tdnet as an RSS feed object
         try:
             tdInfoDoc = html.parse(filepath)
-        except (OSError,):
+        except (IOError, EnvironmentError):
             return None # give up, use ordinary loader
         
         # find date

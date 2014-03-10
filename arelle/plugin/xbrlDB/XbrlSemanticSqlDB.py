@@ -50,6 +50,7 @@ from arelle import XbrlConst
 from arelle.UrlUtil import ensureUrl
 from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
 from .tableFacts import tableFacts
+from .primaryDocumentFacts import loadPrimaryDocumentFacts
 from collections import defaultdict
 
 
@@ -112,9 +113,15 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 if hasattr(handler, "dbHandlerLogEntries"):
                     self.loggingEntries = handler.dbHandlerLogEntries()
                     break
+                
+            # must have a valid XBRL instance or document
+            if self.modelXbrl.modelDocument is None:
+                raise XPDBException("xpgDB:MissingXbrlDocument",
+                                    _("No XBRL instance or schema loaded for this filing.")) 
             
             # identify table facts (table datapoints) (prior to locked database transaction
             self.tableFacts = tableFacts(self.modelXbrl)  # for EFM & HMRC this is ( (roleType, table_code, fact) )
+            loadPrimaryDocumentFacts(self.modelXbrl, rssItem) # load primary document facts for SEC filing
             self.identifyTaxonomyRelSetsOwner()
                         
             # at this point we determine what's in the database and provide new tables
@@ -238,11 +245,14 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                   returnExistenceStatus=True)
         else:
             table = self.getTable('filing', 'filing_id', 
-                                  ('filing_number', 'accepted_timestamp', 'is_most_current', 'filing_date','entity_id', 
+                                  ('filing_number', 'reference_number', 'form_type',
+                                   'accepted_timestamp', 'is_most_current', 'filing_date','entity_id', 
                                    'entity_name', 'creation_software', 'standard_industry_code', 
                                    'authority_html_url', 'entry_url', ), 
                                   ('filing_number',), 
                                   ((rssItem.accessionNumber or str(int(time.time())),  # NOT NULL
+                                    rssItem.fileNumber, # secondary reference to filing
+                                    rssItem.formType,
                                     rssItem.acceptanceDatetime,
                                     True,
                                     rssItem.filingDate or datetime.datetime.min,  # NOT NULL
@@ -274,7 +284,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         
     def isSemanticDocument(self, modelDocument):
         if modelDocument.type == Type.SCHEMA:
-            return modelDocument.inDTS
+            # must include document items taxonomy even if not in DTS
+            return modelDocument.inDTS or modelDocument.targetNamespace == "http://arelle.org/doc/2014-01-31"
         return modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL, Type.LINKBASE)       
         
     def identifyPreexistingDocuments(self):
@@ -336,7 +347,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             for roleUriTypes in roleTypes:
                 for roleType in roleUriTypes:
                     for qn in roleType.usedOns:
-                        aspectsUsed.add(self.modelXbrl.qnameConcepts[qn])
+                        if qn in self.modelXbrl.qnameConcepts: # qname may be undefined or invalid and still 2.1 legal
+                            aspectsUsed.add(self.modelXbrl.qnameConcepts[qn])
                         
         # add aspects referenced by logging entries
         for logEntry in self.loggingEntries:
@@ -953,24 +965,22 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         insertFactSet(self.modelXbrl.facts, None)
         # hashes
         if self.tableFacts: # if any entries
-        
-            #check if roleTypes and datapoint ids exist
+            tableDataPoints = []
             for roleType, tableCode, fact in self.tableFacts:
-                if (self.documentIds[roleType.modelDocument], roleType.roleURI) not in self.roleTypeIds:
-                    print ("missing role type {}, {}".format(self.documentIds[roleType.modelDocument], roleType.roleURI))
-                if (self.documentIds[fact.modelDocument],elementFragmentIdentifier(fact)) not in self.factDataPointId:
-                    print ("missing fact {}, {}".format(self.documentIds[fact.modelDocument],elementFragmentIdentifier(fact)))
+                try:
+                    tableDataPoints.append((reportId,
+                                            self.roleTypeIds[(self.documentIds[roleType.modelDocument], 
+                                                              roleType.roleURI)],
+                                            tableCode,
+                                            self.factDataPointId[(self.documentIds[fact.modelDocument],
+                                                                  elementFragmentIdentifier(fact))]))
+                except KeyError:
+                    # print ("missing table data points role or data point")
+                    pass
             table = self.getTable('table_data_points', None, 
                                   ('report_id', 'object_id', 'table_code', 'datapoint_id'), 
                                   ('report_id', 'object_id', 'datapoint_id'), 
-                                  tuple((reportId,
-                                         self.roleTypeIds[(self.documentIds[roleType.modelDocument], 
-                                                           roleType.roleURI)],
-                                         tableCode,
-                                         self.factDataPointId[(self.documentIds[fact.modelDocument],
-                                                               elementFragmentIdentifier(fact))])
-                                        for roleType, tableCode, fact in self.tableFacts))
-                                         
+                                  tableDataPoints)                                         
 
     def insertValidationResults(self):
         reportId = self.reportId
