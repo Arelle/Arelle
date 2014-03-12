@@ -224,7 +224,11 @@ class ParticlesList(list):
         particlesList = []
         for particle in self:
             if isinstance(particle, ModelConcept):
-                p = str(particle.dereference().qname)
+                mdlObj = particle.dereference()
+                if isinstance(mdlObj, ModelObject):
+                    p = str(mdlObj.qname)
+                else:
+                    p = 'None'
             elif isinstance(particle, ModelAny):
                 p = "any"
             else:
@@ -1254,7 +1258,8 @@ class ModelType(ModelNamableTerm):
                     "{http://www.w3.org/2001/XMLSchema}length", "{http://www.w3.org/2001/XMLSchema}minLength", 
                     "{http://www.w3.org/2001/XMLSchema}maxLength", 
                     "{http://www.w3.org/2001/XMLSchema}pattern", "{http://www.w3.org/2001/XMLSchema}whiteSpace",  
-                    "{http://www.w3.org/2001/XMLSchema}maxInclusive", "{http://www.w3.org/2001/XMLSchema}maxExclusive", "{http://www.w3.org/2001/XMLSchema}minExclusive", 
+                    "{http://www.w3.org/2001/XMLSchema}maxInclusive", "{http://www.w3.org/2001/XMLSchema}minInclusive", 
+                    "{http://www.w3.org/2001/XMLSchema}maxExclusive", "{http://www.w3.org/2001/XMLSchema}minExclusive", 
                     "{http://www.w3.org/2001/XMLSchema}totalDigits", "{http://www.w3.org/2001/XMLSchema}fractionDigits")):
             facetValue = XmlValidate.validateFacet(self, facetElt)
             facetName = facetElt.localName

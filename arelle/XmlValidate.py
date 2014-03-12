@@ -485,7 +485,7 @@ def validateFacet(typeElt, facetElt):
     if facetName in ("length", "minLength", "maxLength", "totalDigits", "fractionDigits"):
         baseXsdType = "integer"
         facets = None
-    elif facetName in ("maxInclusive", "maxExclusive", "minExclusive"):
+    elif facetName in ("minInclusive", "maxInclusive", "minExclusive", "maxExclusive"):
         baseXsdType = typeElt.baseXsdType
         facets = None
     elif facetName == "whiteSpace":
