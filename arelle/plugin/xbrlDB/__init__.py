@@ -27,6 +27,7 @@ dbTypes = {
     "mysqlSemantic": insertIntoSemanticSqlDB,
     "orclSemantic": insertIntoSemanticSqlDB,
     "pgSemantic": insertIntoSemanticSqlDB,
+    "sqliteSemantic": insertIntoSemanticSqlDB,
     "rexster": insertIntoRexsterDB,
     "rdfDB": insertIntoRdfDB,
     "json": insertIntoJsonDB
@@ -38,6 +39,7 @@ dbProduct = {
     "mysqlSemantic": "mysql",
     "orclSemantic": "orcl",
     "pgSemantic": "postgres",
+    "sqliteSemantic": "sqlite",
     "rexster": None,
     "rdfDB": None,
     "json": None

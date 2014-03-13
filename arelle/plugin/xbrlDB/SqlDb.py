@@ -83,6 +83,22 @@ except ImportError:
     mssqlOperationalError = mssqlProgrammingError = mssqlInterfaceError = mssqlInternalError = \
         mssqlDataError = mssqlIntegrityError = NoopException
 
+try: 
+    import sqlite3
+    hasSQLite = True
+    sqliteConnect = sqlite3.connect
+    sqliteOperationalError = sqlite3.OperationalError
+    sqliteProgrammingError = sqlite3.ProgrammingError
+    sqliteInterfaceError = sqlite3.InterfaceError
+    sqliteInternalError = sqlite3.InternalError
+    sqliteDataError = sqlite3.DataError
+    sqliteIntegrityError = sqlite3.IntegrityError
+except ImportError:
+    hasSQLite = False
+    sqliteConnect = noop
+    sqliteOperationalError = sqliteProgrammingError = sqliteInterfaceError = sqliteInternalError = \
+        sqliteDataError = sqliteIntegrityError = NoopException
+
 
 
 
@@ -101,10 +117,12 @@ def isSqlConnection(host, port, timeout=10, product=None):
                                                     ":{}".format(port) if port else ""))
             elif product == "mssql" and hasMSSql:
                 mssqlConnect(user='', host=host, socket_timeout=t)
-        except (pgProgrammingError, mysqlProgrammingError, oracleDatabaseError):
+            elif product == "sqlite" and hasSQLite:
+                sqliteConnect("", t) # needs a database specified for this test
+        except (pgProgrammingError, mysqlProgrammingError, oracleDatabaseError, sqliteDatabaseError):
             return True # success, this is really a postgres socket, wants user name
         except (pgInterfaceError, mysqlInterfaceError, oracleInterfaceError, 
-                mssqlOperationalError, mssqlInterfaceError):
+                mssqlOperationalError, mssqlInterfaceError, sqliteInterfaceError):
             return False # something is there but not postgres
         except socket.timeout:
             t = t + 2  # relax - try again with longer timeout
@@ -161,6 +179,13 @@ class SqlDbConnection():
                                               host, # e.g., localhost\\SQLEXPRESS
                                               database))
             self.product = product
+        elif product == "sqlite":
+            if not hasSQLite:
+                raise XPDBException("xpgDB:MissingSQLiteInterface",
+                                    _("SQLite interface is not installed")) 
+            self.conn = sqliteConnect(database, (timeout or 60))
+            self.product = product
+            self.syncSequences = False # for object_id coordination of autoincrement values
         else:
             self.product = None
         self.tableColTypes = {}
@@ -266,11 +291,17 @@ class SqlDbConnection():
             result = self.execute('LOCK TABLES {}'
                                   .format(', '.join(['{} WRITE'.format(t) for t in tableNames])),
                                   close=False, commit=False, fetch=False, action="dropping table")
+        elif self.product in ("sqlite",):
+            result = self.execute('BEGIN TRANSACTION',
+                                  close=False, commit=False, fetch=False, action="dropping table")
         # note, there is no lock for MS SQL (as far as I could find)
         
     def unlockAllTables(self):
         if self.product in ("mysql",):
             result = self.execute('UNLOCK TABLES',
+                                  close=False, commit=False, fetch=False, action="dropping table")
+        elif self.product in ("sqlite",):
+            result = self.execute('COMMIT TRANSACTION',
                                   close=False, commit=False, fetch=False, action="dropping table")
         
     def execute(self, sql, commit=False, close=True, fetch=True, params=None, action="execute"):
@@ -405,7 +436,8 @@ class SqlDbConnection():
                    self.execute({"postgres":"SELECT tablename FROM pg_tables WHERE schemaname = 'public';",
                                  "mysql": "SHOW tables;",
                                  "mssql": "SELECT * FROM sys.TABLES;",
-                                 "orcl": "SELECT table_name FROM user_tables"
+                                 "orcl": "SELECT table_name FROM user_tables",
+                                 "sqlite": "SELECT name FROM sqlite_master WHERE type='table';"
                                  }[self.product]))
     
     def sequencesInDB(self):
@@ -450,6 +482,15 @@ class SqlDbConnection():
                         colDecl = fulltype
                     colTypes.append( (name, fulltype, colDecl) )
                 # print ("col types for {} = {} ".format(table, colTypes))
+            elif self.product == "sqlite":
+                colTypesResult = self.execute("PRAGMA table_info('{0}')"
+                                              .format( table )) # table name is not " " quoted here
+                colTypes = []
+                for cid, name, type, notnull, dflt_value, pk in colTypesResult:
+                    name = name.lower()
+                    type = type.lower()
+                    colTypes.append( (name, type, type) )
+                # print ("col types for {} = {} ".format(table, colTypes))
             else:
                 colTypes = self.execute("SELECT c.column_name, c.data_type, {0} "
                                             "FROM information_schema.columns c "
@@ -473,7 +514,7 @@ class SqlDbConnection():
                                               str))
                                              for name, fulltype, colDecl in colTypes
                                              for typename in (fulltype.partition(' ')[0],))
-            if self.product in ('mysql', 'mssql', 'orcl'):
+            if self.product in ('mysql', 'mssql', 'orcl', 'sqlite'):
                 self.tableColDeclaration[table] = dict((name, colDecl)
                                                        for name, fulltype, colDecl in colTypes)
                                                        
@@ -490,6 +531,7 @@ class SqlDbConnection():
         isOracle = self.product == "orcl"
         isMSSql = self.product == "mssql"
         isPostgres = self.product == "postgres"
+        isSQLite = self.product == "sqlite"
         returningCols = []
         if idCol: # idCol is the first returned column if present
             returningCols.append(idCol)
@@ -517,7 +559,7 @@ class SqlDbConnection():
             colValues = []
             for col in row:
                 if isinstance(col, bool):
-                    if isOracle or isMSSql:
+                    if isOracle or isMSSql or isSQLite:
                         colValues.append('1' if col else '0')
                     else:
                         colValues.append('TRUE' if col else 'FALSE')
@@ -535,8 +577,10 @@ class SqlDbConnection():
                         colValues.append('NULL')
                 elif isinstance(col, (datetime.date, datetime.datetime)) and self.product == "orcl":
                     colValues.append("DATE '{:04}-{:02}-{:02}'".format(col.year, col.month, col.day))
-                elif isinstance(col, datetime.datetime) and self.product == "mssql":
+                elif isinstance(col, datetime.datetime) and (isMSSql or isSQLite):
                     colValues.append("'{:04}-{:02}-{:02} {:02}:{:02}:{:02}'".format(col.year, col.month, col.day, col.hour, col.minute, col.second))
+                elif isinstance(col, datetime.date) and (isMSSql or isSQLite):
+                    colValues.append("'{:04}-{:02}-{:02}'".format(col.year, col.month, col.day))
                 elif col is None:
                     colValues.append('NULL')
                 elif isinstance(col, _STR_BASE) and len(col) >= 4000 and (isOracle or isMSSql):
@@ -726,6 +770,60 @@ WITH row_values (%(newCols)s) AS (
                                                     for col in returningCols)}, None, True))
             sql.append(("DROP TABLE %(inputTable)s" %
                          {"inputTable": _inputTableName}, None, False))
+        elif self.product == "sqlite":
+            sql = [("CREATE TEMP TABLE %(inputTable)s ( %(inputCols)s );" %
+                        {"inputTable": _inputTableName,
+                         "inputCols": ', '.join('{0} {1}'.format(newCol, colDeclarations[newCol])
+                                                for newCol in newCols)}, None, False)]
+            # break values insertion into 1000's each
+            def insertSQLiteRows(i, j, params):
+                sql.append(("INSERT INTO %(inputTable)s ( %(newCols)s ) VALUES %(values)s;" %     
+                        {"inputTable": _inputTableName,
+                         "newCols": ', '.join(newCols),
+                         "values": ", ".join(rowValues[i:j])}, params, False))
+            iMax = len(rowValues)
+            i = 0
+            while (i < iMax):
+                for j in range(i, min(i+500, iMax)):
+                    if rowLongValues[j] is not None:
+                        if j > i:
+                            insertSQLiteRows(i, j, None)
+                        insertSQLiteRows(j, j+1, rowLongValues[j])
+                        i = j + 1
+                        break
+                if i < j+1 and i < iMax:
+                    insertSQLiteRows(i, j+1, None)
+                    i = j+1
+            if insertIfNotMatched:
+                if checkIfExisting:
+                    _where = ('WHERE NOT EXISTS (SELECT 1 FROM %(table)s x WHERE %(match)s)' %
+                              {"table": _table,
+                               "match": ' AND '.join('x.{0} {1} i.{0}'.format(col, comparisonOperator) 
+                                                     for col in matchCols)})
+                else:
+                    _where = "";
+                sql.append( ("INSERT INTO %(table)s ( %(newCols)s ) SELECT %(newCols)s FROM %(inputTable)s i %(where)s;" %     
+                                {"inputTable": _inputTableName,
+                                 "table": _table,
+                                 "newCols": ', '.join(newCols),
+                                 "where": _where}, None, False) )
+            sql.append(# don't know how to get status if existing
+                   ("SELECT %(returningCols)s %(statusIfExisting)s from %(inputTable)s JOIN %(table)s ON ( %(match)s );" %
+                        {"inputTable": _inputTableName,
+                         "table": _table,
+                         "newCols": ', '.join(newCols),
+                         "match": ' AND '.join('{0}.{2} = {1}.{2}'.format(_table,_inputTableName,col) 
+                                    for col in matchCols),
+                         "statusIfExisting": ", 0" if returnExistenceStatus else "",
+                         "returningCols": ', '.join('{0}.{1}'.format(_table,col)
+                                                    for col in returningCols)}, None, True))
+            sql.append(("DROP TABLE %(inputTable)s;" %
+                         {"inputTable": _inputTableName}, None, False))
+            if insertIfNotMatched and self.syncSequences:
+                sql.append( ("update sqlite_sequence "
+                             "set seq = (select seq from sqlite_sequence where name = '%(table)s') " 
+                             "where name != '%(table)s';" % 
+                              {"table": _table}, None, False) )
         if TRACESQLFILE:
             with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
                 fh.write("\n\n>>> accession {0} table {1} sql length {2} row count {3}\n"
@@ -757,6 +855,7 @@ WITH row_values (%(newCols)s) AS (
             # nothing can be done, just return
             return () # place breakpoint here to debug
         isOracle = self.product == "orcl"
+        isSQLite = self.product == "sqlite"
         idCol = cols[0]
         colTypeFunctions = self.columnTypeFunctions(table)
         colDeclarations = self.tableColDeclaration.get(table)
@@ -783,8 +882,14 @@ WITH row_values (%(newCols)s) AS (
                     if cast:
                         colValues[i] = colValues[i] + cast
             rowColValues = ", ".join(colValues)
-            rowValues.append("(" + rowColValues + ")" if not isOracle else rowColValues)
-        values = ", \n".join(rowValues)
+            if isOracle:
+                rowValues.append(rowColValues)
+            elif isSQLite:
+                rowValues.append(colValues)
+            else:
+                rowValues.append("(" + rowColValues + ")")
+        if not isOracle and not isSQLite:
+            values = ", \n".join(rowValues)
         
         _table = self.dbTableName(table)
         _inputTableName = self.tempInputTableName
@@ -862,6 +967,15 @@ WITH input (%(valCols)s) AS ( VALUES %(values)s )
                                                for i, col in enumerate(cols)
                                                if i > 0)})
             sql.append("DROP TABLE %(inputTable)s" % {"inputTable": _inputTableName})
+        elif self.product == "sqlite":
+            sql = ["UPDATE %(table)s SET %(settings)s WHERE %(idCol)s = %(idVal)s;" %     
+                            {"table": _table,
+                             "idCol": idCol,
+                             "idVal": rowValue[0],
+                             "settings": ', '.join('{0} = {1}'.format(col,rowValue[i])
+                                                   for i, col in enumerate(cols)
+                                                   if i > 0)}
+                   for rowValue in rowValues]
         if TRACESQLFILE:
             with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
                 fh.write("\n\n>>> accession {0} table {1} sql length {2} row count {3}\n"

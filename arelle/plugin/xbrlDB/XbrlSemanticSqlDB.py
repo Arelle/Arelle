@@ -134,6 +134,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             
             self.dropTemporaryTable()
             startedAt = time.time()
+            self.syncSequences = True # for data base types that don't explicity handle sequences
             self.insertFiling(rssItem)
             self.modelXbrl.profileStat(_("XbrlSqlDB: Filing insertion"), time.time() - startedAt)
             startedAt = time.time()
