@@ -249,6 +249,12 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                             if "compositor" in errArgs:  # compositor is an object, provide friendly string
                                 errArgs["compositor"] = modelGroupCompositorTitle(errArgs["compositor"])
                             modelXbrl.error(*errDesc,**errArgs)
+                                                        
+                            # when error is in an xbrli element, check any further unvalidated children
+                            if qnElt.namespaceURI == XbrlConst.xbrli:
+                                for childElt in childElts:
+                                    if (getattr(childElt,"xValid", UNVALIDATED) == UNVALIDATED):
+                                        validate(modelXbrl, childElt, ixFacts=ixFacts)                                
                     recurse = False # cancel child element validation below, recursion was within validateElementSequence
                 except AttributeError as ex:
                     raise ex
