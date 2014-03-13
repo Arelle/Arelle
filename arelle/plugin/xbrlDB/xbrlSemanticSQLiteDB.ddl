@@ -1,6 +1,6 @@
 -- This DDL (SQL) script initializes a database for the XBRL Abstract Model Postgres
 
--- (c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
+-- (c) Copyright 2014 Mark V Systems Limited, California US, All rights reserved.  
 -- Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 -- drop tables and sequences
@@ -293,6 +293,29 @@ CREATE TABLE industry (
     PRIMARY KEY (industry_id)
 );
 
+CREATE TABLE industry_level (
+    industry_level_id INTEGER,
+    industry_classification TEXT,
+    ancestor_id INTEGER,
+    ancestor_code integer,
+    ancestor_depth integer,
+    descendant_id INTEGER,
+    descendant_code integer,
+    descendant_depth integer,
+    PRIMARY KEY (industry_level_id)
+);
+
+CREATE TABLE industry_structure (
+    industry_structure_id INTEGER,
+    industry_classification TEXT NOT NULL,
+    depth integer NOT NULL,
+    level_name TEXT,
+    PRIMARY KEY (industry_structure_id)
+);
+
+--
+-- optional inserts for standard industry codes
+--
 INSERT INTO industry (industry_id, industry_classification, industry_code, industry_description, depth, parent_id) VALUES
 (4315, 'SEC', 3576, 'Computer Communications Equipment', 4, 2424),
 (4316, 'SEC', 4955, 'Hazardous Waste Management', 4, 2552),
@@ -4648,18 +4671,6 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 -- Data for Name: industry_level; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-
-CREATE TABLE industry_level (
-    industry_level_id INTEGER,
-    industry_classification TEXT,
-    ancestor_id INTEGER,
-    ancestor_code integer,
-    ancestor_depth integer,
-    descendant_id INTEGER,
-    descendant_code integer,
-    descendant_depth integer,
-    PRIMARY KEY (industry_level_id)
-);
 
 INSERT INTO industry_level (industry_level_id, industry_classification, ancestor_id, ancestor_code, ancestor_depth, descendant_id, descendant_code, descendant_depth) VALUES
 (1, 'SEC', 2677, 6300, 2, 2689, 6390, 3),
@@ -14033,14 +14044,6 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (9324, 'NAICS', 2037, 81, 1, 2082, 81221, 4),
 (9325, 'NAICS', 2037, 81, 1, 2078, 812191, 5),
 (9326, 'SIC', 3681, 4810, 3, 3682, 4812, 4;
-
-CREATE TABLE industry_structure (
-    industry_structure_id INTEGER,
-    industry_classification TEXT NOT NULL,
-    depth integer NOT NULL,
-    level_name TEXT,
-    PRIMARY KEY (industry_structure_id)
-);
 
 INSERT INTO industry_structure (industry_structure_id, industry_classification, depth, level_name) VALUES
 (1, 'SIC', 1, 'Division'),
