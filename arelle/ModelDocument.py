@@ -600,6 +600,9 @@ class ModelDocument:
     def close(self, visited=None, urlDocs=None):
         if visited is None: visited = []
         visited.append(self)
+        # note that self.modelXbrl has been closed/dereferenced already, do not use in plug in
+        for pluginMethod in pluginClassMethods("ModelDocument.CustomCloser"):
+            pluginMethod(self)
         try:
             for referencedDocument, modelDocumentReference in self.referencesDocument.items():
                 if referencedDocument not in visited:

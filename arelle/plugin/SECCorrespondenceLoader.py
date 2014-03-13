@@ -6,10 +6,12 @@ that loads a Correspondence tar.gz file.
 
 (c) Copyright 2014 Mark V Systems Limited, All rights reserved.
 '''
-import datetime, re, os
+import datetime, re, os, time
 from arelle import FileSource, ModelDocument
 from arelle.ModelRssObject import ModelRssObject
 from arelle.XmlValidate import UNVALIDATED, VALID
+
+TEMPDIR = "/tmp/arelle/edgarFeed"
 
 class SECCorrespondenceItem:
     def __init__(self, modelXbrl, fileName, entryUrl):
@@ -71,18 +73,31 @@ def secCorrespondenceLoader(modelXbrl, mappedUri, filepath, **kwargs):
         
         # daily feed loader (the rss object)
         rssObject = ModelRssObject(modelXbrl, uri=mappedUri, filepath=filepath)
+        
+        # remove prior files
+        if os.path.exists("/tmp/arelle/edgarFeed"):
+            os.system("rm -fr /tmp/arelle/edgarFeed")
+        os.makedirs(TEMPDIR, exist_ok=True)
+        # untar to /temp/arelle/edgarFeed for faster operation
+        startedAt = time.time()
+        modelXbrl.fileSource.open()
+        modelXbrl.fileSource.fs.extractall(TEMPDIR)
+        modelXbrl.info("info", "untar edgarFeed temp files in %.2f sec" % (time.time() - startedAt), 
+                       modelObject=modelXbrl)
             
         # find <table> with <a>Download in it
-        for instanceFile in modelXbrl.fileSource.dir:
+        for instanceFile in sorted(os.listdir(TEMPDIR)): # modelXbrl.fileSource.dir:
             if instanceFile != ".":
                 rssObject.rssItems.append(
                     SECCorrespondenceItem(modelXbrl, instanceFile, mappedUri + '/' + instanceFile))
         return rssObject
     elif "rssItem" in kwargs and ".nc.tar.gz/" in mappedUri:
         rssItem = kwargs["rssItem"]
+        text = None # no instance information
         # parse document
         try:
-            file, encoding = modelXbrl.fileSource.file(rssItem.url)
+            startedAt = time.time()
+            file, encoding = modelXbrl.fileSource.file(TEMPDIR + '/' + os.path.basename(rssItem.url)) # rssItem.url)
             s = file.read()
             file.close()
             for match in re.finditer(r"[<]([^>]+)[>]([^<\n\r]*)", s, re.MULTILINE):
@@ -134,14 +149,23 @@ def secCorrespondenceLoader(modelXbrl, mappedUri, filepath, **kwargs):
                 if match:
                     text = match.group(1)
         except (IOError, EnvironmentError):
-            return None # give up, use ordinary loader
+            pass # give up, no instance
         # daily rss item loader, provide unpopulated instance document to be filled in by RssItem.Xbrl.Loaded
-        instDoc = ModelDocument.create(modelXbrl, 
-                                       ModelDocument.Type.INSTANCE,
-                                       rssItem.url,
-                                       isEntry=True,
-                                       base='', # block pathname from becomming absolute
-                                       initialXml='''
+        if not text:
+            rssItem.doNotProcessRSSitem = True # skip this RSS item in validate loop, don't load DB
+            instDoc = ModelDocument.create(modelXbrl, 
+                                           ModelDocument.Type.UnknownXML,
+                                           rssItem.url,
+                                           isEntry=True,
+                                           base='', # block pathname from becomming absolute
+                                           initialXml='<DummyXml/>')
+        else:
+            instDoc = ModelDocument.create(modelXbrl, 
+                                           ModelDocument.Type.INSTANCE,
+                                           rssItem.url,
+                                           isEntry=True,
+                                           base='', # block pathname from becomming absolute
+                                           initialXml='''
 <xbrli:xbrl xmlns:doc="http://arelle.org/doc/2014-01-31" 
     xmlns:link="http://www.xbrl.org/2003/linkbase" 
     xmlns:xlink="http://www.w3.org/1999/xlink" 
@@ -157,12 +181,23 @@ def secCorrespondenceLoader(modelXbrl, mappedUri, filepath, **kwargs):
     </xbrli:context>
     <doc:Correspondence contextRef="pubDate">{text}</doc:Correspondence>
 </xbrli:xbrl>
-        '''.format(cik=rssItem.cikNumber,
-                   pubDate=rssItem.pubDate.date(),
-                   text=text.strip().replace("&","&amp;").replace("<","&lt;")))
+            '''.format(cik=rssItem.cikNumber,
+                       pubDate=rssItem.pubDate.date(),
+                       text=text.strip().replace("&","&amp;").replace("<","&lt;")))
+            #modelXbrl.info("info", "loaded in %.2f sec" % (time.time() - startedAt),
+            #               modelDocument=instDoc)
         return instDoc
 
     return None
+
+def secCorrespondenceCloser(modelDocument):
+    if (modelDocument.uri.startswith("http://www.sec.gov/Archives/edgar/Feed/") and 
+        modelDocument.uri.endswith(".nc.tar.gz")):
+        # remove prior files
+        if os.path.exists("/tmp/arelle/edgarFeed"):
+            os.system("rm -fr /tmp/arelle/edgarFeed")
+        
+
 
 __pluginInfo__ = {  
     'name': 'SEC Correspondence Loader',
@@ -174,4 +209,5 @@ __pluginInfo__ = {
                  'PyPDF (c) Copyright 2012 Jeet Sukumaran',
     # classes of mount points (required)
     'ModelDocument.PullLoader': secCorrespondenceLoader,
+    'ModelDocument.CustomCloser': secCorrespondenceCloser,
 }
