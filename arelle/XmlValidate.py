@@ -251,10 +251,10 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                             modelXbrl.error(*errDesc,**errArgs)
                                                         
                             # when error is in an xbrli element, check any further unvalidated children
-                            if qnElt.namespaceURI == XbrlConst.xbrli:
-                                for childElt in childElts:
+                            if qnElt.namespaceURI == XbrlConst.xbrli and iElt < len(childElts):
+                                for childElt in childElts[iElt:]:
                                     if (getattr(childElt,"xValid", UNVALIDATED) == UNVALIDATED):
-                                        validate(modelXbrl, childElt, ixFacts=ixFacts)                                
+                                        validate(modelXbrl, childElt, ixFacts=ixFacts)
                     recurse = False # cancel child element validation below, recursion was within validateElementSequence
                 except AttributeError as ex:
                     raise ex
