@@ -670,7 +670,7 @@ class ModelDocument:
                              'rt', encoding='utf-8') as f:
                     for key, pattern in json.load(f):
                         if key != "_description_":
-                            creationSoftwareNames.append( (key, re.compile(pattern)) )
+                            creationSoftwareNames.append( (key, re.compile(pattern, re.IGNORECASE)) )
             except Exception as ex:
                 self.modelXbrl.error("arelle:creationSoftwareNamesTable",
                                      _("Error loading creation software names table %(error)s"),
