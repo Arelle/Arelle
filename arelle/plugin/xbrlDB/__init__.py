@@ -20,6 +20,7 @@ from .XbrlSemanticSqlDB import insertIntoDB as insertIntoSemanticSqlDB, isDBPort
 from .XbrlSemanticGraphDB import insertIntoDB as insertIntoRexsterDB, isDBPort as isRexsterPort
 from .XbrlSemanticRdfDB import insertIntoDB as insertIntoRdfDB, isDBPort as isRdfPort
 from .XbrlSemanticJsonDB import insertIntoDB as insertIntoJsonDB, isDBPort as isJsonPort
+from .XbrlDpmSqlDB import insertIntoDB as insertIntoDpmDB, isDBPort as isDpmPort
 
 dbTypes = {
     "postgres": insertIntoPostgresDB,
@@ -28,6 +29,7 @@ dbTypes = {
     "orclSemantic": insertIntoSemanticSqlDB,
     "pgSemantic": insertIntoSemanticSqlDB,
     "sqliteSemantic": insertIntoSemanticSqlDB,
+    "sqliteDpmDB": insertIntoDpmDB,
     "rexster": insertIntoRexsterDB,
     "rdfDB": insertIntoRdfDB,
     "json": insertIntoJsonDB
@@ -40,6 +42,7 @@ dbProduct = {
     "orclSemantic": "orcl",
     "pgSemantic": "postgres",
     "sqliteSemantic": "sqlite",
+    "sqliteDpmDB": "sqlite",
     "rexster": None,
     "rdfDB": None,
     "json": None

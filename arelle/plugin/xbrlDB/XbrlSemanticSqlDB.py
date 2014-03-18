@@ -3,10 +3,10 @@ XbrlSemanticSqlDB.py implements an SQL database interface for Arelle, based
 on a concrete realization of the Abstract Model PWD 2.0 layer.  This is a semantic 
 representation of XBRL information. 
 
-This module may save directly to a Postgres, MySQL, MSSQL, or Oracle server.
+This module may save directly to a Postgres, MySQL, SQLite, MSSQL, or Oracle server.
 
 This module provides the execution context for saving a dts and instances in 
-XBRL JSON graph.  It may be loaded by Arelle's RSS feed, or by individual
+XBRL SQL database.  It may be loaded by Arelle's RSS feed, or by individual
 DTS and instances opened by interactive or command line/web service mode.
 
 Example dialog or command line parameters for operation:
@@ -93,6 +93,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         if missingTables == XBRLDBTABLES:
             self.create({"mssql": "xbrlSemanticMSSqlDB.sql",
                          "mysql": "xbrlSemanticMySqlDB.ddl",
+                         "sqlite": "xbrlSemanticSQLiteDB.ddl",
                          "orcl": "xbrlSemanticOracleDB.sql",
                          "postgres": "xbrlSemanticPostgresDB.ddl"}[self.product])
             missingTables = XBRLDBTABLES - self.tablesInDB()

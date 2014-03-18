@@ -46,13 +46,14 @@ def askSmtp(parent, priorSmtpSettings):
     return None
 
 DBTypes = ("postgres", "mssqlSemantic", "mysqlSemantic", "orclSemantic",
-           "pgSemantic", "sqliteSemantic", "rexster", "rdfDB", "json")
+           "pgSemantic", "sqliteSemantic", "sqliteDpmDB", "rexster", "rdfDB", "json")
 DBDescriptions = ("XBRL-US Postgres SQL",
                   "Semantic MSSQL SQL",
                   "Semantic MySQL SQL",
                   "Semantic Oracle SQL",
                   "Semantic Postgres SQL",
                   "Semantic SQLite SQL",
+                  "DPM SQLite SQL",
                   "Rexter (Titan Cassandra)",
                   "RDF (Turtle, NanoSparqlServer)",
                   "JSON (JSON, MongoDB)")

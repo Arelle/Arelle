@@ -532,9 +532,11 @@ class SqlDbConnection():
         isMSSql = self.product == "mssql"
         isPostgres = self.product == "postgres"
         isSQLite = self.product == "sqlite"
+        newCols = [newCol.lower() for newCol in newCols]
+        matchCols = [matchCol.lower() for matchCol in matchCols]
         returningCols = []
         if idCol: # idCol is the first returned column if present
-            returningCols.append(idCol)
+            returningCols.append(idCol.lower())
         for matchCol in matchCols:
             if matchCol not in returningCols: # allow idCol to be specified or default assigned
                 returningCols.append(matchCol)
