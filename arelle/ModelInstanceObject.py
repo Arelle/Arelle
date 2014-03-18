@@ -343,9 +343,10 @@ class ModelFact(ModelObject):
             if concept.isNumeric:
                 val = self.value
                 try:
-                    num = float(val)
+                    # num = float(val)
                     dec = self.decimals
-                    if dec is None or dec == "INF":
+                    num = roundValue(val, self.precision, dec) # round using reported decimals
+                    if dec is None or dec == "INF":  # show using decimals or reported format
                         dec = len(val.partition(".")[2])
                     else: # max decimals at 28
                         dec = max( min(int(dec), 28), -28) # 2.7 wants short int, 3.2 takes regular int, don't use _INT here
