@@ -37,8 +37,13 @@ if __name__ == "__main__":
         with open("buildRenameLinux-x86_64.sh", "w") as fh:
             fh.write("mv dist/exe.linux-x86_64-3.2.tar.gz dist/arelle-linux-x86_64-{}.tar.gz\n".format(distFileDate))
     elif sys.platform == "linux": # python 3.3
+        if len(sys.argv) > 0 and sys.argv[1]:
+            sysName = sys.argv[1]
+        else:
+            sysName = "linux"
         with open("buildRenameLinux-x86_64.sh", "w") as fh:
-            fh.write("mv dist/exe.linux-x86_64-3.3.tar.gz dist/arelle-linux-x86_64-{}.tar.gz\n".format(distFileDate))
+            fh.write("mv dist/exe.linux-x86_64-3.3.tar.gz dist/arelle-{}-x86_64-{}.tar.gz\n"
+                     .format(sysName, distFileDate))
     elif sys.platform == "sunos5":
         with open("buildRenameSol10Sun4.sh", "w") as fh:
             fh.write("mv dist/exe.solaris-2.10-sun4v{0}-{1}.tar.gz dist/arelle-solaris10-sun4{0}-{2}.tar.gz\n"

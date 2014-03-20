@@ -4,7 +4,7 @@
 # must run sudo on ubuntu
 
 # create version with date and a shell file to name output with the date
-python3.3 buildVersion.py
+python3.3 buildVersion.py redhat
 
 BUILT64=exe.linux-x86_64-3.3
 
