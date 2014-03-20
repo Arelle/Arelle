@@ -10,12 +10,13 @@ from arelle.ModelObject import ModelObject
 elementSubstitutionModelClass = {}
 
 from lxml import etree
-from arelle import XbrlConst
+from arelle import XbrlConst, XmlUtil
 from arelle.ModelValue import qnameNsLocalName
 from arelle.ModelDtsObject import (ModelConcept, ModelAttribute, ModelAttributeGroup, ModelType, 
                                    ModelGroupDefinition, ModelAll, ModelChoice, ModelSequence,
                                    ModelAny, ModelAnyAttribute, ModelEnumeration,
                                    ModelRoleType, ModelLocator, ModelLink, ModelResource)
+ModelDocument = ModelFact = None # would be circular imports, resolve at first use after static loading
 from arelle.ModelRssItem import ModelRssItem
 from arelle.ModelTestcaseObject import ModelTestcaseVariation
 from arelle.ModelVersObject import (ModelAssignment, ModelAction, ModelNamespaceRename,
@@ -121,6 +122,11 @@ class DiscoveringClassLookup(etree.PythonElementClassLookup):
         self.modelXbrl = modelXbrl
         self.baseUrl = baseUrl
         self.discoveryAttempts = set()
+        global ModelFact, ModelDocument
+        if ModelDocument is None:
+            from arelle import ModelDocument
+        if modelXbrl.skipDTS and ModelFact is None:
+            from arelle.ModelInstanceObject import ModelFact
         
     def lookup(self, document, proxyElement):
         # check if proxyElement's namespace is not known
@@ -134,7 +140,6 @@ class DiscoveringClassLookup(etree.PythonElementClassLookup):
             ns not in self.discoveryAttempts and 
             ns not in self.modelXbrl.namespaceDocs):
             # is schema loadable?  requires a schemaLocation
-            from arelle import XmlUtil, ModelDocument
             relativeUrl = XmlUtil.schemaLocation(proxyElement, ns)
             self.discoveryAttempts.add(ns)
             if relativeUrl:
@@ -146,9 +151,21 @@ class DiscoveringClassLookup(etree.PythonElementClassLookup):
         
         if modelObjectClass is not None:
             return modelObjectClass
-        else:
-            xlinkType = proxyElement.get("{http://www.w3.org/1999/xlink}type")
-            if xlinkType == "extended": return ModelLink
-            elif xlinkType == "locator": return ModelLocator
-            elif xlinkType == "resource": return ModelResource
-            return ModelObject
+        elif (self.modelXbrl.skipDTS and 
+              ns not in (XbrlConst.xbrli, XbrlConst.link)):
+            ancestor = proxyElement.getparent()
+            while ancestor is not None:
+                tag = ancestor.tag # not a modelObject yet, just parser prototype
+                if tag.startswith("{http://www.xbrl.org/2003/instance}") or tag.startswith("{http://www.xbrl.org/2003/linkbase}"):
+                    if tag == "{http://www.xbrl.org/2003/instance}xbrl":
+                        return ModelFact # element not parented by context or footnoteLink
+                    else:
+                        break # cannot be a fact
+                ancestor = ancestor.getparent()
+                
+        xlinkType = proxyElement.get("{http://www.w3.org/1999/xlink}type")
+        if xlinkType == "extended": return ModelLink
+        elif xlinkType == "locator": return ModelLocator
+        elif xlinkType == "resource": return ModelResource
+        
+        return ModelObject

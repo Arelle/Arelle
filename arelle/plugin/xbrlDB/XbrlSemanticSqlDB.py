@@ -56,12 +56,15 @@ from collections import defaultdict
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
-                 product=None, rssItem=None):
+                 product=None, rssItem=None, **kwargs):
     xbrlDbConn = None
     try:
         xbrlDbConn = XbrlSqlDatabaseConnection(modelXbrl, user, password, host, port, database, timeout, product)
-        xbrlDbConn.verifyTables()
-        xbrlDbConn.insertXbrl(rssItem=rssItem)
+        if "rssObject" in kwargs: # initialize batch
+            xbrlDbConn.initializeBatch(kwargs["rssObject"])
+        else:
+            xbrlDbConn.verifyTables()
+            xbrlDbConn.insertXbrl(rssItem=rssItem)
         xbrlDbConn.close()
     except Exception as ex:
         if xbrlDbConn is not None:
@@ -70,7 +73,7 @@ def insertIntoDB(modelXbrl,
             except Exception as ex2:
                 pass
         raise # reraise original exception with original traceback    
-    
+        
 def isDBPort(host, port, timeout=10, product="postgres"):
     return isSqlConnection(host, port, timeout)
 
@@ -222,6 +225,16 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         break;
                 self.arcroleInInstance[arcrole] = inInstance
                 self.arcroleHasResource[arcrole] = hasResource
+                
+    def initializeBatch(self, rssObject):
+        results = self.execute("SELECT filing_number, accepted_timestamp FROM filing")
+        existingFilings = dict((filingNumber, timestamp) 
+                               for filingNumber, timestamp in results) # timestamp is a string
+        for rssItem in rssObject.rssItems:
+            if (rssItem.accessionNumber in existingFilings and
+                rssItem.acceptanceDatetime == existingFilings[rssItem.accessionNumber]):
+                rssItem.skipRssItem = True
+        
                                      
     def insertFiling(self, rssItem):
         self.showStatus("insert filing")

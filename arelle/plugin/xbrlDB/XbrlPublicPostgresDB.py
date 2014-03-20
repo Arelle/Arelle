@@ -51,7 +51,7 @@ from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
-                 product="postgres", rssItem=None):
+                 product="postgres", rssItem=None, **kwargs):
     xpgdb = None
     try:
         xpgdb = XbrlPostgresDatabaseConnection(modelXbrl, user, password, host, port, database, timeout, product)

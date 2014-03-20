@@ -321,11 +321,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
                     for footnoteLink in footnoteBuffer:
                         checkFootnoteHrefs(modelXbrl, footnoteLink)
             elif ns == XbrlConst.link:
-                if ln in ("schemaRef", "linkbaseRef"):
-                    modelDocument.discoverHref(mdlObj)
-                elif ln in ("roleRef", "arcroleRef"):
-                    modelDocument.linkbaseDiscover((mdlObj,), inInstance=True)
-                elif ln == "footnoteLink":
+                if ln == "footnoteLink":
                     XmlValidate.validate(modelXbrl, mdlObj)
                     footnoteLinks = (mdlObj,)
                     modelDocument.linkbaseDiscover(footnoteLinks, inInstance=True)
@@ -342,6 +338,11 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
                             del parentMdlObj[parentMdlObj.index(footnoteLink)]
                             footnoteLink = None
                     footnoteLinks = None
+                elif not modelXbrl.skipDTS:
+                    if ln in ("schemaRef", "linkbaseRef"):
+                            modelDocument.discoverHref(mdlObj)
+                    elif ln in ("roleRef", "arcroleRef"):
+                        modelDocument.linkbaseDiscover((mdlObj,), inInstance=True)
             elif parentMdlObj.qname == XbrlConst.qnXbrliXbrl:
                 self.numRootFacts += 1
                 XmlValidate.validate(modelXbrl, mdlObj)

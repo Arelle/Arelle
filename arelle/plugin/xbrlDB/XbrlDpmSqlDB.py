@@ -42,7 +42,8 @@ from arelle.ModelDtsObject import ModelConcept, ModelType, ModelResource, ModelR
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ModelDocument import ModelDocument
-from arelle.ModelValue import qname
+from arelle.ModelValue import (qname, qnameEltPfxName, qnameClarkName, 
+                               dateTime, DATE, DATETIME, DATEUNION)
 from arelle.ValidateXbrlCalcs import roundValue
 from arelle.XmlValidate import UNVALIDATED, VALID
 from arelle.XmlUtil import elementFragmentIdentifier, xmlstring
@@ -52,7 +53,7 @@ from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
 from .tableFacts import tableFacts
 from .primaryDocumentFacts import loadPrimaryDocumentFacts
 from collections import defaultdict
-
+from decimal import Decimal, InvalidOperation
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
@@ -106,7 +107,6 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                              "dProcessingContext", "dProcessingFact"))
             
             self.dropTemporaryTable()
-            self.syncSequences = True # for data base types that don't explicity handle sequences
  
             startedAt = time.time()
             self.insertInstance()
@@ -180,8 +180,11 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                  for cntx in self.modelXbrl.contexts.values()
                                  if cntx.qnameDims)
         
+        def met(fact):
+            return "MET({})".format(fact.qname)
+        
         def metDimKey(fact):
-            key = "MET({})".format(fact.qname)
+            key = met(fact)
             if fact.contextID in contextSortedDims:
                 key += '|' + contextSortedDims[fact.contextID]
             return key
@@ -200,6 +203,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         
         # dCloseFactTable
         dCloseTableFacts = []
+        dProcessingFacts = []
         dFacts = []
         for f in self.modelXbrl.factsInInstance:
             cntx = f.context
@@ -214,6 +218,34 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         isBool = True
                     elif baseXbrliType == "dateTimeItemType": # also is dateItemType?
                         isDateTime = True
+                xValue = f.xValue
+            else:
+                if f.isNil:
+                    xValue = None
+                else:
+                    xValue = f.value
+                    c = f.qname.localName[0]
+                    if c == 'm':
+                        isNumeric = True
+                        # not validated, do own xValue
+                        try:
+                            xValue = Decimal(xValue)
+                        except InvalidOperation:
+                            xValue = Decimal('NaN')
+                    elif c == 'd':
+                        isDateTime = True
+                        try:
+                            xValue = dateTime(xValue, type=DATEUNION, castException=ValueError)
+                        except ValueError:
+                            pass
+                    elif c == 'b':
+                        isBool = True
+                        xValue = xValue.strip()
+                        if xValue in ("true", "1"):  
+                            xValue = True
+                        elif xValue in ("false", "0"): 
+                            xValue = False
+                
             isText = not (isNumeric or isBool or isDateTime)
             if cntx is not None:
                 if any(dim.isTyped for dim in cntx.qnameDims.values()):
@@ -226,10 +258,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                    cntx.entityIdentifier[1],
                                    cntx.endDatetime.date() - datetime.timedelta(1),
                                    f.unitID,
-                                   f.xValue if isNumeric else None,
-                                   f.xValue if isDateTime else None,
-                                   f.xValue if isBool else None,
-                                   f.value if isText else None
+                                   xValue if isNumeric else None,
+                                   xValue if isDateTime else None,
+                                   xValue if isBool else None,
+                                   xValue if isText else None
                                    ))
                 else:
                     # no typed dim in fact
@@ -241,21 +273,28 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                    cntx.entityIdentifier[1],
                                    cntx.endDatetime.date() - datetime.timedelta(1),
                                    f.unitID,
-                                   f.xValue if isNumeric else None,
-                                   f.xValue if isDateTime else None,
-                                   f.xValue if isBool else None,
-                                   f.value if isText else None
+                                   xValue if isNumeric else None,
+                                   xValue if isDateTime else None,
+                                   xValue if isBool else None,
+                                   xValue if isText else None
                                    ))
                     dCloseTableFacts.append((instanceId,
                                               metDimKey(f),
                                               f.unitID,
                                               f.decimals,
-                                              f.xValue if isNumeric else None,
-                                              f.xValue if isDateTime else None,
-                                              f.xValue if isBool else None,
-                                              f.value if isText else None,
+                                              xValue if isNumeric else None,
+                                              xValue if isDateTime else None,
+                                              xValue if isBool else None,
+                                              xValue if isText else None,
                                               None
                                               ))
+                dProcessingFacts.append((instanceId,
+                                         met(f),
+                                         cntx.id,
+                                         f.value,
+                                         f.decimals,
+                                         cntx.endDatetime.date() - datetime.timedelta(1),
+                                         None))
         table = self.getTable("Fact", "FactID",
                               ("Decimals", "VariableID", "DataPointKey",
                                "InstanceID", "EntityID", "DatePeriodEnd", "Unit",
@@ -268,4 +307,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                'InstanceIdMetricDimMemHash'),
                               ('InstanceID', ),
                               dCloseTableFacts)
+        table = self.getTable("dProcessingFact", None,
+                              ('InstanceID', 'Metric', 'ContextID', 
+                               'ValueTxt', 'ValueDecimal', 'ValueDate',
+                               'Error'),
+                              ('InstanceID', ),
+                              dProcessingFacts)
 

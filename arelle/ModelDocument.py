@@ -559,6 +559,7 @@ class ModelDocument:
         self.inDTS = False
         self.definesUTR = False
 
+
     def objectId(self,refId=""):
         return "_{0}_{1}".format(refId, self.objectIndex)
     
@@ -824,6 +825,8 @@ class ModelDocument:
 
     def loadSchemalocatedSchemas(self):
         # schemaLocation requires loaded schemas for validation
+        if self.modelXbrl.skipDTS:
+            return
         for elt in self.schemaLocationElements:
             schemaLocation = elt.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation")
             if schemaLocation:
@@ -968,9 +971,10 @@ class ModelDocument:
         return None
     
     def instanceDiscover(self, xbrlElement):
-        self.schemaLinkbaseRefsDiscover(xbrlElement)
-        self.linkbaseDiscover(xbrlElement,inInstance=True) # for role/arcroleRefs and footnoteLinks
-        XmlValidate.validate(self.modelXbrl, xbrlElement) # validate instance elements
+        if not self.modelXbrl.skipDTS:
+            self.schemaLinkbaseRefsDiscover(xbrlElement)
+            self.linkbaseDiscover(xbrlElement,inInstance=True) # for role/arcroleRefs and footnoteLinks
+        XmlValidate.validate(self.modelXbrl, xbrlElement) # validate instance elements (xValid may be UNKNOWN if skipDTS)
         self.instanceContentsDiscover(xbrlElement)
 
     def instanceContentsDiscover(self,xbrlElement):

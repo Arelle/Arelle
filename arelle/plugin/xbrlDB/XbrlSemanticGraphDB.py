@@ -39,7 +39,7 @@ TRACEGREMLINFILE = None
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
-                 product=None, rssItem=None):
+                 product=None, rssItem=None, **kwargs):
     db = None
     try:
         xsgdb = XbrlSemanticGraphDatabaseConnection(modelXbrl, user, password, host, port, database, timeout)

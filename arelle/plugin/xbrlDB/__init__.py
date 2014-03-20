@@ -130,7 +130,7 @@ def xbrlDBmenuEntender(cntlr, menu):
     # add log handler
     logging.getLogger("arelle").addHandler(LogToDbHandler())    
     
-def storeIntoDB(dbConnection, modelXbrl, rssItem=None):
+def storeIntoDB(dbConnection, modelXbrl, rssItem=None, **kwargs):
     host = port = user = password = db = timeout = dbType = None
     if isinstance(dbConnection, (list, tuple)): # variable length list
         if len(dbConnection) > 0: host = dbConnection[0]
@@ -160,7 +160,7 @@ def storeIntoDB(dbConnection, modelXbrl, rssItem=None):
     else:
         modelXbrl.modelManager.addToLog('Server at "{0}:{1}" is not recognized to be either a Postgres or a Rexter service.'.format(host, port))
         return
-    insertIntoDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout, product=product, rssItem=rssItem)
+    insertIntoDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout, product=product, rssItem=rssItem, **kwargs)
     modelXbrl.modelManager.addToLog(format_string(modelXbrl.modelManager.locale, 
                           _("stored to database in %.2f secs"), 
                           time.time() - startedAt), messageCode="info", file=modelXbrl.uri)
@@ -180,6 +180,12 @@ def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl):
     from arelle.ModelDocument import Type
     if modelXbrl.modelDocument.type == Type.RSSFEED and getattr(options, "storeToXbrlDb", False):
         modelXbrl.xbrlDBconnection = options.storeToXbrlDb.split(",")
+        # for semantic SQL database check for loaded filings
+        if (len(modelXbrl.xbrlDBconnection) > 7 and
+            modelXbrl.xbrlDBconnection[6] in ("mssqlSemantic","mysqlSemantic","orclSemantic",
+                                              "pgSemantic","sqliteSemantic") and
+            modelXbrl.xbrlDBconnection[7] == "skipLoadedFilings"):
+            storeIntoDB(modelXbrl.xbrlDBconnection, modelXbrl, rssObject=modelXbrl.modelDocument)
     
 def xbrlDBCommandLineXbrlRun(cntlr, options, modelXbrl):
     from arelle.ModelDocument import Type

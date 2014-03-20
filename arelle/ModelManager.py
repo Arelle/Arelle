@@ -54,6 +54,7 @@ class ModelManager:
         self.validateInferDecimals = False
         self.validateInfoset = False
         self.validateUtr = False
+        self.skipDTS = False
         self.abortOnMajorError = False
         self.collectProfileStats = False
         self.loadedModelXbrls = []

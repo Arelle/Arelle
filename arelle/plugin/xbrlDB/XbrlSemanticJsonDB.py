@@ -53,7 +53,7 @@ JSONFILE_HOSTNAME = "jsonFile"
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
-                 product=None, rssItem=None):
+                 product=None, rssItem=None, **kwargs):
     jsondb = None
     try:
         jsondb = XbrlSemanticJsonDatabaseConnection(modelXbrl, user, password, host, port, database, timeout)

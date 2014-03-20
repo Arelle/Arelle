@@ -235,6 +235,7 @@ class ModelXbrl:
     
     def __init__(self, modelManager, errorCaptureLevel=None):
         self.modelManager = modelManager
+        self.skipDTS = modelManager.skipDTS
         self.init(errorCaptureLevel=errorCaptureLevel)
         
     def init(self, keepViews=False, errorCaptureLevel=None):

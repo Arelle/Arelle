@@ -160,6 +160,9 @@ def parseAndRun(args):
     parser.add_option("--rssReportCols", action="store", dest="rssReportCols",
                       help=_("Columns for RSS report file"))
     parser.add_option("--rssreportcols", action="store", dest="rssReportCols", help=SUPPRESS_HELP)
+    parser.add_option("--skipDTS", action="store_true", dest="skipDTS",
+                      help=_("Skip DTS activities (loading, discovery, validation), useful when an instance needs only to be parsed."))
+    parser.add_option("--skipdts", action="store_true", dest="skipDTS", help=SUPPRESS_HELP)
     parser.add_option("--logFile", action="store", dest="logFile",
                       help=_("Write log messages into file, otherwise they go to standard output.  " 
                              "If file ends in .xml it is xml-formatted, otherwise it is text. "))
@@ -560,6 +563,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if options.utrUrl:  # override disclosureSystem utrUrl
             self.modelManager.disclosureSystem.utrUrl = options.utrUrl
             # can be set now because the utr is first loaded at validation time 
+        if options.skipDTS: # skip DTS loading, discovery, etc
+            self.modelManager.skipDTS = True
             
         # disclosure system sets logging filters, override disclosure filters, if specified by command line
         if options.logLevelFilter:
