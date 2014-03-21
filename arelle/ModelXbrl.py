@@ -826,6 +826,38 @@ class ModelXbrl:
                             modelObject,
                             err, traceback.format_tb(sys.exc_info()[2])))
 
+    def effectiveMessageCode(self, messageCodes):        
+        effectiveMessageCode = None
+        for argCode in messageCodes if isinstance(messageCodes,tuple) else (messageCodes,):
+            if (isinstance(argCode, ModelValue.QName) or
+                (self.modelManager.disclosureSystem.EFM and argCode.startswith("EFM")) or
+                (self.modelManager.disclosureSystem.GFM and argCode.startswith("GFM")) or
+                (self.modelManager.disclosureSystem.HMRC and argCode.startswith("HMRC")) or
+                (self.modelManager.disclosureSystem.SBRNL and argCode.startswith("SBR.NL")) or
+                argCode[0:3] not in ("EFM", "GFM", "HMR", "SBR")):
+                effectiveMessageCode = argCode
+                break
+        return effectiveMessageCode
+
+    # isLoggingEffectiveFor( messageCodes= messageCode= level= )
+    def isLoggingEffectiveFor(self, **kwargs): # args can be messageCode(s) and level
+        logger = self.logger
+        if "messageCodes" in kwargs or "messageCode" in kwargs:
+            if "messageCodes" in kwargs:
+                messageCodes = kwargs["messageCodes"]
+            else:
+                messageCodes = kwargs["messageCode"]
+            messageCode = self.effectiveMessageCode(messageCodes)
+            codeEffective = (messageCode and
+                             (not logger.messageCodeFilter or logger.messageCodeFilter.match(messageCode))) 
+        else:
+            codeEffective = True
+        if "level" in kwargs and logger.messageLevelFilter:
+            levelEffective = logger.messageLevelFilter.match(kwargs["level"].lower())
+        else:
+            levelEffective = True
+        return codeEffective and levelEffective
+
     def logArguments(self, codes, msg, codedArgs):
         """ Prepares arguments for logger function as per info() below.
         
@@ -837,16 +869,7 @@ class ModelXbrl:
             return [(p[0],str(p[1])) if len(p) == 2 else (p[0],str(p[1]),propValues(p[2]))
                     for p in properties if 2 <= len(p) <= 3]
         # determine logCode
-        messageCode = None
-        for argCode in codes if isinstance(codes,tuple) else (codes,):
-            if (isinstance(argCode, ModelValue.QName) or
-                (self.modelManager.disclosureSystem.EFM and argCode.startswith("EFM")) or
-                (self.modelManager.disclosureSystem.GFM and argCode.startswith("GFM")) or
-                (self.modelManager.disclosureSystem.HMRC and argCode.startswith("HMRC")) or
-                (self.modelManager.disclosureSystem.SBRNL and argCode.startswith("SBR.NL")) or
-                argCode[0:3] not in ("EFM", "GFM", "HMR", "SBR")):
-                messageCode = argCode
-                break
+        messageCode = self.effectiveMessageCode(codes)
         
         # determine message and extra arguments
         fmtArgs = {}
@@ -947,7 +970,7 @@ class ModelXbrl:
         return (messageCode, 
                 (msg, fmtArgs) if fmtArgs else (msg,), 
                 extras)
-        
+
     def info(self, codes, msg, **args):
         """Same as error(), but as info
         """

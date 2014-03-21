@@ -80,6 +80,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         validateInlineXbrlGFM = (modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL and
                                  self.validateGFM)
         validateEFMpragmatic = "efm-pragmatic" in disclosureSystem.names
+        self.validateLoggingSemantic = validateLoggingSemantic = (
+              modelXbrl.isLoggingEffectiveFor(level="WARNING-SEMANTIC") or 
+              modelXbrl.isLoggingEffectiveFor(level="ERROR-SEMANTIC"))
         
         if self.validateEFM:
             for pluginXbrlMethod in pluginClassMethods("Validate.EFM.Start"):
@@ -1580,8 +1583,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 if len(usedCalcPairingsOfConcept & conceptsPresented) > 0:
                                     usedCalcPairingsOfConcept -= conceptsPresented
                         # 6.15.02, 6.15.03 semantics checks for totals and calc arcs (by tree walk)
-                        for rootConcept in parentChildRels.rootConcepts:
-                            self.checkCalcsTreeWalk(parentChildRels, rootConcept, isStatementSheet, False, conceptsUsed, set())
+                        if validateLoggingSemantic:
+                            for rootConcept in parentChildRels.rootConcepts:
+                                self.checkCalcsTreeWalk(parentChildRels, rootConcept, isStatementSheet, False, conceptsUsed, set())
                     elif arcrole == XbrlConst.summationItem:
                         if self.validateEFMorGFM:
                             # 6.14.3 check for relation concept periods

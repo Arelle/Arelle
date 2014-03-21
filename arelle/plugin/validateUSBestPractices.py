@@ -25,6 +25,9 @@ ugtDocs = ({"year": 2012,
            )
 
 def setup(val):
+    if not val.validateLoggingSemantic:  # all checks herein are SEMANTIC
+        return
+
     val.linroleDefinitionIsDisclosure = re.compile(r"-\s+Disclosure\s+-\s",
                                                    re.IGNORECASE)
     val.linkroleDefinitionStatementSheet = re.compile(r"[^-]+-\s+Statement\s+-\s+.*", # no restriction to type of statement
@@ -142,7 +145,7 @@ def setup(val):
 def factCheck(val, fact):
     concept = fact.concept
     context = fact.context
-    if concept is None or context is None:
+    if concept is None or context is None or not val.validateLoggingSemantic:
         return # not checkable
     
     try:
@@ -211,6 +214,8 @@ def factCheck(val, fact):
             value=fact.effectiveValue, err=err)
 
 def final(val, conceptsUsed):
+    if not val.validateLoggingSemantic:  # all checks herein are SEMANTIC
+        return
     ugtNamespace = val.ugtNamespace
     startedAt = time.time()
     for depType, depItems in (("Concept", val.deprecatedFactConcepts),
