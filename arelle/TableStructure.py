@@ -94,6 +94,9 @@ EFMtableCodes = [
     ("EQP", RE(STMT, notDET, isPAR, r"(?=.*reserve).*trust"), None),
     ("LC", RE(STMT, notDET, notPAR, r"(?=.*activities).*liquidati"), None),
     ("EQP", RE(STMT, notDET, isPAR, r".*def[ei][cs]it"), None),
+    ("BSV", RE(STMT, notDET,notPAR, r".*net\W+asset\W+value"), None), 
+    ("CFS", RE(STMT, notDET,notPAR, r".*cash\W*flows\W+supplemental"), None),
+    ("LAP", RE(STMT, notDET, isPAR, r".*(?!.*changes)(?=.*assets).*liquidati"), None)
     ]
 HMRCtableCodes = [
     # ELRs are parsed for these patterns in sort order until there is one match per code
