@@ -100,6 +100,10 @@ class Validate:
         self.modelXbrl.info("info", "RSS Feed", modelDocument=self.modelXbrl)
         from arelle.FileSource import openFileSource
         for rssItem in self.modelXbrl.modelDocument.rssItems:
+            if getattr(rssItem, "skipRssItem", False):
+                self.modelXbrl.info("info", _("skipping RSS Item %(accessionNumber)s %(formType)s %(companyName)s %(period)s"),
+                    modelObject=rssItem, accessionNumber=rssItem.accessionNumber, formType=rssItem.formType, companyName=rssItem.companyName, period=rssItem.period)
+                continue
             self.modelXbrl.info("info", _("RSS Item %(accessionNumber)s %(formType)s %(companyName)s %(period)s"),
                 modelObject=rssItem, accessionNumber=rssItem.accessionNumber, formType=rssItem.formType, companyName=rssItem.companyName, period=rssItem.period)
             modelXbrl = None
