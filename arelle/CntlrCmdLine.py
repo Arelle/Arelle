@@ -20,6 +20,7 @@ from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version,
 from arelle.ModelValue import qname
 from arelle.Locale import format_string
 from arelle.ModelFormulaObject import FormulaOptions
+from arelle import PluginManager
 from arelle.PluginManager import pluginClassMethods
 from arelle.WebCache import proxyTuple
 import logging
@@ -35,7 +36,7 @@ def main():
     if envArgs:
         args = shlex.split(envArgs)
     else:
-        args = None # defaults to sys.argv[1:]
+        args = sys.argv[1:]
         
     gettext.install("arelle") # needed for options messages
     parseAndRun(args)
@@ -54,8 +55,9 @@ def parseAndRun(args):
     cntlr = CntlrCmdLine()  # need controller for plug ins to be loaded
     usage = "usage: %prog [options]"
     
-    parser = OptionParser(usage, version="Arelle(r) {0}bit {1}"
-                          .format(cntlr.systemWordSize, Version.version))
+    parser = OptionParser(usage, 
+                          version="Arelle(r) {0}bit {1}".format(cntlr.systemWordSize, Version.version),
+                          conflict_handler="resolve") # allow reloading plug-in options without errors
     parser.add_option("-f", "--file", dest="entrypointFile",
                       help=_("FILENAME is an entry point, which may be "
                              "an XBRL instance, schema, linkbase file, "
@@ -282,6 +284,23 @@ def parseAndRun(args):
                                  "or specify nondefault a server name, such as cherrypy, --webserver locahost:8080:cherrypy. "
                                  "(It is possible to specify options to be defaults for the web server, such as disclosureSystem and validations, but not including file names.) "))
     pluginOptionsIndex = len(parser.option_list)
+
+    # install any dynamic plugins so their command line options can be parsed if present
+    for i, arg in enumerate(args):
+        if arg.startswith('--plugins'):
+            if len(arg) > 9 and arg[9] == '=':
+                preloadPlugins = arg[10:]
+            elif i < len(args) - 1:
+                preloadPlugins = args[i+1]
+            else:
+                preloadPlugins = ""
+            for pluginCmd in preloadPlugins.split('|'):
+                cmd = pluginCmd.strip()
+                if cmd not in ("show", "temp") and len(cmd) > 0 and cmd[0] not in ('-', '~', '+'):
+                    moduleInfo = PluginManager.addPluginModule(cmd)
+                    PluginManager.reset()
+            break
+    # add plug-in options
     for optionsExtender in pluginClassMethods("CntlrCmdLine.Options"):
         optionsExtender(parser)
     pluginLastOptionIndex = len(parser.option_list)
@@ -289,14 +308,15 @@ def parseAndRun(args):
                       action="store_true", dest="about",
                       help=_("Show product version, copyright, and license."))
     
-    if args is None and cntlr.isGAE:
+    if not args and cntlr.isGAE:
         args = ["--webserver=::gae"]
-    elif args is None and cntlr.isCGI:
+    elif not args and cntlr.isCGI:
         args = ["--webserver=::cgi"]
     elif cntlr.isMSW:
         # if called from java on Windows any empty-string arguments are lost, see:
         # http://bugs.sun.com/view_bug.do?bug_id=6518827
         # insert needed arguments
+        sourceArgs = args
         args = []
         namedOptions = set()
         optionsWithArg = set()
@@ -306,7 +326,7 @@ def parseAndRun(args):
             if option.action == "store":
                 optionsWithArg.update(names)
         priorArg = None
-        for arg in sys.argv[1:]:
+        for arg in sourceArgs:
             if priorArg in optionsWithArg and arg in namedOptions:
                 # probable java/MSFT interface bug 6518827
                 args.append('')  # add empty string argument
@@ -344,10 +364,12 @@ def parseAndRun(args):
             print(text)
         except UnicodeEncodeError:
             print(text.encode("ascii", "replace").decode("ascii"))
-    elif len(leftoverArgs) != 0 or (options.entrypointFile is None and 
-                                    ((not options.proxy) and (not options.plugins) and
-                                     (not any(pluginOption for pluginOption in parser.option_list[pluginOptionsIndex:pluginLastOptionIndex])) and
-                                     (not hasWebServer or options.webserver is None))):
+    elif len(leftoverArgs) != 0:
+        parser.error(_("unrecognized arguments: {}".format(', '.join(leftoverArgs))))
+    elif (options.entrypointFile is None and 
+          ((not options.proxy) and (not options.plugins) and
+           (not any(pluginOption for pluginOption in parser.option_list[pluginOptionsIndex:pluginLastOptionIndex])) and
+           (not hasWebServer or options.webserver is None))):
         parser.error(_("incorrect arguments, please try\n  python CntlrCmdLine.py --help"))
     elif hasWebServer and options.webserver:
         # webserver incompatible with file operations
@@ -420,7 +442,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
             else:
                 self.addToLog(_("Proxy is disabled."), messageCode="info")
         if options.plugins:
-            from arelle import PluginManager
             resetPlugins = False
             savePluginChanges = True
             showPluginModules = False
@@ -436,6 +457,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         self.addToLog(_("Addition of plug-in {0} successful.").format(moduleInfo.get("name")), 
                                       messageCode="info", file=moduleInfo.get("moduleURL"))
                         resetPlugins = True
+                        if "CntlrCmdLine.Options" in moduleInfo.classMethods:
+                            addedPluginWithCntlrCmdLineOptions = True
                     else:
                         self.addToLog(_("Unable to load plug-in."), messageCode="info", file=cmd[1:])
                 elif cmd.startswith("~"):
@@ -450,7 +473,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         resetPlugins = True
                     else:
                         self.addToLog(_("Unable to delete plug-in."), messageCode="info", file=cmd[1:])
-                else: # assume it is a module or package
+                else: # assume it is a module or package (may also have been loaded before for option parsing)
                     savePluginChanges = False
                     moduleInfo = PluginManager.addPluginModule(cmd)
                     if moduleInfo:
@@ -471,7 +494,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                   moduleItem[0], moduleInfo.get("author"), moduleInfo.get("version"), moduleInfo.get("status"),
                                   moduleInfo.get("fileDate"), moduleInfo.get("description"), moduleInfo.get("license")),
                                   messageCode="info", file=moduleInfo.get("moduleURL"))
-                
         if options.packages:
             from arelle import PackageManager
             savePackagesChanges = True
