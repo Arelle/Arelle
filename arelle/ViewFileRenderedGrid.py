@@ -7,7 +7,7 @@ Created on Sep 13, 2011
 import os
 from arelle import ViewFile
 from lxml import etree
-from arelle.RenderingResolver import resolveAxesStructure
+from arelle.RenderingResolver import resolveAxesStructure, RENDER_UNITS_PER_CHAR
 from arelle.ViewFile import HTML, XML
 from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
@@ -473,7 +473,7 @@ class ViewRenderedGrid(ViewFile.View):
                     depth = yStructuralNode.depth
                     attrib = {"style":"text-align:{0};max-width:{1}em;{2}".format(
                                             "left" if isNonAbstract or nestRow == hdrRow else "center",
-                                            # this is a wrap length max sidth in characters
+                                            # this is a wrap length max width in characters
                                             self.rowHdrColWidth[depth] if isAbstract else
                                             self.rowHdrWrapLength - sum(self.rowHdrColWidth[0:depth]),
                                             edgeBorder),
@@ -499,7 +499,7 @@ class ViewRenderedGrid(ViewFile.View):
                             etree.SubElement(self.rowElts[hdrRow], 
                                              "{http://www.w3.org/1999/xhtml}th",
                                              attrib={"class":"yAxisSpanLeg",
-                                                     "style":"text-align:center;max-width:16pt;{0}".format(edgeBorder),
+                                                     "style":"text-align:center;max-width:{0}pt;{1}".format(RENDER_UNITS_PER_CHAR, edgeBorder),
                                                      "rowspan": str(nestRow - hdrRow)}
                                              ).text = "\u00A0"
                         hdrClass = "yAxisHdr" if not childrenFirst else "yAxisHdrWithChildrenFirst"

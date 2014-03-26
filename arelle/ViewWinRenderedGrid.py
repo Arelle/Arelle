@@ -9,7 +9,7 @@ from tkinter import Menu, BooleanVar
 from arelle import (ViewWinGrid, ModelDocument, ModelDtsObject, ModelInstanceObject, XbrlConst, 
                     ModelXbrl, XmlValidate, XmlUtil, Locale, FunctionXfi)
 from arelle.ModelValue import qname, QName
-from arelle.RenderingResolver import resolveAxesStructure
+from arelle.RenderingResolver import resolveAxesStructure, RENDER_UNITS_PER_CHAR
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelRenderingObject import (ModelClosedDefinitionNode, ModelEuAxisCoord, ModelTable,
@@ -25,6 +25,9 @@ from arelle.DialogNewFactItem import getNewFactItemOptions
 from collections import defaultdict
 
 emptyList = []
+
+ENTRY_WIDTH_IN_CHARS = 12 # width of a data column entry cell in characters (nominal)
+PADDING = 20 # screen units of padding between entry cells
 
 def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing rendering"))
@@ -58,6 +61,7 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     view.viewFrame.bind("<Enter>", view.cellEnter, '+')
     view.viewFrame.bind("<Leave>", view.cellLeave, '+')
     view.viewFrame.bind("<1>", view.onClick, '+')
+    view.viewFrame.bind("<Configure>", view.onConfigure, '+') # frame resized, redo column header wrap length ratios
     view.blockMenuEvents = 0
             
 class ViewRenderedGrid(ViewWinGrid.ViewGrid):
@@ -161,6 +165,25 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         self.hasTableFilters = bool(self.modelTable.filterRelationships)
         
         if tblAxisRelSet:
+            # review row header wrap widths and limit to 2/3 of the frame width (all are screen units)
+            dataColsAllowanceWidth = (RENDER_UNITS_PER_CHAR * ENTRY_WIDTH_IN_CHARS + PADDING) * self.dataCols
+            frameWidth = self.viewFrame.winfo_width()
+            if dataColsAllowanceWidth + self.rowHdrWrapLength > frameWidth:
+                if dataColsAllowanceWidth > frameWidth / 2:
+                    rowHdrAllowanceWidth = frameWidth / 2
+                else:
+                    rowHdrAllowanceWidth = frameWidth - dataColsAllowanceWidth
+            if self.rowHdrWrapLength > rowHdrAllowanceWidth:
+                widthRatio = rowHdrAllowanceWidth / self.rowHdrWrapLength
+                self.rowHdrWrapLength = rowHdrAllowanceWidth
+                fixedWidth = sum(w for w in self.rowHdrColWidth if w <= RENDER_UNITS_PER_CHAR)
+                adjustableWidth = sum(w for w in self.rowHdrColWidth if w > RENDER_UNITS_PER_CHAR)
+                if adjustableWidth> 0:
+                    widthRatio = (rowHdrAllowanceWidth - fixedWidth) / adjustableWidth
+                    for i in range(len(self.rowHdrColWidth)):
+                        w = self.rowHdrColWidth[i]
+                        if w > RENDER_UNITS_PER_CHAR:
+                            self.rowHdrColWidth[i] = int(w * widthRatio)
             self.aspectEntryObjectIdsNode.clear()
             self.aspectEntryObjectIdsCell.clear()
             #print("tbl hdr width rowHdrCols {0}".format(self.rowHdrColWidth))
@@ -415,6 +438,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         depth = yStructuralNode.depth
                         wraplength = (self.rowHdrColWidth[depth] if isAbstract else
                                       self.rowHdrWrapLength - sum(self.rowHdrColWidth[0:depth]))
+                        if wraplength < 0:
+                            wraplength = self.rowHdrColWidth[depth]
                         if label != OPEN_ASPECT_ENTRY_SURROGATE:
                             gridHdr(self.gridRowHdr, leftCol, row, 
                                     label if label is not None else "         ", 
@@ -424,7 +449,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                     # wraplength is in screen units
                                     wraplength=wraplength,
                                     #minwidth=self.rowHdrColWidth[leftCol],
-                                    minwidth=(16 if isNonAbstract and nextRow > topRow else None),
+                                    minwidth=(RENDER_UNITS_PER_CHAR if isNonAbstract and nextRow > topRow else None),
                                     objectId=yStructuralNode.objectId(),
                                     onClick=self.onClick)
                         else:
@@ -432,7 +457,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                             self.aspectEntryObjectIdsCell[yStructuralNode.aspectEntryObjectId] = gridCombobox(
                                      self.gridRowHdr, leftCol, row, 
                                      values=self.aspectEntryValues(yStructuralNode),  
-                                     width=int(max(wraplength/16, 5)), # width is in characters, not screen units
+                                     width=int(max(wraplength/RENDER_UNITS_PER_CHAR, 5)), # width is in characters, not screen units
                                      objectId=yStructuralNode.aspectEntryObjectId,
                                      comboboxselected=self.onAspectComboboxSelection)
                         if isNonAbstract:
@@ -582,7 +607,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                     if isinstance(aspectValue, str) and aspectValue.startswith(OPEN_ASPECT_ENTRY_SURROGATE):
                                         self.factPrototypeAspectEntryObjectIds[objectId].add(aspectValue) 
                             gridCell(self.gridBody, self.dataFirstCol + i, row, value, justify=justify, 
-                                     width=12, # width is in characters, not screen units
+                                     width=ENTRY_WIDTH_IN_CHARS, # width is in characters, not screen units
                                      objectId=objectId, onClick=self.onClick)
                         else:
                             fp.clear()  # dereference
@@ -633,6 +658,20 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             except (KeyError, AttributeError):
                     pass
             self.blockViewModelObject -= 1
+            
+    def onConfigure(self, event, *args):
+        if not self.blockMenuEvents:
+            lastFrameWidth = getattr(self, "lastFrameWidth", 0)
+            frameWidth = self.tabWin.winfo_width()
+            if lastFrameWidth != frameWidth:
+                self.lastFrameWidth = frameWidth
+                if lastFrameWidth:
+                    # frame resized, recompute row header column widths and lay out table columns
+                    def sleepAndReload():
+                        time.sleep(.75)
+                        self.viewReloadDueToMenuAction()
+                    self.modelXbrl.modelManager.cntlr.uiThreadQueue.put((sleepAndReload, []))
+                    #self.modelXbrl.modelManager.cntlr.uiThreadQueue.put((self.viewReloadDueToMenuAction, []))
     
     def saveInstance(self, newFilename=None):
         if (not self.newFactItemOptions.entityIdentScheme or  # not initialized yet

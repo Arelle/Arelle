@@ -19,6 +19,8 @@ from arelle.ModelRenderingObject import (ModelEuTable, ModelTable, ModelBreakdow
                                          OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.PrototypeInstanceObject import FactPrototype
 
+RENDER_UNITS_PER_CHAR = 16 # nominal screen units per char for wrapLength computation and adjustment
+
 class ResolutionException(Exception):
     def __init__(self, code, message, **kwargs):
         self.kwargs = kwargs
@@ -158,7 +160,7 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
                 view.rowHdrColWidth[view.rowHdrCols - 1] = lastRowMinWidth 
     #view.rowHdrColWidth = (60,60,60,60,60,60,60,60,60,60,60,60,60,60)
     # use as wraplength for all row hdr name columns 200 + fixed indent and abstract mins (not incl last name col)
-    view.rowHdrWrapLength = 200 + sum(view.rowHdrColWidth[i] for i in range(view.rowHdrCols - 1))
+    view.rowHdrWrapLength = 200 + sum(view.rowHdrColWidth[:view.rowHdrCols + 1])
     view.dataFirstRow = view.colHdrTopRow + view.colHdrRows + len(view.colHdrNonStdRoles)
     view.dataFirstCol = 1 + view.rowHdrCols + len(view.rowHdrNonStdRoles)
     #view.dataFirstRow = view.colHdrTopRow + view.colHdrRows + view.colHdrDocRow + view.colHdrCodeRow
@@ -208,7 +210,7 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                                           returnMsgFormatString=not checkBoundFact)
             if label:
                 # need to et more exact word length in screen units
-                widestWordLen = max(len(w) * 16 for w in label.split())
+                widestWordLen = max(len(w) * RENDER_UNITS_PER_CHAR for w in label.split())
                 # abstract only pertains to subtree of closed nodesbut not cartesian products or open nodes
                 while structuralNode.depth >= len(view.rowHdrColWidth):
                     view.rowHdrColWidth.append(0)
@@ -255,7 +257,7 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                     if nestedDepth - 1 > view.rowHdrCols: 
                         view.rowHdrCols = nestedDepth - 1
                         for j in range(1 + ordDepth):
-                            view.rowHdrColWidth.append(16)  # min width for 'tail' of nonAbstract coordinate
+                            view.rowHdrColWidth.append(RENDER_UNITS_PER_CHAR)  # min width for 'tail' of nonAbstract coordinate
                             view.rowNonAbstractHdrSpanMin.append(0)
                     checkLabelWidth(structuralNode, checkBoundFact=False)
                     ''' 
