@@ -229,12 +229,11 @@ def hasAncestor(element, ancestorNamespaceURI, ancestorLocalNames):
 def ancestor(element, ancestorNamespaceURI, ancestorLocalNames):
     treeElt = element.getparent()
     wildNamespaceURI = not ancestorNamespaceURI or ancestorNamespaceURI == '*'
+    if not isinstance(ancestorLocalNames,tuple): ancestorLocalNames = (ancestorLocalNames ,)
+    wildLocalName = ancestorLocalNames == ('*',)
     while isinstance(treeElt,ModelObject):
         if wildNamespaceURI or treeElt.elementNamespaceURI == ancestorNamespaceURI:
-            if isinstance(ancestorLocalNames,tuple):
-                if treeElt.localName in ancestorLocalNames:
-                    return treeElt
-            elif treeElt.localName == ancestorLocalNames:
+            if treeElt.localName in ancestorLocalNames or wildLocalName:
                 return treeElt
         treeElt = treeElt.getparent()
     return None
