@@ -215,7 +215,7 @@ def checkDTS(val, modelDocument, visited):
                         
                     # 6.7.21 abstract must be duration
                     isDuration = modelConcept.periodType == "duration"
-                    if modelConcept.abstract == "true" and not isDuration:
+                    if modelConcept.isAbstract and not isDuration:
                         val.modelXbrl.error(("EFM.6.07.21", "GFM.1.03.23"),
                             _("Taxonomy schema %(schema)s element %(concept)s is abstract but period type is not duration"),
                             modelObject=modelConcept, schema=os.path.basename(modelDocument.uri), concept=modelConcept.qname)
@@ -277,6 +277,12 @@ def checkDTS(val, modelDocument, visited):
                             _("Concept %(concept)s is a fraction"),
                             modelObject=modelConcept, concept=modelConcept.qname)
     
+                    #6.7.32 (version 27) instant non numeric
+                    if not modelConcept.isNumeric and not isDuration and not modelConcept.isAbstract and not isDomainItemType:
+                        val.modelXbrl.error("EFM.6.07.32",
+                            _("Taxonomy schema %(schema)s element %(concept)s is non-numeric but period type is not duration"),
+                            modelObject=modelConcept, schema=os.path.basename(modelDocument.uri), concept=modelConcept.qname)
+                        
                     # 6.8.5 semantic check, check LC3 name
                     if name:
                         if not name[0].isupper():
