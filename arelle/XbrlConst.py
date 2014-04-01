@@ -315,7 +315,27 @@ qnTableConceptRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/tabl
 qnTableDimensionRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:dimensionRelationshipNode")
 qnTableAspectNodeMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:aspectNode")
 
+# REC
+table = "http://xbrl.org/2014/table"
+tableModel = "http://xbrl.org/2014/table/model"
+tableBreakdown = "http://xbrl.org/arcrole/2014/table-breakdown"
+tableBreakdownTree = "http://xbrl.org/arcrole/2014/breakdown-tree"
+tableDefinitionNodeSubtree = "http://xbrl.org/arcrole/2014/definition-node-subtree"
+tableFilter = "http://xbrl.org/arcrole/2014/table-filter"
+tableAspectNodeFilter = "http://xbrl.org/arcrole/2014/aspect-node-filter"
+tableParameter = "http://xbrl.org/arcrole/2014/table-parameter"
+qnTableTable = qname("{http://xbrl.org/2014/table}table:table")
+qnTableBreakdown = qname("{http://xbrl.org/2014/table}table:breakdown")
+qnTableRuleNode = qname("{http://xbrl.org/2014/table}table:ruleNode")
+qnTableRuleSet = qname("{http://xbrl.org/2014/table}table:ruleSet")
+qnTableDefinitionNode = qname("{http://xbrl.org/2014/table}table:definitionNode")
+qnTableClosedDefinitionNode = qname("{http://xbrl.org/2014/table}table:closedDefinitionNode")
+qnTableConceptRelationshipNode = qname("{http://xbrl.org/2014/table}table:conceptRelationshipNode")
+qnTableDimensionRelationshipNode = qname("{http://xbrl.org/2014/table}table:dimensionRelationshipNode")
+qnTableAspectNode = qname("{http://xbrl.org/2014/table}table:aspectNode")
+
 # 2013-MM-DD current CR
+'''
 table = "http://xbrl.org/CR/2013-11-13/table"
 tableModel = "http://xbrl.org/CR/2013-11-13/table/model"
 tableBreakdown = "http://xbrl.org/arcrole/CR/2013-11-13/table-breakdown"
@@ -333,6 +353,7 @@ qnTableClosedDefinitionNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:
 qnTableConceptRelationshipNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:conceptRelationshipNode")
 qnTableDimensionRelationshipNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:dimensionRelationshipNode")
 qnTableAspectNode = qname("{http://xbrl.org/CR/2013-11-13/table}table:aspectNode")
+'''
 
 # prior 2013-08-28 PWD
 ''' not supported
