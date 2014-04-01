@@ -74,6 +74,16 @@ class CntlrWinMain (Cntlr.Cntlr):
             parent.iconbitmap("@" + imgpath + "arelle.xbm")
             # try with gif file
             #parent.iconbitmap(path + "arelle.gif")
+        """ font size too large on Mac, compared to other platforms
+        from tkinter import font as tkFont
+        # defaults to 13 point fonts, change to 9 point
+        self.tkFontDefaultSize = tkFont.Font(font='TkDefaultFont').configure()['size']
+        print ("default font size {}".format(self.tkFontDefaultSize))
+        for name in ('TkDefaultFont', 'TkTextFont', 'TkFixedFont', 'TkMenuFont', 'TkHeadingFont', 'TkCaptionFont', 'TkSmallCaptionFont', 'TkIconFont', 'TkTooltipFont'): 
+            font = tkFont.Font(font=name)
+            font.configure(size=6)
+            print (font.configure())
+        """
 
         self.menubar = Menu(self.parent)
         self.parent["menu"] = self.menubar

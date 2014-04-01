@@ -5,7 +5,7 @@ Created on Oct 5, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os, threading, time
-from tkinter import Menu, BooleanVar
+from tkinter import Menu, BooleanVar, font as tkFont
 from arelle import (ViewWinGrid, ModelDocument, ModelDtsObject, ModelInstanceObject, XbrlConst, 
                     ModelXbrl, XmlValidate, XmlUtil, Locale, FunctionXfi)
 from arelle.ModelValue import qname, QName
@@ -166,24 +166,26 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         
         if tblAxisRelSet:
             # review row header wrap widths and limit to 2/3 of the frame width (all are screen units)
-            dataColsAllowanceWidth = (RENDER_UNITS_PER_CHAR * ENTRY_WIDTH_IN_CHARS + PADDING) * self.dataCols
+            fontWidth = tkFont.Font(font='TkTextFont').configure()['size']
+            fontWidth = fontWidth * 3 // 2
+            dataColsAllowanceWidth = (fontWidth * ENTRY_WIDTH_IN_CHARS + PADDING) * self.dataCols + PADDING
             frameWidth = self.viewFrame.winfo_width()
             if dataColsAllowanceWidth + self.rowHdrWrapLength > frameWidth:
                 if dataColsAllowanceWidth > frameWidth / 2:
                     rowHdrAllowanceWidth = frameWidth / 2
                 else:
                     rowHdrAllowanceWidth = frameWidth - dataColsAllowanceWidth
-            if self.rowHdrWrapLength > rowHdrAllowanceWidth:
-                widthRatio = rowHdrAllowanceWidth / self.rowHdrWrapLength
-                self.rowHdrWrapLength = rowHdrAllowanceWidth
-                fixedWidth = sum(w for w in self.rowHdrColWidth if w <= RENDER_UNITS_PER_CHAR)
-                adjustableWidth = sum(w for w in self.rowHdrColWidth if w > RENDER_UNITS_PER_CHAR)
-                if adjustableWidth> 0:
-                    widthRatio = (rowHdrAllowanceWidth - fixedWidth) / adjustableWidth
-                    for i in range(len(self.rowHdrColWidth)):
-                        w = self.rowHdrColWidth[i]
-                        if w > RENDER_UNITS_PER_CHAR:
-                            self.rowHdrColWidth[i] = int(w * widthRatio)
+                if self.rowHdrWrapLength > rowHdrAllowanceWidth:
+                    widthRatio = rowHdrAllowanceWidth / self.rowHdrWrapLength
+                    self.rowHdrWrapLength = rowHdrAllowanceWidth
+                    fixedWidth = sum(w for w in self.rowHdrColWidth if w <= RENDER_UNITS_PER_CHAR)
+                    adjustableWidth = sum(w for w in self.rowHdrColWidth if w > RENDER_UNITS_PER_CHAR)
+                    if adjustableWidth> 0:
+                        widthRatio = (rowHdrAllowanceWidth - fixedWidth) / adjustableWidth
+                        for i in range(len(self.rowHdrColWidth)):
+                            w = self.rowHdrColWidth[i]
+                            if w > RENDER_UNITS_PER_CHAR:
+                                self.rowHdrColWidth[i] = int(w * widthRatio)
             self.aspectEntryObjectIdsNode.clear()
             self.aspectEntryObjectIdsCell.clear()
             #print("tbl hdr width rowHdrCols {0}".format(self.rowHdrColWidth))
@@ -667,11 +669,20 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                 self.lastFrameWidth = frameWidth
                 if lastFrameWidth:
                     # frame resized, recompute row header column widths and lay out table columns
+                    """
                     def sleepAndReload():
                         time.sleep(.75)
                         self.viewReloadDueToMenuAction()
                     self.modelXbrl.modelManager.cntlr.uiThreadQueue.put((sleepAndReload, []))
+                    """
                     #self.modelXbrl.modelManager.cntlr.uiThreadQueue.put((self.viewReloadDueToMenuAction, []))
+                    def deferredReload():
+                        self.deferredReloadCount -= 1  # only do reload after all queued reload timers expire
+                        if self.deferredReloadCount <= 0:
+                            self.viewReloadDueToMenuAction()
+                    self.deferredReloadCount = getattr(self, "deferredReloadCount", 0) + 1
+                    self.viewFrame.after(1500, deferredReload)
+                            
     
     def saveInstance(self, newFilename=None):
         if (not self.newFactItemOptions.entityIdentScheme or  # not initialized yet
