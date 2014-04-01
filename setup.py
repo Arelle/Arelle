@@ -209,7 +209,8 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'): # works on ubuntu wi
             includeFiles.append(('/usr/local/lib/libxml2.so', 'libxml2.so'))
             includeFiles.append(('/usr/local/lib/libxslt.so', 'libxslt.so'))
             includeFiles.append(('/usr/local/lib/libz.so', 'libz.so'))
-    includeLibs = ['lxml', 'lxml.etree', 'lxml._elementpath', 'pg8000', 'pymysql', 
+    includeLibs = ['lxml', 'lxml.etree', 'lxml._elementpath', 'lxml.html', 
+                   'pg8000', 'pymysql', 
                     # note cx_Oracle isn't here because it is version and machine specific, ubuntu not likely working
                     'rdflib', 'rdflib.extras', 'rdflib.tools', 
                     # more rdflib plugin modules may need to be added later
@@ -265,7 +266,8 @@ elif sys.platform == 'win32':
         #
         # rdflib & isodate egg files: rename .zip cpy lib & egg-info subdirectories to site-packages directory
         #
-        "includes": ['lxml', 'lxml.etree', 'lxml._elementpath', 'pg8000', 'pymysql', 'cx_Oracle', 'pyodbc',
+        "includes": ['lxml', 'lxml.etree', 'lxml._elementpath', 'lxml.html',
+                     'pg8000', 'pymysql', 'cx_Oracle', 'pyodbc',
                      'rdflib', 'rdflib.extras', 'rdflib.tools', 
                      # more rdflib plugin modules may need to be added later
                      'rdflib.plugins', 'rdflib.plugins.memory', 
