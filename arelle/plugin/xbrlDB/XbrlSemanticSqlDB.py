@@ -155,13 +155,13 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             self.insertResources()
             self.modelXbrl.profileStat(_("XbrlSqlDB: Resources insertion"), time.time() - startedAt)
             startedAt = time.time()
-            self.insertRelationships()
-            self.modelXbrl.profileStat(_("XbrlSqlDB: Relationships insertion"), time.time() - startedAt)
-            startedAt = time.time()
             # self.modelXbrl.profileStat(_("XbrlSqlDB: DTS insertion"), time.time() - startedAt)
             startedAt = time.time()
             self.insertDataPoints()
             self.modelXbrl.profileStat(_("XbrlSqlDB: instance insertion"), time.time() - startedAt)
+            startedAt = time.time()
+            self.insertRelationships() # must follow data points for footnote relationships
+            self.modelXbrl.profileStat(_("XbrlSqlDB: Relationships insertion"), time.time() - startedAt)
             startedAt = time.time()
             self.insertValidationResults()
             self.modelXbrl.profileStat(_("XbrlSqlDB: Validation results insertion"), time.time() - startedAt)
@@ -406,7 +406,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                               ('document_url', 'document_type', 'namespace'), 
                               ('document_url',), 
                               set((ensureUrl(docUrl),
-                                   mdlDoc.type,
+                                   Type.typeName[mdlDoc.type],
                                    mdlDoc.targetNamespace) 
                                   for docUrl, mdlDoc in self.modelXbrl.urlDocs.items()
                                   if mdlDoc not in self.existingDocumentIds and 
@@ -715,6 +715,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         elif isinstance(modelObject, ModelResource):
             return self.resourceId.get((self.documentIds[modelObject.modelDocument],
                                         elementFragmentIdentifier(modelObject)))
+        elif isinstance(modelObject, ModelFact):
+            return self.factDataPointId.get((self.documentIds[modelObject.modelDocument],
+                                             elementFragmentIdentifier(modelObject)))
         else:
             return None 
     
