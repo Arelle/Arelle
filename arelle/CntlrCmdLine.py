@@ -457,7 +457,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         self.addToLog(_("Addition of plug-in {0} successful.").format(moduleInfo.get("name")), 
                                       messageCode="info", file=moduleInfo.get("moduleURL"))
                         resetPlugins = True
-                        if "CntlrCmdLine.Options" in moduleInfo.classMethods:
+                        if "CntlrCmdLine.Options" in moduleInfo["classMethods"]:
                             addedPluginWithCntlrCmdLineOptions = True
                     else:
                         self.addToLog(_("Unable to load plug-in."), messageCode="info", file=cmd[1:])
