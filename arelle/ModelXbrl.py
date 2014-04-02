@@ -436,6 +436,20 @@ class ModelXbrl:
         self.modelDocument.save(overrideFilepath)
         with open( (overrideFilepath or self.modelDocument.filepath), "w", encoding='utf-8') as fh:
             XmlUtil.writexml(fh, self.modelDocument.xmlDocument, encoding="utf-8")
+            
+    @property    
+    def prefixedNamespaces(self):
+        """Dict of prefixes for namespaces defined in DTS
+        """
+        prefixedNamespaces = {}
+        for nsDocs in self.namespaceDocs.values():
+            for nsDoc in nsDocs:
+                ns = nsDoc.targetNamespace
+                if ns:
+                    prefix = XmlUtil.xmlnsprefix(nsDoc.xmlRootElement, ns)
+                    if prefix and prefix not in prefixedNamespaces:
+                        prefixedNamespaces[prefix] = ns
+        return prefixedNamespaces 
     
     def matchContext(self, entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, dims, segOCCs, scenOCCs):
         """Finds matching context, by aspects, as in formula usage, if any

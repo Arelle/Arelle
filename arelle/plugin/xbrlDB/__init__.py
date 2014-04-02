@@ -48,6 +48,8 @@ dbProduct = {
     "json": None
     }
 
+_loadFromDBoptions = None  # only set for load, vs store operation
+
 def xbrlDBmenuEntender(cntlr, menu):
     
     def storeIntoDBMenuCommand():
@@ -160,10 +162,12 @@ def storeIntoDB(dbConnection, modelXbrl, rssItem=None, **kwargs):
     else:
         modelXbrl.modelManager.addToLog('Server at "{0}:{1}" is not recognized to be either a Postgres or a Rexter service.'.format(host, port))
         return
-    insertIntoDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout, product=product, rssItem=rssItem, **kwargs)
-    modelXbrl.modelManager.addToLog(format_string(modelXbrl.modelManager.locale, 
-                          _("stored to database in %.2f secs"), 
-                          time.time() - startedAt), messageCode="info", file=modelXbrl.uri)
+    result = insertIntoDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout, product=product, rssItem=rssItem, **kwargs)
+    if kwargs.get("logStoredMsg", True):
+        modelXbrl.modelManager.addToLog(format_string(modelXbrl.modelManager.locale, 
+                              _("stored to database in %.2f secs"), 
+                              time.time() - startedAt), messageCode="info", file=modelXbrl.uri)
+    return result
 
 def xbrlDBcommandLineOptionExtender(parser):
     # extend command line options to import sphinx files into DTS for validation
@@ -173,6 +177,12 @@ def xbrlDBcommandLineOptionExtender(parser):
                       help=_("Store into XBRL DB.  "
                              "Provides connection string: host,port,user,password,database[,timeout[,{postgres|rexster|rdfDB}]]. "
                              "Autodetects database type unless 7th parameter is provided.  "))
+    parser.add_option("--load-from-XBRL-DB", 
+                      action="store", 
+                      dest="loadFromXbrlDb", 
+                      help=_("Load from XBRL DB.  "
+                             "Provides connection string: host,port,user,password,database[,timeout[,{postgres|rexster|rdfDB}]]. "
+                             "Specifies DB parameters to load and optional file to save XBRL into.  "))
     
     logging.getLogger("arelle").addHandler(LogToDbHandler())    
 
@@ -220,6 +230,19 @@ def xbrlDBrssDoWatchAction(modelXbrl, rssWatchOptions, rssItem):
     if dbConnectionString:
         dbConnection = dbConnectionString.split(',')
         storeIntoDB(dbConnection, modelXbrl)
+        
+def xbrlDBLoaderSetup(cntlr, options, **kwargs):
+    global _loadFromDBoptions
+    # set options to load from DB (instead of load from XBRL and store in DB)
+    _loadFromDBoptions = getattr(options, "loadFromXbrlDb", None)
+
+def xbrlDBLoader(modelXbrl, mappedUri, filepath, **kwargs):
+    # check if big instance and has header with an initial incomplete tree walk (just 2 elements
+    if not _loadFromDBoptions:
+        return None
+    
+    # load from DB and save XBRL in filepath, returning modelDocument
+    return storeIntoDB(_loadFromDBoptions.split(','), modelXbrl, loadDBsaveToFile=filepath, logStoredMsg=False)
 
 class LogToDbHandler(logging.Handler):
     def __init__(self):
@@ -252,7 +275,7 @@ class LogToDbHandler(logging.Handler):
 __pluginInfo__ = {
     'name': 'XBRL Database',
     'version': '0.9',
-    'description': "This plug-in implements the XBRL Public Postgres and Abstract Model Graph Databases.  ",
+    'description': "This plug-in implements the XBRL Public Postgres, Abstract Model and DPM Databases.  ",
     'license': 'Apache-2 (Arelle plug-in), BSD license (pg8000 library)',
     'author': 'Mark V Systems Limited',
     'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved,\n'
@@ -265,10 +288,12 @@ __pluginInfo__ = {
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': xbrlDBmenuEntender,
     'CntlrCmdLine.Options': xbrlDBcommandLineOptionExtender,
+    'CntlrCmdLine.Utility.Run': xbrlDBLoaderSetup,
     'CntlrCmdLine.Xbrl.Loaded': xbrlDBCommandLineXbrlLoaded,
     'CntlrCmdLine.Xbrl.Run': xbrlDBCommandLineXbrlRun,
     'DialogRssWatch.FileChoices': xbrlDBdialogRssWatchDBconnection,
     'DialogRssWatch.ValidateChoices': xbrlDBdialogRssWatchValidateChoices,
+    'ModelDocument.PullLoader': xbrlDBLoader,
     'RssWatch.HasWatchAction': xbrlDBrssWatchHasWatchAction,
     'RssWatch.DoWatchAction': xbrlDBrssDoWatchAction,
     'Validate.RssItem': xbrlDBvalidateRssItem

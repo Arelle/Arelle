@@ -466,7 +466,7 @@ def emptyContentModel(element):
 
 # call with parent, childNamespaceURI, childLocalName, or just childQName object
 # attributes can be (localName, value) or (QName, value)
-def addChild(parent, childName1, childName2=None, attributes=None, text=None, afterSibling=None, beforeSibling=None):
+def addChild(parent, childName1, childName2=None, attributes=None, text=None, afterSibling=None, beforeSibling=None, appendChild=True):
     from arelle.FunctionXs import xsString
     modelDocument = parent.modelDocument
                     
@@ -486,7 +486,7 @@ def addChild(parent, childName1, childName2=None, attributes=None, text=None, af
         afterSibling.addnext(child)
     elif beforeSibling is not None and beforeSibling.getparent() == parent:  # sibling is a hint, parent prevails
         beforeSibling.addprevious(child)
-    else:
+    elif appendChild:
         parent.append(child)
     if attributes:
         for name, value in (attributes.items() if isinstance(attributes, dict) else

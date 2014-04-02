@@ -170,6 +170,8 @@ class ContextPrototype():  # behaves like a context
 class DimValuePrototype():
     def __init__(self, v, dimConcept, dimQname, mem, contextElement):
         from arelle.ModelValue import QName
+        if dimConcept is None:
+            dimConcept = v.modelXbrl.qnameConcepts[dimQname]
         self.dimension = dimConcept
         self.dimensionQname = dimQname
         self.contextElement = contextElement

@@ -36,33 +36,32 @@ windows
 
 '''
 
-import time, datetime, logging
-from arelle.ModelDocument import Type
-from arelle.ModelDtsObject import ModelConcept, ModelType, ModelResource, ModelRelationship
-from arelle.ModelInstanceObject import ModelFact
-from arelle.ModelXbrl import ModelXbrl
-from arelle.ModelDocument import ModelDocument
-from arelle.ModelValue import (qname, qnameEltPfxName, qnameClarkName, 
-                               dateTime, DATE, DATETIME, DATEUNION)
+import time, datetime, os
+from arelle.ModelDocument import Type, create as createModelDocument
+from arelle import Locale, ValidateXbrlDimensions
+from arelle.ModelValue import qname, dateTime
+from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.ValidateXbrlCalcs import roundValue
-from arelle.XmlValidate import UNVALIDATED, VALID
-from arelle.XmlUtil import elementFragmentIdentifier, xmlstring
+from arelle.XmlUtil import xmlstring, datetimeValue, addChild, addQnameValue
 from arelle import XbrlConst
-from arelle.UrlUtil import ensureUrl
 from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
-from .tableFacts import tableFacts
-from .primaryDocumentFacts import loadPrimaryDocumentFacts
-from collections import defaultdict
 from decimal import Decimal, InvalidOperation
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
-                 product=None, rssItem=None):
+                 product=None, rssItem=None, loadDBsaveToFile=None, **kwargs):
+    if getattr(modelXbrl, "blockDpmDBrecursion", False):
+        return None
+    result = None
     xbrlDbConn = None
     try:
         xbrlDbConn = XbrlSqlDatabaseConnection(modelXbrl, user, password, host, port, database, timeout, product)
         xbrlDbConn.verifyTables()
-        xbrlDbConn.insertXbrl(rssItem=rssItem)
+        if loadDBsaveToFile:
+            # load modelDocument from database saving to file
+            result = xbrlDbConn.loadXbrlFromDB(loadDBsaveToFile)
+        else:
+            xbrlDbConn.insertXbrl(rssItem=rssItem)
         xbrlDbConn.close()
     except Exception as ex:
         if xbrlDbConn is not None:
@@ -70,7 +69,8 @@ def insertIntoDB(modelXbrl,
                 xbrlDbConn.close(rollback=True)
             except Exception as ex2:
                 pass
-        raise # reraise original exception with original traceback    
+        raise # reraise original exception with original traceback 
+    return result   
     
 def isDBPort(host, port, timeout=10, product="postgres"):
     return isSqlConnection(host, port, timeout)
@@ -125,6 +125,22 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
     def insertInstance(self):
         now = datetime.datetime.now()
         entityCode = periodInstantDate = None
+        # find primary model taxonomy of instance
+        moduleId = None
+        if self.modelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL):
+            for refDoc, ref in self.modelXbrl.modelDocument.referencesDocument.items():
+                if refDoc.inDTS and ref.referenceType == "href":
+                    table = self.getTable('Module', 'ModuleID', 
+                                          ('TaxonomyID', 'URI'), 
+                                          ('URI',), 
+                                          ((None, # taxonomy ID
+                                            refDoc.uri
+                                            ),),
+                                          checkIfExisting=True,
+                                          returnExistenceStatus=True)
+                    for id, URI, existenceStatus in table:
+                        moduleId = id
+                        break
         for cntx in self.modelXbrl.contexts.values():
             if cntx.isInstantPeriod:
                 entityCode = cntx.entityIdentifier[1]
@@ -134,7 +150,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                'Date', 'EntityCode', 'EntityName', 'Period',
                                'EntityInternalName', 'EntityCurrency'), 
                               ('ModuleID',), 
-                              ((int(time.time()),
+                              ((moduleId,
                                 self.modelXbrl.uri,
                                 None,
                                 now,
@@ -313,4 +329,147 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                'Error'),
                               ('InstanceID', ),
                               dProcessingFacts)
+        
+    def loadXbrlFromDB(self, loadDBsaveToFile):
+        # load from database
+        modelXbrl = self.modelXbrl
+        
+        # find instance in DB
+        instanceURI = os.path.basename(loadDBsaveToFile)
+        results = self.execute("SELECT InstanceID, ModuleID FROM Instance WHERE FileName = '{}'"
+                               .format(instanceURI))
+        instanceId = moduleId = None
+        for instanceId, moduleId in results:
+            break
 
+        # find module in DB        
+        results = self.execute("SELECT URI FROM Module WHERE ModuleID = {}".format(moduleId))
+        moduleURI = None
+        for result in results:
+            moduleURI = result[0]
+            break
+        
+        if not instanceId or not moduleURI:
+            raise XPDBException("sqlDB:MissingDTS",
+                    _("The instance and module were not found for %(instanceURI)"),
+                    instanceURI = instanceURI) 
+
+
+        # create the instance document and resulting filing
+        modelXbrl.blockDpmDBrecursion = True
+        modelXbrl.modelDocument = createModelDocument(modelXbrl, 
+                                                      Type.INSTANCE,
+                                                      loadDBsaveToFile,
+                                                      schemaRefs=[moduleURI],
+                                                      isEntry=True)
+        ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl) # needs dimension defaults 
+
+        # add roleRef and arcroleRef (e.g. for footnotes, if any, see inlineXbrlDocue)
+        
+        # facts in this instance
+        factsTbl = self.execute("SELECT FactID, Decimals, VariableID, DataPointKey, EntityID, "
+                                " DatePeriodEnd, Unit, NumericValue, DateTimeValue, BoolValue, TextValue "
+                                "FROM Fact WHERE InstanceID = {}"
+                                .format(instanceId))
+        # results tuple: factId, dec, varId, dpKey, entId, datePerEnd, unit, numVal, dateVal, boolVal, textVal
+
+        # get typed dimension values
+        result = self.execute("SELECT VariableId, VariableKey FROM DataPointVariable WHERE VariableId in ({})"
+                              .format(', '.join(fact[2]
+                                                for fact in factsTbl
+                                                if fact[2])))
+        dimsTbl = dict((varId, varKey)
+                       for varId, varKey in result)
+        
+        prefixedNamespaces = modelXbrl.prefixedNamespaces
+        prefixedNamespaces["iso4217"] = XbrlConst.iso4217
+        
+        cntxTbl = {} # index by d
+        unitTbl = {}
+        
+        def typedDimElt(s):
+            # add xmlns into s for known qnames
+            tag, angleBrkt, rest = s[1:].partition('>')
+            text, angleBrkt, rest = rest.partition("<")
+            qn = qname(tag, prefixedNamespaces)
+            # a modelObject xml element is needed for all of the instance functions to manage the typed dim
+            return addChild(modelXbrl.modelDocument, qn, text=text, appendChild=False)
+        
+        # contexts and facts
+        for factId, dec, varId, dpKey, entId, datePerEnd, unit, numVal, dateVal, boolVal, textVal in factsTbl:
+            if varId:
+                if isinstance(varId, _STR_BASE):
+                    varId = int(varId)  # variable table is indexed by int, but TEXT in the instance table
+                dpKey = dimsTbl[varId]
+            metric, sep, dims = dpKey.partition('|')
+            conceptQn = qname(metric.partition('(')[2][:-1], prefixedNamespaces)
+            concept = modelXbrl.qnameConcepts.get(conceptQn)
+            if isinstance(datePerEnd, _STR_BASE):
+                datePerEnd = datetimeValue(datePerEnd, addOneDay=True)
+            if isinstance(dec, float):
+                dec = int(dec)  # must be INF or integer
+            cntxKey = (dims, entId, datePerEnd)
+            if cntxKey in cntxTbl:
+                cntxId = cntxTbl[cntxKey]
+            else:
+                cntxId = 'c{}'.format(len(cntxTbl) + 1)
+                cntxTbl[cntxKey] = cntxId
+                qnameDims = {}
+                for dim in dims.split('|'):
+                    dQn, sep, dVal = dim[:-1].partition('(')
+                    dimQname = qname(dQn, prefixedNamespaces)
+                    if dVal.startswith('<'): # typed dim
+                        mem = typedDimElt(dVal)
+                    else:
+                        mem = qname(dVal, prefixedNamespaces)
+                    qnameDims[dimQname] = DimValuePrototype(modelXbrl, None, dimQname, mem, "scenario")
+                    
+                modelXbrl.createContext("http://www.xbrl.org/lei",
+                                         entId,
+                                         'instant',
+                                         None,
+                                         datePerEnd,
+                                         None, # no dimensional validity checking (like formula does)
+                                         qnameDims, [], [],
+                                         id=cntxId)
+            if unit:
+                if unit in unitTbl:
+                    unitId = unitTbl[unit]
+                else:
+                    unitQn = qname(unit, prefixedNamespaces)
+                    unitId = 'u{}'.format(unitQn.localName)
+                    unitTbl[unit] = unitId
+                    modelXbrl.createUnit([unitQn], [], id=unitId)
+            else:
+                unitId = None
+            attrs = {"contextRef": cntxId}
+            if unitId:
+                attrs["unitRef"] = unitId
+            if dec is not None:
+                attrs["decimals"] = str(dec)  # somehow it is float from the database
+            if False: # fact.isNil:
+                attrs[XbrlConst.qnXsiNil] = "true"
+                text = None
+            elif numVal is not None:
+                num = roundValue(numVal, None, dec) # round using reported decimals
+                if dec is None or dec == "INF":  # show using decimals or reported format
+                    dec = len(numVal.partition(".")[2])
+                else: # max decimals at 28
+                    dec = max( min(int(dec), 28), -28) # 2.7 wants short int, 3.2 takes regular int, don't use _INT here
+                text = Locale.format(self.modelXbrl.locale, "%.*f", (dec, num))
+            elif dateVal is not None:
+                text = dateVal
+            elif boolVal is not None:
+                text = 'true' if boolVal.lower() in ('t', 'true', '1') else 'false'
+            else:
+                if concept.baseXsdType == "QName": # declare namespace
+                    addQnameValue(modelXbrl.modelDocument, qname(textVal, prefixedNamespaces))
+                text = textVal
+            modelXbrl.createFact(conceptQn, attributes=attrs, text=text)
+            
+        # add footnotes if any
+        
+        # save to file
+        modelXbrl.saveInstance(overrideFilepath=loadDBsaveToFile)
+        modelXbrl.modelManager.showStatus(_("Saved extracted instance"), 5000)
+        return modelXbrl.modelDocument
