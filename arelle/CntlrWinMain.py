@@ -63,6 +63,9 @@ class CntlrWinMain (Cntlr.Cntlr):
             _defaultFont = tkFont.nametofont("TkDefaultFont")
             _defaultFont.configure(size=11)
             parent.option_add("*Font", _defaultFont)
+            toolbarButtonPadding = 1
+        else:
+            toolbarButtonPadding = 4
 
         tkinter.CallWrapper = TkinterCallWrapper 
 
@@ -252,7 +255,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 try:
                     image = PhotoImage(file=image)
                     self.toolbar_images.append(image)
-                    tbControl = Button(toolbar, image=image, command=command, style="Toolbutton")
+                    tbControl = Button(toolbar, image=image, command=command, style="Toolbutton", padding=toolbarButtonPadding)
                     tbControl.grid(row=0, column=menubarColumn)
                 except TclError as err:
                     print(err)
