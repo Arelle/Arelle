@@ -9,7 +9,7 @@ This module is Arelle's controller in windowing interactive UI mode
 from arelle import PythonUtil # define 2.x or 3.x string types
 import os, sys, subprocess, pickle, time, locale, re
 from tkinter import (Tk, TclError, Toplevel, Menu, PhotoImage, StringVar, BooleanVar, N, S, E, W, EW, 
-                     HORIZONTAL, VERTICAL, END)
+                     HORIZONTAL, VERTICAL, END, font as tkFont)
 try:
     from tkinter.ttk import Frame, Button, Label, Combobox, Separator, PanedWindow, Notebook
 except ImportError:  # 3.0 versions of tkinter
@@ -59,6 +59,11 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.labelLang = overrideLang if overrideLang else self.modelManager.defaultLang
         self.data = {}
 
+        if self.isMac: # mac fonts out of scale to windows fonts
+            _defaultFont = tkFont.nametofont("TkDefaultFont")
+            _defaultFont.configure(size=11)
+            parent.option_add("*Font", _defaultFont)
+
         tkinter.CallWrapper = TkinterCallWrapper 
 
         
@@ -74,16 +79,6 @@ class CntlrWinMain (Cntlr.Cntlr):
             parent.iconbitmap("@" + imgpath + "arelle.xbm")
             # try with gif file
             #parent.iconbitmap(path + "arelle.gif")
-        """ font size too large on Mac, compared to other platforms
-        from tkinter import font as tkFont
-        # defaults to 13 point fonts, change to 9 point
-        self.tkFontDefaultSize = tkFont.Font(font='TkDefaultFont').configure()['size']
-        print ("default font size {}".format(self.tkFontDefaultSize))
-        for name in ('TkDefaultFont', 'TkTextFont', 'TkFixedFont', 'TkMenuFont', 'TkHeadingFont', 'TkCaptionFont', 'TkSmallCaptionFont', 'TkIconFont', 'TkTooltipFont'): 
-            font = tkFont.Font(font=name)
-            font.configure(size=6)
-            print (font.configure())
-        """
 
         self.menubar = Menu(self.parent)
         self.parent["menu"] = self.menubar
