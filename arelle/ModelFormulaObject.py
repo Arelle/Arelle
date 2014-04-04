@@ -1722,6 +1722,15 @@ class ModelMatchFilter(ModelFilter):
         return qname( self, self.get("dimension")) if self.get("dimension") else None
     
     @property
+    def matchAny(self):
+        try:
+            return self._matchAny
+        except AttributeError:
+            self._matchAny = self.get("matchAny") in ("true", "1")
+            return self._matchAny
+            
+    
+    @property
     def aspect(self):
         try:
             return self._aspect
@@ -1746,6 +1755,7 @@ class ModelMatchFilter(ModelFilter):
 
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         aspect = self.aspect
+        matchAll = not self.matchAny
         otherFact = xpCtx.inScopeVars.get(self.variable)
         # check that otherFact is a single fact or otherwise all match for indicated aspect
         if isinstance(otherFact,(tuple,list)):
@@ -1756,7 +1766,7 @@ class ModelMatchFilter(ModelFilter):
                     hasNonFact = True
                 elif firstFact is None:
                     firstFact = fact
-                elif not aspectMatches(xpCtx, fact, firstFact, aspect):
+                elif matchAll and not aspectMatches(xpCtx, fact, firstFact, aspect):
                     ### error
                     raise XPathContext.XPathException(xpCtx, 'xbrlmfe:inconsistentMatchedVariableSequence', 
                                                       _('Matched variable sequence includes fact {0} inconsistent in aspect {1}').format(
@@ -1764,17 +1774,24 @@ class ModelMatchFilter(ModelFilter):
                     return cmplmt
             if hasNonFact:
                 return set()
-            otherFact = firstFact
-        if not isinstance(otherFact,ModelFact):
+            if matchAll: # otherFact has the aspect value that the whole sequence has
+                otherFact = firstFact
+        if not isinstance(otherFact,(ModelFact,tuple,list)):
             return set()
-        return set(fact for fact in facts 
-                   if cmplmt ^ (aspectMatches(xpCtx, fact, otherFact, aspect))) 
+        if matchAll:
+            return set(fact for fact in facts 
+                       if cmplmt ^ (aspectMatches(xpCtx, fact, otherFact, aspect))) 
+        else:  # each otherFact may be different from the other, any one of which makes the match succeed
+            return set(fact for fact in facts 
+                       if cmplmt ^ (any(aspectMatches(xpCtx, fact, anotherFact, aspect)
+                                        for anotherFact in otherFact))) 
 
     @property
     def propertyView(self):
         return (("label", self.xlinkLabel),
                 ("aspect", self.aspectName),
                 ("dimension", self.dimension) if self.dimension else (),
+                ("matchAny", self.matchAny.lower())
                 ("variable", self.variable),
                  )
         
