@@ -174,7 +174,7 @@ class gridHdr(Label):
   
 class gridCell(Entry): 
     def __init__(self, master, x, y, value="", width=None, justify=None, objectId=None, onClick=None): 
-        Entry.__init__(self, master=master) 
+        Entry.__init__(self, master=master)
         self.valueVar = StringVar() 
         self.valueVar.trace('w', self.valueChanged)
         self.config(textvariable=self.valueVar,

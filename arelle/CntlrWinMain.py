@@ -59,10 +59,12 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.labelLang = overrideLang if overrideLang else self.modelManager.defaultLang
         self.data = {}
 
-        if self.isMac: # mac fonts out of scale to windows fonts
-            _defaultFont = tkFont.nametofont("TkDefaultFont")
+        if self.isMac: # mac Python fonts bigger than other apps (terminal, text edit, Word), and to windows Arelle
+            _defaultFont = tkFont.nametofont("TkDefaultFont") # label, status bar, treegrid
             _defaultFont.configure(size=11)
-            parent.option_add("*Font", _defaultFont)
+            _textFont = tkFont.nametofont("TkTextFont") # entry widget and combobox entry field
+            _textFont.configure(size=11)
+            #parent.option_add("*Font", _defaultFont) # would be needed if not using defaulted font
             toolbarButtonPadding = 1
         else:
             toolbarButtonPadding = 4
