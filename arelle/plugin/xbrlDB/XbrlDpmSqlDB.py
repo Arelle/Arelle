@@ -369,7 +369,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         # facts in this instance
         factsTbl = self.execute("SELECT FactID, Decimals, VariableID, DataPointKey, EntityID, "
                                 " DatePeriodEnd, Unit, NumericValue, DateTimeValue, BoolValue, TextValue "
-                                "FROM Fact WHERE InstanceID = {}"
+                                "FROM Fact WHERE InstanceID = {} "
+                                "ORDER BY substr(DataPointKey,instr(DataPointKey,'|') + 1)"
                                 .format(instanceId))
         # results tuple: factId, dec, varId, dpKey, entId, datePerEnd, unit, numVal, dateVal, boolVal, textVal
 
@@ -404,6 +405,29 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             metric, sep, dims = dpKey.partition('|')
             conceptQn = qname(metric.partition('(')[2][:-1], prefixedNamespaces)
             concept = modelXbrl.qnameConcepts.get(conceptQn)
+            isNumeric = isBool = isDateTime = isQName = isText = False
+            if concept is not None:
+                if concept.isNumeric:
+                    isNumeric = True
+                else:
+                    baseXbrliType = concept.baseXbrliType
+                    if baseXbrliType == "booleanItemType":
+                        isBool = True
+                    elif baseXbrliType == "dateTimeItemType": # also is dateItemType?
+                        isDateTime = True
+                    elif baseXbrliType == "QNameItemType":
+                        isQName = True
+            else:
+                c = conceptQn.localName[0]
+                if c == 'm':
+                    isNumeric = True
+                elif c == 'd':
+                    isDateTime = True
+                elif c == 'b':
+                    isBool = True
+                elif c == 'e':
+                    isQName = True
+            isText = not (isNumeric or isBool or isDateTime or isQName)
             if isinstance(datePerEnd, _STR_BASE):
                 datePerEnd = datetimeValue(datePerEnd, addOneDay=True)
             if isinstance(dec, float):
@@ -462,7 +486,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             elif boolVal is not None:
                 text = 'true' if boolVal.lower() in ('t', 'true', '1') else 'false'
             else:
-                if concept.baseXsdType == "QName": # declare namespace
+                if isQName: # declare namespace
                     addQnameValue(modelXbrl.modelDocument, qname(textVal, prefixedNamespaces))
                 text = textVal
             modelXbrl.createFact(conceptQn, attributes=attrs, text=text)
