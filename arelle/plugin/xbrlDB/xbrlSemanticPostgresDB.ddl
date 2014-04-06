@@ -259,6 +259,7 @@ CREATE TABLE relationship (
 CREATE INDEX relationship_index02 ON relationship USING btree (relationship_set_id); 
 CREATE INDEX relationship_index03 ON relationship USING btree (relationship_set_id, tree_depth); 
 CREATE INDEX relationship_index04 ON relationship USING btree (relationship_set_id, document_id, xml_id);
+CREATE INDEX relationship_index05 ON relationship USING btree (from_id);
 
 ALTER TABLE public.relationship OWNER TO postgres;
 
@@ -345,7 +346,6 @@ ALTER TABLE public.aspect_value_selection_set OWNER TO postgres;
 
 CREATE TABLE aspect_value_selection (
     aspect_value_selection_id bigint NOT NULL,
-    report_id bigint,
     aspect_id bigint NOT NULL,
     aspect_value_id bigint,
     is_typed_value boolean NOT NULL,

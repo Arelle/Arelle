@@ -298,7 +298,6 @@ CREATE INDEX aspect_value_selection_set_index02 ON "aspect_value_selection_set" 
 GO
 CREATE TABLE "aspect_value_selection" (
     aspect_value_selection_id bigint,
-    report_id bigint,
     aspect_id bigint NOT NULL,
     aspect_value_id bigint,
     is_typed_value bit NOT NULL,

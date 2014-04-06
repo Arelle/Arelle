@@ -358,7 +358,6 @@ CREATE TRIGGER aspect_value_sel_ins_trigger BEFORE INSERT ON "aspect_value_selec
 /
 CREATE TABLE "aspect_value_selection" (
     aspect_value_selection_id number(19) NOT NULL,
-    report_id number(19),
     aspect_id number(19) NOT NULL,
     aspect_value_id number(19),
     is_typed_value number(1) NOT NULL,
