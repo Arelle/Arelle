@@ -760,19 +760,20 @@ class ModelXbrl:
                         fbdq[DEFAULT].add(fact)
             return fbdq[memQname]
         
-    def matchFact(self, otherFact, unmatchedFactsStack=None):
+    def matchFact(self, otherFact, unmatchedFactsStack=None, deemP0inf=False):
         """Finds matching fact, by XBRL 2.1 duplicate definition (if tuple), or by
         QName and VEquality (if an item), lang and accuracy equality, as in formula and test case usage
         
         :param otherFact: Fact to match
         :type otherFact: ModelFact
+        :deemP0inf: boolean for formula validation to deem P0 facts to be VEqual as if they were P=INF
         :returns: ModelFact -- Matching fact or None
         """
         for fact in self.facts:
             if (fact.isTuple):
                 if otherFact.isDuplicateOf(fact, unmatchedFactsStack=unmatchedFactsStack):
                     return fact
-            elif (fact.qname == otherFact.qname and fact.isVEqualTo(otherFact)):
+            elif (fact.qname == otherFact.qname and fact.isVEqualTo(otherFact, deemP0inf=deemP0inf)):
                 if not fact.isNumeric:
                     if fact.xmlLang == otherFact.xmlLang:
                         return fact

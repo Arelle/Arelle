@@ -364,7 +364,7 @@ class ModelFact(ModelObject):
             return float(self.value)
         return self.value
     
-    def isVEqualTo(self, other, deemP0Equal=False):
+    def isVEqualTo(self, other, deemP0Equal=False, deemP0inf=False):
         """(bool) -- v-equality of two facts
         
         Note that facts may be in different instances
@@ -383,14 +383,17 @@ class ModelFact(ModelObject):
                     return False
                 if self.modelXbrl.modelManager.validateInferDecimals:
                     d = min((inferredDecimals(self), inferredDecimals(other))); p = None
-                    if isnan(d) and deemP0Equal:
-                        return True
+                    if isnan(d):
+                        if deemP0Equal:
+                            return True
+                        elif deemP0inf: # for test cases deem P0 as INF comparison
+                            return self.xValue == other.xValue
                 else:
                     d = None; p = min((inferredPrecision(self), inferredPrecision(other)))
                     if p == 0:
                         if deemP0Equal:
                             return True
-                        else: # for test cases treat as INF comparison
+                        elif deemP0inf: # for test cases deem P0 as INF comparison
                             return self.xValue == other.xValue
                 return roundValue(self.value,precision=p,decimals=d) == roundValue(other.value,precision=p,decimals=d)
             else:

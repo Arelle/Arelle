@@ -311,7 +311,7 @@ class Validate:
                             else:
                                 for fact in expectedInstance.facts:
                                     unmatchedFactsStack = []
-                                    if formulaOutputInstance.matchFact(fact, unmatchedFactsStack) is None:
+                                    if formulaOutputInstance.matchFact(fact, unmatchedFactsStack, deemP0inf=True) is None:
                                         if unmatchedFactsStack: # get missing nested tuple fact, if possible
                                             missingFact = unmatchedFactsStack[-1]
                                         else:
