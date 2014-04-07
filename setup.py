@@ -186,7 +186,8 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'): # works on ubuntu wi
         from setuptools import setup
         cx_FreezeExecutables = []
 
-    packages = find_packages('.') 
+    packages = find_packages('.', # note that new setuptools finds plugin and lib unwanted stuff
+                             exclude=['*.plugin.*', '*.lib.*'])
     dataFiles = None 
     includeFiles = [('arelle/config','config'), 
                     ('arelle/doc','doc'), 
@@ -246,6 +247,7 @@ elif sys.platform == 'win32':
     # setup_requires.append('py2exe')
     # FIXME: this should use the entry_points mechanism
     packages = find_packages('.')
+    print("packages={}".format(packages))
     dataFiles = None
     win32includeFiles = [('arelle\\config','config'),
                          ('arelle\\doc','doc'),
@@ -292,7 +294,8 @@ else:
     #print("Your platform {0} isn't supported".format(sys.platform)) 
     #sys.exit(1) 
     from setuptools import os, setup, find_packages
-    packages = find_packages('.')
+    packages = find_packages('.', # note that new setuptools finds plugin and lib unwanted stuff
+                             exclude=['*.plugin.*', '*.lib.*'])
     dataFiles = [        
         ('config',['arelle/config/' + f for f in os.listdir('arelle/config')]),
         ]
