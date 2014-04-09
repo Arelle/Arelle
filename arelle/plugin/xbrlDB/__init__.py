@@ -170,7 +170,7 @@ def storeIntoDB(dbConnection, modelXbrl, rssItem=None, **kwargs):
     return result
 
 def xbrlDBcommandLineOptionExtender(parser):
-    # extend command line options to import sphinx files into DTS for validation
+    # extend command line options to store to database
     parser.add_option("--store-to-XBRL-DB", 
                       action="store", 
                       dest="storeToXbrlDb", 

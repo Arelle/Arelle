@@ -102,7 +102,8 @@ CREATE UNIQUE INDEX referenced_documents_index02 ON "referenced_documents" (obje
 CREATE TABLE "aspect" (
     aspect_id number(19) NOT NULL,
     document_id number(19) NOT NULL,
-    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
+    xml_id nclob,
+    xml_child_seq varchar2(512),
     qname varchar2(1024) NOT NULL,  -- clark notation qname (do we need this?)
     name varchar2(1024) NOT NULL,  -- local qname
     datatype_id number(19),
@@ -129,7 +130,8 @@ CREATE TRIGGER aspect_insert_trigger BEFORE INSERT ON "aspect"
 CREATE TABLE "data_type" (
     data_type_id number(19) NOT NULL,
     document_id number(19) NOT NULL,
-    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
+    xml_id nclob,
+    xml_child_seq varchar2(512),
     qname varchar2(1024) NOT NULL,  -- clark notation qname (do we need this?)
     name varchar2(1024) NOT NULL,  -- local qname
     base_type varchar2(128), -- xml base type if any
@@ -148,7 +150,8 @@ CREATE TRIGGER data_type_insert_trigger BEFORE INSERT ON "data_type"
 CREATE TABLE "role_type" (
     role_type_id number(19) NOT NULL,
     document_id number(19) NOT NULL,
-    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
+    xml_id nclob,
+    xml_child_seq varchar2(512),
     role_uri varchar2(1024) NOT NULL,
     definition nclob,
     PRIMARY KEY (role_type_id)
@@ -165,7 +168,8 @@ CREATE TRIGGER role_type_insert_trigger BEFORE INSERT ON "role_type"
 CREATE TABLE "arcrole_type" (
     arcrole_type_id number(19) NOT NULL,
     document_id number(19) NOT NULL,
-    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
+    xml_id nclob,
+    xml_child_seq varchar2(512),
     arcrole_uri varchar2(1024) NOT NULL,
     cycles_allowed varchar2(10) NOT NULL,
     definition nclob,
@@ -190,14 +194,15 @@ CREATE UNIQUE INDEX used_on_index02 ON "used_on" (object_id, aspect_id);
 CREATE TABLE "resource" (
     resource_id number(19) NOT NULL,
     document_id number(19) NOT NULL,
-    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
+    xml_id nclob,
+    xml_child_seq varchar2(512),
     qname varchar2(1024) NOT NULL,  -- clark notation qname (do we need this?)
     role varchar2(1024) NOT NULL,
     value nclob,
     xml_lang varchar2(16),
     PRIMARY KEY (resource_id)
 );
-CREATE UNIQUE INDEX resource_index02 ON "resource" (document_id, xml_id);
+CREATE UNIQUE INDEX resource_index02 ON "resource" (document_id, xml_child_seq);
 
 CREATE TRIGGER resource_insert_trigger BEFORE INSERT ON "resource" 
   FOR EACH ROW
@@ -236,7 +241,8 @@ CREATE INDEX root_index02 ON "root" (relationship_set_id);
 CREATE TABLE "relationship" (
     relationship_id number(19) NOT NULL,
     document_id number(19) NOT NULL,
-    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
+    xml_id nclob,
+    xml_child_seq varchar2(512),
     relationship_set_id number(19) NOT NULL,
     reln_order binary_double,
     from_id number(19),
@@ -249,7 +255,7 @@ CREATE TABLE "relationship" (
 );
 CREATE INDEX relationship_index02 ON "relationship" (relationship_set_id);
 CREATE INDEX relationship_index03 ON "relationship" (relationship_set_id, tree_depth);
-CREATE INDEX relationship_index04 ON "relationship" (relationship_set_id, document_id, xml_id);
+CREATE INDEX relationship_index04 ON "relationship" (relationship_set_id, document_id, xml_child_seq);
 
 CREATE TRIGGER relationship_insert_trigger BEFORE INSERT ON "relationship" 
   FOR EACH ROW
@@ -261,14 +267,15 @@ CREATE TABLE "data_point" (
     datapoint_id number(19) NOT NULL,
     report_id number(19),
     document_id number(19) NOT NULL,  -- multiple inline documents are sources of data points
-    xml_id varchar2(1024),  -- xml id or element pointer (do we need this?)
+    xml_id nclob,
+    xml_child_seq varchar2(512),
     source_line integer,
     parent_datapoint_id number(19), -- id of tuple parent
     aspect_id number(19),
-    context_xml_id varchar2(1024), -- (do we need this?)
+    context_xml_id varchar2(1024), -- (max observed length 693 in SEC 2012-2014)
     entity_id number(19),
     period_id number(19),
-    aspect_value_selections_id number(19),
+    aspect_value_selection_id number(19),
     unit_id number(19),
     is_nil number(1) DEFAULT 0,
     precision_value varchar2(16),
@@ -277,7 +284,7 @@ CREATE TABLE "data_point" (
     value nclob,
     PRIMARY KEY (datapoint_id)
 );
-CREATE INDEX data_point_index02 ON "data_point" (document_id, xml_id);
+CREATE INDEX data_point_index02 ON "data_point" (document_id, xml_child_seq);
 CREATE INDEX data_point_index03 ON "data_point" (report_id);
 CREATE INDEX data_point_index04 ON "data_point" (aspect_id);
 
@@ -322,7 +329,8 @@ CREATE TRIGGER period_insert_trigger BEFORE INSERT ON "period"
 CREATE TABLE "unit" (
     unit_id number(19) NOT NULL,
     report_id number(19),
-    xml_id varchar2(1024),  -- xml id or element pointer (first if multiple)
+    xml_id nclob,
+    xml_child_seq varchar2(512),
     measures_hash varchar2(36),
     PRIMARY KEY (unit_id)
 );
@@ -364,6 +372,7 @@ CREATE TABLE "aspect_value_selection" (
     typed_value nclob
 );
 CREATE INDEX aspect_value_selection_index01 ON "aspect_value_selection" (aspect_value_selection_id);
+CREATE INDEX aspect_value_selection_index02 ON "aspect_value_selection" (aspect_id);
 
 CREATE TABLE "table_data_points"(
     report_id bigint,

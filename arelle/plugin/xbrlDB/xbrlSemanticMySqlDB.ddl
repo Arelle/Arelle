@@ -114,7 +114,8 @@ CREATE UNIQUE INDEX referenced_documents_index02 USING btree ON referenced_docum
 CREATE TABLE aspect (
     aspect_id bigint NOT NULL,
     document_id bigint NOT NULL,
-    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
+    xml_id text,  -- max size 2^16 bytes, 32,000 unicode chars
+    xml_child_seq nvarchar(512),
     qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
     name varchar(1024) NOT NULL,  -- local qname
     datatype_id bigint,
@@ -143,7 +144,8 @@ DELIMITER ;
 CREATE TABLE data_type (
     data_type_id bigint NOT NULL,
     document_id bigint NOT NULL,
-    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
+    xml_id text,  -- max size 2^16 bytes, 32,000 unicode chars
+    xml_child_seq nvarchar(512),
     qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
     name varchar(1024) NOT NULL,  -- local qname
     base_type varchar(128), -- xml base type if any
@@ -164,9 +166,10 @@ DELIMITER ;
 CREATE TABLE role_type (
     role_type_id bigint NOT NULL,
     document_id bigint NOT NULL,
-    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
+    xml_id text,  -- max size 2^16 bytes, 32,000 unicode chars
+    xml_child_seq nvarchar(512),
     role_uri varchar(1024) NOT NULL,
-    definition text,
+    definition text,  -- max size 2^16 bytes, 32,000 unicode chars
     PRIMARY KEY (role_type_id)
 );
 CREATE INDEX role_type_index02 USING btree ON role_type (document_id);
@@ -183,10 +186,11 @@ DELIMITER ;
 CREATE TABLE arcrole_type (
     arcrole_type_id bigint NOT NULL,
     document_id bigint NOT NULL,
-    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
+    xml_id text,  -- max size 2^16 bytes, 32,000 unicode chars
+    xml_child_seq nvarchar(512),
     arcrole_uri varchar(1024) NOT NULL,
     cycles_allowed varchar(10) NOT NULL,
-    definition text,
+    definition text,  -- max size 2^16 bytes, 32,000 unicode chars
     PRIMARY KEY (arcrole_type_id)
 );
 CREATE INDEX arcrole_type_index02 USING btree ON arcrole_type (document_id);
@@ -210,14 +214,15 @@ CREATE UNIQUE INDEX used_on_index02 USING btree ON used_on (object_id, aspect_id
 CREATE TABLE resource (
     resource_id bigint NOT NULL,
     document_id bigint NOT NULL,
-    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
+    xml_id text,  -- max size 2^16 bytes, 32,000 unicode chars
+    xml_child_seq nvarchar(512),
     qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
     role varchar(1024) NOT NULL,
-    value longtext,
+    value mediumtext, -- max 2^24 bytes = 8.3M unicode chars
     xml_lang varchar(16),
     PRIMARY KEY (resource_id)
 );
-CREATE INDEX resource_index02 USING btree ON resource (document_id, xml_id(512));
+CREATE INDEX resource_index02 USING btree ON resource (document_id, xml_child_seq(64));
 
 DELIMITER //
 CREATE TRIGGER resource_seq BEFORE INSERT ON resource 
@@ -249,7 +254,8 @@ CREATE INDEX root_index01 USING btree ON root (relationship_set_id);
 CREATE TABLE relationship (
     relationship_id bigint NOT NULL,
     document_id bigint NOT NULL,
-    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
+    xml_id text,  -- max size 2^16 bytes, 32,000 unicode chars
+    xml_child_seq nvarchar(512),
     relationship_set_id bigint NOT NULL,
     reln_order double,
     from_id bigint,
@@ -260,7 +266,7 @@ CREATE TABLE relationship (
     preferred_label_role varchar(1024),
     PRIMARY KEY (relationship_id)
 );
-CREATE INDEX relationship_index02 USING btree ON relationship (relationship_set_id, document_id, xml_id(32));
+CREATE INDEX relationship_index02 USING btree ON relationship (relationship_set_id, document_id, xml_child_seq(64));
 CREATE INDEX relationship_index03 USING btree ON relationship (relationship_set_id);
 CREATE INDEX relationship_index04 USING btree ON relationship (relationship_set_id, tree_depth);
 
@@ -276,23 +282,24 @@ CREATE TABLE data_point (
     datapoint_id bigint NOT NULL,
     report_id bigint,
     document_id bigint NOT NULL,  -- multiple inline documents are sources of data points
-    xml_id varchar(1024),  -- xml id or element pointer (do we need this?)
+    xml_id text,  -- max size 2^16 bytes, 32,000 unicode chars
+    xml_child_seq nvarchar(512),
     source_line integer,
     parent_datapoint_id bigint, -- id of tuple parent
     aspect_id bigint NOT NULL,
     context_xml_id varchar(1024), -- (do we need this?)
     entity_id bigint,
     period_id bigint,
-    aspect_value_selections_id bigint,
+    aspect_value_selection_id bigint,
     unit_id bigint,
     is_nil boolean DEFAULT FALSE,
     precision_value varchar(16),
     decimals_value varchar(16),
     effective_value double,
-    value longtext,
+    value longtext,  -- over 2^24 bytes = over 8.3M unicode chars (need about 40M unicode chars)
     PRIMARY KEY (datapoint_id)
 );
-CREATE INDEX data_point_index02 USING btree ON data_point (document_id, xml_id(32));
+CREATE INDEX data_point_index02 USING btree ON data_point (document_id, xml_child_seq(64));
 CREATE INDEX data_point_index03 USING btree ON data_point (report_id);
 CREATE INDEX data_point_index04 USING btree ON data_point (aspect_id);
 
@@ -343,7 +350,8 @@ DELIMITER ;
 CREATE TABLE unit (
     unit_id bigint NOT NULL,
     report_id bigint,
-    xml_id varchar(1024),  -- xml id or element pointer (first if multiple)
+    xml_id text,  -- max size 2^16 bytes, 32,000 unicode chars
+    xml_child_seq nvarchar(512),
     measures_hash char(32),
     PRIMARY KEY (unit_id)
 );
@@ -385,9 +393,10 @@ CREATE TABLE aspect_value_selection (
     aspect_id bigint NOT NULL,
     aspect_value_id bigint,
     is_typed_value boolean NOT NULL,
-    typed_value longtext
+    typed_value mediumtext  -- max 2^24 bytes = 8.3M unicode chars
 );
 CREATE INDEX aspect_value_selection_index01 USING btree ON aspect_value_selection (aspect_value_selection_id);
+CREATE INDEX aspect_value_selection_index02 USING btree ON aspect_value_selection (aspect_id);
 
 CREATE TABLE table_data_points(
     report_id bigint,
@@ -404,7 +413,7 @@ CREATE TABLE message (
     sequence_in_report int,
     message_code varchar(256),
     message_level varchar(256),
-    value text,
+    value text, -- less than 2^16 bytes = 32K unicode chars
     PRIMARY KEY (message_id)
 );
 CREATE INDEX message_index02 USING btree ON message (report_id, sequence_in_report);

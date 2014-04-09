@@ -727,6 +727,21 @@ def elementFragmentIdentifier(element):
             element = element.getparent()
         location = "/".join(childSequence)
         return "element({0})".format(location)
+    
+def elementChildSequence(element):
+    childSequence = [""] # "" represents document element for / (root) on the join below
+    while element is not None:
+        if isinstance(element,etree.ElementBase):
+            try:
+                siblingPosition = element._elementSequence # set by loader in some element hierarchies
+            except AttributeError:
+                siblingPosition = 1
+                for sibling in element.itersiblings(preceding=True):
+                    if isinstance(sibling,etree.ElementBase):
+                        siblingPosition += 1
+            childSequence.insert(1, str(siblingPosition))
+        element = element.getparent()
+    return "/".join(childSequence)
                         
 def xmlstring(elt, stripXmlns=False, prettyPrint=False, contentsOnly=False):
     if contentsOnly:

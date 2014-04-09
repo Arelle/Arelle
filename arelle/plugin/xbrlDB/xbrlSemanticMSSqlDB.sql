@@ -57,10 +57,10 @@ CREATE TABLE "filing" (
     filing_date datetime NOT NULL,  -- no date in MSSQL 2005
     entity_id bigint NOT NULL,
     entity_name nvarchar(1024),
-    creation_software ntext,
+    creation_software nvarchar(max),
     standard_industry_code integer NOT NULL DEFAULT -1,
-    authority_html_url ntext,
-    entry_url ntext
+    authority_html_url nvarchar(max),
+    entry_url nvarchar(max)
 );
 CREATE INDEX filing_index01 ON "filing" (filing_id);
 CREATE UNIQUE INDEX filing_index02 ON "filing" (filing_number);
@@ -105,7 +105,8 @@ GO
 CREATE TABLE "aspect" (
     aspect_id bigint DEFAULT NEXT VALUE FOR seq_object,
     document_id bigint NOT NULL,
-    xml_id nvarchar(450),  -- xml id or element pointer (do we need this?)
+    xml_id nvarchar(max),
+    xml_child_seq nvarchar(450),
     qname nvarchar(450) NOT NULL,  -- clark notation qname
     name nvarchar(450) NOT NULL,  -- local qname
     datatype_id bigint,
@@ -126,7 +127,8 @@ GO
 CREATE TABLE "data_type" (
     data_type_id bigint DEFAULT NEXT VALUE FOR seq_object,
     document_id bigint NOT NULL,
-    xml_id nvarchar(450),  -- xml id or element pointer (do we need this?)
+    xml_id nvarchar(max),
+    xml_child_seq nvarchar(450),
     qname nvarchar(450) NOT NULL,  -- clark notation qname
     name nvarchar(450) NOT NULL,  -- local qname
     base_type nvarchar(128), -- xml base type if any
@@ -139,9 +141,10 @@ GO
 CREATE TABLE "role_type" (
     role_type_id bigint DEFAULT NEXT VALUE FOR seq_object,
     document_id bigint NOT NULL,
-    xml_id nvarchar(450),  -- xml id or element pointer (do we need this?)
+    xml_id nvarchar(max),
+    xml_child_seq nvarchar(450),
     role_uri nvarchar(450) NOT NULL,
-    definition ntext
+    definition nvarchar(max)
 );
 CREATE INDEX role_type_index01 ON "role_type" (role_type_id);
 CREATE INDEX role_type_index02 ON "role_type" (role_uri);
@@ -150,10 +153,11 @@ GO
 CREATE TABLE "arcrole_type" (
     arcrole_type_id bigint DEFAULT NEXT VALUE FOR seq_object,
     document_id bigint NOT NULL,
-    xml_id nvarchar(450),  -- xml id or element pointer (do we need this?)
+    xml_id nvarchar(max),
+    xml_child_seq nvarchar(450),
     arcrole_uri nvarchar(450) NOT NULL,
     cycles_allowed nvarchar(10) NOT NULL,
-    definition ntext
+    definition nvarchar(max)
 );
 CREATE INDEX arcrole_type_index01 ON "arcrole_type" (arcrole_type_id);
 CREATE INDEX arcrole_type_index02 ON "arcrole_type" (arcrole_uri);
@@ -170,13 +174,14 @@ GO
 CREATE TABLE "resource" (
     resource_id bigint DEFAULT NEXT VALUE FOR seq_object,
     document_id bigint NOT NULL,
-    xml_id nvarchar(441),  -- xml id or element pointer (do we need this?)
+    xml_id nvarchar(max),
+    xml_child_seq nvarchar(441),
     qname nvarchar(450) NOT NULL,  -- clark notation qname (do we need this?)
     role nvarchar(450) NOT NULL,
-    value ntext,
+    value nvarchar(max),
     xml_lang nvarchar(16)
 );
-CREATE INDEX resource_index01 ON "resource" (resource_id, xml_id);
+CREATE INDEX resource_index01 ON "resource" (resource_id, xml_child_seq);
 
 GO
 CREATE SEQUENCE seq_relationship_set AS bigint START WITH 1 INCREMENT BY 1;
@@ -207,7 +212,8 @@ GO
 CREATE TABLE "relationship" (
     relationship_id bigint DEFAULT NEXT VALUE FOR seq_object,
     document_id bigint NOT NULL,
-    xml_id nvarchar(450),  -- xml id or element pointer (do we need this?)
+    xml_id nvarchar(max),
+    xml_child_seq nvarchar(450),
     relationship_set_id bigint NOT NULL,
     reln_order float(24),
     from_id bigint,
@@ -226,23 +232,24 @@ CREATE TABLE "data_point" (
     datapoint_id bigint DEFAULT NEXT VALUE FOR seq_object,
     report_id bigint,
     document_id bigint NOT NULL,  -- multiple inline documents are sources of data points
-    xml_id nvarchar(441),  -- xml id or element pointer (do we need this?)
+    xml_id nvarchar(max),
+    xml_child_seq nvarchar(441),
     source_line integer,
     parent_datapoint_id bigint, -- id of tuple parent
     aspect_id bigint NOT NULL,
-    context_xml_id nvarchar(441), -- (do we need this?) (some tools use xml_id as pointer to source data, 338 max length observed in 2013)
+    context_xml_id nvarchar(max), -- 693 max length observed in 2012-2014)
     entity_id bigint,
     period_id bigint,
-    aspect_value_selections_id bigint,
+    aspect_value_selection_id bigint,
     unit_id bigint,
     is_nil bit DEFAULT 0,
     precision_value nvarchar(16),
     decimals_value nvarchar(16),
     effective_value float(53),
-    value ntext
+    value nvarchar(max)
 );
 CREATE INDEX datapoint_index01 ON "data_point" (datapoint_id);
-CREATE INDEX datapoint_index02 ON "data_point" (document_id, xml_id);
+CREATE INDEX datapoint_index02 ON "data_point" (document_id, xml_child_seq);
 CREATE INDEX datapoint_index03 ON "data_point" (report_id);
 CREATE INDEX datapoint_index04 ON "data_point" (aspect_id);
 
@@ -272,7 +279,8 @@ GO
 CREATE TABLE "unit" (
     unit_id bigint DEFAULT NEXT VALUE FOR seq_object,
     report_id bigint,
-    xml_id nvarchar(441),  -- xml id or element pointer (first if multiple)
+    xml_id nvarchar(max),
+    xml_child_seq nvarchar(450),
     measures_hash char(32),
 );
 CREATE INDEX unit_index01 ON "unit" (unit_id);
@@ -301,9 +309,10 @@ CREATE TABLE "aspect_value_selection" (
     aspect_id bigint NOT NULL,
     aspect_value_id bigint,
     is_typed_value bit NOT NULL,
-    typed_value ntext
+    typed_value nvarchar(max)
 );
 CREATE INDEX aspect_value_selection_index01 ON "aspect_value_selection" (aspect_value_selection_id);
+CREATE INDEX aspect_value_selection_index02 ON "aspect_value_selection" (aspect_id);
 
 GO
 CREATE TABLE "table_data_points" (
@@ -326,7 +335,7 @@ CREATE TABLE "message" (
     sequence_in_report int,
     message_code nvarchar(256),
     message_level nvarchar(256),
-    value ntext
+    value nvarchar(max)
 );
 CREATE INDEX message_index01 ON "message" (message_id);
 CREATE INDEX message_index02 ON "message" (report_id, sequence_in_report);

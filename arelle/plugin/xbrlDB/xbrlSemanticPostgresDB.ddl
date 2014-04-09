@@ -125,7 +125,8 @@ ALTER TABLE public.referenced_documents OWNER TO postgres;
 CREATE TABLE aspect (
     aspect_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     document_id bigint NOT NULL,
-    xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
+    xml_id text,
+    xml_child_seq character varying(1024),
     qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
     name character varying(1024) NOT NULL,  -- local qname
     datatype_id bigint,
@@ -148,7 +149,8 @@ ALTER TABLE public.aspect OWNER TO postgres;
 CREATE TABLE data_type (
     data_type_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     document_id bigint NOT NULL,
-    xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
+    xml_id text,
+    xml_child_seq character varying(1024),
     qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
     name character varying(1024) NOT NULL,  -- local qname
     base_type character varying(128), -- xml base type if any
@@ -163,7 +165,8 @@ ALTER TABLE public.data_type OWNER TO postgres;
 CREATE TABLE role_type (
     role_type_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     document_id bigint NOT NULL,
-    xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
+    xml_id text,
+    xml_child_seq character varying(1024),
     role_uri character varying(1024) NOT NULL,
     definition text,
     PRIMARY KEY (role_type_id)
@@ -176,7 +179,8 @@ ALTER TABLE public.role_type OWNER TO postgres;
 CREATE TABLE arcrole_type (
     arcrole_type_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     document_id bigint NOT NULL,
-    xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
+    xml_id text,
+    xml_child_seq character varying(1024),
     arcrole_uri character varying(1024) NOT NULL,
     cycles_allowed character varying(10) NOT NULL,
     definition text,
@@ -199,7 +203,8 @@ ALTER TABLE public.used_on OWNER TO postgres;
 CREATE TABLE resource (
     resource_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     document_id bigint NOT NULL,
-    xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
+    xml_id text,
+    xml_child_seq character varying(1024),
     qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
     role character varying(1024) NOT NULL,
     value text,
@@ -245,7 +250,8 @@ ALTER TABLE public.root OWNER TO postgres;
 CREATE TABLE relationship (
     relationship_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     document_id bigint NOT NULL,
-    xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
+    xml_id text,
+    xml_child_seq character varying(1024),
     relationship_set_id bigint NOT NULL,
     reln_order double precision,
     from_id bigint,
@@ -267,14 +273,15 @@ CREATE TABLE data_point (
     datapoint_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     report_id bigint,
     document_id bigint NOT NULL,  -- multiple inline documents are sources of data points
-    xml_id character varying(1024),  -- xml id or element pointer (do we need this?)
+    xml_id text,
+    xml_child_seq character varying(1024),
     source_line integer,
     parent_datapoint_id bigint, -- id of tuple parent
     aspect_id bigint NOT NULL,
     context_xml_id character varying(1024), -- (do we need this?)
     entity_id bigint,
     period_id bigint,
-    aspect_value_selections_id bigint,
+    aspect_value_selection_id bigint,
     unit_id bigint,
     is_nil boolean DEFAULT FALSE,
     precision_value character varying(16),
@@ -283,7 +290,7 @@ CREATE TABLE data_point (
     value text,
     PRIMARY KEY (datapoint_id)
 );
-CREATE INDEX data_point_index02 ON data_point USING btree (document_id, xml_id);
+CREATE INDEX data_point_index02 ON data_point USING btree (document_id, xml_child_seq);
 CREATE INDEX data_point_index03 ON data_point USING btree (report_id);
 CREATE INDEX data_point_index04 ON data_point USING btree (aspect_id);
 
@@ -316,7 +323,8 @@ ALTER TABLE public.period OWNER TO postgres;
 CREATE TABLE unit (
     unit_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     report_id bigint,
-    xml_id character varying(1024),  -- xml id or element pointer (first if multiple)
+    xml_id text,
+    xml_child_seq character varying(1024),
     measures_hash char(32),
     PRIMARY KEY (unit_id)
 );
@@ -352,6 +360,7 @@ CREATE TABLE aspect_value_selection (
     typed_value text
 );
 CREATE INDEX aspect_value_selection_index01 ON aspect_value_selection USING btree (aspect_value_selection_id);
+CREATE INDEX aspect_value_selection_index02 ON aspect_value_selection USING btree (aspect_id);
 
 ALTER TABLE public.aspect_value_selection OWNER TO postgres;
 

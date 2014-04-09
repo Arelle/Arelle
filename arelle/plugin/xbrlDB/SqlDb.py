@@ -11,8 +11,8 @@ from arelle.ModelValue import dateTime
 import socket
 
 TRACESQLFILE = None
-#TRACESQLFILE = r"c:\temp\sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
-#TRACESQLFILE = "/Users/hermf/temp/sqltrace.log"  # uncomment to trace SQL on connection (very big file!!!)
+#TRACESQLFILE = r"z:\temp\sqltraceWin.log"  # uncomment to trace SQL on connection (very big file!!!)
+#TRACESQLFILE = "/Users/hermf/temp/sqltraceUnx.log"  # uncomment to trace SQL on connection (very big file!!!)
 
 def noop(*args, **kwargs): return 
 class NoopException(Exception):
@@ -477,6 +477,8 @@ class SqlDbConnection():
                 for name, fulltype, characterMaxLength in colTypesResult:
                     name = name.lower()
                     if fulltype in ("char", "varchar", "nvarchar"):
+                        if characterMaxLength == -1: 
+                            characterMaxLength = "max"
                         colDecl = "{}({})".format(fulltype, characterMaxLength)
                     else:
                         colDecl = fulltype
@@ -685,7 +687,7 @@ WITH row_values (%(newCols)s) AS (
                          "inputCols": ', '.join('{0} {1}'.format(newCol, colDeclarations[newCol])
                                                 for newCol in newCols)}, None, False)]
             # break values insertion into 1000's each
-            def insertOrclRows(i, j, params):
+            def insertMSSqlRows(i, j, params):
                 sql.append(("INSERT INTO #%(inputTable)s ( %(newCols)s ) VALUES %(values)s;" %     
                         {"inputTable": _inputTableName,
                          "newCols": ', '.join(newCols),
@@ -696,12 +698,12 @@ WITH row_values (%(newCols)s) AS (
                 for j in range(i, min(i+1000, iMax)):
                     if rowLongValues[j] is not None:
                         if j > i:
-                            insertOrclRows(i, j, None)
-                        insertOrclRows(j, j+1, rowLongValues[j])
+                            insertMSSqlRows(i, j, None)
+                        insertMSSqlRows(j, j+1, rowLongValues[j])
                         i = j + 1
                         break
                 if i < j+1 and i < iMax:
-                    insertOrclRows(i, j+1, None)
+                    insertMSSqlRows(i, j+1, None)
                     i = j+1
             if insertIfNotMatched:
                 sql.append(("MERGE INTO %(table)s USING #%(inputTable)s ON (%(match)s) "
