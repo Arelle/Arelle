@@ -4,7 +4,11 @@ Created on Jan 4, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import re, copy, datetime
+import copy, datetime
+try:
+    import regex as re
+except ImportError:
+    import re
 XmlUtil = None
 
 def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, prefixException=None):

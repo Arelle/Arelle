@@ -10,7 +10,10 @@ try:
 except ImportError:
     from ttk import Frame, Button, Label, Entry
 from arelle.CntlrWinTooltip import ToolTip
-import re
+try:
+    import regex as re
+except ImportError:
+    import re
 
 '''
 caller checks accepted, if True, caller retrieves url

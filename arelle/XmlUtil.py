@@ -4,7 +4,11 @@ Created on Oct 22, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import re, datetime
+import datetime
+try:
+    import regex as re
+except ImportError:
+    import re
 from lxml import etree
 from arelle import XbrlConst
 from arelle.ModelObject import ModelObject, ModelComment

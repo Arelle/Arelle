@@ -11,7 +11,11 @@ except ImportError:
     from ttk import Frame, Button, Label, Entry
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label
-import re, gettext
+import gettext
+try:
+    import regex as re
+except ImportError:
+    import re
 from arelle.Locale import getLanguageCodes, languageCodes, getUserLocale, availableLocales
 
 '''

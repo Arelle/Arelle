@@ -21,7 +21,6 @@ def dialogRssWatchDBextender(dialog, frame, row, options, cntlr, openFileImage, 
     except ImportError:
         from ttk import Button
         
-    # add sphinx formulas to RSS dialog
     def enterConnectionString():
         from arelle.DialogUserPassword import askDatabase
         # (user, password, host, port, database)

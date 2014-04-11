@@ -10,7 +10,11 @@ system-wide settings.  (The system settings can remain in 'C' locale.)
 
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import re, sys
+import sys
+try:
+    import regex as re
+except ImportError:
+    import re
 import collections
 import unicodedata
 

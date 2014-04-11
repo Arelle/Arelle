@@ -12,7 +12,10 @@ from arelle.ModelValue import qname
 from lxml import etree
 from arelle.PluginManager import pluginClassMethods
 from collections import defaultdict
-import re
+try:
+    import regex as re
+except ImportError:
+    import re
 
 instanceSequence = {"schemaRef":1, "linkbaseRef":2, "roleRef":3, "arcroleRef":4}
 schemaTop = {"import", "include", "redefine"}

@@ -11,7 +11,10 @@ from arelle.ModelDtsObject import ModelConcept, ModelType, ModelLocator, ModelRe
 from arelle.ModelFormulaObject import Aspect
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
-import re
+try:
+    import regex as re
+except ImportError:
+    import re
 from lxml import etree
 from collections import defaultdict
 

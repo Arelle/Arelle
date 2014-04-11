@@ -4,7 +4,10 @@ Created on July 5, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import re
+try:
+    import regex as re
+except ImportError:
+    import re
 from arelle import XPathContext
 
 class ixtFunctionNotAvailable(Exception):

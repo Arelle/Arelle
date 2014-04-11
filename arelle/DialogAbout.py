@@ -9,8 +9,10 @@ try:
     from tkinter.ttk import Label, Button, Frame
 except ImportError:
     from ttk import Label, Button, Frame
-import re
-
+try:
+    from regex import compile as re_match
+except ImportError:
+    from re import compile as re_match
 '''
 caller checks accepted, if True, caller retrieves url
 '''
@@ -23,7 +25,7 @@ class DialogAbout(Toplevel):
     def __init__(self, parent, title, imageFile, body):
         super(DialogAbout, self).__init__(parent)
         self.parent = parent
-        parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
+        parentGeometry = re_match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
         dialogX = int(parentGeometry.group(3))
         dialogY = int(parentGeometry.group(4))
         self.transient(self.parent)

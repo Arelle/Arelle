@@ -12,7 +12,11 @@ except ImportError:
     from ttk import Treeview, Scrollbar, Frame, Label, Button
 from arelle import PackageManager, DialogURL
 from arelle.CntlrWinTooltip import ToolTip
-import re, os, time
+import os, time
+try:
+    import regex as re
+except ImportError:
+    import re
 
 def dialogPackageManager(mainWin):
     # check for updates in background

@@ -28,6 +28,10 @@ if __name__ == "__main__":
 
     with open("arelle/Version.py", "w") as fh:
         fh.write(versionPy)
+        
+    with open("version.txt", "w") as fh:
+        fh.write(timestamp.strftime("%Y-%m-%d %H:%M UTC"))
+        
 
     distFileDate = timestamp.strftime("%Y-%m-%d")
     if sys.platform == "darwin":
@@ -58,3 +62,5 @@ if __name__ == "__main__":
             fh.write("rename dist\\arelle-win-x64.exe arelle-win-x64-{}.exe\n".format(distFileDate))
         with open("buildRenameSvr27.bat", "w") as fh:
             fh.write("rename dist\\arelle-svr-2.7.zip arelle-svr-2.7-{}.zip\n".format(distFileDate))
+        with open("buildRenameZip32.bat", "w") as fh:
+            fh.write("rename dist\\arelle-cmd32.zip arelle-cmd32-{}.zip\n".format(distFileDate))

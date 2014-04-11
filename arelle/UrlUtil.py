@@ -4,7 +4,11 @@ Created on Oct 22, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import re, os, sys
+import os, sys
+try:
+    import regex as re
+except ImportError:
+    import re
 if sys.version[0] >= '3':
     from urllib.request import pathname2url
     from urllib.parse import urldefrag, unquote, quote, urljoin

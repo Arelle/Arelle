@@ -6,6 +6,7 @@ rem both win 32 (x86) and win 64 (x64)
 @set NSISDIR=C:\Program Files (x86)\NSIS
 @set BUILT32DIR=build\exe.win32-3.3
 @set BUILT64DIR=build\exe.win-amd64-3.3
+@set ZIP=c:\progra~1\7-zip\7z.exe
 
 "%PYTHON64DIR%\python" buildVersion.py
 
@@ -32,5 +33,12 @@ rem win 64 build
 "%NSISDIR%\makensis" installWin64.nsi
 rem rename for build date
 call buildRenameX64.bat
+
+rem win 32 zip
+cd "%BUILT32DIR%"
+"%ZIP%" a -tzip ..\..\dist\arelle-cmd32.zip *
+cd ..\..
+"%ZIP%" d dist\arelle-cmd32.zip arelleGUI.exe tck85.dll tk85.dll tck tk images scripts doc examples locale MSVCR100.dll QuickBooks.pwc
+call buildRenameZip32.bat
 
 rem rmdir build /s/q

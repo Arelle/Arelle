@@ -1,17 +1,18 @@
-#! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
-# Originally written by Barry Warsaw <barry@zope.com>
-#
-# Minimally patched to make it even more xgettext compatible
-# by Peter Funk <pf@artcom-gmbh.de>
-#
-# 2002-11-22 Jürgen Hermann <jh@web.de>
-# Added checks that _() only contains string literals, and
-# command line args are resolved to module lists, i.e. you
-# can now pass a filename, a module or package name, or a
-# directory (including globbing chars, important for Win32).
-# Made docstring fit in 80 chars wide displays using pydoc.
-#
+
+'''
+ Originally written by Barry Warsaw <barry@zope.com>
+
+ Minimally patched to make it even more xgettext compatible
+ by Peter Funk <pf@artcom-gmbh.de>
+
+ 2002-11-22 Jürgen Hermann <jh@web.de>
+ Added checks that _() only contains string literals, and
+ command line args are resolved to module lists, i.e. you
+ can now pass a filename, a module or package name, or a
+ directory (including globbing chars, important for Win32).
+ Made docstring fit in 80 chars wide displays using pydoc.
+'''
 
 # for selftesting
 try:

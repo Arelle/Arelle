@@ -11,7 +11,11 @@ except ImportError:
     from ttk import Frame, Button, Label, Entry
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UiUtil import checkbox, gridCombobox
-import re, sys
+import sys
+try:
+    import regex as re
+except ImportError:
+    import re
 
 '''
 caller checks accepted, if True, caller retrieves url

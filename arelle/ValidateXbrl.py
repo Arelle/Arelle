@@ -4,7 +4,10 @@ Created on Oct 17, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import re
+try:
+    import regex as re
+except ImportError:
+    import re
 from arelle import (ModelDocument, XmlUtil, XbrlUtil, XbrlConst, 
                 ValidateXbrlCalcs, ValidateXbrlDimensions, ValidateXbrlDTS, ValidateFormula, ValidateUtr)
 from arelle import FunctionIxt

@@ -4,7 +4,10 @@ Created on April 14, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import re
+try:
+    import regex as re
+except ImportError:
+    import re
 
 def attrValue(str, name):
     # retrieves attribute in a string, such as xyz="abc" or xyz='abc' or xyz=abc; 

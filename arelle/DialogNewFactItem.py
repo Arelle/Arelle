@@ -9,7 +9,10 @@ try:
     from tkinter.ttk import Frame, Button
 except ImportError:
     from ttk import Frame, Button
-import re
+try:
+    import regex as re
+except ImportError:
+    import re
 from arelle.ModelInstanceObject import NewFactItemOptions
 from arelle.ModelValue import dateTime
 from arelle import XmlUtil

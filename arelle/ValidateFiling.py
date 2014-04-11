@@ -79,7 +79,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         
         validateInlineXbrlGFM = (modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL and
                                  self.validateGFM)
-        validateEFMpragmatic = "efm-pragmatic" in disclosureSystem.names
+        validateEFMpragmatic = disclosureSystem.names and "efm-pragmatic" in disclosureSystem.names
         self.validateLoggingSemantic = validateLoggingSemantic = (
               modelXbrl.isLoggingEffectiveFor(level="WARNING-SEMANTIC") or 
               modelXbrl.isLoggingEffectiveFor(level="ERROR-SEMANTIC"))

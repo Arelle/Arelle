@@ -210,6 +210,10 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'): # works on ubuntu wi
             includeFiles.append(('/usr/local/lib/libxml2.so', 'libxml2.so'))
             includeFiles.append(('/usr/local/lib/libxslt.so', 'libxslt.so'))
             includeFiles.append(('/usr/local/lib/libz.so', 'libz.so'))
+            
+    if os.path.exists("version.txt"):
+        includeFiles.append(('version.txt', 'version.txt'))
+        
     includeLibs = ['lxml', 'lxml.etree', 'lxml._elementpath', 'lxml.html', 
                    'pg8000', 'pymysql', 
                     # note cx_Oracle isn't here because it is version and machine specific, ubuntu not likely working
@@ -260,6 +264,10 @@ elif sys.platform == 'win32':
                          ('arelle\\scripts-windows','scripts')]
     if 'arelle.webserver' in packages:
         win32includeFiles.append('QuickBooks.qwc')
+
+    if os.path.exists("version.txt"):
+        win32includeFiles.append('version.txt')
+        
     options = dict( build_exe =  {
         "include_files": win32includeFiles,
         "include_msvcr": True, # include MSVCR100

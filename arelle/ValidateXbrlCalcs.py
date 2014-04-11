@@ -7,13 +7,16 @@ Created on Oct 17, 2010
 from collections import defaultdict
 from math import (log10, isnan, isinf, fabs, trunc, fmod, floor, pow)
 import decimal
-import re
+try:
+    from regex import compile as re_compile
+except ImportError:
+    from re import compile as re_compile
 import hashlib
 from arelle import Locale, XbrlConst, XbrlUtil
 from arelle.ModelObject import ObjectPropertyViewWrapper
 from arelle.XmlValidate import UNVALIDATED, VALID
 
-numberPattern = re.compile("[-+]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-+]?[0-9]*)?")
+numberPattern = re_compile("[-+]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-+]?[0-9]*)?")
 ZERO = decimal.Decimal(0)
 ONE = decimal.Decimal(1)
 NaN = decimal.Decimal("NaN")

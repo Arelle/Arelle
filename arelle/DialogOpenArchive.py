@@ -9,7 +9,11 @@ try:
     from tkinter.ttk import Frame, Button, Treeview, Scrollbar
 except ImportError:
     from ttk import Frame, Button, Treeview, Scrollbar
-import re, os, sys
+import os, sys
+try:
+    import regex as re
+except ImportError:
+    import re
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UrlUtil import isHttpUrl
 from arelle.PackageManager import parsePackage

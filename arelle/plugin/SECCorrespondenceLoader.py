@@ -11,8 +11,6 @@ from arelle import FileSource, ModelDocument
 from arelle.ModelRssObject import ModelRssObject
 from arelle.XmlValidate import UNVALIDATED, VALID
 
-TEMPDIR = "/tmp/arelle/edgarFeed"
-
 class SECCorrespondenceItem:
     def __init__(self, modelXbrl, fileName, entryUrl):
         self.cikNumber = None
@@ -74,19 +72,22 @@ def secCorrespondenceLoader(modelXbrl, mappedUri, filepath, **kwargs):
         # daily feed loader (the rss object)
         rssObject = ModelRssObject(modelXbrl, uri=mappedUri, filepath=filepath)
         
+        # location for expanded feed files
+        tempdir = os.path.join(modelXbrl.modelManager.cntlr.userAppDir, "tmp", "edgarFeed")
+        
         # remove prior files
-        if os.path.exists("/tmp/arelle/edgarFeed"):
-            os.system("rm -fr /tmp/arelle/edgarFeed")
-        os.makedirs(TEMPDIR, exist_ok=True)
+        if os.path.exists(tempdir):
+            os.system("rm -fr {}".format(tempdir)) # rmtree does not work with this many files!
+        os.makedirs(tempdir, exist_ok=True)
         # untar to /temp/arelle/edgarFeed for faster operation
         startedAt = time.time()
         modelXbrl.fileSource.open()
-        modelXbrl.fileSource.fs.extractall(TEMPDIR)
+        modelXbrl.fileSource.fs.extractall(tempdir)
         modelXbrl.info("info", "untar edgarFeed temp files in %.2f sec" % (time.time() - startedAt), 
                        modelObject=modelXbrl)
             
         # find <table> with <a>Download in it
-        for instanceFile in sorted(os.listdir(TEMPDIR)): # modelXbrl.fileSource.dir:
+        for instanceFile in sorted(os.listdir(tempdir)): # modelXbrl.fileSource.dir:
             if instanceFile != ".":
                 rssObject.rssItems.append(
                     SECCorrespondenceItem(modelXbrl, instanceFile, mappedUri + '/' + instanceFile))
@@ -97,7 +98,9 @@ def secCorrespondenceLoader(modelXbrl, mappedUri, filepath, **kwargs):
         # parse document
         try:
             startedAt = time.time()
-            file, encoding = modelXbrl.fileSource.file(TEMPDIR + '/' + os.path.basename(rssItem.url)) # rssItem.url)
+            file, encoding = modelXbrl.fileSource.file(
+               os.path.join(modelXbrl.modelManager.cntlr.userAppDir, "tmp", "edgarFeed", 
+                            os.path.basename(rssItem.url)))
             s = file.read()
             file.close()
             for match in re.finditer(r"[<]([^>]+)[>]([^<\n\r]*)", s, re.MULTILINE):
