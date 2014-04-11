@@ -173,7 +173,7 @@ class SqlDbConnection():
             if not hasMSSql:
                 raise XPDBException("xpgDB:MissingMSSQLInterface",
                                     _("MSSQL server interface is not installed")) 
-            self.conn = mssqlConnect('DRIVER={{SQL Server}};SERVER={2};DATABASE={3};UID={0};PWD={1};CHARSET=UTF8'
+            self.conn = mssqlConnect('DRIVER={{SQL Server Native Client 11.0}};SERVER={2};DATABASE={3};UID={0};PWD={1};CHARSET=UTF8'
                                       .format(user,
                                               password, 
                                               host, # e.g., localhost\\SQLEXPRESS

@@ -26,7 +26,6 @@ class CompaniesHouseItem:
             self.filingDate = self.pubDate.date()
         except ValueError:
             self.pubDate = self.acceptanceDatetime = self.filingDate = None
-        self.filingDate = None
         self.period = None
         self.assignedSic = None
         self.fiscalYearEnd = None
