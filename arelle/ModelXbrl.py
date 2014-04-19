@@ -586,9 +586,8 @@ class ModelXbrl:
                         _("Create context, %(dimension)s, cannot determine context element, either no all relationship or validation issue"), 
                         modelObject=self, dimension=dimQname),
                     continue
-                dimConcept = self.qnameConcepts[dimQname]
-                dimAttr = ("dimension", XmlUtil.addQnameValue(xbrlElt, dimConcept.qname))
-                if dimConcept.isTypedDimension:
+                dimAttr = ("dimension", XmlUtil.addQnameValue(xbrlElt, dimQname))
+                if dimValue.isTyped:
                     dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:typedMember", 
                                               attributes=dimAttr)
                     if isinstance(dimValue, (ModelDimensionValue, DimValuePrototype)) and dimValue.isTyped:

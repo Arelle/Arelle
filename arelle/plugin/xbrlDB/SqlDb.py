@@ -318,6 +318,7 @@ class SqlDbConnection():
                 oracleDatabaseError,
                 mssqlOperationalError, mssqlInterfaceError, mssqlDataError,
                 mssqlProgrammingError, mssqlIntegrityError,
+                sqliteOperationalError, sqliteInterfaceError, sqliteDataError,
                 socket.timeout) as ex:  # something wrong with SQL
             if TRACESQLFILE:
                 with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:

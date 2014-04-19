@@ -548,6 +548,13 @@ def addComment(parent, commentText):
     child = etree.Comment( comment )
     parent.append(child)
     
+def addProcessingInstruction(parent, piTarget, piText):
+    i = 0 # find position to insert after other comments and PIs but before any element
+    for i, child in enumerate(parent):
+        if not isinstance(child, (etree._Comment, etree._ProcessingInstruction)):
+            break
+    parent.insert(i, etree.ProcessingInstruction(piTarget, piText))
+    
 def addQnameValue(modelDocument, qnameValue):
     if not isinstance(qnameValue, QName):
         return qnameValue # may be just a string
@@ -775,6 +782,8 @@ def writexml(writer, node, encoding=None, indent='', xmlcharrefreplace=False, pa
                 writexml(writer, child, indent=indent, xmlcharrefreplace=xmlcharrefreplace, parentNsmap={})
     elif isinstance(node,etree._Comment): # ok to use minidom implementation
         writer.write(indent+"<!--" + node.text + "-->\n")
+    elif isinstance(node,etree._ProcessingInstruction): # ok to use minidom implementation
+        writer.write(indent + str(node) + "\n")
     elif isinstance(node,etree._Element):
         if parentNsmap is None: 
             parent = node.getparent()
