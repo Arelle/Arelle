@@ -3,6 +3,7 @@ from arelle.ModelValue import QName
 from arelle.XmlValidate import VALID
 from collections import defaultdict
 import decimal
+ModelDocument = None
 
 class LinkPrototype():      # behaves like a ModelLink for relationship prototyping
     def __init__(self, modelDocument, parent, qname, role):
@@ -115,3 +116,28 @@ class ArcPrototype():
     def __getitem(self, key):
         return self.attributes[key]
 
+class DocumentPrototype():
+    def __init__(self, modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDiscovered=False, isIncluded=None, namespace=None, reloadCache=False, **kwargs):
+        global ModelDocument
+        if ModelDocument is None:
+            from arelle import ModelDocument
+        self.modelXbrl = modelXbrl
+        self.skipDTS = modelXbrl.skipDTS
+        self.modelDocument = self
+        if referringElement is not None:
+            if referringElement.localName == "schemaRef":
+                self.type = ModelDocument.Type.SCHEMA
+            elif referringElement.localName == "linkbaseRef":
+                self.type = ModelDocument.Type.LINKBASE
+            else:
+                self.type = ModelDocument.Type.UnknownXML
+        else:
+            self.type = ModelDocument.Type.UnknownXML
+        normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, base)
+        self.filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
+        self.uri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(self.filepath)
+        self.inDTS = False
+        
+    def clear(self):
+        self.__dict__.clear() # dereference here, not an lxml object, don't use superclass clear()
+        

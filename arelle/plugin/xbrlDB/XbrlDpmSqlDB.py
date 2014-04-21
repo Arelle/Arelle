@@ -32,6 +32,9 @@ linux
 macOS
    # plug in installs dynamically
    
+   # to store into DB from instance:
+   arelleCmdLine -f "/Users/hermf/Documents/mvsl/projects/EIOPA/xbrt/13. XBRL Instance Documents/1_instance_md_ars_123456789.xbrl" --store-to-XBRL-DB ",,,,/Users/hermf/temp/DPM.db,90,sqliteDpmDB" --plugins xbrlDB
+   
    # to load from DB and save to instance:
    arelleCmdLine -f "/Users/hermf/temp/instance_md_qrs_123456789.xbrl" --load-from-XBRL-DB ",,,,/Users/hermf/Documents/mvsl/projects/EIOPA/xbrt/3. DPM Database/DPM_DB/DPM_release_ver7_clean.db,90,sqliteDpmDB" --plugins xbrlDB
 
@@ -82,10 +85,9 @@ def isDBPort(host, port, timeout=10, product="postgres"):
     return isSqlConnection(host, port, timeout)
 
 XBRLDBTABLES = {
-                "dAvailableTable", "dCloseTableFact", "dOpenTableSheetsRow",
+                "dAvailableTable", "dFact", "dInstance",
                 "dProcessingContext", "dProcessingFact",
                 "mConcept", "mDomain", "mMember", "mModule", "mOwner",
-                "Instance"
                 }
 
 
@@ -111,7 +113,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             
             # at this point we determine what's in the database and provide new tables
             # requires locking most of the table structure
-            self.lockTables(("dAvailableTable", "dCloseFactTable", "dOpenTableSheetsRow",
+            self.lockTables(("dAvailableTable", "dInstance",  "dFact", 
                              "dProcessingContext", "dProcessingFact"))
             
             self.dropTemporaryTable()
@@ -138,64 +140,55 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         if self.modelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL):
             for refDoc, ref in self.modelXbrl.modelDocument.referencesDocument.items():
                 if refDoc.inDTS and ref.referenceType == "href":
-                    table = self.getTable('Module', 'ModuleID', 
-                                          ('TaxonomyID', 'URI'), 
-                                          ('URI',), 
+                    table = self.getTable('mModule', 'ModuleID', 
+                                          ('TaxonomyID', 'XBRLSchemaRef'), 
+                                          ('XBRLSchemaRef',), 
                                           ((None, # taxonomy ID
                                             refDoc.uri
                                             ),),
                                           checkIfExisting=True,
                                           returnExistenceStatus=True)
-                    for id, URI, existenceStatus in table:
+                    for id, xbrlSchemaRef, existenceStatus in table:
                         moduleId = id
+                        break
+                    if moduleId:
                         break
         for cntx in self.modelXbrl.contexts.values():
             if cntx.isInstantPeriod:
                 entityCode = cntx.entityIdentifier[1]
                 periodInstantDate = cntx.endDatetime.date() - datetime.timedelta(1)  # convert to end date
+                break
         entityCurrency = None
         for unit in self.modelXbrl.units.values():
-            if unit.isSingleMeasure and unit.measures[0] and unit.measures[0][0].qname.namespaceURI == XbrlConst.iso4217:
-                entityCurrency = unit.measures[0][0].qname.localName
+            if unit.isSingleMeasure and unit.measures[0] and unit.measures[0][0].namespaceURI == XbrlConst.iso4217:
+                entityCurrency = unit.measures[0][0].localName
                 break
-        table = self.getTable('Instance', 'InstanceID', 
+        table = self.getTable('dInstance', 'InstanceID', 
                               ('ModuleID', 'FileName', 'CompressedFileBlob',
-                               'Date', 'EntityCode', 'EntityName', 'Period',
-                               'EntityInternalName', 'EntityCurrency'), 
-                              ('ModuleID',), 
+                               'Timestamp', 'EntityScheme', 'EntityIdentifier', 'PeriodEndDateOrInstant',
+                               'EntityName', 'EntityCurrency'), 
+                              ('FileName',), 
                               ((moduleId,
                                 self.modelXbrl.uri,
                                 None,
                                 now,
+                                "http://www.xbrl.org/lei",
                                 entityCode, 
-                                None, 
                                 periodInstantDate, 
                                 None, 
                                 entityCurrency
                                 ),),
-                              checkIfExisting=True,
-                              returnExistenceStatus=True)
-        for id, moduleID, existenceStatus in table:
+                              checkIfExisting=True)
+        for id, fileName in table:
             self.instanceId = id
-            self.instancePreviouslyInDB = existenceStatus
             break
  
     def insertDataPoints(self):
         instanceId = self.instanceId
-        if self.instancePreviouslyInDB:
-            self.showStatus("deleting prior data points of this report")
-            # remove prior facts
+        self.showStatus("deleting prior data points of this report")
+        for tableName in ("dFact", "dProcessingContext", "dProcessingFact"):
             self.execute("DELETE FROM {0} WHERE {0}.InstanceID = {1}"
-                         .format( self.dbTableName("dCloseTableFact"), instanceId), 
-                         close=False, fetch=False)
-            self.execute("DELETE FROM {0} WHERE {0}.InstanceID = {1}"
-                         .format( self.dbTableName("dOpenTableSheetsRow"), instanceId), 
-                         close=False, fetch=False)
-            self.execute("DELETE FROM {0} WHERE {0}.InstanceID = {1}"
-                         .format( self.dbTableName("dProcessingContext"), instanceId), 
-                         close=False, fetch=False)
-            self.execute("DELETE FROM {0} WHERE {0}.InstanceID = {1}"
-                         .format( self.dbTableName("dProcessingFact"), instanceId), 
+                         .format( self.dbTableName(tableName), instanceId), 
                          close=False, fetch=False)
         self.showStatus("insert data points")
         # contexts
@@ -208,6 +201,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         contextSortedDims = dict((cntx.id, dimKey(cntx))
                                  for cntx in self.modelXbrl.contexts.values()
                                  if cntx.qnameDims)
+        contextSortedTypedDims = dict((cntx.id, dimKey(cntx, typedDim=True))
+                                      for cntx in self.modelXbrl.contexts.values()
+                                      if any(dim.isTyped for dim in cntx.qnameDims.values()))
         
         def met(fact):
             return "MET({})".format(fact.qname)
@@ -217,6 +213,15 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             if fact.contextID in contextSortedDims:
                 key += '|' + contextSortedDims[fact.contextID]
             return key
+        
+        def metDimTypedKey(fact):
+            if fact.contextID in contextSortedTypedDims:
+                key = met(fact)
+                if fact.contextID in contextSortedTypedDims:
+                    key += '|' + contextSortedTypedDims[fact.contextID]
+                return key
+            return None
+                
             
         table = self.getTable("dProcessingContext", None,
                               ('InstanceID', 'ContextID', 'SortedDimensions', 'NotValid'),
@@ -226,7 +231,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                      cntxDimKey,
                                      False
                                      )
-                                    for cntxID, cntxDimKey in contextSortedDims.items()))
+                                    for cntxID, cntxDimKey in sorted(contextSortedDims.items())))
         
         # contexts with typed dimensions
         
@@ -312,37 +317,29 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                    xValue if isText else None
                                    ))
                     """
-                    dCloseTableFacts.append((instanceId,
-                                              metDimKey(f),
-                                              f.unitID,
-                                              f.decimals,
-                                              xValue if isNumeric else None,
-                                              xValue if isDateTime else None,
-                                              xValue if isBool else None,
-                                              xValue if isText else None,
-                                              None
-                                              ))
+                dFacts.append((instanceId,
+                               metDimKey(f),
+                               metDimTypedKey(f),
+                               str(f.unit.measures[0][0]) if isNumeric and f.unit is not None and f.unit.isSingleMeasure else None,
+                               f.decimals,
+                               xValue if isNumeric else None,
+                               xValue if isDateTime else None,
+                               xValue if isBool else None,
+                               xValue if isText else None
+                            ))
                 dProcessingFacts.append((instanceId,
                                          met(f),
-                                         cntx.id,
-                                         f.value,
-                                         f.decimals,
-                                         cntx.endDatetime.date() - datetime.timedelta(1),
+                                         f.contextID if isNumeric else None,                                         
+                                         xValue if isText or isBool else None,
+                                         xValue if isNumeric else None,
+                                         xValue if isDateTime else None,
                                          None))
-        """ deprecated ver 7
-        table = self.getTable("Fact", "FactID",
-                              ("Decimals", "VariableID", "DataPointKey",
-                               "InstanceID", "EntityID", "DatePeriodEnd", "Unit",
-                               'NumericValue', 'DateTimeValue', 'BoolValue', 'TextValue'),
-                              ("InstanceID", ),
-                              dFacts)
-        """
-        table = self.getTable("dCloseTableFact", None,
-                              ('InstanceID', 'MetricDimMem', 'Unit', 'Decimals',
-                               'NumericValue', 'DateTimeValue', 'BoolValue', 'TextValue',
-                               'InstanceIdMetricDimMemHash'),
+        table = self.getTable("dFact", None,
+                              ('InstanceID', 'DataPointSignature', 'DataPointSignatureWithValuesForWildcards', 
+                               'Unit', 'Decimals',
+                               'NumericValue', 'DateTimeValue', 'BooleanValue', 'TextValue'),
                               ('InstanceID', ),
-                              dCloseTableFacts)
+                              dFacts)
         table = self.getTable("dProcessingFact", None,
                               ('InstanceID', 'Metric', 'ContextID', 
                                'ValueTxt', 'ValueDecimal', 'ValueDate',
@@ -356,7 +353,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         
         # find instance in DB
         instanceURI = os.path.basename(loadDBsaveToFile)
-        results = self.execute("SELECT InstanceID, ModuleID, EntityCode, Period FROM Instance WHERE FileName = '{}'"
+        results = self.execute("SELECT InstanceID, ModuleID, EntityScheme, PeriodEndDateOrInstant"
+                               " FROM dInstance WHERE FileName = '{}'"
                                .format(instanceURI))
         instanceId = moduleId = None
         for instanceId, moduleId, entId, datePerEnd in results:
@@ -478,17 +476,13 @@ SELECT 'Common' AS Owner,
         # add roleRef and arcroleRef (e.g. for footnotes, if any, see inlineXbrlDocue)
         
         # facts in this instance
-        """ deprecated ver 7
-        factsTbl = self.execute("SELECT FactID, Decimals, VariableID, DataPointKey, EntityID, "
-                                " DatePeriodEnd, Unit, NumericValue, DateTimeValue, BoolValue, TextValue "
-                                "FROM dCloseTableFact WHERE InstanceID = {} "
-                                "ORDER BY substr(DataPointKey,instr(DataPointKey,'|') + 1)"
-                                .format(instanceId))
-        """
-        factsTbl = self.execute("SELECT MetricDimMem, Unit, Decimals, "
-                                " NumericValue, DateTimeValue, BoolValue, TextValue "
-                                "FROM dCloseTableFact WHERE InstanceID = {} "
-                                "ORDER BY substr(MetricDimMem,instr(MetricDimMem,'|') + 1)"
+        factsTbl = self.execute("SELECT DataPointSignature, DataPointSignatureWithValuesForWildcards,"
+                                " Unit, Decimals, NumericValue, DateTimeValue, BooleanValue, TextValue "
+                                "FROM dFact WHERE InstanceID = {} "
+                                "ORDER BY substr(CASE WHEN DataPointSignatureWithValuesForWildcards IS NULL "
+                                "                          THEN DataPointSignature"
+                                "                          ELSE DataPointSignatureWithValuesForWildcards"
+                                "                END, instr(DataPointSignature,'|') + 1)"
                                 .format(instanceId))
         
         # results tuple: factId, dec, varId, dpKey, entId, datePerEnd, unit, numVal, dateVal, boolVal, textVal
@@ -520,12 +514,8 @@ SELECT 'Common' AS Owner,
             return addChild(modelXbrl.modelDocument, qn, text=text, appendChild=False)
         
         # contexts and facts
-        for dpKey, unit, dec, numVal, dateVal, boolVal, textVal in factsTbl:
-            #if varId:
-            #    if isinstance(varId, _STR_BASE):
-            #        varId = int(varId)  # variable table is indexed by int, but TEXT in the instance table
-            #    dpKey = dimsTbl[varId]
-            metric, sep, dims = dpKey.partition('|')
+        for dpSig, dpSigTypedDims, unit, dec, numVal, dateVal, boolVal, textVal in factsTbl:
+            metric, sep, dims = (dpSigTypedDims or dpSig).partition('|')
             conceptQn = qname(metric.partition('(')[2][:-1], prefixedNamespaces)
             concept = modelXbrl.qnameConcepts.get(conceptQn)
             isNumeric = isBool = isDateTime = isQName = isText = False

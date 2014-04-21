@@ -18,7 +18,7 @@ datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([
                              r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*")
 xmlEncodingPattern = re.compile(r"\s*<\?xml\s.*encoding=['\"]([^'\"]*)['\"].*\?>")
 xpointerFragmentIdentifierPattern = re.compile(r"([\w.]+)(\(([^)]*)\))?")
-xmlnsStripPattern = re.compile(r'\s*xmlns(:\w+)?="[^"]*"')
+xmlnsStripPattern = re.compile(r'\s*xmlns(:[\w.]+)?="[^"]*"')
 nonSpacePattern = re.compile(r"\S+")
 
 def xmlns(element, prefix):

@@ -87,6 +87,7 @@ try:
     import sqlite3
     hasSQLite = True
     sqliteConnect = sqlite3.connect
+    sqliteParseDecltypes = sqlite3.PARSE_DECLTYPES
     sqliteOperationalError = sqlite3.OperationalError
     sqliteProgrammingError = sqlite3.ProgrammingError
     sqliteInterfaceError = sqlite3.InterfaceError
@@ -96,6 +97,7 @@ try:
 except ImportError:
     hasSQLite = False
     sqliteConnect = noop
+    sqliteParseDecltypes = None
     sqliteOperationalError = sqliteProgrammingError = sqliteInterfaceError = sqliteInternalError = \
         sqliteDataError = sqliteIntegrityError = NoopException
 
@@ -183,7 +185,7 @@ class SqlDbConnection():
             if not hasSQLite:
                 raise XPDBException("xpgDB:MissingSQLiteInterface",
                                     _("SQLite interface is not installed")) 
-            self.conn = sqliteConnect(database, (timeout or 60))
+            self.conn = sqliteConnect(database, (timeout or 60), detect_types=sqliteParseDecltypes)
             self.product = product
             self.syncSequences = False # for object_id coordination of autoincrement values
         else:
