@@ -121,10 +121,10 @@ def isSqlConnection(host, port, timeout=10, product=None):
                 mssqlConnect(user='', host=host, socket_timeout=t)
             elif product == "sqlite" and hasSQLite:
                 sqliteConnect("", t) # needs a database specified for this test
-        except (pgProgrammingError, mysqlProgrammingError, oracleDatabaseError, sqliteDatabaseError):
+        except (pgProgrammingError, mysqlProgrammingError, oracleDatabaseError, sqliteProgrammingError):
             return True # success, this is really a postgres socket, wants user name
         except (pgInterfaceError, mysqlInterfaceError, oracleInterfaceError, 
-                mssqlOperationalError, mssqlInterfaceError, sqliteInterfaceError):
+                mssqlOperationalError, mssqlInterfaceError, sqliteOperationalError, sqliteInterfaceError):
             return False # something is there but not postgres
         except socket.timeout:
             t = t + 2  # relax - try again with longer timeout

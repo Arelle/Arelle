@@ -56,6 +56,9 @@ from arelle import XbrlConst
 from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
 from decimal import Decimal, InvalidOperation
 
+qnFindFilingIndicators = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:fIndicators")
+qnFindFilingIndicator = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:filingIndicator")
+
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
                  product=None, rssItem=None, loadDBsaveToFile=None, **kwargs):
@@ -85,9 +88,9 @@ def isDBPort(host, port, timeout=10, product="postgres"):
     return isSqlConnection(host, port, timeout)
 
 XBRLDBTABLES = {
-                "dAvailableTable", "dFact", "dInstance",
+                "dAvailableTable", "dFact", "dFilingIndicator", "dInstance",
                 "dProcessingContext", "dProcessingFact",
-                "mConcept", "mDomain", "mMember", "mModule", "mOwner",
+                "mConcept", "mDomain", "mMember", "mModule", "mOwner", "mTemplateOrTable",
                 }
 
 
@@ -113,7 +116,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             
             # at this point we determine what's in the database and provide new tables
             # requires locking most of the table structure
-            self.lockTables(("dAvailableTable", "dInstance",  "dFact", 
+            self.lockTables(("dAvailableTable", "dInstance",  "dFact", "dFilingIndicator",
                              "dProcessingContext", "dProcessingFact"))
             
             self.dropTemporaryTable()
@@ -134,28 +137,23 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
     
     def insertInstance(self):
         now = datetime.datetime.now()
-        entityCode = periodInstantDate = None
+        entityIdentifier = ('', '') # scheme, identifier
+        periodInstantDate = None
         # find primary model taxonomy of instance
-        moduleId = None
+        self.moduleId = None
         if self.modelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL):
             for refDoc, ref in self.modelXbrl.modelDocument.referencesDocument.items():
                 if refDoc.inDTS and ref.referenceType == "href":
-                    table = self.getTable('mModule', 'ModuleID', 
-                                          ('TaxonomyID', 'XBRLSchemaRef'), 
-                                          ('XBRLSchemaRef',), 
-                                          ((None, # taxonomy ID
-                                            refDoc.uri
-                                            ),),
-                                          checkIfExisting=True,
-                                          returnExistenceStatus=True)
-                    for id, xbrlSchemaRef, existenceStatus in table:
-                        moduleId = id
+                    result = self.execute("SELECT ModuleID FROM mModule WHERE XBRLSchemaRef = '{}'"
+                                          .format(refDoc.uri))
+                    for moduleId in result:
+                        self.moduleId = moduleId[0] # only column in row returned
                         break
-                    if moduleId:
+                    if self.moduleId:
                         break
         for cntx in self.modelXbrl.contexts.values():
             if cntx.isInstantPeriod:
-                entityCode = cntx.entityIdentifier[1]
+                entityIdentifier = cntx.entityIdentifier
                 periodInstantDate = cntx.endDatetime.date() - datetime.timedelta(1)  # convert to end date
                 break
         entityCurrency = None
@@ -168,12 +166,12 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                'Timestamp', 'EntityScheme', 'EntityIdentifier', 'PeriodEndDateOrInstant',
                                'EntityName', 'EntityCurrency'), 
                               ('FileName',), 
-                              ((moduleId,
-                                self.modelXbrl.uri,
+                              ((self.moduleId,
+                                os.path.basename(self.modelXbrl.uri),
                                 None,
                                 now,
-                                "http://www.xbrl.org/lei",
-                                entityCode, 
+                                entityIdentifier[0],
+                                entityIdentifier[1], 
                                 periodInstantDate, 
                                 None, 
                                 entityCurrency
@@ -186,32 +184,38 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
     def insertDataPoints(self):
         instanceId = self.instanceId
         self.showStatus("deleting prior data points of this report")
-        for tableName in ("dFact", "dProcessingContext", "dProcessingFact"):
+        for tableName in ("dFact", "dFilingIndicator", "dProcessingContext", "dProcessingFact"):
             self.execute("DELETE FROM {0} WHERE {0}.InstanceID = {1}"
                          .format( self.dbTableName(tableName), instanceId), 
                          close=False, fetch=False)
         self.showStatus("insert data points")
         # contexts
-        def dimKey(cntx, typedDim=False):
+        def dimValKey(cntx, typedDim=False):
             return '|'.join(sorted("{}({})".format(dim.dimensionQname,
                                                    dim.memberQname if dim.isExplicit 
                                                    else xmlstring(dim.typedMember, stripXmlns=True) if typedDim
                                                    else '*' )
                                    for dim in cntx.qnameDims.values()))
-        contextSortedDims = dict((cntx.id, dimKey(cntx))
-                                 for cntx in self.modelXbrl.contexts.values()
-                                 if cntx.qnameDims)
-        contextSortedTypedDims = dict((cntx.id, dimKey(cntx, typedDim=True))
+        def dimNameKey(cntx):
+            return '|'.join(sorted("{}".format(dim.dimensionQname)
+                                   for dim in cntx.qnameDims.values()))
+        contextSortedAllDims = dict((cntx.id, dimValKey(cntx))  # has (*) for typed dim
+                                    for cntx in self.modelXbrl.contexts.values()
+                                    if cntx.qnameDims)
+        contextSortedTypedDims = dict((cntx.id, dimValKey(cntx, typedDim=True)) # typed dims with value only if typed
                                       for cntx in self.modelXbrl.contexts.values()
                                       if any(dim.isTyped for dim in cntx.qnameDims.values()))
+        contextSortedDimNames = dict((cntx.id, dimNameKey(cntx))
+                                     for cntx in self.modelXbrl.contexts.values()
+                                     if cntx.qnameDims)
         
         def met(fact):
             return "MET({})".format(fact.qname)
         
-        def metDimKey(fact):
+        def metDimAllKey(fact):
             key = met(fact)
-            if fact.contextID in contextSortedDims:
-                key += '|' + contextSortedDims[fact.contextID]
+            if fact.contextID in contextSortedAllDims:
+                key += '|' + contextSortedAllDims[fact.contextID]
             return key
         
         def metDimTypedKey(fact):
@@ -222,6 +226,12 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 return key
             return None
                 
+        def metDimNameKey(fact):
+            key = met(fact)
+            if fact.contextID in contextSortedDimNames:
+                key += '|' + contextSortedDimNames[fact.contextID]
+            return key
+        
             
         table = self.getTable("dProcessingContext", None,
                               ('InstanceID', 'ContextID', 'SortedDimensions', 'NotValid'),
@@ -231,12 +241,12 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                      cntxDimKey,
                                      False
                                      )
-                                    for cntxID, cntxDimKey in sorted(contextSortedDims.items())))
+                                    for cntxID, cntxDimKey in sorted(contextSortedAllDims.items())))
         
         # contexts with typed dimensions
         
         # dCloseFactTable
-        dCloseTableFacts = []
+        dFilingIndicators = set()
         dProcessingFacts = []
         dFacts = []
         for f in self.modelXbrl.factsInInstance:
@@ -281,44 +291,13 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                             xValue = False
                 
             isText = not (isNumeric or isBool or isDateTime)
-            if cntx is not None:
-                if any(dim.isTyped for dim in cntx.qnameDims.values()):
-                    """ deprecated ver 7
-                    # typed dim in fact
-                    dFacts.append((f.decimals,
-                                   # factID auto generated (?)
-                                   None,
-                                   metDimKey(f),
-                                   instanceId,
-                                   cntx.entityIdentifier[1],
-                                   cntx.endDatetime.date() - datetime.timedelta(1),
-                                   f.unitID,
-                                   xValue if isNumeric else None,
-                                   xValue if isDateTime else None,
-                                   xValue if isBool else None,
-                                   xValue if isText else None
-                                   ))
-                    """
-                    pass
-                else:
-                    """ deprecated ver 7
-                    # no typed dim in fact
-                    dFacts.append((f.decimals,
-                                   # factID auto generated (?)
-                                   None,
-                                   metDimKey(f),
-                                   instanceId,
-                                   cntx.entityIdentifier[1],
-                                   cntx.endDatetime.date() - datetime.timedelta(1),
-                                   f.unitID,
-                                   xValue if isNumeric else None,
-                                   xValue if isDateTime else None,
-                                   xValue if isBool else None,
-                                   xValue if isText else None
-                                   ))
-                    """
+            if f.qname == qnFindFilingIndicators:
+                for filingIndicator in f.modelTupleFacts:
+                    if filingIndicator.qname == qnFindFilingIndicator:
+                        dFilingIndicators.add(filingIndicator.textValue.strip())
+            elif cntx is not None:
                 dFacts.append((instanceId,
-                               metDimKey(f),
+                               metDimAllKey(f),
                                metDimTypedKey(f),
                                str(f.unit.measures[0][0]) if isNumeric and f.unit is not None and f.unit.isSingleMeasure else None,
                                f.decimals,
@@ -334,6 +313,31 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                          xValue if isNumeric else None,
                                          xValue if isDateTime else None,
                                          None))
+        # get filing indicator template IDs
+        results = self.execute("SELECT mToT.TemplateOrTableCode, mToT.TemplateOrTableID "
+                               "  FROM mModuleBusinessTemplate mBT, mTemplateOrTable mToT "
+                               "  WHERE mBT.ModuleID = {0} AND"
+                               "        mToT.TemplateOrTableID = mBT.BusinessTemplateID AND"
+                               "        mToT.TemplateOrTableCode in ({1})"
+                               .format(self.moduleId,
+                                       ', '.join("'{}'".format(filingIndicator)
+                                                 for filingIndicator in dFilingIndicators)))
+        filingIndicatorCodeIDs = dict((code, id) for code, id in results)
+        
+        if _DICT_SET(filingIndicatorCodeIDs.keys()) != dFilingIndicators:
+            self.modelXbrl.error("sqlDB:MissingFilingIndicators",
+                                 _("The filing indicator IDs not found for codes %(missingFilingIndicatorCodes)"),
+                                 modelObject=self.modelXbrl,
+                                 missingFilingIndicatorCodes=','.join(dFilingIndicators - _DICT_SET(filingIndicatorCodeIDs.keys()))) 
+
+        table = self.getTable("dFilingIndicator", None,
+                              ("InstanceID", "BusinessTemplateID"),
+                              ("InstanceID", "BusinessTemplateID"),
+                              ((instanceId,
+                                filingIndicatorCodeId)
+                               for filingIndicatorCodeId in sorted(filingIndicatorCodeIDs.values())))
+
+        
         table = self.getTable("dFact", None,
                               ('InstanceID', 'DataPointSignature', 'DataPointSignatureWithValuesForWildcards', 
                                'Unit', 'Decimals',
@@ -353,11 +357,11 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         
         # find instance in DB
         instanceURI = os.path.basename(loadDBsaveToFile)
-        results = self.execute("SELECT InstanceID, ModuleID, EntityScheme, PeriodEndDateOrInstant"
+        results = self.execute("SELECT InstanceID, ModuleID, EntityScheme, EntityIdentifier, PeriodEndDateOrInstant"
                                " FROM dInstance WHERE FileName = '{}'"
                                .format(instanceURI))
         instanceId = moduleId = None
-        for instanceId, moduleId, entId, datePerEnd in results:
+        for instanceId, moduleId, entScheme, entId, datePerEnd in results:
             break
 
         # find module in DB        
@@ -374,89 +378,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             
         if modelXbrl.skipDTS:
             # find prefixes and namespaces in DB
-            results = self.execute("""
-SELECT DISTINCT mo.OwnerName AS Owner,
-        CASE
-             WHEN mo.OwnerId > do.OwnerId THEN mo.OwnerPrefix || '_' || do.OwnerPrefix 
-             ELSE do.OwnerPrefix 
-        END || '_' || d.DomainCode AS Prefix,
-        mo.OwnerNamespace || '/dict/dom/' || CASE
-             WHEN mo.OwnerId > do.OwnerId THEN do.OwnerPrefix || '_' || d.DomainCode 
-             ELSE d.DomainCode 
-        END AS Namespace
-   FROM mMember m
-        INNER JOIN mConcept mc
-                ON mc.ConceptID = m.ConceptID
-        INNER JOIN mOwner mo
-                ON mo.OwnerID = mc.OwnerID
-        INNER JOIN mDomain d
-                ON d.ConceptID = m.DomainID
-        INNER JOIN mConcept dc
-                ON dc.ConceptID = d.ConceptID
-        INNER JOIN mOwner do
-                ON do.OwnerID = dc.OwnerID
-  WHERE d.DomainCode != 'met'
-UNION
-SELECT DISTINCT do.OwnerName AS Owner,
-                do.OwnerPrefix || '_typ' AS Prefix,
-                do.OwnerNamespace || '/dict/typ' AS Namespace
-           FROM mDomain d
-                INNER JOIN mConcept dc
-                        ON dc.ConceptID = d.ConceptID
-                INNER JOIN mOwner do
-                        ON do.OwnerID = dc.OwnerID
-          WHERE d.IsTypedDomain = 1
-UNION
-SELECT do.OwnerName AS Owner,
-       do.OwnerPrefix || '_' || d.DomainCode AS Prefix,
-       mo.OwnerNamespace || '/dict/met' AS Namespace
-  FROM mMember m
-       INNER JOIN mConcept mc
-               ON mc.ConceptID = m.ConceptID
-       INNER JOIN mOwner mo
-               ON mo.OwnerID = mc.OwnerID
-       INNER JOIN mDomain d
-               ON d.ConceptID = m.DomainID
-       INNER JOIN mConcept dc
-               ON dc.ConceptID = d.ConceptID
-       INNER JOIN mOwner do
-               ON do.OwnerID = dc.OwnerID
- WHERE d.DomainCode = 'met'
-UNION
-SELECT DISTINCT dimo.OwnerName AS Owner,
-                dimo.OwnerPrefix || '_dim' AS Prefix,
-                dimo.OwnerNamespace || '/dict/dim' AS Namespace
-           FROM mDimension dim
-                INNER JOIN mConcept dimc
-                        ON dimc.ConceptID = dim.ConceptID
-                INNER JOIN mOwner dimo
-                        ON dimo.OwnerID = dimc.OwnerID
-UNION
-SELECT 'Common' AS Owner,
-       '' AS Prefix,
-       'http://www.xbrl.org/2003/instance' AS Namespace
-UNION
-SELECT 'Common' AS Owner,
-       'iso4217' AS Prefix,
-       'http://www.xbrl.org/2003/iso4217' AS Namespace
-UNION
-SELECT 'Common' AS Owner,
-       'link' AS Prefix,
-       'http://www.xbrl.org/2003/linkbase' AS Namespace
-UNION
-SELECT 'Common' AS Owner,
-       'find' AS Prefix,
-       'http://www.eurofiling.info/xbrl/ext/filing-indicators' AS Namespace
-UNION
-SELECT 'Common' AS Owner,
-       'xbrldi' AS Prefix,
-       'http://xbrl.org/2006/xbrldi' AS Namespace
-UNION
-SELECT 'Common' AS Owner,
-       'xlink' AS Prefix,
-       'http://www.w3.org/1999/xlink' AS Namespace;
-            """)
-            
+            results = self.execute("SELECT * FROM [vwGetNamespacesPrefixes]")            
             dpmPrefixedNamespaces = dict((prefix, namespace)
                                          for owner, prefix, namespace in results)
             
@@ -475,6 +397,31 @@ SELECT 'Common' AS Owner,
 
         # add roleRef and arcroleRef (e.g. for footnotes, if any, see inlineXbrlDocue)
         
+        # filing indicator code IDs
+        # get filing indicators
+        results = self.execute("SELECT mToT.TemplateOrTableCode "
+                               "  FROM dFilingIndicator dFI, mTemplateOrTable mToT "
+                               "  WHERE dFI.InstanceID = {} AND mTot.TemplateOrTableID = dFI.BusinessTemplateID"
+                               .format(instanceId))
+        filingIndicatorCodes = [code[0] for code in results]
+        
+        if filingIndicatorCodes:
+            modelXbrl.createContext(entScheme,
+                        entId,
+                        'instant',
+                        None,
+                        datePerEnd,
+                        None, # no dimensional validity checking (like formula does)
+                        {}, [], [],
+                        id='c')
+            filingIndicatorsTuple = modelXbrl.createFact(qnFindFilingIndicators)
+            for filingIndicatorCode in filingIndicatorCodes:
+                modelXbrl.createFact(qnFindFilingIndicator, 
+                                     parent=filingIndicatorsTuple,
+                                     attributes={"contextRef": "c"}, 
+                                     text=filingIndicatorCode)
+
+        
         # facts in this instance
         factsTbl = self.execute("SELECT DataPointSignature, DataPointSignatureWithValuesForWildcards,"
                                 " Unit, Decimals, NumericValue, DateTimeValue, BooleanValue, TextValue "
@@ -488,15 +435,6 @@ SELECT 'Common' AS Owner,
         # results tuple: factId, dec, varId, dpKey, entId, datePerEnd, unit, numVal, dateVal, boolVal, textVal
 
         # get typed dimension values
-        """ deprecated ver 7
-        result = self.execute("SELECT VariableId, VariableKey FROM DataPointVariable WHERE VariableId in ({})"
-                              .format(', '.join(fact[2]
-                                                for fact in factsTbl
-                                                if fact[2])))
-        dimsTbl = dict((varId, varKey)
-                       for varId, varKey in result)
-        """
-        
         prefixedNamespaces = modelXbrl.prefixedNamespaces
         prefixedNamespaces["iso4217"] = XbrlConst.iso4217
         if modelXbrl.skipDTS:
@@ -547,26 +485,27 @@ SELECT 'Common' AS Owner,
             if cntxKey in cntxTbl:
                 cntxId = cntxTbl[cntxKey]
             else:
-                cntxId = 'c{}'.format(len(cntxTbl) + 1)
+                cntxId = 'c-{:02}'.format(len(cntxTbl) + 1)
                 cntxTbl[cntxKey] = cntxId
                 qnameDims = {}
-                for dim in dims.split('|'):
-                    dQn, sep, dVal = dim[:-1].partition('(')
-                    dimQname = qname(dQn, prefixedNamespaces)
-                    if dVal.startswith('<'): # typed dim
-                        mem = typedDimElt(dVal)
-                    else:
-                        mem = qname(dVal, prefixedNamespaces)
-                    qnameDims[dimQname] = DimValuePrototype(modelXbrl, None, dimQname, mem, "scenario")
+                if dims:
+                    for dim in dims.split('|'):
+                        dQn, sep, dVal = dim[:-1].partition('(')
+                        dimQname = qname(dQn, prefixedNamespaces)
+                        if dVal.startswith('<'): # typed dim
+                            mem = typedDimElt(dVal)
+                        else:
+                            mem = qname(dVal, prefixedNamespaces)
+                        qnameDims[dimQname] = DimValuePrototype(modelXbrl, None, dimQname, mem, "scenario")
                     
-                modelXbrl.createContext("http://www.xbrl.org/lei",
-                                         entId,
-                                         'instant',
-                                         None,
-                                         datePerEnd,
-                                         None, # no dimensional validity checking (like formula does)
-                                         qnameDims, [], [],
-                                         id=cntxId)
+                modelXbrl.createContext(entScheme,
+                                        entId,
+                                        'instant',
+                                        None,
+                                        datePerEnd,
+                                        None, # no dimensional validity checking (like formula does)
+                                        qnameDims, [], [],
+                                        id=cntxId)
             if unit:
                 if unit in unitTbl:
                     unitId = unitTbl[unit]

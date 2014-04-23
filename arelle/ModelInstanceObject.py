@@ -815,7 +815,7 @@ class ModelContext(ModelObject):
         except AttributeError:
             eiElt = self.entityIdentifierElement
             if eiElt is not None:
-                self._entityIdentifier = (eiElt.get("scheme"), eiElt.xValue)
+                self._entityIdentifier = (eiElt.get("scheme"), eiElt.xValue or eiElt.textValue) # no xValue if --skipDTS
             else:
                 self._entityIdentifier = ("(Error)", "(Error)")
             return self._entityIdentifier
@@ -1101,7 +1101,7 @@ class ModelDimensionValue(ModelObject):
     def dimensionQname(self):
         """(QName) -- QName of the dimension concept"""
         dimAttr = self.xAttributes.get("dimension", None)
-        if dimAttr is not None and dimAttr.xValid >= XmlValidate.VALID:
+        if dimAttr is not None and dimAttr.xValid >= 4:
             return dimAttr.xValue
         return None
         #return self.prefixedNameQname(self.get("dimension"))
@@ -1142,7 +1142,7 @@ class ModelDimensionValue(ModelObject):
         try:
             return self._memberQname
         except AttributeError:
-            if self.isExplicit and self.xValid >= XmlValidate.VALID:
+            if self.isExplicit and self.xValid >= 4:
                 self._memberQname = self.xValue
             else:
                 self._memberQname = None
