@@ -46,6 +46,10 @@ namePattern = re_compile("^[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u037
 
 NMTOKENPattern = re_compile(r"[_\-\.:" 
                                "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]+$")
+
+decimalPattern = re_compile(r"^[+-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)$")
+floatPattern = re_compile(r"^(\+|-)?([0-9]+(\.[0-9]*)?|^\.[0-9]+)([Ee](\+|-)?[0-9]+)?$|^(\+|-)?INF$|^NaN$")
+
 lexicalPatterns = {
     "duration": re_compile("-?P((([0-9]+Y([0-9]+M)?([0-9]+D)?|([0-9]+M)([0-9]+D)?|([0-9]+D))(T(([0-9]+H)([0-9]+M)?([0-9]+(\.[0-9]+)?S)?|([0-9]+M)([0-9]+(\.[0-9]+)?S)?|([0-9]+(\.[0-9]+)?S)))?)|(T(([0-9]+H)([0-9]+M)?([0-9]+(\.[0-9]+)?S)?|([0-9]+M)([0-9]+(\.[0-9]+)?S)?|([0-9]+(\.[0-9]+)?S))))$"),
     "gYearMonth": re_compile(r"-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
@@ -330,8 +334,12 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                 elif baseXsdType in ("decimal", "float", "double"):
                     sValue = float(value) # s-value uses Number (float) representation, tested before decimal is tested
                     if baseXsdType == "decimal":
+                        if decimalPattern.match(value) is None:
+                            raise ValueError("lexical pattern mismatch")
                         xValue = Decimal(value)
                     else:
+                        if floatPattern.match(value) is None:
+                            raise ValueError("lexical pattern mismatch")
                         xValue = sValue
                     if facets:
                         if "totalDigits" in facets and len(value.replace(".","")) > facets["totalDigits"]:
