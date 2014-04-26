@@ -412,7 +412,7 @@ class WebCache:
                     if retrievingDueToRecheckInterval: 
                         return self.internetRecheckFailedRecovery(filepath, url, err, timeNowStr) 
                     self.cntlr.addToLog(_("%(error)s \nretrieving %(URL)s"),
-                                        messageCode="webCache:authenticationRequired",
+                                        messageCode="webCache:retrievalError",
                                         messageArgs={"error": err, "URL": url},
                                         level=logging.ERROR)
                     return None

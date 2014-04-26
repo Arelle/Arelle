@@ -1172,6 +1172,10 @@ class CntlrWinMain (Cntlr.Cntlr):
 
     # worker threads addToLog        
     def addToLog(self, message, messageCode="", messageArgs=None, file="", level=logging.INFO):
+        if messageCode and messageCode not in message: # prepend message code
+            message = "[{}] {}".format(messageCode, message)
+        if isinstance(messageArgs, dict):
+            message = message % messageArgs
         self.uiThreadQueue.put((self.uiAddToLog, [message]))
         
     # ui thread addToLog
