@@ -46,6 +46,7 @@ windows
 '''
 
 import time, datetime, os
+from collections import defaultdict
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle import Locale, ValidateXbrlDimensions
 from arelle.ModelValue import qname, dateTime, DATEUNION
@@ -89,7 +90,7 @@ def isDBPort(host, port, timeout=10, product="postgres"):
 
 XBRLDBTABLES = {
                 "dAvailableTable", "dFact", "dFilingIndicator", "dInstance",
-                "dProcessingContext", "dProcessingFact",
+                # "dProcessingContext", "dProcessingFact",
                 "mConcept", "mDomain", "mMember", "mModule", "mOwner", "mTemplateOrTable",
                 }
 
@@ -117,7 +118,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             # at this point we determine what's in the database and provide new tables
             # requires locking most of the table structure
             self.lockTables(("dAvailableTable", "dInstance",  "dFact", "dFilingIndicator",
-                             "dProcessingContext", "dProcessingFact"))
+                             # "dProcessingContext", "dProcessingFact"
+                             ))
             
             self.dropTemporaryTable()
  
@@ -184,18 +186,44 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
     def insertDataPoints(self):
         instanceId = self.instanceId
         self.showStatus("deleting prior data points of this report")
-        for tableName in ("dFact", "dFilingIndicator", "dProcessingContext", "dProcessingFact"):
+        for tableName in ("dFact", "dFilingIndicator", "dAvailableTable"):
             self.execute("DELETE FROM {0} WHERE {0}.InstanceID = {1}"
                          .format( self.dbTableName(tableName), instanceId), 
                          close=False, fetch=False)
+            
+        self.showStatus("obtaining mapping table information")
+        result = self.execute("SELECT MetricAndDimensions, TableID FROM mTableDimensionSet WHERE ModuleID = {}"
+                              .format(self.moduleId))
+        tableIDs = set()
+        metricAndDimensionsTableId = defaultdict(set)
+        for metricAndDimensions, tableID in result:
+            tableIDs.add(tableID)
+            metricAndDimensionsTableId[metricAndDimensions].add(tableID)
+            
+        result = self.execute("SELECT TableID, YDimVal, ZDimVal FROM mTable WHERE TableID in ({})"
+                              .format(', '.join(str(i) for i in sorted(tableIDs))))
+        yDimVal = defaultdict(dict)
+        zDimVal = defaultdict(dict)
+        for tableID, yDimVals, zDimVals in result:
+            for tblDimVal, dimVals in ((yDimVal, yDimVals), (zDimVal, zDimVals)):
+                if dimVals:
+                    for dimVal in dimVals.split('|'):
+                        dim, sep, val = dimVal.partition('(')
+                        tblDimVal[tableID][dim] = val[:-1]
+
+        availableTableRows = defaultdict(set) # index (tableID, zDimVal) = set of yDimVals 
+               
         self.showStatus("insert data points")
         # contexts
-        def dimValKey(cntx, typedDim=False):
+        emptySet = set()
+        def dimValKey(cntx, typedDim=False, behaveAsTypedDims=emptySet, restrictToDims=None):
             return '|'.join(sorted("{}({})".format(dim.dimensionQname,
-                                                   dim.memberQname if dim.isExplicit 
+                                                   dim.memberQname if dim.isExplicit and dim not in behaveAsTypedDims
+                                                   else dim.memberQname if typedDim and not dim.isTyped
                                                    else xmlstring(dim.typedMember, stripXmlns=True) if typedDim
                                                    else '*' )
-                                   for dim in cntx.qnameDims.values()))
+                                   for dim in cntx.qnameDims.values()
+                                   if not restrictToDims or str(dim.dimensionQname) in restrictToDims))
         def dimNameKey(cntx):
             return '|'.join(sorted("{}".format(dim.dimensionQname)
                                    for dim in cntx.qnameDims.values()))
@@ -212,19 +240,30 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         def met(fact):
             return "MET({})".format(fact.qname)
         
-        def metDimAllKey(fact):
+        # key for use in dFact with * for dim that behaves as or is typed
+        def metDimAllKey(fact, behaveAsTypedDims=emptySet):
             key = met(fact)
-            if fact.contextID in contextSortedAllDims:
-                key += '|' + contextSortedAllDims[fact.contextID]
+            cntx = fact.context
+            if cntx.qnameDims:
+                key += '|' + dimValKey(cntx, behaveAsTypedDims=behaveAsTypedDims)
             return key
         
-        def metDimTypedKey(fact):
-            if fact.contextID in contextSortedTypedDims:
-                key = met(fact)
-                if fact.contextID in contextSortedTypedDims:
-                    key += '|' + contextSortedTypedDims[fact.contextID]
+        # key for use in dFact only when there's a dim that behaves as or is typed
+        def metDimTypedKey(fact, behaveAsTypedDims=emptySet):
+            cntx = fact.context
+            if any(dimQname in behaveAsTypedDims for dimQname in cntx.qnameDims):
+                key = met(fact) + '|' + dimValKey(cntx, typedDim=True, behaveAsTypedDims=behaveAsTypedDims)
                 return key
             return None
+        
+        # key for use in dAvailable where mem and typed values show up
+        def metDimValKey(cntx, typedDim=False, behaveAsTypedDims=emptySet, restrictToDims=emptySet):
+            if "MET" in restrictToDims:
+                key = "MET({})|".format(restrictToDims["MET"])
+            else:
+                key = ""
+            key += dimValKey(cntx, typedDim=typedDim, behaveAsTypedDims=behaveAsTypedDims, restrictToDims=restrictToDims)
+            return key
                 
         def metDimNameKey(fact):
             key = met(fact)
@@ -232,7 +271,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 key += '|' + contextSortedDimNames[fact.contextID]
             return key
         
-            
+        ''' deprecated
         table = self.getTable("dProcessingContext", None,
                               ('InstanceID', 'ContextID', 'SortedDimensions', 'NotValid'),
                               ('InstanceID', 'ContextID'),
@@ -242,14 +281,15 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                      False
                                      )
                                     for cntxID, cntxDimKey in sorted(contextSortedAllDims.items())))
+        '''
         
         # contexts with typed dimensions
         
         # dCloseFactTable
         dFilingIndicators = set()
-        dProcessingFacts = []
+        # dProcessingFacts = []
         dFacts = []
-        for f in self.modelXbrl.factsInInstance:
+        for f in self.modelXbrl.facts:
             cntx = f.context
             concept = f.concept
             isNumeric = isBool = isDateTime = isText = False
@@ -296,9 +336,26 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     if filingIndicator.qname == qnFindFilingIndicator:
                         dFilingIndicators.add(filingIndicator.textValue.strip())
             elif cntx is not None:
+                # find which explicit dimensions act as typed
+                behaveAsTypedDims = set()
+                zDimValues = {}
+                tableID = None
+                for tableID in metricAndDimensionsTableId.get(metDimNameKey(f), ()):
+                    yDimVals = yDimVal[tableID]
+                    zDimVals = zDimVal[tableID]
+                    for dimQname in cntx.qnameDims.keys():
+                        dimStr = str(dimQname)
+                        if (dimStr in zDimVals and zDimVals[dimStr] == "*" or
+                            dimStr in yDimVals and yDimVals[dimStr] == "*"):
+                            behaveAsTypedDims.add(dimQname)
+                    zDimKey = (metDimValKey(cntx, typedDim=True, behaveAsTypedDims=behaveAsTypedDims, restrictToDims=zDimVals)
+                               or None)  # want None if no dimVal Z key
+                    yDimKey = metDimValKey(cntx, typedDim=True, behaveAsTypedDims=behaveAsTypedDims, restrictToDims=yDimVals)
+                    availableTableRows[tableID,zDimKey].add(yDimKey)
+                    break
                 dFacts.append((instanceId,
-                               metDimAllKey(f),
-                               metDimTypedKey(f),
+                               metDimAllKey(f, behaveAsTypedDims),
+                               metDimTypedKey(f, behaveAsTypedDims),
                                str(f.unit.measures[0][0]) if isNumeric and f.unit is not None and f.unit.isSingleMeasure else None,
                                f.decimals,
                                xValue if isNumeric else None,
@@ -306,6 +363,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                xValue if isBool else None,
                                xValue if isText else None
                             ))
+                ''' deprecated
                 dProcessingFacts.append((instanceId,
                                          met(f),
                                          f.contextID if isNumeric else None,                                         
@@ -313,6 +371,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                          xValue if isNumeric else None,
                                          xValue if isDateTime else None,
                                          None))
+                '''
+                
+                # availableTable processing
         # get filing indicator template IDs
         results = self.execute("SELECT mToT.TemplateOrTableCode, mToT.TemplateOrTableID "
                                "  FROM mModuleBusinessTemplate mBT, mTemplateOrTable mToT "
@@ -330,26 +391,36 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                  modelObject=self.modelXbrl,
                                  missingFilingIndicatorCodes=','.join(dFilingIndicators - _DICT_SET(filingIndicatorCodeIDs.keys()))) 
 
-        table = self.getTable("dFilingIndicator", None,
-                              ("InstanceID", "BusinessTemplateID"),
-                              ("InstanceID", "BusinessTemplateID"),
-                              ((instanceId,
-                                filingIndicatorCodeId)
-                               for filingIndicatorCodeId in sorted(filingIndicatorCodeIDs.values())))
+        self.getTable("dFilingIndicator", None,
+                      ("InstanceID", "BusinessTemplateID"),
+                      ("InstanceID", "BusinessTemplateID"),
+                      ((instanceId,
+                        filingIndicatorCodeId)
+                       for filingIndicatorCodeId in sorted(filingIndicatorCodeIDs.values())))
 
         
-        table = self.getTable("dFact", None,
-                              ('InstanceID', 'DataPointSignature', 'DataPointSignatureWithValuesForWildcards', 
-                               'Unit', 'Decimals',
-                               'NumericValue', 'DateTimeValue', 'BooleanValue', 'TextValue'),
-                              ('InstanceID', ),
-                              dFacts)
+        self.getTable("dFact", None,
+                      ('InstanceID', 'DataPointSignature', 'DataPointSignatureWithValuesForWildcards', 
+                       'Unit', 'Decimals',
+                       'NumericValue', 'DateTimeValue', 'BooleanValue', 'TextValue'),
+                      ('InstanceID', ),
+                      dFacts)
+        ''' deprecated
         table = self.getTable("dProcessingFact", None,
                               ('InstanceID', 'Metric', 'ContextID', 
                                'ValueTxt', 'ValueDecimal', 'ValueDate',
                                'Error'),
                               ('InstanceID', ),
                               dProcessingFacts)
+        '''
+        self.getTable("dAvailableTable", None,
+                      ('InstanceID', 'TableID', 'ZDimVal', "NumberOfRows"), 
+                      ('InstanceID', 'TableID', 'ZDimVal'),
+                      ((instanceId,
+                        availTableKey[0], # table Id
+                        availTableKey[1], # zDimVal
+                        len(setOfYDimVals))
+                       for availTableKey, setOfYDimVals in availableTableRows.items()))
         
     def loadXbrlFromDB(self, loadDBsaveToFile):
         # load from database
@@ -492,10 +563,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     for dim in dims.split('|'):
                         dQn, sep, dVal = dim[:-1].partition('(')
                         dimQname = qname(dQn, prefixedNamespaces)
-                        if dVal.startswith('<'): # typed dim
-                            mem = typedDimElt(dVal)
+                        if dVal.startswith('<'):
+                            mem = typedDimElt(dVal)  # typed dim
                         else:
-                            mem = qname(dVal, prefixedNamespaces)
+                            mem = qname(dVal, prefixedNamespaces) # explicit dim (even if treat-as-typed)
                         qnameDims[dimQname] = DimValuePrototype(modelXbrl, None, dimQname, mem, "scenario")
                     
                 modelXbrl.createContext(entScheme,

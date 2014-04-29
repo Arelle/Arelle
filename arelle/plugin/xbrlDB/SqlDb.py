@@ -321,7 +321,8 @@ class SqlDbConnection():
                 mssqlOperationalError, mssqlInterfaceError, mssqlDataError,
                 mssqlProgrammingError, mssqlIntegrityError,
                 sqliteOperationalError, sqliteInterfaceError, sqliteDataError,
-                socket.timeout) as ex:  # something wrong with SQL
+                socket.timeout,
+                ValueError) as ex:  # something wrong with SQL
             if TRACESQLFILE:
                 with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
                     fh.write("\n\n>>> EXCEPTION {} error {}\n sql {}\n"
