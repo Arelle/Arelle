@@ -183,7 +183,8 @@ def checkDimensions(val, drsELRs):
                             val.modelXbrl.error("SBR.NL.2.2.3.05",
                                 _("ELR role %(linkrole)s, has hypercube %(hypercube)s and a %(arcrole)s relationship not involving the hypercube or primary domain, from %(fromConcept)s to %(toConcept)s"),
                                 modelObject=modelRel, linkrole=ELR, hypercube=hc.qname, arcrole=os.path.basename(modelRel.arcrole), 
-                                fromConcept=modelRel.fromModelObject.qname, toConcept=(modelRel.toModelObject.qname if modelRel.toModelObject else None))
+                                fromConcept=modelRel.fromModelObject.qname, 
+                                toConcept=(modelRel.toModelObject.qname if modelRel.toModelObject is not None else "unknown"))
         domainsInLinkrole = defaultdict(set)
         dimDomMemsByLinkrole = defaultdict(set)
         for rel in val.modelXbrl.relationshipSet(XbrlConst.dimensionDomain).modelRelationships:
