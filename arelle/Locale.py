@@ -10,7 +10,7 @@ system-wide settings.  (The system settings can remain in 'C' locale.)
 
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import sys
+import sys, subprocess
 try:
     import regex as re
 except ImportError:
@@ -30,19 +30,47 @@ LC_TIME = 2
 def getUserLocale(localeCode=''):
     # get system localeconv and reset system back to default
     import locale
+    conv = None
+    if sys.platform == "darwin" and not localeCode:
+        # possibly this MacOS bug: http://bugs.python.org/issue18378
+        # macOS won't provide right default code for english-european culture combinations
+        localeQueryResult = subprocess.getstatusoutput("defaults read -g AppleLocale")  # MacOS only
+        if localeQueryResult[0] == 0 and '_' in localeQueryResult[1]: # successful
+            localeCode = localeQueryResult[1]
     try:
         locale.setlocale(locale.LC_ALL, _STR_8BIT(localeCode))  # str needed for 3to2 2.7 python to work
         conv = locale.localeconv()
     except locale.Error:
-        conv = None
+        if sys.platform == "darwin":
+            # possibly this MacOS bug: http://bugs.python.org/issue18378
+            # the fix to this bug will loose the monetary/number configuration with en_BE, en_FR, etc
+            # so use this alternative which gets the right culture code for numbers even if english default language
+            localeCulture = '-' + localeCode[3:]
+            # find culture (for any language) in available locales
+            for availableLocale in availableLocales():
+                if len(availableLocale) >= 5 and localeCulture in availableLocale:
+                    try:
+                        locale.setlocale(locale.LC_ALL, availableLocale.replace('-','_'))
+                        conv = locale.localeconv() # should get monetary and numeric codes
+                        break
+                    except locale.Error:
+                        pass # this one didn't work
     locale.setlocale(locale.LC_ALL, _STR_8BIT('C'))  # str needed for 3to2 2.7 python to work
+    if conv is None: # some other issue prevents getting culture code, use 'C' defaults (no thousands sep, no currency, etc)
+        conv = locale.localeconv() # use 'C' environment, e.g., en_US
     return conv
 
 def getLanguageCode():
+    if sys.platform == "darwin":
+        # possibly this MacOS bug: http://bugs.python.org/issue18378
+        # even when fixed, macOS won't provide right default code for some language-culture combinations
+        localeQueryResult = subprocess.getstatusoutput("defaults read -g AppleLocale")  # MacOS only
+        if localeQueryResult[0] == 0 and localeQueryResult[1]: # successful
+            return localeQueryResult[1][:5].replace("_","-")
     import locale
     try:
         return locale.getdefaultlocale()[0].replace("_","-")
-    except AttributeError: #language code and encoding may be None if their values cannot be determined.
+    except (AttributeError, ValueError): #language code and encoding may be None if their values cannot be determined.
         return "en"    
 
 def getLanguageCodes(lang=None):
@@ -95,7 +123,6 @@ def availableLocales():
     if _availableLocales is not None:
         return _availableLocales
     else:
-        import subprocess
         localeQueryResult = subprocess.getstatusoutput("locale -a")  # Mac and Unix only
         if localeQueryResult[0] == 0: # successful
             _availableLocales = set(locale.partition(".")[0].replace("_", "-")
@@ -342,8 +369,7 @@ def _format(conv, percent, value, grouping=False, monetary=False, *additional):
         parts = formatted.split('.')
         if grouping:
             parts[0], seps = _group(conv, parts[0], monetary=monetary)
-        decimal_point = conv[monetary and 'mon_decimal_point'
-                                              or 'decimal_point']
+        decimal_point = conv[monetary and 'mon_decimal_point' or 'decimal_point']
         formatted = decimal_point.join(parts)
         if seps:
             formatted = _strip_padding(formatted, seps)
