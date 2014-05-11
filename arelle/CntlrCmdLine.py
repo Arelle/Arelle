@@ -24,6 +24,7 @@ from arelle import PluginManager
 from arelle.PluginManager import pluginClassMethods
 from arelle.WebCache import proxyTuple
 import logging
+win32file = None
 
 def main():
     """Main program to initiate application from command line or as a separate process (e.g, java Runtime.getRuntime().exec).  May perform
@@ -183,6 +184,7 @@ def parseAndRun(args):
     parser.add_option("--logCodeFilter", action="store", dest="logCodeFilter",
                       help=_("Regular expression filter for log message code."))
     parser.add_option("--logcodefilter", action="store", dest="logCodeFilter", help=SUPPRESS_HELP)
+    parser.add_option("--statusPipe", action="store", dest="statusPipe", help=SUPPRESS_HELP)
     parser.add_option("--showOptions", action="store_true", dest="showOptions", help=SUPPRESS_HELP)
     parser.add_option("--parameters", action="store", dest="parameters", help=_("Specify parameters for formula and validation (name=value[,name=value])."))
     parser.add_option("--parameterSeparator", action="store", dest="parameterSeparator", help=_("Specify parameters separator string (if other than comma)."))
@@ -413,6 +415,20 @@ class CntlrCmdLine(Cntlr.Cntlr):
         :param options: OptionParser options from parse_args of main argv arguments (when called from command line) or corresponding arguments from web service (REST) request.
         :type options: optparse.Values
         """
+        
+        if options.statusPipe:
+            print("statusPipe=" + options.statusPipe + "\n", file=sys.stderr)
+            try:
+                global win32file
+                import win32file, pywintypes
+                self.statusPipe = win32file.CreateFile("\\\\.\\pipe\\{}".format(options.statusPipe), 
+                                                       win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None, win32file.OPEN_EXISTING, win32file.FILE_FLAG_NO_BUFFERING, None)
+                self.showStatus = self.showStatusOnPipe
+                self.lastStatusTime = 0.0
+            except ImportError: # win32 not installed
+                self.addToLog("--statusPipe {} cannot be installed, packages for win32 missing".format(options.statusPipe))
+            except pywintypes.error: # named pipe doesn't exist
+                self.addToLog("--statusPipe {} has not been created by calling program".format(options.statusPipe))
         if options.showOptions: # debug options
             for optName, optValue in sorted(options.__dict__.items(), key=lambda optItem: optItem[0]):
                 self.addToLog("Option {0}={1}".format(optName, optValue), messageCode="info")
@@ -830,6 +846,14 @@ class CntlrCmdLine(Cntlr.Cntlr):
     # default web authentication password
     def internet_user_password(self, host, realm):
         return (self.username, self.password)
+    
+    # special show status for named pipes
+    def showStatusOnPipe(self, message, clearAfter=None):
+        now = time.time()
+        if now - 0.3 > self.lastStatusTime:  # max status updates 3 per second 
+            self.lastStatusTime = now
+            win32file.WriteFile(self.statusPipe, (message or "").encode("utf8"))
+            win32file.FlushFileBuffers(self.statusPipe)
 
 if __name__ == "__main__":
     '''
