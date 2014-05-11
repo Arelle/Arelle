@@ -440,21 +440,24 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                                for id, docId, line, offset in table)
         
         self.showStatus("insert labels")
+        uniqueResources = dict(((self.resourceId[self.documentIds[resource.modelDocument.uri],
+                                                     resource.sourceline,
+                                                     resource.objectIndex]), resource)
+                               for arcrole in (XbrlConst.conceptLabel, XbrlConst.elementLabel)
+                               for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
+                               if rel.fromModelObject is not None and rel.toModelObject is not None
+                               for resource in (rel.fromModelObject, rel.toModelObject)
+                               if isinstance(resource, ModelResource))
         table = self.getTable('label_resource', 'resource_id', 
                               ('resource_id', 'label', 'xml_lang'), 
                               ('resource_id',), 
-                              tuple((self.resourceId[self.documentIds[resource.modelDocument.uri],
-                                                     resource.sourceline,
-                                                     resource.objectIndex],
+                              tuple((resourceId,
                                      resource.textValue,
                                      resource.xmlLang)
-                                    for arcrole in (XbrlConst.conceptLabel, XbrlConst.elementLabel)
-                                    for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
-                                    if rel.fromModelObject is not None and rel.toModelObject is not None
-                                    for resource in (rel.fromModelObject, rel.toModelObject)
-                                    if isinstance(resource, ModelResource)),
+                                    for resourceId, resource in uniqueResources.items()),
                               checkIfExisting=True)
-    
+        uniqueResources.clear()
+
     def insertNetworks(self):
         self.showStatus("insert networks")
         table = self.getTable('network', 'network_id', 
