@@ -188,7 +188,7 @@ def checkDTS(val, modelDocument, visited):
                     requiredId = (prefix if prefix is not None else "") + "_" + name
                     if val.validateEFMorGFM and id != requiredId:
                         val.modelXbrl.error(("EFM.6.07.17", "GFM.1.03.19"),
-                            _("Concept %(concept)s id %(id)s should be $(requiredId)s"),
+                            _("Concept %(concept)s id %(id)s should be %(requiredId)s"),
                             modelObject=modelConcept, concept=modelConcept.qname, id=id, requiredId=requiredId)
                         
                     # 6.7.18 nillable is true
