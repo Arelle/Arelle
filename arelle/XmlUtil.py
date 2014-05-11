@@ -760,6 +760,8 @@ def xmlstring(elt, stripXmlns=False, prettyPrint=False, contentsOnly=False):
             xmlstring(child, stripXmlns, prettyPrint)
             for child in elt.iterchildren())
     xml = etree.tostring(elt, encoding=_STR_UNICODE, pretty_print=prettyPrint)
+    if not prettyPrint:
+        xml = xml.strip()
     if stripXmlns:
         return xmlnsStripPattern.sub('', xml)
     else:
