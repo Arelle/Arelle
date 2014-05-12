@@ -239,7 +239,16 @@ def final(val, conceptsUsed):
                     date=concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"))
                 
     # check for unused extension concepts
-    dimensionDefaults = set(defaultMemConcept for defaultMemConcept in val.modelXbrl.dimensionDefaultConcepts.values())
+    dimensionDefaults = set()
+    def defaultParentCheck(mem, ELR=None):
+        for rel in val.modelXbrl.relationshipSet(XbrlConst.domainMember, ELR).toModelObject(mem):
+            memParent = rel.fromModelObject
+            dimensionDefaults.add(memParent)
+            defaultParentCheck(defaultParentCheck, rel.linkrole)
+    for defaultMemConcept in val.modelXbrl.dimensionDefaultConcepts.values():
+        dimensionDefaults.add(defaultMemConcept)
+        # also add any domain or intermediate parents of dimension default in any ELR as they likely will be unused
+        defaultParentCheck(defaultMemConcept)
     extensionConceptsUnused = [concept
                                for qn, concept in val.modelXbrl.qnameConcepts.items()
                                if concept.isItem and 
