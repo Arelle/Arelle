@@ -217,6 +217,7 @@ def final(val, conceptsUsed):
     if not val.validateLoggingSemantic:  # all checks herein are SEMANTIC
         return
     ugtNamespace = val.ugtNamespace
+    standardTaxonomiesDict = val.disclosureSystem.standardTaxonomiesDict
     startedAt = time.time()
     for depType, depItems in (("Concept", val.deprecatedFactConcepts),
                               ("Dimension", val.deprecatedDimensions),
@@ -242,7 +243,7 @@ def final(val, conceptsUsed):
     extensionConceptsUnused = [concept
                                for qn, concept in val.modelXbrl.qnameConcepts.items()
                                if concept.isItem and 
-                               qn.namespaceURI not in val.disclosureSystem.standardTaxonomiesDict
+                               qn.namespaceURI not in standardTaxonomiesDict
                                if concept not in conceptsUsed and
                                   # don't report dimension that has a default member
                                   concept not in val.modelXbrl.dimensionDefaultConcepts and
@@ -266,7 +267,7 @@ def final(val, conceptsUsed):
     for rel in standardRelationships.modelRelationships:
         for concept in (rel.fromModelObject, rel.toModelObject):
             if (concept is not None and concept.qname is not None and
-                concept.qname.namespaceURI in val.disclosureSystem.standardTaxonomiesDict and
+                concept.qname.namespaceURI in standardTaxonomiesDict and
                 concept not in conceptsUsed):
                 if (not concept.isAbstract or 
                     concept.isDimensionItem or 
@@ -451,9 +452,9 @@ def final(val, conceptsUsed):
             if (defaultDimRel.fromModelObject is not None and defaultDimRel.toModelObject is not None and
                 defaultDimRel.fromModelObject.qname.namespaceURI == ugtNamespace and
                 defaultDimRel.fromModelObject.name in val.usgaapDefaultDimensions and
-                (defaultDimRel.toModelObject.qname.namespaceURI != ugtNamespace or
+                (defaultDimRel.toModelObject.qname.namespaceURI not in standardTaxonomiesDict or
                  defaultDimRel.toModelObject.name != val.usgaapDefaultDimensions[defaultDimRel.fromModelObject.name])):
-                if defaultDimRel.toModelObject.qname.namespaceURI != ugtNamespace:
+                if defaultDimRel.toModelObject.qname.namespaceURI not in standardTaxonomiesDict:
                     msgObjects = (defaultDimRel, defaultDimRel.toModelObject)
                 else:
                     msgObjects = defaultDimRel
