@@ -302,14 +302,15 @@ class Cntlr:
         else:
             self.logger = None
         if self.logger:
-            if logLevel and logLevel.upper() not in logging._levelNames.keys():
+            try:
+                self.logger.setLevel((logLevel or "debug").upper())
+            except ValueError:
+                loggingLevelNums = logging._levelNames if sys.version < '3.4' else logging._levelToName
                 self.addToLog(_("Unknown log level name: {0}, please choose from {1}").format(
                     logLevel, ', '.join(logging.getLevelName(l).lower()
-                                        for l in sorted([i for i in logging._levelNames.keys()
+                                        for l in sorted([i for i in logging.loggingLevelNums.keys()
                                                          if isinstance(i,_INT_TYPES) and i > 0]))),
                               level=logging.ERROR, messageCode="arelle:logLevel")
-            else:
-                self.logger.setLevel(logging.getLevelName((logLevel or "debug").upper()))
             self.logger.messageCodeFilter = None
             self.logger.messageLevelFilter = None
                 
