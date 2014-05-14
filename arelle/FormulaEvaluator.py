@@ -70,7 +70,7 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
                     modelObject=varSet,
                     messageCodes=("message:{variableSetID|xlinkLabel}"))
                 xpCtx.inScopeVars.pop(XbrlConst.qnEaTestExpression)
-        if xpCtx.formulaOptions.traceVariableSetExpressionResult and initialTraceCount == xpCtx.modelXbrl.logCount.get(logging.getLevelName('INFO'), 0):
+        if xpCtx.formulaOptions.traceVariableSetExpressionResult and initialTraceCount == xpCtx.modelXbrl.logCount.get(logging._checkLevel('INFO'), 0):
             xpCtx.modelXbrl.info("formula:trace",
                  _("Variable set %(xlinkLabel)s had no xpCtx.evaluations"),
                  modelObject=varSet, xlinkLabel=varSet.xlinkLabel)

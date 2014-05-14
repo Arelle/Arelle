@@ -31,7 +31,7 @@ def validate(logMessage, sphinxContext):
             modelXbrl.modelFormulaEqualityDefinitions = {}
     
         import logging
-        initialErrorCount = modelXbrl.logCount.get(logging.getLevelName('ERROR'), 0)
+        initialErrorCount = modelXbrl.logCount.get(logging._checkLevel('ERROR'), 0)
 
         # must also have default dimensions loaded
         from arelle import ValidateXbrlDimensions
@@ -150,7 +150,7 @@ def validate(logMessage, sphinxContext):
                
     if hasDTS:
         # if no errors in checking sphinx
-        if initialErrorCount == modelXbrl.logCount.get(logging.getLevelName('ERROR'), 0):
+        if initialErrorCount == modelXbrl.logCount.get(logging._checkLevel('ERROR'), 0):
             from .SphinxEvaluator import evaluateRuleBase
             evaluateRuleBase(sphinxContext)
         

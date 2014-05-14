@@ -273,12 +273,12 @@ class ModelTestcaseVariation(ModelObject):
         for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ExpectedSeverity"):
             severityLevelName = pluginXbrlMethod(self)
             if severityLevelName: # ignore plug in if not a plug-in-recognized test case
-                return logging.getLevelName
+                return logging._checkLevel(severityLevelName)
         # default behavior without plugins
         # SEC error cases have <assert severity={err|wrn}>...
         if XmlUtil.descendant(self, None, "assert", attrName="severity", attrValue="wrn") is not None:
-            return logging.getLevelName("WARNING")
-        return logging.getLevelName("INCONSISTENCY")
+            return logging._checkLevel("WARNING")
+        return logging._checkLevel("INCONSISTENCY")
 
     @property
     def expectedVersioningReport(self):

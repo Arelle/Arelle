@@ -265,7 +265,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
         val.modelXbrl.profileStat(_("initializeXPath2Grammar")) # only provide stat when not yet initialized
     val.modelXbrl.modelManager.showStatus(statusMsg)
     val.modelXbrl.profileActivity()
-    initialErrorCount = val.modelXbrl.logCount.get(logging.getLevelName('ERROR'), 0)
+    initialErrorCount = val.modelXbrl.logCount.get(logging._checkLevel('ERROR'), 0)
     
     # global parameter names
     parameterQnames = set()
@@ -753,7 +753,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
     val.modelXbrl.profileActivity("... instances scopes and setup", minTimeToShow=1.0)
 
     val.modelXbrl.profileStat(_("formulaValidation"))
-    if (initialErrorCount < val.modelXbrl.logCount.get(logging.getLevelName('ERROR'), 0) or
+    if (initialErrorCount < val.modelXbrl.logCount.get(logging._checkLevel('ERROR'), 0) or
         compileOnly or 
         getattr(val, "validateFormulaCompileOnly", False)):
         return  # don't try to execute

@@ -242,7 +242,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     "scenario": ("{http://www.xbrl.org/2003/instance}scenario",),
                                     "either": ("{http://www.xbrl.org/2003/instance}segment","{http://www.xbrl.org/2003/instance}scenario"),
                                     "both": ("{http://www.xbrl.org/2003/instance}segment","{http://www.xbrl.org/2003/instance}scenario"),
-                                    "none": [],
+                                    "none": [], None:[]
                                     }[disclosureSystem.contextElement]:
                     for segScenElt in context.iterdescendants(contextName):
                         if isinstance(segScenElt,ModelObject):

@@ -243,7 +243,7 @@ class ModelXbrl:
         self.namespaceDocs = defaultdict(list)
         self.urlDocs = {}
         self.urlUnloadableDocs = {}  # if entry is True, entry is blocked and unloadable, False means loadable but warned
-        self.errorCaptureLevel = (errorCaptureLevel or logging.getLevelName("INCONSISTENCY"))
+        self.errorCaptureLevel = (errorCaptureLevel or logging._checkLevel("INCONSISTENCY"))
         self.errors = []
         self.logCount = {}
         self.arcroleTypes = defaultdict(list)
@@ -1007,7 +1007,7 @@ class ModelXbrl:
         elif (messageCode and
               (not logger.messageCodeFilter or logger.messageCodeFilter.match(messageCode)) and
               (not logger.messageLevelFilter or logger.messageLevelFilter.match(level.lower()))):
-            numericLevel = logging.getLevelName(level)
+            numericLevel = logging._checkLevel(level)
             self.logCount[numericLevel] = self.logCount.get(numericLevel, 0) + 1
             if numericLevel >= self.errorCaptureLevel:
                 self.errors.append(messageCode)
