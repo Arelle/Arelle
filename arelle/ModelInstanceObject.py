@@ -148,6 +148,7 @@ class ModelFact(ModelObject):
         try:
             return self._context
         except AttributeError:
+            if not self.modelXbrl.contexts: return None # don't attempt before contexts are loaded
             self._context = self.modelXbrl.contexts.get(self.contextID)
             return self._context
     
