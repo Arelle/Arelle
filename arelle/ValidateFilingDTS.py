@@ -193,7 +193,7 @@ def checkDTS(val, modelDocument, visited):
                         
                     # 6.7.18 nillable is true
                     nillable = modelConcept.get("nillable")
-                    if nillable != "true":
+                    if nillable != "true" and modelConcept.isItem:
                         val.modelXbrl.error(("EFM.6.07.18", "GFM.1.03.20"),
                             _("Taxonomy schema %(schema)s element %(concept)s nillable %(nillable)s should be 'true'"),
                             modelObject=modelConcept, schema=os.path.basename(modelDocument.uri),
@@ -278,7 +278,7 @@ def checkDTS(val, modelDocument, visited):
                             modelObject=modelConcept, concept=modelConcept.qname)
     
                     #6.7.32 (version 27) instant non numeric
-                    if not modelConcept.isNumeric and not isDuration and not modelConcept.isAbstract and not isDomainItemType:
+                    if modelConcept.isItem and (not modelConcept.isNumeric and not isDuration and not modelConcept.isAbstract and not isDomainItemType):
                         val.modelXbrl.error("EFM.6.07.32",
                             _("Taxonomy schema %(schema)s element %(concept)s is non-numeric but period type is not duration"),
                             modelObject=modelConcept, schema=os.path.basename(modelDocument.uri), concept=modelConcept.qname)
