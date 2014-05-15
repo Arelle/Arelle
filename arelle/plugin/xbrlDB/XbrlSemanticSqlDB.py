@@ -953,7 +953,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                       if cntx is not None else None,
                                       self.periodId.get((reportId,
                                                     cntx.startDatetime if cntx.isStartEndPeriod else None,
-                                                    cntx.endDatetime if cntx.isStartEndPeriod else None,
+                                                    cntx.endDatetime if (cntx.isStartEndPeriod or cntx.isInstantPeriod) else None,
                                                     cntx.isInstantPeriod,
                                                     cntx.isForeverPeriod)) if cntx is not None else None,
                                   cntxAspectValueSelectionSetId.get(cntx) if cntx is not None else None,
