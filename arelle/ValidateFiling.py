@@ -640,7 +640,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 ValidateFilingText.validateTextBlockFacts(modelXbrl)
             
                 if amendmentFlag is None:
-                    modelXbrl.error(("EFM.6.05.20.missingAmendmentFlag", "GFM.3.02.01"),
+                    modelXbrl.log("WARNING" if validateEFMpragmatic else "ERROR",
+                                  ("EFM.6.05.20.missingAmendmentFlag", "GFM.3.02.01"),
                         _("%(elementName)s is not found in the default context"),
                         modelXbrl=modelXbrl, elementName=disclosureSystem.deiAmendmentFlagElement)
         
@@ -659,12 +660,14 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
     
             if self.validateEFM:
                 if amendmentFlag == "true" and amendmentDescription is None:
-                    modelXbrl.error("EFM.6.05.20.missingAmendmentDescription",
+                    modelXbrl.log("WARNING" if validateEFMpragmatic else "ERROR",
+                                  "EFM.6.05.20.missingAmendmentDescription",
                         _("AmendmentFlag is true in context %(contextID)s so AmendmentDescription is also required"),
                         modelObject=amendmentFlagFact, contextID=amendmentFlagFact.contextID if amendmentFlagFact is not None else "unknown")
         
                 if amendmentDescription is not None and amendmentFlag != "true":
-                    modelXbrl.error("EFM.6.05.20.extraneous",
+                    modelXbrl.log("WARNING" if validateEFMpragmatic else "ERROR",
+                                  "EFM.6.05.20.extraneous",
                         _("AmendmentDescription can not be provided when AmendmentFlag is not true in context %(contextID)s"),
                         modelObject=amendmentDescriptionFact, contextID=amendmentDescriptionFact.contextID)
                     
