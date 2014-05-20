@@ -169,7 +169,7 @@ class Cntlr:
             self.isMSW = True
             if self.hasFileSystem and not configHomeDir:
                 tempDir = tempfile.gettempdir()
-                if tempDir.endswith('local\\temp'):
+                if tempDir.lower().endswith('local\\temp'):
                     impliedAppDir = tempDir[:-10] + 'local'
                 else:
                     impliedAppDir = tempDir
