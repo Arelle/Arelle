@@ -9,6 +9,8 @@ SET @@sql_mode=CONCAT_WS(',', @@sql_mode, 'NO_BACKSLASH_ESCAPES');
 -- note that dropping table also drops the indexes and triggers
 --
 DROP TABLE IF EXISTS sequences CASCADE;
+DROP TABLE IF EXISTS entity CASCADE;
+DROP TABLE IF EXISTS former_entity CASCADE;
 DROP TABLE IF EXISTS filing CASCADE;
 DROP TABLE IF EXISTS report CASCADE;
 DROP TABLE IF EXISTS document CASCADE;
@@ -23,7 +25,7 @@ DROP TABLE IF EXISTS relationship_set CASCADE;
 DROP TABLE IF EXISTS root CASCADE;
 DROP TABLE IF EXISTS relationship CASCADE;
 DROP TABLE IF EXISTS data_point CASCADE;
-DROP TABLE IF EXISTS entity CASCADE;
+DROP TABLE IF EXISTS entity_identifier CASCADE;
 DROP TABLE IF EXISTS period CASCADE;
 DROP TABLE IF EXISTS unit CASCADE;
 DROP TABLE IF EXISTS unit_measure CASCADE;
@@ -46,19 +48,54 @@ CREATE TABLE sequences (
     PRIMARY KEY (sequence_name)
 ); 
 
+CREATE TABLE entity (
+    entity_id bigint bigint default next value for seq_entity,
+    legal_entity_number varchar(30), -- LEI
+    file_number varchar(30), -- authority internal number
+    reference_number varchar(30), -- external code, e.g. CIK
+    tax_number varchar(30),
+    standard_industry_code integer NOT NULL DEFAULT -1,
+    name varchar(1024),
+    legal_state varchar(32),
+    phone varchar(32),
+    phys_addr1 varchar(128), -- physical (real) address
+    phys_addr2 varchar(128),
+    phys_city varchar(128),
+    phys_state varchar(128),
+    phys_zip varchar(32),
+    phys_country varchar(16),
+    mail_addr1 varchar(128), -- mailing (postal) address
+    mail_addr2 varchar(128),
+    mail_city varchar(128),
+    mail_state varchar(128),
+    mail_zip varchar(32),
+    mail_country varchar(16),
+    fiscal_year_end varchar(6),
+    filer_category varchar(128),
+    public_float double,
+    trading_symbol varchar(32)
+);
+CREATE INDEX entity_index01 USING btree ON entity (entity_id);
+CREATE INDEX entity_index02 USING btree ON entity (file_number);
+CREATE INDEX entity_index03 USING btree ON entity (reference_number);
+
+CREATE TABLE former_entity (
+    entity_id bigint NOT NULL,
+    date_changed date,
+    former_name varchar(1024)
+);
+CREATE INDEX former_entity_index02 USING btree ON former_entity (entity_id);
+
 
 CREATE TABLE filing (
     filing_id bigint NOT NULL AUTO_INCREMENT,
     filing_number varchar(30) NOT NULL,
-    reference_number  varchar(30),
     form_type  varchar(30),
+    entity_id bigint NOT NULL,
     accepted_timestamp timestamp NOT NULL DEFAULT now(),
     is_most_current boolean NOT NULL DEFAULT false,
     filing_date date NOT NULL,
-    entity_id bigint NOT NULL,
-    entity_name varchar(1024),
     creation_software text,
-    standard_industry_code integer NOT NULL DEFAULT -1,
     authority_html_url text,
     entry_url text,
     PRIMARY KEY (filing_id)
@@ -72,7 +109,11 @@ INSERT INTO sequences (sequence_name) VALUES ('seq_object');
 
 CREATE TABLE report (
     report_id bigint NOT NULL,
-    filing_id bigint NOT NULL
+    filing_id bigint NOT NULL,
+    report_data_doc_id bigint,  -- instance or primary inline document
+    report_schema_doc_id bigint,  -- extension schema of the report (primary)
+    agency_schema_doc_id bigint,  -- agency schema (receiving authority)
+    standard_schema_doc_id bigint  -- e.g., IFRS, XBRL-US, or EDInet schema
 );
 CREATE INDEX report_index01 USING btree ON report (report_id);
 CREATE INDEX report_index02 USING btree ON report (filing_id);
@@ -311,14 +352,14 @@ CREATE TRIGGER data_point_seq BEFORE INSERT ON data_point
   END;//
 DELIMITER ;
 
-CREATE TABLE entity (
-    entity_id bigint NOT NULL,
+CREATE TABLE entity_identifier (
+    entity_identifier_id bigint NOT NULL,
     report_id bigint,
-    entity_scheme varchar(1024) NOT NULL,
-    entity_identifier varchar(1024) NOT NULL,
+    scheme varchar(1024) NOT NULL,
+    identifier varchar(1024) NOT NULL,
     PRIMARY KEY (entity_id)
 );
-CREATE INDEX entity_index02 USING btree ON entity (report_id, entity_scheme(32), entity_identifier(32));
+CREATE INDEX entity_identifier_index02 USING btree ON entity_identifier (report_id, scheme(32), identifier(32));
 
 DELIMITER //
 CREATE TRIGGER entity_seq BEFORE INSERT ON entity 

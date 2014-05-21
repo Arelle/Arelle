@@ -14,6 +14,8 @@ SET escape_string_warning = off;
 SET search_path = public, pg_catalog;
 
 -- drop tables and sequences
+DROP TABLE IF EXISTS entity CASCADE;
+DROP TABLE IF EXISTS former_entity CASCADE;
 DROP TABLE IF EXISTS filing CASCADE;
 DROP TABLE IF EXISTS report CASCADE;
 DROP TABLE IF EXISTS document CASCADE;
@@ -28,7 +30,7 @@ DROP TABLE IF EXISTS relationship_set CASCADE;
 DROP TABLE IF EXISTS relationship CASCADE;
 DROP TABLE IF EXISTS root CASCADE;
 DROP TABLE IF EXISTS data_point CASCADE;
-DROP TABLE IF EXISTS entity CASCADE;
+DROP TABLE IF EXISTS entity_identifier CASCADE;
 DROP TABLE IF EXISTS period CASCADE;
 DROP TABLE IF EXISTS unit CASCADE;
 DROP TABLE IF EXISTS unit_measure CASCADE;
@@ -41,6 +43,7 @@ DROP TABLE IF EXISTS industry CASCADE;
 DROP TABLE IF EXISTS industry_level CASCADE;
 DROP TABLE IF EXISTS industry_structure CASCADE;
 
+DROP SEQUENCE IF EXISTS seq_entity;
 DROP SEQUENCE IF EXISTS seq_filing;
 DROP SEQUENCE IF EXISTS seq_object;
 DROP SEQUENCE IF EXISTS seq_relationship_set;
@@ -49,51 +52,87 @@ DROP SEQUENCE IF EXISTS seq_industry;
 DROP SEQUENCE IF EXISTS seq_industry_level;
 DROP SEQUENCE IF EXISTS seq_industry_structure;
 
-CREATE SEQUENCE seq_filing
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER TABLE public.seq_filing OWNER TO postgres;
-
 --
 -- note that dropping table also drops the indexes and triggers
 --
+CREATE SEQUENCE seq_entity;
+ALTER TABLE public.seq_entity OWNER TO postgres;
+
+CREATE TABLE entity (
+    entity_id bigint DEFAULT nextval('seq_entity'::regclass) NOT NULL,
+    legal_entity_number character varying(30), -- LEI
+    file_number character varying(30), -- authority internal number
+    reference_number character varying(30), -- external code, e.g. CIK
+    tax_number character varying(30),
+    standard_industry_code integer DEFAULT (-1) NOT NULL,
+    name character varying,
+    legal_state character varying,
+    phone character varying,
+    phys_addr1 character varying, -- physical (real) address
+    phys_addr2 character varying,
+    phys_city character varying,
+    phys_state character varying,
+    phys_zip character varying,
+    phys_country character varying,
+    mail_addr1 character varying, -- mailing (postal) address
+    mail_addr2 character varying,
+    mail_city character varying,
+    mail_state character varying,
+    mail_zip character varying,
+    mail_country character varying,
+    fiscal_year_end character varying(6),
+    filer_category character varying,
+    public_float float,
+    trading_symbol character varying,
+    PRIMARY KEY (entity_id)
+);
+CREATE INDEX entity_index02 ON entity USING btree (file_number);
+CREATE INDEX entity_index03 ON entity USING btree (reference_number);
+
+ALTER TABLE public.entity OWNER TO postgres;
+
+CREATE TABLE former_entity (
+    entity_id bigint NOT NULL,
+    date_changed date,
+    former_name character varying
+);
+CREATE INDEX former_entity_index02 ON former_entity USING btree (entity_id);
+
+ALTER TABLE public.entity OWNER TO postgres;
+
+CREATE SEQUENCE seq_filing;
+ALTER TABLE public.seq_filing OWNER TO postgres;
+
 CREATE TABLE filing (
     filing_id bigint DEFAULT nextval('seq_filing'::regclass) NOT NULL,
-    filing_number character varying(30) NOT NULL,
-    reference_number character varying(30),
+    filing_number character varying(30) NOT NULL, -- SEC accession number
     form_type character varying(30),
+    entity_id bigint NOT NULL,
     accepted_timestamp timestamp without time zone DEFAULT now() NOT NULL,
     is_most_current boolean DEFAULT false NOT NULL,
     filing_date date NOT NULL,
-    entity_id bigint NOT NULL,
-    entity_name character varying,
     creation_software text,
-    standard_industry_code integer DEFAULT (-1) NOT NULL,
     authority_html_url text,
     entry_url text,
     PRIMARY KEY (filing_id)
 );
 CREATE UNIQUE INDEX filing_index02 ON filing USING btree (filing_number);
+CREATE INDEX filing_index03 ON filing USING btree (entity_id);
 
 
 ALTER TABLE public.filing OWNER TO postgres;
-
 -- object sequence can be any element that can terminate a relationship (aspect, type, resource, data point, document, role type, ...)
 -- or be a reference of a message (report or any of above)
-CREATE SEQUENCE seq_object
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
+CREATE SEQUENCE seq_object;
 ALTER TABLE public.seq_object OWNER TO postgres;
 
 CREATE TABLE report (
     report_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     filing_id bigint NOT NULL,
+    report_data_doc_id bigint,  -- instance or primary inline document
+    report_schema_doc_id bigint,  -- extension schema of the report (primary)
+    agency_schema_doc_id bigint,  -- agency schema (receiving authority)
+    standard_schema_doc_id bigint,  -- e.g., IFRS, XBRL-US, or EDInet schema
     PRIMARY KEY (report_id)
 );
 CREATE INDEX report_index02 ON report USING btree (filing_id);
@@ -215,12 +254,7 @@ CREATE INDEX resource_index02 ON resource USING btree (document_id, xml_id);
 
 ALTER TABLE public.resource OWNER TO postgres;
 
-CREATE SEQUENCE seq_relationship_set
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
+CREATE SEQUENCE seq_relationship_set;
 ALTER TABLE public.seq_relationship_set OWNER TO postgres;
 
 CREATE TABLE relationship_set (
@@ -279,7 +313,7 @@ CREATE TABLE data_point (
     parent_datapoint_id bigint, -- id of tuple parent
     aspect_id bigint NOT NULL,
     context_xml_id character varying(1024), -- (do we need this?)
-    entity_id bigint,
+    entity_identifier_id bigint,
     period_id bigint,
     aspect_value_selection_id bigint,
     unit_id bigint,
@@ -296,14 +330,14 @@ CREATE INDEX data_point_index04 ON data_point USING btree (aspect_id);
 
 ALTER TABLE public.data_point OWNER TO postgres;
 
-CREATE TABLE entity (
-    entity_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
+CREATE TABLE entity_identifier (
+    entity_identifier_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
     report_id bigint,
-    entity_scheme character varying NOT NULL,
-    entity_identifier character varying NOT NULL,
-    PRIMARY KEY (entity_id)
+    scheme character varying NOT NULL,
+    identifier character varying NOT NULL,
+    PRIMARY KEY (entity_identifier_id)
 );
-CREATE INDEX entity_index02 ON entity USING btree (report_id, entity_identifier);
+CREATE INDEX entity_identifier_index02 ON entity_identifier USING btree (report_id, identifier);
 
 ALTER TABLE public.entity OWNER TO postgres;
 
@@ -373,12 +407,7 @@ CREATE TABLE table_data_points(
 CREATE INDEX table_data_points_index01 ON table_data_points USING btree (report_id);
 CREATE INDEX table_data_points_index02 ON table_data_points USING btree (table_code);
 
-CREATE SEQUENCE seq_message
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
+CREATE SEQUENCE seq_message;
 ALTER TABLE public.seq_message OWNER TO postgres;
 
 CREATE TABLE message (
@@ -403,12 +432,7 @@ CREATE UNIQUE INDEX message_reference_index02 ON message_reference USING btree (
 
 ALTER TABLE public.message_reference OWNER TO postgres;
 
-CREATE SEQUENCE seq_industry
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
+CREATE SEQUENCE seq_industry;
 ALTER TABLE public.seq_industry OWNER TO postgres;
 
 CREATE TABLE industry (
@@ -4763,12 +4787,7 @@ RETURNING industry_id;
 -- Data for Name: industry_level; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-CREATE SEQUENCE seq_industry_level
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
+CREATE SEQUENCE seq_industry_level;
 ALTER TABLE public.seq_industry_level OWNER TO postgres;
 
 CREATE TABLE industry_level (
@@ -14115,12 +14134,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (9326, 'SIC', 3681, 4810, 3, 3682, 4812, 4)
 RETURNING industry_level_id;
 
-CREATE SEQUENCE seq_industry_structure
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
+CREATE SEQUENCE seq_industry_structure;
 ALTER TABLE public.seq_industry_structure OWNER TO postgres;
 
 CREATE TABLE industry_structure (

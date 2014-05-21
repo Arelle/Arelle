@@ -9,6 +9,8 @@
 set quoted_identifier on;
 GO
 -- drop tables before sequences, then drop seqences
+IF OBJECT_ID('entity', 'U') IS NOT NULL DROP TABLE "filing";
+IF OBJECT_ID('former_entity', 'U') IS NOT NULL DROP TABLE "filing";
 IF OBJECT_ID('filing', 'U') IS NOT NULL DROP TABLE "filing";
 IF OBJECT_ID('report', 'U') IS NOT NULL DROP TABLE "report";
 IF OBJECT_ID('document', 'U') IS NOT NULL DROP TABLE "document";
@@ -23,7 +25,7 @@ IF OBJECT_ID('relationship_set', 'U') IS NOT NULL DROP TABLE "relationship_set";
 IF OBJECT_ID('root', 'U') IS NOT NULL DROP TABLE "root";
 IF OBJECT_ID('relationship', 'U') IS NOT NULL DROP TABLE "relationship";
 IF OBJECT_ID('data_point', 'U') IS NOT NULL DROP TABLE "data_point";
-IF OBJECT_ID('entity', 'U') IS NOT NULL DROP TABLE "entity";
+IF OBJECT_ID('entity_identifier', 'U') IS NOT NULL DROP TABLE "entity";
 IF OBJECT_ID('period', 'U') IS NOT NULL DROP TABLE "period";
 IF OBJECT_ID('unit', 'U') IS NOT NULL DROP TABLE "unit";
 IF OBJECT_ID('unit_measure', 'U') IS NOT NULL DROP TABLE "unit_measure";
@@ -42,6 +44,49 @@ IF OBJECT_ID('seq_relationship_set', 'SO') IS NOT NULL DROP SEQUENCE seq_relatio
 IF OBJECT_ID('seq_message', 'SO') IS NOT NULL DROP SEQUENCE seq_message;
 GO
 
+CREATE SEQUENCE seq_entity AS bigint START WITH 1 INCREMENT BY 1;
+GO
+ALTER SEQUENCE seq_entity RESTART;
+GO
+
+CREATE TABLE entity (
+    entity_id bigint bigint default next value for seq_entity,
+    legal_entity_number nvarchar(30), -- LEI
+    file_number nvarchar(30), -- authority internal number
+    reference_number nvarchar(30), -- external code, e.g. CIK
+    tax_number nvarchar(30),
+    standard_industry_code integer NOT NULL DEFAULT -1,
+    name nvarchar(1024),
+    legal_state nvarchar(32),
+    phone nvarchar(32),
+    phys_addr1 nvarchar(128), -- physical (real) address
+    phys_addr2 nvarchar(128),
+    phys_city nvarchar(128),
+    phys_state nvarchar(128),
+    phys_zip nvarchar(32),
+    phys_country nvarchar(16),
+    mail_addr1 nvarchar(128), -- mailing (postal) address
+    mail_addr2 nvarchar(128),
+    mail_city nvarchar(128),
+    mail_state nvarchar(128),
+    mail_zip nvarchar(32),
+    mail_country nvarchar(16),
+    fiscal_year_end nvarchar(6),
+    filer_category nvarchar(128),
+    public_float float(53),
+    trading_symbol nvarchar(32)
+);
+CREATE INDEX entity_index01 ON entity (entity_id);
+CREATE INDEX entity_index02 ON entity (file_number);
+CREATE INDEX entity_index03 ON entity (reference_number);
+
+CREATE TABLE "former_entity" (
+    entity_id bigint NOT NULL,
+    date_changed date,
+    former_name nvarchar(1024)
+);
+CREATE INDEX former_entity_index02 ON "former_entity" (entity_id);
+
 CREATE SEQUENCE seq_filing AS bigint START WITH 1 INCREMENT BY 1;
 GO
 ALTER SEQUENCE seq_filing RESTART;
@@ -50,15 +95,12 @@ GO
 CREATE TABLE "filing" (
     filing_id bigint default next value for seq_filing, -- IDs are null on insert because trigger fires AFTER insert in MS SQL
     filing_number nvarchar(30) NOT NULL,
-    reference_number nvarchar(30),
     form_type nvarchar(30),
+    entity_id bigint NOT NULL,
     accepted_timestamp datetime NOT NULL,
     is_most_current bit NOT NULL DEFAULT 0,
     filing_date datetime NOT NULL,  -- no date in MSSQL 2005
-    entity_id bigint NOT NULL,
-    entity_name nvarchar(1024),
     creation_software nvarchar(max),
-    standard_industry_code integer NOT NULL DEFAULT -1,
     authority_html_url nvarchar(max),
     entry_url nvarchar(max)
 );
@@ -75,7 +117,11 @@ GO
 
 CREATE TABLE "report" (
     report_id bigint DEFAULT NEXT VALUE FOR seq_object,
-    filing_id bigint NOT NULL
+    filing_id bigint NOT NULL,
+    report_data_doc_id bigint,  -- instance or primary inline document
+    report_schema_doc_id bigint,  -- extension schema of the report (primary)
+    agency_schema_doc_id bigint,  -- agency schema (receiving authority)
+    standard_schema_doc_id bigint  -- e.g., IFRS, XBRL-US, or EDInet schema
 );
 CREATE INDEX report_index01 ON "report" (report_id);
 CREATE INDEX report_index02 ON "report" (filing_id);
@@ -254,14 +300,14 @@ CREATE INDEX datapoint_index03 ON "data_point" (report_id);
 CREATE INDEX datapoint_index04 ON "data_point" (aspect_id);
 
 GO
-CREATE TABLE "entity" (
-    entity_id bigint DEFAULT NEXT VALUE FOR seq_object,
+CREATE TABLE "entity_identifier" (
+    entity_identifier_id bigint DEFAULT NEXT VALUE FOR seq_object,
     report_id bigint,
-    entity_scheme nvarchar(450) NOT NULL,
-    entity_identifier nvarchar(441) NOT NULL
+    scheme nvarchar(450) NOT NULL,
+    identifier nvarchar(441) NOT NULL
 );
-CREATE INDEX entity_index01 ON "entity" (entity_id);
-CREATE INDEX entity_index02 ON "entity" (report_id, entity_identifier);
+CREATE INDEX entity_identifier_index01 ON "entity_identifier" (entity_id);
+CREATE INDEX entity_identifier_index02 ON "entity_identifier" (report_id, identifier);
 
 GO
 CREATE TABLE "period" (

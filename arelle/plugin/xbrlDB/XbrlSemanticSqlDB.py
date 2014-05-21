@@ -47,9 +47,10 @@ from arelle.ValidateXbrlCalcs import roundValue
 from arelle.XmlValidate import UNVALIDATED, VALID
 from arelle.XmlUtil import elementChildSequence
 from arelle import XbrlConst
-from arelle.UrlUtil import ensureUrl
+from arelle.UrlUtil import authority, ensureUrl
 from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
 from .tableFacts import tableFacts
+from .entityInformation import loadEntityInformation
 from .primaryDocumentFacts import loadPrimaryDocumentFacts
 from collections import defaultdict
 
@@ -123,6 +124,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 raise XPDBException("xpgDB:MissingXbrlDocument",
                                     _("No XBRL instance or schema loaded for this filing.")) 
             
+            # obtain supplementaion entity information
+            self.entityInformation = loadEntityInformation(self.modelXbrl, rssItem)
             # identify table facts (table datapoints) (prior to locked database transaction
             self.tableFacts = tableFacts(self.modelXbrl)  # for EFM & HMRC this is ( (roleType, table_code, fact) )
             loadPrimaryDocumentFacts(self.modelXbrl, rssItem) # load primary document facts for SEC filing
@@ -237,15 +240,80 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         
                                      
     def insertFiling(self, rssItem):
+        now = datetime.datetime.now()
+        entityInfo = self.entityInformation
+        def rssItemGet(propertyName):
+            if rssItem is not None:
+                return getattr(rssItem, propertyName, None)
+            return None
+        self.showStatus("insert entity")
+        LEI = None
+        referenceNumber = rssItemGet("fileNumber") or entityInfo.get("file-number")  or str(int(time.time()))
+        table = self.getTable('entity', 'entity_id', 
+                              ('legal_entity_number',
+                               'file_number',
+                               'reference_number', # CIK
+                               'tax_number',
+                               'standard_industry_code',
+                               'name',
+                               'legal_state',
+                               'phone',
+                               'phys_addr1', 'phys_addr2', 'phys_city', 'phys_state', 'phys_zip', 'phys_country',
+                               'mail_addr1', 'mail_addr2', 'mail_city', 'mail_state', 'mail_zip', 'mail_country',
+                               'fiscal_year_end',
+                               'filer_category',
+                               'public_float',
+                               'trading_symbol'), 
+                              ('legal_entity_number', 'file_number'), 
+                              ((LEI, referenceNumber,
+                                rssItemGet("cikNumber") or entityInfo.get("cik"),
+                                entityInfo.get("irs-number"),
+                                rssItemGet("assignedSic") or entityInfo.get("assigned-sic") or -1,
+                                rssItemGet("companyName") or entityInfo.get("conformed-name"),
+                                entityInfo.get("state-of-incorporation"),
+                                entityInfo.get("business-address.phone"),
+                                entityInfo.get("business-address.street1"),
+                                entityInfo.get("business-address.street2"),
+                                entityInfo.get("business-address.city"),
+                                entityInfo.get("business-address.state"),
+                                entityInfo.get("business-address.zip"),
+                                countryOfState.get(entityInfo.get("business-address.state")),
+                                entityInfo.get("mail-address.street1"),
+                                entityInfo.get("mail-address.street2"),
+                                entityInfo.get("mail-address.city"),
+                                entityInfo.get("mail-address.state"),
+                                entityInfo.get("mail-address.zip"),
+                                countryOfState.get(entityInfo.get("mail-address.state")),
+                                rssItemGet("fiscalYearEnd") or entityInfo.get("fiscal-year-end"),
+                                entityInfo.get("filer-category"),
+                                entityInfo.get("public-float"),
+                                entityInfo.get("trading-symbol")
+                                ),),
+                              checkIfExisting=True,
+                              returnExistenceStatus=True)
+        for id, _LEI, filing_number, existenceStatus in table:
+            self.entityId = id
+            self.entityPreviouslyInDB = existenceStatus
+            break
+        if any ('former-conformed-name' in key for key in entityInfo.keys()):
+            self.getTable('former_entity', None, 
+                          ('entity_id', 'former_name', 'date_changed'),
+                          ('entity_id', 'former_name', 'date_changed'),
+                          ((self.entityId,
+                            entityInfo.get(keyPrefix + '.former-conformed-name'),
+                            entityInfo.get(keyPrefix + '.date-changed'))
+                           for key in entityInfo.keys() if 'former-conformed-name' in key
+                           for keyPrefix in (key.partition('.')[0],)),
+                          checkIfExisting=True)            
         self.showStatus("insert filing")
         if rssItem is None:
-            now = datetime.datetime.now()
             table = self.getTable('filing', 'filing_id', 
-                                  ('filing_number', 'accepted_timestamp', 'is_most_current', 'filing_date','entity_id', 
-                                   'entity_name', 'creation_software', 'standard_industry_code', 
+                                  ('filing_number','entity_id', 'accepted_timestamp', 'is_most_current', 'filing_date', 
+                                   'creation_software', 
                                    'authority_html_url', 'entry_url', ), 
                                   ('filing_number',), 
                                   ((str(int(time.time())),  # NOT NULL
+                                    self.entityId,
                                     now,
                                     True,
                                     now,  # NOT NULL
@@ -260,21 +328,18 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                   returnExistenceStatus=True)
         else:
             table = self.getTable('filing', 'filing_id', 
-                                  ('filing_number', 'reference_number', 'form_type',
-                                   'accepted_timestamp', 'is_most_current', 'filing_date','entity_id', 
-                                   'entity_name', 'creation_software', 'standard_industry_code', 
+                                  ('filing_number', 'form_type', 'entity_id',
+                                   'accepted_timestamp', 'is_most_current', 'filing_date',
+                                   'creation_software', 
                                    'authority_html_url', 'entry_url', ), 
                                   ('filing_number',), 
                                   ((rssItem.accessionNumber or str(int(time.time())),  # NOT NULL
-                                    rssItem.fileNumber, # secondary reference to filing
                                     rssItem.formType,
+                                    self.entityId,
                                     rssItem.acceptanceDatetime,
                                     True,
                                     rssItem.filingDate or datetime.datetime.min,  # NOT NULL
-                                    rssItem.cikNumber or 0,  # NOT NULL
-                                    rssItem.companyName,
                                     self.modelXbrl.modelDocument.creationSoftware,
-                                    rssItem.assignedSic or -1,  # NOT NULL
                                     rssItem.htmlUrl,
                                     rssItem.url
                                     ),),
@@ -418,10 +483,11 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
 
         referencedDocuments = set()
         # instance documents are filing references
+        # update report with document references
         for mdlDoc in self.modelXbrl.urlDocs.values():
             if mdlDoc.type in (Type.INSTANCE, Type.INLINEXBRL):
                 referencedDocuments.add( (self.reportId, self.documentIds[mdlDoc] ))
-            if mdlDoc in self.documentIds and mdlDoc not in self.existingDocumentIds:
+            if mdlDoc in self.documentIds:
                 for refDoc, ref in mdlDoc.referencesDocument.items():
                     if refDoc.inDTS and ref.referenceType in ("href", "import", "include") \
                        and refDoc in self.documentIds:
@@ -434,6 +500,40 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                               referencedDocuments,
                               checkIfExisting=True)
         
+        instDocId = instSchemaDocId = agencySchemaDocId = stdSchemaDocId = None
+        mdlDoc = self.modelXbrl.modelDocument
+        if mdlDoc.type in (Type.INSTANCE, Type.INLINEXBRL):
+            instDocId = self.documentIds[mdlDoc]
+            # referenced doc may be extension schema
+            for refDoc, ref in mdlDoc.referencesDocument.items():
+                if refDoc.inDTS and ref.referenceType == "href" and refDoc in self.documentIds:
+                    instSchemaDocId = self.documentIds[refDoc]
+                    break
+        elif mdlDoc.type == Type.SCHEMA:
+            instDocSchemaDocId = self.documentIds[mdlDoc]
+        for mdlDoc in self.modelXbrl.urlDocs.values():
+            if mdlDoc.type in (Type.INSTANCE, Type.INLINEXBRL):
+                referencedDocuments.add( (self.reportId, self.documentIds[mdlDoc] ))
+            if mdlDoc in self.documentIds:
+                for refDoc, ref in mdlDoc.referencesDocument.items():
+                    if refDoc.inDTS and ref.referenceType in ("href", "import", "include") \
+                       and refDoc in self.documentIds:
+                        if refDoc.type == Type.SCHEMA:
+                            nsAuthority = authority(refDoc.targetNamespace, includeScheme=False)
+                            nsPath = refDoc.targetNamespace.split('/')
+                            if len(nsPath) > 2:
+                                if ((nsAuthority in ("fasb.org", "xbrl.us") and nsPath[-2] == "us-gaap") or
+                                    (nsAuthority == "xbrl.ifrs.org" and nsPath[-1] in ("ifrs", "ifrs-full", "ifrs-smes"))):
+                                    stdSchemaDocId = self.documentIds[refDoc]
+                                elif (nsAuthority == "xbrl.sec.gov" and nsPath[-2] == "rr"):
+                                    agencySchemaDocId = self.documentIds[refDoc]
+        
+        
+        self.updateTable("report",
+                         ("report_id", "report_data_doc_id", "report_schema_doc_id", "agency_schema_doc_id", "standard_schema_doc_id"),
+                         ((self.reportId, instDocId, instSchemaDocId, agencySchemaDocId, stdSchemaDocId),)
+                        )
+
         
     def insertAspects(self):
         self.showStatus("insert aspects")
@@ -816,7 +916,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                          .format( self.dbTableName("data_point"), reportId), 
                          close=False, fetch=False)
             self.execute("DELETE FROM {0} WHERE {0}.report_id = {1}" 
-                         .format( self.dbTableName("entity"), reportId), 
+                         .format( self.dbTableName("entity_identifier"), reportId), 
                          close=False, fetch=False)
             self.execute("DELETE FROM {0} WHERE {0}.report_id = {1}"
                          .format( self.dbTableName("period"), reportId), 
@@ -868,16 +968,16 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                     for unit in self.modelXbrl.units.values()
                                     for i in range(2)
                                     for measure in unit.measures[i]))
-        table = self.getTable('entity', 'entity_id', 
-                              ('report_id', 'entity_scheme', 'entity_identifier'), 
-                              ('report_id', 'entity_scheme', 'entity_identifier'), 
+        table = self.getTable('entity_identifier', 'entity_identifier_id', 
+                              ('report_id', 'scheme', 'identifier'), 
+                              ('report_id', 'scheme', 'identifier'), 
                               set((reportId,
                                    cntx.entityIdentifier[0],
                                    cntx.entityIdentifier[1])
                                 for cntx in self.modelXbrl.contexts.values()),
                               checkIfExisting=True) # entities shared across multiple instance/inline docs
-        self.entityId = dict(((_reportId, entScheme, entIdent), id)
-                             for id, _reportId, entScheme, entIdent in table)
+        self.entityIdentifierId = dict(((_reportId, entScheme, entIdent), id)
+                                       for id, _reportId, entScheme, entIdent in table)
         table = self.getTable('period', 'period_id', 
                               ('report_id', 'start_date', 'end_date', 'is_instant', 'is_forever'), 
                               ('report_id', 'start_date', 'end_date', 'is_instant', 'is_forever'), 
@@ -949,7 +1049,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                   parentDatapointId, # parent ID
                                   self.aspectQnameId.get(fact.qname),
                                   fact.contextID,
-                                  self.entityId.get((reportId, cntx.entityIdentifier[0], cntx.entityIdentifier[1]))
+                                  self.entityIdentifierId.get((reportId, cntx.entityIdentifier[0], cntx.entityIdentifier[1]))
                                       if cntx is not None else None,
                                       self.periodId.get((reportId,
                                                     cntx.startDatetime if cntx.isStartEndPeriod else None,
@@ -968,7 +1068,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                   ('report_id', 'document_id', 'xml_id', 'xml_child_seq', 'source_line', 
                                    'parent_datapoint_id',  # tuple
                                    'aspect_id',
-                                   'context_xml_id', 'entity_id', 'period_id', 'aspect_value_selection_id', 'unit_id',
+                                   'context_xml_id', 'entity_identifier_id', 'period_id', 'aspect_value_selection_id', 'unit_id',
                                    'is_nil', 'precision_value', 'decimals_value', 'effective_value', 'value'), 
                                   ('document_id', 'xml_child_seq'), 
                                   facts)
@@ -1072,3 +1172,14 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                         for objectId in objectIds
                                         for messageId in (messageIds[sequenceInReport],)))
                         
+countryOfState = {
+    "AL": "US","AK": "US","AZ": "US","AR": "US","CA": "US","CO": "US", "CT": "US","DE": "US",
+    "FL": "US","GA": "US","HI": "US","ID": "US","IL": "US","IN": "US","IA": "US","KS": "US",
+    "KY": "US","LA": "US","ME": "US","MD": "US","MA": "US","MI": "US","MN": "US","MS": "US",
+    "MO": "US","MT": "US","NE": "US","NV": "US","NH": "US","NJ": "US","NM": "US","NY": "US",
+    "NC": "US","ND": "US","OH": "US","OK": "US","OR": "US","PA": "US","RI": "US","SC": "US",
+    "SD": "US","TN": "US","TX": "US","UT": "US","VT": "US","VA": "US","WA": "US","WV": "US",
+    "WI": "US","WY": "US","DC": "US","PR": "US","VI": "US","AS": "US","GU": "US","MP": "US",
+    "AB": "CA","BC": "CA","MB": "CA","NB": "CA","NL": "CA","NS": "CA","ON": "CA","PE": "CA",
+    "QC": "CA","SK": "CA","NT": "CA","NU": "CA","YT": "CA"}
+

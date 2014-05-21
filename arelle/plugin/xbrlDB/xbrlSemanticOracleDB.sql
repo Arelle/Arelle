@@ -31,20 +31,62 @@ begin
 end;
 /
 
+CREATE TABLE "entity" (
+    entity_id number(19) NOT NULL,
+    legal_entity_number varchar2(30), -- LEI
+    file_number varchar2(30), -- authority internal number
+    reference_number varchar2(30), -- external code, e.g. CIK
+    tax_number varchar2(30),
+    standard_industry_code integer DEFAULT -1,
+    name varchar2(1024),
+    legal_state varchar2(32),
+    phone varchar2(32),
+    phys_addr1 varchar2(128), -- physical (real) address
+    phys_addr2 varchar2(128),
+    phys_city varchar2(128),
+    phys_state varchar2(128),
+    phys_zip varchar2(32),
+    phys_country varchar2(16),
+    mail_addr1 varchar2(128), -- mailing (postal) address
+    mail_addr2 varchar2(128),
+    mail_city varchar2(128),
+    mail_state varchar2(128),
+    mail_zip varchar2(32),
+    mail_country varchar2(16),
+    fiscal_year_end varchar2(6),
+    filer_category varchar2(128),
+    public_float binary_double,
+    trading_symbol varchar2(32)
+);
+CREATE INDEX entity_index01 ON "entity" (entity_id);
+CREATE INDEX entity_index02 ON "entity" (file_number);
+CREATE INDEX entity_index03 ON "entity" (reference_number);
+
+CREATE TRIGGER entity_insert_trigger BEFORE INSERT ON "entity" 
+  FOR EACH ROW
+    BEGIN
+       SELECT seq_entity.NEXTVAL INTO :NEW.entity_id from dual;
+    END;
+/
+
+CREATE TABLE "former_entity" (
+    entity_id number(19) NOT NULL,
+    date_changed date,
+    former_name varchar2(1024)
+);
+CREATE INDEX former_entity_index02 ON "former_entity" (entity_id);
+
 CREATE SEQUENCE seq_filing;
 
 CREATE TABLE "filing" (
     filing_id number(19) NOT NULL,
     filing_number varchar2(30) NOT NULL,
-    reference_number varchar2(30),
     form_type varchar2(30),
+    entity_id number(19) NOT NULL,
     accepted_timestamp date DEFAULT sysdate,
     is_most_current number(1) DEFAULT 0,
     filing_date date NOT NULL,
-    entity_id number(19) NOT NULL,
-    entity_name varchar2(1024),
     creation_software nclob,
-    standard_industry_code integer DEFAULT -1,
     authority_html_url nclob,
     entry_url nclob
 );
@@ -64,7 +106,11 @@ CREATE SEQUENCE seq_object;
 
 CREATE TABLE "report" (
     report_id number(19) NOT NULL,
-    filing_id number(19) NOT NULL
+    filing_id number(19) NOT NULL,
+    report_data_doc_id number(19),  -- instance or primary inline document
+    report_schema_doc_id number(19),  -- extension schema of the report (primary)
+    agency_schema_doc_id number(19),  -- agency schema (receiving authority)
+    standard_schema_doc_id number(19)  -- e.g., IFRS, XBRL-US, or EDInet schema
 );
 CREATE INDEX report_index01 ON "report" (report_id);
 CREATE INDEX report_index02 ON "report" (filing_id);
@@ -294,14 +340,14 @@ CREATE TRIGGER data_point_insert_trigger BEFORE INSERT ON "data_point"
        SELECT seq_object.NEXTVAL INTO :NEW.datapoint_id from dual;
     END;
 /
-CREATE TABLE "entity" (
+CREATE TABLE "entity_identifier" (
     entity_id number(19) NOT NULL,
     report_id number(19),
-    entity_scheme varchar2(1024) NOT NULL,
-    entity_identifier varchar2(1024) NOT NULL,
+    scheme varchar2(1024) NOT NULL,
+    identifier varchar2(1024) NOT NULL,
     PRIMARY KEY (entity_id)
 );
-CREATE INDEX entity_index02 ON "entity" (report_id, entity_scheme, entity_identifier);
+CREATE INDEX entity_identifier_index02 ON "entity_identifier" (report_id, scheme, identifier);
 
 CREATE TRIGGER entity_insert_trigger BEFORE INSERT ON "entity" 
   FOR EACH ROW
