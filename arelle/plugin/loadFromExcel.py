@@ -22,13 +22,15 @@ importColumnHeaders = {
     "preferred label": "preferredLabel",
     "calculation parent": "calculationParent", # qname
     "calculation weight": "calculationWeight",
-    "標準ラベル（日本語）": ("label", XbrlConst.standardLabel, "ja"),
+    "標準ラベル（日本語）": ("label", XbrlConst.standardLabel, "ja", "indented"),
     "冗長ラベル（日本語）": ("label", XbrlConst.verboseLabel, "ja"),
     "標準ラベル（英語）": ("label", XbrlConst.standardLabel, "en"),
     "冗長ラベル（英語）": ("label", XbrlConst.verboseLabel, "en"),
     "用途区分、財務諸表区分及び業種区分のラベル（日本語）": ("labels", XbrlConst.standardLabel, "ja"),
     "用途区分、財務諸表区分及び業種区分のラベル（英語）": ("labels", XbrlConst.standardLabel, "en"),
-    "label": ("label", XbrlConst.standardLabel, "en"),
+    "label": ("label", XbrlConst.standardLabel, "en", "indented"),
+    "label, standard": ("label", XbrlConst.standardLabel, "en", "overridePreferred"),
+    "label, terse": ("label", XbrlConst.terseLabel, "en"),
     "label, verbose": ("label", XbrlConst.verboseLabel, "en"),
     }
 
@@ -266,7 +268,9 @@ def loadFromExcel(cntlr, excelFile):
                     preferredLabel = "http://www.xbrl.org/2003/role/" + preferredLabel
                 for colItem, iCol in headerCols.items():
                     if isinstance(colItem, tuple):
-                        colItemType, role, lang = colItem
+                        colItemType = colItem[0]
+                        role = colItem[1]
+                        lang = colItem[2]
                         cell = row[iCol]
                         if cell.ctype == xlrd.XL_CELL_EMPTY:
                             values = ()
@@ -276,9 +280,8 @@ def loadFromExcel(cntlr, excelFile):
                             values = cell.value.split('\n')
                         else:
                             values = ()
-                        if preferredLabel:  # first label column sets preferredLabel if any
+                        if preferredLabel and "indented" in colItem:  # indented column sets preferredLabel if any
                             role = preferredLabel
-                            preferredLabel = None
                         for value in values:
                             extensionLabels[prefix, name, lang, role] = value.strip()
         except Exception as err:
@@ -306,7 +309,8 @@ def loadFromExcel(cntlr, excelFile):
                 lvl3Entry.childStruct.insert(0, lvl2Entry)
                 if lvl1Entry.name.endswith("Abstract"):
                     del lvl1Struct[i1]
-                del lvl2Entry.childStruct[i3]
+                if i3 < len(lvl2Entry.childStruct):
+                    del lvl2Entry.childStruct[i3]
                 pass
                 
         fixUsggapTableDims(defLB)
