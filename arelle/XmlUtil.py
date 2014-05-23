@@ -564,7 +564,8 @@ def addQnameValue(modelDocument, qnameValue):
     elif isinstance(modelDocument, etree._ElementTree):
         xmlRootElement = modelDocument.getroot()
         if xmlRootElement.tag == "nsmap": xmlRootElement = xmlRootElement[0]
-    existingPrefix = xmlnsprefix(xmlRootElement, qnameValue.namespaceURI)
+    ns = qnameValue.namespaceURI or '' # None can't be used as a no-namespace prefix
+    existingPrefix = xmlnsprefix(xmlRootElement, ns)
     if existingPrefix is not None:  # namespace is already declared, use that for qnameValue's prefix
         return qnameValue.localName if len(existingPrefix) == 0 else existingPrefix + ':' + qnameValue.localName
     prefix = qnameValue.prefix
@@ -574,7 +575,7 @@ def addQnameValue(modelDocument, qnameValue):
             break   # ok to use this prefix
         prefix = "{0}_{1}".format(qnameValue.prefix if qnameValue.prefix else '', dupNum)
         dupNum += 1
-    setXmlns(modelDocument, prefix, qnameValue.namespaceURI)
+    setXmlns(modelDocument, prefix, ns)
     return qnameValue.localName if len(prefix) == 0 else prefix + ':' + qnameValue.localName
 
 def setXmlns(modelDocument, prefix, namespaceURI):

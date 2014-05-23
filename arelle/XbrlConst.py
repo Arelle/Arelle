@@ -64,6 +64,7 @@ elementReference = "http://xbrl.org/arcrole/2008/element-reference"
 xbrldt = "http://xbrl.org/2005/xbrldt"
 qnXbrldtHypercubeItem = qname("{http://xbrl.org/2005/xbrldt}xbrldt:hypercubeItem")
 qnXbrldtDimensionItem = qname("{http://xbrl.org/2005/xbrldt}xbrldt:dimensionItem")
+qnXbrldtContextElement = qname("{http://xbrl.org/2005/xbrldt}xbrldt:contextElement")
 xbrldi = "http://xbrl.org/2006/xbrldi"
 qnXbrldiExplicitMember = qname("{http://xbrl.org/2006/xbrldi}xbrldi:explicitMember")
 qnXbrldiTypedMember = qname("{http://xbrl.org/2006/xbrldi}xbrldi:typedMember")
