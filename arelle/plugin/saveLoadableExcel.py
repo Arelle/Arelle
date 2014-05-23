@@ -15,11 +15,12 @@ headerWidths = {
         "prefix": 20,
         "name": 36,
         "type": 24,
-        "abstract": 10,
+        "abstract": 6,
+        "nillable": 6,
         "substitutionGroup": 30,
-        "periodType": 10,
-        "balance": 10,
-        "depth": 6,
+        "periodType": 8,
+        "balance": 8,
+        "depth": 5,
         "preferredLabel": 16,
         "calculationParent": 20,
         "calculationWeight": 12
@@ -40,6 +41,7 @@ headersStyles = (
         ("periodType", "periodType"),
         ("balance", "balance"),
         ("abstract", "abstract"),
+        ("nillable", "nillable"),
         ("depth", "depth"),
         ("preferred label", "preferredLabel"),
         ("calculation parent", "calculationParent"), # qname
@@ -57,6 +59,7 @@ headersStyles = (
         ("periodType", "periodType"),
         ("balance", "balance"),
         ("abstract", "abstract"),
+        ("nillable", "nillable"),
         ("depth", "depth"),
         ("preferred label", "preferredLabel"),
         ("calculation parent", "calculationParent"), # qname
@@ -72,6 +75,7 @@ headersStyles = (
         ("periodType", "periodType"),
         ("balance", "balance"),
         ("abstract", "abstract"),
+        ("nillable", "nillable"),
         ("depth", "depth"),
         ("preferred label", "preferredLabel"),
         ("calculation parent", "calculationParent"), # qname
@@ -222,6 +226,9 @@ def saveLoadableExcel(dts, excelFile):
                     value = str(concept.substitutionGroupQname)
                 elif colType == "abstract":
                     value = "true" if concept.isAbstract else "false"
+                elif colType == "nillable":
+                    if concept.isNillable:
+                        value = "true"
                 elif colType == "periodType":
                     value = concept.periodType
                 elif colType == "balance":

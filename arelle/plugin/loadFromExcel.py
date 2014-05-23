@@ -18,6 +18,8 @@ importColumnHeaders = {
     "substitutionGroup": "substitutionGroup",
     "periodType": "periodType",
     "balance": "balance",
+    "abstract": "abstract",
+    "nillable": "nillable",
     "depth": "depth",
     "preferred label": "preferredLabel",
     "calculation parent": "calculationParent", # qname
@@ -199,6 +201,7 @@ def loadFromExcel(cntlr, excelFile):
                         defLB.append( LBentry(role=currentELR, name=currentELRdefinition, isELR=True) )
                     if hasCalLB:
                         calLB.append( LBentry(role=currentELR, name=currentELRdefinition, isELR=True) )
+                        calRels = set() # prevent duplications when same rel in different parts of tree
             elif headerCols:
                 prefix = cellValue(row, 'prefix').strip()
                 name = cellValue(row, 'name').strip()
@@ -252,7 +255,10 @@ def loadFromExcel(cntlr, excelFile):
                             if depth == 0:
                                 entryList.append( LBentry(prefix=prefix, name=name, isRoot=True) )
                             else:
-                                entryList.append( LBentry(prefix=prefix, name=name, arcrole="_dimensions_") )
+                                if (not preferredLabel or # prevent start/end labels from causing duplicate dim-mem relationships
+                                    not any(lbEntry.prefix == prefix and lbEntry.name == name
+                                            for lbEntry in entryList)):
+                                    entryList.append( LBentry(prefix=prefix, name=name, arcrole="_dimensions_") )
                     if hasCalLB:
                         calcParent = cellValue(row, 'calculationParent')
                         calcWeight = cellValue(row, 'calculationWeight')
@@ -260,9 +266,14 @@ def loadFromExcel(cntlr, excelFile):
                             calcParentPrefix, sep, calcParentName = calcParent.partition(":")
                             entryList = lbDepthList(calLB, 0)
                             if entryList is not None:
-                                entryList.append( LBentry(prefix=calcParentPrefix, name=calcParentName, isRoot=True, childStruct=
-                                                   [LBentry(prefix=prefix, name=name, arcrole=XbrlConst.summationItem, weight=calcWeight )]) )
-                        
+                                calRel = (calcParentPrefix, calcParentName, prefix, name)
+                                if calRel not in calRels:
+                                    entryList.append( LBentry(prefix=calcParentPrefix, name=calcParentName, isRoot=True, childStruct=
+                                                              [LBentry(prefix=prefix, name=name, arcrole=XbrlConst.summationItem, weight=calcWeight )]) )
+                                    calRels.add(calRel)
+                                else:
+                                    pass
+                                    
             # accumulate extension labels
             if useLabels:
                 prefix = cellValue(row, 'prefix').strip()
@@ -657,7 +668,8 @@ def excelLoaderOptionExtender(parser):
 
 class LBentry:
     __slots__ = ("prefix", "name", "arcrole", "role", "childStruct")
-    def __init__(self, prefix=None, name=None, arcrole=None, role=None, weight=None, isELR=False, isRoot=False, childStruct=None):
+    def __init__(self, prefix=None, name=None, arcrole=None, role=None, weight=None, 
+                 isELR=False, isRoot=False, childStruct=None):
         if childStruct is not None:
             self.childStruct = childStruct
         else:
@@ -688,7 +700,7 @@ class LBentry:
         if self.arcrole == XbrlConst.summationItem:
             return self.role
         return None
-
+    
 __pluginInfo__ = {
     'name': 'Load From Excel',
     'version': '0.9',
