@@ -52,17 +52,22 @@ itemPattern = re.compile(r"^\W*item\W+([1-9][0-9]*[A-Za-z]?)(\W|$)", re.IGNORECA
 signaturesPattern = re.compile(r"^\W*signatures(\W|$)", re.IGNORECASE + re.MULTILINE)
 assetsPattern = re.compile(r"assets(\W|$)", re.IGNORECASE + re.MULTILINE)
 
-def loadPrimaryDocumentFacts(dts, rssItem):
+def loadPrimaryDocumentFacts(dts, rssItem, entityInformation):
     # identify tables
     disclosureSystem = dts.modelManager.disclosureSystem
-    if rssItem is not None and disclosureSystem.EFM and (
-            rssItem.formType.startswith('10-K') or
-            rssItem.formType.startswith('10-Q')):
+    if not disclosureSystem.EFM:
+        return
+    if rssItem is not None:
+        formType = rssItem.formType
         fileUrl = rssItem.primaryDocumentURL
+    else:
+        formType = entityInformation.get("form-type")
+        fileUrl = entityInformation.get("primary-document-url")
+    if fileUrl and formType and (formType.startswith('10-K') or formType.startswith('10-Q')):
         if fileUrl.endswith(".txt") or fileUrl.endswith(".htm"):
-            if rssItem.formType.startswith('10-K'):
+            if formType.startswith('10-K'):
                 parts = SEC10Kparts
-            elif rssItem.formType.startswith('10-Q'): 
+            elif formType.startswith('10-Q'): 
                 parts = SEC10Qparts
             # try to load and use it
             normalizedUrl = dts.modelManager.cntlr.webCache.normalizeUrl(fileUrl)

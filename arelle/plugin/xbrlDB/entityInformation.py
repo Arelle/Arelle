@@ -32,7 +32,11 @@ def loadEntityInformation(dts, rssItem):
             fileUrl = os.path.dirname(rssItem.url) + '/' + accession[0:10] + '-' + accession[10:12] + '-' + accession[12:] + ".hdr.sgml"
         elif dts.uri.startswith("http://www.sec.gov/Archives/edgar/data") and dts.uri.endswith(".xml"):
             accession = dts.uri.split('/')[-2]
-            fileUrl = os.path.dirname(dts.uri) + '/' + accession[0:10] + '-' + accession[10:12] + '-' + accession[12:] + ".hdr.sgml"
+            dirPart = os.path.dirname(dts.uri)
+            if accession.endswith("-xbrl.zip"):  # might be an instance document inside a xbrl.zip file
+                accession = dts.uri.split('/')[-3]
+                dirPart = os.path.dirname(dirPart)
+            fileUrl = dirPart + '/' + accession[0:10] + '-' + accession[10:12] + '-' + accession[12:] + ".hdr.sgml"
         else:
             fileUrl = ''
         if fileUrl:
@@ -82,6 +86,45 @@ def loadEntityInformation(dts, rssItem):
                             v = None
 
                     entityInformation[record + tag] = v
+            # primary document if no rssItem
+            if rssItem is None:
+                # try to sgml txt file
+                normalizedUrl = normalizedUrl.replace(".hdr.sgml", ".txt")
+                httpDir = normalizedUrl.rpartition('/')[0]
+                txtSgml = ''
+                try:
+                    filePath = dts.modelManager.cntlr.webCache.getfilename(normalizedUrl)
+                    if filePath:
+                        with open(filePath) as fh:
+                            txtSgml = fh.read()
+                        # remove from cache, very large file
+                        os.remove(filePath)
+                except  (IOError, EnvironmentError) as err:
+                    dts.info("xpDB:txtSgmlDocumentLoadingError",
+                                        _("Loading XBRL DB: txt SGML document %(file)s loading error: %(error)s"),
+                                        modelObject=dts, file=normalizedUrl, error=err)
+                    txtSgml = ''
+                documentType = documentSequence = None
+                itemsFound = 0
+                for match in re.finditer(r"[<]([^>]+)[>]([^<\n\r]*)", txtSgml, re.MULTILINE):
+                    tag = match.group(1).lower()
+                    v = match.group(2).replace("&lt;","<").replace("&gt;",">").replace("&amp;","&")
+                    if tag == 'sequence':
+                        documentSequence = v
+                    elif tag == 'type':
+                        documentType = v
+                    elif tag == 'filename':
+                        if documentType.endswith('.INS') and 'instance-url' not in entityInformation:
+                            entityInformation['instance-url'] = httpDir + '/' + v
+                            documentType = documentSequence = None
+                            itemsFound += 1
+                        if documentSequence == '1':
+                            entityInformation['primary-document-url'] = httpDir + '/' + v
+                            documentType = documentSequence = None
+                            itemsFound += 1
+                        if itemsFound >= 2:
+                            break
+                del txtSgml # dereference big string
         # instance information
         for factName, entityField in (("EntityFilerCategory", "filer-category"), 
                                       ("EntityPublicFloat", "public-float"), 
