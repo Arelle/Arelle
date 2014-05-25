@@ -128,7 +128,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             self.entityInformation = loadEntityInformation(self.modelXbrl, rssItem)
             # identify table facts (table datapoints) (prior to locked database transaction
             self.tableFacts = tableFacts(self.modelXbrl)  # for EFM & HMRC this is ( (roleType, table_code, fact) )
-            loadPrimaryDocumentFacts(self.modelXbrl, rssItem) # load primary document facts for SEC filing
+            loadPrimaryDocumentFacts(self.modelXbrl, rssItem, self.entityInformation) # load primary document facts for SEC filing
             self.identifyTaxonomyRelSetsOwner()
                         
             # at this point we determine what's in the database and provide new tables
@@ -306,45 +306,24 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                            for keyPrefix in (key.partition('.')[0],)),
                           checkIfExisting=True)            
         self.showStatus("insert filing")
-        if rssItem is None:
-            table = self.getTable('filing', 'filing_id', 
-                                  ('filing_number','entity_id', 'accepted_timestamp', 'is_most_current', 'filing_date', 
-                                   'creation_software', 
-                                   'authority_html_url', 'entry_url', ), 
-                                  ('filing_number',), 
-                                  ((str(int(time.time())),  # NOT NULL
-                                    self.entityId,
-                                    now,
-                                    True,
-                                    now,  # NOT NULL
-                                    0,  # NOT NULL
-                                    '',
-                                    self.modelXbrl.modelDocument.creationSoftware,
-                                    -1,  # NOT NULL
-                                    None,
-                                    None,
-                                    ),),
-                                  checkIfExisting=True,
-                                  returnExistenceStatus=True)
-        else:
-            table = self.getTable('filing', 'filing_id', 
-                                  ('filing_number', 'form_type', 'entity_id',
-                                   'accepted_timestamp', 'is_most_current', 'filing_date',
-                                   'creation_software', 
-                                   'authority_html_url', 'entry_url', ), 
-                                  ('filing_number',), 
-                                  ((rssItem.accessionNumber or str(int(time.time())),  # NOT NULL
-                                    rssItem.formType,
-                                    self.entityId,
-                                    rssItem.acceptanceDatetime,
-                                    True,
-                                    rssItem.filingDate or datetime.datetime.min,  # NOT NULL
-                                    self.modelXbrl.modelDocument.creationSoftware,
-                                    rssItem.htmlUrl,
-                                    rssItem.url
-                                    ),),
-                                  checkIfExisting=True,
-                                  returnExistenceStatus=True)
+        table = self.getTable('filing', 'filing_id', 
+                              ('filing_number', 'form_type', 'entity_id',
+                               'accepted_timestamp', 'is_most_current', 'filing_date',
+                               'creation_software', 
+                               'authority_html_url', 'entry_url', ), 
+                              ('filing_number',), 
+                              ((rssItemGet("accessionNumber") or entityInfo.get("accession-number") or str(int(time.time())),  # NOT NULL
+                                rssItemGet("formType") or entityInfo.get("form-type"),
+                                self.entityId,
+                                rssItemGet("acceptanceDatetime") or entityInfo.get("acceptance-datetime"),
+                                True,
+                                rssItemGet("filingDate") or entityInfo.get("filing-date") or datetime.datetime.min,  # NOT NULL
+                                self.modelXbrl.modelDocument.creationSoftware,
+                                rssItemGet("htmlUrl") or entityInfo.get("primary-document-url"),
+                                rssItemGet("url") or entityInfo.get("instance-url")
+                                ),),
+                              checkIfExisting=True,
+                              returnExistenceStatus=True)
         for id, filing_number, existenceStatus in table:
             self.filingId = id
             self.filingPreviouslyInDB = existenceStatus
