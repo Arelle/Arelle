@@ -527,7 +527,8 @@ class SqlDbConnection():
         return self.tableColTypes[table]
     
     def getTable(self, table, idCol, newCols=None, matchCols=None, data=None, commit=False, 
-                 comparisonOperator='=', checkIfExisting=False, insertIfNotMatched=True, returnExistenceStatus=False):
+                 comparisonOperator='=', checkIfExisting=False, insertIfNotMatched=True, 
+                 returnMatches=True, returnExistenceStatus=False):
         # generate SQL
         # note: comparison by = will never match NULL fields
         # use 'IS NOT DISTINCT FROM' to match nulls, but this is not indexed and verrrrry slooooow
@@ -674,15 +675,16 @@ WITH row_values (%(newCols)s) AS (
                                  "newCols": ', '.join(newCols),
                                  "where": _where}, None, False) )
             # don't know how to get status if existing
-            sql.append( ("SELECT %(returningCols)s %(statusIfExisting)s from %(inputTable)s JOIN %(table)s ON ( %(match)s );" %
-                            {"inputTable": _inputTableName,
-                             "table": _table,
-                             "newCols": ', '.join(newCols),
-                             "match": ' AND '.join('{0}.{2} = {1}.{2}'.format(_table,_inputTableName,col) 
-                                        for col in matchCols),
-                             "statusIfExisting": ", FALSE" if returnExistenceStatus else "",
-                             "returningCols": ', '.join('{0}.{1}'.format(_table,col)
-                                                        for col in returningCols)}, None, True) )
+            if returnMatches or returnExistenceStatus:
+                sql.append( ("SELECT %(returningCols)s %(statusIfExisting)s from %(inputTable)s JOIN %(table)s ON ( %(match)s );" %
+                                {"inputTable": _inputTableName,
+                                 "table": _table,
+                                 "newCols": ', '.join(newCols),
+                                 "match": ' AND '.join('{0}.{2} = {1}.{2}'.format(_table,_inputTableName,col) 
+                                            for col in matchCols),
+                                 "statusIfExisting": ", FALSE" if returnExistenceStatus else "",
+                                 "returningCols": ', '.join('{0}.{1}'.format(_table,col)
+                                                            for col in returningCols)}, None, True) )
             sql.append( ("DROP TABLE %(inputTable)s;" %
                          {"inputTable": _inputTableName}, None, False) )
         elif self.product == "mssql":
@@ -719,16 +721,17 @@ WITH row_values (%(newCols)s) AS (
                                         for col in matchCols),
                              "values": ', '.join("#{0}.{1}".format(_inputTableName,newCol)
                                                  for newCol in newCols)}, None, False))
-            sql.append(# don't know how to get status if existing
-                   ("SELECT %(returningCols)s %(statusIfExisting)s from #%(inputTable)s JOIN %(table)s ON ( %(match)s );" %
-                        {"inputTable": _inputTableName,
-                         "table": _table,
-                         "newCols": ', '.join(newCols),
-                         "match": ' AND '.join('{0}.{2} = #{1}.{2}'.format(_table,_inputTableName,col) 
-                                    for col in matchCols),
-                         "statusIfExisting": ", 0" if returnExistenceStatus else "",
-                         "returningCols": ', '.join('{0}.{1}'.format(_table,col)
-                                                    for col in returningCols)}, None, True))
+            if returnMatches or returnExistenceStatus:
+                sql.append(# don't know how to get status if existing
+                       ("SELECT %(returningCols)s %(statusIfExisting)s from #%(inputTable)s JOIN %(table)s ON ( %(match)s );" %
+                            {"inputTable": _inputTableName,
+                             "table": _table,
+                             "newCols": ', '.join(newCols),
+                             "match": ' AND '.join('{0}.{2} = #{1}.{2}'.format(_table,_inputTableName,col) 
+                                        for col in matchCols),
+                             "statusIfExisting": ", 0" if returnExistenceStatus else "",
+                             "returningCols": ', '.join('{0}.{1}'.format(_table,col)
+                                                        for col in returningCols)}, None, True))
             sql.append(("DROP TABLE #%(inputTable)s;" %
                          {"inputTable": _inputTableName}, None, False))
         elif self.product == "orcl":
@@ -766,16 +769,17 @@ WITH row_values (%(newCols)s) AS (
                                         for col in matchCols),
                              "values": ', '.join("{0}.{1}".format(_inputTableName,newCol)
                                                  for newCol in newCols)}, None, False))
-            sql.append(# don't know how to get status if existing
-                   ("SELECT %(returningCols)s %(statusIfExisting)s from %(inputTable)s JOIN %(table)s ON ( %(match)s )" %
-                        {"inputTable": _inputTableName,
-                         "table": _table,
-                         "newCols": ', '.join(newCols),
-                         "match": ' AND '.join('{0}.{2} = {1}.{2}'.format(_table,_inputTableName,col) 
-                                    for col in matchCols),
-                         "statusIfExisting": ", 0" if returnExistenceStatus else "",
-                         "returningCols": ', '.join('{0}.{1}'.format(_table,col)
-                                                    for col in returningCols)}, None, True))
+            if returnMatches or returnExistenceStatus:
+                sql.append(# don't know how to get status if existing
+                       ("SELECT %(returningCols)s %(statusIfExisting)s from %(inputTable)s JOIN %(table)s ON ( %(match)s )" %
+                            {"inputTable": _inputTableName,
+                             "table": _table,
+                             "newCols": ', '.join(newCols),
+                             "match": ' AND '.join('{0}.{2} = {1}.{2}'.format(_table,_inputTableName,col) 
+                                        for col in matchCols),
+                             "statusIfExisting": ", 0" if returnExistenceStatus else "",
+                             "returningCols": ', '.join('{0}.{1}'.format(_table,col)
+                                                        for col in returningCols)}, None, True))
             sql.append(("DROP TABLE %(inputTable)s" %
                          {"inputTable": _inputTableName}, None, False))
         elif self.product == "sqlite":
@@ -815,16 +819,17 @@ WITH row_values (%(newCols)s) AS (
                                  "table": _table,
                                  "newCols": ', '.join(newCols),
                                  "where": _where}, None, False) )
-            sql.append(# don't know how to get status if existing
-                   ("SELECT %(returningCols)s %(statusIfExisting)s from %(inputTable)s JOIN %(table)s ON ( %(match)s );" %
-                        {"inputTable": _inputTableName,
-                         "table": _table,
-                         "newCols": ', '.join(newCols),
-                         "match": ' AND '.join('{0}.{2} = {1}.{2}'.format(_table,_inputTableName,col) 
-                                    for col in matchCols),
-                         "statusIfExisting": ", 0" if returnExistenceStatus else "",
-                         "returningCols": ', '.join('{0}.{1}'.format(_table,col)
-                                                    for col in returningCols)}, None, True))
+            if returnMatches or returnExistenceStatus:
+                sql.append(# don't know how to get status if existing
+                       ("SELECT %(returningCols)s %(statusIfExisting)s from %(inputTable)s JOIN %(table)s ON ( %(match)s );" %
+                            {"inputTable": _inputTableName,
+                             "table": _table,
+                             "newCols": ', '.join(newCols),
+                             "match": ' AND '.join('{0}.{2} = {1}.{2}'.format(_table,_inputTableName,col) 
+                                        for col in matchCols),
+                             "statusIfExisting": ", 0" if returnExistenceStatus else "",
+                             "returningCols": ', '.join('{0}.{1}'.format(_table,col)
+                                                        for col in returningCols)}, None, True))
             sql.append(("DROP TABLE %(inputTable)s;" %
                          {"inputTable": _inputTableName}, None, False))
             if insertIfNotMatched and self.syncSequences:
