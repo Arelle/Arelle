@@ -303,7 +303,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 else:
                     xValue = f.value
                     c = f.qname.localName[0]
-                    if c == 'm':
+                    if c in ('m', 'p', 'i'):
                         isNumeric = True
                         # not validated, do own xValue
                         try:
@@ -324,7 +324,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         elif xValue in ("false", "0"): 
                             xValue = False
                 
-            isText = not (isNumeric or isBool or isDateTime)
+            isText = not (isNumeric or isBool or isDateTime) # 's' or 'u' type
             if f.qname == qnFindFilingIndicators:
                 for filingIndicator in f.modelTupleFacts:
                     if filingIndicator.qname == qnFindFilingIndicator:
@@ -565,7 +565,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         isQName = True
             else:
                 c = conceptQn.localName[0]
-                if c == 'm':
+                if c in ('m', 'p', 'i'):
                     isNumeric = True
                 elif c == 'd':
                     isDateTime = True
@@ -573,7 +573,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     isBool = True
                 elif c == 'e':
                     isQName = True
-            isText = not (isNumeric or isBool or isDateTime or isQName)
+            isText = not (isNumeric or isBool or isDateTime or isQName) # 's' or 'u' type
             if isinstance(datePerEnd, _STR_BASE):
                 datePerEnd = datetimeValue(datePerEnd, addOneDay=True)
             cntxKey = (dims, entId, datePerEnd)
