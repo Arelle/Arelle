@@ -470,7 +470,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     element=errElt,
                     attribute=XmlUtil.clarkNotationToPrefixedName(elt,attrTag,isAttribute=True),
                     typeName=baseXsdType,
-                    value=value,
+                    value=len(value) < 31 and value or value[:30] + '...',
                     error=err)
             else:
                 modelXbrl.error("xmlSchema:valueError",
@@ -478,7 +478,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     modelObject=elt,
                     element=errElt,
                     typeName=baseXsdType,
-                    value=value,
+                    value=len(value) < 31 and value or value[:30] + '...',
                     error=err)
             xValue = None
             sValue = value
