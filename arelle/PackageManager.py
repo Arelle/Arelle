@@ -217,7 +217,7 @@ def packageInfo(URL, reload=False):
                     metadataFilePrefix += os.sep
             else:
                 raise IOError(_("File must be a taxonomy package (zip file), catalog file, or manifest (): {0}.")
-                              .format(metadataFile, ', '.join(TAXONOMY_PACKAGE_FILE_NAMES)))
+                              .format(packageFilename, ', '.join(TAXONOMY_PACKAGE_FILE_NAMES)))
             parsedPackage = parsePackage(_cntlr, metadata)
             package = {'name': parsedPackage['name'],
                        'status': 'enabled',
