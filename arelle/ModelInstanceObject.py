@@ -293,8 +293,7 @@ class ModelFact(ModelObject):
     @property
     def xsiNil(self):
         """(str) -- value of xsi:nil or 'false' if absent"""
-        nil = self.get("{http://www.w3.org/2001/XMLSchema-instance}nil")
-        return nil if nil else "false"
+        return self.get("{http://www.w3.org/2001/XMLSchema-instance}nil", "false")
     
     @property
     def isNil(self):

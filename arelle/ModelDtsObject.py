@@ -1836,12 +1836,12 @@ class ModelRelationship(ModelObject):
     @property
     def isUsable(self):
         """(bool) -- True if xbrldt:usable is true (on applicable XDT arcs, defaults to True if absent)"""
-        return self.get("{http://xbrl.org/2005/xbrldt}usable") in ("true","1") if self.get("{http://xbrl.org/2005/xbrldt}usable") else True
+        return self.get("{http://xbrl.org/2005/xbrldt}usable") in ("true","1", None)
     
     @property
     def closed(self):
         """(str) -- Value of xbrldt:closed (on applicable XDT arcs, defaults to 'false' if absent)"""
-        return self.get("{http://xbrl.org/2005/xbrldt}closed") if self.get("{http://xbrl.org/2005/xbrldt}closed") else "false"
+        return self.get("{http://xbrl.org/2005/xbrldt}closed") or "false"
     
     @property
     def isClosed(self):
@@ -1849,7 +1849,7 @@ class ModelRelationship(ModelObject):
         try:
             return self._isClosed
         except AttributeError:
-            self._isClosed = self.get("{http://xbrl.org/2005/xbrldt}closed") in ("true","1") if self.get("{http://xbrl.org/2005/xbrldt}closed") else False
+            self._isClosed = self.get("{http://xbrl.org/2005/xbrldt}closed") in ("true","1")
             return self._isClosed
 
     @property
@@ -1859,7 +1859,7 @@ class ModelRelationship(ModelObject):
             return self._usable
         except AttributeError:
             if self.arcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
-                self._usable = self.get("{http://xbrl.org/2005/xbrldt}usable") if self.get("{http://xbrl.org/2005/xbrldt}usable") else "true"
+                self._usable = self.get("{http://xbrl.org/2005/xbrldt}usable") or "true"
             else:
                 self._usable = None
             return self._usable
