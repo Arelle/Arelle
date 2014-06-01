@@ -587,10 +587,11 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     if f1.isNumeric and f1.decimals and f1.decimals != "INF" and not f1.isNil and getattr(f1,"xValid", 0) == 4:
                         try:
                             insignificance = insignificantDigits(f1.xValue, decimals=f1.decimals)
-                            if insignificance: 
+                            if insignificance: # if not None, returns (truncatedDigits, insiginficantDigits)
                                 modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
-                                    _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(value2)s."),
-                                    modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.xValue, value2=insignificance)
+                                    _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(insignificantDigits)s."),
+                                    modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, 
+                                    value=f1.xValue, truncatedDigits=insignificance[0], insignificantDigits=insignificance[1])
                         except (ValueError,TypeError):
                             modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
                                 _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),

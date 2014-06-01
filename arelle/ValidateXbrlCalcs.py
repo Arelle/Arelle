@@ -440,18 +440,18 @@ def insignificantDigits(value, precision=None, decimals=None, scale=None):
             if scale:
                 vFloat = pow(vFloat, iScale)
     except (decimal.InvalidOperation, ValueError): # would have been a schema error reported earlier
-        return ZERO
+        return None
     if precision is not None:
         if not isinstance(precision, (int,float)):
             if precision == "INF":
-                return ZERO
+                return None
             else:
                 try:
                     precision = int(precision)
                 except ValueError: # would be a schema error
-                    return ZERO
+                    return None
         if isinf(precision) or precision == 0 or isnan(precision) or vFloat == 0: 
-            return ZERO
+            return None
         else:
             vAbs = fabs(vFloat)
             log = log10(vAbs)
@@ -459,19 +459,26 @@ def insignificantDigits(value, precision=None, decimals=None, scale=None):
     elif decimals is not None:
         if not isinstance(decimals, (int,float)):
             if decimals == "INF":
-                return ZERO
+                return None
             else:
                 try:
                     decimals = int(decimals)
                 except ValueError: # would be a schema error
-                    return ZERO
+                    return None
         if isinf(decimals) or isnan(decimals):
-            return ZERO
+            return None
     else:
-        return ZERO
+        return None
     if vDecimal.is_normal() and -28 <= decimals <= 28: # prevent exception with excessive quantization digits
-        return abs(vDecimal) % ONE.scaleb(-decimals)        # return insignificant digits portion of number
-    return ZERO
+        if decimals > 0:
+            divisor = ONE.scaleb(-decimals) # fractional scaling doesn't produce scientific notation
+        else:  # extra quantize step to prevent scientific notation for decimal number
+            divisor = ONE.scaleb(-decimals).quantize(ONE, decimal.ROUND_HALF_UP) # should never round
+        insignificantDigits = abs(vDecimal) % divisor
+        if insignificantDigits:
+            return (vDecimal // divisor * divisor,  # truncated portion of number
+                    insignificantDigits)   # nsignificant digits portion of number
+    return None
 
 
 def wrappedFactWithWeight(fact, weight, roundedValue):
