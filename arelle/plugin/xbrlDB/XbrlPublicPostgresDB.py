@@ -605,7 +605,7 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                                    None))
         table = self.getTable('context_dimension', 'context_dimension_id', 
                               ('context_id', 'dimension_qname_id', 'member_qname_id', 'typed_qname_id', 'is_default', 'is_segment', 'typed_text_content'), 
-                              ('dimension_qname_id',), 
+                              ('context_id', 'dimension_qname_id', 'member_qname_id'), # shouldn't typed_qname_id be here?  not good idea because it's not indexed in XBRL-US DDL
                               values)
         # facts
         def insertFactSet(modelFacts, tupleFactId):
