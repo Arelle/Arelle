@@ -117,11 +117,23 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
         else:
             baseXsdType = None
             type = None
-            isNillable = False
-        isNil = isNillable and elt.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == "true"
+            isNillable = True # allow nil if no schema definition
+        isNil = elt.get("{http://www.w3.org/2001/XMLSchema-instance}nil") in ("true", "1")
         if attrQname is None:
+            if isNil and not isNillable:
+                if ModelInlineValueObject is not None and isinstance(elt, ModelInlineValueObject):
+                    errElt = "{0} fact {1}".format(elt.elementQname, elt.qname)
+                else:
+                    errElt = elt.elementQname
+                modelXbrl.error("xmlValidation:nilNonNillableElement",
+                    _("Element %(element)s fact %(fact)s type %(typeName)s is nil but element has not been defined nillable"),
+                    modelObject=elt, element=errElt, fact=elt.qname, transform=elt.format,
+                    typeName=modelConcept.baseXsdType if modelConcept is not None else "unknown",
+                    value=XmlUtil.innerText(elt, ixExclude=True))
             try:
-                if baseXsdType == "noContent":
+                if isNil:
+                    text = ""
+                elif baseXsdType == "noContent":
                     text = elt.textValue # no descendant text nodes
                 else:
                     text = elt.stringValue # include descendant text nodes
