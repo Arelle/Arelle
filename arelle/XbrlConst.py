@@ -79,7 +79,7 @@ qnXlResourceType = qname("{http://www.xbrl.org/2003/XLink}xl:resourceType")
 qnXlArcType = qname("{http://www.xbrl.org/2003/XLink}xl:arcType")
 xhtml = "http://www.w3.org/1999/xhtml"
 ixbrl = "http://www.xbrl.org/2008/inlineXBRL"
-ixbrl11 = "http://www.xbrl.org/CR-2013-08-21/inlineXBRL"
+ixbrl11 = "http://www.xbrl.org/2013/inlineXBRL"
 ixbrlAll = {ixbrl, ixbrl11}
 qnIXbrlResources = qname("{http://www.xbrl.org/2008/inlineXBRL}resources")
 qnIXbrlTuple = qname("{http://www.xbrl.org/2008/inlineXBRL}tuple")
@@ -89,14 +89,14 @@ qnIXbrlFraction = qname("{http://www.xbrl.org/2008/inlineXBRL}fraction")
 qnIXbrlNumerator = qname("{http://www.xbrl.org/2008/inlineXBRL}numerator")
 qnIXbrlDenominator = qname("{http://www.xbrl.org/2008/inlineXBRL}denominator")
 qnIXbrlFootnote = qname("{http://www.xbrl.org/2008/inlineXBRL}footnote")
-qnIXbrl11Resources = qname("{http://www.xbrl.org/CR-2013-08-21/inlineXBRL}resources")
-qnIXbrl11Tuple = qname("{http://www.xbrl.org/CR-2013-08-21/inlineXBRL}tuple")
-qnIXbrl11NonNumeric = qname("{http://www.xbrl.org/CR-2013-08-21/inlineXBRL}nonNumeric")
-qnIXbrl11NonFraction = qname("{http://www.xbrl.org/CR-2013-08-21/inlineXBRL}nonFraction")
-qnIXbrl11Fraction = qname("{http://www.xbrl.org/CR-2013-08-21/inlineXBRL}fraction")
-qnIXbrl11Numerator = qname("{http://www.xbrl.org/CR-2013-08-21/inlineXBRL}numerator")
-qnIXbrl11Denominator = qname("{http://www.xbrl.org/CR-2013-08-21/inlineXBRL}denominator")
-qnIXbrl11Footnote = qname("{http://www.xbrl.org/CR-2013-08-21/inlineXBRL}footnote")
+qnIXbrl11Resources = qname("{http://www.xbrl.org/2013/inlineXBRL}resources")
+qnIXbrl11Tuple = qname("{http://www.xbrl.org/2013/inlineXBRL}tuple")
+qnIXbrl11NonNumeric = qname("{http://www.xbrl.org/2013/inlineXBRL}nonNumeric")
+qnIXbrl11NonFraction = qname("{http://www.xbrl.org/2013/inlineXBRL}nonFraction")
+qnIXbrl11Fraction = qname("{http://www.xbrl.org/2013/inlineXBRL}fraction")
+qnIXbrl11Numerator = qname("{http://www.xbrl.org/2013/inlineXBRL}numerator")
+qnIXbrl11Denominator = qname("{http://www.xbrl.org/2013/inlineXBRL}denominator")
+qnIXbrl11Footnote = qname("{http://www.xbrl.org/2013/inlineXBRL}footnote")
 ixAttributes = set(qname(n, noPrefixIsNoNamespace=True)
                    for n in ("escape", "footnoteRefs", "format", "name", "order", "scale", "sign", 
                              "target", "tupleRef", "tupleID"))
