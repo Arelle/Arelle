@@ -13,7 +13,7 @@ from arelle import (PackageManager, XbrlConst, XmlUtil, UrlUtil, ValidateFilingT
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname
 from arelle.ModelDtsObject import ModelLink, ModelResource, ModelRelationship
-from arelle.ModelInstanceObject import ModelFact
+from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelObjectFactory import parser
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype, DocumentPrototype
 from arelle.PluginManager import pluginClassMethods
@@ -235,6 +235,9 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             _type = Type.ARCSINFOSET
         elif ln == "facts":
             _type = Type.FACTDIMSINFOSET
+        elif XbrlConst.ixbrlAll.intersection(rootNode.nsmap.values()):
+            # any xml document can be an inline document, only html and xhtml are found above
+            _type = Type.INLINEXBRL
         else:
             for pluginMethod in pluginClassMethods("ModelDocument.IdentifyType"):
                 _identifiedType = pluginMethod(modelXbrl, rootNode, filepath)
@@ -1224,7 +1227,7 @@ def inlineIxdsDiscover(modelXbrl):
         factTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "fraction"))
         for tag in factTags:
             for modelInlineFact in htmlElement.iterdescendants(tag=tag):
-                if isinstance(modelInlineFact,ModelObject):
+                if isinstance(modelInlineFact,ModelInlineFact):
                     mdlDoc.modelXbrl.factsInInstance.add( modelInlineFact )
                     locateFactInTuple(modelInlineFact, tuplesByTupleID, ixNStag)
                     locateContinuation(modelInlineFact)
