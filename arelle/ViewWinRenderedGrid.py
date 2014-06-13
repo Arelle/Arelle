@@ -188,6 +188,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                 self.rowHdrColWidth[i] = int(w * widthRatio)
             self.aspectEntryObjectIdsNode.clear()
             self.aspectEntryObjectIdsCell.clear()
+            self.factPrototypeAspectEntryObjectIds.clear()
             #print("tbl hdr width rowHdrCols {0}".format(self.rowHdrColWidth))
             self.gridTblHdr.tblHdrWraplength = 200 # to  adjust dynamically during configure callbacks
             self.gridTblHdr.tblHdrLabel = \
@@ -239,7 +240,9 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                 (zChoiceStructuralNode.header(lang=self.lang) or '')
                                 for zChoiceStructuralNode in zStructuralNode.choiceStructuralNodes]
                 zAxisIsOpenExplicitDimension = False
+                zAxisTypedDimension = None
                 i = zStructuralNode.choiceNodeIndex # for aspect entry, use header selected
+                comboBoxValue = None if i >= 0 else zStructuralNode.aspects.get('aspectValueLabel')
                 chosenStructuralNode = zStructuralNode.choiceStructuralNodes[i]    
                 aspect = None
                 for aspect in chosenStructuralNode.aspectsCovered():
@@ -252,15 +255,34 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         if dimConcept.isExplicitDimension:
                             valueHeaders.append("(all members)")
                             zAxisIsOpenExplicitDimension = True
+                        elif dimConcept.isTypedDimension:
+                            if (zStructuralNode.choiceStructuralNodes[0].contextItemBinding is None and
+                                not valueHeaders[0]): # remove filterNode from the list
+                                ''' this isn't reliable
+                                if i > 0:
+                                    del zStructuralNode.choiceStructuralNodes[0]
+                                    del valueHeaders[0]
+                                    zStructuralNode.choiceNodeIndex = i = i-1
+                                '''
+                                if i >= 0:
+                                    chosenStructuralNode = zStructuralNode.choiceStructuralNodes[i]
+                                else:
+                                    chosenStructuralNode = zStructuralNode # use aspects of structural node (for entered typed value)
+                            if not comboBoxValue and not valueHeaders:
+                                comboBoxValue = "--please select--"
+                                i = -1
+                            valueHeaders.append("(enter typed member)")
+                            zAxisTypedDimension = dimConcept
                 combobox = gridCombobox(
                              self.gridColHdr, self.dataFirstCol + 2, row,
                              values=valueHeaders,
-                             value=None if i >= 0 else zStructuralNode.aspects.get('aspectValueLabel'),
+                             value=comboBoxValue,
                              selectindex=zStructuralNode.choiceNodeIndex if i >= 0 else None,
                              columnspan=2,
                              comboboxselected=self.onZComboBoxSelected)
                 combobox.zStructuralNode = zStructuralNode
                 combobox.zAxisIsOpenExplicitDimension = zAxisIsOpenExplicitDimension
+                combobox.zAxisTypedDimension = zAxisTypedDimension
                 combobox.zAxisAspectEntryMode = False
                 combobox.zAxisAspect = aspect
                 combobox.zChoiceOrdIndex = row - 1
@@ -277,7 +299,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     
     def setZStructuralNodeAspects(self, zStructuralNode, add=True):
         for aspect in aspectModels[self.aspectModel]:
-            if zStructuralNode.hasAspect(aspect, inherit=True): #implies inheriting from other z axes
+            if (aspect in zStructuralNode.aspects or # might be added as custom-entered value (typed dim)
+                zStructuralNode.hasAspect(aspect, inherit=True)): #implies inheriting from other z axes
                 if aspect == Aspect.DIMENSIONS:
                     for dim in (zStructuralNode.aspectValue(Aspect.DIMENSIONS, inherit=True) or emptyList):
                         if add:
@@ -291,6 +314,17 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         self.zAspectStructuralNodes[aspect].discard(zStructuralNode)
             
     def onZComboBoxSelected(self, event):
+        if self.hasChangesToSave():
+            import tkinter.messagebox
+            reply = tkinter.messagebox.askyesnocancel(
+                        _("arelle - Unsaved Changes"),
+                        _("Save unsaved changes before Z-axis change? \n(No will discard changes.)"), 
+                        parent=self.tabWin)
+            if reply is None:
+                return # cancel
+            if reply:  # yes
+                self.saveInstance(onSaved=lambda: self.onZComboBoxSelected(event))
+                return # called again after saving on ui foreground thread
         combobox = event.widget
         structuralNode = combobox.zStructuralNode
         if combobox.zAxisAspectEntryMode:
@@ -306,6 +340,28 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                                structuralNode.choiceStructuralNodes[structuralNode.choiceNodeIndex]) # aspect filter node
             structuralNode.choiceNodeIndex = -1 # use entry aspect value
             combobox.zAxisAspectEntryMode = True
+        elif combobox.zAxisTypedDimension is not None and combobox.value == "(enter typed member)":
+            # ask typed member entry
+            import tkinter.simpledialog
+            result = tkinter.simpledialog.askstring(_("Enter new typed dimension value"), 
+                                                    combobox.zAxisTypedDimension.label(), 
+                                                    parent=self.tabWin)
+            if result:
+                structuralNode.choiceNodeIndex = -1 # use entry aspect value
+                aspectValue = FunctionXfi.create_element(self.rendrCntx, 
+                                                         None, 
+                                                         (combobox.zAxisTypedDimension.typedDomainElement.qname, (), result))
+                self.zOrdinateChoices[combobox.zStructuralNode.definitionNode] = \
+                    structuralNode.aspects = {combobox.zAxisAspect: aspectValue, 
+                                              Aspect.DIMENSIONS: {combobox.zAxisTypedDimension.qname},
+                                              'aspectValueLabel': result}
+                if not hasattr(structuralNode, "aspectEntryHeaderValues"): structuralNode.aspectEntryHeaderValues = {}
+                structuralNode.aspectEntryHeaderValues[result] = aspectValue
+                valueHeaders = list(combobox["values"])
+                if result not in valueHeaders: valueHeaders.insert(0, result)
+                combobox["values"] = valueHeaders
+                combobox.zAxisAspectEntryMode = True
+                self.view() # redraw grid
         else:
             # remove prior combo choice aspect
             self.setZStructuralNodeAspects(structuralNode.choiceStructuralNodes[structuralNode.choiceNodeIndex], add=False)
@@ -684,7 +740,16 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     self.viewFrame.after(1500, deferredReload)
                             
     
-    def saveInstance(self, newFilename=None):
+    def hasChangesToSave(self):
+        for bodyCell in self.gridRowHdr.winfo_children():
+            if isinstance(bodyCell, (gridCell,gridCombobox)) and bodyCell.isChanged:
+                return True
+        for bodyCell in self.gridBody.winfo_children():
+            if isinstance(bodyCell, gridCell) and bodyCell.isChanged:
+                return True
+        return False
+
+    def saveInstance(self, newFilename=None, onSaved=None):
         if (not self.newFactItemOptions.entityIdentScheme or  # not initialized yet
             not self.newFactItemOptions.entityIdentValue or
             not self.newFactItemOptions.startDateDate or not self.newFactItemOptions.endDateDate):
@@ -696,11 +761,11 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             if not newFilename:
                 return  # saving cancelled
         # continue saving in background
-        thread = threading.Thread(target=lambda: self.backgroundSaveInstance(newFilename))
+        thread = threading.Thread(target=lambda: self.backgroundSaveInstance(newFilename, onSaved))
         thread.daemon = True
         thread.start()
-
-    def backgroundSaveInstance(self, newFilename=None):
+        
+    def backgroundSaveInstance(self, newFilename=None, onSaved=None):
         cntlr = self.modelXbrl.modelManager.cntlr
         if newFilename and self.modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE:
             self.modelXbrl.modelManager.showStatus(_("creating new instance {0}").format(os.path.basename(newFilename)))
@@ -797,6 +862,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         bodyCell.isChanged = False  # clear change flag
         instance.saveInstance(newFilename) # may override prior filename for instance from main menu
         cntlr.showStatus(_("Saved {0}").format(instance.modelDocument.basename), clearAfter=3000)
+        if onSaved is not None:
+            self.modelXbrl.modelManager.cntlr.uiThreadQueue.put((onSaved, []))
 
     def newFactOpenAspects(self, factObjectId):
         aspectValues = {}
