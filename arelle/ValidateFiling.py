@@ -450,6 +450,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
     
             #6.5.9, .10 start-end durations
             if disclosureSystem.GFM or \
+               disclosureSystemVersion[0] >= 27 or \
                documentType in {
                         '20-F', '40-F', '10-Q', '10-QT', '10-K', '10-KT', '10', 'N-CSR', 'N-CSRS', 'N-Q',
                         '20-F/A', '40-F/A', '10-Q/A', '10-QT/A', '10-K/A', '10-KT/A', '10/A', 'N-CSR/A', 'N-CSRS/A', 'N-Q/A'}:
@@ -486,12 +487,13 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     end = cntx.endDatetime
                     if end is not None:
                         if cntx.isStartEndPeriod:
+                            thisStart = cntx.startDatetime
                             for otherStart, otherCntxs in durationCntxStartDatetimes.items():
                                 duration = end - otherStart
                                 if duration > datetime.timedelta(0) and duration <= datetime.timedelta(1):
                                     if disclosureSystemVersion[0] < 27:
                                         probCntxs |= otherCntxs - {cntx}
-                                    else:
+                                    elif thisStart is not None and end - thisStart > datetime.timedelta(1):
                                         for otherCntx in otherCntxs:
                                             if otherCntx is not cntx and otherCntx.endDatetime != end and otherStart != cntx.startDatetime:
                                                 probCntxs.add(otherCntx)
