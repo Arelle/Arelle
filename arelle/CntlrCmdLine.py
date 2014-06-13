@@ -86,7 +86,7 @@ def parseAndRun(args):
                              "file type.  If an XBRL file, it is validated "
                              "according to XBRL validation 2.1, calculation linkbase validation "
                              "if either --calcDecimals or --calcPrecision are specified, and "
-                             "SEC Edgar Filing Manual (if --efm selected) or Global Filer Manual "
+                             "SEC EDGAR Filing Manual (if --efm selected) or Global Filer Manual "
                              "disclosure system validation (if --gfm=XXX selected). "
                              "If a test suite or testcase, the test case variations "
                              "are individually so validated. "
@@ -420,7 +420,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
         """
         
         if options.statusPipe:
-            print("statusPipe=" + options.statusPipe + "\n", file=sys.stderr)
             try:
                 global win32file
                 import win32file, pywintypes
