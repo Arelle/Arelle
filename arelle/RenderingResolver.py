@@ -381,7 +381,7 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                                     structuralNode.choiceStructuralNodes.append(childStructuralNode)
                                     childStructuralNode.zSelection = True
                                 else:
-                                    structuralNode.childStructuredNodeList.append(childStructuralNode)
+                                    structuralNode.childStructuralNodes.append(childStructuralNode)
                                     expandDefinition(view, childStructuralNode, breakdownNode, definitionNode, depth, axisDisposition, facts, processOpenDefinitionNode=False) #recurse
                                     cartesianProductExpander(childStructuralNode, *cartesianProductNestedArgs)
                         else:
@@ -426,7 +426,7 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                             for axisSubtreeRel in subtreeRelationships:
                                 child2DefinitionNode = axisSubtreeRel.toModelObject
                                 child2StructuralNode = StructuralNode(childStructuralNode, breakdownNode, child2DefinitionNode) # others are nested structuralNode
-                                childStructuralNode.childStructuredNodeList.append(child2StructuralNode)
+                                childStructuralNode.childStructuralNodes.append(child2StructuralNode)
                                 expandDefinition(view, child2StructuralNode, breakdownNode, child2DefinitionNode, depth+ordDepth, axisDisposition, factsPartition) #recurse
                                 cartesianProductExpander(child2StructuralNode, *cartesianProductNestedArgs)
                         else:
@@ -447,7 +447,7 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                     for tupleFact in matchingTupleFacts:
                         childStructuralNode = StructuralNode(structuralNode, breakdownNode, definitionNode, contextItemFact=tupleFact)
                         childStructuralNode.indent = 0
-                        structuralNode.childStructuredNodeList.append(childStructuralNode)
+                        structuralNode.childStructuralNodes.append(childStructuralNode)
                         expandDefinition(view, childStructuralNode, breakdownNode, definitionNode, depth, axisDisposition, [tupleFact]) #recurse
                     # sort by header (which is likely to be typed dim value, for example)
                     if (structuralNode.childStructuralNodes and
@@ -523,7 +523,7 @@ def cartesianProductExpander(childStructuralNode, view, depth, axisDisposition, 
                     subOrdTblCntx._choiceStructuralNodes = []  # this is a breakdwon node
                     subOrdTblCntx.indent = 0 # separate breakdown not indented]
                     depth = 0 # cartesian next z is also depth 0
-                    childStructuralNode.childStructuredNodeList.append(subOrdTblCntx)
+                    childStructuralNode.childStructuralNodes.append(subOrdTblCntx)
                 else: # non-ordinate composition
                     subOrdTblCntx = childStructuralNode
                 # predefined axes need facts sub-filtered
@@ -553,7 +553,7 @@ def addRelationship(breakdownNode, relDefinitionNode, rel, structuralNode, carte
             childStructuralNode = selfStructuralNodes[fromConceptQname]
         else:
             childStructuralNode = StructuralNode(structuralNode, breakdownNode, relDefinitionNode)
-            structuralNode.childStructuredNodeList.append(childStructuralNode)
+            structuralNode.childStructuralNodes.append(childStructuralNode)
             selfStructuralNodes[fromConceptQname] = childStructuralNode
             if variableQname:
                 childStructuralNode.variables[variableQname] = []
@@ -561,10 +561,10 @@ def addRelationship(breakdownNode, relDefinitionNode, rel, structuralNode, carte
                 childStructuralNode.variables[conceptQname] = fromConceptQname
             childStructuralNode.aspects[coveredAspect] = fromConceptQname
         relChildStructuralNode = StructuralNode(childStructuralNode, breakdownNode, relDefinitionNode)
-        childStructuralNode.childStructuredNodeList.append(relChildStructuralNode)
+        childStructuralNode.childStructuralNodes.append(relChildStructuralNode)
     else:
         relChildStructuralNode = StructuralNode(structuralNode, breakdownNode, relDefinitionNode)
-        structuralNode.childStructuredNodeList.append(relChildStructuralNode)
+        structuralNode.childStructuralNodes.append(relChildStructuralNode)
     preferredLabel = rel.preferredLabel
     if preferredLabel == XbrlConst.periodStartLabel:
         relChildStructuralNode.tagSelector = "table.periodStart"
@@ -587,7 +587,7 @@ def addRelationships(breakdownNode, relDefinitionNode, rels, structuralNode, car
             childStructuralNode = addRelationship(breakdownNode, relDefinitionNode, rel, structuralNode, cartesianProductNestedArgs)
         elif childStructuralNode is None:
             childStructuralNode = StructuralNode(structuralNode, breakdownNode, relDefinitionNode)
-            structuralNode.childStructuredNodeList.append(childStructuralNode)
+            structuralNode.childStructuralNodes.append(childStructuralNode)
             addRelationships(breakdownNode, relDefinitionNode, rel, childStructuralNode, cartesianProductNestedArgs)
         else:
             addRelationships(breakdownNode, relDefinitionNode, rel, childStructuralNode, cartesianProductNestedArgs)
