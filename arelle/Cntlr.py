@@ -576,14 +576,16 @@ class LogHandlerWithXml(logging.Handler):
         super(LogHandlerWithXml, self).__init__()
         
     def recordToXml(self, logRec):
-        def entityEncode(arg):  # be sure it's a string, vs int, etc, and encode &, <, ".
-            return str(arg).replace("&","&amp;").replace("<","&lt;").replace('"','&quot;')
+        def entityEncode(arg, truncateAt=32767):  # be sure it's a string, vs int, etc, and encode &, <, ".
+            s = str(arg)
+            s = len(s) <= truncateAt and s or s[:truncateAt] + '...'
+            return s.replace("&","&amp;").replace("<","&lt;").replace('"','&quot;')
         
         def propElts(properties, indent):
             nestedIndent = indent + ' '
             return indent.join('<property name="{0}" value="{1}"{2}>'.format(
                                     entityEncode(p[0]),
-                                    entityEncode(p[1]),
+                                    entityEncode(p[1], truncateAt=128),
                                     '/' if len(p) == 2 
                                     else '>' + nestedIndent + propElts(p[2],nestedIndent) + indent + '</property')
                                 for p in properties 
@@ -591,7 +593,7 @@ class LogHandlerWithXml(logging.Handler):
         
         msg = self.format(logRec)
         if logRec.args:
-            args = "".join([' {0}="{1}"'.format(n, entityEncode(v)) 
+            args = "".join([' {0}="{1}"'.format(n, entityEncode(v, truncateAt=128)) 
                             for n, v in logRec.args.items()])
         else:
             args = ""
