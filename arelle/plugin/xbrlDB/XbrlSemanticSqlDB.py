@@ -248,7 +248,6 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             return None
         self.showStatus("insert entity")
         LEI = None
-        referenceNumber = rssItemGet("fileNumber") or entityInfo.get("file-number")  or str(int(time.time()))
         table = self.getTable('entity', 'entity_id', 
                               ('legal_entity_number',
                                'file_number',
@@ -265,7 +264,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                'public_float',
                                'trading_symbol'), 
                               ('legal_entity_number', 'file_number'), 
-                              ((LEI, referenceNumber,
+                              ((LEI, 
+                                rssItemGet("fileNumber") or entityInfo.get("file-number")  or str(int(time.time())),
                                 rssItemGet("cikNumber") or entityInfo.get("cik"),
                                 entityInfo.get("irs-number"),
                                 rssItemGet("assignedSic") or entityInfo.get("assigned-sic") or -1,
@@ -307,7 +307,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                           checkIfExisting=True)            
         self.showStatus("insert filing")
         table = self.getTable('filing', 'filing_id', 
-                              ('filing_number', 'form_type', 'entity_id',
+                              ('filing_number', 'form_type', 'entity_id', 'reference_number',
                                'accepted_timestamp', 'is_most_current', 'filing_date',
                                'creation_software', 
                                'authority_html_url', 'entry_url', ), 
@@ -315,6 +315,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                               ((rssItemGet("accessionNumber") or entityInfo.get("accession-number") or str(int(time.time())),  # NOT NULL
                                 rssItemGet("formType") or entityInfo.get("form-type"),
                                 self.entityId,
+                                rssItemGet("cikNumber") or entityInfo.get("cik"),
                                 rssItemGet("acceptanceDatetime") or entityInfo.get("acceptance-datetime"),
                                 True,
                                 rssItemGet("filingDate") or entityInfo.get("filing-date") or datetime.datetime.min,  # NOT NULL

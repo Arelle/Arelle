@@ -88,6 +88,7 @@ CREATE TABLE entity (
 );
 CREATE INDEX entity_index02 ON entity USING btree (file_number);
 CREATE INDEX entity_index03 ON entity USING btree (reference_number);
+CREATE INDEX entity_index04 ON entity USING btree (legal_entity_number);
 
 ALTER TABLE public.entity OWNER TO postgres;
 
@@ -108,6 +109,7 @@ CREATE TABLE filing (
     filing_number character varying(30) NOT NULL, -- SEC accession number
     form_type character varying(30),
     entity_id bigint NOT NULL,
+    reference_number character varying(30), -- external code, e.g. CIK (which may change for an entity during entity's life)
     accepted_timestamp timestamp without time zone DEFAULT now() NOT NULL,
     is_most_current boolean DEFAULT false NOT NULL,
     filing_date date NOT NULL,

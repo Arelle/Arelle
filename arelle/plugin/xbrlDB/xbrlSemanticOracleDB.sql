@@ -61,6 +61,7 @@ CREATE TABLE "entity" (
 CREATE INDEX entity_index01 ON "entity" (entity_id);
 CREATE INDEX entity_index02 ON "entity" (file_number);
 CREATE INDEX entity_index03 ON "entity" (reference_number);
+CREATE INDEX entity_index04 ON "entity" (legal_entity_number);
 
 CREATE TRIGGER entity_insert_trigger BEFORE INSERT ON "entity" 
   FOR EACH ROW
@@ -83,6 +84,7 @@ CREATE TABLE "filing" (
     filing_number varchar2(30) NOT NULL,
     form_type varchar2(30),
     entity_id number(19) NOT NULL,
+    reference_number varchar2(30), -- external code, e.g. CIK
     accepted_timestamp date DEFAULT sysdate,
     is_most_current number(1) DEFAULT 0,
     filing_date date NOT NULL,

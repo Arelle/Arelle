@@ -67,6 +67,7 @@ CREATE TABLE entity (
 );
 CREATE INDEX entity_index02 ON entity (file_number);
 CREATE INDEX entity_index03 ON entity (reference_number);
+CREATE INDEX entity_index04 ON entity (legal_entity_number);
 
 CREATE TABLE former_entity (
     entity_id INTEGER NOT NULL,
@@ -80,6 +81,7 @@ CREATE TABLE filing (
     filing_number TEXT NOT NULL,
     form_type TEXT,
     entity_id INTEGER NOT NULL,
+    reference_number TEXT, -- external code, e.g. CIK
     accepted_timestamp DATE DEFAULT (datetime('now','localtime')),
     is_most_current BOOLEAN DEFAULT false NOT NULL,
     filing_date DATE NOT NULL,

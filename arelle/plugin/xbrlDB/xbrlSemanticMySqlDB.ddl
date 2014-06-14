@@ -49,7 +49,7 @@ CREATE TABLE sequences (
 ); 
 
 CREATE TABLE entity (
-    entity_id bigint bigint default next value for seq_entity,
+    entity_id bigint NOT NULL AUTO_INCREMENT,
     legal_entity_number varchar(30), -- LEI
     file_number varchar(30), -- authority internal number
     reference_number varchar(30), -- external code, e.g. CIK
@@ -78,6 +78,7 @@ CREATE TABLE entity (
 CREATE INDEX entity_index01 USING btree ON entity (entity_id);
 CREATE INDEX entity_index02 USING btree ON entity (file_number);
 CREATE INDEX entity_index03 USING btree ON entity (reference_number);
+CREATE INDEX entity_index04 USING btree ON entity (legal_entity_number);
 
 CREATE TABLE former_entity (
     entity_id bigint NOT NULL,
@@ -92,6 +93,7 @@ CREATE TABLE filing (
     filing_number varchar(30) NOT NULL,
     form_type  varchar(30),
     entity_id bigint NOT NULL,
+    reference_number varchar(30), -- external code, e.g. CIK
     accepted_timestamp timestamp NOT NULL DEFAULT now(),
     is_most_current boolean NOT NULL DEFAULT false,
     filing_date date NOT NULL,

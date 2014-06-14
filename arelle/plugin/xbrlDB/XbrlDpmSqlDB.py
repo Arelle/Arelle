@@ -135,7 +135,7 @@ def metDimAllKey(fact, behaveAsTypedDims=EMPTYSET):
 # key for use in dFact only when there's a dim that behaves as or is typed
 def metDimTypedKey(fact, behaveAsTypedDims=EMPTYSET):
     cntx = fact.context
-    if any(dimQname in behaveAsTypedDims for dimQname in cntx.qnameDims):
+    if True: # HF change: any(dimQname in behaveAsTypedDims for dimQname in cntx.qnameDims):
         key = met(fact) + '|' + dimValKey(cntx, typedDim=True, behaveAsTypedDims=behaveAsTypedDims)
         return key
     return None
@@ -339,16 +339,16 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     zDimVals = zDimVal[tableID]
                     for dimQname in cntx.qnameDims.keys():
                         dimStr = str(dimQname)
-                        if (dimStr in zDimVals and zDimVals[dimStr] == "*" or
-                            dimStr in yDimVals and yDimVals[dimStr] == "*"):
-                            behaveAsTypedDims.add(dimQname)
+                        #if (dimStr in zDimVals and zDimVals[dimStr] == "*" or
+                        #    dimStr in yDimVals and yDimVals[dimStr] == "*"):
+                        #    behaveAsTypedDims.add(dimQname)
                     zDimKey = (metDimValKey(cntx, typedDim=True, behaveAsTypedDims=behaveAsTypedDims, restrictToDims=zDimVals)
                                or None)  # want None if no dimVal Z key
                     yDimKey = metDimValKey(cntx, typedDim=True, behaveAsTypedDims=behaveAsTypedDims, restrictToDims=yDimVals)
                     availableTableRows[tableID,zDimKey].add(yDimKey)
                     break
                 dFacts.append((instanceId,
-                               metDimAllKey(f, behaveAsTypedDims),
+                               # metDimAllKey(f, behaveAsTypedDims),
                                metDimTypedKey(f, behaveAsTypedDims),
                                str(f.unit.measures[0][0]) if isNumeric and f.unit is not None and f.unit.isSingleMeasure else None,
                                f.decimals,
@@ -398,7 +398,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
 
         
         self.getTable("dFact", None,
-                      ('InstanceID', 'DataPointSignature', 'DataPointSignatureWithValuesForWildcards', 
+                      ('InstanceID', 
+                       # 'DataPointSignature', 
+                       'DataPointSignatureWithValuesForWildcards', 
                        'Unit', 'Decimals',
                        'NumericValue', 'DateTimeValue', 'BooleanValue', 'TextValue'),
                       ('InstanceID', ),
