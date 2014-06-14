@@ -344,15 +344,15 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     xValue = anyURI(UrlUtil.anyUriQuoteForPSVI(value))
                     sValue = value
                 elif baseXsdType in ("decimal", "float", "double"):
-                    sValue = float(value) # s-value uses Number (float) representation, tested before decimal is tested
                     if baseXsdType == "decimal":
                         if decimalPattern.match(value) is None:
                             raise ValueError("lexical pattern mismatch")
                         xValue = Decimal(value)
+                        sValue = float(value) # s-value uses Number (float) representation
                     else:
                         if floatPattern.match(value) is None:
                             raise ValueError("lexical pattern mismatch")
-                        xValue = sValue
+                        xValue = sValue = float(value)
                     if facets:
                         if "totalDigits" in facets and len(value.replace(".","")) > facets["totalDigits"]:
                             raise ValueError("totalDigits facet {0}".format(facets["totalDigits"]))
