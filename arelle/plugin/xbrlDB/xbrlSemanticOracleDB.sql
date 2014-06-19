@@ -62,6 +62,7 @@ CREATE INDEX entity_index01 ON "entity" (entity_id);
 CREATE INDEX entity_index02 ON "entity" (file_number);
 CREATE INDEX entity_index03 ON "entity" (reference_number);
 CREATE INDEX entity_index04 ON "entity" (legal_entity_number);
+CREATE INDEX entity_index05 ON "entity" (legal_entity_number, file_number);
 
 CREATE TRIGGER entity_insert_trigger BEFORE INSERT ON "entity" 
   FOR EACH ROW
@@ -304,6 +305,7 @@ CREATE TABLE "relationship" (
 CREATE INDEX relationship_index02 ON "relationship" (relationship_set_id);
 CREATE INDEX relationship_index03 ON "relationship" (relationship_set_id, tree_depth);
 CREATE INDEX relationship_index04 ON "relationship" (relationship_set_id, document_id, xml_child_seq);
+CREATE INDEX relationship_index05 ON "relationship" (from_id);
 
 CREATE TRIGGER relationship_insert_trigger BEFORE INSERT ON "relationship" 
   FOR EACH ROW
@@ -430,6 +432,7 @@ CREATE TABLE "table_data_points"(
 );
 CREATE INDEX table_data_points_index01 ON "table_data_points" (report_id);
 CREATE INDEX table_data_points_index02 ON "table_data_points" (table_code);
+CREATE INDEX table_data_points_index03 ON "table_data_points" (datapoint_id);
 
 CREATE SEQUENCE seq_message;
 

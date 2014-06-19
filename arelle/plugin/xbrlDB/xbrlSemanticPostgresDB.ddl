@@ -89,6 +89,7 @@ CREATE TABLE entity (
 CREATE INDEX entity_index02 ON entity USING btree (file_number);
 CREATE INDEX entity_index03 ON entity USING btree (reference_number);
 CREATE INDEX entity_index04 ON entity USING btree (legal_entity_number);
+CREATE INDEX entity_index05 ON entity USING btree (legal_entity_number, file_number);
 
 ALTER TABLE public.entity OWNER TO postgres;
 
@@ -252,7 +253,7 @@ CREATE TABLE resource (
     xml_lang character varying(16),
     PRIMARY KEY (resource_id)
 );
-CREATE INDEX resource_index02 ON resource USING btree (document_id, xml_id);
+CREATE INDEX resource_index02 ON resource USING btree (document_id, xml_child_seq);
 
 ALTER TABLE public.resource OWNER TO postgres;
 
@@ -300,7 +301,7 @@ CREATE TABLE relationship (
 );
 CREATE INDEX relationship_index02 ON relationship USING btree (relationship_set_id); 
 CREATE INDEX relationship_index03 ON relationship USING btree (relationship_set_id, tree_depth); 
-CREATE INDEX relationship_index04 ON relationship USING btree (relationship_set_id, document_id, xml_id);
+CREATE INDEX relationship_index04 ON relationship USING btree (relationship_set_id, document_id, xml_child_seq);
 CREATE INDEX relationship_index05 ON relationship USING btree (from_id);
 
 ALTER TABLE public.relationship OWNER TO postgres;
@@ -408,6 +409,7 @@ CREATE TABLE table_data_points(
 );
 CREATE INDEX table_data_points_index01 ON table_data_points USING btree (report_id);
 CREATE INDEX table_data_points_index02 ON table_data_points USING btree (table_code);
+CREATE INDEX table_data_points_index03 ON table_data_points USING btree (datapoint_id);
 
 CREATE SEQUENCE seq_message;
 ALTER TABLE public.seq_message OWNER TO postgres;

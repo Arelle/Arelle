@@ -80,6 +80,7 @@ CREATE INDEX entity_index01 ON entity (entity_id);
 CREATE INDEX entity_index02 ON entity (file_number);
 CREATE INDEX entity_index03 ON entity (reference_number);
 CREATE INDEX entity_index04 ON entity (legal_entity_number);
+CREATE INDEX entity_index05 ON entity (legal_entity_number, file_number);
 
 CREATE TABLE "former_entity" (
     entity_id bigint NOT NULL,
@@ -229,7 +230,8 @@ CREATE TABLE "resource" (
     value nvarchar(max),
     xml_lang nvarchar(16)
 );
-CREATE INDEX resource_index01 ON "resource" (resource_id, xml_child_seq);
+CREATE INDEX resource_index01 ON "resource" (resource_id);
+CREATE INDEX resource_index02 ON "resource" (document_id, xml_child_seq);
 
 GO
 CREATE SEQUENCE seq_relationship_set AS bigint START WITH 1 INCREMENT BY 1;
@@ -274,6 +276,8 @@ CREATE TABLE "relationship" (
 CREATE INDEX relationship_index01 ON "relationship" (relationship_id);
 CREATE INDEX relationship_index02 ON "relationship" (relationship_set_id);
 CREATE INDEX relationship_index03 ON "relationship" (relationship_set_id, tree_depth);
+CREATE INDEX relationship_index04 ON "relationship" (relationship_set_id, document_id, xml_child_seq);
+CREATE INDEX relationship_index05 ON "relationship" (from_id);
 
 GO
 CREATE TABLE "data_point" (
@@ -371,6 +375,7 @@ CREATE TABLE "table_data_points" (
 );
 CREATE INDEX table_data_points_index01 ON "table_data_points" (report_id);
 CREATE INDEX table_data_points_index02 ON "table_data_points" (table_code);
+CREATE INDEX table_data_points_index03 ON "table_data_points" (datapoint_id);
 
 GO
 CREATE SEQUENCE seq_message AS bigint START WITH 1 INCREMENT BY 1;

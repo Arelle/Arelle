@@ -79,6 +79,7 @@ CREATE INDEX entity_index01 USING btree ON entity (entity_id);
 CREATE INDEX entity_index02 USING btree ON entity (file_number);
 CREATE INDEX entity_index03 USING btree ON entity (reference_number);
 CREATE INDEX entity_index04 USING btree ON entity (legal_entity_number);
+CREATE INDEX entity_index05 USING btree ON entity (legal_entity_number, file_number);
 
 CREATE TABLE former_entity (
     entity_id bigint NOT NULL,
@@ -309,9 +310,10 @@ CREATE TABLE relationship (
     preferred_label_role varchar(1024),
     PRIMARY KEY (relationship_id)
 );
-CREATE INDEX relationship_index02 USING btree ON relationship (relationship_set_id, document_id, xml_child_seq(64));
-CREATE INDEX relationship_index03 USING btree ON relationship (relationship_set_id);
-CREATE INDEX relationship_index04 USING btree ON relationship (relationship_set_id, tree_depth);
+CREATE INDEX relationship_index02 USING btree ON relationship (relationship_set_id);
+CREATE INDEX relationship_index03 USING btree ON relationship (relationship_set_id, tree_depth);
+CREATE INDEX relationship_index04 USING btree ON relationship (relationship_set_id, document_id, xml_child_seq(64));
+CREATE INDEX relationship_index05 USING btree ON relationship (from_id);
 
 DELIMITER //
 CREATE TRIGGER relationship_seq BEFORE INSERT ON relationship 
@@ -449,6 +451,7 @@ CREATE TABLE table_data_points(
 );
 CREATE INDEX table_data_points_index01 USING btree ON table_data_points (report_id);
 CREATE INDEX table_data_points_index02 USING btree ON table_data_points (table_code);
+CREATE INDEX table_data_points_index02 USING btree ON table_data_points (datapoint_id);
 
 CREATE TABLE message (
     message_id bigint NOT NULL AUTO_INCREMENT,

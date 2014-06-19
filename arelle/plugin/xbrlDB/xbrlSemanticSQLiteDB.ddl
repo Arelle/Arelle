@@ -68,6 +68,7 @@ CREATE TABLE entity (
 CREATE INDEX entity_index02 ON entity (file_number);
 CREATE INDEX entity_index03 ON entity (reference_number);
 CREATE INDEX entity_index04 ON entity (legal_entity_number);
+CREATE INDEX entity_index05 ON entity (legal_entity_number, file_number);
 
 CREATE TABLE former_entity (
     entity_id INTEGER NOT NULL,
@@ -182,12 +183,14 @@ CREATE TABLE resource (
     resource_id INTEGER PRIMARY KEY AUTOINCREMENT,
     document_id INTEGER NOT NULL,
     xml_id TEXT,  -- xml id or element pointer (do we need this?)
+    xml_child_seq TEXT,
     qname TEXT NOT NULL,  -- clark notation qname (do we need this?)
     role TEXT NOT NULL,
     value TEXT,
     xml_lang TEXT
 );
-CREATE INDEX resource_index02 ON resource  (document_id, xml_id);
+CREATE INDEX resource_index02 ON resource  (resource_id);
+CREATE INDEX resource_index02 ON resource  (document_id, xml_child_seq);
 
 CREATE TABLE relationship_set (
     relationship_set_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -210,7 +213,8 @@ CREATE INDEX root_index01 ON root  (relationship_set_id);
 CREATE TABLE relationship (
     relationship_id INTEGER PRIMARY KEY AUTOINCREMENT,
     document_id INTEGER NOT NULL,
-    xml_id TEXT,  -- xml id or element pointer (do we need this?)
+    xml_id TEXT,
+    xml_child_seq TEXT,
     relationship_set_id INTEGER NOT NULL,
     reln_order double precision,
     from_id INTEGER,
@@ -222,13 +226,15 @@ CREATE TABLE relationship (
 );
 CREATE INDEX relationship_index02 ON relationship  (relationship_set_id); 
 CREATE INDEX relationship_index03 ON relationship  (relationship_set_id, tree_depth); 
-CREATE INDEX relationship_index04 ON relationship  (relationship_set_id, document_id, xml_id);
+CREATE INDEX relationship_index04 ON relationship  (relationship_set_id, document_id, xml_child_seq);
+CREATE INDEX relationship_index02 ON relationship  (from_id); 
 
 CREATE TABLE data_point (
     datapoint_id INTEGER PRIMARY KEY AUTOINCREMENT,
     report_id INTEGER,
     document_id INTEGER NOT NULL,  -- multiple inline documents are sources of data points
-    xml_id TEXT,  -- xml id or element pointer (do we need this?)
+    xml_id TEXT,
+    xml_child_seq TEXT,
     source_line integer,
     parent_datapoint_id INTEGER, -- id of tuple parent
     aspect_id INTEGER NOT NULL,
@@ -243,7 +249,7 @@ CREATE TABLE data_point (
     effective_value double precision,
     value TEXT
 );
-CREATE INDEX data_point_index02 ON data_point  (document_id, xml_id);
+CREATE INDEX data_point_index02 ON data_point  (document_id, xml_child_seq);
 CREATE INDEX data_point_index03 ON data_point  (report_id);
 CREATE INDEX data_point_index04 ON data_point  (aspect_id);
 
@@ -307,6 +313,7 @@ CREATE TABLE table_data_points(
 );
 CREATE INDEX table_data_points_index01 ON table_data_points  (report_id);
 CREATE INDEX table_data_points_index02 ON table_data_points  (table_code);
+CREATE INDEX table_data_points_index03 ON table_data_points  (datapoint_id);
 
 CREATE TABLE message (
     message_id INTEGER PRIMARY KEY AUTOINCREMENT,
