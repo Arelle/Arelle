@@ -243,8 +243,10 @@ def final(val, conceptsUsed):
     def defaultParentCheck(mem, ELR=None):
         for rel in val.modelXbrl.relationshipSet(XbrlConst.domainMember, ELR).toModelObject(mem):
             memParent = rel.fromModelObject
+            isCycle = memParent in dimensionDefaults
             dimensionDefaults.add(memParent)
-            defaultParentCheck(defaultParentCheck, rel.linkrole)
+            if not isCycle:
+                defaultParentCheck(memParent, rel.linkrole)
     for defaultMemConcept in val.modelXbrl.dimensionDefaultConcepts.values():
         dimensionDefaults.add(defaultMemConcept)
         # also add any domain or intermediate parents of dimension default in any ELR as they likely will be unused
