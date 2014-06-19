@@ -683,7 +683,7 @@ class ValidateXbrl:
                                 modelObject=f, fact=f.qname, contextID=f.contextID, periodType=periodType)
                             
                     # check precision and decimals
-                    if f.xsiNil == "true":
+                    if f.isNil:
                         if hasPrecision or hasDecimals:
                             self.modelXbrl.error("xbrl.4.6.3:nilPrecisionDecimals",
                                 _("Fact %(fact)s context %(contextID)s can not be nil and have either precision or decimals"),
@@ -710,10 +710,16 @@ class ValidateXbrl:
                                         _("Fact %(fact)s context %(contextID)s may not have child elements %(childElementName)s"),
                                         modelObject=f, fact=f.qname, contextID=f.contextID, childElementName=child.prefixedName)
                                     break
-                        if concept.isNumeric and not hasPrecision and not hasDecimals:
-                            self.modelXbrl.error("xbrl.4.6.3:missingPrecisionDecimals",
-                                _("Fact %(fact)s context %(contextID)s is a numeric concept and must have either precision or decimals"),
-                                modelObject=f, fact=f.qname, contextID=f.contextID)
+                        if concept.isNumeric:
+                            if not hasPrecision and not hasDecimals:
+                                self.modelXbrl.error("xbrl.4.6.3:missingPrecisionDecimals",
+                                    _("Fact %(fact)s context %(contextID)s is a numeric concept and must have either precision or decimals"),
+                                    modelObject=f, fact=f.qname, contextID=f.contextID)
+                        else:
+                            if hasPrecision or hasDecimals:
+                                self.modelXbrl.error("xbrl.4.6.3:extraneousPrecisionDecimals",
+                                    _("Fact %(fact)s context %(contextID)s is a non-numeric concept and must not have precision or decimals"),
+                                    modelObject=f, fact=f.qname, contextID=f.contextID)
                         # not a real check
                         #if f.isNumeric and not f.isNil and f.precision :
                         #    try:
