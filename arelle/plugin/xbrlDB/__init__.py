@@ -49,6 +49,7 @@ dbProduct = {
     }
 
 _loadFromDBoptions = None  # only set for load, vs store operation
+_storeToXbrlDBoptions = None
 
 def xbrlDBmenuEntender(cntlr, menu):
     
@@ -232,9 +233,10 @@ def xbrlDBrssDoWatchAction(modelXbrl, rssWatchOptions, rssItem):
         storeIntoDB(dbConnection, modelXbrl)
         
 def xbrlDBLoaderSetup(cntlr, options, **kwargs):
-    global _loadFromDBoptions
+    global _loadFromDBoptions, _storeToXbrlDBoptions
     # set options to load from DB (instead of load from XBRL and store in DB)
     _loadFromDBoptions = getattr(options, "loadFromXbrlDb", None)
+    _storeIntoDBoptions = getattr(options, "storeIntoXbrlDb", None)
 
 def xbrlDBLoader(modelXbrl, mappedUri, filepath, **kwargs):
     # check if big instance and has header with an initial incomplete tree walk (just 2 elements
@@ -242,7 +244,31 @@ def xbrlDBLoader(modelXbrl, mappedUri, filepath, **kwargs):
         return None
     
     # load from DB and save XBRL in filepath, returning modelDocument
-    return storeIntoDB(_loadFromDBoptions.split(','), modelXbrl, loadDBsaveToFile=filepath, logStoredMsg=False)
+    extraArgs = {"loadDBsaveToFile": filepath, "logStoredMsg": False}
+    dbConnection = _loadFromDBoptions.split(',')
+    if len(dbConnection) > 7:
+        for extraArg in dbConnection[7:]:
+            argName, sep, argValue = extraArg.partition("=")
+            extraArgs[argName] = argValue
+    return storeIntoDB(dbConnection, modelXbrl, **extraArgs)
+
+def xbrlDBblockStreaming(modelXbrl, **kwargs):
+    if _storeToXbrlDBoptions and not _loadFromDBoptions:
+        dbConnection = _storeToXbrlDBoptions.split(',')
+        if len(dbConnection) > 6: 
+            dbType = dbConnection[6]
+            if dbType == "sqliteDpmDB":
+                return False # only SQLite DPM can accept streaming now
+    return True
+
+def xbrlDBstartStreaming(modelXbrl):
+    return storeIntoDB(_storeToXbrlDBoptions.split(','), modelXbrl, streamingState="start")
+
+def xbrlDBvalidateStreamingFacts(modelXbrl, modelFacts):
+    return storeIntoDB(_storeToXbrlDBoptions.split(','), modelXbrl, streamingState="acceptFacts", streamedFacts=modelFacts)
+
+def xbrlDBfinishStreaming(modelXbrl):
+    return storeIntoDB(_storeToXbrlDBoptions.split(','), modelXbrl, streamingState="finish")
 
 class LogToDbHandler(logging.Handler):
     def __init__(self):
@@ -296,5 +322,9 @@ __pluginInfo__ = {
     'ModelDocument.PullLoader': xbrlDBLoader,
     'RssWatch.HasWatchAction': xbrlDBrssWatchHasWatchAction,
     'RssWatch.DoWatchAction': xbrlDBrssDoWatchAction,
+    'Streaming.BlockPlugin': xbrlDBblockStreaming,
+    'Streaming.Start': xbrlDBstartStreaming,
+    'Streaming.ValidateFacts': xbrlDBvalidateStreamingFacts,
+    'Streaming.Finish': xbrlDBfinishStreaming,
     'Validate.RssItem': xbrlDBvalidateRssItem
 }

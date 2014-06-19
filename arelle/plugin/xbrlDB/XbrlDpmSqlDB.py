@@ -53,7 +53,7 @@ from arelle.ModelValue import qname, dateTime, DATEUNION
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.ValidateXbrlCalcs import roundValue
 from arelle.XmlUtil import xmlstring, datetimeValue, addChild, addQnameValue, addProcessingInstruction
-from arelle import XbrlConst
+from arelle import XbrlConst, XmlValidate
 from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
 from decimal import Decimal, InvalidOperation
 
@@ -62,7 +62,7 @@ qnFindFilingIndicator = qname("{http://www.eurofiling.info/xbrl/ext/filing-indic
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
-                 product=None, rssItem=None, loadDBsaveToFile=None, 
+                 product=None, rssItem=None, loadDBsaveToFile=None, loadInstanceId=None,
                  streamingState=None, streamedFacts=None,
                  **kwargs):
     if getattr(modelXbrl, "blockDpmDBrecursion", False):
@@ -84,7 +84,7 @@ def insertIntoDB(modelXbrl,
                 modelXbrl.streamingConnection = xbrlDbConn
             elif loadDBsaveToFile:
                 # load modelDocument from database saving to file
-                result = xbrlDbConn.loadXbrlFromDB(loadDBsaveToFile)
+                result = xbrlDbConn.loadXbrlFromDB(loadDBsaveToFile, loadInstanceId)
             else:
                 xbrlDbConn.insertXbrl(rssItem=rssItem)
             xbrlDbConn.close()
@@ -296,7 +296,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         isBool = True
                     elif baseXbrliType == "dateTimeItemType": # also is dateItemType?
                         isDateTime = True
-                xValue = f.xValue
+                if f.isNil:
+                    xValue = None
+                else:
+                    xValue = f.xValue
             else:
                 if f.isNil:
                     xValue = None
@@ -348,7 +351,6 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     availableTableRows[tableID,zDimKey].add(yDimKey)
                     break
                 dFacts.append((instanceId,
-                               # metDimAllKey(f, behaveAsTypedDims),
                                metDimTypedKey(f, behaveAsTypedDims),
                                str(f.unit.measures[0][0]) if isNumeric and f.unit is not None and f.unit.isSingleMeasure else None,
                                f.decimals,
@@ -399,8 +401,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         
         self.getTable("dFact", None,
                       ('InstanceID', 
-                       # 'DataPointSignature', 
-                       'DataPointSignatureWithValuesForWildcards', 
+                       'DataPointSignature', 
                        'Unit', 'Decimals',
                        'NumericValue', 'DateTimeValue', 'BooleanValue', 'TextValue'),
                       ('InstanceID', ),
@@ -426,15 +427,22 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                       returnMatches=False)
         self.modelXbrl.profileActivity("dpmDB 10. Bulk store dAvailableTable", minTimeToShow=0.0)
         
-    def loadXbrlFromDB(self, loadDBsaveToFile):
+    def loadXbrlFromDB(self, loadDBsaveToFile, loadInstanceId):
         # load from database
         modelXbrl = self.modelXbrl
         
         # find instance in DB
-        instanceURI = os.path.basename(loadDBsaveToFile)
-        results = self.execute("SELECT InstanceID, ModuleID, EntityScheme, EntityIdentifier, PeriodEndDateOrInstant"
-                               " FROM dInstance WHERE FileName = '{}'"
-                               .format(instanceURI))
+        if loadInstanceId and loadInstanceId.isnumeric():
+            # use instance ID to get instance
+            results = self.execute("SELECT InstanceID, ModuleID, EntityScheme, EntityIdentifier, PeriodEndDateOrInstant"
+                                   " FROM dInstance WHERE InstanceID = {}"
+                                   .format(loadInstanceId))
+        else:
+            # use filename to get instance
+            instanceURI = os.path.basename(loadDBsaveToFile)
+            results = self.execute("SELECT InstanceID, ModuleID, EntityScheme, EntityIdentifier, PeriodEndDateOrInstant"
+                                   " FROM dInstance WHERE FileName = '{}'"
+                                   .format(instanceURI))
         instanceId = moduleId = None
         for instanceId, moduleId, entScheme, entId, datePerEnd in results:
             break
@@ -494,12 +502,13 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         None, # no dimensional validity checking (like formula does)
                         {}, [], [],
                         id='c')
-            filingIndicatorsTuple = modelXbrl.createFact(qnFindFilingIndicators)
+            filingIndicatorsTuple = modelXbrl.createFact(qnFindFilingIndicators, validate=False)
             for filingIndicatorCode in filingIndicatorCodes:
                 modelXbrl.createFact(qnFindFilingIndicator, 
                                      parent=filingIndicatorsTuple,
                                      attributes={"contextRef": "c"}, 
-                                     text=filingIndicatorCode)
+                                     text=filingIndicatorCode, validate=False)
+            XmlValidate.validate(modelXbrl, filingIndicatorsTuple) # must validate after contents are created
 
         # get typed dimension elements
         results = self.execute("SELECT dim.DimensionXBRLCode, "
@@ -515,13 +524,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         typedDimElts = dict((dimQn,eltQn) for dimQn,eltQn in results)
         
         # facts in this instance
-        factsTbl = self.execute("SELECT DataPointSignature, DataPointSignatureWithValuesForWildcards,"
+        factsTbl = self.execute("SELECT DataPointSignature, " 
                                 " Unit, Decimals, NumericValue, DateTimeValue, BooleanValue, TextValue "
                                 "FROM dFact WHERE InstanceID = {} "
-                                "ORDER BY substr(CASE WHEN DataPointSignatureWithValuesForWildcards IS NULL "
-                                "                          THEN DataPointSignature"
-                                "                          ELSE DataPointSignatureWithValuesForWildcards"
-                                "                END, instr(DataPointSignature,'|') + 1)"
+                                "ORDER BY substr(DataPointSignature, instr(DataPointSignature,'|') + 1)"
                                 .format(instanceId))
         
         # results tuple: factId, dec, varId, dpKey, entId, datePerEnd, unit, numVal, dateVal, boolVal, textVal
@@ -549,9 +555,15 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             return addChild(modelXbrl.modelDocument, qn, appendChild=False, attributes={XbrlConst.qnXsiNil:"true"})
         
         # contexts and facts
-        for dpSig, dpSigTypedDims, unit, dec, numVal, dateVal, boolVal, textVal in factsTbl:
-            metric, sep, dims = (dpSigTypedDims or dpSig).partition('|')
-            conceptQn = qname(metric.partition('(')[2][:-1], prefixedNamespaces)
+        for dpSig, unit, dec, numVal, dateVal, boolVal, textVal in factsTbl:
+            metric, sep, dims = dpSig.partition('|')
+            metricPrefixedName = metric.partition('(')[2][:-1]
+            conceptQn = qname(metricPrefixedName, prefixedNamespaces)
+            if conceptQn is None:
+                self.modelXbrl.error("sqlDB:InvalidFactConcept",
+                                     _("A concept definition is not found for metric %(concept) of datapoint signature %(dpsignature)"),
+                                     modelObject=self.modelXbrl, concept=metricPrefixedName, dpsignature=dpSig)
+                continue  # ignore DTS-based loading of invalid concept QName
             concept = modelXbrl.qnameConcepts.get(conceptQn)
             isNumeric = isBool = isDateTime = isQName = isText = False
             if concept is not None:
@@ -561,7 +573,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     baseXbrliType = concept.baseXbrliType
                     if baseXbrliType == "booleanItemType":
                         isBool = True
-                    elif baseXbrliType == "dateTimeItemType": # also is dateItemType?
+                    elif baseXbrliType in ("dateTimeItemType", "dateItemType"): # also is dateItemType?
                         isDateTime = True
                     elif baseXbrliType == "QNameItemType":
                         isQName = True
@@ -605,7 +617,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                         None, # no dimensional validity checking (like formula does)
                                         qnameDims, [], [],
                                         id=cntxId)
-            if unit:
+            if isNumeric and unit:
                 if unit in unitTbl:
                     unitId = unitTbl[unit]
                 else:
@@ -616,35 +628,48 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             else:
                 unitId = None
             attrs = {"contextRef": cntxId}
-            if unitId:
-                attrs["unitRef"] = unitId
-            if dec is not None and len(dec) > 0:
-                if isinstance(dec, float): # must be an integer
-                    dec = int(dec)
-                elif isinstance(dec, _STR_BASE) and '.' in dec:
-                    dec = dec.partition('.')[0] # drop .0 from any SQLite string
-                attrs["decimals"] = str(dec)  # somehow it is float from the database
-            if False: # fact.isNil:
-                attrs[XbrlConst.qnXsiNil] = "true"
-                text = None
-            elif isinstance(numVal, _NUM_TYPES):
-                num = roundValue(numVal, None, dec) # round using reported decimals
-                if dec is None or dec == "INF":  # show using decimals or reported format
-                    dec = abs(Decimal(str(numVal)).as_tuple().exponent)
-                else: # max decimals at 28
-                    try:
-                        dec = max( min(int(float(dec)), 28), -28) # 2.7 wants short int, 3.2 takes regular int, don't use _INT here
-                    except ValueError:
-                        dec = 0
-                text = Locale.format(self.modelXbrl.locale, "%.*f", (dec, num))
-            elif isinstance(dateVal, datetime.date):
-                text = str(dateVal)
-            elif boolVal is not None and len(boolVal) > 0:
-                text = 'true' if boolVal.lower() in ('t', 'true', '1') else 'false'
-            else:
-                if isQName: # declare namespace
-                    addQnameValue(modelXbrl.modelDocument, qname(textVal, prefixedNamespaces))
-                text = textVal
+            if isNumeric:
+                if unitId:
+                    attrs["unitRef"] = unitId
+                if isinstance(numVal, _NUM_TYPES):
+                    if dec is not None and len(dec) > 0:
+                        if isinstance(dec, float): # must be an integer
+                            dec = int(dec)
+                        elif isinstance(dec, _STR_BASE) and '.' in dec:
+                            dec = dec.partition('.')[0] # drop .0 from any SQLite string
+                        attrs["decimals"] = str(dec)  # somehow it is float from the database
+                    num = roundValue(numVal, None, dec) # round using reported decimals
+                    if dec is None or dec == "INF":  # show using decimals or reported format
+                        dec = abs(Decimal(str(numVal)).as_tuple().exponent)
+                    else: # max decimals at 28
+                        try:
+                            dec = max( min(int(float(dec)), 28), -28) # 2.7 wants short int, 3.2 takes regular int, don't use _INT here
+                        except ValueError:
+                            dec = 0
+                    text = Locale.format(self.modelXbrl.locale, "%.*f", (dec, num))
+                else:
+                    attrs[XbrlConst.qnXsiNil] = "true"
+                    text = None
+            elif isDateTime:
+                if isinstance(dateVal, (str, datetime.date)):
+                    text = str(dateVal)
+                else:
+                    attrs[XbrlConst.qnXsiNil] = "true"
+                    text = None
+            elif isBool:
+                if boolVal is not None and len(boolVal) > 0:
+                    text = 'true' if boolVal.lower() in ('t', 'true', '1') else 'false'
+                else:
+                    attrs[XbrlConst.qnXsiNil] = "true"
+                    text = None
+            else: # text or QName
+                if textVal is not None and (textVal or not isQName):
+                    if isQName: # declare namespace
+                        addQnameValue(modelXbrl.modelDocument, qname(textVal, prefixedNamespaces))
+                    text = textVal
+                else:
+                    attrs[XbrlConst.qnXsiNil] = "true"
+                    text = None
             modelXbrl.createFact(conceptQn, attributes=attrs, text=text)
             
         # add footnotes if any
