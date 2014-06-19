@@ -782,7 +782,7 @@ class ModelXbrl:
                         return fact
         return None
             
-    def createFact(self, conceptQname, attributes=None, text=None, parent=None, afterSibling=None, beforeSibling=None):
+    def createFact(self, conceptQname, attributes=None, text=None, parent=None, afterSibling=None, beforeSibling=None, validate=True):
         """Creates new fact, as in formula output instance creation, and validates into object model
         
         :param conceptQname: QNames of concept
@@ -796,12 +796,15 @@ class ModelXbrl:
         :type beforeSibling: ModelObject
         :param afterSibling: lxml element in instance to insert new concept after
         :type afterSibling: ModelObject
+        :param validate: specify False to block XML Validation (required when constructing a tuple which is invalid until after it's contents are created)
+        :type validate: boolean
         :returns: ModelFact -- New fact object
         """
         if parent is None: parent = self.modelDocument.xmlRootElement
         newFact = XmlUtil.addChild(parent, conceptQname, attributes=attributes, text=text,
                                    afterSibling=afterSibling, beforeSibling=beforeSibling)
-        XmlValidate.validate(self, newFact)
+        if validate:
+            XmlValidate.validate(self, newFact)
         self.modelDocument.factDiscover(newFact, parentElement=parent)
         return newFact    
         
