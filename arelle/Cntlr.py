@@ -578,7 +578,7 @@ class LogHandlerWithXml(logging.Handler):
     def recordToXml(self, logRec):
         def entityEncode(arg, truncateAt=32767):  # be sure it's a string, vs int, etc, and encode &, <, ".
             s = str(arg)
-            s = len(s) <= truncateAt and s or s[:truncateAt] + '...'
+            s = s if len(s) <= truncateAt else s[:truncateAt] + '...'
             return s.replace("&","&amp;").replace("<","&lt;").replace('"','&quot;')
         
         def propElts(properties, indent):
