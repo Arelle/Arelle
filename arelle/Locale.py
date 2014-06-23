@@ -27,9 +27,12 @@ LC_MONETARY = 4
 LC_NUMERIC = 1
 LC_TIME = 2
 
+C_LOCALE = None # culture-invariant locale
+
 def getUserLocale(localeCode=''):
     # get system localeconv and reset system back to default
     import locale
+    global C_LOCALE
     conv = None
     if sys.platform == "darwin" and not localeCode:
         # possibly this MacOS bug: http://bugs.python.org/issue18378
@@ -58,6 +61,8 @@ def getUserLocale(localeCode=''):
     locale.setlocale(locale.LC_ALL, _STR_8BIT('C'))  # str needed for 3to2 2.7 python to work
     if conv is None: # some other issue prevents getting culture code, use 'C' defaults (no thousands sep, no currency, etc)
         conv = locale.localeconv() # use 'C' environment, e.g., en_US
+    if C_LOCALE is None: # load culture-invariant C locale
+        C_LOCALE = locale.localeconv()
     return conv
 
 def getLanguageCode():
