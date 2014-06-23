@@ -75,7 +75,7 @@ def loadPrimaryDocumentFacts(dts, rssItem, entityInformation):
                 filePath = dts.modelManager.cntlr.webCache.getfilename(normalizedUrl)
                 if filePath:
                     if filePath.endswith('.txt'):
-                        with open(filePath) as fh:
+                        with open(filePath, encoding='utf-8') as fh:
                             text = fh.read()
                     elif filePath.endswith('.htm'):
                         doc = html.parse(filePath)

@@ -95,7 +95,7 @@ def loadEntityInformation(dts, rssItem):
                 try:
                     filePath = dts.modelManager.cntlr.webCache.getfilename(normalizedUrl)
                     if filePath:
-                        with open(filePath) as fh:
+                        with open(filePath, encoding='utf-8') as fh:
                             txtSgml = fh.read()
                         # remove from cache, very large file
                         os.remove(filePath)
