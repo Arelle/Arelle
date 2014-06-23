@@ -208,6 +208,8 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'): # works on ubuntu wi
             # extra libraries needed for red hat
             includeFiles.append(('/usr/local/lib/libexslt.so', 'libexslt.so'))
             includeFiles.append(('/usr/local/lib/libxml2.so', 'libxml2.so'))
+            # for some reason redhat needs libxml2.so.2 as well
+            includeFiles.append(('/usr/local/lib/libxml2.so.2', 'libxml2.so.2'))
             includeFiles.append(('/usr/local/lib/libxslt.so', 'libxslt.so'))
             includeFiles.append(('/usr/local/lib/libz.so', 'libz.so'))
             
