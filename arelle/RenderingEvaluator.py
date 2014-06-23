@@ -46,7 +46,7 @@ def init(modelXbrl):
         
         modelXbrl.profileStat(None)
         
-        # setup fresh parameters from formula optoins
+        # setup fresh parameters from formula options
         modelXbrl.parameters = modelXbrl.modelManager.formulaOptions.typedParameters()
         
         # validate parameters and custom function signatures

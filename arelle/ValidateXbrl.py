@@ -496,7 +496,9 @@ class ValidateXbrl:
             ValidateFormula.validate(self, 
                                      statusMsg=_("compiling formulae and rendering tables") if (modelXbrl.hasFormulae and modelXbrl.modelRenderingTables)
                                      else (_("compiling formulae") if modelXbrl.hasFormulae
-                                           else _("compiling rendering tables")))
+                                           else _("compiling rendering tables")),
+                                     # block executing formulas when validating if hasFormula is False (e.g., --formula=none)
+                                     compileOnly=modelXbrl.modelRenderingTables and not modelXbrl.hasFormulae)
             
         for pluginXbrlMethod in pluginClassMethods("Validate.Finally"):
             pluginXbrlMethod(self)
