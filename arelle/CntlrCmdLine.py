@@ -418,7 +418,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         :param options: OptionParser options from parse_args of main argv arguments (when called from command line) or corresponding arguments from web service (REST) request.
         :type options: optparse.Values
         """
-        
+                
         if options.statusPipe:
             try:
                 global win32file
@@ -847,6 +847,13 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 elif modelXbrl:
                     self.modelManager.close(modelXbrl)
         self.username = self.password = None #dereference password
+        
+        if options.statusPipe and getattr(self, "statusPipe", None) is not None:
+            win32file.WriteFile(self.statusPipe, b" ")  # clear status
+            win32file.FlushFileBuffers(self.statusPipe)
+            win32file.SetFilePointer(self.statusPipe, 0, win32file.FILE_BEGIN) # hangs on close without this
+            win32file.CloseHandle(self.statusPipe)
+            self.statusPipe = None # dereference
         return success
 
     # default web authentication password
@@ -855,11 +862,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
     
     # special show status for named pipes
     def showStatusOnPipe(self, message, clearAfter=None):
-        now = time.time()
-        if now - 0.3 > self.lastStatusTime:  # max status updates 3 per second 
-            self.lastStatusTime = now
+        # now = time.time() # seems ok without time-limiting writes to the pipe
+        if self.statusPipe is not None:  # max status updates 3 per second now - 0.3 > self.lastStatusTime and 
+            # self.lastStatusTime = now
             win32file.WriteFile(self.statusPipe, (message or "").encode("utf8"))
             win32file.FlushFileBuffers(self.statusPipe)
+            win32file.SetFilePointer(self.statusPipe, 0, win32file.FILE_BEGIN)  # hangs on close without this
 
 if __name__ == "__main__":
     '''
