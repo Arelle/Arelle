@@ -1186,10 +1186,13 @@ class ModelDimensionValue(ModelObject):
         
 def measuresOf(parent):
     if parent.xValid >= 4: # has DTS and is validated
-        return sorted([m.xValue for m in parent.iterchildren(tag="{http://www.xbrl.org/2003/instance}measure") if isinstance(m, ModelObject) and m.xValue])
+        return sorted([m.xValue 
+                       for m in parent.iterchildren(tag="{http://www.xbrl.org/2003/instance}measure") 
+                       if isinstance(m, ModelObject) and m.xValue])
     else:  # probably skipDTS
-        return sorted([m.prefixedNameQname(m.textValue)
-                       for m in parent.iterchildren(tag="{http://www.xbrl.org/2003/instance}measure") if isinstance(m, ModelObject)])
+        return sorted([m.prefixedNameQname(m.textValue) or XbrlConst.qnInvalidMeasure
+                       for m in parent.iterchildren(tag="{http://www.xbrl.org/2003/instance}measure") 
+                       if isinstance(m, ModelObject)])
 
 def measuresStr(m):
     return m.localName if m.namespaceURI in (XbrlConst.xbrli, XbrlConst.iso4217) else str(m)
