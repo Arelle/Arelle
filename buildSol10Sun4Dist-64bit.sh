@@ -3,12 +3,12 @@
 # this file must have unix newlines (to prevent extraneous errors when running)
 # must run sudo on ubuntu
 
-PYTHON=python3.1
+PYTHON=python3.2
 
 # create version with date and a shell file to name output with the date
 ${PYTHON} buildVersion.py
 
-BUILT64=exe.solaris-2.10-sun4v-3.1
+BUILT64=exe.solaris-2.10-sun4v.64bit-3.2
 
 if [ -d build/${BUILT64} ]
   then
@@ -31,7 +31,7 @@ cd build/${BUILT64}
 # rm arelleGUI
 
 # add missing libraries
-cp /usr/local/lib/libintl* .
+cp /usr/local/lib/sparcv9/libintl* .
 
 tar -cf ../../dist/${BUILT64}.tar .
 gzip ../../dist/${BUILT64}.tar
