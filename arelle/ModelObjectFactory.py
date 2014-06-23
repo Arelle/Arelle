@@ -153,7 +153,7 @@ class DiscoveringClassLookup(etree.PythonElementClassLookup):
             return modelObjectClass
         elif (self.modelXbrl.skipDTS and 
               ns not in (XbrlConst.xbrli, XbrlConst.link)):
-            ancestor = proxyElement.getparent()
+            ancestor = proxyElement.getparent() or getattr(self.modelXbrl, "streamingParentModelObject", None)
             while ancestor is not None:
                 tag = ancestor.tag # not a modelObject yet, just parser prototype
                 if tag.startswith("{http://www.xbrl.org/2003/instance}") or tag.startswith("{http://www.xbrl.org/2003/linkbase}"):

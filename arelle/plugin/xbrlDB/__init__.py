@@ -49,7 +49,7 @@ dbProduct = {
     }
 
 _loadFromDBoptions = None  # only set for load, vs store operation
-_storeToXbrlDBoptions = None
+_storeIntoDBoptions = None
 
 def xbrlDBmenuEntender(cntlr, menu):
     
@@ -174,7 +174,7 @@ def xbrlDBcommandLineOptionExtender(parser):
     # extend command line options to store to database
     parser.add_option("--store-to-XBRL-DB", 
                       action="store", 
-                      dest="storeToXbrlDb", 
+                      dest="storeIntoXbrlDb", 
                       help=_("Store into XBRL DB.  "
                              "Provides connection string: host,port,user,password,database[,timeout[,{postgres|rexster|rdfDB}]]. "
                              "Autodetects database type unless 7th parameter is provided.  "))
@@ -189,8 +189,8 @@ def xbrlDBcommandLineOptionExtender(parser):
 
 def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl):
     from arelle.ModelDocument import Type
-    if modelXbrl.modelDocument.type == Type.RSSFEED and getattr(options, "storeToXbrlDb", False):
-        modelXbrl.xbrlDBconnection = options.storeToXbrlDb.split(",")
+    if modelXbrl.modelDocument.type == Type.RSSFEED and getattr(options, "storeIntoXbrlDb", False):
+        modelXbrl.xbrlDBconnection = options.storeIntoXbrlDb.split(",")
         # for semantic SQL database check for loaded filings
         if (len(modelXbrl.xbrlDBconnection) > 7 and
             modelXbrl.xbrlDBconnection[6] in ("mssqlSemantic","mysqlSemantic","orclSemantic",
@@ -200,8 +200,8 @@ def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl):
     
 def xbrlDBCommandLineXbrlRun(cntlr, options, modelXbrl):
     from arelle.ModelDocument import Type
-    if modelXbrl.modelDocument.type != Type.RSSFEED and getattr(options, "storeToXbrlDb", False):
-        dbConnection = options.storeToXbrlDb.split(",")
+    if modelXbrl.modelDocument.type != Type.RSSFEED and getattr(options, "storeIntoXbrlDb", False):
+        dbConnection = options.storeIntoXbrlDb.split(",")
         storeIntoDB(dbConnection, modelXbrl)
         
 def xbrlDBvalidateRssItem(val, modelXbrl, rssItem):
@@ -220,11 +220,11 @@ def xbrlDBdialogRssWatchValidateChoices(dialog, frame, row, options, cntlr):
     dialog.checkboxes += (
        checkbox(frame, 2, row, 
                 "Store into XBRL Database", 
-                "storeInXbrlDB"),
+                "storeIntoXbrlDb"),
     )
     
 def xbrlDBrssWatchHasWatchAction(rssWatchOptions):
-    return rssWatchOptions.get("xbrlDBconnection") and rssWatchOptions.get("storeInXbrlDB")
+    return rssWatchOptions.get("xbrlDBconnection") and rssWatchOptions.get("storeIntoXbrlDB")
     
 def xbrlDBrssDoWatchAction(modelXbrl, rssWatchOptions, rssItem):
     dbConnectionString = rssWatchOptions.get("xbrlDBconnection")
@@ -233,7 +233,7 @@ def xbrlDBrssDoWatchAction(modelXbrl, rssWatchOptions, rssItem):
         storeIntoDB(dbConnection, modelXbrl)
         
 def xbrlDBLoaderSetup(cntlr, options, **kwargs):
-    global _loadFromDBoptions, _storeToXbrlDBoptions
+    global _loadFromDBoptions, _storeIntoDBoptions
     # set options to load from DB (instead of load from XBRL and store in DB)
     _loadFromDBoptions = getattr(options, "loadFromXbrlDb", None)
     _storeIntoDBoptions = getattr(options, "storeIntoXbrlDb", None)
@@ -252,23 +252,14 @@ def xbrlDBLoader(modelXbrl, mappedUri, filepath, **kwargs):
             extraArgs[argName] = argValue
     return storeIntoDB(dbConnection, modelXbrl, **extraArgs)
 
-def xbrlDBblockStreaming(modelXbrl, **kwargs):
-    if _storeToXbrlDBoptions and not _loadFromDBoptions:
-        dbConnection = _storeToXbrlDBoptions.split(',')
-        if len(dbConnection) > 6: 
-            dbType = dbConnection[6]
-            if dbType == "sqliteDpmDB":
-                return False # only SQLite DPM can accept streaming now
-    return True
-
 def xbrlDBstartStreaming(modelXbrl):
-    return storeIntoDB(_storeToXbrlDBoptions.split(','), modelXbrl, streamingState="start")
+    return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl, streamingState="start", logStoredMsg=False)
 
 def xbrlDBvalidateStreamingFacts(modelXbrl, modelFacts):
-    return storeIntoDB(_storeToXbrlDBoptions.split(','), modelXbrl, streamingState="acceptFacts", streamedFacts=modelFacts)
+    return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl, streamingState="acceptFacts", streamedFacts=modelFacts, logStoredMsg=False)
 
 def xbrlDBfinishStreaming(modelXbrl):
-    return storeIntoDB(_storeToXbrlDBoptions.split(','), modelXbrl, streamingState="finish")
+    return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl, streamingState="finish", logStoredMsg=False)
 
 class LogToDbHandler(logging.Handler):
     def __init__(self):
@@ -322,7 +313,6 @@ __pluginInfo__ = {
     'ModelDocument.PullLoader': xbrlDBLoader,
     'RssWatch.HasWatchAction': xbrlDBrssWatchHasWatchAction,
     'RssWatch.DoWatchAction': xbrlDBrssDoWatchAction,
-    'Streaming.BlockPlugin': xbrlDBblockStreaming,
     'Streaming.Start': xbrlDBstartStreaming,
     'Streaming.ValidateFacts': xbrlDBvalidateStreamingFacts,
     'Streaming.Finish': xbrlDBfinishStreaming,

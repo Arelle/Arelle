@@ -71,23 +71,31 @@ def insertIntoDB(modelXbrl,
     xbrlDbConn = None
     try:
         if streamingState == "acceptFacts":
+            # streaming mode, setup instance using context and dimensions
             xbrlDbConn = modelXbrl.streamingConnection
+            if xbrlDbConn.instanceId is None:
+                if not xbrlDbConn.insertInstanceToDB():
+                    return False
+            result = xbrlDbConn.insertDataPointsToDB()
         elif streamingState == "finish":
             xbrlDbConn = modelXbrl.streamingConnection
-            del modelXbrl.streamingConnection
+            xbrlDbConn.finishInsertXbrlToDB()
+            del modelXbrl.streamingConnection # dereference in case of exception during closing
             xbrlDbConn.close()
         else:
             xbrlDbConn = XbrlSqlDatabaseConnection(modelXbrl, user, password, host, port, database, timeout, product)
             xbrlDbConn.verifyTables()
             if streamingState == "start":
-                result = xbrlDbConn.loadXbrlFromDB(loadDBsaveToFile)
+                result = xbrlDbConn.startInsertXbrlToDB()
                 modelXbrl.streamingConnection = xbrlDbConn
             elif loadDBsaveToFile:
                 # load modelDocument from database saving to file
                 result = xbrlDbConn.loadXbrlFromDB(loadDBsaveToFile, loadInstanceId)
+                xbrlDbConn.close()
             else:
-                xbrlDbConn.insertXbrl(rssItem=rssItem)
-            xbrlDbConn.close()
+                # non-streaming complete insertion of XBRL document(s) to DB
+                xbrlDbConn.insertXbrlToDB(rssItem=rssItem)
+                xbrlDbConn.close()
     except Exception as ex:
         if xbrlDbConn is not None:
             try:
@@ -164,43 +172,39 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                 _("The following tables are missing: %(missingTableNames)s"),
                                 missingTableNames=', '.join(t for t in sorted(missingTables))) 
             
-    def insertXbrl(self, rssItem):
+    def insertXbrlToDB(self, rssItem):
         try:
-            # must also have default dimensions loaded
-            from arelle import ValidateXbrlDimensions
-            ValidateXbrlDimensions.loadDimensionDefaults(self.modelXbrl)
-            
-            # must have a valid XBRL instance or document
-            if self.modelXbrl.modelDocument is None:
-                raise XPDBException("xpgDB:MissingXbrlDocument",
-                                    _("No XBRL instance or schema loaded for this filing.")) 
-            
-            # at this point we determine what's in the database and provide new tables
-            # requires locking most of the table structure
-            self.lockTables(("dAvailableTable", "dInstance",  "dFact", "dFilingIndicator",
-                             # "dProcessingContext", "dProcessingFact"
-                             ))
-            
-            self.dropTemporaryTable()
- 
-            startedAt = time.time()
-            self.insertInstance()
-            self.insertDataPoints()
-            self.modelXbrl.profileStat(_("XbrlSqlDB: instance insertion"), time.time() - startedAt)
-            
-            startedAt = time.time()
-            self.showStatus("Committing entries")
-            self.commit()
-            self.modelXbrl.profileStat(_("XbrlSqlDB: insertion committed"), time.time() - startedAt)
-            self.showStatus("DB insertion completed", clearAfter=5000)
+            self.startInsertXbrlToDB()
+            self.insertInstanceToDB()
+            self.insertDataPointsToDB()
+            self.finishInsertXbrlToDB()
         except Exception as ex:
             self.showStatus("DB insertion failed due to exception", clearAfter=5000)
             raise
+        
+    def startInsertXbrlToDB(self):
+        self.instanceId = None; # instance not yet set up (streaming mode)
+        
+        # must also have default dimensions loaded
+        from arelle import ValidateXbrlDimensions
+        ValidateXbrlDimensions.loadDimensionDefaults(self.modelXbrl)
+        
+        # must have a valid XBRL instance or document
+        if self.modelXbrl.modelDocument is None:
+            raise XPDBException("xpgDB:MissingXbrlDocument",
+                                _("No XBRL instance or schema loaded for this filing.")) 
+        
+        # at this point we determine what's in the database and provide new tables
+        # requires locking most of the table structure
+        self.lockTables(("dAvailableTable", "dInstance",  "dFact", "dFilingIndicator",
+                         # "dProcessingContext", "dProcessingFact"
+                         ))
+        
+        self.dropTemporaryTable()
+        self.startedAt = time.time()
     
-    def insertInstance(self):
+    def insertInstanceToDB(self):
         now = datetime.datetime.now()
-        entityIdentifier = ('', '') # scheme, identifier
-        periodInstantDate = None
         # find primary model taxonomy of instance
         self.modelXbrl.profileActivity()
         self.moduleId = None
@@ -215,16 +219,22 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     if self.moduleId:
                         break
         self.modelXbrl.profileActivity("dpmDB 01. Get ModuleID for instance schema", minTimeToShow=0.0)
+        periodInstantDate = None
+        entityIdentifier = ('', '') # scheme, identifier
         for cntx in self.modelXbrl.contexts.values():
             if cntx.isInstantPeriod:
                 entityIdentifier = cntx.entityIdentifier
                 periodInstantDate = cntx.endDatetime.date() - datetime.timedelta(1)  # convert to end date
                 break
+        if not periodInstantDate:
+            return False # needed context not yet available
         entityCurrency = None
         for unit in self.modelXbrl.units.values():
             if unit.isSingleMeasure and unit.measures[0] and unit.measures[0][0].namespaceURI == XbrlConst.iso4217:
                 entityCurrency = unit.measures[0][0].localName
                 break
+        if not entityCurrency:
+            return False
         table = self.getTable('dInstance', 'InstanceID', 
                               ('ModuleID', 'FileName', 'CompressedFileBlob',
                                'Timestamp', 'EntityScheme', 'EntityIdentifier', 'PeriodEndDateOrInstant',
@@ -245,43 +255,43 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             self.instanceId = id
             break
         self.modelXbrl.profileActivity("dpmDB 02. Store into dInstance", minTimeToShow=0.0)
- 
-    def insertDataPoints(self):
-        instanceId = self.instanceId
         self.showStatus("deleting prior data points of this instance")
         for tableName in ("dFact", "dFilingIndicator", "dAvailableTable"):
             self.execute("DELETE FROM {0} WHERE {0}.InstanceID = {1}"
-                         .format( self.dbTableName(tableName), instanceId), 
+                         .format( self.dbTableName(tableName), self.instanceId), 
                          close=False, fetch=False)
         self.modelXbrl.profileActivity("dpmDB 03. Delete prior data points of this instance", minTimeToShow=0.0)
             
         self.showStatus("obtaining mapping table information")
         result = self.execute("SELECT MetricAndDimensions, TableID FROM mTableDimensionSet WHERE ModuleID = {}"
                               .format(self.moduleId))
-        tableIDs = set()
-        metricAndDimensionsTableId = defaultdict(set)
+        self.tableIDs = set()
+        self.metricAndDimensionsTableId = defaultdict(set)
         for metricAndDimensions, tableID in result:
-            tableIDs.add(tableID)
-            metricAndDimensionsTableId[metricAndDimensions].add(tableID)
+            self.tableIDs.add(tableID)
+            self.metricAndDimensionsTableId[metricAndDimensions].add(tableID)
         self.modelXbrl.profileActivity("dpmDB 04. Get TableDimensionSet for Module", minTimeToShow=0.0)
             
         result = self.execute("SELECT TableID, YDimVal, ZDimVal FROM mTable WHERE TableID in ({})"
-                              .format(', '.join(str(i) for i in sorted(tableIDs))))
-        yDimVal = defaultdict(dict)
-        zDimVal = defaultdict(dict)
+                              .format(', '.join(str(i) for i in sorted(self.tableIDs))))
+        self.yDimVal = defaultdict(dict)
+        self.zDimVal = defaultdict(dict)
         for tableID, yDimVals, zDimVals in result:
-            for tblDimVal, dimVals in ((yDimVal, yDimVals), (zDimVal, zDimVals)):
+            for tblDimVal, dimVals in ((self.yDimVal, yDimVals), (self.zDimVal, zDimVals)):
                 if dimVals:
                     for dimVal in dimVals.split('|'):
                         dim, sep, val = dimVal.partition('(')
                         tblDimVal[tableID][dim] = val[:-1]
         self.modelXbrl.profileActivity("dpmDB 05. Get YZ DimVals for Table", minTimeToShow=0.0)
 
-        availableTableRows = defaultdict(set) # index (tableID, zDimVal) = set of yDimVals 
-               
+        self.availableTableRows = defaultdict(set) # index (tableID, zDimVal) = set of yDimVals 
+        self.dFilingIndicators = set()
         self.showStatus("insert data points")
+        return True
+ 
+    def insertDataPointsToDB(self):
+        instanceId = self.instanceId
 
-        dFilingIndicators = set()
         dFacts = []
         for f in self.modelXbrl.facts:
             cntx = f.context
@@ -331,15 +341,15 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             if f.qname == qnFindFilingIndicators:
                 for filingIndicator in f.modelTupleFacts:
                     if filingIndicator.qname == qnFindFilingIndicator:
-                        dFilingIndicators.add(filingIndicator.textValue.strip())
+                        self.dFilingIndicators.add(filingIndicator.textValue.strip())
             elif cntx is not None:
                 # find which explicit dimensions act as typed
                 behaveAsTypedDims = set()
                 zDimValues = {}
                 tableID = None
-                for tableID in metricAndDimensionsTableId.get(metDimNameKey(f, cntx), ()):
-                    yDimVals = yDimVal[tableID]
-                    zDimVals = zDimVal[tableID]
+                for tableID in self.metricAndDimensionsTableId.get(metDimNameKey(f, cntx), ()):
+                    yDimVals = self.yDimVal[tableID]
+                    zDimVals = self.zDimVal[tableID]
                     for dimQname in cntx.qnameDims.keys():
                         dimStr = str(dimQname)
                         #if (dimStr in zDimVals and zDimVals[dimStr] == "*" or
@@ -348,7 +358,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     zDimKey = (metDimValKey(cntx, typedDim=True, behaveAsTypedDims=behaveAsTypedDims, restrictToDims=zDimVals)
                                or None)  # want None if no dimVal Z key
                     yDimKey = metDimValKey(cntx, typedDim=True, behaveAsTypedDims=behaveAsTypedDims, restrictToDims=yDimVals)
-                    availableTableRows[tableID,zDimKey].add(yDimKey)
+                    self.availableTableRows[tableID,zDimKey].add(yDimKey)
                     break
                 dFacts.append((instanceId,
                                metDimTypedKey(f, behaveAsTypedDims),
@@ -368,37 +378,6 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                          xValue if isDateTime else None,
                                          None))
                 '''
-        self.modelXbrl.profileActivity("dpmDB 06. Build facts table for bulk DB update", minTimeToShow=0.0)
-                
-                # availableTable processing
-        # get filing indicator template IDs
-        results = self.execute("SELECT mToT.TemplateOrTableCode, mToT.TemplateOrTableID "
-                               "  FROM mModuleBusinessTemplate mBT, mTemplateOrTable mToT "
-                               "  WHERE mBT.ModuleID = {0} AND"
-                               "        mToT.TemplateOrTableID = mBT.BusinessTemplateID AND"
-                               "        mToT.TemplateOrTableCode in ({1})"
-                               .format(self.moduleId,
-                                       ', '.join("'{}'".format(filingIndicator)
-                                                 for filingIndicator in dFilingIndicators)))
-        filingIndicatorCodeIDs = dict((code, id) for code, id in results)
-        self.modelXbrl.profileActivity("dpmDB 07. Get business template filing indicator for module", minTimeToShow=0.0)
-        
-        if _DICT_SET(filingIndicatorCodeIDs.keys()) != dFilingIndicators:
-            self.modelXbrl.error("sqlDB:MissingFilingIndicators",
-                                 _("The filing indicator IDs not found for codes %(missingFilingIndicatorCodes)"),
-                                 modelObject=self.modelXbrl,
-                                 missingFilingIndicatorCodes=','.join(dFilingIndicators - _DICT_SET(filingIndicatorCodeIDs.keys()))) 
-
-        self.getTable("dFilingIndicator", None,
-                      ("InstanceID", "BusinessTemplateID"),
-                      ("InstanceID", "BusinessTemplateID"),
-                      ((instanceId,
-                        filingIndicatorCodeId)
-                       for filingIndicatorCodeId in sorted(filingIndicatorCodeIDs.values())),
-                      returnMatches=False)
-        self.modelXbrl.profileActivity("dpmDB 08. Store dFilingIndicators", minTimeToShow=0.0)
-
-        
         self.getTable("dFact", None,
                       ('InstanceID', 
                        'DataPointSignature', 
@@ -407,7 +386,38 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                       ('InstanceID', ),
                       dFacts,
                       returnMatches=False)
-        self.modelXbrl.profileActivity("dpmDB 09. Bulk store all dFacts", minTimeToShow=0.0)
+        return True
+        
+    def finishInsertXbrlToDB(self):
+        self.modelXbrl.profileActivity("dpmDB 06. Build facts table for bulk DB update", minTimeToShow=0.0)
+                
+        # availableTable processing
+        # get filing indicator template IDs
+        results = self.execute("SELECT mToT.TemplateOrTableCode, mToT.TemplateOrTableID "
+                               "  FROM mModuleBusinessTemplate mBT, mTemplateOrTable mToT "
+                               "  WHERE mBT.ModuleID = {0} AND"
+                               "        mToT.TemplateOrTableID = mBT.BusinessTemplateID AND"
+                               "        mToT.TemplateOrTableCode in ({1})"
+                               .format(self.moduleId,
+                                       ', '.join("'{}'".format(filingIndicator)
+                                                 for filingIndicator in self.dFilingIndicators)))
+        filingIndicatorCodeIDs = dict((code, id) for code, id in results)
+        self.modelXbrl.profileActivity("dpmDB 07. Get business template filing indicator for module", minTimeToShow=0.0)
+        
+        if _DICT_SET(filingIndicatorCodeIDs.keys()) != self.dFilingIndicators:
+            self.modelXbrl.error("sqlDB:MissingFilingIndicators",
+                                 _("The filing indicator IDs not found for codes %(missingFilingIndicatorCodes)"),
+                                 modelObject=self.modelXbrl,
+                                 missingFilingIndicatorCodes=','.join(self.dFilingIndicators - _DICT_SET(filingIndicatorCodeIDs.keys()))) 
+
+        self.getTable("dFilingIndicator", None,
+                      ("InstanceID", "BusinessTemplateID"),
+                      ("InstanceID", "BusinessTemplateID"),
+                      ((self.instanceId,
+                        filingIndicatorCodeId)
+                       for filingIndicatorCodeId in sorted(filingIndicatorCodeIDs.values())),
+                      returnMatches=False)
+        self.modelXbrl.profileActivity("dpmDB 08. Store dFilingIndicators", minTimeToShow=0.0)
         ''' deprecated
         table = self.getTable("dProcessingFact", None,
                               ('InstanceID', 'Metric', 'ContextID', 
@@ -419,14 +429,21 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         self.getTable("dAvailableTable", None,
                       ('InstanceID', 'TableID', 'ZDimVal', "NumberOfRows"), 
                       ('InstanceID', 'TableID', 'ZDimVal'),
-                      ((instanceId,
+                      ((self.instanceId,
                         availTableKey[0], # table Id
                         availTableKey[1], # zDimVal
                         len(setOfYDimVals))
-                       for availTableKey, setOfYDimVals in availableTableRows.items()),
+                       for availTableKey, setOfYDimVals in self.availableTableRows.items()),
                       returnMatches=False)
         self.modelXbrl.profileActivity("dpmDB 10. Bulk store dAvailableTable", minTimeToShow=0.0)
-        
+
+        self.modelXbrl.profileStat(_("XbrlSqlDB: instance insertion"), time.time() - self.startedAt)
+        startedAt = time.time()
+        self.showStatus("Committing entries")
+        self.commit()
+        self.modelXbrl.profileStat(_("XbrlSqlDB: insertion committed"), time.time() - startedAt)
+        self.showStatus("DB insertion completed", clearAfter=5000)
+                
     def loadXbrlFromDB(self, loadDBsaveToFile, loadInstanceId):
         # load from database
         modelXbrl = self.modelXbrl
@@ -646,7 +663,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                             dec = max( min(int(float(dec)), 28), -28) # 2.7 wants short int, 3.2 takes regular int, don't use _INT here
                         except ValueError:
                             dec = 0
-                    text = Locale.format(self.modelXbrl.locale, "%.*f", (dec, num))
+                    text = Locale.format(Locale.C_LOCALE, "%.*f", (dec, num)) # culture-invariant locale
                 else:
                     attrs[XbrlConst.qnXsiNil] = "true"
                     text = None

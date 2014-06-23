@@ -7,6 +7,12 @@ for efficiency and to avoid dependency on an underlying DOM.
 (Note that this module is based on a parser target, an alternate based on iterparse is under examples/plugin.)
 
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+
+Calls these plug-in classes:
+   Streaming.BlockingPlugin(modelXbrl):  returns name of plug in blocking streaming if it is being blocked, else None
+   Streaming.Start(modelXbrl): notifies that streaming is starting for modelXbrl; simulated modelDocument is established
+   Streaming.ValidateFacts(modelXbrl, modelFacts) modelFacts are available for streaming processing
+   Streaming.Finish(modelXbrl): notifies that streaming is finished
 '''
 
 import io, sys, os, time
@@ -19,10 +25,12 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelObjectFactory import parser
 from arelle.ModelValue import QName
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit
+from arelle.PluginManager import pluginClassMethods
 from arelle.Validate import Validate
 
 _streamingExtensionsCheck = True  # check streaming if enabled except for CmdLine, then only when requested
 _streamingExtensionsValidate = False
+_streamingValidatePlugin = False
     
 class NotInstanceDocumentException(Exception):
     def __init__(self):
@@ -204,7 +212,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
             incompatibleValidations.append("EBA")
         if modelXbrl.modelManager.validateCalcLB:
             incompatibleValidations.append("calculation LB")
-        if incompatibleValidations:            
+        if incompatibleValidations:
             modelXbrl.error("streamingExtensions:incompatibleValidation",
                     _("Streaming instance validation does not support %(incompatibleValidations)s validation"),
                     modelObject=modelXbrl, incompatibleValidations=', '.join(incompatibleValidations))
@@ -213,6 +221,14 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
         foundErrors = True
     logSyntaxErrors(instInfoContext)
     del instInfoContext # dereference
+
+    for pluginMethod in pluginClassMethods("Streaming.BlockStreaming"):
+        _blockingPluginName = pluginMethod(modelXbrl)
+        if _blockingPluginName: # name of blocking plugin is returned
+            modelXbrl.error("streamingExtensions:incompatiblePlugIn",
+                    _("Streaming instance not supported by plugin %(blockingPlugin)s"),
+                    modelObject=modelXbrl, blockingPlugin=_blockingPluginName)
+            foundErrors = True
     
     if foundErrors:
         _file.close()
@@ -232,13 +248,19 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
     factBuffer = []
     numFacts = 1
     
+    _streamingValidateFactsPlugin = any(True for pluginMethod in pluginClassMethods("Streaming.ValidateFacts"))
+
+    
     class modelLoaderTarget():
         def __init__(self, element_factory=None, parser=None):
             self.newTree = True
             self.currentMdlObj = None
             self.beforeInstanceStream = True
+            self.beforeStartStreamingPlugin = True
             self.numRootFacts = 1
+            modelXbrl.streamingParentModelObject = None
         def start(self, tag, attrib, nsmap=None):
+            modelXbrl.streamingParentModelObject = self.currentMdlObj # pass parent to makeelement for ModelObjectFactory
             mdlObj = _parser.makeelement(tag, attrib=attrib, nsmap=nsmap)
             mdlObj.sourceline = 1
             if self.newTree:
@@ -256,7 +278,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
                 modelDocument._creationSoftwareComment = creationSoftwareComment
                 modelXbrl.info("streamingExtensions:streaming",
                                _("Stream processing this instance."),
-                               modelObject = modelDocument)    
+                               modelObject = modelDocument)
             else:
                 self.currentMdlObj.append(mdlObj)
                 self.currentMdlObj = mdlObj
@@ -272,6 +294,10 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
                         instValidator.validate(modelXbrl, modelXbrl.modelManager.formulaOptions.typedParameters())
                     else: # need default dimensions
                         ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
+                elif not self.beforeInstanceStream and self.beforeStartStreamingPlugin:
+                    for pluginMethod in pluginClassMethods("Streaming.Start"):
+                        pluginMethod(modelXbrl)
+                    self.beforeStartStreamingPlugin = False
             return mdlObj
         def end(self, tag):
             modelDocument = modelXbrl.modelDocument
@@ -320,6 +346,8 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
                     # check remaining footnote refs
                     for footnoteLink in footnoteBuffer:
                         checkFootnoteHrefs(modelXbrl, footnoteLink)
+                    for pluginMethod in pluginClassMethods("Streaming.Finish"):
+                        pluginMethod(modelXbrl)
             elif ns == XbrlConst.link:
                 if ln == "footnoteLink":
                     XmlValidate.validate(modelXbrl, mdlObj)
@@ -347,14 +375,28 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
                 self.numRootFacts += 1
                 XmlValidate.validate(modelXbrl, mdlObj)
                 modelDocument.factDiscover(mdlObj, modelXbrl.facts)
-                if _streamingExtensionsValidate:
-                    factsToCheck = (mdlObj,)
-                    instValidator.checkFacts(factsToCheck)
-                    if modelXbrl.hasXDT:
-                        instValidator.checkFactsDimensions(factsToCheck)
-                    del factsToCheck
-                    dropFact(modelXbrl, mdlObj, modelXbrl.facts)
-                    del parentMdlObj[parentMdlObj.index(mdlObj)]
+                if _streamingExtensionsValidate or _streamingValidateFactsPlugin:
+                    factsToCheck = (mdlObj,)  # validate current fact by itself
+                    if _streamingExtensionsValidate:
+                        instValidator.checkFacts(factsToCheck)
+                        if modelXbrl.hasXDT:
+                            instValidator.checkFactsDimensions(factsToCheck)
+                    if _streamingValidateFactsPlugin:
+                        # plugin attempts to process batch of all root facts not yet processed (not just current one)
+                        factsToCheck = modelXbrl.facts.copy()
+                        factsHaveBeenProcessed = True
+                        # can block facts deletion if required data not yet available, such as numeric unit for DpmDB
+                        for pluginMethod in pluginClassMethods("Streaming.ValidateFacts"):
+                            if not pluginMethod(modelXbrl, factsToCheck):
+                                factsHaveBeenProcessed = False
+                        if factsHaveBeenProcessed:
+                            for fact in factsToCheck:
+                                dropFact(modelXbrl, fact, modelXbrl.facts)
+                                del parentMdlObj[parentMdlObj.index(fact)]
+                    else:
+                        dropFact(modelXbrl, mdlObj, modelXbrl.facts) # single fact has been processed
+                        del parentMdlObj[parentMdlObj.index(mdlObj)]
+                    del factsToCheck # dereference fact or batch of facts
                 if self.numRootFacts % 1000 == 0:
                     modelXbrl.profileActivity("... streaming fact {0} of {1} {2:.2f}%".format(self.numRootFacts, instInfoNumRootFacts, 
                                                                                               100.0 * self.numRootFacts / instInfoNumRootFacts), 
@@ -367,13 +409,14 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
         def pi(self, target, data):
             pass
         def close(self):
+            del modelXbrl.streamingParentModelObject
             return None
         
     _parser, _parserLookupName, _parserLookupClass = parser(modelXbrl, filepath, target=modelLoaderTarget())
     etree.parse(_file, parser=_parser, base_url=filepath)
     logSyntaxErrors(_parser)
-    _file.close()
     if _streamingExtensionsValidate and validator is not None:
+        _file.close()
         del instValidator
         validator.close()
         # track that modelXbrl has been validated by this streaming extension

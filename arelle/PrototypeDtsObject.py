@@ -134,7 +134,7 @@ class DocumentPrototype():
         else:
             self.type = ModelDocument.Type.UnknownXML
         normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, base)
-        self.filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
+        self.filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri, filenameOnly=True)
         self.uri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(self.filepath)
         self.inDTS = False
         

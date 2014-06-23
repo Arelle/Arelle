@@ -28,6 +28,7 @@ qnXbrliDateItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:dateItemTy
 qnXbrliDurationItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:durationItemType")
 qnXbrliPure = qname("{http://www.xbrl.org/2003/instance}xbrli:pure")
 qnXbrliShares = qname("{http://www.xbrl.org/2003/instance}xbrli:shares")
+qnInvalidMeasure = qname("{http://arelle.org}arelle:invalidMeasureQName")
 qnXbrliDateUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:dateUnion")
 qnDateUnionXsdTypes = [qname("{http://www.w3.org/2001/XMLSchema}xsd:date"),qname("{http://www.w3.org/2001/XMLSchema}xsd:dateTime")]
 qnXbrliDecimalsUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:decimalsType")
