@@ -21,14 +21,13 @@ try:
     import pg8000, pg8000.errors
     hasPostgres = True
     pgConnect = pg8000.DBAPI.connect
-    pgCursorClosedError = pg8000.errors.CursorClosedError
-    pgConnectionClosedError = pg8000.errors.ConnectionClosedError
+    pgOperationalError = pg8000.errors.OperationalError
     pgProgrammingError = pg8000.errors.ProgrammingError
     pgInterfaceError = pg8000.errors.InterfaceError
 except ImportError:
     hasPostgres = False
     pgConnect = noop
-    pgCursorClosedError = pgConnectionClosedError = pgProgrammingError = pgInterfaceError = NoopException
+    pgOperationalError = pgProgrammingError = pgInterfaceError = NoopException
     
 try:
     import pymysql  # MIT License but not installed at GAE
@@ -256,7 +255,7 @@ class SqlDbConnection():
             self._cursor.close()
             del self._cursor
         except (AttributeError, 
-                pgCursorClosedError, pgConnectionClosedError,
+                pgOperationalError, 
                 mysqlProgrammingError,
                 oracleDatabaseError):
             if hasattr(self, '_cursor'):
