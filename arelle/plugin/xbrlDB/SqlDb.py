@@ -324,7 +324,6 @@ class SqlDbConnection():
             elif isinstance(params, (tuple,list)):
                 cursor.execute(sql, params)
             else:
-                # JOSH
                 cursor.execute(sql)
         except (pgProgrammingError,
                 mysqlProgrammingError, mysqlInternalError,
