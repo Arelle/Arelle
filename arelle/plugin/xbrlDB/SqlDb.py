@@ -109,7 +109,6 @@ def isSqlConnection(host, port, timeout=10, product=None, ssl=False):
     while t < timeout:
         try:
             if product == "postgres" and hasPostgres:
-                # Josh
                 pgConnect(user='', host=host, port=int(port or 5432), socket_timeout=t, ssl=ssl)
             elif product == "mysql" and hasMySql:
                 mysqlConnect(user='', host=host, port=int(port or 5432), socket_timeout=t)
@@ -149,7 +148,7 @@ class SqlDbConnection():
             if not hasPostgres:
                 raise XPDBException("xpgDB:MissingPostgresInterface",
                                     _("Postgres interface is not installed")) 
-            # Josh
+            
             try:
                 self.conn = pgConnect(user=user, password=password, host=host, 
                                       port=int(port or 5432), 
