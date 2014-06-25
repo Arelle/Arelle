@@ -143,4 +143,4 @@ def loadEntityInformation(dts, rssItem):
                         break
             except IndexError:
                 pass
-        return entityInformation
+    return entityInformation
