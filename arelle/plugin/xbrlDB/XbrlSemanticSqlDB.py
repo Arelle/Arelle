@@ -133,7 +133,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         
             # at this point we determine what's in the database and provide new tables
             # requires locking most of the table structure
-            self.lockTables(('filing', 'report', 'document', 'referenced_documents'))
+            self.lockTables(('entity', 'filing', 'report', 'document', 'referenced_documents'))
             
             # find pre-existing documents in server database
             self.identifyPreexistingDocuments()
