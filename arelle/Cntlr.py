@@ -287,10 +287,10 @@ class Cntlr:
                 self.logHandler = LogToPrintHandler(logFileName)
             elif logFileName == "logToBuffer":
                 self.logHandler = LogToBufferHandler()
-                self.logger.logHrefObjectProperties = True
+                self.logger.logRefObjectProperties = True
             elif logFileName.endswith(".xml"):
                 self.logHandler = LogToXmlHandler(filename=logFileName, mode=logFileMode or "a")  # should this be "w" mode??
-                self.logger.logHrefObjectProperties = True
+                self.logger.logRefObjectProperties = True
                 if not logFormat:
                     logFormat = "%(message)s"
             else:
@@ -597,9 +597,12 @@ class LogHandlerWithXml(logging.Handler):
                             for n, v in logRec.args.items()])
         else:
             args = ""
-        refs = "\n ".join('\n <ref href="{0}"{1}{2}>'.format(
+        refs = "\n ".join('\n <ref href="{0}"{1}{2}{3}>'.format(
                         entityEncode(ref["href"]), 
                         ' sourceLine="{0}"'.format(ref["sourceLine"]) if "sourceLine" in ref else '',
+                        ''.join(' {}="{}"'.format(k,entityEncode(v)) 
+                                                  for k,v in ref["customAttributes"].items())
+                             if 'customAttributes' in ref else '',
                         (">\n  " + propElts(ref["properties"],"\n  ") + "\n </ref" ) if "properties" in ref else '/')
                        for ref in logRec.refs)
         return ('<entry code="{0}" level="{1}">'

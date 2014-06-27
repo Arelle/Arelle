@@ -847,13 +847,14 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 elif modelXbrl:
                     self.modelManager.close(modelXbrl)
         self.username = self.password = None #dereference password
-        
+
         if options.statusPipe and getattr(self, "statusPipe", None) is not None:
             win32file.WriteFile(self.statusPipe, b" ")  # clear status
             win32file.FlushFileBuffers(self.statusPipe)
             win32file.SetFilePointer(self.statusPipe, 0, win32file.FILE_BEGIN) # hangs on close without this
             win32file.CloseHandle(self.statusPipe)
             self.statusPipe = None # dereference
+
         return success
 
     # default web authentication password

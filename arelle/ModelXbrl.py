@@ -11,6 +11,7 @@ from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
 from arelle.FileSource import FileNamedStringIO
 from arelle.ModelObject import ModelObject, ObjectPropertyViewWrapper
 from arelle.Locale import format_string
+from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeInstanceObject import FactPrototype, DimValuePrototype
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
@@ -279,6 +280,9 @@ class ModelXbrl:
         self.hasFormulae = False
         self.formulaOutputInstance = None
         self.logger = logging.getLogger("arelle")
+        self.logRefObjectProperties = getattr(self.logger, "logRefObjectProperties", False)
+        self.logRefHasPluginAttrs = any(True for m in pluginClassMethods("Logging.Ref.Attributes"))
+        self.logRefHasPluginProperties = any(True for m in pluginClassMethods("Logging.Ref.Properties"))
         self.profileStats = {}
         self.schemaDocsToValidate = set()
         self.modelXbrl = self # for consistency in addressing modelXbrl
@@ -891,7 +895,7 @@ class ModelXbrl:
         # determine message and extra arguments
         fmtArgs = {}
         extras = {"messageCode":messageCode}
-        logHrefObjectProperties = getattr(self.logger, "logHrefObjectProperties", False)
+
         for argName, argValue in codedArgs.items():
             if argName in ("modelObject", "modelXbrl", "modelDocument"):
                 try:
@@ -921,11 +925,23 @@ class ModelXbrl:
                             ref["href"] = file + "#" + XmlUtil.elementFragmentIdentifier(_arg)
                             ref["sourceLine"] = _arg.sourceline
                             ref["objectId"] = _arg.objectId()
-                            if logHrefObjectProperties:
+                            if self.logRefHasPluginAttrs:
+                                refAttributes = {}
+                                for pluginXbrlMethod in pluginClassMethods("Logging.Ref.Attributes"):
+                                    pluginXbrlMethod(arg, refAttributes)
+                                if refAttributes:
+                                    ref["customAttributes"] = refAttributes
+                            if self.logRefObjectProperties:
                                 try:
                                     ref["properties"] = propValues(arg.propertyView)
                                 except AttributeError:
                                     pass # is a default properties entry appropriate or needed?
+                            if self.logRefHasPluginProperties:
+                                refProperties = ref.get("properties", {})
+                                for pluginXbrlMethod in pluginClassMethods("Logging.Ref.Properties"):
+                                    pluginXbrlMethod(arg, refProperties)
+                                if refProperties:
+                                    ref["properties"] = refProperties
                         else:
                             ref["href"] = file
                             try:
