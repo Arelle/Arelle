@@ -1555,8 +1555,9 @@ class ModelConceptRelation(ModelFilter):
                 outFacts.add(fact)
         return outFacts 
     
+    @property
     def viewExpression(self):
-        return XmlUtil.innerTextList(self)
+        return ' \n'.join("{}: {}".format(e.localName, e.text) for e in XmlUtil.children(self, "*", "*"))
     
     @property
     def xmlElementView(self):        
@@ -2160,25 +2161,18 @@ class ModelExplicitDimension(ModelFilter):
     
     @property
     def viewExpression(self):
-        members = []
-        for memberElt in XmlUtil.children(self, XbrlConst.df, "member"):
-            member = XmlUtil.childText(memberElt, XbrlConst.df, ("qname","qnameExpression","variable"))
-            linkrole = XmlUtil.childText(memberElt, XbrlConst.df, "linkrole")
-            arcrole = XmlUtil.childText(memberElt, XbrlConst.df, "arcrole")
-            axis = XmlUtil.childText(memberElt, XbrlConst.df, "axis")
-            members.append(" \nmember: " +  member +
-                            ((" \n  linkrole: " + linkrole if linkrole else "") +
-                             (" \n  arcrole: " + arcrole if arcrole else "") +
-                             (" \n  axis: " + axis if axis else "")
-                             ) if linkrole or arcrole or axis else "")
-         
+        lines = []
         if self.dimQname:
-            dimName = str(self.dimQname)
+            lines.append("dimension: {}".format(self.dimQname))
         elif self.dimQnameExpression:
-            dimName = self.dimQnameExpression
+            lines.append("dimension: {}".format(self.dimQnameExpression))
         else:
-            dimName = _("dimension not available")
-        return (dimName + " \n".join(members))
+            lines.append(_("dimension: not available"))
+        for memberElt in XmlUtil.children(self, XbrlConst.df, "member"):
+            lines.append("member")
+            for e in XmlUtil.children(memberElt, XbrlConst.df, "*"):
+                lines.append("  {}: {}".format(e.localName, e.text))
+        return " \n".join(lines)
 
 class ModelTypedDimension(ModelTestFilter):
     def init(self, modelDocument):

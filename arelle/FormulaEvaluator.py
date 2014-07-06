@@ -288,9 +288,10 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                     cachedFilteredFacts[varQname] = (facts, vb.aspectsDefined, vb.aspectsCovered)
             considerFallback = bool(var.fallbackValueProg)
             if varSet.implicitFiltering == "true":
-                uncoveredAspects = vb.aspectsDefined - vb.aspectsCovered - {Aspect.DIMENSIONS}
                 if any((_vb.isFactVar and not _vb.isFallback) for _vb in xpCtx.varBindings.values()):
                     factCount = len(facts)
+                    # uncovered aspects of the prior variable bindings may include aspects not in current variable binding
+                    uncoveredAspects = (vb.aspectsDefined | _DICT_SET(uncoveredAspectFacts.keys())) - vb.aspectsCovered - {Aspect.DIMENSIONS}
                     facts = implicitFilter(xpCtx, vb, facts, uncoveredAspects, uncoveredAspectFacts)
                     if (considerFallback and varHasNoVariableDependencies and 
                         factCount and
@@ -396,7 +397,9 @@ def implicitFilter(xpCtx, vb, facts, aspects, uncoveredAspectFacts):
     if xpCtx.formulaOptions.traceVariableFilterWinnowing:  # trace shows by aspect by bound variable match    
         for aspect in aspects:
             if uncoveredAspectFacts.get(aspect, "none") is not None:
-                facts = [fact for fact in facts if aspectMatches(xpCtx, uncoveredAspectFacts.get(aspect), fact, aspect)]
+                facts = [fact 
+                         for fact in facts 
+                         if aspectMatches(xpCtx, uncoveredAspectFacts.get(aspect), fact, aspect)]
                 a = str(aspect) if isinstance(aspect,QName) else Aspect.label[aspect]
                 xpCtx.modelXbrl.info("formula:trace",
                     _("Fact Variable %(variable)s implicit filter %(aspect)s passes %(factCount)s facts"), 
@@ -421,26 +424,27 @@ def aspectsMatch(xpCtx, fact1, fact2, aspects):
     return all(aspectMatches(xpCtx, fact1, fact2, aspect) for aspect in aspects)
 
 def aspectMatches(xpCtx, fact1, fact2, aspect):
-    if fact1 is None or fact2 is None:  # fallback (atomic) never matches any aspect
+    if fact1 is None:  # fallback (atomic) never matches any aspect
         return False
     if aspect == 1: # Aspect.LOCATION:
-        return (fact1.modelXbrl != fact2.modelXbrl or # test deemed true for multi-instance comparisons
+        return (fact2 is not None and
+                fact1.modelXbrl != fact2.modelXbrl or # test deemed true for multi-instance comparisons
                 fact1.getparent() == fact2.getparent())
     elif aspect == 2: # Aspect.CONCEPT:
-        return fact1.qname == fact2.qname
+        return fact2 is not None and fact1.qname == fact2.qname
     elif fact1.isTuple or fact2.isTuple:
-        return True # only match the aspects both facts have 
+        return fact1.isTuple and fact2.isTuple # only match the aspects both facts have
     elif aspect == 5: # Aspect.UNIT:
         u1 = fact1.unit
-        u2 = fact2.unit
+        u2 = fact2.unit if fact2 is not None else None
         if u1 is not None:
             return u1.isEqualTo(u2)
         return u2 is None
     else:
         # rest of comparisons are for context
         c1 = fact1.context
-        c2 = fact2.context
-        if c1 is None or c2 is None:
+        c2 = fact2.context if fact2 is not None else None
+        if c1 is None or (c2 is None and aspect != 10):
             return False # something wrong, must be a context
         if c1 is c2:
             return True # same context
@@ -482,6 +486,10 @@ def aspectMatches(xpCtx, fact1, fact2, aspect):
             if ModelDimensionValue is None:
                 from arelle.ModelInstanceObject import ModelDimensionValue
             dimValue1 = c1.dimValue(aspect)
+            if c2 is None:
+                if dimValue1 is None: # neither fact nor matching facts have this dimension aspect
+                    return True
+                return False
             dimValue2 = c2.dimValue(aspect)
             if isinstance(dimValue1, ModelDimensionValue):
                 if dimValue1.isExplicit: 
@@ -1040,10 +1048,10 @@ class VariableBinding:
             self.isFallback = False
             yield self.parameterValue
             
-    def matchableBoundFact(self, fbVars):  # return from this funciton has to be hashable
+    def matchableBoundFact(self, fbVars):  # return from this function has to be hashable
         if (self.isFallback or self.isParameter 
             # remove to allow different gen var evaluations: or self.isGeneralVar
-            or not fbVars.isdisjoint(self.var.variableRefs())):
+            or (self.isGeneralVar and not fbVars.isdisjoint(self.var.variableRefs()))):
             return None
         if self.isBindAsSequence:
             return tuple(self.yieldedEvaluation)
