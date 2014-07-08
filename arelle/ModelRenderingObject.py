@@ -229,22 +229,23 @@ class StructuralNode:
             return self.rollUpStructuralNode.header(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent)
         # if aspect is a concept of dimension, return its standard label
         concept = None
-        for aspect in self.aspectsCovered():
-            aspectValue = self.aspectValue(aspect)
-            if isinstance(aspect, QName) or aspect == Aspect.CONCEPT: # dimension or concept
-                if isinstance(aspectValue, QName):
-                    concept = self.modelXbrl.qnameConcepts[aspectValue]
-                    break
-                elif isinstance(aspectValue, ModelDimensionValue):
-                    if aspectValue.isExplicit:
-                        concept = aspectValue.member
-                    elif aspectValue.isTyped:
-                        return XmlUtil.innerTextList(aspectValue.typedMember)
-            elif isinstance(aspectValue, ModelObject):
-                text = XmlUtil.innerTextList(aspectValue)
-                if not text and XmlUtil.hasChild(aspectValue, aspectValue.namespaceURI, "forever"):
-                    text = "forever" 
-                return text
+        if role is None:
+            for aspect in self.aspectsCovered():
+                aspectValue = self.aspectValue(aspect, inherit=recurseParent)
+                if isinstance(aspect, QName) or aspect == Aspect.CONCEPT: # dimension or concept
+                    if isinstance(aspectValue, QName):
+                        concept = self.modelXbrl.qnameConcepts[aspectValue]
+                        break
+                    elif isinstance(aspectValue, ModelDimensionValue):
+                        if aspectValue.isExplicit:
+                            concept = aspectValue.member
+                        elif aspectValue.isTyped:
+                            return XmlUtil.innerTextList(aspectValue.typedMember)
+                elif isinstance(aspectValue, ModelObject):
+                    text = XmlUtil.innerTextList(aspectValue)
+                    if not text and XmlUtil.hasChild(aspectValue, aspectValue.namespaceURI, "forever"):
+                        text = "forever" 
+                    return text
         if concept is not None:
             label = concept.label(lang=lang)
             if label:
@@ -311,7 +312,7 @@ class StructuralNode:
     def isEntryPrototype(self, default=False):
         # true if all axis open nodes before this one are entry prototypes (or not open axes)
         if self.contextItemBinding is not None:
-            # True if open node bound to a prototype, false if boudn to a real fact
+            # True if open node bound to a prototype, false if bound to a real fact
             return isinstance(self.contextItemBinding.yieldedFact, FactPrototype)
         if self.parentStructuralNode is not None:
             return self.parentStructuralNode.isEntryPrototype(default)
