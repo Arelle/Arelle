@@ -65,8 +65,7 @@ class ViewConcepts(ViewWinTree.ViewTree):
         self.nodeToObjectId = {}
         self.objectIdToNode = {}
         '''
-        for previousNode in self.treeView.get_children(""): 
-            self.treeView.delete(previousNode)
+        self.clearTreeView()
         nodeNum = 1
         excludedNamespaces = XbrlConst.ixbrlAll.union(
             (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl,

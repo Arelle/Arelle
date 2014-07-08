@@ -132,8 +132,7 @@ class ViewFactTable(ViewWinTree.ViewTree):
                 self.treeView.heading(colId, text=colHeading)
 
         # fact rendering
-        for previousNode in self.treeView.get_children(""): 
-            self.treeView.delete(previousNode)
+        self.clearTreeView()
         self.rowColFactId = {}
         # root node for tree view
         self.id = 1

@@ -27,8 +27,7 @@ class ViewDTS(ViewWinTree.ViewTree):
         super(ViewDTS, self).__init__(modelXbrl, tabWin, "DTS", True)
         
     def view(self):
-        for previousNode in self.treeView.get_children(""): 
-            self.treeView.delete(previousNode)
+        self.clearTreeView()
         self.viewDtsElement(self.modelXbrl.modelDocument, "", 1, set(), {self.modelXbrl.modelDocument})
 
                 

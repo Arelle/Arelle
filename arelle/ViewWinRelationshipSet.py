@@ -132,9 +132,9 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     self.treeView.heading("resourcerole", text="Resource Role")
                     self.treeView.column("lang", width=36, anchor="w", stretch=False)
                     self.treeView.heading("lang", text="Lang")
+        self.clearTreeView()
         self.id = 1
-        for previousNode in self.treeView.get_children(""): 
-            self.treeView.delete(previousNode)
+        
         # sort URIs by definition
         linkroleUris = []
         for linkroleUri in relationshipSet.linkRoleUris:

@@ -57,8 +57,7 @@ class ViewRssFeed(ViewWinTree.ViewTree):
         
     def view(self): # reload view
         self.setColumnsSortable(startUnsorted=True)
-        for previousNode in self.treeView.get_children(""): 
-            self.treeView.delete(previousNode)
+        self.clearTreeView()
         self.viewRssFeed(self.modelXbrl.modelDocument, "")
         
     def viewRssFeed(self, modelDocument, parentNode):

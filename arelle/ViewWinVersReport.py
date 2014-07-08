@@ -40,8 +40,7 @@ class ViewVersReport(ViewWinTree.ViewTree):
         self.blockViewModelObject = 0
         self.tag_has = defaultdict(list) # temporary until Tk 8.6
 
-        for previousNode in self.treeView.get_children(""): 
-            self.treeView.delete(previousNode)
+        self.clearTreeView()
 
         versReport = self.modelXbrl.modelDocument
         # root node for tree view

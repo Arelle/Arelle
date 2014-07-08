@@ -59,8 +59,7 @@ class ViewRoleTypes(ViewWinTree.ViewTree):
             self.treeView.heading("usedOn", text=_("Used On"))
             self.setColumnsSortable()
         self.id = 1
-        for previousNode in self.treeView.get_children(""): 
-            self.treeView.delete(previousNode)
+        self.clearTreeView()
         # sort URIs by definition
         nodeNum = 1
         if roletypes:

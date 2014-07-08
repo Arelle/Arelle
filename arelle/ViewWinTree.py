@@ -66,13 +66,19 @@ class ViewTree:
             if not lang: 
                 self.lang = modelXbrl.modelManager.defaultLang
                 
+    def clearTreeView(self):
+        self.treeViewSelection = ()
+        for node in self.treeView.get_children():
+            self.treeView.delete(node)
+                
     def viewSelectionChange(self, event=None):
         for node in self.treeViewSelection:
-            priorTags = self.treeView.item(node)["tags"]
-            if priorTags:
-                priorBgTag = priorTags[0]
-                if priorBgTag.startswith("selected-"):
-                    self.treeView.item(node, tags=(priorBgTag[9:],))
+            if self.treeView.exists(node):
+                priorTags = self.treeView.item(node)["tags"]
+                if priorTags:
+                    priorBgTag = priorTags[0]
+                    if priorBgTag.startswith("selected-"):
+                        self.treeView.item(node, tags=(priorBgTag[9:],))
         self.treeViewSelection = self.treeView.selection()
         for node in self.treeViewSelection:
             priorTags = self.treeView.item(node)["tags"]

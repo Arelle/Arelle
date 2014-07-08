@@ -43,6 +43,7 @@ class ViewFormulae(ViewWinTree.ViewTree):
                 
         # root node for tree view
         self.id = 1
+        self.clearTreeView()
         n = 1
         for rootObject in sorted(rootFormulaObjects(self), key=formulaObjSortKey):
             self.viewFormulaObjects("", rootObject, None, n, set())

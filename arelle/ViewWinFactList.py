@@ -79,8 +79,7 @@ class ViewFactList(ViewWinTree.ViewTree):
     def view(self):
         self.id = 1
         self.tag_has = {}
-        for previousNode in self.treeView.get_children(""): 
-            self.treeView.delete(previousNode)
+        self.clearTreeView()
         self.setColumnsSortable(initialSortCol="sequence")
         self.viewFacts(self.modelXbrl.facts, "", 1)
         
