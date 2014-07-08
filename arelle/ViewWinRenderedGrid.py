@@ -3,6 +3,10 @@ Created on Oct 5, 2010
 
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+
+Note speed of using tkinter appears to be slow to render with tkinter (see profiling below)
+Typical example is an instance takes 3 secs for view() for an open table and 
+subsequently after Python operations concluded, tkinter takes additional 27 secs to render
 '''
 import os, threading, time
 from tkinter import Menu, BooleanVar, font as tkFont
@@ -113,7 +117,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         self.tblELR = None
         for tblMenuEntry in sorted(tblMenuEntries.items()):
             tbl,elr = tblMenuEntry
-            self.tablesMenu.add_command(label=tbl, command=lambda e=elr: self.view(viewTblELR=e))
+            self.tablesMenu.add_command(label=tbl, command=lambda e=elr: self.view(viewTblELR=e)) # use this to activate profiling from menu selection:  , profile=True))
             self.tablesMenuLength += 1
             if self.tblELR is None: 
                 self.tblELR = elr # start viewing first ELR
@@ -137,7 +141,27 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             self.options["openBreakdownLines"] = self.openBreakdownLines = newValue
             self.viewReloadDueToMenuAction()
         
-    def view(self, viewTblELR=None, newInstance=None):
+    def view(self, viewTblELR=None, newInstance=None, profile=False):
+        '''
+        if profile: # for debugging only, to use, uncomment in loadTablesMenu
+            import cProfile, pstats, sys
+            statsFile = "/Users/hermf/temp/profileRendering.bin"
+            cProfile.runctx("self.view(viewTblELR=viewTblELR)", globals(), locals(), statsFile)
+            priorStdOut = sys.stdout
+            sys.stdout = open("/Users/hermf/temp/profileRendering.txt", "w")
+            statObj = pstats.Stats(statsFile)
+            statObj.strip_dirs()
+            statObj.sort_stats("time")
+            statObj.print_stats()
+            statObj.print_callees()
+            statObj.print_callers()
+            sys.stdout.flush()
+            sys.stdout.close()
+            del statObj
+            sys.stdout = priorStdOut
+            os.remove(statsFile)
+            return
+        '''
         startedAt = time.time()
         self.blockMenuEvents += 1
         if newInstance is not None:
@@ -394,8 +418,6 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     if nonAbstract and isLabeled:
                         width += 100 # width for this label, in screen units
                     widthToSpanParent += width
-                    label = xStructuralNode.header(lang=self.lang,
-                                                   returnGenLabel=isinstance(xStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)))
                     if childrenFirst:
                         thisCol = rightCol
                         sideBorder = RIGHTBORDER
@@ -408,6 +430,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                         gridBorder(self.gridColHdr, leftCol, topRow, 
                                    sideBorder, columnspan=columnspan,
                                    rowspan=(rowBelow - topRow + 1) )
+                        label = xStructuralNode.header(lang=self.lang,
+                                                       returnGenLabel=isinstance(xStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)))
                         gridHdr(self.gridColHdr, leftCol, topRow, 
                                 label if label else "         ", 
                                 anchor="center",
@@ -476,8 +500,6 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                    not isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord))))
                     isNonAbstract = not isAbstract
                     isLabeled = yStructuralNode.isLabeled
-                    label = yStructuralNode.header(lang=self.lang,
-                                                   returnGenLabel=isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)))
                     nestRow, nextRow = self.yAxis(leftCol + isLabeled, row, yStructuralNode,  # nested items before totals
                                             childrenFirst, childrenFirst, False)
                     
@@ -498,6 +520,9 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                       self.rowHdrWrapLength - sum(self.rowHdrColWidth[0:depth]))
                         if wraplength < 0:
                             wraplength = self.rowHdrColWidth[depth]
+                        label = yStructuralNode.header(lang=self.lang,
+                                                       returnGenLabel=isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)),
+                                                       recurseParent=not isinstance(yStructuralNode.definitionNode, ModelFilterDefinitionNode))
                         if label != OPEN_ASPECT_ENTRY_SURROGATE:
                             gridHdr(self.gridRowHdr, leftCol, row, 
                                     label if label is not None else "         ", 
