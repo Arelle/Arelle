@@ -128,7 +128,7 @@ class QName:
     def __eq__(self,other):
         try:
             return (self.qnameValueHash == other.qnameValueHash and 
-                    self.namespaceURI == other.namespaceURI and self.localName == other.localName)
+                    self.localName == other.localName and self.namespaceURI == other.namespaceURI)
         except AttributeError:
             return False
         ''' don't think this is used any longer
