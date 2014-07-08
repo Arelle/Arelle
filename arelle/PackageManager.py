@@ -23,19 +23,22 @@ EMPTYDICT = {}
 def parsePackage(mainWin, metadataFile):
     unNamedCounter = 1
     
-    txmyPkgNS = "{http://www.corefiling.com/xbrl/taxonomypackage/v1}"
-    catalogNS = '{urn:oasis:names:tc:entity:xmlns:xml:catalog}'
+    txmyPkgNSes = ("http://www.corefiling.com/xbrl/taxonomypackage/v1",
+                   "http://xbrl.org/PWD/2014-01-15/taxonomy-package")
+    catalogNSes = ("urn:oasis:names:tc:entity:xmlns:xml:catalog",)
     
     pkg = {}
 
     currentLang = Locale.getLanguageCode()
     tree = etree.parse(metadataFile)
     root = tree.getroot()
+    ns = root.tag.partition("}")[0][1:]
+    nsPrefix = "{{{}}}".format(ns)
     
-    if root.tag.startswith(txmyPkgNS):  # package file
+    if ns in  txmyPkgNSes:  # package file
         for eltName in ("name", "description", "version"):
             pkg[eltName] = ''
-            for m in root.iterchildren(tag=txmyPkgNS + eltName):
+            for m in root.iterchildren(tag=nsPrefix + eltName):
                 pkg[eltName] = m.text.strip()
                 break # take first entry if several
     else: # oasis catalog, use dirname as the package name
@@ -49,8 +52,8 @@ def parsePackage(mainWin, metadataFile):
 
     remappings = {}
     for tag, prefixAttr, replaceAttr in (
-         (txmyPkgNS + "remapping", "prefix", "replaceWith"),
-         (catalogNS + "rewriteSystem", "systemIdStartString", "rewritePrefix")):
+         (nsPrefix + "remapping", "prefix", "replaceWith"), # taxonomy package
+         (nsPrefix + "rewriteSystem", "systemIdStartString", "rewritePrefix")): # oasis catalog
         for m in tree.iter(tag=tag):
             prefixValue = m.get(prefixAttr)
             replaceValue = m.get(replaceAttr)
@@ -62,11 +65,11 @@ def parsePackage(mainWin, metadataFile):
     nameToUrls = {}
     pkg["nameToUrls"] = nameToUrls
 
-    for entryPointSpec in tree.iter(tag=txmyPkgNS + "entryPoint"):
+    for entryPointSpec in tree.iter(tag=nsPrefix + "entryPoint"):
         name = None
         
         # find closest match name node given xml:lang match to current language or no xml:lang
-        for nameNode in entryPointSpec.iter(tag=txmyPkgNS + "name"):
+        for nameNode in entryPointSpec.iter(tag=nsPrefix + "name"):
             xmlLang = nameNode.get('{http://www.w3.org/XML/1998/namespace}lang')
             if name is None or not xmlLang or currentLang == xmlLang:
                 name = nameNode.text
@@ -78,7 +81,7 @@ def parsePackage(mainWin, metadataFile):
             unNamedCounter += 1
 
         epDocCount = 0
-        for epDoc in entryPointSpec.iterchildren(txmyPkgNS + "entryPointDocument"):
+        for epDoc in entryPointSpec.iterchildren(nsPrefix + "entryPointDocument"):
             if epDocCount:
                 mainWin.addToLog(_("WARNING: skipping multiple-document entry point (not supported)"))
                 continue
