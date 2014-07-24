@@ -12,7 +12,7 @@ from arelle.XmlUtil import xmlstring
 def metDimTypedKey(fact):
     cntx = fact.context
     key = "MET({})".format(fact.qname)
-    if cntx.qnameDims:
+    if cntx is not None and cntx.qnameDims:
         key += '|' + '|'.join(sorted("{}({})".format(dim.dimensionQname,
                                                      dim.memberQname if dim.isExplicit
                                                      else "nil" if dim.typedMember.get("{http://www.w3.org/2001/XMLSchema-instance}nil") in ("true", "1")
