@@ -983,7 +983,7 @@ class ModelAspectCover(ModelFilter):
                     self._aspectsCovered.add( aspectFromToken[aspect] )
             for dimElt in XmlUtil.descendants(self, XbrlConst.acf, "qname"):
                 dimAspect = qname( dimElt, XmlUtil.text(dimElt) )
-                if dimElt.getparent().localName == "excludedDimension":
+                if dimElt.getparent().localName == "excludeDimension":
                     self._dimsExcluded.add(dimAspect)
                 else:
                     self._aspectsCovered.add(dimAspect)
