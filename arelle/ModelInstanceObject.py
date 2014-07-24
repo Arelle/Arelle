@@ -42,6 +42,7 @@ from decimal import Decimal, InvalidOperation
 from hashlib import md5
 Aspect = None
 utrEntries = None
+utrSymbol = None
 POSINF = float("inf")
 NEGINF = float("-inf")
 
@@ -168,6 +169,12 @@ class ModelFact(ModelObject):
         if self.unit is not None and self.concept is not None:
             return self.unit.utrEntries(self.concept.type)
         return None
+    
+    def unitSymbol(self):
+        """(str) -- utr symbol for this fact and unit"""
+        if self.unit is not None and self.concept is not None:
+            return self.unit.utrSymbol(self.concept.type)
+        return ""
 
     @property
     def conceptContextUnitLangHash(self):
@@ -1288,6 +1295,20 @@ class ModelUnit(ModelObject):
                 from arelle.ValidateUtr import utrEntries
             self._utrEntries[modelType] = utrEntries(modelType, self)
             return self._utrEntries[modelType]
+    
+    def utrSymbol(self, modelType):
+        try:
+            return self._utrSymbols[modelType]
+        except AttributeError:
+            self._utrSymbols = {}
+            return self.utrSymbol(modelType)
+        except KeyError:
+            global utrSymbol
+            if utrSymbol is None:
+                from arelle.ValidateUtr import utrSymbol
+            self._utrSymbols[modelType] = utrSymbol(modelType, self.measures)
+            return self._utrSymbols[modelType]
+                
     
     @property
     def propertyView(self):

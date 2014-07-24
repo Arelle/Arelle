@@ -74,17 +74,20 @@ def validateFacts(modelXbrl):
     
 def utrEntries(modelType, modelUnit):
     return ValidateUtr(modelType.modelXbrl).utrEntries(modelType, modelUnit)
+
+def utrSymbol(modelType, unitMeasures):
+    return ValidateUtr(modelType.modelXbrl).utrSymbol(unitMeasures[0], unitMeasures[1])
     
 class ValidateUtr:
     def __init__(self, modelXbrl):
         self.modelXbrl = modelXbrl
+        if not hasattr(modelXbrl.modelManager.disclosureSystem, "utrItemTypeEntries"): 
+            loadUtr(modelXbrl.modelManager)
+        self.utrItemTypeEntries = modelXbrl.modelManager.disclosureSystem.utrItemTypeEntries
         
     def validateFacts(self):
         modelXbrl = self.modelXbrl
         if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
-            if not hasattr(modelXbrl.modelManager.disclosureSystem, "utrItemTypeEntries"): 
-                loadUtr(modelXbrl.modelManager)
-            self.utrItemTypeEntries = modelXbrl.modelManager.disclosureSystem.utrItemTypeEntries
             modelXbrl.modelManager.cntlr.showStatus(_("Validating for Unit Type Registry").format())     
             utrInvalidFacts = []
             for f in modelXbrl.facts:
@@ -187,9 +190,6 @@ class ValidateUtr:
     def utrEntries(self, modelType, unit):
         utrSatisfyingEntries = set()
         modelXbrl = self.modelXbrl
-        if not hasattr(modelXbrl.modelManager.disclosureSystem, "utrItemTypeEntries"): 
-            loadUtr(modelXbrl.modelManager)
-        self.utrItemTypeEntries = modelXbrl.modelManager.disclosureSystem.utrItemTypeEntries
         _type = modelType
         while _type is not None:
             if _type.name in self.utrItemTypeEntries:
@@ -206,3 +206,27 @@ class ValidateUtr:
                 _type = _type[0] # for now take first of union's types
         return utrSatisfyingEntries
 
+    def utrSymbol(self, multMeasures, divMeasures):
+        if not divMeasures:
+            if not multMeasures:
+                return ''
+            elif len(multMeasures) == 1:
+                m = multMeasures[0]
+                for utrItemTypeEntry in self.utrItemTypeEntries.values():
+                    for utrEntry in utrItemTypeEntry.values():
+                        if utrEntry.unitId == m.localName and utrEntry.nsUnit == m.namespaceURI:
+                            return utrEntry.symbol or utrEntry.unitId
+                return m.localName
+        # otherwise generate compound symbol
+        def symbols(measures):
+            return " ".join(self.utrSymbol([measure], None)
+                            for measure in measures)
+        if not multMeasures and divMeasures: 
+            return "per " + symbols(divMeasures)
+        elif multMeasures:
+            if divMeasures:
+                return symbols(multMeasures) + "/" + symbols(divMeasures)
+            else:
+                return symbols(multMeasures)
+        else:
+            return ""
