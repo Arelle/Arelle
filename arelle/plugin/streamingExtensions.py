@@ -259,6 +259,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
             self.beforeStartStreamingPlugin = True
             self.numRootFacts = 1
             modelXbrl.streamingParentModelObject = None
+            modelXbrl.isStreamingMode = True
         def start(self, tag, attrib, nsmap=None):
             modelXbrl.streamingParentModelObject = self.currentMdlObj # pass parent to makeelement for ModelObjectFactory
             mdlObj = _parser.makeelement(tag, attrib=attrib, nsmap=nsmap)
