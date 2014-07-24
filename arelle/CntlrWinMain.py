@@ -33,6 +33,7 @@ from arelle import (DialogURL, DialogLanguage,
                     ModelManager,
                     PackageManager,
                     RenderingEvaluator,
+                    TableStructure,
                     ViewWinDTS,
                     ViewWinProperties, ViewWinConcepts, ViewWinRelationshipSet, ViewWinFormulae,
                     ViewWinFactList, ViewWinFactTable, ViewWinRenderedGrid, ViewWinXml,
@@ -755,6 +756,12 @@ class CntlrWinMain (Cntlr.Cntlr):
                     currentAction = "table index view"
                     ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopLeft, ("Tables", (XbrlConst.euGroupTable,)), lang=self.labelLang,
                                                                treeColHdr="Table Index", showLinkroles=False, showColumns=False, expandAll=True)
+                elif modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
+                    currentAction = "table index view"
+                    firstTableLinkroleURI = TableStructure.evaluateTableIndex(modelXbrl)
+                    if firstTableLinkroleURI:
+                        ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopLeft, ("Tables", (XbrlConst.parentChild,)), lang=self.labelLang,
+                                                                   treeColHdr="Table Index", showRelationships=False, showColumns=False, expandAll=False, hasTableIndex=True)
                 '''
                 elif (modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET) and
                       not modelXbrl.hasTableRendering):
@@ -772,7 +779,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
                     currentAction = "table view of facts"
                     if not modelXbrl.hasTableRendering: # table view only if not grid rendered view
-                        ViewWinFactTable.viewFacts(modelXbrl, self.tabWinTopRt, lang=self.labelLang)
+                        ViewWinFactTable.viewFacts(modelXbrl, self.tabWinTopRt, linkrole=firstTableLinkroleURI, lang=self.labelLang, expandAll=firstTableLinkroleURI)
                         if topView is None: topView = modelXbrl.views[-1]
                     currentAction = "tree/list of facts"
                     ViewWinFactList.viewFacts(modelXbrl, self.tabWinTopRt, lang=self.labelLang)

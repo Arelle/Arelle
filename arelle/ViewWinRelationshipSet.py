@@ -15,7 +15,7 @@ from arelle.ViewUtil import viewReferences, groupRelationshipSet, groupRelations
 def viewRelationshipSet(modelXbrl, tabWin, arcrole, 
                         linkrole=None, linkqname=None, arcqname=None, lang=None, 
                         treeColHdr=None, showLinkroles=True, showRelationships=True, showColumns=True,
-                        expandAll=False):
+                        expandAll=False, hasTableIndex=False):
     arcroleName = groupRelationshipLabel(arcrole)
     relationshipSet = groupRelationshipSet(modelXbrl, arcrole, linkrole, linkqname, arcqname)
     if not relationshipSet:
@@ -24,7 +24,7 @@ def viewRelationshipSet(modelXbrl, tabWin, arcrole,
     modelXbrl.modelManager.showStatus(_("viewing relationships {0}").format(arcroleName))
     view = ViewRelationshipSet(modelXbrl, tabWin, arcrole, linkrole, linkqname, arcqname, lang, 
                                treeColHdr, showLinkroles, showRelationships, showColumns,
-                               expandAll)
+                               expandAll, hasTableIndex)
     view.view(firstTime=True, relationshipSet=relationshipSet)
     view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, '+')
     view.treeView.bind("<Enter>", view.treeviewEnter, '+')
@@ -43,7 +43,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin, 
                  arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None, 
                  treeColHdr=None, showLinkroles=True, showRelationships=True, showColumns=True,
-                 expandAll=False):
+                 expandAll=False, hasTableIndex=False):
         if isinstance(arcrole, (list,tuple)):
             tabName = arcrole[0]
         else:
@@ -58,6 +58,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         self.showRelationships = showRelationships
         self.showColumns = showColumns
         self.expandAllOnFirstDisplay = expandAll
+        self.hasTableIndex = hasTableIndex
         self.isResourceArcrole = False
         
     def view(self, firstTime=False, relationshipSet=None):
@@ -140,7 +141,10 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         for linkroleUri in relationshipSet.linkRoleUris:
             modelRoleTypes = self.modelXbrl.roleTypes.get(linkroleUri)
             if modelRoleTypes:
-                roledefinition = (modelRoleTypes[0].genLabel(lang=self.lang, strip=True) or modelRoleTypes[0].definition or linkroleUri)
+                roledefinition = ((self.hasTableIndex and getattr(modelRoleTypes[0], "_tableIndex", False)) or
+                                  modelRoleTypes[0].genLabel(lang=self.lang, strip=True) or 
+                                  modelRoleTypes[0].definition or 
+                                  linkroleUri)
                 roleId = modelRoleTypes[0].objectId(self.id)
             else:
                 roledefinition = linkroleUri
@@ -149,9 +153,17 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             linkroleUris.append((roledefinition, linkroleUri, roleId))
         linkroleUris.sort()
         # for each URI in definition order
+        tableGroup = ""
         for roledefinition, linkroleUri, roleId in linkroleUris:
             if self.showLinkroles:
-                linknode = self.treeView.insert("", "end", roleId, text=roledefinition, tags=("ELR",))
+                if isinstance(roledefinition, tuple): # tableGroup
+                    nextTableGroup, order, roledefinition = roledefinition
+                    if tableGroup != nextTableGroup:
+                        self.treeView.insert("", "end", nextTableGroup, text=nextTableGroup[1:], tags=("Group",))
+                        if not tableGroup: # first tableGroup item, expand it
+                            self.setTreeItemOpen(nextTableGroup,open=True)
+                        tableGroup = nextTableGroup
+                linknode = self.treeView.insert(tableGroup, "end", roleId, text=roledefinition, tags=("ELR",))
             else:
                 linknode = ""
             if self.showRelationships:

@@ -2212,7 +2212,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         errs = tuple(e + '.parenthetical' for e in errs)
                     """@messageCatalog=[
 [["EFM.6.15.02,6.13.02,6.13.03", "GFM.2.06.02,2.05.02,2.05.03"],
-"Notes calculation relationship missing from total concept to item concepts, based on required presentation of line items and totals.
+"Financial statement calculation relationship missing from total concept to item concepts, based on required presentation of line items and totals.
 %(reasonIssueIsWarning)s
 
 Presentation link role: 

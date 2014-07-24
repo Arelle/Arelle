@@ -8,6 +8,8 @@ try:
     import regex as re
 except ImportError:
     import re
+from collections import defaultdict
+from datetime import datetime, timedelta
 from arelle import XbrlConst
 
 # regular expression components
@@ -158,3 +160,170 @@ def evaluateRoleTypesTableCodes(modelXbrl):
         for roleTypes in modelXbrl.roleTypes.values():
             for roleType in roleTypes:
                 roleType._tableCode = None
+
+def evaluateTableIndex(modelXbrl):
+    disclosureSystem = modelXbrl.modelManager.disclosureSystem
+    if disclosureSystem.EFM:
+        COVER    = "1Cover"
+        STMTS    = "2Financial Statements"
+        NOTES    = "3Notes to Financial Statements"
+        POLICIES = "4Accounting Policies"
+        TABLES   = "5Notes Tables"
+        DETAILS  = "6Notes Details"
+        UNCATEG  = "7Uncategorized"
+        roleDefinitionPattern = re.compile(r"([0-9]+) - (Statement|Disclosure|Schedule|Document) - (.+)")
+        # build EFM rendering-compatible index
+        definitionElrs = dict((roleType.definition, roleType)
+                              for roleURI in modelXbrl.relationshipSet(XbrlConst.parentChild).linkRoleUris
+                              for roleType in modelXbrl.roleTypes.get(roleURI,()))
+        isRR = any(ns.startswith("http://xbrl.sec.gov/rr/") for ns in modelXbrl.namespaceDocs.keys())
+        tableGroup = None
+        firstTableLinkroleURI = None
+        firstDocumentLinkroleURI = None
+        sortedRoleTypes = sorted(definitionElrs.items(), key=lambda item: item[0])
+        for roleDefinition, roleType in sortedRoleTypes:
+            match = roleDefinitionPattern.match(roleDefinition)
+            if not match: 
+                roleType._tableIndex = (UNCATEG, roleType.roleURI)
+                continue
+            seq, tblType, tblName = match.groups()
+            if isRR:
+                tableGroup = COVER
+            elif not tableGroup:
+                tableGroup = ("Paren" in tblName and COVER or tblType == "Statement" and STMTS or
+                              "(Polic" in tblName and NOTES or "(Table" in tblName and TABLES or
+                              "(Detail" in tblName and DETAILS or COVER)
+            elif tableGroup == COVER:
+                tableGroup = (tblType == "Statement" and STMTS or "Paren" in tblName and COVER or
+                              "(Polic" in tblName and NOTES or "(Table" in tblName and TABLES or
+                              "(Detail" in tblName and DETAILS or NOTES)
+            elif tableGroup == STMTS:
+                tableGroup = ((tblType == "Statement" or "Paren" in tblName) and STMTS or
+                              "(Polic" in tblName and NOTES or "(Table" in tblName and TABLES or
+                              "(Detail" in tblName and DETAILS or NOTES)
+            elif tableGroup == NOTES:
+                tableGroup = ("(Polic" in tblName and POLICIES or "(Table" in tblName and TABLES or 
+                              "(Detail" in tblName and DETAILS or tblType == "Disclosure" and NOTES or UNCATEG)
+            elif tableGroup == POLICIES:
+                tableGroup = ("(Table" in tblName and TABLES or "(Detail" in tblName and DETAILS or 
+                              ("Paren" in tblName or "(Polic" in tblName) and POLICIES or UNCATEG)
+            elif tableGroup == TABLES:
+                tableGroup = ("(Detail" in tblName and DETAILS or 
+                              ("Paren" in tblName or "(Table" in tblName) and TABLES or UNCATEG)
+            elif tableGroup == DETAILS:
+                tableGroup = (("Paren" in tblName or "(Detail" in tblName) and DETAILS or UNCATEG)
+            else:
+                tableGroup = UNCATEG
+            if firstTableLinkroleURI is None and tableGroup == COVER:
+                firstTableLinkroleURI = roleType.roleURI
+            if tblType == "Document" and not firstDocumentLinkroleURI:
+                firstDocumentLinkroleURI = roleType.roleURI
+            roleType._tableIndex = (tableGroup, seq, tblName)
+
+        # flow allocate facts to roles (SEC presentation groups)
+        if not modelXbrl.qnameDimensionDefaults: # may not have run validatino yet
+            from arelle import ValidateXbrlDimensions
+            ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
+        reportedFacts = set() # facts which were shown in a higher-numbered ELR table
+        factsByQname = modelXbrl.factsByQname
+        reportingPeriods = set()
+        nextEnd = None
+        deiFact = {}
+        for conceptName in ("DocumentPeriodEndDate", "DocumentType", "CurrentFiscalPeriodEndDate"):
+            for concept in modelXbrl.nameConcepts[conceptName]:
+                for fact in factsByQname[concept.qname]:
+                    deiFact[conceptName] = fact
+                    if fact.context is not None:
+                        reportingPeriods.add((None, fact.context.endDatetime)) # for instant
+                        reportingPeriods.add((fact.context.startDatetime, fact.context.endDatetime)) # for startEnd
+                        nextEnd = fact.context.startDatetime
+                        duration = (fact.context.endDatetime - fact.context.startDatetime).days + 1
+                        break
+        if "DocumentType" in deiFact:
+            fact = deiFact["DocumentType"]
+            if "-Q" in fact.xValue:
+                # need quarterly and yr to date durations
+                endDatetime = fact.context.endDatetime
+                startYr = endDatetime.year
+                startMo = endDatetime.month - 3
+                if startMo < 0:
+                    startMo += 12
+                    startYr -= 1
+                reportingPeriods.add((datetime(startYr, startMo, endDatetime.day, endDatetime.hour, endDatetime.minute, endDatetime.second),
+                                      endDatetime))
+                duration = 91
+        # find preceding compatible default context periods
+        while (nextEnd is not None):
+            thisEnd = nextEnd
+            prevMaxStart = thisEnd - timedelta(duration * .9)
+            prevMinStart = thisEnd - timedelta(duration * 1.1)
+            nextEnd = None
+            for cntx in modelXbrl.contexts.values():
+                if (cntx.isStartEndPeriod and not cntx.qnameDims and thisEnd == cntx.endDatetime and
+                    prevMinStart <= cntx.startDatetime <= prevMaxStart):
+                    reportingPeriods.add((None, cntx.endDatetime))
+                    reportingPeriods.add((cntx.startDatetime, cntx.endDatetime))
+                    nextEnd = cntx.startDatetime
+                    break
+                elif (cntx.isInstantPeriod and not cntx.qnameDims and thisEnd == cntx.endDatetime):
+                    reportingPeriods.add((None, cntx.endDatetime))
+        stmtReportingPeriods = set(reportingPeriods)       
+
+        for roleDefinition, roleType in reversed(sortedRoleTypes):
+            if roleType.definition.startswith('0025'):
+                pass
+            # find defined non-default axes in pre hierarchy for table
+            tableFacts = set()
+            tableGroup = roleType._tableIndex[0]
+            roleURIdims, priItemQNames = EFMlinkRoleURIstructure(modelXbrl, roleType.roleURI)
+            for priItemQName in priItemQNames:
+                for fact in factsByQname[priItemQName]:
+                    cntx = fact.context
+                    # non-explicit dims must be default
+                    if (cntx is not None and
+                        all(dimQn in modelXbrl.qnameDimensionDefaults
+                            for dimQn in (roleURIdims.keys() - cntx.qnameDims.keys())) and
+                        all(mdlDim.memberQname in roleURIdims[dimQn]
+                            for dimQn, mdlDim in cntx.qnameDims.items()
+                            if dimQn in roleURIdims)):
+                        # the flow-up part, drop
+                        cntxStartDatetime = cntx.startDatetime
+                        cntxEndDatetime = cntx.endDatetime
+                        if (tableGroup != STMTS or
+                            (cntxStartDatetime, cntxEndDatetime) in stmtReportingPeriods and
+                             (fact not in reportedFacts or
+                              all(dimQn not in cntx.qnameDims # unspecified dims are all defaulted if reported elsewhere
+                                  for dimQn in (cntx.qnameDims.keys() - roleURIdims.keys())))):
+                            tableFacts.add(fact)
+                            reportedFacts.add(fact)
+            roleType._tableFacts = tableFacts
+            
+        return firstTableLinkroleURI or firstDocumentLinkroleURI # did build _tableIndex attributes
+    return None
+
+def EFMlinkRoleURIstructure(modelXbrl, roleURI):
+    relSet = modelXbrl.relationshipSet(XbrlConst.parentChild, roleURI)
+    dimMems = {} # by dimension qname, set of member qnames
+    priItems = set()
+    for rootConcept in relSet.rootConcepts:
+        EFMlinkRoleDescendants(relSet, rootConcept, dimMems, priItems)
+    return dimMems, priItems
+        
+def EFMlinkRoleDescendants(relSet, concept, dimMems, priItems):
+    if concept is not None:
+        if concept.isDimensionItem:
+            dimMems[concept.qname] = EFMdimMems(relSet, concept, set())
+        else:
+            if not concept.isAbstract:
+                priItems.add(concept.qname)
+            for rel in relSet.fromModelObject(concept):
+                EFMlinkRoleDescendants(relSet, rel.toModelObject, dimMems, priItems)
+
+def EFMdimMems(relSet, concept, memQNames):
+    for rel in relSet.fromModelObject(concept):
+        dimConcept = rel.toModelObject
+        if dimConcept is not None and dimConcept.isDomainMember:
+            memQNames.add(dimConcept.qname)
+            EFMdimMems(relSet, dimConcept, memQNames)
+    return memQNames
+

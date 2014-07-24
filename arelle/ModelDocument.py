@@ -764,7 +764,7 @@ class ModelDocument:
                 if self.modelXbrl.modelManager.validateDisclosureSystem:
                     self.modelXbrl.error(("EFM.6.03.11", "GFM.1.1.7", "EBA.2.1"),
                         _("Prohibited base attribute: %(attribute)s"),
-                        modelObejct=element, attribute=baseAttr, element=element.qname)
+                        modelObject=element, attribute=baseAttr, element=element.qname)
                 else:
                     if baseAttr.startswith("/"):
                         base = baseAttr

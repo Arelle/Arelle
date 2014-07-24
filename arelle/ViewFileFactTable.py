@@ -6,8 +6,10 @@ Created on Jan 24, 2011
 '''
 from arelle import ViewFile, ModelDtsObject, XbrlConst, XmlUtil
 from arelle.ViewFile import CSV, HTML, XML, JSON
-import datetime
+import datetime, re
 from collections import defaultdict
+
+stripXmlPattern = re.compile(r"<.*?>")
 
 def viewFacts(modelXbrl, outfile, arcrole=None, linkrole=None, linkqname=None, arcqname=None, ignoreDims=False, showDimDefaults=False, labelrole=None, lang=None):
     if not arcrole: arcrole=XbrlConst.parentChild
@@ -195,5 +197,6 @@ class ViewFacts(ViewFile.View):
                         else:
                             continue # not shown on this row (belongs on end period label row
                 cols[colId] = fact.effectiveValue
+                # cols[colId] = stripXmlPattern.sub(" ", fact.effectiveValue).replace("  "," ").strip()
             except AttributeError:  # not a fact or no concept
                 pass
