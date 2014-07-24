@@ -139,7 +139,7 @@ def loadEntityInformation(dts, rssItem):
                         if factName in ("EntityPublicFloat",):
                             entityInformation[entityField] = roundValue(fact.value, fact.precision, fact.decimals) if fact.isNumeric and not fact.isNil else None
                         else:
-                            entityInformation[entityField] = fact.value
+                            entityInformation[entityField] = fact.value.strip() # may have white space
                         break
             except IndexError:
                 pass
