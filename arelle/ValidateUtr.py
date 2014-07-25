@@ -216,7 +216,9 @@ class ValidateUtr:
                     for utrEntry in utrItemTypeEntry.values():
                         if utrEntry.unitId == m.localName and utrEntry.nsUnit == m.namespaceURI:
                             return utrEntry.symbol or utrEntry.unitId
-                return m.localName
+                if m in self.modelXbrl.qnameConcepts: # if unit in taxonomy use label if it has any
+                    return self.modelXbrl.qnameConcepts[m].label(fallbackToQname=False) or m.localName
+                return m.localName # localName is last choice to use
         # otherwise generate compound symbol
         def symbols(measures):
             return " ".join(self.utrSymbol([measure], None)
