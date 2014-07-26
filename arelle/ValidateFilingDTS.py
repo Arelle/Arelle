@@ -550,8 +550,16 @@ def checkDTS(val, modelDocument, visited):
                         _("ComplexContent is disallowed"),
                         modelObject=cplxContentElt)
 
-            definesTypes = (modelDocument.xmlRootElement.find("{http://www.w3.org/2001/XMLSchema}complexType") is not None or
-                            modelDocument.xmlRootElement.find("{http://www.w3.org/2001/XMLSchema}simpleType") is not None)
+            for typeEltTag in ("{http://www.w3.org/2001/XMLSchema}complexType",
+                                "{http://www.w3.org/2001/XMLSchema}simpleType"):
+                for typeElt in modelDocument.xmlRootElement.iter(tag=typeEltTag):
+                    definesTypes = True
+                    name = typeEltTag.get("name")
+                    if name:
+                        if not name[0].islower() or not name.isalpha():
+                            val.modelXbrl.error("SBR.NL.3.2.8.09",
+                                _("Type name attribute must be lower camelcase: %(name)s."),
+                                modelObject=typeElt, name=name)
             
             for enumElt in modelDocument.xmlRootElement.iter(tag="{http://www.w3.org/2001/XMLSchema}enumeration"):
                 definesEnumerations = True
