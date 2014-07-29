@@ -12,6 +12,7 @@ from arelle import (ModelDocument, XmlUtil, XbrlUtil, XbrlConst,
                 ValidateXbrlCalcs, ValidateXbrlDimensions, ValidateXbrlDTS, ValidateFormula, ValidateUtr)
 from arelle import FunctionIxt
 from arelle.ModelObject import ModelObject
+from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelValue import qname
 from arelle.PluginManager import pluginClassMethods
@@ -180,7 +181,7 @@ class ValidateXbrl:
                     preferredLabel = modelRel.preferredLabel
                     fromConcept = modelRel.fromModelObject
                     toConcept = modelRel.toModelObject
-                    if preferredLabel is not None and fromConcept is not None and toConcept is not None:
+                    if preferredLabel is not None and isinstance(fromConcept, ModelConcept) and isinstance(toConcept, ModelConcept):
                         label = toConcept.label(preferredLabel=preferredLabel,fallbackToQname=False,strip=True)
                         if label is None:
                             modelXbrl.error("xbrl.5.2.4.2.1:preferredLabelMissing",

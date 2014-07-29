@@ -56,7 +56,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             for modelConcept in modelXbrl.qnameConcepts.values():
                 if modelConcept.isTypedDimension:
                     typedDomainElement = modelConcept.typedDomainElement
-                    if typedDomainElement is not None:
+                    if isinstance(typedDomainElement, ModelConcept):
                         self.typedDomainQnames.add(typedDomainElement.qname)
                         self.typedDomainElements.add(typedDomainElement)
 
@@ -1086,7 +1086,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     hypDimRelSet = modelXbrl.relationshipSet(XbrlConst.hypercubeDimension)
                     hasHypRelSet = modelXbrl.relationshipSet(XbrlConst.all)
                     for rel in dimDomRelSet.modelRelationships:
-                        if (rel.fromModelObject is not None and rel.toModelObject is not None and 
+                        if (isinstance(rel.fromModelObject, ModelConcept) and isinstance(rel.toModelObject, ModelConcept) and 
                             not dimDefRelSet.isRelated(rel.fromModelObject, "child", rel.toModelObject)):
                             modelXbrl.error("EFM.6.23.14",
                                 _("The target of the dimension-domain relationship in role %(linkrole)s from %(source)s to %(target)s must be the default member of %(source)s."),
@@ -1099,13 +1099,13 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         if elt not in visited:
                             visited.add(elt)
                             for rel in domMemRelSet.toModelObject(elt):
-                                if rel.consecutiveLinkrole == ELR and rel.fromModelObject is not None:
+                                if rel.consecutiveLinkrole == ELR and isinstance(rel.fromModelObject, ModelConcept):
                                     checkMemMultDims(memRel, None, rel.fromModelObject, rel.linkrole, visited)
                             for rel in dimDomRelSet.toModelObject(elt):
                                 if rel.consecutiveLinkrole == ELR:
                                     dim = rel.fromModelObject
                                     mem = memRel.toModelObject
-                                    if dim is not None and mem is not None:
+                                    if isinstance(dim, ModelConcept) and isinstance(mem, ModelConcept):
                                         if dim.qname == rxd.PaymentTypeAxis and not mem.modelDocument.targetNamespace.startswith("http://xbrl.sec.gov/rxd/"):
                                             modelXbrl.error("EFM.6.23.17",
                                                 _("The member %(member)s in dimension rxd:PaymentTypeAxis in linkrole %(linkrole)s must be a QName with namespace that begins with \"http://xbrl.sec.gov/rxd/\". "),
@@ -1116,10 +1116,10 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                                 modelObject=(rel, memRel, dim, mem), member=mem.qname, linkrole=rel.linkrole)
                                         checkMemMultDims(memRel, rel, rel.fromModelObject, rel.linkrole, visited)
                             for rel in hypDimRelSet.toModelObject(elt):
-                                if rel.consecutiveLinkrole == ELR and rel.fromModelObject is not None:
+                                if rel.consecutiveLinkrole == ELR and isinstance(rel.fromModelObject, ModelConcept):
                                     checkMemMultDims(memRel, dimRel, rel.fromModelObject, rel.linkrole, visited)
                             for rel in hasHypRelSet.toModelObject(elt):
-                                if rel.consecutiveLinkrole == ELR and rel.fromModelObject is not None:
+                                if rel.consecutiveLinkrole == ELR and isinstance(rel.fromModelObject, ModelConcept):
                                     linkrole = rel.linkrole
                                     mem = memRel.toModelObject
                                     if (mem,linkrole) not in memDim:
@@ -1133,7 +1133,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                             dimension2=otherDimRel.fromModelObject.qname, linkrole2=otherDimRel.linkrole)
                             visited.discard(elt)
                     for rel in domMemRelSet.modelRelationships:
-                        if rel.fromModelObject is not None and rel.toModelObject is not None:
+                        if isinstance(rel.fromModelObject, ModelConcept) and isinstance(rel.toModelObject, ModelConcept):
                             for rel2 in modelXbrl.relationshipSet(XbrlConst.domainMember, rel.consecutiveLinkrole).fromModelObject(rel.toModelObject):
                                 if rel2.fromModelObject is not None and rel2.toModelObject is not None:
                                     modelXbrl.error("EFM.6.23.15",
@@ -1602,7 +1602,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 for rel in rels:
                                     relTo = rel.toModelObject
                                     # 6.14.03 must have matched period types across relationshp
-                                    if relTo is not None and relFrom.periodType != relTo.periodType:
+                                    if isinstance(relTo, ModelConcept) and relFrom.periodType != relTo.periodType:
                                         self.modelXbrl.error(("EFM.6.14.03", "GFM.1.07.03"),
                                             "Calculation relationship period types mismatched in base set role %(linkrole)s from %(conceptFrom)s to %(conceptTo)s",
                                             modelObject=rel, linkrole=rel.linkrole, conceptFrom=relFrom.qname, conceptTo=relTo.qname, linkroleDefinition=self.modelXbrl.roleTypeDefinition(ELR))
@@ -1632,7 +1632,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 # if relFrom used by fact and multiple calc networks from relFrom, test 6.15.04
                                 if rels and relFrom in conceptsUsed:
                                     relFromAndTos = (relFrom.objectIndex,) + tuple(sorted((rel.toModelObject.objectIndex 
-                                                                                           for rel in rels if rel.toModelObject is not None)))
+                                                                                           for rel in rels if isinstance(rel.toModelObject, ModelConcept))))
                                     if relFromAndTos in usedCalcFromTosELR:
                                         otherRels = usedCalcFromTosELR[relFromAndTos]
                                         otherELR = otherRels[0].linkrole
@@ -1661,7 +1661,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             for rel in rels:
                                 relTo = rel.toModelObject
     
-                                if not (relTo is not None and relTo.type is not None and relTo.type.isDomainItemType) and not self.isStandardUri(rel.modelDocument.uri):
+                                if not (isinstance(relTo, ModelConcept) and relTo.type is not None and relTo.type.isDomainItemType) and not self.isStandardUri(rel.modelDocument.uri):
                                     self.modelXbrl.error(("EFM.6.16.03", "GFM.1.08.03"),
                                         _("Definition relationship from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s requires domain item target"),
                                         modelObject=(rel, relFrom, relTo), conceptFrom=relFrom.qname, conceptTo=(relTo.qname if relTo is not None else None), linkrole=rel.linkrole)
@@ -1972,7 +1972,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
         (d) last monetary (may be sub level) whose immediate sibling is a calc LB child
         """
         concept = rel.toModelObject
-        if concept is not None and concept.isNumeric:
+        if isinstance(concept, ModelConcept) and concept.isNumeric:
             preferredLabel = rel.preferredLabel
             if XbrlConst.isTotalRole(preferredLabel):
                 return _("preferredLabel {0}").format(os.path.basename(preferredLabel))

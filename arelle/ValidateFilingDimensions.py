@@ -6,6 +6,7 @@ Created on Oct 17, 2010
 '''
 from collections import defaultdict
 from arelle import XbrlConst
+from arelle.ModelDtsObject import ModelConcept
 import os
 emptySet = set()
 
@@ -61,7 +62,7 @@ def checkDimensions(val, drsELRs):
                             arcroleURI=hasHcRel.arcrole, arcrole=os.path.basename(hasHcRel.arcrole))
                     for hcDimRel in hcDimRels:
                         dim = hcDimRel.toModelObject
-                        if dim is not None:
+                        if isinstance(dim, ModelConcept):
                             domELR = hcDimRel.targetRole
                             domTargetRequired = (domELR is not None)
                             if not domELR:
@@ -113,7 +114,7 @@ def checkDimensions(val, drsELRs):
                                 checkSBRNLMembers(val, hc, dim, domELR, dimDomRels, ELR, True)
                                 for dimDomRel in dimDomRels:
                                     dom = dimDomRel.toModelObject
-                                    if dom is not None:
+                                    if isinstance(dom, ModelConcept):
                                         domainsInLinkrole[domELR].add(dom) # this is the elr containing the HC-dim relations
                 if hasHypercubeArcrole == XbrlConst.all and len(hasHcRels) > 1:
                     val.modelXbrl.error(("EFM.6.16.05", "GFM.1.08.05"),
@@ -121,7 +122,7 @@ def checkDimensions(val, drsELRs):
                         modelObject=[sourceConcept] + hasHcRels, 
                         hypercubeCount=len(hasHcRels), linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR),
                         concept=sourceConcept.qname,
-                        hypercubes=', '.join(str(r.toModelObject.qname) for r in hasHcRels if r.toModelObject is not None))
+                        hypercubes=', '.join(str(r.toModelObject.qname) for r in hasHcRels if isinstance(r.toModelObject, ModelConcept)))
                     
         # check for primary item dimension-member graph undirected cycles
         fromRelationships = domainMemberRelationshipSet.fromModelObjects()
@@ -142,7 +143,7 @@ def checkDimensions(val, drsELRs):
                 fromMbr = rel.fromModelObject
                 toMbr = rel.toModelObject
                 toELR = rel.targetRole
-                if toMbr is not None and toELR and len(
+                if isinstance(toMbr, ModelConcept) and toELR and len(
                     val.modelXbrl.relationshipSet(
                          XbrlConst.domainMember, toELR).fromModelObject(toMbr)) == 0:
                     val.modelXbrl.error(("EFM.6.16.09", "GFM.1.08.09"),
@@ -184,13 +185,13 @@ def checkDimensions(val, drsELRs):
                                 _("ELR role %(linkrole)s, has hypercube %(hypercube)s and a %(arcrole)s relationship not involving the hypercube or primary domain, from %(fromConcept)s to %(toConcept)s"),
                                 modelObject=modelRel, linkrole=ELR, hypercube=hc.qname, arcrole=os.path.basename(modelRel.arcrole), 
                                 fromConcept=modelRel.fromModelObject.qname, 
-                                toConcept=(modelRel.toModelObject.qname if modelRel.toModelObject is not None else "unknown"))
+                                toConcept=(modelRel.toModelObject.qname if isinstance(modelRel.toModelObject, ModelConcept) else "unknown"))
         domainsInLinkrole = defaultdict(set)
         dimDomMemsByLinkrole = defaultdict(set)
         for rel in val.modelXbrl.relationshipSet(XbrlConst.dimensionDomain).modelRelationships:
             relFrom = rel.fromModelObject
             relTo = rel.toModelObject
-            if relFrom is not None and relTo is not None:
+            if isinstance(relFrom, ModelConcept) and isinstance(relTo, ModelConcept):
                 domainsInLinkrole[rel.targetRole].add(relFrom)
                 domMems = set() # determine usable dom and mems of dimension in this linkrole
                 if rel.isUsable:
@@ -235,11 +236,11 @@ def checkDimensions(val, drsELRs):
             if val.modelXbrl.relationshipSet(XbrlConst.domainMember, rel.targetRole).fromModelObject(rel.toModelObject):
                 val.modelXbrl.error("SBR.NL.2.3.7.03",
                     _("Domain member %(member)s in DRS role %(linkrole)s, has nested members"),
-                    modelObject=rel, member=(rel.toModelObject.qname if rel.toModelObject is not None else None), linkrole=rel.linkrole)
+                    modelObject=rel, member=(rel.toModelObject.qname if isinstance(rel.toModelObject, ModelConcept) else None), linkrole=rel.linkrole)
         for rel in val.modelXbrl.relationshipSet(XbrlConst.domainMember).modelRelationships:
             relFrom = rel.fromModelObject
             relTo = rel.toModelObject
-            if relTo is not None:
+            if isinstance(relTo, ModelConcept):
                 # avoid primary item relationships in these tests
                 if relFrom.substitutionGroupQname.localName == "domainItem":
                     if relTo.substitutionGroupQname.localName != "domainMemberItem":
@@ -260,7 +261,7 @@ def checkDimensions(val, drsELRs):
         hypercubeDRSDimensions = defaultdict(dict)
         for hcDimRel in val.modelXbrl.relationshipSet(XbrlConst.hypercubeDimension).modelRelationships:
             hc = hcDimRel.fromModelObject
-            if hc is not None:
+            if isinstance(hc, ModelConcept):
                 ELR = hcDimRel.linkrole
                 try:
                     hcDRSdims = hypercubeDRSDimensions[hc][ELR]
@@ -285,7 +286,7 @@ def getDrsRels(val, fromELR, rels, drsELR, drsRelsFrom, drsRelsTo, fromConcepts=
     if not fromConcepts: fromConcepts = set()
     for rel in rels:
         relTo = rel.toModelObject
-        if relTo is not None:
+        if isinstance(relTo, ModelConcept):
             drsRelsFrom[rel.fromModelObject].append(rel)
             drsRelsTo[relTo].append(rel)
             toELR = rel.targetRole
@@ -304,7 +305,7 @@ def undirectedFwdCycle(val, fromELR, rels, drsELR, drsRelsFrom, drsRelsTo, fromC
     for rel in rels:
         if rel.linkrole == fromELR:
             relTo = rel.toModelObject
-            if relTo is not None:
+            if isinstance(relTo, ModelConcept):
                 toELR = rel.targetRole
                 if not toELR:
                     toELR = fromELR
@@ -395,7 +396,7 @@ def checkSBRNLMembers(val, hc, dim, domELR, rels, ELR, isDomMbr, members=None, a
     for rel in rels:
         relFrom = rel.fromModelObject
         relTo = rel.toModelObject
-        if relFrom is not None and relTo is not None:
+        if isinstance(relFrom, ModelConcept) and isinstance(relTo, ModelConcept):
             toELR = (rel.targetRole or rel.linkrole)
             
             if isDomMbr or not relTo.isAbstract:

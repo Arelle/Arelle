@@ -1,4 +1,5 @@
 from arelle import PluginManager
+from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelValue import qname
 from arelle.XmlValidate import UNVALIDATED, VALID
 from arelle import Locale, ModelXbrl, XbrlConst
@@ -130,7 +131,7 @@ def setup(val):
                     saveFile(cntlr, ugtCalcsJsonFile, jsonStr)  # 2.7 gets unicode this way
                     # load default dimensions
                     for defaultDimRel in calculationsInstance.relationshipSet(XbrlConst.dimensionDefault).modelRelationships:
-                        if defaultDimRel.fromModelObject is not None and defaultDimRel.toModelObject is not None:
+                        if isinstance(defaultDimRel.fromModelObject, ModelConcept) and isinstance(defaultDimRel.toModelObject, ModelConcept):
                             val.usgaapDefaultDimensions[defaultDimRel.fromModelObject.name] = defaultDimRel.toModelObject.name
                     jsonStr = _STR_UNICODE(json.dumps(val.usgaapDefaultDimensions, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
                     saveFile(cntlr, ugtDefaultDimensionsJsonFile, jsonStr)  # 2.7 gets unicode this way
@@ -277,7 +278,7 @@ def final(val, conceptsUsed):
     standardConceptsDeprecated = defaultdict(set)
     for rel in standardRelationships.modelRelationships:
         for concept in (rel.fromModelObject, rel.toModelObject):
-            if (concept is not None and concept.qname is not None and
+            if (isinstance(concept, ModelConcept) and concept.qname is not None and
                 concept.qname.namespaceURI in standardTaxonomiesDict and
                 concept not in conceptsUsed):
                 if (not concept.isAbstract or 
@@ -460,7 +461,7 @@ def final(val, conceptsUsed):
         Filers SHOULD also avoid creating new domains or changing default member elements for pre-defined dimensions.
         """
         for defaultDimRel in val.modelXbrl.relationshipSet(XbrlConst.dimensionDefault).modelRelationships:
-            if (defaultDimRel.fromModelObject is not None and defaultDimRel.toModelObject is not None and
+            if (isinstance(defaultDimRel.fromModelObject, ModelConcept) and isinstance(defaultDimRel.toModelObject, ModelConcept) and
                 defaultDimRel.fromModelObject.qname.namespaceURI == ugtNamespace and
                 defaultDimRel.fromModelObject.name in val.usgaapDefaultDimensions and
                 (defaultDimRel.toModelObject.qname.namespaceURI not in standardTaxonomiesDict or

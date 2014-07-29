@@ -42,6 +42,7 @@ from arelle.ModelDtsObject import ModelConcept, ModelType, ModelResource, ModelR
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ModelDocument import ModelDocument
+from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
 from arelle.ValidateXbrlCalcs import roundValue
 from arelle.XmlValidate import UNVALIDATED, VALID
@@ -218,7 +219,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships:
                     if (not inInstance and
                         rel.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL) and
-                        any(tgtObj is not None and tgtObj.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL)
+                        any(isinstance(tgtObj, ModelObject) and tgtObj.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL)
                             for tgtObj in (rel.fromModelObject, rel.toModelObject))):
                         inInstance = True
                     if not hasResource and any(isinstance(resource, ModelResource)
@@ -827,7 +828,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         
         def walkTree(rels, seq, depth, relationshipSet, visited, dbRels, relSetId):
             for rel in rels:
-                if rel not in visited and rel.toModelObject is not None:
+                if rel not in visited and isinstance(rel.toModelObject, ModelObject):
                     visited.add(rel)
                     dbRels.append((rel, seq, depth, relSetId))
                     seq += 1
@@ -873,7 +874,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                      depth,
                                      rel.preferredLabel)
                                     for rel, sequence, depth, relSetId in dbRels
-                                    if rel.fromModelObject is not None and rel.toModelObject is not None))
+                                    if isinstance(rel.fromModelObject, ModelObject) and isinstance(rel.toModelObject, ModelObject)))
         self.relationshipId = dict(((docId,xml_child_seq), relationshipId)
                                    for relationshipId, relSetId, docId, xml_child_seq in table)
         table = self.getTable('root', None, 
@@ -884,7 +885,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                                          elementChildSequence(rel.arcElement)])
                                     for rel, sequence, depth, relSetId in dbRels
                                     if depth == 1 and
-                                       rel.fromModelObject is not None and rel.toModelObject is not None))
+                                       isinstance(rel.fromModelObject, ModelObject) and isinstance(rel.toModelObject, ModelObject)))
         del dbRels[:]   # dererefence
 
     def insertDataPoints(self):

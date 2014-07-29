@@ -11,6 +11,7 @@ except ImportError:
 from collections import defaultdict
 from datetime import datetime, timedelta
 from arelle import XbrlConst
+from arelle.ModelDtsObject import ModelConcept
 
 # regular expression components
 STMT = r".* - statement - "
@@ -322,7 +323,7 @@ def EFMlinkRoleDescendants(relSet, concept, dimMems, priItems):
 def EFMdimMems(relSet, concept, memQNames):
     for rel in relSet.fromModelObject(concept):
         dimConcept = rel.toModelObject
-        if dimConcept is not None and dimConcept.isDomainMember:
+        if isinstance(dimConcept, ModelConcept) and dimConcept.isDomainMember:
             memQNames.add(dimConcept.qname)
             EFMdimMems(relSet, dimConcept, memQNames)
     return memQNames

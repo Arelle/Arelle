@@ -31,11 +31,11 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
             fromConcept = modelRel.fromModelObject
             toConcept = modelRel.toModelObject
             if fromConcept is not None and toConcept is not None:
-                if not fromConcept.isHypercubeItem:
+                if not isinstance(fromConcept, ModelConcept) or not fromConcept.isHypercubeItem:
                     val.modelXbrl.error("xbrldte:HypercubeDimensionSourceError",
                         _("Hypercube-dimension relationship from %(source)s to %(target)s in link role %(linkrole)s must have a hypercube declaration source"),
                         modelObject=modelRel, source=fromConcept.qname, target=toConcept.qname, linkrole=ELR)
-                if not toConcept.isDimensionItem:
+                if not isinstance(toConcept, ModelConcept) or not toConcept.isDimensionItem:
                     val.modelXbrl.error("xbrldte:HypercubeDimensionTargetError",
                         _("Hypercube-dimension relationship from %(source)s to %(target)s in link role %(linkrole)s must have a dimension declaration target"),
                         modelObject=modelRel, source=fromConcept.qname, target=toConcept.qname, linkrole=ELR)
@@ -46,12 +46,12 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
             for hasHcRel in hcRels:
                 hcConcept = hasHcRel.toModelObject
                 if priItemConcept is not None and hcConcept is not None:
-                    if not priItemConcept.isPrimaryItem:
+                    if not isinstance(priItemConcept, ModelConcept) or not priItemConcept.isPrimaryItem:
                         val.modelXbrl.error("xbrldte:HasHypercubeSourceError",
                             _("HasHypercube %(arcroleType)s relationship from %(source)s to %(target)s in link role %(linkrole)s must have a primary item source"),
                             modelObject=hasHcRel, arcroleType=os.path.basename(arcrole), 
                             source=priItemConcept.qname, target=hcConcept.qname, linkrole=ELR)
-                    if not hcConcept.isHypercubeItem:
+                    if not isinstance(hcConcept, ModelConcept) or not hcConcept.isHypercubeItem:
                         val.modelXbrl.error("xbrldte:HasHypercubeTargetError",
                             _("HasHypercube %(arcroleType)s relationship from %(source)s to %(target)s in link role %(linkrole)s must have a hypercube declaration target"),
                             modelObject=hasHcRel, arcroleType=os.path.basename(arcrole), 
@@ -418,26 +418,27 @@ def checkFactElrHcs(val, f, ELR, hcRels, setPrototypeContextElements=False):
             for hcDimRel in val.modelXbrl.relationshipSet(
                                 XbrlConst.hypercubeDimension, dimELR).fromModelObject(hcConcept):
                 dimConcept = hcDimRel.toModelObject
-                domELR = (hcDimRel.targetRole or dimELR)
-                if dimConcept in modelDimValues:
-                    memModelDimension = modelDimValues[dimConcept]
-                    contextElementDimSet.discard(dimConcept)
-                    memConcept = memModelDimension.member
-                elif dimConcept in val.modelXbrl.dimensionDefaultConcepts:
-                    memConcept = val.modelXbrl.dimensionDefaultConcepts[dimConcept]
-                    memModelDimension = None
-                elif setPrototypeContextElements and isinstance(context,ContextPrototype) and dimConcept in oppositeContextDimValues:
-                    memModelDimension = oppositeContextDimValues[dimConcept]
-                    memConcept = memModelDimension.member
-                else:
-                    hcValid = False
-                    continue
-                if not dimConcept.isTypedDimension:
-                    # change to cache all member concepts usability per domain: if dimensionMemberState(val, dimConcept, memConcept, domELR) != MEMBER_USABLE:
-                    if not dimensionMemberUsable(val, dimConcept, memConcept, domELR):
+                if isinstance(dimConcept, ModelConcept):
+                    domELR = (hcDimRel.targetRole or dimELR)
+                    if dimConcept in modelDimValues:
+                        memModelDimension = modelDimValues[dimConcept]
+                        contextElementDimSet.discard(dimConcept)
+                        memConcept = memModelDimension.member
+                    elif dimConcept in val.modelXbrl.dimensionDefaultConcepts:
+                        memConcept = val.modelXbrl.dimensionDefaultConcepts[dimConcept]
+                        memModelDimension = None
+                    elif setPrototypeContextElements and isinstance(context,ContextPrototype) and dimConcept in oppositeContextDimValues:
+                        memModelDimension = oppositeContextDimValues[dimConcept]
+                        memConcept = memModelDimension.member
+                    else:
                         hcValid = False
-                if hcValid and setPrototypeContextElements and isinstance(memModelDimension,DimValuePrototype) and not hcNegating:
-                    memModelDimension.contextElement = hcContextElement
+                        continue
+                    if not dimConcept.isTypedDimension:
+                        # change to cache all member concepts usability per domain: if dimensionMemberState(val, dimConcept, memConcept, domELR) != MEMBER_USABLE:
+                        if not dimensionMemberUsable(val, dimConcept, memConcept, domELR):
+                            hcValid = False
+                    if hcValid and setPrototypeContextElements and isinstance(memModelDimension,DimValuePrototype) and not hcNegating:
+                        memModelDimension.contextElement = hcContextElement
         if hcIsClosed:
             if len(contextElementDimSet) > 0:
                 hcValid = False # has extra stuff in the context element
