@@ -126,7 +126,7 @@
      />
   <DisclosureSystem 
      names="US SEC (Edgar Filing Manual, Strict)|efm|efm-strict"
-     description="US SEC Edgar Filing Manual, 2013\n
+     description="US SEC Edgar Filing Manual, 2014\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
@@ -156,7 +156,7 @@
      />
   <DisclosureSystem 
      names="US SEC (Edgar Filing Manual, Pragmatic)|efm-blocking|efm-pragmatic"
-     description="US SEC Edgar Filing Manual, 2013\n
+     description="US SEC Edgar Filing Manual, 2014\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
@@ -188,7 +188,7 @@
      />
   <DisclosureSystem 
      names="US SEC (Edgar Filing Manual, Strict, all years)|efm-all-years|efm-strict-all-years"
-     description="US SEC Edgar Filing Manual, 2012\n
+     description="US SEC Edgar Filing Manual, 2014\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
@@ -218,7 +218,7 @@
      />
   <DisclosureSystem 
      names="US SEC (Edgar Filing Manual, Pragmatic, all years)|efm-blocking-all-years|efm-pragmatic-all-years"
-     description="US SEC Edgar Filing Manual, 2012\n
+     description="US SEC Edgar Filing Manual, 2014\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
