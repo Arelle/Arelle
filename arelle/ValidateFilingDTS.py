@@ -554,9 +554,9 @@ def checkDTS(val, modelDocument, visited):
                                 "{http://www.w3.org/2001/XMLSchema}simpleType"):
                 for typeElt in modelDocument.xmlRootElement.iter(tag=typeEltTag):
                     definesTypes = True
-                    name = typeEltTag.get("name")
+                    name = typeElt.get("name")
                     if name:
-                        if not name[0].islower() or not name.isalpha():
+                        if not name[0].islower() or not name.isalnum():
                             val.modelXbrl.error("SBR.NL.3.2.8.09",
                                 _("Type name attribute must be lower camelcase: %(name)s."),
                                 modelObject=typeElt, name=name)
