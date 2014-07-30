@@ -73,9 +73,9 @@ CREATE TABLE entity (
     fiscal_year_end varchar(6),
     filer_category varchar(128),
     public_float double,
-    trading_symbol varchar(32)
+    trading_symbol varchar(32),
+    PRIMARY KEY (entity_id)
 );
-CREATE INDEX entity_index01 USING btree ON entity (entity_id);
 CREATE INDEX entity_index02 USING btree ON entity (file_number);
 CREATE INDEX entity_index03 USING btree ON entity (reference_number);
 CREATE INDEX entity_index04 USING btree ON entity (legal_entity_number);
@@ -361,14 +361,14 @@ CREATE TABLE entity_identifier (
     report_id bigint,
     scheme varchar(1024) NOT NULL,
     identifier varchar(1024) NOT NULL,
-    PRIMARY KEY (entity_id)
+    PRIMARY KEY (entity_identifier_id)
 );
 CREATE INDEX entity_identifier_index02 USING btree ON entity_identifier (report_id, scheme(32), identifier(32));
 
 DELIMITER //
-CREATE TRIGGER entity_seq BEFORE INSERT ON entity 
+CREATE TRIGGER entity_identifier_seq BEFORE INSERT ON entity_identifier 
   FOR EACH ROW BEGIN
-    SET NEW.entity_id = (SELECT sequence_cur_value FROM sequences WHERE sequence_name = 'seq_object');
+    SET NEW.entity_identifier_id = (SELECT sequence_cur_value FROM sequences WHERE sequence_name = 'seq_object');
     UPDATE sequences SET sequence_cur_value = sequence_cur_value + 1 WHERE sequence_name = 'seq_object';
   END;//
 DELIMITER ;
@@ -451,7 +451,7 @@ CREATE TABLE table_data_points(
 );
 CREATE INDEX table_data_points_index01 USING btree ON table_data_points (report_id);
 CREATE INDEX table_data_points_index02 USING btree ON table_data_points (table_code);
-CREATE INDEX table_data_points_index02 USING btree ON table_data_points (datapoint_id);
+CREATE INDEX table_data_points_index03 USING btree ON table_data_points (datapoint_id);
 
 CREATE TABLE message (
     message_id bigint NOT NULL AUTO_INCREMENT,
