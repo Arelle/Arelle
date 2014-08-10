@@ -323,8 +323,8 @@ def saveLoadableExcel(dts, excelFile):
             if colType == "label":
                 lang = hdr[3]
                 if colType == "label":
-                   role = hdr[2]
-                   lang = hdr[3]
+                    role = hdr[2]
+                    lang = hdr[3]
         lbls = defaultdict(list)        
         for concept in set(dts.qnameConcepts.values()): # may be twice if unqualified, with and without namespace
             lbls[concept.label(role,lang=lang)].append(concept.objectId())

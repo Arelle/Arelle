@@ -13,6 +13,7 @@ builtinAttributes = {qnXsiNil,
                      ,qname(xsi,"xsi:noNamespaceSchemaLocation")}
 xml = "http://www.w3.org/XML/1998/namespace"
 xbrli = "http://www.xbrl.org/2003/instance"
+qnNsmap = qname("nsmap") # artificial parent for insertion of xmlns in saving xml documents
 qnXbrliXbrl = qname("{http://www.xbrl.org/2003/instance}xbrli:xbrl")
 qnXbrliItem = qname("{http://www.xbrl.org/2003/instance}xbrli:item")
 qnXbrliNumerator = qname("{http://www.xbrl.org/2003/instance}xbrli:numerator")

@@ -625,7 +625,7 @@ def checkElements(val, modelDocument, parent):
             xlinkRole = elt.get("{http://www.w3.org/1999/xlink}role")
             if elt.namespaceURI == XbrlConst.link:
                 if elt.localName == "linkbase":
-                    if elt.parentQname is not None and elt.parentQname != XbrlConst.qnXsdAppinfo:
+                    if elt.parentQname is not None and elt.parentQname not in (XbrlConst.qnXsdAppinfo, XbrlConst.qnNsmap):
                         val.modelXbrl.error("xbrl.5.2:linkbaseRootElement",
                             "Linkbase must be a root element or child of appinfo, and may not be nested in %(parent)s",
                             parent=elt.parentQname,
