@@ -421,11 +421,11 @@ def loadFromExcel(cntlr, excelFile):
     # label linkbase
     for lang, filename in labelLinkbases:
         lbDoc = ModelDocument.create(dts, ModelDocument.Type.LINKBASE, filename, base="", initialXml="""
-        <link:linkbase 
+        <linkbase 
+            xmlns="http://www.xbrl.org/2003/linkbase" 
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
             xsi:schemaLocation="http://www.xbrl.org/2003/linkbase 
             http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd" 
-            xmlns:link="http://www.xbrl.org/2003/linkbase" 
             xmlns:xlink="http://www.w3.org/1999/xlink" 
             xmlns:xbrli="http://www.xbrl.org/2003/instance"/>
         """)
@@ -575,11 +575,11 @@ def loadFromExcel(cntlr, excelFile):
                 if lbType == lbRefType:
                     # output presentation linkbase
                     lbDoc = ModelDocument.create(dts, ModelDocument.Type.LINKBASE, filename, base='', initialXml="""
-                    <link:linkbase 
+                    <linkbase 
+                        xmlns="http://www.xbrl.org/2003/linkbase" 
                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
                         xsi:schemaLocation="http://www.xbrl.org/2003/linkbase 
                         http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd" 
-                        xmlns:link="http://www.xbrl.org/2003/linkbase" 
                         xmlns:xlink="http://www.w3.org/1999/xlink" 
                         xmlns:xbrli="http://www.xbrl.org/2003/instance"/>
                     """)
