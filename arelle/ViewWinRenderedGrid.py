@@ -273,11 +273,17 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     if aspect != Aspect.DIMENSIONS:
                         break
                 # for open filter nodes of explicit dimension allow selection of all values
+                zAxisAspectEntryMode = False
                 if isinstance(chosenStructuralNode.definitionNode, ModelFilterDefinitionNode):
                     if isinstance(aspect, QName):
                         dimConcept = self.modelXbrl.qnameConcepts[aspect]
                         if dimConcept.isExplicitDimension:
-                            valueHeaders.append("(all members)")
+                            if len(valueHeaders) != 1 or valueHeaders[0]: # not just a blank initial entry
+                                valueHeaders.append("(all members)")
+                            else:
+                                valueHeaders.extend(
+                                   self.explicitDimensionFilterMembers(zStructuralNode, chosenStructuralNode))
+                                zAxisAspectEntryMode = True
                             zAxisIsOpenExplicitDimension = True
                         elif dimConcept.isTypedDimension:
                             if (zStructuralNode.choiceStructuralNodes[0].contextItemBinding is None and
@@ -307,7 +313,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                 combobox.zStructuralNode = zStructuralNode
                 combobox.zAxisIsOpenExplicitDimension = zAxisIsOpenExplicitDimension
                 combobox.zAxisTypedDimension = zAxisTypedDimension
-                combobox.zAxisAspectEntryMode = False
+                combobox.zAxisAspectEntryMode = zAxisAspectEntryMode
                 combobox.zAxisAspect = aspect
                 combobox.zChoiceOrdIndex = row - 1
                 combobox.objectId = hdr.objectId = zStructuralNode.objectId()
@@ -949,36 +955,70 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         if isinstance(aspect, QName): # dimension
             dimConcept = self.modelXbrl.qnameConcepts[aspect]
             if dimConcept.isExplicitDimension:
-                headersList.append("(all members)")
+                if headersList: # has entries, add all-memembers at end
+                    headersList.append("(all members)")
+                else:  # empty list, just add all members anyway
+                    return self.explicitDimensionFilterMembers(structuralNode, structuralNode)
         return headersList
 
     def onAspectComboboxSelection(self, event):
         gridCombobox = event.widget
         if gridCombobox.value == "(all members)":
-            self.loadComboboxExplicitDimension(gridCombobox, self.aspectEntryObjectIdsNode[gridCombobox.objectId])
+            structuralNode = self.aspectEntryObjectIdsNode[gridCombobox.objectId]
+            self.comboboxLoadExplicitDimension(gridCombobox, structuralNode, structuralNode)
             
     def comboboxLoadExplicitDimension(self, gridCombobox, structuralNode, structuralNodeWithFilter):
+        gridCombobox["values"] = self.explicitDimensionFilterMembers(structuralNode, structuralNodeWithFilter)
+            
+    def explicitDimensionFilterMembers(self, structuralNode, structuralNodeWithFilter):
         for aspect in structuralNodeWithFilter.aspectsCovered():
             if isinstance(aspect, QName): # dimension
                 break
+        valueHeaders = set()
         if structuralNode is not None:
-            valueHeaders = set()
             headerValues = {}
-            relationships = concept_relationships(self.rendrCntx, 
-                                 None, 
-                                 (aspect,
-                                  "XBRL-all-linkroles", # linkrole,
-                                  "XBRL-dimensions",
-                                  'descendant'),
-                                 False) # return flat list
-            for rel in relationships:
-                if (rel.arcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember)
-                    and rel.isUsable):
-                    header = rel.toModelObject.label(lang=self.lang)
-                    valueHeaders.add(header)
-                    headerValues[header] = rel.toModelObject.qname
-            structuralNode.aspectEntryHeaderValues = headerValues       
-            gridCombobox["values"] = sorted(valueHeaders)
+            # check for dimension filter(s)
+            dimFilterRels = structuralNodeWithFilter.definitionNode.filterRelationships
+            if dimFilterRels:
+                for rel in dimFilterRels:
+                    dimFilter = rel.toModelObject
+                    if dimFilter is not None:
+                        for memberModel in dimFilter.memberProgs:
+                                memQname = memberModel.qname
+                                memConcept = self.modelXbrl.qnameConcepts.get(memQname)
+                                if memConcept is not None and (not memberModel.axis or memberModel.axis.endswith('-self')):
+                                    header = memConcept.label(lang=self.lang)
+                                    valueHeaders.add(header)
+                                    headerValues[header] = memConcept
+                                elif memberModel.axis and memberModel.linkrole and memberModel.arcrole:
+                                    relationships = concept_relationships(self.rendrCntx, 
+                                                         None, 
+                                                         (memQname,
+                                                          memberModel.linkrole,
+                                                          memberModel.arcrole,
+                                                          memberModel.axis),
+                                                         False) # return flat list
+                                    for rel in relationships:
+                                        if rel.isUsable:
+                                            header = rel.toModelObject.label(lang=self.lang)
+                                            valueHeaders.add(header)
+                                            headerValues[header] = rel.toModelObject.qname
+            if not valueHeaders:
+                relationships = concept_relationships(self.rendrCntx, 
+                                     None, 
+                                     (aspect,
+                                      "XBRL-all-linkroles", # linkrole,
+                                      "XBRL-dimensions",
+                                      'descendant'),
+                                     False) # return flat list
+                for rel in relationships:
+                    if (rel.arcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember)
+                        and rel.isUsable):
+                        header = rel.toModelObject.label(lang=self.lang)
+                        valueHeaders.add(header)
+                        headerValues[header] = rel.toModelObject.qname
+            structuralNode.aspectEntryHeaderValues = headerValues
+        return sorted(valueHeaders)
                 
 # import after other modules resolved to prevent circular references
 from arelle.FunctionXfi import concept_relationships
