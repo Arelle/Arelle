@@ -473,14 +473,14 @@ class ModelFact(ModelObject):
         return lbl + (
                (("namespace", self.qname.namespaceURI),
                 ("name", self.qname.localName),
-                ("QName", self.qname),
-                ("contextRef", self.contextID, self.context.propertyView if self.context is not None else ()),
-                ("unitRef", unitValue, self.unit.propertyView if self.isNumeric and self.unit is not None else ()),
-                ("decimals", self.decimals),
-                ("precision", self.precision),
-                ("xsi:nil", self.xsiNil),
-                ("value", self.effectiveValue.strip()))
-                if self.isItem else () )
+                ("QName", self.qname)) + 
+               (((("contextRef", self.contextID, self.context.propertyView) if self.context is not None else ()),
+                 (("unitRef", unitValue, self.unit.propertyView) if self.isNumeric and self.unit is not None else ()),
+                 ("decimals", self.decimals),
+                 ("precision", self.precision),
+                 ("xsi:nil", self.xsiNil),
+                 ("value", self.effectiveValue.strip()))
+                 if self.isItem else () ))
         
     def __repr__(self):
         return ("modelFact[{0}, qname: {1}, contextRef: {2}, unitRef: {3}, value: {4}, {5}, line {6}]"
@@ -1073,8 +1073,8 @@ class ModelContext(ModelObject):
         scheme, entityId = self.entityIdentifier
         return ((("entity", entityId, (("scheme", scheme),)),) +
                 ((("forever", ""),) if self.isForeverPeriod else
-                (("instant", XmlUtil.dateunionValue(self.instantDatetime, subtractOneDay=True)),) if self.isInstantPeriod else
-                (("startDate", XmlUtil.dateunionValue(self.startDatetime)),("endDate", XmlUtil.dateunionValue(self.endDatetime, subtractOneDay=True)))) +
+                 (("instant", XmlUtil.dateunionValue(self.instantDatetime, subtractOneDay=True)),) if self.isInstantPeriod else
+                 (("startDate", XmlUtil.dateunionValue(self.startDatetime)),("endDate", XmlUtil.dateunionValue(self.endDatetime, subtractOneDay=True)))) +
                 (("dimensions", "({0})".format(len(self.qnameDims)),
                   tuple(mem.propertyView for dim,mem in sorted(self.qnameDims.items())))
                   if self.qnameDims else (),
