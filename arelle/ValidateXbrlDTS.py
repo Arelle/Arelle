@@ -267,6 +267,8 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
         if val.validateSBRNL:
             for pluginXbrlMethod in pluginClassMethods("Validate.SBRNL.DTS.document"):
                 pluginXbrlMethod(val, modelDocument)
+        for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.DTS.document"):
+            pluginXbrlMethod(val, modelDocument)
         del val.valUsedPrefixes
         del val.schemaRoleTypes
         del val.schemaArcroleTypes

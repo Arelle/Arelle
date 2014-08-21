@@ -235,10 +235,12 @@ class Cntlr:
             
         from arelle.WebCache import WebCache
         self.webCache = WebCache(self, self.config.get("proxySettings"))
-        self.modelManager = ModelManager.initialize(self)
         
         # start plug in server (requres web cache initialized, but not logger)
         PluginManager.init(self)
+
+        # requires plug ins initialized
+        self.modelManager = ModelManager.initialize(self)
  
         # start taxonomy package server (requres web cache initialized, but not logger)
         PackageManager.init(self)

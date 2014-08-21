@@ -8,6 +8,7 @@ import os, re
 from collections import defaultdict
 from lxml import etree
 from arelle import UrlUtil
+from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
 
 def compileAttrPattern(elt, attrName, flags=None):
@@ -30,7 +31,15 @@ class ErxlLoc:
 class DisclosureSystem:
     def __init__(self, modelManager):
         self.modelManager = modelManager
-        self.url = os.path.join(modelManager.cntlr.configDir, "disclosuresystems.xml")
+        self.urls = [os.path.join(modelManager.cntlr.configDir, "disclosuresystems.xml")]
+        # get custom config xml file url
+        for pluginXbrlMethod in pluginClassMethods("DisclosureSystem.ConfigURL"):
+            self.urls.append(pluginXbrlMethod(self))
+        # get custom disclosure system (type name, test variable)
+        self.pluginDisclosureTypes = {}  # dict of type name, test variable name
+        for pluginXbrlMethod in pluginClassMethods("DisclosureSystem.Types"):
+            typeName, typeTestVariable = pluginXbrlMethod(self)
+            self.pluginDisclosureTypes[typeName] = typeTestVariable
         self.clear()
         
     def clear(self):
@@ -49,6 +58,8 @@ class DisclosureSystem:
         self.EFMorGFM = False
         self.HMRC = False
         self.SBRNL = False
+        for typeTestVariable in self.pluginDisclosureTypes.values():
+            setattr(self, typeTestVariable, False)
         self.EBA = False
         self.validateFileText = False
         self.schemaValidateSchema = None
@@ -86,23 +97,28 @@ class DisclosureSystem:
     def dir(self):
         return self.dirlist("dir")
     
+    @property
+    def url(self): # needed for status messages (not used in this module)
+        return ", ".join(os.path.basename(url) for url in self.urls)
+    
     def dirlist(self, listFormat):
         self.modelManager.cntlr.showStatus(_("parsing disclosuresystems.xml"))
         namepaths = []
         try:
-            xmldoc = etree.parse(self.url)
-            for dsElt in xmldoc.iter(tag="DisclosureSystem"):
-                if dsElt.get("names"):
-                    names = dsElt.get("names").split("|")
-                    if listFormat == "help": # terse help
-                        namepaths.append('{0}: {1}'.format(names[-1],names[0]))
-                    elif listFormat == "help-verbose":
-                        namepaths.append('{0}: {1}\n{2}\n'.format(names[-1],
-                                                                  names[0], 
-                                                                  dsElt.get("description").replace('\\n','\n')))
-                    elif listFormat == "dir":
-                        namepaths.append((names[0],
-                                          dsElt.get("description")))
+            for url in self.urls:
+                xmldoc = etree.parse(url)
+                for dsElt in xmldoc.iter(tag="DisclosureSystem"):
+                    if dsElt.get("names"):
+                        names = dsElt.get("names").split("|")
+                        if listFormat == "help": # terse help
+                            namepaths.append('{0}: {1}'.format(names[-1],names[0]))
+                        elif listFormat == "help-verbose":
+                            namepaths.append('{0}: {1}\n{2}\n'.format(names[-1],
+                                                                      names[0], 
+                                                                      dsElt.get("description").replace('\\n','\n')))
+                        elif listFormat == "dir":
+                            namepaths.append((names[0],
+                                              dsElt.get("description")))
         except (EnvironmentError,
                 etree.LxmlError) as err:
             self.modelManager.cntlr.addToLog("disclosuresystems.xml: import error: {0}".format(err))
@@ -114,59 +130,65 @@ class DisclosureSystem:
         status = _("loading disclosure system and mappings")
         try:
             if name:
-                xmldoc = etree.parse(self.url)
-                for dsElt in xmldoc.iter(tag="DisclosureSystem"):
-                    namesStr = dsElt.get("names")
-                    if namesStr:
-                        names = namesStr.split("|")
-                        if name in names:
-                            self.names = names
-                            self.name = self.names[0]
-                            self.validationType = dsElt.get("validationType")
-                            self.EFM = self.validationType == "EFM"
-                            self.GFM = self.validationType == "GFM"
-                            self.EFMorGFM = self.EFM or self.GFM
-                            self.HMRC = self.validationType == "HMRC"
-                            self.SBRNL = self.validationType == "SBR-NL"
-                            self.EBA = self.validationType == "EBA"
-                            self.validateFileText = dsElt.get("validateFileText") == "true"
-                            self.blockDisallowedReferences = dsElt.get("blockDisallowedReferences") == "true"
-                            try:
-                                self.maxSubmissionSubdirectoryEntryNesting = int(dsElt.get("maxSubmissionSubdirectoryEntryNesting"))
-                            except (ValueError, TypeError):
-                                self.maxSubmissionSubdirectoryEntryNesting = 0
-                            self.defaultXmlLang = dsElt.get("defaultXmlLang")
-                            self.xmlLangPattern = compileAttrPattern(dsElt,"xmlLangPattern")
-                            self.defaultLanguage = dsElt.get("defaultLanguage")
-                            self.standardTaxonomiesUrl = self.modelManager.cntlr.webCache.normalizeUrl(
-                                             dsElt.get("standardTaxonomiesUrl"),
-                                             self.url)
-                            if dsElt.get("mappingsUrl"):
-                                self.mappingsUrl = self.modelManager.cntlr.webCache.normalizeUrl(
-                                             dsElt.get("mappingsUrl"),
-                                             self.url)
-                            if dsElt.get("utrUrl"): # may be mapped by mappingsUrl entries, see below
-                                self.utrUrl = self.modelManager.cntlr.webCache.normalizeUrl(
-                                             dsElt.get("utrUrl"),
-                                             self.url)
-                            self.identifierSchemePattern = compileAttrPattern(dsElt,"identifierSchemePattern")
-                            self.identifierValuePattern = compileAttrPattern(dsElt,"identifierValuePattern")
-                            self.identifierValueName = dsElt.get("identifierValueName")
-                            self.contextElement = dsElt.get("contextElement")
-                            self.roleDefinitionPattern = compileAttrPattern(dsElt,"roleDefinitionPattern")
-                            self.labelCheckPattern = compileAttrPattern(dsElt,"labelCheckPattern", re.DOTALL)
-                            self.labelTrimPattern = compileAttrPattern(dsElt,"labelTrimPattern", re.DOTALL)
-                            self.deiNamespacePattern = compileAttrPattern(dsElt,"deiNamespacePattern")
-                            self.deiAmendmentFlagElement = dsElt.get("deiAmendmentFlagElement")
-                            self.deiCurrentFiscalYearEndDateElement = dsElt.get("deiCurrentFiscalYearEndDateElement")
-                            self.deiDocumentFiscalYearFocusElement = dsElt.get("deiDocumentFiscalYearFocusElement")
-                            self.deiDocumentPeriodEndDateElement = dsElt.get("deiDocumentPeriodEndDateElement")
-                            self.deiFilerIdentifierElement = dsElt.get("deiFilerIdentifierElement")
-                            self.deiFilerNameElement = dsElt.get("deiFilerNameElement")
-                            self.logLevelFilter = dsElt.get("logLevelFilter")
-                            self.logCodeFilter = dsElt.get("logCodeFilter")
-                            self.selection = self.name
-                            break
+                isSelected = False
+                for url in self.urls:
+                    xmldoc = etree.parse(url)
+                    for dsElt in xmldoc.iter(tag="DisclosureSystem"):
+                        namesStr = dsElt.get("names")
+                        if namesStr:
+                            names = namesStr.split("|")
+                            if name in names:
+                                self.names = names
+                                self.name = self.names[0]
+                                self.validationType = dsElt.get("validationType")
+                                self.EFM = self.validationType == "EFM"
+                                self.GFM = self.validationType == "GFM"
+                                self.EFMorGFM = self.EFM or self.GFM
+                                self.HMRC = self.validationType == "HMRC"
+                                self.SBRNL = self.validationType == "SBR-NL"
+                                for typeName, typeTestVariable in self.pluginDisclosureTypes.items():
+                                    setattr(self, typeTestVariable, self.validationType == typeName)
+                                self.validateFileText = dsElt.get("validateFileText") == "true"
+                                self.blockDisallowedReferences = dsElt.get("blockDisallowedReferences") == "true"
+                                try:
+                                    self.maxSubmissionSubdirectoryEntryNesting = int(dsElt.get("maxSubmissionSubdirectoryEntryNesting"))
+                                except (ValueError, TypeError):
+                                    self.maxSubmissionSubdirectoryEntryNesting = 0
+                                self.defaultXmlLang = dsElt.get("defaultXmlLang")
+                                self.xmlLangPattern = compileAttrPattern(dsElt,"xmlLangPattern")
+                                self.defaultLanguage = dsElt.get("defaultLanguage")
+                                self.standardTaxonomiesUrl = self.modelManager.cntlr.webCache.normalizeUrl(
+                                                 dsElt.get("standardTaxonomiesUrl"),
+                                                 url)
+                                if dsElt.get("mappingsUrl"):
+                                    self.mappingsUrl = self.modelManager.cntlr.webCache.normalizeUrl(
+                                                 dsElt.get("mappingsUrl"),
+                                                 url)
+                                if dsElt.get("utrUrl"): # may be mapped by mappingsUrl entries, see below
+                                    self.utrUrl = self.modelManager.cntlr.webCache.normalizeUrl(
+                                                 dsElt.get("utrUrl"),
+                                                 url)
+                                self.identifierSchemePattern = compileAttrPattern(dsElt,"identifierSchemePattern")
+                                self.identifierValuePattern = compileAttrPattern(dsElt,"identifierValuePattern")
+                                self.identifierValueName = dsElt.get("identifierValueName")
+                                self.contextElement = dsElt.get("contextElement")
+                                self.roleDefinitionPattern = compileAttrPattern(dsElt,"roleDefinitionPattern")
+                                self.labelCheckPattern = compileAttrPattern(dsElt,"labelCheckPattern", re.DOTALL)
+                                self.labelTrimPattern = compileAttrPattern(dsElt,"labelTrimPattern", re.DOTALL)
+                                self.deiNamespacePattern = compileAttrPattern(dsElt,"deiNamespacePattern")
+                                self.deiAmendmentFlagElement = dsElt.get("deiAmendmentFlagElement")
+                                self.deiCurrentFiscalYearEndDateElement = dsElt.get("deiCurrentFiscalYearEndDateElement")
+                                self.deiDocumentFiscalYearFocusElement = dsElt.get("deiDocumentFiscalYearFocusElement")
+                                self.deiDocumentPeriodEndDateElement = dsElt.get("deiDocumentPeriodEndDateElement")
+                                self.deiFilerIdentifierElement = dsElt.get("deiFilerIdentifierElement")
+                                self.deiFilerNameElement = dsElt.get("deiFilerNameElement")
+                                self.logLevelFilter = dsElt.get("logLevelFilter")
+                                self.logCodeFilter = dsElt.get("logCodeFilter")
+                                self.selection = self.name
+                                isSelected = True
+                                break
+                    if isSelected:
+                        break
             self.loadMappings()
             self.utrUrl = self.mappedUrl(self.utrUrl) # utr may be mapped, change to its mapped entry
             self.loadStandardTaxonomiesDict()

@@ -21,11 +21,26 @@ from collections import defaultdict
 qnFilingIndicators = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:filingIndicators")
 qnFilingIndicator = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:filingIndicator")
 
-def setup(val, modelXbrl):
-    cntlr = modelXbrl.modelManager.cntlr
+def dislosureSystemTypes(disclosureSystem):
+    return ("EBA", "EBA")
+
+def disclosureSystemConfigURL(disclosureSystem):
+    return os.path.join(os.path.dirname(__file__), "validateEBAconfig.xml")
+
+def setup(val):
+    cntlr = val.modelXbrl.modelManager.cntlr
     val.prefixNamespace = {}
     val.namespacePrefix = {}
     val.idObjects = {}
+    
+    val.typedDomainQnames = set()
+    val.typedDomainElements = set()
+    for modelConcept in val.modelXbrl.qnameConcepts.values():
+        if modelConcept.isTypedDimension:
+            typedDomainElement = modelConcept.typedDomainElement
+            if isinstance(typedDomainElement, ModelConcept):
+                val.typedDomainQnames.add(typedDomainElement.qname)
+                val.typedDomainElements.add(typedDomainElement)
     
 '''
 def factCheck(val, fact):
@@ -38,7 +53,7 @@ def factCheck(val, fact):
     except Exception as err:
 '''
     
-def final(val, conceptsUsed):
+def final(val):
     modelXbrl = val.modelXbrl
     # moved from ValidateFiling
     for qname, modelType in modelXbrl.qnameTypes.items():
@@ -131,14 +146,23 @@ def final(val, conceptsUsed):
     modelXbrl.profileActivity("... SBR role types and type facits checks", minTimeToShow=1.0)
     # end moved from ValidateFiling
 
+    # load default prefixes
+    for docs in modelXbrl.namespaceDocs.values():
+        for doc in docs:
+            if doc.type == ModelDocument.Type.SCHEMA and doc.targetNamespace not in val.namespacePrefix:
+                for prefix, NS in doc.xmlRootElement.nsmap.items():
+                    if val.namespacePrefix == NS:
+                        val.namespacePrefix[NS] = prefix
+                        break
     # 3.2.4.4 check each using prefix against taxonomy declaring the prefix
     for docs in modelXbrl.namespaceDocs.values():
         for doc in docs:
-            for prefix, NS in doc.xmlRootElement.nsmap.items():
-                if NS in val.namespacePrefix and prefix != val.namespacePrefix[NS]:
-                    modelXbrl.error("SBR.NL.3.2.4.04",
-                        _("The assigned namespace prefix %(assignedPrefix)s for the schema that declares the targetnamespace %(namespace)s, MUST be adhired by all other NT schemas, referencedPrefix: %(referencedPrefix)s"),
-                        modelObject=doc.xmlRootElement, namespace=NS, assignedPrefix=val.namespacePrefix.get(NS, ''), referencedPrefix=prefix)
+            if doc.type == ModelDocument.Type.SCHEMA:
+                for prefix, NS in doc.xmlRootElement.nsmap.items():
+                    if NS in val.namespacePrefix and prefix != val.namespacePrefix[NS]:
+                        modelXbrl.error("SBR.NL.3.2.4.04",
+                            _("The assigned namespace prefix %(assignedPrefix)s for the schema that declares the targetnamespace %(namespace)s, MUST be adhired by all other NT schemas, referencedPrefix: %(referencedPrefix)s"),
+                            modelObject=doc.xmlRootElement, namespace=NS, assignedPrefix=val.namespacePrefix.get(NS, ''), referencedPrefix=prefix)
 
     # check non-concept elements that can appear in elements for labels (concepts checked by 
     labelsRelationshipSet = modelXbrl.relationshipSet((XbrlConst.conceptLabel, XbrlConst.elementLabel))
@@ -161,7 +185,7 @@ def final(val, conceptsUsed):
                     _("XML nodes that can appear in instances MUST have standard labels in the local language: %(element)s"),
                     modelObject=eltDef, element=eltDef.qname)
 
-    del val.prefixNamespace, val.namespacePrefix, val.idObjects
+    del val.prefixNamespace, val.namespacePrefix, val.idObjects, val.typedDomainElements
 
 def checkDTSdocument(val, modelDocument):
     modelXbrl = val.modelXbrl
@@ -171,7 +195,7 @@ def checkDTSdocument(val, modelDocument):
             modelXbrl.warning("EBA.1.1",
                     _('XBRL instance documents SHOULD use the extension ".xbrl" encoding but it is "%(extension)s"'),
                     modelObject=modelDocument, xmlEncoding=os.path.splitext(modelDocument.basename)[1])
-        if modelDocument.documentEncoding.lower() != "utf-8":
+        if modelDocument.documentEncoding.lower() not in ("utf-8", "utf-8-sig"):
             modelXbrl.error("EBA.1.4",
                     _('XBRL instance documents MUST use "UTF-8" encoding but is "%(xmlEncoding)s"'),
                     modelObject=modelDocument, xmlEncoding=modelDocument.documentEncoding)
@@ -206,7 +230,7 @@ def checkDTSdocument(val, modelDocument):
             if fIndicator.xValue in filingIndicators:
                 modelXbrl.error("EBA.1.6.1",
                         _('Multiple filing indicators facts for indicator %(filingIndicator)s.'),
-                        modelObject=(fIndicator, filingIndicators[filingIndicators]), fIndicator.xValue)
+                        modelObject=(fIndicator, filingIndicators[filingIndicators]), filingIndicator=fIndicator.xValue)
             filingIndicators[fIndicator.xValue] = fIndicator
         
         if not filingIndicators:
@@ -226,14 +250,14 @@ def checkDTSdocument(val, modelDocument):
         cntxEntities = set()
         timelessDatePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*$")
         for cntx in modelXbrl.contexts.values():
-            cntxIDs.add(cntx.contextID)
+            cntxIDs.add(cntx.id)
             cntxEntities.add(cntx.entityIdentifier)
             dateElts = XmlUtil.descendants(cntx, XbrlConst.xbrli, ("startDate","endDate","instant"))
-            if any(not timelessDatePattern.matches(e) for e in dateElts):
+            if any(not timelessDatePattern.match(e.textValue) for e in dateElts):
                 modelXbrl.error("EBA.2.10",
                         _('Period dates must be whole dates without time or timezone: %(dates)s.'),
                         modelObject=cntx, dates=", ".join(e.text for e in dateElts))
-            if cntx.isForever:
+            if cntx.isForeverPeriod:
                 modelXbrl.error("EBA.2.11",
                         _('Forever context period is not allowed.'),
                         modelObject=cntx)
@@ -249,7 +273,7 @@ def checkDTSdocument(val, modelDocument):
                 if len(childTags) > 0:
                     modelXbrl.error("EBA.2.15",
                         _("Scenario of context Id %(context)s has disallowed content: %(content)s"),
-                        modelObject=cntx, context=cntx.contextID, content=childTags)
+                        modelObject=cntx, context=cntx.id, content=childTags)
                 
         unusedCntxIDs = cntxIDs - {fact.contextID for fact in modelXbrl.facts}
         if unusedCntxIDs:
@@ -268,14 +292,14 @@ def checkDTSdocument(val, modelDocument):
         nilFacts = []
         unitIDsUsed = set()
         currenciesUsed = {}
-        for qname, facts in modelXbrl.factsByQname:
+        for qname, facts in modelXbrl.factsByQname.items():
             for f in facts:
                 concept = f.concept
                 k = (f.context.contextDimAwareHash if f.context is not None else None,
                      f.unit.hash if f.unit is not None else None,
                      hash(f.xmlLang))
                 if k not in otherFacts:
-                    otherFacts[k] = {fact}
+                    otherFacts[k] = {f}
                 else:
                     matches = [o
                                for o in otherFacts[k]
@@ -335,17 +359,18 @@ def checkDTSdocument(val, modelDocument):
                     _("Units %(unit1)s and %(unit2)s have same measures.'"),
                     modelObject=(unit, unitHashes[h]), unit1=unit.id, unit2=unitHashes[h].id)
             else:
-                unitHashes[h] = f.unit
+                unitHashes[h] = unit
         if len(currenciesUsed) > 1:
             modelXbrl.error("EBA.3.1",
                 _("There MUST be only one currency but %(numCurrencies)s were found: %(currencies)s.'"),
                 modelObject=currenciesUsed.values(), numCurrencies=len(currenciesUsed), currencies=", ".join(str(c) for c in currenciesUsed.keys()))
             
         namespacePrefixesUsed = defaultdict(set)
-        prefixesUnused = set(modelDocument.xmlRootElement.keys()).copy
+        prefixesUnused = set(modelDocument.xmlRootElement.keys()).copy()
         for elt in modelDocument.xmlRootElement.iter():
-            namespacePrefixesUsed[elt.qname.namespaceURI].add(elt.qname.prefix)
-            prefixesUnused.discard(elt.qname.prefix)
+            if isinstance(elt, ModelObject): # skip comments and processing instructions
+                namespacePrefixesUsed[elt.qname.namespaceURI].add(elt.qname.prefix)
+                prefixesUnused.discard(elt.qname.prefix)
         if prefixesUnused:
             modelXbrl.warning("EBA.3.4",
                 _("There SHOULD be no unused prefixes but these were declared: %(unusedPrefixes)s.'"),
@@ -355,10 +380,10 @@ def checkDTSdocument(val, modelDocument):
             if nsDocs:
                 for nsDoc in nsDocs:
                     nsDocPrefix = XmlUtil.xmlnsprefix(nsDoc.xmlRootElement, ns)
-                    if any(prefix != nsDocPrefix for prefix in prefixes):
+                    if any(prefix != nsDocPrefix for prefix in prefixes if prefix is not None):
                         modelXbrl.warning("EBA.3.5",
                             _("Prefix for namespace %(namespace)s is %(declaredPrefix)s but these were found %(foundPrefixes)s"),
-                            modelObject=modelDocument, namespace=ns, declaredPrefix=nsDocPrefix, foundPrefixes=', '.join(sorted(prefixes)))                        
+                            modelObject=modelDocument, namespace=ns, declaredPrefix=nsDocPrefix, foundPrefixes=', '.join(sorted(prefixes - {None})))                        
                 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
@@ -369,9 +394,10 @@ __pluginInfo__ = {
     'author': 'Mark V Systems',
     'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
-    'Validate.SBRNL.Start': setup,
+    'DisclosureSystem.Types': dislosureSystemTypes,
+    'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,
+    'Validate.XBRL.Start': setup,
     # 'Validate.SBRNL.Fact': factCheck  (no instances being checked by SBRNL,
-    'Validate.SBRNL.Finally': final,
-    'Validate.SBRNL.DTS.document': checkDTSdocument,
-    'ModelDocument.CustomLoader': checkForBOMs
+    'Validate.XBRL.Finally': final,
+    'Validate.XBRL.DTS.document': checkDTSdocument
 }
