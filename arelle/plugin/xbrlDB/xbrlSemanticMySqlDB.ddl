@@ -333,7 +333,7 @@ CREATE TABLE data_point (
     parent_datapoint_id bigint, -- id of tuple parent
     aspect_id bigint NOT NULL,
     context_xml_id varchar(1024), -- (do we need this?)
-    entity_id bigint,
+    entity_identifier_id bigint,
     period_id bigint,
     aspect_value_selection_id bigint,
     unit_id bigint,

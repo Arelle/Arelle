@@ -249,6 +249,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             return None
         self.showStatus("insert entity")
         LEI = None
+        entity_comparator = ('legal_entity_number', 'file_number') if LEI else ('file_number',)
         table = self.getTable('entity', 'entity_id', 
                               ('legal_entity_number',
                                'file_number',
@@ -264,7 +265,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                'filer_category',
                                'public_float',
                                'trading_symbol'), 
-                              ('legal_entity_number', 'file_number'), 
+                              entity_comparator, # cannot compare None = None if LEI is absent, always False
                               ((LEI, 
                                 rssItemGet("fileNumber") or entityInfo.get("file-number")  or str(int(time.time())),
                                 rssItemGet("cikNumber") or entityInfo.get("cik"),
@@ -292,10 +293,16 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                 ),),
                               checkIfExisting=True,
                               returnExistenceStatus=True)
-        for id, _LEI, filing_number, existenceStatus in table:
-            self.entityId = id
-            self.entityPreviouslyInDB = existenceStatus
-            break
+        if LEI:
+            for id, _LEI, filing_number, existenceStatus in table:
+                self.entityId = id
+                self.entityPreviouslyInDB = existenceStatus
+                break
+        else:
+            for id, filing_number, existenceStatus in table:
+                self.entityId = id
+                self.entityPreviouslyInDB = existenceStatus
+                break
         if any ('former-conformed-name' in key for key in entityInfo.keys()):
             self.getTable('former_entity', None, 
                           ('entity_id', 'former_name', 'date_changed'),

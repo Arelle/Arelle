@@ -9,8 +9,8 @@
 set quoted_identifier on;
 GO
 -- drop tables before sequences, then drop seqences
-IF OBJECT_ID('entity', 'U') IS NOT NULL DROP TABLE "filing";
-IF OBJECT_ID('former_entity', 'U') IS NOT NULL DROP TABLE "filing";
+IF OBJECT_ID('entity', 'U') IS NOT NULL DROP TABLE "entity";
+IF OBJECT_ID('former_entity', 'U') IS NOT NULL DROP TABLE "former_entity";
 IF OBJECT_ID('filing', 'U') IS NOT NULL DROP TABLE "filing";
 IF OBJECT_ID('report', 'U') IS NOT NULL DROP TABLE "report";
 IF OBJECT_ID('document', 'U') IS NOT NULL DROP TABLE "document";
@@ -25,7 +25,7 @@ IF OBJECT_ID('relationship_set', 'U') IS NOT NULL DROP TABLE "relationship_set";
 IF OBJECT_ID('root', 'U') IS NOT NULL DROP TABLE "root";
 IF OBJECT_ID('relationship', 'U') IS NOT NULL DROP TABLE "relationship";
 IF OBJECT_ID('data_point', 'U') IS NOT NULL DROP TABLE "data_point";
-IF OBJECT_ID('entity_identifier', 'U') IS NOT NULL DROP TABLE "entity";
+IF OBJECT_ID('entity_identifier', 'U') IS NOT NULL DROP TABLE "entity_identifier";
 IF OBJECT_ID('period', 'U') IS NOT NULL DROP TABLE "period";
 IF OBJECT_ID('unit', 'U') IS NOT NULL DROP TABLE "unit";
 IF OBJECT_ID('unit_measure', 'U') IS NOT NULL DROP TABLE "unit_measure";
@@ -38,6 +38,7 @@ IF OBJECT_ID('industry', 'U') IS NOT NULL DROP TABLE "industry";
 IF OBJECT_ID('industry_level', 'U') IS NOT NULL DROP TABLE "industry_level";
 IF OBJECT_ID('industry_structure', 'U') IS NOT NULL DROP TABLE "industry_structure";
 GO
+IF OBJECT_ID('seq_entity', 'SO') IS NOT NULL DROP SEQUENCE seq_entity;
 IF OBJECT_ID('seq_filing', 'SO') IS NOT NULL DROP SEQUENCE seq_filing;
 IF OBJECT_ID('seq_object', 'SO') IS NOT NULL DROP SEQUENCE seq_object;
 IF OBJECT_ID('seq_relationship_set', 'SO') IS NOT NULL DROP SEQUENCE seq_relationship_set;
@@ -50,7 +51,7 @@ ALTER SEQUENCE seq_entity RESTART;
 GO
 
 CREATE TABLE entity (
-    entity_id bigint bigint default next value for seq_entity,
+    entity_id bigint default next value for seq_entity,
     legal_entity_number nvarchar(30), -- LEI
     file_number nvarchar(30), -- authority internal number
     reference_number nvarchar(30), -- external code, e.g. CIK
@@ -263,7 +264,7 @@ CREATE TABLE "relationship" (
     relationship_id bigint DEFAULT NEXT VALUE FOR seq_object,
     document_id bigint NOT NULL,
     xml_id nvarchar(max),
-    xml_child_seq nvarchar(450),
+    xml_child_seq nvarchar(441),
     relationship_set_id bigint NOT NULL,
     reln_order float(24),
     from_id bigint,
@@ -290,7 +291,7 @@ CREATE TABLE "data_point" (
     parent_datapoint_id bigint, -- id of tuple parent
     aspect_id bigint NOT NULL,
     context_xml_id nvarchar(max), -- 693 max length observed in 2012-2014)
-    entity_id bigint,
+    entity_identifier_id bigint,
     period_id bigint,
     aspect_value_selection_id bigint,
     unit_id bigint,
@@ -312,7 +313,7 @@ CREATE TABLE "entity_identifier" (
     scheme nvarchar(450) NOT NULL,
     identifier nvarchar(441) NOT NULL
 );
-CREATE INDEX entity_identifier_index01 ON "entity_identifier" (entity_id);
+CREATE INDEX entity_identifier_index01 ON "entity_identifier" (entity_identifier_id);
 CREATE INDEX entity_identifier_index02 ON "entity_identifier" (report_id, identifier);
 
 GO

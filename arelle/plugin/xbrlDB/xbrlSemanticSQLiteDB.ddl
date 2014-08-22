@@ -239,7 +239,7 @@ CREATE TABLE data_point (
     parent_datapoint_id INTEGER, -- id of tuple parent
     aspect_id INTEGER NOT NULL,
     conTEXT_xml_id TEXT, -- (do we need this?)
-    entity_id INTEGER,
+    entity_identifier_id INTEGER,
     period_id INTEGER,
     aspect_value_selections_id INTEGER,
     unit_id INTEGER,

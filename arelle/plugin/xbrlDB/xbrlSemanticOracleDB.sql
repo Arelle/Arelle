@@ -323,7 +323,7 @@ CREATE TABLE "data_point" (
     parent_datapoint_id number(19), -- id of tuple parent
     aspect_id number(19),
     context_xml_id varchar2(1024), -- (max observed length 693 in SEC 2012-2014)
-    entity_id number(19),
+    entity_identifier_id number(19),
     period_id number(19),
     aspect_value_selection_id number(19),
     unit_id number(19),
@@ -345,7 +345,7 @@ CREATE TRIGGER data_point_insert_trigger BEFORE INSERT ON "data_point"
     END;
 /
 CREATE TABLE "entity_identifier" (
-    entity_id number(19) NOT NULL,
+    entity_identifier_id number(19) NOT NULL,
     report_id number(19),
     scheme varchar2(1024) NOT NULL,
     identifier varchar2(1024) NOT NULL,
@@ -356,7 +356,7 @@ CREATE INDEX entity_identifier_index02 ON "entity_identifier" (report_id, scheme
 CREATE TRIGGER entity_insert_trigger BEFORE INSERT ON "entity" 
   FOR EACH ROW
     BEGIN
-       SELECT seq_object.NEXTVAL INTO :NEW.entity_id from dual;
+       SELECT seq_object.NEXTVAL INTO :NEW.entity_identifier_id from dual;
     END;
 /
 CREATE TABLE "period" (
