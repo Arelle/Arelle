@@ -324,9 +324,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                 rssItemGet("formType") or entityInfo.get("form-type"),
                                 self.entityId,
                                 rssItemGet("cikNumber") or entityInfo.get("cik"),
-                                rssItemGet("acceptanceDatetime") or entityInfo.get("acceptance-datetime"),
+                                rssItemGet("acceptanceDatetime") or entityInfo.get("acceptance-datetime") or now,
                                 True,
-                                rssItemGet("filingDate") or entityInfo.get("filing-date") or datetime.datetime.min,  # NOT NULL
+                                rssItemGet("filingDate") or entityInfo.get("filing-date") or now,  # NOT NULL
                                 self.modelXbrl.modelDocument.creationSoftware,
                                 rssItemGet("htmlUrl") or entityInfo.get("primary-document-url"),
                                 rssItemGet("url") or entityInfo.get("instance-url")
