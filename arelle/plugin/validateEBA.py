@@ -333,7 +333,7 @@ def checkDTSdocument(val, modelDocument):
                     '''
                     unit = f.unit
                     if concept.isMonetary and unit is not None and unit.measures[0]:
-                        currenciesUsed.add(unit.measures[0][0])
+                        currenciesUsed[unit.measures[0][0]] = unit
                 if f.unitID is not None:
                     unitIDsUsed.add(f.unitID)
                 if f.isNil:
@@ -374,7 +374,7 @@ def checkDTSdocument(val, modelDocument):
         if prefixesUnused:
             modelXbrl.warning("EBA.3.4",
                 _("There SHOULD be no unused prefixes but these were declared: %(unusedPrefixes)s.'"),
-                modelObject=modelDocument, prefixesUnused=', '.join(sorted(prefixesUnused)))
+                modelObject=modelDocument, unusedPrefixes=', '.join(sorted(prefixesUnused)))
         for ns, prefixes in namespacePrefixesUsed.items():
             nsDocs = modelXbrl.namespaceDocs.get(ns)
             if nsDocs:
