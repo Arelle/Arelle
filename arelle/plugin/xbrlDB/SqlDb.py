@@ -274,36 +274,41 @@ class SqlDbConnection():
         if self.product == "orcl":
             self.execute("""
                 BEGIN
-                    EXECUTE IMMEDIATE 'drop table INPUT'; 
+                    EXECUTE IMMEDIATE 'drop table {}'; 
                     EXCEPTION WHEN OTHERS THEN NULL;
                 END;
-                """, close=True, commit=False, fetch=False)
+                """.format(self.tempInputTableName), 
+                close=True, commit=False, fetch=False, action="dropping temporary table")
         elif self.product == "mssql":
             self.execute("""
-                IF OBJECT_ID('tempdb..#input', 'U') IS NOT NULL 
-                    DROP TABLE filing;
-                """, close=True, commit=False, fetch=False)
+                DROP TEMPORARY TABLE IF EXISTS {};
+                """.format(self.tempInputTableName), 
+                close=True, commit=False, fetch=False, action="dropping temporary table")
             
-    def lockTables(self, tableNames):
-        if self.product in ("postgres", "orcl"):
+    def lockTables(self, tableNames, isSessionTransaction=False):
+        ''' lock for an entire transaction has isSessionTransaction=True, locks until commit
+            some databases require locks per operation (such as MySQL), when isSessionTransaction=False
+        '''
+        if self.product in ("postgres", "orcl") and isSessionTransaction:
             result = self.execute('LOCK {} IN SHARE ROW EXCLUSIVE MODE'.format(', '.join(tableNames)),
-                                  close=False, commit=False, fetch=False, action="dropping table")
+                                  close=False, commit=False, fetch=False, action="locking table")
         elif self.product in ("mysql",):
             result = self.execute('LOCK TABLES {}'
                                   .format(', '.join(['{} WRITE'.format(t) for t in tableNames])),
-                                  close=False, commit=False, fetch=False, action="dropping table")
-        elif self.product in ("sqlite",):
+                                  close=False, commit=False, fetch=False, action="locking table")
+        elif self.product in ("sqlite",) and isSessionTransaction:
             result = self.execute('BEGIN TRANSACTION',
-                                  close=False, commit=False, fetch=False, action="dropping table")
+                                  close=False, commit=False, fetch=False, action="locking table")
         # note, there is no lock for MS SQL (as far as I could find)
+        
         
     def unlockAllTables(self):
         if self.product in ("mysql",):
             result = self.execute('UNLOCK TABLES',
-                                  close=False, commit=False, fetch=False, action="dropping table")
+                                  close=False, commit=False, fetch=False, action="locking table")
         elif self.product in ("sqlite",):
             result = self.execute('COMMIT TRANSACTION',
-                                  close=False, commit=False, fetch=False, action="dropping table")
+                                  close=False, commit=False, fetch=False, action="locking table")
         
     def execute(self, sql, commit=False, close=True, fetch=True, params=None, action="execute"):
         cursor = self.cursor
@@ -666,13 +671,21 @@ WITH row_values (%(newCols)s) AS (
                               {"table": _table,
                                "match": ' AND '.join('x.{0} {1} i.{0}'.format(col, comparisonOperator) 
                                                      for col in matchCols)})
+                    _whereLock = (", %(table)s AS x READ" % {"table": _table})
                 else:
                     _where = "";
+                    _whereLock = ""
+                sql.append( ("LOCK TABLES %(table)s WRITE %(whereLock)s" %
+                             {"table": _table,
+                              "whereLock": _whereLock}, None, False) )
                 sql.append( ("INSERT INTO %(table)s ( %(newCols)s ) SELECT %(newCols)s FROM %(inputTable)s i %(where)s;" %     
                                 {"inputTable": _inputTableName,
                                  "table": _table,
                                  "newCols": ', '.join(newCols),
                                  "where": _where}, None, False) )
+            elif returnMatches or returnExistenceStatus:
+                sql.append( ("LOCK TABLES %(table)s READ" %
+                             {"table": _table}, None, False) )
             # don't know how to get status if existing
             if returnMatches or returnExistenceStatus:
                 sql.append( ("SELECT %(returningCols)s %(statusIfExisting)s from %(inputTable)s JOIN %(table)s ON ( %(match)s );" %
@@ -684,7 +697,7 @@ WITH row_values (%(newCols)s) AS (
                                  "statusIfExisting": ", FALSE" if returnExistenceStatus else "",
                                  "returningCols": ', '.join('{0}.{1}'.format(_table,col)
                                                             for col in returningCols)}, None, True) )
-            sql.append( ("DROP TABLE %(inputTable)s;" %
+            sql.append( ("DROP TEMPORARY TABLE %(inputTable)s;" %
                          {"inputTable": _inputTableName}, None, False) )
         elif self.product == "mssql":
             sql = [("CREATE TABLE #%(inputTable)s ( %(inputCols)s );" %
@@ -929,6 +942,9 @@ WITH input (%(valCols)s) AS ( VALUES %(values)s )
                         {"inputTable": _inputTableName,
                          "newCols": ', '.join(cols),
                          "values": values},
+                   "LOCK TABLES %(inputTable)s AS i READ, %(table)s AS t WRITE;" %     
+                        {"inputTable": _inputTableName,
+                         "table": _table},
                    "UPDATE %(inputTable)s i, %(table)s t SET %(settings)s WHERE i.%(idCol)s = t.%(idCol)s;" %     
                         {"inputTable": _inputTableName,
                          "table": _table,
@@ -936,7 +952,7 @@ WITH input (%(valCols)s) AS ( VALUES %(values)s )
                          "settings": ', '.join('t.{0} = i.{0}'.format(cols[i])
                                                for i, col in enumerate(cols)
                                                if i > 0)},
-                   "DROP TABLE %(inputTable)s;" % {"inputTable": _inputTableName}]
+                   "DROP TEMPORARY TABLE %(inputTable)s;" % {"inputTable": _inputTableName}]
         elif self.product == "mssql":
             sql = ["CREATE TABLE #%(inputTable)s ( %(valCols)s );" %
                         {"inputTable": _inputTableName,
