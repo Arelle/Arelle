@@ -678,18 +678,15 @@ class ModelXbrl:
             self._nonNilFactsInInstance = set(f for f in self.factsInInstance if not f.isNil)
             return self._nonNilFactsInInstance
         
-    @property
-    def factsByQname(self): # indexed by fact (concept) qname
+    def factsByQname(self, qname, defaultValue=None): # indexed by fact (concept) qname
         """Facts in the instance indexed by their QName, cached
         
         :returns: dict -- indexes are QNames, values are ModelFacts
         """
-        try:
-            return self._factsByQname
-        except AttributeError:
-            self._factsByQname = fbqn = defaultdict(set)
-            for f in self.factsInInstance: fbqn[f.qname].add(f)
-            return fbqn
+        fbqn = defaultdict(set)
+        for f in self.factsInInstance: fbqn[f.qname].add(f)
+        return fbqn.get(qname, defaultValue)
+
         
     def factsByDatatype(self, notStrict, typeQname): # indexed by fact (concept) qname
         """Facts in the instance indexed by data type QName, cached as types are requested
@@ -738,30 +735,23 @@ class ModelXbrl:
         If Member is NONDEFAULT, returns facts that have the dimension (explicit non-default or typed)
         If Member is DEFAULT, returns facts that have the dimension (explicit non-default or typed) defaulted
         """
-        try:
-            fbdq = self._factsByDimQname[dimQname]
-            return fbdq[memQname]
-        except AttributeError:
-            self._factsByDimQname = {}
-            return self.factsByDimMemQname(dimQname, memQname)
-        except KeyError:
-            self._factsByDimQname[dimQname] = fbdq = defaultdict(set)
-            for fact in self.factsInInstance: 
-                if fact.isItem:
-                    dimValue = fact.context.dimValue(dimQname)
-                    if isinstance(dimValue, ModelValue.QName):  # explicit dimension default value
-                        fbdq[None].add(fact) # set of all facts that have default value for dimension
-                        if dimQname in self.modelXbrl.qnameDimensionDefaults:
-                            fbdq[self.qnameDimensionDefaults[dimQname]].add(fact) # set of facts that have this dim and mem
-                            fbdq[DEFAULT].add(fact) # set of all facts that have default value for dimension
-                    elif dimValue is not None: # not default
-                        fbdq[None].add(fact) # set of all facts that have default value for dimension
-                        fbdq[NONDEFAULT].add(fact) # set of all facts that have non-default value for dimension
-                        if dimValue.isExplicit:
-                            fbdq[dimValue.memberQname].add(fact) # set of facts that have this dim and mem
-                    else: # default typed dimension
-                        fbdq[DEFAULT].add(fact)
-            return fbdq[memQname]
+        fbdq = defaultdict(set)
+        for fact in self.factsInInstance: 
+            if fact.isItem:
+                dimValue = fact.context.dimValue(dimQname)
+                if isinstance(dimValue, ModelValue.QName):  # explicit dimension default value
+                    fbdq[None].add(fact) # set of all facts that have default value for dimension
+                    if dimQname in self.modelXbrl.qnameDimensionDefaults:
+                        fbdq[self.qnameDimensionDefaults[dimQname]].add(fact) # set of facts that have this dim and mem
+                        fbdq[DEFAULT].add(fact) # set of all facts that have default value for dimension
+                elif dimValue is not None: # not default
+                    fbdq[None].add(fact) # set of all facts that have default value for dimension
+                    fbdq[NONDEFAULT].add(fact) # set of all facts that have non-default value for dimension
+                    if dimValue.isExplicit:
+                        fbdq[dimValue.memberQname].add(fact) # set of facts that have this dim and mem
+                else: # default typed dimension
+                    fbdq[DEFAULT].add(fact)
+        return fbdq[memQname]
         
     def matchFact(self, otherFact, unmatchedFactsStack=None, deemP0inf=False):
         """Finds matching fact, by XBRL 2.1 duplicate definition (if tuple), or by

@@ -112,7 +112,7 @@ def final(val):
                     _('Any reported XBRL instance document MUST contain only one xbrli:xbrl/link:schemaRef node, but %(entryPointCount)s.'),
                     modelObject=schemaRefElts, entryPointCount=len(schemaRefElts))
         filingIndicators = {}
-        for fIndicator in modelXbrl.factsByQname[qnFilingIndicator]:
+        for fIndicator in modelXbrl.factsByQname(qnFilingIndicator):
             _value = (fIndicator.xValue or fIndicator.value) # use validated xValue if DTS else value for skipDTS 
             if _value in filingIndicators:
                 modelXbrl.error("EBA.1.6.1",
@@ -125,26 +125,68 @@ def final(val):
                     _('Missing filing indicators.  Reported XBRL instances MUST include appropriate filing indicator elements'),
                     modelObject=modelDocument)
             
-        # non-streaming EBA checks
-        if not getattr(modelXbrl, "isStreamingMode", False):
+        numFilingIndicatorTuples = len(modelXbrl.factsByQname(qnFilingIndicators))
+        if numFilingIndicatorTuples > 1 and not getattr(modelXbrl, "isStreamingMode", False):
+            modelXbrl.info("EBA.1.6.2",                            
+                    _('Multiple filing indicators tuples when not in streaming mode (info).'),
+                    modelObject=modelXbrl.factsByQname(qnFilingIndicators))
+                    
+        # note EBA 2.1 is in ModelDocument.py
+        
+        cntxIDs = set()
+        cntxEntities = set()
+        timelessDatePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*$")
+        for cntx in modelXbrl.contexts.values():
+            cntxIDs.add(cntx.id)
+            cntxEntities.add(cntx.entityIdentifier)
+            dateElts = XmlUtil.descendants(cntx, XbrlConst.xbrli, ("startDate","endDate","instant"))
+            if any(not timelessDatePattern.match(e.textValue) for e in dateElts):
+                modelXbrl.error("EBA.2.10",
+                        _('Period dates must be whole dates without time or timezone: %(dates)s.'),
+                        modelObject=cntx, dates=", ".join(e.text for e in dateElts))
+            if cntx.isForeverPeriod:
+                modelXbrl.error("EBA.2.11",
+                        _('Forever context period is not allowed.'),
+                        modelObject=cntx)
+            if XmlUtil.hasChild(cntx, XbrlConst.xbrli, "segment"):
+                modelXbrl.error("EBA.2.14",
+                    _("The segment element not allowed in context Id: %(context)s"),
+                    modelObject=cntx, context=cntx.contextID)
+            for scenElt in XmlUtil.descendants(cntx, XbrlConst.xbrli, "scenario"):
+                childTags = ", ".join([child.prefixedName for child in scenElt.iterchildren()
+                                       if isinstance(child,ModelObject) and 
+                                       child.tag != "{http://xbrl.org/2006/xbrldi}explicitMember" and
+                                       child.tag != "{http://xbrl.org/2006/xbrldi}typedMember"])
+                if len(childTags) > 0:
+                    modelXbrl.error("EBA.2.15",
+                        _("Scenario of context Id %(context)s has disallowed content: %(content)s"),
+                        modelObject=cntx, context=cntx.id, content=childTags)
+                
+        unusedCntxIDs = cntxIDs - {fact.contextID for fact in modelXbrl.facts}
+        if unusedCntxIDs:
+            modelXbrl.warning("EBA.2.7",
+                    _('Unused xbrli:context nodes SHOULD NOT be present in the instance: %(unusedContextIDs)s.'),
+                    modelObject=[modelXbrl.contexts[unusedCntxID] for unusedCntxID in unusedCntxIDs], 
+                    unusedContextIDs=", ".join(sorted(unusedCntxIDs)))
+
+        if len(cntxEntities) > 1:
+            modelXbrl.warning("EBA.2.9",
+                    _('All entity identifiers and schemes must be the same, %(count)s found: %(entities)s.'),
+                    modelObject=modelDocument, count=len(cntxEntities), 
+                    entities=", ".join(sorted(str(cntxEntity) for cntxEntity in cntxEntities)))
             
-            # check sum of fact md5s
-            xbrlFactsCheckVersion = None
-            expectedSumOfFactMd5s = None
-            for pi in modelXbrl.xmlRootElement.getchildren():
-                if isinstance(pi, etree._ProcessingInstruction) and pi.target == "xbrl-facts-check":
-                    if "version" in pi.attrib:
-                        xbrlFactsCheckVersion = pi.attrib["version"]
-                    elif "sum-of-fact-md5s" in pi.attrib:
-                        sumOfFactMd5s = Md5Sum(pi.attrib["sum-of-fact-md5s"])
-            if xbrlFactsCheckVersion and sumOfFactMd5s:
-                sumOfFactMd5s = Md5Sum()
-                for f in modelXbrl.factsInInstance:
-                    sumOfFactMd5s += f.md5sum
-                if sumOfFactMd5s != expectedSumOfFactMd5s:
-                    modelXbrl.warning("EIOPA:xbrlFactsCheckWarning",
-                            _("XBRL facts sum of md5s expected %(expectedMd5)s not matched to actual sum %(actualMd5Sum)s"),
-                            modelObject=modelXbrl, expectedMd5=expectedSumOfFactMd5s, actualMd5Sum=sumOfFactMd5s)
+        otherFacts = {} # (contextHash, unitHash, xmlLangHash) : fact
+        nilFacts = []
+        unitIDsUsed = set()
+        currenciesUsed = {}
+        for facts in modelXbrl.factsInInstance:
+            for f in facts:
+                concept = f.concept
+                k = (f.context.contextDimAwareHash if f.context is not None else None,
+                     f.unit.hash if f.unit is not None else None,
+                     hash(f.xmlLang))
+                if k not in otherFacts:
+                    otherFacts[k] = {f}
                 else:
                     modelXbrl.info("info",
                             _("Successful XBRL facts sum of md5s."),
