@@ -34,10 +34,13 @@ monthdayyearPattern = re.compile(r"\s*([0-9]{1,2})[^0-9]+([0-9]{1,2})[^0-9]+([0-
 
 dateUsPattern = re.compile(r"\s*(\w+)\s+(\d+),\s+(\d+)\s*")
 dateEuPattern = re.compile(r"\s*(\d+)\s+(\w+)\s+(\d+)\s*")
+daymonthDkPattern = re.compile(r"\s*([0-9]{1,2})[^0-9]+(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec|JAN|FEB|MAR|APR|MAJ|JUN|JUL|AUG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Maj|Jun|Jul|Aug|Sep|Okt|Nov|Dec)\s*")
 daymonthEnPattern = re.compile(r"\s*([0-9]{1,2})[^0-9]+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)\s*")
 monthdayEnPattern = re.compile(r"\s*(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[^0-9]+([0-9]{1,2}[a-zA-Z]{0,2})\s*")
+daymonthyearDkPattern = re.compile(r"\s*([0-9]{1,2})[^0-9]+(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec|JAN|FEB|MAR|APR|MAJ|JUN|JUL|AUG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Maj|Jun|Jul|Aug|Sep|Okt|Nov|Dec)[^0-9]+([0-9]{4}|[0-9]{1,2})\s*")
 daymonthyearEnPattern = re.compile(r"\s*([0-9]{1,2})[^0-9]+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[^0-9]+([0-9]{4}|[0-9]{1,2})\s*")
 monthdayyearEnPattern = re.compile(r"\s*(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[^0-9]+([0-9]+)[^0-9]+([0-9]+)\s*")
+monthyearDkPattern = re.compile(r"\s*(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec|JAN|FEB|MAR|APR|MAJ|JUN|JUL|AUG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Maj|Jun|Jul|Aug|Sep|Okt|Nov|Dec)[^0-9]+([0-9]+)\s*")
 monthyearEnPattern = re.compile(r"\s*(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[^0-9]+([0-9]+)\s*")
 yearmonthEnPattern = re.compile(r"\s*([0-9]+)[^0-9]+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)\s*")
 
@@ -45,6 +48,9 @@ erayearmonthjpPattern = re.compile("[\\s\u00A0]*(\u660E\u6CBB|\u660E|\u5927\u6B6
 erayearmonthdayjpPattern = re.compile("[\\s\u00A0]*(\u660E\u6CBB|\u660E|\u5927\u6B63|\u5927|\u662D\u548C|\u662D|\u5E73\u6210|\u5E73)[\\s\u00A0]*([0-9]{1,2}|\u5143)[\\s\u00A0]*\u5E74[\\s\u00A0]*([0-9]{1,2})[\\s\u00A0]*\u6708[\\s\u00A0]*([0-9]{1,2})[\\s\u00A0]*\u65E5[\\s\u00A0]*")
 yearmonthcjkPattern = re.compile("[\\s\u00A0]*([0-9]{4}|[0-9]{1,2})[\\s\u00A0]*\u5E74[\\s\u00A0]*([0-9]{1,2})[\\s\u00A0]*\u6708\s*")
 yearmonthdaycjkPattern = re.compile("[\\s\u00A0]*([0-9]{4}|[0-9]{1,2})[\\s\u00A0]*\u5E74[\\s\u00A0]*([0-9]{1,2})[\\s\u00A0]*\u6708[\\s\u00A0]*([0-9]{1,2})[\\s\u00A0]*\u65E5[\\s\u00A0]*")
+
+monthyearPattern = re.compile("[\\s\u00A0]*([0-9]{1,2})[^0-9]+([0-9]{4}|[0-9]{1,2})[\\s\u00A0]*")
+yearmonthdayPattern = re.compile("[\\s\u00A0]*([0-9]{4}|[0-9]{1,2})[^0-9]+([0-9]{1,2})[^0-9]+([0-9]{1,2})[\\s\u00A0]*")
 
 numcommadecimalPattern = re.compile(r"\s*[0-9]{1,3}((\.| |\u00A0)?[0-9]{3})*(,[0-9]+)?\s*")
 numunitdecimalPattern = re.compile(r"\s*([0-9]+)([^0-9]+)([0-9]+)([^0-9]*)\s*")
@@ -56,7 +62,12 @@ monthnumber = {"January":1, "February":2, "March":3, "April":4, "May":5, "June":
                "JAN":1, "FEB":2, "MAR":3, "APR":4, "MAY":5, "JUN":6, 
                "JUL":7, "AUG":8, "SEP":9, "OCT":10, "NOV":12, "DEC":13, 
                "JANUARY":1, "FEBRUARY":3, "MARCH":4, "APRIL":5, "MAY":6, "JUNE":7, 
-               "JULY":8, "AUGUST":9, "SEPTEMBER":9, "OCTOBER":10, "NOVEMBER":11, "DECEMBER":12,}
+               "JULY":8, "AUGUST":9, "SEPTEMBER":9, "OCTOBER":10, "NOVEMBER":11, "DECEMBER":12,
+               # danish
+               "jan":1, "feb":2, "mar": 3, "apr":4, "maj":5, "jun":6,
+               "jul":7, "aug":8, "sep":9, "okt":10, "nov":11, "dec":12,
+               "MAJ":5, "OKT":10, "Maj":5, "Okt":10,
+               }
 
 # common helper functions
 
@@ -151,6 +162,12 @@ def datemonthday(arg):
         return "--{0}-{1}".format(z2(m.group(1)), z2(m.group(2)))
     raise XPathContext.FunctionArgType(1,"xs:gMonthDay")
     
+def datedaymonthdk(arg):
+    m = daymonthDkPattern.match(arg)
+    if m and m.lastindex == 2:
+        return "--{0:02}-{1}".format(monthnumber[m.group(2)], z2(m.group(1)))
+    raise XPathContext.FunctionArgType(1,"xs:gMonthDay")
+    
 def datedaymonthen(arg):
     m = daymonthEnPattern.match(arg)
     if m and m.lastindex == 2:
@@ -175,6 +192,18 @@ def datemonthdayyear(arg):
         return "{0}-{1}-{2}".format(yr(m.group(3)), z2(m.group(1)), z2(m.group(2)))
     raise XPathContext.FunctionArgType(1,"xs:date")
     
+def datemonthyear(arg):
+    m = monthyearPattern.match(arg) # "(M)M*(Y)Y(YY)", with non-numeric separator,
+    if m and m.lastindex == 2:
+        return "{0}-{1:02}".format(yr(m.group(2)), z2(m.group(1)))
+    raise XPathContext.FunctionArgType(1,"xs:gYearMonth")
+    
+def datemonthyeardk(arg):
+    m = monthyearDkPattern.match(arg)
+    if m and m.lastindex == 2:
+        return "{0}-{1:02}".format(yr(m.group(2)), monthnumber[m.group(1)])
+    raise XPathContext.FunctionArgType(1,"xs:gYearMonth")
+    
 def datemonthyearen(arg):
     m = monthyearEnPattern.match(arg)
     if m and m.lastindex == 2:
@@ -187,12 +216,18 @@ def dateyearmonthen(arg):
         return "{0}-{1:02}".format(yr(m.group(1)), monthnumber[m.group(2)])
     raise XPathContext.FunctionArgType(1,"xs:gYearMonth")
 
+def datedaymonthyeardk(arg):
+    m = daymonthyearDkPattern.match(arg)
+    if m and m.lastindex == 3:
+        return "{0}-{1:02}-{2}".format(yr(m.group(3)), monthnumber[m.group(2)], z2(m.group(1)))
+    raise XPathContext.FunctionArgType(1,"xs:date")
+
 def datedaymonthyearen(arg):
     m = daymonthyearEnPattern.match(arg)
     if m and m.lastindex == 3:
         return "{0}-{1:02}-{2}".format(yr(m.group(3)), monthnumber[m.group(2)], z2(m.group(1)))
     raise XPathContext.FunctionArgType(1,"xs:date")
-    
+
 def datemonthdayyearen(arg):
     m = monthdayyearEnPattern.match(arg)
     if m and m.lastindex == 3:
@@ -203,6 +238,12 @@ def dateerayearmonthdayjp(arg):
     m = erayearmonthdayjpPattern.match(jpDigitsToNormal(arg))
     if m and m.lastindex == 4:
         return "{0}-{1}-{2}".format(eraYear(m.group(1), m.group(2)), z2(m.group(3)), z2(m.group(4)))
+    raise XPathContext.FunctionArgType(1,"xs:date")
+
+def dateyearmonthday(arg):
+    m = yearmonthdayPattern.match(jpDigitsToNormal(arg)) # (Y)Y(YY)*MM*DD with kangu full-width numerals
+    if m and m.lastindex == 3:
+        return "{0}-{1}-{2}".format(yr(m.group(1)), z2(m.group(2)), z2(m.group(3)))
     raise XPathContext.FunctionArgType(1,"xs:date")
 
 def dateerayearmonthjp(arg):
@@ -303,12 +344,48 @@ ixtFunctions = {
     'zerodash': zerodash,
     'numdotdecimal': numdotdecimal,
     'numunitdecimal': numunitdecimal,
+    
+    # transformation registry v-3 functions
+    
+    # same as v2: 'booleanfalse': booleanfalse,
+    # same as v2: 'booleantrue': booleantrue,
+    'calindaymonthyear': nocontent, # TBD: calindaymonthyear,
+    'calinmonthyear': nocontent, # TBD: calinmonthyear,
+    # same as v2: 'datedaymonth': datedaymonth,
+    'datedaymonthdk': datedaymonthdk,
+    # same as v2: 'datedaymonthen': datedaymonthen,
+    # same as v2: 'datedaymonthyear': datedaymonthyear,
+    'datedaymonthyeardk': datedaymonthyeardk,
+    # same as v2: 'datedaymonthyearen': datedaymonthyearen,
+    'datedaymonthyearin': nocontent, # TBD: datedaymonthyearin,
+    # same as v2: 'dateerayearmonthdayjp': dateerayearmonthdayjp,
+    # same as v2: 'dateerayearmonthjp': dateerayearmonthjp,
+    # same as v2: 'datemonthday': datemonthday,
+    # same as v2: 'datemonthdayen': datemonthdayen,
+    # same as v2: 'datemonthdayyear': datemonthdayyear, 
+    # same as v2: 'datemonthdayyearen': datemonthdayyearen,
+    'datemonthyear': datemonthyear,
+    'datemonthyeardk': datemonthyeardk,
+    # same as v2: 'datemonthyearen': datemonthyearen,
+    'datemonthyearin': nocontent, # TBD: datemonthyearin,
+    # same as v2: 'dateyearmonthcjk': dateyearmonthcjk,
+    'dateyearmonthday': dateyearmonthday, # (Y)Y(YY)*MM*DD allowing kanji full-width numerals
+    # same as v2: 'dateyearmonthdaycjk': dateyearmonthdaycjk,
+    # same as v2: 'dateyearmonthen': dateyearmonthen,
+    # same as v2: 'nocontent': nocontent,
+    # same as v2: 'numcommadecimal': numcommadecimal,
+    # same as v2: 'numdotdecimal': numdotdecimal,
+    'numdotdecimalin': nocontent, # TBD: numdotdecimalin,
+    # same as v2: 'numunitdecimal': numunitdecimal,
+    'numunitdecimalin': nocontent, # TBD: numunitdecimalin,
+    # same as v2: 'zerodash': zerodash,
 }
 
 deprecatedNamespaceURI = 'http://www.xbrl.org/2008/inlineXBRL/transformation' # the CR/PR pre-REC namespace
 
 ixtNamespaceURIs = {
-    'http://www.xbrl.org/inlineXBRL/transformation/2010-04-20',
-    'http://www.xbrl.org/inlineXBRL/transformation/2011-07-31',
+    'http://www.xbrl.org/inlineXBRL/transformation/2010-04-20', # transformation registry v1
+    'http://www.xbrl.org/inlineXBRL/transformation/2011-07-31', # transformation registry v2
+    'http://www.xbrl.org/inlineXBRL/transformation/2014-05-14', # transformation registry v3
     'http://www.xbrl.org/2008/inlineXBRL/transformation' # the CR/PR pre-REC namespace
 }
