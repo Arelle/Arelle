@@ -113,8 +113,7 @@ def final(val):
                     modelObject=schemaRefElts, entryPointCount=len(schemaRefElts))
         filingIndicators = {}
         for fIndicator in modelXbrl.factsByQname(qnFilingIndicator):
-            _value = (fIndicator.xValue or fIndicator.value) # use validated xValue if DTS else value for skipDTS 
-            if _value in filingIndicators:
+            if fIndicator.xValue in filingIndicators:
                 modelXbrl.error("EBA.1.6.1",
                         _('Multiple filing indicators facts for indicator %(filingIndicator)s.'),
                         modelObject=(fIndicator, filingIndicators[_value]), filingIndicator=_value)
