@@ -198,7 +198,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         # requires locking most of the table structure
         self.lockTables(("dAvailableTable", "dInstance",  "dFact", "dFilingIndicator",
                          # "dProcessingContext", "dProcessingFact"
-                         ))
+                         ), isSessionTransaction=True)
         
         self.dropTemporaryTable()
         self.startedAt = time.time()
@@ -406,7 +406,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         
         if _DICT_SET(filingIndicatorCodeIDs.keys()) != self.dFilingIndicators:
             self.modelXbrl.error("sqlDB:MissingFilingIndicators",
-                                 _("The filing indicator IDs not found for codes %(missingFilingIndicatorCodes)"),
+                                 _("The filing indicator IDs not found for codes %(missingFilingIndicatorCodes)s"),
                                  modelObject=self.modelXbrl,
                                  missingFilingIndicatorCodes=','.join(self.dFilingIndicators - _DICT_SET(filingIndicatorCodeIDs.keys()))) 
 
@@ -578,7 +578,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             conceptQn = qname(metricPrefixedName, prefixedNamespaces)
             if conceptQn is None:
                 self.modelXbrl.error("sqlDB:InvalidFactConcept",
-                                     _("A concept definition is not found for metric %(concept) of datapoint signature %(dpsignature)"),
+                                     _("A concept definition is not found for metric %(concept)s of datapoint signature %(dpsignature)s"),
                                      modelObject=self.modelXbrl, concept=metricPrefixedName, dpsignature=dpSig)
                 continue  # ignore DTS-based loading of invalid concept QName
             concept = modelXbrl.qnameConcepts.get(conceptQn)
