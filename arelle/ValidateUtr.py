@@ -220,15 +220,19 @@ class ValidateUtr:
                     return self.modelXbrl.qnameConcepts[m].label(fallbackToQname=False) or m.localName
                 return m.localName # localName is last choice to use
         # otherwise generate compound symbol
-        def symbols(measures):
-            return " ".join(self.utrSymbol([measure], None)
-                            for measure in measures)
+        def symbols(measures, wrapMult=True):
+            measuresString = " ".join(self.utrSymbol([measure], None)
+                                                for measure in measures)
+            if len(measures) > 1 and wrapMult:
+                return "({})".format(measuresString)
+            return measuresString
+            
         if not multMeasures and divMeasures: 
             return "per " + symbols(divMeasures)
         elif multMeasures:
             if divMeasures:
-                return symbols(multMeasures) + "/" + symbols(divMeasures)
+                return symbols(multMeasures) + " / " + symbols(divMeasures)
             else:
-                return symbols(multMeasures)
+                return symbols(multMeasures, wrapMult=False)
         else:
             return ""
