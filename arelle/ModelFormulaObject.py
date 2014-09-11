@@ -2672,6 +2672,28 @@ class ModelMessage(ModelFormulaResource):
     @property
     def viewExpression(self):
         return XmlUtil.text(self)
+    
+class ModelAssertionSeverity(ModelResource):
+    def init(self, modelDocument):
+        super(ModelAssertionSeverity, self).init(modelDocument)
+        
+    @property
+    def level(self):
+        return self.get("level")
+
+    @property
+    def propertyView(self):
+        return (("label", self.xlinkLabel),
+                ("level", self.level) )
+        
+    def __repr__(self):
+        return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
+    
+    @property
+    def viewExpression(self):
+        return self.level
+    
+
 
 class ModelCustomFunctionSignature(ModelFormulaResource):
     def init(self, modelDocument):
@@ -2860,6 +2882,7 @@ elementSubstitutionModelClass.update((
      (XbrlConst.qnMessage, ModelMessage),
      (XbrlConst.qnCustomFunctionSignature, ModelCustomFunctionSignature),
      (XbrlConst.qnCustomFunctionImplementation, ModelCustomFunctionImplementation),
+     (XbrlConst.qnAssertionSeverity, ModelAssertionSeverity),
      ))
 
 # import after other modules resolved to prevent circular references
