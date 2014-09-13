@@ -218,6 +218,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         break
                     if self.moduleId:
                         break
+        if not self.moduleId:
+            raise XPDBException("xpgDB:MissingModuleEntry",
+                    _("A ModuleID could not be found in table mModule for instance schemaRef {0}.")
+                    .format(refDoc.uri)) 
         self.modelXbrl.profileActivity("dpmDB 01. Get ModuleID for instance schema", minTimeToShow=0.0)
         periodInstantDate = None
         entityIdentifier = ('', '') # scheme, identifier
@@ -393,11 +397,12 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 
         # availableTable processing
         # get filing indicator template IDs
-        results = self.execute("SELECT mToT.TemplateOrTableCode, mToT.TemplateOrTableID "
-                               "  FROM mModuleBusinessTemplate mBT, mTemplateOrTable mToT "
+        results = self.execute("SELECT mToT2.TemplateOrTableCode, mToT2.TemplateOrTableID "
+                               "  FROM mModuleBusinessTemplate mBT, mTemplateOrTable mToT, mTemplateOrTable mToT2 "
                                "  WHERE mBT.ModuleID = {0} AND"
                                "        mToT.TemplateOrTableID = mBT.BusinessTemplateID AND"
-                               "        mToT.TemplateOrTableCode in ({1})"
+                               "        mToT.ParentTemplateOrTableID = mToT2.TemplateOrTableID AND"
+                               "        mToT2.TemplateOrTableCode in ({1})"
                                .format(self.moduleId,
                                        ', '.join("'{}'".format(filingIndicator)
                                                  for filingIndicator in self.dFilingIndicators)))
@@ -449,6 +454,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         modelXbrl = self.modelXbrl
         
         # find instance in DB
+        self.showStatus("finding instance in database")
         if loadInstanceId and loadInstanceId.isnumeric():
             # use instance ID to get instance
             results = self.execute("SELECT InstanceID, ModuleID, EntityScheme, EntityIdentifier, PeriodEndDateOrInstant"
@@ -470,6 +476,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             
 
         # find module in DB        
+        self.showStatus("finding module in database")
         results = self.execute("SELECT XbrlSchemaRef FROM mModule WHERE ModuleID = {}".format(moduleId))
         xbrlSchemaRef = None
         for result in results:
@@ -541,6 +548,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         typedDimElts = dict((dimQn,eltQn) for dimQn,eltQn in results)
         
         # facts in this instance
+        self.showStatus("finding data points in database")
         factsTbl = self.execute("SELECT DataPointSignature, " 
                                 " Unit, Decimals, NumericValue, DateTimeValue, BooleanValue, TextValue "
                                 "FROM dFact WHERE InstanceID = {} "
@@ -572,6 +580,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             return addChild(modelXbrl.modelDocument, qn, appendChild=False, attributes={XbrlConst.qnXsiNil:"true"})
         
         # contexts and facts
+        self.showStatus("creating XBRL output contexts, units, and facts")
         for dpSig, unit, dec, numVal, dateVal, boolVal, textVal in factsTbl:
             metric, sep, dims = dpSig.partition('|')
             metricPrefixedName = metric.partition('(')[2][:-1]
@@ -692,6 +701,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         # add footnotes if any
         
         # save to file
+        self.showStatus("saving XBRL instance")
         modelXbrl.saveInstance(overrideFilepath=loadDBsaveToFile)
-        modelXbrl.modelManager.showStatus(_("Saved extracted instance"), 5000)
+        self.showStatus(_("Saved extracted instance"), 5000)
         return modelXbrl.modelDocument
