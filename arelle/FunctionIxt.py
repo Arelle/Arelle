@@ -3,11 +3,15 @@ Created on July 5, 2011
 
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+
+Note that the Indian Saka calendar functions require plugin sakaCalendar.py which is not directly linked
+to this code because that module is licensed under LGPLv3.
 '''
 try:
     import regex as re
 except ImportError:
     import re
+from arelle.PluginManager import pluginClassMethods
 from arelle import XPathContext
 
 class ixtFunctionNotAvailable(Exception):
@@ -39,9 +43,11 @@ daymonthEnPattern = re.compile(r"\s*([0-9]{1,2})[^0-9]+(January|February|March|A
 monthdayEnPattern = re.compile(r"\s*(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[^0-9]+([0-9]{1,2}[a-zA-Z]{0,2})\s*")
 daymonthyearDkPattern = re.compile(r"\s*([0-9]{1,2})[^0-9]+(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec|JAN|FEB|MAR|APR|MAJ|JUN|JUL|AUG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Maj|Jun|Jul|Aug|Sep|Okt|Nov|Dec)[^0-9]+([0-9]{4}|[0-9]{1,2})\s*")
 daymonthyearEnPattern = re.compile(r"\s*([0-9]{1,2})[^0-9]+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[^0-9]+([0-9]{4}|[0-9]{1,2})\s*")
+daymonthyearInPattern = re.compile(r"\s*([0-9\u0966-\u096F]{2})\s([0-9\u0966-\u096F]{2}|[^\s0-9\u0966-\u096F]+)\s([0-9\u0966-\u096F]{4})\s*")
 monthdayyearEnPattern = re.compile(r"\s*(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[^0-9]+([0-9]+)[^0-9]+([0-9]+)\s*")
 monthyearDkPattern = re.compile(r"\s*(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec|JAN|FEB|MAR|APR|MAJ|JUN|JUL|AUG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Maj|Jun|Jul|Aug|Sep|Okt|Nov|Dec)[^0-9]+([0-9]+)\s*")
 monthyearEnPattern = re.compile(r"\s*(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[^0-9]+([0-9]+)\s*")
+monthyearInPattern = re.compile(r"\s*([^\s0-9\u0966-\u096F]+)\s([0-9\u0966-\u096F]{4})\s*")
 yearmonthEnPattern = re.compile(r"\s*([0-9]+)[^0-9]+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)\s*")
 
 erayearmonthjpPattern = re.compile("[\\s\u00A0]*(\u660E\u6CBB|\u660E|\u5927\u6B63|\u5927|\u662D\u548C|\u662D|\u5E73\u6210|\u5E73)[\\s\u00A0]*([0-9]{1,2}|\u5143)[\\s\u00A0]*\u5E74[\\s\u00A0]*([0-9]{1,2})[\\s\u00A0]*\u6708[\\s\u00A0]*")
@@ -53,7 +59,7 @@ monthyearPattern = re.compile("[\\s\u00A0]*([0-9]{1,2})[^0-9]+([0-9]{4}|[0-9]{1,
 yearmonthdayPattern = re.compile("[\\s\u00A0]*([0-9]{4}|[0-9]{1,2})[^0-9]+([0-9]{1,2})[^0-9]+([0-9]{1,2})[\\s\u00A0]*")
 
 numcommadecimalPattern = re.compile(r"\s*[0-9]{1,3}((\.| |\u00A0)?[0-9]{3})*(,[0-9]+)?\s*")
-numunitdecimalPattern = re.compile(r"\s*([0-9]+)([^0-9]+)([0-9]+)([^0-9]*)\s*")
+numunitdecimalPattern = re.compile(r"\s*([0-9]+)([^0-9+-]+)([0-9]{0,2})([^0-9]*)\s*")
 
 monthnumber = {"January":1, "February":2, "March":3, "April":4, "May":5, "June":6, 
                "July":7, "August":8, "September":9, "October":10, "November":11, "December":12, 
@@ -69,6 +75,36 @@ monthnumber = {"January":1, "February":2, "March":3, "April":4, "May":5, "June":
                "MAJ":5, "OKT":10, "Maj":5, "Okt":10,
                }
 
+gregorianHindiMonthNumber = {
+                "\u091C\u0928\u0935\u0930\u0940":1,
+                "\u092B\u0930\u0935\u0930\u0940":2, 
+                "\u092E\u093E\u0930\u094D\u091A":3, 
+                "\u0905\u092A\u094D\u0930\u0948\u0932":4,
+                "\u092E\u0908":5, 
+                "\u091C\u0942\u0928":6,
+                "\u091C\u0941\u0932\u093E\u0908":7, 
+                "\u0905\u0917\u0938\u094D\u0924":8,
+                "\u0938\u093F\u0924\u0902\u092C\u0930":9,
+                "\u0905\u0915\u094D\u0924\u0942\u092C\u0930":10,
+                "\u0928\u0935\u092E\u094D\u092C\u0930":11,
+                "\u0926\u093F\u0938\u092E\u094D\u092C\u0930":12
+                }
+
+sakaMonthNumber = {
+                "Chaitra":1, "\u091A\u0948\u0924\u094D\u0930":1,
+                "Vaisakha":2, "Vai\u015B\u0101kha":2, "\u0935\u0948\u0936\u093E\u0916":2, "\u092C\u0948\u0938\u093E\u0916":2,
+                "Jyaishta":3, "Jye\u1E63\u1E6Dha":3, "\u091C\u094D\u092F\u0947\u0937\u094D\u0920":3, "\u091C\u0947\u0920":3,
+                "Asadha":4, "\u0100\u1E63\u0101\u1E0Dha":4, "\u0906\u0937\u093E\u0922":4, "\u0906\u0937\u093E\u0922\u093C":4,
+                "Sravana":5, "\u015Ar\u0101va\u1E47a":5, "\u0936\u094D\u0930\u093E\u0935\u0923":5, "\u0938\u093E\u0935\u0928":5,
+                "Bhadra":6, "Bh\u0101drapada":6, "Bh\u0101dra":6, "Pro\u1E63\u1E6Dhapada":6, "\u092D\u093E\u0926\u094D\u0930\u092A\u0926":6, "\u092D\u093E\u0926\u094B":6,
+                "Aswina":7, "\u0100\u015Bvina":7, "\u0906\u0936\u094D\u0935\u093F\u0928":7, 
+                "Kartiak":8, "K\u0101rtika":8, "\u0915\u093E\u0930\u094D\u0924\u093F\u0915":8, 
+                "Agrahayana":9,"Agrah\u0101ya\u1E47a":9, "M\u0101rga\u015B\u012Br\u1E63a":9, "\u092E\u093E\u0930\u094D\u0917\u0936\u0940\u0930\u094D\u0937":9, "\u0905\u0917\u0939\u0928":9,
+                "Pausa":10, "Pausha":10, "Pau\u1E63a":10, "\u092A\u094C\u0937":10,
+                "Magha":11, "M\u0101gha":11, "\u092E\u093E\u0918":11,
+                "Phalguna":12, "Ph\u0101lguna":12, "\u092B\u093E\u0932\u094D\u0917\u0941\u0928":12,
+                }
+
 # common helper functions
 
 def z2(arg):   # zero pad to 2 digits
@@ -82,6 +118,15 @@ def yr(arg):   # zero pad to 4 digits
     elif len(arg) == 2:
         return '20' + arg
     return arg
+
+def devanagariDigitsToNormal(devanagariDigits):
+    normal = ''
+    for d in devanagariDigits:
+        if '\u0966' <= d <= '\u096F':
+            normal += chr( ord(d) - 0x0966 + ord('0') )
+        else:
+            normal += d
+    return normal
 
 def jpDigitsToNormal(jpDigits):
     normal = ''
@@ -210,6 +255,14 @@ def datemonthyearen(arg):
         return "{0}-{1:02}".format(yr(m.group(2)), monthnumber[m.group(1)])
     raise XPathContext.FunctionArgType(1,"xs:gYearMonth")
     
+def datemonthyearin(arg):
+    m = monthyearInPattern.match(arg)
+    try:
+        return "{0}-{1:02}".format(devanagariDigitsToNormal(m.group(2)), gregorianHindiMonthNumber[m.group(1)])
+    except (AttributeError, IndexError, KeyError):
+        pass
+    raise XPathContext.FunctionArgType(1,"xs:gYearMonth")
+    
 def dateyearmonthen(arg):
     m = yearmonthEnPattern.match(arg)
     if m and m.lastindex == 2:
@@ -226,6 +279,30 @@ def datedaymonthyearen(arg):
     m = daymonthyearEnPattern.match(arg)
     if m and m.lastindex == 3:
         return "{0}-{1:02}-{2}".format(yr(m.group(3)), monthnumber[m.group(2)], z2(m.group(1)))
+    raise XPathContext.FunctionArgType(1,"xs:date")
+
+def datedaymonthyearin(arg):
+    m = daymonthyearInPattern.match(arg)
+    try:
+        return "{0}-{1:02}-{2}".format(devanagariDigitsToNormal(m.group(3)), 
+                                       gregorianHindiMonthNumber[m.group(2)], 
+                                       devanagariDigitsToNormal(m.group(1)))
+    except (AttributeError, IndexError, KeyError):
+        pass
+    raise XPathContext.FunctionArgType(1,"xs:date")
+
+def calindaymonthyear(arg):
+    m = daymonthyearInPattern.match(arg)
+    try:
+        sakaDate = [_INT(devanagariDigitsToNormal(m.group(3))), 
+                    _INT(sakaMonthNumber[m.group(2)]), 
+                    _INT(devanagariDigitsToNormal(m.group(1)))]
+        for pluginMethod in pluginClassMethods("SakaCalendar.ToGregorian"):
+            gregorianDate = pluginMethod(sakaDate)
+            return "{0}-{1:02}-{2:02}".format(gregorianDate[0], gregorianDate[1], gregorianDate[2])
+        raise NotImplementedError (_("ixt:calindaymonthyear requires plugin sakaCalendar.py, please install plugin.  "))
+    except (AttributeError, IndexError, KeyError, ValueError):
+        pass
     raise XPathContext.FunctionArgType(1,"xs:date")
 
 def datemonthdayyearen(arg):
@@ -293,6 +370,9 @@ def zerodash(arg):
 def numdotdecimal(arg):
     return arg.replace(',', '').replace(' ', '').replace('\u00A0', '')
 
+def numdotdecimalin(arg):
+    return numdotdecimal(devanagariDigitsToNormal(arg))
+
 def numunitdecimal(arg):
     # remove comma (normal), full-width comma, and stops (periods)
     m = numunitdecimalPattern.match(jpDigitsToNormal(arg.replace(',', '')
@@ -301,6 +381,9 @@ def numunitdecimal(arg):
     if m and m.lastindex == 4:
         return m.group(1) + '.' + z2(m.group(3))
     raise XPathContext.FunctionArgType(1,"ixt:nonNegativeDecimalType")
+
+def numunitdecimalin(arg):
+    return numunitdecimal(devanagariDigitsToNormal(arg))
     
 ixtFunctions = {
                 
@@ -349,15 +432,15 @@ ixtFunctions = {
     
     # same as v2: 'booleanfalse': booleanfalse,
     # same as v2: 'booleantrue': booleantrue,
-    'calindaymonthyear': nocontent, # TBD: calindaymonthyear,
-    'calinmonthyear': nocontent, # TBD: calinmonthyear,
+    'calindaymonthyear': calindaymonthyear, # TBD: calindaymonthyear,
+    #'calinmonthyear': nocontent, # TBD: calinmonthyear,
     # same as v2: 'datedaymonth': datedaymonth,
     'datedaymonthdk': datedaymonthdk,
     # same as v2: 'datedaymonthen': datedaymonthen,
     # same as v2: 'datedaymonthyear': datedaymonthyear,
     'datedaymonthyeardk': datedaymonthyeardk,
     # same as v2: 'datedaymonthyearen': datedaymonthyearen,
-    'datedaymonthyearin': nocontent, # TBD: datedaymonthyearin,
+    'datedaymonthyearin': datedaymonthyearin,
     # same as v2: 'dateerayearmonthdayjp': dateerayearmonthdayjp,
     # same as v2: 'dateerayearmonthjp': dateerayearmonthjp,
     # same as v2: 'datemonthday': datemonthday,
@@ -367,7 +450,7 @@ ixtFunctions = {
     'datemonthyear': datemonthyear,
     'datemonthyeardk': datemonthyeardk,
     # same as v2: 'datemonthyearen': datemonthyearen,
-    'datemonthyearin': nocontent, # TBD: datemonthyearin,
+    'datemonthyearin': datemonthyearin,
     # same as v2: 'dateyearmonthcjk': dateyearmonthcjk,
     'dateyearmonthday': dateyearmonthday, # (Y)Y(YY)*MM*DD allowing kanji full-width numerals
     # same as v2: 'dateyearmonthdaycjk': dateyearmonthdaycjk,
@@ -375,9 +458,9 @@ ixtFunctions = {
     # same as v2: 'nocontent': nocontent,
     # same as v2: 'numcommadecimal': numcommadecimal,
     # same as v2: 'numdotdecimal': numdotdecimal,
-    'numdotdecimalin': nocontent, # TBD: numdotdecimalin,
+    'numdotdecimalin': numdotdecimalin,
     # same as v2: 'numunitdecimal': numunitdecimal,
-    'numunitdecimalin': nocontent, # TBD: numunitdecimalin,
+    'numunitdecimalin': numunitdecimalin,
     # same as v2: 'zerodash': zerodash,
 }
 
