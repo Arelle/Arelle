@@ -214,6 +214,7 @@ validation = "http://xbrl.org/2008/validation"
 qnAssertion = qname("{http://xbrl.org/2008/validation}validation:assertion")
 qnVariableSetAssertion = qname("{http://xbrl.org/2008/validation}validation:variableSetAssertion")
 qnAssertionSet = qname("{http://xbrl.org/2008/validation}validation:assertionSet")
+qnAssertionSeverity = qname("{http://xbrl.org/PWD/2014-08-13/assertion-severity}severity")
 assertionSet = "http://xbrl.org/arcrole/2008/assertion-set"
 assertionSatisfiedSeverity = "http://xbrl.org/arcrole/2014/assertion-satisfied-severity"
 assertionUnsatisfiedSeverity = "http://xbrl.org/arcrole/2014/assertion-unsatisfied-severity"
