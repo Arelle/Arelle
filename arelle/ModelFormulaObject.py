@@ -1119,7 +1119,7 @@ class ModelConceptName(ModelFilter):
     
     def filter(self, xpCtx, varBinding, facts, cmplmt):
         if not self.qnameExpressionProgs: # optimize if simple
-            qnamedFacts = set.union(*[inst.factsByQname(qn)
+            qnamedFacts = set.union(*[inst.factsByQname(qn, set())
                                       for inst in varBinding.instances
                                       for qn in self.conceptQnames])
             return (facts - qnamedFacts) if cmplmt else (facts & qnamedFacts)            
