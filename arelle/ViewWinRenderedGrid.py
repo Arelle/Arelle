@@ -802,97 +802,94 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         
 
     def updateModelXbrl(self):
-    # Only update the model if it already exists
-        try:
-            if self.modelDocument.type == ModelDocument.Type.INSTANCE:
-                instance = self.modelXbrl
-                newCntx = ModelXbrl.AUTO_LOCATE_ELEMENT
-                newUnit = ModelXbrl.AUTO_LOCATE_ELEMENT
+        # Only update the model if it already exists
+        if self.modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE:
+            instance = self.modelXbrl
+            newCntx = ModelXbrl.AUTO_LOCATE_ELEMENT
+            newUnit = ModelXbrl.AUTO_LOCATE_ELEMENT
             # check user keyed changes to aspects
-                aspectEntryChanges = {} # index = widget ID,  value = widget contents
-                for bodyCell in self.gridRowHdr.winfo_children():
-                    if isinstance(bodyCell, (gridCell, gridCombobox)) and bodyCell.isChanged:
-                        objId = bodyCell.objectId
-                        if objId:
-                            if objId[0] == OPEN_ASPECT_ENTRY_SURROGATE:
-                                bodyCell.isChanged = False # clear change flag
-                                aspectEntryChanges[objId] = bodyCell.value
-                
-                aspectEntryChangeIds = _DICT_SET(aspectEntryChanges.keys())
+            aspectEntryChanges = {} # index = widget ID,  value = widget contents
+            for bodyCell in self.gridRowHdr.winfo_children():
+                if isinstance(bodyCell, (gridCell, gridCombobox)) and bodyCell.isChanged:
+                    objId = bodyCell.objectId
+                    if objId:
+                        if objId[0] == OPEN_ASPECT_ENTRY_SURROGATE:
+                            bodyCell.isChanged = False # clear change flag
+                            aspectEntryChanges[objId] = bodyCell.value
+            
+            aspectEntryChangeIds = _DICT_SET(aspectEntryChanges.keys())
             # check user keyed changes to facts
-                for bodyCell in self.gridBody.winfo_children():
-                    if isinstance(bodyCell, gridCell) and bodyCell.isChanged:
-                        value = bodyCell.value
-                        objId = bodyCell.objectId
-                        if objId:
-                            if (objId[0] == "f" and 
-                                (bodyCell.isChanged or # change in fact value widget or any open aspect widget
-                                    self.factPrototypeAspectEntryObjectIds[objId] & aspectEntryChangeIds)):
-                                factPrototypeIndex = int(objId[1:])
-                                factPrototype = self.factPrototypes[factPrototypeIndex]
-                                concept = factPrototype.concept
-                                entityIdentScheme = self.newFactItemOptions.entityIdentScheme
-                                entityIdentValue = self.newFactItemOptions.entityIdentValue
-                                periodType = factPrototype.concept.periodType
-                                periodStart = self.newFactItemOptions.startDateDate if periodType == "duration" else None
-                                periodEndInstant = self.newFactItemOptions.endDateDate
-                                qnameDims = factPrototype.context.qnameDims
-                                qnameDims.update(self.newFactOpenAspects(objId))
-                                # open aspects widgets
-                                prevCntx = instance.matchContext(
-                                    entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, 
-                                    qnameDims, [], [])
-                                if prevCntx is not None:
-                                    cntxId = prevCntx.id
+            for bodyCell in self.gridBody.winfo_children():
+                if isinstance(bodyCell, gridCell) and bodyCell.isChanged:
+                    value = bodyCell.value
+                    objId = bodyCell.objectId
+                    if objId:
+                        if (objId[0] == "f" and 
+                            (bodyCell.isChanged or # change in fact value widget or any open aspect widget
+                                self.factPrototypeAspectEntryObjectIds[objId] & aspectEntryChangeIds)):
+                            factPrototypeIndex = int(objId[1:])
+                            factPrototype = self.factPrototypes[factPrototypeIndex]
+                            concept = factPrototype.concept
+                            entityIdentScheme = self.newFactItemOptions.entityIdentScheme
+                            entityIdentValue = self.newFactItemOptions.entityIdentValue
+                            periodType = factPrototype.concept.periodType
+                            periodStart = self.newFactItemOptions.startDateDate if periodType == "duration" else None
+                            periodEndInstant = self.newFactItemOptions.endDateDate
+                            qnameDims = factPrototype.context.qnameDims
+                            qnameDims.update(self.newFactOpenAspects(objId))
+                            # open aspects widgets
+                            prevCntx = instance.matchContext(
+                                entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, 
+                                qnameDims, [], [])
+                            if prevCntx is not None:
+                                cntxId = prevCntx.id
+                            else:
+                                newCntx = instance.createContext(entityIdentScheme, entityIdentValue, 
+                                    periodType, periodStart, periodEndInstant, 
+                                    concept.qname, qnameDims, [], [], 
+                                    afterSibling=newCntx)
+                                cntxId = newCntx.id # need new context
+                            # new context
+                            if concept.isNumeric:
+                                if concept.isMonetary:
+                                    unitMeasure = qname(XbrlConst.iso4217, self.newFactItemOptions.monetaryUnit)
+                                    unitMeasure.prefix = "iso4217" # want to save with a recommended prefix
+                                    decimals = self.newFactItemOptions.monetaryDecimals
+                                elif concept.isShares:
+                                    unitMeasure = XbrlConst.qnXbrliShares
+                                    decimals = self.newFactItemOptions.nonMonetaryDecimals
                                 else:
-                                    newCntx = instance.createContext(entityIdentScheme, entityIdentValue, 
-                                        periodType, periodStart, periodEndInstant, 
-                                        concept.qname, qnameDims, [], [], 
-                                        afterSibling=newCntx)
-                                    cntxId = newCntx.id # need new context
-                # new context
-                                if concept.isNumeric:
-                                    if concept.isMonetary:
-                                        unitMeasure = qname(XbrlConst.iso4217, self.newFactItemOptions.monetaryUnit)
-                                        unitMeasure.prefix = "iso4217" # want to save with a recommended prefix
-                                        decimals = self.newFactItemOptions.monetaryDecimals
-                                    elif concept.isShares:
-                                        unitMeasure = XbrlConst.qnXbrliShares
-                                        decimals = self.newFactItemOptions.nonMonetaryDecimals
-                                    else:
-                                        unitMeasure = XbrlConst.qnXbrliPure
-                                        decimals = self.newFactItemOptions.nonMonetaryDecimals
-                                    prevUnit = instance.matchUnit([unitMeasure], [])
-                                    if prevUnit is not None:
-                                        unitId = prevUnit.id
-                                    else:
-                                        newUnit = instance.createUnit([unitMeasure], [], afterSibling=newUnit)
-                                        unitId = newUnit.id
-                                attrs = [("contextRef", cntxId)]
-                                if concept.isNumeric:
-                                    attrs.append(("unitRef", unitId))
-                                    attrs.append(("decimals", decimals))
-                                    value = Locale.atof(self.modelXbrl.locale, value, str.strip)
-                                newFact = instance.createFact(concept.qname, attributes=attrs, text=value)
-                                bodyCell.objectId = newFact.objectId() # switch cell to now use fact ID
-                                if self.factPrototypes[factPrototypeIndex] is not None:
-                                    self.factPrototypes[factPrototypeIndex].clear()
-                                self.factPrototypes[factPrototypeIndex] = None #dereference fact prototype
-                                bodyCell.isChanged = False # clear change flag
-                            elif objId[0] != "a": # instance fact, not prototype
-                                fact = self.modelXbrl.modelObject(objId)
-                                if fact.concept.isNumeric:
-                                    value = Locale.atof(self.modelXbrl.locale, value, str.strip)
-                                if fact.value != value:
-                                    if fact.concept.isNumeric and fact.isNil != (not value):
-                                        fact.isNil = not value
-                                        if value: # had been nil, now it needs decimals
-                                            fact.decimals = self.newFactItemOptions.monetaryDecimals if fact.concept.isMonetary else self.newFactItemOptions.nonMonetaryDecimals
-                                    fact.text = value
-                                    XmlValidate.validate(instance, fact)
-                                bodyCell.isChanged = False # clear change flag
-        except AttributeError:
-            return
+                                    unitMeasure = XbrlConst.qnXbrliPure
+                                    decimals = self.newFactItemOptions.nonMonetaryDecimals
+                                prevUnit = instance.matchUnit([unitMeasure], [])
+                                if prevUnit is not None:
+                                    unitId = prevUnit.id
+                                else:
+                                    newUnit = instance.createUnit([unitMeasure], [], afterSibling=newUnit)
+                                    unitId = newUnit.id
+                            attrs = [("contextRef", cntxId)]
+                            if concept.isNumeric:
+                                attrs.append(("unitRef", unitId))
+                                attrs.append(("decimals", decimals))
+                                value = Locale.atof(self.modelXbrl.locale, value, str.strip)
+                            newFact = instance.createFact(concept.qname, attributes=attrs, text=value)
+                            bodyCell.objectId = newFact.objectId() # switch cell to now use fact ID
+                            if self.factPrototypes[factPrototypeIndex] is not None:
+                                self.factPrototypes[factPrototypeIndex].clear()
+                            self.factPrototypes[factPrototypeIndex] = None #dereference fact prototype
+                            bodyCell.isChanged = False # clear change flag
+                        elif objId[0] != "a": # instance fact, not prototype
+                            fact = self.modelXbrl.modelObject(objId)
+                            if fact.concept.isNumeric:
+                                value = Locale.atof(self.modelXbrl.locale, value, str.strip)
+                            if fact.value != value:
+                                if fact.concept.isNumeric and fact.isNil != (not value):
+                                    fact.isNil = not value
+                                    if value: # had been nil, now it needs decimals
+                                        fact.decimals = self.newFactItemOptions.monetaryDecimals if fact.concept.isMonetary else self.newFactItemOptions.nonMonetaryDecimals
+                                fact.text = value
+                                XmlValidate.validate(instance, fact)
+                            bodyCell.isChanged = False # clear change flag
 
     def backgroundSaveInstance(self, newFilename=None, onSaved=None):
         cntlr = self.modelXbrl.modelManager.cntlr
