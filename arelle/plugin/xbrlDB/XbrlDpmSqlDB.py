@@ -683,7 +683,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     attrs[XbrlConst.qnXsiNil] = "true"
                     text = None
             elif isBool:
-                if boolVal is not None and len(boolVal) > 0:
+                if isinstance(boolVal, _NUM_TYPES):
+                    text = 'false' if boolVal == 0 else 'true'
+                elif isinstance(boolVal, _STR_BASE) and len(boolVal) > 0:
                     text = 'true' if boolVal.lower() in ('t', 'true', '1') else 'false'
                 else:
                     attrs[XbrlConst.qnXsiNil] = "true"
