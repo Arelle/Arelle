@@ -3,9 +3,6 @@ Created on July 5, 2011
 
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
-
-Note that the Indian Saka calendar functions require plugin sakaCalendar.py which is not directly linked
-to this code because that module is licensed under LGPLv3.
 '''
 try:
     import regex as re
@@ -83,6 +80,7 @@ maxDayInMo = {"01": "30", "02": "29", "03": "31", "04": "30", "05": "31", "06": 
               "07": "31", "08": "31", "09": "30", "10": "31", "11": "30", "12":"31",
               1: "30", 2: "29", 3: "31", 4: "30", 5: "31", 6: "30",
               7: "31", 8: "31", 9: "30", 10: "31", 11: "30", 12:"31"}
+gLastMoDay = [30,28,31,30,31,30,31,31,30,31,30,31]
 
 gregorianHindiMonthNumber = {
                 "\u091C\u0928\u0935\u0930\u0940": "01",
@@ -102,17 +100,19 @@ gregorianHindiMonthNumber = {
 sakaMonthNumber = {
                 "Chaitra":1, "\u091A\u0948\u0924\u094D\u0930":1,
                 "Vaisakha":2, "Vaishakh":2, "Vai\u015B\u0101kha":2, "\u0935\u0948\u0936\u093E\u0916":2, "\u092C\u0948\u0938\u093E\u0916":2,
-                "Jyaishta":3, "Jyaishtha":3, "Jye\u1E63\u1E6Dha":3, "\u091C\u094D\u092F\u0947\u0937\u094D\u0920":3,
+                "Jyaishta":3, "Jyaishtha":3, "Jyaistha":3, "Jye\u1E63\u1E6Dha":3, "\u091C\u094D\u092F\u0947\u0937\u094D\u0920":3,
                 "Asadha":4, "Ashadha":4, "\u0100\u1E63\u0101\u1E0Dha":4, "\u0906\u0937\u093E\u0922":4, "\u0906\u0937\u093E\u0922\u093C":4,
                 "Sravana":5, "Shravana":5, "\u015Ar\u0101va\u1E47a":5, "\u0936\u094D\u0930\u093E\u0935\u0923":5, "\u0938\u093E\u0935\u0928":5,
                 "Bhadra":6, "Bhadrapad":6, "Bh\u0101drapada":6, "Bh\u0101dra":6, "Pro\u1E63\u1E6Dhapada":6, "\u092D\u093E\u0926\u094D\u0930\u092A\u0926":6, "\u092D\u093E\u0926\u094B":6,
-                "Aswina":7, "Ashwin":7, "\u0100\u015Bvina":7, "\u0906\u0936\u094D\u0935\u093F\u0928":7, 
-                "Kartiak":8, "Kartik":8, "K\u0101rtika":8, "\u0915\u093E\u0930\u094D\u0924\u093F\u0915":8, 
+                "Aswina":7, "Ashwin":7, "Asvina":7, "\u0100\u015Bvina":7, "\u0906\u0936\u094D\u0935\u093F\u0928":7, 
+                "Kartiak":8, "Kartik":8, "Kartika":8, "K\u0101rtika":8, "\u0915\u093E\u0930\u094D\u0924\u093F\u0915":8, 
                 "Agrahayana":9,"Agrah\u0101ya\u1E47a":9,"Margashirsha":9, "M\u0101rga\u015B\u012Br\u1E63a":9, "\u092E\u093E\u0930\u094D\u0917\u0936\u0940\u0930\u094D\u0937":9, "\u0905\u0917\u0939\u0928":9,
                 "Pausa":10, "Pausha":10, "Pau\u1E63a":10, "\u092A\u094C\u0937":10,
                 "Magha":11, "Magh":11, "M\u0101gha":11, "\u092E\u093E\u0918":11,
                 "Phalguna":12, "Phalgun":12, "Ph\u0101lguna":12, "\u092B\u093E\u0932\u094D\u0917\u0941\u0928":12,
                 }
+sakaMonthLength = (30,31,31,31,31,31,30,30,30,30,30,30) # Chaitra has 31 days in Gregorian leap year
+sakaMonthOffset = ((3,22,0),(4,21,0),(5,22,0),(6,22,0),(7,23,0),(8,23,0),(9,23,0),(10,23,0),(11,22,0),(12,22,0),(1,21,1),(2,20,1))
 
 # common helper functions
 def checkDate(y,m,d):
@@ -134,9 +134,12 @@ def yr(arg):   # zero pad to 4 digits
         return '20' + arg
     return arg
 
-def yrin(arg):   # zero pad to 4 digits
+def yrin(arg, _mo, _day):   # zero pad to 4 digits
     if len(arg) == 2:
-        return '19' + arg
+        if arg > '21' or (arg == '21' and _mo >= 10 and _day >= 11):
+            return '19' + arg
+        else:
+            return '20' + arg
     return arg
 
 def devanagariDigitsToNormal(devanagariDigits):
@@ -156,6 +159,34 @@ def jpDigitsToNormal(jpDigits):
         else:
             normal += d
     return normal
+
+def sakaToGregorian(sYr, sMo, sDay): # replacement of plug-in sakaCalendar.py which is LGPL-v3 licensed
+    gYr = sYr + 78  # offset from Saka to Gregorian year
+    sStartsInLeapYr = gYr % 4 == 0 and (not gYr % 100 == 0 or gYr % 400 == 0)
+    if gYr < 0:
+        raise ValueError(_("Saka calendar year not supported: {0} {1} {2} "), sYr, sMo, sDay)
+    if  sMo < 1 or sMo > 12:
+        raise ValueError(_("Saka calendar month error: {0} {1} {2} "), sYr, sMo, sDay)
+    sMoLength = sakaMonthLength[sMo - 1]
+    if sStartsInLeapYr and sMo == 1:
+        sMoLength += 1 # Chaitra has 1 extra day when starting in gregorian leap years
+    if sDay < 1 or sDay > sMoLength: 
+        raise ValueError(_("Saka calendar day error: {0} {1} {2} "), sYr, sMo, sDay)
+    gMo, gDayOffset, gYrOffset = sakaMonthOffset[sMo - 1]
+    if sStartsInLeapYr and sMo == 1:
+        gDayOffset -= 1 # Chaitra starts 1 day earlier when starting in gregorian leap years
+    gYr += gYrOffset
+    gMoLength = gLastMoDay[gMo - 1]
+    if gMo == 2 and gYr % 4 == 0 and (not gYr % 100 == 0 or gYr % 400 == 0): # does Phalguna (Feb) end in a Gregorian leap year?
+        gMoLength += 1 # Phalguna (Feb) is in a Gregorian leap year (Feb has 29 days)
+    gDay = gDayOffset + sDay - 1
+    if gDay > gMoLength:
+        gDay -= gMoLength
+        gMo += 1
+        if gMo == 13:
+            gMo = 1
+            gYr += 1
+    return (gYr, gMo, gDay)
 
 # see: http://www.i18nguy.com/l10n/emperor-date.html        
 eraStart = {'\u5E73\u6210': 1988, 
@@ -366,13 +397,16 @@ def datedaymonthyearin(arg):
 def calindaymonthyear(arg):
     m = daymonthyearInPattern.match(arg)
     try:
-        sakaDate = [_INT(devanagariDigitsToNormal(yrin(m.group(3)))), 
-                    _INT(sakaMonthNumber[m.group(2)]), 
-                    _INT(devanagariDigitsToNormal(m.group(1)))]
-        for pluginMethod in pluginClassMethods("SakaCalendar.ToGregorian"):
-            gregorianDate = pluginMethod(sakaDate)
-            return "{0}-{1:02}-{2:02}".format(gregorianDate[0], gregorianDate[1], gregorianDate[2])
-        raise NotImplementedError (_("ixt:calindaymonthyear requires plugin sakaCalendar.py, please install plugin.  "))
+        _mo = _INT(sakaMonthNumber[m.group(2)])
+        _day = _INT(devanagariDigitsToNormal(m.group(1)))
+        _yr = _INT(devanagariDigitsToNormal(yrin(m.group(3), _mo, _day)))
+        #sakaDate = [_yr, _mo, _day]
+        #for pluginMethod in pluginClassMethods("SakaCalendar.ToGregorian"):  # LGPLv3 plugin
+        #    gregorianDate = pluginMethod(sakaDate)
+        #    return "{0}-{1:02}-{2:02}".format(gregorianDate[0], gregorianDate[1], gregorianDate[2])
+        #raise NotImplementedError (_("ixt:calindaymonthyear requires plugin sakaCalendar.py, please install plugin.  "))
+        gregorianDate = sakaToGregorian(_yr, _mo, _day) # native implementation for Arelle
+        return "{0}-{1:02}-{2:02}".format(gregorianDate[0], gregorianDate[1], gregorianDate[2])
     except (AttributeError, IndexError, KeyError, ValueError):
         pass
     raise XPathContext.FunctionArgType(1,"xs:date")
