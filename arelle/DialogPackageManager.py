@@ -4,7 +4,7 @@ Created on Oct 6, 2013 (from DialogPluginManager.py)
 @author: Mark V Systems Limited
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
-from tkinter import Toplevel, font, messagebox, VERTICAL, HORIZONTAL, N, S, E, W
+from tkinter import simpledialog, Toplevel, font, messagebox, VERTICAL, HORIZONTAL, N, S, E, W
 from tkinter.constants import DISABLED, ACTIVE
 try:
     from tkinter.ttk import Treeview, Scrollbar, Frame, Label, Button
@@ -67,10 +67,17 @@ class DialogPackageManager(Toplevel):
         addWebButton = Button(buttonFrame, text=_("On Web"), command=self.findOnWeb)
         ToolTip(addWebButton, text=_("Dialog to enter URL full path to load (or reload) package, from the web or local file system.  "
                                      "URL may be either a taxonomy package zip file, or a taxonomy manifest (.taxonomyPackage.xml) within an unzipped taxonomy package.  "), wraplength=240)
+        manifestNameButton = Button(buttonFrame, text=_("Manifest"), command=self.manifestName)
+        ToolTip(manifestNameButton, text=_("Provide non-standard archive manifest file name pattern (e.g., *taxonomyPackage.xml).  "
+                                           "Uses unix file name pattern matching.  "
+                                           "Multiple manifest files are supported in archive (such as oasis catalogs).  "
+                                           "(Replaces search for either .taxonomyPackage.xml or catalog.xml).  "), wraplength=240)
+        self.manifestNamePattern = ""
         addLabel.grid(row=0, column=0, pady=4)
         addLocalButton.grid(row=1, column=0, pady=4)
         addWebButton.grid(row=2, column=0, pady=4)
-        buttonFrame.grid(row=0, column=0, rowspan=2, sticky=(N, S, W), padx=3, pady=3)
+        manifestNameButton.grid(row=3, column=0, pady=4)
+        buttonFrame.grid(row=0, column=0, rowspan=3, sticky=(N, S, W), padx=3, pady=3)
         
         # right tree frame (packages already known to arelle)
         packagesFrame = Frame(frame, width=700)
@@ -298,16 +305,25 @@ class DialogPackageManager(Toplevel):
         if filename:
             # check if a package is selected (any file in a directory containing an __init__.py
             self.cntlr.config["packageOpenDir"] = os.path.dirname(filename)
-            packageInfo = PackageManager.packageInfo(filename)
+            packageInfo = PackageManager.packageInfo(filename, packageManifestName=self.manifestNamePattern)
             self.loadFoundPackageInfo(packageInfo, filename)
                 
 
     def findOnWeb(self):
         url = DialogURL.askURL(self)
         if url:  # url is the in-cache or local file
-            packageInfo = PackageManager.packageInfo(url)
+            packageInfo = PackageManager.packageInfo(url, packageManifestName=self.manifestNamePattern)
             self.cntlr.showStatus("") # clear web loading status
             self.loadFoundPackageInfo(packageInfo, url)
+                
+    def manifestName(self):
+        self.manifestNamePattern = simpledialog.askstring(_("Archive manifest file name pattern"),
+                                                          _("Provide non-standard archive manifest file name pattern (e.g., *taxonomyPackage.xml).  \n"
+                                                            "Uses unix file name pattern matching.  \n"
+                                                            "Multiple manifest files are supported in archive (such as oasis catalogs).  \n"
+                                                            "(If blank, search for either .taxonomyPackage.xml or catalog.xml).  "),
+                                                          initialvalue=self.manifestNamePattern,
+                                                          parent=self)
                 
     def loadFoundPackageInfo(self, packageInfo, url):
         if packageInfo and packageInfo.get("name"):
@@ -315,7 +331,8 @@ class DialogPackageManager(Toplevel):
             self.loadTreeViews()
         else:
             messagebox.showwarning(_("Package is not itself a taxonomy package.  "),
-                                   _("File does not itself contain taxonomyPackage or catalog xml content: \n\n{0}")
+                                   _("File does not itself contain a manifest file: \n\n{0}\n\n  "
+                                     "If opening an archive file, the manifest file search pattern currently is \"\", please press \"Manifest\" to change manifest file name pattern, e.g.,, \"*.taxonomyPackage.xml\", if needed.  ")
                                    .format(url),
                                    parent=self)
             
@@ -378,7 +395,7 @@ class DialogPackageManager(Toplevel):
             packageInfo = self.packagesConfig["packages"][self.selectedPackageIndex]
             url = packageInfo.get("URL")
             if url:
-                packageInfo = PackageManager.packageInfo(url, reload=True)
+                packageInfo = PackageManager.packageInfo(url, reload=True, packageManifestName=packageInfo.get("manifestName"))
                 if packageInfo:
                     self.addPackageInfo(packageInfo)
                     PackageManager.rebuildRemappings()

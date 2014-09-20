@@ -276,6 +276,11 @@ def parseAndRun(args):
                              "+url to add package by its url or filename, ~name to reload package by its name, -name to remove a package by its name, "
                              "URLs are full absolute paths.  "
                              "If + is omitted from package file nothing is saved (same as temp).  " ))
+    parser.add_option("--packageManifestName", action="store", dest="packageManifestName",
+                      help=_("Provide non-standard archive manifest file name pattern (e.g., *taxonomyPackage.xml).  "
+                             "Uses unix file name pattern matching.  "
+                             "Multiple manifest files are supported in archive (such as oasis catalogs).  "
+                             "(Replaces search for either .taxonomyPackage.xml or catalog.xml).  " ))
     parser.add_option("--abortOnMajorError", action="store_true", dest="abortOnMajorError", help=_("Abort process on major error, such as when load is unable to find an entry or discovered file."))
     parser.add_option("--showEnvironment", action="store_true", dest="showEnvironment", help=_("Show Arelle's config and cache directory and host OS environment parameters."))
     parser.add_option("--showenvironment", action="store_true", dest="showEnvironment", help=SUPPRESS_HELP)
@@ -527,7 +532,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 elif cmd == "temp":
                     savePackagesChanges = False
                 elif cmd.startswith("+"):
-                    packageInfo = PackageManager.addPackage(cmd[1:])
+                    packageInfo = PackageManager.addPackage(cmd[1:], options.packageManifestName)
                     if packageInfo:
                         self.addToLog(_("Addition of package {0} successful.").format(packageInfo.get("name")), 
                                       messageCode="info", file=packageInfo.get("URL"))
@@ -545,7 +550,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         self.addToLog(_("Unable to delete package."), messageCode="info", file=cmd[1:])
                 else: # assume it is a module or package
                     savePackagesChanges = False
-                    packageInfo = PackageManager.addPackage(cmd)
+                    packageInfo = PackageManager.addPackage(cmd, options.packageManifestName)
                     if packageInfo:
                         self.addToLog(_("Activation of package {0} successful.").format(packageInfo.get("name")), 
                                       messageCode="info", file=packageInfo.get("URL"))

@@ -5,6 +5,7 @@ Separated on Jul 28, 2013 from DialogOpenArchive.py
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import sys, os, io, time, json
+from fnmatch import fnmatch
 from lxml import etree
 if sys.version[0] >= '3':
     from urllib.parse import urljoin
@@ -189,7 +190,7 @@ def packageNamesWithNewerFileDates():
             pass
     return names
 
-def packageInfo(URL, reload=False):
+def packageInfo(URL, reload=False, packageManifestName=None):
     #TODO several directories, eg User Application Data
     packageFilename = _cntlr.webCache.getfilename(URL, reload=reload, normalize=True)
     if packageFilename:
@@ -200,39 +201,53 @@ def packageInfo(URL, reload=False):
             if openFileSource is None:
                 from arelle.FileSource import openFileSource
             filesource = openFileSource(packageFilename, _cntlr)
+            # allow multiple manifests [[metadata, prefix]...] for multiple catalogs
+            packages = []
             if filesource.isZip:
-                metadataFiles = filesource.taxonomyPackageMetadataFiles
-                ''' allow multiple
-                if len(metadataFiles) != 1:
-                    raise IOError(_("Taxonomy package contained more than one metadata file: {0}.")
-                                  .format(', '.join(metadataFiles)))
-                '''
-                metadataFile = metadataFiles[0]
-                metadata = filesource.file(filesource.url + os.sep + metadataFile)[0]
-                metadataFilePrefix = os.sep.join(os.path.split(metadataFile)[:-1])
-                if metadataFilePrefix:
-                    metadataFilePrefix += os.sep
-                metadataFilePrefix = filesource.baseurl + os.sep +  metadataFilePrefix
+                if packageManifestName:
+                    packageFiles = [fileName
+                                    for fileName in filesource.dir
+                                    if fnmatch(fileName, packageManifestName)]
+                else:
+                    packageFiles = filesource.taxonomyPackageMetadataFiles
+                if len(packageFiles) < 1:
+                    raise IOError(_("Taxonomy package contained no metadata file: {0}.")
+                                  .format(', '.join(packageFiles)))
+                for packageFile in packageFiles:
+                    packageFileUrl = filesource.file(filesource.url + os.sep + packageFile)[0]
+                    packageFilePrefix = os.sep.join(os.path.split(packageFile)[:-1])
+                    if packageFilePrefix:
+                        packageFilePrefix += os.sep
+                    packageFilePrefix = filesource.baseurl + os.sep +  packageFilePrefix
+                    packages.append([packageFileUrl, packageFilePrefix])
             elif os.path.basename(filesource.url) in TAXONOMY_PACKAGE_FILE_NAMES: # individual manifest file
-                metadataFile = metadata = filesource.url
-                metadataFilePrefix = os.sep.join(os.path.split(metadataFile)[:-1])
-                if metadataFilePrefix:
-                    metadataFilePrefix += os.sep
+                packageFile = packageFileUrl = filesource.url
+                packageFilePrefix = os.sep.join(os.path.split(packageFile)[:-1])
+                if packageFilePrefix:
+                    packageFilePrefix += os.sep
+                packages.append([packageFileUrl, packageFilePrefix])
             else:
                 raise IOError(_("File must be a taxonomy package (zip file), catalog file, or manifest (): {0}.")
                               .format(packageFilename, ', '.join(TAXONOMY_PACKAGE_FILE_NAMES)))
-            parsedPackage = parsePackage(_cntlr, metadata)
-            package = {'name': parsedPackage['name'],
+            remappings = {}
+            packageNames = []
+            descriptions = []
+            for packageFileUrl, packageFilePrefix in packages:    
+                parsedPackage = parsePackage(_cntlr, packageFileUrl)
+                packageNames.append(parsedPackage['name'])
+                if parsedPackage.get('description'):
+                    descriptions.append(parsedPackage['description'])
+                for prefix, remapping in parsedPackage["remappings"].items():
+                    remappings[prefix] = (remapping if isHttpUrl(remapping)
+                                          else (packageFilePrefix +remapping.replace("/", os.sep)))
+            package = {'name': ", ".join(packageNames),
                        'status': 'enabled',
                        'version': parsedPackage['version'],
                        'fileDate': time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(packageFilename))),
                        'URL': URL,
-                       'description': parsedPackage['description'],
-                       'remappings': dict(
-                            (prefix, 
-                             remapping if isHttpUrl(remapping)
-                             else (metadataFilePrefix +remapping.replace("/", os.sep)))
-                            for prefix, remapping in parsedPackage["remappings"].items()),
+                       'manifestName': packageManifestName,
+                       'description': "; ".join(descriptions),
+                       'remappings': remappings,
                        }
             filesource.close()
             return package
@@ -264,11 +279,11 @@ def mappedUrl(url):
                 break
     return url
 
-def addPackage(url):
-    newPackageInfo = packageInfo(url)
-    name = newPackageInfo.get("name")
-    version = newPackageInfo.get("version")
-    if newPackageInfo and name:
+def addPackage(url, packageManifestName=None):
+    newPackageInfo = packageInfo(url, packageManifestName=packageManifestName)
+    if newPackageInfo and newPackageInfo.get("name"):
+        name = newPackageInfo.get("name")
+        version = newPackageInfo.get("version")
         j = -1
         packagesList = packagesConfig["packages"]
         for i, _packageInfo in enumerate(packagesList):
