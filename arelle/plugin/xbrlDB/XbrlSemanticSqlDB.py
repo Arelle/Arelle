@@ -134,7 +134,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         
             # at this point we determine what's in the database and provide new tables
             # requires locking most of the table structure
-            self.lockTables(('entity', 'filing', 'report', 'document', 'referenced_documents'))
+            self.lockTables(('entity', 'filing', 'report', 'document', 'referenced_documents'),
+                            isSessionTransaction=True) # lock for whole transaction
             
             # find pre-existing documents in server database
             self.identifyPreexistingDocuments()
@@ -900,6 +901,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         if self.filingPreviouslyInDB:
             self.showStatus("deleting prior data points of this report")
             # remove prior facts
+            self.lockTables(("data_point", "entity_identifier", "period", "aspect_value_selection",
+                             "aspect_value_selection_set", "unit_measure", "unit",
+                             "table_data_points"))
             self.execute("DELETE FROM {0} WHERE {0}.report_id = {1}"
                          .format( self.dbTableName("data_point"), reportId), 
                          close=False, fetch=False)
@@ -993,6 +997,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         aspectValueSelections = set(aspectValueSelectionSet
                                     for cntx, aspectValueSelectionSet in cntxAspectValueSelectionSet.items()
                                     if aspectValueSelectionSet)
+        self.lockTables(("aspect_value_selection_set",))
         self.execute("DELETE FROM {0} WHERE report_id = {1}"
                      .format(self.dbTableName("aspect_value_selection_set"), reportId), 
                      close=False, fetch=False)
@@ -1102,6 +1107,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         if self.filingPreviouslyInDB:
             self.showStatus("deleting prior messages of this report")
             # remove prior messages for this report
+            self.lockTables(("message", "message_reference"))
             self.execute("DELETE from {0} "
                          "USING {1} "
                          "WHERE {1}.report_id = {2} AND {1}.message_id = {0}.message_id"
