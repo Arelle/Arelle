@@ -11,7 +11,7 @@ from threading import Timer
 from arelle.ModelFormulaObject import (ModelParameter, ModelInstance, ModelVariableSet,
                                        ModelFormula, ModelTuple, ModelVariable, ModelFactVariable, 
                                        ModelVariableSetAssertion, ModelConsistencyAssertion,
-                                       ModelExistenceAssertion, ModelValueAssertion,
+                                       ModelExistenceAssertion, ModelValueAssertion, ModelAssertionSeverity,
                                        ModelPrecondition, ModelConceptName, Trace,
                                        Aspect, aspectModels, ModelAspectCover,
                                        ModelMessage)
@@ -723,6 +723,29 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
             modelRel.toModelObject.hasConsistencyAssertion = True
     val.modelXbrl.profileActivity("... consistency assertion setup", minTimeToShow=1.0)
 
+    # check for assertion severity
+    for arcrole, relType in ((XbrlConst.assertionSatisfiedSeverity, "satisfied"),
+                             (XbrlConst.assertionUnsatisfiedSeverity, "unsatisfied")):
+        assertionSeverities = defaultdict(list)
+        for modelRel in val.modelXbrl.relationshipSet(arcrole).modelRelationships:
+            assertion = modelRel.fromModelObject
+            severity = modelRel.toModelObject
+            if not isinstance(assertion, (ModelVariableSetAssertion, ModelConsistencyAssertion)):
+                val.modelXbrl.error("seve:assertionSeveritySourceError",
+                    _("Source of assertion-%(relType)s-severity relationship is not an assertion element: %(sourceElement)s"),
+                    modelObject=(modelRel, assertion), relType=relType, sourceElement=assertion.qname)
+            if not isinstance(severity, ModelAssertionSeverity):
+                val.modelXbrl.error("seve:assertionSeverityTargetError",
+                    _("Target of assertion-%(relType)s-severity relationship is not an severity element: %(targetElement)s"),
+                    modelObject=(modelRel, severity), relType=relType, targetElement=severity.qname)
+            assertionSeverities[assertion].append(severity)
+        for assertion, severities in assertionSeverities.items():
+            if len(severities) > 1:
+                val.modelXbrl.error("seve:multipleAssertionSeveritiesNotAllowed",
+                    _("Assertion has more than one severity (%(numSevereties)s) in assertion-%(relType)s-severity relationships"),
+                    modelObject=[assertion] + list(severities), relType=relType, numSeverities=len(severities))
+        del assertionSeverities # dereference
+        
     # validate default dimensions in instances and accumulate multi-instance-default dimension aspects
     xpathContext.defaultDimensionAspects = set(val.modelXbrl.qnameDimensionDefaults.keys())
     for instanceQname in instanceQnames:
@@ -1189,6 +1212,10 @@ def checkMessageExpressions(val, message):
         else:
             message.expressions = expressions
             message.formatString = ''.join( formatString )
+        if not message.xmlLang:
+            val.modelXbrl.error("xbrlmsge:xbrlmsge:missingMessageLanguage",
+                _("Message %(xlinkLabel)s is missing an effective value for xml:lang: %(text)s."),
+                modelObject=message, xlinkLabel=message.xlinkLabel, text=message.text)
 
 def checkValidationMessageVariables(val, modelVariableSet, varNames, paramNames):
     if isinstance(modelVariableSet, ModelConsistencyAssertion):
