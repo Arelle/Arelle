@@ -48,6 +48,7 @@ NMTOKENPattern = re_compile(r"[_\-\.:"
                                "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]+$")
 
 decimalPattern = re_compile(r"^[+-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)$")
+integerPattern = re_compile(r"^[+-]?([0-9]+)$")
 floatPattern = re_compile(r"^(\+|-)?([0-9]+(\.[0-9]*)?|\.[0-9]+)([Ee](\+|-)?[0-9]+)?$|^(\+|-)?INF$|^NaN$")
 
 lexicalPatterns = {
