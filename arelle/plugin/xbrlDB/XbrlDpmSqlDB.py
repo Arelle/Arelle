@@ -92,10 +92,19 @@ def insertIntoDB(modelXbrl,
                 # load modelDocument from database saving to file
                 result = xbrlDbConn.loadXbrlFromDB(loadDBsaveToFile, loadInstanceId)
                 xbrlDbConn.close()
+                result = True
             else:
                 # non-streaming complete insertion of XBRL document(s) to DB
                 xbrlDbConn.insertXbrlToDB(rssItem=rssItem)
                 xbrlDbConn.close()
+                result = True
+    except DpmDBException as ex:
+        modelXbrl.error(ex.code, ex.message) # exception __repr__ includes message
+        if xbrlDbConn is not None:
+            try:
+                xbrlDbConn.close(rollback=True)
+            except Exception as ex2:
+                pass
     except Exception as ex:
         if xbrlDbConn is not None:
             try:
@@ -163,6 +172,8 @@ def metDimNameKey(fact, cntx):
         key += '|' + dimNameKey(cntx)
     return key
 
+class DpmDBException(XPDBException):
+    pass
 
 class XbrlSqlDatabaseConnection(SqlDbConnection):
     def verifyTables(self):
@@ -191,7 +202,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         
         # must have a valid XBRL instance or document
         if self.modelXbrl.modelDocument is None:
-            raise XPDBException("xpgDB:MissingXbrlDocument",
+            raise DpmDBException("xpgDB:MissingXbrlDocument",
                                 _("No XBRL instance or schema loaded for this filing.")) 
         
         # at this point we determine what's in the database and provide new tables
@@ -211,24 +222,31 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         if self.modelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL):
             for refDoc, ref in self.modelXbrl.modelDocument.referencesDocument.items():
                 if refDoc.inDTS and ref.referenceType == "href":
-                    result = self.execute("SELECT ModuleID FROM mModule WHERE XBRLSchemaRef = '{}'"
-                                          .format(refDoc.uri))
-                    for moduleId in result:
-                        self.moduleId = moduleId[0] # only column in row returned
-                        break
-                    if self.moduleId:
-                        break
+                    if self.moduleId is None:
+                        result = self.execute("SELECT ModuleID FROM mModule WHERE XBRLSchemaRef = '{}'"
+                                              .format(refDoc.uri))
+                        for moduleId in result:
+                            self.moduleId = moduleId[0] # only column in row returned
+                            break
+                    else:
+                        self.modelXbrl.error("sqlDB:multipeSchemaRefs",
+                                             _("Loading XBRL DB: Multiple schema files referenced: %(schemaRef)s"),
+                                             modelObject=self.modelXbrl, schemaRef=refDoc.uri)
         if not self.moduleId:
-            raise XPDBException("xpgDB:MissingModuleEntry",
+            raise DpmDBException("xpgDB:MissingModuleEntry",
                     _("A ModuleID could not be found in table mModule for instance schemaRef {0}.")
                     .format(refDoc.uri)) 
         self.modelXbrl.profileActivity("dpmDB 01. Get ModuleID for instance schema", minTimeToShow=0.0)
         periodInstantDate = None
         entityIdentifier = ('', '') # scheme, identifier
+        self.cntxDates = set()
+        self.entityIdentifiers = set()
         for cntx in self.modelXbrl.contexts.values():
             if cntx.isInstantPeriod:
-                entityIdentifier = cntx.entityIdentifier
+                entityIdentifier = cntx.entityIdentifier[1]
                 periodInstantDate = cntx.endDatetime.date() - datetime.timedelta(1)  # convert to end date
+                self.cntxDates.add(cntx.endDatetime) # for error checks
+                self.entityIdentifiers.add(entityIdentifier)
                 break
         if not periodInstantDate:
             return False # needed context not yet available
@@ -324,7 +342,16 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         isNumeric = True
                         # not validated, do own xValue
                         try:
-                            xValue = Decimal(xValue)
+                            if c == 'i':
+                                valuePattern = XmlValidate.integerPattern
+                            else:
+                                valuePattern = XmlValidate.decimalPattern
+                            if valuePattern.match(xValue) is None:
+                                self.modelXbrl.error("sqlDB:factValueError",
+                                                     _("Loading XBRL DB: Fact %(qname)s, context %(context)s, value lexical error: %(value)s"),
+                                                     modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
+                            else:
+                                xValue = Decimal(xValue)
                         except InvalidOperation:
                             xValue = Decimal('NaN')
                     elif c == 'd':
@@ -332,7 +359,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         try:
                             xValue = dateTime(xValue, type=DATEUNION, castException=ValueError)
                         except ValueError:
-                            pass
+                            self.modelXbrl.error("sqlDB:factValueError",
+                                                 _("Loading XBRL DB: Fact %(qname)s, context %(context)s, value: %(value)s"),
+                                                 modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
                     elif c == 'b':
                         isBool = True
                         xValue = xValue.strip()
@@ -340,13 +369,21 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                             xValue = True
                         elif xValue in ("false", "0"): 
                             xValue = False
+                        else:
+                            self.modelXbrl.error("sqlDB:factValueError",
+                                                 _("Loading XBRL DB: Fact %(qname)s, context %(context)s, value: %(value)s"),
+                                                 modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
                 
             isText = not (isNumeric or isBool or isDateTime) # 's' or 'u' type
             if f.qname == qnFindFilingIndicators:
                 for filingIndicator in f.modelTupleFacts:
                     if filingIndicator.qname == qnFindFilingIndicator:
                         self.dFilingIndicators.add(filingIndicator.textValue.strip())
-            elif cntx is not None:
+            elif cntx is None: 
+                self.modelXbrl.error("sqlDB:factContextError",
+                                     _("Loading XBRL DB: Fact missing %(qname)s, contextRef %(context)s, value: %(value)s"),
+                                     modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
+            else:
                 # find which explicit dimensions act as typed
                 behaveAsTypedDims = set()
                 zDimValues = {}
@@ -382,6 +419,18 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                          xValue if isDateTime else None,
                                          None))
                 '''
+            if cntx is not None:
+                if cntx.isInstantPeriod and cntx.endDatetime not in self.cntxDates:
+                    self.modelXbrl.error("sqlDB:contextDatesError",
+                                         _("Loading XBRL DB: Context has different date: %(context)s, date %(value)s"),
+                                         modelObject=cntx, context=cntx.id, value=cntx.endDatetime.date() - datetime.timedelta(1))
+                    self.cntxDates.add(cntx.endDatetime)
+                if cntx.entityIdentifier[1] not in self.entityIdentifiers:
+                    self.modelXbrl.error("sqlDB:factContextError",
+                                     _("Loading XBRL DB: Context has different entity identifier: %(context)s %(value)s"),
+                                     modelObject=cntx, context=cntx.id, value=cntx.entityIdentifier[1])
+                    self.entityIdentifiers.add(cntx.entityIdentifier[1])
+
         self.getTable("dFact", None,
                       ('InstanceID', 
                        'DataPointSignature', 
@@ -397,31 +446,36 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 
         # availableTable processing
         # get filing indicator template IDs
-        results = self.execute("SELECT mToT2.TemplateOrTableCode, mToT2.TemplateOrTableID "
-                               "  FROM mModuleBusinessTemplate mBT, mTemplateOrTable mToT, mTemplateOrTable mToT2 "
-                               "  WHERE mBT.ModuleID = {0} AND"
-                               "        mToT.TemplateOrTableID = mBT.BusinessTemplateID AND"
-                               "        mToT.ParentTemplateOrTableID = mToT2.TemplateOrTableID AND"
-                               "        mToT2.TemplateOrTableCode in ({1})"
-                               .format(self.moduleId,
-                                       ', '.join("'{}'".format(filingIndicator)
-                                                 for filingIndicator in self.dFilingIndicators)))
-        filingIndicatorCodeIDs = dict((code, id) for code, id in results)
-        self.modelXbrl.profileActivity("dpmDB 07. Get business template filing indicator for module", minTimeToShow=0.0)
-        
-        if _DICT_SET(filingIndicatorCodeIDs.keys()) != self.dFilingIndicators:
-            self.modelXbrl.error("sqlDB:MissingFilingIndicators",
-                                 _("The filing indicator IDs not found for codes %(missingFilingIndicatorCodes)s"),
-                                 modelObject=self.modelXbrl,
-                                 missingFilingIndicatorCodes=','.join(self.dFilingIndicators - _DICT_SET(filingIndicatorCodeIDs.keys()))) 
-
-        self.getTable("dFilingIndicator", None,
-                      ("InstanceID", "BusinessTemplateID"),
-                      ("InstanceID", "BusinessTemplateID"),
-                      ((self.instanceId,
-                        filingIndicatorCodeId)
-                       for filingIndicatorCodeId in sorted(filingIndicatorCodeIDs.values())),
-                      returnMatches=False)
+        if not self.dFilingIndicators:
+            self.modelXbrl.error("sqlDB:NoFilingIndicators",
+                                 _("No filing indicator were present in the instance"),
+                                 modelObject=self.modelXbrl) 
+        else:
+            results = self.execute("SELECT mToT2.TemplateOrTableCode, mToT2.TemplateOrTableID "
+                                   "  FROM mModuleBusinessTemplate mBT, mTemplateOrTable mToT, mTemplateOrTable mToT2 "
+                                   "  WHERE mBT.ModuleID = {0} AND"
+                                   "        mToT.TemplateOrTableID = mBT.BusinessTemplateID AND"
+                                   "        mToT.ParentTemplateOrTableID = mToT2.TemplateOrTableID AND"
+                                   "        mToT2.TemplateOrTableCode in ({1})"
+                                   .format(self.moduleId,
+                                           ', '.join("'{}'".format(filingIndicator)
+                                                     for filingIndicator in self.dFilingIndicators)))
+            filingIndicatorCodeIDs = dict((code, id) for code, id in results)
+            self.modelXbrl.profileActivity("dpmDB 07. Get business template filing indicator for module", minTimeToShow=0.0)
+            
+            if _DICT_SET(filingIndicatorCodeIDs.keys()) != self.dFilingIndicators:
+                self.modelXbrl.error("sqlDB:MissingFilingIndicators",
+                                     _("The filing indicator IDs were not found for codes %(missingFilingIndicatorCodes)s"),
+                                     modelObject=self.modelXbrl,
+                                     missingFilingIndicatorCodes=','.join(self.dFilingIndicators - _DICT_SET(filingIndicatorCodeIDs.keys()))) 
+    
+            self.getTable("dFilingIndicator", None,
+                          ("InstanceID", "BusinessTemplateID"),
+                          ("InstanceID", "BusinessTemplateID"),
+                          ((self.instanceId,
+                            filingIndicatorCodeId)
+                           for filingIndicatorCodeId in sorted(filingIndicatorCodeIDs.values())),
+                          returnMatches=False)
         self.modelXbrl.profileActivity("dpmDB 08. Store dFilingIndicators", minTimeToShow=0.0)
         ''' deprecated
         table = self.getTable("dProcessingFact", None,
@@ -470,7 +524,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         for instanceId, moduleId, entScheme, entId, datePerEnd in results:
             break
         if not instanceId:
-            raise XPDBException("sqlDB:MissingInstance",
+            raise DpmDBException("sqlDB:MissingInstance",
                     _("The instance was not found in table dInstance: %(instanceURI)s"),
                     instanceURI = instanceURI) 
             
@@ -484,7 +538,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             break
         
         if not xbrlSchemaRef:
-            raise XPDBException("sqlDB:MissingDTS",
+            raise DpmDBException("sqlDB:MissingDTS",
                     _("The module in mModule, corresponding to the instance, was not found for %(instanceURI)s"),
                     instanceURI = instanceURI) 
             

@@ -15,16 +15,12 @@ Calls these plug-in classes:
    Streaming.Finish(modelXbrl): notifies that streaming is finished
 '''
 
-import io, sys, os, time
+import io, os, time
 from decimal import Decimal, InvalidOperation
 from lxml import etree
-from collections import defaultdict
 from arelle import XbrlConst, XmlUtil, XmlValidate, ValidateXbrlDimensions
 from arelle.ModelDocument import ModelDocument, Type
-from arelle.ModelObject import ModelObject
 from arelle.ModelObjectFactory import parser
-from arelle.ModelValue import QName
-from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit
 from arelle.PluginManager import pluginClassMethods
 from arelle.Validate import Validate
 
@@ -241,12 +237,9 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
         validator = Validate(modelXbrl)
         instValidator = validator.instValidator
 
-    eltMdlObjs = {}
     contextBuffer = []
     unitBuffer = []
     footnoteBuffer = []
-    factBuffer = []
-    numFacts = 1
     
     _streamingValidateFactsPlugin = any(True for pluginMethod in pluginClassMethods("Streaming.ValidateFacts"))
 
@@ -428,7 +421,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
 
 def checkFootnoteHrefs(modelXbrl, footnoteLink):
     for locElt in footnoteLink.iterchildren(tag="{http://www.xbrl.org/2003/linkbase}loc"):
-        for hrefElt, doc, id in footnoteLink.modelDocument.hrefObjects:
+        for hrefElt, _doc, _id in footnoteLink.modelDocument.hrefObjects:
             if locElt == hrefElt and id not in footnoteLink.modelDocument.idObjects:
                 modelXbrl.error("streamingExtensions:footnoteId",
                         _("Footnote id %(id)s not matched to fact in buffered region"),

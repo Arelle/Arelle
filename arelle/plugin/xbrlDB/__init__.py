@@ -164,7 +164,7 @@ def storeIntoDB(dbConnection, modelXbrl, rssItem=None, **kwargs):
         modelXbrl.modelManager.addToLog('Server at "{0}:{1}" is not recognized to be either a Postgres or a Rexter service.'.format(host, port))
         return
     result = insertIntoDB(modelXbrl, host=host, port=port, user=user, password=password, database=db, timeout=timeout, product=product, rssItem=rssItem, **kwargs)
-    if kwargs.get("logStoredMsg", True):
+    if kwargs.get("logStoredMsg", result): # if false/None result and no logStoredMsg parameter then skip the message
         modelXbrl.modelManager.addToLog(format_string(modelXbrl.modelManager.locale, 
                               _("stored to database in %.2f secs"), 
                               time.time() - startedAt), messageCode="info", file=modelXbrl.uri)

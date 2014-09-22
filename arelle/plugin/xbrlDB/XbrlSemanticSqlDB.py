@@ -1075,7 +1075,6 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                       xmlIdDataPointId[(self.documentIds[fact.modelDocument],
                                                         elementChildSequence(fact))])
                     except KeyError:
-                        print ("\n\n*****no tuple datapoint {} ******\n\n".format(fact.qname))
                         self.modelXbrl.info("xpDB:warning",
                                             _("Loading XBRL DB: tuple's datapoint not found: %(tuple)s"),
                                             modelObject=fact, tuple=fact.qname)
