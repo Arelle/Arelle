@@ -117,8 +117,8 @@ def final(val):
             if _value in filingIndicators:
                 modelXbrl.error("EBA.1.6.1",
                         _('Multiple filing indicators facts for indicator %(filingIndicator)s.'),
-                        modelObject=(fIndicator, filingIndicators[_value]), filingIndicator=_value)
-            filingIndicators[_value] = fIndicator
+                        modelObject=(fIndicator, filingIndicators[fIndicator.xValue]), filingIndicator=fIndicator.xValue)
+            filingIndicators[fIndicator.xValue] = fIndicator
         
         if not filingIndicators:
             modelXbrl.error("EBA.1.6",
