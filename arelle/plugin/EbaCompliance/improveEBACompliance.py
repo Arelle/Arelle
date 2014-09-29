@@ -105,9 +105,9 @@ def createOrReplaceFilingIndicators(dts, allFilingIndicatorCodes, newFactItemOpt
     else:
         filingIndicatorsElement = None
     if filingIndicatorsElement is not None:
+        removeUselessFilingIndicatorsInModel(dts)
         parent = filingIndicatorsElement.getparent()
         parent.remove(filingIndicatorsElement)
-        removeUselessFilingIndicatorContext(dts)
         XmlValidate.validate(dts, parent) # must validate after content is deleted
     if len(allFilingIndicatorCodes)>0:
         filingIndicatorsElement = createFilingIndicatorsElement(dts, newFactItemOptions)
@@ -119,12 +119,24 @@ def createOrReplaceFilingIndicators(dts, allFilingIndicatorCodes, newFactItemOpt
                            validate=False)
         XmlValidate.validate(dts, filingIndicatorsElement) # must validate after content is created
 
-def removeUselessFilingIndicatorContext(dts):
+def removeUselessFilingIndicatorsInModel(dts):
     ''':type dts: ModelXbrl'''
+    # First remove the context
     context = dts.contexts["c"]
     parent = context.getparent()
     parent.remove(context)
     del dts.contexts["c"]
+    # Remove the elements from the facts and factsInInstance data structure
+    filingIndicatorsElements = dts.factsByQname(qnFindFilingIndicators, set())
+    for fact in filingIndicatorsElements:
+        dts.factsInInstance.remove(fact)
+        dts.facts.remove(fact)
+        if fact in dts.undefinedFacts:
+            dts.undefinedFacts.remove(fact)
+    filingIndicatorElements = dts.factsByQname(qnFindFilingIndicator, set())
+    for fact in filingIndicatorElements:
+        dts.factsInInstance.remove(fact)
+        # non-top-level elements are not in 'facts'
 
 def createFilingIndicatorsElement(dts, newFactItemOptions):
     dts.createContext(newFactItemOptions.entityIdentScheme,

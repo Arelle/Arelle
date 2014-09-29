@@ -672,11 +672,8 @@ class ModelXbrl:
         
         :returns: set -- non-nil facts in instance
         """
-        try:
-            return self._nonNilFactsInInstance
-        except AttributeError:
-            self._nonNilFactsInInstance = set(f for f in self.factsInInstance if not f.isNil)
-            return self._nonNilFactsInInstance
+        _nonNilFactsInInstance = set(f for f in self.factsInInstance if not f.isNil)
+        return _nonNilFactsInInstance
         
     def factsByQname(self, qname, defaultValue=None): # indexed by fact (concept) qname
         """Facts in the instance indexed by their QName, cached
@@ -695,18 +692,12 @@ class ModelXbrl:
         :type notStrict: bool
         :returns: set -- ModelFacts that have specified type or (if nonStrict) derived from specified type
         """
-        try:
-            return self._factsByDatatype[notStrict, typeQname]
-        except AttributeError:
-            self._factsByDatatype = {}
-            return self.factsByDatatype(notStrict, typeQname)
-        except KeyError:
-            self._factsByDatatype[notStrict, typeQname] = fbdt = set()
-            for f in self.factsInInstance:
-                c = f.concept
-                if c.typeQname == typeQname or (notStrict and c.type.isDerivedFrom(typeQname)):
-                    fbdt.add(f)
-            return fbdt
+        fbdt = set()
+        for f in self.factsInInstance:
+            c = f.concept
+            if c.typeQname == typeQname or (notStrict and c.type.isDerivedFrom(typeQname)):
+                fbdt.add(f)
+        return fbdt
         
     def factsByPeriodType(self, periodType): # indexed by fact (concept) qname
         """Facts in the instance indexed by periodType, cached
@@ -715,18 +706,13 @@ class ModelXbrl:
         :type periodType: str
         :returns: set -- ModelFacts that have specified periodType
         """
-        try:
-            return self._factsByPeriodType[periodType]
-        except AttributeError:
-            self._factsByPeriodType = fbpt = defaultdict(set)
-            for f in self.factsInInstance:
-                p = f.concept.periodType
-                if p:
-                    fbpt[p].add(f)
-            return self.factsByPeriodType(periodType)
-        except KeyError:
-            return set()  # no facts for this period type
-        
+        fbpt = set()
+        for f in self.factsInInstance:
+            p = f.concept.periodType
+            if p == periodType:
+                fbpt.add(f)
+            return fbpt
+
     def factsByDimMemQname(self, dimQname, memQname=None): # indexed by fact (concept) qname
         """Facts in the instance indexed by their Dimension  and Member QName, cached
         
