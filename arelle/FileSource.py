@@ -539,7 +539,10 @@ class FileSource:
             
 def openFileStream(cntlr, filepath, mode='r', encoding=None):
     if isHttpUrl(filepath) and cntlr:
-        filepath = cntlr.webCache.getfilename(filepath)
+        _cacheFilepath = cntlr.webCache.getfilename(filepath)
+        if _cacheFilepath is None:
+            raise IOError(_("Unable to open file: {0}.").format(filepath))
+        filepath = _cacheFilepath
     # file path may be server (or memcache) or local file system
     if filepath.startswith(SERVER_WEB_CACHE) and cntlr:
         filestream = None
@@ -597,7 +600,10 @@ def openXmlFileStream(cntlr, filepath, stripDeclaration=False):
     
 def saveFile(cntlr, filepath, contents, encoding=None):
     if isHttpUrl(filepath):
-        filepath = cntlr.webCache.getfilename(filepath)
+        _cacheFilepath = cntlr.webCache.getfilename(filepath)
+        if _cacheFilepath is None:
+            raise IOError(_("Unable to open file: {0}.").format(filepath))
+        filepath = _cacheFilepath
     # file path may be server (or memcache) or local file system
     if filepath.startswith(SERVER_WEB_CACHE):
         cacheKey = filepath[len(SERVER_WEB_CACHE) + 1:].replace("\\","/")
