@@ -12,8 +12,8 @@ from arelle.ModelValue import qname
 from arelle.DialogNewFactItem import getNewFactItemOptions
 from lxml import etree
 from arelle.ViewWinRenderedGrid import ViewRenderedGrid
-from arelle.plugin.EbaCompliance.ViewWalkerRenderedGrid import viewWalkerRenderedGrid
-from arelle.plugin.EbaCompliance.FactWalkingAction import FactWalkingAction
+from .ViewWalkerRenderedGrid import viewWalkerRenderedGrid
+from .FactWalkingAction import FactWalkingAction
 
 EbaURL = "www.eba.europa.eu/xbrl"
 qnFindFilingIndicators = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:fIndicators")
@@ -165,7 +165,7 @@ def getFactItemOptions(dts, cntlr):
             break
     return newFactItemOptions
 
-def improveEbaComplianceMenuEntender(cntlr, menu):
+def improveEbaComplianceMenuExtender(cntlr, menu):
     # Extend menu with an item for the improve compliance menu
     menu.add_command(label=_("Improve EBA compliance"), 
                      underline=0, 
@@ -193,5 +193,5 @@ __pluginInfo__ = {
     'author': 'Gregorio Mongelli (Acsone S. A.)',
     'copyright': '(c) Copyright 2014 Acsone S. A.',
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Tools': improveEbaComplianceMenuEntender
+    'CntlrWinMain.Menu.Tools': improveEbaComplianceMenuExtender
 }
