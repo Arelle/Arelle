@@ -401,7 +401,7 @@ def calindaymonthyear(arg):
         _day = _INT(devanagariDigitsToNormal(m.group(1)))
         _yr = _INT(devanagariDigitsToNormal(yrin(m.group(3), _mo, _day)))
         #sakaDate = [_yr, _mo, _day]
-        #for pluginMethod in pluginClassMethods("SakaCalendar.ToGregorian"):  # LGPLv3 plugin
+        #for pluginMethod in pluginClassMethods("SakaCalendar.ToGregorian"):  # LGPLv3 plugin (moved to examples/plugin)
         #    gregorianDate = pluginMethod(sakaDate)
         #    return "{0}-{1:02}-{2:02}".format(gregorianDate[0], gregorianDate[1], gregorianDate[2])
         #raise NotImplementedError (_("ixt:calindaymonthyear requires plugin sakaCalendar.py, please install plugin.  "))
