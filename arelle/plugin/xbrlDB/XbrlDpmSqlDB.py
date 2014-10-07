@@ -45,20 +45,22 @@ windows
 
 '''
 
-import time, datetime, os
+import time, datetime, os, re
 from collections import defaultdict
 from arelle.ModelDocument import Type, create as createModelDocument
+from arelle.ModelInstanceObject import ModelFact
 from arelle import Locale, ValidateXbrlDimensions
 from arelle.ModelValue import qname, dateTime, DATEUNION
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.ValidateXbrlCalcs import roundValue
-from arelle.XmlUtil import xmlstring, datetimeValue, addChild, addQnameValue, addProcessingInstruction
+from arelle.XmlUtil import xmlstring, datetimeValue, DATETIME_MAXYEAR, dateunionValue, addChild, addQnameValue, addProcessingInstruction
 from arelle import XbrlConst, XmlValidate
 from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
 from decimal import Decimal, InvalidOperation
 
 qnFindFilingIndicators = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:fIndicators")
 qnFindFilingIndicator = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:filingIndicator")
+decimalsPattern = re.compile("^(-?[0-9]+|INF)$")
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
@@ -92,7 +94,6 @@ def insertIntoDB(modelXbrl,
                 # load modelDocument from database saving to file
                 result = xbrlDbConn.loadXbrlFromDB(loadDBsaveToFile, loadInstanceId)
                 xbrlDbConn.close()
-                result = True
             else:
                 # non-streaming complete insertion of XBRL document(s) to DB
                 xbrlDbConn.insertXbrlToDB(rssItem=rssItem)
@@ -219,10 +220,17 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         # find primary model taxonomy of instance
         self.modelXbrl.profileActivity()
         self.moduleId = None
+        self.availableTableRows = defaultdict(set) # index (tableID, zDimVal) = set of yDimVals 
+        self.dFilingIndicators = set()
+        self.metricsForFilingIndicators = set()
+        self.signaturesForFilingIndicators = defaultdict(list)
+
+        _instanceSchemaRef = "(none)"
         if self.modelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL):
             for refDoc, ref in self.modelXbrl.modelDocument.referencesDocument.items():
                 if refDoc.inDTS and ref.referenceType == "href":
                     if self.moduleId is None:
+                        _instanceSchemaRef = refDoc.uri
                         result = self.execute("SELECT ModuleID FROM mModule WHERE XBRLSchemaRef = '{}'"
                                               .format(refDoc.uri))
                         for moduleId in result:
@@ -235,7 +243,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         if not self.moduleId:
             raise DpmDBException("xpgDB:MissingModuleEntry",
                     _("A ModuleID could not be found in table mModule for instance schemaRef {0}.")
-                    .format(refDoc.uri)) 
+                    .format(_instanceSchemaRef)) 
         self.modelXbrl.profileActivity("dpmDB 01. Get ModuleID for instance schema", minTimeToShow=0.0)
         periodInstantDate = None
         entityIdentifier = ('', '') # scheme, identifier
@@ -256,7 +264,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 entityCurrency = unit.measures[0][0].localName
                 break
         if not entityCurrency:
-            return False
+            self.modelXbrl.error("sqlDB:entityCurrencyWarning",
+                                 _("Loading XBRL DB: Instance does not have a currency unit."),
+                                 modelObject=self.modelXbrl)
         table = self.getTable('dInstance', 'InstanceID', 
                               ('ModuleID', 'FileName', 'CompressedFileBlob',
                                'Timestamp', 'EntityScheme', 'EntityIdentifier', 'PeriodEndDateOrInstant',
@@ -306,15 +316,121 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         tblDimVal[tableID][dim] = val[:-1]
         self.modelXbrl.profileActivity("dpmDB 05. Get YZ DimVals for Table", minTimeToShow=0.0)
 
-        self.availableTableRows = defaultdict(set) # index (tableID, zDimVal) = set of yDimVals 
-        self.dFilingIndicators = set()
         self.showStatus("insert data points")
         return True
- 
+    
+    def loadAllowedMetricsAndDims(self):
+        self.filingIndicators = ', '.join("'{}'".format(filingIndicator)
+                                           for filingIndicator in self.dFilingIndicators)
+        # check metrics encountered for filing indicators found
+        results = self.execute(
+            "select distinct mem.MemberXBRLCode "
+             "from mTemplateOrTable tott "
+             "inner join mTemplateOrTable tottv on tottv.ParentTemplateOrTableID = tott.TemplateOrTableID "
+             "   and tott.TemplateOrTableCode in ({0}) "
+             "inner join mTemplateOrTable totbt on totbt.ParentTemplateOrTableID = tottv.TemplateOrTableID "
+             "inner join mTemplateOrTable totat on totat.ParentTemplateOrTableID = totbt.TemplateOrTableID "
+             "inner join mTaxonomyTable tt on tt.AnnotatedTableID = totat.TemplateOrTableID "
+             "inner join mTableAxis ta on ta.TableID = tt.TableID "
+             "inner join mAxisOrdinate ao on ao.AxisID = ta.AxisID "
+             "inner join mOrdinateCategorisation oc on oc.OrdinateID = ao.OrdinateID AND (oc.Source = 'MD' or oc.Source is null) "
+             "inner join mMember mem on mem.MemberID = oc.MemberID "
+             "inner join mMetric met on met.CorrespondingMemberID = mem.MemberID "
+             "inner join mModuleBusinessTemplate mbt on mbt.BusinessTemplateID = tottv.TemplateOrTableID "
+             "   and mbt.ModuleID = {1} "
+             .format(self.filingIndicators, self.moduleId))
+        self.metricsForFilingIndicators = set(r[0] for r in results)
+        
+        results = self.execute(
+             "select distinct tc.DatapointSignature "
+             "from mTemplateOrTable tott "
+             "inner join mTemplateOrTable tottv on tottv.ParentTemplateOrTableID = tott.TemplateOrTableID "
+             "  and tott.TemplateOrTableCode in ( {0} ) "
+             "inner join mTemplateOrTable totbt on totbt.ParentTemplateOrTableID = tottv.TemplateOrTableID "
+             "inner join mTemplateOrTable totat on totat.ParentTemplateOrTableID = totbt.TemplateOrTableID "
+             "inner join mTaxonomyTable tt on tt.AnnotatedTableID = totat.TemplateOrTableID "
+             "inner join mTableCell tc on tc.TableID = tt.TableID and (tc.IsShaded = 0 or tc.IsShaded is null) "
+             "inner join mModuleBusinessTemplate mbt on mbt.BusinessTemplateID = tottv.TemplateOrTableID "
+             "  and mbt.ModuleID = {1} "
+             .format(self.filingIndicators, self.moduleId))
+        
+        self.signaturesForFilingIndicators = defaultdict(list)
+        for dpSig in results:
+            _met, _sep, dims = dpSig[0].partition("|")
+            _dimVals = {}
+            for _dimVal in dims.split("|"):
+                _dim, _sep, _val  = _dimVal.partition("(")
+                _dimVals[_dim] = _val[:-1]
+            self.signaturesForFilingIndicators[_met[4:-1]].append(_dimVals)
+            
+    def dFactValue(self, dFact):
+        for v in dFact[4:7]:
+            if v is not None:
+                return v
+        return None
+
+    def validateFactSignature(self, dpmSignature, fact): # omit fact if checking at end
+        _met, _sep, _dimVals = dpmSignature.partition("|")
+        _metQname = _met[4:-1]
+        if _metQname not in self.metricsForFilingIndicators:
+            if isinstance(fact, ModelFact):
+                self.modelXbrl.error("sqlDB:factQNameError",
+                                     _("Loading XBRL DB: Fact QName not allowed for filing indicators %(qname)s, contextRef %(context)s, value: %(value)s"),
+                                     modelObject=fact, dpmSignature=dpmSignature, qname=fact.qname, context=fact.contextID, value=fact.value)
+            elif isinstance(fact, (tuple,list)): # from database dFact record
+                self.modelXbrl.error("sqlDB:factQNameError",
+                                     _("Loading XBRL DB: Fact QName not allowed for filing indicators %(qname)s, value: %(value)s"),
+                                     modelObject=self.modelXbrl, dpmSignature=dpmSignature, qname=_metQname, value=self.dFactValue(fact))
+        else:
+            _dimVals = dict((_dim,_val[:-1])
+                            for _dimVal in _dimVals.split("|")
+                            for _dim, _sep, _val in (_dimVal.partition("("),))
+            _dimSigs = self.signaturesForFilingIndicators.get(_metQname)
+            _sigMatched = False
+            _missingDims = _differentDims = _extraDims = set()
+            _closestMatch = 9999
+            _closestMatchSig = None
+            if _dimSigs:
+                for _dimSig in _dimSigs: # alternate signatures valid for member
+                    _lenDimSig = len(_dimSig)
+                    _lenDimVals = len(_dimVals)
+                    _differentDimCount = abs(_lenDimSig - _lenDimVals)
+                    _differentDims = set(_dim
+                                         for _dim, _val in _dimVals.items()
+                                         if _dim in _dimSig and _dimSig[_dim] not in ("*", _val))
+                    _difference = _differentDimCount + len(_differentDims)
+                    if _difference == 0:
+                        _sigMatched = True
+                        break
+                    if _difference < _closestMatch:
+                        _missingDims = _DICT_SET(_dimSig.keys()) - _DICT_SET(_dimVals.keys())
+                        _extraDims = _DICT_SET(_dimVals.keys()) - _DICT_SET(_dimSig.keys())
+                        _closestMatchDiffDims = _differentDims
+                        _closestMatchSig = _dimSig
+                        _closestMatch = _difference
+                if not _sigMatched:
+                    _missings = ",".join("{}({})".format(_dim,_closestMatchSig[_dim]) for _dim in _missingDims) or "none"
+                    _extras = ",".join("{}({})".format(_dim,_dimVals[_dim]) for _dim in _extraDims) or "none"
+                    _diffs = ",".join("dim: {} fact: {} DPMsig: {}".format(_dim, _dimVals[_dim], _closestMatchSig[_dim])  
+                                      for _dim in _closestMatchDiffDims) or "none"
+                    if isinstance(fact, ModelFact):
+                        self.modelXbrl.error("sqlDB:factDimensionsError",
+                                             _("Loading XBRL DB: Fact dimensions not allowed for filing indicators %(qname)s, contextRef %(context)s, value: %(value)s; "
+                                               "Extra dimensions of fact: %(extra)s, missing dimensions of fact: %(missing)s, different dimensions of fact: %(different)s"),
+                                             modelObject=fact, dpmSignature=dpmSignature, qname=fact.qname, context=fact.contextID, value=fact.value,
+                                             extra=_extras, missing=_missings, different=_diffs)
+                    elif isinstance(fact, (tuple,list)): # from database dFact record
+                        self.modelXbrl.error("sqlDB:factDimensionsError",
+                                             _("Loading XBRL DB: Fact dimensions not allowed for filing indicators %(qname)s, value: %(value)s; "
+                                               "Extra dimensions of fact: %(extra)s, missing dimensions of fact: %(missing)s, different dimensions of fact: %(different)s"),
+                                             modelObject=self.modelXbrl, dpmSignature=dpmSignature, qname=_metQname, value=self.dFactValue(fact),
+                                             extra=_extras, missing=_missings, different=_diffs)
+
     def insertDataPointsToDB(self):
         instanceId = self.instanceId
 
         dFacts = []
+        dFactHashes = {}
         for f in self.modelXbrl.facts:
             cntx = f.context
             concept = f.concept
@@ -322,6 +438,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             if concept is not None:
                 if concept.isNumeric:
                     isNumeric = True
+                    if f.precision:
+                        self.modelXbrl.error("sqlDB:factPrecisionError",
+                                             _("Loading XBRL DB: Fact contains a precision attribute %(qname)s, precision %(precision)s, context %(context)s, value %(value)s"),
+                                             modelObject=f, qname=f.qname, context=f.contextID, value=f.value, precision=f.precision)
                 else:
                     baseXbrliType = concept.baseXbrliType
                     if baseXbrliType == "booleanItemType":
@@ -354,31 +474,65 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                 xValue = Decimal(xValue)
                         except InvalidOperation:
                             xValue = Decimal('NaN')
-                    elif c == 'd':
-                        isDateTime = True
-                        try:
-                            xValue = dateTime(xValue, type=DATEUNION, castException=ValueError)
-                        except ValueError:
-                            self.modelXbrl.error("sqlDB:factValueError",
-                                                 _("Loading XBRL DB: Fact %(qname)s, context %(context)s, value: %(value)s"),
+                        if f.unit is None:
+                            self.modelXbrl.error("sqlDB:factUnitError",
+                                                 _("Loading XBRL DB: Fact missing unit %(qname)s, context %(context)s, value %(value)s"),
                                                  modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
-                    elif c == 'b':
-                        isBool = True
-                        xValue = xValue.strip()
-                        if xValue in ("true", "1"):  
-                            xValue = True
-                        elif xValue in ("false", "0"): 
-                            xValue = False
-                        else:
-                            self.modelXbrl.error("sqlDB:factValueError",
-                                                 _("Loading XBRL DB: Fact %(qname)s, context %(context)s, value: %(value)s"),
+                        if f.precision:
+                            self.modelXbrl.error("sqlDB:factPrecisionError",
+                                                 _("Loading XBRL DB: Fact contains a precision attribute %(qname)s, precision %(precision)s, context %(context)s, value %(value)s"),
+                                                 modelObject=f, qname=f.qname, context=f.contextID, value=f.value, precision=f.precision)
+                        elif not f.decimals or not decimalsPattern.match(f.decimals):
+                            self.modelXbrl.error("sqlDB:factDecimalsError",
+                                                 _("Loading XBRL DB: Fact contains an invalid decimals attribute %(qname)s, decimals %(decimals)s, context %(context)s, value %(value)s"),
+                                                 modelObject=f, qname=f.qname, context=f.contextID, value=f.value, decimals=f.decimals)
+                    else:
+                        if c == 'd':
+                            isDateTime = True
+                            try:
+                                xValue = dateTime(xValue, type=DATEUNION, castException=ValueError)
+                            except ValueError:
+                                self.modelXbrl.error("sqlDB:factValueError",
+                                                     _("Loading XBRL DB: Fact %(qname)s, context %(context)s, value: %(value)s"),
+                                                     modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
+                        elif c == 'b':
+                            isBool = True
+                            xValue = xValue.strip()
+                            if xValue in ("true", "1"):  
+                                xValue = True
+                            elif xValue in ("false", "0"): 
+                                xValue = False
+                            else:
+                                self.modelXbrl.error("sqlDB:factValueError",
+                                                     _("Loading XBRL DB: Fact %(qname)s, context %(context)s, value: %(value)s"),
+                                                     modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
+                        if f.unit is not None:
+                            self.modelXbrl.error("sqlDB:factUnitError",
+                                                 _("Loading XBRL DB: Fact is non-numeric but has a unit %(qname)s, context %(context)s, value %(value)s"),
                                                  modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
+                        if f.precision:
+                            self.modelXbrl.error("sqlDB:factPrecisionError",
+                                                 _("Loading XBRL DB: Fact contains a precision attribute %(qname)s, precision %(precision)s, context %(context)s, value %(value)s"),
+                                                 modelObject=f, qname=f.qname, context=f.contextID, value=f.value, precision=f.precision)
+                        elif f.decimals:
+                            self.modelXbrl.error("sqlDB:factDecimalsError",
+                                                 _("Loading XBRL DB: Fact is non-numeric but contains a decimals attribute %(qname)s, decimals %(decimals)s, context %(context)s, value %(value)s"),
+                                                 modelObject=f, qname=f.qname, context=f.contextID, value=f.value, decimals=f.decimals)
                 
             isText = not (isNumeric or isBool or isDateTime) # 's' or 'u' type
             if f.qname == qnFindFilingIndicators:
+                if cntx is not None:
+                    self.modelXbrl.error("sqlDB:filingIndicatorsContextError",
+                                         _("Loading XBRL DB: Filing indicators tuple has a context, contextRef %(context)s"),
+                                         modelObject=f, context=f.contextID)
                 for filingIndicator in f.modelTupleFacts:
                     if filingIndicator.qname == qnFindFilingIndicator:
                         self.dFilingIndicators.add(filingIndicator.textValue.strip())
+                        if filingIndicator.context is None:
+                            self.modelXbrl.error("sqlDB:filingIndicatorContextError",
+                                                 _("Loading XBRL DB: Filing indicator fact missing a context, value %(value)s"),
+                                                 modelObject=filingIndicator, value=filingIndicator.value)
+                self.loadAllowedMetricsAndDims() # reload metrics
             elif cntx is None: 
                 self.modelXbrl.error("sqlDB:factContextError",
                                      _("Loading XBRL DB: Fact missing %(qname)s, contextRef %(context)s, value: %(value)s"),
@@ -401,15 +555,29 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     yDimKey = metDimValKey(cntx, typedDim=True, behaveAsTypedDims=behaveAsTypedDims, restrictToDims=yDimVals)
                     self.availableTableRows[tableID,zDimKey].add(yDimKey)
                     break
-                dFacts.append((instanceId,
-                               metDimTypedKey(f, behaveAsTypedDims),
-                               str(f.unit.measures[0][0]) if isNumeric and f.unit is not None and f.unit.isSingleMeasure else None,
-                               f.decimals,
-                               xValue if isNumeric else None,
-                               xValue if isDateTime else None,
-                               xValue if isBool else None,
-                               xValue if isText else None
-                            ))
+                _dataPointSignature = metDimTypedKey(f, behaveAsTypedDims)
+                # self.validateFactSignature(_dataPointSignature, f)
+                # validate signatures at end
+                        
+                _factHash = (instanceId, _dataPointSignature)
+                if _factHash in dFactHashes and any(dF[0] == instanceId and dF[1] == _dataPointSignature
+                                                    for dF in dFacts):
+                    otherF = dFactHashes[_factHash]
+                    self.modelXbrl.error("sqlDB:factDuplicate",
+                                         _("Loading XBRL DB: Fact is a duplicate %(qname)s, contextRef %(context)s, value: %(value)s, other contextRef %(context2)s, other value %(value2)s"),
+                                         modelObject=(f,otherF), qname=f.qname, context=f.contextID, value=f.value,
+                                         context2=otherF.contextID, value2=otherF.value)
+                else:
+                    dFactHashes[_factHash] = f
+                    dFacts.append((instanceId,
+                                   _dataPointSignature,
+                                   str(f.unit.measures[0][0]) if isNumeric and f.unit is not None and f.unit.isSingleMeasure else None,
+                                   f.decimals,
+                                   xValue if isNumeric else None,
+                                   xValue if isDateTime else None,
+                                   xValue if isBool else None,
+                                   xValue if isText else None
+                                ))
                 ''' deprecated
                 dProcessingFacts.append((instanceId,
                                          met(f),
@@ -420,10 +588,26 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                          None))
                 '''
             if cntx is not None:
+                if getattr(cntx, "xValid", XmlValidate.UNKNOWN) == XmlValidate.UNKNOWN: # no validation, such as skipDTS and no streaming
+                    cntx.xValid = XmlValidate.NONE # prevent detecting as UNKNOWN
+                    if cntx.isInstantPeriod:
+                        if cntx.instantDatetime in (None, DATETIME_MAXYEAR):
+                            self.modelXbrl.error("sqlDB:contextDatesError",
+                                                 _("Loading XBRL DB: Context has invalid instant date: %(context)s"),
+                                                 modelObject=cntx, context=cntx.id)
+                    elif cntx.isStartEndPeriod:
+                        if cntx.startDatetime in (None, DATETIME_MAXYEAR):
+                            self.modelXbrl.error("sqlDB:contextDatesError",
+                                                 _("Loading XBRL DB: Context has invalid start date: %(context)s"),
+                                                 modelObject=cntx, context=cntx.id)
+                        if cntx.endDatetime in (None, DATETIME_MAXYEAR):
+                            self.modelXbrl.error("sqlDB:contextDatesError",
+                                                 _("Loading XBRL DB: Context has invalid end date: %(context)s"),
+                                                 modelObject=cntx, context=cntx.id)
                 if cntx.isInstantPeriod and cntx.endDatetime not in self.cntxDates:
                     self.modelXbrl.error("sqlDB:contextDatesError",
                                          _("Loading XBRL DB: Context has different date: %(context)s, date %(value)s"),
-                                         modelObject=cntx, context=cntx.id, value=cntx.endDatetime.date() - datetime.timedelta(1))
+                                         modelObject=cntx, context=cntx.id, value=dateunionValue(cntx.endDatetime, subtractOneDay=True))
                     self.cntxDates.add(cntx.endDatetime)
                 if cntx.entityIdentifier[1] not in self.entityIdentifiers:
                     self.modelXbrl.error("sqlDB:factContextError",
@@ -431,24 +615,52 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                      modelObject=cntx, context=cntx.id, value=cntx.entityIdentifier[1])
                     self.entityIdentifiers.add(cntx.entityIdentifier[1])
 
-        self.getTable("dFact", None,
-                      ('InstanceID', 
-                       'DataPointSignature', 
-                       'Unit', 'Decimals',
-                       'NumericValue', 'DateTimeValue', 'BooleanValue', 'TextValue'),
-                      ('InstanceID', ),
-                      dFacts,
-                      returnMatches=False)
+        # check for fact duplicates
+        duplicates = self.getTable("dFact", None,
+                                   ('InstanceID', 
+                                    'DataPointSignature', 
+                                    'Unit', 'Decimals',
+                                    'NumericValue', 'DateTimeValue', 'BooleanValue', 'TextValue'),
+                                   ('InstanceID', 'DataPointSignature' ),
+                                   dFacts,
+                                   returnMatches=True, insertIfNotMatched=False)
+        if duplicates:
+            dupDpSigs = set(_dpSig for _instID, _dpSig in duplicates)
+            for dFact in dFacts:
+                dpSig = dFact[1]
+                if dpSig in dupDpSigs:
+                    metric, _sep, _dims = dpSig.partition('|')
+                    metricPrefixedName = metric.partition('(')[2][:-1]
+                    self.modelXbrl.error("sqlDB:factDuplicate",
+                                         _("Loading XBRL DB: Fact is a duplicate %(qname)s, value=%(value)s"),
+                                         modelObject=self.modelXbrl, qname=metricPrefixedName,
+                                         value=(dFact[5] or dFact[6] or dFact[7] or dFact[4]))  # num last so zero isn't or'ed as bool false
+        else:
+            # insert non-duplicate facts
+            self.getTable("dFact", None,
+                          ('InstanceID', 
+                           'DataPointSignature', 
+                           'Unit', 'Decimals',
+                           'NumericValue', 'DateTimeValue', 'BooleanValue', 'TextValue'),
+                          ('InstanceID', ),
+                          dFacts,
+                          returnMatches=False)
         return True
         
     def finishInsertXbrlToDB(self):
         self.modelXbrl.profileActivity("dpmDB 06. Build facts table for bulk DB update", minTimeToShow=0.0)
-                
+
+        # check filing indicators after facts loaded
+        result = self.execute("SELECT InstanceID, DataPointSignature, Unit, Decimals, NumericValue, DateTimeValue, BooleanValue, TextValue " 
+                              "FROM dFact WHERE dFact.InstanceID = '{}'"
+                              .format(self.instanceId))
+        for dFact in result:
+            self.validateFactSignature(dFact[1], dFact)
         # availableTable processing
         # get filing indicator template IDs
         if not self.dFilingIndicators:
             self.modelXbrl.error("sqlDB:NoFilingIndicators",
-                                 _("No filing indicator were present in the instance"),
+                                 _("No filing indicators were present in the instance"),
                                  modelObject=self.modelXbrl) 
         else:
             results = self.execute("SELECT mToT2.TemplateOrTableCode, mToT2.TemplateOrTableID "
@@ -457,9 +669,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                    "        mToT.TemplateOrTableID = mBT.BusinessTemplateID AND"
                                    "        mToT.ParentTemplateOrTableID = mToT2.TemplateOrTableID AND"
                                    "        mToT2.TemplateOrTableCode in ({1})"
-                                   .format(self.moduleId,
-                                           ', '.join("'{}'".format(filingIndicator)
-                                                     for filingIndicator in self.dFilingIndicators)))
+                                   .format(self.moduleId, self.filingIndicators))
             filingIndicatorCodeIDs = dict((code, id) for code, id in results)
             self.modelXbrl.profileActivity("dpmDB 07. Get business template filing indicator for module", minTimeToShow=0.0)
             
@@ -636,7 +846,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         # contexts and facts
         self.showStatus("creating XBRL output contexts, units, and facts")
         for dpSig, unit, dec, numVal, dateVal, boolVal, textVal in factsTbl:
-            metric, sep, dims = dpSig.partition('|')
+            metric, _sep, dims = dpSig.partition('|')
             metricPrefixedName = metric.partition('(')[2][:-1]
             conceptQn = qname(metricPrefixedName, prefixedNamespaces)
             if conceptQn is None:

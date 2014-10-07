@@ -18,7 +18,7 @@ datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([
                              r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*")
 xmlEncodingPattern = re.compile(r"\s*<\?xml\s.*encoding=['\"]([^'\"]*)['\"].*\?>")
 xpointerFragmentIdentifierPattern = re.compile(r"([\w.]+)(\(([^)]*)\))?")
-xmlnsStripPattern = re.compile(r'\s*xmlns(:[\w.]+)?="[^"]*"')
+xmlnsStripPattern = re.compile(r'\s*xmlns(:[\w.-]+)?="[^"]*"')
 nonSpacePattern = re.compile(r"\S+")
 
 def xmlns(element, prefix):
@@ -656,6 +656,8 @@ def datetimeValue(element, addOneDay=False, none=None):
     return result
 
 def dateunionValue(datetimeValue, subtractOneDay=False):
+    if not isinstance(datetimeValue, (datetime.datetime, datetime.date)):
+        return "INVALD"
     isDate = (hasattr(datetimeValue,'dateOnly') and datetimeValue.dateOnly) or not hasattr(datetimeValue, 'hour')
     if isDate or (datetimeValue.hour == 0 and datetimeValue.minute == 0 and datetimeValue.second == 0):
         d = datetimeValue
