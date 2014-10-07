@@ -1515,9 +1515,8 @@ class ModelResource(ModelObject):
     @property
     def xmlLang(self):
         """(str) -- xml:lang attribute"""
-        lang = self.get("{http://www.w3.org/XML/1998/namespace}lang")
-        return lang
-
+        return XmlUtil.ancestorOrSelfAttr(self, "{http://www.w3.org/XML/1998/namespace}lang")
+    
     def viewText(self, labelrole=None, lang=None):
         """(str) -- Text of contained (inner) text nodes except for any whose localName 
         starts with URI, for label and reference parts displaying purposes."""

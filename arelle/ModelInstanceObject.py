@@ -290,7 +290,7 @@ class ModelFact(ModelObject):
     @property
     def xmlLang(self):
         """(str) -- xml:lang attribute, if none and non-numeric, disclosure-system specified default lang"""
-        lang = self.get("{http://www.w3.org/XML/1998/namespace}lang")
+        lang = XmlUtil.ancestorOrSelfAttr(self, "{http://www.w3.org/XML/1998/namespace}lang")
         if lang is None and self.modelXbrl.modelManager.validateDisclosureSystem:
             concept = self.concept
             if concept is not None and not concept.isNumeric:
