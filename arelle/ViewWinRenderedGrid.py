@@ -11,7 +11,8 @@ subsequently after Python operations concluded, tkinter takes additional 27 secs
 import os, threading, time
 from tkinter import Menu, BooleanVar, font as tkFont
 from arelle import (ViewWinGrid, ModelDocument, ModelDtsObject, ModelInstanceObject, XbrlConst, 
-                    ModelXbrl, XmlValidate, XmlUtil, Locale, FunctionXfi)
+                    ModelXbrl, XmlValidate, XmlUtil, Locale, FunctionXfi,
+                    ValidateXbrlDimensions)
 from arelle.ModelValue import qname, QName
 from arelle.RenderingResolver import resolveAxesStructure, RENDER_UNITS_PER_CHAR
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect
@@ -27,6 +28,7 @@ from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, gridCombob
                            TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
 from arelle.DialogNewFactItem import getNewFactItemOptions
 from collections import defaultdict
+from arelle.ValidateXbrl import ValidateXbrl
 
 emptyList = []
 
@@ -64,7 +66,7 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     view.blockViewModelObject = 0
     view.viewFrame.bind("<Enter>", view.cellEnter, '+')
     view.viewFrame.bind("<Leave>", view.cellLeave, '+')
-    view.viewFrame.bind("<FocusOut>", view.onQuitView, '+')
+    view.viewFrame.bind("<Leave>", view.onQuitView, '+')
     view.viewFrame.bind("<1>", view.onClick, '+')
     view.viewFrame.bind("<Configure>", view.onConfigure, '+') # frame resized, redo column header wrap length ratios
     view.blockMenuEvents = 0
@@ -696,9 +698,73 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                 for aspect, aspectValue in cellAspectValues.items():
                                     if isinstance(aspectValue, str) and aspectValue.startswith(OPEN_ASPECT_ENTRY_SURROGATE):
                                         self.factPrototypeAspectEntryObjectIds[objectId].add(aspectValue) 
-                            gridCell(self.gridBody, self.dataFirstCol + i, row, value, justify=justify, 
-                                     width=ENTRY_WIDTH_IN_CHARS, # width is in characters, not screen units
-                                     objectId=objectId, onClick=self.onClick)
+                            modelConcept = fp.concept
+                            if (justify is None) and modelConcept is not None:
+                                justify = "right" if modelConcept.isNumeric else "left"
+                            if modelConcept.isEnumeration:
+                                myValidationObject = ValidateXbrl(self.modelXbrl)
+                                enumerationValues = [""] + ValidateXbrlDimensions.usableEnumerationMembers(myValidationObject, modelConcept)
+                                try:
+                                    selectedIdx = enumerationValues.index(value)
+                                    effectiveValue = value
+                                except ValueError:
+                                    effectiveValue = enumerationValues[0]
+                                    selectedIdx = 0
+                                gridCombobox(self.gridBody,
+                                             self.dataFirstCol + i, row,
+                                             value=effectiveValue,
+                                             values=enumerationValues,
+                                             width=ENTRY_WIDTH_IN_CHARS,
+                                             objectId=objectId,
+                                             selectindex=selectedIdx,
+                                             state=["readonly"],
+                                             onClick=self.onClick)
+                            elif modelConcept.type.qname == XbrlConst.qnXbrliQNameItemType:
+                                gridCell(self.gridBody, self.dataFirstCol + i, row, value,
+                                         justify=justify, 
+                                         width=ENTRY_WIDTH_IN_CHARS, # width is in characters, not screen units
+                                         objectId=objectId, onClick=self.onClick)
+                                if False:
+                                    qNameValues = [""]
+                                    try:
+                                        selectedIdx = qNameValues.index(value)
+                                        effectiveValue = value
+                                    except ValueError:
+                                        effectiveValue = qNameValues[0]
+                                        selectedIdx = 0
+                                    gridCombobox(self.gridBody,
+                                                 self.dataFirstCol + i, row,
+                                                 value=effectiveValue,
+                                                 values=qNameValues,
+                                                 width=ENTRY_WIDTH_IN_CHARS,
+                                                 objectId=objectId,
+                                                 selectindex=selectedIdx,
+                                                 state=None,
+                                                 onClick=self.onClick)
+                            elif modelConcept.type.qname == XbrlConst.qnXbrliBooleanItemType:
+                                booleanValues = ["",
+                                                 XbrlConst.booleanValueTrue,
+                                                 XbrlConst.booleanValueFalse]
+                                try:
+                                    selectedIdx = booleanValues.index(value)
+                                    effectiveValue = value
+                                except ValueError:
+                                    effectiveValue = booleanValues[0]
+                                    selectedIdx = 0
+                                gridCombobox(self.gridBody,
+                                             self.dataFirstCol + i, row,
+                                             value=effectiveValue,
+                                             values=booleanValues,
+                                             width=ENTRY_WIDTH_IN_CHARS,
+                                             objectId=objectId,
+                                             selectindex=selectedIdx,
+                                             state=["readonly"],
+                                             onClick=self.onClick)
+                            else:
+                                gridCell(self.gridBody, self.dataFirstCol + i, row, value,
+                                         justify=justify, 
+                                         width=ENTRY_WIDTH_IN_CHARS, # width is in characters, not screen units
+                                         objectId=objectId, onClick=self.onClick)
                         else:
                             fp.clear()  # dereference
                             gridSpacer(self.gridBody, self.dataFirstCol + i, row, CENTERCELL)
@@ -780,7 +846,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             if isinstance(bodyCell, (gridCell,gridCombobox)) and bodyCell.isChanged:
                 return True
         for bodyCell in self.gridBody.winfo_children():
-            if isinstance(bodyCell, gridCell) and bodyCell.isChanged:
+            if isinstance(bodyCell, (gridCell,gridCombobox)) and bodyCell.isChanged:
                 return True
         return False
 
@@ -820,7 +886,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             aspectEntryChangeIds = _DICT_SET(aspectEntryChanges.keys())
             # check user keyed changes to facts
             for bodyCell in self.gridBody.winfo_children():
-                if isinstance(bodyCell, gridCell) and bodyCell.isChanged:
+                if isinstance(bodyCell, (gridCell, gridCombobox)) and bodyCell.isChanged:
                     value = bodyCell.value
                     objId = bodyCell.objectId
                     if objId:
@@ -836,7 +902,11 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                             periodStart = self.newFactItemOptions.startDateDate if periodType == "duration" else None
                             periodEndInstant = self.newFactItemOptions.endDateDate
                             qnameDims = factPrototype.context.qnameDims
-                            qnameDims.update(self.newFactOpenAspects(objId))
+                            newAspectValues = self.newFactOpenAspects(objId)
+                            if newAspectValues is None:
+                                self.modelXbrl.modelManager.showStatus(_("Some open values are missing in an axis, the save is incomplete"), 5000)
+                                continue
+                            qnameDims.update(newAspectValues)
                             # open aspects widgets
                             prevCntx = instance.matchContext(
                                 entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant, 
@@ -913,9 +983,11 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             for aspect in structuralNode.aspectsCovered():
                 if aspect != Aspect.DIMENSIONS:
                     break
-            gridCell = self.aspectEntryObjectIdsCell[aspectObjId]
-            value = gridCell.value
+            gridCellItem = self.aspectEntryObjectIdsCell[aspectObjId]
+            value = gridCellItem.value
             # is aspect in a childStructuralNode? 
+            if value is not None and OPEN_ASPECT_ENTRY_SURROGATE in aspectObjId and len(value)==0:
+                return None # some values are missing!
             if value:
                 aspectValue = structuralNode.aspectEntryHeaderValues.get(value)
                 if aspectValue is None: # try converting value
