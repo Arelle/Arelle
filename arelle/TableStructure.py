@@ -183,7 +183,7 @@ def evaluateTableIndex(modelXbrl):
         firstDocumentLinkroleURI = None
         sortedRoleTypes = sorted(definitionElrs.items(), key=lambda item: item[0])
         for roleDefinition, roleType in sortedRoleTypes:
-            match = roleDefinitionPattern.match(roleDefinition)
+            match = roleDefinitionPattern.match(roleDefinition) if roleDefinition else None
             if not match: 
                 roleType._tableIndex = (UNCATEG, roleType.roleURI)
                 continue
@@ -283,8 +283,6 @@ def evaluateTableIndex(modelXbrl):
         stmtReportingPeriods = set(reportingPeriods)       
 
         for roleDefinition, roleType in reversed(sortedRoleTypes):
-            if roleType.definition.startswith('0025'):
-                pass
             # find defined non-default axes in pre hierarchy for table
             tableFacts = set()
             tableGroup = roleType._tableIndex[0]
