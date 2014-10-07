@@ -4,7 +4,7 @@ rem Build Arelle 27 server distribution
 @set PYTHON64DIR=c:\python32
 "%PYTHON64DIR%\python" buildVersion.py
 
-@set CMDLINEZIP=C:\Program Files (x86)\7z\7za.exe
+@set CMDLINEZIP=C:\Program Files\7-zip\7z.exe
 @set BUILT27DIR=build\svr-2.7
 
 mkdir build
