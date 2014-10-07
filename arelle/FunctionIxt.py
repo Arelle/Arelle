@@ -162,7 +162,7 @@ def jpDigitsToNormal(jpDigits):
 
 def sakaToGregorian(sYr, sMo, sDay): # replacement of plug-in sakaCalendar.py which is LGPL-v3 licensed
     gYr = sYr + 78  # offset from Saka to Gregorian year
-    sStartsInLeapYr = gYr % 4 == 0 and (not gYr % 100 == 0 or gYr % 400 == 0)
+    sStartsInLeapYr = gYr % 4 == 0 and (not gYr % 100 == 0 or gYr % 400 == 0) # Saka yr starts in leap yr
     if gYr < 0:
         raise ValueError(_("Saka calendar year not supported: {0} {1} {2} "), sYr, sMo, sDay)
     if  sMo < 1 or sMo > 12:
@@ -172,18 +172,18 @@ def sakaToGregorian(sYr, sMo, sDay): # replacement of plug-in sakaCalendar.py wh
         sMoLength += 1 # Chaitra has 1 extra day when starting in gregorian leap years
     if sDay < 1 or sDay > sMoLength: 
         raise ValueError(_("Saka calendar day error: {0} {1} {2} "), sYr, sMo, sDay)
-    gMo, gDayOffset, gYrOffset = sakaMonthOffset[sMo - 1]
+    gMo, gDayOffset, gYrOffset = sakaMonthOffset[sMo - 1] # offset Saka to Gregorian by Saka month
     if sStartsInLeapYr and sMo == 1:
-        gDayOffset -= 1 # Chaitra starts 1 day earlier when starting in gregorian leap years
-    gYr += gYrOffset
-    gMoLength = gLastMoDay[gMo - 1]
+        gDayOffset -= 1 # Chaitra starts 1 day earlier when starting in Gregorian leap years
+    gYr += gYrOffset # later Saka months offset into next Gregorian year
+    gMoLength = gLastMoDay[gMo - 1] # month length (days in month)
     if gMo == 2 and gYr % 4 == 0 and (not gYr % 100 == 0 or gYr % 400 == 0): # does Phalguna (Feb) end in a Gregorian leap year?
         gMoLength += 1 # Phalguna (Feb) is in a Gregorian leap year (Feb has 29 days)
     gDay = gDayOffset + sDay - 1
-    if gDay > gMoLength:
+    if gDay > gMoLength: # overflow from Gregorial month of start of Saka month to next Gregorian month
         gDay -= gMoLength
         gMo += 1
-        if gMo == 13:
+        if gMo == 13:  # overflow from Gregorian year of start of Saka year to following Gregorian year
             gMo = 1
             gYr += 1
     return (gYr, gMo, gDay)
