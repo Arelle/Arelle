@@ -62,5 +62,7 @@ if __name__ == "__main__":
             fh.write("rename dist\\arelle-win-x64.exe arelle-win-x64-{}.exe\n".format(distFileDate))
         with open("buildRenameSvr27.bat", "w") as fh:
             fh.write("rename dist\\arelle-svr-2.7.zip arelle-svr-2.7-{}.zip\n".format(distFileDate))
+        with open("buildRenameZip32.bat", "w") as fh:
+            fh.write("rename dist\\arelle-cmd32.zip arelle-cmd32-{}.zip\n".format(distFileDate))
         with open("buildRenameZip64.bat", "w") as fh:
             fh.write("rename dist\\arelle-cmd64.zip arelle-cmd64-{}.zip\n".format(distFileDate))

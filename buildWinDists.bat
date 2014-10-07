@@ -34,11 +34,20 @@ rem win 64 build
 rem rename for build date
 call buildRenameX64.bat
 
+rem win 32 zip
+cd "%BUILT32DIR%"
+"%ZIP%" a -tzip ..\..\dist\arelle-cmd32.zip *
+cd ..\..
+"%ZIP%" d dist\arelle-cmd32.zip arelleGUI.exe tck85.dll tk85.dll tck tcl tk images scripts doc examples locale QuickBooks.qwc msvcrt.dll msvcp100.dll
+rem don't remove (for bare machine) MSVCR100.dll
+call buildRenameZip32.bat
+
 rem win 64 zip
 cd "%BUILT64DIR%"
 "%ZIP%" a -tzip ..\..\dist\arelle-cmd64.zip *
 cd ..\..
-"%ZIP%" d dist\arelle-cmd64.zip arelleGUI.exe tck85.dll tk85.dll tck tcl tk images scripts doc examples locale MSVCR100.dll QuickBooks.qwc msvcrt.dll msvcp100.dll
+"%ZIP%" d dist\arelle-cmd64.zip arelleGUI.exe tck85.dll tk85.dll tck tcl tk images scripts doc examples locale QuickBooks.qwc msvcrt.dll msvcp100.dll
+rem don't remove (for bare machine) MSVCR100.dll
 call buildRenameZip64.bat
 
 rem rmdir build /s/q
