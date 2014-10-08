@@ -38,8 +38,8 @@ class DisclosureSystem:
         # get custom disclosure system (type name, test variable)
         self.pluginDisclosureTypes = {}  # dict of type name, test variable name
         for pluginXbrlMethod in pluginClassMethods("DisclosureSystem.Types"):
-            typeName, typeTestVariable = pluginXbrlMethod(self)
-            self.pluginDisclosureTypes[typeName] = typeTestVariable
+            for typeName, typeTestVariable in pluginXbrlMethod(self):
+                self.pluginDisclosureTypes[typeName] = typeTestVariable
         self.clear()
         
     def clear(self):

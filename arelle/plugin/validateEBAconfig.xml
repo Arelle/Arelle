@@ -24,4 +24,24 @@
 <!--
      standardTaxonomiesUrl="validateEBAtaxonomies.xml"
 -->
+  <DisclosureSystem 
+     names="EIOPA Filing Rules|eiopa" 
+     description="EIOPA Filing Rules, Solvency II\n
+     Default language English\n
+     EDInet identifier patterns\n
+     Allowed references TBD"
+     defaultXmlLang="en" 
+     defaultLanguage="English" 
+     validationType="EIOPA"
+     validateFileText="false"
+     identifierSchemePattern="^http://.*$"
+     identifierValuePattern="^.*$"
+     identifierValueName="My code"
+     contextElement="scenario"
+     roleDefinitionPattern="^\S[^\n]* - [^\n]*\S$"
+     labelCheckPattern="\s{2,}|&lt;"
+     labelTrimPattern="\s"
+     />
+
+
 </DisclosureSystems>

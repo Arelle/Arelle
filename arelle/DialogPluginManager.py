@@ -53,6 +53,7 @@ class DialogPluginManager(Toplevel):
         self.pluginConfigChanged = False
         self.uiClassMethodsChanged = False
         self.modelClassesChanged = False
+        self.disclosureSystemTypesChanged = False
         self.modulesWithNewerFileDates = modulesWithNewerFileDates
         
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", self.parent.geometry())
@@ -236,14 +237,20 @@ class DialogPluginManager(Toplevel):
             PluginManager.pluginConfig = self.pluginConfig
             PluginManager.pluginConfigChanged = True
             PluginManager.reset()  # force reloading of modules
-        if self.uiClassMethodsChanged or self.modelClassesChanged:  # may require reloading UI
+        if self.uiClassMethodsChanged or self.modelClassesChanged or self.disclosureSystemTypesChanged:  # may require reloading UI
             affectedItems = ""
             if self.uiClassMethodsChanged:
                 affectedItems += _("menus of the user interface")
-            if self.uiClassMethodsChanged and self.modelClassesChanged:
-                affectedItems += _(" and ")
             if self.modelClassesChanged:
+                if self.uiClassMethodsChanged:
+                    affectedItems += _(" and ")
                 affectedItems += _("model objects of the processor")
+            if (self.uiClassMethodsChanged or self.modelClassesChanged):
+                affectedItems += _(" and ")
+            if self.disclosureSystemTypesChanged:
+                if (self.uiClassMethodsChanged or self.modelClassesChanged):
+                    affectedItems += _(" and ")
+                affectedItems += _("disclosure system types")
             if messagebox.askyesno(_("User interface plug-in change"),
                                    _("A change in plug-in class methods may have affected {0}.  " 
                                      "Please restart Arelle to due to these changes.  \n\n"
@@ -352,6 +359,8 @@ class DialogPluginManager(Toplevel):
                         self.uiClassMethodsChanged = True  # may require reloading UI
                     elif classMethod == "ModelObjectFactory.ElementSubstitutionClasses":
                         self.modelClassesChanged = True # model object factor classes changed
+                    elif classMethod == "DisclosureSystem.Types":
+                        self.disclosureSystemTypesChanged = True # disclosure system types changed
             del self.pluginConfig["modules"][name]
             self.pluginConfigChanged = True
 
@@ -369,6 +378,8 @@ class DialogPluginManager(Toplevel):
                 self.uiClassMethodsChanged = True  # may require reloading UI
             elif classMethod == "ModelObjectFactory.ElementSubstitutionClasses":
                 self.modelClassesChanged = True # model object factor classes changed
+            elif classMethod == "DisclosureSystem.Types":
+                self.disclosureSystemTypesChanged = True # disclosure system types changed
         self.pluginConfigChanged = True
 
     def moduleEnable(self):
