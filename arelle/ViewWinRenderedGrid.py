@@ -29,6 +29,7 @@ from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, gridCombob
 from arelle.DialogNewFactItem import getNewFactItemOptions
 from collections import defaultdict
 from arelle.ValidateXbrl import ValidateXbrl
+from arelle.XbrlConst import eurofilingModelNamespace, eurofilingModelPrefix
 
 emptyList = []
 
@@ -703,7 +704,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                 justify = "right" if modelConcept.isNumeric else "left"
                             if modelConcept.isEnumeration:
                                 myValidationObject = ValidateXbrl(self.modelXbrl)
-                                enumerationValues = [""] + ValidateXbrlDimensions.usableEnumerationMembers(myValidationObject, modelConcept)
+                                enumerationValues = [""]+ValidateXbrlDimensions.usableEnumerationMembers(myValidationObject, modelConcept)
                                 try:
                                     selectedIdx = enumerationValues.index(value)
                                     effectiveValue = value
@@ -714,18 +715,48 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                              self.dataFirstCol + i, row,
                                              value=effectiveValue,
                                              values=enumerationValues,
-                                             width=ENTRY_WIDTH_IN_CHARS,
                                              objectId=objectId,
                                              selectindex=selectedIdx,
                                              state=["readonly"],
                                              onClick=self.onClick)
                             elif modelConcept.type.qname == XbrlConst.qnXbrliQNameItemType:
-                                gridCell(self.gridBody, self.dataFirstCol + i, row, value,
-                                         justify=justify, 
-                                         width=ENTRY_WIDTH_IN_CHARS, # width is in characters, not screen units
-                                         objectId=objectId, onClick=self.onClick)
-                                if False:
-                                    qNameValues = [""]
+                                if eurofilingModelPrefix in concept.nsmap and concept.nsmap.get(eurofilingModelPrefix) == eurofilingModelNamespace:
+                                    hierarchy = concept.get("{" + eurofilingModelNamespace + "}" + "hierarchy", None)
+                                    domainQNameAsString = concept.get("{" + eurofilingModelNamespace + "}" + "domain", None)
+                                    if hierarchy is not None and domainQNameAsString is not None:
+                                        newAspectValues = [""]
+                                        newAspectQNames = dict()
+                                        newAspectQNames[""] = None
+                                        displayedValue = ""
+                                        domPrefix, _, domLocalName = domainQNameAsString.strip().rpartition(":")
+                                        domNamespace = concept.nsmap.get(domPrefix)
+                                        relationships = concept_relationships(self.rendrCntx, 
+                                             None, 
+                                             (QName(domPrefix, domNamespace, domLocalName),
+                                              hierarchy, # linkrole,
+                                              "XBRL-dimensions",
+                                              'descendant'),
+                                             False) # return flat list
+                                        for rel in relationships:
+                                            if (rel.arcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember)
+                                                and rel.isUsable):
+                                                header = rel.toModelObject.label(lang=self.lang)
+                                                newAspectValues.append(header)
+                                                currentQName = rel.toModelObject.qname
+                                                if str(currentQName) == value:
+                                                    value = header
+                                                newAspectQNames[header] = currentQName
+                                    else:
+                                        newAspectValues = None
+                                else:
+                                    newAspectValues = None
+                                if newAspectValues is None:
+                                    gridCell(self.gridBody, self.dataFirstCol + i, row, value,
+                                             justify=justify, 
+                                             width=ENTRY_WIDTH_IN_CHARS, # width is in characters, not screen units
+                                             objectId=objectId, onClick=self.onClick)
+                                else:
+                                    qNameValues = newAspectValues
                                     try:
                                         selectedIdx = qNameValues.index(value)
                                         effectiveValue = value
@@ -736,11 +767,11 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                                  self.dataFirstCol + i, row,
                                                  value=effectiveValue,
                                                  values=qNameValues,
-                                                 width=ENTRY_WIDTH_IN_CHARS,
                                                  objectId=objectId,
                                                  selectindex=selectedIdx,
-                                                 state=None,
-                                                 onClick=self.onClick)
+                                                 state=["readonly"],
+                                                 onClick=self.onClick,
+                                                 codes=newAspectQNames)
                             elif modelConcept.type.qname == XbrlConst.qnXbrliBooleanItemType:
                                 booleanValues = ["",
                                                  XbrlConst.booleanValueTrue,
@@ -755,7 +786,6 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                              self.dataFirstCol + i, row,
                                              value=effectiveValue,
                                              values=booleanValues,
-                                             width=ENTRY_WIDTH_IN_CHARS,
                                              objectId=objectId,
                                              selectindex=selectedIdx,
                                              state=["readonly"],
@@ -887,7 +917,17 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             # check user keyed changes to facts
             for bodyCell in self.gridBody.winfo_children():
                 if isinstance(bodyCell, (gridCell, gridCombobox)) and bodyCell.isChanged:
-                    value = bodyCell.value
+                    if (isinstance(bodyCell, gridCombobox)):
+                        codeDict = bodyCell.codes
+                        if len(codeDict)>0: # the drop-down list shows labels, we want to have the actual values
+                            bodyCellValue = bodyCell.value
+                            value = codeDict.get(bodyCellValue, None)
+                            if value is None:
+                                value = bodyCellValue # this must be a qname!
+                        else:
+                            value = bodyCell.value
+                    else:
+                        value = bodyCell.value
                     objId = bodyCell.objectId
                     if objId:
                         if (objId[0] == "f" and 
@@ -952,12 +992,12 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                             fact = self.modelXbrl.modelObject(objId)
                             if fact.concept.isNumeric:
                                 value = Locale.atof(self.modelXbrl.locale, value, str.strip)
-                            if fact.value != value:
+                            if fact.value != str(value):
                                 if fact.concept.isNumeric and fact.isNil != (not value):
                                     fact.isNil = not value
                                     if value: # had been nil, now it needs decimals
                                         fact.decimals = self.newFactItemOptions.monetaryDecimals if fact.concept.isMonetary else self.newFactItemOptions.nonMonetaryDecimals
-                                fact.text = value
+                                fact.text = str(value)
                                 XmlValidate.validate(instance, fact)
                             bodyCell.isChanged = False # clear change flag
 

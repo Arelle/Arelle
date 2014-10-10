@@ -216,7 +216,7 @@ class gridCell(Entry):
         self.isChanged = True
     
 class gridCombobox(_Combobox): 
-    def __init__(self, master, x, y, value="", values=(), width=None, objectId=None, columnspan=None, selectindex=None, comboboxselected=None, state=[], onClick=None): 
+    def __init__(self, master, x, y, value="", values=(), width=None, objectId=None, columnspan=None, selectindex=None, comboboxselected=None, state=[], onClick=None, codes=dict()): 
         _Combobox.__init__(self, master=master) 
         self.valueVar = StringVar() 
         self.valueVar.trace('w', self.valueChanged)
@@ -226,6 +226,7 @@ class gridCombobox(_Combobox):
                     width=width
                     ) 
         self["values"] = values
+        self.codes = codes
         if isinstance(master.master.master, scrolledHeaderedFrame):
             x = x * 2
             y = y * 2

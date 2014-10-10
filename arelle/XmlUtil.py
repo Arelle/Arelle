@@ -503,6 +503,9 @@ def addChild(parent, childName1, childName2=None, attributes=None, text=None, af
                 child.set(name, xsString(None, None, value) )
     if text is not None:
         child.text = xsString(None, None, text)
+        # check if the text is a QName and add the namespace if needed!
+        if isinstance(text, QName):
+            addQnameValue(modelDocument, text)
     child.init(modelDocument)
     return child
 
