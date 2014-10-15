@@ -203,8 +203,7 @@ def final(val):
 
 def checkDTSdocument(val, modelDocument):
     modelXbrl = val.modelXbrl
-    if modelDocument.type == ModelDocument.Type.INSTANCE:
-        
+    if modelDocument.type == ModelDocument.Type.INSTANCE and (val.validateEFM or val.validateEIOPA):
         if not modelDocument.uri.endswith(".xbrl"):
             modelXbrl.warning("EBA.1.1",
                     _('XBRL instance documents SHOULD use the extension ".xbrl" encoding but it is "%(extension)s"'),
