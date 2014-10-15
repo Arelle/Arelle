@@ -1,13 +1,14 @@
 '''
 Improve the EBA compliance of the currently loaded facts.
 
-For the time being, there is only one improvement that is implemented:
+For the time being, there are only two improvements that are implemented:
 1. The filing indicators are regenerated using a fixed context with ID "c".
+2. The decimals attribute is computed according to the actually supplied value.
 
 (c) Copyright 2014 Acsone S. A., All rights reserved.
 '''
 
-from arelle import ModelDocument, XmlValidate, ModelXbrl
+from arelle import ModelDocument, XmlValidate, ModelXbrl, XbrlConst
 from arelle.ModelValue import qname
 from arelle.DialogNewFactItem import getNewFactItemOptions
 from lxml import etree
@@ -185,13 +186,76 @@ def improveEbaComplianceMenuCommand(cntlr):
     thread.daemon = True
     thread.start()
 
+def decimalsComputer(locale, value, concept, defaultDecimals):
+    '''
+    :type locale: dict
+    :type value: string
+    :type concept: ModelConcept
+    :type defaultDecimals: str
+    :rtype (boolean, str)
+    '''
+    if len(defaultDecimals)==0:
+        defaultDecimals = 'INF'
+    if concept.isNumeric and defaultDecimals != 'INF':
+        decimalPoint = locale["decimal_point"]
+        explodedNumber = value.split(decimalPoint)
+        integerPart = ""
+        if len(explodedNumber)==2:
+            # If there is a decimal point and if there are decimals after that point,
+            # count the decimals!
+            integerPart, fractionalPart = explodedNumber
+            return (True, str(len(fractionalPart)))
+        else:
+            integerPart = value
+        #Count the trailing zeros in the part before the decimal point
+        if integerPart == '0':
+            return (True, '0')
+        else:
+            for index, char in enumerate(reversed(integerPart)):
+                if char != '0':
+                    break;
+            return (True, ('0' if index==0 or (index+1==len(integerPart) and integerPart[0]=='0') else "-"+str(index)))
+    else:
+        return (False, defaultDecimals)
+
+def ebaDecimals(locale, value, concept, defaultDecimals):
+    '''
+    :type locale: dict
+    :type value: string
+    :type concept: ModelConcept
+    :type defaultDecimals: str
+    :rtype (boolean, str)
+    '''
+    isPure = not(concept.isMonetary) and not(concept.isShares)
+    isInteger = XbrlConst.isIntegerXsdType(concept.type.baseXsdType)
+    decimalsFound, decimals = decimalsComputer(locale, value, concept, defaultDecimals)
+    if not(decimalsFound) or decimals == 'INF':
+        return (decimalsFound, decimals)
+    else:
+        lowerBound = -3
+        upperBound = 20
+        decimalsAsInteger = int(decimals)
+        if isInteger:
+            lowerBound = upperBound = 0
+        elif isPure: # percent or ratio values
+            lowerBound = 4
+            upperBound = 20
+        if decimalsAsInteger<lowerBound:
+            decimals = str(lowerBound)
+            decimalsAsInteger = lowerBound
+        if decimalsAsInteger>upperBound:
+            decimals = 'INF' # approximation
+            decimalsAsInteger = upperBound
+        return (decimalsFound, decimals)
+
 __pluginInfo__ = {
     'name': 'Improve EBA compliance of XBRL instances',
-    'version': '1.0',
-    'description': "This module regenerates EBA filing indicators if needed.",
+    'version': '1.1',
+    'description': "This module regenerates EBA filing indicators if needed and supplies a custom method for computing the decimals attribute according to the actually supplied value.",
     'license': 'Apache-2',
     'author': 'Gregorio Mongelli (Acsone S. A.)',
     'copyright': '(c) Copyright 2014 Acsone S. A.',
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Tools': improveEbaComplianceMenuExtender
+    'CntlrWinMain.Menu.Tools': improveEbaComplianceMenuExtender,
+    'CntlrWinMain.Rendering.ComputeDecimals': ebaDecimals
 }

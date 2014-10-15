@@ -21,7 +21,7 @@ from arelle.ModelRenderingObject import (ModelClosedDefinitionNode, ModelEuAxisC
                                          ModelFilterDefinitionNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.FormulaEvaluator import aspectMatches
-
+from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, gridCombobox, 
                            label,  
@@ -986,8 +986,13 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                             attrs = [("contextRef", cntxId)]
                             if concept.isNumeric:
                                 attrs.append(("unitRef", unitId))
-                                attrs.append(("decimals", decimals))
                                 value = Locale.atof(self.modelXbrl.locale, value, str.strip)
+                                # Check if there is a custom method to compute the decimals
+                                for pluginXbrlMethod in pluginClassMethods("CntlrWinMain.Rendering.ComputeDecimals"):
+                                    stopPlugin, decimals = pluginXbrlMethod(instance.locale, value, concept, decimals)
+                                    if stopPlugin == True:
+                                        break;
+                                attrs.append(("decimals", decimals))
                             newFact = instance.createFact(concept.qname, attributes=attrs, text=value)
                             bodyCell.objectId = newFact.objectId() # switch cell to now use fact ID
                             if self.factPrototypes[factPrototypeIndex] is not None:
@@ -998,11 +1003,33 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                             fact = self.modelXbrl.modelObject(objId)
                             if fact.concept.isNumeric:
                                 value = Locale.atof(self.modelXbrl.locale, value, str.strip)
+                                if fact.concept.isMonetary:
+                                    unitMeasure = qname(XbrlConst.iso4217, self.newFactItemOptions.monetaryUnit)
+                                    unitMeasure.prefix = "iso4217" # want to save with a recommended prefix
+                                    decimals = self.newFactItemOptions.monetaryDecimals
+                                elif fact.concept.isShares:
+                                    unitMeasure = XbrlConst.qnXbrliShares
+                                    decimals = self.newFactItemOptions.nonMonetaryDecimals
+                                else:
+                                    unitMeasure = XbrlConst.qnXbrliPure
+                                    decimals = self.newFactItemOptions.nonMonetaryDecimals
+                                # Check if there is a custom method to compute the decimals
+                                for pluginXbrlMethod in pluginClassMethods("CntlrWinMain.Rendering.ComputeDecimals"):
+                                    stopPlugin, decimals = pluginXbrlMethod(instance.locale, value, fact.concept, decimals)
+                                    if stopPlugin == True:
+                                        break;
                             if fact.value != str(value):
-                                if fact.concept.isNumeric and fact.isNil != (not value):
+                                if fact.isNil != (not value):
                                     fact.isNil = not value
-                                    if value: # had been nil, now it needs decimals
-                                        fact.decimals = self.newFactItemOptions.monetaryDecimals if fact.concept.isMonetary else self.newFactItemOptions.nonMonetaryDecimals
+                                if not fact.isNil: # if nil, there is no need to update these values
+                                    fact.decimals = decimals
+                                    prevUnit = instance.matchUnit([unitMeasure], [])
+                                    if prevUnit is not None:
+                                        unitId = prevUnit.id
+                                    else:
+                                        newUnit = instance.createUnit([unitMeasure], [], afterSibling=newUnit)
+                                        unitId = newUnit.id
+                                    fact.unitID = unitId
                                 fact.text = str(value)
                                 XmlValidate.validate(instance, fact)
                             bodyCell.isChanged = False # clear change flag
