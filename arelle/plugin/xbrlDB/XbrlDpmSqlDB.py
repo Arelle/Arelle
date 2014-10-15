@@ -50,7 +50,7 @@ from collections import defaultdict
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelInstanceObject import ModelFact
 from arelle import Locale, ValidateXbrlDimensions
-from arelle.ModelValue import qname, dateTime, DATEUNION
+from arelle.ModelValue import qname, dateTime, DATEUNION, dateunionDate
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.ValidateXbrlCalcs import roundValue
 from arelle.XmlUtil import xmlstring, datetimeValue, DATETIME_MAXYEAR, dateunionValue, addChild, addQnameValue, addProcessingInstruction
@@ -435,6 +435,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             cntx = f.context
             concept = f.concept
             isNumeric = isBool = isDateTime = isText = False
+            isInstant = None
             if concept is not None:
                 if concept.isNumeric:
                     isNumeric = True
@@ -452,6 +453,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     xValue = None
                 else:
                     xValue = f.xValue
+                isInstant = concept.periodType == "instant"
             else:
                 if f.isNil:
                     xValue = None
@@ -491,6 +493,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                             isDateTime = True
                             try:
                                 xValue = dateTime(xValue, type=DATEUNION, castException=ValueError)
+                                if xValue.dateOnly:
+                                    xValue = dateunionDate(xValue)
                             except ValueError:
                                 self.modelXbrl.error("sqlDB:factValueError",
                                                      _("Loading XBRL DB: Fact %(qname)s, context %(context)s, value: %(value)s"),
@@ -518,6 +522,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                             self.modelXbrl.error("sqlDB:factDecimalsError",
                                                  _("Loading XBRL DB: Fact is non-numeric but contains a decimals attribute %(qname)s, decimals %(decimals)s, context %(context)s, value %(value)s"),
                                                  modelObject=f, qname=f.qname, context=f.contextID, value=f.value, decimals=f.decimals)
+                isInstant = f.qname.localName[1:2] == 'i'
                 
             isText = not (isNumeric or isBool or isDateTime) # 's' or 'u' type
             if f.qname == qnFindFilingIndicators:
@@ -614,6 +619,11 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                      _("Loading XBRL DB: Context has different entity identifier: %(context)s %(value)s"),
                                      modelObject=cntx, context=cntx.id, value=cntx.entityIdentifier[1])
                     self.entityIdentifiers.add(cntx.entityIdentifier[1])
+                if cntx.isStartEndPeriod and isInstant:
+                    self.modelXbrl.error("sqlDB:factContextError",
+                                     _("Loading XBRL DB: Instant metric %(qname)s has start end context: %(context)s"),
+                                     modelObject=f, qname=f.qname, context=f.contextID)
+                    
 
         # check for fact duplicates
         duplicates = self.getTable("dFact", None,
