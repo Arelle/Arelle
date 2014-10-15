@@ -1725,7 +1725,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             if not hasPresentationRelationship:
                 self.modelXbrl.error(("EFM.6.12.03", "GFM.1.6.3"),
                     _("Concept used in instance %(concept)s does not participate in an effective presentation relationship"),
-                    modelObject=[concept] + list(modelXbrl.factsByQname(concept.qname)), concept=concept.qname)
+                    modelObject=[concept] + list(modelXbrl.factsByQname(concept.qname, [])), concept=concept.qname)
                 
         for fromIndx, toIndxs in usedCalcsPresented.items():
             for toIndx in toIndxs:
