@@ -19,7 +19,7 @@ from .FactWalkingAction import FactWalkingAction
 EbaURL = "www.eba.europa.eu/xbrl"
 qnFindFilingIndicators = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:fIndicators")
 qnFindFilingIndicator = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:filingIndicator")
-
+qnPercentItemType = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
 
 def improveEbaCompliance(dts, cntlr, lang="en"):
     ':type dts: ModelXbrl'
@@ -226,18 +226,22 @@ def ebaDecimals(locale, value, concept, defaultDecimals):
     :type defaultDecimals: str
     :rtype (boolean, str)
     '''
-    isPure = not(concept.isMonetary) and not(concept.isShares)
+    isPercent = concept.typeQname == qnPercentItemType
     isInteger = XbrlConst.isIntegerXsdType(concept.type.baseXsdType)
+    isMonetary = concept.isMonetary
     decimalsFound, decimals = decimalsComputer(locale, value, concept, defaultDecimals)
     if not(decimalsFound) or decimals == 'INF':
         return (decimalsFound, decimals)
     else:
-        lowerBound = -3
+        # the default values are for non-monetary items
+        lowerBound = -20
         upperBound = 20
         decimalsAsInteger = int(decimals)
-        if isInteger:
+        if isMonetary:
+            lowerBound = -3
+        elif isInteger:
             lowerBound = upperBound = 0
-        elif isPure: # percent or ratio values
+        elif isPercent: # percent values
             lowerBound = 4
             upperBound = 20
         if decimalsAsInteger<lowerBound:
