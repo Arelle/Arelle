@@ -50,7 +50,7 @@ from collections import defaultdict
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelInstanceObject import ModelFact
 from arelle import Locale, ValidateXbrlDimensions
-from arelle.ModelValue import qname, dateTime, DATEUNION, dateunionDate
+from arelle.ModelValue import qname, dateTime, DATEUNION, dateunionDate, DateTime
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.ValidateXbrlCalcs import roundValue
 from arelle.XmlUtil import xmlstring, datetimeValue, DATETIME_MAXYEAR, dateunionValue, addChild, addQnameValue, addProcessingInstruction
@@ -453,6 +453,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     xValue = None
                 else:
                     xValue = f.xValue
+                    if isinstance(xValue, DateTime) and xValue.dateOnly:
+                        xValue = dateunionDate(xValue)
                 isInstant = concept.periodType == "instant"
             else:
                 if f.isNil:
