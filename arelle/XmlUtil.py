@@ -657,7 +657,7 @@ def datetimeValue(element, addOneDay=False, none=None):
 
 def dateunionValue(datetimeValue, subtractOneDay=False):
     if not isinstance(datetimeValue, (datetime.datetime, datetime.date)):
-        return "INVALD"
+        return "INVALID"
     isDate = (hasattr(datetimeValue,'dateOnly') and datetimeValue.dateOnly) or not hasattr(datetimeValue, 'hour')
     if isDate or (datetimeValue.hour == 0 and datetimeValue.minute == 0 and datetimeValue.second == 0):
         d = datetimeValue
