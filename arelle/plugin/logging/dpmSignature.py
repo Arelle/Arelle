@@ -20,12 +20,14 @@ def metDimTypedKey(fact):
                                     for dim in cntx.qnameDims.values()))
     return key
 
-def loggingRefAttributes(arg, refAttributes):
+def loggingRefAttributes(arg, refAttributes, codedArgs):
     # arg may be a ModelFact, or any other ModelObject
     if isinstance(arg, ModelFact):
         refAttributes["dpmSignature"] = metDimTypedKey(arg)
     elif isinstance(arg, ModelConcept):
-        refAttributes["dpmSignature"] = str(arg.qname)
+        refAttributes["dpmSignature"] = "MET({})".format(arg.qname)
+    elif "dpmSignature" in codedArgs: # signature may be passed in as arg for non-fact error
+        refAttributes["dpmSignature"] = codedArgs["dpmSignature"]
                 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
@@ -33,7 +35,7 @@ __pluginInfo__ = {
     'version': '0.9',
     'description': '''DPM Signature, for data points (facts), concepts, dimensions, and members.  
 For a data point (fact): MET(conceptQName)|dimQName(mem)... (does not include period, unit, or entity identifier)
-For a concept, just concept QName.''',
+For a concept, MET(conceptQName).''',
     'license': 'Apache-2',
     'author': 'Mark V Systems',
     'copyright': '(c) Copyright 2014 Mark V Systems Limited, All rights reserved.',
