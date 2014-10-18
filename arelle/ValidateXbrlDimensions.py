@@ -275,7 +275,7 @@ def checkContext(val, cntx):
                     modelObject=logDimAndFacts(modelDimValue), contextID=cntx.id, 
                     dimension=modelDimValue.prefixedName, value=modelDimValue.dimensionQname,
                     messageCodes=("xbrldie:TypedMemberNotTypedDimensionError", "xbrldie:ExplicitMemberNotExplicitDimensionError"))
-            elif modelDimValue.isExplicit:
+            if modelDimValue.isExplicit: # this test is required even when ExplicitMemberNotExplicitDimensionError is raised
                 memberConcept = modelDimValue.member
                 if memberConcept is None or not memberConcept.isGlobalDeclaration:
                     val.modelXbrl.error("xbrldie:ExplicitMemberUndefinedQNameError",
