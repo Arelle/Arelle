@@ -143,14 +143,22 @@ class ValidateXbrlCalcs:
                                                 d = inferredDecimals(fact)
                                                 if isnan(d) or isinf(d): d = 4
                                                 _boundSummationItems = boundSummationItems[sumBindKey]
+                                                unreportedContribingItemQnames = [] # list the missing/unreported contributors in relationship order
+                                                for modelRel in modelRels:
+                                                    itemConcept = modelRel.toModelObject
+                                                    if (itemConcept is not None and 
+                                                        (itemConcept, ancestor, contextHash, unit) not in self.itemFacts):
+                                                        unreportedContribingItemQnames.append(str(itemConcept.qname))
                                                 self.modelXbrl.log('INCONSISTENCY', "xbrl.5.2.5.2:calcInconsistency",
-                                                    _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s"),
+                                                    _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreportedContributingItems %(unreportedContributors)s"),
                                                     modelObject=wrappedSummationAndItems(fact, roundedSum, _boundSummationItems),
                                                     concept=sumConcept.qname, linkrole=ELR, 
                                                     linkroleDefinition=self.modelXbrl.roleTypeDefinition(ELR),
                                                     reportedSum=Locale.format_decimal(self.modelXbrl.locale, roundedSum, 1, max(d,0)),
                                                     computedSum=Locale.format_decimal(self.modelXbrl.locale, roundedItemsSum, 1, max(d,0)), 
-                                                    contextID=fact.context.id, unitID=fact.unit.id)
+                                                    contextID=fact.context.id, unitID=fact.unit.id,
+                                                    unreportedContributors=", ".join(unreportedContribingItemQnames) or "none")
+                                                del unreportedContribingItemQnames[:]
                             boundSummationItems.clear() # dereference facts in list
                     elif arcrole == XbrlConst.essenceAlias:
                         for modelRel in relsSet.modelRelationships:
