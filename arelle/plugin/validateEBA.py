@@ -34,9 +34,9 @@ def disclosureSystemConfigURL(disclosureSystem):
     return os.path.join(os.path.dirname(__file__), "validateEBAconfig.xml")
 
 def setup(val):
-    val.validateEFM = val.validateDisclosureSystem and getattr(val.disclosureSystem, "EFM")
+    val.validateEBA = val.validateDisclosureSystem and getattr(val.disclosureSystem, "EBA")
     val.validateEIOPA = val.validateDisclosureSystem and getattr(val.disclosureSystem, "EIOPA")
-    if not (val.validateEFM or val.validateEIOPA):
+    if not (val.validateEBA or val.validateEIOPA):
         return
 
     val.prefixNamespace = {}
@@ -65,7 +65,7 @@ def factCheck(val, fact):
 '''
     
 def final(val):
-    if not (val.validateEFM or val.validateEIOPA):
+    if not (val.validateEBA or val.validateEIOPA):
         return
 
     modelXbrl = val.modelXbrl
@@ -203,7 +203,7 @@ def final(val):
 
 def checkDTSdocument(val, modelDocument):
     modelXbrl = val.modelXbrl
-    if modelDocument.type == ModelDocument.Type.INSTANCE and (val.validateEFM or val.validateEIOPA):
+    if modelDocument.type == ModelDocument.Type.INSTANCE and (val.validateEBA or val.validateEIOPA):
         if not modelDocument.uri.endswith(".xbrl"):
             modelXbrl.warning("EBA.1.1",
                     _('XBRL instance documents SHOULD use the extension ".xbrl" encoding but it is "%(extension)s"'),
@@ -373,7 +373,7 @@ def checkDTSdocument(val, modelDocument):
                                             modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
                             except ValueError:
                                 pass # should have been reported as a schema error by loader
-                            '''' (not intended by EBA 2.18)
+                            '''' (not intended by EBA 2.18, paste here is from EFM)
                             if not f.isNil and getattr(f,"xValid", 0) == 4:
                                 try:
                                     insignificance = insignificantDigits(f.xValue, decimals=f.decimals)
