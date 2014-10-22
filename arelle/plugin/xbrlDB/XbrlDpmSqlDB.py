@@ -474,10 +474,16 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                 self.modelXbrl.error("sqlDB:factValueError",
                                                      _("Loading XBRL DB: Fact %(qname)s, context %(context)s, value lexical error: %(value)s"),
                                                      modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
+                                xValue = None
                             else:
-                                xValue = Decimal(xValue)
+                                if c == 'i':
+                                    xValue = int(xValue)
+                                else:
+                                    xValue = Decimal(xValue)
                         except InvalidOperation:
                             xValue = Decimal('NaN')
+                        except ValueError:
+                            xValue = None
                         if f.unit is None:
                             self.modelXbrl.error("sqlDB:factUnitError",
                                                  _("Loading XBRL DB: Fact missing unit %(qname)s, context %(context)s, value %(value)s"),
