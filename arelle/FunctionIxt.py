@@ -80,7 +80,7 @@ maxDayInMo = {"01": "30", "02": "29", "03": "31", "04": "30", "05": "31", "06": 
               "07": "31", "08": "31", "09": "30", "10": "31", "11": "30", "12":"31",
               1: "30", 2: "29", 3: "31", 4: "30", 5: "31", 6: "30",
               7: "31", 8: "31", 9: "30", 10: "31", 11: "30", 12:"31"}
-gLastMoDay = [30,28,31,30,31,30,31,31,30,31,30,31]
+gLastMoDay = [31,28,31,30,31,30,31,31,30,31,30,31]
 
 gregorianHindiMonthNumber = {
                 "\u091C\u0928\u0935\u0930\u0940": "01",
@@ -111,6 +111,18 @@ sakaMonthNumber = {
                 "Magha":11, "Magh":11, "M\u0101gha":11, "\u092E\u093E\u0918":11,
                 "Phalguna":12, "Phalgun":12, "Ph\u0101lguna":12, "\u092B\u093E\u0932\u094D\u0917\u0941\u0928":12,
                 }
+sakaMonthPattern = re.compile(r"(C\S*ait|\u091A\u0948\u0924\u094D\u0930)|"
+                              r"(Vai|\u0935\u0948\u0936\u093E\u0916|\u092C\u0948\u0938\u093E\u0916)|"
+                              r"(Jy|\u091C\u094D\u092F\u0947\u0937\u094D\u0920)|"
+                              r"(dha|\u1E0Dha|\u0906\u0937\u093E\u0922|\u0906\u0937\u093E\u0922\u093C)|"
+                              r"(vana|\u015Ar\u0101va\u1E47a|\u0936\u094D\u0930\u093E\u0935\u0923|\u0938\u093E\u0935\u0928)|"
+                              r"(Bh\S+dra|Pro\u1E63\u1E6Dhapada|\u092D\u093E\u0926\u094D\u0930\u092A\u0926|\u092D\u093E\u0926\u094B)|"
+                              r"(in|\u0906\u0936\u094D\u0935\u093F\u0928)|"
+                              r"(K\S+rti|\u0915\u093E\u0930\u094D\u0924\u093F\u0915)|"
+                              r"(M\S+rga|Agra|\u092E\u093E\u0930\u094D\u0917\u0936\u0940\u0930\u094D\u0937|\u0905\u0917\u0939\u0928)|"
+                              r"(Pau|\u092A\u094C\u0937)|"
+                              r"(M\S+gh|\u092E\u093E\u0918)|"
+                              r"(Ph\S+lg|\u092B\u093E\u0932\u094D\u0917\u0941\u0928)")
 sakaMonthLength = (30,31,31,31,31,31,30,30,30,30,30,30) # Chaitra has 31 days in Gregorian leap year
 sakaMonthOffset = ((3,22,0),(4,21,0),(5,22,0),(6,22,0),(7,23,0),(8,23,0),(9,23,0),(10,23,0),(11,22,0),(12,22,0),(1,21,1),(2,20,1))
 
@@ -397,7 +409,10 @@ def datedaymonthyearin(arg):
 def calindaymonthyear(arg):
     m = daymonthyearInPattern.match(arg)
     try:
-        _mo = _INT(sakaMonthNumber[m.group(2)])
+        # Transformation registry 3 requires use of pattern comparisons instead of exact transliterations
+        #_mo = _INT(sakaMonthNumber[m.group(2)])
+        # pattern approach
+        _mo = sakaMonthPattern.search(m.group(2)).lastindex
         _day = _INT(devanagariDigitsToNormal(m.group(1)))
         _yr = _INT(devanagariDigitsToNormal(yrin(m.group(3), _mo, _day)))
         #sakaDate = [_yr, _mo, _day]
@@ -610,6 +625,6 @@ deprecatedNamespaceURI = 'http://www.xbrl.org/2008/inlineXBRL/transformation' # 
 ixtNamespaceURIs = {
     'http://www.xbrl.org/inlineXBRL/transformation/2010-04-20', # transformation registry v1
     'http://www.xbrl.org/inlineXBRL/transformation/2011-07-31', # transformation registry v2
-    'http://www.xbrl.org/inlineXBRL/transformation/2014-05-14', # transformation registry v3
+    'http://www.xbrl.org/inlineXBRL/transformation/2014-10-15', # transformation registry v3
     'http://www.xbrl.org/2008/inlineXBRL/transformation' # the CR/PR pre-REC namespace
 }
