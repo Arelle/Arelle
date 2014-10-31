@@ -42,6 +42,9 @@ windows
    rem be sure plugin is installed
    arelleCmdLine --plugin "+xbrlDB|show"
    arelleCmdLine -f http://sec.org/somewhere/some.rss -v --store-to-XBRL-DB "myserver.com,portnumber,pguser,pgpasswd,database,timeoutseconds"
+   
+concrete example:
+   python3.4 arelleCmdLine.py -f "/Users/hermf/Documents/mvsl/projects/EIOPA/xbrt/13. XBRL Instance Documents/1.5.2 (generated with DPM Architect)/arg.xbrl"  --formula none --store-to-XBRL-DB ",,,,/users/hermf/temp/DBtest5.xbrt,90,sqliteDpmDB" --internetConnectivity offline --skipDT --plugins logging/dpmSignature.pyS
 
 '''
 
@@ -61,6 +64,7 @@ from decimal import Decimal, InvalidOperation
 qnFindFilingIndicators = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:fIndicators")
 qnFindFilingIndicator = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:filingIndicator")
 decimalsPattern = re.compile("^(-?[0-9]+|INF)$")
+ONE = Decimal("1")
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
@@ -315,6 +319,42 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         dim, sep, val = dimVal.partition('(')
                         tblDimVal[tableID][dim] = val[:-1]
         self.modelXbrl.profileActivity("dpmDB 05. Get YZ DimVals for Table", minTimeToShow=0.0)
+        
+        '''
+        # get qnames of percent items
+        result = self.execute("SELECT mem.MemberXbrlCode from mMetric met, mMember mem "
+                              "WHERE met.DataType = 'Percent' AND mem.MemberCode like 'pi%' "
+                              "AND mem.MemberId = met.CorrespondingMemberId")
+        self.percentMetrics = {p[0] for p in result}
+        '''
+        
+        # get typed dimension domain element qnames
+        result = self.execute("SELECT dim.DimensionXBRLCode, ( '[<]' || dom.DomainXBRLCode || '[>]' || "
+                              " CASE WHEN dom.DataType = 'Integer' THEN '\\d+' ELSE '\\S+' END || "
+                              " '[<][/]' || dom.DomainXBRLCode || '[>]' ) "
+                              "FROM mDimension dim, mDomain dom "
+                              "WHERE dim.IsTypedDimension AND dim.DomainID = dom.DomainID")
+        self.typedDimensionDomain = dict((dim,re.compile(dom)) for dim, dom in result)
+
+        # get explicit dimension domain element qnames
+        result = self.execute("SELECT dim.DimensionXBRLCode, mem.MemberXBRLCode "
+                              "FROM mDomain dom "
+                              "left outer join mHierarchy h on h.DomainID = dom.DomainID "
+                              "left outer join mHierarchyNode hn on hn.HierarchyID = h.HierarchyID "
+                              "left outer join mMember mem on mem.MemberID = hn.MemberID "
+                              "inner join mDimension dim on dim.DomainID = dom.DomainID and not dim.isTypedDimension")
+        self.explicitDimensionDomain = defaultdict(set)
+        for _dim, _mem in result:
+            self.explicitDimensionDomain[_dim].add(_mem)
+            
+        # get enumeration element values
+        result = self.execute("select mem.MemberXBRLCode, enum.MemberXBRLCode from mMember mem "
+                              "inner join mMetric met on met.CorrespondingMemberID = mem.MemberID "
+                              "inner join mHierarchyNode hn on hn.HierarchyID = met.ReferencedHierarchyID "
+                              "inner join mMember enum on enum.MemberID = hn.MemberID ")
+        self.enumElementValues = defaultdict(set)
+        for _elt, _enum in result:
+            self.enumElementValues[_elt].add(_enum)
 
         self.showStatus("insert data points")
         return True
@@ -392,19 +432,35 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             _closestMatchSig = None
             if _dimSigs:
                 for _dimSig in _dimSigs: # alternate signatures valid for member
-                    _lenDimSig = len(_dimSig)
                     _lenDimVals = len(_dimVals)
-                    _differentDimCount = abs(_lenDimSig - _lenDimVals)
+                    _lenDimSig = sum(1
+                                     for _dim, _val in _dimSig.items()
+                                     if _val != "*?" or _dim in _dimVals)
                     _differentDims = set(_dim
                                          for _dim, _val in _dimVals.items()
-                                         if _dim in _dimSig and _dimSig[_dim] not in ("*", _val))
+                                         if _dim in _dimSig and _dimSig[_dim] not in ("*", "*?", _val))
+                    _differentDimCount = abs(_lenDimSig - _lenDimVals)
                     _difference = _differentDimCount + len(_differentDims)
                     if _difference == 0:
-                        _sigMatched = True
-                        break
+                        # check * dimensions
+                        for _dim, _val in _dimVals.items():
+                            if _dim in _dimSig and _dimSig[_dim] in ("*", "*?"):
+                                if _dim in self.explicitDimensionDomain:
+                                    if _val not in self.explicitDimensionDomain[_dim]:
+                                        _difference += 1
+                                        _differentDims.add(_dim)
+                                elif _dim in self.typedDimensionDomain:
+                                    if not self.typedDimensionDomain[_dim].match(_val):
+                                        _difference += 1
+                                        _differentDims.add(_dim)
+                        if _difference == 0:
+                            _sigMatched = True
+                            break
                     if _difference < _closestMatch:
-                        _missingDims = _DICT_SET(_dimSig.keys()) - _DICT_SET(_dimVals.keys())
                         _extraDims = _DICT_SET(_dimVals.keys()) - _DICT_SET(_dimSig.keys())
+                        _missingDims = set(_dim
+                                           for _dim, _val in _dimSig.items()
+                                           if _dim not in _dimVals and _val != "*?")
                         _closestMatchDiffDims = _differentDims
                         _closestMatchSig = _dimSig
                         _closestMatch = _difference
@@ -426,6 +482,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                              modelObject=self.modelXbrl, dpmSignature=dpmSignature, qname=_metQname, value=self.dFactValue(fact),
                                              extra=_extras, missing=_missings, different=_diffs)
 
+
     def insertDataPointsToDB(self):
         instanceId = self.instanceId
 
@@ -434,6 +491,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         for f in self.modelXbrl.facts:
             cntx = f.context
             concept = f.concept
+            c = f.qname.localName[0]
             isNumeric = isBool = isDateTime = isText = False
             isInstant = None
             if concept is not None:
@@ -461,7 +519,6 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     xValue = None
                 else:
                     xValue = f.value
-                    c = f.qname.localName[0]
                     if c in ('m', 'p', 'i'):
                         isNumeric = True
                         # not validated, do own xValue
@@ -518,6 +575,12 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                 self.modelXbrl.error("sqlDB:factValueError",
                                                      _("Loading XBRL DB: Fact %(qname)s, context %(context)s, value: %(value)s"),
                                                      modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
+                        elif c == 'e':
+                            fQn = str(f.qname)
+                            if fQn in self.enumElementValues and xValue not in self.enumElementValues[fQn]:
+                                self.modelXbrl.error("sqlDB:factValueError",
+                                                     _("Loading XBRL DB: Fact %(qname)s, context %(context)s, value: %(value)s"),
+                                                     modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
                         if f.unit is not None:
                             self.modelXbrl.error("sqlDB:factUnitError",
                                                  _("Loading XBRL DB: Fact is non-numeric but has a unit %(qname)s, context %(context)s, value %(value)s"),
@@ -531,7 +594,19 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                                  _("Loading XBRL DB: Fact is non-numeric but contains a decimals attribute %(qname)s, decimals %(decimals)s, context %(context)s, value %(value)s"),
                                                  modelObject=f, qname=f.qname, context=f.contextID, value=f.value, decimals=f.decimals)
                 isInstant = f.qname.localName[1:2] == 'i'
-                
+            if  c in ('m', 'p') and isinstance(xValue, Decimal):
+                # check minimum number of decimal places in fact
+                _decimals = len(str(abs(xValue) % ONE)) - 2  # result is 0.nnnn, always subtract 2 for 0.
+                if c == 'm':
+                    if _decimals < 2:
+                        self.modelXbrl.warning("sqlDB:factDecimalDigitsWarning",
+                                             _("Loading XBRL DB: Monetary fact should have 2 decimal digits %(qname)s, context %(context)s, value: %(value)s"),
+                                             modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
+                elif c == 'p':
+                    if _decimals < 4:
+                        self.modelXbrl.warning("sqlDB:factDecimalDigitsWarning",
+                                             _("Loading XBRL DB: Decimals/percent fact should have 4 decimal digits %(qname)s, context %(context)s, value: %(value)s"),
+                                             modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
             isText = not (isNumeric or isBool or isDateTime) # 's' or 'u' type
             if f.qname == qnFindFilingIndicators:
                 if cntx is not None:
@@ -874,6 +949,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 continue  # ignore DTS-based loading of invalid concept QName
             concept = modelXbrl.qnameConcepts.get(conceptQn)
             isNumeric = isBool = isDateTime = isQName = isText = False
+            c = conceptQn.localName[0]
             if concept is not None:
                 if concept.isNumeric:
                     isNumeric = True
@@ -886,7 +962,6 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     elif baseXbrliType == "QNameItemType":
                         isQName = True
             else:
-                c = conceptQn.localName[0]
                 if c in ('m', 'p', 'i'):
                     isNumeric = True
                 elif c == 'd':
@@ -946,6 +1021,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         elif isinstance(dec, _STR_BASE) and '.' in dec:
                             dec = dec.partition('.')[0] # drop .0 from any SQLite string
                         attrs["decimals"] = str(dec)  # somehow it is float from the database
+                    '''
                     num = roundValue(numVal, None, dec) # round using reported decimals
                     if dec is None or dec == "INF":  # show using decimals or reported format
                         dec = abs(Decimal(str(numVal)).as_tuple().exponent)
@@ -955,6 +1031,16 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         except ValueError:
                             dec = 0
                     text = Locale.format(Locale.C_LOCALE, "%.*f", (dec, num)) # culture-invariant locale
+                    '''
+                    try:
+                        if c == 'm':
+                            text = str(Decimal(numVal) + Decimal("0.00"))
+                        elif c == 'p':
+                            text = str(Decimal(numVal) + Decimal("0.0000"))
+                        else:
+                            text = str(numVal)
+                    except Exception:
+                        text = str(numVal)
                 else:
                     attrs[XbrlConst.qnXsiNil] = "true"
                     text = None
