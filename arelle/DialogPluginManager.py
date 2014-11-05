@@ -183,6 +183,15 @@ class DialogPluginManager(Toplevel):
         okButton.grid(row=3, column=3, sticky=(S,E), pady=3)
         cancelButton.grid(row=3, column=4, sticky=(S,E), pady=3, padx=3)
         
+        enableDisableFrame = Frame(frame)
+        enableDisableFrame.grid(row=3, column=1, sticky=(S,W), pady=3)
+        enableAllButton = Button(enableDisableFrame, text=_("Enable All"), command=self.enableAll)
+        ToolTip(enableAllButton, text=_("Enable all plug ins."), wraplength=240)
+        disableAllButton = Button(enableDisableFrame, text=_("Disable All"), command=self.disableAll)
+        ToolTip(disableAllButton, text=_("Disable all plug ins."), wraplength=240)
+        enableAllButton.grid(row=1, column=1)
+        disableAllButton.grid(row=1, column=2)
+        
         self.loadTreeViews()
 
         self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
@@ -415,3 +424,21 @@ class DialogPluginManager(Toplevel):
             self.pluginConfigChanged = True
             self.loadTreeViews()
                     
+    def enableAll(self):
+        self.enableDisableAll(True)
+                    
+    def disableAll(self):
+        self.enableDisableAll(False)
+                    
+    def enableDisableAll(self, doEnable):
+        for module in self.pluginConfig["modules"]:
+            moduleInfo = self.pluginConfig["modules"][module]
+            if doEnable:
+                moduleInfo["status"] = "enabled"
+                self.moduleEnableButton['text'] = self.DISABLE
+            else:
+                moduleInfo["status"] = "disabled"
+                self.moduleEnableButton['text'] = self.ENABLE
+        self.pluginConfigChanged = True
+        self.loadTreeViews()
+            

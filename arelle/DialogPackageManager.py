@@ -184,6 +184,15 @@ class DialogPackageManager(Toplevel):
         okButton.grid(row=3, column=3, sticky=(S,E), pady=3)
         cancelButton.grid(row=3, column=4, sticky=(S,E), pady=3, padx=3)
         
+        enableDisableFrame = Frame(frame)
+        enableDisableFrame.grid(row=3, column=1, sticky=(S,W), pady=3)
+        enableAllButton = Button(enableDisableFrame, text=_("Enable All"), command=self.enableAll)
+        ToolTip(enableAllButton, text=_("Enable all packages."), wraplength=240)
+        disableAllButton = Button(enableDisableFrame, text=_("Disable All"), command=self.disableAll)
+        ToolTip(disableAllButton, text=_("Disable all packages."), wraplength=240)
+        enableAllButton.grid(row=1, column=1)
+        disableAllButton.grid(row=1, column=2)
+        
         self.loadTreeViews()
 
         self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
@@ -414,4 +423,23 @@ class DialogPackageManager(Toplevel):
             self.packagesConfigChanged = True
             PackageManager.rebuildRemappings()
             self.loadTreeViews()
+            
+    def enableAll(self):
+        self.enableDisableAll(True)
                     
+    def disableAll(self):
+        self.enableDisableAll(False)
+                    
+    def enableDisableAll(self, doEnable):
+        for iPkg in range(len(self.packagesConfig["packages"])):
+            packageInfo = self.packagesConfig["packages"][iPkg]
+            if doEnable:
+                packageInfo["status"] = "enabled"
+                self.packageEnableButton['text'] = self.DISABLE
+            else:
+                packageInfo["status"] = "disabled"
+                self.packageEnableButton['text'] = self.ENABLE
+        self.packagesConfigChanged = True
+        PackageManager.rebuildRemappings()
+        self.loadTreeViews()
+            
