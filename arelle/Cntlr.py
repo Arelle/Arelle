@@ -583,11 +583,11 @@ class LogHandlerWithXml(logging.Handler):
             s = s if len(s) <= truncateAt else s[:truncateAt] + '...'
             return s.replace("&","&amp;").replace("<","&lt;").replace('"','&quot;')
         
-        def propElts(properties, indent):
+        def propElts(properties, indent, truncatAt=128):
             nestedIndent = indent + ' '
             return indent.join('<property name="{0}" value="{1}"{2}>'.format(
                                     entityEncode(p[0]),
-                                    entityEncode(p[1], truncateAt=128),
+                                    entityEncode(p[1], truncateAt=truncatAt),
                                     '/' if len(p) == 2 
                                     else '>' + nestedIndent + propElts(p[2],nestedIndent) + indent + '</property')
                                 for p in properties 
@@ -605,7 +605,7 @@ class LogHandlerWithXml(logging.Handler):
                         ''.join(' {}="{}"'.format(k,entityEncode(v)) 
                                                   for k,v in ref["customAttributes"].items())
                              if 'customAttributes' in ref else '',
-                        (">\n  " + propElts(ref["properties"],"\n  ") + "\n </ref" ) if "properties" in ref else '/')
+                        (">\n  " + propElts(ref["properties"],"\n  ", 32767) + "\n </ref" ) if "properties" in ref else '/')
                        for ref in logRec.refs)
         return ('<entry code="{0}" level="{1}">'
                 '\n <message{2}>{3}</message>{4}'
