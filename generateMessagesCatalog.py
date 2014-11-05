@@ -16,13 +16,15 @@ if __name__ == "__main__":
     numArelleSrcFiles = 0
 
     arelleSrcPath = (os.path.dirname(__file__) or os.curdir) + os.sep + "arelle"
-    for arelleSrcDir in (arelleSrcPath, arelleSrcPath + os.sep + "examples" + os.sep + "plugin"):
+    for arelleSrcDir in (arelleSrcPath, 
+                         arelleSrcPath + os.sep + "plugin",
+                         arelleSrcPath + os.sep + "plugin" + os.sep + "xbrlDB"):
         for moduleFilename in os.listdir(arelleSrcDir):
             if moduleFilename.endswith(".py"):
                 numArelleSrcFiles += 1
                 fullFilenamePath = arelleSrcDir + os.sep + moduleFilename
                 refFilename = fullFilenamePath[len(arelleSrcPath)+1:].replace("\\","/")
-                with open(fullFilenamePath) as f:
+                with open(fullFilenamePath, encoding="utf-8") as f:
                     tree = ast.parse(f.read(), filename=moduleFilename)
                     for item in ast.walk(tree):
                         try:
