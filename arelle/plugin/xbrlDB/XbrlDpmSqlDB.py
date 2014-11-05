@@ -53,7 +53,7 @@ from collections import defaultdict
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelInstanceObject import ModelFact
 from arelle import Locale, ValidateXbrlDimensions
-from arelle.ModelValue import qname, dateTime, DATEUNION, dateunionDate, DateTime
+from arelle.ModelValue import qname, dateTime, DATE, dateunionDate, DateTime
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.ValidateXbrlCalcs import roundValue
 from arelle.XmlUtil import xmlstring, datetimeValue, DATETIME_MAXYEAR, dateunionValue, addChild, addQnameValue, addProcessingInstruction
@@ -488,12 +488,14 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
 
         dFacts = []
         dFactHashes = {}
+        skipDTS = self.modelXbrl.skipDTS
         for f in self.modelXbrl.facts:
             cntx = f.context
             concept = f.concept
             c = f.qname.localName[0]
             isNumeric = isBool = isDateTime = isText = False
             isInstant = None
+            isValid = skipDTS or f.xValid >= XmlValidate.VALID
             if concept is not None:
                 if concept.isNumeric:
                     isNumeric = True
@@ -501,6 +503,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         self.modelXbrl.error("sqlDB:factPrecisionError",
                                              _("Loading XBRL DB: Fact contains a precision attribute %(qname)s, precision %(precision)s, context %(context)s, value %(value)s"),
                                              modelObject=f, qname=f.qname, context=f.contextID, value=f.value, precision=f.precision)
+                        isValid = False
                 else:
                     baseXbrliType = concept.baseXbrliType
                     if baseXbrliType == "booleanItemType":
@@ -532,6 +535,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                                      _("Loading XBRL DB: Fact %(qname)s, context %(context)s, value lexical error: %(value)s"),
                                                      modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
                                 xValue = None
+                                isValid = False
                             else:
                                 if c == 'i':
                                     xValue = int(xValue)
@@ -545,25 +549,30 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                             self.modelXbrl.error("sqlDB:factUnitError",
                                                  _("Loading XBRL DB: Fact missing unit %(qname)s, context %(context)s, value %(value)s"),
                                                  modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
+                            isValid = False
                         if f.precision:
                             self.modelXbrl.error("sqlDB:factPrecisionError",
                                                  _("Loading XBRL DB: Fact contains a precision attribute %(qname)s, precision %(precision)s, context %(context)s, value %(value)s"),
                                                  modelObject=f, qname=f.qname, context=f.contextID, value=f.value, precision=f.precision)
+                            isValid = False
                         elif not f.decimals or not decimalsPattern.match(f.decimals):
                             self.modelXbrl.error("sqlDB:factDecimalsError",
                                                  _("Loading XBRL DB: Fact contains an invalid decimals attribute %(qname)s, decimals %(decimals)s, context %(context)s, value %(value)s"),
                                                  modelObject=f, qname=f.qname, context=f.contextID, value=f.value, decimals=f.decimals)
+                            isValid = False
                     else:
                         if c == 'd':
                             isDateTime = True
                             try:
-                                xValue = dateTime(xValue, type=DATEUNION, castException=ValueError)
+                                xValue = dateTime(xValue, type=DATE, castException=ValueError)
                                 if xValue.dateOnly:
                                     xValue = dateunionDate(xValue)
                             except ValueError:
                                 self.modelXbrl.error("sqlDB:factValueError",
                                                      _("Loading XBRL DB: Fact %(qname)s, context %(context)s, value: %(value)s"),
                                                      modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
+                                xValue = None
+                                isValid = False
                         elif c == 'b':
                             isBool = True
                             xValue = xValue.strip()
@@ -575,12 +584,15 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                 self.modelXbrl.error("sqlDB:factValueError",
                                                      _("Loading XBRL DB: Fact %(qname)s, context %(context)s, value: %(value)s"),
                                                      modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
+                                xValue = None
+                                isValid = False
                         elif c == 'e':
                             fQn = str(f.qname)
                             if fQn in self.enumElementValues and xValue not in self.enumElementValues[fQn]:
                                 self.modelXbrl.error("sqlDB:factValueError",
                                                      _("Loading XBRL DB: Fact %(qname)s, context %(context)s, value: %(value)s"),
                                                      modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
+                                isValid = False
                         if f.unit is not None:
                             self.modelXbrl.error("sqlDB:factUnitError",
                                                  _("Loading XBRL DB: Fact is non-numeric but has a unit %(qname)s, context %(context)s, value %(value)s"),
@@ -655,7 +667,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                          _("Loading XBRL DB: Fact is a duplicate %(qname)s, contextRef %(context)s, value: %(value)s, other contextRef %(context2)s, other value %(value2)s"),
                                          modelObject=(f,otherF), qname=f.qname, context=f.contextID, value=f.value,
                                          context2=otherF.contextID, value2=otherF.value)
-                else:
+                elif isValid:
                     dFactHashes[_factHash] = f
                     dFacts.append((instanceId,
                                    _dataPointSignature,
@@ -1037,6 +1049,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                             text = str(Decimal(numVal) + Decimal("0.00"))
                         elif c == 'p':
                             text = str(Decimal(numVal) + Decimal("0.0000"))
+                        elif c == 'i':
+                            text = '%i' % Decimal(numVal)
                         else:
                             text = str(numVal)
                     except Exception:
