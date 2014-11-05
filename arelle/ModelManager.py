@@ -55,6 +55,7 @@ class ModelManager:
         self.validateInfoset = False
         self.validateUtr = False
         self.skipDTS = False
+        self.skipLoading = None
         self.abortOnMajorError = False
         self.collectProfileStats = False
         self.loadedModelXbrls = []
