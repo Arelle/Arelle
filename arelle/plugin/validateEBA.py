@@ -18,7 +18,7 @@ except ImportError:
 from lxml import etree
 from collections import defaultdict
 
-qnFilingIndicators = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:filingIndicators")
+qnFIndicators = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:fIndicators")
 qnFilingIndicator = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:filingIndicator")
 qnPercentItemType = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
 integerItemTypes = {"integerItemType", "nonPositiveIntegerItemType", "negativeIntegerItemType",
@@ -68,14 +68,17 @@ def final(val):
     if not (val.validateEBA or val.validateEIOPA):
         return
 
-    del val.prefixNamespace, val.namespacePrefix, val.idObjects, val.typedDomainElements
-
-def checkDTSdocument(val, modelDocument):
     modelXbrl = val.modelXbrl
+    modelDocument = modelXbrl.modelDocument
+
+    _statusMsg = _("validating {0} filing rules").format(val.disclosureSystem.name)
+    modelXbrl.profileActivity()
+    val.showStatus(_statusMsg)
+    
     if modelDocument.type == ModelDocument.Type.INSTANCE and (val.validateEBA or val.validateEIOPA):
         if not modelDocument.uri.endswith(".xbrl"):
             modelXbrl.warning("EBA.1.1",
-                    _('XBRL instance documents SHOULD use the extension ".xbrl" encoding but it is "%(extension)s"'),
+                    _('XBRL instance documents SHOULD use the extension ".xbrl" but it is "%(extension)s"'),
                     modelObject=modelDocument, xmlEncoding=os.path.splitext(modelDocument.basename)[1])
         if modelDocument.documentEncoding.lower() not in ("utf-8", "utf-8-sig"):
             modelXbrl.error("EBA.1.4",
@@ -109,22 +112,23 @@ def checkDTSdocument(val, modelDocument):
                     modelObject=schemaRefElts, entryPointCount=len(schemaRefElts))
         filingIndicators = {}
         for fIndicator in modelXbrl.factsByQname[qnFilingIndicator]:
-            if fIndicator.xValue in filingIndicators:
+            _value = (fIndicator.xValue or fIndicator.value) # use validated xValue if DTS else value for skipDTS 
+            if _value in filingIndicators:
                 modelXbrl.error("EBA.1.6.1",
                         _('Multiple filing indicators facts for indicator %(filingIndicator)s.'),
-                        modelObject=(fIndicator, filingIndicators[filingIndicators]), filingIndicator=fIndicator.xValue)
-            filingIndicators[fIndicator.xValue] = fIndicator
+                        modelObject=(fIndicator, filingIndicators[_value]), filingIndicator=_value)
+            filingIndicators[_value] = fIndicator
         
         if not filingIndicators:
             modelXbrl.error("EBA.1.6",
                     _('Missing filing indicators.  Reported XBRL instances MUST include appropriate filing indicator elements'),
                     modelObject=modelDocument)
             
-        numFilingIndicatorTuples = len(modelXbrl.factsByQname[qnFilingIndicators])
+        numFilingIndicatorTuples = len(modelXbrl.factsByQname[qnFIndicators])
         if numFilingIndicatorTuples > 1 and not getattr(modelXbrl, "isStreamingMode", False):
             modelXbrl.info("EBA.1.6.2",                            
                     _('Multiple filing indicators tuples when not in streaming mode (info).'),
-                    modelObject=modelXbrl.factsByQname[qnFilingIndicators])
+                    modelObject=modelXbrl.factsByQname[qnFIndicators])
                     
         # note EBA 2.1 is in ModelDocument.py
         
@@ -170,7 +174,9 @@ def checkDTSdocument(val, modelDocument):
                     dates=', '.join(XmlUtil.dateunionValue(_dt, subtractOneDay=True)
                                                            for _dt in cntxDates.keys()))
             
-        unusedCntxIDs = cntxIDs - {fact.contextID for fact in modelXbrl.facts}
+        unusedCntxIDs = cntxIDs - {fact.contextID 
+                                   for fact in modelXbrl.factsInInstance
+                                   if fact.contextID} # skip tuples
         if unusedCntxIDs:
             modelXbrl.warning("EBA.2.7",
                     _('Unused xbrli:context nodes SHOULD NOT be present in the instance: %(unusedContextIDs)s.'),
@@ -191,13 +197,29 @@ def checkDTSdocument(val, modelDocument):
         currenciesUsed = {}
         for qname, facts in modelXbrl.factsByQname.items():
             for f in facts:
-                concept = f.concept
+                if modelXbrl.skipDTS:
+                    c = f.qname.localName[0]
+                    isNumeric = c in ('m', 'p', 'i')
+                    isMonetary = c == 'm'
+                    isInteger = c == 'i'
+                    isPercent = c == 'p'
+                    isString = c == 's'
+                else:
+                    concept = f.concept
+                    if concept is not None:
+                        isNumeric = concept.isNumeric
+                        isMonetary = concept.isMonetary
+                        isInteger = concept.baseXbrliType in integerItemTypes
+                        isPercent = concept.typeQname == qnPercentItemType
+                        isString = concept.baseXbrliType in ("stringItemType", "normalizedStringItemType")
+                    else:
+                        isNumeric = isString = False # error situation
                 k = (f.getparent().objectIndex,
-                     f.concept.objectIndex,
+                     f.qname,
                      f.context.contextDimAwareHash if f.context is not None else None,
                      f.unit.hash if f.unit is not None else None,
                      hash(f.xmlLang))
-                if concept.qname == qnFilingIndicator and val.validateEIOPA:
+                if f.qname == qnFIndicators and val.validateEIOPA:
                     pass
                 elif k not in otherFacts:
                     otherFacts[k] = {f}
@@ -205,7 +227,7 @@ def checkDTSdocument(val, modelDocument):
                     matches = [o
                                for o in otherFacts[k]
                                if (f.getparent().objectIndex == o.getparent().objectIndex and
-                                   f.concept.objectIndex == o.concept.objectIndex and
+                                   f.qname == o.qname and
                                    f.context.isEqualTo(o.context) if f.context is not None and o.context is not None else True) and
                                   (f.unit.isEqualTo(o.unit) if f.unit is not None and o.unit is not None else True) and
                                   (f.xmlLang == o.xmlLang)]
@@ -215,57 +237,56 @@ def checkDTSdocument(val, modelDocument):
                                         _('Facts are duplicates %(fact)s contexts %(contexts)s.'),
                                         modelObject=[f] + matches, fact=f.qname, contexts=', '.join(contexts))
                     else:
-                        otherFacts[k].add(f)    
-                if concept is not None:
-                    if concept.isNumeric:
-                        if f.precision:
-                            modelXbrl.error("EBA.2.17",
-                                _("Numeric fact %(fact)s of context %(contextID)s has a precision attribute '%(precision)s'"),
-                                modelObject=f, fact=f.qname, contextID=f.contextID, precision=f.precision)
-                        if f.decimals and f.decimals != "INF":
+                        otherFacts[k].add(f)
+                if isNumeric:
+                    if f.precision:
+                        modelXbrl.error("EBA.2.17",
+                            _("Numeric fact %(fact)s of context %(contextID)s has a precision attribute '%(precision)s'"),
+                            modelObject=f, fact=f.qname, contextID=f.contextID, precision=f.precision)
+                    if f.decimals and f.decimals != "INF":
+                        try:
+                            dec = int(f.decimals)
+                            if isMonetary:
+                                if dec < -3:
+                                    modelXbrl.error("EBA.2.17",
+                                        _("Monetary fact %(fact)s of context %(contextID)s has a decimal attribute < -3: '%(decimals)s'"),
+                                        modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
+                            elif isInteger:
+                                if dec != 0:
+                                    modelXbrl.error("EBA.2.17",
+                                        _("Integer fact %(fact)s of context %(contextID)s has a decimal attribute \u2260 0: '%(decimals)s'"),
+                                        modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
+                            elif isPercent:
+                                if dec < 4:
+                                    modelXbrl.error("EBA.2.17",
+                                        _("Percent fact %(fact)s of context %(contextID)s has a decimal attribute < 4: '%(decimals)s'"),
+                                        modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
+                        except ValueError:
+                            pass # should have been reported as a schema error by loader
+                        '''' (not intended by EBA 2.18, paste here is from EFM)
+                        if not f.isNil and getattr(f,"xValid", 0) == 4:
                             try:
-                                dec = int(f.decimals)
-                                if concept.isMonetary:
-                                    if dec < -3:
-                                        modelXbrl.error("EBA.2.17",
-                                            _("Monetary fact %(fact)s of context %(contextID)s has a decimal attribute < -3: '%(decimals)s'"),
-                                            modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
-                                elif concept.baseXbrliType in integerItemTypes:
-                                    if dec != 0:
-                                        modelXbrl.error("EBA.2.17",
-                                            _("Integer fact %(fact)s of context %(contextID)s has a decimal attribute \u2260 0: '%(decimals)s'"),
-                                            modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
-                                elif concept.typeQname == qnPercentItemType:
-                                    if dec < 4:
-                                        modelXbrl.error("EBA.2.17",
-                                            _("Percent fact %(fact)s of context %(contextID)s has a decimal attribute < 4: '%(decimals)s'"),
-                                            modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
-                            except ValueError:
-                                pass # should have been reported as a schema error by loader
-                            '''' (not intended by EBA 2.18, paste here is from EFM)
-                            if not f.isNil and getattr(f,"xValid", 0) == 4:
-                                try:
-                                    insignificance = insignificantDigits(f.xValue, decimals=f.decimals)
-                                    if insignificance: # if not None, returns (truncatedDigits, insiginficantDigits)
-                                        modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
-                                            _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(insignificantDigits)s."),
-                                            modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, 
-                                            value=f1.xValue, truncatedDigits=insignificance[0], insignificantDigits=insignificance[1])
-                                except (ValueError,TypeError):
-                                    modelXbrl.error(("EBA.2.18"),
-                                        _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),
-                                        modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
-                            '''
-                        unit = f.unit
-                        if unit is not None:
-                            if concept.isMonetary:
-                                if unit.measures[0]:
-                                    currenciesUsed[unit.measures[0][0]] = unit
-                            elif not unit.isSingleMeasure or unit.measures[0][0] != XbrlConst.qnXbrliPure:
-                                nonMonetaryNonPureFacts.append(f)
-                    elif concept.baseXbrliType in ("stringItemType", "normalizedStringItemType"): 
-                        if not f.xmlLang:
-                            stringFactsWithoutXmlLang.append(f)
+                                insignificance = insignificantDigits(f.xValue, decimals=f.decimals)
+                                if insignificance: # if not None, returns (truncatedDigits, insiginficantDigits)
+                                    modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
+                                        _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(insignificantDigits)s."),
+                                        modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, 
+                                        value=f1.xValue, truncatedDigits=insignificance[0], insignificantDigits=insignificance[1])
+                            except (ValueError,TypeError):
+                                modelXbrl.error(("EBA.2.18"),
+                                    _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),
+                                    modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
+                        '''
+                    unit = f.unit
+                    if unit is not None:
+                        if isMonetary:
+                            if unit.measures[0]:
+                                currenciesUsed[unit.measures[0][0]] = unit
+                        elif not unit.isSingleMeasure or unit.measures[0][0] != XbrlConst.qnXbrliPure:
+                            nonMonetaryNonPureFacts.append(f)
+                elif isString: 
+                    if not f.xmlLang:
+                        stringFactsWithoutXmlLang.append(f)
                             
                 if f.unitID is not None:
                     unitIDsUsed.add(f.unitID)
@@ -325,6 +346,10 @@ def checkDTSdocument(val, modelDocument):
                         modelXbrl.warning("EBA.3.5",
                             _("Prefix for namespace %(namespace)s is %(declaredPrefix)s but these were found %(foundPrefixes)s"),
                             modelObject=modelDocument, namespace=ns, declaredPrefix=nsDocPrefix, foundPrefixes=', '.join(sorted(prefixes - {None})))                        
+    modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
+    val.showStatus(None)
+
+    del val.prefixNamespace, val.namespacePrefix, val.idObjects, val.typedDomainElements
                 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
@@ -340,5 +365,4 @@ __pluginInfo__ = {
     'Validate.XBRL.Start': setup,
     # 'Validate.SBRNL.Fact': factCheck  (no instances being checked by SBRNL,
     'Validate.XBRL.Finally': final,
-    'Validate.XBRL.DTS.document': checkDTSdocument
 }

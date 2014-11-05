@@ -69,6 +69,10 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
     if modelDocument.type == ModelDocument.Type.VERSIONINGREPORT:
         return
     
+    # skip processing if skipDTS requested
+    if modelDocument.skipDTS:
+        return
+    
     # skip system schemas
     if modelDocument.type == ModelDocument.Type.SCHEMA:
         if XbrlConst.isStandardNamespace(modelDocument.targetNamespace):

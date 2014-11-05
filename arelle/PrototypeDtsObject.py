@@ -2,7 +2,7 @@ from arelle import XmlUtil, XbrlConst
 from arelle.ModelValue import QName
 from arelle.XmlValidate import VALID
 from collections import defaultdict
-import decimal
+import decimal, os
 ModelDocument = None
 
 class LinkPrototype():      # behaves like a ModelLink for relationship prototyping
@@ -136,7 +136,15 @@ class DocumentPrototype():
         normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, base)
         self.filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri, filenameOnly=True)
         self.uri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(self.filepath)
+        self.basename = os.path.basename(self.filepath)
+        self.targetNamespace = None
+        self.referencesDocument = {}
+        self.hrefObjects = []
+        self.schemaLocationElements = set()
+        self.referencedNamespaces = set()
         self.inDTS = False
+        self.xmlRootElement = None
+  
         
     def clear(self):
         self.__dict__.clear() # dereference here, not an lxml object, don't use superclass clear()
