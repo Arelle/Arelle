@@ -62,6 +62,10 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             modelXbrl.urlUnloadableDocs[normalizedUri] = blocked
         if blocked:
             return None
+    
+    if modelXbrl.modelManager.skipLoading and modelXbrl.modelManager.skipLoading.match(normalizedUri):
+        return None
+    
     if modelXbrl.fileSource.isMappedUrl(normalizedUri):
         mappedUri = modelXbrl.fileSource.mappedUrl(normalizedUri)
     elif PackageManager.isMappedUrl(normalizedUri):
