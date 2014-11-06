@@ -31,15 +31,6 @@ class ErxlLoc:
 class DisclosureSystem:
     def __init__(self, modelManager):
         self.modelManager = modelManager
-        self.urls = [os.path.join(modelManager.cntlr.configDir, "disclosuresystems.xml")]
-        # get custom config xml file url
-        for pluginXbrlMethod in pluginClassMethods("DisclosureSystem.ConfigURL"):
-            self.urls.append(pluginXbrlMethod(self))
-        # get custom disclosure system (type name, test variable)
-        self.pluginDisclosureTypes = {}  # dict of type name, test variable name
-        for pluginXbrlMethod in pluginClassMethods("DisclosureSystem.Types"):
-            for typeName, typeTestVariable in pluginXbrlMethod(self):
-                self.pluginDisclosureTypes[typeName] = typeTestVariable
         self.clear()
         
     def clear(self):
@@ -58,9 +49,9 @@ class DisclosureSystem:
         self.EFMorGFM = False
         self.HMRC = False
         self.SBRNL = False
-        for typeTestVariable in self.pluginDisclosureTypes.values():
-            setattr(self, typeTestVariable, False)
-        self.EBA = False
+        for pluginXbrlMethod in pluginClassMethods("DisclosureSystem.Types"):
+            for typeName, typeTestVariable in pluginXbrlMethod(self):
+                setattr(self, typeTestVariable, False)
         self.validateFileText = False
         self.schemaValidateSchema = None
         self.blockDisallowedReferences = False
@@ -96,6 +87,14 @@ class DisclosureSystem:
     @property
     def dir(self):
         return self.dirlist("dir")
+    
+    @property
+    def urls(self):
+        _urls = [os.path.join(self.modelManager.cntlr.configDir, "disclosuresystems.xml")]
+        # get custom config xml file url
+        for pluginXbrlMethod in pluginClassMethods("DisclosureSystem.ConfigURL"):
+            _urls.append(pluginXbrlMethod(self))
+        return _urls
     
     @property
     def url(self): # needed for status messages (not used in this module)
@@ -146,8 +145,9 @@ class DisclosureSystem:
                                 self.EFMorGFM = self.EFM or self.GFM
                                 self.HMRC = self.validationType == "HMRC"
                                 self.SBRNL = self.validationType == "SBR-NL"
-                                for typeName, typeTestVariable in self.pluginDisclosureTypes.items():
-                                    setattr(self, typeTestVariable, self.validationType == typeName)
+                                for pluginXbrlMethod in pluginClassMethods("DisclosureSystem.Types"):
+                                    for typeName, typeTestVariable in pluginXbrlMethod(self):
+                                        setattr(self, typeTestVariable, self.validationType == typeName)
                                 self.validateFileText = dsElt.get("validateFileText") == "true"
                                 self.blockDisallowedReferences = dsElt.get("blockDisallowedReferences") == "true"
                                 try:

@@ -323,7 +323,7 @@ def parseAndRun(args):
     
     if not args and cntlr.isGAE:
         args = ["--webserver=::gae"]
-    elif not args and cntlr.isCGI:
+    elif cntlr.isCGI:
         args = ["--webserver=::cgi"]
     elif cntlr.isMSW:
         # if called from java on Windows any empty-string arguments are lost, see:
@@ -350,7 +350,7 @@ def parseAndRun(args):
     if options.about:
         print(_("\narelle(r) {0}bit {1}\n\n"
                 "An open source XBRL platform\n"
-                "(c) 2010-2013 Mark V Systems Limited\n"
+                "(c) 2010-2014 Mark V Systems Limited\n"
                 "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
                 "Licensed under the Apache License, Version 2.0 (the \"License\"); "
                 "you may not \nuse this file except in compliance with the License.  "
@@ -377,7 +377,7 @@ def parseAndRun(args):
             print(text)
         except UnicodeEncodeError:
             print(text.encode("ascii", "replace").decode("ascii"))
-    elif len(leftoverArgs) != 0:
+    elif len(leftoverArgs) != 0 and (not hasWebServer or options.webserver is None):
         parser.error(_("unrecognized arguments: {}".format(', '.join(leftoverArgs))))
     elif (options.entrypointFile is None and 
           ((not options.proxy) and (not options.plugins) and
