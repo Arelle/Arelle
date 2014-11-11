@@ -131,12 +131,14 @@ def removeUselessFilingIndicatorsInModel(dts):
     filingIndicatorsElements = dts.factsByQname(qnFindFilingIndicators, set())
     for fact in filingIndicatorsElements:
         dts.factsInInstance.remove(fact)
+        dts.factIndex.deleteFact(fact)
         dts.facts.remove(fact)
         if fact in dts.undefinedFacts:
             dts.undefinedFacts.remove(fact)
     filingIndicatorElements = dts.factsByQname(qnFindFilingIndicator, set())
     for fact in filingIndicatorElements:
         dts.factsInInstance.remove(fact)
+        dts.factIndex.deleteFact(fact)
         # non-top-level elements are not in 'facts'
 
 def createFilingIndicatorsElement(dts, newFactItemOptions):

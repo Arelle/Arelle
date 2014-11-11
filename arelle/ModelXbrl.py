@@ -15,6 +15,7 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeInstanceObject import FactPrototype, DimValuePrototype
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
+from arelle.FactIndex import FactIndex
 ModelRelationshipSet = None # dynamic import
 
 profileStatNumber = 0
@@ -286,11 +287,13 @@ class ModelXbrl:
         self.profileStats = {}
         self.schemaDocsToValidate = set()
         self.modelXbrl = self # for consistency in addressing modelXbrl
+        self.factIndex = FactIndex()
 
     def close(self):
         """Closes any views, formula output instances, modelDocument(s), and dereferences all memory used 
         """
         if not self.isClosed:
+            self.factIndex.close()
             self.closeViews()
             if self.formulaOutputInstance:
                 self.formulaOutputInstance.close()
@@ -324,6 +327,8 @@ class ModelXbrl:
         self.modelDocument = ModelDocument.load(self, self.fileSource.url, isEntry=True, reloadCache=reloadCache)
         self.modelManager.showStatus(_("xbrl loading finished, {0}...").format(nextaction),5000)
         self.modelManager.reloadViews(self)
+        self.factIndex.close()
+        self.factIndex = FactIndex()
             
     def closeViews(self):
         """Close views associated with this modelXbrl
@@ -672,7 +677,7 @@ class ModelXbrl:
         
         :returns: set -- non-nil facts in instance
         """
-        _nonNilFactsInInstance = set(f for f in self.factsInInstance if not f.isNil)
+        _nonNilFactsInInstance = self.factIndex.nonNilFacts(self)
         return _nonNilFactsInInstance
         
     def factsByQname(self, qname, defaultValue=None): # indexed by fact (concept) qname
@@ -680,9 +685,7 @@ class ModelXbrl:
         
         :returns: dict -- indexes are QNames, values are ModelFacts
         """
-        fbqn = defaultdict(set)
-        for f in self.factsInInstance: fbqn[f.qname].add(f)
-        return fbqn.get(qname, defaultValue)
+        return self.factIndex.factsByQname(qname, self, defaultValue)
 
         
     def factsByDatatype(self, notStrict, typeQname): # indexed by fact (concept) qname
@@ -692,12 +695,15 @@ class ModelXbrl:
         :type notStrict: bool
         :returns: set -- ModelFacts that have specified type or (if nonStrict) derived from specified type
         """
-        fbdt = set()
-        for f in self.factsInInstance:
-            c = f.concept
-            if c.typeQname == typeQname or (notStrict and c.type.isDerivedFrom(typeQname)):
-                fbdt.add(f)
-        return fbdt
+        if notStrict:
+            fbdt = set()
+            for f in self.factsInInstance:
+                c = f.concept
+                if c.typeQname == typeQname or (c.type.isDerivedFrom(typeQname)):
+                    fbdt.add(f)
+            return fbdt
+        else:
+            return self.factIndex.factsByDatatype(typeQname, self)
         
     def factsByPeriodType(self, periodType): # indexed by fact (concept) qname
         """Facts in the instance indexed by periodType, cached
@@ -706,12 +712,7 @@ class ModelXbrl:
         :type periodType: str
         :returns: set -- ModelFacts that have specified periodType
         """
-        fbpt = set()
-        for f in self.factsInInstance:
-            p = f.concept.periodType
-            if p == periodType:
-                fbpt.add(f)
-            return fbpt
+        return self.factIndex.factsByPeriodType(periodType,self)
 
     def factsByDimMemQname(self, dimQname, memQname=None): # indexed by fact (concept) qname
         """Facts in the instance indexed by their Dimension  and Member QName, cached
@@ -721,23 +722,7 @@ class ModelXbrl:
         If Member is NONDEFAULT, returns facts that have the dimension (explicit non-default or typed)
         If Member is DEFAULT, returns facts that have the dimension (explicit non-default or typed) defaulted
         """
-        fbdq = defaultdict(set)
-        for fact in self.factsInInstance: 
-            if fact.isItem:
-                dimValue = fact.context.dimValue(dimQname)
-                if isinstance(dimValue, ModelValue.QName):  # explicit dimension default value
-                    fbdq[None].add(fact) # set of all facts that have default value for dimension
-                    if dimQname in self.modelXbrl.qnameDimensionDefaults:
-                        fbdq[self.qnameDimensionDefaults[dimQname]].add(fact) # set of facts that have this dim and mem
-                        fbdq[DEFAULT].add(fact) # set of all facts that have default value for dimension
-                elif dimValue is not None: # not default
-                    fbdq[None].add(fact) # set of all facts that have default value for dimension
-                    fbdq[NONDEFAULT].add(fact) # set of all facts that have non-default value for dimension
-                    if dimValue.isExplicit:
-                        fbdq[dimValue.memberQname].add(fact) # set of facts that have this dim and mem
-                else: # default typed dimension
-                    fbdq[DEFAULT].add(fact)
-        return fbdq[memQname]
+        return self.factIndex.factsByDimMemQname(dimQname, self, memQname)
         
     def matchFact(self, otherFact, unmatchedFactsStack=None, deemP0inf=False):
         """Finds matching fact, by XBRL 2.1 duplicate definition (if tuple), or by

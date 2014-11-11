@@ -1103,6 +1103,7 @@ class ModelDocument:
         if isinstance(modelFact, ModelFact):
             parentModelFacts.append( modelFact )
             self.modelXbrl.factsInInstance.add( modelFact )
+            self.modelXbrl.factIndex.insertFact( modelFact )
             tupleElementSequence = 0
             for tupleElement in modelFact:
                 if isinstance(tupleElement,ModelObject):
@@ -1243,6 +1244,7 @@ def inlineIxdsDiscover(modelXbrl):
             for modelInlineFact in htmlElement.iterdescendants(tag=tag):
                 if isinstance(modelInlineFact,ModelInlineFact):
                     mdlDoc.modelXbrl.factsInInstance.add( modelInlineFact )
+                    self.modelXbrl.factIndex.insertFact( modelInlineFact )
                     locateFactInTuple(modelInlineFact, tuplesByTupleID, ixNStag)
                     locateContinuation(modelInlineFact)
                     for r in modelInlineFact.footnoteRefs:
