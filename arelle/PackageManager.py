@@ -147,7 +147,6 @@ def orderedPackagesConfig():
 def save(cntlr):
     global packagesConfigChanged
     if packagesConfigChanged and cntlr.hasFileSystem:
-        pluginJsonFile = cntlr.userAppDir + os.sep + "plugins.json"
         with io.open(packagesJsonFile, 'wt', encoding='utf-8') as f:
             jsonStr = _STR_UNICODE(json.dumps(orderedPackagesConfig(), ensure_ascii=False, indent=2)) # might not be unicode in 2.7
             f.write(jsonStr)
