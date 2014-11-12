@@ -15,7 +15,7 @@ Calls these plug-in classes:
    Streaming.Finish(modelXbrl): notifies that streaming is finished
 '''
 
-import io, os, time
+import io, os, time, sys, re
 from decimal import Decimal, InvalidOperation
 from lxml import etree
 from arelle import XbrlConst, XmlUtil, XmlValidate, ValidateXbrlDimensions
@@ -23,6 +23,7 @@ from arelle.ModelDocument import ModelDocument, Type
 from arelle.ModelObjectFactory import parser
 from arelle.PluginManager import pluginClassMethods
 from arelle.Validate import Validate
+from arelle.HashUtil import md5hash, Md5Sum
 
 _streamingExtensionsCheck = True  # check streaming if enabled except for CmdLine, then only when requested
 _streamingExtensionsValidate = False
@@ -243,7 +244,6 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
     
     _streamingValidateFactsPlugin = any(True for pluginMethod in pluginClassMethods("Streaming.ValidateFacts"))
 
-    
     class modelLoaderTarget():
         def __init__(self, element_factory=None, parser=None):
             self.newTree = True
@@ -251,10 +251,12 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
             self.beforeInstanceStream = True
             self.beforeStartStreamingPlugin = True
             self.numRootFacts = 1
-            modelXbrl.streamingParentModelObject = None
+            modelXbrl.makeelementParentModelObject = None
             modelXbrl.isStreamingMode = True
+            self.factsCheckVersion = None
+            self.factsCheckMd5s = Md5Sum()
         def start(self, tag, attrib, nsmap=None):
-            modelXbrl.streamingParentModelObject = self.currentMdlObj # pass parent to makeelement for ModelObjectFactory
+            modelXbrl.makeelementParentModelObject = self.currentMdlObj # pass parent to makeelement for ModelObjectFactory
             mdlObj = _parser.makeelement(tag, attrib=attrib, nsmap=nsmap)
             mdlObj.sourceline = 1
             if self.newTree:
@@ -337,6 +339,21 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
                     if _streamingExtensionsValidate:
                         instValidator.checkUnits( (mdlObj,) )
                 elif ln == "xbrl": # end of document
+                    # check remaining batched facts if any
+                    if _streamingValidateFactsPlugin:
+                        # plugin attempts to process batch of all root facts not yet processed (not just current one)
+                        # finish any final batch of facts
+                        if len(modelXbrl.facts) > 0:
+                            factsToCheck = modelXbrl.facts.copy()
+                            factsHaveBeenProcessed = True
+                            # can block facts deletion if required data not yet available, such as numeric unit for DpmDB
+                            for pluginMethod in pluginClassMethods("Streaming.ValidateFacts"):
+                                if not pluginMethod(modelXbrl, factsToCheck):
+                                    factsHaveBeenProcessed = False
+                            if factsHaveBeenProcessed:
+                                for fact in factsToCheck:
+                                    dropFact(modelXbrl, fact, modelXbrl.facts)
+                                    del parentMdlObj[parentMdlObj.index(fact)]
                     # check remaining footnote refs
                     for footnoteLink in footnoteBuffer:
                         checkFootnoteHrefs(modelXbrl, footnoteLink)
@@ -369,6 +386,8 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
                 self.numRootFacts += 1
                 XmlValidate.validate(modelXbrl, mdlObj)
                 modelDocument.factDiscover(mdlObj, modelXbrl.facts)
+                if self.factsCheckVersion:
+                    self.factCheckFact(mdlObj)
                 if _streamingExtensionsValidate or _streamingValidateFactsPlugin:
                     factsToCheck = (mdlObj,)  # validate current fact by itself
                     if _streamingExtensionsValidate:
@@ -377,16 +396,19 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
                             instValidator.checkFactsDimensions(factsToCheck)
                     if _streamingValidateFactsPlugin:
                         # plugin attempts to process batch of all root facts not yet processed (not just current one)
-                        factsToCheck = modelXbrl.facts.copy()
-                        factsHaveBeenProcessed = True
-                        # can block facts deletion if required data not yet available, such as numeric unit for DpmDB
-                        for pluginMethod in pluginClassMethods("Streaming.ValidateFacts"):
-                            if not pluginMethod(modelXbrl, factsToCheck):
-                                factsHaveBeenProcessed = False
-                        if factsHaveBeenProcessed:
-                            for fact in factsToCheck:
-                                dropFact(modelXbrl, fact, modelXbrl.facts)
-                                del parentMdlObj[parentMdlObj.index(fact)]
+                        # use batches of 1000 facts
+                        if len(modelXbrl.facts) > 0: # 1000:
+                            factsToCheck = modelXbrl.facts.copy()
+                            factsHaveBeenProcessed = True
+                            # can block facts deletion if required data not yet available, such as numeric unit for DpmDB
+                            for pluginMethod in pluginClassMethods("Streaming.ValidateFacts"):
+                                if not pluginMethod(modelXbrl, factsToCheck):
+                                    factsHaveBeenProcessed = False
+                            if factsHaveBeenProcessed:
+                                for fact in factsToCheck:
+                                    dropFact(modelXbrl, fact, modelXbrl.facts)
+                                    del parentMdlObj[parentMdlObj.index(fact)]
+                                # note that keeping fact means we have to keep it's context too
                     else:
                         dropFact(modelXbrl, mdlObj, modelXbrl.facts) # single fact has been processed
                         del parentMdlObj[parentMdlObj.index(mdlObj)]
@@ -395,16 +417,43 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
                     modelXbrl.profileActivity("... streaming fact {0} of {1} {2:.2f}%".format(self.numRootFacts, instInfoNumRootFacts, 
                                                                                               100.0 * self.numRootFacts / instInfoNumRootFacts), 
                                               minTimeToShow=20.0)
+                    # sys.stdout.write ("\rAt fact {}".format(self.numRootFacts))
             return mdlObj
         def data(self, data):
             self.currentMdlObj.text = data
         def comment(self, text):
             pass
         def pi(self, target, data):
-            pass
+            if target == "xbrl-facts-check":
+                _match = re.search("([\\w-]+)=[\"']([^\"']+)[\"']", data)
+                if _match:
+                    _matchGroups = _match.groups()
+                    if len(_matchGroups) == 2:
+                        if _matchGroups[0] == "version":
+                            self.factsCheckVersion = _matchGroups[1]
+                        elif _matchGroups[0] == "sum-of-fact-md5s":
+                            try:
+                                expectedMd5 = Md5Sum(_matchGroups[1])
+                                if self.factsCheckMd5s != expectedMd5:
+                                    modelXbrl.warning("streamingExtensions:xbrlFactsCheckWarning",
+                                            _("XBRL facts sum of md5s expected %(expectedMd5)s not matched to actual sum %(actualMd5Sum)s"),
+                                            modelObject=modelXbrl, expectedMd5=expectedMd5, actualMd5Sum=self.factsCheckMd5s)
+                                else:
+                                    modelXbrl.info("info",
+                                            _("Successful XBRL facts sum of md5s."),
+                                            modelObject=modelXbrl)
+                            except ValueError:
+                                modelXbrl.error("streamingExtensions:xbrlFactsCheckError",
+                                        _("Invalid sum-of-md5s %(sumOfMd5)s"),
+                                        modelObject=modelXbrl, sumOfMd5=_matchGroups[1])
         def close(self):
-            del modelXbrl.streamingParentModelObject
+            del modelXbrl.makeelementParentModelObject
             return None
+        
+        def factCheckFact(self, fact):
+            self.factsCheckMd5s += fact.md5sum
+            for _tupleFact in fact.modelTupleFacts:
+                self.factCheckFact(_tupleFact)
         
     _parser, _parserLookupName, _parserLookupClass = parser(modelXbrl, filepath, target=modelLoaderTarget())
     etree.parse(_file, parser=_parser, base_url=filepath)

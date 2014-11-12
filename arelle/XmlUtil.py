@@ -548,12 +548,16 @@ def addComment(parent, commentText):
     child = etree.Comment( comment )
     parent.append(child)
     
-def addProcessingInstruction(parent, piTarget, piText):
-    i = 0 # find position to insert after other comments and PIs but before any element
-    for i, child in enumerate(parent):
-        if not isinstance(child, (etree._Comment, etree._ProcessingInstruction)):
-            break
-    parent.insert(i, etree.ProcessingInstruction(piTarget, piText))
+def addProcessingInstruction(parent, piTarget, piText, insertBeforeChildElements=True):
+    child = etree.ProcessingInstruction(piTarget, piText)
+    if insertBeforeChildElements:
+        i = 0 # find position to insert after other comments and PIs but before any element
+        for i, _otherChild in enumerate(parent):
+            if not isinstance(_otherChild, (etree._Comment, etree._ProcessingInstruction)):
+                break # insert before this child
+        parent.insert(i, child)
+    else: # can go after elements
+        parent.append(child)
     
 def addQnameValue(modelDocument, qnameValue):
     if not isinstance(qnameValue, QName):

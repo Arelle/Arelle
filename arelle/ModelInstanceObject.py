@@ -40,6 +40,7 @@ from math import isnan
 from arelle.ModelObject import ModelObject
 from decimal import Decimal, InvalidOperation
 from hashlib import md5
+from arelle.HashUtil import md5hash, Md5Sum
 Aspect = None
 utrEntries = None
 utrSymbol = None
@@ -324,7 +325,7 @@ class ModelFact(ModelObject):
     def value(self):
         """(str) -- Text value of fact or default or fixed if any, otherwise None"""
         v = self.textValue
-        if not v:
+        if not v and self.concept is not None:
             if self.concept.default is not None:
                 v = self.concept.default
             elif self.concept.fixed is not None:
@@ -457,6 +458,25 @@ class ModelFact(ModelObject):
         if unmatchedFactsStack is not None: 
             del unmatchedFactsStack[entryDepth:]
         return True
+    
+    @property
+    def md5sum(self):  # note this must work in --skipDTS and streaming modes
+        _toHash = [self.qname]
+        if self.context is not None: # not a tuple and has a valid unit
+            _lang = self.xmlLang
+            if _lang:
+                _toHash.append(XbrlConst.qnXmlLang)
+                _toHash.append(_lang)
+            if self.isNil:
+                _toHash.append(XbrlConst.qnXsiNil)
+                _toHash.append("true")
+            elif self.value:
+                _toHash.append(self.value)
+            if self.context is not None:
+                _toHash.append(self.context.md5sum)
+            if self.unit is not None:
+                _toHash.append(self.unit.md5sum)
+        return md5hash(_toHash)
     
     @property
     def propertyView(self):
@@ -986,6 +1006,23 @@ class ModelContext(ModelObject):
             self._contextNonDimAwareHash = hash( (self.periodHash, self.entityIdentifierHash, self.segmentHash, self.scenarioHash) )
             return self._contextNonDimAwareHash
         
+    @property
+    def md5sum(self):
+        try:
+            return self._md5sum
+        except AttributeError:
+            _toHash = [self.entityIdentifier[0], self.entityIdentifier[1]]
+            if self.isInstantPeriod:
+                _toHash.append(self.instantDatetime)
+            elif self.isStartEndPeriod:
+                _toHash.append(self.startDatetime)
+                _toHash.append(self.endDatetime)
+            elif self.isForeverPeriod:
+                _toHash.append("forever")
+            if self.qnameDims:
+                _toHash.extend([dim.md5sum for dim in self.qnameDims.values()])
+            self._md5sum = md5hash(_toHash)
+            return self._md5sum
     
     def isPeriodEqualTo(self, cntx2):
         """(bool) -- True if periods are datetime equal (based on 2.1 date offsets)"""
@@ -1108,7 +1145,14 @@ class ModelDimensionValue(ModelObject):
             return hash( (self.dimensionQname, self.memberQname) )
         else: # need XPath equal so that QNames aren't lexically compared (for fact and context equality in comparing formula results)
             return hash( (self.dimensionQname, XbrlUtil.equalityHash(XmlUtil.child(self), equalMode=XbrlUtil.XPATH_EQ)) )
-       
+
+    @property
+    def md5sum(self):
+        if self.isExplicit:
+            return md5hash([self.dimensionQname, self.memberQname])
+        else:
+            return md5hash([self.dimensionQname, self.typedMember])
+    
     @property
     def dimensionQname(self):
         """(QName) -- QName of the dimension concept"""
@@ -1251,18 +1295,21 @@ class ModelUnit(ModelObject):
         try:
             return self._md5hash
         except AttributeError:
-            md5hash = md5()
-            for i, measures in enumerate(self.measures):
-                if i:
-                    md5hash.update(b"divisor")
-                for measure in measures:
-                    if measure.namespaceURI:
-                        md5hash.update(measure.namespaceURI.encode('utf-8','replace'))
-                    md5hash.update(measure.localName.encode('utf-8','replace'))
-            # should this use frozenSet of each measures element?
-            self._md5hash = md5hash.hexdigest()
+            self._md5hash = md5hash(self.measures)
             return self._md5hash
-
+    
+    @property
+    def md5sum(self):
+        try:
+            return self._md5sum
+        except AttributeError:
+            if self.isDivide: # hash of mult and div hex strings of hashes of measures
+                self._md5sum = md5hash([md5hash([md5hash(m) for m in md]).toHex() 
+                                        for md in self.measures])
+            else: # sum of hash sums
+                self._md5sum = md5hash([md5hash(m) for m in self.measures[0]])
+            return self._md5sum
+ 
     @property
     def isDivide(self):
         """(bool) -- True if unit has a divide element"""

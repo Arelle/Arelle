@@ -325,7 +325,7 @@ def loadSchemalocatedSchema(modelXbrl, element, relativeUrl, namespace, baseUrl)
             doc.inDTS = False
     return doc
             
-def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None, base=None):
+def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None, initialComment=None, base=None):
     """Returns a new modelDocument, created from scratch, with any necessary header elements 
     
     (such as the schema, instance, or RSS feed top level elements)
@@ -346,21 +346,23 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
         for i in range(modelXbrl.modelManager.disclosureSystem.maxSubmissionSubdirectoryEntryNesting):
             modelXbrl.uriDir = os.path.dirname(modelXbrl.uriDir)
     filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri, filenameOnly=True)
+    if initialComment:
+        initialComment = "<!--" + initialComment + "-->"
     # XML document has nsmap root element to replace nsmap as new xmlns entries are required
     if initialXml and type in (Type.INSTANCE, Type.SCHEMA, Type.LINKBASE, Type.RSSFEED):
         Xml = '<nsmap>{0}</nsmap>'.format(initialXml or '')
     elif type == Type.INSTANCE:
         # modelXbrl.uriDir = os.path.dirname(normalizedUri)
-        Xml = ('<nsmap>'
+        Xml = ('<nsmap>{}'
                '<xbrl xmlns="http://www.xbrl.org/2003/instance"'
                ' xmlns:link="http://www.xbrl.org/2003/linkbase"'
-               ' xmlns:xlink="http://www.w3.org/1999/xlink">')
+               ' xmlns:xlink="http://www.w3.org/1999/xlink">').format(initialComment)
         if schemaRefs:
             for schemaRef in schemaRefs:
                 Xml += '<link:schemaRef xlink:type="simple" xlink:href="{0}"/>'.format(schemaRef.replace("\\","/"))
         Xml += '</xbrl></nsmap>'
     elif type == Type.SCHEMA:
-        Xml = ('<nsmap><schema xmlns="http://www.w3.org/2001/XMLSchema" /></nsmap>')
+        Xml = ('<nsmap>{}<schema xmlns="http://www.w3.org/2001/XMLSchema" /></nsmap>').format(initialComment)
     elif type == Type.RSSFEED:
         Xml = '<nsmap><rss version="2.0" /></nsmap>'
     elif type == Type.DTSENTRIES:

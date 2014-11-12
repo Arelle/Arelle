@@ -66,7 +66,7 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None, erro
     modelManager.showStatus(_("xbrl loading finished, {0}...").format(nextaction))
     return modelXbrl
 
-def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, createModelDocument=True, isEntry=False, errorCaptureLevel=None, initialXml=None, base=None):
+def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, createModelDocument=True, isEntry=False, errorCaptureLevel=None, initialXml=None, initialComment=None, base=None):
     from arelle import (ModelDocument, FileSource)
     modelXbrl = ModelXbrl(modelManager, errorCaptureLevel=errorCaptureLevel)
     modelXbrl.locale = modelManager.locale
@@ -74,7 +74,7 @@ def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, create
         modelXbrl.fileSource = FileSource.FileSource(url, modelManager.cntlr) # url may be an open file handle, use str(url) below
         modelXbrl.closeFileSource= True
         if createModelDocument:
-            modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry, initialXml=initialXml, base=base)
+            modelXbrl.modelDocument = ModelDocument.create(modelXbrl, newDocumentType, str(url), schemaRefs=schemaRefs, isEntry=isEntry, initialXml=initialXml, initialComment=initialComment, base=base)
             if isEntry:
                 del modelXbrl.entryLoadingUrl
                 loadSchemalocatedSchemas(modelXbrl)
@@ -805,8 +805,10 @@ class ModelXbrl:
         :returns: ModelFact -- New fact object
         """
         if parent is None: parent = self.modelDocument.xmlRootElement
+        self.makeelementParentModelObject = parent
         newFact = XmlUtil.addChild(parent, conceptQname, attributes=attributes, text=text,
                                    afterSibling=afterSibling, beforeSibling=beforeSibling)
+        del self.makeelementParentModelObject
         if validate:
             XmlValidate.validate(self, newFact)
         self.modelDocument.factDiscover(newFact, parentElement=parent)

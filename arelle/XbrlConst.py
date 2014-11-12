@@ -7,6 +7,7 @@ qnXsdAppinfo = qname("{http://www.w3.org/2001/XMLSchema}xsd:appinfo")
 qnXsdDefaultType = qname("{http://www.w3.org/2001/XMLSchema}xsd:anyType")
 xsi = "http://www.w3.org/2001/XMLSchema-instance"
 qnXsiNil = qname(xsi,"xsi:nil") # need default prefix in qname
+qnXmlLang = qname("{http://www.w3.org/XML/1998/namespace}xml:lang")
 builtinAttributes = {qnXsiNil,
                      qname(xsi,"xsi:type"),
                      qname(xsi,"xsi:schemaLocation")
