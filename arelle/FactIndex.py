@@ -263,6 +263,14 @@ def testAll():
     assertEquals({fact1, fact2}, dataResult)
     dataResult = factIndex.factsByDimMemQname('dim7', modelXbrl, DEFAULT)
     assertEquals({fact2, fact3, fact4, fact5}, dataResult) # fact6 is not an item!
+    numberOfDeletedFacts = factIndex.deleteFact(fact1)
+    assertEquals(1, numberOfDeletedFacts)
+    dataResult = factIndex.nonNilFacts(modelXbrl)
+    assertEquals({fact2, fact3, fact4}, dataResult)
+    dataResult = factIndex.factsByDimMemQname('dim1', modelXbrl, None)
+    assertEquals({fact2}, dataResult)
+    dataResult = factIndex.factsByDimMemQname('dim2', modelXbrl, None)
+    assertEquals(set(), dataResult)
     factIndex.close()
 if __name__ == '__main__':
     testAll()
