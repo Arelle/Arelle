@@ -768,7 +768,7 @@ def compileSphinxGrammar( cntlr ):
     if isGrammarCompiled:
         return sphinxProg
     
-    debugParsing = False
+    debugParsing = True
     
     cntlr.showStatus(_("Compiling Sphinx Grammar"))
     if sys.version[0] >= '3':
@@ -776,13 +776,13 @@ def compileSphinxGrammar( cntlr ):
         from arelle.pyparsing.pyparsing_py3 import (Word, Keyword, alphas, 
                      Literal, CaselessLiteral, 
                      Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
-                     ParserElement, quotedString, delimitedList, Suppress, Regex,
+                     ParserElement, quotedString, delimitedList, Suppress, Regex, FollowedBy,
                      lineno)
     else:
         from pyparsing import (Word, Keyword, alphas, 
                      Literal, CaselessLiteral, 
                      Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
-                     ParserElement, quotedString, delimitedList, Suppress, Regex,
+                     ParserElement, quotedString, delimitedList, Suppress, Regex, FollowedBy,
                      lineno)
     
     ParserElement.enablePackrat()
@@ -818,7 +818,8 @@ def compileSphinxGrammar( cntlr ):
                   "[A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040\xB7_.-]*)"
                   ).setName("ncName").setDebug(debugParsing)
     
-    annotationName = Word("@",alphanums + '_-.').setName("annotationName").setDebug(debugParsing)
+    #annotationName = Word("@",alphanums + '_-.').setName("annotationName").setDebug(debugParsing)
+    annotationName = Regex("@[A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]\w*").setName("annotationName").setDebug(debugParsing)
     
 
     decimalPoint = Literal('.')
@@ -904,6 +905,8 @@ def compileSphinxGrammar( cntlr ):
              ( qName ).setParseAction(compileQname) |
              ( Suppress(lParen) - expr - Optional( commaOp - Optional( expr - ZeroOrMore( commaOp - expr ) ) ) - Suppress(rParen) ).setParseAction(compileBrackets)
            ).ignore(sphinxComment)
+           
+    atom.setName("atom").setDebug(debugParsing)
     
     valueExpr = atom
     taggedExpr = ( valueExpr - Optional(tagOp - ncName) ).setParseAction(compileTagAssignment).ignore(sphinxComment)
@@ -926,9 +929,11 @@ def compileSphinxGrammar( cntlr ):
     withExpr = ( Optional( withOp + Suppress(lParen) + expr + Suppress(rParen) ) + 
                  ZeroOrMore( ( ncName + Optional( tagOp + Optional(ncName) ) + varAssign + expr + Suppress(Literal(";")) ).setParseAction(compileVariableAssignment).ignore(sphinxComment) ) +
                  formulaExpr ).setParseAction(compileWith)
-    parsedExpr = withExpr
+    #parsedExpr = withExpr
+    #parsedExpr.setName("parsedExpr").setDebug(debugParsing)
 
-    expr << parsedExpr
+    #expr << parsedExpr
+    expr << withExpr
     expr.setName("expr").setDebug(debugParsing)
     
     annotation = ( annotationName + Optional( Suppress(lParen) + Optional(delimitedList(expr)) + Suppress(rParen) ) ).setParseAction(compileAnnotation).ignore(sphinxComment).setName("annotation").setDebug(debugParsing)
