@@ -10,7 +10,6 @@ This module is Arelle's controller in command line non-interactive mode
 '''
 from arelle import PythonUtil # define 2.x or 3.x string types
 import gettext, time, datetime, os, shlex, sys, traceback, fnmatch
-from lxml import etree
 from optparse import OptionParser, SUPPRESS_HELP
 import re
 from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version, 
@@ -25,6 +24,7 @@ from arelle import PluginManager
 from arelle.PluginManager import pluginClassMethods
 from arelle.WebCache import proxyTuple
 import logging
+from lxml import etree
 win32file = None
 
 def main():
@@ -189,6 +189,8 @@ def parseAndRun(args):
                       help=_("Regular expression filter for log message code."))
     parser.add_option("--logcodefilter", action="store", dest="logCodeFilter", help=SUPPRESS_HELP)
     parser.add_option("--statusPipe", action="store", dest="statusPipe", help=SUPPRESS_HELP)
+    parser.add_option("--outputAttribution", action="store", dest="outputAttribution", help=SUPPRESS_HELP)
+    parser.add_option("--outputattribution", action="store", dest="outputAttribution", help=SUPPRESS_HELP)
     parser.add_option("--showOptions", action="store_true", dest="showOptions", help=SUPPRESS_HELP)
     parser.add_option("--parameters", action="store", dest="parameters", help=_("Specify parameters for formula and validation (name=value[,name=value])."))
     parser.add_option("--parameterSeparator", action="store", dest="parameterSeparator", help=_("Specify parameters separator string (if other than comma)."))
@@ -644,6 +646,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.modelManager.abortOnMajorError = True
         if options.collectProfileStats:
             self.modelManager.collectProfileStats = True
+        if options.outputAttribution:
+            self.modelManager.outputAttribution = options.outputAttribution
         if options.internetConnectivity == "offline":
             self.webCache.workOffline = True
         elif options.internetConnectivity == "online":

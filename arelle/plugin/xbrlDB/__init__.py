@@ -253,13 +253,16 @@ def xbrlDBLoader(modelXbrl, mappedUri, filepath, **kwargs):
     return storeIntoDB(dbConnection, modelXbrl, **extraArgs)
 
 def xbrlDBstartStreaming(modelXbrl):
-    return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl, streamingState="start", logStoredMsg=False)
+    if _storeIntoDBoptions:
+        return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl, streamingState="start", logStoredMsg=False)
 
 def xbrlDBvalidateStreamingFacts(modelXbrl, modelFacts):
-    return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl, streamingState="acceptFacts", streamedFacts=modelFacts, logStoredMsg=False)
+    if _storeIntoDBoptions:
+        return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl, streamingState="acceptFacts", streamedFacts=modelFacts, logStoredMsg=False)
 
 def xbrlDBfinishStreaming(modelXbrl):
-    return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl, streamingState="finish", logStoredMsg=False)
+    if _storeIntoDBoptions:
+        return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl, streamingState="finish", logStoredMsg=False)
 
 class LogToDbHandler(logging.Handler):
     def __init__(self):

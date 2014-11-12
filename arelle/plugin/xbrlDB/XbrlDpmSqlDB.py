@@ -50,6 +50,7 @@ concrete example:
 
 import time, datetime, os, re
 from collections import defaultdict
+from arelle.HashUtil import Md5Sum
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelInstanceObject import ModelFact
 from arelle import Locale, ValidateXbrlDimensions
@@ -80,9 +81,9 @@ def insertIntoDB(modelXbrl,
             # streaming mode, setup instance using context and dimensions
             xbrlDbConn = modelXbrl.streamingConnection
             if xbrlDbConn.instanceId is None:
-                if not xbrlDbConn.insertInstanceToDB():
+                if not xbrlDbConn.insertInstanceToDB(isStreaming=True):
                     return False
-            result = xbrlDbConn.insertDataPointsToDB()
+            result = xbrlDbConn.insertDataPointsToDB(streamedFacts, isStreaming=True)
         elif streamingState == "finish":
             xbrlDbConn = modelXbrl.streamingConnection
             xbrlDbConn.finishInsertXbrlToDB()
@@ -191,8 +192,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
     def insertXbrlToDB(self, rssItem):
         try:
             self.startInsertXbrlToDB()
-            self.insertInstanceToDB()
-            self.insertDataPointsToDB()
+            self.insertInstanceToDB(isStreaming=False)
+            self.insertDataPointsToDB(self.modelXbrl.facts, isStreaming=False)
             self.finishInsertXbrlToDB()
         except Exception as ex:
             self.showStatus("DB insertion failed due to exception", clearAfter=5000)
@@ -219,11 +220,12 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         self.dropTemporaryTable()
         self.startedAt = time.time()
     
-    def insertInstanceToDB(self):
+    def insertInstanceToDB(self, isStreaming=False):
         now = datetime.datetime.now()
         # find primary model taxonomy of instance
         self.modelXbrl.profileActivity()
         self.moduleId = None
+        self.numFactsInserted = 0
         self.availableTableRows = defaultdict(set) # index (tableID, zDimVal) = set of yDimVals 
         self.dFilingIndicators = set()
         self.metricsForFilingIndicators = set()
@@ -356,7 +358,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         for _elt, _enum in result:
             self.enumElementValues[_elt].add(_enum)
 
-        self.showStatus("insert data points")
+        self.showStatus("insert data points, " +
+                        ("streaming" if isStreaming else "non-streaming"))
         return True
     
     def loadAllowedMetricsAndDims(self):
@@ -483,13 +486,13 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                              extra=_extras, missing=_missings, different=_diffs)
 
 
-    def insertDataPointsToDB(self):
+    def insertDataPointsToDB(self, facts, isStreaming=False):
         instanceId = self.instanceId
 
         dFacts = []
         dFactHashes = {}
         skipDTS = self.modelXbrl.skipDTS
-        for f in self.modelXbrl.facts:
+        for f in facts: # facts may be a batch of streamed facts
             cntx = f.context
             concept = f.concept
             c = f.qname.localName[0]
@@ -719,6 +722,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                      _("Loading XBRL DB: Instant metric %(qname)s has start end context: %(context)s"),
                                      modelObject=f, qname=f.qname, context=f.contextID)
                     
+        if not isStreaming:
+            self.showStatus("Loading XBRL Instance {}, non-streaming, storing {} facts"
+                            .format(os.path.basename(self.modelXbrl.uri),
+                                    len(dFacts)))
 
         # check for fact duplicates
         duplicates = self.getTable("dFact", None,
@@ -731,7 +738,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                    returnMatches=True, insertIfNotMatched=False)
         if duplicates:
             dupDpSigs = set(_dpSig for _instID, _dpSig in duplicates)
-            for dFact in dFacts:
+            iFact = 0
+            while iFact < len(dFacts):
+                dFact = dFacts[iFact]
                 dpSig = dFact[1]
                 if dpSig in dupDpSigs:
                     metric, _sep, _dims = dpSig.partition('|')
@@ -740,17 +749,30 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                          _("Loading XBRL DB: Fact is a duplicate %(qname)s, value=%(value)s"),
                                          modelObject=self.modelXbrl, qname=metricPrefixedName,
                                          value=(dFact[5] or dFact[6] or dFact[7] or dFact[4]))  # num last so zero isn't or'ed as bool false
-        else:
-            # insert non-duplicate facts
-            self.getTable("dFact", None,
-                          ('InstanceID', 
-                           'DataPointSignature', 
-                           'Unit', 'Decimals',
-                           'NumericValue', 'DateTimeValue', 'BooleanValue', 'TextValue'),
-                          ('InstanceID', ),
-                          dFacts,
-                          returnMatches=False)
-        return True
+                    del dFact[iFact]
+                else:
+                    iFact += 1
+        # insert non-duplicate facts
+        self.getTable("dFact", None,
+                      ('InstanceID', 
+                       'DataPointSignature', 
+                       'Unit', 'Decimals',
+                       'NumericValue', 'DateTimeValue', 'BooleanValue', 'TextValue'),
+                      ('InstanceID', ),
+                      dFacts,
+                      returnMatches=False)
+        
+        factsInserted = self.numFactsInserted + len(dFacts)
+        if not isStreaming:
+            self.showStatus("Loading XBRL Instance {}, non-streaming, stored {} facts"
+                            .format(os.path.basename(self.modelXbrl.uri),
+                                    len(dFacts)))
+        elif (self.numFactsInserted % 100) + len(dFacts) >= 100:
+            self.showStatus("Loading XBRL Instance {}, streaming, at fact {}"
+                            .format(os.path.basename(self.modelXbrl.uri),
+                                    factsInserted))
+        self.numFactsInserted = factsInserted
+        return True  # True causes streaming to be able to dereference facts
         
     def finishInsertXbrlToDB(self):
         self.modelXbrl.profileActivity("dpmDB 06. Build facts table for bulk DB update", minTimeToShow=0.0)
@@ -865,16 +887,23 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             
         # create the instance document and resulting filing
         modelXbrl.blockDpmDBrecursion = True
-        modelXbrl.modelDocument = createModelDocument(modelXbrl, 
-                                                      Type.INSTANCE,
-                                                      loadDBsaveToFile,
-                                                      schemaRefs=[xbrlSchemaRef],
-                                                      isEntry=True)
+        modelXbrl.modelDocument = createModelDocument(
+              modelXbrl, 
+              Type.INSTANCE,
+              loadDBsaveToFile,
+              schemaRefs=[xbrlSchemaRef],
+              isEntry=True,
+              initialComment=getattr(modelXbrl.modelManager, "outputAttribution", None))
         ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl) # needs dimension defaults 
         
         addProcessingInstruction(modelXbrl.modelDocument.xmlRootElement, 
                                  'xbrl-streamable-instance', 
                                  'version="1.0" contextBuffer="1"')
+        addProcessingInstruction(modelXbrl.modelDocument.xmlRootElement, 
+                                 'xbrl-facts-check', 
+                                 'version="0.8"')
+        
+        xbrlFactsCheckSum = Md5Sum()
 
         # add roleRef and arcroleRef (e.g. for footnotes, if any, see inlineXbrlDocue)
         
@@ -897,11 +926,14 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         id='c')
             filingIndicatorsTuple = modelXbrl.createFact(qnFindFilingIndicators, validate=False)
             for filingIndicatorCode in filingIndicatorCodes:
-                modelXbrl.createFact(qnFindFilingIndicator, 
+                f = modelXbrl.createFact(qnFindFilingIndicator, 
                                      parent=filingIndicatorsTuple,
                                      attributes={"contextRef": "c"}, 
                                      text=filingIndicatorCode, validate=False)
+                xbrlFactsCheckSum += f.md5sum
             XmlValidate.validate(modelXbrl, filingIndicatorsTuple) # must validate after contents are created
+            xbrlFactsCheckSum += filingIndicatorsTuple.md5sum
+                
 
         # get typed dimension elements
         results = self.execute("SELECT dim.DimensionXBRLCode, "
@@ -990,7 +1022,6 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 cntxId = cntxTbl[cntxKey]
             else:
                 cntxId = 'c-{:02}'.format(len(cntxTbl) + 1)
-                cntxTbl[cntxKey] = cntxId
                 qnameDims = {}
                 if dims:
                     for dim in dims.split('|'):
@@ -1004,7 +1035,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                             mem = qname(dVal, prefixedNamespaces) # explicit dim (even if treat-as-typed)
                         qnameDims[dimQname] = DimValuePrototype(modelXbrl, None, dimQname, mem, "scenario")
                     
-                modelXbrl.createContext(entScheme,
+                _cntx = modelXbrl.createContext(
+                                        entScheme,
                                         entId,
                                         'instant',
                                         None,
@@ -1012,14 +1044,17 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                         None, # no dimensional validity checking (like formula does)
                                         qnameDims, [], [],
                                         id=cntxId)
+                cntxTbl[cntxKey] = cntxId
+                
             if isNumeric and unit:
                 if unit in unitTbl:
                     unitId = unitTbl[unit]
                 else:
                     unitQn = qname(unit, prefixedNamespaces)
                     unitId = 'u{}'.format(unitQn.localName)
+                    _unit = modelXbrl.createUnit([unitQn], [], id=unitId)
                     unitTbl[unit] = unitId
-                    modelXbrl.createUnit([unitQn], [], id=unitId)
+                    
             else:
                 unitId = None
             attrs = {"contextRef": cntxId}
@@ -1080,11 +1115,18 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 else:
                     attrs[XbrlConst.qnXsiNil] = "true"
                     text = None
-            modelXbrl.createFact(conceptQn, attributes=attrs, text=text)
+            f = modelXbrl.createFact(conceptQn, attributes=attrs, text=text)
+            xbrlFactsCheckSum += f.md5sum
+            #print ("f {} v {} c {} u {} f {} s {}".format(
+            #        f.qname, f.value, f.context.md5sum, f.unit.md5sum, f.md5sum, xbrlFactsCheckSum))
             
         # add footnotes if any
         
         # save to file
+        addProcessingInstruction(modelXbrl.modelDocument.xmlRootElement, 
+                                 'xbrl-facts-check', 
+                                 'sum-of-fact-md5s="{}"'.format(xbrlFactsCheckSum),
+                                 insertBeforeChildElements=False) # add pi AFTER other elements
         self.showStatus("saving XBRL instance")
         modelXbrl.saveInstance(overrideFilepath=loadDBsaveToFile)
         self.showStatus(_("Saved extracted instance"), 5000)
