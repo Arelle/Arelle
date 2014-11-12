@@ -377,7 +377,7 @@ class ViewRenderedGrid(ViewFile.View):
                                 etree.SubElement(aspElt, self.tableModelQName("value")
                                                  ).text = xsString(None,None,addQnameValue(self.xmlDoc, aspectValue))
                     if elt is not None:
-                        elt.text = label or "\u00A0" #produces &nbsp;
+                        elt.text = label if bool(label) and label != OPEN_ASPECT_ENTRY_SURROGATE else "\u00A0" #produces &nbsp;
                     if nonAbstract:
                         if columnspan > 1 and rowBelow > topRow:   # add spanned left leg portion one row down
                             if self.type == HTML:
