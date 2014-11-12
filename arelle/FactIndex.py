@@ -48,7 +48,7 @@ class FactIndex(object):
     def close(self):
         self.connection.close()
 
-    def insertFact(self, fact):
+    def insertFact(self, fact, modelXbrl):
         concept = fact.concept
         context = fact.context
         factIsNil = fact.isNil
@@ -66,11 +66,12 @@ class FactIndex(object):
         newFactId = result.inserted_primary_key
         result.close()
         if fact.isItem and len(context.qnameDims)>0:
-            for dim in context.qnameDims.keys():
+            allDimensions = context.qnameDims.keys()|modelXbrl.qnameDimensionDefaults.keys()
+            for dim in allDimensions:
                 dimValue = context.dimValue(dim)
                 dimValueString = None
                 if isinstance(dimValue, ModelValue.QName): # explicit dimension default value
-                    dimValueString = str(ModelValue.QName)
+                    dimValueString = str(dimValue)
                     dimValueIsDefault = True
                 elif dimValue is not None: # not default
                     dimValueIsDefault = False
@@ -182,6 +183,8 @@ def testAll():
     class ModelXbrl(object):
         def __init__(self):
             self.modelObjects = dict()
+            self.qnameDimensionDefaults = dict()
+
     class DimensionValue(object):
         def __init__(self, isExplicit, value):
             self.isExplicit = isExplicit
@@ -225,12 +228,12 @@ def testAll():
     modelXbrl.modelObjects[fact6.objectIndex] = fact6
 
     factIndex = FactIndex()
-    factIndex.insertFact(fact1)
-    factIndex.insertFact(fact2)
-    factIndex.insertFact(fact3)
-    factIndex.insertFact(fact4)
-    factIndex.insertFact(fact5)
-    factIndex.insertFact(fact6)
+    factIndex.insertFact(fact1, modelXbrl)
+    factIndex.insertFact(fact2, modelXbrl)
+    factIndex.insertFact(fact3, modelXbrl)
+    factIndex.insertFact(fact4, modelXbrl)
+    factIndex.insertFact(fact5, modelXbrl)
+    factIndex.insertFact(fact6, modelXbrl)
     dataResult = factIndex.nonNilFacts(modelXbrl)
     assertEquals({fact1, fact2, fact3, fact4}, dataResult)
     expectedResult = 'NiceJob'

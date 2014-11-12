@@ -681,6 +681,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                     else:
                                         dimMemQname = None # match facts that report this dimension
                                     facts = facts & self.modelXbrl.factsByDimMemQname(aspect, dimMemQname)
+                                    if len(facts)==0:
+                                        break;
                             for fact in facts:
                                 if (all(aspectMatches(self.rendrCntx, fact, fp, aspect) 
                                         for aspect in matchableAspects) and

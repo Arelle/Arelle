@@ -9,7 +9,8 @@ from collections import defaultdict
 from lxml import etree
 from xml.sax import SAXParseException
 from arelle import (PackageManager, XbrlConst, XmlUtil, UrlUtil, ValidateFilingText, 
-                    XhtmlValidate, XmlValidate, XmlValidateSchema)
+                    XhtmlValidate, XmlValidate, XmlValidateSchema,
+    ValidateXbrlDimensions)
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname
 from arelle.ModelDtsObject import ModelLink, ModelResource, ModelRelationship
@@ -997,6 +998,7 @@ class ModelDocument:
         if not self.skipDTS:
             self.linkbaseDiscover(xbrlElement,inInstance=True) # for role/arcroleRefs and footnoteLinks
         XmlValidate.validate(self.modelXbrl, xbrlElement) # validate instance elements (xValid may be UNKNOWN if skipDTS)
+        ValidateXbrlDimensions.loadDimensionDefaults(self.modelXbrl)
         self.instanceContentsDiscover(xbrlElement)
 
     def instanceContentsDiscover(self,xbrlElement):
@@ -1103,7 +1105,7 @@ class ModelDocument:
         if isinstance(modelFact, ModelFact):
             parentModelFacts.append( modelFact )
             self.modelXbrl.factsInInstance.add( modelFact )
-            self.modelXbrl.factIndex.insertFact( modelFact )
+            self.modelXbrl.factIndex.insertFact( modelFact, self.modelXbrl )
             tupleElementSequence = 0
             for tupleElement in modelFact:
                 if isinstance(tupleElement,ModelObject):
@@ -1244,7 +1246,7 @@ def inlineIxdsDiscover(modelXbrl):
             for modelInlineFact in htmlElement.iterdescendants(tag=tag):
                 if isinstance(modelInlineFact,ModelInlineFact):
                     mdlDoc.modelXbrl.factsInInstance.add( modelInlineFact )
-                    self.modelXbrl.factIndex.insertFact( modelInlineFact )
+                    mdlDoc.modelXbrl.factIndex.insertFact( modelInlineFact, mdlDoc.modelXbrl )
                     locateFactInTuple(modelInlineFact, tuplesByTupleID, ixNStag)
                     locateContinuation(modelInlineFact)
                     for r in modelInlineFact.footnoteRefs:
