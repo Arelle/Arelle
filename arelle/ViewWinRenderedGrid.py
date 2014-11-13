@@ -1023,6 +1023,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                             if fact.value != str(value):
                                 if fact.isNil != (not value):
                                     fact.isNil = not value
+                                    instance.factIndex.updateFact(fact) # for the time being, only the isNil value can change
                                 if fact.concept.isNumeric and (not fact.isNil): # if nil, there is no need to update these values
                                     fact.decimals = decimals
                                     prevUnit = instance.matchUnit([unitMeasure], [])

@@ -103,8 +103,25 @@ class FactIndex(object):
         result.close()
         return numberOfDeletedRows
 
+    def updateFact(self, fact):
+        factObjectId = fact.objectIndex
+        factIsNil = fact.isNil
+        updateStatement = self.facts.update().where(self.facts.c.objectId == factObjectId).values(isNil = factIsNil)
+        updateStatement.bind = self.engine
+        result = self.connection.execute(updateStatement)
+        numberOfUpdatedRows = result.rowcount
+        result.close()
+        return numberOfUpdatedRows
+
     def nonNilFacts(self, modelXbrl):
         selectStmt = select([self.facts.c.objectId]).where(self.facts.c.isNil == False)
+        result = self.connection.execute(selectStmt)
+        resultSet = set(modelXbrl.modelObjects[row[self.facts.c.objectId]] for row in result)
+        result.close()
+        return resultSet
+
+    def nilFacts(self, modelXbrl):
+        selectStmt = select([self.facts.c.objectId]).where(self.facts.c.isNil == True)
         result = self.connection.execute(selectStmt)
         resultSet = set(modelXbrl.modelObjects[row[self.facts.c.objectId]] for row in result)
         result.close()
@@ -236,6 +253,8 @@ def testAll():
     factIndex.insertFact(fact6, modelXbrl)
     dataResult = factIndex.nonNilFacts(modelXbrl)
     assertEquals({fact1, fact2, fact3, fact4}, dataResult)
+    dataResult = factIndex.nilFacts(modelXbrl)
+    assertEquals({fact5, fact6}, dataResult)
     expectedResult = 'NiceJob'
     dataResult = factIndex.factsByQname('doesNotExist', modelXbrl, expectedResult)
     assertEquals(expectedResult, dataResult)
@@ -263,6 +282,13 @@ def testAll():
     assertEquals({fact1, fact2}, dataResult)
     dataResult = factIndex.factsByDimMemQname('dim7', modelXbrl, DEFAULT)
     assertEquals({fact2, fact3, fact4, fact5}, dataResult) # fact6 is not an item!
+    fact1.isNil = True
+    numberOfUpdatedFacts = factIndex.updateFact(fact1)
+    assertEquals(1, numberOfUpdatedFacts)
+    dataResult = factIndex.nonNilFacts(modelXbrl)
+    assertEquals({fact2, fact3, fact4}, dataResult)
+    dataResult = factIndex.nilFacts(modelXbrl)
+    assertEquals({fact1, fact5, fact6}, dataResult)
     numberOfDeletedFacts = factIndex.deleteFact(fact1)
     assertEquals(1, numberOfDeletedFacts)
     dataResult = factIndex.nonNilFacts(modelXbrl)

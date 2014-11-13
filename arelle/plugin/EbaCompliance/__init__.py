@@ -4,6 +4,7 @@ Improve the EBA compliance of the currently loaded facts.
 For the time being, there are only two improvements that are implemented:
 1. The filing indicators are regenerated using a fixed context with ID "c".
 2. The decimals attribute is computed according to the actually supplied value.
+3. The nil facts and the unused contexts are removed
 
 (c) Copyright 2014 Acsone S. A., All rights reserved.
 '''
@@ -28,11 +29,11 @@ def improveEbaCompliance(dts, cntlr, lang="en"):
             dts.modelManager.showStatus(_("Only applicable to EBA instances"), 5000)
             return
         dts.modelManager.showStatus(_("Improving the EBA compliance"))
+        deleteNilFacts(dts, cntlr)
         factWalkingAction = FactWalkingAction(dts)
         newFactItemOptions = getFactItemOptions(dts, cntlr)
         if not newFactItemOptions:
             return
-        from arelle import XbrlConst
         from arelle.ModelRenderingObject import ModelEuTable, ModelTable
         
         class nonTkBooleanVar():
@@ -99,6 +100,44 @@ def isEbaInstance(dts):
     else:
         return False
 
+def deleteNilFacts(dts, contlr):
+    contlr.addToLog(_("Removal of empty facts and unused contexts started."))
+    nilFacts = dts.factIndex.nilFacts(dts)
+    parent = None
+    for fact in nilFacts:
+        parent = removeFactInModel(dts, fact)
+    contextsDeleted = deleteUnusedContexts(dts)
+    if contextsDeleted:
+        # Validate everything
+        XmlValidate.validate(dts, dts.modelDocument.xmlRootElement)
+    elif parent is not None:
+        XmlValidate.validate(dts, parent)
+    contlr.addToLog(_("Removal of empty facts and unused contexts finished successfully. %s empty facts deleted." % len(nilFacts)))
+
+def removeFactInModel(dts, fact):
+    dts.factsInInstance.remove(fact)
+    dts.factIndex.deleteFact(fact)
+    dts.facts.remove(fact)
+    if fact in dts.undefinedFacts:
+        dts.undefinedFacts.remove(fact)
+    
+    parent = fact.getparent()
+    parent.remove(fact)
+    return parent
+
+def deleteUnusedContexts(dts):
+    allContexts = dts.contexts
+    cntxIDs = set(allContexts.keys())
+    unusedCntxIDs = cntxIDs - {fact.contextID 
+                                       for fact in dts.factsInInstance
+                                       if fact.contextID}
+    for cntxID in unusedCntxIDs:
+        context = allContexts[cntxID]
+        del allContexts[cntxID]
+        parent = context.getparent()
+        parent.remove(context)
+    return len(unusedCntxIDs)>0
+
 def createOrReplaceFilingIndicators(dts, allFilingIndicatorCodes, newFactItemOptions):
     filingIndicatorsElements = dts.factsByQname(qnFindFilingIndicators, set())
     if len(filingIndicatorsElements)>0:
@@ -106,9 +145,8 @@ def createOrReplaceFilingIndicators(dts, allFilingIndicatorCodes, newFactItemOpt
     else:
         filingIndicatorsElement = None
     if filingIndicatorsElement is not None:
-        removeUselessFilingIndicatorsInModel(dts)
         parent = filingIndicatorsElement.getparent()
-        parent.remove(filingIndicatorsElement)
+        removeUselessFilingIndicatorsInModel(dts)
         XmlValidate.validate(dts, parent) # must validate after content is deleted
     if len(allFilingIndicatorCodes)>0:
         filingIndicatorsElement = createFilingIndicatorsElement(dts, newFactItemOptions)
@@ -130,11 +168,7 @@ def removeUselessFilingIndicatorsInModel(dts):
     # Remove the elements from the facts and factsInInstance data structure
     filingIndicatorsElements = dts.factsByQname(qnFindFilingIndicators, set())
     for fact in filingIndicatorsElements:
-        dts.factsInInstance.remove(fact)
-        dts.factIndex.deleteFact(fact)
-        dts.facts.remove(fact)
-        if fact in dts.undefinedFacts:
-            dts.undefinedFacts.remove(fact)
+        removeFactInModel(dts, fact)
     filingIndicatorElements = dts.factsByQname(qnFindFilingIndicator, set())
     for fact in filingIndicatorElements:
         dts.factsInInstance.remove(fact)
@@ -198,7 +232,7 @@ def decimalsComputer(locale, value, concept, defaultDecimals):
     '''
     if len(defaultDecimals)==0:
         defaultDecimals = 'INF'
-    if concept.isNumeric and defaultDecimals != 'INF':
+    if concept.isNumeric and defaultDecimals != 'INF' and len(value)>0:
         decimalPoint = locale["decimal_point"]
         explodedNumber = value.split(decimalPoint)
         integerPart = ""
@@ -213,6 +247,7 @@ def decimalsComputer(locale, value, concept, defaultDecimals):
         if integerPart == '0':
             return (True, '0')
         else:
+            index = 0
             for index, char in enumerate(reversed(integerPart)):
                 if char != '0':
                     break;
