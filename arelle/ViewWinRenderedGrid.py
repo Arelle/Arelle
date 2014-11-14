@@ -34,6 +34,7 @@ from arelle.XbrlConst import eurofilingModelNamespace, eurofilingModelPrefix
 emptyList = []
 
 ENTRY_WIDTH_IN_CHARS = 12 # width of a data column entry cell in characters (nominal)
+ENTRY_WIDTH_SCREEN_UNITS = 100
 PADDING = 20 # screen units of padding between entry cells
 
 def viewRenderedGrid(modelXbrl, tabWin, lang=None):
@@ -426,7 +427,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                     isLabeled = xStructuralNode.isLabeled
                     nonAbstract = not xStructuralNode.isAbstract and isLabeled
                     if nonAbstract and isLabeled:
-                        width += 100 # width for this label, in screen units
+                        width += ENTRY_WIDTH_SCREEN_UNITS # width for this label, in screen units
                     widthToSpanParent += width
                     if childrenFirst:
                         thisCol = rightCol
@@ -448,6 +449,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                 columnspan=(rightCol - leftCol + (1 if nonAbstract else 0)),
                                 rowspan=(row - topRow + 1) if leafNode else 1,
                                 wraplength=width, # screen units
+                                minwidth=width,
                                 objectId=xStructuralNode.objectId(),
                                 onClick=self.onClick)
                         if nonAbstract:
@@ -457,7 +459,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                 gridHdr(self.gridColHdr, thisCol, self.dataFirstRow - len(self.colHdrNonStdRoles) + i, 
                                         xStructuralNode.header(role=role, lang=self.lang), 
                                         anchor="center",
-                                        wraplength=100, # screen units
+                                        wraplength=ENTRY_WIDTH_SCREEN_UNITS, # screen units
+                                        minwidth=ENTRY_WIDTH_SCREEN_UNITS,
                                         objectId=xStructuralNode.objectId(),
                                         onClick=self.onClick)
                             ''' was
@@ -468,7 +471,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                         xStructuralNode.header(role="http://www.xbrl.org/2008/role/documentation",
                                                                lang=self.lang), 
                                         anchor="center",
-                                        wraplength=100, # screen units
+                                        wraplength=ENTRY_WIDTH_SCREEN_UNITS, # screen units
                                         objectId=xStructuralNode.objectId(),
                                         onClick=self.onClick)
                             if self.colHdrCodeRow:
@@ -477,7 +480,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                 gridHdr(self.gridColHdr, thisCol, self.dataFirstRow - 1, 
                                         xStructuralNode.header(role="http://www.eurofiling.info/role/2010/coordinate-code"),
                                         anchor="center",
-                                        wraplength=100, # screen units
+                                        wraplength=ENTRY_WIDTH_SCREEN_UNITS, # screen units
                                         objectId=xStructuralNode.objectId(),
                                         onClick=self.onClick)
                             '''
@@ -562,7 +565,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                 gridHdr(self.gridRowHdr, docCol, row, 
                                         yStructuralNode.header(role=role, lang=self.lang), 
                                         anchor="c" if isCode else "w",
-                                        wraplength=40 if isCode else 100, # screen units
+                                        wraplength=40 if isCode else ENTRY_WIDTH_SCREEN_UNITS, # screen units
                                         objectId=yStructuralNode.objectId(),
                                         onClick=self.onClick)
                             ''' was:
@@ -574,7 +577,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                         yStructuralNode.header(role="http://www.xbrl.org/2008/role/documentation",
                                                              lang=self.lang), 
                                         anchor="w",
-                                        wraplength=100, # screen units
+                                        wraplength=ENTRY_WIDTH_SCREEN_UNITS, # screen units
                                         objectId=yStructuralNode.objectId(),
                                         onClick=self.onClick)
                             if self.rowHdrCodeCol:
@@ -715,6 +718,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                              self.dataFirstCol + i, row,
                                              value=effectiveValue,
                                              values=enumerationValues,
+                                             width=ENTRY_WIDTH_IN_CHARS,
                                              objectId=objectId,
                                              selectindex=selectedIdx,
                                              state=["readonly"],
@@ -767,6 +771,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                                  self.dataFirstCol + i, row,
                                                  value=effectiveValue,
                                                  values=qNameValues,
+                                                 width=ENTRY_WIDTH_IN_CHARS,
                                                  objectId=objectId,
                                                  selectindex=selectedIdx,
                                                  state=["readonly"],
@@ -786,6 +791,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                              self.dataFirstCol + i, row,
                                              value=effectiveValue,
                                              values=booleanValues,
+                                             width=ENTRY_WIDTH_IN_CHARS,
                                              objectId=objectId,
                                              selectindex=selectedIdx,
                                              state=["readonly"],
