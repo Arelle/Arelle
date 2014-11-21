@@ -33,7 +33,8 @@ class FactIndex(object):
                            Column('qName', String(256), nullable = False, unique = False, index = True),
                            Column('datatype', String(256), nullable = False, unique = False, index = True),
                            Column('periodType', String(48), nullable = False, unique = False, index = True),
-                           Column('objectId', Integer, nullable = False, unique = True, index = True)
+                           Column('objectId', Integer, nullable = False, unique = True, index = True),
+                           Column('contextId', String(64), nullable = True, unique = False, index = True)
                            )
         self.dimensions = Table('dimensions', self.metadata,
                                     Column('id', Integer, Sequence('dimensions_seq'), primary_key = True),
@@ -56,11 +57,21 @@ class FactIndex(object):
         factDatatype = str(concept.typeQname)
         factPeriodType = str(concept.periodType)
         factObjectId = fact.objectIndex
-        factsInsert = self.facts.insert().values(isNil = factIsNil,
-                                                 qName = factQName,
-                                                 datatype = factDatatype,
-                                                 periodType = factPeriodType,
-                                                 objectId = factObjectId)
+        if fact.isItem:
+            contextId = context.id
+            factsInsert = self.facts.insert().values(isNil = factIsNil,
+                                                     qName = factQName,
+                                                     datatype = factDatatype,
+                                                     periodType = factPeriodType,
+                                                     objectId = factObjectId,
+                                                     contextId = contextId)
+        else:
+            
+            factsInsert = self.facts.insert().values(isNil = factIsNil,
+                                                     qName = factQName,
+                                                     datatype = factDatatype,
+                                                     periodType = factPeriodType,
+                                                     objectId = factObjectId)
         factsInsert.bind = self.engine
         result = self.connection.execute(factsInsert)
         newFactId = result.inserted_primary_key
@@ -127,8 +138,12 @@ class FactIndex(object):
         result.close()
         return resultSet
 
-    def factsByQname(self, qName, modelXbrl, defaultValue=None):
-        selectStmt = select([self.facts.c.objectId]).where(self.facts.c.qName == str(qName))
+    def factsByQname(self, qName, modelXbrl, defaultValue=None, cntxtId=None):
+        if  cntxtId is None:
+            selectStmt = select([self.facts.c.objectId]).where(self.facts.c.qName == str(qName))
+        else:
+            selectStmt = select([self.facts.c.objectId]).where(and_(self.facts.c.qName == str(qName),
+                                                                    self.facts.c.contextId == str(cntxtId)))
         result = self.connection.execute(selectStmt)
         resultSet = set(modelXbrl.modelObjects[row[self.facts.c.objectId]] for row in result)
         result.close()
@@ -196,8 +211,9 @@ def testAll():
             self.periodType = periodType
     
     class ModelContext(object):
-        def __init__(self):
+        def __init__(self, cntxtId):
             self.qnameDims = set()
+            self.id = cntxtId
         def dimValue(self, dimQname):
             """Caution: copied from ModelInstanceObject!"""
             try:
@@ -244,11 +260,11 @@ def testAll():
     dimVal4 = DimensionValue(True, 'val4')
     dimVal5 = DimensionValue(True, 'val5')
     dimVal6 = DimensionValue(True, 'val6')
-    context1 = ModelContext()
+    context1 = ModelContext('c-1')
     context1.qnameDims = {'dim1': dimVal1, 'dim2': dimVal2, 'dim3': dimVal3}
-    context2 = ModelContext()
+    context2 = ModelContext('c-2')
     context2.qnameDims = {'dim1': dimVal1, 'dim7': None}
-    context3 = ModelContext()
+    context3 = ModelContext('c-3')
     context3.qnameDims = {'dim4': dimVal4, 'dim5': dimVal5, 'dim6': dimVal6, 'dim7': None}
 
     fact1 = Fact(concept1d, context1, False, '{ns}name1', 1, True)
@@ -280,6 +296,8 @@ def testAll():
     assertEquals(expectedResult, dataResult)
     dataResult = factIndex.factsByQname('{ns}name1', modelXbrl, None)
     assertEquals({fact1, fact2}, dataResult)
+    dataResult = factIndex.factsByQname('{ns}name1', modelXbrl, None, cntxtId='c-1')
+    assertEquals({fact1}, dataResult)
     dataResult = factIndex.factsByQname('{ns}name3', modelXbrl, None)
     assertEquals({fact5}, dataResult)
     dataResult = factIndex.factsByDatatype('doesNotExist', modelXbrl)

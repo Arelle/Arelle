@@ -8,7 +8,7 @@ Note speed of using tkinter appears to be slow to render with tkinter (see profi
 Typical example is an instance takes 3 secs for view() for an open table and 
 subsequently after Python operations concluded, tkinter takes additional 27 secs to render
 '''
-import os, threading, time
+import os, threading, time, logging
 from tkinter import Menu, BooleanVar, font as tkFont
 from arelle import (ViewWinGrid, ModelDocument, ModelDtsObject, ModelInstanceObject, XbrlConst, 
                     ModelXbrl, XmlValidate, XmlUtil, Locale, FunctionXfi,
@@ -961,6 +961,9 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                 qnameDims, [], [])
                             if prevCntx is not None:
                                 cntxId = prevCntx.id
+                                if self.modelXbrl.factAlreadyExists(concept.qname, cntxId):
+                                    self.modelXbrl.modelManager.addToLog(_("Value %s will not be saved, because fact '%s' already exists somewhere else") % (value, concept.label()), level=logging.ERROR)
+                                    continue
                             else:
                                 newCntx = instance.createContext(entityIdentScheme, entityIdentValue, 
                                     periodType, periodStart, periodEndInstant, 

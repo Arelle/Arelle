@@ -680,12 +680,12 @@ class ModelXbrl:
         _nonNilFactsInInstance = self.factIndex.nonNilFacts(self)
         return _nonNilFactsInInstance
         
-    def factsByQname(self, qname, defaultValue=None): # indexed by fact (concept) qname
+    def factsByQname(self, qname, defaultValue=None, cntxtId=None): # indexed by fact (concept) qname
         """Facts in the instance indexed by their QName, cached
         
         :returns: dict -- indexes are QNames, values are ModelFacts
         """
-        return self.factIndex.factsByQname(qname, self, defaultValue)
+        return self.factIndex.factsByQname(qname, self, defaultValue=defaultValue, cntxtId=cntxtId)
 
     def factsByQnameAll(self):
         """Facts in the instance indexed by their QName, cached
@@ -730,6 +730,15 @@ class ModelXbrl:
         """
         return self.factIndex.factsByDimMemQname(dimQname, self, memQname)
         
+    def factAlreadyExists(self, factQName, contextId):
+        """Find matching fact by QName and c-equality.
+        :type factQName: QName
+        :type contextId: str
+        :rtype bool -- True if fact already exists, False otherwise
+        """
+        matchingFacts = self.factsByQname(factQName, defaultValue=[], cntxtId=contextId)
+        return len(matchingFacts)>0
+
     def matchFact(self, otherFact, unmatchedFactsStack=None, deemP0inf=False):
         """Finds matching fact, by XBRL 2.1 duplicate definition (if tuple), or by
         QName and VEquality (if an item), lang and accuracy equality, as in formula and test case usage
