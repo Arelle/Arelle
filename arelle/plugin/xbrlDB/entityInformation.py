@@ -133,7 +133,7 @@ def loadEntityInformation(dts, rssItem):
                                       ("DocumentFisalPeriodFocus", "fiscal-period-focus")):
             try:
                 concept = dts.nameConcepts[factName][0] # get qname irrespective of taxonomy year
-                facts = dts.factsByQname[concept.qname]
+                facts = dts.factsByQname(concept.qname)
                 for fact in facts:
                     if not fact.context.qnameDims: #default context
                         if factName in ("EntityPublicFloat",):
