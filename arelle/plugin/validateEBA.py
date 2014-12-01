@@ -113,7 +113,8 @@ def final(val):
                     modelObject=schemaRefElts, entryPointCount=len(schemaRefElts))
         filingIndicators = {}
         for fIndicator in modelXbrl.factsByQname(qnFilingIndicator, ()):
-            if fIndicator.xValue in filingIndicators:
+            _value = (fIndicator.xValue or fIndicator.value) # use validated xValue if DTS else value for skipDTS 
+            if _value in filingIndicators:
                 modelXbrl.error("EBA.1.6.1",
                         _('Multiple filing indicators facts for indicator %(filingIndicator)s.'),
                         modelObject=(fIndicator, filingIndicators[_value]), filingIndicator=_value)
@@ -124,112 +125,212 @@ def final(val):
                     _('Missing filing indicators.  Reported XBRL instances MUST include appropriate filing indicator elements'),
                     modelObject=modelDocument)
             
-        numFilingIndicatorTuples = len(modelXbrl.factsByQname(qnFilingIndicators, ()))
-        if numFilingIndicatorTuples > 1 and not getattr(modelXbrl, "isStreamingMode", False):
-            modelXbrl.info("EBA.1.6.2",                            
-                    _('Multiple filing indicators tuples when not in streaming mode (info).'),
-                    modelObject=modelXbrl.factsByQname(qnFilingIndicators))
-                    
-        # note EBA 2.1 is in ModelDocument.py
-        
-        cntxIDs = set()
-        cntxEntities = set()
-        timelessDatePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*$")
-        for cntx in modelXbrl.contexts.values():
-            cntxIDs.add(cntx.id)
-            cntxEntities.add(cntx.entityIdentifier)
-            dateElts = XmlUtil.descendants(cntx, XbrlConst.xbrli, ("startDate","endDate","instant"))
-            if any(not timelessDatePattern.match(e.textValue) for e in dateElts):
-                modelXbrl.error("EBA.2.10",
-                        _('Period dates must be whole dates without time or timezone: %(dates)s.'),
-                        modelObject=cntx, dates=", ".join(e.text for e in dateElts))
-            if cntx.isForeverPeriod:
-                modelXbrl.error("EBA.2.11",
-                        _('Forever context period is not allowed.'),
-                        modelObject=cntx)
-            if XmlUtil.hasChild(cntx, XbrlConst.xbrli, "segment"):
-                modelXbrl.error("EBA.2.14",
-                    _("The segment element not allowed in context Id: %(context)s"),
-                    modelObject=cntx, context=cntx.contextID)
-            for scenElt in XmlUtil.descendants(cntx, XbrlConst.xbrli, "scenario"):
-                childTags = ", ".join([child.prefixedName for child in scenElt.iterchildren()
-                                       if isinstance(child,ModelObject) and 
-                                       child.tag != "{http://xbrl.org/2006/xbrldi}explicitMember" and
-                                       child.tag != "{http://xbrl.org/2006/xbrldi}typedMember"])
-                if len(childTags) > 0:
-                    modelXbrl.error("EBA.2.15",
-                        _("Scenario of context Id %(context)s has disallowed content: %(content)s"),
-                        modelObject=cntx, context=cntx.id, content=childTags)
-                
-        unusedCntxIDs = cntxIDs - {fact.contextID for fact in modelXbrl.facts}
-        if unusedCntxIDs:
-            modelXbrl.warning("EBA.2.7",
-                    _('Unused xbrli:context nodes SHOULD NOT be present in the instance: %(unusedContextIDs)s.'),
-                    modelObject=[modelXbrl.contexts[unusedCntxID] for unusedCntxID in unusedCntxIDs], 
-                    unusedContextIDs=", ".join(sorted(unusedCntxIDs)))
-
-        if len(cntxEntities) > 1:
-            modelXbrl.warning("EBA.2.9",
-                    _('All entity identifiers and schemes must be the same, %(count)s found: %(entities)s.'),
-                    modelObject=modelDocument, count=len(cntxEntities), 
-                    entities=", ".join(sorted(str(cntxEntity) for cntxEntity in cntxEntities)))
+        # non-streaming EBA checks
+        if not getattr(modelXbrl, "isStreamingMode", False):
             
-        otherFacts = {} # (contextHash, unitHash, xmlLangHash) : fact
-        nilFacts = []
-        unitIDsUsed = set()
-        currenciesUsed = {}
-        for facts in modelXbrl.factsInInstance:
-            f = facts
-            concept = f.concept
-            k = (f.context.contextDimAwareHash if f.context is not None else None,
-                 f.unit.hash if f.unit is not None else None,
-                 hash(f.xmlLang))
-            if k not in otherFacts:
-                otherFacts[k] = {f}
-            else:
-                matches = [o
-                           for o in otherFacts[k]
-                           if f.qname == o.qname and
-                              (f.context.isEqualTo(o.context) if f.context is not None and o.context is not None else True) and
-                              (f.unit.isEqualTo(o.unit) if f.unit is not None and o.unit is not None else True) and
-                              (f.xmlLang == o.xmlLang)]
-                if matches:
-                    modelXbrl.error("EBA.2.16",
-                                    _('Facts are duplicates %(fact)s and %(otherFacts)s.'),
-                                    modelObject=[f] + matches, fact=f.qname, otherFacts=', '.join(str(f.qname) for f in matches))
+            # check sum of fact md5s
+            xbrlFactsCheckVersion = None
+            expectedSumOfFactMd5s = None
+            for pi in modelXbrl.modelDocument.xmlRootElement.getchildren():
+                if isinstance(pi, etree._ProcessingInstruction) and pi.target == "xbrl-facts-check":
+                    if "version" in pi.attrib:
+                        xbrlFactsCheckVersion = pi.attrib["version"]
+                    elif "sum-of-fact-md5s" in pi.attrib:
+                        sumOfFactMd5s = Md5Sum(pi.attrib["sum-of-fact-md5s"])
+            if xbrlFactsCheckVersion and sumOfFactMd5s:
+                sumOfFactMd5s = Md5Sum()
+                for f in modelXbrl.factsInInstance:
+                    sumOfFactMd5s += f.md5sum
+                if sumOfFactMd5s != expectedSumOfFactMd5s:
+                    modelXbrl.warning("EIOPA:xbrlFactsCheckWarning",
+                            _("XBRL facts sum of md5s expected %(expectedMd5)s not matched to actual sum %(actualMd5Sum)s"),
+                            modelObject=modelXbrl, expectedMd5=expectedSumOfFactMd5s, actualMd5Sum=sumOfFactMd5s)
                 else:
-                    otherFacts[k].add(f)    
-            if concept is not None and concept.isNumeric:
-                if f.precision:
-                    modelXbrl.error("EBA.2.17",
-                        _("Numeric fact %(fact)s of context %(contextID)s has a precision attribute '%(precision)s'"),
-                        modelObject=f, fact=f.qname, contextID=f.contextID, precision=f.precision)
-                '''' (not intended by EBA 2.18)
-                if f.decimals and f.decimals != "INF" and not f.isNil and getattr(f,"xValid", 0) == 4:
-                    try:
-                        insignificance = insignificantDigits(f.xValue, decimals=f.decimals)
-                        if insignificance: # if not None, returns (truncatedDigits, insiginficantDigits)
-                            modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
-                                _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(insignificantDigits)s."),
-                                modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, 
-                                value=f1.xValue, truncatedDigits=insignificance[0], insignificantDigits=insignificance[1])
-                    except (ValueError,TypeError):
-                        modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
-                            _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),
-                            modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
-                '''
-                unit = f.unit
-                if concept.isMonetary and unit is not None and unit.measures[0]:
-                    currenciesUsed[unit.measures[0][0]] = unit
-            if f.unitID is not None:
-                unitIDsUsed.add(f.unitID)
-            if f.isNil:
-                nilFacts.append(f)
+                    modelXbrl.info("info",
+                            _("Successful XBRL facts sum of md5s."),
+                            modelObject=modelXbrl)
+            
+            numFilingIndicatorTuples = len(modelXbrl.factsByQname(qnFIndicators, ()))
+            if numFilingIndicatorTuples > 1:
+                modelXbrl.info("EBA.1.6.2",                            
+                        _('Multiple filing indicators tuples when not in streaming mode (info).'),
+                        modelObject=modelXbrl.factsByQname(qnFIndicators))
+                        
+            # note EBA 2.1 is in ModelDocument.py
+            
+            cntxIDs = set()
+            cntxEntities = set()
+            cntxDates = defaultdict(list)
+            timelessDatePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*$")
+            for cntx in modelXbrl.contexts.values():
+                cntxIDs.add(cntx.id)
+                cntxEntities.add(cntx.entityIdentifier)
+                dateElts = XmlUtil.descendants(cntx, XbrlConst.xbrli, ("startDate","endDate","instant"))
+                if any(not timelessDatePattern.match(e.textValue) for e in dateElts):
+                    modelXbrl.error("EBA.2.10",
+                            _('Period dates must be whole dates without time or timezone: %(dates)s.'),
+                            modelObject=cntx, dates=", ".join(e.text for e in dateElts))
+                if cntx.isForeverPeriod:
+                    modelXbrl.error("EBA.2.11",
+                            _('Forever context period is not allowed.'),
+                            modelObject=cntx)
+                elif cntx.isStartEndPeriod:
+                    modelXbrl.error("EBA.2.13",
+                            _('Start-End (flow) context period is not allowed.'),
+                            modelObject=cntx)
+                elif cntx.isInstantPeriod:
+                    cntxDates[cntx.instantDatetime].append(cntx)
+                if XmlUtil.hasChild(cntx, XbrlConst.xbrli, "segment"):
+                    modelXbrl.error("EBA.2.14",
+                        _("The segment element not allowed in context Id: %(context)s"),
+                        modelObject=cntx, context=cntx.contextID)
+                for scenElt in XmlUtil.descendants(cntx, XbrlConst.xbrli, "scenario"):
+                    childTags = ", ".join([child.prefixedName for child in scenElt.iterchildren()
+                                           if isinstance(child,ModelObject) and 
+                                           child.tag != "{http://xbrl.org/2006/xbrldi}explicitMember" and
+                                           child.tag != "{http://xbrl.org/2006/xbrldi}typedMember"])
+                    if len(childTags) > 0:
+                        modelXbrl.error("EBA.2.15",
+                            _("Scenario of context Id %(context)s has disallowed content: %(content)s"),
+                            modelObject=cntx, context=cntx.id, content=childTags)
+            if len(cntxDates) > 1:
+                modelXbrl.error("EBA.2.13",
+                        _('Contexts must have the same date: %(dates)s.'),
+                        modelObject=[_cntx for _cntxs in cntxDates.values() for _cntx in _cntxs], 
+                        dates=', '.join(XmlUtil.dateunionValue(_dt, subtractOneDay=True)
+                                                               for _dt in cntxDates.keys()))
                 
-        if nilFacts:
-            modelXbrl.warning("EBA.2.19",
-                    _('Nil facts SHOULD NOT be present in the instance: %(nilFacts)s.'),
-                    modelObject=nilFacts, nilFacts=", ".join(str(f.qname) for f in nilFacts))
+            unusedCntxIDs = cntxIDs - {fact.contextID 
+                                       for fact in modelXbrl.factsInInstance
+                                       if fact.contextID} # skip tuples
+            if unusedCntxIDs:
+                modelXbrl.warning("EBA.2.7",
+                        _('Unused xbrli:context nodes SHOULD NOT be present in the instance: %(unusedContextIDs)s.'),
+                        modelObject=[modelXbrl.contexts[unusedCntxID] for unusedCntxID in unusedCntxIDs], 
+                        unusedContextIDs=", ".join(sorted(unusedCntxIDs)))
+    
+            if len(cntxEntities) > 1:
+                modelXbrl.warning("EBA.2.9",
+                        _('All entity identifiers and schemes must be the same, %(count)s found: %(entities)s.'),
+                        modelObject=modelDocument, count=len(cntxEntities), 
+                        entities=", ".join(sorted(str(cntxEntity) for cntxEntity in cntxEntities)))
+                
+            otherFacts = {} # (contextHash, unitHash, xmlLangHash) : fact
+            nilFacts = []
+            stringFactsWithoutXmlLang = []
+            nonMonetaryNonPureFacts = []
+            unitIDsUsed = set()
+            currenciesUsed = {}
+            for qnameString, facts in modelXbrl.factsByQnameAll():
+                for f in facts:
+                    if modelXbrl.skipDTS:
+                        c = f.qname.localName[0]
+                        isNumeric = c in ('m', 'p', 'i')
+                        isMonetary = c == 'm'
+                        isInteger = c == 'i'
+                        isPercent = c == 'p'
+                        isString = c == 's'
+                    else:
+                        concept = f.concept
+                        if concept is not None:
+                            isNumeric = concept.isNumeric
+                            isMonetary = concept.isMonetary
+                            isInteger = concept.baseXbrliType in integerItemTypes
+                            isPercent = concept.typeQname == qnPercentItemType
+                            isString = concept.baseXbrliType in ("stringItemType", "normalizedStringItemType")
+                        else:
+                            isNumeric = isString = False # error situation
+                    k = (f.getparent().objectIndex,
+                         f.qname,
+                         f.context.contextDimAwareHash if f.context is not None else None,
+                         f.unit.hash if f.unit is not None else None,
+                         hash(f.xmlLang))
+                    if f.qname == qnFIndicators and val.validateEIOPA:
+                        pass
+                    elif k not in otherFacts:
+                        otherFacts[k] = {f}
+                    else:
+                        matches = [o
+                                   for o in otherFacts[k]
+                                   if (f.getparent().objectIndex == o.getparent().objectIndex and
+                                       f.qname == o.qname and
+                                       f.context.isEqualTo(o.context) if f.context is not None and o.context is not None else True) and
+                                      (f.unit.isEqualTo(o.unit) if f.unit is not None and o.unit is not None else True) and
+                                      (f.xmlLang == o.xmlLang)]
+                        if matches:
+                            contexts = [f.contextID] + [o.contextID for o in matches]
+                            modelXbrl.error("EBA.2.16",
+                                            _('Facts are duplicates %(fact)s contexts %(contexts)s.'),
+                                            modelObject=[f] + matches, fact=f.qname, contexts=', '.join(contexts))
+                        else:
+                            otherFacts[k].add(f)
+                    if isNumeric:
+                        if f.precision:
+                            modelXbrl.error("EBA.2.17",
+                                _("Numeric fact %(fact)s of context %(contextID)s has a precision attribute '%(precision)s'"),
+                                modelObject=f, fact=f.qname, contextID=f.contextID, precision=f.precision)
+                        if f.decimals and f.decimals != "INF":
+                            try:
+                                dec = int(f.decimals)
+                                if isMonetary:
+                                    if dec < -3:
+                                        modelXbrl.error("EBA.2.17",
+                                            _("Monetary fact %(fact)s of context %(contextID)s has a decimal attribute < -3: '%(decimals)s'"),
+                                            modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
+                                elif isInteger:
+                                    if dec != 0:
+                                        modelXbrl.error("EBA.2.17",
+                                            _("Integer fact %(fact)s of context %(contextID)s has a decimal attribute \u2260 0: '%(decimals)s'"),
+                                            modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
+                                elif isPercent:
+                                    if dec < 4:
+                                        modelXbrl.error("EBA.2.17",
+                                            _("Percent fact %(fact)s of context %(contextID)s has a decimal attribute < 4: '%(decimals)s'"),
+                                            modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
+                            except ValueError:
+                                pass # should have been reported as a schema error by loader
+                            '''' (not intended by EBA 2.18, paste here is from EFM)
+                            if not f.isNil and getattr(f,"xValid", 0) == 4:
+                                try:
+                                    insignificance = insignificantDigits(f.xValue, decimals=f.decimals)
+                                    if insignificance: # if not None, returns (truncatedDigits, insiginficantDigits)
+                                        modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
+                                            _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(insignificantDigits)s."),
+                                            modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, 
+                                            value=f1.xValue, truncatedDigits=insignificance[0], insignificantDigits=insignificance[1])
+                                except (ValueError,TypeError):
+                                    modelXbrl.error(("EBA.2.18"),
+                                        _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),
+                                        modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
+                            '''
+                        unit = f.unit
+                        if unit is not None:
+                            if isMonetary:
+                                if unit.measures[0]:
+                                    currenciesUsed[unit.measures[0][0]] = unit
+                            elif not unit.isSingleMeasure or unit.measures[0][0] != XbrlConst.qnXbrliPure:
+                                nonMonetaryNonPureFacts.append(f)
+                    elif isString: 
+                        if not f.xmlLang:
+                            stringFactsWithoutXmlLang.append(f)
+                                
+                    if f.unitID is not None:
+                        unitIDsUsed.add(f.unitID)
+                    if f.isNil:
+                        nilFacts.append(f)
+                        
+            if nilFacts:
+                modelXbrl.error("EBA.2.19",
+                        _('Nil facts MUST NOT be present in the instance: %(nilFacts)s.'),
+                        modelObject=nilFacts, nilFacts=", ".join(str(f.qname) for f in nilFacts))
+            if stringFactsWithoutXmlLang:
+                modelXbrl.error("EBA.2.20",
+                                _("String facts need to report xml:lang: '%(langLessFacts)s'"),
+                                modelObject=stringFactsWithoutXmlLang, langLEssFacts=", ".join(str(f.qname) for f in stringFactsWithoutXmlLang))
+            if nonMonetaryNonPureFacts:
+                modelXbrl.error("EBA.3.2",
+                                _("Non monetary (numeric) facts MUST use the pure unit: '%(langLessFacts)s'"),
+                                modelObject=nonMonetaryNonPureFacts, langLessFacts=", ".join(str(f.qname) for f in nonMonetaryNonPureFacts))
                 
             unusedUnitIDs = modelXbrl.units.keys() - unitIDsUsed
             if unusedUnitIDs:
