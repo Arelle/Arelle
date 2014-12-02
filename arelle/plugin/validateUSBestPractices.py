@@ -386,8 +386,8 @@ def final(val, conceptsUsed):
                                         break
                                 if filingELR:
                                     # are there any compatible facts for this sum?
-                                    for totalFact in val.modelXbrl.factsByQname[totalConcept.qname]:
-                                        for itemFact in val.modelXbrl.factsByQname[itemQname]:
+                                    for totalFact in val.modelXbrl.factsByQname(totalConcept.qname, ()):
+                                        for itemFact in val.modelXbrl.factsByQname(itemQname):
                                             if (totalFact.context is not None and totalFact.context.isEqualTo(itemFact.context) and
                                                 totalFact.unit is not None and totalFact.unit.isEqualTo(itemFact.unit)):
                                                 foundFiledItemCalc = False

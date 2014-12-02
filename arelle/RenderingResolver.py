@@ -221,6 +221,8 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                     if widestWordLen > view.rowNonAbstractHdrSpanMin[structuralNode.depth]:
                         view.rowNonAbstractHdrSpanMin[structuralNode.depth] = widestWordLen
                         
+    if axisDisposition == "z" and structuralNode.aspects is None:
+        structuralNode.aspects = view.zOrdinateChoices.get(definitionNode, None)
     if structuralNode and isinstance(definitionNode, (ModelBreakdown, ModelEuAxisCoord, ModelDefinitionNode)):
         try:
             #cartesianProductNestedArgs = (view, depth, axisDisposition, facts, tblAxisRels, i)

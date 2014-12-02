@@ -124,7 +124,7 @@ def evaluateRoleTypesTableCodes(modelXbrl):
             # for Registration and resubmission allow detecting multiple of code
             detectMultipleOfCode = any(v and any(v.startswith(dt) for dt in ('S-', 'F-', '8-K', '6-K'))
                                        for docTypeConcept in modelXbrl.nameConcepts.get('DocumentType', ())
-                                       for docTypeFact in modelXbrl.factsByQname.get(docTypeConcept.qname, ())
+                                       for docTypeFact in modelXbrl.factsByQname(docTypeConcept.qname, ())
                                        for v in (docTypeFact.value,))
         elif disclosureSystem.HMRC:
             tableCodes = list( HMRCtableCodes ) # separate copy of list so entries can be deleted
@@ -226,13 +226,12 @@ def evaluateTableIndex(modelXbrl):
             from arelle import ValidateXbrlDimensions
             ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
         reportedFacts = set() # facts which were shown in a higher-numbered ELR table
-        factsByQname = modelXbrl.factsByQname
         reportingPeriods = set()
         nextEnd = None
         deiFact = {}
         for conceptName in ("DocumentPeriodEndDate", "DocumentType", "CurrentFiscalPeriodEndDate"):
             for concept in modelXbrl.nameConcepts[conceptName]:
-                for fact in factsByQname[concept.qname]:
+                for fact in  modelXbrl.factsByQname(concept.qname):
                     deiFact[conceptName] = fact
                     if fact.context is not None:
                         reportingPeriods.add((None, fact.context.endDatetime)) # for instant

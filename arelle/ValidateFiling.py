@@ -1035,9 +1035,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     if rxdNs:
                         qn = ModelValue.qname(rxdNs, "AmendmentNumber")
                         if amendmentFlag == "true" and (
-                                    qn not in modelXbrl.factsByQname or not any(
+                                    modelXbrl.factsByQname(qn, None) is not None or not any(
                                            f.context is not None and not f.context.hasSegment 
-                                           for f in modelXbrl.factsByQname[qn])):
+                                           for f in modelXbrl.factsByQname(qn, ()))):
                             modelXbrl.error("EFM.6.23.06",
                                 _("The value for dei:DocumentType, %(documentType)s, requires a value for rxd:AmendmentNumber in the Required Context."),
                                 modelObject=modelXbrl, documentType=documentType)
@@ -1062,7 +1062,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 modelObject=(f1,documentPeriodEndDateFact), fyEndDate=f1.value, reportingPeriod=documentPeriodEndDateFact.value)
                     if (documentPeriodEndDateFact is not None and documentPeriodEndDateFact.xValid and
                         not any(f2.xValue == documentPeriodEndDateFact.xValue
-                                for f2 in modelXbrl.factsByQname[rxd.D]
+                                for f2 in modelXbrl.factsByQname(rxd.D, ())
                                 if f2.xValid)):
                         modelXbrl.error("EFM.6.23.27",
                             _("The dei:DocumentPeriodEndDate %(reportingPeriod)s has no corresponding rxd:D fact."),
@@ -1148,7 +1148,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                                           (domMemRelSet, rxd.AllGovernmentsMember, rxd.Gv, "EFM.6.23.31"),
                                                           (dimDomRelSet, rxd.BusinessSegmentAxis, rxd.Sm, "EFM.6.23.33"),
                                                           (domMemRelSet, qnDeiEntityDomain, rxd.E, "EFM.6.23.34")):
-                        for f in modelXbrl.factsByQname[priItem]:
+                        for f in modelXbrl.factsByQname(priItem, ()):
                             if (not f.isNil and f.xValid and
                                 not relSet.isRelated(dom, "descendant", f.xValue, isDRS=True)):
                                 modelXbrl.error(errCode,
@@ -1222,7 +1222,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         if (context.hasDimension(rxd.ProjectAxis) and
                             not any(f.xValue == m
                                     for m in (contextDims[rxd.ProjectAxis].memberQname,)
-                                    for f in modelXbrl.factsByQname[rxd.Pr]
+                                    for f in modelXbrl.factsByQname(rxd.Pr, ())
                                     if f.context is not None)):
                             modelXbrl.error("EFM.6.23.19",
                                 _("The Context %(context)s has dimension %(dimension)s but is missing any payment."),
@@ -1230,13 +1230,13 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         if (context.hasDimension(rxd.GovernmentAxis) and
                             not any(f.xValue == m and f.context.hasDimension(rxd.PmtAxis)
                                     for m in (contextDims[rxd.GovernmentAxis].memberQname,)
-                                    for f in modelXbrl.factsByQname[rxd.Gv]
+                                    for f in modelXbrl.factsByQname(rxd.Gv, ())
                                     if f.context is not None)):
                             modelXbrl.error("EFM.6.23.21",
                                 _("The Context %(context)s has dimension %(dimension)s member %(member)s but is missing any payment."),
                                 modelObject=context, context=context.id, dimension=rxd.GovernmentAxis, member=context.dimMemberQname(rxd.GovernmentAxis))
                         if rxd.P in qnameFacts and not any(f.context is not None and not f.context.hasSegment
-                                                           for f in modelXbrl.factsByQname.get(qnameFacts[rxd.P].xValue,())):
+                                                           for f in modelXbrl.factsByQname(qnameFacts[rxd.P].xValue,())):
                             modelXbrl.error("EFM.6.23.23",
                                 _("The Context %(context)s has payment type %(paymentType)s but is missing a corresponding fact in the required context."),
                                 modelObject=context, context=context.id, paymentType=qnameFacts[rxd.P].xValue)
@@ -1245,7 +1245,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 _("There is a non-nil rxd:A in context %(context)s but missing a dimension rxd:PmtAxis."),
                                 modelObject=(context, qnameFacts[rxd.A]), context=context.id)
                     self.modelXbrl.profileActivity("... SD by context for 19-25, 28-29, 35, 37-39, 40-44", minTimeToShow=1.0)
-                    for f in modelXbrl.factsByQname[rxd.D]:
+                    for f in modelXbrl.factsByQname(rxd.D, ()):
                         if not f.isNil and f.xValid and f.xValue + datetime.timedelta(1) != f.context.endDatetime: # date needs to be midnite to compare to datetime
                             modelXbrl.error("EFM.6.23.32",
                                 _("The rxd:D %(value)s in context %(context)s does not match the context end date %(endDate)s."),
@@ -1725,7 +1725,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             if not hasPresentationRelationship:
                 self.modelXbrl.error(("EFM.6.12.03", "GFM.1.6.3"),
                     _("Concept used in instance %(concept)s does not participate in an effective presentation relationship"),
-                    modelObject=[concept] + list(modelXbrl.factsByQname[concept.qname]), concept=concept.qname)
+                    modelObject=[concept] + list(modelXbrl.factsByQname(concept.qname)), concept=concept.qname)
                 
         for fromIndx, toIndxs in usedCalcsPresented.items():
             for toIndx in toIndxs:
@@ -1733,8 +1733,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 toModelObject = self.modelXbrl.modelObject(toIndx)
                 calcRels = modelXbrl.relationshipSet(XbrlConst.summationItem) \
                                     .fromToModelObjects(fromModelObject, toModelObject, checkBothDirections=True)
-                fromFacts = self.modelXbrl.factsByQname[fromModelObject.qname]
-                toFacts = self.modelXbrl.factsByQname[toModelObject.qname]
+                fromFacts = self.modelXbrl.factsByQname(fromModelObject.qname)
+                toFacts = self.modelXbrl.factsByQname(toModelObject.qname)
                 fromFactContexts = set(f.context.contextNonDimAwareHash for f in fromFacts if f.context is not None)
                 contextId = backupId = None # for EFM message
                 for f in toFacts:
@@ -1924,7 +1924,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             modelXbrl.error(("EFM.6.10.01", "GFM.1.05.01"),
                 _("Concept used in facts %(concept)s is missing an %(lang)s standard label."),
                 # concept must be the first referenced modelObject
-                modelObject=[concept] + list(modelXbrl.factsByQname[concept.qname]), concept=concept.qname, 
+                modelObject=[concept] + list(modelXbrl.factsByQname(concept.qname)), concept=concept.qname, 
                 lang=disclosureSystem.defaultLanguage)
             
         #6 10.3 default lang label for every role
@@ -1938,7 +1938,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     if not hasDefaultLang:
                         modelXbrl.error(("EFM.6.10.03", "GFM.1.5.3"),
                             _("Concept %(concept)s is missing an %(lang)s label for role %(role)s."),
-                            modelObject=list(modelXbrl.factsByQname[concept.qname]) + [dupLabels[(priorRole,priorLang)]], 
+                            modelObject=list(modelXbrl.factsByQname(concept.qname)) + [dupLabels[(priorRole,priorLang)]], 
                             concept=concept.qname, 
                             lang=disclosureSystem.defaultLanguage, role=priorRole)
                     hasDefaultLang = False
@@ -2129,7 +2129,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             # must check each totalFact and compatible items for a relationship set separately
             # (because different sets of sums/items could, on edge case, be in different ELRs)
             compatibleItemsFacts = defaultdict(set)
-            for totalFact in self.modelXbrl.factsByQname[totalConcept.qname]:
+            for totalFact in self.modelXbrl.factsByQname(totalConcept.qname):
                 totalFactContext = totalFact.context
                 totalFactUnit = totalFact.unit
                 if (totalFactContext is not None and totalFactUnit is not None and totalFactContext.endDatetime is not None and
@@ -2139,7 +2139,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                     compatibleItemConcepts = set()
                     compatibleFacts = {totalFact}
                     for itemConcept in contributingItems:
-                        for itemFact in self.modelXbrl.factsByQname[itemConcept.qname]:
+                        for itemFact in self.modelXbrl.factsByQname(itemConcept.qname):
                             if (totalFactContext.isEqualTo(itemFact.context) and
                                 totalFactUnit.isEqualTo(itemFact.unit)):
                                 compatibleItemConcepts.add(itemConcept)

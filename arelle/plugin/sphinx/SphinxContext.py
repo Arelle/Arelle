@@ -268,7 +268,7 @@ class HyperspaceBinding:
             if hsAxis.restriction:
                 restriction = evaluate(hsAxis.restriction, self.sCtx, value=True)
                 if aspect == Aspect.CONCEPT:
-                    aspectQualifiedFacts = [modelXbrl.factsByQname[qn]
+                    aspectQualifiedFacts = [modelXbrl.factsByQname(qn)
                                             for qn in restriction
                                             if isinstance(qn, QName)]
                     facts = facts & set.union(*aspectQualifiedFacts) if aspectQualifiedFacts else set()

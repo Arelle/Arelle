@@ -14,6 +14,8 @@ builtinAttributes = {qnXsiNil,
                      ,qname(xsi,"xsi:noNamespaceSchemaLocation")}
 xml = "http://www.w3.org/XML/1998/namespace"
 xbrli = "http://www.xbrl.org/2003/instance"
+eurofilingModelNamespace = "http://www.eurofiling.info/xbrl/ext/model"
+eurofilingModelPrefix = "model"
 qnNsmap = qname("nsmap") # artificial parent for insertion of xmlns in saving xml documents
 qnXbrliXbrl = qname("{http://www.xbrl.org/2003/instance}xbrli:xbrl")
 qnXbrliItem = qname("{http://www.xbrl.org/2003/instance}xbrli:item")
@@ -28,6 +30,8 @@ qnXbrliStringItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:stringIt
 qnXbrliMonetaryItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:monetaryItemType")
 qnXbrliDateItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:dateItemType")
 qnXbrliDurationItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:durationItemType")
+qnXbrliBooleanItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:booleanItemType")
+qnXbrliQNameItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:QNameItemType")
 qnXbrliPure = qname("{http://www.xbrl.org/2003/instance}xbrli:pure")
 qnXbrliShares = qname("{http://www.xbrl.org/2003/instance}xbrli:shares")
 qnInvalidMeasure = qname("{http://arelle.org}arelle:invalidMeasureQName")
@@ -438,6 +442,9 @@ qnTableRuleAxis2011 = qname("{http://xbrl.org/2011/table}table:ruleAxis")
 qnTablePredefinedAxis2011 = qname("{http://xbrl.org/2011/table}table:predefinedAxis")
 qnTableSelectionAxis2011 = qname("{http://xbrl.org/2011/table}table:selectionAxis")
 qnTableTupleAxis2011 = qname("{http://xbrl.org/2011/table}table:tupleAxis")
+
+booleanValueTrue = "true"
+booleanValueFalse = "false"
 
 # Eurofiling 2010 table linkbase
 euRend = "http://www.eurofiling.info/2010/rendering"
