@@ -132,7 +132,15 @@ class StructuralNode:
                 (inherit and
                  self.parentStructuralNode is not None and 
                  self.parentStructuralNode.hasAspect(aspect, inherit)))
-    
+
+    def ownOrInheritedAspect(self, aspect):
+        if aspect in self.aspects:
+            return self.aspects[aspect]
+        elif self.parentStructuralNode is not None:
+            return self.parentStructuralNode.ownOrInheritedAspect(aspect)
+        else:
+            return None
+
     def aspectValue(self, aspect, inherit=True, dims=None, depth=0, tagSelectors=None):
         xc = self._rendrCntx
         if False: # TEST: self.choiceStructuralNodes:  # use aspects from choice structural node
@@ -164,6 +172,15 @@ class StructuralNode:
             return dims
         if aspect in aspects:
             return aspects[aspect]
+        if not inherit:
+            if aspect in aspects:
+                foundAspect = aspects[aspect]
+            else:
+                foundAspect = None
+        else:
+            foundAspect = self.ownOrInheritedAspect(aspect);
+        if foundAspect is not None:
+            return foundAspect
         elif constraintSet is not None and constraintSet.hasAspect(self, aspect):
             if isinstance(definitionNode, ModelSelectionDefinitionNode):
                 # result is in the indicated variable of ordCntx

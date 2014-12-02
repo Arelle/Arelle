@@ -112,7 +112,7 @@ def final(val):
                     _('Any reported XBRL instance document MUST contain only one xbrli:xbrl/link:schemaRef node, but %(entryPointCount)s.'),
                     modelObject=schemaRefElts, entryPointCount=len(schemaRefElts))
         filingIndicators = {}
-        for fIndicator in modelXbrl.factsByQname[qnFilingIndicator]:
+        for fIndicator in modelXbrl.factsByQname(qnFilingIndicator, ()):
             _value = (fIndicator.xValue or fIndicator.value) # use validated xValue if DTS else value for skipDTS 
             if _value in filingIndicators:
                 modelXbrl.error("EBA.1.6.1",
@@ -131,7 +131,7 @@ def final(val):
             # check sum of fact md5s
             xbrlFactsCheckVersion = None
             expectedSumOfFactMd5s = None
-            for pi in modelXbrl.xmlRootElement.getchildren():
+            for pi in modelXbrl.modelDocument.xmlRootElement.getchildren():
                 if isinstance(pi, etree._ProcessingInstruction) and pi.target == "xbrl-facts-check":
                     if "version" in pi.attrib:
                         xbrlFactsCheckVersion = pi.attrib["version"]
@@ -150,11 +150,11 @@ def final(val):
                             _("Successful XBRL facts sum of md5s."),
                             modelObject=modelXbrl)
             
-            numFilingIndicatorTuples = len(modelXbrl.factsByQname[qnFIndicators])
+            numFilingIndicatorTuples = len(modelXbrl.factsByQname(qnFIndicators, ()))
             if numFilingIndicatorTuples > 1:
                 modelXbrl.info("EBA.1.6.2",                            
                         _('Multiple filing indicators tuples when not in streaming mode (info).'),
-                        modelObject=modelXbrl.factsByQname[qnFIndicators])
+                        modelObject=modelXbrl.factsByQname(qnFIndicators))
                         
             # note EBA 2.1 is in ModelDocument.py
             
@@ -221,7 +221,7 @@ def final(val):
             nonMonetaryNonPureFacts = []
             unitIDsUsed = set()
             currenciesUsed = {}
-            for qname, facts in modelXbrl.factsByQname.items():
+            for qnameString, facts in modelXbrl.factsByQnameAll():
                 for f in facts:
                     if modelXbrl.skipDTS:
                         c = f.qname.localName[0]

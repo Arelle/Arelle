@@ -14,6 +14,8 @@ builtinAttributes = {qnXsiNil,
                      ,qname(xsi,"xsi:noNamespaceSchemaLocation")}
 xml = "http://www.w3.org/XML/1998/namespace"
 xbrli = "http://www.xbrl.org/2003/instance"
+eurofilingModelNamespace = "http://www.eurofiling.info/xbrl/ext/model"
+eurofilingModelPrefix = "model"
 qnNsmap = qname("nsmap") # artificial parent for insertion of xmlns in saving xml documents
 qnXbrliXbrl = qname("{http://www.xbrl.org/2003/instance}xbrli:xbrl")
 qnXbrliItem = qname("{http://www.xbrl.org/2003/instance}xbrli:item")
@@ -28,6 +30,8 @@ qnXbrliStringItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:stringIt
 qnXbrliMonetaryItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:monetaryItemType")
 qnXbrliDateItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:dateItemType")
 qnXbrliDurationItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:durationItemType")
+qnXbrliBooleanItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:booleanItemType")
+qnXbrliQNameItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:QNameItemType")
 qnXbrliPure = qname("{http://www.xbrl.org/2003/instance}xbrli:pure")
 qnXbrliShares = qname("{http://www.xbrl.org/2003/instance}xbrli:shares")
 qnInvalidMeasure = qname("{http://arelle.org}arelle:invalidMeasureQName")
@@ -439,6 +443,9 @@ qnTablePredefinedAxis2011 = qname("{http://xbrl.org/2011/table}table:predefinedA
 qnTableSelectionAxis2011 = qname("{http://xbrl.org/2011/table}table:selectionAxis")
 qnTableTupleAxis2011 = qname("{http://xbrl.org/2011/table}table:tupleAxis")
 
+booleanValueTrue = "true"
+booleanValueFalse = "false"
+
 # Eurofiling 2010 table linkbase
 euRend = "http://www.eurofiling.info/2010/rendering"
 euTableAxis = "http://www.eurofiling.info/arcrole/2010/table-axis"
@@ -513,7 +520,12 @@ def isNumericXsdType(xsdType):
     return xsdType in {"integer", "positiveInteger", "negativeInteger", "nonNegativeInteger", "nonPositiveInteger",
                        "long", "unsignedLong", "int", "unsignedInt", "short", "unsignedShort",
                        "byte", "unsignedByte", "decimal", "float", "double"}
-    
+
+def isIntegerXsdType(xsdType):
+    return xsdType in {"integer", "positiveInteger", "negativeInteger", "nonNegativeInteger", "nonPositiveInteger",
+                       "long", "unsignedLong", "int", "unsignedInt", "short", "unsignedShort",
+                       "byte", "unsignedByte"}
+
 standardLabelRoles = {
                     "http://www.xbrl.org/2003/role/label",
                     "http://www.xbrl.org/2003/role/terseLabel",

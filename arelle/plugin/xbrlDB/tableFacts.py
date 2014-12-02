@@ -44,13 +44,12 @@ def tableFacts(dts):
                      for roleType in dts.roleTypes.get(roleURI,())]
         roleTypes.sort(key=lambda roleType: roleType.definition)
         # find defined non-default axes in pre hierarchy for table
-        factsByQname = dts.factsByQname
         for roleType in roleTypes:
             roleURI = roleType.roleURI
             code = roleType.tableCode
             roleURIdims, priItemQNames = EFMlinkRoleURIstructure(dts, roleURI)
             for priItemQName in priItemQNames:
-                for fact in factsByQname[priItemQName]:
+                for fact in dts.factsByQname(priItemQName):
                     cntx = fact.context
                     # non-explicit dims must be default
                     if (cntx is not None and

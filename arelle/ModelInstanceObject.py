@@ -164,6 +164,10 @@ class ModelFact(ModelObject):
         """(str) -- unitRef attribute"""
         return self.get("unitRef")
     
+    @unitID.setter
+    def unitID(self, identifier):
+        self.set("unitRef", identifier)
+
     @property
     def utrEntries(self):
         """(set(UtrEntry)) -- set of UtrEntry objects that match this fact and unit"""
