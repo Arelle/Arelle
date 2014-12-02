@@ -687,7 +687,13 @@ class ModelXbrl:
         """
         return self.factIndex.factsByQname(qname, self, defaultValue)
 
+    def factsByQnameAll(self):
+        """Facts in the instance indexed by their QName, cached
         
+        :returns: list(tuple(str, set(ModelFact))) -- indexes are QNames (as string), values are ModelFacts
+        """
+        return self.factIndex.factsByQnameAll(self)
+
     def factsByDatatype(self, notStrict, typeQname): # indexed by fact (concept) qname
         """Facts in the instance indexed by data type QName, cached as types are requested
 

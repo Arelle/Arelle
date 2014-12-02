@@ -137,6 +137,26 @@ class FactIndex(object):
         else:
             return defaultValue
 
+    def factsByQnameAll(self, modelXbrl):
+        selectStmt = select([self.facts.c.qName, self.facts.c.objectId]).order_by(self.facts.c.qName)
+        result = self.connection.execute(selectStmt)
+        resultList = list()
+        oldQName = ''
+        currentFacts = list()
+        for row in result:
+            currentQName = row[self.facts.c.qName]
+            if currentQName != oldQName:
+                if len(currentFacts)>0:
+                    resultList.append((oldQName, currentFacts))
+                oldQName = currentQName
+                currentFacts = {modelXbrl.modelObjects[row[self.facts.c.objectId]]}
+            else:
+                currentFacts.add(modelXbrl.modelObjects[row[self.facts.c.objectId]])
+        if len(currentFacts)>0:
+            resultList.append((oldQName, currentFacts))
+        result.close()
+        return resultList
+
     def factsByDatatype(self, typeQname, modelXbrl):
         selectStmt = select([self.facts.c.objectId]).where(self.facts.c.datatype == str(typeQname))
         result = self.connection.execute(selectStmt)
@@ -282,6 +302,8 @@ def testAll():
     assertEquals({fact1, fact2}, dataResult)
     dataResult = factIndex.factsByDimMemQname('dim7', modelXbrl, DEFAULT)
     assertEquals({fact2, fact3, fact4, fact5}, dataResult) # fact6 is not an item!
+    dataResult = factIndex.factsByQnameAll(modelXbrl)
+    assertEquals([('{ns}name1', {fact1, fact2}), ('{ns}name2', {fact3, fact4}), ('{ns}name3', {fact5}), ('{ns}name4', {fact6})], dataResult);
     fact1.isNil = True
     numberOfUpdatedFacts = factIndex.updateFact(fact1)
     assertEquals(1, numberOfUpdatedFacts)

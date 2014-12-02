@@ -693,7 +693,7 @@ class ViewRenderedGrid(ViewFile.View):
                         fp = FactPrototype(self, cellAspectValues)
                         if conceptNotAbstract:
                             # reduce set of matchable facts to those with pri item qname and have dimension aspects
-                            facts = self.modelXbrl.factsByQname(priItemQname) if priItemQname else self.modelXbrl.factsInInstance
+                            facts = self.modelXbrl.factsByQname(priItemQname, set()) if priItemQname else self.modelXbrl.factsInInstance
                             if self.hasTableFilters:
                                 facts = self.modelTable.filterFacts(self.rendrCntx, facts)
                             for aspect in matchableAspects:  # trim down facts with explicit dimensions match or just present
