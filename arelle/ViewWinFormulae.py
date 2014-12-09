@@ -7,8 +7,8 @@ Created on Dec 6, 2010
 from collections import defaultdict
 import os
 from arelle import ViewWinTree, ModelObject, XbrlConst
-from arelle.ModelFormulaObject import (ModelVariable, ModelVariableSet, ModelVariableSetAssertion, 
-                                       ModelConsistencyAssertion)
+from arelle.ModelFormulaObject import (ModelParameter, ModelVariable, ModelVariableSet, 
+                                       ModelVariableSetAssertion, ModelConsistencyAssertion)
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ViewUtilFormulae import rootFormulaObjects, formulaObjSortKey
 
@@ -66,7 +66,7 @@ class ViewFormulae(ViewWinTree.ViewTree):
     def viewFormulaObjects(self, parentNode, fromObject, fromRel, n, visited):
         if fromObject is None:
             return
-        if isinstance(fromObject, ModelVariable) and fromRel is not None:
+        if isinstance(fromObject, (ModelVariable, ModelParameter)) and fromRel is not None:
             text = "{0} ${1}".format(fromObject.localName, fromRel.variableQname)
         elif isinstance(fromObject, (ModelVariableSetAssertion, ModelConsistencyAssertion)):
             text = "{0} {1}".format(fromObject.localName, fromObject.id)

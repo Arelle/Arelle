@@ -138,6 +138,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         
         # sort URIs by definition
         linkroleUris = []
+        linkroleUriChildren = {}
         for linkroleUri in relationshipSet.linkRoleUris:
             modelRoleTypes = self.modelXbrl.roleTypes.get(linkroleUri)
             if modelRoleTypes:
@@ -146,24 +147,43 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                                   modelRoleTypes[0].definition or 
                                   linkroleUri)
                 roleId = modelRoleTypes[0].objectId(self.id)
+                if (self.hasTableIndex and getattr(modelRoleTypes[0], "_tableChildren")):
+                    linkroleUriChildren[linkroleUri] = [roleType.roleURI
+                                                        for roleType in modelRoleTypes[0]._tableChildren]
             else:
                 roledefinition = linkroleUri
                 roleId = "node{0}".format(self.id)
             self.id += 1
             linkroleUris.append((roledefinition, linkroleUri, roleId))
         linkroleUris.sort()
+        
+        def insertLinkroleChildren(parentNode, childUris):
+            for childUri in childUris:
+                for roledefinition, linkroleUri, roleId in linkroleUris:
+                    if childUri == linkroleUri and isinstance(roledefinition, tuple): # tableGroup
+                        _nextTableGroup, _order, roledefinition = roledefinition
+                        childId = "_{}{}".format(self.id, roleId)
+                        self.id += 1
+                        childNode = self.treeView.insert(parentNode, "end", childId, text=roledefinition, tags=("ELR",))
+                        if childUri in linkroleUriChildren:
+                            insertLinkroleChildren(childNode, linkroleUriChildren[childUri])
+                        break
+                
         # for each URI in definition order
         tableGroup = ""
         for roledefinition, linkroleUri, roleId in linkroleUris:
             if self.showLinkroles:
                 if isinstance(roledefinition, tuple): # tableGroup
-                    nextTableGroup, order, roledefinition = roledefinition
+                    nextTableGroup, _order, roledefinition = roledefinition
                     if tableGroup != nextTableGroup:
                         self.treeView.insert("", "end", nextTableGroup, text=nextTableGroup[1:], tags=("Group",))
                         if not tableGroup: # first tableGroup item, expand it
                             self.setTreeItemOpen(nextTableGroup,open=True)
                         tableGroup = nextTableGroup
                 linknode = self.treeView.insert(tableGroup, "end", roleId, text=roledefinition, tags=("ELR",))
+                # add tableChildren as child nodes
+                if linkroleUri in linkroleUriChildren:
+                    insertLinkroleChildren(linknode, linkroleUriChildren[linkroleUri])
             else:
                 linknode = ""
             if self.showRelationships:
