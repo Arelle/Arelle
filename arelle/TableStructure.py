@@ -322,7 +322,29 @@ def evaluateTableIndex(modelXbrl):
                     closestParentType = parentRoleType
             if closestParentType is not None:
                 closestParentType._tableChildren.insert(0, roleType)
-            
+                
+            # remove lesser-matched children if there was a parent match
+            unmatchedChildRoles = set()
+            longestChildMatchLen = 0
+            numChildren = 0
+            for childRoleType in roleType._tableChildren:
+                matchLen = parentNameMatchLen(tableName, childRoleType)
+                if matchLen < closestParentMatchLength:
+                    unmatchedChildRoles.add(childRoleType)
+                elif matchLen > longestChildMatchLen:
+                    longestChildMatchLen = matchLen
+                    numChildren += 1
+            if numChildren > 1: 
+                # remove children that don't have the full match pattern length to parent
+                for childRoleType in roleType._tableChildren:
+                    if (childRoleType not in unmatchedChildRoles and 
+                        parentNameMatchLen(tableName, childRoleType) < longestChildMatchLen):
+                        unmatchedChildRoles.add(childRoleType)
+
+            for unmatchedChildRole in unmatchedChildRoles:
+                roleType._tableChildren.remove(unmatchedChildRole)
+                
+            unmatchedChildRoles = None # dereference
         return firstTableLinkroleURI or firstDocumentLinkroleURI # did build _tableIndex attributes
     return None
 
