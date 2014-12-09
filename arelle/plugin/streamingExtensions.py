@@ -15,12 +15,14 @@ Calls these plug-in classes:
    Streaming.Finish(modelXbrl): notifies that streaming is finished
 '''
 
-import io, os, time, sys, re
+import io, os, time, sys, re, gc
 from decimal import Decimal, InvalidOperation
 from lxml import etree
 from arelle import XbrlConst, XmlUtil, XmlValidate, ValidateXbrlDimensions
 from arelle.ModelDocument import ModelDocument, Type
 from arelle.ModelObjectFactory import parser
+from arelle.ModelObject import ModelObject
+from arelle.ModelInstanceObject import ModelFact
 from arelle.PluginManager import pluginClassMethods
 from arelle.Validate import Validate
 from arelle.HashUtil import md5hash, Md5Sum
@@ -39,6 +41,15 @@ def precedingProcessingInstruction(elt, target):
         if isinstance(pi, etree._ProcessingInstruction) and pi.target == target:
             return pi
         pi = pi.getprevious()
+    return None
+
+def childProcessingInstruction(elt, target, reversed=False):
+    for pi in elt.iterchildren(reversed=reversed):
+        if isinstance(pi, etree._ProcessingInstruction):
+            if pi.target == target:
+                return pi
+        else:
+            break
     return None
 
 def precedingComment(elt):
@@ -203,10 +214,8 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
             incompatibleValidations.append("EFM")
         if _validateDisclosureSystem and _disclosureSystem.GFM:
             incompatibleValidations.append("GFM")
-        if _validateDisclosureSystem and _disclosureSystem.EBA:
-            incompatibleValidations.append("EBA")
         if _validateDisclosureSystem and _disclosureSystem.HMRC:
-            incompatibleValidations.append("EBA")
+            incompatibleValidations.append("HMRC")
         if modelXbrl.modelManager.validateCalcLB:
             incompatibleValidations.append("calculation LB")
         if incompatibleValidations:
@@ -239,11 +248,17 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
         instValidator = validator.instValidator
 
     contextBuffer = []
+    contextsToDrop = []
     unitBuffer = []
+    unitsToDrop = []
     footnoteBuffer = []
+    footnoteLinksToDrop = []
     
-    _streamingValidateFactsPlugin = any(True for pluginMethod in pluginClassMethods("Streaming.ValidateFacts"))
+    _streamingFactsPlugin = any(True for pluginMethod in pluginClassMethods("Streaming.Facts"))
+    _streamingValidateFactsPlugin = (_streamingExtensionsValidate and 
+                                     any(True for pluginMethod in pluginClassMethods("Streaming.ValidateFacts")))
 
+    ''' this is very much slower than iterparse
     class modelLoaderTarget():
         def __init__(self, element_factory=None, parser=None):
             self.newTree = True
@@ -312,11 +327,14 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
                         if _streamingExtensionsValidate and len(contextBuffer) >= contextBufferLimit:
                             # drop before adding as dropped may have same id as added
                             cntx = contextBuffer.pop(0)
-                            dropContext(modelXbrl, cntx)
-                            del parentMdlObj[parentMdlObj.index(cntx)]
+                            if _streamingValidateFactsPlugin:
+                                contextsToDrop.append(cntx)
+                            else:
+                                dropContext(modelXbrl, cntx)
+                                del parentMdlObj[parentMdlObj.index(cntx)]
                             cntx = None
-                        XmlValidate.validate(modelXbrl, mdlObj)
-                        modelDocument.contextDiscover(mdlObj)
+                        #>>XmlValidate.validate(modelXbrl, mdlObj)
+                        #>>modelDocument.contextDiscover(mdlObj)
                         if contextBufferLimit.is_finite():
                             contextBuffer.append(mdlObj)
                     if _streamingExtensionsValidate:
@@ -327,13 +345,16 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
                         del contextsToCheck # dereference
                 elif ln == "unit":
                     if _streamingExtensionsValidate and len(unitBuffer) >= unitBufferLimit:
-                        # drop before additing as dropped may have same id as added
+                        # drop before adding as dropped may have same id as added
                         unit = unitBuffer.pop(0)
-                        dropUnit(modelXbrl, unit)
-                        del parentMdlObj[parentMdlObj.index(unit)]
+                        if _streamingValidateFactsPlugin:
+                            unitsToDrop.append(unit)
+                        else:
+                            dropUnit(modelXbrl, unit)
+                            del parentMdlObj[parentMdlObj.index(unit)]
                         unit = None 
-                    XmlValidate.validate(modelXbrl, mdlObj)
-                    modelDocument.unitDiscover(mdlObj)
+                    #>>XmlValidate.validate(modelXbrl, mdlObj)
+                    #>>modelDocument.unitDiscover(mdlObj)
                     if unitBufferLimit.is_finite():
                         unitBuffer.append(mdlObj)
                     if _streamingExtensionsValidate:
@@ -354,6 +375,20 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
                                 for fact in factsToCheck:
                                     dropFact(modelXbrl, fact, modelXbrl.facts)
                                     del parentMdlObj[parentMdlObj.index(fact)]
+                                for cntx in contextsToDrop:
+                                    dropContext(modelXbrl, cntx)
+                                    del parentMdlObj[parentMdlObj.index(cntx)]
+                                for unit in unitsToDrop:
+                                    dropUnit(modelXbrl, unit)
+                                    del parentMdlObj[parentMdlObj.index(unit)]
+                                for footnoteLink in footnoteLinksToDrop:
+                                    dropFootnoteLink(modelXbrl, footnoteLink)
+                                    del parentMdlObj[parentMdlObj.index(footnoteLink)]
+                                fact = cntx = unit = footnoteLink = None
+                                del contextsToDrop[:]
+                                del unitsToDrop[:]
+                                del footnoteLinksToDrop[:]
+                            del factsToCheck
                     # check remaining footnote refs
                     for footnoteLink in footnoteBuffer:
                         checkFootnoteHrefs(modelXbrl, footnoteLink)
@@ -373,8 +408,11 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
                                 # drop before addition as dropped may have same id as added
                             footnoteLink = footnoteBuffer.pop(0)
                             checkFootnoteHrefs(modelXbrl, footnoteLink)
-                            dropFootnoteLink(modelXbrl, footnoteLink)
-                            del parentMdlObj[parentMdlObj.index(footnoteLink)]
+                            if _streamingValidateFactsPlugin:
+                                footnoteLinksToDrop.append(footnoteLink)
+                            else:
+                                dropFootnoteLink(modelXbrl, footnoteLink)
+                                del parentMdlObj[parentMdlObj.index(footnoteLink)]
                             footnoteLink = None
                     footnoteLinks = None
                 elif ln in ("schemaRef", "linkbaseRef"):
@@ -384,8 +422,8 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
                         modelDocument.linkbaseDiscover((mdlObj,), inInstance=True)
             elif parentMdlObj.qname == XbrlConst.qnXbrliXbrl:
                 self.numRootFacts += 1
-                XmlValidate.validate(modelXbrl, mdlObj)
-                modelDocument.factDiscover(mdlObj, modelXbrl.facts)
+                #>>XmlValidate.validate(modelXbrl, mdlObj)
+                #>>modelDocument.factDiscover(mdlObj, modelXbrl.facts)
                 if self.factsCheckVersion:
                     self.factCheckFact(mdlObj)
                 if _streamingExtensionsValidate or _streamingValidateFactsPlugin:
@@ -397,7 +435,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
                     if _streamingValidateFactsPlugin:
                         # plugin attempts to process batch of all root facts not yet processed (not just current one)
                         # use batches of 1000 facts
-                        if len(modelXbrl.facts) > 0: # 1000:
+                        if len(modelXbrl.facts) > 1000:
                             factsToCheck = modelXbrl.facts.copy()
                             factsHaveBeenProcessed = True
                             # can block facts deletion if required data not yet available, such as numeric unit for DpmDB
@@ -408,16 +446,30 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
                                 for fact in factsToCheck:
                                     dropFact(modelXbrl, fact, modelXbrl.facts)
                                     del parentMdlObj[parentMdlObj.index(fact)]
-                                # note that keeping fact means we have to keep it's context too
+                                for cntx in contextsToDrop:
+                                    dropContext(modelXbrl, cntx)
+                                    del parentMdlObj[parentMdlObj.index(cntx)]
+                                for unit in unitsToDrop:
+                                    dropUnit(modelXbrl, unit)
+                                    del parentMdlObj[parentMdlObj.index(unit)]
+                                for footnoteLink in footnoteLinksToDrop:
+                                    dropFootnoteLink(modelXbrl, footnoteLink)
+                                    del parentMdlObj[parentMdlObj.index(footnoteLink)]
+                                fact = cntx = unit = footnoteLink = None
+                                del contextsToDrop[:]
+                                del unitsToDrop[:]
+                                del footnoteLinksToDrop[:]
+                            del factsToCheck # dereference fact or batch of facts
                     else:
                         dropFact(modelXbrl, mdlObj, modelXbrl.facts) # single fact has been processed
                         del parentMdlObj[parentMdlObj.index(mdlObj)]
-                    del factsToCheck # dereference fact or batch of facts
                 if self.numRootFacts % 1000 == 0:
-                    modelXbrl.profileActivity("... streaming fact {0} of {1} {2:.2f}%".format(self.numRootFacts, instInfoNumRootFacts, 
-                                                                                              100.0 * self.numRootFacts / instInfoNumRootFacts), 
-                                              minTimeToShow=20.0)
-                    # sys.stdout.write ("\rAt fact {}".format(self.numRootFacts))
+                    pass
+                    #modelXbrl.profileActivity("... streaming fact {0} of {1} {2:.2f}%".format(self.numRootFacts, instInfoNumRootFacts, 
+                    #                                                                          100.0 * self.numRootFacts / instInfoNumRootFacts), 
+                    #                          minTimeToShow=20.0)
+                    gc.collect()
+                    sys.stdout.write ("\rAt fact {} of {} mem {}".format(self.numRootFacts, instInfoNumRootFacts, modelXbrl.modelManager.cntlr.memoryUsed))
             return mdlObj
         def data(self, data):
             self.currentMdlObj.text = data
@@ -458,6 +510,249 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
     _parser, _parserLookupName, _parserLookupClass = parser(modelXbrl, filepath, target=modelLoaderTarget())
     etree.parse(_file, parser=_parser, base_url=filepath)
     logSyntaxErrors(_parser)
+    '''
+    # replace modelLoaderTarget with iterparse (as it now supports CustomElementClassLookup)
+    streamingParserContext = etree.iterparse(_file, events=("start","end"), huge_tree=True)
+    from arelle.ModelObjectFactory import setParserElementClassLookup
+    modelXbrl.isStreamingMode = True # must be set before setting element class lookup
+    (_parser, _parserLookupName, _parserLookupClass) = setParserElementClassLookup(streamingParserContext, modelXbrl)
+    foundInstance = False
+    beforeInstanceStream = beforeStartStreamingPlugin = True
+    numRootFacts = 0
+    factsCheckVersion = None
+    def factCheckFact(fact):
+        modelDocument._factsCheckMd5s += fact.md5sum
+        for _tupleFact in fact.modelTupleFacts:
+            factCheckFact(_tupleFact)
+    for event, mdlObj in streamingParserContext:
+        if event == "start":
+            if mdlObj.tag == "{http://www.xbrl.org/2003/instance}xbrl":
+                modelDocument = ModelDocument(modelXbrl, Type.INSTANCE, mappedUri, filepath, mdlObj.getroottree())
+                modelXbrl.modelDocument = modelDocument # needed for incremental validation
+                mdlObj.init(modelDocument)
+                modelDocument.parser = _parser # needed for XmlUtil addChild's makeelement 
+                modelDocument.parserLookupName = _parserLookupName
+                modelDocument.parserLookupClass = _parserLookupClass
+                modelDocument.xmlRootElement = mdlObj
+                modelDocument.schemaLocationElements.add(mdlObj)
+                modelDocument.documentEncoding = _encoding
+                modelDocument._creationSoftwareComment = precedingComment(mdlObj)
+                modelDocument._factsCheckMd5s = Md5Sum()
+                modelXbrl.info("streamingExtensions:streaming",
+                               _("Stream processing this instance."),
+                               modelObject = modelDocument)
+            elif mdlObj.getparent() is not None:
+                mdlObj._init() # requires discovery as part of start elements
+                if mdlObj.getparent().tag == "{http://www.xbrl.org/2003/instance}xbrl":
+                    if not foundInstance:
+                        foundInstance = True
+                        pi = precedingProcessingInstruction(mdlObj, "xbrl-facts-check")
+                        if pi is not None:
+                            factsCheckVersion = pi.attrib.get("version", None)
+                elif not foundInstance:       
+                    break
+                ns = mdlObj.qname.namespaceURI
+                ln = mdlObj.qname.localName
+                if beforeInstanceStream:
+                    if ((ns == XbrlConst.link and ln not in ("schemaRef", "linkbaseRef")) or
+                        (ns == XbrlConst.xbrli and ln in ("context", "unit")) or
+                        (ns not in (XbrlConst.link, XbrlConst.xbrli))):
+                        beforeInstanceStream = False
+                        if _streamingExtensionsValidate:
+                            instValidator.validate(modelXbrl, modelXbrl.modelManager.formulaOptions.typedParameters())
+                        else: # need default dimensions
+                            ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
+                elif not beforeInstanceStream and beforeStartStreamingPlugin:
+                    for pluginMethod in pluginClassMethods("Streaming.Start"):
+                        pluginMethod(modelXbrl)
+                    beforeStartStreamingPlugin = False
+        elif event == "end":
+            parentMdlObj = mdlObj.getparent()
+            ns = mdlObj.namespaceURI
+            ln = mdlObj.localName
+            if ns == XbrlConst.xbrli:
+                if ln == "context":
+                    if mdlObj.get("sticky"):
+                        del mdlObj.attrib["sticky"]
+                        XmlValidate.validate(modelXbrl, mdlObj)
+                        modelDocument.contextDiscover(mdlObj)
+                    else:
+                        if len(contextBuffer) >= contextBufferLimit:
+                            # drop before adding as dropped may have same id as added
+                            cntx = contextBuffer.pop(0)
+                            if _streamingFactsPlugin or _streamingValidateFactsPlugin:
+                                contextsToDrop.append(cntx)
+                            else:
+                                dropContext(modelXbrl, cntx)
+                                #>>del parentMdlObj[parentMdlObj.index(cntx)]
+                            cntx = None
+                        XmlValidate.validate(modelXbrl, mdlObj)
+                        modelDocument.contextDiscover(mdlObj)
+                        if contextBufferLimit.is_finite():
+                            contextBuffer.append(mdlObj)
+                    if _streamingExtensionsValidate:
+                        contextsToCheck = (mdlObj,)
+                        instValidator.checkContexts(contextsToCheck)
+                        if modelXbrl.hasXDT:
+                            instValidator.checkContextsDimensions(contextsToCheck)
+                        del contextsToCheck # dereference
+                elif ln == "unit":
+                    if len(unitBuffer) >= unitBufferLimit:
+                        # drop before additing as dropped may have same id as added
+                        unit = unitBuffer.pop(0)
+                        if _streamingFactsPlugin or _streamingValidateFactsPlugin:
+                            unitsToDrop.append(unit)
+                        else:
+                            dropUnit(modelXbrl, unit)
+                            #>>del parentMdlObj[parentMdlObj.index(unit)]
+                        unit = None 
+                    XmlValidate.validate(modelXbrl, mdlObj)
+                    modelDocument.unitDiscover(mdlObj)
+                    if unitBufferLimit.is_finite():
+                        unitBuffer.append(mdlObj)
+                    if _streamingExtensionsValidate:
+                        instValidator.checkUnits( (mdlObj,) )
+                elif ln == "xbrl": # end of document
+                    # check remaining batched facts if any
+                    if _streamingFactsPlugin or _streamingValidateFactsPlugin:
+                        # plugin attempts to process batch of all root facts not yet processed (not just current one)
+                        # finish any final batch of facts
+                        if len(modelXbrl.facts) > 0:
+                            factsToCheck = modelXbrl.facts.copy()
+                            # can block facts deletion if required data not yet available, such as numeric unit for DpmDB
+                            if _streamingValidateFactsPlugin:
+                                for pluginMethod in pluginClassMethods("Streaming.ValidateFacts"):
+                                    pluginMethod(instValidator, factsToCheck)
+                            if _streamingFactsPlugin:
+                                for pluginMethod in pluginClassMethods("Streaming.Facts"):
+                                    pluginMethod(modelXbrl, factsToCheck)
+                            for fact in factsToCheck:
+                                dropFact(modelXbrl, fact, modelXbrl.facts)
+                                #>>del parentMdlObj[parentMdlObj.index(fact)]
+                            for cntx in contextsToDrop:
+                                dropContext(modelXbrl, cntx)
+                                #>>del parentMdlObj[parentMdlObj.index(cntx)]
+                            for unit in unitsToDrop:
+                                dropUnit(modelXbrl, unit)
+                                #>>del parentMdlObj[parentMdlObj.index(unit)]
+                            for footnoteLink in footnoteLinksToDrop:
+                                dropFootnoteLink(modelXbrl, footnoteLink)
+                                #>>del parentMdlObj[parentMdlObj.index(footnoteLink)]
+                            fact = cntx = unit = footnoteLink = None
+                            del contextsToDrop[:]
+                            del unitsToDrop[:]
+                            del footnoteLinksToDrop[:]
+                            del factsToCheck
+                    # check remaining footnote refs
+                    for footnoteLink in footnoteBuffer:
+                        checkFootnoteHrefs(modelXbrl, footnoteLink)
+                    pi = childProcessingInstruction(mdlObj, "xbrl-facts-check", reversed=True)
+                    if pi is not None: # attrib is in .text, not attrib, no idea why!!!
+                        _match = re.search("([\\w-]+)=[\"']([^\"']+)[\"']", pi.text)
+                        if _match:
+                            _matchGroups = _match.groups()
+                            if len(_matchGroups) == 2:
+                                if _matchGroups[0] == "sum-of-fact-md5s":
+                                    try:
+                                        expectedMd5 = Md5Sum(_matchGroups[1])
+                                        if modelDocument._factsCheckMd5s != expectedMd5:
+                                            modelXbrl.warning("streamingExtensions:xbrlFactsCheckWarning",
+                                                    _("XBRL facts sum of md5s expected %(expectedMd5)s not matched to actual sum %(actualMd5Sum)s"),
+                                                    modelObject=modelXbrl, expectedMd5=expectedMd5, actualMd5Sum=modelDocument._factsCheckMd5s)
+                                        else:
+                                            modelXbrl.info("info",
+                                                    _("Successful XBRL facts sum of md5s."),
+                                                    modelObject=modelXbrl)
+                                    except ValueError:
+                                        modelXbrl.error("streamingExtensions:xbrlFactsCheckError",
+                                                _("Invalid sum-of-md5s %(sumOfMd5)s"),
+                                                modelObject=modelXbrl, sumOfMd5=_matchGroups[1])
+                    if _streamingValidateFactsPlugin:
+                        for pluginMethod in pluginClassMethods("Streaming.ValidateFinish"):
+                            pluginMethod(instValidator)
+                    if _streamingFactsPlugin:
+                        for pluginMethod in pluginClassMethods("Streaming.Finish"):
+                            pluginMethod(modelXbrl)
+            elif ns == XbrlConst.link:
+                if ln in ("schemaRef", "linkbaseRef"):
+                    modelDocument.discoverHref(mdlObj)
+                elif ln in ("roleRef", "arcroleRef"):
+                    modelDocument.linkbaseDiscover((mdlObj,), inInstance=True)
+                elif ln == "footnoteLink":
+                    XmlValidate.validate(modelXbrl, mdlObj)
+                    footnoteLinks = (mdlObj,)
+                    modelDocument.linkbaseDiscover(footnoteLinks, inInstance=True)
+                    if footnoteBufferLimit.is_finite():
+                        footnoteBuffer.append(mdlObj)
+                    if _streamingExtensionsValidate:
+                        instValidator.checkLinks(footnoteLinks)
+                        if len(footnoteBuffer) > footnoteBufferLimit:
+                            # check that hrefObjects for locators were all satisfied
+                                # drop before addition as dropped may have same id as added
+                            footnoteLink = footnoteBuffer.pop(0)
+                            checkFootnoteHrefs(modelXbrl, footnoteLink)
+                            if _streamingValidateFactsPlugin:
+                                footnoteLinksToDrop.append(footnoteLink)
+                            else:
+                                dropFootnoteLink(modelXbrl, footnoteLink)
+                                #>>del parentMdlObj[parentMdlObj.index(footnoteLink)]
+                            footnoteLink = None
+                    footnoteLinks = None
+            elif parentMdlObj.qname == XbrlConst.qnXbrliXbrl and isinstance(mdlObj, ModelFact):
+                numRootFacts += 1
+                XmlValidate.validate(modelXbrl, mdlObj)
+                modelDocument.factDiscover(mdlObj, modelXbrl.facts)
+                if factsCheckVersion:
+                    factCheckFact(mdlObj)
+                if _streamingExtensionsValidate or _streamingFactsPlugin or _streamingValidateFactsPlugin:
+                    factsToCheck = (mdlObj,)  # validate current fact by itself
+                    if _streamingExtensionsValidate:
+                        instValidator.checkFacts(factsToCheck)
+                        if modelXbrl.hasXDT:
+                            instValidator.checkFactsDimensions(factsToCheck)
+                    if _streamingFactsPlugin or _streamingValidateFactsPlugin:
+                        # plugin attempts to process batch of all root facts not yet processed (not just current one)
+                        # use batches of 1000 facts
+                        if len(modelXbrl.facts) > 1000:
+                            factsToCheck = modelXbrl.facts.copy()
+                            # can block facts deletion if required data not yet available, such as numeric unit for DpmDB
+                            if _streamingValidateFactsPlugin:
+                                for pluginMethod in pluginClassMethods("Streaming.ValidateFacts"):
+                                    pluginMethod(instValidator, factsToCheck)
+                            if _streamingFactsPlugin:
+                                for pluginMethod in pluginClassMethods("Streaming.Facts"):
+                                    pluginMethod(modelXbrl, factsToCheck)
+                            for fact in factsToCheck:
+                                dropFact(modelXbrl, fact, modelXbrl.facts)
+                                #>>del parentMdlObj[parentMdlObj.index(fact)]
+                            for cntx in contextsToDrop:
+                                dropContext(modelXbrl, cntx)
+                                #>>del parentMdlObj[parentMdlObj.index(cntx)]
+                            for unit in unitsToDrop:
+                                dropUnit(modelXbrl, unit)
+                                #>>del parentMdlObj[parentMdlObj.index(unit)]
+                            for footnoteLink in footnoteLinksToDrop:
+                                dropFootnoteLink(modelXbrl, footnoteLink)
+                                #>>del parentMdlObj[parentMdlObj.index(footnoteLink)]
+                            fact = cntx = unit = footnoteLink = None
+                            del contextsToDrop[:]
+                            del unitsToDrop[:]
+                            del footnoteLinksToDrop[:]
+                            del factsToCheck # dereference fact or batch of facts
+                    else:
+                        dropFact(modelXbrl, mdlObj, modelXbrl.facts) # single fact has been processed
+                        #>>del parentMdlObj[parentMdlObj.index(mdlObj)]
+                if numRootFacts % 1000 == 0:
+                    pass
+                    #modelXbrl.profileActivity("... streaming fact {0} of {1} {2:.2f}%".format(self.numRootFacts, instInfoNumRootFacts, 
+                    #                                                                          100.0 * self.numRootFacts / instInfoNumRootFacts), 
+                    #                          minTimeToShow=20.0)
+                    #gc.collect()
+                    #sys.stdout.write ("\rAt fact {} of {} mem {}".format(numRootFacts, instInfoNumRootFacts, modelXbrl.modelManager.cntlr.memoryUsed))
+    if mdlObj is not None:
+        mdlObj.clear()
+    del _parser, _parserLookupName, _parserLookupClass                
+                
     if _streamingExtensionsValidate and validator is not None:
         _file.close()
         del instValidator
@@ -496,7 +791,8 @@ def dropFact(modelXbrl, fact, facts):
     modelXbrl.factsInInstance.discard(fact)
     facts.remove(fact)
     modelXbrl.modelObjects[fact.objectIndex] = None # objects found by index, can't remove position from list
-    fact.modelDocument.modelObjects.remove(fact)
+    if fact.id:
+        fact.modelDocument.idObjects.pop(fact.id, None)
     fact.clear()
     
 def dropObject(modelXbrl, mdlObj):
@@ -508,8 +804,8 @@ def dropObject(modelXbrl, mdlObj):
         for i in removedHrefs:
             del hrefs[i]
     modelXbrl.modelObjects[mdlObj.objectIndex] = None # objects found by index, can't remove position from list
-    mdlObj.modelDocument.modelObjects.remove(mdlObj)
-    mdlObj.modelDocument.idObjects.pop(mdlObj.id, None)
+    if mdlObj.id:
+        mdlObj.modelDocument.idObjects.pop(mdlObj.id, None)
     mdlObj.clear()
 
 '''

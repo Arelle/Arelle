@@ -254,7 +254,7 @@ def checkDTSdocument(val, modelDocument):
                         modelXbrl.error("SBR.NL.3.2.7.06",
                             _("Labels with the 'standard' role MUST NOT exceed 255 characters, label %(label)s: %(text)s"),
                             modelObject=modelLabel, label=modelLabel.xlinkLabel, text=modelLabel.text[:64])
-        for modelResource in modelDocument.modelObjects:
+        for modelResource in modelDocument.xmlRootElement.iter():
             # locator checks
             if isinstance(modelResource, ModelLocator):
                 hrefModelObject = modelResource.dereference()
