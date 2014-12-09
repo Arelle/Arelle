@@ -123,7 +123,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             modelXbrl.modelManager.disclosureSystem.validateFileText):
             file, _encoding = ValidateFilingText.checkfile(modelXbrl,filepath)
         else:
-            file, _encoding = modelXbrl.fileSource.file(filepath)
+            file, _encoding = modelXbrl.fileSource.file(filepath, stripDeclaration=True)
         xmlDocument = None
         isPluginParserDocument = False
         for pluginMethod in pluginClassMethods("ModelDocument.CustomLoader"):
