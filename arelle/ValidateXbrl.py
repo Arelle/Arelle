@@ -62,7 +62,6 @@ class ValidateXbrl:
         self.validateEFM = self.validateDisclosureSystem and self.disclosureSystem.EFM
         self.validateGFM = self.validateDisclosureSystem and self.disclosureSystem.GFM
         self.validateEFMorGFM = self.validateDisclosureSystem and self.disclosureSystem.EFMorGFM
-        self.validateEBA = self.validateDisclosureSystem and self.disclosureSystem.EBA
         self.validateHMRC = self.validateDisclosureSystem and self.disclosureSystem.HMRC
         self.validateSBRNL = self.validateDisclosureSystem and self.disclosureSystem.SBRNL
         self.validateXmlLang = self.validateDisclosureSystem and self.disclosureSystem.xmlLangPattern
