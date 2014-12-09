@@ -7,8 +7,9 @@ Created on Oct 20, 2010
 import zipfile, tarfile, os, io, base64, gzip, zlib, re, struct, random, time
 from lxml import etree
 from arelle import XmlUtil
-from arelle.PackageManager import parsePackage
+from arelle import PackageManager
 from arelle.UrlUtil import isHttpUrl
+from operator import indexOf
 
 archivePathSeparators = (".zip" + os.sep, ".tar.gz" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, '.taxonomyPackage.xml' + os.sep) + \
                         ((".zip/", ".tar.gz/", ".eis/", ".xml/", ".xfd/", ".frm/", '.taxonomyPackage.xml/') if os.sep != "/" else ()) #acomodate windows and http styles
@@ -262,7 +263,7 @@ class FileSource:
                                       .format(', '.join(metadataFiles)))
                     # HF: this won't work, see DialogOpenArchive for correct code
                     # not sure if it is used
-                    taxonomyPackage = parsePackage(self.cntlr, self.url)
+                    taxonomyPackage = PackageManager.parsePackage(self.cntlr, self.url)
                     fileSourceDir = os.path.dirname(self.baseurl) + os.sep
                     self.mappedPaths = \
                         dict((prefix, 
@@ -538,6 +539,12 @@ class FileSource:
             self.url = self.baseurl + os.sep + selection.replace("/", os.sep)
             
 def openFileStream(cntlr, filepath, mode='r', encoding=None):
+    if PackageManager.isMappedUrl(filepath):
+        filepath = PackageManager.mappedUrl(filepath)
+    else:
+        filepath = cntlr.modelManager.disclosureSystem.mappedUrl(filepath)
+    if archiveFilenameParts(filepath): # file is in an archive
+        return openFileSource(filepath, cntlr).file(filepath, binary=True)[0]
     if isHttpUrl(filepath) and cntlr:
         _cacheFilepath = cntlr.webCache.getfilename(filepath)
         if _cacheFilepath is None:
@@ -591,11 +598,12 @@ def openXmlFileStream(cntlr, filepath, stripDeclaration=False):
     if text is None:  # ok to read as utf-8
         return io.open(filepath, 'rt', encoding='utf-8'), encoding
     else:
-        # strip XML declaration
-        xmlDeclarationMatch = XMLdeclaration.search(text)
-        if xmlDeclarationMatch: # remove it for lxml
-            start,end = xmlDeclarationMatch.span()
-            text = text[0:start] + text[end:]
+        if stripDeclaration:
+            # strip XML declaration
+            xmlDeclarationMatch = XMLdeclaration.search(text)
+            if xmlDeclarationMatch: # remove it for lxml
+                start,end = xmlDeclarationMatch.span()
+                text = text[0:start] + text[end:]
         return (FileNamedStringIO(filepath, initial_value=text), encoding)
     
 def saveFile(cntlr, filepath, contents, encoding=None):
