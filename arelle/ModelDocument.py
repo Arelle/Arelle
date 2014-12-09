@@ -151,6 +151,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                 _("%(fileName)s: file error: %(error)s \nLoading terminated."),
                 modelObject=referringElement, fileName=os.path.basename(uri), error=str(err))
             raise LoadingException()
+        #import traceback
+        #print("traceback {}".format(traceback.format_tb(sys.exc_info()[2])))
         modelXbrl.error("IOerror",
                 _("%(fileName)s: file error: %(error)s"),
                 modelObject=referringElement, fileName=os.path.basename(uri), error=str(err))
@@ -528,10 +530,6 @@ class ModelDocument:
         
         Dict by id of modelObjects in document
 
-        .. attribute:: modelObjects
-        
-        List of modelObjects discovered in document in document order
-
         .. attribute:: hrefObjects
         
         List of (modelObject, modelDocument, id) for each xlink:href
@@ -562,7 +560,6 @@ class ModelDocument:
         modelXbrl.modelObjects.append(self)
         self.referencesDocument = {}
         self.idObjects = {}  # by id
-        self.modelObjects = [] # all model objects
         self.hrefObjects = []
         self.schemaLocationElements = set()
         self.referencedNamespaces = set()
@@ -635,13 +632,15 @@ class ModelDocument:
                     self.toDTS.close()
             urlDocs.pop(self.uri,None)
             xmlDocument = self.xmlDocument
-            parser = self.parser
-            for modelObject in self.modelObjects:
+            dummyRootElement = self.parser.makeelement("{http://dummy}dummy") # may fail for streaming
+            for modelObject in self.xmlRootElement.iter():
                 modelObject.clear() # clear children
             self.parserLookupName.__dict__.clear()
             self.parserLookupClass.__dict__.clear()
             self.__dict__.clear() # dereference everything before clearing xml tree
-            xmlDocument._setroot(parser.makeelement("{http://dummy}dummy"))
+            if dummyRootElement is not None:
+                xmlDocument._setroot(dummyRootElement)
+            del dummyRootElement
         except AttributeError:
             pass    # maybe already cloased
         if len(visited) == 1:  # outer call
