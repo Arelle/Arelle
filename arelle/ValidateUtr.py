@@ -21,7 +21,8 @@ class UtrEntry(): # use slotted class for execution efficiency
 def loadUtr(modelManager): # Build a dictionary of item types that are constrained by the UTR
     modelManager.disclosureSystem.utrItemTypeEntries = utrItemTypeEntries = defaultdict(dict)
     # print('UTR LOADED FROM '+utrUrl);
-    modelManager.cntlr.showStatus(_("Loading Unit Type Registry"))
+    # skip status message as it hides prior activity during which this might have just obtained symbols
+    # modelManager.cntlr.showStatus(_("Loading Unit Type Registry"))
     file = None
     try:
         from arelle.FileSource import openXmlFileStream
