@@ -862,8 +862,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             break
         if not instanceId:
             raise DpmDBException("sqlDB:MissingInstance",
-                    _("The instance was not found in table dInstance: %(instanceURI)s"),
-                    instanceURI = instanceURI) 
+                    _("The instance was not found in table dInstance: %(instanceURI)s")
+                    .format(loadInstanceId or instanceURI)) 
             
 
         # find module in DB        
@@ -876,8 +876,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         
         if not xbrlSchemaRef:
             raise DpmDBException("sqlDB:MissingDTS",
-                    _("The module in mModule, corresponding to the instance, was not found for %(instanceURI)s"),
-                    instanceURI = instanceURI) 
+                    _("The module in mModule, corresponding to the instance, was not found for {0}")
+                    .format(instanceId or instanceURI)) 
             
         if modelXbrl.skipDTS:
             # find prefixes and namespaces in DB
@@ -962,6 +962,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         prefixedNamespaces = modelXbrl.prefixedNamespaces
         prefixedNamespaces["iso4217"] = XbrlConst.iso4217
         prefixedNamespaces["xbrli"] = XbrlConst.xbrli
+        prefixedNamespaces[None] = XbrlConst.xbrli # createInstance expects default prefix for xbrli
         if modelXbrl.skipDTS:
             prefixedNamespaces.update(dpmPrefixedNamespaces) # for skipDTS this is always needed
         

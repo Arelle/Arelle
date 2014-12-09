@@ -45,7 +45,7 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
     else:
         if isinstance(name, dict):
             namespaceURI = None
-            namespaceDict = name
+            namespaceDict = name # note that default prefix must be None, not '', in dict
         elif name is not None:
             if name:  # len > 0
                 namespaceURI = value
