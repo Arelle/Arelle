@@ -97,7 +97,6 @@ class ModelObject(etree.ElementBase):
         self.modelDocument = modelDocument
         self.objectIndex = len(modelDocument.modelXbrl.modelObjects)
         modelDocument.modelXbrl.modelObjects.append(self)
-        modelDocument.modelObjects.append(self)
         id = self.get("id")
         if id:
             modelDocument.idObjects[id] = self
