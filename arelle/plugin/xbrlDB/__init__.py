@@ -200,7 +200,9 @@ def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl):
     
 def xbrlDBCommandLineXbrlRun(cntlr, options, modelXbrl):
     from arelle.ModelDocument import Type
-    if modelXbrl.modelDocument.type != Type.RSSFEED and getattr(options, "storeIntoXbrlDb", False):
+    if (modelXbrl.modelDocument.type != Type.RSSFEED and 
+        getattr(options, "storeIntoXbrlDb", False) and 
+        not getattr(modelXbrl, "xbrlDBprocessedByStreaming", False)):
         dbConnection = options.storeIntoXbrlDb.split(",")
         storeIntoDB(dbConnection, modelXbrl)
         
@@ -252,16 +254,20 @@ def xbrlDBLoader(modelXbrl, mappedUri, filepath, **kwargs):
             extraArgs[argName] = argValue
     return storeIntoDB(dbConnection, modelXbrl, **extraArgs)
 
+def xbrlDBmodelXbrlInit(modelXbrl):
+        modelXbrl.xbrlDBprocessedByStreaming = False
+
 def xbrlDBstartStreaming(modelXbrl):
     if _storeIntoDBoptions:
         return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl, streamingState="start", logStoredMsg=False)
 
-def xbrlDBvalidateStreamingFacts(modelXbrl, modelFacts):
+def xbrlDBstreamingFacts(modelXbrl, modelFacts):
     if _storeIntoDBoptions:
         return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl, streamingState="acceptFacts", streamedFacts=modelFacts, logStoredMsg=False)
 
 def xbrlDBfinishStreaming(modelXbrl):
     if _storeIntoDBoptions:
+        modelXbrl.xbrlDBprocessedByStreaming = True
         return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl, streamingState="finish", logStoredMsg=False)
 
 class LogToDbHandler(logging.Handler):
@@ -316,8 +322,9 @@ __pluginInfo__ = {
     'ModelDocument.PullLoader': xbrlDBLoader,
     'RssWatch.HasWatchAction': xbrlDBrssWatchHasWatchAction,
     'RssWatch.DoWatchAction': xbrlDBrssDoWatchAction,
+    'ModelXbrl.Init': xbrlDBmodelXbrlInit,
     'Streaming.Start': xbrlDBstartStreaming,
-    'Streaming.ValidateFacts': xbrlDBvalidateStreamingFacts,
+    'Streaming.Facts': xbrlDBstreamingFacts,
     'Streaming.Finish': xbrlDBfinishStreaming,
     'Validate.RssItem': xbrlDBvalidateRssItem
 }
