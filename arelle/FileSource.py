@@ -367,7 +367,7 @@ class FileSource:
                     self.referencedFileSources[referencedArchiveFile] = referencedFileSource
         return None
     
-    def file(self, filepath, binary=False, stripDeclaration=False):
+    def file(self, filepath, binary=False, stripDeclaration=False, encoding=None):
         ''' 
             for text, return a tuple of (open file handle, encoding)
             for binary, return a tuple of (open file handle, )
@@ -383,7 +383,8 @@ class FileSource:
                     b = archiveFileSource.fs.read(archiveFileName.replace("\\","/"))
                     if binary:
                         return (io.BytesIO(b), )
-                    encoding = XmlUtil.encoding(b)
+                    if encoding is None:
+                        encoding = XmlUtil.encoding(b)
                     if stripDeclaration:
                         b = stripDeclarationBytes(b)
                     return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding), 
@@ -397,7 +398,8 @@ class FileSource:
                     fh.close() # doesn't seem to close properly using a with construct
                     if binary:
                         return (io.BytesIO(b), )
-                    encoding = XmlUtil.encoding(b)
+                    if encoding is None:
+                        encoding = XmlUtil.encoding(b)
                     if stripDeclaration:
                         b = stripDeclarationBytes(b)
                     return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding), 
@@ -421,7 +423,8 @@ class FileSource:
                                 length = len(b);
                             if binary:
                                 return (io.BytesIO(b), )
-                            encoding = XmlUtil.encoding(b, default="latin-1")
+                            if encoding is None:
+                                encoding = XmlUtil.encoding(b, default="latin-1")
                             return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
                                     encoding)
                 raise ArchiveFileIOError(self, archiveFileName)
@@ -442,7 +445,8 @@ class FileSource:
                                 length = len(b);
                             if binary:
                                 return (io.BytesIO(b), )
-                            encoding = XmlUtil.encoding(b, default="latin-1")
+                            if encoding is None:
+                                encoding = XmlUtil.encoding(b, default="latin-1")
                             return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
                                     encoding)
                 raise ArchiveFileIOError(self, archiveFileName)
@@ -548,7 +552,7 @@ def openFileStream(cntlr, filepath, mode='r', encoding=None):
     else:
         filepath = cntlr.modelManager.disclosureSystem.mappedUrl(filepath)
     if archiveFilenameParts(filepath): # file is in an archive
-        return openFileSource(filepath, cntlr).file(filepath, binary=True)[0]
+        return openFileSource(filepath, cntlr).file(filepath, binary='b' in mode, encoding=encoding)[0]
     if isHttpUrl(filepath) and cntlr:
         _cacheFilepath = cntlr.webCache.getfilename(filepath)
         if _cacheFilepath is None:
