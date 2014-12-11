@@ -695,7 +695,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                 for aspect, aspectValue in cellAspectValues.items():
                                     if isinstance(aspectValue, str) and aspectValue.startswith(OPEN_ASPECT_ENTRY_SURROGATE):
                                         self.factPrototypeAspectEntryObjectIds[objectId].add(aspectValue) 
-                            gridCell(self.gridBody, self.dataFirstCol + i, row, value, justify=justify, 
+                            gridCell(self.gridBody, self.dataFirstCol + i, row, value, 
+                                     justify=(justify or ("right" if fp.isNumeric else "left")), 
                                      width=ENTRY_WIDTH_IN_CHARS, # width is in characters, not screen units
                                      objectId=objectId, onClick=self.onClick)
                         else:

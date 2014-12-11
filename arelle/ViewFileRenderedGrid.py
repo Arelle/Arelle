@@ -722,6 +722,8 @@ class ViewRenderedGrid(ViewFile.View):
                                         value = fact.effectiveValue
                                     justify = "right" if fact.isNumeric else "left"
                                     break
+                        if justify is None:
+                            justify = "right" if fp.isNumeric else "left"
                         if conceptNotAbstract:
                             if self.type == XML:
                                 cellsParentElt.append(etree.Comment("Cell concept {0}: segDims {1}, scenDims {2}"

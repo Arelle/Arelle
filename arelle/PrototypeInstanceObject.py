@@ -32,6 +32,7 @@ class FactPrototype():      # behaves like a fact for dimensional validity testi
                 self.isTuple = False
         else:
             self.parent = v.modelXbrl.modelDocument.xmlRootElement
+        self.isNumeric = self.concept is not None and self.concept.isNumeric
         self.context = ContextPrototype(v, aspectValues)
         if Aspect.UNIT in aspectValues:
             self.unit = UnitPrototype(v, aspectValues)
