@@ -441,8 +441,6 @@ class ModelXbrl:
         :param overrideFilepath: specify to override saving in instance's modelDocument.filepath
         """
         self.modelDocument.save(overrideFilepath)
-        with open( (overrideFilepath or self.modelDocument.filepath), "w", encoding='utf-8') as fh:
-            XmlUtil.writexml(fh, self.modelDocument.xmlDocument, encoding="utf-8")
             
     @property    
     def prefixedNamespaces(self):
