@@ -18,12 +18,12 @@ def noop(*args, **kwargs): return
 class NoopException(Exception):
     pass
 try:
-    import pg8000, pg8000.errors
+    import pg8000
     hasPostgres = True
-    pgConnect = pg8000.DBAPI.connect
-    pgOperationalError = pg8000.errors.OperationalError
-    pgProgrammingError = pg8000.errors.ProgrammingError
-    pgInterfaceError = pg8000.errors.InterfaceError
+    pgConnect = pg8000.connect
+    pgOperationalError = pg8000.OperationalError
+    pgProgrammingError = pg8000.ProgrammingError
+    pgInterfaceError = pg8000.InterfaceError
 except ImportError:
     hasPostgres = False
     pgConnect = noop
@@ -267,7 +267,7 @@ class SqlDbConnection():
     def rollback(self):
         try:
             self.conn.rollback()
-        except (pg8000.errors.ConnectionClosedError):
+        except (pg8000.ConnectionClosedError):
             pass
         
     def dropTemporaryTable(self):
