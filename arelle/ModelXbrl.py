@@ -813,6 +813,18 @@ class ModelXbrl:
         if validate:
             XmlValidate.validate(self, newFact)
         self.modelDocument.factDiscover(newFact, parentElement=parent)
+        # update cached sets
+        if not newFact.isNil and hasattr(self, "_nonNilFactsInInstance"):
+            self._nonNilFactsInInstance.add(newFact)
+        if hasattr(self, "_factsByQname"):
+            self._factsByQname[newFact.qname].add(newFact)
+        if newFact.concept is not None:
+            if hasattr(self, "_factsByDatatype"):
+                del self._factsByDatatype # would need to iterate derived type ancestry to populate
+            if hasattr(self, "_factsByPeriodType"):
+                self._factsByPeriodType[newFact.concept.periodType].add(newFact)
+            if hasattr(self, "_factsByDimQname"):
+                del self._factsByDimQname
         return newFact    
         
     def modelObject(self, objectId):
