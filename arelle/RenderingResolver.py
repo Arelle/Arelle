@@ -307,7 +307,10 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                                 structuralNode.childStructuralNodes.append(childStructuralNode)
                         if axisDisposition != "z":
                             expandDefinition(view, childStructuralNode, breakdownNode, childDefinitionNode, depth+ordDepth, axisDisposition, facts, i, tblAxisRels) #recurse
-                            cartesianProductExpander(childStructuralNode, *cartesianProductNestedArgs)
+                            if not (isinstance(childStructuralNode.definitionNode, ModelFilterDefinitionNode)
+                                    and any([node.isEntryPrototype(default=False) for node in childStructuralNode.childStructuralNodes])) :
+                                # To be computed only if the structural node is not an open node
+                                cartesianProductExpander(childStructuralNode, *cartesianProductNestedArgs)
                         else:
                             childStructuralNode.indent = depth - 1
                             if structuralNode.choiceStructuralNodes is not None:
