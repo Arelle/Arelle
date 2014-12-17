@@ -70,6 +70,11 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
                     modelObject=varSet,
                     messageCodes=("message:{variableSetID|xlinkLabel}"))
                 xpCtx.inScopeVars.pop(XbrlConst.qnEaTestExpression)
+            elif varSet.evaluationsCount > 0 and varSet.countNotSatisfied > 0:
+                # Assume that there is a problem in the taxonomy (i. e EBA COREP/FINREP prior to 2014/07/31).
+                # Assume that a message simplified message should be displayed if there are some rules that are not
+                # satisfied.
+                xpCtx.modelXbrl.info("rule not satisfied:", varSet.logLabel())
         if xpCtx.formulaOptions.traceVariableSetExpressionResult and initialTraceCount == xpCtx.modelXbrl.logCount.get(logging._checkLevel('INFO'), 0):
             xpCtx.modelXbrl.info("formula:trace",
                  _("Variable set %(xlinkLabel)s had no xpCtx.evaluations"),
@@ -82,8 +87,8 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
         xpCtx.variableSet = None
     except XPathContext.XPathException as err:
         xpCtx.modelXbrl.error(err.code,
-                 _("Variable set %(xlinkLabel)s \nException: %(error)s"), 
-                 modelObject=varSet, xlinkLabel=varSet.xlinkLabel, error=err.message)
+                 _("Variable set %(logLabel)s:\nException: %(error)s"), 
+                 modelObject=varSet, logLabel=varSet.logLabel(), error=err.message)
         xpCtx.variableSet = None
     if xpCtx.formulaOptions.traceVariableSetExpressionResult:
         xpCtx.modelXbrl.info("formula:trace",
@@ -235,8 +240,8 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                         vb.close() # dereference
                 except XPathContext.XPathException as err:
                     xpCtx.modelXbrl.error(err.code,
-                        _("Variable set chained in scope of variable set %(variableset)s \nException: \n%(error)s"), 
-                        modelObject=varScopeRel.toModelObject, variableSet=varSet.xlinkLabel, error=err.message)
+                        _("Variable set chained in scope of variable set %(variableSet)s \nException: \n%(error)s"), 
+                        modelObject=varScopeRel.toModelObject, variableSet=varSet.logLabel(), error=err.message)
             
     else:
         # produce variable bindings
@@ -583,15 +588,15 @@ def produceOutputFact(xpCtx, formula, result):
     conceptQname = formulaAspectValue(xpCtx, formula, Aspect.CONCEPT, "xbrlfe:missingConceptRule")
     if isinstance(conceptQname, VariableBindingError):
         xpCtx.modelXbrl.error(conceptQname.err,
-           _("Formula %(xlinkLabel)s concept: %(concept)s"), 
-           modelObject=formula, xlinkLabel=formula.xlinkLabel, concept=conceptQname.msg)
+           _("Formula %(logLabel)s concept: %(concept)s"), 
+           modelObject=formula, logLabel=formula.logLabel(), concept=conceptQname.msg)
         modelConcept = None
     else:
         modelConcept = xpCtx.modelXbrl.qnameConcepts[conceptQname]
         if modelConcept is None or (not modelConcept.isTuple if isTuple else not modelConcept.isItem):
             xpCtx.modelXbrl.error("xbrlfe:missingConceptRule",
-               _("Formula %(xlinkLabel)s concept %(concept)s is not a %(element)s"), 
-               modelObject=formula, xlinkLabel=formula.xlinkLabel, concept=conceptQname, element=formula.localName)
+               _("Formula %(logLabel)s concept %(concept)s is not a %(element)s"), 
+               modelObject=formula, logLabel=formula.logLabel(), concept=conceptQname, element=formula.localName)
     
     outputLocation = formulaAspectValue(xpCtx, formula, Aspect.LOCATION_RULE, None)
 
@@ -600,15 +605,15 @@ def produceOutputFact(xpCtx, formula, result):
         entityIdentScheme = formulaAspectValue(xpCtx, formula, Aspect.SCHEME, "xbrlfe:missingEntityIdentifierRule")
         if isinstance(entityIdentScheme, VariableBindingError):
             xpCtx.modelXbrl.error(str(entityIdentScheme),
-                  _("Formula %(xlinkLabel)s entity identifier scheme: %(scheme)s"),
-                  modelObject=formula, xlinkLabel=formula.xlinkLabel, scheme=entityIdentScheme.msg)
+                  _("Formula %(logLabel)s entity identifier scheme: %(scheme)s"),
+                  modelObject=formula, logLabel=formula.logLabel(), scheme=entityIdentScheme.msg)
             entityIdentValue = None
         else:
             entityIdentValue = formulaAspectValue(xpCtx, formula, Aspect.VALUE, "xbrlfe:missingEntityIdentifierRule")
             if isinstance(entityIdentValue, VariableBindingError):
                 xpCtx.modelXbrl.error(str(entityIdentScheme),
-                      _("Formula %(xlinkLabel)s entity identifier value: %(entityIdentifier)s"), 
-                      modelObject=formula, xlinkLabel=formula.xlinkLabel, entityIdentifier=entityIdentValue.msg)
+                      _("Formula %(logLabel)s entity identifier value: %(entityIdentifier)s"), 
+                      modelObject=formula, logLabel=formula.logLabel(), entityIdentifier=entityIdentValue.msg)
         
         # period
         periodType = formulaAspectValue(xpCtx, formula, Aspect.PERIOD_TYPE, "xbrlfe:missingPeriodRule")
@@ -616,25 +621,25 @@ def produceOutputFact(xpCtx, formula, result):
         periodEndInstant = None
         if isinstance(periodType, VariableBindingError):
             xpCtx.modelXbrl.error(str(periodType),
-                   _("Formula %(xlinkLabel)s period type: %(periodType)s"),
-                   modelObject=formula, xlinkLabel=formula.xlinkLabel, periodType=periodType.msg)
+                   _("Formula %(logLabel)s period type: %(periodType)s"),
+                   modelObject=formula, logLabel=formula.logLabel(), periodType=periodType.msg)
         elif periodType == "instant":
             periodEndInstant = formulaAspectValue(xpCtx, formula, Aspect.INSTANT, "xbrlfe:missingPeriodRule")
             if isinstance(periodEndInstant, VariableBindingError):
                 xpCtx.modelXbrl.error(str(periodEndInstant),
-                   _("Formula %(xlinkLabel)s period end: %(period)s"), 
-                   modelObject=formula, xlinkLabel=formula.xlinkLabel, period=periodEndInstant.msg)
+                   _("Formula %(logLabel)s period end: %(period)s"), 
+                   modelObject=formula, logLabel=formula.logLabel(), period=periodEndInstant.msg)
         elif periodType == "duration":
             periodStart = formulaAspectValue(xpCtx, formula, Aspect.START, "xbrlfe:missingPeriodRule")
             if isinstance(periodStart, VariableBindingError):
                 xpCtx.modelXbrl.error(str(periodStart),
-                   _("Formula %(xlinkLabel)s period start: %(period)s"), 
-                   modelObject=formula, xlinkLabel=formula.xlinkLabel, period=periodStart.msg)
+                   _("Formula %(logLabel)s period start: %(period)s"), 
+                   modelObject=formula, logLabel=formula.logLabel(), period=periodStart.msg)
             periodEndInstant = formulaAspectValue(xpCtx, formula, Aspect.END, "xbrlfe:missingPeriodRule")
             if isinstance(periodEndInstant, VariableBindingError):
                 xpCtx.modelXbrl.error(str(periodEndInstant),
-                   _("Formula %(xlinkLabel)s period end: %(period)s"),
-                   modelObject=formula, xlinkLabel=formula.xlinkLabel, period=periodEndInstant.msg)
+                   _("Formula %(logLabel)s period end: %(period)s"),
+                   modelObject=formula, logLabel=formula.logLabel(), period=periodEndInstant.msg)
             
         # unit
         if modelConcept is not None and modelConcept.isNumeric:
@@ -642,15 +647,15 @@ def produceOutputFact(xpCtx, formula, result):
             multDivBy = formulaAspectValue(xpCtx, formula, Aspect.MULTIPLY_BY, "xbrlfe:missingUnitRule")
             if isinstance(multDivBy, VariableBindingError):
                 xpCtx.modelXbrl.error(str(multDivBy) if isinstance(multDivBy, VariableBindingError) else "xbrlfe:missingUnitRule",
-                   _("Formula %(xlinkLabel)s unit: %(unit)s"),
-                   modelObject=formula, xlinkLabel=formula.xlinkLabel, unit=multDivBy.msg)
+                   _("Formula %(logLabel)s unit: %(unit)s"),
+                   modelObject=formula, logLabel=formula.logLabel(), unit=multDivBy.msg)
                 multiplyBy = (); divideBy = () # prevent errors later if bad
             else:
                 divMultBy = formulaAspectValue(xpCtx, formula, Aspect.DIVIDE_BY, "xbrlfe:missingUnitRule")
                 if isinstance(divMultBy, VariableBindingError):
                     xpCtx.modelXbrl.error(str(multDivBy) if isinstance(divMultBy, VariableBindingError) else "xbrlfe:missingUnitRule",
-                       _("Formula %(xlinkLabel)s unit: %(unit)s"), 
-                       modelObject=formula, xlinkLabel=formula.xlinkLabel, unit=divMultBy.msg)
+                       _("Formula %(logLabel)s unit: %(unit)s"), 
+                       modelObject=formula, logLabel=formula.logLabel(), unit=divMultBy.msg)
                     multiplyBy = (); divideBy = () # prevent errors later if bad
                 else:
                     multiplyBy = unitSource[0] + multDivBy[0] + divMultBy[1]
@@ -669,8 +674,8 @@ def produceOutputFact(xpCtx, formula, result):
                         if (Aspect.MULTIPLY_BY not in formula.aspectValues and Aspect.MULTIPLY_BY not in formula.aspectProgs and
                             Aspect.DIVIDE_BY not in formula.aspectValues and Aspect.DIVIDE_BY not in formula.aspectProgs):
                             xpCtx.modelXbrl.error("xbrlfe:missingUnitRule",
-                               _("Formula %(xlinkLabel)s"), 
-                               modelObject=formula, xlinkLabel=formula.xlinkLabel)
+                               _("Formula %(logLabel)s"), 
+                               modelObject=formula, logLabel=formula.logLabel())
                         multiplyBy.append(XbrlConst.qnXbrliPure)
                             
         
@@ -687,15 +692,15 @@ def produceOutputFact(xpCtx, formula, result):
                     dimValue = formulaAspectValue(xpCtx, formula, dimQname, dimErr)
                     if isinstance(dimValue, VariableBindingError):
                         xpCtx.modelXbrl.error(dimErr,
-                           _("Formula %(xlinkLabel)s dimension %(dimension)s: %(value)s"),
-                           modelObject=formula, xlinkLabel=formula.xlinkLabel, 
+                           _("Formula %(logLabel)s dimension %(dimension)s: %(value)s"),
+                           modelObject=formula, logLabel=formula.logLabel(), 
                            dimension=dimQname, value=dimValue.msg)
                     elif dimConcept.isTypedDimension:
                         if isinstance(dimValue, list): # result of flatten, always a list
                             if len(dimValue) != 1 or not isinstance(dimValue[0], ModelObject):
                                 xpCtx.modelXbrl.error("xbrlfe:wrongXpathResultForTypedDimensionRule",
-                                   _("Formula %(xlinkLabel)s dimension %(dimension)s value is not a node: %(value)s"),
-                                   modelObject=formula, xlinkLabel=formula.xlinkLabel, 
+                                   _("Formula %(logLabel)s dimension %(dimension)s value is not a node: %(value)s"),
+                                   modelObject=formula, logLabel=formula.logLabel(), 
                                    dimension=dimQname, value=dimValue)
                                 continue
                             dimValue = dimValue[0]
@@ -707,8 +712,8 @@ def produceOutputFact(xpCtx, formula, result):
             for occElt in xpCtx.flattenSequence((segOCCs, scenOCCs)):
                 if isinstance(occElt, ModelObject) and occElt.namespaceURI == XbrlConst.xbrldi:
                     xpCtx.modelXbrl.error("xbrlfe:badSubsequentOCCValue",
-                       _("Formula %(xlinkLabel)s OCC element %(occ)s covers a dimensional aspect"),
-                       modelObject=(formula,occElt), xlinkLabel=formula.xlinkLabel, 
+                       _("Formula %(logLabel)s OCC element %(occ)s covers a dimensional aspect"),
+                       modelObject=(formula,occElt), logLabel=formula.logLabel(), 
                        occ=occElt.elementQname)
         else:
             dimAspects = None   # non-dimensional
@@ -768,8 +773,8 @@ def produceOutputFact(xpCtx, formula, result):
         valueSeqLen = len(value)
         if valueSeqLen > 1:
             xpCtx.modelXbrl.error("xbrlfe:nonSingletonOutputValue",
-                _("Formula %(xlinkLabel)s value is a sequence of length %(valueSequenceLength)s"),
-                modelObject=formula, xlinkLabel=formula.xlinkLabel, valueSequenceLength=valueSeqLen) 
+                _("Formula %(logLabel)s value is a sequence of length %(valueSequenceLength)s"),
+                modelObject=formula, logLabel=formula.logLabel(), valueSequenceLength=valueSeqLen) 
         else: 
             if valueSeqLen == 0: #xsi:nil if no value
                 attrs.append((XbrlConst.qnXsiNil, "true"))
