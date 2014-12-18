@@ -678,6 +678,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.traceVariableSetExpressionEvaluation = True
         if options.formulaVarSetExprResult:
             fo.traceVariableSetExpressionResult = True
+        if options.formulaVarSetExprInError:
+            fo.traceVariableSetExpressionInError = True
         if options.formulaAsserResultCounts:
             fo.traceAssertionResultCounts = True
         if options.formulaFormulaRules:

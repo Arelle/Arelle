@@ -23,6 +23,17 @@ ModelDimensionValue = None
 
 expressionVariablesPattern = re.compile(r"([^$]*)([$]\w[\w:.-]*)([^$]*)")
 
+def outputEvaluatedValues(xpCtx, varSet, result, traceOf=''):
+    if xpCtx.formulaOptions.traceVariableSetExpressionInError:
+        expression = varSet.expression
+        xpCtx.modelXbrl.info("formula:evaluation",
+             _("%(variableSetType)s %(xlinkLabel)s{0} \n    Expression: %(expression)s \n    Evaluated: %(evaluatedExpression)s \n    Result: %(result)s"),
+             modelObject=varSet, variableSetType=traceOf, xlinkLabel=varSet.xlinkLabel, 
+             result=result, expression=expression,
+             evaluatedExpression=''.join(xpCtx.traceEffectiveVariableValue(varSet,expr)
+                                         for grp in expressionVariablesPattern.findall(expression)
+                                         for expr in grp))
+
 def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
     # for each dependent variable, find bindings
     if variablesInScope:
@@ -70,11 +81,13 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
                     modelObject=varSet,
                     messageCodes=("message:{variableSetID|xlinkLabel}"))
                 xpCtx.inScopeVars.pop(XbrlConst.qnEaTestExpression)
-            elif varSet.evaluationsCount > 0 and varSet.countNotSatisfied > 0:
+                outputEvaluatedValues(xpCtx, varSet, result)
+            elif varSet.countNotSatisfied > 0:
                 # Assume that there is a problem in the taxonomy (i. e EBA COREP/FINREP prior to 2014/07/31).
                 # Assume that a message simplified message should be displayed if there are some rules that are not
                 # satisfied.
                 xpCtx.modelXbrl.info("rule not satisfied:", varSet.logLabel())
+                outputEvaluatedValues(xpCtx, varSet, result)
         if xpCtx.formulaOptions.traceVariableSetExpressionResult and initialTraceCount == xpCtx.modelXbrl.logCount.get(logging._checkLevel('INFO'), 0):
             xpCtx.modelXbrl.info("formula:trace",
                  _("Variable set %(xlinkLabel)s had no xpCtx.evaluations"),
@@ -106,7 +119,7 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
         xpCtx.varBindings.clear() # dereference
         uncoveredAspectFacts.clear()    # dereference
         pass     
-    
+
 def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFacts):
     if varIndex == len(varSet.orderedVariableRelationships):
         # check if all fact vars are fallen back
@@ -179,6 +192,7 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                 if result: varSet.countSatisfied += 1
                 else: varSet.countNotSatisfied += 1
                 msg = varSet.message(result)
+                traceOf = "Value Assertion"
                 if msg is not None:
                     xpCtx.inScopeVars[XbrlConst.qnVaTestExpression] = varSet.test
                     xpCtx.modelXbrl.info("message:" + (varSet.id or varSet.xlinkLabel or  _("unlabeled variableSet")),
@@ -187,7 +201,13 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                         label=varSet.logLabel(),
                         messageCodes=("message:{variableSetID|xlinkLabel}"))
                     xpCtx.inScopeVars.pop(XbrlConst.qnVaTestExpression)
-                traceOf = "Value Assertion"
+                    outputEvaluatedValues(xpCtx, varSet, result, traceOf)
+                elif varSet.countNotSatisfied > 0:
+                    # Assume that there is a problem in the taxonomy (i. e EBA COREP/FINREP prior to 2014/07/31).
+                    # Assume that a message simplified message should be displayed if there are some rules that are not
+                    # satisfied.
+                    xpCtx.modelXbrl.info("evaluation not satisfied:", varSet.logLabel())
+                    outputEvaluatedValues(xpCtx, varSet, result, traceOf)
             if xpCtx.formulaOptions.traceVariableSetExpressionResult:
                 label = varSet.logLabel()
                 expression = varSet.expression

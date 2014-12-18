@@ -135,6 +135,7 @@ class FormulaOptions():
         self.traceVariableSetExpressionCode = False
         self.traceVariableSetExpressionEvaluation = False
         self.traceVariableSetExpressionResult = False
+        self.traceVariableSetExpressionInError = True
         self.timeVariableSetEvaluation = False
         self.traceAssertionResultCounts = False
         self.traceFormulaRules = False
