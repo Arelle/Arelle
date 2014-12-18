@@ -26,7 +26,7 @@ expressionVariablesPattern = re.compile(r"([^$]*)([$]\w[\w:.-]*)([^$]*)")
 def outputEvaluatedValues(xpCtx, varSet, result, traceOf=''):
     if xpCtx.formulaOptions.traceVariableSetExpressionInError:
         expression = varSet.expression
-        xpCtx.modelXbrl.info("formula:evaluation",
+        xpCtx.modelXbrl.info("formula:" + (varSet.id or varSet.xlinkLabel or _("unlabeled variableSet")),
              _("%(variableSetType)s %(xlinkLabel)s{0} \n    Expression: %(expression)s \n    Evaluated: %(evaluatedExpression)s \n    Result: %(result)s"),
              modelObject=varSet, variableSetType=traceOf, xlinkLabel=varSet.xlinkLabel, 
              result=result, expression=expression,
