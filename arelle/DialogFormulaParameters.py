@@ -29,6 +29,7 @@ def getParameters(mainWin):
 class DialogFormulaParameters(Toplevel):
     def __init__(self, mainWin, options):
         parent = mainWin.parent
+        self.modelManager = mainWin.modelManager
         super(DialogFormulaParameters, self).__init__(parent)
         self.parent = parent
         self.options = options
@@ -122,9 +123,18 @@ class DialogFormulaParameters(Toplevel):
                     "Assertion Result Counts", 
                     "traceAssertionResultCounts"),
            checkbox(frame, 2, y + 6,
+                    "Assertion Satisfied [info]", 
+                    "traceAssertionSatisfied"),
+           checkbox(frame, 2, y + 7,
+                    "Assertion Unsatisfied [error]", 
+                    "errorAssertionUnsatisfied"),
+           checkbox(frame, 2, y + 8,
+                    "Assertion Unsatisfied [info]", 
+                    "traceAssertionUnsatisfied"),
+           checkbox(frame, 2, y + 9,
                     "Formula Rules", 
                     "traceFormulaRules"),
-           checkbox(frame, 2, y + 7,
+           checkbox(frame, 2, y + 10,
                     "Evaluation Timing", 
                     "timeVariableSetEvaluation"),
            checkbox(frame, 3, y + 1, 
@@ -155,15 +165,16 @@ class DialogFormulaParameters(Toplevel):
            # Note: if adding to this list keep ModelFormulaObject.FormulaOptions in sync
         
            )
-        y += 9
+        y += 11
         
         mainWin.showStatus(None)
 
         label(frame, 1, y, "IDs:")
         self.idsEntry = gridCell(frame, 1, y, options.get("runIDs"))
         self.idsEntry.grid(columnspan=2, padx=30)
-        okButton = Button(frame, text=_("OK"), width=12, command=self.ok)
-        cancelButton = Button(frame, text=_("Cancel"), width=12, command=self.close)
+        _w = 8 if self.modelManager.cntlr.isMac else 12
+        okButton = Button(frame, text=_("OK"), width=_w, command=self.ok)
+        cancelButton = Button(frame, text=_("Cancel"), width=_w, command=self.close)
         okButton.grid(row=y, column=3, sticky=W, pady=3)
         cancelButton.grid(row=y, column=3, sticky=E, pady=3, padx=3)
         

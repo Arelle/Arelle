@@ -221,6 +221,12 @@ def parseAndRun(args):
     parser.add_option("--formulavarsettiming", action="store_true", dest="timeVariableSetEvaluation", help=SUPPRESS_HELP)
     parser.add_option("--formulaAsserResultCounts", action="store_true", dest="formulaAsserResultCounts", help=_("Specify formula tracing."))
     parser.add_option("--formulaasserresultcounts", action="store_true", dest="formulaAsserResultCounts", help=SUPPRESS_HELP)
+    parser.add_option("--formulaSatisfiedAsser", action="store_true", dest="formulaSatisfiedAsser", help=_("Specify formula tracing."))
+    parser.add_option("--formulasatisfiedasser", action="store_true", dest="formulaSatisfiedAsser", help=SUPPRESS_HELP)
+    parser.add_option("--formulaUnsatisfiedAsser", action="store_true", dest="formulaUnsatisfiedAsser", help=_("Specify formula tracing."))
+    parser.add_option("--formulaunsatisfiedasser", action="store_true", dest="formulaUnsatisfiedAsser", help=SUPPRESS_HELP)
+    parser.add_option("--formulaUnsatisfiedAsserError", action="store_true", dest="formulaUnsatisfiedAsserError", help=_("Specify formula tracing."))
+    parser.add_option("--formulaunsatisfiedassererror", action="store_true", dest="formulaUnsatisfiedAsserError", help=SUPPRESS_HELP)
     parser.add_option("--formulaFormulaRules", action="store_true", dest="formulaFormulaRules", help=_("Specify formula tracing."))
     parser.add_option("--formulaformularules", action="store_true", dest="formulaFormulaRules", help=SUPPRESS_HELP)
     parser.add_option("--formulaVarsOrder", action="store_true", dest="formulaVarsOrder", help=_("Specify formula tracing."))
@@ -680,6 +686,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.traceVariableSetExpressionResult = True
         if options.formulaAsserResultCounts:
             fo.traceAssertionResultCounts = True
+        if options.formulaSatisfiedAsser:
+            fo.traceSatisfiedAssertions = True
+        if options.formulaUnsatisfiedAsser:
+            fo.traceUnsatisfiedAssertions = True
+        if options.formulaUnsatisfiedAsserError:
+            fo.errorUnsatisfiedAssertions = True
         if options.formulaFormulaRules:
             fo.traceFormulaRules = True
         if options.formulaVarsOrder:
