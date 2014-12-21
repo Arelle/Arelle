@@ -37,8 +37,10 @@ class Validate:
         if modelXbrl.modelManager.validateDisclosureSystem:
             if modelXbrl.modelManager.disclosureSystem.HMRC:
                 self.instValidator = ValidateHmrc.ValidateHmrc(modelXbrl)
-            else:
+            elif modelXbrl.modelManager.disclosureSystem.EFMorGFM or modelXbrl.modelManager.disclosureSystem.SBRNL:
                 self.instValidator = ValidateFiling.ValidateFiling(modelXbrl)
+            else: # custom validator, probably a plug-in
+                self.instValidator = ValidateXbrl.ValidateXbrl(modelXbrl)
             self.formulaValidator = ValidateXbrl.ValidateXbrl(modelXbrl)
         else:
             self.instValidator = ValidateXbrl.ValidateXbrl(modelXbrl)
