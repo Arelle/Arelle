@@ -59,6 +59,8 @@ table {background:#fff}
 '''
         # order number is missing
         def viewTable(modelTable):
+            if modelTable is None:
+                return
             if isinstance(modelTable, (ModelEuTable, ModelTable)):
                 # status
                 dts.modelManager.cntlr.addToLog("viewing: " + modelTable.id)
@@ -82,7 +84,6 @@ table {background:#fff}
                 elt.text = modelTable.genLabel(lang=lang, strip=True)
                 
             else:  # just a header
-
                 # generaate menu entry
                 elt = etree.SubElement(listElt, "{http://www.w3.org/1999/xhtml}li")
                 elt.set("class", "CMSListMenuLink")
