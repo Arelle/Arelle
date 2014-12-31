@@ -385,6 +385,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                     if dConcept is not None:
                                         conceptsUsed[dConcept] = False
                                 if (isEntityCommonStockSharesOutstanding and
+                                    dimConcept is not None and
                                     dimConcept.name == "StatementClassOfStockAxis"):
                                     commonSharesItemsByStockClass[memConcept.qname].append(f)
                                     ''' per discussion with Dean R, remove use of LB defined members from this test
