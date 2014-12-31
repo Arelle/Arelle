@@ -296,7 +296,7 @@ class ModelObject(etree.ElementBase):
                 from arelle.XmlUtil import xpointerElement
                 xpointedElement = xpointerElement(doc,id)
                 # find element
-                for docModelObject in doc.modelObjects:
+                for docModelObject in doc.xmlRootElement.iter():
                     if docModelObject == xpointedElement:
                         doc.idObjects[id] = docModelObject # cache for reuse
                         return docModelObject
