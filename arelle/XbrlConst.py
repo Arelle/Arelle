@@ -161,11 +161,11 @@ verPrefixNS = {"ver":ver,
                }
 
 # extended enumeration spec
-enum = "http://xbrl.org/PR/2014-03-26/extensible-enumerations"
-qnEnumerationItemType = qname("{http://xbrl.org/PR/2014-03-26/extensible-enumerations}enum:enumerationItemType")
-attrEnumerationDomain = "{http://xbrl.org/PR/2014-03-26/extensible-enumerations}domain"
-attrEnumerationLinkrole = "{http://xbrl.org/PR/2014-03-26/extensible-enumerations}linkrole"
-attrEnumerationUsable = "{http://xbrl.org/PR/2014-03-26/extensible-enumerations}headUsable"
+enum = "http://xbrl.org/2014/extensible-enumerations"
+qnEnumerationItemType = qname("{http://xbrl.org/2014/extensible-enumerations}enum:enumerationItemType")
+attrEnumerationDomain = "{http://xbrl.org/2014/extensible-enumerations}domain"
+attrEnumerationLinkrole = "{http://xbrl.org/2014/extensible-enumerations}linkrole"
+attrEnumerationUsable = "{http://xbrl.org/2014/extensible-enumerations}headUsable"
 
 # formula specs
 variable = "http://xbrl.org/2008/variable"
@@ -474,8 +474,8 @@ errMsgPrefixNS = {
     "xbrlvarscopee": "http://xbrl.org/2010/variable/variables-scope/error",
     "xbrlte": "http://xbrl.org/PWD/2014-MM-DD/table/error",
     "utre": "http://www.xbrl.org/2009/utr/errors",
-    "enumte": "http://xbrl.org/PR/2014-03-26/extensible-enumerations/taxonomy-errors",
-    "enumie": "http://xbrl.org/PR/2014-03-26/extensible-enumerations/instance-errors",
+    "enumte": "http://xbrl.org/2014/extensible-enumerations/taxonomy-errors",
+    "enumie": "http://xbrl.org/2014/extensible-enumerations/instance-errors",
     "seve": "http://xbrl.org/2014/assertion-severity/error"
     }
 
