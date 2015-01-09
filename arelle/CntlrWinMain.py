@@ -1154,7 +1154,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                           os.path.join(self.imagesDir, "arelle32.gif"),
                           _("arelle\u00ae {0} {1}bit {2}\n"
                               "An open source XBRL platform\n"
-                              "\u00a9 2010-2014 Mark V Systems Limited\n"
+                              "\u00a9 2010-2015 Mark V Systems Limited\n"
                               "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
                               "Licensed under the Apache License, Version 2.0 (the \"License\"); "
                               "you may not use this file except in compliance with the License.  "
