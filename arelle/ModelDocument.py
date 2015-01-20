@@ -605,6 +605,26 @@ class ModelDocument:
     def __repr__(self):
         return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
 
+    def setTitle(self, cntlr):
+        try:
+            cntlr.parent.wm_title(_("arelle - {0}").format(self.basename))
+        except AttributeError:
+            pass
+
+    def setTitleInBackground(self):
+        try:
+            cntlr = self.modelXbrl.modelManager.cntlr
+            uiThreadQueue = cntlr.uiThreadQueue
+            uiThreadQueue.put((self.setTitle, [cntlr]))
+        except AttributeError:
+            pass
+
+    def updateFileHistoryIfNeeded(self):
+        myCntlr = self.modelXbrl.modelManager.cntlr
+        updateFileHistory = getattr(myCntlr, 'updateFileHistory', None)
+        if updateFileHistory:
+            updateFileHistory(self.filepath, False)
+
     def save(self, overrideFilepath=None):
         """Saves current document file.
         
@@ -612,6 +632,10 @@ class ModelDocument:
         """
         with open( (overrideFilepath or self.filepath), "w", encoding='utf-8') as fh:
             XmlUtil.writexml(fh, self.xmlDocument, encoding="utf-8")
+        if overrideFilepath:
+            self.filepath = overrideFilepath
+            self.setTitleInBackground()
+        self.updateFileHistoryIfNeeded()
     
     def close(self, visited=None, urlDocs=None):
         if visited is None: visited = []

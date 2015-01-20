@@ -883,6 +883,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             if not getNewFactItemOptions(self.modelXbrl.modelManager.cntlr, self.newFactItemOptions):
                 return # new instance not set
         # newFilename = None # only used when a new instance must be created
+        
+        self.updateInstanceFromFactPrototypes()
         if self.modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE and newFilename is None:
             newFilename = self.modelXbrl.modelManager.cntlr.fileSave(view=self, fileType="xbrl")
             if not newFilename:
@@ -902,7 +904,6 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         cntlr.showStatus(_("Saving {0}").format(instance.modelDocument.basename))
         cntlr.waitForUiThreadQueue() # force status update
 
-        self.updateInstanceFromFactPrototypes()
         instance.saveInstance(newFilename) # may override prior filename for instance from main menu
         cntlr.showStatus(_("Saved {0}").format(instance.modelDocument.basename), clearAfter=3000)
         if onSaved is not None:
