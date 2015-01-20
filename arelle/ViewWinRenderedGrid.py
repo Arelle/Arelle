@@ -904,6 +904,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         cntlr.showStatus(_("Saving {0}").format(instance.modelDocument.basename))
         cntlr.waitForUiThreadQueue() # force status update
 
+        self.updateInstanceFromFactPrototypes()
         instance.saveInstance(newFilename) # may override prior filename for instance from main menu
         cntlr.showStatus(_("Saved {0}").format(instance.modelDocument.basename), clearAfter=3000)
         if onSaved is not None:
