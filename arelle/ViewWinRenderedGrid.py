@@ -310,6 +310,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                              value=comboBoxValue,
                              selectindex=zStructuralNode.choiceNodeIndex if i >= 0 else None,
                              columnspan=2,
+                             state=["readonly"],
                              comboboxselected=self.onZComboBoxSelected)
                 combobox.zStructuralNode = zStructuralNode
                 combobox.zAxisIsOpenExplicitDimension = zAxisIsOpenExplicitDimension
