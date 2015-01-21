@@ -624,7 +624,12 @@ class ModelDocument:
         myCntlr = self.modelXbrl.modelManager.cntlr
         updateFileHistory = getattr(myCntlr, 'updateFileHistory', None)
         if updateFileHistory:
-            updateFileHistory(self.filepath, False)
+            try:
+                cntlr = self.modelXbrl.modelManager.cntlr
+                uiThreadQueue = cntlr.uiThreadQueue
+                uiThreadQueue.put((updateFileHistory, [self.filepath, False]))
+            except AttributeError:
+                pass
 
     def save(self, overrideFilepath=None):
         """Saves current document file.
