@@ -634,7 +634,8 @@ class ModelDocument:
             xmlDocument = self.xmlDocument
             dummyRootElement = self.parser.makeelement("{http://dummy}dummy") # may fail for streaming
             for modelObject in self.xmlRootElement.iter():
-                modelObject.clear() # clear children
+                modelObject.__dict__.clear() # clear python variables of modelObjects (not lxml)
+            self.xmlRootElement.clear() # clear entire lxml subtree
             self.parserLookupName.__dict__.clear()
             self.parserLookupClass.__dict__.clear()
             self.__dict__.clear() # dereference everything before clearing xml tree
