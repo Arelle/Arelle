@@ -565,6 +565,7 @@ class ModelDocument:
         self.referencedNamespaces = set()
         self.inDTS = False
         self.definesUTR = False
+        self.isModified = False
 
 
     def objectId(self,refId=""):
@@ -636,6 +637,7 @@ class ModelDocument:
             self.filepath = overrideFilepath
             self.setTitleInBackground()
         self.updateFileHistoryIfNeeded()
+        self.isModified = False
     
     def close(self, visited=None, urlDocs=None):
         if visited is None: visited = []

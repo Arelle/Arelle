@@ -434,21 +434,41 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.data = {}
         self.parent.title(_("arelle - Unnamed"));
         self.modelManager.load(None);
-        
+    
+    def getViewAndModelXbrl(self):
+        view = getattr(self, "currentView", None)
+        if view:
+            modelXbrl = None
+            try:
+                modelXbrl = view.modelXbrl
+                return (view, modelXbrl)
+            except AttributeError:
+                return (view, None)
+        return (None, None)
+
     def okayToContinue(self):
-        if not self.dirty:
+        view, modelXbrl = self.getViewAndModelXbrl()
+        documentIsModified = False
+        if view is not None:
+            try:
+                # What follows only exists in ViewWinRenderedGrid
+                view.updateInstanceFromFactPrototypes()
+            except AttributeError:
+                pass
+        if modelXbrl is not None:
+            documentIsModified = modelXbrl.isModified()
+        if not self.dirty and (not documentIsModified):
             return True
-        reply = tkinter.messagebox.askyesnocancel(
+        reply = tkinter.messagebox.askokcancel(
                     _("arelle - Unsaved Changes"),
-                    _("Save unsaved changes?"), 
+                    _("Are you sure to close the current instance without saving?\n (OK will discard changes.)"), 
                     parent=self.parent)
         if reply is None:
             return False
-        if reply:
-            return self.fileSave()
-        return True
+        else:
+            return reply
         
-    def fileSave(self, view=None, fileType=None, filenameFromInstance=False, *ignore):
+    def fileSave(self, event=None, view=None, fileType=None, filenameFromInstance=False, *ignore):
         if view is None:
             view = getattr(self, "currentView", None)
         if view is not None:
@@ -596,8 +616,8 @@ class CntlrWinMain (Cntlr.Cntlr):
         return True;
         '''
     
-    def fileSaveExistingFile(self, view=None, fileType=None, *ignore):
-        return self.fileSave(view, fileType, filenameFromInstance=True)
+    def fileSaveExistingFile(self, event=None, view=None, fileType=None, *ignore):
+        return self.fileSave(view=view, fileType=fileType, filenameFromInstance=True)
 
     def saveDTSpackage(self):
         self.modelManager.saveDTSpackage(allDTSes=True)
@@ -874,6 +894,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.modelManager.close()
         self.parent.title(_("arelle - Unnamed"))
         self.setValidateTooltipText()
+        self.currentView = None
 
     def validate(self):
         modelXbrl = self.modelManager.modelXbrl

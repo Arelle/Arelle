@@ -873,6 +873,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                                          if fact.concept.isMonetary else
                                                          self.newFactItemOptions.nonMonetaryDecimals)
                                 fact.text = value
+                                instance.setIsModified()
                                 XmlValidate.validate(instance, fact)
                             bodyCell.isChanged = False  # clear change flag
                         
