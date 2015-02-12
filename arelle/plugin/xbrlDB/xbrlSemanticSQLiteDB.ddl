@@ -91,6 +91,7 @@ CREATE TABLE filing (
     entry_url TEXT
 );
 CREATE UNIQUE INDEX filing_index02 ON filing  (filing_number);
+CREATE INDEX filing_index03 ON filing  (entity_id);
 
 CREATE TABLE report (
     report_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -122,7 +123,8 @@ CREATE UNIQUE INDEX referenced_documents_index02 ON referenced_documents  (objec
 CREATE TABLE aspect (
     aspect_id INTEGER PRIMARY KEY AUTOINCREMENT,
     document_id INTEGER NOT NULL,
-    xml_id TEXT,  -- xml id or element pointer (do we need this?)
+    xml_id TEXT,
+    xml_child_seq TEXT,
     qname TEXT NOT NULL,  -- clark notation qname (do we need this?)
     name TEXT NOT NULL,  -- local qname
     datatype_id INTEGER,
@@ -134,7 +136,7 @@ CREATE TABLE aspect (
     nillable BOOLEAN NOT NULL,
     is_numeric BOOLEAN NOT NULL,
     is_monetary BOOLEAN NOT NULL,
-    is_TEXT_block BOOLEAN NOT NULL
+    is_text_block BOOLEAN NOT NULL
 );
 CREATE INDEX aspect_index02 ON aspect  (document_id);
 CREATE INDEX aspect_index03 ON aspect (qname);
@@ -142,7 +144,8 @@ CREATE INDEX aspect_index03 ON aspect (qname);
 CREATE TABLE data_type (
     data_type_id INTEGER PRIMARY KEY AUTOINCREMENT,
     document_id INTEGER NOT NULL,
-    xml_id TEXT,  -- xml id or element pointer (do we need this?)
+    xml_id TEXT,
+    xml_child_seq TEXT,
     qname TEXT NOT NULL,  -- clark notation qname (do we need this?)
     name TEXT NOT NULL,  -- local qname
     base_type TEXT, -- xml base type if any
@@ -154,7 +157,8 @@ CREATE INDEX data_type_index03 ON data_type (qname);
 CREATE TABLE role_type (
     role_type_id INTEGER PRIMARY KEY AUTOINCREMENT,
     document_id INTEGER NOT NULL,
-    xml_id TEXT,  -- xml id or element pointer (do we need this?)
+    xml_id TEXT,
+    xml_child_seq TEXT,
     role_uri TEXT NOT NULL,
     definition TEXT
 );
@@ -164,7 +168,8 @@ CREATE INDEX role_type_index03 ON role_type (role_uri);
 CREATE TABLE arcrole_type (
     arcrole_type_id INTEGER PRIMARY KEY AUTOINCREMENT,
     document_id INTEGER NOT NULL,
-    xml_id TEXT,  -- xml id or element pointer (do we need this?)
+    xml_id TEXT,
+    xml_child_seq TEXT,
     arcrole_uri TEXT NOT NULL,
     cycles_allowed TEXT NOT NULL,
     definition TEXT
@@ -182,14 +187,14 @@ CREATE UNIQUE INDEX used_on_index02 ON used_on (object_id, aspect_id);
 CREATE TABLE resource (
     resource_id INTEGER PRIMARY KEY AUTOINCREMENT,
     document_id INTEGER NOT NULL,
-    xml_id TEXT,  -- xml id or element pointer (do we need this?)
+    xml_id TEXT,
     xml_child_seq TEXT,
     qname TEXT NOT NULL,  -- clark notation qname (do we need this?)
     role TEXT NOT NULL,
     value TEXT,
     xml_lang TEXT
 );
-CREATE INDEX resource_index02 ON resource  (resource_id);
+CREATE INDEX resource_index01 ON resource  (resource_id);
 CREATE INDEX resource_index02 ON resource  (document_id, xml_child_seq);
 
 CREATE TABLE relationship_set (
@@ -227,7 +232,7 @@ CREATE TABLE relationship (
 CREATE INDEX relationship_index02 ON relationship  (relationship_set_id); 
 CREATE INDEX relationship_index03 ON relationship  (relationship_set_id, tree_depth); 
 CREATE INDEX relationship_index04 ON relationship  (relationship_set_id, document_id, xml_child_seq);
-CREATE INDEX relationship_index02 ON relationship  (from_id); 
+CREATE INDEX relationship_index05 ON relationship  (from_id); 
 
 CREATE TABLE data_point (
     datapoint_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -238,10 +243,10 @@ CREATE TABLE data_point (
     source_line integer,
     parent_datapoint_id INTEGER, -- id of tuple parent
     aspect_id INTEGER NOT NULL,
-    conTEXT_xml_id TEXT, -- (do we need this?)
+    context_xml_id TEXT, -- (do we need this?)
     entity_identifier_id INTEGER,
     period_id INTEGER,
-    aspect_value_selections_id INTEGER,
+    aspect_value_selection_id INTEGER,
     unit_id INTEGER,
     is_nil BOOLEAN DEFAULT FALSE,
     precision_value TEXT,
@@ -264,8 +269,8 @@ CREATE INDEX entity_identifier_index02 ON entity_identifier (report_id, identifi
 CREATE TABLE period (
     period_id INTEGER PRIMARY KEY AUTOINCREMENT,
     report_id INTEGER,
-    start_date date,
-    end_date date,
+    start_date TEXT,
+    end_date TEXT,
     is_instant BOOLEAN NOT NULL,
     is_forever BOOLEAN NOT NULL
 );
@@ -274,7 +279,8 @@ CREATE INDEX period_index02 ON period  (report_id, start_date, end_date, is_inst
 CREATE TABLE unit (
     unit_id INTEGER PRIMARY KEY AUTOINCREMENT,
     report_id INTEGER,
-    xml_id TEXT,  -- xml id or element pointer (first if multiple)
+    xml_id TEXT,
+    xml_child_seq TEXT,
     measures_hash TEXT
 );
 CREATE INDEX unit_index02 ON unit  (report_id, measures_hash);
@@ -304,6 +310,7 @@ CREATE TABLE aspect_value_selection (
     typed_value TEXT
 );
 CREATE INDEX aspect_value_selection_index01 ON aspect_value_selection  (aspect_value_selection_id);
+CREATE INDEX aspect_value_selection_index02 ON aspect_value_selection  (aspect_id);
 
 CREATE TABLE table_data_points(
     report_id INTEGER,
@@ -14092,7 +14099,7 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (9323, 'NAICS', 1624, 54, 1, 1717, 54199, 4),
 (9324, 'NAICS', 2037, 81, 1, 2082, 81221, 4),
 (9325, 'NAICS', 2037, 81, 1, 2078, 812191, 5),
-(9326, 'SIC', 3681, 4810, 3, 3682, 4812, 4;
+(9326, 'SIC', 3681, 4810, 3, 3682, 4812, 4);
 
 INSERT INTO industry_structure (industry_structure_id, industry_classification, depth, level_name) VALUES
 (1, 'SIC', 1, 'Division'),

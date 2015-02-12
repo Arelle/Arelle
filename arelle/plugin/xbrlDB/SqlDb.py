@@ -409,13 +409,11 @@ class SqlDbConnection():
                 statusMsg, sep, rest = sql.strip().partition('\n')
                 self.showStatus(statusMsg[0:50])
                 result = self.execute(sql, close=False, commit=False, fetch=False, action=action)
-                """
                 if TRACESQLFILE:
                     with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
                         fh.write("\n\n>>> ddl {0}: \n{1} \n\n>>> result: \n{2}\n"
                                  .format(i, sql, result))
                         fh.write(sql)
-                """
         self.showStatus("")
         self.conn.commit()
         self.modelXbrl.profileStat(_("XbrlPublicDB: create tables"), time.time() - startedAt)
@@ -449,13 +447,16 @@ class SqlDbConnection():
                                  }[self.product]))
     
     def sequencesInDB(self):
-        return set(sequenceRow[0]
-                   for sequenceRow in
-                   self.execute({"postgres":"SELECT c.relname FROM pg_class c WHERE c.relkind = 'S';",
-                                 "mysql": "SHOW triggers;",
-                                 "mssql": "SELECT name FROM sys.triggers;",
-                                 "orcl": "SHOW trigger_name FROM user_triggers"
-                                 }[self.product]))
+        try:
+            return set(sequenceRow[0]
+                       for sequenceRow in
+                       self.execute({"postgres":"SELECT c.relname FROM pg_class c WHERE c.relkind = 'S';",
+                                     "mysql": "SHOW triggers;",
+                                     "mssql": "SELECT name FROM sys.triggers;",
+                                     "orcl": "SHOW trigger_name FROM user_triggers"\
+                                     }[self.product]))
+        except KeyError:
+            return set()
         
     def columnTypeFunctions(self, table):
         if table not in self.tableColTypes:
