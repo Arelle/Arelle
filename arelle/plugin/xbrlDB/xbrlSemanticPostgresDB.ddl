@@ -248,7 +248,7 @@ CREATE TABLE resource (
     xml_id text,
     xml_child_seq character varying(1024),
     qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    role character varying(1024) NOT NULL,
+    role character varying(1024),
     value text,
     xml_lang character varying(16),
     PRIMARY KEY (resource_id)

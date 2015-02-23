@@ -227,7 +227,7 @@ CREATE TABLE "resource" (
     xml_id nvarchar(max),
     xml_child_seq nvarchar(441),
     qname nvarchar(450) NOT NULL,  -- clark notation qname (do we need this?)
-    role nvarchar(450) NOT NULL,
+    role nvarchar(450),
     value nvarchar(max),
     xml_lang nvarchar(16)
 );

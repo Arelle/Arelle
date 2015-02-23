@@ -190,7 +190,7 @@ CREATE TABLE resource (
     xml_id TEXT,
     xml_child_seq TEXT,
     qname TEXT NOT NULL,  -- clark notation qname (do we need this?)
-    role TEXT NOT NULL,
+    role TEXT,
     value TEXT,
     xml_lang TEXT
 );

@@ -246,7 +246,7 @@ CREATE TABLE "resource" (
     xml_id nclob,
     xml_child_seq varchar2(512),
     qname varchar2(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    role varchar2(1024) NOT NULL,
+    role varchar2(1024),
     value nclob,
     xml_lang varchar2(16),
     PRIMARY KEY (resource_id)
