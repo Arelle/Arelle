@@ -281,7 +281,7 @@ class SqlDbConnection():
                 close=True, commit=False, fetch=False, action="dropping temporary table")
         elif self.product == "mssql":
             self.execute("""
-                DROP TEMPORARY TABLE IF EXISTS {};
+                IF OBJECT_ID('tempdb..#{0}', 'U') IS NOT NULL DROP TABLE "#{0}";
                 """.format(self.tempInputTableName), 
                 close=True, commit=False, fetch=False, action="dropping temporary table")
             
@@ -422,6 +422,7 @@ class SqlDbConnection():
     def databasesInDB(self):
         return self.execute({"postgres":"SELECT datname FROM pg_database;",
                              "mysql": "SHOW databases;",
+                             "mssql": "SELECT name FROM master..sysdatabases",
                              "orcl": "SELECT DISTINCT OWNER FROM ALL_OBJECTS"
                              }[self.product],
                             action="listing tables in database")
@@ -441,7 +442,7 @@ class SqlDbConnection():
                    for tableRow in 
                    self.execute({"postgres":"SELECT tablename FROM pg_tables WHERE schemaname = 'public';",
                                  "mysql": "SHOW tables;",
-                                 "mssql": "SELECT * FROM sys.TABLES;",
+                                 "mssql": "SELECT name FROM sys.TABLES;",
                                  "orcl": "SELECT table_name FROM user_tables",
                                  "sqlite": "SELECT name FROM sqlite_master WHERE type='table';"
                                  }[self.product]))
