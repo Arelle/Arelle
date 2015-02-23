@@ -261,7 +261,7 @@ CREATE TABLE resource (
     xml_id text,  -- max size 2^16 bytes, 32,000 unicode chars
     xml_child_seq nvarchar(512),
     qname varchar(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    role varchar(1024) NOT NULL,
+    role varchar(1024),
     value mediumtext, -- max 2^24 bytes = 8.3M unicode chars
     xml_lang varchar(16),
     PRIMARY KEY (resource_id)
