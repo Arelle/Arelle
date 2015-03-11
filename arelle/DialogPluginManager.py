@@ -330,9 +330,9 @@ class DialogPluginManager(Toplevel):
                                            defaultextension=".py")
         if filename:
             # check if a package is selected (any file in a directory containing an __init__.py
-            if (os.path.isdir(os.path.dirname(filename)) and
-                os.path.isfile(os.path.join(os.path.dirname(filename), "__init__.py"))):
-                filename = os.path.dirname(filename) # refer to the package instead
+            #if (os.path.basename(filename) == "__init__.py" and os.path.isdir(os.path.dirname(filename)) and
+            #    os.path.isfile(filename)):
+            #    filename = os.path.dirname(filename) # refer to the package instead
             self.cntlr.config["pluginOpenDir"] = os.path.dirname(filename)
             moduleInfo = PluginManager.moduleModuleInfo(filename)
             self.loadFoundModuleInfo(moduleInfo, filename)
