@@ -106,12 +106,12 @@ class DialogOpenArchive(Toplevel):
                                   .format(', '.join(metadataFiles)))
                 '''
                 metadataFile = metadataFiles[0]
-                metadata = filesource.file(filesource.url + os.sep + metadataFile)[0]
+                metadata = filesource.url + os.sep + metadataFile
                 self.metadataFilePrefix = os.sep.join(os.path.split(metadataFile)[:-1])
                 if self.metadataFilePrefix:
                     self.metadataFilePrefix += os.sep
         
-                self.taxonomyPackage = parsePackage(mainWin, metadata)
+                self.taxonomyPackage = parsePackage(mainWin, filesource, metadata, self.metadataFilePrefix)
                 
                 # may be a catalog file with no entry oint names
                 if not self.taxonomyPackage["nameToUrls"]:
@@ -248,11 +248,7 @@ class DialogOpenArchive(Toplevel):
         if len(selection) > 0:
             if hasattr(self, "taxonomyPackage"):
                 # load file source remappings
-                self.filesource.mappedPaths = \
-                    dict((prefix, 
-                          remapping if isHttpUrl(remapping)
-                          else (self.filesource.baseurl + os.sep + self.metadataFilePrefix +remapping.replace("/", os.sep)))
-                          for prefix, remapping in self.taxonomyPackage["remappings"].items())
+                self.filesource.mappedPaths = self.taxonomyPackage["remappings"]
             filename = None
             if self.openType in (ARCHIVE, DISCLOSURE_SYSTEM):
                 filename = self.filenames[int(selection[0][4:])]
@@ -268,7 +264,7 @@ class DialogOpenArchive(Toplevel):
                     
                 if not filename.endswith("/"):
                     # check if it's an absolute URL rather than a path into the archive
-                    if not isHttpUrl(filename):
+                    if not isHttpUrl(filename) and self.metadataFilePrefix != 'META-INF/':
                         # assume it's a path inside the archive:
                         filename = self.metadataFilePrefix + filename
             if filename is not None and not filename.endswith("/"):

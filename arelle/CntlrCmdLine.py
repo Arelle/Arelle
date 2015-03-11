@@ -544,33 +544,37 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 elif cmd == "temp":
                     savePackagesChanges = False
                 elif cmd.startswith("+"):
-                    packageInfo = PackageManager.addPackage(cmd[1:], options.packageManifestName)
+                    packageInfo = PackageManager.addPackage(self, cmd[1:], options.packageManifestName)
                     if packageInfo:
                         self.addToLog(_("Addition of package {0} successful.").format(packageInfo.get("name")), 
                                       messageCode="info", file=packageInfo.get("URL"))
                     else:
                         self.addToLog(_("Unable to load plug-in."), messageCode="info", file=cmd[1:])
                 elif cmd.startswith("~"):
-                    if PackageManager.reloadPackageModule(cmd[1:]):
+                    if PackageManager.reloadPackageModule(self, cmd[1:]):
                         self.addToLog(_("Reload of package successful."), messageCode="info", file=cmd[1:])
                     else:
                         self.addToLog(_("Unable to reload package."), messageCode="info", file=cmd[1:])
                 elif cmd.startswith("-"):
-                    if PackageManager.removePackageModule(cmd[1:]):
+                    if PackageManager.removePackageModule(self, cmd[1:]):
                         self.addToLog(_("Deletion of package successful."), messageCode="info", file=cmd[1:])
                     else:
                         self.addToLog(_("Unable to delete package."), messageCode="info", file=cmd[1:])
                 else: # assume it is a module or package
                     savePackagesChanges = False
-                    packageInfo = PackageManager.addPackage(cmd, options.packageManifestName)
+                    packageInfo = PackageManager.addPackage(self, cmd, options.packageManifestName)
                     if packageInfo:
                         self.addToLog(_("Activation of package {0} successful.").format(packageInfo.get("name")), 
                                       messageCode="info", file=packageInfo.get("URL"))
                         resetPlugins = True
                     else:
                         self.addToLog(_("Unable to load {0} as a package or {0} is not recognized as a command. ").format(cmd), messageCode="info", file=cmd)
+            if PackageManager.packagesConfigChanged:
+                PackageManager.rebuildRemappings(self)
             if savePackagesChanges:
                 PackageManager.save(self)
+            else:
+                PackageManager.packagesConfigChanged = False
             if showPackages:
                 self.addToLog(_("Taxonomy packages:"), messageCode="info")
                 for packageInfo in PackageManager.orderedPackagesConfig()["packages"]:
