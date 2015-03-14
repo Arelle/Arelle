@@ -1,11 +1,11 @@
 rem Build Arelle GUI using cx_Freeze
 rem both win 32 (x86) and win 64 (x64)
 
-@set PYTHON32DIR=c:\python33x86
-@set PYTHON64DIR=c:\python33
+@set PYTHON32DIR=c:\python34x86
+@set PYTHON64DIR=c:\python34
 @set NSISDIR=C:\Program Files (x86)\NSIS
-@set BUILT32DIR=build\exe.win32-3.3
-@set BUILT64DIR=build\exe.win-amd64-3.3
+@set BUILT32DIR=build\exe.win32-3.4
+@set BUILT64DIR=build\exe.win-amd64-3.4
 @set ZIP=c:\progra~1\7-zip\7z.exe
 
 "%PYTHON64DIR%\python" buildVersion.py
