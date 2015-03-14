@@ -62,7 +62,13 @@ def loadFromExcel(cntlr, excelFile):
     
     def lbDepthList(lbStruct, depth, parentList=None):
         if depth == 0:
-            return lbStruct[-1].childStruct
+            if len(lbStruct) > 0:
+                return lbStruct[-1].childStruct
+            else:
+                cntlr.addToLog("Depth error, Excel row: {excelRow}"
+                               .format(excelRow=iRow),
+                                messageCode="importExcel:depth")
+                return None
         return lbDepthList(lbStruct[-1].childStruct, depth-1, list)
     
     extensionElements = {}
@@ -260,19 +266,22 @@ def loadFromExcel(cntlr, excelFile):
                                             for lbEntry in entryList)):
                                     entryList.append( LBentry(prefix=prefix, name=name, arcrole="_dimensions_") )
                     if hasCalLB:
-                        calcParent = cellValue(row, 'calculationParent')
-                        calcWeight = cellValue(row, 'calculationWeight')
-                        if calcParent and calcWeight:
-                            calcParentPrefix, sep, calcParentName = calcParent.partition(":")
-                            entryList = lbDepthList(calLB, 0)
-                            if entryList is not None:
-                                calRel = (calcParentPrefix, calcParentName, prefix, name)
-                                if calRel not in calRels:
-                                    entryList.append( LBentry(prefix=calcParentPrefix, name=calcParentName, isRoot=True, childStruct=
-                                                              [LBentry(prefix=prefix, name=name, arcrole=XbrlConst.summationItem, weight=calcWeight )]) )
-                                    calRels.add(calRel)
-                                else:
-                                    pass
+                        calcParents = cellValue(row, 'calculationParent').split()
+                        calcWeights = (str(cellValue(row, 'calculationWeight')) or '').split() # may be float or string
+                        if calcParents and calcWeights:
+                            # may be multiple parents split by whitespace
+                            for i, calcParent in enumerate(calcParents):
+                                calcWeight = calcWeights[i] if i < len(calcWeights) else calcWeights[-1]
+                                calcParentPrefix, sep, calcParentName = calcParent.partition(":")
+                                entryList = lbDepthList(calLB, 0)
+                                if entryList is not None:
+                                    calRel = (calcParentPrefix, calcParentName, prefix, name)
+                                    if calRel not in calRels:
+                                        entryList.append( LBentry(prefix=calcParentPrefix, name=calcParentName, isRoot=True, childStruct=
+                                                                  [LBentry(prefix=prefix, name=name, arcrole=XbrlConst.summationItem, weight=calcWeight )]) )
+                                        calRels.add(calRel)
+                                    else:
+                                        pass
                                     
             # accumulate extension labels
             if useLabels:
