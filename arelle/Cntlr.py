@@ -342,7 +342,10 @@ class Cntlr:
             else:
                 args = (message,)  # pass no args if none provided
             refs = []
-            if file:
+            if isinstance(file, (tuple,list,set)):
+                for _file in file: 
+                    refs.append( {"href": _file} )
+            elif isinstance(file, _STR_BASE):
                 refs.append( {"href": file} )
             self.logger.log(level, *args, extra={"messageCode":messageCode,"refs":refs})
         else:
