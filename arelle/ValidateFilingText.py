@@ -385,6 +385,7 @@ def checkfile(modelXbrl, filepath):
     result = []
     lineNum = 1
     foundXmlDeclaration = False
+    isEFM = modelXbrl.modelManager.disclosureSystem.validationType == "EFM"
     file, encoding = modelXbrl.fileSource.file(filepath)
     with file as f:
         while True:
@@ -399,7 +400,7 @@ def checkfile(modelXbrl, filepath):
                         modelXbrl.error(("EFM.5.02.02.06", "GFM.1.01.02"),
                             _("Disallowed entity code %(text)s in file %(file)s line %(line)s column %(column)s"),
                             modelDocument=filepath, text=text, file=os.path.basename(filepath), line=lineNum, column=match.start())
-                elif modelXbrl.modelManager.disclosureSystem.EFM:
+                elif isEFM:
                     modelXbrl.error("EFM.5.02.01.01",
                         _("Disallowed character '%(text)s' in file %(file)s at line %(line)s col %(column)s"),
                         modelDocument=filepath, text=text, file=os.path.basename(filepath), line=lineNum, column=match.start())

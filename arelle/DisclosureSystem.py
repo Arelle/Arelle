@@ -44,14 +44,17 @@ class DisclosureSystem:
         self.names = None
         self.name = None
         self.validationType = None
+        # previoulsy built-in types (intent to replace with plugin defined types)
         self.EFM = False
         self.GFM = False
         self.EFMorGFM = False
         self.HMRC = False
         self.SBRNL = False
+        self.pluginTypes = set()
         for pluginXbrlMethod in pluginClassMethods("DisclosureSystem.Types"):
             for typeName, typeTestVariable in pluginXbrlMethod(self):
                 setattr(self, typeTestVariable, False)
+                self.pluginTypes.add(typeName)
         self.validateFileText = False
         self.schemaValidateSchema = None
         self.blockDisallowedReferences = False
@@ -82,6 +85,8 @@ class DisclosureSystem:
         self.deiFilerNameElement = None
         self.logLevelFilter = None
         self.logCodeFilter = None
+        self.standardTaxonomyDatabase = None
+        self.standardTaxonomyUrlPattern = None
         self.version = (0,0,0)
 
     @property
@@ -91,9 +96,9 @@ class DisclosureSystem:
     @property
     def urls(self):
         _urls = [os.path.join(self.modelManager.cntlr.configDir, "disclosuresystems.xml")]
-        # get custom config xml file url
+        # get custom config xml file url, insert before main url in reverse order
         for pluginXbrlMethod in pluginClassMethods("DisclosureSystem.ConfigURL"):
-            _urls.append(pluginXbrlMethod(self))
+            _urls.insert(0, pluginXbrlMethod(self))
         return _urls
     
     @property
@@ -103,21 +108,25 @@ class DisclosureSystem:
     def dirlist(self, listFormat):
         self.modelManager.cntlr.showStatus(_("parsing disclosuresystems.xml"))
         namepaths = []
+        namesDefined = set()
         try:
-            for url in self.urls:
+            for url in self.urls: # urls in reverse order, last plugin is first
                 xmldoc = etree.parse(url)
                 for dsElt in xmldoc.iter(tag="DisclosureSystem"):
                     if dsElt.get("names"):
                         names = dsElt.get("names").split("|")
-                        if listFormat == "help": # terse help
-                            namepaths.append('{0}: {1}'.format(names[-1],names[0]))
-                        elif listFormat == "help-verbose":
-                            namepaths.append('{0}: {1}\n{2}\n'.format(names[-1],
-                                                                      names[0], 
-                                                                      dsElt.get("description").replace('\\n','\n')))
-                        elif listFormat == "dir":
-                            namepaths.append((names[0],
-                                              dsElt.get("description")))
+                        entryName = names[-1]
+                        if entryName not in namesDefined: # last plugin is taken first, rest ignored
+                            if listFormat == "help": # terse help
+                                namepaths.append('{0}: {1}'.format(entryName,names[0]))
+                            elif listFormat == "help-verbose":
+                                namepaths.append('{0}: {1}\n{2}\n'.format(entryName,
+                                                                          names[0], 
+                                                                          dsElt.get("description").replace('\\n','\n')))
+                            elif listFormat == "dir":
+                                namepaths.append((names[0],
+                                                  dsElt.get("description")))
+                            namesDefined.add(entryName)
         except (EnvironmentError,
                 etree.LxmlError) as err:
             self.modelManager.cntlr.addToLog("disclosuresystems.xml: import error: {0}".format(err))
@@ -130,7 +139,7 @@ class DisclosureSystem:
         try:
             if name:
                 isSelected = False
-                for url in self.urls:
+                for url in self.urls: # urls in revese order, last plugin first
                     xmldoc = etree.parse(url)
                     for dsElt in xmldoc.iter(tag="DisclosureSystem"):
                         namesStr = dsElt.get("names")
@@ -140,11 +149,12 @@ class DisclosureSystem:
                                 self.names = names
                                 self.name = self.names[0]
                                 self.validationType = dsElt.get("validationType")
-                                self.EFM = self.validationType == "EFM"
-                                self.GFM = self.validationType == "GFM"
-                                self.EFMorGFM = self.EFM or self.GFM
-                                self.HMRC = self.validationType == "HMRC"
-                                self.SBRNL = self.validationType == "SBR-NL"
+                                if self.validationType not in self.pluginTypes:
+                                    self.EFM = self.validationType == "EFM"
+                                    self.GFM = self.validationType == "GFM"
+                                    self.EFMorGFM = self.EFM or self.GFM
+                                    self.HMRC = self.validationType == "HMRC"
+                                    self.SBRNL = self.validationType == "SBR.NL"
                                 for pluginXbrlMethod in pluginClassMethods("DisclosureSystem.Types"):
                                     for typeName, typeTestVariable in pluginXbrlMethod(self):
                                         setattr(self, typeTestVariable, self.validationType == typeName)
@@ -184,6 +194,9 @@ class DisclosureSystem:
                                 self.deiFilerNameElement = dsElt.get("deiFilerNameElement")
                                 self.logLevelFilter = dsElt.get("logLevelFilter")
                                 self.logCodeFilter = dsElt.get("logCodeFilter")
+                                self.standardTaxonomyDatabase = dsElt.get("standardTaxonomyDatabase")
+                                self.standardTaxonomyUrlPattern = compileAttrPattern(dsElt, "standardTaxonomyUrlPattern")
+
                                 self.selection = self.name
                                 isSelected = True
                                 break

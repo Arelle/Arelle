@@ -76,7 +76,7 @@ class ValidateXbrl:
         self.validateEnum = XbrlConst.enum in modelXbrl.namespaceDocs
         
         for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Start"):
-            pluginXbrlMethod(self)
+            pluginXbrlMethod(self, parameters)
 
         # xlink validation
         modelXbrl.profileStat(None)

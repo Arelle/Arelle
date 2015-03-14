@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<DisclosureSystems  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+      xsi:noNamespaceSchemaLocation="../config/disclosuresystems.xsd" >
+  <!-- see ../config/disclosuresystem.xml for full comments -->
+
+  <DisclosureSystem 
+     names="EBA Filing Rules|eba" 
+     description="EBA Filing Rules, COREP and FINREP v2\n
+     Default language English\n
+     EDInet identifier patterns\n
+     Allowed references TBD"
+     defaultXmlLang="en" 
+     defaultLanguage="English" 
+     validationType="EBA"
+     validateFileText="false"
+     identifierSchemePattern="^http://.*$"
+     identifierValuePattern="^.*$"
+     identifierValueName="My code"
+     contextElement="scenario"
+     roleDefinitionPattern="^\S[^\n]* - [^\n]*\S$"
+     labelCheckPattern="\s{2,}|&lt;"
+     labelTrimPattern="\s"
+     />
+<!--
+     standardTaxonomiesUrl="validateEBAtaxonomies.xml"
+-->
+  <DisclosureSystem 
+     names="EIOPA Filing Rules|eiopa" 
+     description="EIOPA Filing Rules, Solvency II\n
+     Default language English\n
+     EDInet identifier patterns\n
+     Allowed references TBD"
+     defaultXmlLang="en" 
+     defaultLanguage="English" 
+     validationType="EIOPA"
+     validateFileText="false"
+     identifierSchemePattern="^http://.*$"
+     identifierValuePattern="^.*$"
+     identifierValueName="My code"
+     contextElement="scenario"
+     roleDefinitionPattern="^\S[^\n]* - [^\n]*\S$"
+     labelCheckPattern="\s{2,}|&lt;"
+     labelTrimPattern="\s"
+     />
+
+
+</DisclosureSystems>

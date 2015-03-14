@@ -46,6 +46,8 @@
       <xs:attribute name="maxSubmissionSubdirectoryEntryNesting" type="xs:integer"/>
       <xs:attribute name="logLevelFilter" />
       <xs:attribute name="logCodeFilter" />
+      <xs:attribute name="standardTaxonomyDatabase" />
+      <xs:attribute name="standardTaxonomyUrlPattern" />
     </xs:complexType>
   </xs:element>
 </xs:schema>

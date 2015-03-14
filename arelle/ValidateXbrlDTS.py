@@ -240,9 +240,11 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
             
     # XML validation checks (remove if using validating XML)
     val.extendedElementName = None
+    isFilingDocument = False
     if (modelDocument.uri.startswith(val.modelXbrl.uriDir) and
         modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and 
         modelDocument.xmlDocument):
+        isFilingDocument = True
         val.valUsedPrefixes = set()
         val.schemaRoleTypes = {}
         val.schemaArcroleTypes = {}
@@ -262,11 +264,11 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
         if val.validateSBRNL:
             for pluginXbrlMethod in pluginClassMethods("Validate.SBRNL.DTS.document"):
                 pluginXbrlMethod(val, modelDocument)
-        for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.DTS.document"):
-            pluginXbrlMethod(val, modelDocument)
         del val.valUsedPrefixes
         del val.schemaRoleTypes
         del val.schemaArcroleTypes
+    for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.DTS.document"):
+        pluginXbrlMethod(val, modelDocument, isFilingDocument)
 
     val.roleRefURIs = None
     val.arcroleRefURIs = None

@@ -33,6 +33,14 @@
        for this disclosure system.  If a relative pathname, it is relative to this this file's directory.
        utrUrl may be mapped by an entry in the mappings file.
        
+       standardTaxonomyDatabase is a database file in the config directory that holds the abstract model database
+       standard taxonomy components (schema and linkbase files that match the standardTaxonomyUrlPattern and are
+       not an entry file to a modelXbrl.load operation)
+       
+       standardTaxonomyUrlPattern is a URL pattern to match (the start of) URLs that are to be loaded from the
+       abstract model database and not from the referenced URL.  If not in the database the xbrlDB plugin is used
+       to load it.
+       
   -->
   <DisclosureSystem 
      names="Japan FSA|jp-fsa|fsa" 
@@ -88,7 +96,7 @@
      defaultXmlLang="nl" 
      xmlLangPattern="(^nl$|^en$)"
      defaultLanguage="Nederlands" 
-     validationType="SBR-NL"
+     validationType="SBR.NL"
      validateFileText="false"
      standardTaxonomiesUrl="sbr-nl-taxonomies.xml"
      maxSubmissionSubdirectoryEntryNesting="3"
