@@ -675,7 +675,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
                             pluginMethod(modelXbrl)
             elif ns == XbrlConst.link:
                 if ln in ("schemaRef", "linkbaseRef"):
-                    modelDocument.discoverHref(mdlObj)
+                    modelDocument.discoverHref(mdlObj, urlRewritePluginClass="ModelDocument.InstanceSchemaRefRewriter")
                 elif ln in ("roleRef", "arcroleRef"):
                     modelDocument.linkbaseDiscover((mdlObj,), inInstance=True)
                 elif ln == "footnoteLink":
