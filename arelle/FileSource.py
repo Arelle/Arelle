@@ -19,7 +19,7 @@ SERVER_WEB_CACHE = os.sep + "_HTTP_CACHE"
 
 XMLdeclaration = re.compile(r"<\?xml[^><\?]*\?>", re.DOTALL)
 
-TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml')
+TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml') # pre-REC packages
 
 def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=False):
     if sourceZipStream:
@@ -321,6 +321,10 @@ class FileSource:
     
     @property
     def taxonomyPackageMetadataFiles(self):
+        _metaInfTxPkg = '{}/META-INF/taxonomyPackage.xml'.format(
+                        os.path.splitext(os.path.basename(self.basefile))[0])
+        if _metaInfTxPkg in self.dir:
+            return [_metaInfTxPkg]  # standard package
         return [f for f in (self.dir or []) if os.path.split(f)[-1] in TAXONOMY_PACKAGE_FILE_NAMES]
     
     def isInArchive(self,filepath):

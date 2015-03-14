@@ -109,9 +109,13 @@ class DialogOpenArchive(Toplevel):
                 metadata = filesource.url + os.sep + metadataFile
                 self.metadataFilePrefix = os.sep.join(os.path.split(metadataFile)[:-1])
                 if self.metadataFilePrefix:
-                    self.metadataFilePrefix += os.sep
+                    self.metadataFilePrefix += "/"  # zip contents have /, never \ file seps
+                self.taxonomyPkgMetaInf = '{}/META-INF/'.format(
+                            os.path.splitext(os.path.basename(filesource.url))[0])
+
         
-                self.taxonomyPackage = parsePackage(mainWin, filesource, metadata, self.metadataFilePrefix)
+                self.taxonomyPackage = parsePackage(mainWin, filesource, metadata,
+                                                    os.sep.join(os.path.split(metadata)[:-1]) + os.sep)
                 
                 # may be a catalog file with no entry oint names
                 if not self.taxonomyPackage["nameToUrls"]:
@@ -261,10 +265,9 @@ class DialogOpenArchive(Toplevel):
                 epName = selection[0]
                 #index 0 is the remapped Url, as opposed to the canonical one used for display
                 filename = self.taxonomyPackage["nameToUrls"][epName][0]
-                    
                 if not filename.endswith("/"):
                     # check if it's an absolute URL rather than a path into the archive
-                    if not isHttpUrl(filename) and self.metadataFilePrefix != 'META-INF/':
+                    if not isHttpUrl(filename) and self.metadataFilePrefix != self.taxonomyPkgMetaInf:
                         # assume it's a path inside the archive:
                         filename = self.metadataFilePrefix + filename
             if filename is not None and not filename.endswith("/"):

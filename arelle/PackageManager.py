@@ -97,9 +97,14 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase):
                     if base:
                         replaceValue = os.path.join(base, replaceValue)
                     if replaceValue: # neither None nor ''
-                        if not (replaceValue.startswith('http://') or os.path.isabs(replaceValue)):
-                            replaceValue = fileBase + replaceValue
-                    remappings[prefixValue] = os.path.normpath(replaceValue)
+                        if not replaceValue.startswith('http://'):
+                                if not os.path.isabs(replaceValue):
+                                    replaceValue = fileBase + replaceValue
+                                replaceValue = replaceValue.replace("/", os.sep)
+                    _normedValue = os.path.normpath(replaceValue)
+                    if replaceValue.endswith(os.sep) and not _normedValue.endswith(os.sep):
+                        _normedValue += os.sep
+                    remappings[prefixValue] = _normedValue
                 else:
                     cntlr.addToLog(_("Package catalog duplicate rewrite start string %(rewriteStartString)s"),
                                    messageArgs={"rewriteStartString": prefixValue},
@@ -159,7 +164,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase):
                             _remappedUrl = mapTo + _remappedUrl
                         longestPrefix = prefixLength
             if longestPrefix:
-                remappedUrl = _remappedUrl
+                remappedUrl = _remappedUrl.replace(os.sep, "/")  # always used as FileSource select
             nameToUrls[name] = (remappedUrl, resolvedUrl)
 
     return pkg
@@ -266,13 +271,15 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None):
             packages = []
             if filesource.isZip:
                 _dir = filesource.dir
+                _metaInf = '{}/META-INF/'.format(
+                            os.path.splitext(os.path.basename(packageFilename))[0])
                 if packageManifestName:
                     packageFiles = [fileName
                                     for fileName in filesource.dir
                                     if fnmatch(fileName, packageManifestName)]
-                elif 'META-INF/taxonomyPackage.xml' in _dir:
+                elif _metaInf + 'taxonomyPackage.xml' in _dir:
                     # PWD taxonomy packages
-                    packageFiles = ['META-INF/taxonomyPackage.xml']
+                    packageFiles = [_metaInf + 'taxonomyPackage.xml']
                 else:
                     # early generation taxonomy packages
                     packageFiles = filesource.taxonomyPackageMetadataFiles
@@ -280,8 +287,8 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None):
                     raise IOError(_("Taxonomy package contained no metadata file: {0}.")
                                   .format(', '.join(packageFiles)))
                 # if current package files found, remove any nonconforming package files
-                if any(pf.startswith("META-INF/") for pf in packageFiles) and any(not pf.startswith("META-INF/") for pf in packageFiles):
-                    packageFiles = [pf for pf in packageFiles if pf.startswith("META-INF/")]
+                if any(pf.startswith(_metaInf) for pf in packageFiles) and any(not pf.startswith(_metaInf) for pf in packageFiles):
+                    packageFiles = [pf for pf in packageFiles if pf.startswith(_metaInf)]
                     
                 for packageFile in packageFiles:
                     packageFileUrl = filesource.url + os.sep + packageFile
@@ -398,6 +405,7 @@ def addPackage(cntlr, url, packageManifestName=None):
         else:
             packagesList.append(newPackageInfo)
         global packagesConfigChanged
+        packagesConfigChanged = True
         return newPackageInfo
     return None
 
