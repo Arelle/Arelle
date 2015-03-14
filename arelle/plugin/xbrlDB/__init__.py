@@ -50,6 +50,7 @@ dbProduct = {
 
 _loadFromDBoptions = None  # only set for load, vs store operation
 _storeIntoDBoptions = None
+_schemaRefSubstitutions = None # for DPM database
 
 def xbrlDBmenuEntender(cntlr, menu):
     
@@ -235,10 +236,18 @@ def xbrlDBrssDoWatchAction(modelXbrl, rssWatchOptions, rssItem):
         storeIntoDB(dbConnection, modelXbrl)
         
 def xbrlDBLoaderSetup(cntlr, options, **kwargs):
-    global _loadFromDBoptions, _storeIntoDBoptions
+    global _loadFromDBoptions, _storeIntoDBoptions, _schemaRefSubstitutions
     # set options to load from DB (instead of load from XBRL and store in DB)
     _loadFromDBoptions = getattr(options, "loadFromXbrlDb", None)
     _storeIntoDBoptions = getattr(options, "storeIntoXbrlDb", None)
+    _schemaRefSubstitutions = None
+    if _storeIntoDBoptions:
+        dbConnection = _storeIntoDBoptions.split(',')
+        if len(dbConnection) > 7 and dbConnection[6] == "sqliteDpmDB":
+            for extraArg in dbConnection[7:]:
+                argName, _sep, argValue = extraArg.partition("=")
+                if argName == "schemaRefSubstitutions":
+                    _schemaRefSubstitutions = dict(_keyVal.split(":")[0:2] for _keyVal in argValue.split(";"))
 
 def xbrlDBLoader(modelXbrl, mappedUri, filepath, **kwargs):
     # check if big instance and has header with an initial incomplete tree walk (just 2 elements
@@ -250,7 +259,7 @@ def xbrlDBLoader(modelXbrl, mappedUri, filepath, **kwargs):
     dbConnection = _loadFromDBoptions.split(',')
     if len(dbConnection) > 7:
         for extraArg in dbConnection[7:]:
-            argName, sep, argValue = extraArg.partition("=")
+            argName, _sep, argValue = extraArg.partition("=")
             extraArgs[argName] = argValue
     return storeIntoDB(dbConnection, modelXbrl, **extraArgs)
 
@@ -269,6 +278,12 @@ def xbrlDBfinishStreaming(modelXbrl):
     if _storeIntoDBoptions:
         modelXbrl.xbrlDBprocessedByStreaming = True
         return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl, streamingState="finish", logStoredMsg=False)
+
+def modelDocumentInstanceSchemaRefRewriter(modelDocument, url):
+    if _schemaRefSubstitutions:
+        for _from, _to in _schemaRefSubstitutions.items():
+            url = url.replace(_from, _to) # for DPM db substitutions
+    return url
 
 class LogToDbHandler(logging.Handler):
     def __init__(self):
@@ -326,5 +341,6 @@ __pluginInfo__ = {
     'Streaming.Start': xbrlDBstartStreaming,
     'Streaming.Facts': xbrlDBstreamingFacts,
     'Streaming.Finish': xbrlDBfinishStreaming,
-    'Validate.RssItem': xbrlDBvalidateRssItem
+    'Validate.RssItem': xbrlDBvalidateRssItem,
+    'ModelDocument.InstanceSchemaRefRewriter': modelDocumentInstanceSchemaRefRewriter
 }

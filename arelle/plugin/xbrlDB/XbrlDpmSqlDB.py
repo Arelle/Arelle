@@ -61,16 +61,18 @@ from arelle.XmlUtil import xmlstring, datetimeValue, DATETIME_MAXYEAR, dateunion
 from arelle import XbrlConst, XmlValidate
 from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
 from decimal import Decimal, InvalidOperation
+from _ctypes import _memset_addr
 
 qnFindFilingIndicators = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:fIndicators")
 qnFindFilingIndicator = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:filingIndicator")
 decimalsPattern = re.compile("^(-?[0-9]+|INF)$")
+sigDimPattern = re.compile(r"([^(]+)[(]([^\[)]*)(\[([0-9;]+)\])?[)]")
 ONE = Decimal("1")
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
                  product=None, rssItem=None, loadDBsaveToFile=None, loadInstanceId=None,
-                 streamingState=None, streamedFacts=None,
+                 streamingState=None, streamedFacts=None, schemaRefSubstitutions=None,
                  **kwargs):
     if getattr(modelXbrl, "blockDpmDBrecursion", False):
         return None
@@ -92,6 +94,10 @@ def insertIntoDB(modelXbrl,
         else:
             xbrlDbConn = XbrlSqlDatabaseConnection(modelXbrl, user, password, host, port, database, timeout, product)
             xbrlDbConn.verifyTables()
+            if schemaRefSubstitutions:
+                xbrlDbConn.schemaRefSubstitutions = dict(_keyVal.split(":")[0:2] for _keyVal in schemaRefSubstitutions.split(";"))
+            else:
+                xbrlDbConn.schemaRefSubstitutions = None
             if streamingState == "start":
                 result = xbrlDbConn.startInsertXbrlToDB()
                 modelXbrl.streamingConnection = xbrlDbConn
@@ -135,7 +141,8 @@ def dimValKey(cntx, typedDim=False, behaveAsTypedDims=EMPTYSET, restrictToDims=N
     return '|'.join(sorted("{}({})".format(dim.dimensionQname,
                                            dim.memberQname if dim.isExplicit and dim not in behaveAsTypedDims
                                            else dim.memberQname if typedDim and not dim.isTyped
-                                           else "nil" if typedDim and dim.typedMember.get("{http://www.w3.org/2001/XMLSchema-instance}nil") in ("true", "1")
+                                           else "<{} xsi:nil='true'/>".format(dim.typedMember.qname)
+                                                 if typedDim and dim.typedMember.get("{http://www.w3.org/2001/XMLSchema-instance}nil") in ("true", "1")
                                            else xmlstring(dim.typedMember, stripXmlns=True) if typedDim
                                            else '*' )
                            for dim in cntx.qnameDims.values()
@@ -227,7 +234,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         self.moduleId = None
         self.numFactsInserted = 0
         self.availableTableRows = defaultdict(set) # index (tableID, zDimVal) = set of yDimVals 
-        self.dFilingIndicators = set()
+        self.dFilingIndicators = {} # index qName, value filed (boolean)
         self.metricsForFilingIndicators = set()
         self.signaturesForFilingIndicators = defaultdict(list)
 
@@ -236,9 +243,13 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             for refDoc, ref in self.modelXbrl.modelDocument.referencesDocument.items():
                 if refDoc.inDTS and ref.referenceType == "href":
                     if self.moduleId is None:
-                        _instanceSchemaRef = refDoc.uri
+                        _instanceSchemaRef = _schemaRef = refDoc.uri
+                        # perform schemaRef substitutions
+                        if self.schemaRefSubstitutions:
+                            for _from, _to in self.schemaRefSubstitutions.items():
+                                _schemaRef = _schemaRef.replace(_from, _to)
                         result = self.execute("SELECT ModuleID FROM mModule WHERE XBRLSchemaRef = '{}'"
-                                              .format(refDoc.uri))
+                                              .format(_schemaRef))
                         for moduleId in result:
                             self.moduleId = moduleId[0] # only column in row returned
                             break
@@ -252,12 +263,13 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     .format(_instanceSchemaRef)) 
         self.modelXbrl.profileActivity("dpmDB 01. Get ModuleID for instance schema", minTimeToShow=0.0)
         periodInstantDate = None
-        entityIdentifier = ('', '') # scheme, identifier
+        entityIdentifier = ''
+        entityScheme = ''
         self.cntxDates = set()
-        self.entityIdentifiers = set()
+        self.entityIdentifiers = set() # set of entity identifiers
         for cntx in self.modelXbrl.contexts.values():
             if cntx.isInstantPeriod:
-                entityIdentifier = cntx.entityIdentifier[1]
+                entityScheme, entityIdentifier = cntx.entityIdentifier
                 periodInstantDate = cntx.endDatetime.date() - datetime.timedelta(1)  # convert to end date
                 self.cntxDates.add(cntx.endDatetime) # for error checks
                 self.entityIdentifiers.add(entityIdentifier)
@@ -282,8 +294,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                 os.path.basename(self.modelXbrl.uri),
                                 None,
                                 now,
-                                entityIdentifier[0],
-                                entityIdentifier[1], 
+                                entityScheme,
+                                entityIdentifier, 
                                 periodInstantDate, 
                                 None, 
                                 entityCurrency
@@ -333,7 +345,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         # get typed dimension domain element qnames
         result = self.execute("SELECT dim.DimensionXBRLCode, ( '[<]' || dom.DomainXBRLCode || '[>]' || "
                               " CASE WHEN dom.DataType = 'Integer' THEN '\\d+' ELSE '\\S+' END || "
-                              " '[<][/]' || dom.DomainXBRLCode || '[>]' ) "
+                              " '[<][/]' || dom.DomainXBRLCode || '[>]'  "
+                              " || '|[<]' || dom.DomainXBRLCode || '/>' )" # removed: ' xsi:nil=''true''
                               "FROM mDimension dim, mDomain dom "
                               "WHERE dim.IsTypedDimension AND dim.DomainID = dom.DomainID")
         self.typedDimensionDomain = dict((dim,re.compile(dom)) for dim, dom in result)
@@ -346,6 +359,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                               "left outer join mMember mem on mem.MemberID = hn.MemberID "
                               "inner join mDimension dim on dim.DomainID = dom.DomainID and not dim.isTypedDimension")
         self.explicitDimensionDomain = defaultdict(set)
+        self.domainHiearchyMembers = {}
         for _dim, _mem in result:
             self.explicitDimensionDomain[_dim].add(_mem)
             
@@ -363,8 +377,11 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         return True
     
     def loadAllowedMetricsAndDims(self):
-        self.filingIndicators = ', '.join("'{}'".format(filingIndicator)
-                                           for filingIndicator in self.dFilingIndicators)
+        self.filedFilingIndicators = ', '.join("'{}'".format(_filingIndicator)
+                                               for _filingIndicator, _filed in self.dFilingIndicators.items()
+                                               if _filed)
+        self.allFilingIndicators = ', '.join("'{}'".format(_filingIndicator)
+                                             for _filingIndicator, _filed in self.dFilingIndicators.items())
         # check metrics encountered for filing indicators found
         results = self.execute(
             "select distinct mem.MemberXBRLCode "
@@ -381,7 +398,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
              "inner join mMetric met on met.CorrespondingMemberID = mem.MemberID "
              "inner join mModuleBusinessTemplate mbt on mbt.BusinessTemplateID = tottv.TemplateOrTableID "
              "   and mbt.ModuleID = {1} "
-             .format(self.filingIndicators, self.moduleId))
+             .format(self.filedFilingIndicators, self.moduleId))
         self.metricsForFilingIndicators = set(r[0] for r in results)
         
         results = self.execute(
@@ -395,22 +412,50 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
              "inner join mTableCell tc on tc.TableID = tt.TableID and (tc.IsShaded = 0 or tc.IsShaded is null) "
              "inner join mModuleBusinessTemplate mbt on mbt.BusinessTemplateID = tottv.TemplateOrTableID "
              "  and mbt.ModuleID = {1} "
-             .format(self.filingIndicators, self.moduleId))
+             .format(self.filedFilingIndicators, self.moduleId))
         
         self.signaturesForFilingIndicators = defaultdict(list)
         for dpSig in results:
             _met, _sep, dims = dpSig[0].partition("|")
             _dimVals = {}
             for _dimVal in dims.split("|"):
-                _dim, _sep, _val  = _dimVal.partition("(")
-                _dimVals[_dim] = _val[:-1]
+                _dimSigMatch = sigDimPattern.match(_dimVal)
+                if _dimSigMatch:
+                    _dim, _sig, _hierTerm, _hier = _dimSigMatch.groups()
+                    _dimVals[_dim] = (_sig, _hier)
             self.signaturesForFilingIndicators[_met[4:-1]].append(_dimVals)
+        pass
             
     def dFactValue(self, dFact):
         for v in dFact[4:7]:
             if v is not None:
                 return v
         return None
+    
+    def dHierarchyMembers(self, hierarchyKey):
+        if hierarchyKey in self.domainHiearchyMembers:
+            return self.domainHiearchyMembers[hierarchyKey]
+        _hierarchies = hierarchyKey.split(";")
+        if len(_hierarchies) == 1:
+            results = self.execute(
+                "select mem.MemberXBRLCode from mHierarchyNode hn "
+                "inner join mMember mem on mem.MemberID = hn.MemberID "
+                "where hn.HierarchyID = {0} and hn.IsAbstract != 1"
+                 .format(_hierarchies[0]))
+        elif len(_hierarchies) == 3:
+            results = self.execute(
+                "select distinct mem.MemberXBRLCode from mHierarchyNode hn "
+                "left outer join mHierarchyNode hn2 on hn2.ParentMemberID = hn.MemberID and hn2.HierarchyID = hn.HierarchyID "
+                "left outer join mHierarchyNode hn3 on hn3.ParentMemberID = hn2.MemberID and hn3.HierarchyID = hn.HierarchyID "
+                "left outer join mHierarchyNode hn4 on hn4.ParentMemberID = hn3.MemberID and hn4.HierarchyID = hn.HierarchyID "
+                "inner join mMember mem on mem.MemberID = hn.MemberID or mem.MemberID = hn2.MemberID or mem.MemberID = hn3.MemberID or mem.MemberID = hn4.MemberID "
+                "where hn.HierarchyID = {0} and hn.MemberID = {1} "
+                 .format(_hierarchies[0], _hierarchies[1]))
+        else:
+            results = () # empty tuple
+        _mems = [_memrow[0] for _memrow in results] # tuple of select fields per member found
+        self.domainHiearchyMembers[hierarchyKey] = _mems
+        return _mems
 
     def validateFactSignature(self, dpmSignature, fact): # omit fact if checking at end
         _met, _sep, _dimVals = dpmSignature.partition("|")
@@ -428,7 +473,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             _dimVals = dict((_dim,_val[:-1])
                             for _dimVal in _dimVals.split("|")
                             for _dim, _sep, _val in (_dimVal.partition("("),))
-            _dimSigs = self.signaturesForFilingIndicators.get(_metQname)
+            _dimSigs = self.signaturesForFilingIndicators.get(_metQname) # value is (mem, hier)
             _sigMatched = False
             _missingDims = _differentDims = _extraDims = set()
             _closestMatch = 9999
@@ -437,19 +482,25 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 for _dimSig in _dimSigs: # alternate signatures valid for member
                     _lenDimVals = len(_dimVals)
                     _lenDimSig = sum(1
-                                     for _dim, _val in _dimSig.items()
-                                     if _val != "*?" or _dim in _dimVals)
+                                     for _dim, _valHier in _dimSig.items()
+                                     if _valHier[0] != "*?" or _dim in _dimVals)
                     _differentDims = set(_dim
                                          for _dim, _val in _dimVals.items()
-                                         if _dim in _dimSig and _dimSig[_dim] not in ("*", "*?", _val))
+                                         if _dim in _dimSig and _dimSig[_dim][0] not in ("*", "*?", _val))
                     _differentDimCount = abs(_lenDimSig - _lenDimVals)
                     _difference = _differentDimCount + len(_differentDims)
                     if _difference == 0:
                         # check * dimensions
                         for _dim, _val in _dimVals.items():
-                            if _dim in _dimSig and _dimSig[_dim] in ("*", "*?"):
+                            _sigVal, _sigHier = _dimSig.get(_dim, (None,None))
+                            if _sigVal in ("*", "*?"):
                                 if _dim in self.explicitDimensionDomain:
-                                    if _val not in self.explicitDimensionDomain[_dim]:
+                                    if _sigHier:
+                                        _dimMems = self.dHierarchyMembers(_sigHier)
+                                        # print("trying to match {} to {}".format(_val,_dimMems))
+                                    else:
+                                        _dimMems = self.explicitDimensionDomain[_dim]
+                                    if _val not in _dimMems:
                                         _difference += 1
                                         _differentDims.add(_dim)
                                 elif _dim in self.typedDimensionDomain:
@@ -458,6 +509,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                         _differentDims.add(_dim)
                         if _difference == 0:
                             _sigMatched = True
+                            #print ("successful match {}".format(_dimSig))   # debug successful match
                             break
                     if _difference < _closestMatch:
                         _extraDims = _DICT_SET(_dimVals.keys()) - _DICT_SET(_dimSig.keys())
@@ -630,7 +682,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                          modelObject=f, context=f.contextID)
                 for filingIndicator in f.modelTupleFacts:
                     if filingIndicator.qname == qnFindFilingIndicator:
-                        self.dFilingIndicators.add(filingIndicator.textValue.strip())
+                        self.dFilingIndicators[filingIndicator.textValue.strip()] = filingIndicator.get("{http://www.eurofiling.info/xbrl/ext/filing-indicators}filed", True)
                         if filingIndicator.context is None:
                             self.modelXbrl.error("sqlDB:filingIndicatorContextError",
                                                  _("Loading XBRL DB: Filing indicator fact missing a context, value %(value)s"),
@@ -796,7 +848,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                    "        mToT.TemplateOrTableID = mBT.BusinessTemplateID AND"
                                    "        mToT.ParentTemplateOrTableID = mToT2.TemplateOrTableID AND"
                                    "        mToT2.TemplateOrTableCode in ({1})"
-                                   .format(self.moduleId, self.filingIndicators))
+                                   .format(self.moduleId, self.allFilingIndicators))
             filingIndicatorCodeIDs = dict((code, id) for code, id in results)
             self.modelXbrl.profileActivity("dpmDB 07. Get business template filing indicator for module", minTimeToShow=0.0)
             
@@ -807,11 +859,12 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                      missingFilingIndicatorCodes=','.join(self.dFilingIndicators - _DICT_SET(filingIndicatorCodeIDs.keys()))) 
     
             self.getTable("dFilingIndicator", None,
-                          ("InstanceID", "BusinessTemplateID"),
+                          ("InstanceID", "BusinessTemplateID", "Filed"),
                           ("InstanceID", "BusinessTemplateID"),
                           ((self.instanceId,
-                            filingIndicatorCodeId)
-                           for filingIndicatorCodeId in sorted(filingIndicatorCodeIDs.values())),
+                            filingIndicatorCodeId,
+                            self.dFilingIndicators.get(filingIndicatorCode))
+                           for filingIndicatorCode, filingIndicatorCodeId in sorted(filingIndicatorCodeIDs.items())),
                           returnMatches=False)
         self.modelXbrl.profileActivity("dpmDB 08. Store dFilingIndicators", minTimeToShow=0.0)
         ''' deprecated
@@ -909,11 +962,11 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         
         # filing indicator code IDs
         # get filing indicators
-        results = self.execute("SELECT mToT.TemplateOrTableCode "
+        results = self.execute("SELECT mToT.TemplateOrTableCode, dFI.Filed"
                                "  FROM dFilingIndicator dFI, mTemplateOrTable mToT "
                                "  WHERE dFI.InstanceID = {} AND mTot.TemplateOrTableID = dFI.BusinessTemplateID"
                                .format(instanceId))
-        filingIndicatorCodes = [code[0] for code in results]
+        filingIndicatorCodes = dict((code[0], code[1]) for code in results)
         
         if filingIndicatorCodes:
             modelXbrl.createContext(entScheme,
@@ -925,11 +978,20 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         {}, [], [],
                         id='c')
             filingIndicatorsTuple = modelXbrl.createFact(qnFindFilingIndicators, validate=False)
-            for filingIndicatorCode in filingIndicatorCodes:
+            if filingIndicatorsTuple is None:
+                raise DpmDBException("sqlDB:createTupleError",
+                                     _("Unable to create filing indicators tuple, please check if schema file was loaded"))
+            for filingIndicatorCode, filed in filingIndicatorCodes.items():
+                attributes = {"contextRef": "c"}
+                if filed is not None and not filed:
+                    attributes["{http://www.eurofiling.info/xbrl/ext/filing-indicators}filed"] = "false"
                 f = modelXbrl.createFact(qnFindFilingIndicator, 
                                      parent=filingIndicatorsTuple,
-                                     attributes={"contextRef": "c"}, 
+                                     attributes=attributes, 
                                      text=filingIndicatorCode, validate=False)
+                if f is None:
+                    raise DpmDBException("sqlDB:createFactError",
+                                         _("Unable to create filing indicator, please check if schema file was loaded"))
                 xbrlFactsCheckSum += f.md5sum
             XmlValidate.validate(modelXbrl, filingIndicatorsTuple) # must validate after contents are created
             xbrlFactsCheckSum += filingIndicatorsTuple.md5sum
@@ -1029,9 +1091,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         dQn, sep, dVal = dim[:-1].partition('(')
                         dimQname = qname(dQn, prefixedNamespaces)
                         if dVal.startswith('<'):
-                            mem = typedDimElt(dVal)  # typed dim
-                        elif dVal == "nil":
-                            mem = nilTypedDimElt(dQn)
+                            if "/>" in dVal: # now <a:b/> is nil, was "xsi:nil='true'"
+                                mem = nilTypedDimElt(dQn)
+                            else:
+                                mem = typedDimElt(dVal)  # typed dim
                         else:
                             mem = qname(dVal, prefixedNamespaces) # explicit dim (even if treat-as-typed)
                         qnameDims[dimQname] = DimValuePrototype(modelXbrl, None, dimQname, mem, "scenario")
@@ -1082,11 +1145,11 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     '''
                     try:
                         if c == 'm':
-                            text = str(Decimal(numVal) + Decimal("0.00"))
+                            text = "{:.2f}".format(numVal)
                         elif c == 'p':
-                            text = str(Decimal(numVal) + Decimal("0.0000"))
+                            text = "{:.4f}".format(numVal)
                         elif c == 'i':
-                            text = '%i' % Decimal(numVal)
+                            text = "{:.0f}".format(numVal)
                         else:
                             text = str(numVal)
                     except Exception:
@@ -1117,6 +1180,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     attrs[XbrlConst.qnXsiNil] = "true"
                     text = None
             f = modelXbrl.createFact(conceptQn, attributes=attrs, text=text)
+            if f is None:
+                raise DpmDBException("sqlDB:createFactError",
+                                     _("Unable to create fact for concept {0} value {1}".format(conceptQn, text)))
             xbrlFactsCheckSum += f.md5sum
             #print ("f {} v {} c {} u {} f {} s {}".format(
             #        f.qname, f.value, f.context.md5sum, f.unit.md5sum, f.md5sum, xbrlFactsCheckSum))
@@ -1128,6 +1194,19 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                  'xbrl-facts-check', 
                                  'sum-of-fact-md5s="{}"'.format(xbrlFactsCheckSum),
                                  insertBeforeChildElements=False) # add pi AFTER other elements
+        
+        # change schemaRef as needed
+        if self.schemaRefSubstitutions:
+            _xbrlSchemaRef = xbrlSchemaRef
+            for _from, _to in self.schemaRefSubstitutions.items():
+                xbrlSchemaRef = xbrlSchemaRef.replace(_from, _to)
+            if _xbrlSchemaRef != xbrlSchemaRef:
+                # change schemaRef in instance
+                for schemaRefElt in modelXbrl.modelDocument.xmlRootElement.iter("{http://www.xbrl.org/2003/linkbase}schemaRef"):
+                    if schemaRefElt.get("{http://www.w3.org/1999/xlink}href") == _xbrlSchemaRef:
+                        schemaRefElt.set("{http://www.w3.org/1999/xlink}href", xbrlSchemaRef)
+        
+        
         self.showStatus("saving XBRL instance")
         modelXbrl.saveInstance(overrideFilepath=loadDBsaveToFile)
         self.showStatus(_("Saved extracted instance"), 5000)
