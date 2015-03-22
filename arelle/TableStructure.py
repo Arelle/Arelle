@@ -32,7 +32,7 @@ isCMPRH = r"(?=.*comprehensive)"
 use a regular expression that is forgiving on at least the above
 and doens't match variations of parent, transparent, etc.
 '''
-rePARENTHETICAL = r"pa?r[ae]ne?tht?[aei]+n?t?h?i?c"
+rePARENTHETICAL = r"pa?r[ae]ne?th\w?[aei]+\w?t?h?i?c"
 notPAR = "(?!.*" + rePARENTHETICAL + ")"
 isPAR = "(?=.*" + rePARENTHETICAL + ")"
 
