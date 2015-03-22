@@ -63,15 +63,15 @@ class DialogPackageManager(Toplevel):
         addLabel = Label(buttonFrame, text=_("Find taxonomy packages:"), wraplength=64, justify="center")
         addLocalButton = Button(buttonFrame, text=_("Locally"), command=self.findLocally)
         ToolTip(addLocalButton, text=_("File chooser allows selecting taxonomy packages to add (or reload), from the local file system.  "
-                                       "Select either a taxonomy package zip file, or a taxonomy manifest (.taxonomyPackage.xml) within an unzipped taxonomy package.  "), wraplength=240)
+                                       "Select either a PWD or prior taxonomy package zip file, or a taxonomy manifest (.taxonomyPackage.xml) within an unzipped taxonomy package.  "), wraplength=360)
         addWebButton = Button(buttonFrame, text=_("On Web"), command=self.findOnWeb)
         ToolTip(addWebButton, text=_("Dialog to enter URL full path to load (or reload) package, from the web or local file system.  "
-                                     "URL may be either a taxonomy package zip file, or a taxonomy manifest (.taxonomyPackage.xml) within an unzipped taxonomy package.  "), wraplength=240)
+                                     "URL may be either a PWD or prior taxonomy package zip file, or a taxonomy manifest (.taxonomyPackage.xml) within an unzipped taxonomy package.  "), wraplength=360)
         manifestNameButton = Button(buttonFrame, text=_("Manifest"), command=self.manifestName)
-        ToolTip(manifestNameButton, text=_("Provide non-standard archive manifest file name pattern (e.g., *taxonomyPackage.xml).  "
+        ToolTip(manifestNameButton, text=_("Provide pre-PWD non-standard archive manifest file name pattern (e.g., *taxonomyPackage.xml).  "
                                            "Uses unix file name pattern matching.  "
-                                           "Multiple manifest files are supported in archive (such as oasis catalogs).  "
-                                           "(Replaces search for either .taxonomyPackage.xml or catalog.xml).  "), wraplength=240)
+                                           "Multiple manifest files are supported in pre-PWD archives (such as oasis catalogs).  "
+                                           "(Replaces pre-PWD search for either .taxonomyPackage.xml or catalog.xml).  "), wraplength=480)
         self.manifestNamePattern = ""
         addLabel.grid(row=0, column=0, pady=4)
         addLocalButton.grid(row=1, column=0, pady=4)
@@ -308,8 +308,9 @@ class DialogPackageManager(Toplevel):
                                            title=_("Choose taxonomy package file"),
                                            initialdir=initialdir,
                                            filetypes=[(_("Taxonomy package files (*.zip)"), "*.zip"),
-                                                      (_("Manifest (*.taxonomyPackage.xml)"), "*.taxonomyPackage.xml"),
-                                                      (_("Oasis Catalog (*catalog.xml)"), "*catalog.xml")],
+                                                      (_("PWD Manifest (taxonomyPackage.xml)"), "taxonomyPackage.xml"),
+                                                      (_("pre-PWD Manifest (*.taxonomyPackage.xml)"), "*.taxonomyPackage.xml"),
+                                                      (_("pre-PWD Oasis Catalog (*catalog.xml)"), "*catalog.xml")],
                                            defaultextension=".zip")
         if filename:
             # check if a package is selected (any file in a directory containing an __init__.py

@@ -51,10 +51,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase):
     pkg = {}
 
     currentLang = Locale.getLanguageCode()
-    if filesource.isZip:
-        _file = filesource.file(metadataFile)[0] # URL in zip
-    else:
-        _file = metadataFile # URL not in zip
+    _file = filesource.file(metadataFile)[0] # URL in zip, plain file in file system or web
     tree = etree.parse(_file)
     root = tree.getroot()
     ns = root.tag.partition("}")[0][1:]
@@ -78,7 +75,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase):
     remappings = {}
     rewriteTree = tree
     catalogFile = metadataFile
-    if ns in ("http://xbrl.org/PWD/2015-01-14/taxonomy-package",) and filesource.isZip:
+    if ns in ("http://xbrl.org/PWD/2015-01-14/taxonomy-package",):
         catalogFile = metadataFile.replace('taxonomyPackage.xml','catalog.xml')
         try:
             rewriteTree = etree.parse(filesource.file(catalogFile)[0])
@@ -297,9 +294,11 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None):
                         packageFilePrefix += os.sep
                     packageFilePrefix = filesource.baseurl + os.sep +  packageFilePrefix
                     packages.append([packageFileUrl, packageFilePrefix, packageFile])
-            elif os.path.basename(filesource.url) in TAXONOMY_PACKAGE_FILE_NAMES: # individual manifest file
+            elif (os.path.basename(filesource.url) in TAXONOMY_PACKAGE_FILE_NAMES or # individual manifest file
+                  (os.path.basename(filesource.url) == "taxonomyPackage.xml" and 
+                   os.path.basename(os.path.dirname(filesource.url)) == "META-INF")):
                 packageFile = packageFileUrl = filesource.url
-                packageFilePrefix = os.sep.join(os.path.split(packageFile)[:-1])
+                packageFilePrefix = os.path.dirname(packageFile)
                 if packageFilePrefix:
                     packageFilePrefix += os.sep
                 packages.append([packageFileUrl, packageFilePrefix, ""])
