@@ -749,7 +749,7 @@ class ModelXbrl:
         except KeyError:
             self._factsByDimQname[dimQname] = fbdq = defaultdict(set)
             for fact in self.factsInInstance: 
-                if fact.isItem:
+                if fact.isItem and fact.context is not None:
                     dimValue = fact.context.dimValue(dimQname)
                     if isinstance(dimValue, ModelValue.QName):  # explicit dimension default value
                         fbdq[None].add(fact) # set of all facts that have default value for dimension
