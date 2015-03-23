@@ -227,21 +227,21 @@ def checkDTS(val, modelDocument, visited):
                             _("Concept %(concept)s  is abstract but type is not xbrli:stringItemType"),
                             modelObject=modelConcept, concept=modelConcept.qname)
 					'''
-                    substititutionGroupQname = modelConcept.substitutionGroupQname
+                    substitutionGroupQname = modelConcept.substitutionGroupQname
                     # 6.7.23 Axis must be subs group dimension
-                    if name.endswith("Axis") ^ (substititutionGroupQname == XbrlConst.qnXbrldtDimensionItem):
+                    if name.endswith("Axis") ^ (substitutionGroupQname == XbrlConst.qnXbrldtDimensionItem):
                         val.modelXbrl.error(("EFM.6.07.23", "GFM.1.03.25"),
                             _("Concept %(concept)s must end in Axis to be in xbrldt:dimensionItem substitution group"),
                             modelObject=modelConcept, concept=modelConcept.qname)
 
                     # 6.7.24 Table must be subs group hypercube
-                    if name.endswith("Table") ^ (substititutionGroupQname == XbrlConst.qnXbrldtHypercubeItem):
+                    if name.endswith("Table") ^ (substitutionGroupQname == XbrlConst.qnXbrldtHypercubeItem):
                         val.modelXbrl.error(("EFM.6.07.24", "GFM.1.03.26"),
                             _("Concept %(concept)s must end in Table to be in xbrldt:hypercubeItem substitution group"),
                             modelObject=modelConcept, schema=os.path.basename(modelDocument.uri), concept=modelConcept.qname)
 
                     # 6.7.25 if neither hypercube or dimension, substitution group must be item
-                    if substititutionGroupQname not in (None,
+                    if substitutionGroupQname not in (None,
                                                         XbrlConst.qnXbrldtDimensionItem, 
                                                         XbrlConst.qnXbrldtHypercubeItem,
                                                         XbrlConst.qnXbrliItem):                           
@@ -392,7 +392,7 @@ def checkDTS(val, modelDocument, visited):
                                 definesHypercubes = True
                             elif modelConcept.isDimensionItem:
                                 definesDimensions = True
-                            elif substititutionGroupQname and substititutionGroupQname.localName in ("domainItem","domainMemberItem"):
+                            elif substitutionGroupQname and substitutionGroupQname.localName in ("domainItem","domainMemberItem"):
                                 definesDomains = True
                             elif modelConcept.isItem:
                                 definesAbstractItems = True
