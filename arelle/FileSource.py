@@ -19,7 +19,7 @@ SERVER_WEB_CACHE = os.sep + "_HTTP_CACHE"
 
 XMLdeclaration = re.compile(r"<\?xml[^><\?]*\?>", re.DOTALL)
 
-TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml') # pre-REC packages
+TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml') # pre-PWD packages
 
 def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=False):
     if sourceZipStream:

@@ -13,7 +13,7 @@ else:
     from urlparse import urljoin
 openFileSource = None
 from arelle import Locale
-from arelle.UrlUtil import isHttpUrl
+from arelle.UrlUtil import isAbsolute
 ArchiveFileIOError = None
 try:
     from collections import OrderedDict
@@ -94,10 +94,10 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase):
                     if base:
                         replaceValue = os.path.join(base, replaceValue)
                     if replaceValue: # neither None nor ''
-                        if not replaceValue.startswith('http://'):
-                                if not os.path.isabs(replaceValue):
-                                    replaceValue = fileBase + replaceValue
-                                replaceValue = replaceValue.replace("/", os.sep)
+                        if not isAbsolute(replaceValue):
+                            if not os.path.isabs(replaceValue):
+                                replaceValue = fileBase + replaceValue
+                            replaceValue = replaceValue.replace("/", os.sep)
                     _normedValue = os.path.normpath(replaceValue)
                     if replaceValue.endswith(os.sep) and not _normedValue.endswith(os.sep):
                         _normedValue += os.sep
