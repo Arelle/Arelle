@@ -20,6 +20,7 @@ try:
     import regex as re
 except ImportError:
     import re
+EMPTYLIST = []
 
 def dialogPluginManager(mainWin):
     # check for updates in background
@@ -164,15 +165,19 @@ class DialogPluginManager(Toplevel):
         self.moduleLicenseHdr.grid(row=6, column=0, sticky=W)
         self.moduleLicenseLabel = Label(moduleInfoFrame, wraplength=600, justify="left")
         self.moduleLicenseLabel.grid(row=6, column=1, columnspan=3, sticky=W)
+        self.moduleImportsHdr = Label(moduleInfoFrame, text=_("imports:"), state=DISABLED)
+        self.moduleImportsHdr.grid(row=7, column=0, sticky=W)
+        self.moduleImportsLabel = Label(moduleInfoFrame, wraplength=600, justify="left")
+        self.moduleImportsLabel.grid(row=7, column=1, columnspan=3, sticky=W)
         self.moduleEnableButton = Button(moduleInfoFrame, text=self.ENABLE, state=DISABLED, command=self.moduleEnable)
         ToolTip(self.moduleEnableButton, text=_("Enable/disable plug in."), wraplength=240)
-        self.moduleEnableButton.grid(row=7, column=1, sticky=E)
+        self.moduleEnableButton.grid(row=8, column=1, sticky=E)
         self.moduleReloadButton = Button(moduleInfoFrame, text=_("Reload"), state=DISABLED, command=self.moduleReload)
         ToolTip(self.moduleReloadButton, text=_("Reload/update plug in."), wraplength=240)
-        self.moduleReloadButton.grid(row=7, column=2, sticky=E)
+        self.moduleReloadButton.grid(row=8, column=2, sticky=E)
         self.moduleRemoveButton = Button(moduleInfoFrame, text=_("Remove"), state=DISABLED, command=self.moduleRemove)
         ToolTip(self.moduleRemoveButton, text=_("Remove plug in from plug in table (does not erase the plug in's file)."), wraplength=240)
-        self.moduleRemoveButton.grid(row=7, column=3, sticky=E)
+        self.moduleRemoveButton.grid(row=8, column=3, sticky=E)
         moduleInfoFrame.grid(row=2, column=0, columnspan=5, sticky=(N, S, E, W), padx=3, pady=3)
         moduleInfoFrame.config(borderwidth=4, relief="groove")
         
@@ -216,19 +221,26 @@ class DialogPluginManager(Toplevel):
         # clear previous treeview entries
         for previousNode in self.modulesView.get_children(""): 
             self.modulesView.delete(previousNode)
-
-        for i, moduleItem in enumerate(sorted(self.pluginConfig.get("modules", {}).items())):
-            moduleInfo = moduleItem[1]
-            name = moduleInfo.get("name", moduleItem[0])
-            node = self.modulesView.insert("", "end", name, text=name)
-            self.modulesView.set(node, "author", moduleInfo.get("author"))
-            self.modulesView.set(node, "ver", moduleInfo.get("version"))
-            self.modulesView.set(node, "status", moduleInfo.get("status"))
-            self.modulesView.set(node, "date", moduleInfo.get("fileDate"))
-            if name in self.modulesWithNewerFileDates:
-                self.modulesView.set(node, "update", _("available"))
-            self.modulesView.set(node, "descr", moduleInfo.get("description"))
-            self.modulesView.set(node, "license", moduleInfo.get("license"))
+            
+        def loadSubtree(parentNode, moduleItems):
+            for moduleItem in sorted(moduleItems, key=lambda item: item[0]):
+                moduleInfo = moduleItem[1]
+                if parentNode or not moduleInfo.get("isImported"):
+                    name = moduleInfo.get("name", moduleItem[0])
+                    node = self.modulesView.insert(parentNode, "end", name, text=name)
+                    self.modulesView.set(node, "author", moduleInfo.get("author"))
+                    self.modulesView.set(node, "ver", moduleInfo.get("version"))
+                    self.modulesView.set(node, "status", moduleInfo.get("status"))
+                    self.modulesView.set(node, "date", moduleInfo.get("fileDate"))
+                    if name in self.modulesWithNewerFileDates:
+                        self.modulesView.set(node, "update", _("available"))
+                    self.modulesView.set(node, "descr", moduleInfo.get("description"))
+                    self.modulesView.set(node, "license", moduleInfo.get("license"))
+                    if moduleInfo.get("imports"):
+                        loadSubtree(node, [(importModuleInfo["name"],importModuleInfo)
+                                           for importModuleInfo in moduleInfo["imports"]])
+            
+        loadSubtree("", self.pluginConfig.get("modules", {}).items())
         
         # clear previous treeview entries
         for previousNode in self.classesView.get_children(""): 
@@ -294,11 +306,18 @@ class DialogPluginManager(Toplevel):
                     (_("(an update is available)") if name in self.modulesWithNewerFileDates else ""))
             self.moduleLicenseHdr.config(state=ACTIVE)
             self.moduleLicenseLabel.config(text=moduleInfo["license"])
-            self.moduleEnableButton.config(state=ACTIVE,
+            if moduleInfo.get("imports"):
+                self.moduleImportsHdr.config(state=ACTIVE)
+                _text = ", ".join(mi["name"] for mi in moduleInfo["imports"][:3])
+                if len(moduleInfo["imports"]) >= 3:
+                    _text += ", ..."
+                self.moduleImportsLabel.config(text=_text)
+            _buttonState = DISABLED if moduleInfo.get("isImported") else ACTIVE
+            self.moduleEnableButton.config(state=_buttonState,
                                            text={"enabled":self.DISABLE,
                                                  "disabled":self.ENABLE}[moduleInfo["status"]])
-            self.moduleReloadButton.config(state=ACTIVE)
-            self.moduleRemoveButton.config(state=ACTIVE)
+            self.moduleReloadButton.config(state=_buttonState)
+            self.moduleRemoveButton.config(state=_buttonState)
         else:
             self.selectedModule = None
             self.moduleNameLabel.config(text="")
@@ -314,6 +333,8 @@ class DialogPluginManager(Toplevel):
             self.moduleDateLabel.config(text="")
             self.moduleLicenseHdr.config(state=DISABLED)
             self.moduleLicenseLabel.config(text="")
+            self.moduleImportsHdr.config(state=DISABLED)
+            self.moduleImportsLabel.config(text="")
             self.moduleEnableButton.config(state=DISABLED, text=self.ENABLE)
             self.moduleReloadButton.config(state=DISABLED)
             self.moduleRemoveButton.config(state=DISABLED)
@@ -354,51 +375,84 @@ class DialogPluginManager(Toplevel):
                                    _("File does not itself contain a python program with an appropriate __pluginInfo__ declaration: \n\n{0}")
                                    .format(url),
                                    parent=self)
-            
+        
+    def checkIfImported(self, moduleInfo):
+        if moduleInfo.get("isImported"):
+            messagebox.showwarning(_("Plug-in is imported by a parent plug-in.  "),
+                                   _("Plug-in has a parent, please request operation on the parent: \n\n{0}")
+                                   .format(moduleInfo.get("name")),
+                                   parent=self)
+            return True
+        return False
+    
     def removePluginConfigModuleInfo(self, name):
         moduleInfo = self.pluginConfig["modules"].get(name)
         if moduleInfo:
-            for classMethod in moduleInfo["classMethods"]:
-                classMethods = self.pluginConfig["classes"].get(classMethod)
-                if classMethods and name in classMethods:
-                    classMethods.remove(name)
-                    if not classMethods: # list has become unused
-                        del self.pluginConfig["classes"][classMethod] # remove class
+            if self.checkIfImported(moduleInfo):
+                return;
+            def _removePluginConfigModuleInfo(moduleInfo):
+                _name = moduleInfo.get("name")
+                if _name:
+                    for classMethod in moduleInfo["classMethods"]:
+                        classMethods = self.pluginConfig["classes"].get(classMethod)
+                        if classMethods and _name in classMethods:
+                            classMethods.remove(_name)
+                            if not classMethods: # list has become unused
+                                del self.pluginConfig["classes"][classMethod] # remove class
+                            if classMethod.startswith("CntlrWinMain.Menu"):
+                                self.uiClassMethodsChanged = True  # may require reloading UI
+                            elif classMethod == "ModelObjectFactory.ElementSubstitutionClasses":
+                                self.modelClassesChanged = True # model object factor classes changed
+                            elif classMethod == "DisclosureSystem.Types":
+                                self.disclosureSystemTypesChanged = True # disclosure system types changed
+                    for importModuleInfo in moduleInfo.get("imports", EMPTYLIST):
+                        _removePluginConfigModuleInfo(importModuleInfo)
+                    del self.pluginConfig["modules"][_name]
+            _removePluginConfigModuleInfo(moduleInfo)
+            self.pluginConfigChanged = True
+
+    def addPluginConfigModuleInfo(self, moduleInfo):
+        if self.checkIfImported(moduleInfo):
+            return;
+        name = moduleInfo.get("name")
+        self.removePluginConfigModuleInfo(name)  # remove any prior entry for this module
+        def _addPlugin(moduleInfo):
+            _name = moduleInfo.get("name")
+            if _name:
+                self.modulesWithNewerFileDates.discard(_name) # no longer has an update available
+                self.pluginConfig["modules"][_name] = moduleInfo
+                # add classes
+                for classMethod in moduleInfo["classMethods"]:
+                    classMethods = self.pluginConfig["classes"].setdefault(classMethod, [])
+                    if name not in classMethods:
+                        classMethods.append(_name)
                     if classMethod.startswith("CntlrWinMain.Menu"):
                         self.uiClassMethodsChanged = True  # may require reloading UI
                     elif classMethod == "ModelObjectFactory.ElementSubstitutionClasses":
                         self.modelClassesChanged = True # model object factor classes changed
                     elif classMethod == "DisclosureSystem.Types":
                         self.disclosureSystemTypesChanged = True # disclosure system types changed
-            del self.pluginConfig["modules"][name]
-            self.pluginConfigChanged = True
-
-    def addPluginConfigModuleInfo(self, moduleInfo):
-        name = moduleInfo["name"]
-        self.removePluginConfigModuleInfo(name)  # remove any prior entry for this module
-        self.modulesWithNewerFileDates.discard(name) # no longer has an update available
-        self.pluginConfig["modules"][name] = moduleInfo
-        # add classes
-        for classMethod in moduleInfo["classMethods"]:
-            classMethods = self.pluginConfig["classes"].setdefault(classMethod, [])
-            if name not in classMethods:
-                classMethods.append(name)
-            if classMethod.startswith("CntlrWinMain.Menu"):
-                self.uiClassMethodsChanged = True  # may require reloading UI
-            elif classMethod == "ModelObjectFactory.ElementSubstitutionClasses":
-                self.modelClassesChanged = True # model object factor classes changed
-            elif classMethod == "DisclosureSystem.Types":
-                self.disclosureSystemTypesChanged = True # disclosure system types changed
+            for importModuleInfo in moduleInfo.get("imports", EMPTYLIST):
+                _addPlugin(importModuleInfo)
+        _addPlugin(moduleInfo)
         self.pluginConfigChanged = True
 
     def moduleEnable(self):
         if self.selectedModule in self.pluginConfig["modules"]:
             moduleInfo = self.pluginConfig["modules"][self.selectedModule]
+            if self.checkIfImported(moduleInfo):
+                return;
+            def _moduleEnable(moduleInfo):
+                if self.moduleEnableButton['text'] == self.ENABLE:
+                    moduleInfo["status"] = "enabled"
+                elif self.moduleEnableButton['text'] == self.DISABLE:
+                    moduleInfo["status"] = "disabled"
+                for importModuleInfo in moduleInfo.get("imports", EMPTYLIST):
+                    _moduleEnable(importModuleInfo)
+            _moduleEnable(moduleInfo)
             if self.moduleEnableButton['text'] == self.ENABLE:
-                moduleInfo["status"] = "enabled"
                 self.moduleEnableButton['text'] = self.DISABLE
             elif self.moduleEnableButton['text'] == self.DISABLE:
-                moduleInfo["status"] = "disabled"
                 self.moduleEnableButton['text'] = self.ENABLE
             self.pluginConfigChanged = True
             self.loadTreeViews()
@@ -409,9 +463,11 @@ class DialogPluginManager(Toplevel):
             if url:
                 moduleInfo = PluginManager.moduleModuleInfo(url, reload=True)
                 if moduleInfo:
+                    if self.checkIfImported(moduleInfo):
+                        return;
                     self.addPluginConfigModuleInfo(moduleInfo)
                     self.loadTreeViews()
-                    self.cntlr.showStatus(_("{0} reloaded").format(moduleInfo.get("name")), clearAfter=5000)
+                    self.cntlr.showStatus(_("{0} reloaded").format(moduleInfo["name"]), clearAfter=5000)
                 else:
                     messagebox.showwarning(_("Module error"),
                                            _("File or module cannot be reloaded: \n\n{0}")
@@ -432,13 +488,20 @@ class DialogPluginManager(Toplevel):
                     
     def enableDisableAll(self, doEnable):
         for module in self.pluginConfig["modules"]:
-            moduleInfo = self.pluginConfig["modules"][module]
-            if doEnable:
-                moduleInfo["status"] = "enabled"
-                self.moduleEnableButton['text'] = self.DISABLE
-            else:
-                moduleInfo["status"] = "disabled"
-                self.moduleEnableButton['text'] = self.ENABLE
+            if not module.get("isImported"):
+                moduleInfo = self.pluginConfig["modules"][module]
+                def _enableDisableAll(moduleInfo):
+                    if doEnable:
+                        moduleInfo["status"] = "enabled"
+                    else:
+                        moduleInfo["status"] = "disabled"
+                    for importModuleInfo in moduleInfo.get("imports", EMPTYLIST):
+                        _enableDisableAll(importModuleInfo)
+                _enableDisableAll(moduleInfo)
+                if doEnable:
+                    self.moduleEnableButton['text'] = self.DISABLE
+                else:
+                    self.moduleEnableButton['text'] = self.ENABLE
         self.pluginConfigChanged = True
         self.loadTreeViews()
             

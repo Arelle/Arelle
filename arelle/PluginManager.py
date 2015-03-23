@@ -10,6 +10,7 @@ based on pull request 4
 import os, sys, types, time, ast, imp, io, json, gettext
 from arelle.Locale import getLanguageCodes
 from arelle.FileSource import openFileStream
+from arelle.UrlUtil import isAbsolute
 try:
     from collections import OrderedDict
 except ImportError:
@@ -23,6 +24,7 @@ modulePluginInfos = {}
 pluginMethodsForClasses = {}
 _cntlr = None
 _pluginBase = None
+EMPTYLIST = []
 
 def init(cntlr):
     global pluginJsonFile, pluginConfig, modulePluginInfos, pluginMethodsForClasses, pluginConfigChanged, _cntlr, _pluginBase
@@ -96,6 +98,8 @@ __pluginInfo__ = {
     # classes of mount points (required)
     'a.b.c': method (function) to do something
     'a.b.c.d' : method (function) to do something
+    # import (plugins to be loaded for this package) (may be multiple imports like in python)
+    'import': [string, list or tuple of URLs or relative file names of imported plug-ins]
 }
 
 moduleInfo = {
@@ -111,6 +115,8 @@ moduleInfo = {
     'author': (optional)
     'copyright': (optional)
     'classMethods': [list of class names that have methods in module]
+    'imports': [list of imported plug-in moduleInfos]
+    'isImported': True if module was imported by a parent plug-in module
 }
 
 
@@ -143,20 +149,38 @@ def moduleModuleInfo(moduleURL, reload=False):
                     attr = item.targets[0].id
                     if attr == "__pluginInfo__":
                         f.close()
-                        moduleInfo = {}
+                        moduleInfo = {"name":None}
                         classMethods = []
+                        importURLs = []
                         for i, key in enumerate(item.value.keys):
                             _key = key.s
                             _value = item.value.values[i]
                             _valueType = _value.__class__.__name__
-                            if _valueType == 'Str':
+                            if _key == "import":
+                                if _valueType == 'Str':
+                                    importURLs.append(_value.s)
+                                elif _valueType in ("List", "Tuple"):
+                                    for elt in _value.elts:
+                                        importURLs.append(elt.s)
+                            elif _valueType == 'Str':
                                 moduleInfo[_key] = _value.s
                             elif _valueType == 'Name':
                                 classMethods.append(_key)
+                            elif _key == "imports" and _valueType in ("List", "Tuple"):
+                                importURLs = [elt.s for elt in _value.elts]
                         moduleInfo['classMethods'] = classMethods
                         moduleInfo["moduleURL"] = moduleURL
                         moduleInfo["status"] = 'enabled'
                         moduleInfo["fileDate"] = time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(moduleFilename)))
+                        imports = []
+                        for _url in importURLs:
+                            _importURL = (_url if isAbsolute(_url) or os.path.isabs(_url)
+                                          else os.path.join(os.path.dirname(moduleURL), _url))
+                            _importModuleInfo = moduleModuleInfo(_importURL, reload)
+                            if _importModuleInfo:
+                                _importModuleInfo["isImported"] = True
+                                imports.append(_importModuleInfo)
+                        moduleInfo["imports"] =  imports
                         return moduleInfo
         except EnvironmentError:
             pass
@@ -224,6 +248,8 @@ def loadModule(moduleInfo):
                         except Exception as err:
                             print(_("Exception loading plug-in {name}: processing ModelObjectFactory.ElementSubstitutionClasses").format(
                                     name=name, error=err), file=sys.stderr)
+                    for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
+                        loadModule(importModuleInfo)
                 except (ImportError, AttributeError) as err:
                     print(_("Exception loading plug-in {name}: {error}").format(
                             name=name, error=err), file=sys.stderr)
@@ -261,12 +287,19 @@ def addPluginModule(url):
     if moduleInfo and moduleInfo.get("name"):
         name = moduleInfo["name"]
         removePluginModule(name)  # remove any prior entry for this module
-        pluginConfig["modules"][name] = moduleInfo
-        # add classes
-        for classMethod in moduleInfo["classMethods"]:
-            classMethods = pluginConfig["classes"].setdefault(classMethod, [])
-            if name not in classMethods:
-                classMethods.append(name)
+        def _addPluginModule(moduleInfo):
+            _name = moduleInfo.get("name")
+            if _name:
+                # add classes
+                for classMethod in moduleInfo["classMethods"]:
+                    classMethods = pluginConfig["classes"].setdefault(classMethod, [])
+                    _name = moduleInfo["name"]
+                    if _name and _name not in classMethods:
+                        classMethods.append(_name)
+                for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
+                    _addPluginModule(importModuleInfo)
+                pluginConfig["modules"][_name] = moduleInfo
+        _addPluginModule(moduleInfo)
         global pluginConfigChanged
         pluginConfigChanged = True
         return moduleInfo
@@ -284,14 +317,20 @@ def reloadPluginModule(name):
 
 def removePluginModule(name):
     moduleInfo = pluginConfig["modules"].get(name)
-    if moduleInfo:
-        for classMethod in moduleInfo["classMethods"]:
-            classMethods = pluginConfig["classes"].get(classMethod)
-            if classMethods and name in classMethods:
-                classMethods.remove(name)
-                if not classMethods: # list has become unused
-                    del pluginConfig["classes"][classMethod] # remove class
-        del pluginConfig["modules"][name]
+    if moduleInfo and name:
+        def _removePluginModule(moduleInfo):
+            _name = moduleInfo.get("name")
+            if _name:
+                for classMethod in moduleInfo["classMethods"]:
+                    classMethods = pluginConfig["classes"].get(classMethod)
+                    if classMethods and _name and _name in classMethods:
+                        classMethods.remove(_name)
+                        if not classMethods: # list has become unused
+                            del pluginConfig["classes"][classMethod] # remove class
+                for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
+                    _removePluginModule(importModuleInfo)
+                del pluginConfig["modules"][_name]
+        _removePluginModule(moduleInfo)
         global pluginConfigChanged
         pluginConfigChanged = True
         return True
