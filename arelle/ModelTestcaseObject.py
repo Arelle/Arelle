@@ -245,7 +245,10 @@ class ModelTestcaseVariation(ModelObject):
                     return XmlUtil.descendantAttr(schemaTestElement, None, "expected", "validity")
         errorElement = XmlUtil.descendant(self, None, "error")
         if errorElement is not None:
-            return ModelValue.qname(errorElement, XmlUtil.text(errorElement))
+            _errorText = XmlUtil.text(errorElement)
+            if ' ' in _errorText: # list of tokens
+                return _errorText
+            return ModelValue.qname(errorElement, _errorText)  # turn into a QName
         resultElement = XmlUtil.descendant(self, None, "result")
         if resultElement is not None:
             expected = resultElement.get("expected")

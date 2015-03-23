@@ -1021,6 +1021,8 @@ class ModelDocument:
                         self.unitDiscover(instElement)
                 elif ns == XbrlConst.link:
                     pass
+                elif ns in XbrlConst.ixbrlAll and ln=="relationship":
+                    pass
                 else: # concept elements
                     self.factDiscover(instElement, self.modelXbrl.facts)
         if len(self.modelXbrl.undefinedFacts) > nextUndefinedFact:
@@ -1268,7 +1270,7 @@ def inlineIxdsDiscover(modelXbrl):
     for htmlElement in modelXbrl.ixdsHtmlElements:  
         mdlDoc = htmlElement.modelDocument
         # inline 1.0 ixFootnotes, build resources (with ixContinuation)
-        for modelInlineFootnote in htmlElement.iterdescendants(tag="{http://www.xbrl.org/2008/inlineXBRL}footnote"):
+        for modelInlineFootnote in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrlFootnote.clarkNotation):
             if isinstance(modelInlineFootnote,ModelObject):
                 # link
                 linkrole = modelInlineFootnote.get("footnoteLinkRole", XbrlConst.defaultLinkRole)
@@ -1300,7 +1302,7 @@ def inlineIxdsDiscover(modelXbrl):
                                                                 linkrole, arcrole))
                 
         # inline 1.1 ixRelationships and ixFootnotes
-        for modelInlineFootnote in htmlElement.iterdescendants(tag="{http://www.xbrl.org/CR-2013-08-21/inlineXBRL}footnote"):
+        for modelInlineFootnote in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Footnote.clarkNotation):
             if isinstance(modelInlineFootnote,ModelObject):
                 locateContinuation(modelInlineFootnote)
                 linkPrototype = LinkPrototype(mdlDoc, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, XbrlConst.defaultLinkRole)
@@ -1308,7 +1310,7 @@ def inlineIxdsDiscover(modelXbrl):
                 modelXbrl.baseSets[baseSetKey].append(linkPrototype) # allows generating output instance with this loc
                 linkPrototype.childElements.append(modelInlineFootnote)
 
-        for modelInlineRel in htmlElement.iterdescendants(tag="{http://www.xbrl.org/CR-2013-08-21/inlineXBRL}relationship"):
+        for modelInlineRel in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Relationship.clarkNotation):
             if isinstance(modelInlineRel,ModelObject):
                 linkrole = modelInlineRel.get("linkRole", XbrlConst.defaultLinkRole)
                 arcrole = modelInlineRel.get("arcrole", XbrlConst.factFootnote)

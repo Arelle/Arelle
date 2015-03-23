@@ -375,6 +375,11 @@ class Validate:
                         break
             if expected == "EFM.6.03.02" or expected == "EFM.6.03.08": # 6.03.02 is not testable
                 status = "pass"
+            # check if expected is a whitespace separated list of error tokens
+            if status == "fail" and isinstance(expected,_STR_BASE) and ' ' in expected:
+                if all(any(testErr == e for testErr in modelUnderTest.errors)
+                       for e in expected.split()):
+                        status = "pass"
             if not modelUnderTest.errors and status == "fail":
                 if modelTestcaseVariation.assertions:
                     if modelTestcaseVariation.assertions == expected:
