@@ -72,7 +72,7 @@ class Cntlr:
         URL string of application download file (on arelle.org server).  Usually redirected to latest released application installable module.
         
     """
-    __version__ = "1.0.0"
+    __version__ = "1.6.0"
     
     def __init__(self, hasGui=False, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None):
         self.hasWin32gui = False
