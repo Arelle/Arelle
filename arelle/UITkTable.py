@@ -345,7 +345,7 @@ class XbrlTable(TkTableWrapper.Table):
 
     def initCellCombobox(self, value, values, x, y, isOpen=False,
                          objectId=None, selectindex=None, 
-                         comboboxselected=None, onClick=None, codes=dict()):
+                         comboboxselected=None, codes=dict()):
         '''
         Initialise the content of a cell as a combobox.
         The combobox is read-only, no new value can be added to the combobox.
@@ -368,8 +368,6 @@ class XbrlTable(TkTableWrapper.Table):
         self.bind("<<ComboboxSelected>>", self._setValueFromCombobox)
         if comboboxselected:
             self.bind("<<ComboboxSelected>>", comboboxselected, '+')
-        if onClick:
-            self.bind("<1>", onClick)
         self.window_configure(cellIndex,
                               window=combobox,
                               sticky=(N, E, S, W))
@@ -398,7 +396,7 @@ class XbrlTable(TkTableWrapper.Table):
     def initHeaderCombobox(self, x, y, value='', values=(), colspan=None,
                            rowspan=None, isOpen=True, objectId=None,
                            selectindex=None, comboboxselected=None,
-                           onClick=None, codes=dict()):
+                           codes=dict()):
         '''
         Initialise the read-only content of a header cell as a combobox.
         New values can be added to the combobox if isOpen==True.
@@ -409,7 +407,7 @@ class XbrlTable(TkTableWrapper.Table):
         return self.initCellCombobox(value, values, x, y, isOpen=isOpen,
                                      objectId=objectId, selectindex=selectindex,
                                      omboboxselected=comboboxselected,
-                                     onClick=onClick, codes=codes)
+                                     codes=codes)
 
 
     def initHeaderBorder(self, x, y,
@@ -435,3 +433,28 @@ class XbrlTable(TkTableWrapper.Table):
         if borders > 0:
             cellIndex = '%i,%i'% (y, x)
             self.tag_cell(self.BORDER_NAMES[borders], cellIndex)
+
+
+class ScrolledTkTableFrame(Frame):
+    def __init__(self, parent, table, *args, **kw):
+        Frame.__init__(self, parent, *args, **kw)            
+
+        self.table = table
+        parent.columnconfigure(0, weight=1)
+        parent.rowconfigure(0, weight=1)
+        # http://effbot.org/zone/tkinter-scrollbar-patterns.htm
+        self.verticalScrollbar = Scrollbar(parent, orient='vertical',
+                                           command=table.yview_scroll)
+        self.horizontalScrollbar = Scrollbar(parent, orient='horizontal',
+                                             command=table.xview_scroll)
+        table.config(xscrollcommand=self.horizontalScrollbar.set,
+                     yscrollcommand=self.verticalScrollbar.set)
+        self.verticalScrollbar.grid(column="1", row='0', sticky=(N, S))
+        self.horizontalScrollbar.grid(column="0", row='1', sticky=(W, E))
+
+    def clearGrid(self):
+        self.table.xview_moveto(0)
+        self.table.yview_moveto(0)
+        for widget in self.table.winfo_children():
+                widget.destroy()
+        self.update_idletasks()
