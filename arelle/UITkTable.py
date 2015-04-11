@@ -66,7 +66,14 @@ class XbrlTable(TkTableWrapper.Table):
     TG_TOP_LEFT = 'top-left-cell'
     TG_LEFT_JUSTIFIED = 'left'
     TG_RIGHT_JUSTIFIED = 'right'
-    JUSTIFICATIONS = set(TG_LEFT_JUSTIFIED, TG_RIGHT_JUSTIFIED)
+    TG_CENTERED = 'center'
+    TG_TOP_LEFT_JUSTIFIED = 'top-left'
+    JUSTIFICATIONS = {
+                        TG_LEFT_JUSTIFIED : 'w',
+                        TG_RIGHT_JUSTIFIED : 'e',
+                        TG_CENTERED : 'c',
+                        TG_TOP_LEFT_JUSTIFIED : 'nw'
+                      }
 
     TG_BG_WHITE = 'bg-white'
     TG_BG_DEFAULT = TG_BG_WHITE
@@ -148,8 +155,8 @@ class XbrlTable(TkTableWrapper.Table):
         top = int(widget.cget('roworigin'))+titleRows
         left = int(widget.cget('colorigin'))+titleCols
         try:
-            col = int(widget.index('active', 'col'))
-            row = int(widget.index('active', 'row'))
+            col = widget.index('active', 'col')
+            row = widget.index('active', 'row')
         except (TclError):
             row, col = top-1, left
         maxRows = int(widget.cget('rows'))
@@ -184,8 +191,8 @@ class XbrlTable(TkTableWrapper.Table):
         top = int(widget.cget('roworigin'))+titleRows
         left = int(widget.cget('colorigin'))+titleCols
         try:
-            col = int(widget.index('active', 'col'))
-            row = int(widget.index('active', 'row'))
+            col = widget.index('active', 'col')
+            row = widget.index('active', 'row')
         except (TclError):
             row, col = top-1, left
         maxRows = int(widget.cget('rows'))
@@ -214,17 +221,17 @@ class XbrlTable(TkTableWrapper.Table):
         return 'break' # do not insert return in cell content
 
 
-    def valueCommand(self, event):
+    def _valueCommand(self, event):
         if event.i == 0:
             return self.data[event.r, event.c]
         else:
             self.data[event.r, event.c] = event.S
-            self.isModified[Coordinate(event.r, event.c)] = True
+            self.modifiedCells[Coordinate(event.r, event.c)] = True
             return 'set'
 
 
     def __init__(self, parentWidget, rows, columns, titleRows, titleColumns,
-                 tableName, browsecmd):
+                 tableName=None, browsecmd=None):
         '''
         The initial size of the table (including the header sizes) must be
         supplied at table creation time.
@@ -234,44 +241,61 @@ class XbrlTable(TkTableWrapper.Table):
         '''
         self.data = numpy.empty((rows, columns), dtype=str)
         self.objectIds = numpy.empty((rows, columns), dtype=str)
-        self.isModified = dict()
+        self.modifiedCells = dict()
+        self.configuredTags = set()
         self.data.fill('')
         self.objectIds.fill('')
+        self.titleRows = titleRows
+        self.titleColumns = titleColumns
 
-        super(XbrlTable, self).__init__(parentWidget,
-                                        rows=rows,
-                                        cols=columns,
-                                        state='normal',
-                                        titlerows=titleRows,
-                                        titlecols=titleColumns,
-                                        roworigin=0,
-                                        colorigin=0,
-                                        selectmode='extended',
-                                        selecttype='cell',
-                                        rowstretch='last',
-                                        colstretch='last',
-                                        rowheight=-26,
-                                        colwidth=15,
-                                        flashmode='off',
-                                        anchor='e',
-                                        usecommand=1,
-                                        background='#fffffffff',
-                                        relief='sunken',
-                                        command=self.valueCommand,
-                                        takefocus=False,
-                                        rowseparator='\n',
-                                        browsecmd=browsecmd)
+        if browsecmd is None:
+            super(XbrlTable, self).__init__(parentWidget,
+                                            rows=rows,
+                                            cols=columns,
+                                            state='normal',
+                                            titlerows=titleRows,
+                                            titlecols=titleColumns,
+                                            roworigin=0,
+                                            colorigin=0,
+                                            selectmode='extended',
+                                            selecttype='cell',
+                                            rowstretch='last',
+                                            colstretch='last',
+                                            rowheight=-26,
+                                            colwidth=15,
+                                            flashmode='off',
+                                            anchor='e',
+                                            usecommand=1,
+                                            background='#fffffffff',
+                                            relief='sunken',
+                                            command=self._valueCommand,
+                                            takefocus=False,
+                                            rowseparator='\n')
+        else:
+            super(XbrlTable, self).__init__(parentWidget,
+                                            rows=rows,
+                                            cols=columns,
+                                            state='normal',
+                                            titlerows=titleRows,
+                                            titlecols=titleColumns,
+                                            roworigin=0,
+                                            colorigin=0,
+                                            selectmode='extended',
+                                            selecttype='cell',
+                                            rowstretch='last',
+                                            colstretch='last',
+                                            rowheight=-26,
+                                            colwidth=15,
+                                            flashmode='off',
+                                            anchor='e',
+                                            usecommand=1,
+                                            background='#fffffffff',
+                                            relief='sunken',
+                                            command=self._valueCommand,
+                                            takefocus=False,
+                                            rowseparator='\n',
+                                            browsecmd=browsecmd)
 
-        # http://effbot.org/zone/tkinter-scrollbar-patterns.htm
-        verticalScrollbar = Scrollbar(parentWidget, orient='vertical',
-                                      command=self.yview_scroll)
-        horizontalScrollbar = Scrollbar(parentWidget, orient='horizontal',
-                                        command=parentWidget.xview_scroll)
-        parentWidget.config(xscrollcommand=horizontalScrollbar.set,
-                            yscrollcommand=verticalScrollbar.set)
-        #Set the layout of the newly created widgets
-        verticalScrollbar.grid(column="1", row='0', sticky=(N, S))
-        horizontalScrollbar.grid(column="0", row='1', sticky=(W, E))
         self.grid(column="0", row='0', sticky=(N, W, S, E))
 
         # Extra key bindings for navigating through the table:
@@ -285,43 +309,76 @@ class XbrlTable(TkTableWrapper.Table):
         self.tag_configure('active', background = '#000a00a00')
         self.tag_configure('title', anchor='w', bg='#d00d00d00',
                            fg='#000000000', relief='flat')
-        self.tag_configure(self.TG_DISABLED, bg='#d00d00d00', fg='#000000000',
+        self.tag_configure(XbrlTable.TG_DISABLED, bg='#d00d00d00',
+                           fg='#000000000',
                            relief='flat', state='disabled')
-        for tagname, brdrwidth in self.BORDERWIDTHS.items():
-            self.tag_raise(tagname, abovethis='title')
-            self.tag_configure(tagname, relief='ridge', borderwidth=brdrwidth)
-        for tagname, colour in self.COLOURS.items():
-            self.tag_configure(tagname, bg=colour)
-        self.tag_raise(self.TG_LEFT_JUSTIFIED, abovethis='title')
-        self.tag_configure(self.TG_LEFT_JUSTIFIED, anchor='w')
-        self.tag_raise(self.TG_RIGHT_JUSTIFIED, abovethis='title')
-        self.tag_configure(self.TG_RIGHT_JUSTIFIED, anchor='e')
 
-        # The content of the left/top corner cell can already be defined
-        topCell = '0,0'
-        if titleColumns+titleRows-2 > 0:
-            self.spans(index=topCell, '%i,%i'% (titleRows-1, titleColumns-1))
-        self.tag_cell(self.TG_TOP_LEFT, topCell)
-        self.tag_raise(self.TG_TOP_LEFT, abovethis='title')
-        self.tag_configure(self.TG_TOP_LEFT, anchor='ne')
-        self.tag_cell(self.TG_BORDER_ALL, topCell)
-        self.set(index=topCell, tableName)
+        if rows+columns > 2:
+            # The content of the left/top corner cell can already be defined
+            topCell = '0,0'
+            if titleColumns+titleRows-2 > 0:
+                cellSpans = {topCell : '%i,%i'% (titleRows-1, titleColumns-1)}
+                self.spans(index=None, **cellSpans)
+            self.format_cell(XbrlTable.TG_TOP_LEFT, topCell)
+            self.tag_raise(XbrlTable.TG_TOP_LEFT, abovethis='title')
+            self.tag_configure(XbrlTable.TG_TOP_LEFT, anchor='ne')
+            self.format_cell(XbrlTable.TG_BORDER_ALL, topCell)
+            indexValue = {topCell:tableName}
+            self.set(**indexValue)
+
+
+    def tag_configure_once(self, tagname):
+        if tagname not in self.configuredTags:
+            self.configuredTags.add(tagname)
+            self.tag_raise(tagname, abovethis='title')
+            if tagname in XbrlTable.BORDERWIDTHS:
+                self.tag_configure(tagname, relief='ridge',
+                                   borderwidth=XbrlTable.BORDERWIDTHS[tagname])
+            elif tagname in XbrlTable.COLOURS:
+                self.tag_configure(tagname, bg=XbrlTable.COLOURS[tagname])
+            elif tagname in XbrlTable.JUSTIFICATIONS:
+                self.tag_configure(tagname,
+                                   anchor=XbrlTable.JUSTIFICATIONS[tagname])
+
+
+    def format_cell(self, tagname, index):
+        self.tag_cell(tagname, index)
+        self.tag_configure_once(tagname)
 
 
     def set(self, rc=None, index=None, objectId=None, *args, **kwargs):
         super(XbrlTable, self).set(rc=rc, index=index, *args, **kwargs)
         if objectId is not None:
-            row = self.index(index=index, rc='row')
-            col = self.index(index=index, rc='col')
+            if index is None:
+                index = next(iter(kwargs.keys()))
+            row = self.index(index, 'row')
+            col = self.index(index, 'col')
             self.objectIds[row, col] = objectId
 
 
-    def getAndResetModificationStatus(self, index):
-        value = self.get(key=index)
-        row = self.index(index=index, rc='row')
-        col = self.index(index=index, rc='col')
-        del self.isModified[Coordinate(row, col)]
-        return value
+    def resetModificationStatus(self, coordinate):
+        del self.modifiedCells[coordinate]
+
+
+    def getObjectId(self, coordinate):
+        return self.objectIds[coordinate.y, coordinate.x]
+
+
+    def setObjectId(self, coordinate, objectId):
+        self.objectIds[coordinate.y, coordinate.x] = objectId
+
+
+    def getTableValue(self, coordinate):
+        return self.data[coordinate.y, coordinate.x]
+
+
+    def isHeaderCell(self, coordinate):
+        return (coordinate.y < self.titleRows 
+                or coordinate.x < self.titleColumns)
+
+
+    def getCoordinatesOfModifiedCells(self):
+        return self.modifiedCells.keys()
 
 
     def initCellValue(self, value, x, y, backgroundColourTag=None,
@@ -330,17 +387,19 @@ class XbrlTable(TkTableWrapper.Table):
         Initialise the content of a cell. The resulting cell will be writable.
         '''
         cellIndex = '%i,%i'% (y, x)
-        if justification in self.JUSTIFICATIONS:
-            self.tag_cell(justification, cellIndex)
+        if justification in XbrlTable.JUSTIFICATIONS:
+            self.format_cell(justification, cellIndex)
         if ((backgroundColourTag is not None) 
-            and backgroundColourTag in self.COULOURS):
-            self.tag_cell(backgroundColourTag, cellIndex)
-        self.set(index=cellIndex, objectId=objectId, value)
+            and backgroundColourTag in XbrlTable.COLOURS):
+            self.format_cell(backgroundColourTag, cellIndex)
+        indexValue = {cellIndex:value}
+        self.set(objectId=objectId, **indexValue)
 
 
     def _setValueFromCombobox(self, event):
         combobox = event.widget
-        self.set(index=combobox.tableIndex, combobox.get())
+        indexValue = {combobox.tableIndex:combobox.get()}
+        self.set(**indexValue)
 
 
     def initCellCombobox(self, value, values, x, y, isOpen=False,
@@ -348,7 +407,8 @@ class XbrlTable(TkTableWrapper.Table):
                          comboboxselected=None, codes=dict()):
         '''
         Initialise the content of a cell as a combobox.
-        The combobox is read-only, no new value can be added to the combobox.
+        If isOpen=False, the combobox will be read-only, no new value can
+        be added to the combobox.
         '''
         cellIndex = '%i,%i'% (y, x)
         combobox = _Combobox(self, values=values,
@@ -371,30 +431,45 @@ class XbrlTable(TkTableWrapper.Table):
         self.window_configure(cellIndex,
                               window=combobox,
                               sticky=(N, E, S, W))
-        self.set(index=cellIndex, objectId=objectId, combobox.get())
+        indexValue = {cellIndex:combobox.get()}
+        self.set(objectId=objectId, **indexValue)
         return combobox
+
 
     def initReadonlyCell(self, x, y, colspan, rowspan):
         '''
         Make the specified cell read-only
         '''
         cellIndex = '%i,%i'% (y, x)
-        self.tag_cell(self.TG_DISABLED, cellIndex)
+        self.format_cell(XbrlTable.TG_DISABLED, cellIndex)
+
 
     def initHeaderCellValue(self, value, x, y, colspan, rowspan,
-                            justification):
+                            justification, objectId=None):
         '''
         Initialise the read-only content of a header cell.
         '''
         cellIndex = '%i,%i'% (y, x)
-        if justification in self.JUSTIFICATIONS:
-            self.tag_cell(justification, cellIndex)
+        if justification in XbrlTable.JUSTIFICATIONS:
+            self.format_cell(justification, cellIndex)
         if colspan+rowspan > 0:
-            self.spans(index=cellIndex, '%i,%i'% (rowspan, colspan))
-        self.set(index=cellIndex, value)
+            cellSpans = {cellIndex : '%i,%i'% (rowspan, colspan)}
+            self.spans(index=None, **cellSpans)
+        indexValue = {cellIndex:value}
+        self.set(objectId=objectId, **indexValue)
 
-    def initHeaderCombobox(self, x, y, value='', values=(), colspan=None,
-                           rowspan=None, isOpen=True, objectId=None,
+
+    def initCellSpan(self, x, y, colspan, rowspan):
+        '''
+        Set the row and column span for the given cell
+        '''
+        if colspan+rowspan > 0:
+            cellSpans = {'%i,%i'% (y, x) : '%i,%i'% (rowspan, colspan)}
+            self.spans(index=None, **cellSpans)
+
+
+    def initHeaderCombobox(self, x, y, value='', values=(), colspan=0,
+                           rowspan=0, isOpen=True, objectId=None,
                            selectindex=None, comboboxselected=None,
                            codes=dict()):
         '''
@@ -403,7 +478,8 @@ class XbrlTable(TkTableWrapper.Table):
         '''
         if colspan+rowspan > 0:
             cellIndex = '%i,%i'% (y, x)
-            self.spans(index=cellIndex, '%i,%i'% (rowspan, colspan))
+            cellSpans = { cellIndex : '%i,%i'% (rowspan, colspan)}
+            self.spans(index=None, **cellSpans)
         return self.initCellCombobox(value, values, x, y, isOpen=isOpen,
                                      objectId=objectId, selectindex=selectindex,
                                      omboboxselected=comboboxselected,
@@ -432,13 +508,40 @@ class XbrlTable(TkTableWrapper.Table):
             borders += currentBorder
         if borders > 0:
             cellIndex = '%i,%i'% (y, x)
-            self.tag_cell(self.BORDER_NAMES[borders], cellIndex)
+            self.format_cell(XbrlTable.BORDER_NAMES[borders], cellIndex)
+
+
+    def resizeTable(self, rows, columns, titleRows=-1, titleColumns=-1):
+        '''
+        Resize a table. Only positive increases are allowed.
+        Negative increases will be ignored.
+        All numbers are absolute numbers and the actual increase will be
+        computed by this method.
+        If titleRows or titleColumns is less than 0, the corresponding axis
+        will not be updated either.
+        '''
+        currentCols = int(self.cget('cols'))
+        currentRows = int(self.cget('rows'))
+        deltaCols = columns - currentCols
+        deltaRows = rows - currentRows
+        if deltaRows+deltaCols > 0:
+            self.data.resize([rows, columns])
+            self.objectIds.resize([rows, columns])
+        if deltaRows>0:
+            self.insert_rows('end', deltaRows)
+        if deltaCols>0:
+            self.insert_cols('end', deltaCols)
+        if titleRows>=0:
+            self.config(titlerows=titleRows)
+        if titleColumns>=0:
+            self.config(titlecols=titleColumns)
 
 
 class ScrolledTkTableFrame(Frame):
-    def __init__(self, parent, table, *args, **kw):
-        Frame.__init__(self, parent, *args, **kw)            
+    def __init__(self, parent, *args, **kw):
+        Frame.__init__(self, parent, *args, **kw)
 
+        table = XbrlTable(self, 1, 1, 0, 0) # will be resized later
         self.table = table
         parent.columnconfigure(0, weight=1)
         parent.rowconfigure(0, weight=1)
@@ -451,6 +554,7 @@ class ScrolledTkTableFrame(Frame):
                      yscrollcommand=self.verticalScrollbar.set)
         self.verticalScrollbar.grid(column="1", row='0', sticky=(N, S))
         self.horizontalScrollbar.grid(column="0", row='1', sticky=(W, E))
+
 
     def clearGrid(self):
         self.table.xview_moveto(0)
