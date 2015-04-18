@@ -310,6 +310,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                              value=comboBoxValue,
                              selectindex=zStructuralNode.choiceNodeIndex if i >= 0 else None,
                              columnspan=2,
+                             state=["readonly"],
                              comboboxselected=self.onZComboBoxSelected)
                 combobox.zStructuralNode = zStructuralNode
                 combobox.zAxisIsOpenExplicitDimension = zAxisIsOpenExplicitDimension
@@ -1001,7 +1002,10 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                 if memConcept is not None and (not memberModel.axis or memberModel.axis.endswith('-self')):
                                     header = memConcept.label(lang=self.lang)
                                     valueHeaders.add(header)
-                                    headerValues[header] = memConcept
+                                    if rel.isUsable:
+                                        headerValues[header] = memQname
+                                    else:
+                                        headerValues[header] = memConcept
                                 elif memberModel.axis and memberModel.linkrole and memberModel.arcrole:
                                     relationships = concept_relationships(self.rendrCntx, 
                                                          None, 
