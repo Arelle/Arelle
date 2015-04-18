@@ -1001,7 +1001,10 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                 if memConcept is not None and (not memberModel.axis or memberModel.axis.endswith('-self')):
                                     header = memConcept.label(lang=self.lang)
                                     valueHeaders.add(header)
-                                    headerValues[header] = memConcept
+                                    if rel.isUsable:
+                                        headerValues[header] = memQname
+                                    else:
+                                        headerValues[header] = memConcept
                                 elif memberModel.axis and memberModel.linkrole and memberModel.arcrole:
                                     relationships = concept_relationships(self.rendrCntx, 
                                                          None, 
