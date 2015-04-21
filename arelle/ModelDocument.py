@@ -1078,7 +1078,7 @@ class ModelDocument:
                 elif ixNS != inlineElement.namespaceURI:
                     conflictingNSelts.append(inlineElement)
         if conflictingNSelts:
-            self.modelXbrl.error("ix.3.1:multipleIxNamespaces",
+            self.modelXbrl.error("ix:multipleIxNamespaces",
                     _("Multiple ix namespaces were found"),
                     modelObject=conflictingNSelts)
         self.ixNStag = ixNStag = "{" + ixNS + "}"

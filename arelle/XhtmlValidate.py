@@ -253,12 +253,12 @@ def xhtmlValidate(modelXbrl, elt):
         dtd = DTD(fh)
     try:
         if not dtd.validate( ixToXhtml(elt) ):
-            modelXbrl.error("xhmlDTD:elementUnexpected",
+            modelXbrl.error("ix:DTDelementUnexpected",
                 _("%(element)s error %(error)s"),
                 modelObject=elt, element=elt.localName.title(),
                 error=', '.join(e.message for e in dtd.error_log.filter_from_errors()))
     except XMLSyntaxError as err:
-        modelXbrl.error("xmlDTD:error",
+        modelXbrl.error("ix:DTDerror",
             _("%(element)s error %(error)s"),
             modelObject=elt, element=elt.localName.title(), error=dtd.error_log.filter_from_errors())
 

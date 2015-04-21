@@ -128,7 +128,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                     errElt = "{0} fact {1}".format(elt.elementQname, elt.qname)
                 else:
                     errElt = elt.elementQname
-                modelXbrl.error("xmlValidation:nilNonNillableElement",
+                modelXbrl.error("xmlSchema:nilNonNillableElement",
                     _("Element %(element)s fact %(fact)s type %(typeName)s is nil but element has not been defined nillable"),
                     modelObject=elt, element=errElt, fact=elt.qname, transform=elt.format,
                     typeName=modelConcept.baseXsdType if modelConcept is not None else "unknown",
@@ -159,11 +159,11 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                         typeName=modelConcept.baseXsdType if modelConcept is not None else "unknown",
                         value=XmlUtil.innerText(elt, ixExclude=True))
                 elif isAbstract:
-                    modelXbrl.error("xmlValidation:abstractElement",
+                    modelXbrl.error("xmlSchema:abstractElement",
                         _("Element %(element)s has abstract declaration, value: %(value)s"),
                         modelObject=elt, element=errElt, error=str(err), value=elt.text)
                 else:
-                    modelXbrl.error("xmlValidation:valueError",
+                    modelXbrl.error("xmlSchema:valueError",
                         _("Element %(element)s error %(error)s value: %(value)s"),
                         modelObject=elt, element=errElt, error=str(err), value=elt.text)
                 elt.sValue = elt.xValue = text = INVALIDixVALUE
