@@ -133,7 +133,7 @@ def modulesWithNewerFileDates():
             pass
     return names
 
-def moduleModuleInfo(moduleURL, reload=False):
+def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
     #TODO several directories, eg User Application Data
     moduleFilename = _cntlr.webCache.getfilename(moduleURL, reload=reload, normalize=True, base=_pluginBase)
     if moduleFilename:
@@ -144,6 +144,7 @@ def moduleModuleInfo(moduleURL, reload=False):
                 moduleFilename = os.path.join(moduleFilename, "__init__.py")
             f = openFileStream(_cntlr, moduleFilename)
             tree = ast.parse(f.read(), filename=moduleFilename)
+            moduleImports = []
             for item in tree.body:
                 if isinstance(item, ast.Assign):
                     attr = item.targets[0].id
@@ -172,16 +173,38 @@ def moduleModuleInfo(moduleURL, reload=False):
                         moduleInfo["moduleURL"] = moduleURL
                         moduleInfo["status"] = 'enabled'
                         moduleInfo["fileDate"] = time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(moduleFilename)))
-                        imports = []
+                        mergedImportURLs = []
+                        _moduleImportsSubtree = False
                         for _url in importURLs:
+                            if _url.startswith("module_import"):
+                                for moduleImport in moduleImports:
+                                    mergedImportURLs.append(moduleImport + ".py")
+                                if _url == "module_import_subtree":
+                                    _moduleImportsSubtree = True
+                            else:
+                                mergedImportURLs.append(_url)
+                        if parentImportsSubtree and not _moduleImportsSubtree:
+                            _moduleImportsSubtree = True
+                            for moduleImport in moduleImports:
+                                mergedImportURLs.append(moduleImport + ".py")
+                        imports = []
+                        for _url in mergedImportURLs:
                             _importURL = (_url if isAbsolute(_url) or os.path.isabs(_url)
                                           else os.path.join(os.path.dirname(moduleURL), _url))
-                            _importModuleInfo = moduleModuleInfo(_importURL, reload)
+                            _importModuleInfo = moduleModuleInfo(_importURL, reload, _moduleImportsSubtree)
                             if _importModuleInfo:
                                 _importModuleInfo["isImported"] = True
                                 imports.append(_importModuleInfo)
                         moduleInfo["imports"] =  imports
                         return moduleInfo
+                elif isinstance(item, ast.ImportFrom):
+                    if item.module is None:  # from . import module1, module2, ...
+                        for importee in item.names:
+                            if importee.name not in moduleImports:
+                                moduleImports.append(importee.name)
+                    elif '.' not in item.module: # from .module import method1, method2, ...
+                        if item.module not in moduleImports:
+                            moduleImports.append(item.module)
         except EnvironmentError:
             pass
         if f:
