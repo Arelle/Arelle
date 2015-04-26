@@ -142,6 +142,7 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
             # if moduleFilename is a directory containing an __ini__.py file, open that instead
             if os.path.isdir(moduleFilename) and os.path.isfile(os.path.join(moduleFilename, "__init__.py")):
                 moduleFilename = os.path.join(moduleFilename, "__init__.py")
+            moduleDir = os.path.dirname(moduleFilename)
             f = openFileStream(_cntlr, moduleFilename)
             tree = ast.parse(f.read(), filename=moduleFilename)
             moduleImports = []
@@ -198,13 +199,23 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
                         moduleInfo["imports"] =  imports
                         return moduleInfo
                 elif isinstance(item, ast.ImportFrom):
-                    if item.module is None:  # from . import module1, module2, ...
-                        for importee in item.names:
-                            if importee.name not in moduleImports:
-                                moduleImports.append(importee.name)
-                    elif '.' not in item.module: # from .module import method1, method2, ...
-                        if item.module not in moduleImports:
-                            moduleImports.append(item.module)
+                    if item.level == 1: # starts with .
+                        if item.module is None:  # from . import module1, module2, ...
+                            for importee in item.names:
+                                if (os.path.isfile(os.path.join(moduleDir, importee.name + ".py"))
+                                    and importee.name not in moduleImports):
+                                    moduleImports.append(importee.name)
+                        else:
+                            modulePkgs = item.module.split('.')
+                            modulePath = os.path.join(*modulePkgs)
+                            if (os.path.isfile(os.path.join(moduleDir, modulePath) + ".py")
+                                and modulePath not in moduleImports):
+                                    moduleImports.append(modulePath)
+                            for importee in item.names:
+                                _importeePfxName = os.path.join(modulePath, importee.name)
+                                if (os.path.isfile(os.path.join(moduleDir, _importeePfxName) + ".py")
+                                    and _importeePfxName not in moduleImports):
+                                        moduleImports.append(_importeePfxName)
         except EnvironmentError:
             pass
         if f:
@@ -219,7 +230,7 @@ def moduleInfo(pluginInfo):
         elif isinstance(value, types.FunctionType):
             moduleInfo.getdefault('classes',[]).append(name)
 
-def loadModule(moduleInfo):
+def loadModule(moduleInfo, packagePrefix=""):
     name = moduleInfo['name']
     moduleURL = moduleInfo['moduleURL']
     moduleFilename = _cntlr.webCache.getfilename(moduleURL, normalize=True, base=_pluginBase)
@@ -230,13 +241,15 @@ def loadModule(moduleInfo):
             if os.path.isdir(moduleFilename) and os.path.isfile(os.path.join(moduleFilename, "__init__.py")):
                 moduleDir = os.path.dirname(moduleFilename)
                 moduleName = os.path.basename(moduleFilename)
+                packageImportPrefix = moduleName + "."
             else:
                 moduleName = os.path.basename(moduleFilename).partition('.')[0]
                 moduleDir = os.path.dirname(moduleFilename)
+                packageImportPrefix = packagePrefix
             file, path, description = imp.find_module(moduleName, [moduleDir])
             if file or path: # file returned if non-package module, otherwise just path for package
                 try:
-                    module = imp.load_module(moduleName, file, path, description)
+                    module = imp.load_module(packagePrefix + moduleName, file, path, description)
                     pluginInfo = module.__pluginInfo__.copy()
                     elementSubstitutionClasses = None
                     if name == pluginInfo.get('name'):
@@ -272,8 +285,8 @@ def loadModule(moduleInfo):
                             print(_("Exception loading plug-in {name}: processing ModelObjectFactory.ElementSubstitutionClasses").format(
                                     name=name, error=err), file=sys.stderr)
                     for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
-                        loadModule(importModuleInfo)
-                except (ImportError, AttributeError) as err:
+                        loadModule(importModuleInfo, packageImportPrefix)
+                except (ImportError, AttributeError, SystemError) as err:
                     print(_("Exception loading plug-in {name}: {error}").format(
                             name=name, error=err), file=sys.stderr)
                 finally:
