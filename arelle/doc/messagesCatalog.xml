@@ -2022,6 +2022,13 @@ Inline XBRL footnote %(footnoteID)s must be in non-displayable div due to arcrol
 Inline XBRL footnote %(footnoteID)s is missing an xml:lang attribute
 </message>
 
+<message code="EIOPA.2.1"
+         level="error"
+         module="ModelDocument.py" line="782"
+         args="attribute element">
+Prohibited base attribute: %(attribute)s
+</message>
+
 <message code="FASB:deprecatedConcept"
          level="info-semantic"
          module="plugin/validateUSBestPractices.py" line="301"
@@ -6085,11 +6092,18 @@ SKOS of %(entryFile)s has %(numberOfConcepts)s concepts in SKOS RDF file %(skosO
 SecDtsTagMatches entry %(entryFile)s has %(numberOfTwoWayPriItems)s two way primary items, %(numberOfOneWayPriItems)s one way primary items, %(numberOfTwoWayMembers)s two way members in output file %(secDtsTagMatchesFile)s.
 </message>
 
-<message code="ix.3.1:multipleIxNamespaces"
+<message code="ix:DTDelementUnexpected"
          level="error"
-         module="ModelDocument.py" line="1079"
-         args="">
-Multiple ix namespaces were found
+         module="XhtmlValidate.py" line="256"
+         args="element error">
+%(element)s error %(error)s
+</message>
+
+<message code="ix:DTDerror"
+         level="error"
+         module="XhtmlValidate.py" line="261"
+         args="element error">
+%(element)s error %(error)s
 </message>
 
 <message code="ix:attributeNotExpected"
@@ -6108,7 +6122,7 @@ Attribute %(attribute)s required on element ix:%(element)s
 
 <message code="ix:continuationCycle"
          level="error"
-         module="ModelDocument.py" line="1232"
+         module="ModelDocument.py" line="1234"
          args="continuationCycle">
 Inline XBRL continuation cycle: %(continuationCycle)s
 </message>
@@ -6122,7 +6136,7 @@ Inline XBRL continuation chain has elements which are descendants of each other.
 
 <message code="ix:continuationMissing"
          level="error"
-         module="ModelDocument.py" line="1223"
+         module="ModelDocument.py" line="1225"
          args="continuationAt">
 Inline XBRL continuation %(continuationAt)s not found
 </message>
@@ -6237,6 +6251,13 @@ Fact %(fact)s is missing a context for contextRef %(context)s
          module="ValidateXbrl.py" line="408"
          args="fact unit">
 Fact %(fact)s is missing a unit for unitRef %(unit)s
+</message>
+
+<message code="ix:multipleIxNamespaces"
+         level="error"
+         module="ModelDocument.py" line="1081"
+         args="">
+Multiple ix namespaces were found
 </message>
 
 <message code="ix:nestedNonFractionIsNil"
@@ -6367,7 +6388,7 @@ Fact %(fact)s is recursively nested in tuple %(tuple)s
 
 <message code="ix:tupleRefMissing"
          level="error"
-         module="ModelDocument.py" line="1205"
+         module="ModelDocument.py" line="1207"
          args="tupleRef">
 Inline XBRL tupleRef %(tupleRef)s not found
 </message>
@@ -6501,231 +6522,224 @@ Assertion has more than one severity (%(numSevereties)s) in assertion-%(relType)
 
 <message code="sqlDB:InvalidFactConcept"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="1053"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="1054"
          args="concept dpsignature">
 A concept definition is not found for metric %(concept)s of datapoint signature %(dpsignature)s
 </message>
 
 <message code="sqlDB:MissingFilingIndicators"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="856"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="857"
          args="missingFilingIndicatorCodes">
 The filing indicator IDs were not found for codes %(missingFilingIndicatorCodes)s
 </message>
 
 <message code="sqlDB:NoFilingIndicators"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="841"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="842"
          args="">
 No filing indicators were present in the instance
 </message>
 
 <message code="sqlDB:contextDatesError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="750"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="751"
          args="context">
 Loading XBRL DB: Context has invalid instant date: %(context)s
 </message>
 
 <message code="sqlDB:contextDatesError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="755"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="756"
          args="context">
 Loading XBRL DB: Context has invalid start date: %(context)s
 </message>
 
 <message code="sqlDB:contextDatesError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="759"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="760"
          args="context">
 Loading XBRL DB: Context has invalid end date: %(context)s
 </message>
 
 <message code="sqlDB:contextDatesError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="763"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="764"
          args="context value">
 Loading XBRL DB: Context has different date: %(context)s, date %(value)s
 </message>
 
-<message code="sqlDB:entityCurrencyWarning"
-         level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="285"
-         args="">
-Loading XBRL DB: Instance does not have a currency unit.
-</message>
-
 <message code="sqlDB:factContextError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="692"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="693"
          args="qname context value">
 Loading XBRL DB: Fact missing %(qname)s, contextRef %(context)s, value: %(value)s
 </message>
 
 <message code="sqlDB:factContextError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="768"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="769"
          args="context value">
 Loading XBRL DB: Context has different entity identifier: %(context)s %(value)s
 </message>
 
 <message code="sqlDB:factContextError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="773"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="774"
          args="qname context">
 Loading XBRL DB: Instant metric %(qname)s has start end context: %(context)s
 </message>
 
 <message code="sqlDB:factDecimalDigitsWarning"
          level="warning"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="669"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="666"
          args="qname context value">
 Loading XBRL DB: Monetary fact should have 2 decimal digits %(qname)s, context %(context)s, value: %(value)s
 </message>
 
 <message code="sqlDB:factDecimalDigitsWarning"
          level="warning"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="674"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="671"
          args="qname context value">
 Loading XBRL DB: Decimals/percent fact should have 4 decimal digits %(qname)s, context %(context)s, value: %(value)s
 </message>
 
 <message code="sqlDB:factDecimalsError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="614"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="611"
          args="qname context value decimals">
 Loading XBRL DB: Fact contains an invalid decimals attribute %(qname)s, decimals %(decimals)s, context %(context)s, value %(value)s
 </message>
 
 <message code="sqlDB:factDecimalsError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="660"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="657"
          args="qname context value decimals">
 Loading XBRL DB: Fact is non-numeric but contains a decimals attribute %(qname)s, decimals %(decimals)s, context %(context)s, value %(value)s
 </message>
 
 <message code="sqlDB:factDimensionsError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="528"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="525"
          args="dpmSignature qname context value extra missing different">
 Loading XBRL DB: Fact dimensions not allowed for filing indicators %(qname)s, contextRef %(context)s, value: %(value)s; Extra dimensions of fact: %(extra)s, missing dimensions of fact: %(missing)s, different dimensions of fact: %(different)s
 </message>
 
 <message code="sqlDB:factDimensionsError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="534"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="531"
          args="dpmSignature qname value extra missing different">
 Loading XBRL DB: Fact dimensions not allowed for filing indicators %(qname)s, value: %(value)s; Extra dimensions of fact: %(extra)s, missing dimensions of fact: %(missing)s, different dimensions of fact: %(different)s
 </message>
 
 <message code="sqlDB:factDuplicate"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="721"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="722"
          args="qname context value context2 value2">
 Loading XBRL DB: Fact is a duplicate %(qname)s, contextRef %(context)s, value: %(value)s, other contextRef %(context2)s, other value %(value2)s
 </message>
 
 <message code="sqlDB:factDuplicate"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="800"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="801"
          args="qname value">
 Loading XBRL DB: Fact is a duplicate %(qname)s, value=%(value)s
 </message>
 
 <message code="sqlDB:factPrecisionError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="558"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="555"
          args="qname context value precision">
 Loading XBRL DB: Fact contains a precision attribute %(qname)s, precision %(precision)s, context %(context)s, value %(value)s
 </message>
 
 <message code="sqlDB:factPrecisionError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="609"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="606"
          args="qname context value precision">
 Loading XBRL DB: Fact contains a precision attribute %(qname)s, precision %(precision)s, context %(context)s, value %(value)s
 </message>
 
 <message code="sqlDB:factPrecisionError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="656"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="653"
          args="qname context value precision">
 Loading XBRL DB: Fact contains a precision attribute %(qname)s, precision %(precision)s, context %(context)s, value %(value)s
 </message>
 
 <message code="sqlDB:factQNameError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="465"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="462"
          args="dpmSignature qname context value">
 Loading XBRL DB: Fact QName not allowed for filing indicators %(qname)s, contextRef %(context)s, value: %(value)s
 </message>
 
 <message code="sqlDB:factQNameError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="469"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="466"
          args="dpmSignature qname value">
 Loading XBRL DB: Fact QName not allowed for filing indicators %(qname)s, value: %(value)s
 </message>
 
 <message code="sqlDB:factUnitError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="604"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="601"
          args="qname context value">
 Loading XBRL DB: Fact missing unit %(qname)s, context %(context)s, value %(value)s
 </message>
 
 <message code="sqlDB:factUnitError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="652"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="649"
          args="qname context value">
 Loading XBRL DB: Fact is non-numeric but has a unit %(qname)s, context %(context)s, value %(value)s
 </message>
 
 <message code="sqlDB:factValueError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="589"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="586"
          args="qname context value">
 Loading XBRL DB: Fact %(qname)s, context %(context)s, value lexical error: %(value)s
 </message>
 
 <message code="sqlDB:factValueError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="626"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="623"
          args="qname context value">
 Loading XBRL DB: Fact %(qname)s, context %(context)s, value: %(value)s
 </message>
 
 <message code="sqlDB:factValueError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="639"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="636"
          args="qname context value">
 Loading XBRL DB: Fact %(qname)s, context %(context)s, value: %(value)s
 </message>
 
 <message code="sqlDB:factValueError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="647"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="644"
          args="qname context value">
 Loading XBRL DB: Fact %(qname)s, context %(context)s, value: %(value)s
 </message>
 
 <message code="sqlDB:filingIndicatorContextError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="687"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="688"
          args="value">
 Loading XBRL DB: Filing indicator fact missing a context, value %(value)s
 </message>
 
 <message code="sqlDB:filingIndicatorsContextError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="680"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="681"
          args="context">
 Loading XBRL DB: Filing indicators tuple has a context, contextRef %(context)s
 </message>
 
 <message code="sqlDB:multipeSchemaRefs"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="257"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="258"
          args="schemaRef">
 Loading XBRL DB: Multiple schema files referenced: %(schemaRef)s
 </message>
@@ -8321,7 +8335,7 @@ Linkbase extended link %(element)s missing schema definition
 
 <message code="xbrl:schemaImportMissing"
          level="error"
-         module="ModelDocument.py" line="1028"
+         module="ModelDocument.py" line="1030"
          args="elements">
 Instance facts missing schema definition: %(elements)s
 </message>
@@ -9249,13 +9263,6 @@ Function %(name)s cannot be used on an XPath expression associated with a %(name
 %(dimension)s is not an explicit dimension concept QName.
 </message>
 
-<message code="xhmlDTD:elementUnexpected"
-         level="error"
-         module="XhtmlValidate.py" line="256"
-         args="element error">
-%(element)s error %(error)s
-</message>
-
 <message code="xlink:actuate"
          level="error"
          module="ValidateXbrl.py" line="557"
@@ -9291,13 +9298,6 @@ Show %(xlinkShow)s invalid in extended link %(linkrole)s
 Xlink type %(xlinkType)s invalid in extended link %(linkrole)s
 </message>
 
-<message code="xmlDTD:error"
-         level="error"
-         module="XhtmlValidate.py" line="261"
-         args="element error">
-%(element)s error %(error)s
-</message>
-
 <message code="xmlSchema1.4.2.3:refSchemaNamespace"
          level="error"
          module="ModelDocument.py" line="325"
@@ -9310,6 +9310,13 @@ SchemaLocation of %(fileName)s expected namespace %(namespace)s found targetName
          module="ModelDocument.py" line="715"
          args="fileName namespace targetNamespace">
 Discovery of %(fileName)s expected namespace %(namespace)s found targetNamespace %(targetNamespace)s
+</message>
+
+<message code="xmlSchema:abstractElement"
+         level="error"
+         module="XmlValidate.py" line="162"
+         args="element error value">
+Element %(element)s has abstract declaration, value: %(value)s
 </message>
 
 <message code="xmlSchema:attributesExtraneous"
@@ -9331,6 +9338,13 @@ Element %(element)s type %(typeName)s missing required attributes: %(attributes)
          module="XmlValidate.py" line="266"
          args="element">
 Element %(element)s is nil but has contents
+</message>
+
+<message code="xmlSchema:nilNonNillableElement"
+         level="error"
+         module="XmlValidate.py" line="131"
+         args="element fact transform typeName value">
+Element %(element)s fact %(fact)s type %(typeName)s is nil but element has not been defined nillable
 </message>
 
 <message code="xmlSchema:refNotFound"
@@ -9398,6 +9412,13 @@ Particles of %(compositor)s have non-unique xs:any particle
 
 <message code="xmlSchema:valueError"
          level="error"
+         module="XmlValidate.py" line="166"
+         args="element error value">
+Element %(element)s error %(error)s value: %(value)s
+</message>
+
+<message code="xmlSchema:valueError"
+         level="error"
          module="XmlValidate.py" line="488"
          args="element attribute typeName value error">
 Element %(element)s attribute %(attribute)s type %(typeName)s value error: %(value)s, %(error)s
@@ -9415,27 +9436,6 @@ Element %(element)s type %(typeName)s value error: %(value)s, %(error)s
          module="XmlValidateSchema.py" line="107"
          args="typeName value error">
 Element attribute %(typeName)s value error: %(value)s, %(error)s
-</message>
-
-<message code="xmlValidation:abstractElement"
-         level="error"
-         module="XmlValidate.py" line="162"
-         args="element error value">
-Element %(element)s has abstract declaration, value: %(value)s
-</message>
-
-<message code="xmlValidation:nilNonNillableElement"
-         level="error"
-         module="XmlValidate.py" line="131"
-         args="element fact transform typeName value">
-Element %(element)s fact %(fact)s type %(typeName)s is nil but element has not been defined nillable
-</message>
-
-<message code="xmlValidation:valueError"
-         level="error"
-         module="XmlValidate.py" line="166"
-         args="element error value">
-Element %(element)s error %(error)s value: %(value)s
 </message>
 
 <message code="xmlschema.3.4.2:contentModel"
