@@ -871,10 +871,11 @@ class ModelXbrl:
     def effectiveMessageCode(self, messageCodes):        
         effectiveMessageCode = None
         _validationType = self.modelManager.disclosureSystem.validationType
+        
         for argCode in messageCodes if isinstance(messageCodes,tuple) else (messageCodes,):
             if (isinstance(argCode, ModelValue.QName) or
                 (_validationType and argCode.startswith(_validationType)) or
-                argCode[0:3] not in ("EFM", "GFM", "HMR", "SBR")):
+                self.modelManager.disclosureSystem.exclusiveTypesPattern.match(argCode) == None):
                 effectiveMessageCode = argCode
                 break
         return effectiveMessageCode

@@ -13,12 +13,16 @@
     <xs:restriction base="xs:token">
       <xs:enumeration value="EFM"/>
       <xs:enumeration value="GFM"/>
+      <xs:enumeration value="HMRC"/>
       <xs:enumeration value="SBR-NL"/>
+      <xs:enumeration value="EBA"/>
+      <xs:enumeration value="EIOPA"/>
     </xs:restriction>
   </xs:simpleType>
   <xs:element name="DisclosureSystem">
     <xs:complexType>
       <xs:attribute name="validationType" use="required" type="validationType"/>
+      <xs:attribute name="exclusiveTypesPattern" use="required"/>
       <xs:attribute name="contextElement" use="required" type="xs:NCName"/>
       <xs:attribute name="defaultLanguage" use="required" type="xs:NCName"/>
       <xs:attribute name="defaultXmlLang" use="required" type="xs:NCName"/>

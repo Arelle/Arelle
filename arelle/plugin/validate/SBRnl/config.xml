@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<DisclosureSystems  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+      xsi:noNamespaceSchemaLocation="../config/disclosuresystems.xsd" >
+  <!-- see ../config/disclosuresystem.xml for full comments -->
+
+   <DisclosureSystem 
+     names="SBR-NL|sbr-nl" 
+     description="SBR Netherlands\n
+     Default language Dutch\n
+     EDInet identifier patterns\n
+     Allowed references TBD"
+     defaultXmlLang="nl" 
+     xmlLangPattern="(^nl$|^en$)"
+     defaultLanguage="Nederlands" 
+     validationType="SBR.NL"
+     exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
+     validateFileText="false"
+     standardTaxonomiesUrl="sbr-nl-taxonomies.xml"
+     maxSubmissionSubdirectoryEntryNesting="3"
+     contextElement="scenario"
+     roleDefinitionPattern="^\S[^\n]* - [^\n]*\S$"
+     labelCheckPattern="^\s[^\s]+|[^\s]+\s$|\s{2,}|[\r\n\t]"
+     labelTrimPattern="\s"
+     />
+
+</DisclosureSystems>

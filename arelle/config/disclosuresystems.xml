@@ -51,6 +51,7 @@
      defaultXmlLang="jp" 
      defaultLanguage="日本"
      validationType="GFM"
+     exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
      standardTaxonomiesUrl="fsataxonomies.xml"
      identifierSchemePattern="^http://info\.edinet-fsa\.go\.jp$"
      identifierValuePattern="^E[0-9]{15}-[0-9]{3}$"
@@ -76,6 +77,7 @@
      defaultXmlLang="en" 
      defaultLanguage="English" 
      validationType="GFM"
+     exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
      standardTaxonomiesUrl="ifrs-taxonomies.xml"
      validateFileText="false"
      identifierSchemePattern="^http://.*$"
@@ -97,6 +99,7 @@
      xmlLangPattern="(^nl$|^en$)"
      defaultLanguage="Nederlands" 
      validationType="SBR.NL"
+     exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
      validateFileText="false"
      standardTaxonomiesUrl="sbr-nl-taxonomies.xml"
      maxSubmissionSubdirectoryEntryNesting="3"
@@ -112,6 +115,7 @@
      Default language en-UK\n
      Disallowed references are processed"
      validationType="HMRC"
+     exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
      blockDisallowedReferences="false" 
      defaultXmlLang="en-UK" 
      defaultLanguage="English" 
@@ -141,6 +145,7 @@
      Disallowed references are processed\n
      Includes content (semantic) tests"
      validationType="EFM"
+     exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
      blockDisallowedReferences="false" 
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
@@ -171,6 +176,7 @@
      Disallowed references are blocked and not loaded (same as SEC production system)\n
      No content (semantic) tests are reported"
      validationType="EFM"
+     exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
      blockDisallowedReferences="true" 
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
@@ -203,6 +209,7 @@
      Disallowed references are processed\n
      Includes content (semantic) tests"
      validationType="EFM"
+     exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
      blockDisallowedReferences="false" 
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
@@ -233,6 +240,7 @@
      Disallowed references are blocked and not loaded (same as SEC production system)\n
      No content (semantic) tests are reported"
      validationType="EFM"
+     exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
      blockDisallowedReferences="true" 
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
@@ -264,6 +272,7 @@
      Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
      Disallowed references are processed"
      validationType="GFM"
+     exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
      defaultXmlLang="en"
      defaultLanguage="English" 
      standardTaxonomiesUrl="edgartaxonomies.xml"

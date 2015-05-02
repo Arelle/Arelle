@@ -1,0 +1,754 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Erxl  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="erxl.xsd" >
+<!-- Exclusions for SBR validation -->
+<!-- Core schema's -->
+<Loc>
+	<Family>BASE</Family>
+	<Version>1998</Version>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://www.w3.org/XML/1998/namespace</Namespace>
+	<Prefix>xml</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2001</Version>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://www.w3.org/2001/XMLSchema</Namespace>
+	<Prefix>xsd</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2001</Version>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://www.w3.org/2001/XMLSchema-instance</Namespace>
+	<Prefix>xsi</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://www.xbrl.org/2003/instance</Namespace>
+	<Prefix>xbrli</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://www.xbrl.org/2003/linkbase</Namespace>
+	<Prefix>link</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/2003/xl-2003-12-31.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://www.xbrl.org/2003/XLink</Namespace>
+	<Prefix>xl</Prefix>
+</Loc>
+<Loc>
+<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/2003/xlink-2003-12-31.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://www.w3.org/1999/xlink</Namespace>
+	<Prefix>xlink</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/2005/xbrldt-2005.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://xbrl.org/2005/xbrldt</Namespace>
+	<Prefix>xbrldt</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/2006/xbrldi-2006.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://xbrl.org/2006/xbrldi</Namespace>
+	<Prefix>xbrldi</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2008</Version>
+	<Href>http://www.xbrl.org/2008/generic-link.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://xbrl.org/2008/generic</Namespace>
+	<Prefix>gen</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2008</Version>
+	<Href>http://www.xbrl.org/2008/generic-label.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://xbrl.org/2008/label</Namespace>
+	<Prefix>label</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2008</Version>
+	<Href>http://www.xbrl.org/2008/generic-reference.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://xbrl.org/2008/reference</Namespace>
+	<Prefix>reference</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/lrr/role/negated-2009-12-16.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Roles/Arcroles</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://www.xbrl.org/2009/role/negated</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://www.xbrl.org/dtr/type/non-numeric</Namespace>
+	<Prefix>nonnum</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/dtr/type/numeric-2009-12-16.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://www.xbrl.org/dtr/type/numeric</Namespace>
+	<Prefix>num</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/2006/ref-2006-02-27.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://www.xbrl.org/2006/ref</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/2004/ref-2004-08-10.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://www.xbrl.org/2004/ref</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/lrr/role/net-2009-12-16.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Roles/Arcroles</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://www.xbrl.org/2009/role/net</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/lrr/arcrole/factExplanatory-2009-12-16.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Roles/Arcroles</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://www.xbrl.org/2009/arcrole/fact-explanatoryFact</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/lrr/role/negated-2008-03-31.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Roles/Arcroles</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://xbrl.us/us-gaap/negated/2008-03-31</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/lrr/arcrole/deprecated-2009-12-16.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Roles/Arcroles</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://www.xbrl.org/2009/arcrole/deprecated</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/lrr/role/deprecated-2009-12-16.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Roles/Arcroles</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://www.xbrl.org/2009/role/deprecated</Namespace>
+</Loc>
+
+<!-- NT5.0 -->
+
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>5.0</Version>
+	<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-common-data.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-common-data</Namespace>
+	<Prefix>nl-cd</Prefix>
+</Loc>
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>5.0</Version>
+	<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-common-data-documentation-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Documentation, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>5.0</Version>
+	<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-common-data-documentation-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Documentation, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>5.0</Version>
+	<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-common-data-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Standard, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>5.0</Version>
+	<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-common-data-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Standard, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>5.0</Version>
+	<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-common-data-ref.xml</Href>
+	<AttType>REF</AttType>
+	<FileTypeName>Reference, Authoritative</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>5.0</Version>
+	<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-genbase.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-genbase</Namespace>
+	<Prefix>nl-gen</Prefix>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>5.0</Version>
+	<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-genbase-documentation-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Documentation, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>5.0</Version>
+	<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-genbase-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Standard, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>5.0</Version>
+	<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-genbase-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Standard, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>5.0</Version>
+	<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-genbase-ref.xml</Href>
+	<AttType>REF</AttType>
+	<FileTypeName>Reference, Authoritative</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>5.0</Version>
+	<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/types/nl-types.xsd</Href>
+	<LocalHref>basis/sbr/types/nl-types.xsd</LocalHref>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/5.0/basis/sbr/types/nl-types</Namespace>
+	<Prefix>nl-types</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>5.0</Version>
+	<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/types/nl-codes.xsd</Href>
+	<LocalHref>basis/sbr/types/nl-codes.xsd</LocalHref>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/5.0/basis/sbr/types/nl-codes</Namespace>
+	<Prefix>nl-codes</Prefix>
+</Loc>
+
+<!-- NT 6.0 -->
+
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-common-data.xsd</Href>
+	<LocalHref>basis/sbr/items/nl-common-data.xsd</LocalHref>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-common-data</Namespace>
+	<Prefix>nl-cd</Prefix>
+</Loc>
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-common-data-documentation-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Documentation, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-common-data-documentation-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Documentation, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-common-data-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Standard, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-common-data-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Standard, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-common-data-ref.xml</Href>
+	<LocalHref>basis/sbr/items/nl-common-data-ref.xml</LocalHref>
+	<AttType>REF</AttType>
+	<FileTypeName>Reference, Authoritative</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>SBR-GEN-ITEMS</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-genbase.xsd</Href>
+	<LocalHref>basis/sbr/items/nl-genbase.xsd</LocalHref>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-genbase</Namespace>
+	<Prefix>nl-gen</Prefix>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-genbase-terse-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Terse, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-genbase-terse-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Terse, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-genbase-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Standard, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-genbase-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Standard, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-genbase-periodstart-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Period start, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-genbase-periodstart-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Period start, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-genbase-periodstart-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Period start, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-genbase-periodend-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Period end, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-genbase-periodend-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Period end, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/items/nl-genbase-ref.xml</Href>
+	<AttType>REF</AttType>
+	<FileTypeName>Reference, Authoritative</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-NL-LINKROLES</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/linkroles/nl-genbase-domain-linkroles.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/6.0/basis/sbr/linkroles/nl-genbase-domain-linkroles</Namespace>
+	<Prefix>nl-lr</Prefix>
+</Loc>
+<Loc>
+	<Family>SBR-NL-LINKROLES</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/linkroles/nl-genbase-domain-linkroles-generic-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Standard, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-NL-LINKROLES</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/6.0/basis/sbr/linkroles/nl-genbase-domain-linkroles-generic-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Standard, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+
+<!-- NT 7.0 -->
+
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/items/nl-common-data.xsd</Href>
+	<LocalHref>basis/sbr/items/nl-common-data.xsd</LocalHref>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/7.0/basis/sbr/items/nl-common-data</Namespace>
+	<Prefix>nl-cd</Prefix>
+</Loc>
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/items/nl-common-data-documentation-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Documentation, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/items/nl-common-data-documentation-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Documentation, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/items/nl-common-data-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Standard, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/items/nl-common-data-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Standard, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/items/nl-common-data-ref.xml</Href>
+	<LocalHref>basis/sbr/items/nl-common-data-ref.xml</LocalHref>
+	<AttType>REF</AttType>
+	<FileTypeName>Reference, Authoritative</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+<Family>SBR-GEN-ITEMS</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/items/nl-genbase.xsd</Href>
+	<LocalHref>basis/sbr/items/nl-genbase.xsd</LocalHref>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/7.0/basis/sbr/items/nl-genbase</Namespace>
+	<Prefix>nl-gen</Prefix>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/items/nl-genbase-terse-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Terse, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/items/nl-genbase-terse-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Terse, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/items/nl-genbase-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Standard, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/items/nl-genbase-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Standard, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/items/nl-genbase-periodstart-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Period start, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/items/nl-genbase-periodstart-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Period start, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/items/nl-genbase-periodstart-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Period start, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/items/nl-genbase-periodend-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Period end, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/items/nl-genbase-periodend-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Period end, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/items/nl-genbase-ref.xml</Href>
+	<AttType>REF</AttType>
+	<FileTypeName>Reference, Authoritative</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-NL-LINKROLES</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/linkroles/nl-genbase-domain-linkroles.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/7.0/basis/sbr/linkroles/nl-genbase-domain-linkroles</Namespace>
+	<Prefix>nl-lr</Prefix>
+</Loc>
+<Loc>
+	<Family>SBR-NL-LINKROLES</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/linkroles/nl-genbase-domain-linkroles-generic-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Standard, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-NL-LINKROLES</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/7.0/basis/sbr/linkroles/nl-genbase-domain-linkroles-generic-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Standard, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+
+<!-- NT 2011 targetNamespaces -->
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/2011/basis/sbr/items/nl-common-data.xsd</Href>
+	<LocalHref>basis/sbr/items/nl-common-data.xsd</LocalHref>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/2011/basis/sbr/items/nl-common-data</Namespace>
+	<Prefix>nl-cd</Prefix>
+</Loc>
+
+<!-- do not examine sbr-nl rules in these files, this is why they are marked as BASE family -->
+<Loc>
+	<Family>BASE</Family>
+	<Version>5.0</Version>
+	<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/linkroles/xbrl-syntax-extension.xsd</Href>
+	<LocalHref>basis/sbr/xbrl/xbrl-syntax-extension.xsd</LocalHref>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/5.0/basis/sbr/xbrl/xbrl-syntax-extension</Namespace>
+	<Prefix>sbr</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>5.0</Version>
+	<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/xbrl/xbrl-syntax-arcroles.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/2011/basis/sbr/xbrl/xbrl-syntax-arcroles</Namespace>
+	<Prefix>sbr-a</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/2011/xbrl/xbrl-syntax-extension.xsd</Href>
+	<LocalHref>basis/sbr/xbrl/xbrl-syntax-extension.xsd</LocalHref>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/2011/xbrl/xbrl-syntax-extension</Namespace>
+	<Prefix>sbr</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>6.0</Version>
+	<Href>http://www.nltaxonomie.nl/2011/basis/sbr/xbrl/xbrl-syntax-arcroles.xsd</Href>
+	<LocalHref>basis/sbr/xbrl/xbrl-syntax-arcroles.xsd</LocalHref>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/2011/xbrl/xbrl-syntax-arcroles</Namespace>
+	<Prefix>sbr-a</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/2011/xbrl/xbrl-syntax-extension.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/2011/xbrl/xbrl-syntax-extension</Namespace>
+	<Prefix>sbr</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>7.0</Version>
+	<Href>http://www.nltaxonomie.nl/2011/xbrl/xbrl-syntax-arcroles.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/2011/xbrl/xbrl-syntax-arcroles</Namespace>
+	<Prefix>sbr-a</Prefix>
+</Loc>
+
+</Erxl>

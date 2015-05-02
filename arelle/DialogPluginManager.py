@@ -21,6 +21,7 @@ try:
 except ImportError:
     import re
 EMPTYLIST = []
+GROUPSEP = '\x01d'
 
 def dialogPluginManager(mainWin):
     # check for updates in background
@@ -226,8 +227,11 @@ class DialogPluginManager(Toplevel):
             for moduleItem in sorted(moduleItems, key=lambda item: item[0]):
                 moduleInfo = moduleItem[1]
                 if parentNode or not moduleInfo.get("isImported"):
-                    name = moduleInfo.get("name", moduleItem[0])
-                    node = self.modulesView.insert(parentNode, "end", name, text=name)
+                    nodeName = moduleItem[0]
+                    if parentNode:
+                        nodeName = parentNode + GROUPSEP + nodeName
+                    name = moduleInfo.get("name", nodeName)
+                    node = self.modulesView.insert(parentNode, "end", nodeName, text=name)
                     self.modulesView.set(node, "author", moduleInfo.get("author"))
                     self.modulesView.set(node, "ver", moduleInfo.get("version"))
                     self.modulesView.set(node, "status", moduleInfo.get("status"))
@@ -288,6 +292,8 @@ class DialogPluginManager(Toplevel):
                 
     def moduleSelect(self, *args):
         node = (self.modulesView.selection() or (None,))[0]
+        if node:
+            node = node.rpartition(GROUPSEP)[2] # drop leading path names for module name
         moduleInfo = self.pluginConfig.get("modules", {}).get(node)
         if moduleInfo:
             self.selectedModule = node
@@ -407,7 +413,7 @@ class DialogPluginManager(Toplevel):
                                 self.disclosureSystemTypesChanged = True # disclosure system types changed
                     for importModuleInfo in moduleInfo.get("imports", EMPTYLIST):
                         _removePluginConfigModuleInfo(importModuleInfo)
-                    del self.pluginConfig["modules"][_name]
+                    self.pluginConfig["modules"].pop(_name, None)
             _removePluginConfigModuleInfo(moduleInfo)
             self.pluginConfigChanged = True
 

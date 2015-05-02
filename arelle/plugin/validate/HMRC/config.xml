@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<DisclosureSystems  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+      xsi:noNamespaceSchemaLocation="../config/disclosuresystems.xsd" >
+  <!-- see ../config/disclosuresystem.xml for full comments -->
+
+  <DisclosureSystem 
+     names="UK HMRC (Joint Filing Validation Checks)|hmrc"
+     description="UK HMRC Joint Filing Common Validation Checks\n
+     Default language en-UK\n
+     Disallowed references are processed"
+     validationType="HMRC"
+     exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
+     blockDisallowedReferences="false" 
+     defaultXmlLang="en-UK" 
+     defaultLanguage="English" 
+     standardTaxonomiesUrl="hmrc-taxonomies.xml"
+     validateFileText="false"
+     identifierSchemePattern="^http://www\.sec\.gov/CIK$"
+     identifierValuePattern="^[0-9]{10}$" 
+     identifierValueName="CIK" 
+     contextElement="segment" 
+     roleDefinitionPattern="^[0-9]+ - (Statement|Disclosure|Schedule|Document) - [^\n]*\S$"
+     labelCheckPattern="[ \n\r\t]{2,}|&lt;|&amp;lt;*&amp;#60;|&amp;#x3C"
+     labelTrimPattern="[ \n\r\t]"
+     deiNamespacePattern="^http://xbrl\.us/dei/|^http://xbrl\.sec\.gov/dei"
+     deiAmendmentFlagElement="AmendmentFlag"
+     deiCurrentFiscalYearEndDateElement="CurrentFiscalYearEndDate"
+     deiDocumentFiscalYearFocusElement="DocumentFiscalYearFocus"
+     deiDocumentPeriodEndDateElement="DocumentPeriodEndDate"
+     deiFilerIdentifierElement="EntityCentralIndexKey" 
+     deiFilerNameElement="EntityRegistrantName"
+     />
+
+
+</DisclosureSystems>
