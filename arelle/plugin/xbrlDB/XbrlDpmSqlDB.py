@@ -141,7 +141,7 @@ def dimValKey(cntx, typedDim=False, behaveAsTypedDims=EMPTYSET, restrictToDims=N
     return '|'.join(sorted("{}({})".format(dim.dimensionQname,
                                            dim.memberQname if dim.isExplicit and dim not in behaveAsTypedDims
                                            else dim.memberQname if typedDim and not dim.isTyped
-                                           else "<{} xsi:nil='true'/>".format(dim.typedMember.qname)
+                                           else "<{}/>".format(dim.typedMember.qname)
                                                  if typedDim and dim.typedMember.get("{http://www.w3.org/2001/XMLSchema-instance}nil") in ("true", "1")
                                            else xmlstring(dim.typedMember, stripXmlns=True) if typedDim
                                            else '*' )
@@ -237,6 +237,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         self.dFilingIndicators = {} # index qName, value filed (boolean)
         self.metricsForFilingIndicators = set()
         self.signaturesForFilingIndicators = defaultdict(list)
+        self.entityCurrency = None
 
         _instanceSchemaRef = "(none)"
         if self.modelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL):
@@ -276,15 +277,11 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 break
         if not periodInstantDate:
             return False # needed context not yet available
-        entityCurrency = None
+        # in streaming mode entity Currency may not be available yet, if so do it later when storing fact
         for unit in self.modelXbrl.units.values():
             if unit.isSingleMeasure and unit.measures[0] and unit.measures[0][0].namespaceURI == XbrlConst.iso4217:
-                entityCurrency = unit.measures[0][0].localName
+                self.entityCurrency = unit.measures[0][0].localName
                 break
-        if not entityCurrency:
-            self.modelXbrl.error("sqlDB:entityCurrencyWarning",
-                                 _("Loading XBRL DB: Instance does not have a currency unit."),
-                                 modelObject=self.modelXbrl)
         table = self.getTable('dInstance', 'InstanceID', 
                               ('ModuleID', 'FileName', 'CompressedFileBlob',
                                'Timestamp', 'EntityScheme', 'EntityIdentifier', 'PeriodEndDateOrInstant',
@@ -298,7 +295,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                 entityIdentifier, 
                                 periodInstantDate, 
                                 None, 
-                                entityCurrency
+                                self.entityCurrency
                                 ),),
                               checkIfExisting=True)
         for id, fileName in table:
@@ -344,7 +341,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         
         # get typed dimension domain element qnames
         result = self.execute("SELECT dim.DimensionXBRLCode, ( '[<]' || dom.DomainXBRLCode || '[>]' || "
-                              " CASE WHEN dom.DataType = 'Integer' THEN '\\d+' ELSE '\\S+' END || "
+                              " CASE WHEN dom.DataType = 'Integer' THEN '\\d+' ELSE '.+' END || " # HF change string dim from \\S+ to .+
                               " '[<][/]' || dom.DomainXBRLCode || '[>]'  "
                               " || '|[<]' || dom.DomainXBRLCode || '/>' )" # removed: ' xsi:nil=''true''
                               "FROM mDimension dim, mDomain dom "
@@ -674,6 +671,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         self.modelXbrl.warning("sqlDB:factDecimalDigitsWarning",
                                              _("Loading XBRL DB: Decimals/percent fact should have 4 decimal digits %(qname)s, context %(context)s, value: %(value)s"),
                                              modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
+            if c == 'm' and not self.entityCurrency and f.unit is not None and f.unit.measures[0][0].namespaceURI == XbrlConst.iso4217:
+                self.entityCurrency = f.unit.measures[0][0].localName
+                self.execute("UPDATE dInstance SET EntityCurrency='{}' WHERE InstanceID={}"
+                              .format(self.entityCurrency, self.instanceId))
             isText = not (isNumeric or isBool or isDateTime) # 's' or 'u' type
             if f.qname == qnFindFilingIndicators:
                 if cntx is not None:
@@ -838,7 +839,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         # availableTable processing
         # get filing indicator template IDs
         if not self.dFilingIndicators:
-            self.modelXbrl.error("sqlDB:NoFilingIndicators",
+            self.modelXbrl.error(("EBA.1.6", "EIOPA.1.6.a"),
                                  _("No filing indicators were present in the instance"),
                                  modelObject=self.modelXbrl) 
         else:
@@ -852,11 +853,19 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             filingIndicatorCodeIDs = dict((code, id) for code, id in results)
             self.modelXbrl.profileActivity("dpmDB 07. Get business template filing indicator for module", minTimeToShow=0.0)
             
-            if _DICT_SET(filingIndicatorCodeIDs.keys()) != self.dFilingIndicators:
-                self.modelXbrl.error("sqlDB:MissingFilingIndicators",
-                                     _("The filing indicator IDs were not found for codes %(missingFilingIndicatorCodes)s"),
-                                     modelObject=self.modelXbrl,
-                                     missingFilingIndicatorCodes=','.join(self.dFilingIndicators - _DICT_SET(filingIndicatorCodeIDs.keys()))) 
+            if filingIndicatorCodeIDs.keys() != self.dFilingIndicators.keys():
+                missingIndicators = self.dFilingIndicators.keys() - filingIndicatorCodeIDs.keys()
+                if missingIndicators:
+                    self.modelXbrl.error(("EBA.1.6","EIOPA.1.6.a"),
+                                         _("The filing indicator IDs were not found for codes %(missingFilingIndicatorCodes)s"),
+                                         modelObject=self.modelXbrl,
+                                         missingFilingIndicatorCodes=','.join(missingIndicators))
+                extraneousIndicators = set(filingIndicatorCodeIDs.keys() - self.dFilingIndicators.keys())
+                if extraneousIndicators:
+                    self.modelXbrl.error(("EIOPA.S.1.7.a"),
+                                         _("The filing indicator IDs were in scope for module %(missingFilingIndicatorCodes)s"),
+                                         modelObject=self.modelXbrl,
+                                         missingFilingIndicatorCodes=','.join(extraneousIndicators))
     
             self.getTable("dFilingIndicator", None,
                           ("InstanceID", "BusinessTemplateID", "Filed"),
