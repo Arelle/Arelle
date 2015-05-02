@@ -325,8 +325,9 @@ def validateFacts(val, factsToCheck):
                 _memQn = _dim.memberQname
             else:
                 _memQn = _dim.typedMember.qname
-            val.namespacePrefixesUsed[_memQn.namespaceURI].add(_memQn.prefix)
-            val.prefixesUnused.discard(_memQn.prefix)
+            if _memQn:
+                val.namespacePrefixesUsed[_memQn.namespaceURI].add(_memQn.prefix)
+                val.prefixesUnused.discard(_memQn.prefix)
         if cntx.hasSegment:
             modelXbrl.error("EIOPA.S.1.6.d",
                 _("Contexts MUST NOT contain xbrli:segment values: %(cntx)s.'"),

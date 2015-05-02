@@ -777,7 +777,7 @@ class ValidateXbrl:
                 
     def checkFactsDimensions(self, facts): # check fact dimensions in document order
         for f in facts:
-            if f.concept.isItem and f.context is not None:
+            if f.concept is not None and (f.concept.isItem and f.context is not None):
                 ValidateXbrlDimensions.checkFact(self, f)
             elif f.modelTupleFacts:
                 self.checkFactsDimensions(f.modelTupleFacts)
