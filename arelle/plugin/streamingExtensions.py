@@ -137,40 +137,45 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
     numElts = 0
     elt = None
     instInfoContext = etree.iterparse(_file, events=("start","end"), huge_tree=True)
-    for event, elt in instInfoContext:
-        if event == "start":
-            if elt.getparent() is not None:
-                if elt.getparent().tag == "{http://www.xbrl.org/2003/instance}xbrl":
-                    if not foundInstance:
-                        foundInstance = True
-                        pi = precedingProcessingInstruction(elt, "xbrl-streamable-instance")
-                        if pi is None:
-                            break
-                        else:
-                            streamingAspects = dict(pi.attrib.copy())
-                            if creationSoftwareComment is None:
-                                creationSoftwareComment = precedingComment(elt)
-                    if not elt.tag.startswith("{http://www.xbrl.org/"):
-                        instInfoNumRootFacts += 1
-                        if instInfoNumRootFacts % 1000 == 0:
-                            modelXbrl.profileActivity("... streaming tree check", minTimeToShow=20.0)
-                elif not foundInstance:       
-                    break
-            elif elt.tag == "{http://www.xbrl.org/2003/instance}xbrl":
-                creationSoftwareComment = precedingComment(elt)
-                if precedingProcessingInstruction(elt, "xbrl-streamable-instance") is not None:
-                    modelXbrl.error("streamingExtensions:headerMisplaced",
-                            _("Header is misplaced: %(error)s, must follow xbrli:xbrl element"),
-                            modelObject=elt)
-        elif event == "end":
-            elt.clear()
-            numElts += 1
-            if numElts % 1000 == 0 and elt.getparent() is not None:
-                while elt.getprevious() is not None and elt.getparent() is not None:
-                    del elt.getparent()[0]
-    if elt is not None:
-        elt.clear()
-    
+    try:
+        for event, elt in instInfoContext:
+            if event == "start":
+                if elt.getparent() is not None:
+                    if elt.getparent().tag == "{http://www.xbrl.org/2003/instance}xbrl":
+                        if not foundInstance:
+                            foundInstance = True
+                            pi = precedingProcessingInstruction(elt, "xbrl-streamable-instance")
+                            if pi is None:
+                                break
+                            else:
+                                streamingAspects = dict(pi.attrib.copy())
+                                if creationSoftwareComment is None:
+                                    creationSoftwareComment = precedingComment(elt)
+                        if not elt.tag.startswith("{http://www.xbrl.org/"):
+                            instInfoNumRootFacts += 1
+                            if instInfoNumRootFacts % 1000 == 0:
+                                modelXbrl.profileActivity("... streaming tree check", minTimeToShow=20.0)
+                    elif not foundInstance:       
+                        break
+                elif elt.tag == "{http://www.xbrl.org/2003/instance}xbrl":
+                    creationSoftwareComment = precedingComment(elt)
+                    if precedingProcessingInstruction(elt, "xbrl-streamable-instance") is not None:
+                        modelXbrl.error("streamingExtensions:headerMisplaced",
+                                _("Header is misplaced: %(error)s, must follow xbrli:xbrl element"),
+                                modelObject=elt)
+            elif event == "end":
+                elt.clear()
+                numElts += 1
+                if numElts % 1000 == 0 and elt.getparent() is not None:
+                    while elt.getprevious() is not None and elt.getparent() is not None:
+                        del elt.getparent()[0]
+    except etree.XMLSyntaxError as err:
+        modelXbrl.error("xmlSchema:syntax",
+                _("Unrecoverable error: %(error)s"),
+                error=err)
+        _file.close()
+        return err
+        
     _file.seek(0,io.SEEK_SET) # allow reparsing
     if not foundInstance or streamingAspects is None:
         del elt
