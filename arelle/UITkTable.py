@@ -16,9 +16,6 @@ except ImportError:
     from ttk import *
     _Combobox = Combobox
 
-LEFT_JUSTIFIED = 0;
-RIGHT_JUSTIFIED = 1;
-
 class Coordinate(object):
     def __init__(self, row, column):
         self.x = int(column)
@@ -68,11 +65,17 @@ class XbrlTable(TkTableWrapper.Table):
     TG_RIGHT_JUSTIFIED = 'right'
     TG_CENTERED = 'center'
     TG_TOP_LEFT_JUSTIFIED = 'top-left'
+    ANCHOR_POSITIONS = {
+                        TG_LEFT_JUSTIFIED : W,
+                        TG_RIGHT_JUSTIFIED : E,
+                        TG_CENTERED : CENTER,
+                        TG_TOP_LEFT_JUSTIFIED : NW
+                      }
     JUSTIFICATIONS = {
-                        TG_LEFT_JUSTIFIED : 'w',
-                        TG_RIGHT_JUSTIFIED : 'e',
-                        TG_CENTERED : 'c',
-                        TG_TOP_LEFT_JUSTIFIED : 'nw'
+                        TG_LEFT_JUSTIFIED : LEFT,
+                        TG_RIGHT_JUSTIFIED : RIGHT,
+                        TG_CENTERED : CENTER,
+                        TG_TOP_LEFT_JUSTIFIED : LEFT
                       }
 
     TG_BG_WHITE = 'bg-white'
@@ -92,6 +95,7 @@ class XbrlTable(TkTableWrapper.Table):
 
     TG_DISABLED = 'disabled'
     
+    TG_NO_BORDER = 'no-border'
     TG_BORDER_ALL = 'border-all'
     TG_BORDER_LEFT = 'border-left'
     TG_BORDER_TOP = 'border-top'
@@ -110,6 +114,7 @@ class XbrlTable(TkTableWrapper.Table):
     
     # (left, right, top, bottom)
     BORDERWIDTHS = {
+                        TG_NO_BORDER : (0, 0, 0, 0),
                         TG_BORDER_ALL : (1, 1, 1, 1),
                         TG_BORDER_LEFT : (1, 0, 0, 0),
                         TG_BORDER_TOP : (0, 0, 1, 0),
@@ -131,7 +136,7 @@ class XbrlTable(TkTableWrapper.Table):
     # 2^1 = top
     # 2^2 = right
     # 2^3 = left
-    BORDER_NAMES = [None,
+    BORDER_NAMES = [TG_NO_BORDER,
                     TG_BORDER_BOTTOM,
                     TG_BORDER_TOP,
                     TG_BORDER_TOP_BOTTOM,
@@ -222,11 +227,21 @@ class XbrlTable(TkTableWrapper.Table):
 
 
     def _valueCommand(self, event):
+        widget = event.widget
+        dataShape = widget.data.shape
+        totalRows = dataShape[0]
+        totalColumns = dataShape[1]
+        row = event.r
+        col = event.c
         if event.i == 0:
-            return self.data[event.r, event.c]
+            if (row<totalRows) and (col<totalColumns):
+                return widget.data[row, col]
+            else:
+                return ''
         else:
-            self.data[event.r, event.c] = event.S
-            self.modifiedCells[Coordinate(event.r, event.c)] = True
+            if (row<totalRows) and (col<totalColumns):
+                widget.data[row, col] = event.S
+                widget.modifiedCells[Coordinate(row, col)] = True
             return 'set'
 
 
@@ -239,10 +254,9 @@ class XbrlTable(TkTableWrapper.Table):
         with a 'widget.contextMenu()' command.
         The Tab and Return key are bound to cell navigation.
         '''
-        self.data = numpy.empty((rows, columns), dtype=str)
-        self.objectIds = numpy.empty((rows, columns), dtype=str)
+        self.data = numpy.empty((rows, columns), dtype=object)
+        self.objectIds = numpy.empty((rows, columns), dtype=object)
         self.modifiedCells = dict()
-        self.configuredTags = set()
         self.data.fill('')
         self.objectIds.fill('')
         self.titleRows = titleRows
@@ -259,18 +273,20 @@ class XbrlTable(TkTableWrapper.Table):
                                             colorigin=0,
                                             selectmode='extended',
                                             selecttype='cell',
-                                            rowstretch='last',
-                                            colstretch='last',
+                                            rowstretch='unset',
+                                            colstretch='unset',
                                             rowheight=-26,
                                             colwidth=15,
                                             flashmode='off',
-                                            anchor='e',
+                                            anchor=E,
                                             usecommand=1,
                                             background='#fffffffff',
                                             relief='sunken',
                                             command=self._valueCommand,
                                             takefocus=False,
-                                            rowseparator='\n')
+                                            rowseparator='\n',
+                                            wrap=1,
+                                            multiline=1)
         else:
             super(XbrlTable, self).__init__(parentWidget,
                                             rows=rows,
@@ -282,21 +298,21 @@ class XbrlTable(TkTableWrapper.Table):
                                             colorigin=0,
                                             selectmode='extended',
                                             selecttype='cell',
-                                            rowstretch='last',
-                                            colstretch='last',
+                                            rowstretch='unset',
+                                            colstretch='unset',
                                             rowheight=-26,
                                             colwidth=15,
                                             flashmode='off',
-                                            anchor='e',
+                                            anchor=E,
                                             usecommand=1,
                                             background='#fffffffff',
                                             relief='sunken',
                                             command=self._valueCommand,
                                             takefocus=False,
                                             rowseparator='\n',
+                                            wrap=1,
+                                            multiline=1,
                                             browsecmd=browsecmd)
-
-        self.grid(column="0", row='0', sticky=(N, W, S, E))
 
         # Extra key bindings for navigating through the table:
         # Tab: go right
@@ -327,23 +343,32 @@ class XbrlTable(TkTableWrapper.Table):
             self.set(**indexValue)
 
 
-    def tag_configure_once(self, tagname):
-        if tagname not in self.configuredTags:
-            self.configuredTags.add(tagname)
-            self.tag_raise(tagname, abovethis='title')
-            if tagname in XbrlTable.BORDERWIDTHS:
-                self.tag_configure(tagname, relief='ridge',
-                                   borderwidth=XbrlTable.BORDERWIDTHS[tagname])
-            elif tagname in XbrlTable.COLOURS:
-                self.tag_configure(tagname, bg=XbrlTable.COLOURS[tagname])
-            elif tagname in XbrlTable.JUSTIFICATIONS:
-                self.tag_configure(tagname,
-                                   anchor=XbrlTable.JUSTIFICATIONS[tagname])
+    def _applyFormat(self, tagname, option):
+        self.tag_raise(tagname, abovethis='title')
+        if option in XbrlTable.BORDERWIDTHS:
+            operand_a = XbrlTable.BORDERWIDTHS[option]
+            operand_b = tuple(self.tag_cget(tagname, 'borderwidth'))
+            if len(operand_b)==0:
+                operand_b = XbrlTable.BORDERWIDTHS[XbrlTable.TG_NO_BORDER]
+            else:
+                operand_b = (int(elem) for elem in operand_b if elem!=' ')
+            c = tuple(a | b for a,b in zip (operand_a, operand_b))
+            self.tag_configure(tagname, relief='sunken',
+                               borderwidth=c)
+        elif option in XbrlTable.COLOURS:
+            self.tag_configure(tagname, bg=XbrlTable.COLOURS[option])
+        elif option in XbrlTable.ANCHOR_POSITIONS:
+            self.tag_configure(tagname,
+                               anchor=XbrlTable.ANCHOR_POSITIONS[option])
+            self.tag_configure(tagname,
+                               justify=\
+                               XbrlTable.JUSTIFICATIONS[option])
 
 
-    def format_cell(self, tagname, index):
+    def format_cell(self, option, index):
+        tagname = 'cFmt'+index
         self.tag_cell(tagname, index)
-        self.tag_configure_once(tagname)
+        self._applyFormat(tagname, option)
 
 
     def set(self, rc=None, index=None, objectId=None, *args, **kwargs):
@@ -356,12 +381,12 @@ class XbrlTable(TkTableWrapper.Table):
             self.objectIds[row, col] = objectId
 
 
-    def resetModificationStatus(self, coordinate):
-        del self.modifiedCells[coordinate]
+    def clearModificationStatus(self):
+        self.modifiedCells.clear()
 
 
     def getObjectId(self, coordinate):
-        return self.objectIds[coordinate.y, coordinate.x]
+        return str(self.objectIds[coordinate.y, coordinate.x])
 
 
     def setObjectId(self, coordinate, objectId):
@@ -387,7 +412,7 @@ class XbrlTable(TkTableWrapper.Table):
         Initialise the content of a cell. The resulting cell will be writable.
         '''
         cellIndex = '%i,%i'% (y, x)
-        if justification in XbrlTable.JUSTIFICATIONS:
+        if justification in XbrlTable.ANCHOR_POSITIONS:
             self.format_cell(justification, cellIndex)
         if ((backgroundColourTag is not None) 
             and backgroundColourTag in XbrlTable.COLOURS):
@@ -400,6 +425,7 @@ class XbrlTable(TkTableWrapper.Table):
         combobox = event.widget
         indexValue = {combobox.tableIndex:combobox.get()}
         self.set(**indexValue)
+        return "OK"
 
 
     def initCellCombobox(self, value, values, x, y, isOpen=False,
@@ -425,9 +451,13 @@ class XbrlTable(TkTableWrapper.Table):
                 self.bind(self.contextMenuClick, contextMenuBinding)
         except AttributeError:
             pass
-        self.bind("<<ComboboxSelected>>", self._setValueFromCombobox)
+        combobox.bind(sequence="<<ComboboxSelected>>",
+                  func=self._setValueFromCombobox,
+                  add='+')
         if comboboxselected:
-            self.bind("<<ComboboxSelected>>", comboboxselected, '+')
+            combobox.bind(sequence="<<ComboboxSelected>>",
+                      func=comboboxselected,
+                      add='+')
         self.window_configure(cellIndex,
                               window=combobox,
                               sticky=(N, E, S, W))
@@ -436,7 +466,7 @@ class XbrlTable(TkTableWrapper.Table):
         return combobox
 
 
-    def initReadonlyCell(self, x, y, colspan, rowspan):
+    def initReadonlyCell(self, x, y):
         '''
         Make the specified cell read-only
         '''
@@ -450,7 +480,7 @@ class XbrlTable(TkTableWrapper.Table):
         Initialise the read-only content of a header cell.
         '''
         cellIndex = '%i,%i'% (y, x)
-        if justification in XbrlTable.JUSTIFICATIONS:
+        if justification in XbrlTable.ANCHOR_POSITIONS:
             self.format_cell(justification, cellIndex)
         if colspan+rowspan > 0:
             cellSpans = {cellIndex : '%i,%i'% (rowspan, colspan)}
@@ -482,36 +512,60 @@ class XbrlTable(TkTableWrapper.Table):
             self.spans(index=None, **cellSpans)
         return self.initCellCombobox(value, values, x, y, isOpen=isOpen,
                                      objectId=objectId, selectindex=selectindex,
-                                     omboboxselected=comboboxselected,
+                                     comboboxselected=comboboxselected,
                                      codes=codes)
 
 
-    def initHeaderBorder(self, x, y,
-                         hasLeftBorder=False, hasTopBorder=False,
-                         hasRightBorder=False, hasBottomBorder=False):
+    def drawBordersAroundCell(self, x, y, borders):
         '''
-        Set the border around a header cell. The border will always have the
-        same size.
+        The borders are coded in an integer:
+        2^0 = bottom
+        2^1 = top
+        2^2 = right
+        2^3 = left
         '''
-        borders = 0
-        currentBorder = 1
-        if hasBottomBorder:
-            borders = currentBorder
-        currentBorder *= 2
-        if hasTopBorder:
-            borders += currentBorder
-        currentBorder *= 2
-        if hasRightBorder:
-            borders += currentBorder
-        currentBorder *= 2
-        if hasLeftBorder:
-            borders += currentBorder
         if borders > 0:
             cellIndex = '%i,%i'% (y, x)
             self.format_cell(XbrlTable.BORDER_NAMES[borders], cellIndex)
 
 
-    def resizeTable(self, rows, columns, titleRows=-1, titleColumns=-1):
+    def initHeaderBorder(self, x, y,
+                         cellsToTheRight=0, cellsBelow=0,
+                         hasLeftBorder=False, hasTopBorder=False,
+                         hasRightBorder=False, hasBottomBorder=False):
+        '''
+        Set the border around a group of header cells.
+        The rectangular group of cells will start at position (x,y) and
+        possibly extend cellsToTheRight cells to the right and/or
+        cellsBelow cells below the given position.
+        The border will always have the same size.
+        '''
+        lastX = x + cellsToTheRight
+        lastY = y + cellsBelow
+        currentBorder = 1
+        if hasBottomBorder:
+            # If needed draw bottom border
+            for i in range(x, lastX+1):
+                self.drawBordersAroundCell(i, lastY, currentBorder)
+        currentBorder *= 2
+        if hasTopBorder:
+            # If needed draw top border
+            for i in range(x, lastX+1):
+                self.drawBordersAroundCell(i, y, currentBorder)
+        currentBorder *= 2
+        if hasRightBorder:
+            # If needed draw right border
+            for j in range(y, lastY+1):
+                self.drawBordersAroundCell(lastX, j, currentBorder)
+        currentBorder *= 2
+        if hasLeftBorder:
+            # If needed draw left border
+            for j in range(y, lastY+1):
+                self.drawBordersAroundCell(x, j, currentBorder)
+
+
+    def resizeTable(self, rows, columns, titleRows=-1, titleColumns=-1,
+                    clearData=True):
         '''
         Resize a table. Only positive increases are allowed.
         Negative increases will be ignored.
@@ -524,17 +578,45 @@ class XbrlTable(TkTableWrapper.Table):
         currentRows = int(self.cget('rows'))
         deltaCols = columns - currentCols
         deltaRows = rows - currentRows
-        if deltaRows+deltaCols > 0:
+        if abs(deltaRows)+abs(deltaCols) > 0:
             self.data.resize([rows, columns])
             self.objectIds.resize([rows, columns])
         if deltaRows>0:
             self.insert_rows('end', deltaRows)
+            self.config(rows=rows)
+        elif deltaRows<0:
+            self.delete_rows('end', count=abs(deltaRows))
+            self.config(rows=rows)
         if deltaCols>0:
             self.insert_cols('end', deltaCols)
+            self.config(cols=columns)
+        elif deltaCols<0:
+            self.delete_cols('end', count=abs(deltaCols))
+            self.config(cols=columns)
         if titleRows>=0:
             self.config(titlerows=titleRows)
+            self.titleRows = titleRows
         if titleColumns>=0:
             self.config(titlecols=titleColumns)
+            self.titleColumns = titleColumns
+        if clearData:
+            # reset the data whatever the resize pattern is.
+            self.data.fill('')
+            self.objectIds.fill('')
+
+
+    def clearSpans(self):
+        cellSpans = dict()
+        valueIsIndex = True
+        # self.spans returns an even list of values (starting at value 1)
+        # The odd values are indices.
+        # The even values are the spans, they are ignored in this context
+        for index in self.spans():
+            if valueIsIndex:
+                cellSpans[index] = '0,0' # reset span
+            valueIsIndex = not(valueIsIndex)
+        if len(cellSpans)>0:
+            self.spans(index=None, **cellSpans)
 
 
 class ScrolledTkTableFrame(Frame):
@@ -554,6 +636,9 @@ class ScrolledTkTableFrame(Frame):
                      yscrollcommand=self.verticalScrollbar.set)
         self.verticalScrollbar.grid(column="1", row='0', sticky=(N, S))
         self.horizontalScrollbar.grid(column="0", row='1', sticky=(W, E))
+        self.table.grid(column="0", row='0', sticky=(N, W, S, E))
+        self.verticalScrollbarWidth = self.verticalScrollbar.winfo_reqwidth()+5
+        self.horizontalScrollbarHeight = self.horizontalScrollbar.winfo_reqheight()+5
 
 
     def clearGrid(self):
@@ -561,4 +646,6 @@ class ScrolledTkTableFrame(Frame):
         self.table.yview_moveto(0)
         for widget in self.table.winfo_children():
                 widget.destroy()
+        self.table.clear_all()
+        self.table.clearSpans()
         self.update_idletasks()

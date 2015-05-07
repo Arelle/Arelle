@@ -16,6 +16,11 @@ class ViewTkTable(ViewPane):
                                        contentView, hasToolTip=hasToolTip,
                                        lang=lang)
         self.table = self.viewFrame.table
+        frameWidth = tabWin.winfo_width()
+        frameHeight = tabWin.winfo_height()
+
+        self.table.config(maxheight=frameHeight-contentView.horizontalScrollbarHeight,
+                          maxwidth=frameWidth-contentView.verticalScrollbarWidth)
 
         self.table.contextMenuClick = self.contextMenuClick
 

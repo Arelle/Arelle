@@ -666,6 +666,10 @@ def sample_test():
         # to modiy programmatically the content of a cell.
         # var[test.index('active')] = 'toto'
 
+    def comboValueChanged(event):
+        combobox = event.widget
+        print('Selected value in combobox: '+combobox.get())
+
     root = Tk()
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
@@ -741,6 +745,9 @@ def sample_test():
         cities = ('Brussels', 'Luxembourg', 'Strasbourg', 'Trier', 'Rome')
         combobox = ttk.Combobox(test, values=cities, state='readonly')
         test.window_configure('%i,9'%y, window=combobox, sticky=(N, E, S, W))
+        combobox.bind(sequence='<<ComboboxSelected>>',
+                      func=comboValueChanged,
+                      add='+')
 
     def cellRight(event, *args):
         widget = event.widget
