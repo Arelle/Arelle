@@ -54,12 +54,23 @@ class Coordinate(object):
         return self.__str__().__hash__()
 
 
+class TableCombobox(_Combobox):
+    @property
+    def valueIndex(self):
+        value = self.get()
+        values = self["values"]
+        if value in values:
+            return values.index(value)
+        return -1
+
+
 class XbrlTable(TkTableWrapper.Table):
     '''
     This class implements all the GUI elements needed for representing
     the sliced 2D-view of an Xbrl Table
     '''
 
+    TG_PREFIX = 'cFmt'
     TG_TOP_LEFT = 'top-left-cell'
     TG_LEFT_JUSTIFIED = 'left'
     TG_RIGHT_JUSTIFIED = 'right'
@@ -93,7 +104,7 @@ class XbrlTable(TkTableWrapper.Table):
                 TG_BG_GREEN : '#cc0ff0ff0'
                }
 
-    TG_DISABLED = 'disabled'
+    TG_DISABLED = 'disabled-cells'
     
     TG_NO_BORDER = 'no-border'
     TG_BORDER_ALL = 'border-all'
@@ -275,17 +286,18 @@ class XbrlTable(TkTableWrapper.Table):
                                             selecttype='cell',
                                             rowstretch='unset',
                                             colstretch='unset',
-                                            rowheight=-26,
+                                            rowheight=-30,
                                             colwidth=15,
                                             flashmode='off',
                                             anchor=E,
                                             usecommand=1,
-                                            background='#fffffffff',
-                                            relief='sunken',
+                                            background='#d00d00d00',
+                                            relief='ridge',
                                             command=self._valueCommand,
                                             takefocus=False,
                                             rowseparator='\n',
                                             wrap=1,
+                                            borderwidth=(1, 1, 0, 0),
                                             multiline=1)
         else:
             super(XbrlTable, self).__init__(parentWidget,
@@ -300,18 +312,19 @@ class XbrlTable(TkTableWrapper.Table):
                                             selecttype='cell',
                                             rowstretch='unset',
                                             colstretch='unset',
-                                            rowheight=-26,
+                                            rowheight=-30,
                                             colwidth=15,
                                             flashmode='off',
                                             anchor=E,
                                             usecommand=1,
-                                            background='#fffffffff',
-                                            relief='sunken',
+                                            background='#d00d00d00',
+                                            relief='ridge',
                                             command=self._valueCommand,
                                             takefocus=False,
                                             rowseparator='\n',
                                             wrap=1,
                                             multiline=1,
+                                            borderwidth=(1, 1, 0, 0),
                                             browsecmd=browsecmd)
 
         # Extra key bindings for navigating through the table:
@@ -321,10 +334,12 @@ class XbrlTable(TkTableWrapper.Table):
         self.bind("<Return>", func=self.cellDown)
 
         # Configure the graphical appearance of the cells by using tags
-        self.tag_configure('sel', background = '#000400400')
-        self.tag_configure('active', background = '#000a00a00')
+        self.tag_configure('sel', background = '#000f70ff0',
+                           fg='#000000000')
+        self.tag_configure('active', background = '#b00e00e60',
+                           fg='#000000000')
         self.tag_configure('title', anchor='w', bg='#d00d00d00',
-                           fg='#000000000', relief='flat')
+                           fg='#000000000', relief='ridge')
         self.tag_configure(XbrlTable.TG_DISABLED, bg='#d00d00d00',
                            fg='#000000000',
                            relief='flat', state='disabled')
@@ -353,7 +368,7 @@ class XbrlTable(TkTableWrapper.Table):
             else:
                 operand_b = (int(elem) for elem in operand_b if elem!=' ')
             c = tuple(a | b for a,b in zip (operand_a, operand_b))
-            self.tag_configure(tagname, relief='sunken',
+            self.tag_configure(tagname, relief='ridge',
                                borderwidth=c)
         elif option in XbrlTable.COLOURS:
             self.tag_configure(tagname, bg=XbrlTable.COLOURS[option])
@@ -366,7 +381,7 @@ class XbrlTable(TkTableWrapper.Table):
 
 
     def format_cell(self, option, index):
-        tagname = 'cFmt'+index
+        tagname = XbrlTable.TG_PREFIX+index
         self.tag_cell(tagname, index)
         self._applyFormat(tagname, option)
 
@@ -406,8 +421,9 @@ class XbrlTable(TkTableWrapper.Table):
         return self.modifiedCells.keys()
 
 
-    def initCellValue(self, value, x, y, backgroundColourTag=None,
-                     justification='left', objectId=None):
+    def initCellValue(self, value, x, y,
+                      backgroundColourTag='bg-white',
+                      justification='left', objectId=None):
         '''
         Initialise the content of a cell. The resulting cell will be writable.
         '''
@@ -417,6 +433,7 @@ class XbrlTable(TkTableWrapper.Table):
         if ((backgroundColourTag is not None) 
             and backgroundColourTag in XbrlTable.COLOURS):
             self.format_cell(backgroundColourTag, cellIndex)
+        self.format_cell(XbrlTable.TG_BORDER_ALL, cellIndex)
         indexValue = {cellIndex:value}
         self.set(objectId=objectId, **indexValue)
 
@@ -437,8 +454,8 @@ class XbrlTable(TkTableWrapper.Table):
         be added to the combobox.
         '''
         cellIndex = '%i,%i'% (y, x)
-        combobox = _Combobox(self, values=values,
-                             state='active' if isOpen else 'readonly')
+        combobox = TableCombobox(self, values=values,
+                                 state='active' if isOpen else 'readonly')
         combobox.codes = codes
         combobox.tableIndex = cellIndex
         if selectindex is not None:
@@ -471,11 +488,17 @@ class XbrlTable(TkTableWrapper.Table):
         Make the specified cell read-only
         '''
         cellIndex = '%i,%i'% (y, x)
+#        hiddenStatus = self.hidden(cellIndex)
+#        if hiddenStatus is None or str(hiddenStatus)='0'\
+#            or len(str(hiddenStatus))==0:
+#            pass
         self.format_cell(XbrlTable.TG_DISABLED, cellIndex)
+        self.format_cell(XbrlTable.TG_NO_BORDER, cellIndex)
 
 
     def initHeaderCellValue(self, value, x, y, colspan, rowspan,
-                            justification, objectId=None):
+                            justification, objectId=None,
+                            isRollUp=False):
         '''
         Initialise the read-only content of a header cell.
         '''
@@ -487,6 +510,10 @@ class XbrlTable(TkTableWrapper.Table):
             self.spans(index=None, **cellSpans)
         indexValue = {cellIndex:value}
         self.set(objectId=objectId, **indexValue)
+        self.initHeaderBorder(x, y,
+                              hasLeftBorder=True, hasTopBorder=True,
+                              hasRightBorder=True,
+                              hasBottomBorder=not isRollUp)
 
 
     def initCellSpan(self, x, y, colspan, rowspan):
@@ -501,15 +528,20 @@ class XbrlTable(TkTableWrapper.Table):
     def initHeaderCombobox(self, x, y, value='', values=(), colspan=0,
                            rowspan=0, isOpen=True, objectId=None,
                            selectindex=None, comboboxselected=None,
-                           codes=dict()):
+                           codes=dict(),
+                           isRollUp=False):
         '''
         Initialise the read-only content of a header cell as a combobox.
         New values can be added to the combobox if isOpen==True.
         '''
+        cellIndex = '%i,%i'% (y, x)
         if colspan+rowspan > 0:
-            cellIndex = '%i,%i'% (y, x)
             cellSpans = { cellIndex : '%i,%i'% (rowspan, colspan)}
             self.spans(index=None, **cellSpans)
+        self.initHeaderBorder(x, y,
+                              hasLeftBorder=True, hasTopBorder=True,
+                              hasRightBorder=True,
+                              hasBottomBorder=not isRollUp)
         return self.initCellCombobox(value, values, x, y, isOpen=isOpen,
                                      objectId=objectId, selectindex=selectindex,
                                      comboboxselected=comboboxselected,
@@ -619,6 +651,11 @@ class XbrlTable(TkTableWrapper.Table):
             self.spans(index=None, **cellSpans)
 
 
+    def clearTags(self):
+        for tagname in self.tag_names(XbrlTable.TG_PREFIX+'*'):
+            self.tag_delete(tagname)
+
+
 class ScrolledTkTableFrame(Frame):
     def __init__(self, parent, *args, **kw):
         Frame.__init__(self, parent, *args, **kw)
@@ -648,4 +685,5 @@ class ScrolledTkTableFrame(Frame):
                 widget.destroy()
         self.table.clear_all()
         self.table.clearSpans()
+        self.table.clearTags()
         self.update_idletasks()

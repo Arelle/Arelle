@@ -83,6 +83,12 @@ class StructuralNode:
         except AttributeError: # axis may never be abstract
             return False
         
+    def isSummary(self):
+        if self.childStructuralNodes is not None and not self.isAbstract:
+            return True
+        else:
+            return False
+
     @property
     def isRollUp(self):
         return self.definitionNode.isRollUp
