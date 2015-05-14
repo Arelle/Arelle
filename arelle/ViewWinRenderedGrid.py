@@ -243,6 +243,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             self.factPrototypes = []
             self.bodyCells(self.dataFirstRow, yTopStructuralNode, xStructuralNodes, self.zAspectStructuralNodes, self.yAxisChildrenFirst.get())
             self.table.clearModificationStatus()
+            self.table.disableUnusedCells()
                 
             # data cells
             #print("body cells done")
@@ -504,7 +505,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                             if isNonAbstract or nestRow == row
                                                             else XbrlTable.TG_CENTERED),
                                                            objectId=yStructuralNode.objectId(),
-                                                           isRollUp=columnspan>1 and isNonAbstract and len(yStructuralNode.childStructuralNodes)>1)
+                                                           isRollUp=columnspan>1 and isNonAbstract and (len(yStructuralNode.childStructuralNodes)>1 or (len(yStructuralNode.childStructuralNodes)==1 and not(yStructuralNode.childStructuralNodes[0].isAbstract))))
                         else:
                             self.aspectEntryObjectIdsNode[yStructuralNode.aspectEntryObjectId] = yStructuralNode
                             # TODO: is the following still needed?

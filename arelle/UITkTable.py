@@ -334,9 +334,9 @@ class XbrlTable(TkTableWrapper.Table):
         self.bind("<Return>", func=self.cellDown)
 
         # Configure the graphical appearance of the cells by using tags
-        self.tag_configure('sel', background = '#000f70ff0',
+        self.tag_configure('sel', background = '#b00e00e60',
                            fg='#000000000')
-        self.tag_configure('active', background = '#b00e00e60',
+        self.tag_configure('active', background = '#000f70ff0',
                            fg='#000000000')
         self.tag_configure('title', anchor='w', bg='#d00d00d00',
                            fg='#000000000', relief='ridge')
@@ -493,8 +493,7 @@ class XbrlTable(TkTableWrapper.Table):
 #        if hiddenStatus is None or str(hiddenStatus)='0'\
 #            or len(str(hiddenStatus))==0:
 #            pass
-        self.format_cell(XbrlTable.TG_DISABLED, cellIndex)
-        self.format_cell(XbrlTable.TG_NO_BORDER, cellIndex)
+        self.tag_cell(XbrlTable.TG_DISABLED, cellIndex)
 
 
     def initHeaderCellValue(self, value, x, y, colspan, rowspan,
@@ -655,6 +654,20 @@ class XbrlTable(TkTableWrapper.Table):
     def clearTags(self):
         for tagname in self.tag_names(XbrlTable.TG_PREFIX+'*'):
             self.tag_delete(tagname)
+
+
+    def disableUnusedCells(self):
+        rows, cols = self.objectIds.shape
+        iteratorObj = numpy.nditer(self.objectIds[self.titleRows:rows,
+                                                  self.titleColumns:cols],
+                                   flags=['refs_ok', 'multi_index'])
+        while not iteratorObj.finished:
+            value = iteratorObj[0]
+            row = self.titleRows+iteratorObj.multi_index[0]
+            col = self.titleColumns+iteratorObj.multi_index[1]
+            if value=='':
+                self.initReadonlyCell(col, row)
+            _ = iteratorObj.iternext()
 
 
 class ScrolledTkTableFrame(Frame):
