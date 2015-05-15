@@ -32,8 +32,11 @@ __author__ = "Guilherme Polo <ggpolo@gmail.com>"
 __all__ = ["ArrayVar", "Table"]
 
 import os
-import tkinter
 import collections
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 import sys
 
 def _setup_master(master):
@@ -42,10 +45,12 @@ def _setup_master(master):
             master = tkinter._default_root or tkinter.Tk()
         else:
             raise RuntimeError("No master specified and Tkinter is "
-                "configured not to support default master")
+                               "configured to not support default master")
     return master
 
+
 class ArrayVar(tkinter.Variable):
+
     """Class for handling Tcl arrays.
 
     An array is actually an associative array in Tcl, so this class supports
@@ -86,7 +91,8 @@ class ArrayVar(tkinter.Variable):
         return self._tk.globalgetvar(str(self), str(key))
 
     def set(self, **kw):
-        self._tk.call('array', 'set', str(self), tkinter._flatten(list(kw.items())))
+        self._tk.call(
+            'array', 'set', str(self), tkinter._flatten(list(kw.items())))
 
     def unset(self, pattern=None):
         """Unsets all of the elements in the array. If pattern is given, only
@@ -96,7 +102,9 @@ class ArrayVar(tkinter.Variable):
 
 _TKTABLE_LOADED = False
 
+
 class Table(tkinter.Widget):
+
     """Create and manipulate tables."""
 
     _switches = ('holddimensions', 'holdselection', 'holdtags', 'holdwindows',
@@ -113,7 +121,7 @@ class Table(tkinter.Widget):
             tktable_lib = os.environ.get('TKTABLE_LIBRARY')
             if tktable_lib:
                 master.tk.eval('global auto_path; '
-                                'lappend auto_path {%s}' % tktable_lib)
+                               'lappend auto_path {%s}' % tktable_lib)
             master.tk.call('package', 'require', 'Tktable')
             _TKTABLE_LOADED = True
         # force minimum padding
@@ -135,14 +143,13 @@ class Table(tkinter.Widget):
         for k, v in cnf.items():
             if isinstance(v, collections.Callable):
                 if k in self._tabsubst_commands:
-                    v = "%s %s"  % (self._register(v, self._tabsubst),
-                                    ' '.join(self._tabsubst_format))
+                    v = "%s %s" % (self._register(v, self._tabsubst),
+                                   ' '.join(self._tabsubst_format))
                 else:
                     v = self._register(v)
             res += ('-%s' % k, v)
 
         return res
-
 
     def _tabsubst(self, *args):
         if len(args) != len(self._tabsubst_format):
@@ -166,23 +173,19 @@ class Table(tkinter.Widget):
 
         return (e,)
 
-
     def _handle_switches(self, args):
         args = args or ()
         return tuple(('-%s' % x) for x in args if x in self._switches)
 
-
     def activate(self, index):
         """Set the active cell to the one indicated by index."""
         self.tk.call(self._w, 'activate', index)
-
 
     def bbox(self, first, last=None):
         """Return the bounding box for the specified cell (range) as a
         4-tuple of x, y, width and height in pixels. It clips the box to
         the visible portion, if any, otherwise an empty tuple is returned."""
         return self._getints(self.tk.call(self._w, 'bbox', first, last)) or ()
-
 
     def clear(self, option, first=None, last=None):
         """This is a convenience routine to clear certain state information
@@ -191,12 +194,10 @@ class Table(tkinter.Widget):
         table."""
         self.tk.call(self._w, 'clear', option, first, last)
 
-
     def clear_cache(self, first=None, last=None):
         """Clear the specified section of the cache, if the table has been
         keeping one."""
         self.clear('cache', first, last)
-
 
     def clear_sizes(self, first=None, last=None):
         """Clear the specified row and column areas of specific height/width
@@ -204,16 +205,13 @@ class Table(tkinter.Widget):
         is interpreted as row 2 and column 0."""
         self.clear('sizes', first, last)
 
-
     def clear_tags(self, first=None, last=None):
         """Clear the specified area of tags (all row, column and cell tags)."""
         self.clear('tags', first, last)
 
-
     def clear_all(self, first=None, last=None):
         """Perform all of the above clear functions on the specified area."""
         self.clear('all', first, last)
-
 
     def curselection(self, value=None):
         """With no arguments, it returns the sorted indices of the currently
@@ -224,12 +222,10 @@ class Table(tkinter.Widget):
         if value is None:
             return result
 
-
     def curvalue(self, value=None):
         """If no value is given, the value of the cell being edited (indexed
         by active) is returned, else it is set to the given value. """
         return self.tk.call(self._w, 'curvalue', value)
-
 
     def delete_active(self, index1, index2=None):
         """Deletes text from the active cell. If only one index is given,
@@ -237,22 +233,18 @@ class Table(tkinter.Widget):
         the first index to the second. index can be a number, insert or end."""
         self.tk.call(self._w, 'delete', 'active', index1, index2)
 
-
     def delete_cols(self, index, count=None, switches=None):
         args = self._handle_switches(switches) + (index, count)
         self.tk.call(self._w, 'delete', 'cols', *args)
-
 
     def delete_rows(self, index, count=None, switches=None):
         args = self._handle_switches(switches) + (index, count)
         self.tk.call(self._w, 'delete', 'rows', *args)
 
-
     def get(self, first, last=None):
         """Returns the value of the cells specified by the table indices
         first and (optionally) last."""
         return self.tk.call(self._w, 'get', first, last)
-
 
     def height(self, row=None, **kwargs):
         """If row and kwargs are not given, a list describing all rows for
@@ -269,7 +261,6 @@ class Table(tkinter.Widget):
         args = tkinter._flatten(list(kwargs.items()))
         self.tk.call(self._w, 'height', *args)
 
-
     def hidden(self, *args):
         """When called without args, it returns all the hidden cells (those
         cells covered by a spanning cell). If one index is specified, it
@@ -277,7 +268,6 @@ class Table(tkinter.Widget):
         indices are specified, it returns 1 if all indices are hidden cells,
         0 otherwise."""
         return self.tk.call(self._w, 'hidden', *args)
-
 
     def icursor(self, arg=None):
         """If arg is not specified, return the location of the insertion
@@ -289,7 +279,6 @@ class Table(tkinter.Widget):
         active cell, or the cell or table is disabled, this will return -1."""
         return self.tk.call(self._w, 'icursor', arg)
 
-
     def index(self, index, rc=None):
         """Return the integer cell coordinate that corresponds to index in the
         form row, col. If rc is specified, it must be either 'row' or 'col' so
@@ -300,25 +289,21 @@ class Table(tkinter.Widget):
         else:
             return int(res)
 
-
     def insert_active(self, index, value):
         """The value is a text string which is inserted at the index postion
         of the active cell. The cursor is then positioned after the new text.
         index can be a number, insert or end. """
         self.tk.call(self._w, 'insert', 'active', index, value)
 
-
     def insert_cols(self, index, count=None, switches=None):
         args = self._handle_switches(switches) + (index, count)
         self.tk.call(self._w, 'insert', 'cols', *args)
-
 
     def insert_rows(self, index, count=None, switches=None):
         args = self._handle_switches(switches) + (index, count)
         self.tk.call(self._w, 'insert', 'rows', *args)
 
-
-    #def postscript(self, **kwargs):
+    # def postscript(self, **kwargs):
     #    """Skip this command if you are under Windows.
     #
     #    Accepted options:
@@ -332,42 +317,33 @@ class Table(tkinter.Widget):
     #
     #    return self.tk.call(self._w, 'postscript', *args)
 
-
     def reread(self):
         """Rereads the old contents of the cell back into the editing buffer.
         Useful for a key binding when <Escape> is pressed to abort the edit
         (a default binding)."""
         self.tk.call(self._w, 'reread')
 
-
     def scan_mark(self, x, y):
         self.tk.call(self._w, 'scan', 'mark', x, y)
-
 
     def scan_dragto(self, x, y):
         self.tk.call(self._w, 'scan', 'dragto', x, y)
 
-
     def see(self, index):
         self.tk.call(self._w, 'see', index)
-
 
     def selection_anchor(self, index):
         self.tk.call(self._w, 'selection', 'anchor', index)
 
-
     def selection_clear(self, first, last=None):
         self.tk.call(self._w, 'selection', 'clear', first, last)
-
 
     def selection_includes(self, index):
         return self.getboolean(self.tk.call(self._w, 'selection', 'includes',
                                             index))
 
-
     def selection_set(self, first, last=None):
         self.tk.call(self._w, 'selection', 'set', first, last)
-
 
     def set(self, rc=None, index=None, *args, **kwargs):
         """If rc is specified (either 'row' or 'col') then it is assumes that
@@ -395,7 +371,6 @@ class Table(tkinter.Widget):
         else:
             self.tk.call(self._w, 'set', rc, index, args)
 
-
     def spans(self, index=None, **kwargs):
         """Manipulate row/col spans.
 
@@ -411,18 +386,14 @@ class Table(tkinter.Widget):
         else:
             return self.tk.call(self._w, 'spans', index)
 
-
     def tag_cell(self, tagname, *args):
         return self.tk.call(self._w, 'tag', 'cell', tagname, *args)
-
 
     def tag_cget(self, tagname, option):
         return self.tk.call(self._w, 'tag', 'cget', tagname, '-%s' % option)
 
-
     def tag_col(self, tagname, *args):
         return self.tk.call(self._w, 'tag', 'col', tagname, *args)
-
 
     def tag_configure(self, tagname, option=None, **kwargs):
         """Query or modify options associated with the tag given by tagname.
@@ -434,7 +405,7 @@ class Table(tkinter.Widget):
         be modified."""
         if option is None and not kwargs:
             split1 = self.tk.splitlist(
-                    self.tk.call(self._w, 'tag', 'configure', tagname))
+                self.tk.call(self._w, 'tag', 'configure', tagname))
 
             result = {}
             for item in split1:
@@ -454,35 +425,27 @@ class Table(tkinter.Widget):
 
             self.tk.call(self._w, 'tag', 'configure', tagname, *args)
 
-
     def tag_delete(self, tagname):
         self.tk.call(self._w, 'tag', 'delete', tagname)
 
-
     def tag_exists(self, tagname):
         return self.getboolean(self.tk.call(self._w, 'tag', 'exists', tagname))
-
 
     def tag_includes(self, tagname, index):
         return self.getboolean(self.tk.call(self._w, 'tag', 'includes',
                                             tagname, index))
 
-
     def tag_lower(self, tagname, belowthis=None):
         self.tk.call(self._w, 'tag', 'lower', belowthis)
-
 
     def tag_names(self, pattern=None):
         return self.tk.call(self._w, 'tag', 'names', pattern)
 
-
     def tag_raise(self, tagname, abovethis=None):
         self.tk.call(self._w, 'tag', 'raise', tagname, abovethis)
 
-
     def tag_row(self, tagname, *args):
         return self.tk.call(self._w, 'tag', 'row', tagname, *args)
-
 
     def validate(self, index):
         """Explicitly validates the specified index based on the current
@@ -490,12 +453,10 @@ class Table(tkinter.Widget):
         whether the cell was validated."""
         return self.tk.call(self._w, 'validate', index)
 
-
     @property
     def version(self):
         """Return tktable's package version."""
         return self.tk.call(self._w, 'version')
-
 
     def width(self, column=None, **kwargs):
         """If column and kwargs are not given, a dict describing all columns
@@ -512,10 +473,8 @@ class Table(tkinter.Widget):
         args = tkinter._flatten(list(kwargs.items()))
         self.tk.call(self._w, 'width', *args)
 
-
     def window_cget(self, index, option):
         return self.tk.call(self._w, 'window', 'cget', index, option)
-
 
     def window_configure(self, index, option=None, **kwargs):
         """Query or modify options associated with the embedded window given
@@ -539,18 +498,14 @@ class Table(tkinter.Widget):
 
             self.tk.call(self._w, 'window', 'configure', index, *args)
 
-
     def window_delete(self, *indexes):
         self.tk.call(self._w, 'window', 'delete', *indexes)
-
 
     def window_move(self, index_from, index_to):
         self.tk.call(self._w, 'window', 'move', index_from, index_to)
 
-
     def window_names(self, pattern=None):
         return self.tk.call(self._w, 'window', 'names', pattern)
-
 
     def xview(self, index=None):
         """If index is not given a tuple containing two fractions is returned,
@@ -563,7 +518,6 @@ class Table(tkinter.Widget):
         if index is None:
             return self._getdoubles(res)
 
-
     def xview_moveto(self, fraction):
         """Adjusts the view in the window so that fraction of the total width
         of the table text is off-screen to the left. The fraction parameter
@@ -572,7 +526,7 @@ class Table(tkinter.Widget):
 
 
     def xview_scroll(self, *L):
-        #change by frank gao for attach scrollbar 11/11/2010
+        # change by frank gao for attach scrollbar 11/11/2010
         """Shift the view in the window left or right according to number and
         what. The 'number' parameter must be an integer. The 'what' parameter
         must be either units or pages or an abbreviation of one of these.
@@ -582,13 +536,12 @@ class Table(tkinter.Widget):
         If 'number' is negative then cells farther to the left become visible;
         if it is positive then cells farther to the right become visible. """
         #self.tk.call(self._w, 'xview', 'scroll', number, what)
-        op,howMany=L[0],L[1]
-        if op=='scroll':
-           units=L[2]
-           self.tk.call(self._w, 'xview', 'scroll',howMany,units)
-        elif op=='moveto':
-                 self.tk.call(self._w, 'xview', 'moveto',howMany)
-
+        op, howMany = L[0],L[1]
+        if op == 'scroll':
+            units = L[2]
+            self.tk.call(self._w, 'xview', 'scroll', howMany, units)
+        elif op == 'moveto':
+                 self.tk.call(self._w, 'xview', 'moveto', howMany)
 
     def yview(self, index=None):
         """If index is not given a tuple containing two fractions is returned,
@@ -604,16 +557,14 @@ class Table(tkinter.Widget):
         if index is None:
             return self._getdoubles(res)
 
-
     def yview_moveto(self, fraction):
         """Adjusts the view in the window so that the element given by
         fraction appears at the top of the window. The fraction parameter
         must be a fraction between 0 and 1."""
         self.tk.call(self._w, 'yview', 'moveto', fraction)
 
-
     def yview_scroll(self, *L):
-        #change by frank gao for attach scrollbar 11/11/2010
+        # change by frank gao for attach scrollbar 11/11/2010
         """Adjust the view in the window up or down according to number and
         what. The 'number' parameter must be an integer. The 'what' parameter
         must be either units or pages or an abbreviation of one of these.
@@ -623,12 +574,12 @@ class Table(tkinter.Widget):
         If 'number' is negative then earlier elements become visible; if it
         is positive then later elements become visible. """
         #self.tk.call(self._w, 'yview', 'scroll', number, what)
-        op,howMany=L[0],L[1]
-        if op=='scroll':
-           units=L[2]
-           self.tk.call(self._w, 'yview', 'scroll',howMany,units)
-        elif op=='moveto':
-                 self.tk.call(self._w, 'yview', 'moveto',howMany)
+        op, howMany = L[0], L[1]
+        if op == 'scroll':
+            units = L[2]
+            self.tk.call(self._w, 'yview', 'scroll', howMany, units)
+        elif op == 'moveto':
+            self.tk.call(self._w, 'yview', 'moveto', howMany)
 
 
     def contextMenu(self):
