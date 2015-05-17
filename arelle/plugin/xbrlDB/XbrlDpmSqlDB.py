@@ -88,7 +88,8 @@ def insertIntoDB(modelXbrl,
             result = xbrlDbConn.insertDataPointsToDB(streamedFacts, isStreaming=True)
         elif streamingState == "finish":
             xbrlDbConn = modelXbrl.streamingConnection
-            xbrlDbConn.finishInsertXbrlToDB()
+            if xbrlDbConn.isClosed:  # may have closed due to exception
+                xbrlDbConn.finishInsertXbrlToDB()
             del modelXbrl.streamingConnection # dereference in case of exception during closing
             xbrlDbConn.close()
         else:
@@ -303,7 +304,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             break
         self.modelXbrl.profileActivity("dpmDB 02. Store into dInstance", minTimeToShow=0.0)
         self.showStatus("deleting prior data points of this instance")
-        for tableName in ("dFact", "dFilingIndicator", "dAvailableTable"):
+        for tableName in ("dFact", "dFilingIndicator", "dAvailableTable", "dInstanceLargeDimensionMember"):
             self.execute("DELETE FROM {0} WHERE {0}.InstanceID = {1}"
                          .format( self.dbTableName(tableName), self.instanceId), 
                          close=False, fetch=False)
@@ -348,8 +349,16 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                               "WHERE dim.IsTypedDimension AND dim.DomainID = dom.DomainID")
         self.typedDimensionDomain = dict((dim,re.compile(dom)) for dim, dom in result)
 
+        # get large dimension ids & qnames
+        result = self.execute("SELECT dim.DimensionXBRLCode, dim.DimensionId "
+                              "FROM mModuleLargeDimension mld, mDimension dim "
+                              " WHERE mld.ModuleId = {} AND dim.DimensionId = mld.DimensionId"
+                              .format(self.moduleId))
+        self.largeDimensionIds = dict((_dimQname, _dimId) for _dimQname, _dimId in result)
+        self.largeDimensionMemberIds = defaultdict(dict)
+
         # get explicit dimension domain element qnames
-        result = self.execute("SELECT dim.DimensionXBRLCode, mem.MemberXBRLCode "
+        result = self.execute("SELECT dim.DimensionXBRLCode, mem.MemberXBRLCode, mem.MemberId "
                               "FROM mDomain dom "
                               "left outer join mHierarchy h on h.DomainID = dom.DomainID "
                               "left outer join mHierarchyNode hn on hn.HierarchyID = h.HierarchyID "
@@ -357,8 +366,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                               "inner join mDimension dim on dim.DomainID = dom.DomainID and not dim.isTypedDimension")
         self.explicitDimensionDomain = defaultdict(set)
         self.domainHiearchyMembers = {}
-        for _dim, _mem in result:
-            self.explicitDimensionDomain[_dim].add(_mem)
+        for _dim, _memQn, _memId in result:
+            self.explicitDimensionDomain[_dim].add(_memQn)
+            if _dim in self.largeDimensionIds:
+                self.largeDimensionMemberIds[_dim][_memQn] = _memId
             
         # get enumeration element values
         result = self.execute("select mem.MemberXBRLCode, enum.MemberXBRLCode from mMember mem "
@@ -471,6 +482,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                             for _dimVal in _dimVals.split("|")
                             for _dim, _sep, _val in (_dimVal.partition("("),))
             _dimSigs = self.signaturesForFilingIndicators.get(_metQname) # value is (mem, hier)
+            _largeDimIdMemIds = set()
             _sigMatched = False
             _missingDims = _differentDims = _extraDims = set()
             _closestMatch = 9999
@@ -488,6 +500,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     _difference = _differentDimCount + len(_differentDims)
                     if _difference == 0:
                         # check * dimensions
+                        _largeDimIdMemIds.clear()
                         for _dim, _val in _dimVals.items():
                             _sigVal, _sigHier = _dimSig.get(_dim, (None,None))
                             if _sigVal in ("*", "*?"):
@@ -504,6 +517,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                     if not self.typedDimensionDomain[_dim].match(_val):
                                         _difference += 1
                                         _differentDims.add(_dim)
+                            try:
+                                _largeDimIdMemIds.add((self.largeDimensionIds[_dim], self.largeDimensionMemberIds[_dim][_val]))
+                            except KeyError:
+                                pass
                         if _difference == 0:
                             _sigMatched = True
                             #print ("successful match {}".format(_dimSig))   # debug successful match
@@ -516,7 +533,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         _closestMatchDiffDims = _differentDims
                         _closestMatchSig = _dimSig
                         _closestMatch = _difference
-                if not _sigMatched:
+                if _sigMatched:
+                    self.largeDimIdMemIds |= _largeDimIdMemIds
+                else:
                     _missings = ",".join("{}({})".format(_dim,_closestMatchSig[_dim]) for _dim in _missingDims) or "none"
                     _extras = ",".join("{}({})".format(_dim,_dimVals[_dim]) for _dim in _extraDims) or "none"
                     _diffs = ",".join("dim: {} fact: {} DPMsig: {}".format(_dim, _dimVals[_dim], _closestMatchSig[_dim])  
@@ -834,8 +853,19 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         result = self.execute("SELECT InstanceID, DataPointSignature, Unit, Decimals, NumericValue, DateTimeValue, BooleanValue, TextValue " 
                               "FROM dFact WHERE dFact.InstanceID = '{}'"
                               .format(self.instanceId))
+        
+        self.largeDimIdMemIds = set()
         for dFact in result:
             self.validateFactSignature(dFact[1], dFact)
+        # large Dimension Member Ids
+        if self.largeDimIdMemIds:
+            self.getTable("dInstanceLargeDimensionMember", None,
+                          ('InstanceID', 'DimensionID', 'MemberID'),
+                          ('InstanceID', ),
+                          ((self.instanceId, _dimId, _memId)
+                           for _dimId, _memId in self.largeDimIdMemIds),
+                          returnMatches=False)
+
         # availableTable processing
         # get filing indicator template IDs
         if not self.dFilingIndicators:
