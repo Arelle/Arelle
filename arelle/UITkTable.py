@@ -93,15 +93,15 @@ class XbrlTable(TkTableWrapper.Table):
     TG_BG_DEFAULT = TG_BG_WHITE
     TG_BG_YELLOW = 'bg-yellow'
     TG_BG_ORANGE = 'bg-orange'
-    TG_BG_BLUE = 'bg-blue'
+    TG_BG_VIOLET = 'bg-violet'
     TG_BG_GREEN = 'bg-green'
     # The value is a TK RGB value
     COLOURS = {
                 TG_BG_WHITE : '#fffffffff',
                 TG_BG_YELLOW : '#ff0ff0cc0',
                 TG_BG_ORANGE : '#ff0cc0990',
-                TG_BG_BLUE : '#cc0ff0990',
-                TG_BG_GREEN : '#cc0ff0ff0'
+                TG_BG_VIOLET : '#ff0cc0ff0',
+                TG_BG_GREEN : '#cc0ff0990'
                }
 
     TG_DISABLED = 'disabled-cells'
@@ -168,15 +168,17 @@ class XbrlTable(TkTableWrapper.Table):
         widget = event.widget
         titleRows = int(widget.cget('titlerows'))
         titleCols = int(widget.cget('titlecols'))
-        top = int(widget.cget('roworigin'))+titleRows
-        left = int(widget.cget('colorigin'))+titleCols
+        rowOrigin = int(widget.cget('roworigin'))
+        colOrigin = int(widget.cget('colorigin'))
+        top = rowOrigin+titleRows
+        left = colOrigin+titleCols
         try:
             col = widget.index('active', 'col')
             row = widget.index('active', 'row')
         except (TclError):
             row, col = top-1, left
-        maxRows = int(widget.cget('rows'))
-        maxCols = int(widget.cget('cols'))
+        maxRows = rowOrigin+int(widget.cget('rows'))
+        maxCols = colOrigin+int(widget.cget('cols'))
 
         widget.selection_clear('all')
         if row<top:
@@ -192,27 +194,30 @@ class XbrlTable(TkTableWrapper.Table):
             widget.activate(index)
             widget.see(index)
             widget.selection_set(index)
-        elif col<maxCols-titleCols-1:
+        elif col<maxCols-1:
             widget.moveCell(0, 1)
-        elif row<maxRows-titleCols-1:
+        elif row<maxRows-1:
             widget.moveCell(1, left-col)
         else:
             widget.moveCell(top-row, left-col)
+        return 'break' # do not execute other handlers!
 
 
     def cellDown(self, event, *args):
         widget = event.widget
         titleRows = int(widget.cget('titlerows'))
         titleCols = int(widget.cget('titlecols'))
-        top = int(widget.cget('roworigin'))+titleRows
-        left = int(widget.cget('colorigin'))+titleCols
+        rowOrigin = int(widget.cget('roworigin'))
+        colOrigin = int(widget.cget('colorigin'))
+        top = rowOrigin+titleRows
+        left = colOrigin+titleCols
         try:
             col = widget.index('active', 'col')
             row = widget.index('active', 'row')
         except (TclError):
             row, col = top-1, left
-        maxRows = int(widget.cget('rows'))
-        maxCols = int(widget.cget('cols'))
+        maxRows = rowOrigin+int(widget.cget('rows'))
+        maxCols = colOrigin+int(widget.cget('cols'))
 
         widget.selection_clear('all')
         if row<top:
@@ -228,9 +233,9 @@ class XbrlTable(TkTableWrapper.Table):
             widget.activate(index)
             widget.see(index)
             widget.selection_set(index)
-        elif row<maxRows-titleRows-1:
+        elif row<maxRows-1:
             widget.moveCell(1, 0)
-        elif col<maxCols-titleCols-1:
+        elif col<maxCols-1:
             widget.moveCell(top-row, 1)
         else:
             widget.moveCell(top-row, left-col)
@@ -330,7 +335,7 @@ class XbrlTable(TkTableWrapper.Table):
         # Extra key bindings for navigating through the table:
         # Tab: go right
         # Return (and Enter): go down
-        self.bind("<Tab>", func=self.cellRight, add="+")
+        self.bind("<Tab>", func=self.cellRight)
         self.bind("<Return>", func=self.cellDown)
 
         # Configure the graphical appearance of the cells by using tags
@@ -668,7 +673,15 @@ class XbrlTable(TkTableWrapper.Table):
             if value=='':
                 self.initReadonlyCell(col, row)
             _ = iteratorObj.iternext()
-
+        # Set the selection to the first cell
+        rowOrigin = int(self.cget('roworigin'))
+        colOrigin = int(self.cget('colorigin'))
+        top = rowOrigin+self.titleRows
+        left = colOrigin+self.titleColumns
+        index = '%i,%i'% (top, left)
+        self.activate(index)
+        self.see(index)
+        self.selection_set(index)
 
 class ScrolledTkTableFrame(Frame):
     def __init__(self, parent, browseCmd, *args, **kw):
@@ -699,6 +712,7 @@ class ScrolledTkTableFrame(Frame):
         for widget in self.table.winfo_children():
                 widget.destroy()
         self.table.clear_all()
+        self.table.selection_clear('all')
         self.table.clearSpans()
         self.table.clearTags()
         self.update_idletasks()

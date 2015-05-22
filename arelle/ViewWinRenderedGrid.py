@@ -37,6 +37,13 @@ emptyList = []
 ENTRY_WIDTH_IN_CHARS = 12 # width of a data column entry cell in characters (nominal)
 PADDING = 20 # screen units of padding between entry cells
 
+qnPercentItemType = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
+qnPureItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:pureItemType")
+integerItemTypes = {"integerItemType", "nonPositiveIntegerItemType", "negativeIntegerItemType",
+                    "longItemType", "intItemType", "shortItemType", "byteItemType",
+                    "nonNegativeIntegerItemType", "unsignedLongItemType", "unsignedIntItemType",
+                    "unsignedShortItemType", "unsignedByteItemType", "positiveIntegerItemType"}
+
 def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing rendering"))
     view = ViewRenderedGrid(modelXbrl, tabWin, lang)
@@ -539,7 +546,28 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     if not childrenFirst:
                         dummy, row = self.yAxis(leftCol + isLabeled, row, yStructuralNode, childrenFirst, renderNow, False) # render on this pass
             return (nestedBottomRow, row)
-    
+
+    def getbackgroundColor(self, factPrototype):
+        bgColor = XbrlTable.TG_BG_DEFAULT # default monetary
+        concept = factPrototype.concept
+        isNumeric = concept.isNumeric
+        # isMonetary = concept.isMonetary
+        isInteger = concept.baseXbrliType in integerItemTypes
+        isPercent = concept.typeQname in (qnPercentItemType, qnPureItemType)
+        isString = concept.baseXbrliType in ("stringItemType", "normalizedStringItemType")
+        isDate = concept.baseXbrliType in ("dateTimeItemType", "dateItemType")
+        if isNumeric:
+            if concept.isShares or isInteger:
+                bgColor = XbrlTable.TG_BG_ORANGE
+            elif isPercent:
+                bgColor = XbrlTable.TG_BG_YELLOW
+            # else assume isMonetary
+        elif isDate:
+            bgColor = XbrlTable.TG_BG_GREEN
+        elif isString:
+            bgColor = XbrlTable.TG_BG_VIOLET
+        return bgColor;
+
     def bodyCells(self, row, yParentStructuralNode, xStructuralNodes, zAspectStructuralNodes, yChildrenFirst):
         if yParentStructuralNode is not None:
             dimDefaults = self.modelXbrl.qnameDimensionDefaults
@@ -638,11 +666,12 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                             # TODO: check if the following parameter
                             # is needed:
                             # width=ENTRY_WIDTH_IN_CHARS
-                            self.table.initCellValue(value,
-                                                     self.dataFirstCol + i-1,
-                                                     row-1,
-                                                     justification=(justify or ("right" if fp.isNumeric else "left")),
-                                                     objectId=objectId)
+                                    self.table.initCellValue(value,
+                                                         self.dataFirstCol + i-1,
+                                                         row-1,
+                                                         justification=justify,
+                                                         objectId=objectId,
+                                                         backgroundColourTag=self.getbackgroundColor(fp))
                         else:
                             fp.clear()  # dereference
                     row += 1
