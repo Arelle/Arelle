@@ -25,6 +25,7 @@
 <!--
      standardTaxonomiesUrl="validateEBAtaxonomies.xml"
 -->
+  <!-- defaultXmlEncoding is empty string to force detecting when missing in validation -->
   <DisclosureSystem 
      names="EIOPA Filing Rules|eiopa" 
      description="EIOPA Filing Rules, Solvency II\n
@@ -32,6 +33,7 @@
      EDInet identifier patterns\n
      Allowed references TBD"
      defaultXmlLang="en" 
+     defaultXmlEncoding=""
      defaultLanguage="English" 
      validationType="EIOPA"
      exclusiveTypesPattern="EBA|EIOPA"

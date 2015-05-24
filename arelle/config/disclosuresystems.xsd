@@ -26,6 +26,8 @@
       <xs:attribute name="contextElement" use="required" type="xs:NCName"/>
       <xs:attribute name="defaultLanguage" use="required" type="xs:NCName"/>
       <xs:attribute name="defaultXmlLang" use="required" type="xs:NCName"/>
+      <xs:attribute name="defaultXmlEncoding" use="optional" type="xs:string"/> 
+      <!-- defaultXmlEncoding may be an empty string to detect when missing in an XML document -->
       <xs:attribute name="xmlLangPattern" />
       <xs:attribute name="deiAmendmentFlagElement" use="required" type="xs:NCName"/>
       <xs:attribute name="deiCurrentFiscalYearEndDateElement" use="required" type="xs:NCName"/>
