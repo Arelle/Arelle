@@ -170,6 +170,9 @@ class QName:
         return (self.namespaceURI and other.namespaceURI is None) or \
                 (self.namespaceURI and other.namespaceURI and self.namespaceURI > other.namespaceURI) or \
                 (self.namespaceURI == other.namespaceURI and self.localName >= other.localName)
+    def __bool__(self):
+        # QName object bool is false if there is no local name (even if there is a namespace URI).
+        return bool(self.localName)
 
 from arelle.ModelObject import ModelObject
     
