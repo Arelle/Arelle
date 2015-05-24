@@ -279,7 +279,8 @@ class ModelTestcaseVariation(ModelObject):
                 return logging._checkLevel(severityLevelName)
         # default behavior without plugins
         # SEC error cases have <assert severity={err|wrn}>...
-        if XmlUtil.descendant(self, None, "assert", attrName="severity", attrValue="wrn") is not None:
+        if (XmlUtil.descendant(self, None, "assert", attrName="severity", attrValue="wrn") is not None or
+            XmlUtil.descendant(self, None, "result", attrName="severity", attrValue="warning") is not None):
             return logging._checkLevel("WARNING")
         return logging._checkLevel("INCONSISTENCY")
 
