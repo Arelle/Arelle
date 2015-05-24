@@ -201,7 +201,7 @@ def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl):
     
 def xbrlDBCommandLineXbrlRun(cntlr, options, modelXbrl):
     from arelle.ModelDocument import Type
-    if (modelXbrl.modelDocument.type != Type.RSSFEED and 
+    if (modelXbrl.modelDocument.type not in (Type.RSSFEED, Type.TESTCASE, Type.REGISTRYTESTCASE) and 
         getattr(options, "storeIntoXbrlDb", False) and 
         not getattr(modelXbrl, "xbrlDBprocessedByStreaming", False)):
         dbConnection = options.storeIntoXbrlDb.split(",")
@@ -210,6 +210,10 @@ def xbrlDBCommandLineXbrlRun(cntlr, options, modelXbrl):
 def xbrlDBvalidateRssItem(val, modelXbrl, rssItem):
     if hasattr(val.modelXbrl, 'xbrlDBconnection'):
         storeIntoDB(val.modelXbrl.xbrlDBconnection, modelXbrl, rssItem)
+    
+def xbrlDBtestcaseVariationXbrlLoaded(val, modelXbrl):
+    if _storeIntoDBoptions:
+        return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl)
     
 def xbrlDBdialogRssWatchDBconnection(*args, **kwargs):
     try:
@@ -342,5 +346,6 @@ __pluginInfo__ = {
     'Streaming.Facts': xbrlDBstreamingFacts,
     'Streaming.Finish': xbrlDBfinishStreaming,
     'Validate.RssItem': xbrlDBvalidateRssItem,
+    'TestcaseVariation.Xbrl.Loaded': xbrlDBtestcaseVariationXbrlLoaded,
     'ModelDocument.InstanceSchemaRefRewriter': modelDocumentInstanceSchemaRefRewriter
 }
