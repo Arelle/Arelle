@@ -61,6 +61,7 @@ class DisclosureSystem:
         self.blockDisallowedReferences = False
         self.maxSubmissionSubdirectoryEntryNesting = 0
         self.defaultXmlLang = None
+        self.defaultXmlEncoding = "utf-8"
         self.xmlLangPattern = None
         self.defaultLanguage = None
         self.language = None
@@ -167,6 +168,8 @@ class DisclosureSystem:
                                 except (ValueError, TypeError):
                                     self.maxSubmissionSubdirectoryEntryNesting = 0
                                 self.defaultXmlLang = dsElt.get("defaultXmlLang")
+                                if dsElt.get("defaultXmlEncoding", default=None) is not None: # don't reset from utf-8 unless supplied with a value
+                                    self.defaultXmlEncoding = dsElt.get("defaultXmlEncoding") # may be an empty string
                                 self.xmlLangPattern = compileAttrPattern(dsElt,"xmlLangPattern")
                                 self.defaultLanguage = dsElt.get("defaultLanguage")
                                 self.standardTaxonomiesUrl = self.modelManager.cntlr.webCache.normalizeUrl(

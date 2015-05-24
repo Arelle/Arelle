@@ -25,7 +25,8 @@ def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=F
     if sourceZipStream:
         filesource = FileSource(POST_UPLOADED_ZIP, cntlr)
         filesource.openZipStream(sourceZipStream)
-        filesource.select(filename)
+        if filename:
+            filesource.select(filename)
         return filesource
     else:
         archivepathSelection = archiveFilenameParts(filename, checkIfXmlIsEis)
@@ -597,13 +598,16 @@ def openXmlFileStream(cntlr, filepath, stripDeclaration=False):
     openedFileStream = openFileStream(cntlr, filepath, 'rb')
     # check encoding
     hdrBytes = openedFileStream.read(512)
-    encoding = XmlUtil.encoding(hdrBytes)
+    encoding = XmlUtil.encoding(hdrBytes, 
+                                default=cntlr.modelManager.disclosureSystem.defaultXmlEncoding
+                                        if cntlr else 'utf-8')
+    # encoding default from disclosure system could be None
     if encoding.lower() in ('utf-8','utf8','utf-8-sig') and (cntlr is None or not cntlr.isGAE) and not stripDeclaration:
         text = None
         openedFileStream.close()
     else:
         openedFileStream.seek(0)
-        text = openedFileStream.read().decode(encoding)
+        text = openedFileStream.read().decode(encoding or 'utf-8')
         openedFileStream.close()
         # allow filepath to close
     # this may not be needed for Mac or Linux, needs confirmation!!!
