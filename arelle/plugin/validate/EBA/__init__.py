@@ -12,8 +12,9 @@ from arelle.ModelDtsObject import ModelConcept, ModelType, ModelLocator, ModelRe
 from arelle.ModelFormulaObject import Aspect
 from arelle.ModelObject import ModelObject
 from arelle.ModelRelationshipSet import ModelRelationshipSet
-from arelle.ModelValue import qname
+from arelle.ModelValue import qname, qnameEltPfxName
 from arelle.ValidateUtr import ValidateUtr
+from arelle.XbrlConst import qnEnumerationItemType
 try:
     import regex as re
 except ImportError:
@@ -151,7 +152,7 @@ def validateFacts(val, factsToCheck):
                 modelXbrl.error(("EBA.1.6.1", "EIOPA.1.6.1"),
                         _('Multiple filing indicators facts for indicator %(filingIndicator)s.'),
                         modelObject=(fIndicator, val.filingIndicators[_value]), filingIndicator=_value)
-            val.filingIndicators[_value] = fIndicator
+            val.filingIndicators[_value] = fIndicator.get("{http://www.eurofiling.info/xbrl/ext/filing-indicators}filed", "true") in ("true", "1")
             val.unusedCntxIDs.discard(fIndicator.contextID)
             cntx = fIndicator.context
             if cntx is not None and (cntx.hasSegment or cntx.hasScenario):
@@ -176,6 +177,7 @@ def validateFacts(val, factsToCheck):
                 isInteger = c == 'i'
                 isPercent = c == 'p'
                 isString = c == 's'
+                isEnum = c == 'e'
             else:
                 concept = f.concept
                 if concept is not None:
@@ -184,6 +186,7 @@ def validateFacts(val, factsToCheck):
                     isInteger = concept.baseXbrliType in integerItemTypes
                     isPercent = concept.typeQname in (qnPercentItemType, qnPureItemType)
                     isString = concept.baseXbrliType in ("stringItemType", "normalizedStringItemType")
+                    isEnum = concept.typeQname == qnEnumerationItemType
                 else:
                     isNumeric = isString = False # error situation
             k = (f.getparent().objectIndex,
@@ -215,40 +218,45 @@ def validateFacts(val, factsToCheck):
                     modelXbrl.error(("EBA.2.17", "EIOPA.2.18.a"),
                         _("Numeric fact %(fact)s of context %(contextID)s has a precision attribute '%(precision)s'"),
                         modelObject=f, fact=f.qname, contextID=f.contextID, precision=f.precision)
-                if f.decimals and f.decimals != "INF":
-                    try:
-                        dec = int(f.decimals)
-                        if isMonetary:
-                            if dec < -3:
-                                modelXbrl.error(("EBA.2.18","EIOPA.S.2.18.c"),
-                                    _("Monetary fact %(fact)s of context %(contextID)s has a decimal attribute < -3: '%(decimals)s'"),
-                                    modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
-                        elif isInteger:
-                            if dec != 0:
-                                modelXbrl.error(("EBA.2.18","EIOPA.S.2.18.d"),
-                                    _("Integer fact %(fact)s of context %(contextID)s has a decimal attribute \u2260 0: '%(decimals)s'"),
-                                    modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
-                        elif isPercent:
-                            if dec < 4:
-                                modelXbrl.error(("EBA.2.18","EIOPA.S.2.18.e"),
-                                    _("Percent fact %(fact)s of context %(contextID)s has a decimal attribute < 4: '%(decimals)s'"),
-                                    modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
-                    except ValueError:
-                        pass # should have been reported as a schema error by loader
-                    '''' (not intended by EBA 2.18, paste here is from EFM)
-                    if not f.isNil and getattr(f,"xValid", 0) == 4:
+                if f.decimals:
+                    if f.decimals == "INF":
+                        modelXbrl.error("EIOPA.S.2.18.f",
+                            _("Monetary fact %(fact)s of context %(contextID)s has a decimal attribute INF: '%(decimals)s'"),
+                            modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
+                    else:
                         try:
-                            insignificance = insignificantDigits(f.xValue, decimals=f.decimals)
-                            if insignificance: # if not None, returns (truncatedDigits, insiginficantDigits)
-                                modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
-                                    _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(insignificantDigits)s."),
-                                    modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, 
-                                    value=f1.xValue, truncatedDigits=insignificance[0], insignificantDigits=insignificance[1])
-                        except (ValueError,TypeError):
-                            modelXbrl.error(("EBA.2.18"),
-                                _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),
-                                modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
-                    '''
+                            dec = int(f.decimals)
+                            if isMonetary:
+                                if dec < -3:
+                                    modelXbrl.error(("EBA.2.18","EIOPA.S.2.18.c"),
+                                        _("Monetary fact %(fact)s of context %(contextID)s has a decimal attribute < -3: '%(decimals)s'"),
+                                        modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
+                            elif isInteger:
+                                if dec != 0:
+                                    modelXbrl.error(("EBA.2.18","EIOPA.S.2.18.d"),
+                                        _("Integer fact %(fact)s of context %(contextID)s has a decimal attribute \u2260 0: '%(decimals)s'"),
+                                        modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
+                            elif isPercent:
+                                if dec < 4:
+                                    modelXbrl.error(("EBA.2.18","EIOPA.S.2.18.e"),
+                                        _("Percent fact %(fact)s of context %(contextID)s has a decimal attribute < 4: '%(decimals)s'"),
+                                        modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
+                        except ValueError:
+                            pass # should have been reported as a schema error by loader
+                        '''' (not intended by EBA 2.18, paste here is from EFM)
+                        if not f.isNil and getattr(f,"xValid", 0) == 4:
+                            try:
+                                insignificance = insignificantDigits(f.xValue, decimals=f.decimals)
+                                if insignificance: # if not None, returns (truncatedDigits, insiginficantDigits)
+                                    modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
+                                        _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(insignificantDigits)s."),
+                                        modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, 
+                                        value=f1.xValue, truncatedDigits=insignificance[0], insignificantDigits=insignificance[1])
+                            except (ValueError,TypeError):
+                                modelXbrl.error(("EBA.2.18"),
+                                    _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),
+                                    modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
+                        '''
                 unit = f.unit
                 if unit is not None:
                     if isMonetary:
@@ -256,6 +264,11 @@ def validateFacts(val, factsToCheck):
                             val.currenciesUsed[unit.measures[0][0]] = unit
                     elif not unit.isSingleMeasure or unit.measures[0][0] != XbrlConst.qnXbrliPure:
                         nonMonetaryNonPureFacts.append(f)
+            if isEnum:
+                _eQn = getattr(f,"xValue", None) or qnameEltPfxName(f, f.value)
+                if _eQn:
+                    val.namespacePrefixesUsed[_eQn.namespaceURI].add(_eQn.prefix)
+                    val.prefixesUnused.discard(_eQn.prefix)
             ''' removed in current draft
             elif isString: 
                 if not f.xmlLang:
@@ -442,6 +455,10 @@ def final(val):
             modelXbrl.error(("EBA.1.6", "EIOPA.1.6.a"),
                     _('Missing filing indicators.  Reported XBRL instances MUST include appropriate (positive) filing indicator elements'),
                     modelObject=modelDocument)
+        elif all(filed == False for filed in val.filingIndicators.values()):
+            modelXbrl.error(("EBA.1.6", "EIOPA.1.6.a"),
+                    _('All filing indicators are filed="false".  Reported XBRL instances MUST include appropriate (positive) filing indicator elements'),
+                    modelObject=modelDocument)
     
         if val.numFilingIndicatorTuples > 1:
             modelXbrl.warning("EBA.1.6.2|EIOPA.1.6.2",                            
@@ -469,15 +486,22 @@ def final(val):
                     entities=", ".join(sorted(str(cntxEntity) for cntxEntity in val.cntxEntities)))
             
         for _scheme, _LEI in val.cntxEntities:
-            result = LeiUtil.checkLei(_LEI)
-            if result == LeiUtil.LEI_INVALID_LEXICAL:
+            if _scheme in ("http://standards.iso.org/iso/17442", "LEI", "PRE-LEI"):
+                result = LeiUtil.checkLei(_LEI)
+                if result == LeiUtil.LEI_INVALID_LEXICAL:
+                    modelXbrl.error("EIOPA.S.2.8.c",
+                        _("Context has lexically invalid LEI %(lei)s."),
+                        modelObject=modelDocument, lei=_LEI)
+                elif result == LeiUtil.LEI_INVALID_CHECKSUM:
+                    modelXbrl.error("EIOPA.S.2.8.c",
+                        _("Context has LEI checksum error in %(lei)s."),
+                        modelObject=modelDocument, lei=_LEI)
+            elif _scheme == "SC":
+                pass # anything is ok for Specific Code
+            else:
                 modelXbrl.error("EIOPA.S.2.8.c",
-                    _("Context has lexically invalid LEI %(lei)s."),
-                    modelObject=modelDocument, lei=_LEI)
-            elif result == LeiUtil.LEI_INVALID_CHECKSUM:
-                modelXbrl.error("EIOPA.S.2.8.c",
-                    _("Context has LEI checksum error in %(lei)s."),
-                    modelObject=modelDocument, lei=_LEI)
+                    _("Context has unrecognized entity scheme %(scheme)s."),
+                    modelObject=modelDocument, scheme=_scheme)
         
         if val.unusedUnitIDs:
             modelXbrl.warning(("EBA.2.22", "EIOPA.2.22"),
