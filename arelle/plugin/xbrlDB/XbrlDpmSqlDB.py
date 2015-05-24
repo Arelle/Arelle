@@ -239,6 +239,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         self.metricsForFilingIndicators = set()
         self.signaturesForFilingIndicators = defaultdict(list)
         self.entityCurrency = None
+        self.tableIDs = set()
+        self.metricAndDimensionsTableId = defaultdict(set)
 
         _instanceSchemaRef = "(none)"
         if self.modelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL):
@@ -313,8 +315,6 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         self.showStatus("obtaining mapping table information")
         result = self.execute("SELECT MetricAndDimensions, TableID FROM mTableDimensionSet WHERE ModuleID = {}"
                               .format(self.moduleId))
-        self.tableIDs = set()
-        self.metricAndDimensionsTableId = defaultdict(set)
         for metricAndDimensions, tableID in result:
             self.tableIDs.add(tableID)
             self.metricAndDimensionsTableId[metricAndDimensions].add(tableID)
@@ -556,7 +556,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
 
     def insertDataPointsToDB(self, facts, isStreaming=False):
         instanceId = self.instanceId
-
+        if instanceId is None:
+            return # cannot proceed with insertion
+        
         dFacts = []
         dFactHashes = {}
         skipDTS = self.modelXbrl.skipDTS
@@ -702,7 +704,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                          modelObject=f, context=f.contextID)
                 for filingIndicator in f.modelTupleFacts:
                     if filingIndicator.qname == qnFindFilingIndicator:
-                        self.dFilingIndicators[filingIndicator.textValue.strip()] = filingIndicator.get("{http://www.eurofiling.info/xbrl/ext/filing-indicators}filed", True)
+                        self.dFilingIndicators[filingIndicator.textValue.strip()] = filingIndicator.get("{http://www.eurofiling.info/xbrl/ext/filing-indicators}filed", "true") in ("true", "1")
                         if filingIndicator.context is None:
                             self.modelXbrl.error("sqlDB:filingIndicatorContextError",
                                                  _("Loading XBRL DB: Filing indicator fact missing a context, value %(value)s"),
@@ -780,12 +782,12 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                                  _("Loading XBRL DB: Context has invalid end date: %(context)s"),
                                                  modelObject=cntx, context=cntx.id)
                 if cntx.isInstantPeriod and cntx.endDatetime not in self.cntxDates:
-                    self.modelXbrl.error("sqlDB:contextDatesError",
+                    self.modelXbrl.error(("EBA.2.13","EIOPA.2.13"),
                                          _("Loading XBRL DB: Context has different date: %(context)s, date %(value)s"),
                                          modelObject=cntx, context=cntx.id, value=dateunionValue(cntx.endDatetime, subtractOneDay=True))
                     self.cntxDates.add(cntx.endDatetime)
                 if cntx.entityIdentifier[1] not in self.entityIdentifiers:
-                    self.modelXbrl.error("sqlDB:factContextError",
+                    self.modelXbrl.error(("EBA.2.9","EIOPA.2.9"),
                                      _("Loading XBRL DB: Context has different entity identifier: %(context)s %(value)s"),
                                      modelObject=cntx, context=cntx.id, value=cntx.entityIdentifier[1])
                     self.entityIdentifiers.add(cntx.entityIdentifier[1])
@@ -847,6 +849,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         return True  # True causes streaming to be able to dereference facts
         
     def finishInsertXbrlToDB(self):
+        if self.instanceId is None:
+            return
+        
         self.modelXbrl.profileActivity("dpmDB 06. Build facts table for bulk DB update", minTimeToShow=0.0)
 
         # check filing indicators after facts loaded
@@ -868,11 +873,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
 
         # availableTable processing
         # get filing indicator template IDs
-        if not self.dFilingIndicators:
-            self.modelXbrl.error(("EBA.1.6", "EIOPA.1.6.a"),
-                                 _("No filing indicators were present in the instance"),
-                                 modelObject=self.modelXbrl) 
-        else:
+        if self.dFilingIndicators: # missing and all false check in EBA/EIOPA validation
             results = self.execute("SELECT mToT2.TemplateOrTableCode, mToT2.TemplateOrTableID "
                                    "  FROM mModuleBusinessTemplate mBT, mTemplateOrTable mToT, mTemplateOrTable mToT2 "
                                    "  WHERE mBT.ModuleID = {0} AND"
@@ -884,16 +885,16 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             self.modelXbrl.profileActivity("dpmDB 07. Get business template filing indicator for module", minTimeToShow=0.0)
             
             if filingIndicatorCodeIDs.keys() != self.dFilingIndicators.keys():
-                missingIndicators = self.dFilingIndicators.keys() - filingIndicatorCodeIDs.keys()
+                missingIndicators = set(filingIndicatorCodeIDs.keys() - self.dFilingIndicators.keys())
                 if missingIndicators:
                     self.modelXbrl.error(("EBA.1.6","EIOPA.1.6.a"),
                                          _("The filing indicator IDs were not found for codes %(missingFilingIndicatorCodes)s"),
                                          modelObject=self.modelXbrl,
                                          missingFilingIndicatorCodes=','.join(missingIndicators))
-                extraneousIndicators = set(filingIndicatorCodeIDs.keys() - self.dFilingIndicators.keys())
+                extraneousIndicators = self.dFilingIndicators.keys() - filingIndicatorCodeIDs.keys()
                 if extraneousIndicators:
                     self.modelXbrl.error(("EIOPA.S.1.7.a"),
-                                         _("The filing indicator IDs were in scope for module %(missingFilingIndicatorCodes)s"),
+                                         _("The filing indicator IDs were not in scope for module %(missingFilingIndicatorCodes)s"),
                                          modelObject=self.modelXbrl,
                                          missingFilingIndicatorCodes=','.join(extraneousIndicators))
     
