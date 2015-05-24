@@ -7,7 +7,7 @@ Created on March 1, 2012
 based on pull request 4
 
 '''
-import os, sys, types, time, ast, imp, io, json, gettext
+import os, sys, types, time, ast, imp, io, json, gettext, traceback
 from arelle.Locale import getLanguageCodes
 from arelle.FileSource import openFileStream
 from arelle.UrlUtil import isAbsolute
@@ -287,8 +287,9 @@ def loadModule(moduleInfo, packagePrefix=""):
                     for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
                         loadModule(importModuleInfo, packageImportPrefix)
                 except (ImportError, AttributeError, SystemError) as err:
-                    print(_("Exception loading plug-in {name}: {error}").format(
-                            name=name, error=err), file=sys.stderr)
+                    print(_("Exception loading plug-in {name}: {error}\n{traceback}").format(
+                            name=name, error=err, traceback=traceback.format_tb(sys.exc_info()[2])), file=sys.stderr)
+
                 finally:
                     if file:
                         file.close() # non-package module
