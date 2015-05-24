@@ -7,7 +7,7 @@ Use this module to start Arelle in web server mode
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from arelle.webserver.bottle import Bottle, request, response, static_file
-import os, sys, time, threading, uuid
+import os, io, sys, time, threading, uuid
 from arelle import Version
 from arelle.FileSource import FileNamedStringIO
 _os_pid = os.getpid()
@@ -213,7 +213,7 @@ def validation(file=None):
     if isValidation:
         if view or viewArcrole:
             errors.append(_("Only validation or one view can be specified in one requested."))
-        if media not in ('xml', 'xhtml', 'html', 'json', 'text'):
+        if media not in ('xml', 'xhtml', 'html', 'json', 'text') and not (sourceZipStream and media == 'zip'):
             errors.append(_("Media '{0}' is not supported for validation (please select xhtml, html, xml, json or text)").format(media))
     elif view or viewArcrole:
         if media not in ('xml', 'xhtml', 'html', 'csv', 'json'):
@@ -274,7 +274,11 @@ def runOptionsAndGetResult(options, media, viewFile, sourceZipStream=None):
     
     :returns: html, xml, csv, text -- Return per media type argument and request arguments
     """
-    successful = cntlr.run(options, sourceZipStream)
+    if media == "zip" and not viewFile:
+        responseZipStream = io.BytesIO()
+    else:
+        responseZipStream = None
+    successful = cntlr.run(options, sourceZipStream, responseZipStream)
     if media == "xml":
         response.content_type = 'text/xml; charset=UTF-8'
     elif media == "csv":
@@ -283,12 +287,18 @@ def runOptionsAndGetResult(options, media, viewFile, sourceZipStream=None):
         response.content_type = 'application/json; charset=UTF-8'
     elif media == "text":
         response.content_type = 'text/plain; charset=UTF-8'
+    elif media == "zip":
+        response.content_type = 'application/zip; charset=UTF-8'
     else:
         response.content_type = 'text/html; charset=UTF-8'
     if successful and viewFile:
         # defeat re-encoding
         result = viewFile.getvalue().replace("&nbsp;","\u00A0").replace("&shy;","\u00AD").replace("&amp;","&")
         viewFile.close()
+    elif media == "zip":
+        responseZipStream.seek(0)
+        result = responseZipStream.read()
+        responseZipStream.close()
     elif media == "xml":
         result = cntlr.logHandler.getXml()
     elif media == "json":
