@@ -264,6 +264,7 @@ class DialogOpenArchive(Toplevel):
             elif self.openType == ENTRY_POINTS:
                 epName = selection[0]
                 #index 0 is the remapped Url, as opposed to the canonical one used for display
+                # Greg Acsone reports [0] does not work for Corep 1.6 pkgs, need [1], old style packages
                 filename = self.taxonomyPackage["nameToUrls"][epName][0]
                 if not filename.endswith("/"):
                     # check if it's an absolute URL rather than a path into the archive
