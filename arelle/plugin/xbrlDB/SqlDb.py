@@ -195,18 +195,19 @@ class SqlDbConnection():
         self.tempInputTableName = "input{}".format(os.getpid())
                 
     def close(self, rollback=False):
-        try:
-            self.closeCursor()
-            if rollback:
-                self.rollback()
-            self.conn.close()
-            self.__dict__.clear() # dereference everything
-        except Exception as ex:
-            self.__dict__.clear() # dereference everything
-            if sys.version[0] >= '3':
-                raise ex.with_traceback(ex.__traceback__)
-            else:
-                raise ex
+        if not self.isClosed:
+            try:
+                self.closeCursor()
+                if rollback:
+                    self.rollback()
+                self.conn.close()
+                self.__dict__.clear() # dereference everything
+            except Exception as ex:
+                self.__dict__.clear() # dereference everything
+                if sys.version[0] >= '3':
+                    raise ex.with_traceback(ex.__traceback__)
+                else:
+                    raise ex
         
     @property
     def isClosed(self):
