@@ -9,7 +9,7 @@ This module is Arelle's controller in command line non-interactive mode
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import PythonUtil # define 2.x or 3.x string types
-import gettext, time, datetime, os, shlex, sys, traceback, fnmatch
+import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading
 from optparse import OptionParser, SUPPRESS_HELP
 import re
 from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version, 
@@ -25,7 +25,9 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.WebCache import proxyTuple
 import logging
 from lxml import etree
-win32file = None
+win32file = win32api = win32process = pywintypes = None
+STILL_ACTIVE = 259 # MS Windows process status constants
+PROCESS_QUERY_INFORMATION = 0x400
 
 def main():
     """Main program to initiate application from command line or as a separate process (e.g, java Runtime.getRuntime().exec).  May perform
@@ -189,6 +191,7 @@ def parseAndRun(args):
                       help=_("Regular expression filter for log message code."))
     parser.add_option("--logcodefilter", action="store", dest="logCodeFilter", help=SUPPRESS_HELP)
     parser.add_option("--statusPipe", action="store", dest="statusPipe", help=SUPPRESS_HELP)
+    parser.add_option("--monitorParentProcess", action="store", dest="monitorParentProcess", help=SUPPRESS_HELP)
     parser.add_option("--outputAttribution", action="store", dest="outputAttribution", help=SUPPRESS_HELP)
     parser.add_option("--outputattribution", action="store", dest="outputAttribution", help=SUPPRESS_HELP)
     parser.add_option("--showOptions", action="store_true", dest="showOptions", help=SUPPRESS_HELP)
@@ -414,6 +417,15 @@ def parseAndRun(args):
         cntlr.run(options)
         
         return cntlr
+    
+class ParserForDynamicPlugins:
+    def __init__(self, options):
+        self.options = options
+    def add_option(self, *args, **kwargs):
+        if 'dest' in kwargs:
+            _dest = kwargs['dest']
+            if not hasattr(self.options, _dest):
+                setattr(self.options, _dest, kwargs.get('default',None))
         
 class CntlrCmdLine(Cntlr.Cntlr):
     """
@@ -426,7 +438,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         super(CntlrCmdLine, self).__init__(hasGui=False)
         self.preloadedPlugins =  {}
         
-    def run(self, options, sourceZipStream=None):
+    def run(self, options, sourceZipStream=None, responseZipStream=None):
         """Process command line arguments or web service request, such as to load and validate an XBRL document, or start web server.
         
         When a web server has been requested, this method may be called multiple times, once for each web service (REST) request that requires processing.
@@ -436,18 +448,37 @@ class CntlrCmdLine(Cntlr.Cntlr):
         :type options: optparse.Values
         """
                 
+        if options.statusPipe or options.monitorParentProcess:
+            try:
+                global win32file, win32api, win32process, pywintypes
+                import win32file, win32api, win32process, pywintypes
+            except ImportError: # win32 not installed
+                self.addToLog("--statusPipe {} cannot be installed, packages for win32 missing".format(options.statusPipe))
+                options.statusPipe = options.monitorParentProcess = None
         if options.statusPipe:
             try:
-                global win32file
-                import win32file, pywintypes
                 self.statusPipe = win32file.CreateFile("\\\\.\\pipe\\{}".format(options.statusPipe), 
                                                        win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None, win32file.OPEN_EXISTING, win32file.FILE_FLAG_NO_BUFFERING, None)
                 self.showStatus = self.showStatusOnPipe
                 self.lastStatusTime = 0.0
-            except ImportError: # win32 not installed
-                self.addToLog("--statusPipe {} cannot be installed, packages for win32 missing".format(options.statusPipe))
+                self.parentProcessHandle = None
             except pywintypes.error: # named pipe doesn't exist
                 self.addToLog("--statusPipe {} has not been created by calling program".format(options.statusPipe))
+        if options.monitorParentProcess:
+            try:
+                self.parentProcessHandle = win32api.OpenProcess(PROCESS_QUERY_INFORMATION, False, int(options.monitorParentProcess))
+                def monitorParentProcess():
+                    if win32process.GetExitCodeProcess(self.parentProcessHandle) != STILL_ACTIVE:
+                        sys.exit()
+                    _t = threading.Timer(10.0, monitorParentProcess)
+                    _t.daemon = True
+                    _t.start()
+                monitorParentProcess()
+            except ImportError: # win32 not installed
+                self.addToLog("--monitorParentProcess {} cannot be installed, packages for win32api and win32process missing".format(options.monitorParentProcess))
+            except (ValueError, pywintypes.error): # parent process doesn't exist
+                self.addToLog("--monitorParentProcess Process {} Id is invalid".format(options.monitorParentProcess))
+                sys.exit()
         if options.showOptions: # debug options
             for optName, optValue in sorted(options.__dict__.items(), key=lambda optItem: optItem[0]):
                 self.addToLog("Option {0}={1}".format(optName, optValue), messageCode="info")
@@ -525,6 +556,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     PluginManager.reset()
                     if savePluginChanges:
                         PluginManager.save(self)
+                    if options.webserver: # options may need reparsing dynamically
+                        _optionsParser = ParserForDynamicPlugins(options)
+                        # add plug-in options
+                        for optionsExtender in pluginClassMethods("CntlrCmdLine.Options"):
+                            optionsExtender(_optionsParser)
+
             if showPluginModules:
                 self.addToLog(_("Plug-in modules:"), messageCode="info")
                 for i, moduleItem in enumerate(sorted(PluginManager.pluginConfig.get("modules", {}).items())):
@@ -595,7 +632,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Utility.Run"):
             hasUtilityPlugin = True
             try:
-                pluginXbrlMethod(self, options, sourceZipStream=sourceZipStream)
+                pluginXbrlMethod(self, options, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
             except SystemExit: # terminate operation, plug in has terminated all processing
                 return True # success
             
@@ -904,9 +941,17 @@ class CntlrCmdLine(Cntlr.Cntlr):
         # now = time.time() # seems ok without time-limiting writes to the pipe
         if self.statusPipe is not None:  # max status updates 3 per second now - 0.3 > self.lastStatusTime and 
             # self.lastStatusTime = now
-            win32file.WriteFile(self.statusPipe, (message or "").encode("utf8"))
-            win32file.FlushFileBuffers(self.statusPipe)
-            win32file.SetFilePointer(self.statusPipe, 0, win32file.FILE_BEGIN)  # hangs on close without this
+            try:
+                if self.parentProcessHandle is not None:
+                    if win32process.GetExitCodeProcess(self.parentProcessHandle) != STILL_ACTIVE:
+                        sys.exit()
+                win32file.WriteFile(self.statusPipe, (message or "").encode("utf8"))
+                win32file.FlushFileBuffers(self.statusPipe)
+                win32file.SetFilePointer(self.statusPipe, 0, win32file.FILE_BEGIN)  # hangs on close without this
+            except Exception as ex:
+                #with open("Z:\\temp\\trace.log", "at", encoding="utf-8") as fh:
+                #    fh.write("Status pipe exception {} {}\n".format(type(ex), ex))
+                system.exit()
 
 if __name__ == "__main__":
     '''
