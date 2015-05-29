@@ -11,9 +11,13 @@ from arelle import UrlUtil
 from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
 
-def compileAttrPattern(elt, attrName, flags=None):
+def compileAttrPattern(elt, attrName, flags=None, patternIfNoAttr=""):
     attr = elt.get(attrName)
-    if attr is None: attr = ""
+    if attr is None: 
+        # pattern to match if no attribute provided
+        if patternIfNoAttr is None:
+            return None # if None, then there is no pattern if attribute missing
+        attr = patternIfNoAttr # use default pattern
     if flags is not None:
         return re.compile(attr, flags)
     else:
@@ -151,7 +155,7 @@ class DisclosureSystem:
                                 self.names = names
                                 self.name = self.names[0]
                                 self.validationType = dsElt.get("validationType")
-                                self.exclusiveTypesPattern = compileAttrPattern(dsElt,"exclusiveTypesPattern")
+                                self.exclusiveTypesPattern = compileAttrPattern(dsElt,"exclusiveTypesPattern", patternIfNoAttr=None)
                                 if self.validationType not in self.pluginTypes:
                                     self.EFM = self.validationType == "EFM"
                                     self.GFM = self.validationType == "GFM"
