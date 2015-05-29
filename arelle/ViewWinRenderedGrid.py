@@ -76,7 +76,7 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
 class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
     def __init__(self, modelXbrl, tabWin, lang):
         super(ViewRenderedGrid, self).__init__(modelXbrl, tabWin, _("Table"),
-                                               False, lang)
+                                               False, lang, self.onQuitView)
         self.newFactItemOptions = ModelInstanceObject.NewFactItemOptions(xbrlInstance=modelXbrl)
         self.factPrototypes = []
         self.aspectEntryObjectIdsNode = {}
@@ -807,6 +807,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                          self.newFactItemOptions.nonMonetaryDecimals)
                                 fact.text = value
                                 instance.setIsModified()
+                                fact.xValid = XmlValidate.UNVALIDATED
                                 XmlValidate.validate(instance, fact)
             tbl.clearModificationStatus()
                         

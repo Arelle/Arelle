@@ -10,8 +10,8 @@ from arelle.ViewWinPane import ViewPane
 
 class ViewTkTable(ViewPane):
     def __init__(self, modelXbrl, tabWin, tabTitle,
-                 hasToolTip=False, lang=None):
-        contentView = ScrolledTkTableFrame(tabWin)
+                 hasToolTip=False, lang=None, browseCmd=None):
+        contentView = ScrolledTkTableFrame(tabWin, browseCmd)
         super(ViewTkTable, self).__init__(modelXbrl, tabWin, tabTitle,
                                        contentView, hasToolTip=hasToolTip,
                                        lang=lang)

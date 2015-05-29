@@ -657,10 +657,11 @@ class XbrlTable(TkTableWrapper.Table):
 
 
 class ScrolledTkTableFrame(Frame):
-    def __init__(self, parent, *args, **kw):
+    def __init__(self, parent, browseCmd, *args, **kw):
         Frame.__init__(self, parent, *args, **kw)
 
-        table = XbrlTable(self, 1, 1, 0, 0) # will be resized later
+        # must be resized later
+        table = XbrlTable(self, 1, 1, 0, 0, browsecmd=browseCmd)
         self.table = table
         parent.columnconfigure(0, weight=1)
         parent.rowconfigure(0, weight=1)
