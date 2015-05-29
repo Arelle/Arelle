@@ -874,6 +874,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
                                                          if fact.concept.isMonetary else
                                                          self.newFactItemOptions.nonMonetaryDecimals)
                                 fact.text = value
+                                instance.setIsModified()
                                 XmlValidate.validate(instance, fact)
                             bodyCell.isChanged = False  # clear change flag
                         
@@ -884,6 +885,8 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
             if not getNewFactItemOptions(self.modelXbrl.modelManager.cntlr, self.newFactItemOptions):
                 return # new instance not set
         # newFilename = None # only used when a new instance must be created
+        
+        self.updateInstanceFromFactPrototypes()
         if self.modelXbrl.modelDocument.type != ModelDocument.Type.INSTANCE and newFilename is None:
             newFilename = self.modelXbrl.modelManager.cntlr.fileSave(view=self, fileType="xbrl")
             if not newFilename:
