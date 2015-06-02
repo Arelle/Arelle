@@ -193,7 +193,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         self.viewFrame.clearGrid()
 
         tblAxisRelSet, xTopStructuralNode, yTopStructuralNode, zTopStructuralNode = resolveAxesStructure(self, viewTblELR)
-        self.table.resizeTable(self.dataFirstRow+self.dataRows-1, self.dataFirstCol+self.dataCols-1, titleRows=self.dataFirstRow-1, titleColumns=self.dataFirstCol-1)
+        colAdjustment = 1 if zTopStructuralNode is not None else 0
+        self.table.resizeTable(self.dataFirstRow+self.dataRows-1, self.dataFirstCol+self.dataCols+colAdjustment-1, titleRows=self.dataFirstRow-1, titleColumns=self.dataFirstCol-1)
         self.hasTableFilters = bool(self.modelTable.filterRelationships)
         
         if tblAxisRelSet:
@@ -234,7 +235,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             _, rowsFoundPlus1 = self.yAxis(1, self.dataFirstRow,
                                            yTopStructuralNode, self.yAxisChildrenFirst.get(), True, True)
             self.table.resizeTable(rowsFoundPlus1-1,
-                                   colsFoundPlus1-1,
+                                   colsFoundPlus1+colAdjustment-1,
                                    clearData=False)
             for fp in self.factPrototypes: # dereference prior facts
                 if fp is not None:
@@ -259,7 +260,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             yValue = row-1
             self.table.initHeaderCellValue(label,
                                            xValue, yValue,
-                                           1, 0,
+                                           0, 0,
                                            XbrlTable.TG_LEFT_JUSTIFIED,
                                            objectId=zStructuralNode.objectId())
     
@@ -307,9 +308,9 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 i = -1
                             valueHeaders.append("(enter typed member)")
                             zAxisTypedDimension = dimConcept
-                combobox = self.table.initHeaderCombobox(self.dataFirstCol + 1,
+                combobox = self.table.initHeaderCombobox(self.dataFirstCol,
                                                          row-1,
-                                                         colspan=1,
+                                                         colspan=0,
                                                          values=valueHeaders,
                                                          value=comboBoxValue,
                                                          selectindex=zStructuralNode.choiceNodeIndex if i >= 0 else None,
