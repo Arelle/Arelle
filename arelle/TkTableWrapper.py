@@ -116,7 +116,11 @@ class Table(tkinter.Widget):
                                 'lappend auto_path {%s}' % tktable_lib)
             master.tk.call('package', 'require', 'Tktable')
             _TKTABLE_LOADED = True
-
+        # force minimum padding
+        if not 'padx' in kw:
+            kw['padx'] = 1
+        if not 'pady' in kw:
+            kw['pady'] = 1
         tkinter.Widget.__init__(self, master, 'table', kw)
         self.contextMenuClick = "<Button-2>" if sys.platform=="darwin" else "<Button-3>"
 
