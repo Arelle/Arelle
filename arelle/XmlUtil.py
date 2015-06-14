@@ -170,7 +170,7 @@ def innerTextNodes(element, ixExclude, ixEscape, ixContinuation):
     for child in element.iterchildren():
         if isinstance(child,ModelObject) and (
            not ixExclude or 
-           (child.localName != "exclude" and child.namespaceURI != "http://www.xbrl.org/2008/inlineXBRL")):
+           not (child.localName == "exclude" and child.namespaceURI in XbrlConst.ixbrlAll)):
             firstChild = True
             for nestedText in innerTextNodes(child, ixExclude, ixEscape, ixContinuation):
                 if firstChild and ixEscape:
@@ -188,13 +188,16 @@ def innerTextNodes(element, ixExclude, ixEscape, ixContinuation):
                 yield contText
             
 def escapedNode(elt, start, empty):
+    if elt.namespaceURI in XbrlConst.ixbrlAll:
+        return ''  # do not yield XML for nested facts
     s = ['<']
     if not start and not empty:
         s.append('/')
     s.append(str(elt.qname))
     if start or empty:
         for n,v in elt.items():
-            s.append(' {0}="{1}"'.format(qname(elt,n),v))
+            s.append(' {0}="{1}"'.format(qname(elt,n),
+                                         v.replace("&","&amp;").replace('"','&quot;')))
     if not start and empty:
         s.append('/')
     s.append('>')
