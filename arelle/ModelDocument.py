@@ -610,13 +610,20 @@ class ModelDocument:
     def __repr__(self):
         return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
 
-    def save(self, overrideFilepath=None):
+    def save(self, overrideFilepath=None, outputZip=None):
         """Saves current document file.
         
         :param overrideFilepath: specify to override saving in instance's modelDocument.filepath
         """
-        with open( (overrideFilepath or self.filepath), "w", encoding='utf-8') as fh:
-            XmlUtil.writexml(fh, self.xmlDocument, encoding="utf-8")
+        if outputZip:
+            fh = io.StringIO();
+        else:
+            fh = open( (overrideFilepath or self.filepath), "w", encoding='utf-8')
+        XmlUtil.writexml(fh, self.xmlDocument, encoding="utf-8")
+        if outputZip:
+            fh.seek(0)
+            outputZip.writestr(os.path.basename(overrideFilepath or self.filepath),fh.read())
+        fh.close()
     
     def close(self, visited=None, urlDocs=None):
         if visited is None: visited = []

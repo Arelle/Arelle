@@ -436,12 +436,12 @@ class ModelXbrl:
             if isinstance(view, ViewWinDTS.ViewDTS):
                 self.modelManager.cntlr.uiThreadQueue.put((view.view, []))
                 
-    def saveInstance(self, overrideFilepath=None):
+    def saveInstance(self, overrideFilepath=None, outputZip=None):
         """Saves current instance document file.
         
         :param overrideFilepath: specify to override saving in instance's modelDocument.filepath
         """
-        self.modelDocument.save(overrideFilepath)
+        self.modelDocument.save(overrideFilepath=overrideFilepath, outputZip=outputZip)
             
     @property    
     def prefixedNamespaces(self):

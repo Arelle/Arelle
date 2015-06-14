@@ -12,7 +12,10 @@ Saves extracted instance document.
 from arelle import ModelXbrl, ValidateXbrlDimensions, XmlUtil, XbrlConst
 from arelle.PrototypeDtsObject import LocPrototype
 from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, load
-import os
+from arelle.ValidateFilingText import CDATApattern, copyHtml
+import os, zipfile
+from optparse import SUPPRESS_HELP
+from lxml.etree import XML, XMLSyntaxError
 
 class ModelInlineXbrlDocumentSet(ModelDocument):
         
@@ -35,7 +38,7 @@ class ModelInlineXbrlDocumentSet(ModelDocument):
                                 self.targetDocumentSchemaRefs.add(doc.relativeUri(referencedDoc.uri))
         return True
 
-def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRefs):
+def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRefs, outputZip=None, filingFiles=None):
     targetUrl = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(targetDocumentFilename, modelXbrl.modelDocument.filepath)
     targetUrlParts = targetUrl.rpartition(".")
     targetUrl = targetUrlParts[0] + "_extracted." + targetUrlParts[2]
@@ -87,6 +90,17 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
                     text = fact.xValue if fact.xValid else fact.textValue
                 newFact = targetInstance.createFact(fact.qname, attributes=attrs, text=text, parent=parent)
                 newFactForOldObjId[fact.objectIndex] = newFact
+                if filingFiles and fact.concept is not None and fact.concept.isTextBlock:
+                    # check for img and other filing references
+                    for xmltext in [text] + CDATApattern.findall(text):
+                        try:
+                            for elt in XML("<body>\n{0}\n</body>\n".format(xmltext)):
+                                if elt.tag in ("a", "img"):
+                                    for attrTag, attrValue in elt.items():
+                                        if attrTag in ("href", "src"):
+                                            filingFiles.add(attrValue)
+                        except (XMLSyntaxError, UnicodeDecodeError):
+                            pass
             elif fact.isTuple:
                 newTuple = targetInstance.createFact(fact.qname, parent=parent)
                 newFactForOldObjId[fact.objectIndex] = newTuple
@@ -109,8 +123,16 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
                     XmlUtil.addChild(newLink, linkChild.qname, 
                                      attributes=linkChild.attributes,
                                      text=linkChild.textValue)
+                    if filingFiles and linkChild.textValue:
+                        footnoteHtml = XML("<body/>")
+                        copyHtml(linkChild, footnoteHtml)
+                        for elt in footnoteHtml.iter():
+                            if elt.tag in ("a", "img"):
+                                for attrTag, attrValue in elt.items():
+                                    if attrTag in ("href", "src"):
+                                        filingFiles.add(attrValue)
             
-    targetInstance.saveInstance(overrideFilepath=targetUrl)
+    targetInstance.saveInstance(overrideFilepath=targetUrl, outputZip=outputZip)
     modelXbrl.modelManager.showStatus(_("Saved extracted instance"), 5000)
 
 def identifyInlineXbrlDocumentSet(modelXbrl, rootNode, filepath):
@@ -128,9 +150,9 @@ def saveTargetDocumentMenuEntender(cntlr, menu):
     # Extend menu with an item for the savedts plugin
     menu.add_command(label="Save target document", 
                      underline=0, 
-                     command=lambda: backgroundSaveTargetDocumentMenuCommand(cntlr) )
+                     command=lambda: runSaveTargetDocumentMenuCommand(cntlr, runInBackground=True) )
 
-def backgroundSaveTargetDocumentMenuCommand(cntlr):
+def runSaveTargetDocumentMenuCommand(cntlr, runInBackground=False, saveTargetFiling=False):
     # save DTS menu item has been invoked
     if (cntlr.modelManager is None or 
         cntlr.modelManager.modelXbrl is None or 
@@ -144,30 +166,72 @@ def backgroundSaveTargetDocumentMenuCommand(cntlr):
         targetSchemaRefs = modelDocument.targetDocumentSchemaRefs
     else:
         filepath, fileext = os.path.splitext(modelDocument.filepath)
-        targetFilename = filepath + "_instance." + fileext
+        if fileext not in (".xml", ".xbrl"):
+            fileext = ".xbrl"
+        targetFilename = filepath + fileext
         targetSchemaRefs = set(modelDocument.relativeUri(referencedDoc.uri)
                                for referencedDoc in modelDocument.referencesDocument.keys()
                                if referencedDoc.type == Type.SCHEMA)
-    import threading
-    thread = threading.Thread(target=lambda _x = modelDocument.modelXbrl, _f = targetFilename, _s = targetSchemaRefs:
-                                    saveTargetDocument(_x, _f, _s))
-    thread.daemon = True
-    thread.start()
+    if runInBackground:
+        import threading
+        thread = threading.Thread(target=lambda _x = modelDocument.modelXbrl, _f = targetFilename, _s = targetSchemaRefs:
+                                        saveTargetDocument(_x, _f, _s))
+        thread.daemon = True
+        thread.start()
+    else:
+        if saveTargetFiling:
+            _zipFile = os.path.splitext(targetFilename)[0] + "_filing.zip"
+            targetFilename = os.path.basename(targetFilename)
+            filingZip = zipfile.ZipFile(_zipFile, 'w', zipfile.ZIP_DEFLATED, True)
+            filingFiles = set()
+            # copy referencedDocs to two levels
+            def addRefDocs(doc):
+                for refDoc in doc.referencesDocument.keys():
+                    if refDoc.uri not in filingFiles:
+                        filingFiles.add(refDoc.uri)
+                        addRefDocs(refDoc)
+            addRefDocs(modelDocument)
+        else:
+            filingZip = None
+            filingFiles = None
+        saveTargetDocument(modelDocument.modelXbrl, targetFilename, targetSchemaRefs, filingZip, filingFiles)
+        if saveTargetFiling:
+            instDir = os.path.dirname(modelDocument.uri)
+            for refFile in filingFiles:
+                if refFile.startswith(instDir):
+                    filingZip.write(refFile, modelDocument.relativeUri(refFile))
+            
 
 def saveTargetDocumentCommandLineOptionExtender(parser):
     # extend command line options with a save DTS option
-    parser.add_option("--save-instance", 
+    parser.add_option("--saveInstance", 
                       action="store_true", 
                       dest="saveTargetInstance", 
                       help=_("Save target instance document"))
+    parser.add_option("--saveinstance",  # for WEB SERVICE use
+                      action="store", 
+                      dest="saveTargetInstance", 
+                      help=SUPPRESS_HELP)
+    parser.add_option("--saveFiling", 
+                      action="store_true", 
+                      dest="saveTargetFiling", 
+                      help=_("Save instance and DTS in zip"))
+    parser.add_option("--savefiling",  # for WEB SERVICE use
+                      action="store", 
+                      dest="saveTargetFiling", 
+                      help=SUPPRESS_HELP)
 
 def saveTargetDocumentCommandLineXbrlRun(cntlr, options, modelXbrl):
     # extend XBRL-loaded run processing for this option
-    if getattr(options, "saveTargetInstance", False):
-        if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None or not isinstance(cntlr.modelManager.modelXbrl.modelDocument, ModelInlineXbrlDocumentSet):
-            cntlr.addToLog("No inline XBRL document manifest loaded.")
+    if getattr(options, "saveTargetInstance", False) or getattr(options, "saveTargetFiling", False):
+        if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None or not (   
+            isinstance(cntlr.modelManager.modelXbrl.modelDocument, ModelInlineXbrlDocumentSet)
+            or cntlr.modelManager.modelXbrl.modelDocument.type == Type.INLINEXBRL):
+            cntlr.addToLog("No inline XBRL document or manifest loaded.")
             return
-        cntlr.modelManager.modelXbrl.modelDocument.saveTargetDocument()
+        runSaveTargetDocumentMenuCommand(cntlr, 
+                                         runInBackground=False,
+                                         saveTargetFiling=getattr(options, "saveTargetFiling", False))
 
 
 __pluginInfo__ = {
