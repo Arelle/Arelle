@@ -4,6 +4,7 @@ Created on Jan 4, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
+from arelle import PythonUtil # define 2.x or 3.x string types
 import copy, datetime
 try:
     import regex as re
@@ -404,7 +405,7 @@ class gYearMonth():
         self.month = int(month)
 
     def __repr__(self):
-        return "-{0}-{1}".format(self.year, self.month)
+        return "-{0:04}-{1:02}".format(self.year, self.month)
     
     
 class gMonthDay():
@@ -413,28 +414,28 @@ class gMonthDay():
         self.day = int(day)
 
     def __repr__(self):
-        return "--{0}-{1}".format(self.month, self.day)
+        return "--{0:02}-{1:02}".format(self.month, self.day)
     
 class gYear():
     def __init__(self, year):
         self.year = int(year)
 
     def __repr__(self):
-        return "{0}".format(self.year)
+        return "{0:04}".format(self.year)
     
 class gMonth():
     def __init__(self, month):
         self.month = int(month)
 
     def __repr__(self):
-        return "--{0}".format(self.month)
+        return "--{0:02}".format(self.month)
     
 class gDay():
     def __init__(self, day):
         self.day = int(day)
 
     def __repr__(self):
-        return "---{0}".format(self.day)
+        return "---{0:02}".format(self.day)
     
 class InvalidValue(str):
     def __new__(cls, value):
