@@ -147,7 +147,7 @@ def validateFacts(val, factsToCheck):
     for fIndicators in factsByQname[qnFIndicators]:
         val.numFilingIndicatorTuples += 1
         for fIndicator in fIndicators.modelTupleFacts:
-            _value = (fIndicator.xValue or fIndicator.value) # use validated xValue if DTS else value for skipDTS 
+            _value = (getattr(fIndicator, "xValue", None) or fIndicator.value) # use validated xValue if DTS else value for skipDTS 
             if _value in val.filingIndicators:
                 modelXbrl.error(("EBA.1.6.1", "EIOPA.1.6.1"),
                         _('Multiple filing indicators facts for indicator %(filingIndicator)s.'),
@@ -188,7 +188,7 @@ def validateFacts(val, factsToCheck):
                     isString = concept.baseXbrliType in ("stringItemType", "normalizedStringItemType")
                     isEnum = concept.typeQname == qnEnumerationItemType
                 else:
-                    isNumeric = isString = False # error situation
+                    isNumeric = isString = isEnum = False # error situation
             k = (f.getparent().objectIndex,
                  f.qname,
                  f.context.contextDimAwareHash if f.context is not None else None,
@@ -218,30 +218,52 @@ def validateFacts(val, factsToCheck):
                     modelXbrl.error(("EBA.2.17", "EIOPA.2.18.a"),
                         _("Numeric fact %(fact)s of context %(contextID)s has a precision attribute '%(precision)s'"),
                         modelObject=f, fact=f.qname, contextID=f.contextID, precision=f.precision)
-                if f.decimals:
+                if f.decimals and not f.isNil:
                     if f.decimals == "INF":
                         modelXbrl.error("EIOPA.S.2.18.f",
                             _("Monetary fact %(fact)s of context %(contextID)s has a decimal attribute INF: '%(decimals)s'"),
                             modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
                     else:
                         try:
+                            xValue = f.xValue
                             dec = int(f.decimals)
                             if isMonetary:
                                 if dec < -3:
                                     modelXbrl.error(("EBA.2.18","EIOPA.S.2.18.c"),
-                                        _("Monetary fact %(fact)s of context %(contextID)s has a decimal attribute < -3: '%(decimals)s'"),
+                                        _("Monetary fact %(fact)s of context %(contextID)s has a decimals attribute < -3: '%(decimals)s'"),
                                         modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
+                                else: # apply dynamic decimals check
+                                    if  -.1 < xValue < .1: dMin = 2
+                                    elif -1 < xValue < 1: dMin = 1
+                                    elif -10 < xValue < 10: dMin = 0
+                                    elif -100 < xValue < 100: dMin = -1
+                                    elif -1000 < xValue < 1000: dMin = -2
+                                    else: dMin = -3
+                                    if dMin > dec:
+                                        modelXbrl.warning("EIOPA:factDecimalsWarning",
+                                            _("Monetary fact %(fact)s of context %(contextID)s value %(value)s has an imprecise decimals attribute: %(decimals)s, minimum is %(mindec)s"),
+                                            modelObject=f, fact=f.qname, contextID=f.contextID, value=xValue, decimals=f.decimals, mindec=dMin)
                             elif isInteger:
                                 if dec != 0:
                                     modelXbrl.error(("EBA.2.18","EIOPA.S.2.18.d"),
-                                        _("Integer fact %(fact)s of context %(contextID)s has a decimal attribute \u2260 0: '%(decimals)s'"),
+                                        _("Integer fact %(fact)s of context %(contextID)s has a decimals attribute \u2260 0: '%(decimals)s'"),
                                         modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
                             elif isPercent:
                                 if dec < 4:
                                     modelXbrl.error(("EBA.2.18","EIOPA.S.2.18.e"),
-                                        _("Percent fact %(fact)s of context %(contextID)s has a decimal attribute < 4: '%(decimals)s'"),
+                                        _("Percent fact %(fact)s of context %(contextID)s has a decimals attribute < 4: '%(decimals)s'"),
                                         modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
-                        except ValueError:
+                            else:
+                                if -.001 < xValue < .001: dMin = 4
+                                elif -.01 < xValue < .01: dMin = 3
+                                elif -.1 < xValue < .1: dMin = 2
+                                elif  -1 < xValue < 1: dMin = 1
+                                else: dMin = 0
+                                if dMin > dec:
+                                    modelXbrl.warning("EIOPA:factDecimalsWarning",
+                                        _("Numeric fact %(fact)s of context %(contextID)s value %(value)s has an imprecise decimals attribute: %(decimals)s, minimum is %(mindec)s"),
+                                        modelObject=f, fact=f.qname, contextID=f.contextID, value=xValue, decimals=f.decimals, mindec=dMin)
+                        except (AttributeError, ValueError):
                             pass # should have been reported as a schema error by loader
                         '''' (not intended by EBA 2.18, paste here is from EFM)
                         if not f.isNil and getattr(f,"xValid", 0) == 4:
