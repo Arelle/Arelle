@@ -314,12 +314,12 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 contextIDs.discard(factContextID)
                     
                 context = f.context
+                factInDeiNamespace = None
                 factQname = f.qname # works for both inline and plain instances
-                factElementName = factQname.localName
-                if disclosureSystem.deiNamespacePattern is not None:
-                    factInDeiNamespace = disclosureSystem.deiNamespacePattern.match(factQname.namespaceURI)
-                else:
-                    factInDeiNamespace = None
+                if factQname: # may be none in error situations
+                    factElementName = factQname.localName
+                    if disclosureSystem.deiNamespacePattern is not None:
+                        factInDeiNamespace = disclosureSystem.deiNamespacePattern.match(factQname.namespaceURI)
                 # standard dei items from required context
                 if context is not None: # tests do not apply to tuples
                     if not context.hasSegment and not context.hasScenario: 

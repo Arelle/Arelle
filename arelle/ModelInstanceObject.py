@@ -1451,6 +1451,8 @@ class ModelInlineFootnote(ModelResource):
         attributes = {"{http://www.w3.org/1999/xlink}type":"resource",
                       "{http://www.w3.org/1999/xlink}label":self.xlinkLabel,
                       "{http://www.w3.org/1999/xlink}role": self.role}
+        if self.id:
+            attributes["id"] = self.id
         lang = self.xmlLang
         if lang:
             attributes["{http://www.w3.org/XML/1998/namespace}lang"] = lang

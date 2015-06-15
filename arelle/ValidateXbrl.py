@@ -16,6 +16,7 @@ from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelValue import qname
 from arelle.PluginManager import pluginClassMethods
+from arelle.XbrlConst import ixbrlAll
 from arelle.XmlValidate import VALID
 from collections import defaultdict
 validateUniqueParticleAttribution = None # dynamic import
@@ -378,7 +379,7 @@ class ValidateXbrl:
             ixdsIdObjects = defaultdict(list)
             for ixdsDoc in self.ixdsDocs:
                 for idObject in ixdsDoc.idObjects.values():
-                    if idObject.namespaceURI in XbrlConst.ixbrlAll or idObject.elementQname in (XbrlConst.qnXbrliContext, XbrlConst.qnXbrliUnit):
+                    if idObject.namespaceURI in ixbrlAll or idObject.elementQname in (XbrlConst.qnXbrliContext, XbrlConst.qnXbrliUnit):
                         ixdsIdObjects[idObject.id].append(idObject)
             for _id, objs in ixdsIdObjects.items():
                 if len(objs) > 1:
@@ -468,7 +469,7 @@ class ValidateXbrl:
             for ixRel in self.ixdsRelationships:
                 for fromRef in ixRel.get("fromRefs","").split():
                     refs = ixdsIdObjects.get(fromRef)
-                    if refs is None or refs[0].namespaceURI != ixRel or refs[0].localName not in ("fraction", "nonFraction", "nonNumeric", "tuple"):
+                    if refs is None or refs[0].namespaceURI not in ixbrlAll or refs[0].localName not in ("fraction", "nonFraction", "nonNumeric", "tuple"):
                         modelXbrl.error("ix:relationshipFromRef",
                             _("Inline XBRL fromRef %(ref)s is not a fraction, ix:nonFraction, ix:nonNumeric or ix:tuple."),
                             modelObject=ixRel, ref=fromRef)
@@ -476,7 +477,7 @@ class ValidateXbrl:
                 hasToRefMixture = False
                 for toRef in ixRel.get("toRefs","").split():
                     refs = ixdsIdObjects.get(fromRef)
-                    if refs is None or refs[0].namespaceURI != ixRel or refs[0].localName not in ("footnote", "fraction", "nonFraction", "nonNumeric", "tuple"):
+                    if refs is None or refs[0].namespaceURI not in ixbrlAll or refs[0].localName not in ("footnote", "fraction", "nonFraction", "nonNumeric", "tuple"):
                         modelXbrl.error("ix:relationshipToRef",
                             _("Inline XBRL fromRef %(ref)s is not a footnote, fraction, ix:nonFraction, ix:nonNumeric or ix:tuple."),
                             modelObject=ixRel, ref=fromRef)
@@ -581,7 +582,8 @@ class ValidateXbrl:
                             _("Footnote arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s \"from\" is not a loc"),
                             modelObject=arcElt, 
                             linkrole=modelLink.role, xlinkLabelFrom=fromLabel, xlinkLabelTo=toLabel)
-                    if toLabel not in resourceLabels or resourceLabels[toLabel].qname != XbrlConst.qnLinkFootnote:
+                    if not((toLabel in resourceLabels and resourceLabels[toLabel].qname == XbrlConst.qnLinkFootnote) or
+                           (toLabel in locLabels and locLabels[toLabel].dereference().qname == XbrlConst.qnLinkFootnote)):
                         self.modelXbrl.error("xbrl.4.11.1.3.1:factFootnoteArcTo",
                             _("Footnote arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s \"to\" is not a footnote resource"),
                             modelObject=arcElt, 

@@ -190,7 +190,7 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
                                    "calculationLink":("{http://www.w3.org/2001/XMLSchema}element",),
                                    "definitionLink":("{http://www.w3.org/2001/XMLSchema}element",),
                                    "presentationLink":("{http://www.w3.org/2001/XMLSchema}element",),
-                                   "footnoteLink":("XBRL-item-or-tuple",) }[hrefEltKey]:
+                                   "footnoteLink":("XBRL-item-or-tuple","{http://www.xbrl.org/2003/linkbase}footnote") }[hrefEltKey]:
                             if tgtTag == "XBRL-item-or-tuple":
                                 concept = val.modelXbrl.qnameConcepts.get(qname(hrefedElt))
                                 acceptableTarget =  isinstance(concept, ModelDtsObject.ModelConcept) and \
