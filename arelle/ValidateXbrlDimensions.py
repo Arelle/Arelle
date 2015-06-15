@@ -275,18 +275,6 @@ def checkContext(val, cntx):
                     modelObject=logDimAndFacts(modelDimValue), contextID=cntx.id, 
                     dimension=modelDimValue.prefixedName, value=modelDimValue.dimensionQname,
                     messageCodes=("xbrldie:TypedMemberNotTypedDimensionError", "xbrldie:ExplicitMemberNotExplicitDimensionError"))
-            if modelDimValue.isExplicit: # this test is required even when ExplicitMemberNotExplicitDimensionError is raised
-                memberConcept = modelDimValue.member
-                if memberConcept is None or not memberConcept.isGlobalDeclaration:
-                    val.modelXbrl.error("xbrldie:ExplicitMemberUndefinedQNameError",
-                        _("Context %(contextID)s explicit dimension %(dimension)s member %(value)s is not a global member item"),
-                        modelObject=logDimAndFacts(modelDimValue), contextID=cntx.id, 
-                        dimension=modelDimValue.dimensionQname, value=modelDimValue.memberQname)
-                elif val.modelXbrl.dimensionDefaultConcepts.get(dimensionConcept) == memberConcept:
-                    val.modelXbrl.error("xbrldie:DefaultValueUsedInInstanceError",
-                        _("Context %(contextID)s explicit dimension %(dimension)s member %(value)s is a default member item"),
-                        modelObject=logDimAndFacts(modelDimValue), contextID=cntx.id, 
-                        dimension=modelDimValue.dimensionQname, value=modelDimValue.memberQname)
             elif modelDimValue.isTyped:
                 typedDomainConcept = dimensionConcept.typedDomainElement
                 problem = _("missing content")                
@@ -306,6 +294,18 @@ def checkContext(val, cntx):
                         _("Context %(contextID)s typed dimension %(dimension)s has %(error)s"),
                         modelObject=logDimAndFacts(modelDimValue), contextID=cntx.id, 
                         dimension=modelDimValue.dimensionQname, error=problem)
+            if modelDimValue.isExplicit: # this test is required even when ExplicitMemberNotExplicitDimensionError is raised
+                memberConcept = modelDimValue.member
+                if memberConcept is None or not memberConcept.isGlobalDeclaration:
+                    val.modelXbrl.error("xbrldie:ExplicitMemberUndefinedQNameError",
+                        _("Context %(contextID)s explicit dimension %(dimension)s member %(value)s is not a global member item"),
+                        modelObject=logDimAndFacts(modelDimValue), contextID=cntx.id, 
+                        dimension=modelDimValue.dimensionQname, value=modelDimValue.memberQname)
+                elif val.modelXbrl.dimensionDefaultConcepts.get(dimensionConcept) == memberConcept:
+                    val.modelXbrl.error("xbrldie:DefaultValueUsedInInstanceError",
+                        _("Context %(contextID)s explicit dimension %(dimension)s member %(value)s is a default member item"),
+                        modelObject=logDimAndFacts(modelDimValue), contextID=cntx.id, 
+                        dimension=modelDimValue.dimensionQname, value=modelDimValue.memberQname)
 
     for modelDimValue in cntx.errorDimValues:
         dimensionConcept = modelDimValue.dimension
