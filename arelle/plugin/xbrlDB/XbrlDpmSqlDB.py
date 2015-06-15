@@ -679,19 +679,6 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                                  _("Loading XBRL DB: Fact is non-numeric but contains a decimals attribute %(qname)s, decimals %(decimals)s, context %(context)s, value %(value)s"),
                                                  modelObject=f, qname=f.qname, context=f.contextID, value=f.value, decimals=f.decimals)
                 isInstant = f.qname.localName[1:2] == 'i'
-            if  c in ('m', 'p') and isinstance(xValue, Decimal):
-                # check minimum number of decimal places in fact
-                _decimals = len(str(abs(xValue) % ONE)) - 2  # result is 0.nnnn, always subtract 2 for 0.
-                if c == 'm':
-                    if _decimals < 2:
-                        self.modelXbrl.warning("sqlDB:factDecimalDigitsWarning",
-                                             _("Loading XBRL DB: Monetary fact should have 2 decimal digits %(qname)s, context %(context)s, value: %(value)s"),
-                                             modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
-                elif c == 'p':
-                    if _decimals < 4:
-                        self.modelXbrl.warning("sqlDB:factDecimalDigitsWarning",
-                                             _("Loading XBRL DB: Decimals/percent fact should have 4 decimal digits %(qname)s, context %(context)s, value: %(value)s"),
-                                             modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
             if c == 'm' and not self.entityCurrency and f.unit is not None and f.unit.measures[0][0].namespaceURI == XbrlConst.iso4217:
                 self.entityCurrency = f.unit.measures[0][0].localName
                 self.execute("UPDATE dInstance SET EntityCurrency='{}' WHERE InstanceID={}"
@@ -1184,6 +1171,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     text = Locale.format(Locale.C_LOCALE, "%.*f", (dec, num)) # culture-invariant locale
                     '''
                     try:
+                        '''
                         if c == 'm':
                             text = "{:.2f}".format(numVal)
                         elif c == 'p':
@@ -1192,6 +1180,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                             text = "{:.0f}".format(numVal)
                         else:
                             text = str(numVal)
+                        '''
+                        text = str(numVal)
                     except Exception:
                         text = str(numVal)
                 else:
