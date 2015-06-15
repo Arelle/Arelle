@@ -77,6 +77,8 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
         for fact in modelXbrl.facts:
             if fact.isItem:
                 attrs = {"contextRef": fact.contextID}
+                if fact.id:
+                    attrs["id"] = fact.id
                 if fact.isNumeric:
                     attrs["unitRef"] = fact.unitID
                     if fact.get("decimals"):
@@ -180,9 +182,8 @@ def runSaveTargetDocumentMenuCommand(cntlr, runInBackground=False, saveTargetFil
         thread.start()
     else:
         if saveTargetFiling:
-            _zipFile = os.path.splitext(targetFilename)[0] + "_filing.zip"
             targetFilename = os.path.basename(targetFilename)
-            filingZip = zipfile.ZipFile(_zipFile, 'w', zipfile.ZIP_DEFLATED, True)
+            filingZip = zipfile.ZipFile(saveTargetFiling, 'w', zipfile.ZIP_DEFLATED, True)
             filingFiles = set()
             # copy referencedDocs to two levels
             def addRefDocs(doc):
@@ -213,7 +214,7 @@ def saveTargetDocumentCommandLineOptionExtender(parser):
                       dest="saveTargetInstance", 
                       help=SUPPRESS_HELP)
     parser.add_option("--saveFiling", 
-                      action="store_true", 
+                      action="store", 
                       dest="saveTargetFiling", 
                       help=_("Save instance and DTS in zip"))
     parser.add_option("--savefiling",  # for WEB SERVICE use
