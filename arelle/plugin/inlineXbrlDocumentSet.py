@@ -74,7 +74,7 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
     modelXbrl.modelManager.showStatus(_("Creating and validating facts"))
     newFactForOldObjId = {}
     def createFacts(facts, parent):
-        for fact in modelXbrl.facts:
+        for fact in facts:
             if fact.isItem:
                 attrs = {"contextRef": fact.contextID}
                 if fact.id:
