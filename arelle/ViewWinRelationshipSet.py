@@ -11,6 +11,7 @@ from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ModelFormulaObject import ModelFilter
 from arelle.ViewUtil import viewReferences, groupRelationshipSet, groupRelationshipLabel
+from arelle.XbrlConst import conceptNameLabelRole
 
 def viewRelationshipSet(modelXbrl, tabWin, arcrole, 
                         linkrole=None, linkqname=None, arcqname=None, lang=None, 
@@ -294,7 +295,8 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     if toConcept in visited:
                         childPrefix += "(loop)"
                     labelrole = modelRel.preferredLabel
-                    if not labelrole: labelrole = self.labelrole
+                    if not labelrole or self.labelrole == conceptNameLabelRole: 
+                        labelrole = self.labelrole
                     n += 1 # child has opposite row style of parent
                     self.viewConcept(toConcept, modelRel, childPrefix, labelrole, childnode, n, nestedRelationshipSet, visited)
                 visited.remove(concept)

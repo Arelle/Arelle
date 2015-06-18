@@ -7,6 +7,8 @@ Created on Oct 6, 2010
 from arelle import ModelObject, ModelDtsObject, XbrlConst, XmlUtil, ViewFile
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ViewUtil import viewReferences
+from arelle.XbrlConst import conceptNameLabelRole
+
 import os
 
 def viewRelationshipSet(modelXbrl, outfile, header, arcrole, linkrole=None, linkqname=None, arcqname=None, labelrole=None, lang=None):
@@ -178,7 +180,10 @@ class ViewRelationshipSet(ViewFile.View):
                     toConcept = modelRel.toModelObject
                     if toConcept in visited:
                         childPrefix += "(loop) "
-                    self.viewConcept(toConcept, modelRel, childPrefix, (modelRel.preferredLabel or self.labelrole), indent + 1, arcrole, nestedRelationshipSet, visited)
+                    labelrole = modelRel.preferredLabel
+                    if not labelrole or self.labelrole == conceptNameLabelRole: 
+                        labelrole = self.labelrole
+                    self.viewConcept(toConcept, modelRel, childPrefix, labelrole, indent + 1, arcrole, nestedRelationshipSet, visited)
                 visited.remove(concept)
         except AttributeError: #  bad relationship
             return
