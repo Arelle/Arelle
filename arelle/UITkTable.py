@@ -480,6 +480,7 @@ class XbrlTable(TkTableWrapper.Table):
                               sticky=(N, E, S, W))
         indexValue = {cellIndex:combobox.get()}
         self.set(objectId=objectId, **indexValue)
+        combobox.objectId = objectId
         return combobox
 
 

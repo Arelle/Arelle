@@ -22,7 +22,7 @@ CHILD_ROLLUP_FIRST = 1
 CHILD_ROLLUP_LAST = 2
 CHILDREN_BUT_NO_ROLLUP = 3
 
-OPEN_ASPECT_ENTRY_SURROGATE = '\uDBFF'
+OPEN_ASPECT_ENTRY_SURROGATE = '~' #'\uDBFF' replacing this nasty code trick with something not causing print problems
 
 EMPTY_SET = set()
 

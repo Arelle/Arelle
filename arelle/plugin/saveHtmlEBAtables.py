@@ -102,6 +102,7 @@ table {background:#fff}
             modelTables.append((rootConcept, sourceline))
             
         for modelTable, order in sorted(modelTables, key=lambda x: x[1]):
+            print("viewing table :" + str( modelTable.id))
             viewTable(modelTable)
         
         with open(indexBase + "FormsFrame.html", "wt", encoding="utf-8") as fh:
