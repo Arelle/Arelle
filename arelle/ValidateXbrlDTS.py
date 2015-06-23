@@ -284,7 +284,16 @@ def checkElements(val, modelDocument, parent):
         if isInstance or parentIsLinkbase:
             val.roleRefURIs = {}
             val.arcroleRefURIs = {}
-        childrenIter = parent.iterchildren()
+            def linkbaseTopElts():
+                for refPass in (True, False): # do roleType and arcroleType before extended links and any other children
+                    for child in parent.iterchildren():
+                        if refPass == (isinstance(child,ModelObject)
+                                       and child.localName in ("roleRef","arcroleRef") 
+                                       and child.namespaceURI == XbrlConst.link):
+                            yield child
+            childrenIter = linkbaseTopElts()
+        else:
+            childrenIter = parent.iterchildren()
     else: # parent is document node, not an element
         parentXlinkType = None
         isInstance = False
