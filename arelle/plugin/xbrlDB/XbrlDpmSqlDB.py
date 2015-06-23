@@ -258,11 +258,11 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                             self.moduleId = moduleId[0] # only column in row returned
                             break
                     else:
-                        self.modelXbrl.error("sqlDB:multipeSchemaRefs",
+                        self.modelXbrl.error(("EBA.1.5","EIOPA.S.1.5.a"),
                                              _("Loading XBRL DB: Multiple schema files referenced: %(schemaRef)s"),
                                              modelObject=self.modelXbrl, schemaRef=refDoc.uri)
         if not self.moduleId:
-            raise DpmDBException("xpgDB:MissingModuleEntry",
+            raise DpmDBException(("EBA.1.5","EIOPA.S.1.5.a"),
                     _("A ModuleID could not be found in table mModule for instance schemaRef {0}.")
                     .format(_instanceSchemaRef)) 
         self.modelXbrl.profileActivity("dpmDB 01. Get ModuleID for instance schema", minTimeToShow=0.0)
@@ -470,11 +470,11 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         _metQname = _met[4:-1]
         if _metQname not in self.metricsForFilingIndicators:
             if isinstance(fact, ModelFact):
-                self.modelXbrl.error("sqlDB:factQNameError",
+                self.modelXbrl.error(("EBA.1.7.1", "EIOPA.1.7.1"),
                                      _("Loading XBRL DB: Fact QName not allowed for filing indicators %(qname)s, contextRef %(context)s, value: %(value)s"),
                                      modelObject=fact, dpmSignature=dpmSignature, qname=fact.qname, context=fact.contextID, value=fact.value)
             elif isinstance(fact, (tuple,list)): # from database dFact record
-                self.modelXbrl.error("sqlDB:factQNameError",
+                self.modelXbrl.error(("EBA.1.7.1", "EIOPA.1.7.1"),
                                      _("Loading XBRL DB: Fact QName not allowed for filing indicators %(qname)s, value: %(value)s"),
                                      modelObject=self.modelXbrl, dpmSignature=dpmSignature, qname=_metQname, value=self.dFactValue(fact))
         else:
