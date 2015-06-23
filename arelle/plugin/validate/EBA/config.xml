@@ -2,6 +2,9 @@
 <DisclosureSystems  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
       xsi:noNamespaceSchemaLocation="../config/disclosuresystems.xsd" >
   <!-- see ../config/disclosuresystem.xml for full comments -->
+  
+  <!-- exclusiveTypesPattern must also list any other validation in main module code (such as
+       modelDocument checks for xml:base and loadability) -->
 
   <DisclosureSystem 
      names="EBA Filing Rules|eba" 
@@ -12,7 +15,7 @@
      defaultXmlLang="en" 
      defaultLanguage="English" 
      validationType="EBA"
-     exclusiveTypesPattern="EBA|EIOPA"
+     exclusiveTypesPattern="EBA|EIOPA|EFM|GFM|HMRC|SBR.NL"
      validateFileText="false"
      identifierSchemePattern="^http://.*$"
      identifierValuePattern="^.*$"
@@ -36,7 +39,7 @@
      defaultXmlEncoding=""
      defaultLanguage="English" 
      validationType="EIOPA"
-     exclusiveTypesPattern="EBA|EIOPA"
+     exclusiveTypesPattern="EBA|EIOPA|EFM|GFM|HMRC|SBR.NL"
      validateFileText="false"
      identifierSchemePattern="^http://.*$"
      identifierValuePattern="^.*$"

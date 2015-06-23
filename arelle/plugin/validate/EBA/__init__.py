@@ -102,30 +102,25 @@ def validateFacts(val, factsToCheck):
                     _('Period dates must be whole dates without time or timezone: %(dates)s.'),
                     modelObject=cntx, dates=", ".join(e.text for e in dateElts))
         if cntx.isForeverPeriod:
-            modelXbrl.error("EBA.2.11",
+            modelXbrl.error(("EBA.2.11","EIOPA.N.2.11"),
                     _('Forever context period is not allowed.'),
                     modelObject=cntx)
         elif cntx.isStartEndPeriod:
-            modelXbrl.error(("EBA.2.13", "EIOPA.2.13"),
+            modelXbrl.error(("EBA.2.13","EIOPA.N.2.11"),
                     _('Start-End (flow) context period is not allowed.'),
                     modelObject=cntx)
         elif cntx.isInstantPeriod:
             # cannot pass context object to final() below, for error logging, if streaming mode
             val.cntxDates[cntx.instantDatetime].add(modelXbrl if getattr(val.modelXbrl, "isStreamingMode", False)
                                                     else cntx)
-        if XmlUtil.hasChild(cntx, XbrlConst.xbrli, "segment"):
-            modelXbrl.error("EBA.2.14",
-                _("The segment element not allowed in context Id: %(context)s"),
-                modelObject=cntx, context=cntx.contextID)
-        for scenElt in XmlUtil.descendants(cntx, XbrlConst.xbrli, "scenario"):
-            childTags = ", ".join([child.prefixedName for child in scenElt.iterchildren()
-                                   if isinstance(child,ModelObject) and 
-                                   child.tag != "{http://xbrl.org/2006/xbrldi}explicitMember" and
-                                   child.tag != "{http://xbrl.org/2006/xbrldi}typedMember"])
-            if len(childTags) > 0:
-                modelXbrl.error("EBA.2.15",
-                    _("Scenario of context Id %(context)s has disallowed content: %(content)s"),
-                    modelObject=cntx, context=cntx.id, content=childTags)
+        if cntx.hasSegment:
+            modelXbrl.error(("EBA.2.14","EIOPA.N.2.14"),
+                _("Contexts MUST NOT contain xbrli:segment values: %(cntx)s.'"),
+                modelObject=cntx, cntx=cntx.id)
+        if cntx.nonDimValues("scenario"):
+            modelXbrl.error(("EBA.2.15","EIOPA.N.2.15"),
+                _("Contexts MUST NOT contain non-dimensional xbrli:scenario values: %(cntx)s.'"),
+                modelObject=cntx, cntx=cntx.id)
         val.unusedCntxIDs.add(cntx.id)
 
     for unit in modelXbrl.units.values():
@@ -363,14 +358,6 @@ def validateFacts(val, factsToCheck):
             if _memQn:
                 val.namespacePrefixesUsed[_memQn.namespaceURI].add(_memQn.prefix)
                 val.prefixesUnused.discard(_memQn.prefix)
-        if cntx.hasSegment:
-            modelXbrl.error("EIOPA.S.1.6.d",
-                _("Contexts MUST NOT contain xbrli:segment values: %(cntx)s.'"),
-                modelObject=(cntx, cntxHashes[h]), cntx=cntx.id)
-        if cntx.nonDimValues("scenario"):
-            modelXbrl.error("EIOPA.S.1.6.d",
-                _("Contexts MUST NOT contain non-dimensional xbrli:scenario values: %(cntx)s.'"),
-                modelObject=(cntx, cntxHashes[h]), cntx=cntx.id)
 
     for elt in modelDocument.xmlRootElement.iter():
         if isinstance(elt, ModelObject): # skip comments and processing instructions
@@ -424,7 +411,7 @@ def final(val):
                                 _('The link:schemaRef element in submitted instances MUST resolve to the full published entry point URL: %(url)s.'),
                                 modelObject=docRef.referringModelObject, url=doc.uri)
                 elif docRef.referringModelObject.localName == "linkbaseRef":
-                    modelXbrl.error("EBA.2.3",
+                    modelXbrl.error(("EBA.2.3","EBA.S.1.5.a"),
                             _('The link:linkbaseRef element is not allowed: %(fileName)s.'),
                             modelObject=docRef.referringModelObject, fileName=doc.basename)
         _numSchemaRefs = len(XmlUtil.children(modelDocument.xmlRootElement, XbrlConst.link, "schemaRef"))
@@ -508,7 +495,7 @@ def final(val):
                     entities=", ".join(sorted(str(cntxEntity) for cntxEntity in val.cntxEntities)))
             
         for _scheme, _LEI in val.cntxEntities:
-            if _scheme in ("http://standards.iso.org/iso/17442", "LEI", "PRE-LEI"):
+            if _scheme in ("http://standard.iso.org/iso/17442", "LEI", "PRE-LEI"):
                 result = LeiUtil.checkLei(_LEI)
                 if result == LeiUtil.LEI_INVALID_LEXICAL:
                     modelXbrl.error("EIOPA.S.2.8.c",
