@@ -729,8 +729,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 self.updateInstanceFromFactPrototypes()
                 self.lastFrameWidth = frameWidth
                 self.lastFrameHeight = frameHeight
-                self.table.config(maxheight=frameHeight-self.viewFrame.horizontalScrollbarHeight,
-                                  maxwidth=frameWidth-self.viewFrame.verticalScrollbarWidth)
+                self.setHeightANdWidth()
                 if lastFrameWidth:
                     # frame resized, recompute row header column widths and lay out table columns
                     """
@@ -872,6 +871,10 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
 
         self.updateInstanceFromFactPrototypes()
         instance.saveInstance(newFilename) # may override prior filename for instance from main menu
+        if self.modelXbrl.guiViews.tableIndexView is not None:
+            self.modelXbrl.guiViews.tableIndexView.refreshTitle()
+        self.modelXbrl.guiViews.tableView.refreshTitle()
+        cntlr.addToLog(_("{0} saved").format(newFilename if newFilename is not None else instance.modelDocument.filepath))
         cntlr.showStatus(_("Saved {0}").format(instance.modelDocument.basename), clearAfter=3000)
         if onSaved is not None:
             self.modelXbrl.modelManager.cntlr.uiThreadQueue.put((onSaved, []))

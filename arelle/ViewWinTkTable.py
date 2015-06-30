@@ -16,15 +16,17 @@ class ViewTkTable(ViewPane):
                                        contentView, hasToolTip=hasToolTip,
                                        lang=lang)
         self.table = self.viewFrame.table
-        frameWidth = tabWin.winfo_width()
-        frameHeight = tabWin.winfo_height()
-
-        self.table.config(maxheight=frameHeight-contentView.horizontalScrollbarHeight,
-                          maxwidth=frameWidth-contentView.verticalScrollbarWidth)
-
+        self.setHeightANdWidth()
         self.table.contextMenuClick = self.contextMenuClick
 
     def contextMenu(self):
         super(ViewTkTable, self).contextMenu()
         self.bindContextMenu(self.table)
         return self.menu
+    
+    def setHeightANdWidth(self):
+        frameWidth = self.tabWin.winfo_width()
+        frameHeight = self.tabWin.winfo_height()
+        extraspace = 10 # extra vertical space as a nasty patch to avoid sometimes hiding part of last table row
+        self.table.config(maxheight=frameHeight-self.viewFrame.horizontalScrollbarHeight-extraspace,
+                          maxwidth=frameWidth-self.viewFrame.verticalScrollbarWidth)
