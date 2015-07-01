@@ -96,8 +96,19 @@ objtype = {
         'QName': ModelValue.QName,
         'NOTATION': str,
       }
+
+def isXsType(localName):
+    if localName[-1] in ('?', '+', '*'):
+        return localName[:-1] in xsFunctions
+    return localName in xsFunctions
         
 def untypedAtomic(xc, p, source):
+    raise xsFunctionNotAvailable()
+  
+def anyType(xc, p, source):
+    raise xsFunctionNotAvailable()
+  
+def anyAtomicType(xc, p, source):
     raise xsFunctionNotAvailable()
   
 def dateTime(xc, p, source):
@@ -360,6 +371,8 @@ def NOTATION(xc, p, source):
 
 xsFunctions = {
     'untypedAtomic': untypedAtomic,
+    'anyType': anyType,
+    'anyAtomicType': anyAtomicType,
     'dateTime': dateTime,
     'DATETIME_START': dateTime,
     'DATETIME_INSTANT_END': dateTimeInstantEnd,

@@ -303,15 +303,23 @@ class ModelFormulaRules:
             self.aspectValues = defaultdict(list)
             self.aspectProgs = defaultdict(list)
             self.typedDimProgAspects = set()
+
             def compileRuleElement(ruleElt, exprs):
                 if isinstance(ruleElt,ModelObject):
                     name = ruleElt.localName
                     if name == "qname":
                         value = qname(ruleElt, XmlUtil.text(ruleElt))
                         if ruleElt.getparent().localName == "concept":
+                            if Aspect.CONCEPT in self.aspectValues: 
+                                self.modelXbrl.error("xbrlfe:conflictingAspectRules", _("Concept aspect has multiple rules in formula."), modelObject=self)
                             self.aspectValues[Aspect.CONCEPT] = value
                         elif ruleElt.getparent().getparent().get("dimension") is not None:
-                            self.aspectValues[qname(ruleElt.getparent().getparent(), ruleElt.getparent().getparent().get("dimension"))] = value
+                            qnDim = qname(ruleElt.getparent().getparent(), ruleElt.getparent().getparent().get("dimension"))
+                            if qnDim in self.aspectValues:
+                                self.modelXbrl.error("xbrlfe:conflictingAspectRules", 
+                                                     _("Dimension %(dimension)s aspect has multiple rules in formula."), 
+                                                     modelObject=self, dimension=qnDim)
+                            self.aspectValues[qnDim] = value
                     elif name == "qnameExpression":
                         if ruleElt.getparent().localName == "concept":
                             exprs = [(Aspect.CONCEPT, XmlUtil.text(ruleElt))]
@@ -341,8 +349,12 @@ class ModelFormulaRules:
                         if ruleElt.get("end") is not None:
                             exprs.append((Aspect.END, ruleElt.get("end")))
                     elif name == "forever":
+                        if Aspect.PERIOD_TYPE in self.aspectValues:
+                            self.modelXbrl.error("xbrlfe:conflictingAspectRules", _("Forever period aspect has multiple rules in formula."), modelObject=self)
                         self.aspectValues[Aspect.PERIOD_TYPE] = name
                     elif name == "unit" and ruleElt.get("augment") is not None:
+                        if Aspect.AUGMENT in self.aspectValues:
+                            self.modelXbrl.error("xbrlfe:conflictingAspectRules", _("Augment unit attribute has multiple values in formula."), modelObject=self)
                         self.aspectValues[Aspect.AUGMENT] = ruleElt.get("augment")
                     elif name == "multiplyBy":
                         if ruleElt.get("measure") is not None:
@@ -372,6 +384,10 @@ class ModelFormulaRules:
                         qnDim = qname(ruleElt, ruleElt.get("dimension"))
                         self.aspectValues[Aspect.DIMENSIONS].append(qnDim)
                         if not XmlUtil.hasChild(ruleElt, XbrlConst.formula, ("omit","member","value","xpath")):
+                            if qnDim in self.aspectValues:
+                                self.modelXbrl.error("xbrlfe:conflictingAspectRules", 
+                                                     _("Dimension %(dimension)s aspect has multiple rules in formula."), 
+                                                     modelObject=self, dimension=qnDim)
                             self.aspectValues[qnDim] = XbrlConst.qnFormulaDimensionSAV
                     elif name == "precision":
                         exprs = [(Aspect.PRECISION, XmlUtil.text(ruleElt))]
@@ -672,8 +688,8 @@ class ModelParameter(ModelFormulaResource):
         return self.get("select")
     
     @property
-    def required(self):
-        return self.get("as")
+    def isRequired(self):
+        return self.get("required") == "true"
     
     @property
     def asType(self):
@@ -2730,7 +2746,7 @@ class ModelCustomFunctionSignature(ModelFormulaResource):
         try:
             return self._outputType
         except AttributeError:
-            self._outputType = self.get("output")
+            self._outputType = self.prefixedNameQname(self.get("output"))
             return self._outputType
     
     @property
@@ -2738,7 +2754,7 @@ class ModelCustomFunctionSignature(ModelFormulaResource):
         try:
             return self._inputTypes
         except AttributeError:
-            self._inputTypes = [elt.get("type")
+            self._inputTypes = [elt.prefixedNameQname(elt.get("type"))
                                 for elt in XmlUtil.children(self, XbrlConst.variable, "input")]
             return self._inputTypes
     

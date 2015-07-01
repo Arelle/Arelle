@@ -20,10 +20,15 @@ from math import log10, isnan, isinf, fabs
 from arelle.Locale import format_string
 from collections import defaultdict
 ModelDimensionValue = None
+ModelFact = None
 
 expressionVariablesPattern = re.compile(r"([^$]*)([$]\w[\w:.-]*)([^$]*)")
+EMPTYSET = set()
 
 def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
+    global ModelDimensionValue, ModelFact # initialize objects that would cause recursive import
+    if ModelDimensionValue is None:
+        from arelle.ModelInstanceObject import ModelDimensionValue, ModelFact
     # for each dependent variable, find bindings
     if variablesInScope:
         stackedEvaluations = (xpCtx.evaluations, xpCtx.evaluationHashDicts)
@@ -31,7 +36,7 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
         xpCtx.varBindings = {}
         uncoveredAspectFacts = {}
     xpCtx.evaluations = []  # list of evaluations 
-    xpCtx.evaluationHashDicts = [] # hash indexs of evaluations
+    xpCtx.evaluationHashDicts = {} # hash indexs of evaluations
     try:
         xpCtx.variableSet = varSet
         if isinstance(varSet, ModelExistenceAssertion):
@@ -101,7 +106,7 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
                              evaluations=len(xpCtx.evaluations), 
                              variables=max(len(e) for e in xpCtx.evaluations) if xpCtx.evaluations else 0)
     del xpCtx.evaluations[:]  # dereference
-    del xpCtx.evaluationHashDicts[:]
+    xpCtx.evaluationHashDicts.clear()
     if variablesInScope:
         xpCtx.evaluations, xpCtx.evaluationHashDicts = stackedEvaluations
     else:
@@ -127,7 +132,9 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
             return
         # record completed evaluation, for fallback blocking purposes
         fbVars = set(vb.qname for vb in xpCtx.varBindings.values() if vb.isFallback)
-        thisEvaluation = tuple(vb.matchableBoundFact(fbVars) for vb in xpCtx.varBindings.values())
+        # HF try to use dict of vb by result qname
+        # thisEvaluation = tuple(vb.matchableBoundFact(fbVars) for vb in xpCtx.varBindings.values())
+        thisEvaluation = dict((vbQn, vb.matchableBoundFact(fbVars)) for vbQn, vb in xpCtx.varBindings.items())
         if evaluationIsUnnecessary(thisEvaluation, xpCtx.evaluationHashDicts, xpCtx.evaluations):
             if xpCtx.formulaOptions.traceVariableSetExpressionResult:
                 xpCtx.modelXbrl.info("formula:trace",
@@ -145,9 +152,10 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
             xpCtx.modelXbrl.profileActivity("...   evaluation {0} (skipped)".format(varSet.evaluationNumber), minTimeToShow=10.0)
             return
         xpCtx.modelXbrl.profileActivity("...   evaluation {0}".format(varSet.evaluationNumber), minTimeToShow=10.0)
-        for i, fb in enumerate(thisEvaluation):
-            while i >= len(xpCtx.evaluationHashDicts): xpCtx.evaluationHashDicts.append(defaultdict(set))
-            xpCtx.evaluationHashDicts[i][hash(fb)].add(len(xpCtx.evaluations))  # hash and eval index        
+        for vQn, vBoundFact in thisEvaluation.items(): # varQn, fact or tuple of facts bound to var
+            # while i >= len(xpCtx.evaluationHashDicts): xpCtx.evaluationHashDicts.append(defaultdict(set))
+            if vQn not in xpCtx.evaluationHashDicts: xpCtx.evaluationHashDicts[vQn] = defaultdict(set)
+            xpCtx.evaluationHashDicts[vQn][hash(vBoundFact)].add(len(xpCtx.evaluations))  # hash and eval index        
         xpCtx.evaluations.append(thisEvaluation)  # complete evaluations tuple
         # evaluate preconditions
         for precondition in varSet.preconditions:
@@ -204,7 +212,10 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                                 _modelObjects.extend(vb.yieldedEvaluation)
                             else:
                                 _modelObjects.append(vb.yieldedFact)
-                            factVarBindings.append(", \n${}: {} context {}".format(vb.qname, vb.yieldedFact.qname, vb.yieldedFactContext.id))
+                            if vb.yieldedFact.isItem:
+                                factVarBindings.append(", \n${}: {} context {}".format(vb.qname, vb.yieldedFact.qname, vb.yieldedFactContext.id))
+                            elif vb.yieldedFact.isTuple and isinstance(vb.yieldedFact.parentElement, ModelFact):
+                                factVarBindings.append(", \n${}: {} tuple {}".format(vb.qname, vb.yieldedFact.qname, vb.yieldedFact.parentElement.qname))
                     xpCtx.modelXbrl.log(
                         "ERROR" if (xpCtx.formulaOptions.errorUnsatisfiedAssertions and not result) else "INFO",
                         "formula:assertionSatisfied" if result else "formula:assertionUnsatisfied",
@@ -513,9 +524,6 @@ def aspectMatches(xpCtx, fact1, fact2, aspect):
                         break
             '''
         elif isinstance(aspect, QName):
-            global ModelDimensionValue
-            if ModelDimensionValue is None:
-                from arelle.ModelInstanceObject import ModelDimensionValue
             dimValue1 = c1.dimValue(aspect)
             if c2 is None:
                 if dimValue1 is None: # neither fact nor matching facts have this dimension aspect
@@ -586,16 +594,20 @@ def factsPartitions(xpCtx, facts, aspects):
 
 def evaluationIsUnnecessary(thisEval, otherEvalHashDicts, otherEvals):
     if otherEvals:
-        if all(e is None for e in thisEval):
+        # HF try
+        # if all(e is None for e in thisEval):
+        if all(e is None for e in thisEval.values()):
             return True  # evaluation not necessary, all fallen back
         # hash check if any hashes merit further look for equality
-        otherEvalSets = [otherEvalHashDicts[i].get(hash(e), set())
-                         for i, e in enumerate(thisEval)
-                         if e is not None]
+        otherEvalSets = [otherEvalHashDicts[vQn].get(hash(vBoundFact), EMPTYSET)
+                         for vQn, vBoundFact in thisEval.items()
+                         if vBoundFact is not None
+                         if vQn in otherEvalHashDicts]
         if otherEvalSets:
             matchingEvals = [otherEvals[i] for i in  set.intersection(*otherEvalSets)]
             # detects evaluations which are not different (duplicate) and extra fallback evaluations
-            return any(all([e == matchingEval[i] for i, e in enumerate(thisEval) if e is not None])
+            # vBoundFact may be single fact or tuple of facts
+            return any(all([vBoundFact == matchingEval[vQn] for vQn, vBoundFact in thisEval.items() if vBoundFact is not None])
                        for matchingEval in matchingEvals)
     return False
     '''
