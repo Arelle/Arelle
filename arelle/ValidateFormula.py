@@ -320,6 +320,17 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                 val.modelXbrl.error("xbrlve:noProhibitedNamespaceForCustomFunction",
                     _("Custom function %(name)s has namespace reserved for functions in the function registry %(namespace)s"),
                     modelObject=custFnSig, name=custFnQname, namespace=custFnQname.namespaceURI )
+            # check types
+            _outputType = custFnSig.outputType
+            if _outputType and _outputType.namespaceURI == XbrlConst.xsd and not FunctionXs.isXsType(_outputType.localName):
+                val.modelXbrl.error("xbrlve:invalidDatatypeInCustomFunctionSignature",
+                    _("Custom Function Signature %(name)s output type %(type)s is not valid"), 
+                    modelObject=custFnSig, name=custFnQname, type=_outputType)
+            for _inputType in custFnSig.inputTypes:
+                if _inputType and _inputType.namespaceURI == XbrlConst.xsd and not FunctionXs.isXsType(_inputType.localName):
+                    val.modelXbrl.error("xbrlve:invalidDatatypeInCustomFunctionSignature",
+                        _("Custom Function Signature %(name)s input type %(type)s is not valid"), 
+                        modelObject=custFnSig, name=custFnQname, type=_inputType)
             # any custom function implementations?
             for modelRel in val.modelXbrl.relationshipSet(XbrlConst.functionImplementation).fromModelObject(custFnSig):
                 custFnImpl = modelRel.toModelObject
@@ -348,6 +359,10 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
         modelParameter = val.modelXbrl.qnameParameters[paramQname]
         if not isinstance(modelParameter, ModelInstance):
             asType = modelParameter.asType
+            if asType and asType.namespaceURI == XbrlConst.xsd and not FunctionXs.isXsType(asType.localName):
+                val.modelXbrl.error("xbrlve:parameterTypeMismatch",
+                    _("Parameter %(name)s type %(type)s is not valid"), 
+                    modelObject=modelParameter, name=paramQname, type=asType)
             asLocalName = asType.localName if asType else "string"
             try:
                 if val.parameters and paramQname in val.parameters:
@@ -359,13 +374,22 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                         val.modelXbrl.info("formula:trace",
                             _("Parameter %(name)s input value %(input)s"), 
                             modelObject=modelParameter, name=paramQname, input=result)
+                    xpathContext.inScopeVars[paramQname] = result    # make visible to subsequent parameter expression 
+                elif modelParameter.isRequired:
+                    val.modelXbrl.error("xbrlve:missingParameterValue",
+                        _("Parameter %(name)s is required but not input"), 
+                        modelObject=modelParameter, name=paramQname)
+                elif not modelParameter.selectProg:
+                    val.modelXbrl.error("xbrlve:missingParameterValue",
+                        _("Parameter %(name)s does not have a select attribute"), 
+                        modelObject=modelParameter, name=paramQname)
                 else:
                     result = modelParameter.evaluate(xpathContext, asType)
                     if formulaOptions.traceParameterExpressionResult:
                         val.modelXbrl.info("formula:trace",
                             _("Parameter %(name)s select result %(result)s"), 
                             modelObject=modelParameter, name=paramQname, result=result)
-                xpathContext.inScopeVars[paramQname] = result    # make visible to subsequent parameter expression 
+                    xpathContext.inScopeVars[paramQname] = result    # make visible to subsequent parameter expression 
             except XPathContext.XPathException as err:
                 val.modelXbrl.error("xbrlve:parameterTypeMismatch" if err.code == "err:FORG0001" else err.code,
                     _("Parameter \n%(name)s \nException: \n%(error)s"), 
@@ -748,13 +772,24 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
         
     # validate default dimensions in instances and accumulate multi-instance-default dimension aspects
     xpathContext.defaultDimensionAspects = set(val.modelXbrl.qnameDimensionDefaults.keys())
+    #xpathContext.reportedDimensionAspects = set()
+    #_evaluatedContexts = set()
     for instanceQname in instanceQnames:
         if (instanceQname not in (XbrlConst.qnStandardInputInstance,XbrlConst.qnStandardOutputInstance) and
             val.parameters and instanceQname in val.parameters):
             for namedInstance in val.parameters[instanceQname][1]:
                 ValidateXbrlDimensions.loadDimensionDefaults(namedInstance)
                 xpathContext.defaultDimensionAspects |= _DICT_SET(namedInstance.qnameDimensionDefaults.keys())
+                #for fact in namedInstance.factsInInstance: 
+                #    _cntx = fact.context
+                #    if fact.isItem and _cntx is not None and _cntx not in _evaluatedContexts:
+                #        xpathContext.reportedDimensionAspects |= _DICT_SET(_cntx.qnameDims.keys())
+    #del _evaluatedContexts # dereference
+    #xpathContext.reportedDefaultDimensionAspects = xpathContext.defaultDimensionAspects & xpathContext.reportedDimensionAspects
 
+
+    # determine reportedDimensionAspects (for which facts report any value of the dimension)
+    
     # check for variable set dependencies across output instances produced
     for instanceQname, modelVariableSets in instanceProducingVariableSets.items():
         for modelVariableSet in modelVariableSets:
