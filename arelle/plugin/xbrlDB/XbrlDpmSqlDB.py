@@ -68,6 +68,8 @@ qnFindFilingIndicator = qname("{http://www.eurofiling.info/xbrl/ext/filing-indic
 decimalsPattern = re.compile("^(-?[0-9]+|INF)$")
 sigDimPattern = re.compile(r"([^(]+)[(]([^\[)]*)(\[([0-9;]+)\])?[)]")
 ONE = Decimal("1")
+ONE00 = Decimal("1.00")
+ONE0000 = Decimal("1.0000")
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
@@ -372,10 +374,15 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 self.largeDimensionMemberIds[_dim][_memQn] = _memId
             
         # get enumeration element values
-        result = self.execute("select mem.MemberXBRLCode, enum.MemberXBRLCode from mMember mem "
-                              "inner join mMetric met on met.CorrespondingMemberID = mem.MemberID "
+        result = self.execute("select mem.MemberXBRLCode, enum.MemberXBRLCode from mMetric met "
+                              "inner join mMember mem on mem.MemberID = met.CorrespondingMemberID "
                               "inner join mHierarchyNode hn on hn.HierarchyID = met.ReferencedHierarchyID "
-                              "inner join mMember enum on enum.MemberID = hn.MemberID ")
+                              "inner join mMember enum on enum.MemberID = hn.MemberID "
+                              "where (hn.IsAbstract is null or hn.IsAbstract = 0) "
+                              "      and case when met.HierarchyStartingMemberID is not null then "
+                              "        (hn.Path like '%'||ifnull(met.HierarchyStartingMemberID,'')||'%' "
+                              "            or (hn.MemberID = ifnull(met.HierarchyStartingMemberID,'') and 1 = ifnull(met.IsStartingMemberIncluded,0))) "
+                              "        else 1 end")
         self.enumElementValues = defaultdict(set)
         for _elt, _enum in result:
             self.enumElementValues[_elt].add(_enum)
@@ -1171,17 +1178,13 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     text = Locale.format(Locale.C_LOCALE, "%.*f", (dec, num)) # culture-invariant locale
                     '''
                     try:
-                        '''
-                        if c == 'm':
-                            text = "{:.2f}".format(numVal)
-                        elif c == 'p':
-                            text = "{:.4f}".format(numVal)
-                        elif c == 'i':
-                            text = "{:.0f}".format(numVal)
-                        else:
-                            text = str(numVal)
-                        '''
                         text = str(numVal)
+                        if c == 'm':
+                            text = str(Decimal(text) + ONE00 - ONE) # force two decimals
+                        elif c == 'p':
+                            text = str(Decimal(text) + ONE0000 - ONE) # force four decimals
+                        elif c == 'i':
+                            text = str(int(numVal))
                     except Exception:
                         text = str(numVal)
                 else:
