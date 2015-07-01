@@ -645,6 +645,13 @@ class CntlrCmdLine(Cntlr.Cntlr):
         self.entrypointFile = options.entrypointFile
         if self.entrypointFile:
             filesource = FileSource.openFileSource(self.entrypointFile, self, sourceZipStream)
+        elif sourceZipStream: # select INSTANCE or INLINE in the input zip
+            filesource = FileSource.openFileSource(None, self, sourceZipStream)
+            for _archiveFile in filesource.dir:
+                filesource.select(_archiveFile)
+                if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
+                    self.entrypointFile = filesource.url
+                    break
         else:
             filesource = None
         if options.validateEFM:

@@ -413,7 +413,6 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
     modelDocument.definesUTR = False
     return modelDocument
 
-    
 class Type:
     """
     .. class:: Type
@@ -461,6 +460,18 @@ class Type:
                 "arcs infoset",
                 "fact dimensions infoset")
     
+    def identify(filesource, filepath):
+        file, = filesource.file(filepath, stripDeclaration=True, binary=True)
+        for _event, elt in etree.iterparse(file, events=("start",)):
+            _type = {"{http://www.xbrl.org/2003/instance}xbrl": Type.INSTANCE,
+                     "{http://www.xbrl.org/2003/linkbase}linkbase": Type.LINKBASE,
+                     "{http://www.w3.org/2001/XMLSchema}schema": Type.SCHEMA}.get(elt.tag, Type.UnknownXML)
+            if _type == Type.UnknownXML and elt.tag.endswith("html") and XbrlConst.ixbrlAll.intersection(elt.nsmap.values()):
+                _type = Type.INLINEXBRL
+            break
+        file.close()
+        return _type
+
 # schema elements which end the include/import scah
 schemaBottom = {"element", "attribute", "notation", "simpleType", "complexType", "group", "attributeGroup"}
 fractionParts = {"{http://www.xbrl.org/2003/instance}numerator",
