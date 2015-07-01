@@ -293,7 +293,7 @@ def loadModule(moduleInfo, packagePrefix=""):
                 finally:
                     if file:
                         file.close() # non-package module
-        except (EnvironmentError, ImportError, NameError) as err: #find_module failed, no file to close
+        except (EnvironmentError, ImportError, NameError, SyntaxError) as err: #find_module failed, no file to close
             print(_("Exception finding plug-in {name}: {error}").format(
                     name=name, error=err), file=sys.stderr)
 
