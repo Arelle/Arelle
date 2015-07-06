@@ -1024,7 +1024,8 @@ class ModelXbrl:
                     file = ""
             extras["refs"] = [{"href": file}]
         for pluginXbrlMethod in pluginClassMethods("Logging.Message.Parameters"):
-            pluginXbrlMethod(messageCode, msg, modelObjectArgs, fmtArgs)
+            # plug in can rewrite msg string or return msg if not altering msg
+            msg = pluginXbrlMethod(messageCode, msg, modelObjectArgs, fmtArgs) or msg
         return (messageCode, 
                 (msg, fmtArgs) if fmtArgs else (msg,), 
                 extras)
