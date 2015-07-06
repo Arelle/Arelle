@@ -638,7 +638,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             
         # if no entrypointFile is applicable, quit now
         if options.proxy or options.plugins or hasUtilityPlugin:
-            if not options.entrypointFile:
+            if not (options.entrypointFile or sourceZipStream):
                 return True # success
         self.username = options.username
         self.password = options.password

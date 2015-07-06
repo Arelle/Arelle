@@ -7,6 +7,7 @@ Use this module to start Arelle in web server mode
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from arelle.webserver.bottle import Bottle, request, response, static_file
+from arelle.Cntlr import LogFormatter
 import os, io, sys, time, threading, uuid
 from arelle import Version
 from arelle.FileSource import FileNamedStringIO
@@ -201,10 +202,15 @@ def validation(file=None):
     view = request.query.view
     viewArcrole = request.query.viewArcrole
     if request.method == 'POST':
-        sourceZipStream = request.body
         mimeType = request.get_header("Content-Type")
-        if mimeType not in ('application/zip', 'application/x-zip', 'application/x-zip-compressed', 'multipart/x-zip'):
+        if mimeType.startswith("multipart/form-data"):
+            _upload = request.files.get("upload")
+            if not _upload.filename.endswith(".zip"):
+                errors.append(_("POST file upload must be a zip file"))
+            sourceZipStream = _upload.file
+        elif mimeType not in ('application/zip', 'application/x-zip', 'application/x-zip-compressed', 'multipart/x-zip'):
             errors.append(_("POST must provide a zip file, Content-Type '{0}' not recognized as a zip file.").format(mimeType))
+        sourceZipStream = request.body
     else:
         sourceZipStream = None
     if not view and not viewArcrole:
@@ -304,7 +310,14 @@ def runOptionsAndGetResult(options, media, viewFile, sourceZipStream=None):
     elif media == "json":
         result = cntlr.logHandler.getJson()
     elif media == "text":
+        _logFormat = request.query.logFormat
+        if _logFormat:
+            _stdLogFormatter = cntlr.logHandler.formatter
+            cntlr.logHandler.formatter = LogFormatter(_logFormat)
         result = cntlr.logHandler.getText()
+        if _logFormat:
+            cntlr.logHandler.formatter = _stdLogFormatter
+            del _stdLogFormatter # dereference
     else:
         result = htmlBody(tableRows(cntlr.logHandler.getLines(), header=_("Messages")))
     return result
