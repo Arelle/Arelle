@@ -103,3 +103,19 @@ def pyTypeName(object):
         return fullname
     except:
         return str(type(object))
+    
+SEQUENCE_TYPES = (tuple,list,set)
+def flattenSequence(x, sequence=None):
+    if sequence is None: 
+        if not isinstance(x, SEQUENCE_TYPES):
+            if x is None:
+                return [] # none as atomic value is an empty sequence in xPath semantics
+            return [x]
+        sequence = []
+    for el in x:
+        if isinstance(el, SEQUENCE_TYPES):
+            flattenSequence(el, sequence)
+        else:
+            sequence.append(el)
+    return sequence
+
