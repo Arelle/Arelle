@@ -92,7 +92,7 @@ def loggingMessageParameters(messageCode, msgIn, modelObjectArgs, fmtArgs):
                             elif cntx.isInstantPeriod:
                                 propVal = XmlUtil.dateunionValue(cntx.instantDatetime, subtractOneDay=True)
                             else:
-                                propVal = "{} - {}".format(XmlUtil.dateunionValue(cntx.startDatetime),
+                                propVal = "{} to {}".format(XmlUtil.dateunionValue(cntx.startDatetime),
                                                            XmlUtil.dateunionValue(cntx.endDatetime, subtractOneDay=True))
                         else:
                             dateSelection = propertyNameParts[1]
