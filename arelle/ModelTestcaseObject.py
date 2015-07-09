@@ -285,6 +285,10 @@ class ModelTestcaseVariation(ModelObject):
         return logging._checkLevel("INCONSISTENCY")
 
     @property
+    def blockedMessageCodes(self):
+        return XmlUtil.descendantAttr(self, None, "results", "blockedMessageCodes")
+    
+    @property
     def expectedVersioningReport(self):
         XmlUtil.text(XmlUtil.text(XmlUtil.descendant(XmlUtil.descendant(self, None, "result"), None, "versioningReport")))
 

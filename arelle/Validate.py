@@ -4,7 +4,7 @@ Created on Oct 17, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, sys, traceback
+import os, sys, traceback, re
 from collections import defaultdict
 from arelle import (ModelXbrl, ModelVersReport, XbrlConst, 
                ValidateXbrl, ValidateFiling, ValidateHmrc, ValidateVersReport, ValidateFormula,
@@ -337,7 +337,13 @@ class Validate:
         return not any(not isinstance(actual,dict) for actual in modelTestcaseVariation)
                 
     def determineTestStatus(self, modelTestcaseVariation, modelUnderTest):
-        numErrors = len(modelUnderTest.errors)
+        _blockedMessageCodes = modelTestcaseVariation.blockedMessageCodes # restricts codes examined when provided
+        if _blockedMessageCodes:
+            _blockPattern = re.compile(_blockedMessageCodes)
+            _errors = [e for e in modelUnderTest.errors if not _blockPattern.match(e)]
+        else:
+            _errors = modelUnderTest.errors
+        numErrors = len(_errors)
         expected = modelTestcaseVariation.expected
         if expected == "valid":
             if numErrors == 0:
@@ -353,7 +359,7 @@ class Validate:
             status = "pass"
         elif isinstance(expected,(QName,_STR_BASE,dict)): # string or assertion id counts dict
             status = "fail"
-            for testErr in modelUnderTest.errors:
+            for testErr in _errors:
                 if isinstance(expected,QName) and isinstance(testErr,_STR_BASE):
                     errPrefix, sep, errLocalName = testErr.partition(":")
                     if ((not sep and errPrefix == expected.localName) or
@@ -377,10 +383,10 @@ class Validate:
                 status = "pass"
             # check if expected is a whitespace separated list of error tokens
             if status == "fail" and isinstance(expected,_STR_BASE) and ' ' in expected:
-                if all(any(testErr == e for testErr in modelUnderTest.errors)
+                if all(any(testErr == e for testErr in _errors)
                        for e in expected.split()):
                         status = "pass"
-            if not modelUnderTest.errors and status == "fail":
+            if not _errors and status == "fail":
                 if modelTestcaseVariation.assertions:
                     if modelTestcaseVariation.assertions == expected:
                         status = "pass" # passing was previously successful and no further errors
@@ -394,13 +400,13 @@ class Validate:
         modelTestcaseVariation.actual = []
         if numErrors > 0: # either coded errors or assertions (in errors list)
             # put error codes first, sorted, then assertion result (dict's)
-            for error in modelUnderTest.errors:
+            for error in _errors:
                 if isinstance(error,dict):  # asserion results
                     modelTestcaseVariation.assertions = error
                 else:   # error code results
                     modelTestcaseVariation.actual.append(error)
             modelTestcaseVariation.actual.sort(key=lambda d: str(d))
-            for error in modelUnderTest.errors:
+            for error in _errors:
                 if isinstance(error,dict):
                     modelTestcaseVariation.actual.append(error)
                 

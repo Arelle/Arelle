@@ -13,6 +13,7 @@ from arelle.ModelObject import ModelObject, ObjectPropertyViewWrapper
 from arelle.Locale import format_string
 from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeInstanceObject import FactPrototype, DimValuePrototype
+from arelle.PythonUtil import flattenSequence
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 ModelRelationshipSet = None # dynamic import
@@ -929,7 +930,7 @@ class ModelXbrl:
                         entryUrl = self.fileSource.url
                 refs = []
                 modelObjectArgs = argValue if isinstance(argValue, (tuple,list,set)) else (argValue,)
-                for arg in modelObjectArgs:
+                for arg in flattenSequence(modelObjectArgs):
                     if arg is not None:
                         if isinstance(arg, _STR_BASE):
                             objectUrl = arg
