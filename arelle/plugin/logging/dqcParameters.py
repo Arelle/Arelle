@@ -8,7 +8,7 @@ from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObject import ModelObject
 from arelle.PythonUtil import flattenSequence
-from arelle.XmlUtil import xmlstring
+from arelle.XmlUtil import xmlstring, descendantAttr
 from arelle import XbrlConst, XmlUtil
 import re
 from collections import defaultdict
@@ -188,6 +188,19 @@ def loggingCommandLineXbrlRun(cntlr, options, modelXbrl):
     global labelrole, lang
     labelrole=options.labelRole
     lang=options.labelLang
+
+def testcaseVariationExpectedSeverity(modelTestcaseVariation):
+    _severity = descendantAttr(modelTestcaseVariation, None, "error", "severity")
+    if _severity is not None:
+        return _severity.upper()
+    return None
+
+def testcaseVariationExpectedCount(modelTestcaseVariation):
+    try:
+        return int(descendantAttr(modelTestcaseVariation, None, "error", "count"))
+    except (ValueError, TypeError):
+        pass
+    return None
                 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
@@ -201,5 +214,7 @@ in message text that can be derived from the arguments.''',
     'copyright': '(c) Copyright 2014 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
     'CntlrCmdLine.Xbrl.Run': loggingCommandLineXbrlRun,
-    'Logging.Message.Parameters': loggingMessageParameters
+    'Logging.Message.Parameters': loggingMessageParameters,
+    'ModelTestcaseVariation.ExpectedSeverity': testcaseVariationExpectedSeverity,
+    'ModelTestcaseVariation.ExpectedCount': testcaseVariationExpectedCount
 }
