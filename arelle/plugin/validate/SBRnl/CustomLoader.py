@@ -9,7 +9,8 @@ import re
 def checkForBOMs(modelXbrl, file, mappedUri, filepath):
     # callback is for all opened docs, must only process when SBRNL validation active
     if (modelXbrl.modelManager.validateDisclosureSystem and
-        modelXbrl.modelManager.disclosureSystem.SBRNL): 
+        # corrected merge of pre-plugin code per LOGIUS
+        getattr(modelXbrl.modelManager.validateDisclosureSystem, "SBRNLplugin", False)): 
         #must read file in binary and return nothing to not replace standard loading
         with open(filepath, 'rb') as fb:
             startingBytes = fb.read(8)

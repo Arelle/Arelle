@@ -173,6 +173,34 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                     elif localName == "attribute":
                         if elt.typeQname is not None:
                             val.referencedNamespaces.add(elt.typeQname.namespaceURI)
+                    elif localName == "appinfo":
+                        if (parent.localName != "annotation" or parent.namespaceURI != XbrlConst.xsd or
+                            parent.getparent().localName != "schema" or parent.getparent().namespaceURI != XbrlConst.xsd or
+                            XmlUtil.previousSiblingElement(parent) != None):
+                            val.modelXbrl.error("SBR.NL.2.2.0.12",
+                                _('Annotation/appinfo record must be be behind schema and before import'), modelObject=elt)
+                        nextSiblingElement = XmlUtil.nextSiblingElement(parent)
+                        if nextSiblingElement is not None and nextSiblingElement.localName != "import":
+                            val.modelXbrl.error("SBR.NL.2.2.0.14",
+                                _('Annotation/appinfo record must be followed only by import'),
+                                modelObject=elt)
+                    elif localName == "annotation":
+                        val.annotationsCount += 1
+                        if not XmlUtil.hasChild(elt,XbrlConst.xsd,"appinfo"):
+                            val.modelXbrl.error("SBR.NL.2.2.0.12",
+                                _('Schema file annotation missing appinfo element must be be behind schema and before import'),
+                                modelObject=elt)
+                    elif localName in {"all", "documentation", "any", "anyAttribute", "attributeGroup",
+                                       # comment out per R.H. 2011-11-16 "complexContent", "complexType", "extension", 
+                                       "field", "group", "key", "keyref",
+                                       "list", "notation", "redefine", "selector", "unique"}:
+                        val.modelXbrl.error("SBR.NL.2.2.11.{0:02}".format({"all":1, "documentation":2, "any":3, "anyAttribute":4, "attributeGroup":7,
+                                                                  "complexContent":10, "complexType":11, "extension":12, "field":13, "group":14, "key":15, "keyref":16,
+                                                                  "list":17, "notation":18, "redefine":20, "selector":22, "unique":23}[localName]),
+                            _('Schema file element must not be used "%(element)s"'),
+                            modelObject=elt, element=elt.qname,
+                            messageCodes=("SBR.NL.2.2.11.01", "SBR.NL.2.2.11.02", "SBR.NL.2.2.11.03", "SBR.NL.2.2.11.04", "SBR.NL.2.2.11.07", "SBR.NL.2.2.11.10", "SBR.NL.2.2.11.11", "SBR.NL.2.2.11.12", 
+                                          "SBR.NL.2.2.11.13", "SBR.NL.2.2.11.14", "SBR.NL.2.2.11.15", "SBR.NL.2.2.11.16", "SBR.NL.2.2.11.17", "SBR.NL.2.2.11.18", "SBR.NL.2.2.11.20", "SBR.NL.2.2.11.22", "SBR.NL.2.2.11.23"))
                 if not elt.prefix:
                         val.modelXbrl.error("SBR.NL.2.2.0.06",
                                 'Schema element is not prefixed: "%(element)s"',
@@ -202,13 +230,13 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                             if qName == XbrlConst.qnLinkCalculationLink:
                                 val.modelXbrl.error("SBR.NL.2.2.3.01",
                                     _("%(element)s usedOn must not be link:calculationLink"),
-                                    modelObject=elt, element=parent.qname, value=qName)
+                                    modelObject=elt, element=elt.qname, value=qName)
                             if elt.localName == "roleType" and qName in XbrlConst.standardExtLinkQnames:
                                 if not any((key[1] == roleURI  and key[2] == qName) 
                                            for key in val.modelXbrl.baseSets.keys()):
                                     val.modelXbrl.error("SBR.NL.2.2.3.02",
                                         _("%(element)s usedOn %(usedOn)s not addressed for role %(role)s"),
-                                        modelObject=elt, element=parent.qname, usedOn=qName, role=roleURI)
+                                        modelObject=elt, element=elt.qname, usedOn=qName, role=roleURI)
             if val.annotationsCount > 1:
                 modelXbrl.error("SBR.NL.2.2.0.22",
                     _('Schema has %(annotationsCount)s xs:annotation elements, only 1 allowed'),
@@ -339,8 +367,8 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
         if isinstance(elt, ModelObject):
             xlinkType = elt.get("{http://www.w3.org/1999/xlink}type")
             xlinkRole = elt.get("{http://www.w3.org/1999/xlink}role")
-            if elt.tag in ("{http://www.w3.org/1999/xlink}arcroleRef", "{http://www.w3.org/1999/xlink}roleRef"):
-                if elt.tag =="{http://www.w3.org/1999/xlink}arcroleRef":
+            if elt.tag in ("{http://www.xbrl.org/2003/linkbase}arcroleRef", "{http://www.xbrl.org/2003/linkbase}roleRef"):
+                if elt.tag =="{http://www.xbrl.org/2003/linkbase}arcroleRef": # corrected merge of pre-plugin code per LOGIUS
                     for attrName, errCode in (("{http://www.w3.org/1999/xlink}arcrole","SBR.NL.2.3.2.05"),("{http://www.w3.org/1999/xlink}role","SBR.NL.2.3.2.06")):
                         if elt.get(attrName):
                             val.modelXbrl.error(errCode,
@@ -348,7 +376,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                                 modelObject=elt, refURI=elt.get("arcroleURI"), 
                                 xlinkHref=elt.get("{http://www.w3.org/1999/xlink}href"), attribute=attrName,
                                 messageCodes=("SBR.NL.2.3.2.05", "SBR.NL.2.3.2.06"))
-                elif elt.tag == "{http://www.w3.org/1999/xlink}roleRef":
+                elif elt.tag == "{http://www.xbrl.org/2003/linkbase}roleRef": # corrected merge of pre-plugin code per LOGIUS
                     for attrName, errCode in (("{http://www.w3.org/1999/xlink}arcrole","SBR.NL.2.3.10.09"),("{http://www.w3.org/1999/xlink}role","SBR.NL.2.3.10.10")):
                         if elt.get(attrName):
                             val.modelXbrl.error(errCode,
@@ -372,23 +400,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                             val.modelXbrl.error("SBR.NL.2.2.5.01",
                                 _("Link part %(element)s is not authorized"),
                                 modelObject=linkPart, element=linkPart.elementQname)
-            elif xlinkType == "extended":
-                if xlinkRole is None: # no @role on extended link
-                    val.modelXbrl.error("SBR.NL.2.3.10.13",
-                        _("Extended link %(element)s must have an xlink:role attribute"),
-                        modelObject=elt, element=elt.elementQname)
-                if not val.extendedElementName:
-                    val.extendedElementName = elt.qname
-                elif val.extendedElementName != elt.qname:
-                    val.modelXbrl.error("SBR.NL.2.3.0.11",
-                        _("Extended element %(element)s must be the same as %(element2)s"),
-                        modelObject=elt, element=elt.qname, element2=val.extendedElementName)
-            elif xlinkType == "locator":
-                if elt.qname != XbrlConst.qnLinkLoc:
-                    val.modelXbrl.error("SBR.NL.2.3.0.11",
-                        _("Loc element %(element)s may not be contained in a linkbase with %(element2)s"),
-                        modelObject=elt, element=elt.qname, element2=val.extendedElementName)
-            elif xlinkType == "resource":
+                # corrected merge of pre-plugin code per LOGIUS
                 if not XbrlConst.isStandardRole(xlinkRole):
                     modelsRole = val.modelXbrl.roleTypes.get(xlinkRole)
                     if (modelsRole is None or len(modelsRole) == 0 or 
@@ -427,6 +439,22 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                      }.get(val.extendedElementName,(elt.qname,)):  # allow non-2.1 to be ok regardless per RH 2013-03-13
                     val.modelXbrl.error("SBR.NL.2.3.0.11",
                         _("Resource element %(element)s may not be contained in a linkbase with %(element2)s"),
+                        modelObject=elt, element=elt.qname, element2=val.extendedElementName)
+            elif xlinkType == "extended":
+                if xlinkRole is None: # no @role on extended link
+                    val.modelXbrl.error("SBR.NL.2.3.10.13",
+                        _("Extended link %(element)s must have an xlink:role attribute"),
+                        modelObject=elt, element=elt.elementQname)
+                if not val.extendedElementName:
+                    val.extendedElementName = elt.qname
+                elif val.extendedElementName != elt.qname:
+                    val.modelXbrl.error("SBR.NL.2.3.0.11",
+                        _("Extended element %(element)s must be the same as %(element2)s"),
+                        modelObject=elt, element=elt.qname, element2=val.extendedElementName)
+            elif xlinkType == "locator":
+                if elt.qname != XbrlConst.qnLinkLoc:
+                    val.modelXbrl.error("SBR.NL.2.3.0.11",
+                        _("Loc element %(element)s may not be contained in a linkbase with %(element2)s"),
                         modelObject=elt, element=elt.qname, element2=val.extendedElementName)
             elif xlinkType == "arc":
                 if elt.namespaceURI == XbrlConst.link:
@@ -485,8 +513,8 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
 
             xmlLang = elt.get("{http://www.w3.org/XML/1998/namespace}lang")
             if val.validateXmlLang and xmlLang is not None:
-                if not val.disclosureSystem.xmlLangPattern.match(xmlLang):
-                    val.modelXbrl.error("SBR.NL.2.3.8.01" if (xmlLang.startswith('nl')) else "SBR.NL.2.3.8.02" if (val.validateSBRNL and xmlLang.startswith('en')) else "arelle:langError",
+                if not val.disclosureSystem.xmlLangPattern.match(xmlLang): # corrected merge of pre-plugin code per LOGIUS
+                    val.modelXbrl.error("SBR.NL.2.3.8.01" if xmlLang.startswith('nl') else "SBR.NL.2.3.8.02" if xmlLang.startswith('en') else "arelle:langError",
                         _("Element %(element)s %(xlinkLabel)s has unauthorized xml:lang='%(lang)s'"),
                         modelObject=elt, element=elt.qname,
                         xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"),
@@ -566,12 +594,11 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                         modelObject=elt, element=elt.qname, attribute=attrName,
                         messageCodes=("SBR.NL.2.3.10.01", "SBR.NL.2.3.10.02", "SBR.NL.2.3.10.03"))
         elif isinstance(elt,ModelComment): # comment node
-            if val.validateSBRNL:
-                if elt.itersiblings(preceding=True):
-                    val.modelXbrl.error("SBR.NL.2.2.0.05" if isSchema else "SBR.NL.2.3.0.05",
-                            _('%(fileType)s must have only one comment node before schema element: "%(value)s"'),
-                            modelObject=elt, fileType=modelDocument.gettype().title(), value=elt.text,
-                            messageCodes=("SBR.NL.2.2.0.05", "SBR.NL.2.3.0.05"))
+            if elt.itersiblings(preceding=True): # corrected merge of pre-plugin code per LOGIUS
+                val.modelXbrl.error("SBR.NL.2.2.0.05" if isSchema else "SBR.NL.2.3.0.05",
+                        _('%(fileType)s must have only one comment node before schema element: "%(value)s"'),
+                        modelObject=elt, fileType=modelDocument.gettype().title(), value=elt.text,
+                        messageCodes=("SBR.NL.2.2.0.05", "SBR.NL.2.3.0.05"))
                     
     # check folder names
     if modelDocument.filepathdir.startswith(modelXbrl.uriDir):

@@ -83,6 +83,8 @@ def validateFiling(val, modelXbrl):
                         _("Concept %(concept)s of a standard taxonomy cannot have a documentation label: %(text)s"),
                         modelObject=modelLabel, concept=concept.qname, text=text)
             elif text and lang and disclosureSystem.defaultXmlLang and lang.startswith(disclosureSystem.defaultXmlLang):
+                if role == XbrlConst.standardLabel:  # merge of pre-plugin code per LOGIUS
+                    conceptHasDefaultLangStandardLabel = True
                 match = modelXbrl.modelManager.disclosureSystem.labelCheckPattern.search(text)
                 if match:
                     modelXbrl.error("SBR.NL.2.3.8.07",
@@ -92,7 +94,8 @@ def validateFiling(val, modelXbrl):
             modelReference = modelRefRel.toModelObject
             text = XmlUtil.innerText(modelReference)
             #6.18.1 no reference to company extension concepts
-            if not isStandardUri(val, modelRefRel.modelDocument.uri): 
+            if (concept.modelDocument.targetNamespace in disclosureSystem.standardTaxonomiesDict and 
+                not isStandardUri(val, modelRefRel.modelDocument.uri)): # merge of pre-plugin code per LOGIUS
                 #6.18.2 no extension to add or remove references to standard concepts
                 modelXbrl.error("SBR.NL.2.1.0.08",
                     _("References for standard taxonomy concept %(concept)s are not allowed in an extension linkbase: %(text)s"),
