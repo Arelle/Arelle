@@ -54,7 +54,7 @@ from arelle.HashUtil import Md5Sum
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelInstanceObject import ModelFact
 from arelle import Locale, ValidateXbrlDimensions
-from arelle.ModelValue import qname, dateTime, DATE, dateunionDate, DateTime
+from arelle.ModelValue import qname, QName, dateTime, DATE, dateunionDate, DateTime
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.ValidateXbrlCalcs import roundValue
 from arelle.XmlUtil import xmlstring, datetimeValue, DATETIME_MAXYEAR, dateunionValue, addChild, addQnameValue, addProcessingInstruction
@@ -146,7 +146,9 @@ def dimValKey(cntx, typedDim=False, behaveAsTypedDims=EMPTYSET, restrictToDims=N
                                            else dim.memberQname if typedDim and not dim.isTyped
                                            else "<{}/>".format(dim.typedMember.qname)
                                                  if typedDim and dim.typedMember.get("{http://www.w3.org/2001/XMLSchema-instance}nil") in ("true", "1")
-                                           else xmlstring(dim.typedMember, stripXmlns=True) if typedDim
+                                           # else xmlstring(dim.typedMember, stripXmlns=True) if typedDim
+                                           # use corrected prefix in typedMember.qname and compatible with native c# implementation
+                                           else "<{0}>{1}</{0}>".format(dim.typedMember.qname,dim.typedMember.stringValue) if typedDim
                                            else '*' )
                            for dim in cntx.qnameDims.values()
                            if not restrictToDims or str(dim.dimensionQname) in restrictToDims))
@@ -389,7 +391,30 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
 
         self.showStatus("insert data points, " +
                         ("streaming" if isStreaming else "non-streaming"))
+
+        # find dpm canonical prefixes and namespaces in DB
+        results = self.execute("SELECT * FROM [vwGetNamespacesPrefixes]")            
+        self.dpmNsPrefix = dict((namespace, prefix)
+                                for owner, prefix, namespace in results)
         return True
+    
+    def correctQnamePrefix(self, qn):
+        if qn.prefix != self.dpmNsPrefix[qn.namespaceURI]:
+            qn.prefix = self.dpmNsPrefix[qn.namespaceURI]
+            
+    def correctFactQnamePrefixes(self, f, xValue):
+        self.correctQnamePrefix(f.qname)
+        cntx = f.context
+        if cntx is not None and not getattr(cntx, "_cntxPrefixesCorrected", False):
+            for dim in cntx.qnameDims.values():
+                self.correctQnamePrefix(dim.dimensionQname)
+                if dim.isExplicit:
+                    self.correctQnamePrefix(dim.memberQname)
+                else:
+                    self.correctQnamePrefix(dim.typedMember.qname)
+            cntx._cntxPrefixesCorrected = True
+        if isinstance(xValue, QName):
+            self.correctQnamePrefix(xValue)
     
     def loadAllowedMetricsAndDims(self):
         self.filedFilingIndicators = ', '.join("'{}'".format(_filingIndicator)
@@ -726,6 +751,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     yDimKey = metDimValKey(cntx, typedDim=True, behaveAsTypedDims=behaveAsTypedDims, restrictToDims=yDimVals)
                     self.availableTableRows[tableID,zDimKey].add(yDimKey)
                     break
+                self.correctFactQnamePrefixes(f, xValue)
                 _dataPointSignature = metDimTypedKey(f, behaveAsTypedDims)
                 # self.validateFactSignature(_dataPointSignature, f)
                 # validate signatures at end
