@@ -76,7 +76,7 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     view.viewFrame.bind("<Enter>", view.cellEnter, '+')
     view.viewFrame.bind("<Leave>", view.cellLeave, '+')
     view.viewFrame.bind("<FocusOut>", view.onQuitView, '+')
-    view.viewFrame.bind("<1>", view.onClick, '+')
+    view.viewFrame.bind("<1>", view.onClick, '+') # does not currently work (since tktable changes)
     view.viewFrame.bind("<Configure>", view.onConfigure, '+') # frame resized, redo column header wrap length ratios
     view.blockMenuEvents = 0
             
@@ -698,6 +698,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
     def cellLeave(self, *args):
         self.blockSelectEvent = 1
 
+    # this method is not currently used
     def cellSelect(self, *args):
         if self.blockSelectEvent == 0 and self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
@@ -747,11 +748,37 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     self.viewFrame.after(1500, deferredReload)
                             
     def onQuitView(self, event, *args):
+        # this method is passed as callbacl when creating the view 
+        # (to ScrolledTkTableFrame and then to XbrlTable that will monitor cell operations)
         self.updateInstanceFromFactPrototypes()
-            
+        self.updateProperties()
+
     def hasChangesToSave(self):
         return len(self.table.modifiedCells)
-    
+
+    def updateProperties(self):
+        if self.modelXbrl is not None:
+            modelXbrl =  self.modelXbrl
+            # make sure the properties view is visible and we handle an instance
+            if modelXbrl.guiViews.propertiesView is not None  and modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE:
+                tbl = self.table
+                # get coordinates of last currently operated cell
+                coordinates = tbl.getCurrentCellCoordinates()
+                if coordinates is not None:
+                    # get object identifier from its coordinates in the current table
+                    objId = tbl.getObjectId(coordinates)
+                    if objId is not None and len(objId) > 0:
+                        if objId and objId[0] == "f":
+                            # fact prototype
+                            viewableObject = self.factPrototypes[int(objId[1:])]
+                        elif objId[0] != "a":
+                            # instance fact
+                            viewableObject = self.modelXbrl.modelObject(objId)
+                        else:
+                            return
+                        modelXbrl.guiViews.propertiesView.viewModelObject(viewableObject)
+                
+
     def updateInstanceFromFactPrototypes(self):
         # Only update the model if it already exists
         if self.modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE:

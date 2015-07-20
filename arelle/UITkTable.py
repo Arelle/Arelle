@@ -252,13 +252,15 @@ class XbrlTable(TkTableWrapper.Table):
         col = event.c
         if event.i == 0:
             if (row<totalRows) and (col<totalColumns):
+                self.currentCellCoordinates = Coordinate(row, col)
                 return widget.data[row, col]
             else:
                 return ''
         else:
             if (row<totalRows) and (col<totalColumns):
                 widget.data[row, col] = event.S
-                widget.modifiedCells[Coordinate(row, col)] = True
+                self.currentCellCoordinates = Coordinate(row, col)
+                widget.modifiedCells[self.currentCellCoordinates] = True
             return 'set'
 
 
@@ -274,6 +276,7 @@ class XbrlTable(TkTableWrapper.Table):
         self.data = numpy.empty((rows, columns), dtype=object)
         self.objectIds = numpy.empty((rows, columns), dtype=object)
         self.modifiedCells = dict()
+        self.currentCellCoordinates = None
         self.data.fill('')
         self.objectIds.fill('')
         self.titleRows = titleRows
@@ -425,7 +428,10 @@ class XbrlTable(TkTableWrapper.Table):
 
     def getCoordinatesOfModifiedCells(self):
         return self.modifiedCells.keys()
-
+    
+    
+    def getCurrentCellCoordinates(self):
+        return self.currentCellCoordinates
 
     def initCellValue(self, value, x, y,
                       backgroundColourTag='bg-white',
