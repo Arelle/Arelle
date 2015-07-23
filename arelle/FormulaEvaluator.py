@@ -25,10 +25,12 @@ ModelFact = None
 expressionVariablesPattern = re.compile(r"([^$]*)([$]\w[\w:.-]*)([^$]*)")
 EMPTYSET = set()
 
-def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
+def init():
     global ModelDimensionValue, ModelFact # initialize objects that would cause recursive import
     if ModelDimensionValue is None:
         from arelle.ModelInstanceObject import ModelDimensionValue, ModelFact
+
+def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
     # for each dependent variable, find bindings
     if variablesInScope:
         stackedEvaluations = (xpCtx.evaluations, xpCtx.evaluationHashDicts)

@@ -2766,11 +2766,11 @@ class ModelCustomFunctionSignature(ModelFormulaResource):
                 tuple((_("input {0}").format(i+1), type) for i,type in enumerate(self.inputTypes))
         
     def __repr__(self):
-        return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
+        return ("{0}[{1}]{2}").format(self.__class__.__name__, self.objectId(),self.propertyView)
     
     @property
     def viewExpression(self):
-        return _("{0}({1}) as {2}").format(self.name, ", ".join(self.inputTypes), self.outputType)
+        return _("{0}({1}) as {2}").format(self.name, ", ".join(str(t) for t in self.inputTypes), self.outputType)
 
 
 class ModelCustomFunctionImplementation(ModelFormulaResource):
