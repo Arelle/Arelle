@@ -11,11 +11,13 @@ Saves extracted instance document.
 '''
 from arelle import ModelXbrl, ValidateXbrlDimensions, XmlUtil, XbrlConst
 from arelle.PrototypeDtsObject import LocPrototype
+from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, load
 from arelle.ValidateFilingText import CDATApattern, copyHtml
 import os, zipfile
 from optparse import SUPPRESS_HELP
 from lxml.etree import XML, XMLSyntaxError
+from collections import defaultdict
 
 class ModelInlineXbrlDocumentSet(ModelDocument):
         
@@ -110,30 +112,45 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
                 
     createFacts(modelXbrl.facts, None)
     # footnote links
+    footnoteIdCount = {}
     modelXbrl.modelManager.showStatus(_("Creating and validating footnotes & relationships"))
+    footnoteLinks = defaultdict(list)
     for linkKey, linkPrototypes in modelXbrl.baseSets.items():
         arcrole, linkrole, linkqname, arcqname = linkKey
         if (linkrole and linkqname and arcqname and # fully specified roles
+            arcrole != "XBRL-footnotes" and
             any(lP.modelDocument.type == Type.INLINEXBRL for lP in linkPrototypes)):
             for linkPrototype in linkPrototypes:
-                newLink = XmlUtil.addChild(targetInstance.modelDocument.xmlRootElement, linkqname, 
-                                           attributes=linkPrototype.attributes)
-                for linkChild in linkPrototype:
-                    if isinstance(linkChild, LocPrototype) and "{http://www.w3.org/1999/xlink}href" not in linkChild.attributes:
-                        linkChild.attributes["{http://www.w3.org/1999/xlink}href"] = \
-                        "#" + XmlUtil.elementFragmentIdentifier(newFactForOldObjId[linkChild.dereference().objectIndex])
-                    XmlUtil.addChild(newLink, linkChild.qname, 
-                                     attributes=linkChild.attributes,
-                                     text=linkChild.textValue)
-                    if filingFiles and linkChild.textValue:
-                        footnoteHtml = XML("<body/>")
-                        copyHtml(linkChild, footnoteHtml)
-                        for elt in footnoteHtml.iter():
-                            if elt.tag in ("a", "img"):
-                                for attrTag, attrValue in elt.items():
-                                    if attrTag in ("href", "src"):
-                                        filingFiles.add(attrValue)
-            
+                if linkPrototype not in footnoteLinks[linkrole]:
+                    footnoteLinks[linkrole].append(linkPrototype)
+    for linkrole in sorted(footnoteLinks.keys()):
+        for linkPrototype in footnoteLinks[linkrole]:
+            newLink = XmlUtil.addChild(targetInstance.modelDocument.xmlRootElement, 
+                                       linkPrototype.qname, 
+                                       attributes=linkPrototype.attributes)
+            for linkChild in linkPrototype:
+                attributes = linkChild.attributes
+                if isinstance(linkChild, LocPrototype) and "{http://www.w3.org/1999/xlink}href" not in linkChild.attributes:
+                    linkChild.attributes["{http://www.w3.org/1999/xlink}href"] = \
+                    "#" + XmlUtil.elementFragmentIdentifier(newFactForOldObjId[linkChild.dereference().objectIndex])
+                elif isinstance(linkChild, ModelInlineFootnote):
+                    idUseCount = footnoteIdCount.get(linkChild.footnoteID, 0) + 1
+                    if idUseCount > 1: # if footnote with id in other links bump the id number
+                        attributes = linkChild.attributes.copy()
+                        attributes["id"] = "{}_{}".format(attributes["id"], idUseCount)
+                    footnoteIdCount[linkChild.footnoteID] = idUseCount
+                XmlUtil.addChild(newLink, linkChild.qname, 
+                                 attributes=attributes,
+                                 text=linkChild.textValue)
+                if filingFiles and linkChild.textValue:
+                    footnoteHtml = XML("<body/>")
+                    copyHtml(linkChild, footnoteHtml)
+                    for elt in footnoteHtml.iter():
+                        if elt.tag in ("a", "img"):
+                            for attrTag, attrValue in elt.items():
+                                if attrTag in ("href", "src"):
+                                    filingFiles.add(attrValue)
+        
     targetInstance.saveInstance(overrideFilepath=targetUrl, outputZip=outputZip)
     modelXbrl.modelManager.showStatus(_("Saved extracted instance"), 5000)
 

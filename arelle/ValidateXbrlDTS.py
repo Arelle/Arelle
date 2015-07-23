@@ -190,7 +190,7 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
                                    "calculationLink":("{http://www.w3.org/2001/XMLSchema}element",),
                                    "definitionLink":("{http://www.w3.org/2001/XMLSchema}element",),
                                    "presentationLink":("{http://www.w3.org/2001/XMLSchema}element",),
-                                   "footnoteLink":("XBRL-item-or-tuple","{http://www.xbrl.org/2003/linkbase}footnote") }[hrefEltKey]:
+                                   "footnoteLink":("XBRL-item-or-tuple",) }[hrefEltKey]:
                             if tgtTag == "XBRL-item-or-tuple":
                                 concept = val.modelXbrl.qnameConcepts.get(qname(hrefedElt))
                                 acceptableTarget =  isinstance(concept, ModelDtsObject.ModelConcept) and \
@@ -206,9 +206,17 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
                                              "presentationLink":"5.2.4.1",
                                              "footnoteLink":"4.11.1.1"}[linkElt.localName],
                                              linkElt.localName),
-                                 _("%(linkElement)s loc href %(locHref)s must identify a concept or label"),
+                                 _("%(linkElement)s loc href %(locHref)s must identify a %(acceptableTarget)s"),
                                  modelObject=hrefElt, linkElement=linkElt.localName,
                                  locHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"),
+                                 acceptableTarget= {"labelLink": "concept or label",
+                                                    "labelLinkToResource": "label",
+                                                    "referenceLink":"concept or reference",
+                                                    "referenceLinkToResource":"reference",
+                                                    "calculationLink": "concept",
+                                                    "definitionLink": "concept",
+                                                    "presentationLink": "concept",
+                                                    "footnoteLink": "item or tuple" }[hrefEltKey],
                                  messageCodes=("xbrl.5.2.2.1:labelLinkLocTarget", "xbrl.5.2.3.1:referenceLinkLocTarget", "xbrl.5.2.5.1:calculationLinkLocTarget", "xbrl.5.2.6.1:definitionLinkLocTarget", "xbrl.5.2.4.1:presentationLinkLocTarget", "xbrl.4.11.1.1:footnoteLinkLocTarget"))
                         if isInstance and not XmlUtil.isDescendantOf(hrefedElt, modelDocument.xmlRootElement):
                             val.modelXbrl.error("xbrl.4.11.1.1:instanceLoc",

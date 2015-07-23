@@ -42,6 +42,12 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     if referringElement is None: # used for error messages
         referringElement = modelXbrl
     normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, base)
+    modelDocument = modelXbrl.urlDocs.get(normalizedUri)
+    if modelDocument:
+        return modelDocument
+    elif modelXbrl.urlUnloadableDocs.get(normalizedUri):  # only return None if in this list and marked True (really not loadable)
+        return None
+
     if isEntry:
         modelXbrl.entryLoadingUrl = normalizedUri   # for error loggiong during loading
         modelXbrl.uri = normalizedUri
@@ -106,12 +112,6 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                 modelObject=referringElement, fileName=normalizedUri)
         return None
     
-    modelDocument = modelXbrl.urlDocs.get(normalizedUri)
-    if modelDocument:
-        return modelDocument
-    elif modelXbrl.urlUnloadableDocs.get(normalizedUri):  # only return None if in this list and marked True (really not loadable)
-        return None
-
     
     # load XML and determine type of model document
     modelXbrl.modelManager.showStatus(_("parsing {0}").format(uri))
@@ -1321,36 +1321,64 @@ def inlineIxdsDiscover(modelXbrl):
                                                                 footnoteLocLabel, footnoteID,
                                                                 linkrole, arcrole))
                 
+        # inline 1.1 link prototypes, one per link role (so only one extended link element is produced per link role)
+        linkPrototypes = {}
+        for modelInlineRel in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Relationship.clarkNotation):
+            if isinstance(modelInlineRel,ModelObject):
+                linkrole = modelInlineRel.get("linkRole", XbrlConst.defaultLinkRole)
+                if linkrole not in linkPrototypes:
+                    linkPrototypes[linkrole] = LinkPrototype(mdlDoc, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, linkrole) 
+                    
         # inline 1.1 ixRelationships and ixFootnotes
+        modelInlineFootnotesById = {}
+        linkModelInlineFootnoteIds = defaultdict(set)
+        linkModelLocIds = defaultdict(set)
+        
         for modelInlineFootnote in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Footnote.clarkNotation):
             if isinstance(modelInlineFootnote,ModelObject):
                 locateContinuation(modelInlineFootnote)
-                linkPrototype = LinkPrototype(mdlDoc, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, XbrlConst.defaultLinkRole)
-                baseSetKey = (XbrlConst.factFootnote,XbrlConst.defaultLinkRole,XbrlConst.qnLinkFootnoteLink, XbrlConst.qnLinkFootnoteArc)
-                modelXbrl.baseSets[baseSetKey].append(linkPrototype) # allows generating output instance with this loc
-                linkPrototype.childElements.append(modelInlineFootnote)
+                modelInlineFootnotesById[modelInlineFootnote.footnoteID] = modelInlineFootnote
 
         for modelInlineRel in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Relationship.clarkNotation):
             if isinstance(modelInlineRel,ModelObject):
                 linkrole = modelInlineRel.get("linkRole", XbrlConst.defaultLinkRole)
                 arcrole = modelInlineRel.get("arcrole", XbrlConst.factFootnote)
-                linkPrototype = LinkPrototype(mdlDoc, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, linkrole)
-                for baseSetKey in ((arcrole,linkrole,XbrlConst.qnLinkFootnoteLink, XbrlConst.qnLinkFootnoteArc), 
+                linkPrototype = linkPrototypes[linkrole]
+                for baseSetKey in (("XBRL-footnotes",None,None,None), 
+                                   ("XBRL-footnotes",linkrole,None,None),
+                                   (arcrole,linkrole,XbrlConst.qnLinkFootnoteLink, XbrlConst.qnLinkFootnoteArc), 
                                    (arcrole,linkrole,None,None),
                                    (arcrole,None,None,None)):
-                    modelXbrl.baseSets[baseSetKey].append(linkPrototype)
+                    if linkPrototype not in modelXbrl.baseSets[baseSetKey]: # only one link per linkrole
+                        modelXbrl.baseSets[baseSetKey].append(linkPrototype)
+                fromLabels = set()
                 for fromId in modelInlineRel.get("fromRefs","").split():
-                    locPrototype = LocPrototype(mdlDoc, linkPrototype, "from_loc", fromId)
-                    linkPrototype.childElements.append(locPrototype)
-                    linkPrototype.labeledResources["from_loc"].append(locPrototype)
+                    fromLabels.add(fromId)
+                    if fromId not in linkModelLocIds:
+                        locPrototype = LocPrototype(mdlDoc, linkPrototype, fromId, fromId)
+                        linkPrototype.childElements.append(locPrototype)
+                        linkPrototype.labeledResources[fromId].append(locPrototype)
+                toLabels = set()
                 for toId in modelInlineRel.get("toRefs","").split():
-                    locPrototype = LocPrototype(mdlDoc, linkPrototype, "to_loc", toId)
-                    linkPrototype.childElements.append(locPrototype)
-                    linkPrototype.labeledResources["to_loc"].append(locPrototype)
-                linkPrototype.childElements.append(ArcPrototype(mdlDoc, linkPrototype, XbrlConst.qnLinkFootnoteArc,
-                                                                "from_loc", "to_loc",
-                                                                linkrole, arcrole,
-                                                                modelInlineRel.get("order", "1")))
+                    toLabels.add(toId)
+                    if toId in modelInlineFootnotesById:
+                        modelInlineFootnote = modelInlineFootnotesById[toId]
+                        if toId not in linkModelInlineFootnoteIds[linkrole]:
+                            linkPrototype.childElements.append(modelInlineFootnote)
+                            linkModelInlineFootnoteIds[linkrole].add(toId)
+                        linkPrototype.labeledResources[toId].append(modelInlineFootnote)
+                    else:
+                        locPrototype = LocPrototype(mdlDoc, linkPrototype, toId, toId)
+                        linkPrototype.childElements.append(locPrototype)
+                        linkPrototype.labeledResources[toId].append(locPrototype)
+                for fromLabel in fromLabels:
+                    for toLabel in toLabels: 
+                        linkPrototype.childElements.append(ArcPrototype(mdlDoc, linkPrototype, XbrlConst.qnLinkFootnoteArc,
+                                                                        fromLabel, toLabel,
+                                                                        linkrole, arcrole,
+                                                                        modelInlineRel.get("order", "1")))
+
+        del linkPrototypes, modelInlineFootnotesById, linkModelInlineFootnoteIds # dereference
                 
     del modelXbrl.ixdsHtmlElements # dereference
     
