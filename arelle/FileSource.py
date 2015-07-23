@@ -21,7 +21,7 @@ XMLdeclaration = re.compile(r"<\?xml[^><\?]*\?>", re.DOTALL)
 
 TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml') # pre-PWD packages
 
-def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=False):
+def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=False, reloadCache=False):
     if sourceZipStream:
         filesource = FileSource(POST_UPLOADED_ZIP, cntlr)
         filesource.openZipStream(sourceZipStream)
@@ -34,7 +34,7 @@ def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=F
             archivepath = archivepathSelection[0]
             selection = archivepathSelection[1]
             filesource = FileSource(archivepath, cntlr, checkIfXmlIsEis)
-            filesource.open()
+            filesource.open(reloadCache)
             filesource.select(selection)
             return filesource
         # not archived content
@@ -123,10 +123,10 @@ class FileSource:
         if self.cntlr:
             self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
 
-    def open(self):
+    def open(self, reloadCache=False):
         if not self.isOpen:
             if (self.isZip or self.isTarGz or self.isEis or self.isXfd or self.isRss or self.isInstalledTaxonomyPackage) and self.cntlr:
-                self.basefile = self.cntlr.webCache.getfilename(self.url)
+                self.basefile = self.cntlr.webCache.getfilename(self.url, reload=reloadCache)
             else:
                 self.basefile = self.url
             self.baseurl = self.url # url gets changed by selection
