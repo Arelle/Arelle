@@ -865,6 +865,8 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
         else:
             maxFormulaRunTimeTimer = None
         # evaluate variable sets not in consistency assertions
+        from arelle.FormulaEvaluator import init as formulaEvaluatorInit, evaluate
+        formulaEvaluatorInit() # one-time module initialization
         val.modelXbrl.profileActivity("... evaluations", minTimeToShow=1.0)
         for instanceQname in orderedInstancesList:
             for modelVariableSet in instanceProducingVariableSets[instanceQname]:
@@ -876,7 +878,6 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                          any(modelRel.fromModelObject.id in runIDs
                              for modelRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).toModelObject(modelVariableSet)
                              if isinstance(modelRel.fromModelObject, ModelConsistencyAssertion)))):
-                        from arelle.FormulaEvaluator import evaluate
                         try:
                             varSetId = (modelVariableSet.id or modelVariableSet.xlinkLabel)
                             val.modelXbrl.profileActivity("... evaluating " + varSetId, minTimeToShow=10.0)
