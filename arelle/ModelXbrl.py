@@ -1142,7 +1142,10 @@ class ModelXbrl:
             if activityCompleted:
                 timeTaken = time.time() - self._startedProfiledActivity
                 if timeTaken > minTimeToShow:
-                    self.modelManager.addToLog("{0} {1:.2f} secs".format(activityCompleted, timeTaken), messageCode="info:profileActivity")
+                    self.info("info:profileActivity",
+                            _("%(activity)s %(time)s secs\n"),
+                            modelObject=self.modelXbrl.modelDocument, activity=activityCompleted,
+                            time=format_string(self.modelManager.locale, "%.3f", timeTaken, grouping=True))
         except AttributeError:
             pass
         self._startedProfiledActivity = time.time()
