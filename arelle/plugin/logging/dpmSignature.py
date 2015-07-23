@@ -32,7 +32,7 @@ def loggingRefAttributes(arg, refAttributes, codedArgs):
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Logging - DPM Signature',
-    'version': '0.9',
+    'version': '1.0',
     'description': '''DPM Signature, for data points (facts), concepts, dimensions, and members.  
 For a data point (fact): MET(conceptQName)|dimQName(mem)... (does not include period, unit, or entity identifier)
 For a concept, MET(conceptQName).''',

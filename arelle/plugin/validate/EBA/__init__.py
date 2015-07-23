@@ -546,7 +546,7 @@ def final(val):
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EBA',
-    'version': '0.9',
+    'version': '1.0',
     'description': '''EBA Validation.''',
     'license': 'Apache-2',
     'author': 'Mark V Systems',

@@ -61,7 +61,7 @@ def validateXbrlDtsDocument(val, modelDocument, isFilingDocument):
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate SBR NL',
-    'version': '0.9',
+    'version': '1.0',
     'description': '''SBR NL Validation.''',
     'license': 'Apache-2',
     'author': 'Mark V Systems',

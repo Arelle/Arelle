@@ -224,7 +224,7 @@ def validateXbrlFinally(val):
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate HMRC',
-    'version': '0.9',
+    'version': '1.0',
     'description': '''HMRC Validation.''',
     'license': 'Apache-2',
     'author': 'Mark V Systems',
