@@ -1404,7 +1404,10 @@ class ModelInlineFootnote(ModelResource):
     
     @property
     def footnoteID(self):
-        return self.get("footnoteID")
+        if self.namespaceURI == XbrlConst.ixbrl:
+            return self.get("footnoteID")
+        else:
+            return self.id
 
     @property
     def value(self):
@@ -1438,7 +1441,7 @@ class ModelInlineFootnote(ModelResource):
     @property
     def xlinkLabel(self):
         """(str) -- xlink:label attribute"""
-        return self.get("footnoteID")
+        return self.footnoteID
 
     @property
     def xmlLang(self):
@@ -1452,7 +1455,7 @@ class ModelInlineFootnote(ModelResource):
                       "{http://www.w3.org/1999/xlink}label":self.xlinkLabel,
                       "{http://www.w3.org/1999/xlink}role": self.role}
         if self.id:
-            attributes["id"] = self.id
+            attributes["id"] = self.footnoteID
         lang = self.xmlLang
         if lang:
             attributes["{http://www.w3.org/XML/1998/namespace}lang"] = lang
