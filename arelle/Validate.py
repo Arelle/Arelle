@@ -101,6 +101,7 @@ class Validate:
     def validateRssFeed(self):
         self.modelXbrl.info("info", "RSS Feed", modelDocument=self.modelXbrl)
         from arelle.FileSource import openFileSource
+        reloadCache = getattr(self.modelXbrl, "reloadCache", False)
         for rssItem in self.modelXbrl.modelDocument.rssItems:
             if getattr(rssItem, "skipRssItem", False):
                 self.modelXbrl.info("info", _("skipping RSS Item %(accessionNumber)s %(formType)s %(companyName)s %(period)s"),
@@ -111,7 +112,7 @@ class Validate:
             modelXbrl = None
             try:
                 modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, 
-                                           openFileSource(rssItem.zippedUrl, self.modelXbrl.modelManager.cntlr),
+                                           openFileSource(rssItem.zippedUrl, self.modelXbrl.modelManager.cntlr, reloadCache=reloadCache),
                                            _("validating"), rssItem=rssItem)
                 for pluginXbrlMethod in pluginClassMethods("RssItem.Xbrl.Loaded"):  
                     pluginXbrlMethod(modelXbrl, {}, rssItem)      
@@ -345,6 +346,7 @@ class Validate:
             _errors = modelUnderTest.errors
         numErrors = len(_errors)
         expected = modelTestcaseVariation.expected
+        expectedCount = modelTestcaseVariation.expectedCount
         if expected == "valid":
             if numErrors == 0:
                 status = "pass"
@@ -359,6 +361,7 @@ class Validate:
             status = "pass"
         elif isinstance(expected,(QName,_STR_BASE,dict)): # string or assertion id counts dict
             status = "fail"
+            _passCount = 0
             for testErr in _errors:
                 if isinstance(expected,QName) and isinstance(testErr,_STR_BASE):
                     errPrefix, sep, errLocalName = testErr.partition(":")
@@ -366,8 +369,7 @@ class Validate:
                         (expected == qname(XbrlConst.errMsgPrefixNS.get(errPrefix), errLocalName)) or
                         # XDT xml schema tests expected results 
                         (expected.namespaceURI == XbrlConst.xdtSchemaErrorNS and errPrefix == "xmlSchema")):
-                        status = "pass"
-                        break
+                        _passCount += 1
                 elif type(testErr) == type(expected):
                     if (testErr == expected or
                         (isinstance(expected, _STR_BASE) and (
@@ -377,8 +379,12 @@ class Validate:
                          (expected == "EFM.6.05.35" and testErr.startswith("utre:")) or
                          (expected.startswith("EFM.") and testErr.startswith(expected)) or
                          (expected == "vere:invalidDTSIdentifier" and testErr.startswith("xbrl"))))):
-                        status = "pass"
-                        break
+                        _passCount += 1
+            if _passCount > 0:
+                if expectedCount is not None and expectedCount != _passCount:
+                    status = "fail (count)"
+                else:
+                    status = "pass"
             if expected == "EFM.6.03.02" or expected == "EFM.6.03.08": # 6.03.02 is not testable
                 status = "pass"
             # check if expected is a whitespace separated list of error tokens

@@ -272,6 +272,15 @@ class ModelTestcaseVariation(ModelObject):
         return None
     
     @property
+    def expectedCount(self):
+        for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ExpectedCount"):
+            _count = pluginXbrlMethod(self)
+            if _count is not None: # ignore plug in if not a plug-in-recognized test case
+                return _count
+        return None
+        
+    
+    @property
     def severityLevel(self):
         for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ExpectedSeverity"):
             severityLevelName = pluginXbrlMethod(self)
