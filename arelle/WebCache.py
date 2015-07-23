@@ -4,7 +4,7 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, posixpath, sys, re, shutil, time, calendar, io, json, logging
+import os, posixpath, sys, re, shutil, time, calendar, io, json, logging, shutil
 if sys.version[0] >= '3':
     from urllib.parse import quote, unquote
     from urllib.error import URLError, HTTPError, ContentTooShortError
@@ -447,7 +447,10 @@ class WebCache:
                 # rename temporarily named downloaded file to desired name                
                 if os.path.exists(filepath):
                     try:
-                        os.remove(filepath)
+                        if os.path.isfile(filepath) or os.path.islink(filepath):
+                            os.remove(filepath)
+                        elif os.path.isdir(filepath):
+                            shutil.rmtree(filepath)
                     except Exception as err:
                         self.cntlr.addToLog(_("%(error)s \nUnsuccessful removal of prior file %(filepath)s \nPlease remove with file manager."),
                                             messageCode="webCache:cachedPriorFileLocked",
