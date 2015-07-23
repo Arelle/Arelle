@@ -19,7 +19,7 @@ from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelRenderingObject import (ModelClosedDefinitionNode, ModelEuAxisCoord, ModelTable,
                                          ModelFilterDefinitionNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE)
-from arelle.FormulaEvaluator import aspectMatches
+from arelle.FormulaEvaluator import init as formulaEvaluatorInit, aspectMatches
 
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, gridCombobox, 
@@ -84,6 +84,7 @@ class ViewRenderedGrid(ViewWinGrid.ViewGrid):
         self.ignoreDimValidity = BooleanVar(value=self.options.setdefault("ignoreDimValidity",True))
         self.xAxisChildrenFirst = BooleanVar(value=self.options.setdefault("xAxisChildrenFirst",True))
         self.yAxisChildrenFirst = BooleanVar(value=self.options.setdefault("yAxisChildrenFirst",False))
+        formulaEvaluatorInit() # one-time module initialization
             
     def close(self):
         super(ViewRenderedGrid, self).close()
