@@ -27,9 +27,11 @@ def loadEntityInformation(dts, rssItem):
     # identify tables
     disclosureSystem = dts.modelManager.disclosureSystem
     if disclosureSystem.EFM:
+        reloadCache = False
         if rssItem is not None:
             accession = rssItem.url.split('/')[-2]
             fileUrl = os.path.dirname(rssItem.url) + '/' + accession[0:10] + '-' + accession[10:12] + '-' + accession[12:] + ".hdr.sgml"
+            reloadCache = getattr(rssItem.modelXbrl, "reloadCache", False)
         elif dts.uri.startswith("http://www.sec.gov/Archives/edgar/data") and dts.uri.endswith(".xml"):
             accession = dts.uri.split('/')[-2]
             dirPart = os.path.dirname(dts.uri)
@@ -44,7 +46,7 @@ def loadEntityInformation(dts, rssItem):
             normalizedUrl = dts.modelManager.cntlr.webCache.normalizeUrl(fileUrl)
             hdrSgml = ''
             try:
-                filePath = dts.modelManager.cntlr.webCache.getfilename(normalizedUrl)
+                filePath = dts.modelManager.cntlr.webCache.getfilename(normalizedUrl, reload=reloadCache)
                 if filePath:
                     with open(filePath) as fh:
                         hdrSgml = fh.read()
@@ -93,7 +95,7 @@ def loadEntityInformation(dts, rssItem):
                 httpDir = normalizedUrl.rpartition('/')[0]
                 txtSgml = ''
                 try:
-                    filePath = dts.modelManager.cntlr.webCache.getfilename(normalizedUrl)
+                    filePath = dts.modelManager.cntlr.webCache.getfilename(normalizedUrl, reload=reloadCache)
                     if filePath:
                         with open(filePath, encoding='utf-8') as fh:
                             txtSgml = fh.read()

@@ -60,9 +60,11 @@ def loadPrimaryDocumentFacts(dts, rssItem, entityInformation):
     if rssItem is not None:
         formType = rssItem.formType
         fileUrl = rssItem.primaryDocumentURL
+        reloadCache = getattr(rssItem.modelXbrl, "reloadCache", False)
     else:
         formType = entityInformation.get("form-type")
         fileUrl = entityInformation.get("primary-document-url")
+        reloadCache = False
     if fileUrl and formType and (formType.startswith('10-K') or formType.startswith('10-Q')):
         if fileUrl.endswith(".txt") or fileUrl.endswith(".htm"):
             if formType.startswith('10-K'):
@@ -72,7 +74,7 @@ def loadPrimaryDocumentFacts(dts, rssItem, entityInformation):
             # try to load and use it
             normalizedUrl = dts.modelManager.cntlr.webCache.normalizeUrl(fileUrl)
             try:
-                filePath = dts.modelManager.cntlr.webCache.getfilename(normalizedUrl)
+                filePath = dts.modelManager.cntlr.webCache.getfilename(normalizedUrl, reload=reloadCache)
                 if filePath:
                     if filePath.endswith('.txt'):
                         with open(filePath, encoding='utf-8') as fh:
@@ -91,7 +93,7 @@ def loadPrimaryDocumentFacts(dts, rssItem, entityInformation):
                                     textParts.append(node.tail)
                         iterTextParts(doc.getroot())
                         text = ' '.join(textParts)
-            except  (IOError, EnvironmentError) as err:
+            except  (IOError, EnvironmentError, AttributeError) as err: # attribute err if html has no root element
                 dts.info("xpDB:primaryDocumentLoadingError",
                                     _("Loading XBRL DB: primary document loading error: %(error)s"),
                                     modelObject=dts, error=err)

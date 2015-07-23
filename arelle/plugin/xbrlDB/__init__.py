@@ -197,6 +197,8 @@ def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl):
             modelXbrl.xbrlDBconnection[6] in ("mssqlSemantic","mysqlSemantic","orclSemantic",
                                               "pgSemantic","sqliteSemantic") and
             modelXbrl.xbrlDBconnection[7] == "skipLoadedFilings"):
+            # specify reloading of cached source documents (may have been corrupted originally or refiled)
+            modelXbrl.reloadCache = True
             storeIntoDB(modelXbrl.xbrlDBconnection, modelXbrl, rssObject=modelXbrl.modelDocument)
     
 def xbrlDBCommandLineXbrlRun(cntlr, options, modelXbrl):
