@@ -234,6 +234,8 @@ class SqlDbConnection():
             return "'" + str(s).replace("'","''") + "'"
         elif self.product == "mysql":
             return "N" + self.conn.escape(str(s))
+        elif self.product == "sqlite":
+            return "'" + str(s).replace("'","''") + "'"
         else:
             return "'" + str(s).replace("'","''").replace('%', '%%') + "'"
         
