@@ -114,6 +114,7 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
     # footnote links
     footnoteIdCount = {}
     modelXbrl.modelManager.showStatus(_("Creating and validating footnotes & relationships"))
+    HREF = "{http://www.w3.org/1999/xlink}href"
     footnoteLinks = defaultdict(list)
     for linkKey, linkPrototypes in modelXbrl.baseSets.items():
         arcrole, linkrole, linkqname, arcqname = linkKey
@@ -130,8 +131,8 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
                                        attributes=linkPrototype.attributes)
             for linkChild in linkPrototype:
                 attributes = linkChild.attributes
-                if isinstance(linkChild, LocPrototype) and "{http://www.w3.org/1999/xlink}href" not in linkChild.attributes:
-                    linkChild.attributes["{http://www.w3.org/1999/xlink}href"] = \
+                if isinstance(linkChild, LocPrototype) and HREF not in linkChild.attributes:
+                    linkChild.attributes[HREF] = \
                     "#" + XmlUtil.elementFragmentIdentifier(newFactForOldObjId[linkChild.dereference().objectIndex])
                 elif isinstance(linkChild, ModelInlineFootnote):
                     idUseCount = footnoteIdCount.get(linkChild.footnoteID, 0) + 1
