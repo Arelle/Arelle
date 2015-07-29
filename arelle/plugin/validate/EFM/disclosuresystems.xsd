@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <xs:element name="DisclosureSystems">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="DisclosureSystem"/>
+      </xs:sequence>
+      <xs:anyAttribute namespace="http://www.w3.org/2001/XMLSchema-instance"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:simpleType name="validationType">
+    <xs:restriction base="xs:token">
+      <xs:enumeration value="EFM"/>
+      <xs:enumeration value="GFM"/>
+      <xs:enumeration value="HMRC"/>
+      <xs:enumeration value="SBR-NL"/>
+      <xs:enumeration value="EBA"/>
+      <xs:enumeration value="EIOPA"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="DisclosureSystem">
+    <xs:complexType>
+      <xs:attribute name="validationType" use="required" type="validationType"/>
+      <xs:attribute name="exclusiveTypesPattern" use="required"/>
+      <xs:attribute name="contextElement" use="required" type="xs:NCName"/>
+      <xs:attribute name="defaultLanguage" use="required" type="xs:NCName"/>
+      <xs:attribute name="defaultXmlLang" use="required" type="xs:NCName"/>
+      <xs:attribute name="defaultXmlEncoding" use="optional" type="xs:string"/> 
+      <!-- defaultXmlEncoding may be an empty string to detect when missing in an XML document -->
+      <xs:attribute name="xmlLangPattern" />
+      <xs:attribute name="deiAmendmentFlagElement" use="required" type="xs:NCName"/>
+      <xs:attribute name="deiCurrentFiscalYearEndDateElement" use="required" type="xs:NCName"/>
+      <xs:attribute name="deiDocumentFiscalYearFocusElement" use="required" type="xs:NCName"/>
+      <xs:attribute name="deiDocumentPeriodEndDateElement" use="required" type="xs:NCName"/>
+      <xs:attribute name="deiFilerIdentifierElement" use="required" type="xs:NCName"/>
+      <xs:attribute name="deiFilerNameElement" use="required" type="xs:NCName"/>
+      <xs:attribute name="deiNamespacePattern" use="required"/>
+      <xs:attribute name="description" />
+      <xs:attribute name="identifierSchemePattern" use="required"/>
+      <xs:attribute name="identifierValueName" use="required"/>
+      <xs:attribute name="identifierValuePattern" use="required"/>
+      <xs:attribute name="labelCheckPattern" use="required"/>
+      <xs:attribute name="labelTrimPattern" use="required"/>
+      <xs:attribute name="names" use="required"/>
+      <xs:attribute name="roleDefinitionPattern" use="required"/>
+      <xs:attribute name="standardTaxonomiesUrl" use="required" />
+      <xs:attribute name="mappingsUrl" />
+      <xs:attribute name="utrUrl" />
+      <xs:attribute name="validateFileText" type="xs:boolean"/>
+      <xs:attribute name="blockDisallowedReferences" type="xs:boolean"/>
+      <xs:attribute name="maxSubmissionSubdirectoryEntryNesting" type="xs:integer"/>
+      <xs:attribute name="logLevelFilter" />
+      <xs:attribute name="logCodeFilter" />
+      <xs:attribute name="standardTaxonomyDatabase" />
+      <xs:attribute name="standardTaxonomyUrlPattern" />
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

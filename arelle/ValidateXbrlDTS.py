@@ -128,7 +128,7 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
                             elementHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"),
                             scheme=scheme)
                         break
-                    elif val.validateDisclosureSystem:
+                    elif val.validateEFMorGFM:
                         val.modelXbrl.error(("EFM.6.03.06", "GFM.1.01.03"),
                             _("Href %(elementHref)s may only have shorthand xpointers"),
                             modelObject=hrefElt, 
@@ -689,7 +689,7 @@ def checkElements(val, modelDocument, parent):
                                 messageCodes=("xbrl.3.5.2.4.5:roleRefMismatch", "xbrl.3.5.2.4.5:arcroleRefMismatch"))
                             
                         
-                        if val.validateDisclosureSystem:
+                        if val.validateEFMorGFMorSBRNL:
                             if elt.localName == "arcroleRef":
                                 if hrefUri not in val.disclosureSystem.standardTaxonomiesDict:
                                     val.modelXbrl.error(("EFM.6.09.06", "GFM.1.04.06"),
@@ -1048,7 +1048,7 @@ def checkElements(val, modelDocument, parent):
                                     modelObject=elt)
                     else:
                         val.ixdsTuples[elt.tupleID] = elt
-            if val.validateDisclosureSystem:
+            if val.validateEFMorGFMorSBRNL:
                 if xlinkType == "extended":
                     if not xlinkRole or xlinkRole == "":
                         val.modelXbrl.error(("EFM.6.09.04", "GFM.1.04.04"),

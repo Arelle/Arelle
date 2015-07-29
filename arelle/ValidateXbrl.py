@@ -65,6 +65,7 @@ class ValidateXbrl:
         self.validateEFMorGFM = self.validateDisclosureSystem and self.disclosureSystem.EFMorGFM
         self.validateHMRC = self.validateDisclosureSystem and self.disclosureSystem.HMRC
         self.validateSBRNL = self.validateDisclosureSystem and self.disclosureSystem.SBRNL
+        self.validateEFMorGFMorSBRNL = self.validateEFMorGFM or self.validateSBRNL
         self.validateXmlLang = self.validateDisclosureSystem and self.disclosureSystem.xmlLangPattern
         self.validateCalcLB = modelXbrl.modelManager.validateCalcLB
         self.validateInferDecimals = modelXbrl.modelManager.validateInferDecimals

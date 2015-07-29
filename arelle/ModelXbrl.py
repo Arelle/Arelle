@@ -1031,6 +1031,12 @@ class ModelXbrl:
                 (msg, fmtArgs) if fmtArgs else (msg,), 
                 extras)
 
+    def debug(self, codes, msg, **args):
+        """Same as error(), but as info
+        """
+        """@messageCatalog=[]"""
+        self.log('DEBUG', codes, msg, **args)
+                    
     def info(self, codes, msg, **args):
         """Same as error(), but as info
         """

@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<DisclosureSystems  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+      xsi:noNamespaceSchemaLocation="../config/disclosuresystems.xsd" >
+  <!-- see ../config/disclosuresystem.xml for full comments -->
+
+  <DisclosureSystem 
+     names="Japan FSA|jp-fsa|fsa" 
+     description="Japan FSA example entry\n
+     Default language Japanese\n
+     EDInet identifier patterns\n
+     Allowed references TBD"
+     defaultXmlLang="jp" 
+     defaultLanguage="日本"
+     validationType="GFM"
+     exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
+     standardTaxonomiesUrl="fsataxonomies.xml"
+     identifierSchemePattern="^http://info\.edinet-fsa\.go\.jp$"
+     identifierValuePattern="^E[0-9]{15}-[0-9]{3}$"
+     identifierValueName="EDINET code"
+     contextElement="scenario"
+     roleDefinitionPattern="^\S[^\n]* - [^\n]*\S$"
+     labelCheckPattern="\s{2,}|&lt;"
+     labelTrimPattern="\s"
+     deiNamespacePattern="^http://xbrl\.us/dei/|^http://xbrl\.sec\.gov/dei"
+     deiAmendmentFlagElement="AmendmentFlag"
+     deiCurrentFiscalYearEndDateElement="CurrentFiscalYearEndDate"
+     deiDocumentFiscalYearFocusElement="DocumentFiscalYearFocus"
+     deiDocumentPeriodEndDateElement="DocumentPeriodEndDate"
+     deiFilerIdentifierElement="FilerIdentifier" 
+     deiFilerNameElement="EntityRegistrantName"
+     />
+  <DisclosureSystem 
+     names="IFRS-Example|ifrs" 
+     description="IFRS Example\n
+     Default language English\n
+     EDInet identifier patterns\n
+     Allowed references TBD"
+     defaultXmlLang="en" 
+     defaultLanguage="English" 
+     validationType="GFM"
+     standardTaxonomiesUrl="ifrs-taxonomies.xml"
+     validateFileText="false"
+     identifierSchemePattern="^http://.*$"
+     identifierValuePattern="^.*$"
+     identifierValueName="My code"
+     contextElement="segment"
+     roleDefinitionPattern="^\S[^\n]* - [^\n]*\S$"
+     labelCheckPattern="\s{2,}|&lt;"
+     labelTrimPattern="\s"
+     />
+   <DisclosureSystem 
+     names="US SEC (Global Filing Manual)|us-gfm|gfm-us" 
+     description="US SEC interpretation of Global Filing Manual\n
+     Default language en\n
+     CIK identifier patterns\n
+     Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
+     Disallowed references are processed"
+     validationType="GFM"
+     exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
+     defaultXmlLang="en"
+     defaultLanguage="English" 
+     standardTaxonomiesUrl="edgartaxonomies.xml"
+     utrUrl="http://www.xbrl.org/utr/2013-05-17/utr.xml"
+     validateFileText="true"
+     identifierSchemePattern="^http://www\.sec\.gov/CIK$"
+     identifierValuePattern="^[0-9]{10}$" 
+     identifierValueName="CIK" 
+     contextElement="segment" 
+     roleDefinitionPattern="^\S[^\n]* - [^\n]*\S$"
+     labelCheckPattern="\s{2,}|&lt;"
+     labelTrimPattern="\s"
+     deiNamespacePattern="^http://xbrl\.us/dei/|^http://xbrl\.sec\.gov/dei"
+     deiAmendmentFlagElement="AmendmentFlag"
+     deiCurrentFiscalYearEndDateElement="CurrentFiscalYearEndDate"
+     deiDocumentFiscalYearFocusElement="DocumentFiscalYearFocus"
+     deiDocumentPeriodEndDateElement="DocumentPeriodEndDate"
+     deiFilerIdentifierElement="FilerIdentifier" 
+     deiFilerNameElement="EntityRegistrantName"
+     />
+
+
+</DisclosureSystems>
