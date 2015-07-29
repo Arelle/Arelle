@@ -24,6 +24,7 @@ from arelle.Locale import format_string
 import time, xml.dom
 from decimal import Decimal
 from arelle import (XmlUtil, ModelValue, XbrlConst)
+FunctionIxt = None
 
 
 # Debugging flag can be set to either "debug_flag=True" or "debug_flag=False"
@@ -243,7 +244,8 @@ def pushFunction( sourceStr, loc, toks ):
         ns = name.namespaceURI
         if (not name.unprefixed and 
             ns not in {XbrlConst.fn, XbrlConst.xfi, XbrlConst.xff, XbrlConst.xsd} and
-            not ns.startswith("http://www.xbrl.org/inlineXBRL/transformation")):
+            ns not in FunctionIxt.ixtNamespaceFunctions and
+            name not in modelXbrl.modelManager.customTransforms):
             if name not in modelXbrl.modelCustomFunctionSignatures: # indexed by both [qname] and [qname,arity]
                 modelXbrl.error("xbrlve:noCustomFunctionSignature",
                     _("No custom function signature for %(custFunction)s in %(resource)s"),
@@ -637,8 +639,9 @@ def normalizeExpr(expr):
 isInitialized = False
 
 def initializeParser(modelManager):
-    global isInitialized
+    global isInitialized, FunctionIxt
     if not isInitialized:
+        from arelle import FunctionIxt
         modelManager.showStatus(_("initializing formula xpath2 grammar"))
         startedAt = time.time()
         xpathExpr.parseString( "0", parseAll=True )

@@ -179,8 +179,10 @@ class XPathContext:
                             result = FunctionXfi.call(self, p, localname, args)
                         elif ns == XbrlConst.xsd:
                             result = FunctionXs.call(self, p, localname, args)
-                        elif ns in FunctionIxt.ixtNamespaceURIs:
-                            result = FunctionIxt.call(self, p, localname, args)
+                        elif ns in FunctionIxt.ixtNamespaceFunctions:
+                            result = FunctionIxt.call(self, p, op, args)
+                        elif op in self.modelXbrl.modelManager.customTransforms:
+                            result = self.modelXbrl.modelManager.customTransforms[op](args[0][0])
                         else:
                             raise XPathException(p, 'err:XPST0017', _('Function call not identified: {0}.').format(op))
                     except FunctionNumArgs as err:
