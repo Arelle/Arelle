@@ -547,10 +547,15 @@ class ModelInlineValueObject:
                                   strip=True) # transforms are whitespace-collapse
             f = self.format
             if f is not None:
-                if (f.namespaceURI in FunctionIxt.ixtNamespaceURIs and
-                    f.localName in FunctionIxt.ixtFunctions):
+                if f.namespaceURI in FunctionIxt.ixtNamespaceFunctions:
                     try:
-                        v = FunctionIxt.ixtFunctions[f.localName](v)
+                        v = FunctionIxt.ixtNamespaceFunctions[f.namespaceURI][f.localName](v)
+                    except Exception as err:
+                        self._ixValue = ModelValue.INVALIDixVALUE
+                        raise err
+                else:
+                    try:
+                        v = self.modelXbrl.modelManager.customTransforms[f](v)
                     except Exception as err:
                         self._ixValue = ModelValue.INVALIDixVALUE
                         raise err

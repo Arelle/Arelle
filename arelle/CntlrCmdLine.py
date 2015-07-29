@@ -627,6 +627,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 if envVar in os.environ:
                     self.addToLog(_("XDG_CONFIG_HOME={0}").format(os.environ[envVar]))
             return True
+        
+        self.modelManager.customTransforms = None # clear out prior custom transforms
+        self.modelManager.loadCustomTransforms()
+        
         # run utility command line options that don't depend on entrypoint Files
         hasUtilityPlugin = False
         for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Utility.Run"):
@@ -763,6 +767,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if options.formulaRunIDs:
             fo.runIDs = options.formulaRunIDs   
         self.modelManager.formulaOptions = fo
+        
+        
         timeNow = XmlUtil.dateunionValue(datetime.datetime.now())
         firstStartedAt = startedAt = time.time()
         modelDiffReport = None

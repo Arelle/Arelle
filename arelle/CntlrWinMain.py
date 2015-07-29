@@ -374,6 +374,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.uiThreadQueue = queue.Queue()     # background processes communicate with ui thread
         self.uiThreadChecker(self.statusbar)    # start background queue
 
+        self.modelManager.loadCustomTransforms() # load if custom transforms not loaded
         if not self.modelManager.disclosureSystem.select(self.config.setdefault("disclosureSystem", None)):
             self.validateDisclosureSystem.set(False)
             self.modelManager.validateDisclosureSystem = False

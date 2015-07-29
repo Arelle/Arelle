@@ -62,6 +62,7 @@ class ModelManager:
         from arelle import Locale
         self.locale = Locale.getUserLocale(cntlr.config.get("userInterfaceLocaleOverride",""))
         self.defaultLang = Locale.getLanguageCode()
+        self.customTransforms = None
 
     def shutdown(self):
         self.status = "shutdown"
@@ -207,3 +208,9 @@ class ModelManager:
             modelXbrl.close()
             gc.collect()
 
+    def loadCustomTransforms(self):
+        if self.customTransforms is None:
+            self.customTransforms = {}
+            for pluginMethod in pluginClassMethods("ModelManager.LoadCustomTransforms"):
+                pluginMethod(self.customTransforms)
+    

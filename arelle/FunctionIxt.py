@@ -18,14 +18,14 @@ class ixtFunctionNotAvailable(Exception):
     def __repr__(self):
         return self.args[0]
     
-def call(xc, p, localname, args):
+def call(xc, p, qn, args):
     try:
-        if localname not in ixtFunctions: raise ixtFunctionNotAvailable
-        if len(args) != 1: raise XPathContext.FunctionNumArgs()
-        if len(args[0]) != 1: raise XPathContext.FunctionArgType(1,"xs:string")
-        return ixtFunctions[localname](str(args[0][0]))
-    except ixtFunctionNotAvailable:
-        raise XPathContext.FunctionNotAvailable("xfi:{0}".format(localname))
+        _ixtFunction = ixtNamespaceFunctions[qn.namespaceURI][qn.localName]
+    except KeyError:
+        raise XPathContext.FunctionNotAvailable(str(qn))
+    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    if len(args[0]) != 1: raise XPathContext.FunctionArgType(1,"xs:string")
+    return _ixtFunction(str(args[0][0]))
 
 dateslashPattern = re.compile(r"^\s*(\d+)/(\d+)/(\d+)\s*$")
 daymonthslashPattern = re.compile(r"^\s*([0-9]{1,2})/([0-9]{1,2})\s*$")
@@ -607,8 +607,7 @@ def numunitdecimalin(arg):
         return m2[0].replace(',','').replace(' ','').replace('\xa0','') + '.' + z2(m2[-2])
     raise XPathContext.FunctionArgType(1,"ixt:numunitdecimalinType")
     
-ixtFunctions = {
-                
+tr1Functions = {
     # 2010-04-20 functions
     'dateslashus': dateslashus,
     'dateslasheu': dateslasheu,
@@ -633,7 +632,10 @@ ixtFunctions = {
     'datelongyearmonth': dateyearmonthLongEnTR1,
     'dateshortyearmonth': dateyearmonthShortEnTR1,
     'datelongmonthyear': datemonthyearLongEnTR1,
-    'dateshortmonthyear': datemonthyearShortEnTR1,
+    'dateshortmonthyear': datemonthyearShortEnTR1
+}
+
+tr2Functions = {
                            
     # 2011-07-31 functions
     'booleanfalse': booleanfalse,
@@ -656,10 +658,12 @@ ixtFunctions = {
     'numcommadecimal': numcommadecimal,
     'zerodash': zerodash,
     'numdotdecimal': numdotdecimal,
-    'numunitdecimal': numunitdecimal,
+    'numunitdecimal': numunitdecimal
+}
     
     # transformation registry v-3 functions
-    
+tr3Functions = tr2Functions # tr3 starts with tr2 and adds more functions
+tr2Functions.update ({
     # same as v2: 'booleanfalse': booleanfalse,
     # same as v2: 'booleantrue': booleantrue,
     'calindaymonthyear': calindaymonthyear, # TBD: calindaymonthyear,
@@ -692,13 +696,13 @@ ixtFunctions = {
     # same as v2: 'numunitdecimal': numunitdecimal,
     'numunitdecimalin': numunitdecimalin,
     # same as v2: 'zerodash': zerodash,
-}
+})
 
 deprecatedNamespaceURI = 'http://www.xbrl.org/2008/inlineXBRL/transformation' # the CR/PR pre-REC namespace
 
-ixtNamespaceURIs = {
-    'http://www.xbrl.org/inlineXBRL/transformation/2010-04-20', # transformation registry v1
-    'http://www.xbrl.org/inlineXBRL/transformation/2011-07-31', # transformation registry v2
-    'http://www.xbrl.org/inlineXBRL/transformation/2014-10-15', # transformation registry v3
-    'http://www.xbrl.org/2008/inlineXBRL/transformation' # the CR/PR pre-REC namespace
+ixtNamespaceFunctions = {
+    'http://www.xbrl.org/inlineXBRL/transformation/2010-04-20': tr1Functions, # transformation registry v1
+    'http://www.xbrl.org/inlineXBRL/transformation/2011-07-31': tr2Functions, # transformation registry v2
+    'http://www.xbrl.org/inlineXBRL/transformation/2014-10-15': tr3Functions, # transformation registry v3
+    'http://www.xbrl.org/2008/inlineXBRL/transformation': tr1Functions # the CR/PR pre-REC namespace
 }
