@@ -705,12 +705,12 @@ class ScrolledTkTableFrame(Frame):
         # must be resized later
         table = XbrlTable(self, 1, 1, 0, 0, browsecmd=browseCmd)
         self.table = table
-        parent.columnconfigure(0, weight=1)
-        parent.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
         # http://effbot.org/zone/tkinter-scrollbar-patterns.htm
-        self.verticalScrollbar = Scrollbar(parent, orient='vertical',
+        self.verticalScrollbar = Scrollbar(self, orient='vertical',
                                            command=table.yview_scroll)
-        self.horizontalScrollbar = Scrollbar(parent, orient='horizontal',
+        self.horizontalScrollbar = Scrollbar(self, orient='horizontal',
                                              command=table.xview_scroll)
         table.config(xscrollcommand=self.horizontalScrollbar.set,
                      yscrollcommand=self.verticalScrollbar.set)
