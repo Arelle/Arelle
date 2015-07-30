@@ -412,11 +412,13 @@ class ValidateXbrl:
                             modelObject=f, fact=f.qname, unit=f.unitID)
                 fmt = f.format
                 if fmt:
-                    if fmt.namespaceURI not in FunctionIxt.ixtNamespaceURIs:
+                    if fmt in self.modelXbrl.modelManager.customTransforms:
+                        pass
+                    elif fmt.namespaceURI not in FunctionIxt.ixtNamespaceFunctions:
                         self.modelXbrl.error("ix:invalidTransformation",
                             _("Fact %(fact)s has unrecognized transformation namespace %(namespace)s"),
                             modelObject=f, fact=f.qname, namespace=fmt.namespaceURI)
-                    elif fmt.localName not in FunctionIxt.ixtFunctions:
+                    elif fmt.localName not in FunctionIxt.ixtNamespaceFunctions[fmt.namespaceURI]:
                         self.modelXbrl.error("ix:invalidTransformation",
                             _("Fact %(fact)s has unrecognized transformation name %(name)s"),
                             modelObject=f, fact=f.qname, name=fmt.localName)

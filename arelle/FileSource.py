@@ -35,7 +35,8 @@ def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=F
             selection = archivepathSelection[1]
             filesource = FileSource(archivepath, cntlr, checkIfXmlIsEis)
             filesource.open(reloadCache)
-            filesource.select(selection)
+            if selection:
+                filesource.select(selection)
             return filesource
         # not archived content
         return FileSource(filename, cntlr, checkIfXmlIsEis) 

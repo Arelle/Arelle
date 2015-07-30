@@ -462,13 +462,16 @@ class Type:
     
     def identify(filesource, filepath):
         file, = filesource.file(filepath, stripDeclaration=True, binary=True)
-        for _event, elt in etree.iterparse(file, events=("start",)):
-            _type = {"{http://www.xbrl.org/2003/instance}xbrl": Type.INSTANCE,
-                     "{http://www.xbrl.org/2003/linkbase}linkbase": Type.LINKBASE,
-                     "{http://www.w3.org/2001/XMLSchema}schema": Type.SCHEMA}.get(elt.tag, Type.UnknownXML)
-            if _type == Type.UnknownXML and elt.tag.endswith("html") and XbrlConst.ixbrlAll.intersection(elt.nsmap.values()):
-                _type = Type.INLINEXBRL
-            break
+        try:
+            for _event, elt in etree.iterparse(file, events=("start",)):
+                _type = {"{http://www.xbrl.org/2003/instance}xbrl": Type.INSTANCE,
+                         "{http://www.xbrl.org/2003/linkbase}linkbase": Type.LINKBASE,
+                         "{http://www.w3.org/2001/XMLSchema}schema": Type.SCHEMA}.get(elt.tag, Type.UnknownXML)
+                if _type == Type.UnknownXML and elt.tag.endswith("html") and XbrlConst.ixbrlAll.intersection(elt.nsmap.values()):
+                    _type = Type.INLINEXBRL
+                break
+        except Exception:
+            _type = Type.UnknownXML
         file.close()
         return _type
 
@@ -876,7 +879,9 @@ class ModelDocument:
                     if ns is None:
                         ns = entry
                     else:
-                        if ns not in self.modelXbrl.namespaceDocs:
+                        if self.type == Type.INLINEXBRL and ns == XbrlConst.xhtml:
+                            pass # skip schema validation of inline XBRL
+                        elif ns not in self.modelXbrl.namespaceDocs:
                             loadSchemalocatedSchema(self.modelXbrl, elt, entry, ns, self.baseForElement(elt))
                         ns = None
                         
