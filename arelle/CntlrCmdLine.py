@@ -764,7 +764,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             filesource = FileSource.openFileSource(None, self, sourceZipStream)
         elif len(_entryPoints) == 1: # check if a zip and need to discover entry points
             filesource = FileSource.openFileSource(_entryPoints[0], self)
-        _emtryPointFiles = _entryPoints
+        _entrypointFiles = _entryPoints
         if filesource and not filesource.selection:
             if filesource.isArchive:
                 _entrypointFiles = []
