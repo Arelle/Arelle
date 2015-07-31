@@ -31,7 +31,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
     if targetNamespaceDatePattern is None:
         targetNamespaceDatePattern = re.compile(r"/([12][0-9]{3})-([01][0-9])-([0-3][0-9])|"
                                             r"/([12][0-9]{3})([01][0-9])([0-3][0-9])|")
-        efmFilenamePattern = re.compile(r"^[a-z0-9][a-zA-Z0-9_\.\-]*(\.xsd|\.xml)$")
+        efmFilenamePattern = re.compile(r"^[a-z0-9][a-zA-Z0-9_\.\-]*(\.xsd|\.xml|\.htm)$")
         roleTypePattern = re.compile(r"^.*/role/[^/\s]+$")
         arcroleTypePattern = re.compile(r"^.*/arcrole/[^/\s]+$")
         arcroleDefinitionPattern = re.compile(r"^.*[^\\s]+.*$")  # at least one non-whitespace character

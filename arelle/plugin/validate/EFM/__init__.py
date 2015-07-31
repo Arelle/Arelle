@@ -7,6 +7,7 @@ Created on Dec 12, 2013
 import os
 from arelle import ModelDocument, ModelValue, XmlUtil
 from arelle.ModelValue import qname
+from arelle.UrlUtil import authority, relativeUri
 from .Document import checkDTSdocument
 from .Filing import validateFiling
 try:
@@ -85,7 +86,136 @@ def validateXbrlDtsDocument(val, modelDocument, isFilingDocument):
         return
 
     checkDTSdocument(val, modelDocument, isFilingDocument)
+    
+def filingStart(cntlr, options, filesource, entrypointFiles, sourceZipStream=None, responseZipStream=None):
+    modelManager = cntlr.modelManager
+    if modelManager.validateDisclosureSystem and getattr(modelManager.disclosureSystem, "EFMplugin", False):
+        modelManager.efmFiling = Filing(cntlr, options, filesource, entrypointFiles, sourceZipStream, responseZipStream)
                 
+def xbrlLoaded(cntlr, options, modelXbrl):
+    modelManager = cntlr.modelManager
+    if (hasattr(modelManager, "efmFiling") and
+        (modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or 
+        modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL)):
+        efmFiling = modelManager.efmFiling
+        efmFiling.addReport(modelXbrl)
+
+
+
+def filingEnd(cntlr, options, filesource, entrypointFiles, sourceZipStream=None, responseZipStream=None):
+    modelManager = cntlr.modelManager
+    if hasattr(modelManager, "efmFiling"):
+        efmFiling = modelManager.efmFiling
+        reports = efmFiling.reports
+        # check for dup inline and regular instances
+        # SDR checks
+        if any(report.DocumentType.startswith("SDR") for report in reports):
+            _sdrKs = [r for r in reports if r.DocumentType == "SDR K"]
+            if not _sdrKs:
+                efmFiling.error("EFM.SDR.1.1",
+                                _("Filing has no SDR K reports"))
+            elif len(_sdrKs) > 1:
+                efmFiling.error("EFM.SDR.1.2",
+                                _("Filing has multiple SDR K reports for %(entities)s"),
+                                {"entities": ", ".join(r.EntityRegistrantName for r in _sdrKs)}, 
+                                (r.uri for r in _sdrKs))
+            _sdrLentityReports = defaultdict(list)
+            for r in reports:
+                if r.DocumentType == "SDR L":
+                    _sdrLentityReports[r.EntityRegistrantName].append(r)
+            if not _sdrLentityReports:
+                efmFiling.error("EFM.SDR.1.3",
+                                _("Filing has no SDR L reports"))
+            for sdrLentity, sdrLentityReports in _sdrLentityReports.items():
+                if len(sdrLentityReports) > 1:
+                    efmFiling.error("EFM.SDR.1.4",
+                                    _("Filing entity has multiple SDR L reports: %(entity)s"),
+                                    {"entity": sdrLentity},
+                                    (r.uri for r in sdrLentityReports))
+            # check for required extension files (schema, pre, lbl)
+            for r in reports:
+                hasSch = hasPre = hasCal = hasLbl = False
+                for f in r.reportSubmissionFiles:
+                    if f.endswith(".xsd"): hasSch = True
+                    elif f.endswith("_pre.xml"): hasPre = True
+                    elif f.endswith("_cal.xml"): hasCal = True
+                    elif f.endswith("_lab.xml"): hasLbl = True
+                missingFiles = ""
+                if not hasSch: missingFiles += ", schema"
+                if not hasPre: missingFiles += ", presentation linkbase"
+                if not hasLbl: missingFiles += ", label linkbase"
+                if missingFiles:
+                    efmFiling.error("EFM.SDR.1.5",
+                                    _("%(docType)s report missing files: %(missingFiles)s"),
+                                    {"docType": r.DocumentType, "missingFiles": missingFiles[2:]},
+                                    r.uri)
+                if not r.hasUsGaapTaxonomy:
+                    efmFiling.error("EFM.SDR.1.6",
+                                    _("%(documentType)s submission must use a US GAAP standard schema"),
+                                    {"documentType": r.DocumentType},
+                                    r.uri)
+        modelManager.efmFiling.close()
+        del modelManager.efmFiling
+    
+class Filing:
+    def __init__(self, cntlr, options, filesource, entrypointfiles, sourceZipStream, responseZipStream):
+        self.cntlr = cntlr
+        self.options = options
+        self.filesource = filesource
+        self.entrypointfiles = entrypointfiles
+        self.sourceZipStream = sourceZipStream
+        self.responseZipStream = responseZipStream
+        self.reports = []
+        
+    def close(self):
+        self.__dict__.clear() # dereference all contents
+        
+    def addReport(self, modelXbrl):
+        self.reports.append(Report(modelXbrl))
+        
+    def error(self, messageCode, message, messageArgs=None, file=None):
+        if file and len(self.entrypointfiles) > 0:
+            # relativize file(s)
+            if isinstance(file, _STR_BASE):
+                file = (file,)
+            relFiles = [relativeUri(self.entrypointfiles[0], f) for f in file]
+        self.cntlr.addToLog(message, messageCode, messageArgs, relFiles, "ERROR")
+        
+class Report:
+    REPORT_ATTRS = {"DocumentType", "DocumentPeriodEndDate", "EntityRegistrantName",
+                    "EntityCentralIndexKey", "CurrentFiscalYearEndDate", "DocumentFiscalYearFocus"}
+    def __init__(self, modelXbrl):
+        self.uri = modelXbrl.modelDocument.uri
+        for attrName in Report.REPORT_ATTRS:
+            setattr(self, attrName, None)
+        self.documentType = None
+        self.instanceName = modelXbrl.modelDocument.basename
+        for f in modelXbrl.facts:
+            cntx = f.context
+            if cntx is not None and cntx.isStartEndPeriod and not cntx.hasSegment:
+                if f.qname.localName in Report.REPORT_ATTRS and f.xValue:
+                    setattr(self, f.qname.localName, f.xValue)
+        self.reportSubmissionFiles = set()
+        self.standardTaxonomyFiles = set()
+        self.hasUsGaapTaxonomy = False
+        reportDir = os.path.dirname(modelXbrl.modelDocument.uri)
+        def addRefDocs(doc):
+            for refDoc in doc.referencesDocument.keys():
+                if refDoc.uri not in self.reportSubmissionFiles:
+                    if refDoc.uri.startswith(reportDir):
+                        self.reportSubmissionFiles.add(refDoc.uri)
+                    addRefDocs(refDoc)
+                if refDoc.type == ModelDocument.Type.SCHEMA:
+                    nsAuthority = authority(refDoc.targetNamespace, includeScheme=False)
+                    nsPath = refDoc.targetNamespace.split('/')
+                    if len(nsPath) > 2:
+                        if nsAuthority in ("fasb.org", "xbrl.us") and nsPath[-2] == "us-gaap":
+                            self.hasUsGaapTaxonomy = True
+        addRefDocs(modelXbrl.modelDocument)
+
+    def close(self):
+        self.__dict__.clear() # dereference all contents
+
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EFM',
@@ -100,4 +230,7 @@ __pluginInfo__ = {
     'Validate.XBRL.Start': validateXbrlStart,
     'Validate.XBRL.Finally': validateXbrlFinally,
     'Validate.XBRL.DTS.document': validateXbrlDtsDocument,
+    'CntlrCmdLine.Batch.Start': filingStart,
+    'CntlrCmdLine.Xbrl.Loaded': xbrlLoaded,
+    'CntlrCmdLine.Batch.End': filingEnd,
 }

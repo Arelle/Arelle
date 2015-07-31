@@ -347,6 +347,8 @@ class Cntlr:
                     refs.append( {"href": _file} )
             elif isinstance(file, _STR_BASE):
                 refs.append( {"href": file} )
+            if isinstance(level, _STR_BASE):
+                level = logging._checkLevel(level)
             self.logger.log(level, *args, extra={"messageCode":messageCode,"refs":refs})
         else:
             try:

@@ -26,7 +26,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     GFMcontextDatePattern = re.compile(r"^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$")
     # note \u20zc = euro, \u00a3 = pound, \u00a5 = yen
     signOrCurrencyPattern = re.compile("^(-)[0-9]+|[^eE](-)[0-9]+|(\\()[0-9].*(\\))|([$\u20ac\u00a3\00a5])")
-    instanceFileNamePattern = re.compile(r"^(\w+)-([12][0-9]{3}[01][0-9][0-3][0-9]).xml$")
+    instanceTypeFileNamePattern = {
+        ModelDocument.Type.INSTANCE:   re.compile(r"^(\w+)-([12][0-9]{3}[01][0-9][0-3][0-9]).xml$"),
+        ModelDocument.Type.INLINEXBRL: re.compile(r"^(\w+)-([12][0-9]{3}[01][0-9][0-3][0-9]).htm$") }            
     linkroleDefinitionStatementSheet = re.compile(r"[^-]+-\s+Statement\s+-\s+.*", # no restriction to type of statement
                                                   re.IGNORECASE)
     efmCIKpattern = re.compile(r"^[0-9]{10}$")
@@ -72,7 +74,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         instanceName = modelXbrl.modelDocument.basename
         
         #6.3.3 filename check
-        m = instanceFileNamePattern.match(modelXbrl.modelDocument.basename)
+        try:
+            m = instanceTypeFileNamePattern[modelXbrl.modelDocument.type].match(modelXbrl.modelDocument.basename)
+        except KeyError:
+            m = None
         if m:
             val.fileNameBasePart = m.group(1)
             val.fileNameDatePart = m.group(2)
@@ -519,7 +524,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
         #6.5.12 equivalent facts
         factsForLang = {}
-        factForConceptContextUnitLangHash = {}
+        factForConceptContextUnitLangHash = defaultdict(list)
         keysNotDefaultLang = {}
         iF1 = 1
         for f1 in modelXbrl.facts:
@@ -545,20 +550,22 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),
                             modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
             # 6.5.12 test
-            h = f1.conceptContextUnitLangHash
-            if h in factForConceptContextUnitLangHash:
-                f2 = factForConceptContextUnitLangHash[h]
-                if f1.qname == f2.qname and \
-                   f1.contextID == f2.contextID and \
-                   f1.unitID == f2.unitID and \
-                   f1.xmlLang == f2.xmlLang:
-                    modelXbrl.error(("EFM.6.05.12", "GFM.1.02.11"),
-                        "Facts %(fact)s of context %(contextID)s and %(contextID2)s are equivalent.",
-                        modelObject=(f1, f2), fact=f1.qname, contextID=f1.contextID, contextID2=f2.contextID)
-            else:
-                factForConceptContextUnitLangHash[h] = f1
+            factForConceptContextUnitLangHash[f1.conceptContextUnitLangHash].append(f1)
             iF1 += 1
-        del factForConceptContextUnitLangHash
+        # 6.5.12 test
+        aspectEqualFacts = defaultdict(list)
+        for hashEquivalentFacts in factForConceptContextUnitLangHash.values():
+            if len(hashEquivalentFacts) > 1:
+                for f in hashEquivalentFacts:
+                    aspectEqualFacts[(f.qname,f.contextID,f.unitID,f.xmlLang)].append(f)
+                for fList in aspectEqualFacts.values():
+                    f0 = fList[0]
+                    if any(not f.isVEqualTo(f0) for f in fList[1:]):
+                        modelXbrl.error(("EFM.6.05.12", "GFM.1.02.11"),
+                            "Fact values of %(fact)s in context %(contextID)s are not V-equal: %(values)s.",
+                            modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(f.value for f in fList))
+                aspectEqualFacts.clear()
+        del factForConceptContextUnitLangHash, aspectEqualFacts
         val.modelXbrl.profileActivity("... filer fact checks", minTimeToShow=1.0)
 
         #6.5.14 facts without english text
@@ -721,6 +728,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                         "S-4MEF",
                                         "SD",
                                         "SD/A",
+                                        "SDR", "SDR K", "SDR L", "SDR/A", "SDR-A", "SDR-W",
                                         "SP 15D2",
                                         "SP 15D2/A"
                                       }:

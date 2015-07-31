@@ -778,8 +778,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     _path = os.path.join(filesource.url, _file)
                     if ModelDocument.Type.identify(filesource, _path) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
                         _entrypointFiles.append(_path)
-        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.BeforeLoadLoop"):
-            pluginXbrlMethod(self, options, filesource, _entrypointfiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
+        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Batch.Start"):
+            pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
         for _entrypointFile in _entrypointFiles:
             if not filesource or not filesource.isArchive:
                 filesource = FileSource.openFileSource(_entrypointFile, self, sourceZipStream)        
@@ -949,8 +949,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         self.modelManager.close(modelDiffReport)
                     elif modelXbrl:
                         self.modelManager.close(modelXbrl)
-        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.AfterLoadLoop"):
-            pluginXbrlMethod(self, options, filesource, _entrypointfiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
+        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Batch.End"):
+            pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
         self.username = self.password = None #dereference password
 
         if options.statusPipe and getattr(self, "statusPipe", None) is not None:
