@@ -9,7 +9,7 @@ This module is Arelle's controller in command line non-interactive mode
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import PythonUtil # define 2.x or 3.x string types
-import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading
+import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json
 from optparse import OptionParser, SUPPRESS_HELP
 import re
 from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version, 
@@ -67,7 +67,9 @@ def parseAndRun(args):
                              "an XBRL instance, schema, linkbase file, "
                              "inline XBRL instance, testcase file, "
                              "testcase index file.  FILENAME may be "
-                             "a local file or a URI to a web located file."))
+                             "a local file or a URI to a web located file.  "
+                             "For multiple instance filings may be | separated file names or JSON list "
+                             "of file/parameter dicts [ {file=filepath}, {file2=file2path} ...]."))
     parser.add_option("--username", dest="username",
                       help=_("user name if needed (with password) for web file retrieval"))
     parser.add_option("--password", dest="password",
@@ -758,12 +760,18 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
         # entrypointFile may be absent (if input is a POSTED zip or file name ending in .zip)
         #    or may be a | separated set of file names
-        _entryPoints = (options.entrypointFile or '').split('|')
+        if options.entrypointFile:
+            try: # may be a json list
+                _entryPoints = json.loads(options.entrypointFile)
+            except ValueError:
+                _entryPoints = [{"file":f} for f in (options.entrypointFile or '').split('|')]
+        else:
+            _entryPoints = []
         filesource = None # file source for all instances if not None
         if sourceZipStream:
             filesource = FileSource.openFileSource(None, self, sourceZipStream)
         elif len(_entryPoints) == 1: # check if a zip and need to discover entry points
-            filesource = FileSource.openFileSource(_entryPoints[0], self)
+            filesource = FileSource.openFileSource(_entryPoints[0].get("file",None), self)
         _entrypointFiles = _entryPoints
         if filesource and not filesource.selection:
             if filesource.isArchive:
@@ -771,17 +779,20 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 for _archiveFile in filesource.dir:
                     filesource.select(_archiveFile)
                     if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
-                        _entrypointFiles.append(filesource.url)
+                        _entrypointFiles.append({"file":filesource.url})
             elif os.path.isdir(filesource.url):
                 _entrypointFiles = []
                 for _file in os.listdir(filesource.url):
                     _path = os.path.join(filesource.url, _file)
                     if ModelDocument.Type.identify(filesource, _path) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
-                        _entrypointFiles.append(_path)
-        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Batch.Start"):
+                        _entrypointFiles.append({"file":_path})
+        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.Start"):
             pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
-        for _entrypointFile in _entrypointFiles:
-            if not filesource or not filesource.isArchive:
+        for _entrypoint in _entrypointFiles:
+            _entrypointFile = _entrypoint.get("file", None) if isinstance(_entrypoint,dict) else _entrypoint
+            if filesource and filesource.isArchive:
+                filesource.select(_entrypointFile)
+            else:
                 filesource = FileSource.openFileSource(_entrypointFile, self, sourceZipStream)        
             self.entrypointFile = _entrypointFile
             timeNow = XmlUtil.dateunionValue(datetime.datetime.now())
@@ -825,7 +836,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         pluginXbrlMethod(self, options, modelXbrl)
                 else: # not a test case, probably instance or DTS
                     for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Loaded"):
-                        pluginXbrlMethod(self, options, modelXbrl)
+                        pluginXbrlMethod(self, options, modelXbrl, _entrypoint)
             else:
                 success = False
             if success and options.diffFile and options.versReportFile:
@@ -924,7 +935,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     if options.arcroleTypesFile:
                         ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.arcroleTypesFile, "Arcrole Types", isArcrole=True, lang=options.labelLang)
                     for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
-                        pluginXbrlMethod(self, options, modelXbrl)
+                        pluginXbrlMethod(self, options, modelXbrl, _entrypoint)
                                             
                 except (IOError, EnvironmentError) as err:
                     self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err),
@@ -949,7 +960,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         self.modelManager.close(modelDiffReport)
                     elif modelXbrl:
                         self.modelManager.close(modelXbrl)
-        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Batch.End"):
+        if options.validate:
+            for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.Validate"):
+                pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
+        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.End"):
             pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
         self.username = self.password = None #dereference password
 

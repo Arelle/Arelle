@@ -296,7 +296,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     _("dei:%(elementName)s %(value)s must match the context entity identifier %(entityIdentifier)s"),
                                     modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
                                     value=value, entityIdentifier=entityIdentifierValue)
-                            if val.paramFilerIdentifiers and value not in val.paramFilerIdentifiers:
+                            if val.paramFilerIdentifierNames and value not in val.paramFilerIdentifierNames:
                                 val.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
                                     _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s"),
                                     modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
@@ -308,8 +308,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     value=value, filerIdentifier=val.paramFilerIdentifier)
                         elif factElementName == disclosureSystem.deiFilerNameElement:
                             deiItems[factElementName] = value
-                            if val.paramFilerIdentifiers and val.paramFilerNames and entityIdentifierValue in val.paramFilerIdentifiers:
-                                prefix = val.paramFilerNames[val.paramFilerIdentifiers.index(entityIdentifierValue)]
+                            if val.paramFilerIdentifierNames and entityIdentifierValue in val.paramFilerIdentifierNames:
+                                prefix = val.paramFilerIdentifierNames[entityIdentifierValue]
                                 if not value.lower().startswith(prefix.lower()):
                                     val.modelXbrl.error(("EFM.6.05.24", "GFM.3.02.02"),
                                         _("dei:%(elementName)s %(prefix)s should be a case-insensitive prefix of: %(value)s"),
