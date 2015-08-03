@@ -188,7 +188,7 @@ def xbrlDBcommandLineOptionExtender(parser):
     
     logging.getLogger("arelle").addHandler(LogToDbHandler())    
 
-def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl):
+def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args):
     from arelle.ModelDocument import Type
     if modelXbrl.modelDocument.type == Type.RSSFEED and getattr(options, "storeIntoXbrlDb", False):
         modelXbrl.xbrlDBconnection = options.storeIntoXbrlDb.split(",")
@@ -201,7 +201,7 @@ def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl):
             modelXbrl.reloadCache = True
             storeIntoDB(modelXbrl.xbrlDBconnection, modelXbrl, rssObject=modelXbrl.modelDocument)
     
-def xbrlDBCommandLineXbrlRun(cntlr, options, modelXbrl):
+def xbrlDBCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
     from arelle.ModelDocument import Type
     if (modelXbrl.modelDocument.type not in (Type.RSSFEED, Type.TESTCASE, Type.REGISTRYTESTCASE) and 
         getattr(options, "storeIntoXbrlDb", False) and 
