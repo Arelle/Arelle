@@ -13,6 +13,7 @@ from arelle import ModelXbrl, ValidateXbrlDimensions, XmlUtil, XbrlConst
 from arelle.PrototypeDtsObject import LocPrototype
 from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, load
+from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateFilingText import CDATApattern, copyHtml
 import os, zipfile
 from optparse import SUPPRESS_HELP
@@ -99,7 +100,7 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
                     for xmltext in [text] + CDATApattern.findall(text):
                         try:
                             for elt in XML("<body>\n{0}\n</body>\n".format(xmltext)):
-                                if elt.tag in ("a", "img"):
+                                if elt.tag in ("a", "img") and not isHttpUrl(attrValue) and not os.path.isabs(attrvalue):
                                     for attrTag, attrValue in elt.items():
                                         if attrTag in ("href", "src"):
                                             filingFiles.add(attrValue)
@@ -149,7 +150,7 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
                     for elt in footnoteHtml.iter():
                         if elt.tag in ("a", "img"):
                             for attrTag, attrValue in elt.items():
-                                if attrTag in ("href", "src"):
+                                if attrTag in ("href", "src") and not isHttpUrl(attrValue) and not os.path.isabs(attrvalue):
                                     filingFiles.add(attrValue)
         
     targetInstance.saveInstance(overrideFilepath=targetUrl, outputZip=outputZip)
@@ -240,7 +241,7 @@ def saveTargetDocumentCommandLineOptionExtender(parser):
                       dest="saveTargetFiling", 
                       help=SUPPRESS_HELP)
 
-def saveTargetDocumentCommandLineXbrlRun(cntlr, options, modelXbrl):
+def saveTargetDocumentCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "saveTargetInstance", False) or getattr(options, "saveTargetFiling", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None or not (   
