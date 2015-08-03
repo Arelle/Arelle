@@ -315,7 +315,7 @@ def saveDtsMatchesCommandLineOptionExtender(parser):
                       dest="secDtsTagMatchesFile", 
                       help=_("Save SEC DTS tag matches CSV file."))
 
-def saveDtsMatchesCommandLineXbrlRun(cntlr, options, modelXbrl):
+def saveDtsMatchesCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "secDtsTagMatchesFile", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:

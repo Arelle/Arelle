@@ -216,7 +216,7 @@ def updateTableLBCommandLineOptionExtender(parser):
                       dest="updatedTableLinkbaseFile", 
                       help=_("Update table linkbase file from Eurofiling 2010 to XII 2011 syntax."))
 
-def updateTableLBCommandLineXbrlRun(cntlr, options, modelXbrl):
+def updateTableLBCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "updatedTableLinkbaseFile", None):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:

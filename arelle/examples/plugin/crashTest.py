@@ -16,7 +16,7 @@ def crashCommandLineOptionExtender(parser):
                       dest="crashTest", 
                       help=_('Test what happens with an exception'))
 
-def crashCommandLineXbrlRun(cntlr, options, modelXbrl):
+def crashCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
     if getattr(options, "crashTest", False):
         foo = 25
         foo /= 0

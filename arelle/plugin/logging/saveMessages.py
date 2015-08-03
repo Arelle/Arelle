@@ -106,7 +106,7 @@ def saveMsgsCommandLineXbrlLoaded(cntlr, options, modelXbrl):
     if modelXbrl.modelDocument.type == Type.RSSFEED and getattr(options, "saveMessagesFile", False):
         modelXbrl.saveMessagesFile = options.saveMessagesFile
     
-def saveMsgsCommandLineXbrlRun(cntlr, options, modelXbrl):
+def saveMsgsCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
     from arelle.ModelDocument import Type
     if (modelXbrl.modelDocument.type not in (Type.RSSFEED, Type.TESTCASE, Type.REGISTRYTESTCASE) and 
         getattr(options, "saveMessagesFile", False)):
@@ -116,7 +116,7 @@ def saveMsgsvalidateRssItem(val, modelXbrl, rssItem):
     if hasattr(val.modelXbrl, 'saveMessagesFile'):
         saveMessages(val.modelXbrl.saveMessagesFile, modelXbrl, rssItem)
     
-def saveMsgstestcaseVariationXbrlLoaded(val, modelXbrl):
+def saveMsgstestcaseVariationXbrlLoaded(val, modelXbrl, *args):
     if _saveMessagesFile:
         return saveMessages(_saveMessagesFile, modelXbrl)
     

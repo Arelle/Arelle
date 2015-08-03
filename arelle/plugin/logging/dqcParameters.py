@@ -184,7 +184,7 @@ def loggingMessageParameters(messageCode, msgIn, modelObjectArgs, fmtArgs):
         return msg
     return None       
 
-def loggingCommandLineXbrlRun(cntlr, options, modelXbrl):
+def loggingCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
     global labelrole, lang
     labelrole=options.labelRole
     lang=options.labelLang

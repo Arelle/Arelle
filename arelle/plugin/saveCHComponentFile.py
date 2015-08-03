@@ -147,7 +147,7 @@ def saveCHComponentCommandLineOptionExtender(parser):
                       dest="chComponentFile", 
                       help=_("Save Charlie Hoffman Component semantic definition in specified xml file."))
 
-def saveCHComponentCommandLineXbrlRun(cntlr, options, modelXbrl):
+def saveCHComponentCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "chComponentFile", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:

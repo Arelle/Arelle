@@ -416,7 +416,7 @@ def saveLoadableExcelCommandLineOptionExtender(parser):
                       dest="saveLoadableExcel", 
                       help=_("Save Loadable Excel file"))
 
-def saveLoadableExcelCommandLineXbrlRun(cntlr, options, modelXbrl):
+def saveLoadableExcelCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
     # extend XBRL-loaded run processing for this option
     excelFile = getattr(options, "saveLoadableExcel", None)
     if excelFile:
