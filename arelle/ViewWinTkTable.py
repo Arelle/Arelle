@@ -27,6 +27,5 @@ class ViewTkTable(ViewPane):
     def setHeightANdWidth(self):
         frameWidth = self.tabWin.winfo_width()
         frameHeight = self.tabWin.winfo_height()
-        extraspace = 10 # extra vertical space as a nasty patch to avoid sometimes hiding part of last table row
-        self.table.config(maxheight=frameHeight-self.viewFrame.horizontalScrollbarHeight-extraspace,
+        self.table.config(maxheight=frameHeight-self.viewFrame.horizontalScrollbarHeight,
                           maxwidth=frameWidth-self.viewFrame.verticalScrollbarWidth)
