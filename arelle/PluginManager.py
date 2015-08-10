@@ -16,6 +16,9 @@ try:
 except ImportError:
     OrderedDict = dict # python 3.0 lacks OrderedDict, json file will be in weird order 
     
+PLUGIN_TRACE_FILE = None
+# PLUGIN_TRACE_FILE = "c:/temp/pluginerr.txt"
+    
 # plugin control is static to correspond to statically loaded modules
 pluginJsonFile = None
 pluginConfig = None
@@ -129,8 +132,14 @@ def modulesWithNewerFileDates():
         try:
             if moduleInfo["fileDate"] < time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
                 names.add(moduleInfo["name"])
-        except Exception:
-            pass
+        except Exception as err:
+            _msg = _("Exception at plug-in method modulesWihtNewerFileDates: {error}").format(error=err)
+            if PLUGIN_TRACE_FILE:
+                with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
+                    fh.write(_msg + '\n')
+            else:
+                print(_msg, file=sys.stderr)
+
     return names
 
 def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
@@ -143,6 +152,9 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
             if os.path.isdir(moduleFilename) and os.path.isfile(os.path.join(moduleFilename, "__init__.py")):
                 moduleFilename = os.path.join(moduleFilename, "__init__.py")
             moduleDir = os.path.dirname(moduleFilename)
+            if PLUGIN_TRACE_FILE:
+                with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
+                    fh.write("Scanning module for plug-in info: {}\n".format(moduleFilename))
             f = openFileStream(_cntlr, moduleFilename)
             tree = ast.parse(f.read(), filename=moduleFilename)
             moduleImports = []
@@ -216,8 +228,18 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
                                 if (os.path.isfile(os.path.join(moduleDir, _importeePfxName) + ".py")
                                     and _importeePfxName not in moduleImports):
                                         moduleImports.append(_importeePfxName)
-        except EnvironmentError:
-            pass
+            if PLUGIN_TRACE_FILE:
+                with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
+                    fh.write("Successful module plug-in info: " + moduleFilename + '\n')
+        except Exception as err:
+            _msg = _("Exception obtaining plug-in module info: {error}\n{traceback}").format(
+                    error=err, traceback=traceback.format_tb(sys.exc_info()[2]))
+            if PLUGIN_TRACE_FILE:
+                with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
+                    fh.write(_msg + '\n')
+            else:
+                print(_msg, file=sys.stderr)
+
         if f:
             f.close()
     return None
@@ -282,20 +304,34 @@ def loadModule(moduleInfo, packagePrefix=""):
                             from arelle.ModelObjectFactory import elementSubstitutionModelClass
                             elementSubstitutionModelClass.update(elementSubstitutionClasses)
                         except Exception as err:
-                            print(_("Exception loading plug-in {name}: processing ModelObjectFactory.ElementSubstitutionClasses").format(
-                                    name=name, error=err), file=sys.stderr)
+                            _msg = _("Exception loading plug-in {name}: processing ModelObjectFactory.ElementSubstitutionClasses").format(
+                                    name=name, error=err)
+                            if PLUGIN_TRACE_FILE:
+                                with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
+                                    fh.write(_msg + '\n')
+                            else:
+                                print(_msg, file=sys.stderr)
                     for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
                         loadModule(importModuleInfo, packageImportPrefix)
                 except (ImportError, AttributeError, SystemError) as err:
-                    print(_("Exception loading plug-in {name}: {error}\n{traceback}").format(
-                            name=name, error=err, traceback=traceback.format_tb(sys.exc_info()[2])), file=sys.stderr)
+                    _msg = _("Exception loading plug-in {name}: {error}\n{traceback}").format(
+                            name=name, error=err, traceback=traceback.format_tb(sys.exc_info()[2]))
+                    if PLUGIN_TRACE_FILE:
+                        with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
+                            fh.write(_msg + '\n')
+                    else:
+                        print(_msg, file=sys.stderr)
 
                 finally:
                     if file:
                         file.close() # non-package module
         except (EnvironmentError, ImportError, NameError, SyntaxError) as err: #find_module failed, no file to close
-            print(_("Exception finding plug-in {name}: {error}").format(
-                    name=name, error=err), file=sys.stderr)
+            _msg = _("Exception finding plug-in {name}: {error}").format(name=name, error=err)
+            if PLUGIN_TRACE_FILE:
+                with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
+                    fh.write(_msg + '\n')
+            else:
+                print(_msg, file=sys.stderr)
 
 def pluginClassMethods(className):
     if pluginConfig:

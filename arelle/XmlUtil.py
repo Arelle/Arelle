@@ -182,7 +182,7 @@ def innerTextNodes(element, ixExclude, ixEscape, ixContinuation):
         if child.tail:
             yield child.tail
     if ixContinuation:
-        contAt = element.get("_continuationElement")
+        contAt = getattr(element, "_continuationElement", None)
         if contAt is not None:
             for contText in innerTextNodes(contAt, ixExclude, ixEscape, ixContinuation):
                 yield contText

@@ -69,7 +69,7 @@ def parseAndRun(args):
                              "testcase index file.  FILENAME may be "
                              "a local file or a URI to a web located file.  "
                              "For multiple instance filings may be | separated file names or JSON list "
-                             "of file/parameter dicts [ {file=filepath}, {file2=file2path} ...]."))
+                             "of file/parameter dicts [{\"file\":\"filepath\"}, {\"file\":\"file2path\"} ...]."))
     parser.add_option("--username", dest="username",
                       help=_("user name if needed (with password) for web file retrieval"))
     parser.add_option("--password", dest="password",
@@ -340,7 +340,7 @@ def parseAndRun(args):
         args = ["--webserver=::cgi"]
     elif cntlr.isMSW:
         # if called from java on Windows any empty-string arguments are lost, see:
-        # http://bugs.sun.com/view_bug.do?bug_id=6518827
+        # http://bugs.java.com/view_bug.do?bug_id=6518827
         # insert needed arguments
         sourceArgs = args
         args = []
@@ -356,6 +356,9 @@ def parseAndRun(args):
             if priorArg in optionsWithArg and arg in namedOptions:
                 # probable java/MSFT interface bug 6518827
                 args.append('')  # add empty string argument
+            # remove quoting if arguments quoted according to http://bugs.java.com/view_bug.do?bug_id=6518827
+            if r'\"' in arg:  # e.g., [{\"foo\":\"bar\"}] -> [{"foo":"bar"}]
+                arg = arg.replace(r'\"', '"')
             args.append(arg)
             priorArg = arg
         

@@ -24,7 +24,7 @@ from decimal import Decimal
 from lxml.etree import XML, XMLSyntaxError
 from arelle import ModelDocument, ModelValue, XmlUtil
 from arelle.ModelValue import qname
-from arelle.PluginManager import pluginClassMethods
+from arelle.PluginManager import pluginClassMethods  # , pluginMethodsForClasses, modulePluginInfos
 from arelle.UrlUtil import authority, relativeUri, isHttpUrl
 from arelle.ValidateFilingText import CDATApattern
 from .Document import checkDTSdocument
@@ -78,11 +78,12 @@ def validateXbrlStart(val, parameters=None):
             val.paramExhibitType = p[1]
     elif hasattr(val.modelXbrl.modelManager, "efmFiling"):
         efmFiling = val.modelXbrl.modelManager.efmFiling
-        entryPoint = efmFiling.reports[-1].entryPoint
-        val.paramFilerIdentifier = entryPoint.get("cik", None)
-        val.paramFilerIdentifierNames = entryPoint.get("cikNameList",None)
-        val.paramExhibitType = entryPoint.get("exhibitType", None)
-        val.paramSubmissionType = entryPoint.get("submissionType", None)
+        if efmFiling.reports: # possible that there are no reports
+            entryPoint = efmFiling.reports[-1].entryPoint
+            val.paramFilerIdentifier = entryPoint.get("cik", None)
+            val.paramFilerIdentifierNames = entryPoint.get("cikNameList",None)
+            val.paramExhibitType = entryPoint.get("exhibitType", None)
+            val.paramSubmissionType = entryPoint.get("submissionType", None)
 
     if val.paramExhibitType == "EX-2.01": # only applicable for edgar production and parameterized testcases
         val.EFM60303 = "EFM.6.23.01"
@@ -117,12 +118,15 @@ def validateXbrlDtsDocument(val, modelDocument, isFilingDocument):
     
 def filingStart(cntlr, options, filesource, entrypointFiles, sourceZipStream=None, responseZipStream=None):
     modelManager = cntlr.modelManager
+    # cntlr.addToLog("TRACE EFM filing start val={} plugin={}".format(modelManager.validateDisclosureSystem, getattr(modelManager.disclosureSystem, "EFMplugin", False)))
     if modelManager.validateDisclosureSystem and getattr(modelManager.disclosureSystem, "EFMplugin", False):
+        # cntlr.addToLog("TRACE EFM filing start 2 classes={} moduleInfos={}".format(pluginMethodsForClasses, modulePluginInfos))
         modelManager.efmFiling = Filing(cntlr, options, filesource, entrypointFiles, sourceZipStream, responseZipStream)
         for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Filing.Start"):
             pluginXbrlMethod(cntlr, options, entrypointFiles, modelManager.efmFiling)
                 
 def xbrlLoaded(cntlr, options, modelXbrl, entryPoint, *args):
+    # cntlr.addToLog("TRACE EFM xbrl loaded")
     modelManager = cntlr.modelManager
     if (hasattr(modelManager, "efmFiling") and
         (modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or 
@@ -133,17 +137,19 @@ def xbrlLoaded(cntlr, options, modelXbrl, entryPoint, *args):
         _report.entryPoint = entryPoint
 
 def xbrlRun(cntlr, options, modelXbrl, *args):
+    # cntlr.addToLog("TRACE EFM xbrl run")
     modelManager = cntlr.modelManager
     if (hasattr(modelManager, "efmFiling") and
         (modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or 
         modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL)):
         efmFiling = modelManager.efmFiling
         _report = efmFiling.reports[-1]
-        if not (options.abortOnMajorError and len(modelXbrl.errors) > 0):
+        if True: # HF TESTING: not (options.abortOnMajorError and len(modelXbrl.errors) > 0):
             for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Xbrl.Run"):
                 pluginXbrlMethod(cntlr, options, modelXbrl, modelManager.efmFiling, _report)
 
 def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=None, responseZipStream=None):
+    # cntlr.addToLog("TRACE EFM xbrl validate")
     modelManager = cntlr.modelManager
     if hasattr(modelManager, "efmFiling"):
         efmFiling = modelManager.efmFiling
@@ -197,16 +203,19 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
                                     r.url)
 
 def filingEnd(cntlr, options, filesource, entrypointFiles, sourceZipStream=None, responseZipStream=None):
+    #cntlr.addToLog("TRACE EFM filing end")
     modelManager = cntlr.modelManager
     if hasattr(modelManager, "efmFiling"):
         for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Filing.End"):
             pluginXbrlMethod(cntlr, options, modelManager.efmFiling)
+        #cntlr.addToLog("TRACE EdgarRenderer end")
         # save JSON file of instances and referenced documents
         filingReferences = dict((report.url, report)
                                 for report in modelManager.efmFiling.reports)
 
         modelManager.efmFiling.close()
         del modelManager.efmFiling
+        #cntlr.addToLog("TRACE EFN filing end complete")
     
 class Filing:
     def __init__(self, cntlr, options, filesource, entrypointfiles, sourceZipStream, responseZipStream):
@@ -244,26 +253,19 @@ class Filing:
             except AttributeError: # no reportsFolder attribute
                 pass
         if self.options.logFile:
-            _logFile = self.options.logFile
-            _logFileExt = os.path.splitext(_logFile)[1]
-            if _logFileExt == ".xml":
-                _logStr = self.cntlr.logHandler.getXml(clearLogBuffer=False)  # may be saved to file later or flushed in web interface
-            elif _logFileExt == ".json":
-                _logStr = self.cntlr.logHandler.getJson(clearLogBuffer=False)
-            else:  # no ext or  _logFileExt == ".txt":
-                _logFormat = request.query.logFormat
-                if _logFormat:
-                    _stdLogFormatter = cntlr.logHandler.formatter
-                    cntlr.logHandler.formatter = LogFormatter(_logFormat)
-                _logStr = cntlr.logHandler.getText(clearLogBuffer=False)
-                if _logFormat:
-                    cntlr.logHandler.formatter = _stdLogFormatter
-                    del _stdLogFormatter # dereference
             if self.reportZip:
+                _logFile = self.options.logFile
+                _logFileExt = os.path.splitext(_logFile)[1]
+                if _logFileExt == ".xml":
+                    _logStr = self.cntlr.logHandler.getXml(clearLogBuffer=False)  # may be saved to file later or flushed in web interface
+                elif _logFileExt == ".json":
+                    _logStr = self.cntlr.logHandler.getJson(clearLogBuffer=False)
+                else:  # no ext or  _logFileExt == ".txt":
+                    _logStr = cntlr.logHandler.getText(clearLogBuffer=False)
                 self.reportZip.writestr(_logFile, _logStr)
-            else:
-                with open(_logFile, "wt", encoding="utf-8") as fh:
-                    fh.write(_logStr)
+            #else:
+            #    with open(_logFile, "wt", encoding="utf-8") as fh:
+            #        fh.write(_logStr)
         if self.reportZip:
             self.reportZip.close()
         self.__dict__.clear() # dereference all contents
@@ -322,7 +324,7 @@ class Report:
         def addLocallyReferencedFile(elt):
             if elt.tag in ("a", "img", "{http://www.w3.org/1999/xhtml}a", "{http://www.w3.org/1999/xhtml}img"):
                 for attrTag, attrValue in elt.items():
-                    if attrTag in ("href", "src") and not isHttpUrl(attrValue) and not os.path.isabs(attrvalue):
+                    if attrTag in ("href", "src") and not isHttpUrl(attrValue) and not os.path.isabs(attrValue):
                         file = os.path.join(sourceDir,attrValue)
                         if os.path.exists(file):
                             self.reportedFiles.add(os.path.join(sourceDir,attrValue))

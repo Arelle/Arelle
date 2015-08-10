@@ -647,7 +647,7 @@ class LogToXmlHandler(LogHandlerWithXml):
                            .decode(sys.stdout.encoding, 'strict')))
             print('</log>')
         else:
-            print ("filename=" + self.filename)
+            # print ("filename=" + self.filename)
             with open(self.filename, self.filemode, encoding='utf-8') as fh:
                 fh.write('<?xml version="1.0" encoding="utf-8"?>\n')
                 fh.write('<log>\n')

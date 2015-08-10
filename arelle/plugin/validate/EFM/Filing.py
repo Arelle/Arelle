@@ -137,7 +137,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             entityIdentifierName=disclosureSystem.identifierValueName,
                             entityIdentifer=entityIdentifierValue,
                             entityIdentifer2=entityIdentifier,
-                            filerIdentifier=",".join(val.paramFilerIdentifiers or [])) 
+                            filerIdentifier=",".join(sorted(val.paramFilerIdentifierNames.keys()) if val.paramFilerIdentifierNames else []))
             val.modelXbrl.profileActivity("... filer identifier checks", minTimeToShow=1.0)
 
         #6.5.7 duplicated contexts
@@ -300,7 +300,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 val.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
                                     _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s"),
                                     modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
-                                    value=value, filerIdentifier=",".join(val.paramFilerIdentifiers))
+                                    value=value, filerIdentifier=",".join(sorted(val.paramFilerIdentifierNames.keys())))
                             elif val.paramFilerIdentifier and value != val.paramFilerIdentifier:
                                 val.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
                                     _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s"),
