@@ -416,7 +416,7 @@ class ValidateXbrl:
                         self.modelXbrl.error("ix:invalidTransformation",
                             _("Fact %(fact)s has unrecognized transformation namespace %(namespace)s"),
                             modelObject=f, fact=f.qname, namespace=fmt.namespaceURI)
-                    elif fmt.localName not in FunctionIxt.ixtFunctions:
+                    elif fmt.localName not in FunctionIxt.ixtNamespaceFunctions[fmt.namespaceURI]:
                         self.modelXbrl.error("ix:invalidTransformation",
                             _("Fact %(fact)s has unrecognized transformation name %(name)s"),
                             modelObject=f, fact=f.qname, name=fmt.localName)
