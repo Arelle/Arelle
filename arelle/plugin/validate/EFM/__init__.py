@@ -156,7 +156,8 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
         reports = efmFiling.reports
         # check for dup inline and regular instances
         # SDR checks
-        if any(report.documentType.startswith("SDR") for report in reports):
+        if any(report.documentType and report.documentType.startswith("SDR") 
+               for report in reports):
             _sdrKs = [r for r in reports if r.documentType == "SDR K"]
             if not _sdrKs:
                 efmFiling.error("EFM.SDR.1.1",
@@ -310,7 +311,7 @@ class Report:
                 _file = refDoc.filepath
                 if refDoc.uri not in refDocUris:
                     refDocUris.add(refDoc.uri)
-                    if refDoc.filepath.startswith(sourceDir):
+                    if refDoc.filepath and refDoc.filepath.startswith(sourceDir):
                         self.reportedFiles.add(refDoc.filepath[len(sourceDir)+1:])
                     addRefDocs(refDoc)
                 if refDoc.type == ModelDocument.Type.SCHEMA:
