@@ -19,7 +19,7 @@ Input files may be in JSON:
 
 '''
 import os, json, zipfile
-jsonIndent = 0  # None for most compact, 0 for left aligned
+jsonIndent = 1  # None for most compact, 0 for left aligned
 from decimal import Decimal
 from lxml.etree import XML, XMLSyntaxError
 from arelle import ModelDocument, ModelValue, XmlUtil

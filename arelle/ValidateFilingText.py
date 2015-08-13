@@ -7,7 +7,8 @@ Created on Oct 17, 2010
 #import xml.sax, xml.sax.handler
 from lxml.etree import XML, DTD, SubElement, XMLSyntaxError
 import os, re, io
-from arelle import XbrlConst
+from arelle.XbrlConst import ixbrlAll, xhtml
+from arelle.XmlUtil import setXmlns
 from arelle.ModelObject import ModelObject
 
 XMLdeclaration = re.compile(r"<\?xml.*\?>", re.DOTALL)
@@ -546,7 +547,7 @@ def validateTextBlockFacts(modelXbrl):
 def copyHtml(sourceXml, targetHtml):
     for sourceChild in sourceXml.iterchildren():
         targetChild = SubElement(targetHtml,
-                                 sourceChild.localName if sourceChild.namespaceURI == XbrlConst.xhtml else sourceChild.tag)
+                                 sourceChild.localName if sourceChild.namespaceURI == xhtml else sourceChild.tag)
         for attrTag, attrValue in sourceChild.items():
             targetChild.set(attrTag, attrValue)
         copyHtml(sourceChild, targetChild)

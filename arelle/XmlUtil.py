@@ -10,7 +10,7 @@ try:
 except ImportError:
     import re
 from lxml import etree
-from arelle import XbrlConst
+from arelle.XbrlConst import ixbrlAll, qnLinkFootnote, xhtml, xml, xsd
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname, QName
 
@@ -26,13 +26,13 @@ def xmlns(element, prefix):
     if ns:
         return ns
     if prefix == 'xml': # not normally declared explicitly
-        return XbrlConst.xml
+        return xml
     return ns # return results of get (which may be no namespace
 
 def xmlnsprefix(element, ns):
     if ns is None:
         return None
-    if ns == XbrlConst.xml: # never declared explicitly
+    if ns == xml: # never declared explicitly
         return 'xml'
     for prefix, NS in element.nsmap.items():
         if NS == ns:
@@ -45,7 +45,7 @@ def xmlnsprefix(element, ns):
 def targetNamespace(element):
     treeElt = element
     while treeElt is not None:
-        if treeElt.localName == "schema" and treeElt.namespaceURI == XbrlConst.xsd and treeElt.get("targetNamespace"):
+        if treeElt.localName == "schema" and treeElt.namespaceURI == xsd and treeElt.get("targetNamespace"):
             return treeElt.get("targetNamespace")
         treeElt = treeElt.getparent()
     return None
@@ -170,7 +170,7 @@ def innerTextNodes(element, ixExclude, ixEscape, ixContinuation):
     for child in element.iterchildren():
         if isinstance(child,ModelObject) and (
            not ixExclude or 
-           not (child.localName == "exclude" and child.namespaceURI in XbrlConst.ixbrlAll)):
+           not (child.localName == "exclude" and child.namespaceURI in ixbrlAll)):
             firstChild = True
             for nestedText in innerTextNodes(child, ixExclude, ixEscape, ixContinuation):
                 if firstChild and ixEscape:
@@ -188,7 +188,7 @@ def innerTextNodes(element, ixExclude, ixEscape, ixContinuation):
                 yield contText
             
 def escapedNode(elt, start, empty):
-    if elt.namespaceURI in XbrlConst.ixbrlAll:
+    if elt.namespaceURI in ixbrlAll:
         return ''  # do not yield XML for nested facts
     s = ['<']
     if not start and not empty:
@@ -544,6 +544,34 @@ def copyChildren(parent, elt):
         if isinstance(childNode,ModelObject):
             copyNodes(parent, childNode)
 
+def copyIxFootnoteHtml(sourceXml, targetHtml, withText=False):
+    if withText:
+        _tx = sourceXml.text
+        if _tx:
+            try: # if target has a last child already with a tail, add to tail instead of to text
+                targetLastchild = next(targetHtml.iterchildren(reversed=True))
+                targetLastchild.tail = (targetLastchild.tail or "") + _tx
+            except StopIteration: # no children
+                targetHtml.text = (targetHtml.text or "") + _tx
+    for sourceChild in sourceXml.iterchildren():
+        if not sourceChild.namespaceURI in ixbrlAll:
+            # ensure xhtml has an xmlns
+            if sourceChild.namespaceURI == xhtml and xhtml not in targetHtml.nsmap.values():
+                setXmlns(targetHtml.modelDocument, "xhtml", xhtml)
+            targetChild = etree.SubElement(targetHtml, sourceChild.tag)
+            for attrTag, attrValue in sourceChild.items():
+                targetChild.set(attrTag, attrValue)
+            copyIxFootnoteHtml(sourceChild, targetChild, withText=withText)
+        else:
+            copyIxFootnoteHtml(sourceChild, targetHtml, withText=withText)
+    if withText:
+        _tl = sourceXml.tail
+        if _tl:
+            targetHtml.tail = (targetHtml.tail or "") + _tl
+    contAt = getattr(sourceXml, "_continuationElement", None)
+    if contAt is not None:
+        copyIxFootnoteHtml(contAt, targetHtml, withText=withText)
+        
 def addComment(parent, commentText):
     comment = str(commentText)
     if '--' in comment: # replace -- with - - (twice, in case more than 3 '-' together)
@@ -810,17 +838,23 @@ def writexml(writer, node, encoding=None, indent='', xmlcharrefreplace=False, pa
                 parentNsmap = {}
         if isinstance(node,ModelObject):
             tag = node.prefixedName
+            isXmlElement = node.namespaceURI != xhtml
+            isFootnote = node.qname == qnLinkFootnote
         else:
             ns, sep, localName = node.tag.partition('}')
             if sep:
-                prefix = xmlnsprefix(node,ns[1:])
+                ns = ns[1:]
+                prefix = xmlnsprefix(node,ns)
                 if prefix:
                     tag = prefix + ":" + localName
                 else:
                     tag = localName
             else:
                 tag = ns
-        writer.write(indent+"<" + tag)
+            isXmlElement = ns != xhtml
+            isFootnote = False
+        if isXmlElement: writer.write(indent)
+        writer.write("<" + tag)
         attrs = {}
         for prefix, ns in sorted((k if k is not None else '', v) 
                                  # items wrapped in set for 2.7 compatibility
@@ -865,6 +899,7 @@ def writexml(writer, node, encoding=None, indent='', xmlcharrefreplace=False, pa
             writer.write("\"")
         hasChildNodes = False
         firstChild = True
+        
         text = node.text
         if text is not None:
             text = ''.join("&amp;" if c == "&"
@@ -875,17 +910,34 @@ def writexml(writer, node, encoding=None, indent='', xmlcharrefreplace=False, pa
                            else "&#x%x;" % ord(c) if c >= '\x80' and xmlcharrefreplace
                            else c
                            for c in text)
+        tail = node.tail
+        if tail is not None:
+            tail = ''.join("&amp;" if c == "&"
+                           else ("&nbsp;" if xmlcharrefreplace else "&#160;") if c == "\u00A0" 
+                           else "&lt;" if c == "<"
+                           else "&gt;" if c == ">"
+                           else ("&shy;" if xmlcharrefreplace else "&#173;") if c == "\u00AD"
+                           else "&#x%x;" % ord(c) if c >= '\x80' and xmlcharrefreplace
+                           else c
+                           for c in tail)
         for child in node.iterchildren():
             hasChildNodes = True
             if firstChild:
-                writer.write(">\n")
+                writer.write(">")
+                if isXmlElement and not isFootnote: writer.write("\n")
                 if text and not text.isspace():
                     writer.write(text)
                 firstChild = False
             writexml(writer, child, indent=indent+'    ', xmlcharrefreplace=xmlcharrefreplace)
         if hasChildNodes:
-            writer.write("%s</%s>\n" % (indent, tag))
+            if isXmlElement and not isFootnote:
+                writer.write("%s</%s>" % (indent, tag))
+            else:
+                writer.write("</%s>" % (tag,))
         elif text:
-            writer.write(">%s</%s>\n" % (text, tag))
+            writer.write(">%s</%s>" % (text, tag))
         else:
-            writer.write("/>\n")
+            writer.write("/>")
+        if tail and not tail.isspace():
+            writer.write(tail)
+        if isXmlElement: writer.write("\n")
