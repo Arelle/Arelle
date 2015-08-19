@@ -98,7 +98,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                 (_("Import File..."), self.importFileOpen, None, None),
                 (_("Import Web..."), self.importWebOpen, None, None),
                 ("PLUG-IN", "CntlrWinMain.Menu.File.Open", None, None),
-                (_("Save..."), self.fileSave, "Ctrl+S", "<Control-s>"),
+                (_("Save"), self.fileSaveExistingFile, "Ctrl+S", "<Control-s>"),
+                (_("Save As..."), self.fileSave, None, None),
                 (_("Save DTS Package"), self.saveDTSpackage, None, None),
                 ("PLUG-IN", "CntlrWinMain.Menu.File.Save", None, None),
                 (_("Close"), self.fileClose, "Ctrl+W", "<Control-w>"),
@@ -236,7 +237,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 #("images/toolbarNewFile.gif", self.fileNew),
                 ("toolbarOpenFile.gif", self.fileOpen, _("Open local file"), _("Open by choosing a local XBRL file, testcase, or archive file")),
                 ("toolbarOpenWeb.gif", self.webOpen, _("Open web file"), _("Enter an http:// URL of an XBRL file or testcase")),
-                ("toolbarSaveFile.gif", self.fileSave, _("Save file"), _("Saves currently selected local XBRL file")),
+                ("toolbarSaveFile.gif", self.fileSaveExistingFile, _("Save file"), _("Saves currently selected local XBRL file")),
                 ("toolbarClose.gif", self.fileClose, _("Close"), _("Closes currently selected instance/DTS or testcase(s)")),
                 (None,None,None,None),
                 ("toolbarFindMenu.gif", self.find, _("Find"), _("Find dialog for scope and method of searching")),
@@ -435,46 +436,80 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.data = {}
         self.parent.title(_("arelle - Unnamed"));
         self.modelManager.load(None);
-        
+    
+    def getViewAndModelXbrl(self):
+        view = getattr(self, "currentView", None)
+        if view:
+            modelXbrl = None
+            try:
+                modelXbrl = view.modelXbrl
+                return (view, modelXbrl)
+            except AttributeError:
+                return (view, None)
+        return (None, None)
+
     def okayToContinue(self):
-        if not self.dirty:
+        view, modelXbrl = self.getViewAndModelXbrl()
+        documentIsModified = False
+        if view is not None:
+            try:
+                # What follows only exists in ViewWinRenderedGrid
+                view.updateInstanceFromFactPrototypes()
+            except AttributeError:
+                pass
+        if modelXbrl is not None:
+            documentIsModified = modelXbrl.isModified()
+        if not self.dirty and (not documentIsModified):
             return True
-        reply = tkinter.messagebox.askyesnocancel(
+        reply = tkinter.messagebox.askokcancel(
                     _("arelle - Unsaved Changes"),
-                    _("Save unsaved changes?"), 
+                    _("Are you sure to close the current instance without saving?\n (OK will discard changes.)"), 
                     parent=self.parent)
         if reply is None:
             return False
-        if reply:
-            return self.fileSave()
-        return True
+        else:
+            return reply
         
-    def fileSave(self, view=None, fileType=None, *ignore):
+    def fileSave(self, event=None, view=None, fileType=None, filenameFromInstance=False, *ignore):
         if view is None:
             view = getattr(self, "currentView", None)
         if view is not None:
-            modelXbrl = view.modelXbrl
+            filename = None
+            modelXbrl = None
+            try:
+                modelXbrl = view.modelXbrl
+            except AttributeError:
+                pass
+            if filenameFromInstance:
+                try:
+                    modelXbrl = view.modelXbrl
+                    filename = modelXbrl.modelDocument.filepath
+                    if filename.endswith('.xsd'): # DTS entry point, no instance saved yet!
+                        filename = None
+                except AttributeError:
+                    pass
             if isinstance(view, ViewWinRenderedGrid.ViewRenderedGrid):
                 initialdir = os.path.dirname(modelXbrl.modelDocument.uri)
                 if fileType in ("html", "xml", None):
-                    if fileType == "html":
+                    if fileType == "html" and filename is None:
                         filename = self.uiFileDialog("save",
                                 title=_("arelle - Save HTML-rendered Table"),
                                 initialdir=initialdir,
                                 filetypes=[(_("HTML file .html"), "*.html"), (_("HTML file .htm"), "*.htm")],
                                 defaultextension=".html")
-                    elif fileType == "xml":
+                    elif fileType == "xml" and filename is None:
                         filename = self.uiFileDialog("save",
                                 title=_("arelle - Save Table Layout Model"),
                                 initialdir=initialdir,
                                 filetypes=[(_("Layout model file .xml"), "*.xml")],
                                 defaultextension=".xml")
                     else: # ask file type
-                        filename = self.uiFileDialog("save",
-                                title=_("arelle - Save XBRL Instance or HTML-rendered Table"),
-                                initialdir=initialdir,
-                                filetypes=[(_("XBRL instance .xbrl"), "*.xbrl"), (_("XBRL instance .xml"), "*.xml"), (_("HTML table .html"), "*.html"), (_("HTML table .htm"), "*.htm")],
-                                defaultextension=".html")
+                        if filename is None:
+                            filename = self.uiFileDialog("save",
+                                    title=_("arelle - Save XBRL Instance or HTML-rendered Table"),
+                                    initialdir=initialdir,
+                                    filetypes=[(_("XBRL instance .xbrl"), "*.xbrl"), (_("XBRL instance .xml"), "*.xml"), (_("HTML table .html"), "*.html"), (_("HTML table .htm"), "*.htm")],
+                                    defaultextension=".html")
                         if filename and (filename.endswith(".xbrl") or filename.endswith(".xml")):
                             view.saveInstance(filename)
                             return True
@@ -583,6 +618,9 @@ class CntlrWinMain (Cntlr.Cntlr):
         return True;
         '''
     
+    def fileSaveExistingFile(self, event=None, view=None, fileType=None, *ignore):
+        return self.fileSave(view=view, fileType=fileType, filenameFromInstance=True)
+
     def saveDTSpackage(self):
         self.modelManager.saveDTSpackage(allDTSes=True)
     
@@ -858,6 +896,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.modelManager.close()
         self.parent.title(_("arelle - Unnamed"))
         self.setValidateTooltipText()
+        self.currentView = None
 
     def validate(self):
         modelXbrl = self.modelManager.modelXbrl
