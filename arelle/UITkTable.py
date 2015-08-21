@@ -164,7 +164,13 @@ class XbrlTable(TkTableWrapper.Table):
                     TG_BORDER_RIGHT_BOTTOM_LEFT,
                     TG_BORDER_LEFT_TOP_RIGHT,
                     TG_BORDER_ALL]
-    
+
+    MAX_COLUMN_WIDTH = 50 # Limit for automatically set column width
+    MAX_ROW_HEIGHT = 50 # Limit for automatically set row height
+    MAX_COLUMN_WIDTH_PLUS_1 = MAX_COLUMN_WIDTH+1
+    DEFAULT_COLUMN_WIDTH = 6
+    DEFAULT_ROW_HEIGHT = 2
+
     def cellRight(self, event, *args):
         widget = event.widget
         titleRows = int(widget.cget('titlerows'))
@@ -275,10 +281,14 @@ class XbrlTable(TkTableWrapper.Table):
         '''
         self.data = numpy.empty((rows, columns), dtype=object)
         self.objectIds = numpy.empty((rows, columns), dtype=object)
+        self.maxColumnWidths = numpy.empty(columns, dtype=int)
+        self.maxRowHeights = numpy.empty(rows, dtype=int)
         self.modifiedCells = dict()
         self.currentCellCoordinates = None
         self.data.fill('')
         self.objectIds.fill('')
+        self.maxColumnWidths.fill(0)
+        self.maxRowHeights.fill(0)
         self.titleRows = titleRows
         self.titleColumns = titleColumns
 
@@ -295,8 +305,8 @@ class XbrlTable(TkTableWrapper.Table):
                                             selecttype='cell',
                                             rowstretch='none',
                                             colstretch='none',
-                                            rowheight=-30,
-                                            colwidth=15,
+                                            rowheight=self.DEFAULT_ROW_HEIGHT,
+                                            colwidth=self.DEFAULT_COLUMN_WIDTH,
                                             flashmode='off',
                                             anchor=NE,
                                             usecommand=1,
@@ -321,8 +331,8 @@ class XbrlTable(TkTableWrapper.Table):
                                             selecttype='cell',
                                             rowstretch='none',
                                             colstretch='none',
-                                            rowheight=-30,
-                                            colwidth=15,
+                                            rowheight=self.DEFAULT_ROW_HEIGHT,
+                                            colwidth=self.DEFAULT_COLUMN_WIDTH,
                                             flashmode='off',
                                             anchor=NE,
                                             usecommand=1,
@@ -509,6 +519,65 @@ class XbrlTable(TkTableWrapper.Table):
 #            pass
         self.tag_cell(XbrlTable.TG_DISABLED, cellIndex)
 
+    def _updateMaxSizes(self, value, x, y, colspan, rowspan, minWidth=0):
+        '''
+        :param value: object
+        :param x: int
+        :param y: int
+        :param colspan: int
+        :param rowspan: int
+        Here, we compute the size of the current header cell.
+        The computation takes into account the colspan and the rowspan.
+        If there is a row- or columnspan, the length is gathered uniformly
+        among all spanned cells.
+        We base our computations on the length of value (converted to a string).
+        We keep everything on a line except when the width exceeds self.MAX_COLUMN_WIDTH.
+        In the later case, we start wrapping the text on subsequent lines and thus the
+        height of the line increases.
+        '''
+        if colspan < 0:
+            colspan = 0
+        if rowspan < 0:
+            rowspan = 0
+        dataShape = self.data.shape
+        totalRows = dataShape[0]
+        totalColumns = dataShape[1]
+        if value is not None:
+            valueSize = len(str(value))
+            colspanPlus1 = colspan+1
+            rowspanPlus1 = rowspan+1
+            colWidthBeforeWrapping = (valueSize+colspan)//colspanPlus1 # round towards infinity
+            if colWidthBeforeWrapping<minWidth:
+                colWidthBeforeWrapping = minWidth
+            rowHeight = (colWidthBeforeWrapping+self.MAX_COLUMN_WIDTH)//self.MAX_COLUMN_WIDTH_PLUS_1
+            rowHeight = (rowHeight+rowspan)//rowspanPlus1
+            for i in range(x, x+colspanPlus1):
+                if self.maxColumnWidths[i]<colWidthBeforeWrapping:
+                    self.maxColumnWidths[i] = colWidthBeforeWrapping
+            for i in range(y, y+rowspanPlus1):
+                if self.maxRowHeights[i]<rowHeight:
+                    self.maxRowHeights[i] = rowHeight
+
+    def _updateMaxComboboxSizes(self, codes, x, y, colspan, rowspan):
+        '''
+        This method works like _updateMaxSizes, but for a list of values
+        :param codes: list()
+        :param x: int
+        :param y: int
+        :param colspan: int
+        :param rowspan: int
+        '''
+        value = ""
+        if len(codes)>0:
+            value = codes[0]
+            valueLength = len(str(value)) if value is not None else 0
+            for code in codes:
+                if code is not None:
+                    codeLength = len(str(code))
+                    if valueLength < codeLength:
+                        value = code
+                        valueLength = codeLength
+        self._updateMaxSizes(value, x, y, colspan, rowspan, minWidth=10)
 
     def initHeaderCellValue(self, value, x, y, colspan, rowspan,
                             justification, objectId=None,
@@ -524,6 +593,7 @@ class XbrlTable(TkTableWrapper.Table):
             self.spans(index=None, **cellSpans)
         indexValue = {cellIndex:value}
         self.set(objectId=objectId, **indexValue)
+        self._updateMaxSizes(value, x, y, colspan, rowspan)
         self.initHeaderBorder(x, y,
                               hasLeftBorder=True, hasTopBorder=True,
                               hasRightBorder=True,
@@ -556,6 +626,7 @@ class XbrlTable(TkTableWrapper.Table):
                               hasLeftBorder=True, hasTopBorder=True,
                               hasRightBorder=True,
                               hasBottomBorder=not isRollUp)
+        self._updateMaxComboboxSizes(codes, x, y, colspan, rowspan)
         return self.initCellCombobox(value, values, x, y, isOpen=isOpen,
                                      objectId=objectId, selectindex=selectindex,
                                      comboboxselected=comboboxselected,
@@ -628,6 +699,8 @@ class XbrlTable(TkTableWrapper.Table):
             if abs(deltaRows)+abs(deltaCols) > 0:
                 self.data.resize([rows, columns])
                 self.objectIds.resize([rows, columns])
+                self.maxColumnWidths.resize(columns)
+                self.maxRowHeights.resize(rows)
             if deltaRows>0:
                 self.insert_rows('end', deltaRows)
                 self.config(rows=rows)
@@ -650,6 +723,8 @@ class XbrlTable(TkTableWrapper.Table):
                 # reset the data whatever the resize pattern is.
                 self.data.fill('')
                 self.objectIds.fill('')
+                self.maxColumnWidths.fill(0)
+                self.maxRowHeights.fill(0)
         except Exception as err:
             # Such exception may happen e.g. when quickly switching tables (things are apparently not thread safe)
             messagebox.showwarning(_("arelle - Error"),
@@ -697,6 +772,20 @@ class XbrlTable(TkTableWrapper.Table):
         self.activate(index)
         self.see(index)
         self.selection_set(index)
+
+    def resizeTableCells(self):
+        colsToResize = dict()
+        rowsToResize = dict()
+        for i, width in enumerate(self.maxColumnWidths):
+            if width > self.DEFAULT_COLUMN_WIDTH:
+                colsToResize[str(i)] = width if width < self.MAX_COLUMN_WIDTH else self.MAX_COLUMN_WIDTH
+        self.width(**colsToResize)
+        colsToResize.clear()
+        for i, height in enumerate(self.maxRowHeights):
+            if height > self.DEFAULT_ROW_HEIGHT:
+                rowsToResize[str(i)] = height if height < self.MAX_ROW_HEIGHT else self.MAX_ROW_HEIGHT
+        self.height(**rowsToResize)
+        rowsToResize.clear()
 
 class ScrolledTkTableFrame(Frame):
     def __init__(self, parent, browseCmd, *args, **kw):
