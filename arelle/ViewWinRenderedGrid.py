@@ -633,118 +633,14 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 for aspect, aspectValue in cellAspectValues.items():
                                     if isinstance(aspectValue, str) and aspectValue.startswith(OPEN_ASPECT_ENTRY_SURROGATE):
                                         self.factPrototypeAspectEntryObjectIds[objectId].add(aspectValue) 
-                            modelConcept = fp.concept
-                            if (justify is None) and modelConcept is not None:
-                                justify = XbrlTable.TG_RIGHT_JUSTIFIED if modelConcept.isNumeric else XbrlTable.TG_LEFT_JUSTIFIED
-                            if modelConcept is not None and modelConcept.isEnumeration:
-                                myValidationObject = ValidateXbrl(self.modelXbrl)
-                                enumerationSet = ValidateXbrlDimensions.usableEnumerationMembers(myValidationObject, modelConcept)
-                                enumerationDict = dict()
-                                for enumerationItem in enumerationSet:
-                                    enumerationDict[enumerationItem.label()] = enumerationItem.qname
-                                enumerationValues = sorted(list(enumerationDict.keys()))
-                                enumerationQNameStrings = [""]+list(str(enumerationDict[enumerationItem]) for enumerationItem in enumerationValues)
-                                enumerationValues = [""]+enumerationValues
-                                try:
-                                    selectedIdx = enumerationQNameStrings.index(value)
-                                    effectiveValue = enumerationValues[selectedIdx]
-                                except ValueError:
-                                    effectiveValue = enumerationValues[0]
-                                    selectedIdx = 0
-                                # TODO: check if this is still used:
-                                # width=ENTRY_WIDTH_IN_CHARS,
-                                self.table.initCellCombobox(effectiveValue,
-                                                            enumerationValues,
-                                                            self.dataFirstCol + i-1,
-                                                            row-1,
-                                                            objectId=objectId,
-                                                            selectindex=selectedIdx,
-                                                            codes=enumerationDict)
-                            elif modelConcept is not None and modelConcept.type.qname == XbrlConst.qnXbrliQNameItemType:
-                                if eurofilingModelPrefix in concept.nsmap and concept.nsmap.get(eurofilingModelPrefix) == eurofilingModelNamespace:
-                                    hierarchy = concept.get("{" + eurofilingModelNamespace + "}" + "hierarchy", None)
-                                    domainQNameAsString = concept.get("{" + eurofilingModelNamespace + "}" + "domain", None)
-                                    if hierarchy is not None and domainQNameAsString is not None:
-                                        newAspectValues = [""]
-                                        newAspectQNames = dict()
-                                        newAspectQNames[""] = None
-                                        domPrefix, _, domLocalName = domainQNameAsString.strip().rpartition(":")
-                                        domNamespace = concept.nsmap.get(domPrefix)
-                                        relationships = concept_relationships(self.rendrCntx, 
-                                             None, 
-                                             (QName(domPrefix, domNamespace, domLocalName),
-                                              hierarchy, # linkrole,
-                                              "XBRL-dimensions",
-                                              'descendant'),
-                                             False) # return flat list
-                                        for rel in relationships:
-                                            if (rel.arcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember)
-                                                and rel.isUsable):
-                                                header = rel.toModelObject.label(lang=self.lang)
-                                                newAspectValues.append(header)
-                                                currentQName = rel.toModelObject.qname
-                                                if str(currentQName) == value:
-                                                    value = header
-                                                newAspectQNames[header] = currentQName
-                                    else:
-                                        newAspectValues = None
-                                else:
-                                    newAspectValues = None
-                                if newAspectValues is None:
-                                    # TODO: check if the following parameter
-                                    # is needed:
-                                    # width=ENTRY_WIDTH_IN_CHARS
-                                    self.table.initCellValue(value,
-                                                             self.dataFirstCol + i-1,
-                                                             row-1,
-                                                             justification=justify,
-                                                             objectId=objectId)
-                                else:
-                                    qNameValues = newAspectValues
-                                    try:
-                                        selectedIdx = qNameValues.index(value)
-                                        effectiveValue = value
-                                    except ValueError:
-                                        effectiveValue = qNameValues[0]
-                                        selectedIdx = 0
-                                    # TODO: check if the following parameter
-                                    # is needed:
-                                    # width=ENTRY_WIDTH_IN_CHARS,
-                                    self.table.initCellCombobox(effectiveValue,
-                                                                qNameValues,
-                                                                self.dataFirstCol + i-1,
-                                                                row-1,
-                                                                objectId=objectId,
-                                                                selectindex=selectedIdx,
-                                                                codes=newAspectQNames)
-                            elif modelConcept is not None and modelConcept.type.qname == XbrlConst.qnXbrliBooleanItemType:
-                                booleanValues = ["",
-                                                 XbrlConst.booleanValueTrue,
-                                                 XbrlConst.booleanValueFalse]
-                                try:
-                                    selectedIdx = booleanValues.index(value)
-                                    effectiveValue = value
-                                except ValueError:
-                                    effectiveValue = booleanValues[0]
-                                    selectedIdx = 0
-                                # TODO: check if the following parameter
-                                # is needed:
-                                # width=ENTRY_WIDTH_IN_CHARS,
-                                self.table.initCellCombobox(effectiveValue,
-                                                            booleanValues,
-                                                            self.dataFirstCol + i-1,
-                                                            row-1,
-                                                            objectId=objectId,
-                                                            selectindex=selectedIdx)
-                            else:
-                                # TODO: check if the following parameter
-                                # is needed:
-                                # width=ENTRY_WIDTH_IN_CHARS
-                                self.table.initCellValue(value,
-                                                         self.dataFirstCol + i-1,
-                                                         row-1,
-                                                         justification=justify,
-                                                         objectId=objectId)
+                            # TODO: check if the following parameter
+                            # is needed:
+                            # width=ENTRY_WIDTH_IN_CHARS
+                            self.table.initCellValue(value,
+                                                     self.dataFirstCol + i-1,
+                                                     row-1,
+                                                     justification=(justify or ("right" if fp.isNumeric else "left")),
+                                                     objectId=objectId)
                         else:
                             fp.clear()  # dereference
                     row += 1
@@ -836,24 +732,16 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             tbl = self.table
             # check user keyed changes to aspects
             aspectEntryChanges = {}  # index = widget ID,  value = widget contents
-            aspectEntryChangeIds = _DICT_SET(aspectEntryChanges.keys())
             for modifiedCell in tbl.getCoordinatesOfModifiedCells():
                 objId = tbl.getObjectId(modifiedCell)
                 if objId is not None and len(objId)>0:
                     if tbl.isHeaderCell(modifiedCell):
                         if objId[0] == OPEN_ASPECT_ENTRY_SURROGATE:
-                            bodyCell.isChanged = False  # clear change flag
-                            aspectEntryChanges[objId] = bodyCell.value
-            aspectEntryChangeIds = _DICT_SET(aspectEntryChanges.keys())
-            # check user keyed changes to facts
-            for bodyCell in self.gridBody.winfo_children():
-                if isinstance(bodyCell, gridCell) and bodyCell.isChanged:
-                    value = bodyCell.value
-                    objId = bodyCell.objectId
-                    if objId:
-                        if (objId[0] == "f" and 
-                            (bodyCell.isChanged or # change in fact value widget or any open aspect widget
-                             self.factPrototypeAspectEntryObjectIds[objId] & aspectEntryChangeIds)):
+                            aspectEntryChanges[objId] = tbl.getTableValue(modifiedCell)
+                    else:
+                        # check user keyed changes to facts
+                        value = tbl.getTableValue(modifiedCell)
+                        if objId[0] == "f":
                             factPrototypeIndex = int(objId[1:])
                             factPrototype = self.factPrototypes[factPrototypeIndex]
                             concept = factPrototype.concept
@@ -872,11 +760,11 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 cntxId = prevCntx.id
                             else: # need new context
                                 newCntx = instance.createContext(entityIdentScheme, entityIdentValue, 
-                                              periodType, periodStart, periodEndInstant, 
-                                              concept.qname, qnameDims, [], [],
-                                              afterSibling=newCntx)
-                                cntxId = newCntx.id
-                                # new context
+                                    periodType, periodStart, periodEndInstant,
+                                    concept.qname, qnameDims, [], [],
+                                    afterSibling=newCntx)
+                                cntxId = newCntx.id # need new context
+                            # new context
                             if concept.isNumeric:
                                 if concept.isMonetary:
                                     unitMeasure = qname(XbrlConst.iso4217, self.newFactItemOptions.monetaryUnit)
@@ -900,7 +788,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 attrs.append(("decimals", decimals))
                                 value = Locale.atof(self.modelXbrl.locale, value, str.strip)
                             newFact = instance.createFact(concept.qname, attributes=attrs, text=value)
-                            bodyCell.objectId = newFact.objectId()  # switch cell to now use fact ID
+                            tbl.setObjectId(modifiedCell,
+                                            newFact.objectId()) # switch cell to now use fact ID
                             if self.factPrototypes[factPrototypeIndex] is not None:
                                 self.factPrototypes[factPrototypeIndex].clear()
                             self.factPrototypes[factPrototypeIndex] = None #dereference fact prototype
@@ -909,7 +798,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                             fact = self.modelXbrl.modelObject(objId)
                             if fact.concept.isNumeric:
                                 value = Locale.atof(self.modelXbrl.locale, value, str.strip)
-                            if fact.value != value:
+                            if fact.value != str(value):
                                 if fact.concept.isNumeric and fact.isNil != (not value):
                                     fact.isNil = not value
                                     if value: # had been nil, now it needs decimals
@@ -919,7 +808,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 fact.text = value
                                 instance.setIsModified()
                                 XmlValidate.validate(instance, fact)
-                            bodyCell.isChanged = False  # clear change flag
+            tbl.clearModificationStatus()
                         
     def saveInstance(self, newFilename=None, onSaved=None):
         if (not self.newFactItemOptions.entityIdentScheme or  # not initialized yet
