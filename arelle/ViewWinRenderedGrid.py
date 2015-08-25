@@ -456,8 +456,6 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                            isRollUp=columnspan>1 and isNonAbstract and len(xStructuralNode.childStructuralNodes)<columnspan)
                         else:
                             self.aspectEntryObjectIdsNode[xStructuralNode.aspectEntryObjectId] = xStructuralNode
-                            # TODO: is the following still needed?
-                            # width=int(max(wraplength/RENDER_UNITS_PER_CHAR, 5))
                             self.aspectEntryObjectIdsCell[xStructuralNode.aspectEntryObjectId] = self.table.initHeaderCombobox(leftCol-1,
                                                                                                                                topRow-1,
                                                                                                                                values=self.aspectEntryValues(xStructuralNode),
@@ -510,10 +508,6 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                        returnGenLabel=isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)),
                                                        recurseParent=not isinstance(yStructuralNode.definitionNode, ModelFilterDefinitionNode))
                         if label != OPEN_ASPECT_ENTRY_SURROGATE:
-                            # TODO: check if the following parameters have to
-                            # be used:
-                            # - wraplength=wraplength
-                            # - minwidth=(RENDER_UNITS_PER_CHAR if isNonAbstract and nextRow > topRow else None)
                             xValue = leftCol-1
                             yValue = row-1
                             self.table.initHeaderCellValue(label if label is not None else "         ",
@@ -527,8 +521,6 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                            isRollUp=columnspan>1 and isNonAbstract and (len(yStructuralNode.childStructuralNodes)>1 or (len(yStructuralNode.childStructuralNodes)==1 and not(yStructuralNode.childStructuralNodes[0].isAbstract))))
                         else:
                             self.aspectEntryObjectIdsNode[yStructuralNode.aspectEntryObjectId] = yStructuralNode
-                            # TODO: is the following still needed?
-                            # width=int(max(wraplength/RENDER_UNITS_PER_CHAR, 5))
                             self.aspectEntryObjectIdsCell[yStructuralNode.aspectEntryObjectId] = self.table.initHeaderCombobox(leftCol-1,
                                                                                                                                row-1,
                                                                                                                                values=self.aspectEntryValues(yStructuralNode),
@@ -539,7 +531,6 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 isCode = "code" in role
                                 docCol = self.dataFirstCol - len(self.rowHdrNonStdRoles) + i-1
                                 yValue = row-1
-                                # TODO: wraplength=40 if isCode else ENTRY_WIDTH_SCREEN_UNITS
                                 self.table.initHeaderCellValue(yStructuralNode.header(role=role, lang=self.lang),
                                                                docCol, yValue,
                                                                0, 0,
@@ -674,10 +665,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 self.factPrototypes.append(fp)  # for property views
                                 for aspect, aspectValue in cellAspectValues.items():
                                     if isinstance(aspectValue, str) and aspectValue.startswith(OPEN_ASPECT_ENTRY_SURROGATE):
-                                        self.factPrototypeAspectEntryObjectIds[objectId].add(aspectValue) 
-                            # TODO: check if the following parameter
-                            # is needed:
-                            # width=ENTRY_WIDTH_IN_CHARS
+                                        self.factPrototypeAspectEntryObjectIds[objectId].add(aspectValue)
                                     self.table.initCellValue(value,
                                                          self.dataFirstCol + i-1,
                                                          row-1,
