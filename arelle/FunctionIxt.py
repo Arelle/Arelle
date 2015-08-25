@@ -663,7 +663,7 @@ tr2Functions = {
     
     # transformation registry v-3 functions
 tr3Functions = tr2Functions # tr3 starts with tr2 and adds more functions
-tr2Functions.update ({
+tr3Functions.update ({
     # same as v2: 'booleanfalse': booleanfalse,
     # same as v2: 'booleantrue': booleantrue,
     'calindaymonthyear': calindaymonthyear, # TBD: calindaymonthyear,
