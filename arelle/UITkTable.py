@@ -9,6 +9,7 @@ import numpy
 
 from arelle import TkTableWrapper
 from tkinter import *
+from tkinter import messagebox
 try:
     from tkinter.ttk import *
     _Combobox = ttk.Combobox
@@ -439,6 +440,8 @@ class XbrlTable(TkTableWrapper.Table):
             and backgroundColourTag in XbrlTable.COLOURS):
             self.format_cell(backgroundColourTag, cellIndex)
         self.format_cell(XbrlTable.TG_BORDER_ALL, cellIndex)
+        if value is None:
+            value = "" #This is to overcome the fact that we sometimes get spurious stuff when switching tables
         indexValue = {cellIndex:value}
         self.set(objectId=objectId, **indexValue)
 
@@ -611,35 +614,41 @@ class XbrlTable(TkTableWrapper.Table):
         If titleRows or titleColumns is less than 0, the corresponding axis
         will not be updated either.
         '''
-        currentCols = int(self.cget('cols'))
-        currentRows = int(self.cget('rows'))
-        deltaCols = columns - currentCols
-        deltaRows = rows - currentRows
-        if abs(deltaRows)+abs(deltaCols) > 0:
-            self.data.resize([rows, columns])
-            self.objectIds.resize([rows, columns])
-        if deltaRows>0:
-            self.insert_rows('end', deltaRows)
-            self.config(rows=rows)
-        elif deltaRows<0:
-            self.delete_rows('end', count=abs(deltaRows))
-            self.config(rows=rows)
-        if deltaCols>0:
-            self.insert_cols('end', deltaCols)
-            self.config(cols=columns)
-        elif deltaCols<0:
-            self.delete_cols('end', count=abs(deltaCols))
-            self.config(cols=columns)
-        if titleRows>=0:
-            self.config(titlerows=titleRows)
-            self.titleRows = titleRows
-        if titleColumns>=0:
-            self.config(titlecols=titleColumns)
-            self.titleColumns = titleColumns
-        if clearData:
-            # reset the data whatever the resize pattern is.
-            self.data.fill('')
-            self.objectIds.fill('')
+        try:
+            currentCols = int(self.cget('cols'))
+            currentRows = int(self.cget('rows'))
+            deltaCols = columns - currentCols
+            deltaRows = rows - currentRows
+            if abs(deltaRows)+abs(deltaCols) > 0:
+                self.data.resize([rows, columns])
+                self.objectIds.resize([rows, columns])
+            if deltaRows>0:
+                self.insert_rows('end', deltaRows)
+                self.config(rows=rows)
+            elif deltaRows<0:
+                self.delete_rows('end', count=abs(deltaRows))
+                self.config(rows=rows)
+            if deltaCols>0:
+                self.insert_cols('end', deltaCols)
+                self.config(cols=columns)
+            elif deltaCols<0:
+                self.delete_cols('end', count=abs(deltaCols))
+                self.config(cols=columns)
+            if titleRows>=0:
+                self.config(titlerows=titleRows)
+                self.titleRows = titleRows
+            if titleColumns>=0:
+                self.config(titlecols=titleColumns)
+                self.titleColumns = titleColumns
+            if clearData:
+                # reset the data whatever the resize pattern is.
+                self.data.fill('')
+                self.objectIds.fill('')
+        except Exception as err:
+            # Such exception may happen e.g. when quickly switching tables (things are apparently not thread safe)
+            messagebox.showwarning(_("arelle - Error"),
+                        "Failed resize table:\n{1}".format(err),
+                        parent=self.self.modelXbrl.modelManager.cntlr.parent)
 
 
     def clearSpans(self):
