@@ -823,7 +823,6 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                             if self.factPrototypes[factPrototypeIndex] is not None:
                                 self.factPrototypes[factPrototypeIndex].clear()
                             self.factPrototypes[factPrototypeIndex] = None #dereference fact prototype
-                            bodyCell.isChanged = False  # clear change flag
                         elif objId[0] != "a": # instance fact, not prototype
                             fact = self.modelXbrl.modelObject(objId)
                             if fact.concept.isNumeric:
