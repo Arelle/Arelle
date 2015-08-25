@@ -52,6 +52,7 @@ def validateXbrlStart(val, parameters=None):
     val.paramFilerIdentifier = None
     val.paramFilerIdentifierNames = None
     val.paramSubmissionType = None
+    _cik = _cikList = _cikNameList = _exhibitType = _submissionType = None
     if parameters:
         # parameter-provided CIKs and registrant names
         p = parameters.get(ModelValue.qname("CIK",noPrefixIsNoNamespace=True))
@@ -60,6 +61,8 @@ def validateXbrlStart(val, parameters=None):
         p = parameters.get(ModelValue.qname("cikList",noPrefixIsNoNamespace=True))
         if p and len(p) == 2:
             _filerIdentifiers = p[1].split(",")
+        else:
+            _filerIdentifiers = []
         p = parameters.get(ModelValue.qname("cikNameList",noPrefixIsNoNamespace=True))
         if p and len(p) == 2:
             _filerNames = p[1].split("|Edgar|")
@@ -80,10 +83,27 @@ def validateXbrlStart(val, parameters=None):
         efmFiling = val.modelXbrl.modelManager.efmFiling
         if efmFiling.reports: # possible that there are no reports
             entryPoint = efmFiling.reports[-1].entryPoint
-            val.paramFilerIdentifier = entryPoint.get("cik", None)
-            val.paramFilerIdentifierNames = entryPoint.get("cikNameList",None)
-            val.paramExhibitType = entryPoint.get("exhibitType", None)
-            val.paramSubmissionType = entryPoint.get("submissionType", None)
+            _cik = entryPoint.get("cik", None)
+            _cikList = entryPoint.get("cikList", None)
+            _cikNameList = entryPoint.get("cikNameList",None)
+            _exhibitType = entryPoint.get("exhibitType", None)
+            _submissionType = entryPoint.get("submissionType", None)
+    
+    if _cik and _cik not in ("null", "None"):
+        val.paramFilerIdentifier = _cik
+    _filerIdentifiers = (_cikList or "").split(",")
+    _filerNames = (_cikNameList or "").split("|Edgar|")
+    if _filerIdentifiers and len(_filerIdentifiers) != len(_filerNames):
+        val.modelXbrl.error(("EFM.6.05.24.parameters", "GFM.3.02.02"),
+            _("parameters for cikList and cikNameList different list entry counts: %(cikList)s, %(cikNameList)s"),
+            modelXbrl=val.modelXbrl, cikList=_FilerIdentifiers, cikNameList=_FilerNames)
+    elif _filerNames:
+        val.paramFilerIdentifierNames=dict((_cik,_filerNames[i])
+                                           for i, _cik in enumerate(_filerIdentifiers))
+    if _exhibitType:
+        val.paramExhibitType = _exhibitType
+    if _submissionType:
+        val.paramSubmissionType = _submissionType
 
     if val.paramExhibitType == "EX-2.01": # only applicable for edgar production and parameterized testcases
         val.EFM60303 = "EFM.6.23.01"
