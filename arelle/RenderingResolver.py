@@ -72,6 +72,8 @@ def resolveAxesStructure(view, viewTblELR):
 def resolveTableAxesStructure(view, table, tblAxisRelSet):
     view.dataCols = 0
     view.dataRows = 0
+    view.dataFirstCol = 0
+    view.dataFirstRow = 0
     view.colHdrNonStdRoles = []
     view.colHdrDocRow = False
     view.colHdrCodeRow = False
