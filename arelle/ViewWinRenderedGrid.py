@@ -106,6 +106,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             self.factPrototypes = None
             self.aspectEntryObjectIdsNode.clear()
             self.aspectEntryObjectIdsCell.clear()
+        self.rendrCntx = None # remove the reference but do not manipulate since it may still be in use and shared
         
     def loadTablesMenu(self):
         tblMenuEntries = {}             
