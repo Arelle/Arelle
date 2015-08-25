@@ -10,7 +10,7 @@ Saves extracted instance document.
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import ModelXbrl, ValidateXbrlDimensions, XbrlConst
-from arelle.PrototypeDtsObject import LocPrototype
+from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
 from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, load
 from arelle.UrlUtil import isHttpUrl
@@ -139,6 +139,8 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
                         "#" + elementFragmentIdentifier(newFactForOldObjId[linkChild.dereference().objectIndex])
                     addChild(newLink, linkChild.qname, 
                              attributes=attributes)
+                elif isinstance(linkChild, ArcPrototype):
+                    addChild(newLink, linkChild.qname, attributes=attributes)
                 elif isinstance(linkChild, ModelInlineFootnote):
                     idUseCount = footnoteIdCount.get(linkChild.footnoteID, 0) + 1
                     if idUseCount > 1: # if footnote with id in other links bump the id number
