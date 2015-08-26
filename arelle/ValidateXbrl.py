@@ -377,6 +377,7 @@ class ValidateXbrl:
             
         if self.validateIXDS:
             modelXbrl.modelManager.showStatus(_("Validating inline document set"))
+            _customTransforms = self.modelXbrl.modelManager.customTransforms or {}
             ixdsIdObjects = defaultdict(list)
             for ixdsDoc in self.ixdsDocs:
                 for idObject in ixdsDoc.idObjects.values():
@@ -412,7 +413,7 @@ class ValidateXbrl:
                             modelObject=f, fact=f.qname, unit=f.unitID)
                 fmt = f.format
                 if fmt:
-                    if fmt in self.modelXbrl.modelManager.customTransforms:
+                    if fmt in _customTransforms:
                         pass
                     elif fmt.namespaceURI not in FunctionIxt.ixtNamespaceFunctions:
                         self.modelXbrl.error("ix:invalidTransformation",
