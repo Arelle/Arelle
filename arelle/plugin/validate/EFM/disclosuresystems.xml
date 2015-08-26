@@ -232,16 +232,16 @@
      deiFilerNameElement="EntityRegistrantName"
      />
   <DisclosureSystem 
-     names="US SEC (Edgar Filing Manual, Pragmatic, all years)|efm-blocking-all-years|efm-pragmatic-all-years"
+     names="US SEC (Edgar Filing Manual, Pragmatic, all years)|efm-nonblocking-all-years|efm-liberal|efm-pragmatic-all-years"
      description="US SEC Edgar Filing Manual, 2015\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
-     Disallowed references are blocked and not loaded (same as SEC production system)\n
+     Disallowed references are processed\n
      No content (semantic) tests are reported"
      validationType="EFM"
      exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
-     blockDisallowedReferences="true" 
+     blockDisallowedReferences="false" 
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
      standardTaxonomiesUrl="edgartaxonomies-all-years.xml"
