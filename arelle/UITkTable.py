@@ -17,6 +17,8 @@ except ImportError:
     from ttk import *
     _Combobox = Combobox
 
+USE_resizeTableCells = False # disable for now since actually worse for many tables
+
 class Coordinate(object):
     def __init__(self, row, column):
         self.x = int(column)
@@ -165,11 +167,32 @@ class XbrlTable(TkTableWrapper.Table):
                     TG_BORDER_LEFT_TOP_RIGHT,
                     TG_BORDER_ALL]
 
-    MAX_COLUMN_WIDTH = 50 # Limit for automatically set column width
+    MAX_COLUMN_WIDTH = 20 # Limit for automatically set column width
     MAX_ROW_HEIGHT = 50 # Limit for automatically set row height
     MAX_COLUMN_WIDTH_PLUS_1 = MAX_COLUMN_WIDTH+1
     DEFAULT_COLUMN_WIDTH = 6
     DEFAULT_ROW_HEIGHT = 2
+
+    def mouseMotion(self, event, *args):
+        coord = self.getCoordinatesFromEventXY(event)
+        if coord is not None:
+            objectId = self.getObjectId(coord)
+            print(str(objectId))
+
+    def getCoordinatesFromEventXY(self, event):
+        indexArg = "@"+str(event.x)+","+str(event.y) # (see http://tktable.sourceforge.net/tktable/doc/tkTable.html#sect6)
+        coordStr = self.index(indexArg)
+        coordList = coordStr.split(",")
+        row = int(coordList[0])
+        col = int(coordList[1])
+        widget = event.widget
+        dataShape = widget.data.shape
+        totalRows = dataShape[0]
+        totalColumns = dataShape[1]
+        if row < totalRows and col < totalColumns:
+            coord = Coordinate(row, col)
+            return coord
+        return None
 
     def cellRight(self, event, *args):
         widget = event.widget
@@ -293,7 +316,8 @@ class XbrlTable(TkTableWrapper.Table):
         self.titleColumns = titleColumns
 
         if browsecmd is None:
-            super(XbrlTable, self).__init__(parentWidget,
+            if USE_resizeTableCells:
+                super(XbrlTable, self).__init__(parentWidget,
                                             rows=rows,
                                             cols=columns,
                                             state='normal',
@@ -318,8 +342,8 @@ class XbrlTable(TkTableWrapper.Table):
                                             wrap=1,
                                             borderwidth=(1, 1, 0, 0),
                                             multiline=1)
-        else:
-            super(XbrlTable, self).__init__(parentWidget,
+            else:
+                super(XbrlTable, self).__init__(parentWidget,
                                             rows=rows,
                                             cols=columns,
                                             state='normal',
@@ -331,8 +355,8 @@ class XbrlTable(TkTableWrapper.Table):
                                             selecttype='cell',
                                             rowstretch='none',
                                             colstretch='none',
-                                            rowheight=self.DEFAULT_ROW_HEIGHT,
-                                            colwidth=self.DEFAULT_COLUMN_WIDTH,
+                                            rowheight=-30,
+                                            colwidth=15,
                                             flashmode='off',
                                             anchor=NE,
                                             usecommand=1,
@@ -342,15 +366,71 @@ class XbrlTable(TkTableWrapper.Table):
                                             takefocus=False,
                                             rowseparator='\n',
                                             wrap=1,
-                                            multiline=1,
                                             borderwidth=(1, 1, 0, 0),
-                                            browsecmd=browsecmd)
+                                            multiline=1)
+        else:
+            if USE_resizeTableCells:
+                super(XbrlTable, self).__init__(parentWidget,
+                                                rows=rows,
+                                                cols=columns,
+                                                state='normal',
+                                                titlerows=titleRows,
+                                                titlecols=titleColumns,
+                                                roworigin=0,
+                                                colorigin=0,
+                                                selectmode='extended',
+                                                selecttype='cell',
+                                                rowstretch='none',
+                                                colstretch='none',
+                                                rowheight=self.DEFAULT_ROW_HEIGHT,
+                                                colwidth=self.DEFAULT_COLUMN_WIDTH,
+                                                flashmode='off',
+                                                anchor=NE,
+                                                usecommand=1,
+                                                background='#d00d00d00',
+                                                relief='ridge',
+                                                command=self._valueCommand,
+                                                takefocus=False,
+                                                rowseparator='\n',
+                                                wrap=1,
+                                                multiline=1,
+                                                borderwidth=(1, 1, 0, 0),
+                                                browsecmd=browsecmd)
+            else:
+                super(XbrlTable, self).__init__(parentWidget,
+                                                rows=rows,
+                                                cols=columns,
+                                                state='normal',
+                                                titlerows=titleRows,
+                                                titlecols=titleColumns,
+                                                roworigin=0,
+                                                colorigin=0,
+                                                selectmode='extended',
+                                                selecttype='cell',
+                                                rowstretch='none',
+                                                colstretch='none',
+                                                rowheight=-30,
+                                                colwidth=15,
+                                                flashmode='off',
+                                                anchor=NE,
+                                                usecommand=1,
+                                                background='#d00d00d00',
+                                                relief='ridge',
+                                                command=self._valueCommand,
+                                                takefocus=False,
+                                                rowseparator='\n',
+                                                wrap=1,
+                                                multiline=1,
+                                                borderwidth=(1, 1, 0, 0),
+                                                browsecmd=browsecmd)
 
         # Extra key bindings for navigating through the table:
         # Tab: go right
         # Return (and Enter): go down
         self.bind("<Tab>", func=self.cellRight)
         self.bind("<Return>", func=self.cellDown)
+        if False:
+            self.bind("<Motion>", func=self.mouseMotion)
 
         # Configure the graphical appearance of the cells by using tags
         self.tag_configure('sel', background = '#b00e00e60',
@@ -593,7 +673,8 @@ class XbrlTable(TkTableWrapper.Table):
             self.spans(index=None, **cellSpans)
         indexValue = {cellIndex:value}
         self.set(objectId=objectId, **indexValue)
-        self._updateMaxSizes(value, x, y, colspan, rowspan)
+        if USE_resizeTableCells:
+            self._updateMaxSizes(value, x, y, colspan, rowspan)
         self.initHeaderBorder(x, y,
                               hasLeftBorder=True, hasTopBorder=True,
                               hasRightBorder=True,
@@ -626,7 +707,8 @@ class XbrlTable(TkTableWrapper.Table):
                               hasLeftBorder=True, hasTopBorder=True,
                               hasRightBorder=True,
                               hasBottomBorder=not isRollUp)
-        self._updateMaxComboboxSizes(codes, x, y, colspan, rowspan)
+        if USE_resizeTableCells:
+            self._updateMaxComboboxSizes(codes, x, y, colspan, rowspan)
         return self.initCellCombobox(value, values, x, y, isOpen=isOpen,
                                      objectId=objectId, selectindex=selectindex,
                                      comboboxselected=comboboxselected,
@@ -774,18 +856,19 @@ class XbrlTable(TkTableWrapper.Table):
         self.selection_set(index)
 
     def resizeTableCells(self):
-        colsToResize = dict()
-        rowsToResize = dict()
-        for i, width in enumerate(self.maxColumnWidths):
-            if width > self.DEFAULT_COLUMN_WIDTH:
-                colsToResize[str(i)] = width if width < self.MAX_COLUMN_WIDTH else self.MAX_COLUMN_WIDTH
-        self.width(**colsToResize)
-        colsToResize.clear()
-        for i, height in enumerate(self.maxRowHeights):
-            if height > self.DEFAULT_ROW_HEIGHT:
-                rowsToResize[str(i)] = height if height < self.MAX_ROW_HEIGHT else self.MAX_ROW_HEIGHT
-        self.height(**rowsToResize)
-        rowsToResize.clear()
+        if USE_resizeTableCells:
+            colsToResize = dict()
+            rowsToResize = dict()
+            for i, width in enumerate(self.maxColumnWidths):
+                if width > self.DEFAULT_COLUMN_WIDTH:
+                    colsToResize[str(i)] = width if width < self.MAX_COLUMN_WIDTH else self.MAX_COLUMN_WIDTH
+            self.width(**colsToResize)
+            colsToResize.clear()
+            for i, height in enumerate(self.maxRowHeights):
+                if height > self.DEFAULT_ROW_HEIGHT:
+                    rowsToResize[str(i)] = height if height < self.MAX_ROW_HEIGHT else self.MAX_ROW_HEIGHT
+            self.height(**rowsToResize)
+            rowsToResize.clear()
 
 class ScrolledTkTableFrame(Frame):
     def __init__(self, parent, browseCmd, *args, **kw):
