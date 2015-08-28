@@ -23,7 +23,6 @@ from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.UITkTable import XbrlTable
 from arelle.DialogNewFactItem import getNewFactItemOptions
 from collections import defaultdict
-from _tkinter import TclError
 
 try:
     from tkinter import ttk
@@ -730,7 +729,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 self.updateInstanceFromFactPrototypes()
                 self.lastFrameWidth = frameWidth
                 self.lastFrameHeight = frameHeight
-                self.setHeightANdWidth()
+                self.setHeightAndWidth()
                 if lastFrameWidth:
                     # frame resized, recompute row header column widths and lay out table columns
                     """
@@ -748,7 +747,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     self.viewFrame.after(1500, deferredReload)
                             
     def onQuitView(self, event, *args):
-        # this method is passed as callbacl when creating the view 
+        # this method is passed as callback when creating the view 
         # (to ScrolledTkTableFrame and then to XbrlTable that will monitor cell operations)
         self.updateInstanceFromFactPrototypes()
         self.updateProperties()

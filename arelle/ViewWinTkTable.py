@@ -16,7 +16,7 @@ class ViewTkTable(ViewPane):
                                        contentView, hasToolTip=hasToolTip,
                                        lang=lang)
         self.table = self.viewFrame.table
-        self.setHeightANdWidth()
+        self.setHeightAndWidth()
         self.table.contextMenuClick = self.contextMenuClick
 
     def contextMenu(self):
@@ -24,7 +24,7 @@ class ViewTkTable(ViewPane):
         self.bindContextMenu(self.table)
         return self.menu
     
-    def setHeightANdWidth(self):
+    def setHeightAndWidth(self):
         frameWidth = self.tabWin.winfo_width()
         frameHeight = self.tabWin.winfo_height()
         self.table.config(maxheight=frameHeight-self.viewFrame.horizontalScrollbarHeight,
