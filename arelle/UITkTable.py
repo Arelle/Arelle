@@ -16,6 +16,7 @@ try:
 except ImportError:
     from ttk import *
     _Combobox = Combobox
+from arelle.CntlrWinTooltip import ToolTip
 
 USE_resizeTableCells = False # disable for now since actually worse for many tables
 
@@ -55,6 +56,16 @@ class Coordinate(object):
 
     def __hash__(self):
         return self.__str__().__hash__()
+
+
+class MyToolTip(ToolTip):
+    def __init__(self, master, text='', delay=500, **opts):
+        super(MyToolTip, self).__init__(master, text, delay, **opts)
+
+    def motion(self, event=None):
+        # no need to follow the mouse if tooltip hidden
+        if self.master.mouseMotion(event):
+            super(MyToolTip, self).motion(event)
 
 
 class TableCombobox(_Combobox):
@@ -173,11 +184,33 @@ class XbrlTable(TkTableWrapper.Table):
     DEFAULT_COLUMN_WIDTH = 6
     DEFAULT_ROW_HEIGHT = 2
 
-    def mouseMotion(self, event, *args):
-        coord = self.getCoordinatesFromEventXY(event)
+    def mouseMotion(self, event):
+        hideToolTip = True
+        indexArg, coord = self.getCoordinatesFromEventXY(event)
         if coord is not None:
-            objectId = self.getObjectId(coord)
-            print(str(objectId))
+            if self.lastMouseCoordinates is None or (coord.x != self.lastMouseCoordinates.x or coord.y != self.lastMouseCoordinates.y):
+                self.lastMouseCoordinates = coord
+                if self.isHeaderCell(coord):
+                    tooltipText = event.widget.data[coord.y, coord.x]
+                    # tuple x, y, width and height in pixels
+                    bbox = self.bbox(indexArg)
+                    estimatedWidth = len(tooltipText) * 8
+                    #print("estimated= "  + str(estimatedWidth) + " width= " + str(bbox[2]))
+                    if estimatedWidth > bbox[2]:
+                        #print(tooltipText)
+                        self.headerToolTipText.set(tooltipText)
+                        self.headerToolTip.configure(state="normal")
+                        self.headerToolTip._show()
+                        hideToolTip = False
+                        self.toolTipShown = True
+            else:
+                hideToolTip = False
+
+        if hideToolTip and self.toolTipShown:
+            self.headerToolTipText.set("")
+            self.headerToolTip.configure(state="disabled")
+            self.headerToolTip._hide()
+        return self.toolTipShown
 
     def getCoordinatesFromEventXY(self, event):
         indexArg = "@"+str(event.x)+","+str(event.y) # (see http://tktable.sourceforge.net/tktable/doc/tkTable.html#sect6)
@@ -191,8 +224,8 @@ class XbrlTable(TkTableWrapper.Table):
         totalColumns = dataShape[1]
         if row < totalRows and col < totalColumns:
             coord = Coordinate(row, col)
-            return coord
-        return None
+            return (indexArg, coord)
+        return (None, None)
 
     def cellRight(self, event, *args):
         widget = event.widget
@@ -423,6 +456,11 @@ class XbrlTable(TkTableWrapper.Table):
                                                 multiline=1,
                                                 borderwidth=(1, 1, 0, 0),
                                                 browsecmd=browsecmd)
+
+        self.lastMouseCoordinates = None
+        self.toolTipShown = False
+        self.headerToolTipText = StringVar()
+        self.headerToolTip = MyToolTip(self, textvariable=self.headerToolTipText, wraplength=480, follow_mouse=True, state="disabled")
 
         # Extra key bindings for navigating through the table:
         # Tab: go right
@@ -811,7 +849,7 @@ class XbrlTable(TkTableWrapper.Table):
             # Such exception may happen e.g. when quickly switching tables (things are apparently not thread safe)
             messagebox.showwarning(_("arelle - Error"),
                         "Failed resize table:\n{1}".format(err),
-                        parent=self.self.modelXbrl.modelManager.cntlr.parent)
+                        parent=self.master.view.modelXbrl.modelManager.cntlr.parent)
 
 
     def clearSpans(self):
