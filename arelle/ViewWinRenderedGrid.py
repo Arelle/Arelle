@@ -430,8 +430,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     #if not leafNode: 
                     #    rightCol -= 1
                     isLabeled = xStructuralNode.isLabeled
-                    nonAbstract = not xStructuralNode.isAbstract and isLabeled
-                    if nonAbstract and isLabeled:
+                    isNonAbstract = not xStructuralNode.isAbstract and isLabeled
+                    if isNonAbstract and isLabeled:
                         width += 100 # width for this label, in screen units
                     widthToSpanParent += width
                     if childrenFirst:
@@ -439,7 +439,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     else:
                         thisCol = leftCol
                     if renderNow and isLabeled:
-                        columnspan = (rightCol - leftCol + (1 if nonAbstract else 0))
+                        columnspan = (rightCol - leftCol + (1 if isNonAbstract else 0))
                         label = xStructuralNode.header(lang=self.lang,
                                                        returnGenLabel=isinstance(xStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)))
                         if label != OPEN_ASPECT_ENTRY_SURROGATE:
@@ -473,10 +473,10 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                          XbrlTable.TG_CENTERED,
                                                          objectId=xStructuralNode.objectId())
                             xStructuralNodes.append(xStructuralNode)
-                    if nonAbstract:
+                    if isNonAbstract:
                         rightCol += 1
                     if renderNow and not childrenFirst:
-                        self.xAxis(leftCol + (1 if nonAbstract else 0), topRow + 1, rowBelow, xStructuralNode, xStructuralNodes, childrenFirst, True, False) # render on this pass
+                        self.xAxis(leftCol + (1 if isNonAbstract else 0), topRow + 1, rowBelow, xStructuralNode, xStructuralNodes, childrenFirst, True, False) # render on this pass
                     leftCol = rightCol
             return (rightCol, parentRow, widthToSpanParent, noDescendants)
             
@@ -758,8 +758,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
     def updateProperties(self):
         if self.modelXbrl is not None:
             modelXbrl =  self.modelXbrl
-            # make sure the properties view is visible and we handle an instance
-            if modelXbrl.guiViews.propertiesView is not None  and modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE:
+            # make sure we handle an instance
+            if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE:
                 tbl = self.table
                 # get coordinates of last currently operated cell
                 coordinates = tbl.getCurrentCellCoordinates()
@@ -775,7 +775,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                             viewableObject = self.modelXbrl.modelObject(objId)
                         else:
                             return
-                        modelXbrl.guiViews.propertiesView.viewModelObject(viewableObject)
+                        modelXbrl.viewModelObject(viewableObject)
                 
 
     def updateInstanceFromFactPrototypes(self):
@@ -896,9 +896,6 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
 
         self.updateInstanceFromFactPrototypes()
         instance.saveInstance(newFilename) # may override prior filename for instance from main menu
-        if self.modelXbrl.guiViews.tableIndexView is not None:
-            self.modelXbrl.guiViews.tableIndexView.refreshTitle()
-        self.modelXbrl.guiViews.tableView.refreshTitle()
         cntlr.addToLog(_("{0} saved").format(newFilename if newFilename is not None else instance.modelDocument.filepath))
         cntlr.showStatus(_("Saved {0}").format(instance.modelDocument.basename), clearAfter=3000)
         if onSaved is not None:
