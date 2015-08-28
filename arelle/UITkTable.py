@@ -717,6 +717,9 @@ class XbrlTable(TkTableWrapper.Table):
                               hasLeftBorder=True, hasTopBorder=True,
                               hasRightBorder=True,
                               hasBottomBorder=not isRollUp)
+        if isRollUp:
+            # In this case, we can afford a reduced column width since the label can span over the other rolled up columns
+            self.tk.call(self._w, 'width', x, 3)
 
 
     def initCellSpan(self, x, y, colspan, rowspan):
@@ -848,7 +851,7 @@ class XbrlTable(TkTableWrapper.Table):
         except Exception as err:
             # Such exception may happen e.g. when quickly switching tables (things are apparently not thread safe)
             messagebox.showwarning(_("arelle - Error"),
-                        "Failed resize table:\n{1}".format(err),
+                        "Failed resize table:\n{0}".format(err),
                         parent=self.master.view.modelXbrl.modelManager.cntlr.parent)
 
 
