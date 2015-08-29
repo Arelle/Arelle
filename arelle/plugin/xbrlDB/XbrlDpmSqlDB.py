@@ -133,8 +133,8 @@ def isDBPort(host, port, timeout=10, product="postgres"):
     return isSqlConnection(host, port, timeout)
 
 XBRLDBTABLES = {
-                "dAvailableTable", "dFact", "dFilingIndicator", "dInstance",
-                # "dProcessingContext", "dProcessingFact",
+                "dFact", "dFilingIndicator", "dInstance",
+                # "dAvailableTable", "dProcessingContext", "dProcessingFact",
                 "mConcept", "mDomain", "mMember", "mModule", "mOwner", "mTemplateOrTable",
                 }
 
@@ -225,8 +225,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         
         # at this point we determine what's in the database and provide new tables
         # requires locking most of the table structure
-        self.lockTables(("dAvailableTable", "dInstance",  "dFact", "dFilingIndicator",
-                         # "dProcessingContext", "dProcessingFact"
+        self.lockTables(("dInstance",  "dFact", "dFilingIndicator",
+                         # "dAvailableTable", "dProcessingContext", "dProcessingFact"
                          ), isSessionTransaction=True)
         
         self.dropTemporaryTable()
@@ -310,18 +310,20 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             break
         self.modelXbrl.profileActivity("dpmDB 02. Store into dInstance", minTimeToShow=0.0)
         self.showStatus("deleting prior data points of this instance")
-        for tableName in ("dFact", "dFilingIndicator", "dAvailableTable", "dInstanceLargeDimensionMember"):
+        for tableName in ("dFact", "dFilingIndicator", "dInstanceLargeDimensionMember"): # "dAvailableTable", 
             self.execute("DELETE FROM {0} WHERE {0}.InstanceID = {1}"
                          .format( self.dbTableName(tableName), self.instanceId), 
                          close=False, fetch=False)
         self.modelXbrl.profileActivity("dpmDB 03. Delete prior data points of this instance", minTimeToShow=0.0)
             
         self.showStatus("obtaining mapping table information")
+        '''
         result = self.execute("SELECT MetricAndDimensions, TableID FROM mTableDimensionSet WHERE ModuleID = {}"
                               .format(self.moduleId))
         for metricAndDimensions, tableID in result:
             self.tableIDs.add(tableID)
             self.metricAndDimensionsTableId[metricAndDimensions].add(tableID)
+        '''
         self.modelXbrl.profileActivity("dpmDB 04. Get TableDimensionSet for Module", minTimeToShow=0.0)
             
         result = self.execute("SELECT TableID, YDimVal, ZDimVal FROM mTable WHERE TableID in ({})"
@@ -371,9 +373,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         self.explicitDimensionDomain = defaultdict(set)
         self.domainHiearchyMembers = {}
         for _dim, _memQn, _memId in result:
-            self.explicitDimensionDomain[_dim].add(_memQn)
-            if _dim in self.largeDimensionIds:
-                self.largeDimensionMemberIds[_dim][_memQn] = _memId
+            if _memQn:
+                self.explicitDimensionDomain[_dim].add(_memQn)
+                if _dim in self.largeDimensionIds:
+                    self.largeDimensionMemberIds[_dim][_memQn] = _memId
             
         # get enumeration element values
         result = self.execute("select mem.MemberXBRLCode, enum.MemberXBRLCode from mMetric met "
@@ -736,6 +739,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             else:
                 # find which explicit dimensions act as typed
                 behaveAsTypedDims = set()
+                '''
                 zDimValues = {}
                 tableID = None
                 for tableID in self.metricAndDimensionsTableId.get(metDimNameKey(f, cntx), ()):
@@ -751,6 +755,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     yDimKey = metDimValKey(cntx, typedDim=True, behaveAsTypedDims=behaveAsTypedDims, restrictToDims=yDimVals)
                     self.availableTableRows[tableID,zDimKey].add(yDimKey)
                     break
+                '''
                 self.correctFactQnamePrefixes(f, xValue)
                 _dataPointSignature = metDimTypedKey(f, behaveAsTypedDims)
                 # self.validateFactSignature(_dataPointSignature, f)
@@ -935,6 +940,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                               ('InstanceID', ),
                               dProcessingFacts)
         '''
+        '''
         self.getTable("dAvailableTable", None,
                       ('InstanceID', 'TableID', 'ZDimVal', "NumberOfRows"), 
                       ('InstanceID', 'TableID', 'ZDimVal'),
@@ -945,6 +951,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                        for availTableKey, setOfYDimVals in self.availableTableRows.items()),
                       returnMatches=False)
         self.modelXbrl.profileActivity("dpmDB 10. Bulk store dAvailableTable", minTimeToShow=0.0)
+        '''
 
         self.modelXbrl.profileStat(_("XbrlSqlDB: instance insertion"), time.time() - self.startedAt)
         startedAt = time.time()
@@ -1020,6 +1027,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
 
         # add roleRef and arcroleRef (e.g. for footnotes, if any, see inlineXbrlDocue)
         
+        cntxTbl = {} # index by d
+        unitTbl = {}
+        
         # filing indicator code IDs
         # get filing indicators
         results = self.execute("SELECT mToT.TemplateOrTableCode, dFI.Filed"
@@ -1037,6 +1047,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         None, # no dimensional validity checking (like formula does)
                         {}, [], [],
                         id='c')
+            cntxKey = ("", entId, datePerEnd) # context key for no dimensions
+            cntxTbl[cntxKey] = 'c'
             filingIndicatorsTuple = modelXbrl.createFact(qnFindFilingIndicators, validate=False)
             if filingIndicatorsTuple is None:
                 raise DpmDBException("sqlDB:createTupleError",
@@ -1088,9 +1100,6 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         if modelXbrl.skipDTS:
             prefixedNamespaces.update(dpmPrefixedNamespaces) # for skipDTS this is always needed
         
-        cntxTbl = {} # index by d
-        unitTbl = {}
-        
         def typedDimElt(s):
             # add xmlns into s for known qnames
             tag, angleBrkt, rest = s[1:].partition('>')
@@ -1129,7 +1138,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     elif baseXbrliType == "QNameItemType":
                         isQName = True
             else:
-                if c in ('m', 'p', 'i'):
+                if c in ('m', 'p', 'r', 'i'):
                     isNumeric = True
                 elif c == 'd':
                     isDateTime = True
