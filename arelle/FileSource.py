@@ -113,7 +113,7 @@ class FileSource:
                     file = open(self.cntlr.webCache.getfilename(self.url), 'r', errors='replace')
                     l = file.read(128)
                     file.close()
-                    if re.match(r"\s*(<[?]xml[^?]+[?]>)?\s*<cor[a-z]*:edgarSubmission", l):
+                    if re.match(r"\s*(<[?]xml[^?]+[?]>)?\s*<(cor[a-z]*:)?edgarSubmission", l):
                         self.isEis = True
                 except EnvironmentError as err:
                     if self.cntlr:
