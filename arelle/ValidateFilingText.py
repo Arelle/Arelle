@@ -455,6 +455,7 @@ def validateTextBlockFacts(modelXbrl):
         if f1.xsiNil != "true" and \
            concept is not None and \
            concept.isTextBlock and \
+           f1.namespaceURI not in ixbrlAll and \
            XMLpattern.match(f1.value):
             #handler.fact = f1
             # test encoded entity tags
