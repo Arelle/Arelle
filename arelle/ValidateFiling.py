@@ -26,7 +26,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
     def __init__(self, modelXbrl):
         super(ValidateFiling, self).__init__(modelXbrl)
         
-        global datePattern, GFMcontextDatePattern, signOrCurrencyPattern, instanceFileNamePattern, linkroleDefinitionStatementSheet, efmCIKpattern
+        global datePattern, GFMcontextDatePattern, signOrCurrencyPattern, instanceFileNamePattern, htmlFileNamePattern, linkroleDefinitionStatementSheet, efmCIKpattern
         
         if datePattern is None:
             datePattern = re.compile(r"([12][0-9]{3})-([01][0-9])-([0-3][0-9])")
@@ -34,6 +34,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             # note \u20zc = euro, \u00a3 = pound, \u00a5 = yen
             signOrCurrencyPattern = re.compile("^(-)[0-9]+|[^eE](-)[0-9]+|(\\()[0-9].*(\\))|([$\u20ac\u00a3\00a5])")
             instanceFileNamePattern = re.compile(r"^(\w+)-([12][0-9]{3}[01][0-9][0-3][0-9]).xml$")
+            htmlFileNamePattern = re.compile(r"([a-zA-Z0-9][._a-zA-Z0-9-]*)\.htm$")
             linkroleDefinitionStatementSheet = re.compile(r"[^-]+-\s+Statement\s+-\s+.*", # no restriction to type of statement
                                                           re.IGNORECASE)
             efmCIKpattern = re.compile(r"^[0-9]{10}$")
@@ -127,8 +128,19 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         
 
             #6.3.3 filename check
-            m = instanceFileNamePattern.match(modelXbrl.modelDocument.basename)
-            if m:
+            m = instanceFileNamePattern.match(instanceName)
+            if (modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL
+                and any(name.startswith('efm') for name in disclosureSystem.names)):
+                m = htmlFileNamePattern.match(instanceName)
+                if m:
+                    self.fileNameBasePart = None # html file name not necessarily parseable.
+                    self.fileNameDatePart = None
+                else:
+                    modelXbrl.error(self.EFM60303,
+                                    _('Invalid inline xbrl document in {base}.htm": %(filename)s'),
+                                    modelObject=modelXbrl.modelDocument, filename=instanceName,
+                                    messageCodes=("EFM.6.03.03",))
+            elif m:
                 self.fileNameBasePart = m.group(1)
                 self.fileNameDatePart = m.group(2)
                 if not self.fileNameBasePart:

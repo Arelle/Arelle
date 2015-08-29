@@ -32,6 +32,7 @@ def checkDTS(val, modelDocument, visited):
         targetNamespaceDatePattern = re.compile(r"/([12][0-9]{3})-([01][0-9])-([0-3][0-9])|"
                                             r"/([12][0-9]{3})([01][0-9])([0-3][0-9])|")
         efmFilenamePattern = re.compile(r"^[a-z0-9][a-zA-Z0-9_\.\-]*(\.xsd|\.xml)$")
+        htmlFileNamePattern = re.compile(r"^[a-zA-Z0-9][._a-zA-Z0-9-]*(\.htm)$")
         roleTypePattern = re.compile(r"^.*/role/[^/\s]+$")
         arcroleTypePattern = re.compile(r"^.*/arcrole/[^/\s]+$")
         arcroleDefinitionPattern = re.compile(r"^.*[^\\s]+.*$")  # at least one non-whitespace character
@@ -72,7 +73,12 @@ def checkDTS(val, modelDocument, visited):
                 val.modelXbrl.error("EFM.5.01.01.tooManyCharacters",
                     _("Document file name %(filename)s must not exceed 32 characters."),
                     modelObject=modelDocument, filename=modelDocument.basename)
-            if not efmFilenamePattern.match(modelDocument.basename):
+            if modelDocument.type == ModelDocument.Type.INLINEXBRL:
+                if not htmlFileNamePattern.match(modelDocument.basename):
+                    val.modelXbrl.error("EFM.5.01.01",
+                        _("Document file name %(filename)s must start with a-z or 0-9, contain upper or lower case letters, ., -, _, and end with .htm."),
+                        modelObject=modelDocument, filename=modelDocument.basename)
+            elif not efmFilenamePattern.match(modelDocument.basename):
                 val.modelXbrl.error("EFM.5.01.01",
                     _("Document file name %(filename)s must start with a-z or 0-9, contain upper or lower case letters, ., -, _, and end with .xsd or .xml."),
                     modelObject=modelDocument, filename=modelDocument.basename)

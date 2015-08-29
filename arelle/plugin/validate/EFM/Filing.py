@@ -26,9 +26,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     GFMcontextDatePattern = re.compile(r"^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$")
     # note \u20zc = euro, \u00a3 = pound, \u00a5 = yen
     signOrCurrencyPattern = re.compile("^(-)[0-9]+|[^eE](-)[0-9]+|(\\()[0-9].*(\\))|([$\u20ac\u00a3\00a5])")
-    instanceTypeFileNamePattern = {
-        ModelDocument.Type.INSTANCE:   re.compile(r"^(\w+)-([12][0-9]{3}[01][0-9][0-3][0-9]).xml$"),
-        ModelDocument.Type.INLINEXBRL: re.compile(r"^(\w+)-([12][0-9]{3}[01][0-9][0-3][0-9]).htm$") }            
+    instanceFileNamePattern = re.compile(r"^(\w+)-([12][0-9]{3}[01][0-9][0-3][0-9]).xml$")
+    htmlFileNamePattern = re.compile(r"([a-zA-Z0-9][._a-zA-Z0-9-]*)\.htm$")
     linkroleDefinitionStatementSheet = re.compile(r"[^-]+-\s+Statement\s+-\s+.*", # no restriction to type of statement
                                                   re.IGNORECASE)
     efmCIKpattern = re.compile(r"^[0-9]{10}$")
@@ -74,11 +73,18 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         instanceName = modelXbrl.modelDocument.basename
         
         #6.3.3 filename check
-        try:
-            m = instanceTypeFileNamePattern[modelXbrl.modelDocument.type].match(modelXbrl.modelDocument.basename)
-        except KeyError:
-            m = None
-        if m:
+        m = instanceFileNamePattern.match(instanceName)
+        if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
+            m = htmlFileNamePattern.match(instanceName)
+            if m:
+                val.fileNameBasePart = None # html file name not necessarily parseable.
+                val.fileNameDatePart = None
+            else:
+                modelXbrl.error(self.EFM60303,
+                                _('Invalid inline xbrl document in {base}.htm": %(filename)s'),
+                                modelObject=modelXbrl.modelDocument, filename=instanceName,
+                                messageCodes=("EFM.6.03.03",))
+        elif m:
             val.fileNameBasePart = m.group(1)
             val.fileNameDatePart = m.group(2)
             if not val.fileNameBasePart:
