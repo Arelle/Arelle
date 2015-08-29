@@ -761,6 +761,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.runIDs = options.formulaRunIDs   
         self.modelManager.formulaOptions = fo
 
+        success = True
         # entrypointFile may be absent (if input is a POSTED zip or file name ending in .zip)
         #    or may be a | separated set of file names
         if options.entrypointFile:
@@ -801,7 +802,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
             timeNow = XmlUtil.dateunionValue(datetime.datetime.now())
             firstStartedAt = startedAt = time.time()
             modelDiffReport = None
-            success = True
             modelXbrl = None
             try:
                 if filesource:
