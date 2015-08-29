@@ -91,15 +91,20 @@ def validateXbrlStart(val, parameters=None):
     
     if _cik and _cik not in ("null", "None"):
         val.paramFilerIdentifier = _cik
-    _filerIdentifiers = (_cikList or "").split(",")
-    _filerNames = (_cikNameList or "").split("|Edgar|")
-    if _filerIdentifiers and len(_filerIdentifiers) != len(_filerNames):
-        val.modelXbrl.error(("EFM.6.05.24.parameters", "GFM.3.02.02"),
-            _("parameters for cikList and cikNameList different list entry counts: %(cikList)s, %(cikNameList)s"),
-            modelXbrl=val.modelXbrl, cikList=_FilerIdentifiers, cikNameList=_FilerNames)
-    elif _filerNames:
-        val.paramFilerIdentifierNames=dict((_cik,_filerNames[i])
-                                           for i, _cik in enumerate(_filerIdentifiers))
+    if isinstance(_cikNameList, dict):
+        # {cik1: name1, cik2:name2, ...} provided by json cikNameList dict parameter
+        val.paramFilerIdentifierNames = _cikNameList
+    else:
+        # cik1, cik2, cik3 in cikList and name1|Edgar|name2|Edgar|name3 in cikNameList strings
+        _filerIdentifiers = (_cikList or "").split(",")
+        _filerNames = (_cikNameList or "").split("|Edgar|")
+        if _filerIdentifiers and len(_filerIdentifiers) != len(_filerNames):
+            val.modelXbrl.error(("EFM.6.05.24.parameters", "GFM.3.02.02"),
+                _("parameters for cikList and cikNameList different list entry counts: %(cikList)s, %(cikNameList)s"),
+                modelXbrl=val.modelXbrl, cikList=_FilerIdentifiers, cikNameList=_FilerNames)
+        elif _filerNames:
+            val.paramFilerIdentifierNames=dict((_cik,_filerNames[i])
+                                               for i, _cik in enumerate(_filerIdentifiers))
     if _exhibitType:
         val.paramExhibitType = _exhibitType
     if _submissionType:
@@ -303,6 +308,10 @@ class Filing:
             relFiles = [relativeUri(self.entrypointfiles[0], f) for f in file]
         self.cntlr.addToLog(message, messageCode, messageArgs, relFiles, "ERROR")
         
+    @property
+    def hasInlineReport(self):
+        return any(getattr(report, "isInline", False) for report in self.reports)
+        
 class Report:
     REPORT_ATTRS = {"DocumentType", "DocumentPeriodEndDate", "EntityRegistrantName",
                     "EntityCentralIndexKey", "CurrentFiscalYearEndDate", "DocumentFiscalYearFocus"}
@@ -310,6 +319,7 @@ class Report:
         return name[0].lower() + name[1:]
     
     def __init__(self, modelXbrl):
+        self.isInline = modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL
         self.url = modelXbrl.modelDocument.uri
         self.basename = modelXbrl.modelDocument.basename
         for attrName in Report.REPORT_ATTRS:
