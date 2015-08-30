@@ -275,7 +275,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
     
             if zStructuralNode.choiceStructuralNodes is not None: # combo box
                 valueHeaders = [''.ljust(zChoiceStructuralNode.indent * 4) + # indent if nested choices 
-                                (zChoiceStructuralNode.header(lang=self.lang, inheritedAspects=False) or '')
+                                (zChoiceStructuralNode.header(lang=self.lang) or '')
                                 for zChoiceStructuralNode in zStructuralNode.choiceStructuralNodes]
                 zAxisIsOpenExplicitDimension = False
                 zAxisTypedDimension = None
