@@ -14,6 +14,7 @@ from arelle.CntlrWinTooltip import ToolTip
 class ViewPane:
     def __init__(self, modelXbrl, tabWin, tabTitle,
                  contentView, hasToolTip=False, lang=None):
+        self.blockViewModelObject = 0
         self.tabWin = tabWin
 
         self.viewFrame = contentView
