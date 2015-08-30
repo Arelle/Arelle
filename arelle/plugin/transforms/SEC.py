@@ -93,7 +93,7 @@ def durationValue(y, m, d, h, sign):
 
     
 def loadSECtransforms(customTransforms):
-    ixtSEC = "http://www.sec.gov/inlineXBRL/transformation/2015-08-30"
+    ixtSEC = "http://www.sec.gov/inlineXBRL/transformation/2015-08-31"
     customTransforms.update({
         qname(ixtSEC, "ixt-sec:duryear"): duryear,
         qname(ixtSEC, "ixt-sec:durmonth"): durmonth,
