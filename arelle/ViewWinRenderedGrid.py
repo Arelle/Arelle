@@ -275,7 +275,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
     
             if zStructuralNode.choiceStructuralNodes is not None: # combo box
                 valueHeaders = [''.ljust(zChoiceStructuralNode.indent * 4) + # indent if nested choices 
-                                (zChoiceStructuralNode.header(lang=self.lang) or '')
+                                (zChoiceStructuralNode.header(lang=self.lang, inheritedAspects=False) or '')
                                 for zChoiceStructuralNode in zStructuralNode.choiceStructuralNodes]
                 zAxisIsOpenExplicitDimension = False
                 zAxisTypedDimension = None
@@ -476,7 +476,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     if isNonAbstract:
                         rightCol += 1
                     if renderNow and not childrenFirst:
-                        self.xAxis(leftCol + (1 if isNonAbstract else 0), topRow + 1, rowBelow, xStructuralNode, xStructuralNodes, childrenFirst, True, False) # render on this pass
+                        self.xAxis(leftCol + (1 if isNonAbstract else 0), topRow + isLabeled, rowBelow, xStructuralNode, xStructuralNodes, childrenFirst, True, False) # render on this pass
                     leftCol = rightCol
             return (rightCol, parentRow, widthToSpanParent, noDescendants)
             
@@ -579,7 +579,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 if not (yStructuralNode.isAbstract or 
                         (yStructuralNode.childStructuralNodes and
                          not isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)))) and yStructuralNode.isLabeled:
-                    isEntryPrototype = yStructuralNode.isEntryPrototype(default=False) # row to enter open aspects
+                    isYEntryPrototype = yStructuralNode.isEntryPrototype(default=False) # row to enter open aspects
                     yAspectStructuralNodes = defaultdict(set)
                     for aspect in aspectModels[self.aspectModel]:
                         if yStructuralNode.hasAspect(aspect):
@@ -593,6 +593,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     #print ("row " + str(row) + "yNode " + yStructuralNode.definitionNode.objectId() )
                     ignoreDimValidity = self.ignoreDimValidity.get()
                     for i, xStructuralNode in enumerate(xStructuralNodes):
+                        isEntryPrototype = isYEntryPrototype or xStructuralNode.isEntryPrototype(default=False)
                         xAspectStructuralNodes = defaultdict(set)
                         for aspect in aspectModels[self.aspectModel]:
                             if xStructuralNode.hasAspect(aspect):
@@ -665,12 +666,12 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 for aspect, aspectValue in cellAspectValues.items():
                                     if isinstance(aspectValue, str) and aspectValue.startswith(OPEN_ASPECT_ENTRY_SURROGATE):
                                         self.factPrototypeAspectEntryObjectIds[objectId].add(aspectValue)
-                                    self.table.initCellValue(value,
-                                                         self.dataFirstCol + i-1,
-                                                         row-1,
-                                                         justification=justify,
-                                                         objectId=objectId,
-                                                         backgroundColourTag=self.getbackgroundColor(fp))
+                            self.table.initCellValue(value,
+                                                    self.dataFirstCol + i-1,
+                                                    row-1,
+                                                    justification=justify,
+                                                    objectId=objectId,
+                                                    backgroundColourTag=self.getbackgroundColor(fp))
                         else:
                             fp.clear()  # dereference
                     row += 1
