@@ -88,6 +88,8 @@ def validateXbrlStart(val, parameters=None):
             _cikNameList = entryPoint.get("cikNameList",None)
             _exhibitType = entryPoint.get("exhibitType", None)
             _submissionType = entryPoint.get("submissionType", None)
+        if not getattr(efmFiling, "accessionNumber", None):
+            efmFiling.accessionNumber = entryPoint.get("accessionNumber", None)
     
     if _cik and _cik not in ("null", "None"):
         val.paramFilerIdentifier = _cik
@@ -305,7 +307,11 @@ class Filing:
             # relativize file(s)
             if isinstance(file, _STR_BASE):
                 file = (file,)
-            relFiles = [relativeUri(self.entrypointfiles[0], f) for f in file]
+            if isinstance(self.entrypointfiles[0], dict):
+                _baseFile = getattr(self.entrypointfiles[0], "file", ".")
+            else:
+                _baseFile = self.entrypointfiles[0]
+            relFiles = [relativeUri(_baseFile, f) for f in file]
         self.cntlr.addToLog(message, messageCode, messageArgs, relFiles, "ERROR")
         
     @property
