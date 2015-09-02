@@ -11,6 +11,7 @@ from arelle.ModelDtsObject import ModelConcept
 
 targetNamespaceDatePattern = None
 efmFilenamePattern = None
+htmlFileNamePattern = None
 roleTypePattern = None
 arcroleTypePattern = None
 arcroleDefinitionPattern = None
@@ -25,7 +26,7 @@ extLinkEltFileNameEnding = {
     "referenceLink": "_ref"}
 
 def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
-    global targetNamespaceDatePattern, efmFilenamePattern, roleTypePattern, arcroleTypePattern, \
+    global targetNamespaceDatePattern, efmFilenamePattern, htmlFileNamePattern, roleTypePattern, arcroleTypePattern, \
             arcroleDefinitionPattern, namePattern, linkroleDefinitionBalanceIncomeSheet, \
             namespacesConflictPattern
     if targetNamespaceDatePattern is None:
