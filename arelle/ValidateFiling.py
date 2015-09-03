@@ -370,7 +370,9 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                         value=value, filerIdentifier=paramFilerIdentifier)
                             elif factElementName == disclosureSystem.deiFilerNameElement:
                                 deiItems[factElementName] = value
-                                if paramFilerIdentifiers and paramFilerNames and entityIdentifierValue in paramFilerIdentifiers:
+                                if entityIdentifierValue == "0000000000" and isEFM:
+                                    pass # no filer name check
+                                elif paramFilerIdentifiers and paramFilerNames and entityIdentifierValue in paramFilerIdentifiers:
                                     prefix = paramFilerNames[paramFilerIdentifiers.index(entityIdentifierValue)]
                                     if not value.lower().startswith(prefix.lower()):
                                         self.modelXbrl.error(("EFM.6.05.24", "GFM.3.02.02"),

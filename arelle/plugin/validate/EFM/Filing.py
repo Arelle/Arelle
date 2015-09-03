@@ -313,7 +313,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     value=value, filerIdentifier=val.paramFilerIdentifier)
                         elif factElementName == disclosureSystem.deiFilerNameElement:
                             deiItems[factElementName] = value
-                            if val.paramFilerIdentifierNames and entityIdentifierValue in val.paramFilerIdentifierNames:
+                            if entityIdentifierValue == "0000000000" and isEFM:
+                                pass # no filer name check
+                            elif val.paramFilerIdentifierNames and entityIdentifierValue in val.paramFilerIdentifierNames:
                                 prefix = val.paramFilerIdentifierNames[entityIdentifierValue]
                                 if not value.lower().startswith(prefix.lower()):
                                     val.modelXbrl.error(("EFM.6.05.24", "GFM.3.02.02"),
