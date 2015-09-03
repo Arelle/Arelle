@@ -67,7 +67,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     val.entityRegistrantName = None
     val.requiredContext = None
     val.standardNamespaceConflicts = defaultdict(set)
-    val.exhibitType = None # e.g., EX-101, EX-201
     if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or \
        modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
         instanceName = modelXbrl.modelDocument.basename
@@ -836,21 +835,32 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                         "SD": ("SD",),
                                         "SD/A": ("SD/A",),
                                         "SP 15D2": ("SP 15D2",),
-                                        "SP 15D2/A": ("SP 15D2/A",)
+                                        "SP 15D2/A": ("SP 15D2/A",),
+                                        "SDR": ("SDR K", "SDR L"),
+                                        "SDR/A": ("SDR K", "SDR L"),
+                                        "SDR-A": ("SDR K", "SDR L"),
+                                        "SDR/W ": ("SDR K", "SDR L")
                         }.get(val.paramSubmissionType)
                 if expectedDocumentTypes and documentType not in expectedDocumentTypes:
-                    modelXbrl.error("EFM.6.05.20.submissionDocumentType" if val.exhibitType != "EX-2.01" else "EFM.6.23.03",
+                    modelXbrl.error("EFM.6.05.20.submissionDocumentType" if val.paramExhibitType != "EX-2.01" else "EFM.6.23.03",
                         _("DocumentType '%(documentType)s' of context %(contextID)s inapplicable to submission form %(submissionType)s"),
                         modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, submissionType=val.paramSubmissionType,
                         messageCodes=("EFM.6.05.20.submissionDocumentType", "EFM.6.23.03"))
-            if val.exhibitType:
-                if (documentType in ("SD", "SD/A")) != (val.exhibitType == "EX-2.01"):
+            if val.paramExhibitType:
+                if (documentType in ("SD", "SD/A")) != (val.paramExhibitType == "EX-2.01"):
                     modelXbrl.error({"EX-100":"EFM.6.23.04",
                                      "EX-101":"EFM.6.23.04",
-                                     "EX-2.01":"EFM.6.23.05"}.get(val.exhibitType,"EX-101"),
+                                     "EX-99.K SDR.INS":"EFM.6.23.04",
+                                     "EX-99.L SDR.INS":"EFM.6.23.04",
+                                     "EX-2.01":"EFM.6.23.05"}.get(val.paramExhibitType,"EX-101"),
                         _("The value for dei:DocumentType, %(documentType)s, is not allowed for %(exhibitType)s attachments."),
-                        modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, exhibitType=val.exhibitType,
+                        modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, exhibitType=val.paramExhibitType,
                         messageCodes=("EFM.6.23.04", "EFM.6.23.04", "EFM.6.23.05"))
+                elif (((documentType == "SDR K") != (val.paramExhibitType in ("EX-99.K SDR", "EX-99.K SDR.INS"))) or
+                      ((documentType == "SDR L") != (val.paramExhibitType in ("EX-99.L SDR", "EX-99.L SDR.INS")))):
+                    modelXbrl.error("EFM.6.05.20.exhibitDocumentType",
+                        _("The value for dei:DocumentType, '%(documentType)s' is not allowed for %(exhibitType)s attachments."),
+                        modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, exhibitType=val.paramExhibitType)
                 
             # 6.5.21
             for doctypesRequired, deiItemsRequired in (
@@ -861,7 +871,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     "10", "S-1", "S-3", "S-4", "S-11", "POS AM",
                     "10/A", "S-1/A", "S-3/A", "S-4/A", "S-11/A", 
                     "8-K", "F-1", "F-3", "F-10", "497", "485BPOS",
-                    "8-K/A", "F-1/A", "F-3/A", "F-10/A", 
+                    "8-K/A", "F-1/A", "F-3/A", "F-10/A", "SDR K", "SDR L",
                     "Other"),
                     ("EntityRegistrantName", "EntityCentralIndexKey")),
                   (("10-K", "10-KT", "20-F", "40-F",
@@ -872,12 +882,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                   (("10-K", "10-KT", "10-Q", "10-QT", "20-F", "40-F",
                     "10-K/A", "10-KT/A", "10-Q/A", "10-QT/A", "20-F/A", "40-F/A",
                     "6-K", "NCSR", "N-CSR", "N-CSRS", "N-Q",
-                    "6-K/A", "NCSR/A", "N-CSR/A", "N-CSRS/A", "N-Q/A"),
+                    "6-K/A", "NCSR/A", "N-CSR/A", "N-CSRS/A", "N-Q/A", "SDR K", "SDR L"),
                     ("CurrentFiscalYearEndDate", "DocumentFiscalYearFocus", "DocumentFiscalPeriodFocus")),
                   (("10-K", "10-KT", "10-Q", "10-QT", "20-F",
                     "10-K/A", "10-KT/A", "10-Q/A", "10-QT/A", "20-F/A",
                     "10", "S-1", "S-3", "S-4", "S-11", "POS AM",
-                    "10/A", "S-1/A", "S-3/A", "S-4/A", "S-11/A"),
+                    "10/A", "S-1/A", "S-3/A", "S-4/A", "S-11/A", "SDR K", "SDR L"),
                     ("EntityFilerCategory",)),
                    (("10-K", "10-KT", "20-F", "10-K/A", "10-KT/A", "20-F/A"),
                      ("EntityWellKnownSeasonedIssuer",)),

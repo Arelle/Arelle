@@ -57,7 +57,7 @@ def validateXbrlStart(val, parameters=None):
         # parameter-provided CIKs and registrant names
         p = parameters.get(ModelValue.qname("CIK",noPrefixIsNoNamespace=True))
         if p and len(p) == 2 and p[1] not in ("null", "None"):
-            val.paramFilerIdentifier = p[1]
+            _cik = p[1]
         p = parameters.get(ModelValue.qname("cikList",noPrefixIsNoNamespace=True))
         if p and len(p) == 2:
             _filerIdentifiers = p[1].split(",")
@@ -66,19 +66,12 @@ def validateXbrlStart(val, parameters=None):
         p = parameters.get(ModelValue.qname("cikNameList",noPrefixIsNoNamespace=True))
         if p and len(p) == 2:
             _filerNames = p[1].split("|Edgar|")
-            if _filerIdentifiers and len(_filerIdentifiers) != len(_filerNames):
-                val.modelXbrl.error(("EFM.6.05.24.parameters", "GFM.3.02.02"),
-                    _("parameters for cikList and cikNameList different list entry counts: %(cikList)s, %(cikNameList)s"),
-                    modelXbrl=val.modelXbrl, cikList=_FilerIdentifiers, cikNameList=_FilerNames)
-            else:
-                val.paramFilerIdentifierNames=dict((_cik,_filerNames[i])
-                                                   for i, _cik in enumerate(_filerIdentifiers))
         p = parameters.get(ModelValue.qname("submissionType",noPrefixIsNoNamespace=True))
         if p and len(p) == 2:
-            val.paramSubmissionType = p[1]
+            _submissionType = p[1]
         p = parameters.get(ModelValue.qname("exhibitType",noPrefixIsNoNamespace=True))
         if p and len(p) == 2:
-            val.paramExhibitType = p[1]
+            _exhibitType = p[1]
     elif hasattr(val.modelXbrl.modelManager, "efmFiling"):
         efmFiling = val.modelXbrl.modelManager.efmFiling
         if efmFiling.reports: # possible that there are no reports
@@ -88,8 +81,8 @@ def validateXbrlStart(val, parameters=None):
             _cikNameList = entryPoint.get("cikNameList",None)
             _exhibitType = entryPoint.get("exhibitType", None)
             _submissionType = entryPoint.get("submissionType", None)
-        if not getattr(efmFiling, "accessionNumber", None):
-            efmFiling.accessionNumber = entryPoint.get("accessionNumber", None)
+            if not getattr(efmFiling, "accessionNumber", None):
+                efmFiling.accessionNumber = entryPoint.get("accessionNumber", None)
     
     if _cik and _cik not in ("null", "None"):
         val.paramFilerIdentifier = _cik
@@ -98,8 +91,8 @@ def validateXbrlStart(val, parameters=None):
         val.paramFilerIdentifierNames = _cikNameList
     else:
         # cik1, cik2, cik3 in cikList and name1|Edgar|name2|Edgar|name3 in cikNameList strings
-        _filerIdentifiers = (_cikList or "").split(",")
-        _filerNames = (_cikNameList or "").split("|Edgar|")
+        _filerIdentifiers = _cikList.split(",") if _cikList else []
+        _filerNames = _cikNameList.split("|Edgar|") if _cikNameList else []
         if _filerIdentifiers and len(_filerIdentifiers) != len(_filerNames):
             val.modelXbrl.error(("EFM.6.05.24.parameters", "GFM.3.02.02"),
                 _("parameters for cikList and cikNameList different list entry counts: %(cikList)s, %(cikNameList)s"),
