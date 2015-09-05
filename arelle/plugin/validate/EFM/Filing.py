@@ -848,7 +848,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         _("DocumentType '%(documentType)s' of context %(contextID)s inapplicable to submission form %(submissionType)s"),
                         modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, submissionType=val.paramSubmissionType,
                         messageCodes=("EFM.6.05.20.submissionDocumentType", "EFM.6.23.03"))
-            if val.paramExhibitType:
+            if val.paramExhibitType and documentType is not None:
                 if (documentType in ("SD", "SD/A")) != (val.paramExhibitType == "EX-2.01"):
                     modelXbrl.error({"EX-100":"EFM.6.23.04",
                                      "EX-101":"EFM.6.23.04",

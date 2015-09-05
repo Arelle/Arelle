@@ -4,17 +4,30 @@ Created on Dec 12, 2013
 @author: Mark V Systems Limited
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 
-Input files may be in JSON:
+Input file parameters may be in JSON (without newlines for pretty printing as below):
 
 
 [ {"file": "file path to instance or html",
    "cik": "1234567890",
    "cikNameList": { "cik1": "name1", "cik2":"name2", "cik3":"name3"...},
    "submissionType" : "SDR K",
-   "exhibitType": "EX-99.K" },
+   "exhibitType": "EX-99.K", 
+   "accessionNumber":"0001125840-15-000159" },
  {"file": "file 2"...
 ]
 
+(Accession number is only needed for those EdgarRenderer output transformations of 
+FilingSummary.xml which require it as a parameter (such as EDGAR's internal workstations, 
+which have a database that requires accession number as part of the query string to retrieve 
+a file of a submission.)
+
+On Windows, the input file argument must be specially quoted if passed in via Java
+due to a Java bug on Windows shell interface (without the newlines for pretty printing below):
+
+"[{\"file\":\"z:\\Documents\\dir\\gpc_gd1-20130930.htm\", 
+    \"cik\": \"0000350001\", 
+    \"cikNameList\": {\"0000350001\":\"BIG FUND TRUST CO\"},
+    \"submissionType\":\"SDR-A\", \"exhibitType\":\"EX-99.K SDR.INS\"}]" 
 
 
 '''
@@ -305,6 +318,8 @@ class Filing:
             else:
                 _baseFile = self.entrypointfiles[0]
             relFiles = [relativeUri(_baseFile, f) for f in file]
+        else:
+            relFiles = None
         self.cntlr.addToLog(message, messageCode, messageArgs, relFiles, "ERROR")
         
     @property
@@ -327,7 +342,7 @@ class Report:
         for f in modelXbrl.facts:
             cntx = f.context
             if cntx is not None and cntx.isStartEndPeriod and not cntx.hasSegment:
-                if f.qname.localName in Report.REPORT_ATTRS and f.xValue:
+                if f.qname is not None and f.qname.localName in Report.REPORT_ATTRS and f.xValue:
                     setattr(self, self.lc(f.qname.localName), f.xValue)
         self.reportedFiles = set()
         self.renderedFiles = set()
@@ -359,7 +374,7 @@ class Report:
                         if os.path.exists(file):
                             self.reportedFiles.add(os.path.join(sourceDir,attrValue))
         for fact in modelXbrl.facts:
-            if fact.isItem and fact.concept is not None and fact.concept.isTextBlock:
+            if fact.concept is not None and fact.isItem and fact.concept.isTextBlock:
                 # check for img and other filing references so that referenced files are included in the zip.
                 text = fact.textValue
                 for xmltext in [text] + CDATApattern.findall(text):

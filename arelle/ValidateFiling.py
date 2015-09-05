@@ -903,7 +903,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             _("DocumentType '%(documentType)s' of context %(contextID)s inapplicable to submission form %(submissionType)s"),
                             modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, submissionType=submissionType,
                             messageCodes=("EFM.6.05.20.submissionDocumentType", "EFM.6.23.03"))
-                if self.exhibitType:
+                if self.exhibitType and documentType is not None:
                     if (documentType in ("SD", "SD/A")) != (self.exhibitType == "EX-2.01"):
                         modelXbrl.error({"EX-100":"EFM.6.23.04",
                                          "EX-101":"EFM.6.23.04",
