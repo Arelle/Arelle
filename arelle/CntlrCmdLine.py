@@ -9,7 +9,7 @@ This module is Arelle's controller in command line non-interactive mode
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import PythonUtil # define 2.x or 3.x string types
-import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json
+import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json, logging
 from optparse import OptionParser, SUPPRESS_HELP
 import re
 from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version, 
@@ -765,10 +765,19 @@ class CntlrCmdLine(Cntlr.Cntlr):
         # entrypointFile may be absent (if input is a POSTED zip or file name ending in .zip)
         #    or may be a | separated set of file names
         if options.entrypointFile:
+            _f = options.entrypointFile
             try: # may be a json list
-                _entryPoints = json.loads(options.entrypointFile)
+                _entryPoints = json.loads(_f)
             except ValueError:
-                _entryPoints = [{"file":f} for f in (options.entrypointFile or '').split('|')]
+                # is it malformed json?
+                if _f.startswith("[{") or _f.endswith("]}") or '"file:"' in _f:
+                    self.addToLog(_("File name parameter appears to be malformed JSON: {0}").format(_f),
+                                  messageCode="FileNameFormatError",
+                                  level=logging.ERROR)
+                    success = False
+                    _entryPoints = []
+                else: # try as file names separated by '|'
+                    _entryPoints = [{"file":f} for f in (_f or '').split('|')]
         else:
             _entryPoints = []
         filesource = None # file source for all instances if not None
@@ -809,9 +818,11 @@ class CntlrCmdLine(Cntlr.Cntlr):
             except ModelDocument.LoadingException:
                 pass
             except Exception as err:
-                self.addToLog(_("[Exception] Failed to complete request: \n{0} \n{1}").format(
+                self.addToLog(_("Entry point loading Failed to complete request: \n{0} \n{1}").format(
                             err,
-                            traceback.format_tb(sys.exc_info()[2])))
+                            traceback.format_tb(sys.exc_info()[2])),
+                              messageCode="Exception",
+                              level=logging.ERROR)
                 success = False    # loading errors, don't attempt to utilize loaded DTS
             if modelXbrl and modelXbrl.modelDocument:
                 loadTime = time.time() - startedAt
