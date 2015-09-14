@@ -10,7 +10,7 @@ Input file parameters may be in JSON (without newlines for pretty printing as be
 [ {"file": "file path to instance or html",
    "cik": "1234567890",
    "cikNameList": { "cik1": "name1", "cik2":"name2", "cik3":"name3"...},
-   "submissionType" : "SDR K",
+   "submissionType" : "SDR-A",
    "exhibitType": "EX-99.K", 
    "accessionNumber":"0001125840-15-000159" },
  {"file": "file 2"...
@@ -123,10 +123,15 @@ def validateXbrlStart(val, parameters=None):
     else:
         val.EFM60303 = "EFM.6.03.03"
                 
-    
     if any((concept.qname.namespaceURI in val.disclosureSystem.standardTaxonomiesDict) 
            for concept in val.modelXbrl.nameConcepts.get("UTR",())):
         val.validateUTR = True
+        
+    modelManager = val.modelXbrl.modelManager
+    if hasattr(modelManager, "efmFiling"):
+        efmFiling = modelManager.efmFiling
+        efmFiling.submissionType = val.paramSubmissionType
+
 
 def validateXbrlFinally(val):
     if not (val.validateEFMplugin):
@@ -192,7 +197,7 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
         if any(report.documentType and report.documentType.startswith("SDR") 
                for report in reports):
             _sdrKs = [r for r in reports if r.documentType == "SDR K"]
-            if not _sdrKs:
+            if not _sdrKs and efmFiling.submissionType in ("SDR", "SDR-A"):
                 efmFiling.error("EFM.SDR.1.1",
                                 _("Filing has no SDR K reports"))
             elif len(_sdrKs) > 1:
@@ -204,12 +209,9 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
             for r in reports:
                 if r.documentType == "SDR L":
                     _sdrLentityReports[r.entityRegistrantName].append(r)
-            if not _sdrLentityReports:
-                efmFiling.error("EFM.SDR.1.3",
-                                _("Filing has no SDR L reports"))
             for sdrLentity, sdrLentityReports in _sdrLentityReports.items():
                 if len(sdrLentityReports) > 1:
-                    efmFiling.error("EFM.SDR.1.4",
+                    efmFiling.error("EFM.SDR.1.3",
                                     _("Filing entity has multiple SDR L reports: %(entity)s"),
                                     {"entity": sdrLentity},
                                     (r.url for r in sdrLentityReports))
@@ -226,12 +228,12 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
                 if not hasPre: missingFiles += ", presentation linkbase"
                 if not hasLbl: missingFiles += ", label linkbase"
                 if missingFiles:
-                    efmFiling.error("EFM.SDR.1.5",
+                    efmFiling.error("EFM.SDR.1.4",
                                     _("%(docType)s report missing files: %(missingFiles)s"),
                                     {"docType": r.documentType, "missingFiles": missingFiles[2:]},
                                     r.url)
                 if not r.hasUsGaapTaxonomy:
-                    efmFiling.error("EFM.SDR.1.6",
+                    efmFiling.error("EFM.SDR.1.5",
                                     _("%(documentType)s submission must use a US GAAP standard schema"),
                                     {"documentType": r.documentType},
                                     r.url)
@@ -259,6 +261,7 @@ class Filing:
         self.entrypointfiles = entrypointfiles
         self.sourceZipStream = sourceZipStream
         self.responseZipStream = responseZipStream
+        self.submissionType = None
         self.reports = []
         self.renderedFiles = set() # filing-level rendered files
         if responseZipStream:
@@ -273,6 +276,7 @@ class Filing:
                 self.reportZip = None
         
     def close(self):
+        ''' MetaFiling.json (not needed?) list of all files written out
         _reports = dict((report.basename, report.json) for report in self.reports)
         _reports["filing"] = {"renderedFiles": sorted(self.renderedFiles)}
         if self.options.logFile:
@@ -286,6 +290,7 @@ class Filing:
                         json.dump(_reports, f, sort_keys=True, indent=jsonIndent)
             except AttributeError: # no reportsFolder attribute
                 pass
+        '''
         if self.options.logFile:
             if self.reportZip:
                 _logFile = self.options.logFile
