@@ -179,6 +179,13 @@ validationOptions = {
     "import": ("importFiles", None),
                      }
 
+validationKeyVarName = {
+    # these key names store their value in the named var that differs from key name
+    "disclosureSystem": "disclosureSystemName",
+    "roleTypes": "roleTypesFile",
+    "arcroleTypes": "arcroleTypesFile"
+    }
+
 class Options():
     """Class to emulate options needed by CntlrCmdLine.run"""
     def __init__(self):
@@ -255,6 +262,8 @@ def validation(file=None):
         elif key in validationOptions:
             optionKey, optionValue = validationOptions[key]
             setattr(options, optionKey, optionValue if optionValue is not None else value)
+        elif key in validationKeyVarName:
+            setattr(options, validationKeyVarName[key], value or True)
         elif not value: # convert plain str parameter present to True parameter
             setattr(options, key, True)
         else:
