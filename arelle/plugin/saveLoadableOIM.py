@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
 '''
-loadFromExcel.py is an example of a plug-in that will load an extension taxonomy from Excel
-input and optionally save an (extension) DTS.
+saveLoadableOIM.py is an example of a plug-in that will save a re-loadable JSON or CSV instance.
 
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+(c) Copyright 2015 Mark V Systems Limited, All rights reserved.
 '''
 import sys, os, io, time, re, json, csv
 from decimal import Decimal
