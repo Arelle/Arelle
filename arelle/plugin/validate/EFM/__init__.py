@@ -252,6 +252,32 @@ def filingEnd(cntlr, options, filesource, entrypointFiles, sourceZipStream=None,
         modelManager.efmFiling.close()
         del modelManager.efmFiling
         #cntlr.addToLog("TRACE EFN filing end complete")
+        
+def rssItemXbrlLoaded(modelXbrl, rssWatchOptions, rssItem):
+    # Validate of RSS feed item (simulates filing & cmd line load events
+    modelManager = modelXbrl.modelManager
+    if (hasattr(modelManager, "efmFiling") and 
+        (modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or 
+        modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL)):
+        # options = modelManager.efmFiling.options
+        # filingStart(modelManager.cntlr, options, modelXbrl.fileSource, [{"file":rssItem.zippedUrl}])
+        efmFiling = modelManager.efmFiling
+        efmFiling.addReport(modelXbrl)
+        _report = efmFiling.reports[-1]
+        _report.entryPoint = {"file":rssItem.zippedUrl}
+    
+def rssItemValidated(val, modelXbrl, rssItem):
+    # After validate of RSS feed item (simulates report and end of filing events)
+    modelManager = modelXbrl.modelManager
+    if (hasattr(modelManager, "efmFiling") and 
+        (modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or 
+        modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL)):
+        efmFiling = modelManager.efmFiling
+        _report = efmFiling.reports[-1]
+        for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Xbrl.Run"):
+            pluginXbrlMethod(modelManager.cntlr, efmFiling.options, modelXbrl, efmFiling, _report)
+        # simulate filingEnd
+        filingEnd(modelManager.cntlr, efmFiling.options, modelManager.filesource, [])
     
 class Filing:
     def __init__(self, cntlr, options, filesource, entrypointfiles, sourceZipStream, responseZipStream):
@@ -421,4 +447,6 @@ __pluginInfo__ = {
     'CntlrCmdLine.Xbrl.Run': xbrlRun,
     'CntlrCmdLine.Filing.Validate': filingValidate,
     'CntlrCmdLine.Filing.End': filingEnd,
+    'RssItem.Xbrl.Loaded': rssItemXbrlLoaded,
+    'Validate.RssItem': rssItemValidated
 }
