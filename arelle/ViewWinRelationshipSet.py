@@ -161,8 +161,14 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         def insertLinkroleChildren(parentNode, childUris):
             for childUri in childUris:
                 for roledefinition, linkroleUri, roleId in linkroleUris:
-                    if childUri == linkroleUri and isinstance(roledefinition, tuple): # tableGroup
-                        _nextTableGroup, _order, roledefinition = roledefinition
+                    if childUri == linkroleUri: # and isinstance(roledefinition, tuple): # tableGroup
+                        if isinstance(roledefinition, tuple):
+                            _nextTableGroup, _order, roledefinition = roledefinition
+                        else:
+                            modelRoleTypes = self.modelXbrl.roleTypes.get(linkroleUri)
+                            roledefinition = (modelRoleTypes[0].genLabel(lang=self.lang, strip=True) or 
+                                              modelRoleTypes[0].definition or 
+                                              linkroleUri)
                         childId = "_{}{}".format(self.id, roleId)
                         self.id += 1
                         childNode = self.treeView.insert(parentNode, "end", childId, text=roledefinition, tags=("ELR",))

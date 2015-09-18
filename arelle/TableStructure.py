@@ -407,8 +407,52 @@ def evaluateTableIndex(modelXbrl):
                     roleType._tableTopicName = ugtTopic[3]
                     roleType._tableTopicCode = ugtTopic[4]
                     # print ("Match score {:.2f} topic {} preGrp {}".format(_score, ugtTopic[3], roleType.definition))
-        return firstTableLinkroleURI or firstDocumentLinkroleURI # did build _tableIndex attributes
-    return None
+        return (firstTableLinkroleURI or firstDocumentLinkroleURI), None # no restriction on contents linkroles
+    elif "jp-fsa" in modelXbrl.modelManager.disclosureSystem.names:
+        # find ELR with only iod:identifierItem subs group concepts
+        roleElrs = dict((roleURI, roleType)
+                        for roleURI in modelXbrl.relationshipSet(XbrlConst.parentChild).linkRoleUris
+                        for roleType in modelXbrl.roleTypes.get(roleURI,()))
+        roleIdentifierItems = {}
+        for roleURI, roleType in roleElrs.items():
+            roleType._tableChildren = []
+            relSet = modelXbrl.relationshipSet(XbrlConst.parentChild, roleURI)
+            for rootConcept in relSet.rootConcepts:
+                if rootConcept.substitutionGroupQname and rootConcept.substitutionGroupQname.localName == "identifierItem":
+                    roleIdentifierItems[rootConcept] = roleType
+        linkroleUri = None
+        for roleURI, roleType in roleElrs.items():
+            relSet = modelXbrl.relationshipSet(XbrlConst.parentChild, roleURI)
+            def addRoleIdentifiers(fromConcept, parentRoleType, visited):
+                for rel in relSet.fromModelObject(fromConcept):
+                    _fromConcept = rel.fromModelObject
+                    _toConcept = rel.toModelObject
+                    if isinstance(_fromConcept, ModelConcept) and isinstance(_toConcept, ModelConcept):
+                        _fromSubQn = _fromConcept.substitutionGroupQname
+                        _toSubQn = _toConcept.substitutionGroupQname
+                        if ((parentRoleType is not None or
+                             (_fromSubQn and _fromSubQn.localName == "identifierItem" and _fromConcept in roleIdentifierItems )) and
+                            _toSubQn and _toSubQn.localName == "identifierItem" and
+                            _toConcept in roleIdentifierItems):
+                            if parentRoleType is None:
+                                parentRoleType = roleIdentifierItems[_fromConcept]
+                            _toRoleType = roleIdentifierItems[_toConcept]
+                            if _toConcept not in parentRoleType._tableChildren:
+                                parentRoleType._tableChildren.append(_toRoleType)
+                            if _toConcept not in visited:
+                                visited.add(_toConcept)
+                                addRoleIdentifiers(_toConcept, _toRoleType, visited)
+                                visited.discard(_toConcept)
+                        elif _toConcept not in visited:
+                            visited.add(_toConcept)
+                            addRoleIdentifiers(_toConcept, parentRoleType, visited)
+                            visited.discard(_toConcept)
+            for rootConcept in relSet.rootConcepts:
+                addRoleIdentifiers(rootConcept, None, set())
+                if not linkroleUri and len(roleType._tableChildren) > 0:
+                    linkroleUri = roleURI
+        return linkroleUri, linkroleUri  # only show linkroleUri in index table                      
+    return None, None
 
 def parentNameMatchLen(tableName, parentRoleType):
     lengthOfMatch = 0
