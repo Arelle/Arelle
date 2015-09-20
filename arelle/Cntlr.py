@@ -626,9 +626,9 @@ class LogToXmlHandler(LogHandlerWithXml):
     
     A log handler that writes log entries to named XML file (utf-8 encoded) upon closing the application.
     """
-    def __init__(self, filename, mode='w'):
+    def __init__(self, filename=None, mode='w'):
         super(LogToXmlHandler, self).__init__()
-        self.filename = filename
+        self.filename = filename # may be none if buffer is retrieved by get methods below and not written anywhere
         self.logRecordBuffer = []
         self.filemode = mode
         
@@ -646,7 +646,7 @@ class LogToXmlHandler(LogHandlerWithXml):
                            .encode(sys.stdout.encoding, 'backslashreplace')
                            .decode(sys.stdout.encoding, 'strict')))
             print('</log>')
-        else:
+        elif self.fileName is not None:
             # print ("filename=" + self.filename)
             with open(self.filename, self.filemode, encoding='utf-8') as fh:
                 fh.write('<?xml version="1.0" encoding="utf-8"?>\n')
@@ -690,7 +690,7 @@ class LogToXmlHandler(LogHandlerWithXml):
             entries.append(entry)
         if clearLogBuffer:
             self.clearLogBuffer()
-        return json.dumps( {"log": entries} )
+        return json.dumps( {"log": entries}, ensure_ascii=False, indent=1 )
     
     def getLines(self, clearLogBuffer=True):
         """Returns a list of the message strings in the log buffer, and clears the buffer.
@@ -714,7 +714,7 @@ class LogToXmlHandler(LogHandlerWithXml):
     def emit(self, logRecord):
         self.logRecordBuffer.append(logRecord)
 
-class LogToBufferHandler(LogHandlerWithXml):
+class LogToBufferHandler(LogToXmlHandler):
     """
     .. class:: LogToBufferHandler()
     
@@ -725,6 +725,6 @@ class LogToBufferHandler(LogHandlerWithXml):
         super(LogToBufferHandler, self).__init__()
         
     def flush(self):
-        pass # do nothing -- overrides LogHandlerWithXml
+        pass # do nothing -- overrides LogToXmlHandler's flush
     
 
