@@ -34,6 +34,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     :param isIncluded: True if this document is the target of an xs:include
     :type isIncluded: bool
     :param namespace: The schema namespace of this document, if known and applicable
+    :type isSupplemental: True if this document is supplemental (not discovered or in DTS but adds labels or instance facts)
     :type namespace: str
     :param reloadCache: True if desired to reload the web cache for any web-referenced files.
     :type reloadCache: bool
@@ -213,7 +214,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                                     _("Schema file with same targetNamespace %(targetNamespace)s loaded from %(fileName)s and %(otherFileName)s"),
                                     modelObject=referringElement, targetNamespace=targetNamespace, fileName=uri, otherFileName=otherModelDoc.uri)
                         return otherModelDoc 
-        elif (isEntry or isDiscovered) and ns == XbrlConst.link:
+        elif (isEntry or isDiscovered or kwargs.get("isSupplemental", False)) and ns == XbrlConst.link:
             if ln == "linkbase":
                 _type = Type.LINKBASE
             elif ln == "xbrl":

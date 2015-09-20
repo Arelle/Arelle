@@ -409,6 +409,7 @@ def parseAndRun(args):
                 )):
             parser.error(_("incorrect arguments with --webserver, please try\n  python CntlrCmdLine.py --help"))
         else:
+            # note that web server logging does not strip time stamp, use logFormat if that is desired
             cntlr.startLogging(logFileName='logToBuffer')
             from arelle import CntlrWebMain
             app = CntlrWebMain.startWebserver(cntlr, options)
@@ -836,7 +837,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         fileName = importFile.strip()
                         if sourceZipStream is not None and not (fileName.startswith('http://') or os.path.isabs(fileName)):
                             fileName = os.path.dirname(modelXbrl.uri) + os.sep + fileName # make relative to sourceZipStream
-                        ModelDocument.load(modelXbrl, fileName)
+                        ModelDocument.load(modelXbrl, fileName, isSupplemental=True)
                         loadTime = time.time() - startedAt
                         self.addToLog(format_string(self.modelManager.locale, 
                                                     _("import in %.2f secs at %s"), 
