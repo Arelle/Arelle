@@ -290,16 +290,23 @@ class Filing:
         self.submissionType = None
         self.reports = []
         self.renderedFiles = set() # filing-level rendered files
+        self.reportZip = None
         if responseZipStream:
-            self.reportZip = zipfile.ZipFile(responseZipStream, 'w', zipfile.ZIP_DEFLATED, True)
+            self.setReportZipStreamMode('w')
         else:
             try: #zipOutputFile only present with EdgarRenderer plugin options
                 if options.zipOutputFile:
                     self.reportZip = zipfile.ZipFile(options.zipOutputFile, 'w', zipfile.ZIP_DEFLATED, True)
-                else:
-                    self.reportZip = None
             except AttributeError:
                 self.reportZip = None
+                
+    def setReportZipStreamMode(self, mode): # mode is 'w', 'r', 'a'
+        # required to switch in-memory zip stream between write, read, and append modes
+        if self.responseZipStream:
+            if self.reportZip: # already open, close and reseek underlying stream
+                self.reportZip.close()
+                self.responseZipStream.seek(0)
+            self.reportZip = zipfile.ZipFile(self.responseZipStream, mode, zipfile.ZIP_DEFLATED, True)
         
     def close(self):
         ''' MetaFiling.json (not needed?) list of all files written out
@@ -326,7 +333,7 @@ class Filing:
                 elif _logFileExt == ".json":
                     _logStr = self.cntlr.logHandler.getJson(clearLogBuffer=False)
                 else:  # no ext or  _logFileExt == ".txt":
-                    _logStr = cntlr.logHandler.getText(clearLogBuffer=False)
+                    _logStr = self.cntlr.logHandler.getText(clearLogBuffer=False)
                 self.reportZip.writestr(_logFile, _logStr)
             #else:
             #    with open(_logFile, "wt", encoding="utf-8") as fh:
