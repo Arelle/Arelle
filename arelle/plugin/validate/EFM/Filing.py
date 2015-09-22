@@ -296,32 +296,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             documentTypeFact = f
                         elif factElementName == disclosureSystem.deiFilerIdentifierElement:
                             deiItems[factElementName] = value
-                            if entityIdentifierValue != value:
-                                val.modelXbrl.error(("EFM.6.05.23", "GFM.3.02.02"),
-                                    _("dei:%(elementName)s %(value)s must match the context entity identifier %(entityIdentifier)s"),
-                                    modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
-                                    value=value, entityIdentifier=entityIdentifierValue)
-                            if val.paramFilerIdentifierNames and value not in val.paramFilerIdentifierNames:
-                                val.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
-                                    _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s"),
-                                    modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
-                                    value=value, filerIdentifier=",".join(sorted(val.paramFilerIdentifierNames.keys())))
-                            elif val.paramFilerIdentifier and value != val.paramFilerIdentifier:
-                                val.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
-                                    _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s"),
-                                    modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
-                                    value=value, filerIdentifier=val.paramFilerIdentifier)
+                            deiFilerIdentifierFact = f
                         elif factElementName == disclosureSystem.deiFilerNameElement:
                             deiItems[factElementName] = value
-                            if entityIdentifierValue == "0000000000" and isEFM:
-                                pass # no filer name check
-                            elif val.paramFilerIdentifierNames and entityIdentifierValue in val.paramFilerIdentifierNames:
-                                prefix = val.paramFilerIdentifierNames[entityIdentifierValue]
-                                if not value.lower().startswith(prefix.lower()):
-                                    val.modelXbrl.error(("EFM.6.05.24", "GFM.3.02.02"),
-                                        _("dei:%(elementName)s %(prefix)s should be a case-insensitive prefix of: %(value)s"),
-                                        modelObject=f, elementName=disclosureSystem.deiFilerNameElement,
-                                        prefix=prefix, value=value)
+                            deiFilerNameFact = f
                         elif factElementName in deiCheckLocalNames:
                             deiItems[factElementName] = value
                             deiFacts[factElementName] = f
@@ -395,6 +373,36 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             value="".join(s for t in syms for s in t), text=f.text)
                         
         val.entityRegistrantName = deiItems.get("EntityRegistrantName") # used for name check in 6.8.6
+        
+        # 6.05..23,24 check (after dei facts read)
+        if not (entityIdentifierValue == "0000000000" and isEFM and documentType == "L SDR"):
+            if disclosureSystem.deiFilerIdentifierElement in deiItems:
+                value = deiItems[disclosureSystem.deiFilerIdentifierElement]
+                if entityIdentifierValue != value:
+                    val.modelXbrl.error(("EFM.6.05.23", "GFM.3.02.02"),
+                        _("dei:%(elementName)s %(value)s must match the context entity identifier %(entityIdentifier)s"),
+                        modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
+                        value=value, entityIdentifier=entityIdentifierValue)
+                if val.paramFilerIdentifierNames:
+                    if value not in val.paramFilerIdentifierNames:
+                        val.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
+                            _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s"),
+                            modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
+                            value=value, filerIdentifier=",".join(sorted(val.paramFilerIdentifierNames.keys())))
+                elif val.paramFilerIdentifier and value != val.paramFilerIdentifier:
+                    val.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
+                        _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s"),
+                        modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
+                        value=value, filerIdentifier=val.paramFilerIdentifier)
+            if disclosureSystem.deiFilerNameElement in deiItems:
+                value = deiItems[disclosureSystem.deiFilerNameElement]
+                if val.paramFilerIdentifierNames and entityIdentifierValue in val.paramFilerIdentifierNames:
+                    prefix = val.paramFilerIdentifierNames[entityIdentifierValue]
+                    if not value.lower().startswith(prefix.lower()):
+                        val.modelXbrl.error(("EFM.6.05.24", "GFM.3.02.02"),
+                            _("dei:%(elementName)s %(prefix)s should be a case-insensitive prefix of: %(value)s"),
+                            modelObject=f, elementName=disclosureSystem.deiFilerNameElement,
+                            prefix=prefix, value=value)
                         
         val.modelXbrl.profileActivity("... filer fact checks", minTimeToShow=1.0)
 

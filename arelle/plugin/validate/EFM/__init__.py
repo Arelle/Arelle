@@ -73,12 +73,12 @@ def validateXbrlStart(val, parameters=None):
             _cik = p[1]
         p = parameters.get(ModelValue.qname("cikList",noPrefixIsNoNamespace=True))
         if p and len(p) == 2:
-            _filerIdentifiers = p[1].split(",")
+            _cikList = p[1]
         else:
-            _filerIdentifiers = []
+            _cikList = []
         p = parameters.get(ModelValue.qname("cikNameList",noPrefixIsNoNamespace=True))
         if p and len(p) == 2:
-            _filerNames = p[1].split("|Edgar|")
+            _cikNameList = p[1]
         p = parameters.get(ModelValue.qname("submissionType",noPrefixIsNoNamespace=True))
         if p and len(p) == 2:
             _submissionType = p[1]
@@ -106,13 +106,21 @@ def validateXbrlStart(val, parameters=None):
         # cik1, cik2, cik3 in cikList and name1|Edgar|name2|Edgar|name3 in cikNameList strings
         _filerIdentifiers = _cikList.split(",") if _cikList else []
         _filerNames = _cikNameList.split("|Edgar|") if _cikNameList else []
-        if _filerIdentifiers and len(_filerIdentifiers) != len(_filerNames):
-            val.modelXbrl.error(("EFM.6.05.24.parameters", "GFM.3.02.02"),
-                _("parameters for cikList and cikNameList different list entry counts: %(cikList)s, %(cikNameList)s"),
-                modelXbrl=val.modelXbrl, cikList=_FilerIdentifiers, cikNameList=_FilerNames)
+        if _filerIdentifiers:
+            if len(_filerNames) not in (0, len(_filerIdentifiers)):
+                val.modelXbrl.error(("EFM.6.05.24.parameters", "GFM.3.02.02"),
+                    _("parameters for cikList and cikNameList different list entry counts: %(cikList)s, %(cikNameList)s"),
+                    modelXbrl=val.modelXbrl, cikList=_filerIdentifiers, cikNameList=_filerNames)
+            elif _filerNames:
+                val.paramFilerIdentifierNames=dict((_cik,_filerNames[i])
+                                                   for i, _cik in enumerate(_filerIdentifiers))
+            else:
+                val.paramFilerIdentifierNames=dict((_cik,None) for _cik in _filerIdentifiers)
         elif _filerNames:
-            val.paramFilerIdentifierNames=dict((_cik,_filerNames[i])
-                                               for i, _cik in enumerate(_filerIdentifiers))
+            val.modelXbrl.error(("EFM.6.05.24.parameters", "GFM.3.02.02"),
+                _("parameters for cikNameList provided but missing corresponding cikList: %(cikNameList)s"),
+                modelXbrl=val.modelXbrl, cikNameList=_FilerNames)
+
     if _exhibitType:
         val.paramExhibitType = _exhibitType
     if _submissionType:

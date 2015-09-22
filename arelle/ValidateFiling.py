@@ -353,32 +353,10 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 documentTypeFact = f
                             elif factElementName == disclosureSystem.deiFilerIdentifierElement:
                                 deiItems[factElementName] = value
-                                if entityIdentifierValue != value:
-                                    self.modelXbrl.error(("EFM.6.05.23", "GFM.3.02.02"),
-                                        _("dei:%(elementName)s %(value)s must match the context entity identifier %(entityIdentifier)s"),
-                                        modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
-                                        value=value, entityIdentifier=entityIdentifierValue)
-                                if paramFilerIdentifiers and value not in paramFilerIdentifiers:
-                                    self.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
-                                        _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s"),
-                                        modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
-                                        value=value, filerIdentifier=",".join(paramFilerIdentifiers))
-                                elif paramFilerIdentifier and value != paramFilerIdentifier:
-                                    self.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
-                                        _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s"),
-                                        modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
-                                        value=value, filerIdentifier=paramFilerIdentifier)
+                                deiFilerIdentifierFact = f
                             elif factElementName == disclosureSystem.deiFilerNameElement:
                                 deiItems[factElementName] = value
-                                if entityIdentifierValue == "0000000000" and isEFM:
-                                    pass # no filer name check
-                                elif paramFilerIdentifiers and paramFilerNames and entityIdentifierValue in paramFilerIdentifiers:
-                                    prefix = paramFilerNames[paramFilerIdentifiers.index(entityIdentifierValue)]
-                                    if not value.lower().startswith(prefix.lower()):
-                                        self.modelXbrl.error(("EFM.6.05.24", "GFM.3.02.02"),
-                                            _("dei:%(elementName)s %(prefix)s should be a case-insensitive prefix of: %(value)s"),
-                                            modelObject=f, elementName=disclosureSystem.deiFilerNameElement,
-                                            prefix=prefix, value=value)
+                                deiFilerNameFact = f
                             elif factElementName in deiCheckLocalNames:
                                 deiItems[factElementName] = value
                                 deiFacts[factElementName] = f
@@ -453,6 +431,36 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             
             self.entityRegistrantName = deiItems.get("EntityRegistrantName") # used for name check in 6.8.6
                             
+            # 6.05.23,24 check (after dei facts read)
+            if not (entityIdentifierValue == "0000000000" and self.validateEFM and documentType == "L SDR"):
+                if disclosureSystem.deiFilerIdentifierElement in deiItems:
+                    value = deiItems[disclosureSystem.deiFilerIdentifierElement]
+                    if entityIdentifierValue != value:
+                        self.modelXbrl.error(("EFM.6.05.23", "GFM.3.02.02"),
+                            _("dei:%(elementName)s %(value)s must match the context entity identifier %(entityIdentifier)s"),
+                            modelObject=deiFilerIdentifierFact, elementName=disclosureSystem.deiFilerIdentifierElement,
+                            value=value, entityIdentifier=entityIdentifierValue)
+                    if paramFilerIdentifiers:
+                        if value not in paramFilerIdentifiers:
+                            self.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
+                                _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s"),
+                                modelObject=deiFilerIdentifierFact, elementName=disclosureSystem.deiFilerIdentifierElement,
+                                value=value, filerIdentifier=",".join(paramFilerIdentifiers))
+                    elif paramFilerIdentifier and value != paramFilerIdentifier:
+                        self.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
+                            _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s"),
+                            modelObject=deiFilerIdentifierFact, elementName=disclosureSystem.deiFilerIdentifierElement,
+                            value=value, filerIdentifier=paramFilerIdentifier)
+                if disclosureSystem.deiFilerNameElement in deiItems:
+                    value = deiItems[disclosureSystem.deiFilerNameElement]
+                    if paramFilerIdentifiers and paramFilerNames and entityIdentifierValue in paramFilerIdentifiers:
+                        prefix = paramFilerNames[paramFilerIdentifiers.index(entityIdentifierValue)]
+                        if not value.lower().startswith(prefix.lower()):
+                            self.modelXbrl.error(("EFM.6.05.24", "GFM.3.02.02"),
+                                _("dei:%(elementName)s %(prefix)s should be a case-insensitive prefix of: %(value)s"),
+                                modelObject=deiFilerNameFact, elementName=disclosureSystem.deiFilerNameElement,
+                                prefix=prefix, value=value)
+    
             self.modelXbrl.profileActivity("... filer fact checks", minTimeToShow=1.0)
     
             if len(contextIDs) > 0: # check if contextID is on any undefined facts
