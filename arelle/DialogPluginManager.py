@@ -56,6 +56,7 @@ class DialogPluginManager(Toplevel):
         self.uiClassMethodsChanged = False
         self.modelClassesChanged = False
         self.disclosureSystemTypesChanged = False
+        self.hostSystemFeaturesChanged = False
         self.modulesWithNewerFileDates = modulesWithNewerFileDates
         
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", self.parent.geometry())
@@ -262,20 +263,22 @@ class DialogPluginManager(Toplevel):
             PluginManager.pluginConfig = self.pluginConfig
             PluginManager.pluginConfigChanged = True
             PluginManager.reset()  # force reloading of modules
-        if self.uiClassMethodsChanged or self.modelClassesChanged or self.disclosureSystemTypesChanged:  # may require reloading UI
+        if self.uiClassMethodsChanged or self.modelClassesChanged or self.disclosureSystemTypesChanged or self.hostSystemFeaturesChanged:  # may require reloading UI
             affectedItems = ""
             if self.uiClassMethodsChanged:
                 affectedItems += _("menus of the user interface")
             if self.modelClassesChanged:
-                if self.uiClassMethodsChanged:
+                if affectedItems:
                     affectedItems += _(" and ")
                 affectedItems += _("model objects of the processor")
-            if (self.uiClassMethodsChanged or self.modelClassesChanged):
-                affectedItems += _(" and ")
             if self.disclosureSystemTypesChanged:
-                if (self.uiClassMethodsChanged or self.modelClassesChanged):
+                if affectedItems:
                     affectedItems += _(" and ")
                 affectedItems += _("disclosure system types")
+            if self.hostSystemFeaturesChanged:
+                if affectedItems:
+                    affectedItems += _(" and ")
+                affectedItems += _("host system features")
             if messagebox.askyesno(_("User interface plug-in change"),
                                    _("A change in plug-in class methods may have affected {0}.  " 
                                      "Please restart Arelle to due to these changes.  \n\n"
@@ -411,6 +414,8 @@ class DialogPluginManager(Toplevel):
                                 self.modelClassesChanged = True # model object factor classes changed
                             elif classMethod == "DisclosureSystem.Types":
                                 self.disclosureSystemTypesChanged = True # disclosure system types changed
+                            elif classMethod.startswith("Proxy."):
+                                self.hostSystemFeaturesChanged = True # system features (e.g., proxy) changed
                     for importModuleInfo in moduleInfo.get("imports", EMPTYLIST):
                         _removePluginConfigModuleInfo(importModuleInfo)
                     self.pluginConfig["modules"].pop(_name, None)
@@ -438,6 +443,8 @@ class DialogPluginManager(Toplevel):
                         self.modelClassesChanged = True # model object factor classes changed
                     elif classMethod == "DisclosureSystem.Types":
                         self.disclosureSystemTypesChanged = True # disclosure system types changed
+                    elif classMethod.startswith("Proxy."):
+                        self.hostSystemFeaturesChanged = True # system features (e.g., proxy) changed
             for importModuleInfo in moduleInfo.get("imports", EMPTYLIST):
                 _addPlugin(importModuleInfo)
         _addPlugin(moduleInfo)
