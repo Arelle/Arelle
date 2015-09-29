@@ -4,7 +4,7 @@ Created on Oct 3, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, io, sys
+import os, io, sys, traceback
 from collections import defaultdict
 from lxml import etree
 from xml.sax import SAXParseException
@@ -66,6 +66,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                     modelObject=referringElement, url=normalizedUri,
                     blockedIndicator=_(" blocked") if blocked else "",
                     messageCodes=("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06", "SBR.NL.2.2.0.17"))
+            #modelXbrl.debug("EFM.6.22.02", "traceback %(traceback)s",
+            #                modeObject=referringElement, traceback=traceback.format_stack())
             modelXbrl.urlUnloadableDocs[normalizedUri] = blocked
         if blocked:
             return None
@@ -861,12 +863,13 @@ class ModelDocument:
                 self.referencedNamespaces.add(importNamespace)
                 
     def schemalocateElementNamespace(self, element):
-        eltNamespace = element.namespaceURI 
-        if eltNamespace not in self.modelXbrl.namespaceDocs and eltNamespace not in self.referencedNamespaces:
-            schemaLocationElement = XmlUtil.schemaLocation(element, eltNamespace, returnElement=True)
-            if schemaLocationElement is not None:
-                self.schemaLocationElements.add(schemaLocationElement)
-                self.referencedNamespaces.add(eltNamespace)
+        if isinstance(element,ModelObject):
+            eltNamespace = element.namespaceURI 
+            if eltNamespace not in self.modelXbrl.namespaceDocs and eltNamespace not in self.referencedNamespaces:
+                schemaLocationElement = XmlUtil.schemaLocation(element, eltNamespace, returnElement=True)
+                if schemaLocationElement is not None:
+                    self.schemaLocationElements.add(schemaLocationElement)
+                    self.referencedNamespaces.add(eltNamespace)
 
     def loadSchemalocatedSchemas(self):
         # schemaLocation requires loaded schemas for validation
@@ -988,6 +991,8 @@ class ModelDocument:
                                 elif xlinkType == "resource": 
                                     # create resource and make accessible by id for document
                                     modelResource = linkElement
+                                    for resourceElt in linkElement.iter(): # check resource element schemaLocations
+                                        self.schemalocateElementNamespace(resourceElt)
                                 if modelResource is not None:
                                     lbElement.labeledResources[linkElement.get("{http://www.w3.org/1999/xlink}label")] \
                                         .append(modelResource)
