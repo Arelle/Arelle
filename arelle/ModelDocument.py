@@ -323,6 +323,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     return modelDocument
 
 def loadSchemalocatedSchema(modelXbrl, element, relativeUrl, namespace, baseUrl):
+    if namespace == XbrlConst.xhtml: # block loading xhtml as a schema (e.g., inline which is xsd validated instead)
+        return None
     importSchemaLocation = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(relativeUrl, baseUrl)
     doc = load(modelXbrl, importSchemaLocation, isIncluded=False, isDiscovered=False, namespace=namespace, referringElement=element)
     if doc:
@@ -1215,6 +1217,7 @@ def inlineIxdsDiscover(modelXbrl):
     footnoteRefs = defaultdict(list)
     tupleElements = []
     continuationElements = {}
+    continuationReferences = defaultdict(set) # set of elements that have continuedAt source value
     tuplesByTupleID = {}
     for htmlElement in modelXbrl.ixdsHtmlElements:  
         mdlDoc = htmlElement.modelDocument
@@ -1252,10 +1255,17 @@ def inlineIxdsDiscover(modelXbrl):
     def locateContinuation(element, chain=None):
         contAt = element.get("continuedAt")
         if contAt:
+            continuationReferences[contAt].add(element)
             if contAt not in continuationElements:
-                modelXbrl.error("ix:continuationMissing",
-                                _("Inline XBRL continuation %(continuationAt)s not found"),
-                                modelObject=element, continuationAt=contAt)
+                if contAt in element.modelDocument.idObjects:
+                    _contAtTarget = element.modelDocument.idObjects[contAt]
+                    modelXbrl.error("ix:continuationTarget",
+                                    _("continuedAt %(continuationAt)s target is an %(targetElement)s element instead of ix:continuation element."),
+                                    modelObject=(element, _contAtTarget), continuationAt=contAt, targetElement=_contAtTarget.elementQname)
+                else:
+                    modelXbrl.error("ix:continuationMissing",
+                                    _("Inline XBRL continuation %(continuationAt)s not found"),
+                                    modelObject=element, continuationAt=contAt)
             else:
                 if chain is None: chain = [element]
                 contElt = continuationElements[contAt]
@@ -1269,6 +1279,20 @@ def inlineIxdsDiscover(modelXbrl):
                     chain.append(contElt)
                     element._continuationElement = contElt
                     locateContinuation(contElt, chain)
+        elif chain: # end of chain
+            # check if any chain element is descendant of another
+            chainSet = set(chain)
+            for chainElt in chain:
+                for chainEltAncestor in chainElt.iterancestors():
+                    if chainEltAncestor in chainSet:
+                        if hasattr(chain[0], "_continuationElement"):
+                            del chain[0]._continuationElement # break chain to prevent looping in chain
+                        modelXbrl.error("ix:continuationChainNested",
+                                        _("Inline XBRL continuation chain element %(ancestorElement)s has descendant element %(descendantElement)s"),
+                                        modelObject=(chainElt,chainEltAncestor), 
+                                        ancestorElement=chainEltAncestor.id or chainEltAncestor.get("name",chainEltAncestor.get("continuedAt")),
+                                        descendantElement=chainElt.id or chainElt.get("name",chainElt.get("continuedAt")))
+                        
 
     for htmlElement in modelXbrl.ixdsHtmlElements:  
         mdlDoc = htmlElement.modelDocument
@@ -1390,6 +1414,15 @@ def inlineIxdsDiscover(modelXbrl):
                                                                         modelInlineRel.get("order", "1")))
 
         del linkPrototypes, modelInlineFootnotesById, linkModelInlineFootnoteIds # dereference
+        
+    # check for multiple use of continuation reference (same continuationAt on different elements)
+    for _contAt, _contReferences in continuationReferences.items():
+        if len(_contReferences) > 1:
+            _refEltQnames = set(str(_contRef.elementQname) for _contRef in _contReferences)
+            modelXbrl.error("ix:continuationAtReferences",
+                            _("continuedAt %(continuedAt)s has %(referencesCount)s references on %(sourceElements)s elements, only one reference allowed."),
+                            modelObject=_contReferences, continuedAt=_contAt, referencesCount=len(_contReferences), 
+                            sourceElements=', '.join(str(qn) for qn in sorted(_refEltQnames)))
                 
     del modelXbrl.ixdsHtmlElements # dereference
     

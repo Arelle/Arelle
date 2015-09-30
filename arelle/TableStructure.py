@@ -180,7 +180,7 @@ def evaluateTableIndex(modelXbrl):
         definitionElrs = dict((roleType.definition, roleType)
                               for roleURI in modelXbrl.relationshipSet(XbrlConst.parentChild).linkRoleUris
                               for roleType in modelXbrl.roleTypes.get(roleURI,()))
-        isRR = any(ns.startswith("http://xbrl.sec.gov/rr/") for ns in modelXbrl.namespaceDocs.keys())
+        isRR = any(ns.startswith("http://xbrl.sec.gov/rr/") for ns in modelXbrl.namespaceDocs.keys() if ns)
         tableGroup = None
         firstTableLinkroleURI = None
         firstDocumentLinkroleURI = None
