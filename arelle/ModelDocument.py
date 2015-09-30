@@ -1283,7 +1283,7 @@ def inlineIxdsDiscover(modelXbrl):
             # check if any chain element is descendant of another
             chainSet = set(chain)
             for chainElt in chain:
-                for chainEltAncestor in chainElt.iterancestors():
+                for chainEltAncestor in chainElt.iterancestors(tag=chainElt.modelDocument.ixNStag + '*'):
                     if chainEltAncestor in chainSet:
                         if hasattr(chain[0], "_continuationElement"):
                             del chain[0]._continuationElement # break chain to prevent looping in chain
