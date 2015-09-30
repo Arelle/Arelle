@@ -760,9 +760,9 @@ class CntlrWinMain (Cntlr.Cntlr):
                                                                treeColHdr="Table Index", showLinkroles=False, showColumns=False, expandAll=True)
                 elif modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
                     currentAction = "table index view"
-                    firstTableLinkroleURI = TableStructure.evaluateTableIndex(modelXbrl)
+                    firstTableLinkroleURI, indexLinkroleURI = TableStructure.evaluateTableIndex(modelXbrl)
                     if firstTableLinkroleURI:
-                        ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopLeft, ("Tables", (XbrlConst.parentChild,)), lang=self.labelLang,
+                        ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopLeft, ("Tables", (XbrlConst.parentChild,)), lang=self.labelLang, linkrole=indexLinkroleURI,
                                                                    treeColHdr="Table Index", showRelationships=False, showColumns=False, expandAll=False, hasTableIndex=True)
                 '''
                 elif (modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET) and

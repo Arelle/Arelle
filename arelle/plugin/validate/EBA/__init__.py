@@ -4,7 +4,7 @@ Created on Dec 12, 2013
 @author: Mark V Systems Limited
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
-import os, sys
+import os, sys, re
 from arelle import PluginManager
 from arelle import ModelDocument, XbrlConst, XmlUtil, UrlUtil, LeiUtil
 from arelle.HashUtil import md5hash, Md5Sum
@@ -30,6 +30,8 @@ integerItemTypes = {"integerItemType", "nonPositiveIntegerItemType", "negativeIn
                     "longItemType", "intItemType", "shortItemType", "byteItemType",
                     "nonNegativeIntegerItemType", "unsignedLongItemType", "unsignedIntItemType",
                     "unsignedShortItemType", "unsignedByteItemType", "positiveIntegerItemType"}
+schemaRefDatePattern = re.compile(r".*/([0-9]{4}-[01][0-9]-[0-3][0-9])/mod.*")
+
 
 def dislosureSystemTypes(disclosureSystem):
     # return ((disclosure system name, variable name), ...)
@@ -50,6 +52,17 @@ def validateSetup(val, parameters=None):
                                    "WARNING",  # EBA specifies SHOULD on UTR validation
                                    "EBA.2.23") # override utre error-severity message code
 
+    val.isEIOPAfullVersion = False
+    modelDocument = val.modelXbrl.modelDocument
+    if modelDocument.type == ModelDocument.Type.INSTANCE:
+        for doc, docRef in modelDocument.referencesDocument.items():
+            if docRef.referenceType == "href":
+                if docRef.referringModelObject.localName == "schemaRef":
+                    _match = schemaRefDatePattern.match(doc.uri)
+                    if _match:
+                        val.isEIOPAfullVersion = _match.group(1) > "2015-02-28"
+                        break
+                    
     val.prefixNamespace = {}
     val.namespacePrefix = {}
     val.idObjects = {}
@@ -118,9 +131,10 @@ def validateFacts(val, factsToCheck):
                 _("Contexts MUST NOT contain xbrli:segment values: %(cntx)s.'"),
                 modelObject=cntx, cntx=cntx.id)
         if cntx.nonDimValues("scenario"):
-            modelXbrl.error(("EBA.2.15","EIOPA.N.2.15"),
+            modelXbrl.error(("EBA.2.15","EIOPA.S.2.15" if val.isEIOPAfullVersion else "EIOPA.N.2.15"),
                 _("Contexts MUST NOT contain non-dimensional xbrli:scenario values: %(cntx)s.'"),
-                modelObject=cntx, cntx=cntx.id)
+                modelObject=cntx, cntx=cntx.id, 
+                messageCodes=("EBA.2.15","EIOPA.N.2.15","EIOPA.S.2.15"))
         val.unusedCntxIDs.add(cntx.id)
 
     for unit in modelXbrl.units.values():
@@ -151,13 +165,23 @@ def validateFacts(val, factsToCheck):
             val.unusedCntxIDs.discard(fIndicator.contextID)
             cntx = fIndicator.context
             if cntx is not None and (cntx.hasSegment or cntx.hasScenario):
-                modelXbrl.error("EIOPA.S.1.6.d",
+                modelXbrl.error("EIOPA.N.1.6.d" if val.isEIOPAfullVersion else "EIOPA.S.1.6.d",
                         _('Filing indicators must not contain segment or scenario elements %(filingIndicator)s.'),
                         modelObject=fIndicator, filingIndicator=_value)
         if fIndicators.objectIndex > val.firstFactObjectIndex:
             modelXbrl.warning("EIOPA.1.6.2",
                     _('Filing indicators should precede first fact %(firstFact)s.'),
                     modelObject=(fIndicators, val.firstFact), firstFact=val.firstFact.qname)
+    
+    if val.isEIOPAfullVersion:
+        for fIndicator in factsByQname[qnFilingIndicator]:
+            if fIndicator.getparent().qname == XbrlConst.qnXbrliXbrl:
+                _isPos = fIndicator.get("{http://www.eurofiling.info/xbrl/ext/filing-indicators}filed", "true") in ("true", "1")
+                _value = (getattr(fIndicator, "xValue", None) or fIndicator.value) # use validated xValue if DTS else value for skipDTS 
+                modelXbrl.error("EIOPA.1.6.a" if _isPos else "EIOPA.1.6.b",
+                        _('Filing indicators must be in a tuple %(filingIndicator)s.'),
+                        modelObject=fIndicator, filingIndicator=_value,
+                        messageCodes=("EIOPA.1.6.a", "EIOPA.1.6.b"))
                 
     otherFacts = {} # (contextHash, unitHash, xmlLangHash) : fact
     nilFacts = []
@@ -167,7 +191,7 @@ def validateFacts(val, factsToCheck):
         for f in facts:
             if modelXbrl.skipDTS:
                 c = f.qname.localName[0]
-                isNumeric = c in ('m', 'p', 'i')
+                isNumeric = c in ('m', 'p', 'r', 'i')
                 isMonetary = c == 'm'
                 isInteger = c == 'i'
                 isPercent = c == 'p'
@@ -203,9 +227,10 @@ def validateFacts(val, factsToCheck):
                               (f.xmlLang == o.xmlLang)]
                 if matches:
                     contexts = [f.contextID] + [o.contextID for o in matches]
-                    modelXbrl.error(("EBA.2.16", "EIOPA.S.2.16.a"),
+                    modelXbrl.error(("EBA.2.16", "EIOPA.S.2.16" if val.isEIOPAfullVersion else "EIOPA.S.2.16.a"),
                                     _('Facts are duplicates %(fact)s contexts %(contexts)s.'),
-                                    modelObject=[f] + matches, fact=f.qname, contexts=', '.join(contexts))
+                                    modelObject=[f] + matches, fact=f.qname, contexts=', '.join(contexts),
+                                    messageCodes=("EBA.2.16", "EIOPA.S.2.16", "EIOPA.S.2.16.a"))
                 else:
                     otherFacts[k].add(f)
             if isNumeric:
@@ -215,9 +240,10 @@ def validateFacts(val, factsToCheck):
                         modelObject=f, fact=f.qname, contextID=f.contextID, precision=f.precision)
                 if f.decimals and not f.isNil:
                     if f.decimals == "INF":
-                        modelXbrl.error("EIOPA.S.2.18.f",
-                            _("Monetary fact %(fact)s of context %(contextID)s has a decimal attribute INF: '%(decimals)s'"),
-                            modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
+                        if not val.isEIOPAfullVersion:
+                            modelXbrl.error("EIOPA.S.2.18.f",
+                                _("Monetary fact %(fact)s of context %(contextID)s has a decimal attribute INF: '%(decimals)s'"),
+                                modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals)
                     else:
                         try:
                             xValue = f.xValue
@@ -342,7 +368,8 @@ def validateFacts(val, factsToCheck):
         h = cntx.contextDimAwareHash
         if h in cntxHashes and cntx.isEqualTo(cntxHashes[h]):
             if not getattr(modelXbrl, "isStreamingMode", False):
-                modelXbrl.error("EIOPA.S.2.7.b",
+                modelXbrl.log("WARNING" if val.isEIOPAfullVersion else "ERROR",
+                    "EIOPA.S.2.7.b",
                     _("Duplicate contexts MUST NOT be reported, contexts %(cntx1)s and %(cntx2)s are equivalent.'"),
                     modelObject=(cntx, cntxHashes[h]), cntx1=cntx.id, cntx2=cntxHashes[h].id)
         else:
@@ -381,7 +408,7 @@ def validateStreamingFinish(val):
 def final(val):
     if not (val.validateEBA or val.validateEIOPA):
         return
-
+    
     modelXbrl = val.modelXbrl
     modelDocument = modelXbrl.modelDocument
 
@@ -390,6 +417,7 @@ def final(val):
     modelXbrl.modelManager.showStatus(_statusMsg)
     
     if modelDocument.type == ModelDocument.Type.INSTANCE and (val.validateEBA or val.validateEIOPA):
+
         if not modelDocument.uri.endswith(".xbrl"):
             modelXbrl.warning(("EBA.1.1", "EIOPA.S.1.1.a"),
                     _('XBRL instance documents SHOULD use the extension ".xbrl" but it is "%(extension)s"'),
@@ -407,9 +435,10 @@ def final(val):
                     schemaRefElts.append(docRef.referringModelObject)
                     schemaRefFileNames.append(doc.basename)
                     if not UrlUtil.isAbsolute(doc.uri):
-                        modelXbrl.error(("EBA.2.2", "EBA.S.1.5.b"),
+                        modelXbrl.error(("EBA.2.2", "EBA.S.1.5.a" if val.isEIOPAfullVersion else "EBA.S.1.5.b"),
                                 _('The link:schemaRef element in submitted instances MUST resolve to the full published entry point URL: %(url)s.'),
-                                modelObject=docRef.referringModelObject, url=doc.uri)
+                                modelObject=docRef.referringModelObject, url=doc.uri,
+                                messageCodes=("EBA.2.2", "EBA.S.1.5.a","EBA.S.1.5.b"))
                 elif docRef.referringModelObject.localName == "linkbaseRef":
                     modelXbrl.error(("EBA.2.3","EBA.S.1.5.a"),
                             _('The link:linkbaseRef element is not allowed: %(fileName)s.'),
@@ -495,7 +524,8 @@ def final(val):
                     entities=", ".join(sorted(str(cntxEntity) for cntxEntity in val.cntxEntities)))
             
         for _scheme, _LEI in val.cntxEntities:
-            if _scheme in ("http://standard.iso.org/iso/17442", "LEI", "PRE-LEI"):
+            if (_scheme in ("http://standard.iso.org/iso/17442", "LEI") or
+                (not val.isEIOPAfullVersion and _scheme == "PRE-LEI")):
                 result = LeiUtil.checkLei(_LEI)
                 if result == LeiUtil.LEI_INVALID_LEXICAL:
                     modelXbrl.error("EIOPA.S.2.8.c",

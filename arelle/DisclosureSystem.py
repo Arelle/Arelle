@@ -45,7 +45,7 @@ class DisclosureSystem:
         self.standardAuthorities = set()
         self.baseTaxonomyNamespaces = set()
         self.standardPrefixes = {}
-        self.names = None
+        self.names = []
         self.name = None
         self.validationType = None
         self.exclusiveTypesPattern = None # regex of type matches exclusive with validationType

@@ -230,8 +230,7 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'): # works on ubuntu wi
     
     # uncomment the next two files if cx_Freezing with EdgarRenderer
     # note that openpyxl must be 2.1.4 at this time
-    # includeLibs += ['numpy', "openpyxl", "six", "tornado", "pyparsing"]
-    # packages += ['dateutil']
+    # includeLibs += ['dateutil', 'dateutil.relativedelta', 'numpy', "openpyxl", "six", "tornado", "pyparsing", "matplotlib"]
 
     if sys.platform != 'sunos5':
         try:

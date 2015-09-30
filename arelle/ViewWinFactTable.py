@@ -157,7 +157,9 @@ class ViewFactTable(ViewWinTree.ViewTree):
         relationshipSet = self.modelXbrl.relationshipSet(self.arcrole, self.linkrole, self.linkqname, self.arcqname)
         if self.linkrole:
             roleType = self.modelXbrl.roleTypes[self.linkrole][0]
-            linkroleUris.append((roleType.definition, self.linkrole, roleType.objectId(self.id)))
+            linkroleUris.append(((roleType.genLabel(lang=self.lang, strip=True) or 
+                                  roleType.definition or 
+                                  linkroleUri), self.linkrole, roleType.objectId(self.id)))
             self.id += 1
         else:
             for linkroleUri in relationshipSet.linkRoleUris:
