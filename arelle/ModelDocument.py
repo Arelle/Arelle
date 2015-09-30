@@ -1419,7 +1419,7 @@ def inlineIxdsDiscover(modelXbrl):
     for _contAt, _contReferences in continuationReferences.items():
         if len(_contReferences) > 1:
             _refEltQnames = set(str(_contRef.elementQname) for _contRef in _contReferences)
-            modelXbrl.error("ix:continuationAtReferences",
+            modelXbrl.error("ix:continuationReferences",
                             _("continuedAt %(continuedAt)s has %(referencesCount)s references on %(sourceElements)s elements, only one reference allowed."),
                             modelObject=_contReferences, continuedAt=_contAt, referencesCount=len(_contReferences), 
                             sourceElements=', '.join(str(qn) for qn in sorted(_refEltQnames)))
