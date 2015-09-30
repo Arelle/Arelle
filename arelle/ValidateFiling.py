@@ -26,7 +26,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
     def __init__(self, modelXbrl):
         super(ValidateFiling, self).__init__(modelXbrl)
         
-        global datePattern, GFMcontextDatePattern, signOrCurrencyPattern, instanceFileNamePattern, linkroleDefinitionStatementSheet, efmCIKpattern
+        global datePattern, GFMcontextDatePattern, signOrCurrencyPattern, instanceFileNamePattern, htmlFileNamePattern, linkroleDefinitionStatementSheet, efmCIKpattern
         
         if datePattern is None:
             datePattern = re.compile(r"([12][0-9]{3})-([01][0-9])-([0-3][0-9])")
@@ -34,6 +34,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
             # note \u20zc = euro, \u00a3 = pound, \u00a5 = yen
             signOrCurrencyPattern = re.compile("^(-)[0-9]+|[^eE](-)[0-9]+|(\\()[0-9].*(\\))|([$\u20ac\u00a3\00a5])")
             instanceFileNamePattern = re.compile(r"^(\w+)-([12][0-9]{3}[01][0-9][0-3][0-9]).xml$")
+            htmlFileNamePattern = re.compile(r"([a-zA-Z0-9][._a-zA-Z0-9-]*)\.htm$")
             linkroleDefinitionStatementSheet = re.compile(r"[^-]+-\s+Statement\s+-\s+.*", # no restriction to type of statement
                                                           re.IGNORECASE)
             efmCIKpattern = re.compile(r"^[0-9]{10}$")
@@ -127,8 +128,19 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         
 
             #6.3.3 filename check
-            m = instanceFileNamePattern.match(modelXbrl.modelDocument.basename)
-            if m:
+            m = instanceFileNamePattern.match(instanceName)
+            if (modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL
+                and any(name.startswith('efm') for name in disclosureSystem.names)):
+                m = htmlFileNamePattern.match(instanceName)
+                if m:
+                    self.fileNameBasePart = None # html file name not necessarily parseable.
+                    self.fileNameDatePart = None
+                else:
+                    modelXbrl.error(self.EFM60303,
+                                    _('Invalid inline xbrl document in {base}.htm": %(filename)s'),
+                                    modelObject=modelXbrl.modelDocument, filename=instanceName,
+                                    messageCodes=("EFM.6.03.03",))
+            elif m:
                 self.fileNameBasePart = m.group(1)
                 self.fileNameDatePart = m.group(2)
                 if not self.fileNameBasePart:
@@ -341,30 +353,10 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 documentTypeFact = f
                             elif factElementName == disclosureSystem.deiFilerIdentifierElement:
                                 deiItems[factElementName] = value
-                                if entityIdentifierValue != value:
-                                    self.modelXbrl.error(("EFM.6.05.23", "GFM.3.02.02"),
-                                        _("dei:%(elementName)s %(value)s must match the context entity identifier %(entityIdentifier)s"),
-                                        modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
-                                        value=value, entityIdentifier=entityIdentifierValue)
-                                if paramFilerIdentifiers and value not in paramFilerIdentifiers:
-                                    self.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
-                                        _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s"),
-                                        modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
-                                        value=value, filerIdentifier=",".join(paramFilerIdentifiers))
-                                elif paramFilerIdentifier and value != paramFilerIdentifier:
-                                    self.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
-                                        _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s"),
-                                        modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
-                                        value=value, filerIdentifier=paramFilerIdentifier)
+                                deiFilerIdentifierFact = f
                             elif factElementName == disclosureSystem.deiFilerNameElement:
                                 deiItems[factElementName] = value
-                                if paramFilerIdentifiers and paramFilerNames and entityIdentifierValue in paramFilerIdentifiers:
-                                    prefix = paramFilerNames[paramFilerIdentifiers.index(entityIdentifierValue)]
-                                    if not value.lower().startswith(prefix.lower()):
-                                        self.modelXbrl.error(("EFM.6.05.24", "GFM.3.02.02"),
-                                            _("dei:%(elementName)s %(prefix)s should be a case-insensitive prefix of: %(value)s"),
-                                            modelObject=f, elementName=disclosureSystem.deiFilerNameElement,
-                                            prefix=prefix, value=value)
+                                deiFilerNameFact = f
                             elif factElementName in deiCheckLocalNames:
                                 deiItems[factElementName] = value
                                 deiFacts[factElementName] = f
@@ -439,6 +431,36 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                             
             self.entityRegistrantName = deiItems.get("EntityRegistrantName") # used for name check in 6.8.6
                             
+            # 6.05.23,24 check (after dei facts read)
+            if not (entityIdentifierValue == "0000000000" and self.validateEFM and documentType == "L SDR"):
+                if disclosureSystem.deiFilerIdentifierElement in deiItems:
+                    value = deiItems[disclosureSystem.deiFilerIdentifierElement]
+                    if entityIdentifierValue != value:
+                        self.modelXbrl.error(("EFM.6.05.23", "GFM.3.02.02"),
+                            _("dei:%(elementName)s %(value)s must match the context entity identifier %(entityIdentifier)s"),
+                            modelObject=deiFilerIdentifierFact, elementName=disclosureSystem.deiFilerIdentifierElement,
+                            value=value, entityIdentifier=entityIdentifierValue)
+                    if paramFilerIdentifiers:
+                        if value not in paramFilerIdentifiers:
+                            self.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
+                                _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s"),
+                                modelObject=deiFilerIdentifierFact, elementName=disclosureSystem.deiFilerIdentifierElement,
+                                value=value, filerIdentifier=",".join(paramFilerIdentifiers))
+                    elif paramFilerIdentifier and value != paramFilerIdentifier:
+                        self.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
+                            _("dei:%(elementName)s %(value)s must match submission: %(filerIdentifier)s"),
+                            modelObject=deiFilerIdentifierFact, elementName=disclosureSystem.deiFilerIdentifierElement,
+                            value=value, filerIdentifier=paramFilerIdentifier)
+                if disclosureSystem.deiFilerNameElement in deiItems:
+                    value = deiItems[disclosureSystem.deiFilerNameElement]
+                    if paramFilerIdentifiers and paramFilerNames and entityIdentifierValue in paramFilerIdentifiers:
+                        prefix = paramFilerNames[paramFilerIdentifiers.index(entityIdentifierValue)]
+                        if not value.lower().startswith(prefix.lower()):
+                            self.modelXbrl.error(("EFM.6.05.24", "GFM.3.02.02"),
+                                _("dei:%(elementName)s %(prefix)s should be a case-insensitive prefix of: %(value)s"),
+                                modelObject=deiFilerNameFact, elementName=disclosureSystem.deiFilerNameElement,
+                                prefix=prefix, value=value)
+    
             self.modelXbrl.profileActivity("... filer fact checks", minTimeToShow=1.0)
     
             if len(contextIDs) > 0: # check if contextID is on any undefined facts
@@ -752,6 +774,8 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                             "F-1MEF",
                                             "F-3MEF",
                                             "F-4MEF",
+                                            "K SDR",
+                                            "L SDR",
                                             "POS462B",
                                             "POS462C",
                                             "S-BMEF",
@@ -878,21 +902,32 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                             "SD": ("SD",),
                                             "SD/A": ("SD/A",),
                                             "SP 15D2": ("SP 15D2",),
-                                            "SP 15D2/A": ("SP 15D2/A",)
+                                            "SP 15D2/A": ("SP 15D2/A",),
+                                            "SDR": ("K SDR", "L SDR"),
+                                            "SDR/A": ("K SDR", "L SDR"),
+                                            "SDR-A": ("K SDR", "L SDR"),
+                                            "SDR/W ": ("K SDR", "L SDR")
                             }.get(submissionType)
                     if expectedDocumentTypes and documentType not in expectedDocumentTypes:
                         modelXbrl.error("EFM.6.05.20.submissionDocumentType" if self.exhibitType != "EX-2.01" else "EFM.6.23.03",
                             _("DocumentType '%(documentType)s' of context %(contextID)s inapplicable to submission form %(submissionType)s"),
                             modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, submissionType=submissionType,
                             messageCodes=("EFM.6.05.20.submissionDocumentType", "EFM.6.23.03"))
-                if self.exhibitType:
+                if self.exhibitType and documentType is not None:
                     if (documentType in ("SD", "SD/A")) != (self.exhibitType == "EX-2.01"):
                         modelXbrl.error({"EX-100":"EFM.6.23.04",
                                          "EX-101":"EFM.6.23.04",
+                                         "EX-99.K SDR.INS":"EFM.6.23.04",
+                                         "EX-99.L SDR.INS":"EFM.6.23.04",
                                          "EX-2.01":"EFM.6.23.05"}.get(self.exhibitType,"EX-101"),
                             _("The value for dei:DocumentType, %(documentType)s, is not allowed for %(exhibitType)s attachments."),
                             modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, exhibitType=self.exhibitType,
                             messageCodes=("EFM.6.23.04", "EFM.6.23.04", "EFM.6.23.05"))
+                    elif (((documentType == "K SDR") != (val.exhibitType in ("EX-99.K SDR", "EX-99.K SDR.INS"))) or
+                          ((documentType == "L SDR") != (val.exhibitType in ("EX-99.L SDR", "EX-99.L SDR.INS")))):
+                        modelXbrl.error("EFM.6.05.20.exhibitDocumentType",
+                            _("The value for dei:DocumentType, '%(documentType)s' is not allowed for %(exhibitType)s attachments."),
+                            modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, exhibitType=val.exhibitType)
                     
                 # 6.5.21
                 for doctypesRequired, deiItemsRequired in (
@@ -903,7 +938,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                         "10", "S-1", "S-3", "S-4", "S-11", "POS AM",
                         "10/A", "S-1/A", "S-3/A", "S-4/A", "S-11/A", 
                         "8-K", "F-1", "F-3", "F-10", "497", "485BPOS",
-                        "8-K/A", "F-1/A", "F-3/A", "F-10/A", 
+                        "8-K/A", "F-1/A", "F-3/A", "F-10/A", "K SDR", "L SDR", 
                         "Other"),
                         ("EntityRegistrantName", "EntityCentralIndexKey")),
                       (("10-K", "10-KT", "20-F", "40-F",
@@ -914,12 +949,12 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                       (("10-K", "10-KT", "10-Q", "10-QT", "20-F", "40-F",
                         "10-K/A", "10-KT/A", "10-Q/A", "10-QT/A", "20-F/A", "40-F/A",
                         "6-K", "NCSR", "N-CSR", "N-CSRS", "N-Q",
-                        "6-K/A", "NCSR/A", "N-CSR/A", "N-CSRS/A", "N-Q/A"),
+                        "6-K/A", "NCSR/A", "N-CSR/A", "N-CSRS/A", "N-Q/A", "K SDR", "L SDR"),
                         ("CurrentFiscalYearEndDate", "DocumentFiscalYearFocus", "DocumentFiscalPeriodFocus")),
                       (("10-K", "10-KT", "10-Q", "10-QT", "20-F",
                         "10-K/A", "10-KT/A", "10-Q/A", "10-QT/A", "20-F/A",
                         "10", "S-1", "S-3", "S-4", "S-11", "POS AM",
-                        "10/A", "S-1/A", "S-3/A", "S-4/A", "S-11/A"),
+                        "10/A", "S-1/A", "S-3/A", "S-4/A", "S-11/A", "K SDR", "L SDR"),
                         ("EntityFilerCategory",)),
                        (("10-K", "10-KT", "20-F", "10-K/A", "10-KT/A", "20-F/A"),
                          ("EntityWellKnownSeasonedIssuer",)),

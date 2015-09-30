@@ -67,7 +67,7 @@ class ViewFacts(ViewFile.View):
                 lbl = concept.label(preferredLabel=self.labelrole, lang=self.lang, linkroleHint=XbrlConst.defaultLinkRole)
                 xmlCol0skipElt = False # provide label as a row element
             else:
-                lbl = modelFact.qname
+                lbl = (modelFact.qname or modelFact.prefixedName) # defective inline facts may have no qname
                 xmlCol0skipElt = True # name is an attribute, don't do it also as an element
             cols = [lbl]
             if concept is not None:

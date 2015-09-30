@@ -53,7 +53,7 @@ def saveDtsCommandLineOptionExtender(parser):
                       dest="packageDTS", 
                       help=_("Package the DTS into a zip file"))
 
-def saveDtsCommandLineXbrlRun(cntlr, options, modelXbrl):
+def saveDtsCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "packageDTS", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:

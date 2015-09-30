@@ -1,4 +1,4 @@
-'''
+b'''
 Created on Oct 17, 2010
 
 @author: Mark V Systems Limited
@@ -653,7 +653,7 @@ def checkElements(val, modelDocument, parent):
                            }[elt.localName]
                     if parentIsAppinfo:
                         pass    #ignore roleTypes in appinfo (test case 160 v05)
-                    elif not (parentIsLinkbase or isInstance or elt.parentQname == XbrlConst.qnIXbrlResources):
+                    elif not (parentIsLinkbase or isInstance or elt.parentQname in (XbrlConst.qnIXbrlResources, XbrlConst.qnIXbrl11Resources)):
                         val.modelXbrl.info("info:{1}Location".format(xbrlSection,elt.localName),
                             _("Link:%(elementName)s not child of link:linkbase or xbrli:instance"),
                             modelObject=elt, elementName=elt.localName,

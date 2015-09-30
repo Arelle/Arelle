@@ -103,9 +103,9 @@ def loadSECtransforms(customTransforms):
     })
     
 __pluginInfo__ = {
-    'name': 'SEC Inline XBRL Transforms',
+    'name': 'SEC Inline Transforms',
     'version': '1.0.0.178', # SEC version
-    'description': "This plug-in adds a custom functions for SEC implemented by a plug-in.  ",
+    'description': "This plug-in adds custom transforms SEC inline filing with durations.  ",
     'license': 'Apache-2',
     'author': 'SEC employees (integrated by Mark V Systems Limited)',
     'copyright': '(c) Copyright 2015 Mark V Systems Limited, All rights reserved.',

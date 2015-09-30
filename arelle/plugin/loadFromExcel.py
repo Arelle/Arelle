@@ -658,7 +658,7 @@ def guiXbrlLoaded(cntlr, modelXbrl, attach):
                 if lbDoc.inDTS and lbDoc.type == ModelDocument.Type.LINKBASE:
                     lbDoc.save(saveToFile(lbDoc.uri))
 
-def cmdLineXbrlLoaded(cntlr, options, modelXbrl):
+def cmdLineXbrlLoaded(cntlr, options, modelXbrl, *args):
     if options.saveExcelDTSdirectory and getattr(modelXbrl, "loadedFromExcel", False):
         from arelle import ModelDocument
         def saveToFile(url):

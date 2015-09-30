@@ -103,8 +103,8 @@ qnIXbrl11Footnote = qname("{http://www.xbrl.org/2013/inlineXBRL}footnote")
 qnIXbrl11Relationship = qname("{http://www.xbrl.org/2013/inlineXBRL}relationship")
 qnIXbrl11Hidden = qname("{http://www.xbrl.org/2013/inlineXBRL}hidden")
 ixAttributes = set(qname(n, noPrefixIsNoNamespace=True)
-                   for n in ("escape", "footnoteRefs", "format", "name", "order", "scale", "sign", 
-                             "target", "tupleRef", "tupleID"))
+                   for n in ("continuedAt", "escape", "footnoteRefs", "format", "name", "order",  
+                             "scale", "sign","target", "tupleRef", "tupleID"))
 conceptLabel = "http://www.xbrl.org/2003/arcrole/concept-label"
 conceptReference = "http://www.xbrl.org/2003/arcrole/concept-reference"
 footnote = "http://www.xbrl.org/2003/role/footnote"

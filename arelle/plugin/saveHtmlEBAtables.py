@@ -238,13 +238,13 @@ def saveHtmlEbaTablesCommandLineOptionExtender(parser):
                       dest="ebaTablesetIndexFile", 
                       help=_("Save HTML EBA Tablesets index file, with tablest HTML files to out directory specify 'generateOutFiles'."))
 
-def saveHtmlEbaTablesCommandLineXbrlLoaded(cntlr, options, modelXbrl):
+def saveHtmlEbaTablesCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args):
     # extend XBRL-loaded run processing for this option
     from arelle.ModelDocument import Type
     if getattr(options, "ebaTablesetIndexFile", None) and options.ebaTablesetIndexFile == "generateEBAFiles" and modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.TESTCASE):
         cntlr.modelManager.generateEBAFiles = True
 
-def saveHtmlEbaTablesCommandLineXbrlRun(cntlr, options, modelXbrl):
+def saveHtmlEbaTablesCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "ebaTablesetIndexFile", None) and options.ebaTablesetIndexFile != "generateEBAFiles":
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:

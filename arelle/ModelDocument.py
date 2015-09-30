@@ -4,7 +4,7 @@ Created on Oct 3, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, io, sys
+import os, io, sys, traceback
 from collections import defaultdict
 from lxml import etree
 from xml.sax import SAXParseException
@@ -34,6 +34,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     :param isIncluded: True if this document is the target of an xs:include
     :type isIncluded: bool
     :param namespace: The schema namespace of this document, if known and applicable
+    :type isSupplemental: True if this document is supplemental (not discovered or in DTS but adds labels or instance facts)
     :type namespace: str
     :param reloadCache: True if desired to reload the web cache for any web-referenced files.
     :type reloadCache: bool
@@ -65,6 +66,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                     modelObject=referringElement, url=normalizedUri,
                     blockedIndicator=_(" blocked") if blocked else "",
                     messageCodes=("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06", "SBR.NL.2.2.0.17"))
+            #modelXbrl.debug("EFM.6.22.02", "traceback %(traceback)s",
+            #                modeObject=referringElement, traceback=traceback.format_stack())
             modelXbrl.urlUnloadableDocs[normalizedUri] = blocked
         if blocked:
             return None
@@ -213,7 +216,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                                     _("Schema file with same targetNamespace %(targetNamespace)s loaded from %(fileName)s and %(otherFileName)s"),
                                     modelObject=referringElement, targetNamespace=targetNamespace, fileName=uri, otherFileName=otherModelDoc.uri)
                         return otherModelDoc 
-        elif (isEntry or isDiscovered) and ns == XbrlConst.link:
+        elif (isEntry or isDiscovered or kwargs.get("isSupplemental", False)) and ns == XbrlConst.link:
             if ln == "linkbase":
                 _type = Type.LINKBASE
             elif ln == "xbrl":
@@ -462,13 +465,16 @@ class Type:
     
     def identify(filesource, filepath):
         file, = filesource.file(filepath, stripDeclaration=True, binary=True)
-        for _event, elt in etree.iterparse(file, events=("start",)):
-            _type = {"{http://www.xbrl.org/2003/instance}xbrl": Type.INSTANCE,
-                     "{http://www.xbrl.org/2003/linkbase}linkbase": Type.LINKBASE,
-                     "{http://www.w3.org/2001/XMLSchema}schema": Type.SCHEMA}.get(elt.tag, Type.UnknownXML)
-            if _type == Type.UnknownXML and elt.tag.endswith("html") and XbrlConst.ixbrlAll.intersection(elt.nsmap.values()):
-                _type = Type.INLINEXBRL
-            break
+        try:
+            for _event, elt in etree.iterparse(file, events=("start",)):
+                _type = {"{http://www.xbrl.org/2003/instance}xbrl": Type.INSTANCE,
+                         "{http://www.xbrl.org/2003/linkbase}linkbase": Type.LINKBASE,
+                         "{http://www.w3.org/2001/XMLSchema}schema": Type.SCHEMA}.get(elt.tag, Type.UnknownXML)
+                if _type == Type.UnknownXML and elt.tag.endswith("html") and XbrlConst.ixbrlAll.intersection(elt.nsmap.values()):
+                    _type = Type.INLINEXBRL
+                break
+        except Exception:
+            _type = Type.UnknownXML
         file.close()
         return _type
 
@@ -857,12 +863,13 @@ class ModelDocument:
                 self.referencedNamespaces.add(importNamespace)
                 
     def schemalocateElementNamespace(self, element):
-        eltNamespace = element.namespaceURI 
-        if eltNamespace not in self.modelXbrl.namespaceDocs and eltNamespace not in self.referencedNamespaces:
-            schemaLocationElement = XmlUtil.schemaLocation(element, eltNamespace, returnElement=True)
-            if schemaLocationElement is not None:
-                self.schemaLocationElements.add(schemaLocationElement)
-                self.referencedNamespaces.add(eltNamespace)
+        if isinstance(element,ModelObject):
+            eltNamespace = element.namespaceURI 
+            if eltNamespace not in self.modelXbrl.namespaceDocs and eltNamespace not in self.referencedNamespaces:
+                schemaLocationElement = XmlUtil.schemaLocation(element, eltNamespace, returnElement=True)
+                if schemaLocationElement is not None:
+                    self.schemaLocationElements.add(schemaLocationElement)
+                    self.referencedNamespaces.add(eltNamespace)
 
     def loadSchemalocatedSchemas(self):
         # schemaLocation requires loaded schemas for validation
@@ -876,7 +883,9 @@ class ModelDocument:
                     if ns is None:
                         ns = entry
                     else:
-                        if ns not in self.modelXbrl.namespaceDocs:
+                        if self.type == Type.INLINEXBRL and ns == XbrlConst.xhtml:
+                            pass # skip schema validation of inline XBRL
+                        elif ns not in self.modelXbrl.namespaceDocs:
                             loadSchemalocatedSchema(self.modelXbrl, elt, entry, ns, self.baseForElement(elt))
                         ns = None
                         
@@ -982,6 +991,8 @@ class ModelDocument:
                                 elif xlinkType == "resource": 
                                     # create resource and make accessible by id for document
                                     modelResource = linkElement
+                                    for resourceElt in linkElement.iter(): # check resource element schemaLocations
+                                        self.schemalocateElementNamespace(resourceElt)
                                 if modelResource is not None:
                                     lbElement.labeledResources[linkElement.get("{http://www.w3.org/1999/xlink}label")] \
                                         .append(modelResource)

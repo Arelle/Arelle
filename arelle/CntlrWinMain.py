@@ -693,7 +693,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 profileStat = "import"
                 modelXbrl = self.modelManager.modelXbrl
                 if modelXbrl:
-                    ModelDocument.load(modelXbrl, filesource.url)
+                    ModelDocument.load(modelXbrl, filesource.url, isSupplemental=importToDTS)
                     modelXbrl.relationshipSets.clear() # relationships have to be re-cached
             else:
                 action = _("loaded")

@@ -202,7 +202,7 @@ def saveSkosCommandLineOptionExtender(parser):
                       dest="skosFile", 
                       help=_("Save SKOS semantic definition in specified RDF file."))
 
-def saveSkosCommandLineXbrlRun(cntlr, options, modelXbrl):
+def saveSkosCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "skosFile", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:

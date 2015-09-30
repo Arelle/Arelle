@@ -91,7 +91,7 @@ class ViewFactList(ViewWinTree.ViewTree):
                     lbl = concept.label(self.labelrole, lang=self.lang, linkroleHint=XbrlConst.defaultLinkRole)
                     objectIds = (modelFact.objectId(),concept.objectId())
                 else:
-                    lbl = modelFact.qname
+                    lbl = (modelFact.qname or modelFact.prefixedName) # defective inline facts may have no qname
                     objectIds = (modelFact.objectId())
                 node = self.treeView.insert(parentNode, "end", modelFact.objectId(self.id), 
                                             text=lbl,
@@ -114,6 +114,8 @@ class ViewFactList(ViewWinTree.ViewTree):
                 self.viewFacts(modelFact.modelTupleFacts, node, n)
             except AttributeError:  # not a fact or no concept
                 pass
+            except:
+                raise # reraise error (debug stop here to see what's happening)
 
     def getToolTip(self, tvRowId, tvColId):
         # override tool tip when appropriate

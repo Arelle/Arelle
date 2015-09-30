@@ -9,11 +9,13 @@ Saves extracted instance document.
 
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import ModelXbrl, ValidateXbrlDimensions, XmlUtil, XbrlConst
-from arelle.PrototypeDtsObject import LocPrototype
+from arelle import ModelXbrl, ValidateXbrlDimensions, XbrlConst
+from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
 from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, load
-from arelle.ValidateFilingText import CDATApattern, copyHtml
+from arelle.UrlUtil import isHttpUrl
+from arelle.ValidateFilingText import CDATApattern
+from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier
 import os, zipfile
 from optparse import SUPPRESS_HELP
 from lxml.etree import XML, XMLSyntaxError
@@ -54,8 +56,8 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
     # roleRef and arcroleRef (of each inline document)
     for sourceRefs in (modelXbrl.targetRoleRefs, modelXbrl.targetArcroleRefs):
         for roleRefElt in sourceRefs.values():
-            XmlUtil.addChild(targetInstance.modelDocument.xmlRootElement, roleRefElt.qname, 
-                             attributes=roleRefElt.items())
+            addChild(targetInstance.modelDocument.xmlRootElement, roleRefElt.qname, 
+                     attributes=roleRefElt.items())
     
     # contexts
     for context in modelXbrl.contexts.values():
@@ -99,7 +101,7 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
                     for xmltext in [text] + CDATApattern.findall(text):
                         try:
                             for elt in XML("<body>\n{0}\n</body>\n".format(xmltext)):
-                                if elt.tag in ("a", "img"):
+                                if elt.tag in ("a", "img") and not isHttpUrl(attrValue) and not os.path.isabs(attrvalue):
                                     for attrTag, attrValue in elt.items():
                                         if attrTag in ("href", "src"):
                                             filingFiles.add(attrValue)
@@ -126,31 +128,36 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
                     footnoteLinks[linkrole].append(linkPrototype)
     for linkrole in sorted(footnoteLinks.keys()):
         for linkPrototype in footnoteLinks[linkrole]:
-            newLink = XmlUtil.addChild(targetInstance.modelDocument.xmlRootElement, 
-                                       linkPrototype.qname, 
-                                       attributes=linkPrototype.attributes)
+            newLink = addChild(targetInstance.modelDocument.xmlRootElement, 
+                               linkPrototype.qname, 
+                               attributes=linkPrototype.attributes)
             for linkChild in linkPrototype:
                 attributes = linkChild.attributes
-                if isinstance(linkChild, LocPrototype) and HREF not in linkChild.attributes:
-                    linkChild.attributes[HREF] = \
-                    "#" + XmlUtil.elementFragmentIdentifier(newFactForOldObjId[linkChild.dereference().objectIndex])
+                if isinstance(linkChild, LocPrototype):
+                    if HREF not in linkChild.attributes:
+                        linkChild.attributes[HREF] = \
+                        "#" + elementFragmentIdentifier(newFactForOldObjId[linkChild.dereference().objectIndex])
+                    addChild(newLink, linkChild.qname, 
+                             attributes=attributes)
+                elif isinstance(linkChild, ArcPrototype):
+                    addChild(newLink, linkChild.qname, attributes=attributes)
                 elif isinstance(linkChild, ModelInlineFootnote):
                     idUseCount = footnoteIdCount.get(linkChild.footnoteID, 0) + 1
                     if idUseCount > 1: # if footnote with id in other links bump the id number
                         attributes = linkChild.attributes.copy()
                         attributes["id"] = "{}_{}".format(attributes["id"], idUseCount)
                     footnoteIdCount[linkChild.footnoteID] = idUseCount
-                XmlUtil.addChild(newLink, linkChild.qname, 
-                                 attributes=attributes,
-                                 text=linkChild.textValue)
-                if filingFiles and linkChild.textValue:
-                    footnoteHtml = XML("<body/>")
-                    copyHtml(linkChild, footnoteHtml)
-                    for elt in footnoteHtml.iter():
-                        if elt.tag in ("a", "img"):
-                            for attrTag, attrValue in elt.items():
-                                if attrTag in ("href", "src"):
-                                    filingFiles.add(attrValue)
+                    newChild = addChild(newLink, linkChild.qname, 
+                                        attributes=attributes)
+                    copyIxFootnoteHtml(linkChild, newChild, withText=True)
+                    if filingFiles and linkChild.textValue:
+                        footnoteHtml = XML("<body/>")
+                        copyIxFootnoteHtml(linkChild, footnoteHtml)
+                        for elt in footnoteHtml.iter():
+                            if elt.tag in ("a", "img"):
+                                for attrTag, attrValue in elt.items():
+                                    if attrTag in ("href", "src") and not isHttpUrl(attrValue) and not os.path.isabs(attrvalue):
+                                        filingFiles.add(attrValue)
         
     targetInstance.saveInstance(overrideFilepath=targetUrl, outputZip=outputZip)
     modelXbrl.modelManager.showStatus(_("Saved extracted instance"), 5000)
@@ -240,7 +247,7 @@ def saveTargetDocumentCommandLineOptionExtender(parser):
                       dest="saveTargetFiling", 
                       help=SUPPRESS_HELP)
 
-def saveTargetDocumentCommandLineXbrlRun(cntlr, options, modelXbrl):
+def saveTargetDocumentCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "saveTargetInstance", False) or getattr(options, "saveTargetFiling", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None or not (   

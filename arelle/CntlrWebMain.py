@@ -314,6 +314,7 @@ def runOptionsAndGetResult(options, media, viewFile, sourceZipStream=None):
         responseZipStream.seek(0)
         result = responseZipStream.read()
         responseZipStream.close()
+        cntlr.logHandler.clearLogBuffer() # zip response file may contain non-cleared log entries
     elif media == "xml":
         result = cntlr.logHandler.getXml()
     elif media == "json":

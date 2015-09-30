@@ -347,6 +347,8 @@ class Cntlr:
                     refs.append( {"href": _file} )
             elif isinstance(file, _STR_BASE):
                 refs.append( {"href": file} )
+            if isinstance(level, _STR_BASE):
+                level = logging._checkLevel(level)
             self.logger.log(level, *args, extra={"messageCode":messageCode,"refs":refs})
         else:
             try:
@@ -624,11 +626,12 @@ class LogToXmlHandler(LogHandlerWithXml):
     
     A log handler that writes log entries to named XML file (utf-8 encoded) upon closing the application.
     """
-    def __init__(self, filename, mode='w'):
+    def __init__(self, filename=None, mode='w'):
         super(LogToXmlHandler, self).__init__()
-        self.filename = filename
+        self.filename = filename # may be none if buffer is retrieved by get methods below and not written anywhere
         self.logRecordBuffer = []
         self.filemode = mode
+        
     def flush(self):
         if self.filename == "logToStdOut.xml":
             print('<?xml version="1.0" encoding="utf-8"?>')
@@ -643,32 +646,19 @@ class LogToXmlHandler(LogHandlerWithXml):
                            .encode(sys.stdout.encoding, 'backslashreplace')
                            .decode(sys.stdout.encoding, 'strict')))
             print('</log>')
-        else:
-            print ("filename=" + self.filename)
+        elif self.filename is not None:
+            # print ("filename=" + self.filename)
             with open(self.filename, self.filemode, encoding='utf-8') as fh:
                 fh.write('<?xml version="1.0" encoding="utf-8"?>\n')
                 fh.write('<log>\n')
                 for logRec in self.logRecordBuffer:
                     fh.write(self.recordToXml(logRec))
-                fh.write('</log>\n')  
-    def emit(self, logRecord):
-        self.logRecordBuffer.append(logRecord)
-
-class LogToBufferHandler(LogHandlerWithXml):
-    """
-    .. class:: LogToBufferHandler()
-    
-    A log handler that writes log entries to a memory buffer for later retrieval (to a string) in XML, JSON, or text lines,
-    usually for return to a web service or web page call.
-    """
-    def __init__(self):
-        super(LogToBufferHandler, self).__init__()
-        self.logRecordBuffer = []
+                fh.write('</log>\n')
+                
+    def clearLogBuffer(self):
+        del self.logRecordBuffer[:]
         
-    def flush(self):
-        pass # do nothing
-    
-    def getXml(self):
+    def getXml(self, clearLogBuffer=True):
         """Returns an XML document (as a string) representing the messages in the log buffer, and clears the buffer.
         
         :reeturns: str -- XML document string of messages in the log buffer.
@@ -678,10 +668,11 @@ class LogToBufferHandler(LogHandlerWithXml):
         for logRec in self.logRecordBuffer:
             xml.append(self.recordToXml(logRec))
         xml.append('</log>')  
-        self.logRecordBuffer = []
+        if clearLogBuffer:
+            self.clearLogBuffer()
         return '\n'.join(xml)
     
-    def getJson(self):
+    def getJson(self, clearLogBuffer=True):
         """Returns an JSON string representing the messages in the log buffer, and clears the buffer.
         
         :returns: str -- json representation of messages in the log buffer
@@ -697,27 +688,43 @@ class LogToBufferHandler(LogHandlerWithXml):
                      "refs": logRec.refs,
                      "message": message}
             entries.append(entry)
-        self.logRecordBuffer = []
-        return json.dumps( {"log": entries} )
+        if clearLogBuffer:
+            self.clearLogBuffer()
+        return json.dumps( {"log": entries}, ensure_ascii=False, indent=1 )
     
-    def getLines(self):
+    def getLines(self, clearLogBuffer=True):
         """Returns a list of the message strings in the log buffer, and clears the buffer.
         
         :returns: [str] -- list of strings representing messages corresponding to log buffer entries
         """
         lines = [self.format(logRec) for logRec in self.logRecordBuffer]
-        self.logRecordBuffer = []
+        if clearLogBuffer:
+            self.clearLogBuffer()
         return lines
     
-    def getText(self, separator='\n'):
+    def getText(self, separator='\n', clearLogBuffer=True):
         """Returns a string of the lines in the log buffer, separated by newline or provided separator.
         
         :param separator: Line separator (default is platform os newline character)
         :type separator: str
         :returns: str -- joined lines of the log buffer.
         """
-        return separator.join(self.getLines())
+        return separator.join(self.getLines(clearLogBuffer=clearLogBuffer))
     
     def emit(self, logRecord):
         self.logRecordBuffer.append(logRecord)
+
+class LogToBufferHandler(LogToXmlHandler):
+    """
+    .. class:: LogToBufferHandler()
+    
+    A log handler that writes log entries to a memory buffer for later retrieval (to a string) in XML, JSON, or text lines,
+    usually for return to a web service or web page call.
+    """
+    def __init__(self):
+        super(LogToBufferHandler, self).__init__()
+        
+    def flush(self):
+        pass # do nothing -- overrides LogToXmlHandler's flush
+    
 

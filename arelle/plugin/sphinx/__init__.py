@@ -146,7 +146,7 @@ def sphinxToLBCommandLineUtilityRun(cntlr, options, **kwargs):
                           options.sphinxFilesForFormulaLinkbase.split("|"),
                           options.generatedSphinxFormulasDirectory)
 
-def sphinxCommandLineLoader(cntlr, options, modelXbrl):
+def sphinxCommandLineLoader(cntlr, options, modelXbrl, *args):
     # DTS loaded, add in sphinx files if any
     if getattr(options, "sphinxFilesForValidation", None):
         from .SphinxParser import parse
