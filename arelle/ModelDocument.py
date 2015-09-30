@@ -785,7 +785,7 @@ class ModelDocument:
             if isinstance(modelObject,ModelObject):
                 ln = modelObject.localName
                 ns = modelObject.namespaceURI
-                if modelObject.namespaceURI == XbrlConst.xsd and ln in {"import", "include"}:
+                if modelObject.namespaceURI == XbrlConst.xsd and ln in {"import", "include", "redefine"}:
                     self.importDiscover(modelObject)
                 elif self.inDTS and ns == XbrlConst.link:
                     if ln == "roleType":
@@ -825,7 +825,7 @@ class ModelDocument:
             
     def importDiscover(self, element):
         schemaLocation = element.get("schemaLocation")
-        if element.localName == "include":
+        if element.localName in ("include", "redefine"): # add redefine, loads but type definitons of redefine not processed yet (See below)
             importNamespace = self.targetNamespace
             isIncluded = True
         else:
@@ -863,6 +863,7 @@ class ModelDocument:
             if doc is not None and doc not in self.referencesDocument:
                 self.referencesDocument[doc] = ModelDocumentReference(element.localName, element)  #import or include
                 self.referencedNamespaces.add(importNamespace)
+            # future note: for redefine, if doc was just loaded, process redefine type definitions
                 
     def schemalocateElementNamespace(self, element):
         if isinstance(element,ModelObject):
