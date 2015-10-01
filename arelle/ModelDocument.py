@@ -1395,9 +1395,12 @@ def inlineIxdsDiscover(modelXbrl):
                         linkPrototype.childElements.append(locPrototype)
                         linkPrototype.labeledResources[fromId].append(locPrototype)
                 toLabels = set()
+                toFootnoteIds = set()
+                toFactQnames = set()
                 for toId in modelInlineRel.get("toRefs","").split():
                     toLabels.add(toId)
                     if toId in modelInlineFootnotesById:
+                        toFootnoteIds.add(toId)
                         modelInlineFootnote = modelInlineFootnotesById[toId]
                         if toId not in linkModelInlineFootnoteIds[linkrole]:
                             linkPrototype.childElements.append(modelInlineFootnote)
@@ -1405,6 +1408,7 @@ def inlineIxdsDiscover(modelXbrl):
                         linkPrototype.labeledResources[toId].append(modelInlineFootnote)
                     else:
                         locPrototype = LocPrototype(mdlDoc, linkPrototype, toId, toId)
+                        toFactQnames.add(str(locPrototype.dereference().qname))
                         linkPrototype.childElements.append(locPrototype)
                         linkPrototype.labeledResources[toId].append(locPrototype)
                 for fromLabel in fromLabels:
@@ -1413,6 +1417,11 @@ def inlineIxdsDiscover(modelXbrl):
                                                                         fromLabel, toLabel,
                                                                         linkrole, arcrole,
                                                                         modelInlineRel.get("order", "1")))
+                if toFootnoteIds and toFactQnames:
+                    modelXbrl.error("ix:relationshipReferencesMixed",
+                                    _("Inline relationship references footnote(s) %(toFootnoteIds)s and thereby is not allowed to reference %(toFactQnames)s."),
+                                    modelObject=modelInlineRel, toFootnoteIds=', '.join(sorted(toFootnoteIds)), 
+                                    toFactQnames=', '.join(sorted(toFactQnames)))
 
         del linkPrototypes, modelInlineFootnotesById, linkModelInlineFootnoteIds # dereference
         
