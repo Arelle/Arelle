@@ -469,7 +469,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                 if len(contextIDs) > 0:
                     modelXbrl.error(("EFM.6.05.08", "GFM.1.02.08"),
                                     _("The instance document contained a context(s) %(contextIDs)s that was(are) not used in any fact."),
-                                    modelXbrl=modelXbrl, contextIDs=", ".join(contextIDs))
+                                    modelXbrl=modelXbrl, contextIDs=", ".join(str(c) for c in contextIDs))
     
             #6.5.9, .10 start-end durations
             if disclosureSystem.GFM or \
