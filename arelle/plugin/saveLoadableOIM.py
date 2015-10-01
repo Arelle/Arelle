@@ -44,7 +44,7 @@ else:
     csvOpenMode = 'wb' # for 2.7
     csvOpenNewline = None
     
-def saveLoadableOIM(modelXbrl, oimFile, oimStyle):
+def saveLoadableOIM(modelXbrl, oimFile, oimStyle, oimQNameSeparator):
     
     isJSON = oimFile.endswith(".json")
     isCSV = oimFile.endswith(".csv")
@@ -64,13 +64,17 @@ def saveLoadableOIM(modelXbrl, oimFile, oimStyle):
             
     def oimValue(object, decimals=None):
         if isinstance(object, QName):
+            if oimQNameSeparator == "clark":
+                return object.clarkNotation;
             if object.namespaceURI not in namespacePrefixes:
                 if object.prefix:
                     namespacePrefixes[object.namespaceURI] = object.prefix
                 else:
                     _prefix = "_{}".format(sum(1 for p in namespacePrefixes if p.startswith("_")))
                     namespacePrefixes[object.namespaceURI] = _prefix
-            return "{}_{}".format(namespacePrefixes[object.namespaceURI], object.localName)
+            return "{}{}{}".format(namespacePrefixes[object.namespaceURI], 
+                                   oimQNameSeparator, 
+                                   object.localName)
         if isinstance(object, Decimal):
             try:
                 if decimals is not None and not isnan(decimals) and not isinf(decimals):
@@ -250,13 +254,15 @@ def saveLoadableOIM(modelXbrl, oimFile, oimStyle):
         oim = {} # top level of oim json output
             
         oimFacts = []
-        oimReport = {"url": modelXbrl.modelDocument.uri,
-                     "DTSreferences": dtsReferences,
-                     "facts": oimFacts,
-                     "prefixMap": dict((p,ns) for ns,p in namespacePrefixes.items()),
-                     "roleTypes": roleTypes,
-                     "relationships": factRelationships,
-                     "footnotes": factFootnotes}
+        oimReport = []
+        oimReport.append({"url": modelXbrl.modelDocument.uri})
+        if oimQNameSeparator != "clark":
+            oimReport.append({"prefixMap": dict((p,ns) for ns,p in namespacePrefixes.items())})
+        oimReport.append({"DTSreferences": dtsReferences})
+        oimReport.append({"roleTypes": roleTypes})
+        oimReport.append({"facts": oimFacts})
+        oimReport.append({"footnotes": factFootnotes})
+        oimReport.append({"relationships": factRelationships})
 
         if oimStyle == "flat":
             
@@ -409,12 +415,13 @@ def saveLoadableOIM(modelXbrl, oimFile, oimStyle):
         csvFile.close()
         
         # save namespaces
-        csvFile = open(oimFile.replace(".csv", "-prefixMap.csv"), csvOpenMode, newline=csvOpenNewline, encoding='utf-8-sig')
-        csvWriter = csv.writer(csvFile, dialect="excel")
-        csvWriter.writerow(("prefix", "mappedURI"))
-        for namespaceURI, prefix in sorted(namespacePrefixes.items(), key=lambda item: item[1]):
-            csvWriter.writerow((prefix, namespaceURI))
-        csvFile.close()
+        if oimQNameSeparator == "clark":
+            csvFile = open(oimFile.replace(".csv", "-prefixMap.csv"), csvOpenMode, newline=csvOpenNewline, encoding='utf-8-sig')
+            csvWriter = csv.writer(csvFile, dialect="excel")
+            csvWriter.writerow(("prefix", "mappedURI"))
+            for namespaceURI, prefix in sorted(namespacePrefixes.items(), key=lambda item: item[1]):
+                csvWriter.writerow((prefix, namespaceURI))
+            csvFile.close()
         
         # save dts references
         csvFile = open(oimFile.replace(".csv", "-dts.csv"), csvOpenMode, newline=csvOpenNewline, encoding='utf-8-sig')
@@ -500,17 +507,23 @@ def saveLoadableOIMCommandLineOptionExtender(parser):
                       dest="oimStyle", 
                       default="flat",
                       help=_("OIM Style (\"flat\", \"hierarchical\", \"referenced\")"))
+    parser.add_option("--oimQNameSeparator", 
+                      action="store", 
+                      dest="oimQNameSeparator", 
+                      default="_",
+                      help=_("OIM QName separator (\"_\", \":\", \"clark\", etc)"))
 
-def saveLoadableOIMCommandLineXbrlRun(cntlr, options, modelXbrl):
+def saveLoadableOIMCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
     oimFile = getattr(options, "saveLoadableOIM", None)
     oimStyle = getattr(options, "oimStyle", "flat")
+    oimQNameSeparator = getattr(options, "oimQNameSeparator", "_")
     if oimFile:
         if (modelXbrl is None or
             modelXbrl.modelDocument.type not in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL)):
             cntlr.addToLog("No XBRL instance has been loaded.")
             return
-        saveLoadableOIM(modelXbrl, oimFile, oimStyle)
+        saveLoadableOIM(modelXbrl, oimFile, oimStyle, oimQNameSeparator)
 
 __pluginInfo__ = {
     'name': 'Save Loadable OIM',
