@@ -163,7 +163,7 @@ class ModelFact(ModelObject):
     @property
     def unitID(self):
         """(str) -- unitRef attribute"""
-        return self.get("unitRef")
+        return self.getStripped("unitRef")
     
     @property
     def utrEntries(self):
@@ -525,12 +525,12 @@ class ModelInlineValueObject:
     @property
     def format(self):
         """(QName) -- format attribute of inline element"""
-        return self.prefixedNameQname(self.get("format"))
+        return self.prefixedNameQname(self.getStripped("format"))
 
     @property
     def scale(self):
         """(str) -- scale attribute of inline element"""
-        return self.get("scale")
+        return self.getStripped("scale")
     
     @property
     def scaleInt(self):
