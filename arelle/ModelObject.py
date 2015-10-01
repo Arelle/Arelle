@@ -319,6 +319,8 @@ class ModelObject(etree.ElementBase):
         else:
             return None
 
+    def viewText(self, labelrole=None, lang=None):
+        return self.stringValue
     
     @property
     def propertyView(self):
