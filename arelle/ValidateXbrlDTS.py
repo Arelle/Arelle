@@ -1025,7 +1025,7 @@ def checkElements(val, modelDocument, parent):
                                 modelObject=[elt] + d)
                         for e in d:
                             if (e.namespaceURI == elt.namespaceURI and e.localName == "nonFraction" and
-                                (e.format != elt.format or e.scale != elt.scale or e.unitID != elt.unitID)):
+                                (e.format != elt.format or e.scaleInt != elt.scaleInt or e.unitID != elt.unitID)):
                                 val.modelXbrl.error("ix:nestedNonFractionProperties",
                                     _("Inline XBRL nested ix:nonFraction must have matching format, scale, and unitRef properties"),
                                     modelObject=(elt, e))

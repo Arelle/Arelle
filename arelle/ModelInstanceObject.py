@@ -532,6 +532,17 @@ class ModelInlineValueObject:
         """(str) -- scale attribute of inline element"""
         return self.get("scale")
     
+    @property
+    def scaleInt(self):
+        """(int) -- scale attribute of inline element"""
+        try:
+            _scale = self.get("scale")
+            if _scale is None:
+                return None
+            return int(self.get("scale"))
+        except ValueError:
+            return None # should have rasied a validation error in XhtmlValidate.py
+    
     
     @property
     def value(self):
