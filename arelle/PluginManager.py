@@ -202,8 +202,12 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
                                 mergedImportURLs.append(moduleImport + ".py")
                         imports = []
                         for _url in mergedImportURLs:
-                            _importURL = (_url if isAbsolute(_url) or os.path.isabs(_url)
-                                          else os.path.join(os.path.dirname(moduleURL), _url))
+                            if isAbsolute(_url) or os.path.isabs(_url):
+                                _importURL = _url # URL is absolute http or local file system
+                            else: # check if exists relative to this module's directory
+                                _importURL = os.path.join(os.path.dirname(moduleURL), _url)
+                                if not os.path.exists(_importURL): # not relative to this plugin, assume standard plugin base
+                                    _importURL = os.path.join(_pluginBase, _url)
                             _importModuleInfo = moduleModuleInfo(_importURL, reload, _moduleImportsSubtree)
                             if _importModuleInfo:
                                 _importModuleInfo["isImported"] = True
