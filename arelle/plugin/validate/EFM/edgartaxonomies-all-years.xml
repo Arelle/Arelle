@@ -3051,6 +3051,18 @@
 </Loc>
 
 <Loc>
+<Family>IFRS</Family>
+<Version>2015</Version>
+<Href>http://xbrl.ifrs.org/taxonomy/2015-03-11/full_ifrs/full_ifrs-cor_2015-03-11.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Schema</FileTypeName>
+<Elements>1</Elements>
+<Namespace>http://xbrl.ifrs.org/taxonomy/2015-03-11/ifrs-full</Namespace>
+<Prefix>ifrs</Prefix>
+</Loc>
+
+
+<Loc>
 <Family>Arelle</Family>
 <Version>2014</Version>
 <Href>http://arelle.org/2014/doc-2014-01-31.xsd</Href>
