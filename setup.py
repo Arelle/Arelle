@@ -218,6 +218,7 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'): # works on ubuntu wi
         
     includeLibs = ['lxml', 'lxml.etree', 'lxml._elementpath', 'lxml.html', 
                    'pg8000', 'pymysql', 'sqlite3',
+                   'numpy', 'simplejson',
                     # note cx_Oracle isn't here because it is version and machine specific, ubuntu not likely working
                     'rdflib', 'rdflib.extras', 'rdflib.tools', 
                     # more rdflib plugin modules may need to be added later
@@ -285,6 +286,7 @@ elif sys.platform == 'win32':
         #
         "includes": ['lxml', 'lxml.etree', 'lxml._elementpath', 'lxml.html',
                      'pg8000', 'pymysql', 'cx_Oracle', 'pyodbc', 'sqlite3',
+                     'numpy', 'simplejson',
                      'rdflib', 'rdflib.extras', 'rdflib.tools', 
                      # more rdflib plugin modules may need to be added later
                      'rdflib.plugins', 'rdflib.plugins.memory', 

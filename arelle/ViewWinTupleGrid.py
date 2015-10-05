@@ -47,7 +47,6 @@ class ViewTuplesGrid(ViewWinGrid.ViewGrid):
         # table name
         self.zAxisRows = 0
         self.dataCols = 0
-        self.dataRows = 0
         self.colHdrRows = 0
         self.dataRows = 0
         xFilters = []

@@ -832,8 +832,23 @@ class ModelXbrl:
                 self._factsByPeriodType[newFact.concept.periodType].add(newFact)
             if hasattr(self, "_factsByDimQname"):
                 del self._factsByDimQname
+        self.setIsModified()
         return newFact    
         
+    def setIsModified(self):
+        """Records that the underlying document has been modified.
+        """
+        self.modelDocument.isModified = True
+
+    def isModified(self):
+        """Check if the underlying document has been modified.
+        """
+        md = self.modelDocument
+        if md is not None:
+            return md.isModified
+        else:
+            return False
+
     def modelObject(self, objectId):
         """Finds a model object by an ordinal ID which may be buried in a tkinter view id string (e.g., 'somedesignation_ordinalnumber').
         

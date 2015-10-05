@@ -72,6 +72,8 @@ def resolveAxesStructure(view, viewTblELR):
 def resolveTableAxesStructure(view, table, tblAxisRelSet):
     view.dataCols = 0
     view.dataRows = 0
+    view.dataFirstCol = 0
+    view.dataFirstRow = 0
     view.colHdrNonStdRoles = []
     view.colHdrDocRow = False
     view.colHdrCodeRow = False
@@ -95,12 +97,14 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
     xTopStructuralNode = yTopStructuralNode = zTopStructuralNode = None
     # must be cartesian product of top level relationships
     tblAxisRels = tblAxisRelSet.fromModelObject(table)
-    facts = table.filteredFacts(view.rendrCntx, view.modelXbrl.factsInInstance) # apply table filters
+    facts = view.modelXbrl.factsInInstance
+    if facts:
+        facts = table.filteredFacts(view.rendrCntx, view.modelXbrl.factsInInstance) # apply table filters
     view.breakdownNodes = defaultdict(list) # breakdown nodes
     for tblAxisRel in tblAxisRels:
         definitionNode = tblAxisRel.toModelObject
         addBreakdownNode(view, tblAxisRel.axisDisposition, definitionNode)
-        
+    
     # do z's first to set variables needed by x and y axes expressions
     for disposition in ("z", "x", "y"):
         for i, tblAxisRel in enumerate(tblAxisRels):
@@ -112,6 +116,7 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
                     xTopStructuralNode.hasOpenNode = False
                     if isinstance(definitionNode,(ModelBreakdown, ModelClosedDefinitionNode)) and definitionNode.parentChildOrder is not None:
                         #addBreakdownNode(view, disposition, definitionNode)
+                        view.xAxisChildrenFirst.set(definitionNode.parentChildOrder == "children-first")
                         view.xTopRollup = CHILD_ROLLUP_LAST if definitionNode.parentChildOrder == "children-first" else CHILD_ROLLUP_FIRST
                     expandDefinition(view, xTopStructuralNode, definitionNode, definitionNode, 1, disposition, facts, i, tblAxisRels)
                     view.dataCols = xTopStructuralNode.leafNodeCount
@@ -199,6 +204,19 @@ def addBreakdownNode(view, disposition, node):
         if node not in axisBreakdowns:
             axisBreakdowns.append(node)
 
+def childContainsOpenNodes(childStructuralNode):
+    if isinstance(childStructuralNode.definitionNode, ModelFilterDefinitionNode) \
+       and (childStructuralNode.isLabeled \
+            or any([node.isEntryPrototype(default=False) for node in childStructuralNode.childStructuralNodes])):
+        # either the child structural node has a concrete header or it contains a structure
+        # that has not yet a concrete value
+        return True
+    else:
+        for node in childStructuralNode.childStructuralNodes:
+            if childContainsOpenNodes(node):
+                return True
+        return False
+
 def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth, axisDisposition, facts, i=None, tblAxisRels=None, processOpenDefinitionNode=True):
     subtreeRelationships = view.axisSubtreeRelSet.fromModelObject(definitionNode)
     
@@ -221,8 +239,11 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                     if widestWordLen > view.rowNonAbstractHdrSpanMin[structuralNode.depth]:
                         view.rowNonAbstractHdrSpanMin[structuralNode.depth] = widestWordLen
                         
+    if axisDisposition == "z" and structuralNode.aspects is None:
+        structuralNode.aspects = view.zOrdinateChoices.get(definitionNode, None)
     if structuralNode and isinstance(definitionNode, (ModelBreakdown, ModelEuAxisCoord, ModelDefinitionNode)):
         try:
+            
             #cartesianProductNestedArgs = (view, depth, axisDisposition, facts, tblAxisRels, i)
             ordCardinality, ordDepth = definitionNode.cardinalityAndDepth(structuralNode)
             if (not definitionNode.isAbstract and
@@ -239,7 +260,8 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                     view.zAxisRows += 1 
             elif axisDisposition == "x":
                 if ordDepth:
-                    if nestedDepth - 1 > view.colHdrRows: view.colHdrRows = nestedDepth - 1 
+                    if nestedDepth - 1 > view.colHdrRows:
+                        view.colHdrRows = nestedDepth - 1
                     '''
                     if not view.colHdrDocRow:
                         if definitionNode.header(role="http://www.xbrl.org/2008/role/documentation",
@@ -307,9 +329,8 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                                 structuralNode.childStructuralNodes.append(childStructuralNode)
                         if axisDisposition != "z":
                             expandDefinition(view, childStructuralNode, breakdownNode, childDefinitionNode, depth+ordDepth, axisDisposition, facts, i, tblAxisRels) #recurse
-                            if not (isinstance(childStructuralNode.definitionNode, ModelFilterDefinitionNode)
-                                    and any([node.isEntryPrototype(default=False) for node in childStructuralNode.childStructuralNodes])) :
-                                # To be computed only if the structural node is not an open node
+                            if not childContainsOpenNodes(childStructuralNode) :
+                                # To be computed only if the structural node does not contain an open node
                                 cartesianProductExpander(childStructuralNode, *cartesianProductNestedArgs)
                         else:
                             childStructuralNode.indent = depth - 1

@@ -4,88 +4,26 @@ Created on Oct 9, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-from tkinter import *
-try:
-    from tkinter.ttk import *
-except ImportError:
-    from ttk import *
-from arelle.CntlrWinTooltip import ToolTip
-from arelle.UiUtil import (scrolledHeaderedFrame, scrolledFrame)
 
-class ViewGrid:
-    def __init__(self, modelXbrl, tabWin, tabTitle, hasToolTip=False, lang=None):
-        self.tabWin = tabWin
-        #self.viewFrame = Frame(tabWin)
-        #self.viewFrame.grid(row=0, column=0, sticky=(N, S, E, W))
-        '''
-        paneWin = PanedWindow(self.viewFrame, orient=VERTICAL)
-        paneWin.grid(row=1, column=0, sticky=(N, S, E, W))
-        self.zGrid = scrollgrid(paneWin)
-        self.zGrid.grid(row=0, column=0, sticky=(N, S, E, W))
-        self.xyGrid = scrollgrid(paneWin)
-        self.xyGrid.grid(row=1, column=0, sticky=(N, S, E, W))
-        '''
-        '''
-        self.gridBody = scrollgrid(self.viewFrame)
-        self.gridBody.grid(row=0, column=0, sticky=(N, S, E, W))
-        '''
-        
-        self.viewFrame = scrolledHeaderedFrame(tabWin)
-        self.viewFrame.view = self
+from arelle.UiUtil import scrolledHeaderedFrame
+from arelle.ViewWinPane import ViewPane
+
+class ViewGrid(ViewPane):
+    def __init__(self, modelXbrl, tabWin, tabTitle,
+                 hasToolTip=False, lang=None):
+        contentView = scrolledHeaderedFrame(tabWin)
+        super(ViewGrid, self).__init__(modelXbrl, tabWin, tabTitle,
+                                       contentView, hasToolTip=hasToolTip,
+                                       lang=lang)
         self.gridTblHdr = self.viewFrame.tblHdrInterior
         self.gridColHdr = self.viewFrame.colHdrInterior
         self.gridRowHdr = self.viewFrame.rowHdrInterior
         self.gridBody = self.viewFrame.bodyInterior
-        '''
-        self.viewFrame = scrolledFrame(tabWin)
-        self.gridTblHdr = self.gridRowHdr = self.gridColHdr = self.gridBody = self.viewFrame.interior
-        '''
-        
-        tabWin.add(self.viewFrame,text=tabTitle)
-        self.modelXbrl = modelXbrl
-        self.hasToolTip = hasToolTip
-        self.toolTipText = StringVar()
-        if hasToolTip:
-            self.gridBody.bind("<Motion>", self.motion, '+')
-            self.gridBody.bind("<1>", self.onClick, '+')
-            self.gridBody.bind("<Leave>", self.leave, '+')
-            self.toolTipText = StringVar()
-            self.toolTip = ToolTip(self.gridBody, 
-                                   textvariable=self.toolTipText, 
-                                   wraplength=480, 
-                                   follow_mouse=True,
-                                   state="disabled")
-            self.toolTipColId = None
-            self.toolTipRowId = None
-        self.modelXbrl = modelXbrl
-        self.contextMenuClick = self.modelXbrl.modelManager.cntlr.contextMenuClick
+
         self.gridTblHdr.contextMenuClick = self.contextMenuClick
         self.gridColHdr.contextMenuClick = self.contextMenuClick
         self.gridRowHdr.contextMenuClick = self.contextMenuClick
         self.gridBody.contextMenuClick = self.contextMenuClick
-        self.lang = lang
-        if modelXbrl:
-            modelXbrl.views.append(self)
-            if not lang: 
-                self.lang = modelXbrl.modelManager.defaultLang
-        
-    def close(self):
-        del self.viewFrame.view
-        self.tabWin.forget(self.viewFrame)
-        if self in self.modelXbrl.views:
-            self.modelXbrl.views.remove(self)
-        self.modelXbrl = None
-        
-    def select(self):
-        self.tabWin.select(self.viewFrame)
-
-    def onClick(self, *args):
-        if self.modelXbrl:
-            self.modelXbrl.modelManager.cntlr.currentView = self
-        
-    def leave(self, *args):
-        self.toolTipColId = None
-        self.toolTipRowId = None
 
     def motion(self, *args):
         '''
@@ -125,29 +63,9 @@ class ViewGrid:
             self.toolTip.configure(state="disabled")
 
     def contextMenu(self):
-        try:
-            return self.menu
-        except AttributeError:
-            self.menu = Menu( self.viewFrame, tearoff = 0 )
-            self.gridBody.bind( self.contextMenuClick, self.popUpMenu )
-            if not self.gridTblHdr.bind(self.contextMenuClick): 
-                self.gridTblHdr.bind( self.contextMenuClick, self.popUpMenu )
-            if not self.gridColHdr.bind(self.contextMenuClick): 
-                self.gridColHdr.bind( self.contextMenuClick, self.popUpMenu )
-            if not self.gridRowHdr.bind(self.contextMenuClick): 
-                self.gridRowHdr.bind( self.contextMenuClick, self.popUpMenu )
-            return self.menu
-
-    def popUpMenu(self, event):
-        self.menu.post( event.x_root, event.y_root )
-        
-    def menuAddLangs(self):
-        langsMenu = Menu(self.viewFrame, tearoff=0)
-        self.menu.add_cascade(label=_("Language"), menu=langsMenu, underline=0)
-        for lang in sorted(self.modelXbrl.langs):
-            langsMenu.add_cascade(label=lang, underline=0, command=lambda l=lang: self.setLang(l))
-    
-    def setLang(self, lang):
-        self.lang = lang
-        self.view()
-
+        super(ViewGrid, self).contextMenu()
+        self.bindContextMenu(self.gridBody)
+        self.bindContextMenu(self.gridTblHdr)
+        self.bindContextMenu(self.gridColHdr)
+        self.bindContextMenu(self.gridRowHdr)
+        return self.menu
