@@ -679,6 +679,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 justify = XbrlTable.TG_RIGHT_JUSTIFIED if modelConcept.isNumeric else XbrlTable.TG_LEFT_JUSTIFIED
                             if modelConcept is not None and modelConcept.isEnumeration:
                                 myValidationObject = ValidateXbrl(self.modelXbrl)
+                                myValidationObject.modelXbrl = self.modelXbrl
                                 enumerationSet = ValidateXbrlDimensions.usableEnumerationMembers(myValidationObject, modelConcept)
                                 enumerationDict = dict()
                                 for enumerationItem in enumerationSet:
