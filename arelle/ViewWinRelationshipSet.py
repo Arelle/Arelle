@@ -156,7 +156,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 roleId = "node{0}".format(self.id)
             self.id += 1
             linkroleUris.append((roledefinition, linkroleUri, roleId))
-        linkroleUris.sort()
+        linkroleUris.sort(key=lambda rd: rd[2] if isinstance(rd, tuple) else rd)
         
         def insertLinkroleChildren(parentNode, childUris):
             for childUri in childUris:
