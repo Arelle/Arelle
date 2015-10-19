@@ -34,6 +34,10 @@ if __name__ == "__main__":
         
 
     distFileDate = timestamp.strftime("%Y-%m-%d")
+    # add name suffix, like ER3 or TKTABLE
+    if len(sys.argv) > 1 and sys.argv[1]:
+        distFileDate += "-" + sys.argv[1]
+        
     if sys.platform == "darwin":
         with open("buildRenameDmg.sh", "w") as fh:
             fh.write("mv dist_dmg/arelle.dmg dist_dmg/arelle-macOS-{}.dmg\n".format(distFileDate))

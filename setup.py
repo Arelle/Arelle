@@ -230,7 +230,8 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'): # works on ubuntu wi
     
     # uncomment the next two files if cx_Freezing with EdgarRenderer
     # note that openpyxl must be 2.1.4 at this time
-    # includeLibs += ['dateutil', 'dateutil.relativedelta', 'numpy', "openpyxl", "six", "tornado", "pyparsing", "matplotlib"]
+    if os.path.exists("arelle/plugin/EdgarRenderer"):
+    	includeLibs += ['dateutil', 'dateutil.relativedelta', 'numpy', "openpyxl", "six", "tornado", "pyparsing", "matplotlib"]
 
     if sys.platform != 'sunos5':
         try:
@@ -275,6 +276,22 @@ elif sys.platform == 'win32':
     if os.path.exists("version.txt"):
         win32includeFiles.append('version.txt')
         
+    includeLibs = ['lxml', 'lxml.etree', 'lxml._elementpath', 'lxml.html',
+                   'pg8000', 'pymysql', 'cx_Oracle', 'pyodbc', 'sqlite3',
+                   'rdflib', 'rdflib.extras', 'rdflib.tools', 
+                   # more rdflib plugin modules may need to be added later
+                   'rdflib.plugins', 'rdflib.plugins.memory', 
+                   'rdflib.plugins.parsers', 
+                   'rdflib.plugins.serializers', 'rdflib.plugins.serializers.rdfxml', 'rdflib.plugins.serializers.turtle', 'rdflib.plugins.serializers.xmlwriter', 
+                   'rdflib.plugins.sparql', 
+                   'rdflib.plugins.stores', 
+                   'isodate', 'regex', 'gzip', 'zlib']
+    # uncomment the next line if cx_Freezing with EdgarRenderer
+    # note that openpyxl must be 2.1.4 at this time
+    # removed tornado
+    if os.path.exists("arelle/plugin/EdgarRenderer"):
+        includeLibs += ['dateutil', 'dateutil.relativedelta', 'numpy', "openpyxl", "six", "pyparsing", "matplotlib"]
+        
     options = dict( build_exe =  {
         "include_files": win32includeFiles,
         "include_msvcr": True, # include MSVCR100
@@ -283,16 +300,7 @@ elif sys.platform == 'win32':
         #
         # rdflib & isodate egg files: rename .zip cpy lib & egg-info subdirectories to site-packages directory
         #
-        "includes": ['lxml', 'lxml.etree', 'lxml._elementpath', 'lxml.html',
-                     'pg8000', 'pymysql', 'cx_Oracle', 'pyodbc', 'sqlite3',
-                     'rdflib', 'rdflib.extras', 'rdflib.tools', 
-                     # more rdflib plugin modules may need to be added later
-                     'rdflib.plugins', 'rdflib.plugins.memory', 
-                     'rdflib.plugins.parsers', 
-                     'rdflib.plugins.serializers', 'rdflib.plugins.serializers.rdfxml', 'rdflib.plugins.serializers.turtle', 'rdflib.plugins.serializers.xmlwriter', 
-                     'rdflib.plugins.sparql', 
-                     'rdflib.plugins.stores', 
-                     'isodate', 'regex', 'gzip', 'zlib'], 
+        "includes": includeLibs,
         } )
    
     # windows uses arelleGUI.exe to launch in GUI mode, arelleCmdLine.exe in command line mode
