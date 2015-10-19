@@ -101,7 +101,7 @@ def saveMsgsCommandLineOptionExtender(parser):
     
     logging.getLogger("arelle").addHandler(LogHandler())    
 
-def saveMsgsCommandLineXbrlLoaded(cntlr, options, modelXbrl):
+def saveMsgsCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args):
     from arelle.ModelDocument import Type
     if modelXbrl.modelDocument.type == Type.RSSFEED and getattr(options, "saveMessagesFile", False):
         modelXbrl.saveMessagesFile = options.saveMessagesFile
