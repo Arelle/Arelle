@@ -6,7 +6,7 @@ Created on Oct 17, 2010
 '''
 import os, sys, traceback, re
 from collections import defaultdict
-from arelle import (ModelXbrl, ModelVersReport, XbrlConst, 
+from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlConst, 
                ValidateXbrl, ValidateFiling, ValidateHmrc, ValidateVersReport, ValidateFormula,
                ValidateInfoset, RenderingEvaluator, ViewFileRenderedGrid)
 from arelle.ModelDocument import Type, ModelDocumentReference, load as modelDocumentLoad
@@ -186,12 +186,25 @@ class Validate:
                             DTSdoc.referencesDocument[doc] = ModelDocumentReference("import", DTSdoc.xmlRootElement)  #fake import
                             doc.inDTS = True
                     else: # not a multi-schemaRef versioning report
-                        modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, 
-                                                   readMeFirstUri,
-                                                   _("validating"), 
-                                                   base=baseForElement,
-                                                   useFileSource=self.useFileSource,
-                                                   errorCaptureLevel=errorCaptureLevel)
+                        if self.useFileSource.isArchive:
+                            modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, 
+                                                       readMeFirstUri,
+                                                       _("validating"), 
+                                                       base=baseForElement,
+                                                       useFileSource=self.useFileSource,
+                                                       errorCaptureLevel=errorCaptureLevel)
+                        else: # need own file source, may need instance discovery
+                            filesource = FileSource.FileSource(readMeFirstUri, self.modelXbrl.modelManager.cntlr)
+                            if filesource and not filesource.selection and filesource.isArchive:
+                                for _archiveFile in filesource.dir: # find instance document in archive
+                                    filesource.select(_archiveFile)
+                                    if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
+                                        break # use this selection
+                            modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, 
+                                                       filesource,
+                                                       _("validating"), 
+                                                       base=baseForElement,
+                                                       errorCaptureLevel=errorCaptureLevel)
                     if modelXbrl.modelDocument is None:
                         self.modelXbrl.error("arelle:notLoaded",
                              _("Testcase %(id)s %(name)s document not loaded: %(file)s"),
@@ -277,8 +290,10 @@ class Validate:
                         if not any(alternativeValidation(modelXbrl, resultTableUri)
                                    for alternativeValidation in pluginClassMethods("Validate.TableInfoset")):
                             ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, resultTableUri, diffToFile=True)  # false to save infoset files
-                    self.determineTestStatus(modelTestcaseVariation, modelXbrl) # include infoset errors in status
                     self.instValidator.close()
+                    for pluginXbrlMethod in pluginClassMethods("TestcaseVariation.Validated"):
+                        pluginXbrlMethod(self.modelXbrl, modelXbrl)
+                    self.determineTestStatus(modelTestcaseVariation, modelXbrl) # include infoset errors in status
                     if modelXbrl.formulaOutputInstance and self.noErrorCodes(modelTestcaseVariation.actual): 
                         # if an output instance is created, and no string error codes, ignoring dict of assertion results, validate it
                         modelXbrl.formulaOutputInstance.hasFormulae = False #  block formulae on output instance (so assertion of input is not lost)
