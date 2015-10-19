@@ -691,7 +691,9 @@ class ModelXbrl:
             return self._factsByQname
         except AttributeError:
             self._factsByQname = fbqn = defaultdict(set)
-            for f in self.factsInInstance: fbqn[f.qname].add(f)
+            for f in self.factsInInstance: 
+                if f.qname is not None:
+                    fbqn[f.qname].add(f)
             return fbqn
         
     def factsByDatatype(self, notStrict, typeQname): # indexed by fact (concept) qname
