@@ -5,6 +5,7 @@ Created on Jan 24, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import ViewFile, ModelDtsObject, XbrlConst, XmlUtil
+from arelle.XbrlConst import conceptNameLabelRole
 from arelle.ViewFile import CSV, HTML, XML, JSON
 import datetime, re
 from collections import defaultdict
@@ -180,7 +181,9 @@ class ViewFacts(ViewFile.View):
                 toConcept = modelRel.toModelObject
                 if toConcept in visited:
                     childPrefix += "(loop)"
-                labelrole = (modelRel.preferredLabel or self.labelrole)
+                labelrole = modelRel.preferredLabel
+                if not labelrole or self.labelrole == conceptNameLabelRole: 
+                    labelrole = self.labelrole
                 self.viewConcept(toConcept, modelRel, childPrefix, labelrole, n + 1, nestedRelationshipSet, visited)
             visited.remove(concept)
             
