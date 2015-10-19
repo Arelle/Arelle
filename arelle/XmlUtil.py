@@ -557,7 +557,7 @@ def copyIxFootnoteHtml(sourceXml, targetHtml, withText=False):
         if not sourceChild.namespaceURI in ixbrlAll:
             # ensure xhtml has an xmlns
             if sourceChild.namespaceURI == xhtml and xhtml not in targetHtml.nsmap.values():
-                setXmlns(targetHtml.modelDocument, "xhtml", xhtml)
+                setXmlns(targetHtml.getroottree(), "xhtml", xhtml)
             targetChild = etree.SubElement(targetHtml, sourceChild.tag)
             for attrTag, attrValue in sourceChild.items():
                 targetChild.set(attrTag, attrValue)
