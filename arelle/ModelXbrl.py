@@ -7,6 +7,7 @@ Created on Oct 3, 2010
 from collections import defaultdict
 import os, sys, traceback, uuid
 import logging
+from decimal import Decimal
 from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
 from arelle.FileSource import FileNamedStringIO
 from arelle.ModelObject import ModelObject, ObjectPropertyViewWrapper
@@ -372,6 +373,14 @@ class ModelXbrl:
         if modelRoles:
             return modelRoles[0].definition or roleURI
         return roleURI
+    
+    def roleTypeName(self, roleURI):
+        # authority-specific role type name
+        for pluginXbrlMethod in pluginClassMethods("ModelXbrl.RoleTypeName"):
+            _roleTypeName = pluginXbrlMethod(self, roleURI)
+            if _roleTypeName:
+                return _roleTypeName
+        return self.roleTypeDefinition(roleURI)
     
     def matchSubstitutionGroup(self, elementQname, subsGrpMatchTable):
         """Resolve a subsitutionGroup for the elementQname from the match table
@@ -1015,11 +1024,11 @@ class ModelXbrl:
                 elif isinstance(argValue, _INT_TYPES):
                     # need locale-dependent formatting
                     fmtArgs[argName] = format_string(self.modelManager.locale, '%i', argValue)
-                elif isinstance(argValue,float):
+                elif isinstance(argValue,(float,Decimal)):
                     # need locale-dependent formatting
                     fmtArgs[argName] = format_string(self.modelManager.locale, '%f', argValue)
                 else:
-                    fmtArgs[argName] = argValue
+                    fmtArgs[argName] = str(argValue)
         if "refs" not in extras:
             try:
                 file = os.path.basename(self.modelDocument.uri)
