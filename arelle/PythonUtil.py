@@ -119,3 +119,9 @@ def flattenSequence(x, sequence=None):
             sequence.append(el)
     return sequence
 
+class attrdict(dict):
+    """ utility to simulate an object with named fields from a dict """
+    def __init__(self, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
+        self.__dict__ = self
+
