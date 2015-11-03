@@ -419,7 +419,8 @@ def parseAndRun(args):
         # parse and run the FILENAME
         cntlr.startLogging(logFileName=(options.logFile or "logToPrint"),
                            logFormat=(options.logFormat or "[%(messageCode)s] %(message)s - %(file)s"),
-                           logLevel=(options.logLevel or "DEBUG"))
+                           logLevel=(options.logLevel or "DEBUG"),
+                           logToBuffer=getattr(options, "logToBuffer", False)) # e.g., used by EdgarRenderer to require buffered logging
         cntlr.run(options)
         
         return cntlr

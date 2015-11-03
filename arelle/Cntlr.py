@@ -270,7 +270,7 @@ class Cntlr:
                                 self.localeDir)
         
     def startLogging(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None, 
-                     logLevel=None, logHandler=None):
+                     logLevel=None, logHandler=None, logToBuffer=False):
         # add additional logging levels (for python 2.7, all of these are ints)
         logging.addLevelName(logging.INFO + 1, "INFO-SEMANTIC")
         logging.addLevelName(logging.WARNING + 1, "WARNING-SEMANTIC")
@@ -285,12 +285,12 @@ class Cntlr:
             self.logger.addHandler(logHandler)
         elif logFileName: # use default logging
             self.logger = logging.getLogger("arelle")
-            if logFileName in ("logToPrint", "logToStdErr"):
+            if logFileName in ("logToPrint", "logToStdErr") and not logToBuffer:
                 self.logHandler = LogToPrintHandler(logFileName)
             elif logFileName == "logToBuffer":
                 self.logHandler = LogToBufferHandler()
                 self.logger.logRefObjectProperties = True
-            elif logFileName.endswith(".xml"):
+            elif logFileName.endswith(".xml") or logFileName.endswith(".json") or logToBuffer:
                 self.logHandler = LogToXmlHandler(filename=logFileName, mode=logFileMode or "a")  # should this be "w" mode??
                 self.logger.logRefObjectProperties = True
                 if not logFormat:
@@ -521,17 +521,20 @@ class LogFormatter(logging.Formatter):
     def __init__(self, fmt=None, datefmt=None):
         super(LogFormatter, self).__init__(fmt, datefmt)
         
-    def format(self, record):
+    def fileLines(self, record):
         # provide a file parameter made up from refs entries
         fileLines = defaultdict(set)
         for ref in record.refs:
             href = ref.get("href")
             if href:
                 fileLines[href.partition("#")[0]].add(ref.get("sourceLine", 0))
-        record.file = ", ".join(file + " " + ', '.join(str(line) 
-                                                       for line in sorted(lines, key=lambda l: l)
-                                                       if line)
-                                for file, lines in sorted(fileLines.items()))
+        return ", ".join(file + " " + ', '.join(str(line) 
+                                                for line in sorted(lines, key=lambda l: l)
+                                                if line)
+                        for file, lines in sorted(fileLines.items()))
+        
+    def format(self, record):
+        record.file = self.fileLines(record)
         try:
             formattedMessage = super(LogFormatter, self).format(record)
         except (KeyError, TypeError, ValueError) as ex:
@@ -647,13 +650,35 @@ class LogToXmlHandler(LogHandlerWithXml):
                            .decode(sys.stdout.encoding, 'strict')))
             print('</log>')
         elif self.filename is not None:
-            # print ("filename=" + self.filename)
-            with open(self.filename, self.filemode, encoding='utf-8') as fh:
-                fh.write('<?xml version="1.0" encoding="utf-8"?>\n')
-                fh.write('<log>\n')
+            if self.filename.endswith(".xml"):
+                # print ("filename=" + self.filename)
+                with open(self.filename, self.filemode, encoding='utf-8') as fh:
+                    fh.write('<?xml version="1.0" encoding="utf-8"?>\n')
+                    fh.write('<log>\n')
+                    for logRec in self.logRecordBuffer:
+                        fh.write(self.recordToXml(logRec))
+                    fh.write('</log>\n')
+            elif self.filename.endswith(".json"):
+                with open(self.filename, self.filemode, encoding='utf-8') as fh:
+                    fh.write(self.getJson())
+            elif self.filename in ("logToPrint", "logToStdErr"):
+                _file = sys.stderr if self.filename == "logToStdErr" else None
                 for logRec in self.logRecordBuffer:
-                    fh.write(self.recordToXml(logRec))
-                fh.write('</log>\n')
+                    logEntry = self.format(logRec)
+                    if not isPy3:
+                        logEntry = logEntry.encode("utf-8", "replace")
+                    try:
+                        print(logEntry, file=_file)
+                    except UnicodeEncodeError:
+                        # extra parentheses in print to allow for 3-to-2 conversion
+                        print((logEntry
+                               .encode(sys.stdout.encoding, 'backslashreplace')
+                               .decode(sys.stdout.encoding, 'strict')), 
+                              file=_file)
+            else:
+                with open(self.filename, self.filemode, encoding='utf-8') as fh:
+                    for logRec in self.logRecordBuffer:
+                        fh.write(self.format(logRec) + "\n")
                 
     def clearLogBuffer(self):
         del self.logRecordBuffer[:]
