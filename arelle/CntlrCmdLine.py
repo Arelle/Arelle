@@ -791,7 +791,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if filesource and not filesource.selection:
             if filesource.isArchive:
                 _entrypointFiles = []
-                for _archiveFile in filesource.dir:
+                for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
                     filesource.select(_archiveFile)
                     if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
                         _entrypointFiles.append({"file":filesource.url})

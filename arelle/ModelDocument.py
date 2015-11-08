@@ -733,6 +733,19 @@ class ModelDocument:
                 return productKey
         return creationSoftwareComment # "Other"
     
+    @property
+    def processingInstructions(self):
+        try:
+            return self._processingInstructions
+        except AttributeError:
+            self._processingInstructions = []
+            node = self.xmlRootElement
+            while node.getprevious() is not None:
+                node = node.getprevious()
+                if isinstance(node, etree._ProcessingInstruction):
+                    self._processingInstructions.append(node)
+            return self._processingInstructions
+    
     def schemaDiscover(self, rootElement, isIncluded, namespace):
         targetNamespace = rootElement.get("targetNamespace")
         if targetNamespace:

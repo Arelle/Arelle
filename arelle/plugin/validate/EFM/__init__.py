@@ -31,7 +31,7 @@ due to a Java bug on Windows shell interface (without the newlines for pretty pr
 
 
 '''
-import os, json, zipfile
+import os, json, zipfile, logging
 jsonIndent = 1  # None for most compact, 0 for left aligned
 from decimal import Decimal
 from lxml.etree import XML, XMLSyntaxError
@@ -85,15 +85,16 @@ def validateXbrlStart(val, parameters=None):
         p = parameters.get(ModelValue.qname("exhibitType",noPrefixIsNoNamespace=True))
         if p and len(p) == 2:
             _exhibitType = p[1]
-    elif hasattr(val.modelXbrl.modelManager, "efmFiling"):
+    # parameters may also come from report entryPoint (such as exhibitType for SDR)
+    if hasattr(val.modelXbrl.modelManager, "efmFiling"):
         efmFiling = val.modelXbrl.modelManager.efmFiling
         if efmFiling.reports: # possible that there are no reports
             entryPoint = efmFiling.reports[-1].entryPoint
-            _cik = entryPoint.get("cik", None)
-            _cikList = entryPoint.get("cikList", None)
-            _cikNameList = entryPoint.get("cikNameList",None)
-            _exhibitType = entryPoint.get("exhibitType", None)
-            _submissionType = entryPoint.get("submissionType", None)
+            _cik = entryPoint.get("cik", None) or _cik
+            _cikList = entryPoint.get("cikList", None) or _cikList
+            _cikNameList = entryPoint.get("cikNameList",None) or _cikNameList
+            _exhibitType = entryPoint.get("exhibitType", None) or _exhibitType
+            _submissionType = entryPoint.get("submissionType", None) or _submissionType
     
     if _cik and _cik not in ("null", "None"):
         val.paramFilerIdentifier = _cik
@@ -199,6 +200,8 @@ def xbrlLoaded(cntlr, options, modelXbrl, entryPoint, *args):
             _report.entryPoint = entryPoint
             if "accessionNumber" in entryPoint and not hasattr(efmFiling, "accessionNumber"):
                 efmFiling.accessionNumber = entryPoint["accessionNumber"]
+            if "exhibitType" in entryPoint and not hasattr(_report, "exhibitType"):
+                _report.exhibitType = entryPoint["exhibitType"]
         elif modelXbrl.modelDocument.type == ModelDocument.Type.RSSFEED:
             testcasesStart(cntlr, options, modelXbrl)
 
@@ -222,15 +225,15 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
         reports = efmFiling.reports
         # check for dup inline and regular instances
         # SDR checks
-        if any(report.documentType and report.documentType.startswith("SDR") 
+        if any(report.documentType and report.documentType.endswith(" SDR") 
                for report in reports):
             _sdrKs = [r for r in reports if r.documentType == "K SDR"]
             if not _sdrKs and efmFiling.submissionType in ("SDR", "SDR-A"):
-                efmFiling.error("EFM.SDR.1.1",
-                                _("Filing has no K SDR reports"))
+                efmFiling.error("EFM.6.03.08.sdrHasNoKreports",
+                                _("SDR filing has no K SDR reports"))
             elif len(_sdrKs) > 1:
-                efmFiling.error("EFM.SDR.1.2",
-                                _("Filing has multiple K SDR reports for %(entities)s"),
+                efmFiling.error("EFM.6.03.08.sdrHasMultipleKreports",
+                                _("SDR filing has multiple K SDR reports for %(entities)s"),
                                 {"entities": ", ".join(r.entityRegistrantName for r in _sdrKs)}, 
                                 (r.url for r in _sdrKs))
             _sdrLentityReports = defaultdict(list)
@@ -239,7 +242,7 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
                     _sdrLentityReports[r.entityRegistrantName].append(r)
             for sdrLentity, sdrLentityReports in _sdrLentityReports.items():
                 if len(sdrLentityReports) > 1:
-                    efmFiling.error("EFM.SDR.1.3",
+                    efmFiling.error("EFM.6.05.24.multipleSdrLReportsForEntity",
                                     _("Filing entity has multiple L SDR reports: %(entity)s"),
                                     {"entity": sdrLentity},
                                     (r.url for r in sdrLentityReports))
@@ -256,16 +259,20 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
                 if not hasPre: missingFiles += ", presentation linkbase"
                 if not hasLbl: missingFiles += ", label linkbase"
                 if missingFiles:
-                    efmFiling.error("EFM.SDR.1.4",
+                    efmFiling.error("EFM.6.03.02.sdrMissingFiles",
                                     _("%(docType)s report missing files: %(missingFiles)s"),
                                     {"docType": r.documentType, "missingFiles": missingFiles[2:]},
                                     r.url)
                 if not r.hasUsGaapTaxonomy:
-                    efmFiling.error("EFM.SDR.1.5",
+                    efmFiling.error("EFM.6.03.02.sdrMissingStandardSchema",
                                     _("%(documentType)s submission must use a US GAAP standard schema"),
                                     {"documentType": r.documentType},
                                     r.url)
-
+                if hasattr(r, "exhibitType") and r.exhibitType not in ("EX-99.K SDR", "EX-99.L SDR"):
+                    efmFiling.error("EFM.6.03.02.sdrHasNonSdrExhibit",
+                                    _("An SDR filling contains non-SDR exhibit type %(exhibitType)s document type %(documentType)s"),
+                                    {"documentType": r.documentType, "exhibitType": r.exhibitType},
+                                    r.url)
 def roleTypeName(modelXbrl, roleURI):
     modelManager = modelXbrl.modelManager
     if hasattr(modelManager, "efmFiling"):
@@ -300,7 +307,7 @@ def rssItemValidated(val, modelXbrl, rssItem):
     if hasattr(rssItem.modelXbrl, "efmOptions"):
         testcaseVariationValidated(rssItem.modelXbrl, modelXbrl)
         
-def testcaseVariationXbrlLoaded(testcaseModelXbrl, instanceModelXbrl):
+def testcaseVariationXbrlLoaded(testcaseModelXbrl, instanceModelXbrl, modelTestcaseVariation):
     # Validate of RSS feed item or testcase variation (simulates filing & cmd line load events
     modelManager = instanceModelXbrl.modelManager
     if (hasattr(testcaseModelXbrl, "efmOptions") and 
@@ -310,28 +317,48 @@ def testcaseVariationXbrlLoaded(testcaseModelXbrl, instanceModelXbrl):
         cntlr = modelManager.cntlr
         options = testcaseModelXbrl.efmOptions
         entrypointFiles = [{"file":instanceModelXbrl.modelDocument.uri}]
-        modelManager.efmFiling = Filing(cntlr, options, instanceModelXbrl.fileSource, entrypointFiles, None, None)
-        # this event is called for filings (of instances) as well as test cases, for test case it just keeps options accessible
-        for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Filing.Start"):
-            pluginXbrlMethod(cntlr, options, entrypointFiles, modelManager.efmFiling)
+        if not hasattr(modelManager, "efmFiling"): # first instance of filing
+            modelManager.efmFiling = Filing(cntlr, options, instanceModelXbrl.fileSource, entrypointFiles, None, None, instanceModelXbrl.errorCaptureLevel)
+            # this event is called for filings (of instances) as well as test cases, for test case it just keeps options accessible
+            for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Filing.Start"):
+                pluginXbrlMethod(cntlr, options, entrypointFiles, modelManager.efmFiling)
         modelManager.efmFiling.addReport(instanceModelXbrl)
         _report = modelManager.efmFiling.reports[-1]
         _report.entryPoint = entrypointFiles[0]
+        # check for parameters on instance
+        for _instanceElt in XmlUtil.descendants(modelTestcaseVariation, "*", "instance", "readMeFirst", "true", False):
+            if instanceModelXbrl.modelDocument.uri.endswith(_instanceElt.text):
+                if _instanceElt.get("exhibitType"):
+                    _report.entryPoint["exhibitType"] = _report.exhibitType = _instanceElt.get("exhibitType")
+                break
     
-def testcaseVariationValidated(testcaseModelXbrl, instanceModelXbrl): 
+def testcaseVariationXbrlValidated(testcaseModelXbrl, instanceModelXbrl): 
     modelManager = instanceModelXbrl.modelManager
     if (hasattr(modelManager, "efmFiling") and 
         (instanceModelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or 
         instanceModelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL)):
         efmFiling = modelManager.efmFiling
-        _report = efmFiling.reports[-1]
+        _report = modelManager.efmFiling.reports[-1]
         for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Xbrl.Run"):
             pluginXbrlMethod(modelManager.cntlr, efmFiling.options, instanceModelXbrl, efmFiling, _report)
+
+def testcaseVariationValidated(testcaseModelXbrl, instanceModelXbrl, errors=None): 
+    modelManager = instanceModelXbrl.modelManager
+    if (hasattr(modelManager, "efmFiling") and 
+        (instanceModelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or 
+        instanceModelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL)):
+        efmFiling = modelManager.efmFiling
+        if isinstance(errors, list):
+            del efmFiling.errors[:]
+        # validate report types
+        filingValidate(efmFiling.cntlr, efmFiling.options, efmFiling.filesource, efmFiling.entrypointfiles, efmFiling.sourceZipStream, efmFiling.responseZipStream)        # validate each report
+        if isinstance(errors, list):
+            errors.extend(efmFiling.errors)
         # simulate filingEnd
         filingEnd(modelManager.cntlr, efmFiling.options, modelManager.filesource, [])
     
 class Filing:
-    def __init__(self, cntlr, options=None, filesource=None, entrypointfiles=None, sourceZipStream=None, responseZipStream=None):
+    def __init__(self, cntlr, options=None, filesource=None, entrypointfiles=None, sourceZipStream=None, responseZipStream=None, errorCaptureLevel=None):
         self.cntlr = cntlr
         self.options = options
         self.filesource = filesource
@@ -350,6 +377,8 @@ class Filing:
                     self.reportZip = zipfile.ZipFile(options.zipOutputFile, 'w', zipfile.ZIP_DEFLATED, True)
             except AttributeError:
                 self.reportZip = None
+        self.errorCaptureLevel = errorCaptureLevel or logging._checkLevel("INCONSISTENCY")
+        self.errors = []
                 
     def setReportZipStreamMode(self, mode): # mode is 'w', 'r', 'a'
         # required to switch in-memory zip stream between write, read, and append modes
@@ -410,6 +439,7 @@ class Filing:
         else:
             relFiles = None
         self.cntlr.addToLog(message, messageCode, messageArgs, relFiles, "ERROR")
+        self.errors.append(messageCode)
         
     @property
     def hasInlineReport(self):
@@ -511,5 +541,6 @@ __pluginInfo__ = {
     'RssItem.Xbrl.Loaded': rssItemXbrlLoaded,
     'Validate.RssItem': rssItemValidated,
     'TestcaseVariation.Xbrl.Loaded': testcaseVariationXbrlLoaded,
+    'TestcaseVariation.Xbrl.Validated': testcaseVariationXbrlValidated,
     'TestcaseVariation.Validated': testcaseVariationValidated
 }
