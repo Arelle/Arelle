@@ -31,6 +31,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     linkroleDefinitionStatementSheet = re.compile(r"[^-]+-\s+Statement\s+-\s+.*", # no restriction to type of statement
                                                   re.IGNORECASE)
     efmCIKpattern = re.compile(r"^[0-9]{10}$")
+    instantPreferredLabelRolePattern = re.compile(r".*[pP]eriod(Start|End)")
+    embeddingCommandPattern = re.compile(r"[^~]*~\s*()[^~]*~")
     
     val._isStandardUri = {}
     modelXbrl.modelManager.disclosureSystem.loadStandardTaxonomiesDict()
@@ -1030,7 +1032,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         for name in ("CountryAxis", "GovernmentAxis", "PaymentTypeAxis", "ProjectAxis","PmtAxis",
                                     "AllGovernmentsMember", "AllProjectsMember","BusinessSegmentAxis", "EntityDomain", 
                                     "A", "Cm", "Co", "Cu", "D", "Gv", "E", "K", "Km", "P", "Payments", "Pr", "Sm"):
-                            setattr(val, name, ModelValue.qname(rxdNs, "rxd:" + name))
+                            setattr(self, name, ModelValue.qname(rxdNs, "rxd:" + name))
 
                 rxd = Rxd()
                 f1 = deiFacts.get(disclosureSystem.deiCurrentFiscalYearEndDateElement)
@@ -1502,10 +1504,33 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             if order in orderRels:
                                 modelXbrl.error(("EFM.6.12.02", "GFM.1.06.02"),
                                     _("Duplicate presentation relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s"),
-                                    modelObject=(rel, orderRels[order]), conceptFrom=relFrom.qname, order=rel.arcElement.get("order"), linkrole=rel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole),
-                                    conceptTo=rel.toModelObject.qname, conceptTo2=orderRels[order].toModelObject.qname)
+                                    modelObject=(rel, orderRels[order]), conceptFrom=relFrom.qname, order=rel.arcElement.get("order"), linkrole=rel.linkrole, 
+                                    linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole), linkroleName=modelXbrl.roleTypeName(rel.linkrole),
+                                    conceptTo=relTo.qname, conceptTo2=orderRels[order].toModelObject.qname)
                             else:
                                 orderRels[order] = rel
+                            if relTo is not None:
+                                if relTo.periodType == "duration" and instantPreferredLabelRolePattern.match(preferredLabel or ""): 
+                                    modelXbrl.warning("EFM.6.12.07",
+                                        _("In \"%(linkrole)s\", element %(conceptTo)s has period type 'duration' but is given a preferred label %(preferredLabel)s when shown under parent %(conceptFrom)s.  The preferred label will be ignored."),
+                                        modelObject=(rel, relTo), conceptTo=relTo.qname, conceptFrom=relFrom.qname, order=rel.arcElement.get("order"), linkrole=rel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole),
+                                        linkroleName=modelXbrl.roleTypeName(rel.linkrole),
+                                        conceptTo2=orderRels[order].toModelObject.qname, 
+                                        preferredLabel=preferredLabel, preferredLabelValue=preferredLabel.rpartition("/")[2])
+                                if (relTo.isDimensionItem and not any(
+                                    _rel.toModelObject is not None and _rel.toModelObject.type is not None and _rel.toModelObject.type.isDomainItemType
+                                    for _rel in parentChildRels.fromModelObject(relTo))):
+                                        modelXbrl.warning("EFM.6.12.08",
+                                            _("In \"%(linkrole)s\" axis %(axis)s has no domain element children, which effectively filters out every fact."),
+                                            modelObject=relFrom, axis=relFrom.qname, 
+                                            linkrole=ELR, linkroleDefinition=modelXbrl.roleTypeDefinition(ELR), linkroleName=modelXbrl.roleTypeName(ELR))
+                                if (relFrom.isDimensionItem and not any(
+                                    _rel.toModelObject is not None and _rel.toModelObject.type is not None and _rel.toModelObject.type.isDomainItemType
+                                    for _rel in siblingRels)):
+                                        modelXbrl.warning("EFM.6.12.08",
+                                            _("In \"%(linkrole)s\" axis %(axis)s has no domain element children, which effectively filters out every fact."),
+                                            modelObject=relFrom, axis=relFrom.qname, 
+                                            linkrole=ELR, linkroleDefinition=modelXbrl.roleTypeDefinition(ELR), linkroleName=modelXbrl.roleTypeName(ELR))
                         targetConceptPreferredLabels.clear()
                         orderRels.clear()
                     localPreferredLabels.clear() # clear for next relationship
@@ -1518,6 +1543,15 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     if validateLoggingSemantic:
                         for rootConcept in parentChildRels.rootConcepts:
                             checkCalcsTreeWalk(val, parentChildRels, rootConcept, isStatementSheet, False, conceptsUsed, set())
+                    # 6.12.6 
+                    if len(parentChildRels.rootConcepts) > 1:
+                        val.modelXbrl.warning("EFM.6.12.06",
+                            _("Presentation relationship set role %(linkrole)s has multiple (%(numberRootConcepts)s) root nodes.  "
+                              "XBRL allows unordered root nodes, but rendering requires ordering.  They will instead be ordered by their labels.  "
+                              "To avoid undesirable ordering of axes and primary items across multiple root nodes, rearrange the presentation relationships to have only a single root node."),
+                            modelObject=(rel,parentChildRels.rootConcepts), linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR),
+                            linkroleName=val.modelXbrl.roleTypeName(ELR),
+                            numberRootConcepts=len(parentChildRels.rootConcepts))
                 elif arcrole == XbrlConst.summationItem:
                     # 6.14.3 check for relation concept periods
                     fromRelationships = modelXbrl.relationshipSet(arcrole,ELR).fromModelObjects()
