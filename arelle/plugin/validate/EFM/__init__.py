@@ -227,25 +227,25 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
         # SDR checks
         if any(report.documentType and report.documentType.endswith(" SDR") 
                for report in reports):
-            _sdrKs = [r for r in reports if r.documentType == "K SDR"]
-            if not _sdrKs and efmFiling.submissionType in ("SDR", "SDR-A"):
+            _kSdrs = [r for r in reports if r.documentType == "K SDR"]
+            if not _kSdrs and efmFiling.submissionType in ("SDR", "SDR-A"):
                 efmFiling.error("EFM.6.03.08.sdrHasNoKreports",
                                 _("SDR filing has no K SDR reports"))
-            elif len(_sdrKs) > 1:
+            elif len(_kSdrs) > 1:
                 efmFiling.error("EFM.6.03.08.sdrHasMultipleKreports",
                                 _("SDR filing has multiple K SDR reports for %(entities)s"),
-                                {"entities": ", ".join(r.entityRegistrantName for r in _sdrKs)}, 
-                                (r.url for r in _sdrKs))
-            _sdrLentityReports = defaultdict(list)
+                                {"entities": ", ".join(r.entityRegistrantName for r in _kSdrs)}, 
+                                (r.url for r in _kSdrs))
+            _lSdrEntityReports = defaultdict(list)
             for r in reports:
                 if r.documentType == "L SDR":
-                    _sdrLentityReports[r.entityRegistrantName].append(r)
-            for sdrLentity, sdrLentityReports in _sdrLentityReports.items():
-                if len(sdrLentityReports) > 1:
-                    efmFiling.error("EFM.6.05.24.multipleSdrLReportsForEntity",
+                    _lSdrEntityReports[r.entityRegistrantName].append(r)
+            for lSdrEntity, lSdrEntityReports in _lSdrEntityReports.items():
+                if len(lSdrEntityReports) > 1:
+                    efmFiling.error("EFM.6.05.24.multipleLSdrReportsForEntity",
                                     _("Filing entity has multiple L SDR reports: %(entity)s"),
-                                    {"entity": sdrLentity},
-                                    (r.url for r in sdrLentityReports))
+                                    {"entity": lSdrEntity},
+                                    (r.url for r in lSdrEntityReports))
             # check for required extension files (schema, pre, lbl)
             for r in reports:
                 hasSch = hasPre = hasCal = hasLbl = False
@@ -273,6 +273,22 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
                                     _("An SDR filling contains non-SDR exhibit type %(exhibitType)s document type %(documentType)s"),
                                     {"documentType": r.documentType, "exhibitType": r.exhibitType},
                                     r.url)
+        _exhibitTypeReports = defaultdict(list)
+        for r in reports:
+            if hasattr(r, "exhibitType") and r.exhibitType:
+                _exhibitTypeReports[r.exhibitType.partition(".")[0]].append(r)
+        if len(_exhibitTypeReports) > 1:
+            efmFiling.error("EFM.6.03.08",
+                            _("A filling contains multiple exhibit types %(exhibitTypes)s."),
+                            {"exhibitTypes": ", ".join(_exhibitTypeReports.keys())},
+                            [r.url for r in reports])
+        for _exhibitType, _exhibitReports in _exhibitTypeReports.items():
+            if _exhibitType not in ("EX-99",) and len(_exhibitReports) > 1:
+                efmFiling.error("EFM.6.03.08.moreThanOneINS",
+                                _("A filing contains more than one instance for exhibit type %(exhibitType)s."),
+                                {"exhibitType": _exhibitType},
+                                [r.url for r in _exhibitReports])
+        
 def roleTypeName(modelXbrl, roleURI):
     modelManager = modelXbrl.modelManager
     if hasattr(modelManager, "efmFiling"):
