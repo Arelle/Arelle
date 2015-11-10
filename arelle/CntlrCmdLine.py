@@ -799,7 +799,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 _entrypointFiles = []
                 for _file in os.listdir(filesource.url):
                     _path = os.path.join(filesource.url, _file)
-                    if ModelDocument.Type.identify(filesource, _path) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
+                    if os.path.isfile(_path) and ModelDocument.Type.identify(filesource, _path) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
                         _entrypointFiles.append({"file":_path})
         for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.Start"):
             pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
