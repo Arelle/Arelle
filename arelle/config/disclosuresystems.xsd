@@ -22,24 +22,24 @@
   <xs:element name="DisclosureSystem">
     <xs:complexType>
       <xs:attribute name="validationType" use="required" type="validationType"/>
-      <xs:attribute name="exclusiveTypesPattern" use="required"/>
+      <xs:attribute name="exclusiveTypesPattern" use="optional"/>
       <xs:attribute name="contextElement" use="required" type="xs:NCName"/>
       <xs:attribute name="defaultLanguage" use="required" type="xs:NCName"/>
       <xs:attribute name="defaultXmlLang" use="required" type="xs:NCName"/>
       <xs:attribute name="defaultXmlEncoding" use="optional" type="xs:string"/> 
       <!-- defaultXmlEncoding may be an empty string to detect when missing in an XML document -->
       <xs:attribute name="xmlLangPattern" />
-      <xs:attribute name="deiAmendmentFlagElement" use="required" type="xs:NCName"/>
-      <xs:attribute name="deiCurrentFiscalYearEndDateElement" use="required" type="xs:NCName"/>
-      <xs:attribute name="deiDocumentFiscalYearFocusElement" use="required" type="xs:NCName"/>
-      <xs:attribute name="deiDocumentPeriodEndDateElement" use="required" type="xs:NCName"/>
-      <xs:attribute name="deiFilerIdentifierElement" use="required" type="xs:NCName"/>
-      <xs:attribute name="deiFilerNameElement" use="required" type="xs:NCName"/>
-      <xs:attribute name="deiNamespacePattern" use="required"/>
+      <xs:attribute name="deiAmendmentFlagElement" use="optional" type="xs:NCName"/>
+      <xs:attribute name="deiCurrentFiscalYearEndDateElement" use="optional" type="xs:NCName"/>
+      <xs:attribute name="deiDocumentFiscalYearFocusElement" use="optional" type="xs:NCName"/>
+      <xs:attribute name="deiDocumentPeriodEndDateElement" use="optional" type="xs:NCName"/>
+      <xs:attribute name="deiFilerIdentifierElement" use="optional" type="xs:NCName"/>
+      <xs:attribute name="deiFilerNameElement" use="optional" type="xs:NCName"/>
+      <xs:attribute name="deiNamespacePattern" use="optional"/>
       <xs:attribute name="description" />
-      <xs:attribute name="identifierSchemePattern" use="required"/>
-      <xs:attribute name="identifierValueName" use="required"/>
-      <xs:attribute name="identifierValuePattern" use="required"/>
+      <xs:attribute name="identifierSchemePattern" use="optional"/>
+      <xs:attribute name="identifierValueName" use="optional"/>
+      <xs:attribute name="identifierValuePattern" use="optional"/>
       <xs:attribute name="labelCheckPattern" use="required"/>
       <xs:attribute name="labelTrimPattern" use="required"/>
       <xs:attribute name="names" use="required"/>
