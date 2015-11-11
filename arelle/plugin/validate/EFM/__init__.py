@@ -94,6 +94,9 @@ def validateXbrlStart(val, parameters=None):
             _cikList = entryPoint.get("cikList", None) or _cikList
             _cikNameList = entryPoint.get("cikNameList",None) or _cikNameList
             _exhibitType = entryPoint.get("exhibitType", None) or _exhibitType
+            # exhibitType may be an attachmentType, if so remove ".INS"
+            if _exhibitType and _exhibitType.endswith(".INS"):
+                _exhibitType = _exhibitType[:-4]
             _submissionType = entryPoint.get("submissionType", None) or _submissionType
     
     if _cik and _cik not in ("null", "None"):
@@ -284,7 +287,7 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
                             [r.url for r in reports])
         for _exhibitType, _exhibitReports in _exhibitTypeReports.items():
             if _exhibitType not in ("EX-99",) and len(_exhibitReports) > 1:
-                efmFiling.error("EFM.6.03.08.moreThanOneINS",
+                efmFiling.error("EFM.6.03.08.moreThanOneIns",
                                 _("A filing contains more than one instance for exhibit type %(exhibitType)s."),
                                 {"exhibitType": _exhibitType},
                                 [r.url for r in _exhibitReports])
