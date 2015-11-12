@@ -287,13 +287,15 @@ class FileSource:
         if self.referencedFileSources:
             for referencedFileSource in self.referencedFileSources.values():
                 referencedFileSource.close()
-        self.referencedFileSources = None
+        self.referencedFileSources.clear()
         if self.isZip and self.isOpen:
             self.fs.close()
+            self.fs = None
             self.isOpen = False
             self.isZip = False
         if self.isTarGz and self.isOpen:
             self.fs.close()
+            self.fs = None
             self.isOpen = False
             self.isTarGz = False
         if self.isEis and self.isOpen:
