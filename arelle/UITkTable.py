@@ -706,9 +706,8 @@ class XbrlTable(TkTableWrapper.Table):
         cellIndex = '%i,%i'% (y, x)
         if justification in XbrlTable.ANCHOR_POSITIONS:
             self.format_cell(justification, cellIndex)
-        if colspan+rowspan > 0:
-            cellSpans = {cellIndex : '%i,%i'% (rowspan, colspan)}
-            self.spans(index=None, **cellSpans)
+        cellSpans = {cellIndex : '%i,%i'% (rowspan, colspan)}
+        self.spans(index=None, **cellSpans)
         indexValue = {cellIndex:value}
         self.set(objectId=objectId, **indexValue)
         if USE_resizeTableCells:
@@ -741,9 +740,8 @@ class XbrlTable(TkTableWrapper.Table):
         New values can be added to the combobox if isOpen==True.
         '''
         cellIndex = '%i,%i'% (y, x)
-        if colspan+rowspan > 0:
-            cellSpans = { cellIndex : '%i,%i'% (rowspan, colspan)}
-            self.spans(index=None, **cellSpans)
+        cellSpans = { cellIndex : '%i,%i'% (rowspan, colspan)}
+        self.spans(index=None, **cellSpans)
         self.initHeaderBorder(x, y,
                               hasLeftBorder=True, hasTopBorder=True,
                               hasRightBorder=True,
