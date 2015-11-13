@@ -271,7 +271,7 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
                                     _("%(documentType)s submission must use a US GAAP standard schema"),
                                     {"documentType": r.documentType},
                                     r.url)
-                if hasattr(r, "exhibitType") and r.exhibitType not in ("EX-99.K SDR", "EX-99.L SDR"):
+                if hasattr(r, "exhibitType") and r.exhibitType not in ("EX-99.K SDR", "EX-99.L SDR", "EX-99.K SDR.INS", "EX-99.L SDR.INS"):
                     efmFiling.error("EFM.6.03.02.sdrHasNonSdrExhibit",
                                     _("An SDR filling contains non-SDR exhibit type %(exhibitType)s document type %(documentType)s"),
                                     {"documentType": r.documentType, "exhibitType": r.exhibitType},
@@ -451,7 +451,7 @@ class Filing:
             if isinstance(file, _STR_BASE):
                 file = (file,)
             if isinstance(self.entrypointfiles[0], dict):
-                _baseFile = getattr(self.entrypointfiles[0], "file", ".")
+                _baseFile = self.entrypointfiles[0].get("file", ".")
             else:
                 _baseFile = self.entrypointfiles[0]
             relFiles = [relativeUri(_baseFile, f) for f in file]
