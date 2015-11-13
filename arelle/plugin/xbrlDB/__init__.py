@@ -213,7 +213,7 @@ def xbrlDBvalidateRssItem(val, modelXbrl, rssItem):
     if hasattr(val.modelXbrl, 'xbrlDBconnection'):
         storeIntoDB(val.modelXbrl.xbrlDBconnection, modelXbrl, rssItem)
     
-def xbrlDBtestcaseVariationXbrlLoaded(val, modelXbrl):
+def xbrlDBtestcaseVariationXbrlLoaded(val, modelXbrl, *args, **kwargs):
     if _storeIntoDBoptions:
         return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl)
     
