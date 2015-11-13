@@ -494,7 +494,7 @@ class Report:
                 if refDoc.uri not in refDocUris:
                     refDocUris.add(refDoc.uri)
                     if refDoc.filepath and refDoc.filepath.startswith(sourceDir):
-                        self.reportedFiles.add(refDoc.filepath[len(sourceDir)+1:])
+                        self.reportedFiles.add(refDoc.filepath[len(sourceDir)+1:]) # add file name within source directory
                     addRefDocs(refDoc)
                 if refDoc.type == ModelDocument.Type.SCHEMA and refDoc.targetNamespace:
                     nsAuthority = authority(refDoc.targetNamespace, includeScheme=False)
@@ -509,8 +509,8 @@ class Report:
                 for attrTag, attrValue in elt.items():
                     if attrTag in ("href", "src") and not isHttpUrl(attrValue) and not os.path.isabs(attrValue):
                         file = os.path.join(sourceDir,attrValue)
-                        if os.path.exists(file):
-                            self.reportedFiles.add(os.path.join(sourceDir,attrValue))
+                        if modelXbrl.fileSource.isInArchive(file) or os.path.exists(file):
+                            self.reportedFiles.add(attrValue) # add file name within source directory
         for fact in modelXbrl.facts:
             if fact.concept is not None and fact.isItem and fact.concept.isTextBlock:
                 # check for img and other filing references so that referenced files are included in the zip.
