@@ -192,6 +192,9 @@ class CntlrWinMain (Cntlr.Cntlr):
         logmsgMenu.add_checkbutton(label=_("Collect profile stats"), underline=0, variable=self.collectProfileStats, onvalue=True, offvalue=False)
         logmsgMenu.add_command(label=_("Log profile stats"), underline=0, command=self.showProfileStats)
         logmsgMenu.add_command(label=_("Clear profile stats"), underline=0, command=self.clearProfileStats)
+        self.showDebugMessages = BooleanVar(value=self.config.setdefault("showDebugMessages",False))
+        self.showDebugMessages.trace("w", self.setShowDebugMessages)
+        logmsgMenu.add_checkbutton(label=_("Show debug messages"), underline=0, variable=self.showDebugMessages, onvalue=True, offvalue=False)
 
         toolsMenu.add_command(label=_("Language..."), underline=0, command=lambda: DialogLanguage.askLanguage(self))
         
@@ -1144,6 +1147,10 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.config["collectProfileStats"] = self.modelManager.collectProfileStats
         self.saveConfig()
         
+    def setShowDebugMessages(self, *args):
+        self.config["showDebugMessages"] = self.showDebugMessages.get()
+        self.saveConfig()
+        
     def find(self, *args):
         from arelle.DialogFind import find
         find(self)
@@ -1181,6 +1188,8 @@ class CntlrWinMain (Cntlr.Cntlr):
 
     # worker threads addToLog        
     def addToLog(self, message, messageCode="", messageArgs=None, file="", level=logging.INFO):
+        if level == logging.DEBUG and not self.showDebugMessages.get():
+            return
         if messageCode and messageCode not in message: # prepend message code
             message = "[{}] {}".format(messageCode, message)
         if file:
@@ -1346,7 +1355,7 @@ class WinMainLogHandler(logging.Handler):
         # add to logView        
         msg = self.format(logRecord)        
         try:            
-            self.cntlr.addToLog(msg)
+            self.cntlr.addToLog(msg, level=logRecord.levelno)
         except:
             pass
 
