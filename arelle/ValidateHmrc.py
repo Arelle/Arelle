@@ -6,6 +6,8 @@ Created on May 20, 2011
 
 based on http://www.hmrc.gov.uk/ebu/ct_techpack/joint-filing-validation-checks.pdf
 
+Deprecated Nov 15, 2015.  Use plugin/validate/HMRC/__init__.py
+
 '''
 import xml.dom, xml.parsers
 import os, re, collections, datetime
