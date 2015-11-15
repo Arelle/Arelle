@@ -17,6 +17,7 @@ except ImportError:
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UrlUtil import isHttpUrl
 from arelle.PackageManager import parsePackage
+from arelle import PluginManager
 
 '''
 caller checks accepted, if True, caller retrieves url
@@ -50,10 +51,22 @@ def askArchiveFile(mainWin, filesource):
     return None
 
 def selectDisclosureSystem(mainWin, disclosureSystem):
+    
+    disclosureSystemSelections = disclosureSystem.dir
+    
+    # if no disclosure system to select, user may need to enable applicable plugin(s)
+    if not disclosureSystemSelections and messagebox.askokcancel(
+        _("Load disclosure systems"), 
+        _("Disclosure systems are provided by plug-ins, no applicable plug-in(s) have been enabled. \n\n"
+          "Press OK to open the plug-in manager and select plug-in(s) (e.g., validate or EdgarRenderer).")):
+        from arelle import DialogPluginManager
+        DialogPluginManager.dialogPluginManager(mainWin)
+        return None
+
     dialog = DialogOpenArchive(mainWin, 
                                DISCLOSURE_SYSTEM, 
                                disclosureSystem, 
-                               disclosureSystem.dir, 
+                               disclosureSystemSelections, 
                                _("Select Disclosure System"), 
                                _("Disclosure System"))
     if dialog and dialog.accepted:
@@ -171,7 +184,11 @@ class DialogOpenArchive(Toplevel):
 
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.grab_set()
+        
         self.wait_window(self)
+
+    
+        
         
     def loadTreeView(self, openType, title, colHeader):
         self.title(title)
