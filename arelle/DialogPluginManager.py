@@ -471,6 +471,8 @@ class DialogPluginManager(Toplevel):
                         _removePluginConfigModuleInfo(importModuleInfo)
                     self.pluginConfig["modules"].pop(_name, None)
             _removePluginConfigModuleInfo(moduleInfo)
+            if not self.pluginConfig["modules"] and self.pluginConfig["classes"]:
+                self.pluginConfig["classes"].clear() # clean orphan classes
             self.pluginConfigChanged = True
 
     def addPluginConfigModuleInfo(self, moduleInfo):
