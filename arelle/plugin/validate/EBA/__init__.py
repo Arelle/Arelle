@@ -575,12 +575,12 @@ def final(val):
                 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    'name': 'Validate EBA',
-    'version': '1.0',
-    'description': '''EBA Validation.''',
+    'name': 'Validate EBA, EIOPA',
+    'version': '1.2',
+    'description': 'EBA (2.3), EIOPA (2.0.0) Filing Rules Validation.',
     'license': 'Apache-2',
     'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2015 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,
