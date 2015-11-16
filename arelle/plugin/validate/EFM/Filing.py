@@ -1051,6 +1051,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         modelObject=documentPeriodEndDateFact, reportingPeriod=documentPeriodEndDateFact.value)
                 for url,doc in modelXbrl.urlDocs.items():
                     if (url not in disclosureSystem.standardTaxonomiesDict and
+                        doc.inDTS and # ignore EdgarRenderer-loaded non-DTS schemas
                         doc.type == ModelDocument.Type.SCHEMA):
                         for concept in XmlUtil.children(doc.xmlRootElement, XbrlConst.xsd, "element"):
                             name = concept.name
@@ -1347,57 +1348,59 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     for concept in modelXbrl.qnameConcepts.values():
         # conceptHasDefaultLangStandardLabel = False
         for modelLabelRel in labelsRelationshipSet.fromModelObject(concept):
-            modelLabel = modelLabelRel.toModelObject
-            role = modelLabel.role
-            text = modelLabel.text
-            lang = modelLabel.xmlLang
-            if role == XbrlConst.documentationLabel:
-                if concept.modelDocument.targetNamespace in disclosureSystem.standardTaxonomiesDict:
-                    modelXbrl.error(("EFM.6.10.05", "GFM.1.05.05"),
-                        _("Concept %(concept)s of a standard taxonomy cannot have a documentation label: %(text)s"),
-                        modelObject=modelLabel, concept=concept.qname, text=text)
-            elif text and lang and disclosureSystem.defaultXmlLang and lang.startswith(disclosureSystem.defaultXmlLang):
-                if role == XbrlConst.standardLabel:
-                    if text in defaultLangStandardLabels:
-                        concept2, modelLabel2 = defaultLangStandardLabels[text]
-                        modelXbrl.error(("EFM.6.10.04", "GFM.1.05.04"),
-                            _("Same labels for concepts %(concept)s and %(concept2)s for %(lang)s standard role: %(text)s."),
-                            modelObject=(concept, modelLabel, concept2, modelLabel2), 
-                            concept=concept.qname, 
-                            concept2=concept2.qname, 
-                            lang=disclosureSystem.defaultLanguage, text=text[:80])
-                    else:
-                        defaultLangStandardLabels[text] = (concept, modelLabel)
-                    # conceptHasDefaultLangStandardLabel = True
-                if len(text) > 511:
-                    modelXbrl.error(("EFM.6.10.06", "GFM.1.05.06"),
-                        _("Label for concept %(concept)s role %(role)s length %(length)s must be shorter than 511 characters: %(text)s"),
-                        modelObject=modelLabel, concept=concept.qname, role=role, length=len(text), text=text[:80])
-                match = modelXbrl.modelManager.disclosureSystem.labelCheckPattern.search(text)
-                if match:
-                    modelXbrl.error(("EFM.6.10.06", "GFM.1.05.07"),
-                        'Label for concept %(concept)s role %(role)s has disallowed characters: "%(text)s"',
-                        modelObject=modelLabel, concept=concept.qname, role=role, text=match.group())
-            if (text is not None and len(text) > 0 and 
-                modelXbrl.modelManager.disclosureSystem.labelTrimPattern and
-               (modelXbrl.modelManager.disclosureSystem.labelTrimPattern.match(text[0]) or \
-                modelXbrl.modelManager.disclosureSystem.labelTrimPattern.match(text[-1]))):
-                modelXbrl.error(("EFM.6.10.08", "GFM.1.05.08"),
-                    _("Label for concept %(concept)s role %(role)s lang %(lang)s is not trimmed: %(text)s"),
-                    modelObject=modelLabel, concept=concept.qname, role=role, lang=lang, text=text)
+            if modelLabelRel.modelDocument.inDTS: # ignore documentation labels added by EdgarRenderer not in DTS
+                modelLabel = modelLabelRel.toModelObject
+                role = modelLabel.role
+                text = modelLabel.text
+                lang = modelLabel.xmlLang
+                if role == XbrlConst.documentationLabel:
+                    if concept.modelDocument.targetNamespace in disclosureSystem.standardTaxonomiesDict:
+                        modelXbrl.error(("EFM.6.10.05", "GFM.1.05.05"),
+                            _("Concept %(concept)s of a standard taxonomy cannot have a documentation label: %(text)s"),
+                            modelObject=modelLabel, concept=concept.qname, text=text)
+                elif text and lang and disclosureSystem.defaultXmlLang and lang.startswith(disclosureSystem.defaultXmlLang):
+                    if role == XbrlConst.standardLabel:
+                        if text in defaultLangStandardLabels:
+                            concept2, modelLabel2 = defaultLangStandardLabels[text]
+                            modelXbrl.error(("EFM.6.10.04", "GFM.1.05.04"),
+                                _("Same labels for concepts %(concept)s and %(concept2)s for %(lang)s standard role: %(text)s."),
+                                modelObject=(concept, modelLabel, concept2, modelLabel2), 
+                                concept=concept.qname, 
+                                concept2=concept2.qname, 
+                                lang=disclosureSystem.defaultLanguage, text=text[:80])
+                        else:
+                            defaultLangStandardLabels[text] = (concept, modelLabel)
+                        # conceptHasDefaultLangStandardLabel = True
+                    if len(text) > 511:
+                        modelXbrl.error(("EFM.6.10.06", "GFM.1.05.06"),
+                            _("Label for concept %(concept)s role %(role)s length %(length)s must be shorter than 511 characters: %(text)s"),
+                            modelObject=modelLabel, concept=concept.qname, role=role, length=len(text), text=text[:80])
+                    match = modelXbrl.modelManager.disclosureSystem.labelCheckPattern.search(text)
+                    if match:
+                        modelXbrl.error(("EFM.6.10.06", "GFM.1.05.07"),
+                            'Label for concept %(concept)s role %(role)s has disallowed characters: "%(text)s"',
+                            modelObject=modelLabel, concept=concept.qname, role=role, text=match.group())
+                if (text is not None and len(text) > 0 and 
+                    modelXbrl.modelManager.disclosureSystem.labelTrimPattern and
+                   (modelXbrl.modelManager.disclosureSystem.labelTrimPattern.match(text[0]) or \
+                    modelXbrl.modelManager.disclosureSystem.labelTrimPattern.match(text[-1]))):
+                    modelXbrl.error(("EFM.6.10.08", "GFM.1.05.08"),
+                        _("Label for concept %(concept)s role %(role)s lang %(lang)s is not trimmed: %(text)s"),
+                        modelObject=modelLabel, concept=concept.qname, role=role, lang=lang, text=text)
         for modelRefRel in referencesRelationshipSetWithProhibits.fromModelObject(concept):
-            modelReference = modelRefRel.toModelObject
-            text = XmlUtil.innerText(modelReference)
-            #6.18.1 no reference to company extension concepts
-            if concept.modelDocument.targetNamespace not in disclosureSystem.standardTaxonomiesDict:
-                modelXbrl.error(("EFM.6.18.01", "GFM.1.9.1"),
-                    _("References for extension concept %(concept)s are not allowed: %(text)s"),
-                    modelObject=modelReference, concept=concept.qname, text=text, xml=XmlUtil.xmlstring(modelReference, stripXmlns=True, contentsOnly=True))
-            elif isEFM and not isStandardUri(val, modelRefRel.modelDocument.uri): 
-                #6.18.2 no extension to add or remove references to standard concepts
-                modelXbrl.error(("EFM.6.18.02"),
-                    _("References for standard taxonomy concept %(concept)s are not allowed in an extension linkbase: %(text)s"),
-                    modelObject=modelReference, concept=concept.qname, text=text, xml=XmlUtil.xmlstring(modelReference, stripXmlns=True, contentsOnly=True))
+            if modelRefRel.modelDocument.inDTS: # ignore references added by EdgarRenderer that are not in DTS
+                modelReference = modelRefRel.toModelObject
+                text = XmlUtil.innerText(modelReference)
+                #6.18.1 no reference to company extension concepts
+                if concept.modelDocument.targetNamespace not in disclosureSystem.standardTaxonomiesDict:
+                    modelXbrl.error(("EFM.6.18.01", "GFM.1.9.1"),
+                        _("References for extension concept %(concept)s are not allowed: %(text)s"),
+                        modelObject=modelReference, concept=concept.qname, text=text, xml=XmlUtil.xmlstring(modelReference, stripXmlns=True, contentsOnly=True))
+                elif isEFM and not isStandardUri(val, modelRefRel.modelDocument.uri): 
+                    #6.18.2 no extension to add or remove references to standard concepts
+                    modelXbrl.error(("EFM.6.18.02"),
+                        _("References for standard taxonomy concept %(concept)s are not allowed in an extension linkbase: %(text)s"),
+                        modelObject=modelReference, concept=concept.qname, text=text, xml=XmlUtil.xmlstring(modelReference, stripXmlns=True, contentsOnly=True))
 
     # role types checks
     # 6.7.10 only one role type declaration in DTS

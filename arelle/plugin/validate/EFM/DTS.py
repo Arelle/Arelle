@@ -55,7 +55,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                 modelObject=modelDocumentReference.referringModelObject,
                     schema=os.path.basename(modelDocument.uri), 
                     include=os.path.basename(referencedDocument.uri))
-        if referencedDocument not in visited:
+        if referencedDocument not in visited and referencedDocument.inDTS: # ignore EdgarRenderer added non-DTS documents
             checkFilingDTS(val, referencedDocument, isEFM, isGFM, visited)
             
     if val.disclosureSystem.standardTaxonomiesDict is None:
