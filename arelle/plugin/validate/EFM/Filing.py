@@ -1422,6 +1422,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     del defaultLangStandardLabels #dereference
     
     # checks on all documents: instance, schema, instance
+    val.hasExtensionSchema = False
     checkFilingDTS(val, modelXbrl.modelDocument, isEFM, isGFM, [])
     val.modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
 
@@ -1435,6 +1436,11 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     modelObject=modelXbrl, conflictClass=conflictClass, 
                     namespaceConflicts=sorted((d.targetNamespace for d in modelDocuments),
                                               key=lambda ns: ns.rpartition('/')[2]))
+        
+        if not val.hasExtensionSchema and documentType != "L SDR":
+            modelXbrl.error("EFM.6.03.10",
+                            _("%(documentType)s report is missing a extension schema file."),
+                            modelObject=modelXbrl, documentType=documentType)
         
     conceptRelsUsedWithPreferredLabels = defaultdict(list)
     usedCalcsPresented = defaultdict(set) # pairs of concepts objectIds used in calc

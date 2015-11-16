@@ -87,6 +87,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
         modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and
         modelDocument.uri.startswith(val.modelXbrl.uriDir)):
         
+        val.hasExtensionSchema = True
         # check schema contents types
         # 6.7.3 check namespace for standard authority
         targetNamespaceAuthority = UrlUtil.authority(modelDocument.targetNamespace) 
