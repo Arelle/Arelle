@@ -19,7 +19,7 @@ def compile(list, traceRows):
                           .replace(r" ",r"\W+") + "($|\W+)", 
                           re.IGNORECASE)
     
-def setup(val, traceRows=False):
+def setup(val, traceRows=False, *args, **kwargs):
     if not val.validateLoggingSemantic:  # all checks herein are SEMANTIC
         return
     # determiniation of two way concept label based on pattern
@@ -145,7 +145,7 @@ def schedules(val, concept):
         return scheduleStr
     
 
-def factCheck(val, fact):
+def factCheck(val, fact, *args, **kwargs):
     if not val.validateLoggingSemantic:  # all checks herein are SEMANTIC
         return
     concept = fact.concept
@@ -208,7 +208,7 @@ def factCheck(val, fact):
             modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
             value=fact.effectiveValue, elrTypes=schedules(val,fact))
 
-def final(val, conceptsUsed):
+def final(val, conceptsUsed, *args, **kwargs):
     if not val.validateLoggingSemantic:  # all checks herein are SEMANTIC
         return
     del val.twoWayPriItemDefLabelPattern
@@ -279,7 +279,7 @@ def saveDtsMatches(dts, secDtsTagMatchesFile):
 
     final(dts)
 
-def saveDtsMatchesMenuEntender(cntlr, menu):
+def saveDtsMatchesMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
     menu.add_command(label="Save SEC tag matches", 
                      underline=0, 
@@ -308,14 +308,14 @@ def saveDtsMatchesMenuCommand(cntlr):
             modelXbrl=dts,
             exc_info=True)
 
-def saveDtsMatchesCommandLineOptionExtender(parser):
+def saveDtsMatchesCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
     parser.add_option("--save-sec-tag-dts-matches", 
                       action="store", 
                       dest="secDtsTagMatchesFile", 
                       help=_("Save SEC DTS tag matches CSV file."))
 
-def saveDtsMatchesCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
+def saveDtsMatchesCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "secDtsTagMatchesFile", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
@@ -325,9 +325,9 @@ def saveDtsMatchesCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    'name': 'Validate SEC Tagging',
+    'name': 'Validate US SEC Tagging',
     'version': '0.9',
-    'description': '''SEC Tagging Validation.  Includes non-negative rules.''',
+    'description': '''US SEC Tagging Validation.  Includes non-negative rules.''',
     'license': 'Apache-2',
     'author': 'Ewe S. Gap',
     'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',

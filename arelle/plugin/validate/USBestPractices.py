@@ -30,7 +30,7 @@ ugtDocs = ({"year": 2012,
             },
            )
 
-def setup(val):
+def setup(val, *args, **kwargs):
     if not val.validateLoggingSemantic:  # all checks herein are SEMANTIC
         return
 
@@ -148,7 +148,7 @@ def setup(val):
     val.deprecatedDimensions = defaultdict(list)
     val.deprecatedMembers = defaultdict(list)
 
-def factCheck(val, fact):
+def factCheck(val, fact, *args, **kwargs):
     concept = fact.concept
     context = fact.context
     if concept is None or context is None or not val.validateLoggingSemantic:
@@ -219,7 +219,7 @@ def factCheck(val, fact):
             modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
             value=fact.effectiveValue, err=err)
 
-def final(val, conceptsUsed):
+def final(val, conceptsUsed, *args, **kwargs):
     if not val.validateLoggingSemantic:  # all checks herein are SEMANTIC
         return
     ugtNamespace = val.ugtNamespace
