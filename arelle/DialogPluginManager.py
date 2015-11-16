@@ -13,7 +13,7 @@ try:
     from tkinter.ttk import Treeview, Scrollbar, Frame, Label, Button
 except ImportError:
     from ttk import Treeview, Scrollbar, Frame, Label, Button
-from arelle import PluginManager, DialogURL
+from arelle import PluginManager, DialogURL, DialogOpenArchive
 from arelle.CntlrWinTooltip import ToolTip
 import os, time
 try:
@@ -70,14 +70,17 @@ class DialogPluginManager(Toplevel):
         buttonFrame = Frame(frame, width=40)
         buttonFrame.columnconfigure(0, weight=1)
         addLabel = Label(buttonFrame, text=_("Find plug-in modules:"), wraplength=60, justify="center")
-        addLocalButton = Button(buttonFrame, text=_("Locally"), command=self.findLocally)
-        ToolTip(addLocalButton, text=_("File chooser allows selecting python module files to add (or reload) plug-ins, from the local file system."), wraplength=240)
+        addSelectLocalButton = Button(buttonFrame, text=_("Select"), command=self.selectLocally)
+        ToolTip(addSelectLocalButton, text=_("Select python module files from the local plugin directory."), wraplength=240)
+        addBrowseLocalButton = Button(buttonFrame, text=_("Browse"), command=self.browseLocally)
+        ToolTip(addBrowseLocalButton, text=_("File chooser allows browsing and selecting python module files to add (or reload) plug-ins, from the local file system."), wraplength=240)
         addWebButton = Button(buttonFrame, text=_("On Web"), command=self.findOnWeb)
         ToolTip(addWebButton, text=_("Dialog to enter URL full path to load (or reload) plug-ins, from the web or local file system."), wraplength=240)
         addLabel.grid(row=0, column=0, pady=4)
-        addLocalButton.grid(row=1, column=0, pady=4)
-        addWebButton.grid(row=2, column=0, pady=4)
-        buttonFrame.grid(row=0, column=0, rowspan=2, sticky=(N, S, W), padx=3, pady=3)
+        addSelectLocalButton.grid(row=1, column=0, pady=4)
+        addBrowseLocalButton.grid(row=2, column=0, pady=4)
+        addWebButton.grid(row=3, column=0, pady=4)
+        buttonFrame.grid(row=0, column=0, rowspan=3, sticky=(N, S, W), padx=3, pady=3)
         
         # right tree frame (plugins already known to arelle)
         modulesFrame = Frame(frame, width=720)
@@ -356,8 +359,43 @@ class DialogPluginManager(Toplevel):
             self.moduleEnableButton.config(state=DISABLED, text=self.ENABLE)
             self.moduleReloadButton.config(state=DISABLED)
             self.moduleRemoveButton.config(state=DISABLED)
+
+    def selectLocally(self):
+        choices = [] # list of tuple of (file name, description)
+        def sortOrder(key):
+            return {"EdgarRenderer": "1",
+                    "validate": "2",
+                    "xbrlDB": "3"}.get(key, "4") + key.lower()
+        def selectChoices(dir, indent=""):
+            dirHasEntries = False
+            for f in sorted(os.listdir(dir), key=sortOrder):
+                if f not in (".", "..", "__pycache__", "__init__.py"):
+                    fPath = os.path.join(dir, f)
+                    fPkgInit = os.path.join(fPath, "__init__.py")
+                    dirInsertPoint = len(choices)
+                    moduleInfo = None
+                    if ((os.path.isdir(fPath) and os.path.exists(fPkgInit)) or
+                        ((os.path.isfile(fPath) and f.endswith(".py")))):
+                        moduleInfo = PluginManager.moduleModuleInfo(fPath)
+                        if moduleInfo:
+                            choices.append((indent + f, 
+                                            "name: {}\ndescription: {}\n version {}".format(
+                                                        moduleInfo["name"],
+                                                        moduleInfo["description"],
+                                                        moduleInfo.get("version")), 
+                                            fPath, moduleInfo["name"], moduleInfo.get("version"), moduleInfo["description"]))
+                            dirHasEntries = True
+                    if os.path.isdir(fPath):
+                        if selectChoices(fPath, indent=indent + "   ") and not moduleInfo:
+                            choices.insert(dirInsertPoint, (indent + f,None,None,None,None,None))
+            return dirHasEntries
+        selectChoices(self.cntlr.pluginDir)
+        selectedPath = DialogOpenArchive.selectPlugin(self, choices)
+        if selectedPath:
+            moduleInfo = PluginManager.moduleModuleInfo(selectedPath)
+            self.loadFoundModuleInfo(moduleInfo, selectedPath)
         
-    def findLocally(self):
+    def browseLocally(self):
         initialdir = self.cntlr.pluginDir # default plugin directory
         if not self.cntlr.isMac: # can't navigate within app easily, always start in default directory
             initialdir = self.cntlr.config.setdefault("pluginOpenDir", initialdir)
