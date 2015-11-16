@@ -83,6 +83,10 @@ echo '
            set position of item "Arelle.app" of container window to {150, 70}
            set position of item "startWebServer.command" of container window to {360, 70}
            set position of item "Applications" of container window to {260, 240}
+           set position of item ".background" of container window to {999,999}
+           set position of item ".DS_Store" of container window to {999,999}
+           set position of item ".Trashes" of container window to {999,999}
+           set position of item ".fseventsd" of container window to {999,999}
            close
            open
            update without registering applications
