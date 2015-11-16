@@ -21,7 +21,7 @@ def get_version():
     """
     import imp
 
-    source_dir = 'wfml'
+    source_dir = 'arelle'
 
     with open('{}/_pkg_meta.py'.format(source_dir), 'rb') as fp:
         mod = imp.load_source('_pkg_meta', source_dir, fp)
