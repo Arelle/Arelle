@@ -543,32 +543,31 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         factsForLang = {}
         factForConceptContextUnitLangHash = defaultdict(list)
         keysNotDefaultLang = {}
-        iF1 = 1
         for f1 in modelXbrl.facts:
-            # build keys table for 6.5.14
-            if not f1.isNil:
-                langTestKey = "{0},{1},{2}".format(f1.qname, f1.contextID, f1.unitID)
-                factsForLang.setdefault(langTestKey, []).append(f1)
-                lang = f1.xmlLang
-                if lang and lang != requiredFactLang: # not lang.startswith(factLangStartsWith):
-                    keysNotDefaultLang[langTestKey] = f1
-                    
-                # 6.5.37 test (insignificant digits due to rounding)
-                if f1.isNumeric and f1.decimals and f1.decimals != "INF" and not f1.isNil and getattr(f1,"xValid", 0) == 4:
-                    try:
-                        insignificance = insignificantDigits(f1.xValue, decimals=f1.decimals)
-                        if insignificance: # if not None, returns (truncatedDigits, insiginficantDigits)
+            if f1.context is not None and f1.concept is not None:
+                # build keys table for 6.5.14
+                if not f1.isNil:
+                    langTestKey = "{0},{1},{2}".format(f1.qname, f1.contextID, f1.unitID)
+                    factsForLang.setdefault(langTestKey, []).append(f1)
+                    lang = f1.xmlLang
+                    if lang and lang != requiredFactLang: # not lang.startswith(factLangStartsWith):
+                        keysNotDefaultLang[langTestKey] = f1
+                        
+                    # 6.5.37 test (insignificant digits due to rounding)
+                    if f1.isNumeric and f1.decimals and f1.decimals != "INF" and not f1.isNil and getattr(f1,"xValid", 0) == 4:
+                        try:
+                            insignificance = insignificantDigits(f1.xValue, decimals=f1.decimals)
+                            if insignificance: # if not None, returns (truncatedDigits, insiginficantDigits)
+                                modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
+                                    _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(insignificantDigits)s."),
+                                    modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, 
+                                    value=f1.xValue, truncatedDigits=insignificance[0], insignificantDigits=insignificance[1])
+                        except (ValueError,TypeError):
                             modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
-                                _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(insignificantDigits)s."),
-                                modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, 
-                                value=f1.xValue, truncatedDigits=insignificance[0], insignificantDigits=insignificance[1])
-                    except (ValueError,TypeError):
-                        modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
-                            _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),
-                            modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
-            # 6.5.12 test
-            factForConceptContextUnitLangHash[f1.conceptContextUnitLangHash].append(f1)
-            iF1 += 1
+                                _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),
+                                modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
+                # 6.5.12 test
+                factForConceptContextUnitLangHash[f1.conceptContextUnitLangHash].append(f1)
         # 6.5.12 test
         aspectEqualFacts = defaultdict(list)
         for hashEquivalentFacts in factForConceptContextUnitLangHash.values():
