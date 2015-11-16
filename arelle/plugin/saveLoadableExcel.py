@@ -378,7 +378,7 @@ def saveLoadableExcel(dts, excelFile):
             _("File saving exception: %(error)s"), error=ex,
             modelXbrl=dts)
 
-def saveLoadableExcelMenuEntender(cntlr, menu):
+def saveLoadableExcelMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
     menu.add_command(label="Save Loadable Excel", 
                      underline=0, 
@@ -409,14 +409,14 @@ def saveLoadableExcelMenuCommand(cntlr):
     thread.daemon = True
     thread.start()
     
-def saveLoadableExcelCommandLineOptionExtender(parser):
+def saveLoadableExcelCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
     parser.add_option("--save-loadable-excel", 
                       action="store_true", 
                       dest="saveLoadableExcel", 
                       help=_("Save Loadable Excel file"))
 
-def saveLoadableExcelCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
+def saveLoadableExcelCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
     excelFile = getattr(options, "saveLoadableExcel", None)
     if excelFile:

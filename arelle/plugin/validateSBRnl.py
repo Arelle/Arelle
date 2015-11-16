@@ -3,6 +3,8 @@ Created on Oct 05, 2012
 
 @author: Mark V Systems Limited
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+
+Deprecated Nov 15, 2015.  Use plugin/validate/SBRnl
 '''
 
 from arelle import PluginManager
@@ -18,7 +20,7 @@ except ImportError:
 from lxml import etree
 from collections import defaultdict
 
-def setup(val, modelXbrl):
+def setup(val, modelXbrl, *args, **kwargs):
     cntlr = modelXbrl.modelManager.cntlr
     val.prefixNamespace = {}
     val.namespacePrefix = {}
@@ -35,7 +37,7 @@ def factCheck(val, fact):
     except Exception as err:
 '''
     
-def final(val, conceptsUsed):
+def final(val, conceptsUsed, *args, **kwargs):
     modelXbrl = val.modelXbrl
     # moved from ValidateFiling
     for qname, modelType in modelXbrl.qnameTypes.items():
@@ -160,7 +162,7 @@ def final(val, conceptsUsed):
 
     del val.prefixNamespace, val.namespacePrefix, val.idObjects
 
-def checkDTSdocument(val, modelDocument):
+def checkDTSdocument(val, modelDocument, *args, **kwargs):
     modelXbrl = val.modelXbrl
     if modelDocument.type in (ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE):
         isSchema = modelDocument.type == ModelDocument.Type.SCHEMA
@@ -504,7 +506,7 @@ def checkDTSdocument(val, modelDocument):
                             _("Linkrole MUST start with urn:{NT partner code}:linkrole:, \nexpecting: %(expectedStart)s..., \nfound: %(linkrole)s"),
                             modelObject=modelRoleType, expectedStart=urnPartnerLinkroleStart, linkrole=roleURI)
                         
-def checkForBOMs(modelXbrl, file, mappedUri, filepath):
+def checkForBOMs(modelXbrl, file, mappedUri, filepath, *args, **kwargs):
     # callback is for all opened docs, must only process when SBRNL validation active
     if (modelXbrl.modelManager.validateDisclosureSystem and
         modelXbrl.modelManager.disclosureSystem.SBRNL): 
@@ -518,11 +520,12 @@ def checkForBOMs(modelXbrl, file, mappedUri, filepath):
                     modelObject=modelXbrl, filename=mappedUri)
     return None # must return None for regular document loading to continue    
                 
+''' Deprecated and thus commented out so not recognized as a plugin
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate SBR-NL',
     'version': '0.9',
-    'description': '''SBR-NL Validation.''',
+    'description': "SBR-NL Validation.",
     'license': 'Apache-2',
     'author': 'S. Bee Are',
     'copyright': '(c) Copyright 2012 Mark V Systems Limited, All rights reserved.',
@@ -533,3 +536,4 @@ __pluginInfo__ = {
     'Validate.SBRNL.DTS.document': checkDTSdocument,
     'ModelDocument.CustomLoader': checkForBOMs
 }
+'''

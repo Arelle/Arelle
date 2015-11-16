@@ -45,7 +45,7 @@ def generatedFormulasDirDialog(cntlr):
     cntlr.saveConfig()
     return generatedFormulasDir
 
-def sphinxFilesOpenMenuEntender(cntlr, menu):
+def sphinxFilesOpenMenuEntender(cntlr, menu, *args, **kwargs):
     
     def sphinxFileMenuCommand():
         from arelle import ModelDocument
@@ -85,7 +85,7 @@ def sphinxFilesOpenMenuEntender(cntlr, menu):
                      underline=0, 
                      command=sphinxFileMenuCommand)
 
-def sphinxToLBMenuEntender(cntlr, menu):
+def sphinxToLBMenuEntender(cntlr, menu, *args, **kwargs):
     
     def sphinxToLBMenuCommand():
         import os, sys, traceback
@@ -117,7 +117,7 @@ def sphinxToLBMenuEntender(cntlr, menu):
                      underline=0, 
                      command=sphinxToLBMenuCommand)
 
-def sphinxToLBCommandLineOptionExtender(parser):
+def sphinxToLBCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options to import sphinx files into DTS for validation
     parser.add_option("--import-sphinx", 
                       action="store", 
@@ -138,7 +138,7 @@ def sphinxToLBCommandLineOptionExtender(parser):
                       help=_("Generated XBRL formula linkbases directory.  "
                              "(If absent, formula linkbases save in sphinx files directory.) "))
 
-def sphinxToLBCommandLineUtilityRun(cntlr, options, **kwargs):
+def sphinxToLBCommandLineUtilityRun(cntlr, options, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "sphinxFilesForFormulaLinkbase", None):
         from .FormulaGenerator import generateFormulaLB
@@ -146,7 +146,7 @@ def sphinxToLBCommandLineUtilityRun(cntlr, options, **kwargs):
                           options.sphinxFilesForFormulaLinkbase.split("|"),
                           options.generatedSphinxFormulasDirectory)
 
-def sphinxCommandLineLoader(cntlr, options, modelXbrl, *args):
+def sphinxCommandLineLoader(cntlr, options, modelXbrl, *args, **kwargs):
     # DTS loaded, add in sphinx files if any
     if getattr(options, "sphinxFilesForValidation", None):
         from .SphinxParser import parse
@@ -154,26 +154,26 @@ def sphinxCommandLineLoader(cntlr, options, modelXbrl, *args):
         sphinxProgs = parse(cntlr, modelXbrl.log, options.sphinxFilesForValidation.split('|'))
         modelXbrl.sphinxContext = SphinxContext(sphinxProgs, modelXbrl)
         
-def sphinxValidater(val):
+def sphinxValidater(val, *args, **kwargs):
     if hasattr(val.modelXbrl, "sphinxContext"):
         # sphinx is loaded, last step in validation
         from .SphinxValidator import validate
         validate(val.modelXbrl.log, val.modelXbrl.sphinxContext)
         
-def sphinxTestcaseVariationReadMeFirstUris(modelTestcaseVariation):
+def sphinxTestcaseVariationReadMeFirstUris(modelTestcaseVariation, *args, **kwargs):
     xbrlElement = XmlUtil.descendant(modelTestcaseVariation, 'http://www.corefiling.com/sphinx-conformance-harness/2.0', "xbrl")
     if xbrlElement is not None:
         modelTestcaseVariation._readMeFirstUris.append(xbrlElement.textValue)
         return True # found it
     return False  # not a sphinx test case variation
     
-def sphinxTestcaseVariationExpectedResult(modelTestcaseVariation):
+def sphinxTestcaseVariationExpectedResult(modelTestcaseVariation, *args, **kwargs):
     issueElement = XmlUtil.descendant(modelTestcaseVariation, 'http://www.corefiling.com/sphinx-conformance-harness/2.0', "issue")
     if issueElement is not None:
         return issueElement.get("errorCode")
     return None # no issue or not a sphinx test case variation
     
-def sphinxTestcasesStart(cntlr, options, testcasesModelXbrl):
+def sphinxTestcasesStart(cntlr, options, testcasesModelXbrl, *args, **kwargs):
     if options and getattr(options, "sphinxFilesForValidation", None): # command line mode
         testcasesModelXbrl.sphinxFilesList = options.sphinxFilesForValidation.split('|')
     elif (cntlr.hasGui and
@@ -181,7 +181,7 @@ def sphinxTestcasesStart(cntlr, options, testcasesModelXbrl):
           not hasattr(testcasesModelXbrl, "sphinxFilesList")):
         testcasesModelXbrl.sphinxFilesList = sphinxFilesDialog(cntlr)
 
-def sphinxTestcaseVariationXbrlLoaded(testcasesModelXbrl, instanceModelXbrl):
+def sphinxTestcaseVariationXbrlLoaded(testcasesModelXbrl, instanceModelXbrl, *args, **kwargs):
     # variation has been loaded, may need sphinx rules loaded if interactive
     try:
         sphinxFilesList = testcasesModelXbrl.sphinxFilesList
@@ -194,13 +194,13 @@ def sphinxTestcaseVariationXbrlLoaded(testcasesModelXbrl, instanceModelXbrl):
         pass # no sphinx
                 
     
-def sphinxTestcaseVariationExpectedSeverity(modelTestcaseVariation):
+def sphinxTestcaseVariationExpectedSeverity(modelTestcaseVariation, *args, **kwargs):
     issueElement = XmlUtil.descendant(modelTestcaseVariation, 'http://www.corefiling.com/sphinx-conformance-harness/2.0', "issue")
     if issueElement is not None:
         return issueElement.get("severity")
     return None # no issue or not a sphinx test case variation
     
-def sphinxDialogRssWatchFileChoices(dialog, frame, row, options, cntlr, openFileImage, openDatabaseImage):
+def sphinxDialogRssWatchFileChoices(dialog, frame, row, options, cntlr, openFileImage, openDatabaseImage, *args, **kwargs):
     from tkinter import PhotoImage, N, S, E, W
     try:
         from tkinter.ttk import Button
@@ -230,7 +230,7 @@ def sphinxDialogRssWatchFileChoices(dialog, frame, row, options, cntlr, openFile
     chooseFormulaFileButton = Button(frame, image=openFileImage, width=12, command=chooseSphinxFiles)
     chooseFormulaFileButton.grid(row=row, column=3, sticky=W)
     
-def sphinxDialogRssWatchValidateChoices(dialog, frame, row, options, cntlr):
+def sphinxDialogRssWatchValidateChoices(dialog, frame, row, *args, **kwargs):
     from arelle.UiUtil import checkbox
     dialog.checkboxes += (
        checkbox(frame, 2, row, 
@@ -238,10 +238,10 @@ def sphinxDialogRssWatchValidateChoices(dialog, frame, row, options, cntlr):
                 "validateSphinxRules"),
     )
     
-def sphinxRssWatchHasWatchAction(rssWatchOptions):
+def sphinxRssWatchHasWatchAction(rssWatchOptions, *args, **kwargs):
     return rssWatchOptions.get("sphinxRulesFiles") and rssWatchOptions.get("validateSphinxRules")
     
-def sphinxRssDoWatchAction(modelXbrl, rssWatchOptions, rssItem):
+def sphinxRssDoWatchAction(modelXbrl, rssWatchOptions, rssItem, *args, **kwargs):
     sphinxFiles = rssWatchOptions.get("sphinxRulesFiles")
     if sphinxFiles:
         from .SphinxParser import parse

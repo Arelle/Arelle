@@ -21,14 +21,14 @@ integerItemTypes = {"integerItemType", "nonPositiveIntegerItemType", "negativeIn
                     "nonNegativeIntegerItemType", "unsignedLongItemType", "unsignedIntItemType",
                     "unsignedShortItemType", "unsignedByteItemType", "positiveIntegerItemType"}
 
-def dislosureSystemTypes(disclosureSystem):
+def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
     return (("HMRC", "HMRCplugin"),)
 
-def disclosureSystemConfigURL(disclosureSystem):
+def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
     return os.path.join(os.path.dirname(__file__), "config.xml")
 
-def validateXbrlStart(val, parameters=None):
+def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateHMRCplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "HMRCplugin", False)
     if not (val.validateHMRCplugin):
         return
@@ -46,7 +46,7 @@ def validateXbrlStart(val, parameters=None):
             val.isAccounts = paramType == "accounts"
             val.isComputation = paramType == "computation"
 
-def validateXbrlFinally(val):
+def validateXbrlFinally(val, *args, **kwargs):
     if not (val.validateHMRCplugin):
         return
 

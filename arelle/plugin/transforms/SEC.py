@@ -101,7 +101,7 @@ def numnan(arg):
     return "NaN"
 
     
-def loadSECtransforms(customTransforms):
+def loadSECtransforms(customTransforms, *args, **kwargs):
     ixtSEC = "http://www.sec.gov/inlineXBRL/transformation/2015-08-31"
     customTransforms.update({
         qname(ixtSEC, "ixt-sec:duryear"): duryear,

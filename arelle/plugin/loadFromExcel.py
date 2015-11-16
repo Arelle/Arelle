@@ -622,7 +622,7 @@ def loadFromExcel(cntlr, excelFile):
     
     return dts
 
-def modelManagerLoad(modelManager, fileSource):
+def modelManagerLoad(modelManager, fileSource, *args, **kwargs):
     # check if an excel file
     try:
         filename = fileSource.url # if a string has no url attribute
@@ -637,7 +637,7 @@ def modelManagerLoad(modelManager, fileSource):
     dts.loadedFromExcel = True
     return dts
 
-def guiXbrlLoaded(cntlr, modelXbrl, attach):
+def guiXbrlLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
     if cntlr.hasGui and getattr(modelXbrl, "loadedFromExcel", False):
         from arelle import ModelDocument
         from tkinter.filedialog import askdirectory
@@ -658,7 +658,7 @@ def guiXbrlLoaded(cntlr, modelXbrl, attach):
                 if lbDoc.inDTS and lbDoc.type == ModelDocument.Type.LINKBASE:
                     lbDoc.save(saveToFile(lbDoc.uri))
 
-def cmdLineXbrlLoaded(cntlr, options, modelXbrl, *args):
+def cmdLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
     if options.saveExcelDTSdirectory and getattr(modelXbrl, "loadedFromExcel", False):
         from arelle import ModelDocument
         def saveToFile(url):
@@ -672,7 +672,7 @@ def cmdLineXbrlLoaded(cntlr, options, modelXbrl, *args):
             if lbDoc.inDTS and lbDoc.type == ModelDocument.Type.LINKBASE:
                 lbDoc.save(saveToFile(lbDoc.uri))
 
-def excelLoaderOptionExtender(parser):
+def excelLoaderOptionExtender(parser, *args, **kwargs):
     parser.add_option("--save-Excel-DTS-directory", 
                       action="store", 
                       dest="saveExcelDTSdirectory", 

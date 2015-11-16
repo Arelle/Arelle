@@ -26,7 +26,7 @@ def measureFormat(measure):
         return measure.localName
     return str(measure)  # qname str
 
-def loggingMessageParameters(messageCode, msgIn, modelObjectArgs, fmtArgs):
+def loggingMessageParameters(messageCode, msgIn, modelObjectArgs, fmtArgs, *args, **kwargs):
     if messageCode and messageCode.startswith("DQC"):
         # change ${...} in message into %(...)s
         msg = altParametersPattern.sub(r"%(\1)s", msgIn)
@@ -184,18 +184,18 @@ def loggingMessageParameters(messageCode, msgIn, modelObjectArgs, fmtArgs):
         return msg
     return None       
 
-def loggingCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
+def loggingCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     global labelrole, lang
     labelrole=options.labelRole
     lang=options.labelLang
 
-def testcaseVariationExpectedSeverity(modelTestcaseVariation):
+def testcaseVariationExpectedSeverity(modelTestcaseVariation, *args, **kwargs):
     _severity = descendantAttr(modelTestcaseVariation, None, "error", "severity")
     if _severity is not None:
         return _severity.upper()
     return None
 
-def testcaseVariationExpectedCount(modelTestcaseVariation):
+def testcaseVariationExpectedCount(modelTestcaseVariation, *args, **kwargs):
     try:
         return int(descendantAttr(modelTestcaseVariation, None, "error", "count"))
     except (ValueError, TypeError):

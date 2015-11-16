@@ -20,7 +20,7 @@ def metDimTypedKey(fact):
                                     for dim in cntx.qnameDims.values()))
     return key
 
-def loggingRefAttributes(arg, refAttributes, codedArgs):
+def loggingRefAttributes(arg, refAttributes, codedArgs, *args, **kwargs):
     # arg may be a ModelFact, or any other ModelObject
     if isinstance(arg, ModelFact):
         refAttributes["dpmSignature"] = metDimTypedKey(arg)

@@ -6,7 +6,7 @@ Created on Oct 05, 2012
 '''
 import re
 
-def checkForBOMs(modelXbrl, file, mappedUri, filepath):
+def checkForBOMs(modelXbrl, file, mappedUri, filepath, *args, **kwargs):
     # callback is for all opened docs, must only process when SBRNL validation active
     if (modelXbrl.modelManager.validateDisclosureSystem and
         # corrected merge of pre-plugin code per LOGIUS

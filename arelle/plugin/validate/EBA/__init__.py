@@ -33,15 +33,15 @@ integerItemTypes = {"integerItemType", "nonPositiveIntegerItemType", "negativeIn
 schemaRefDatePattern = re.compile(r".*/([0-9]{4}-[01][0-9]-[0-3][0-9])/mod.*")
 
 
-def dislosureSystemTypes(disclosureSystem):
+def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
     return (("EBA", "EBA"),
             ("EIOPA", "EIOPA"))
 
-def disclosureSystemConfigURL(disclosureSystem):
+def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
     return os.path.join(os.path.dirname(__file__), "config.xml")
 
-def validateSetup(val, parameters=None):
+def validateSetup(val, parameters=None, *args, **kwargs):
     val.validateEBA = val.validateDisclosureSystem and getattr(val.disclosureSystem, "EBA", False)
     val.validateEIOPA = val.validateDisclosureSystem and getattr(val.disclosureSystem, "EIOPA", False)
     if not (val.validateEBA or val.validateEIOPA):
@@ -90,7 +90,7 @@ def validateSetup(val, parameters=None):
     val.firstFact = None
     val.footnotesRelationshipSet = ModelRelationshipSet(val.modelXbrl, "XBRL-footnotes")
 
-def validateStreamingFacts(val, factsToCheck):
+def validateStreamingFacts(val, factsToCheck, *args, **kwargs):
     if not (val.validateEBA or val.validateEIOPA):
         return True
     validateFacts(val, factsToCheck)
@@ -397,12 +397,12 @@ def validateFacts(val, factsToCheck):
                         val.namespacePrefixesUsed[_NS].add(_prefix)
                         val.prefixesUnused.discard(_prefix)
                    
-def validateNonStreamingFinish(val):
+def validateNonStreamingFinish(val, *args, **kwargs):
     # non-streaming EBA checks, ignore when streaming (first all from ValidateXbrl.py)
     if not getattr(val.modelXbrl, "isStreamingMode", False):
         final(val)
         
-def validateStreamingFinish(val):
+def validateStreamingFinish(val, *args, **kwargs):
     final(val)  # always finish validation when streaming
     
 def final(val):

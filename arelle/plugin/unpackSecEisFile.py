@@ -24,7 +24,7 @@ def unpackEIS(cntlr, eisFile, unpackToDir):
                 
     cntlr.addToLog("[info:unpackEIS] Unpacked files " + ', '.join(unpackedFiles))
 
-def unpackSecEisMenuEntender(cntlr, menu):
+def unpackSecEisMenuEntender(cntlr, menu, *args, **kwargs):
     def askUnpackDirectory():
         eisFile = cntlr.uiFileDialog("open",
                                      title=_("arelle - Open SEC EIS file"),

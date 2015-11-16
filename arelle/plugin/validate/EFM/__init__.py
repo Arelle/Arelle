@@ -49,14 +49,14 @@ except ImportError:
 from collections import defaultdict
 
 
-def dislosureSystemTypes(disclosureSystem):
+def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
     return (("EFM", "EFMplugin"),)
 
-def disclosureSystemConfigURL(disclosureSystem):
+def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
     return os.path.join(os.path.dirname(__file__), "config.xml")
 
-def validateXbrlStart(val, parameters=None):
+def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateEFMplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "EFMplugin", False)
     if not (val.validateEFMplugin):
         return
@@ -143,7 +143,7 @@ def validateXbrlStart(val, parameters=None):
         efmFiling.submissionType = val.paramSubmissionType
 
 
-def validateXbrlFinally(val):
+def validateXbrlFinally(val, *args, **kwargs):
     if not (val.validateEFMplugin):
         return
 
@@ -158,13 +158,13 @@ def validateXbrlFinally(val):
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
     
-def validateXbrlDtsDocument(val, modelDocument, isFilingDocument):
+def validateXbrlDtsDocument(val, modelDocument, isFilingDocument, *args, **kwargs):
     if not (val.validateEFMplugin):
         return
 
     checkDTSdocument(val, modelDocument, isFilingDocument)
     
-def filingStart(cntlr, options, filesource, entrypointFiles, sourceZipStream=None, responseZipStream=None):
+def filingStart(cntlr, options, filesource, entrypointFiles, sourceZipStream=None, responseZipStream=None, *args, **kwargs):
     modelManager = cntlr.modelManager
     # cntlr.addToLog("TRACE EFM filing start val={} plugin={}".format(modelManager.validateDisclosureSystem, getattr(modelManager.disclosureSystem, "EFMplugin", False)))
     if modelManager.validateDisclosureSystem and getattr(modelManager.disclosureSystem, "EFMplugin", False):
@@ -180,7 +180,7 @@ def guiTestcasesStart(cntlr, modelXbrl, *args, **kwargs):
          modelManager.validateDisclosureSystem and getattr(modelManager.disclosureSystem, "EFMplugin", False)):
         modelManager.efmFiling = Filing(cntlr)
             
-def testcasesStart(cntlr, options, modelXbrl):
+def testcasesStart(cntlr, options, modelXbrl, *args, **kwargs):
     # a test or RSS cases run is starting, in which case testcaseVariation... events have unique efmFilings
     modelManager = cntlr.modelManager
     if (hasattr(modelManager, "efmFiling") and
@@ -191,7 +191,7 @@ def testcasesStart(cntlr, options, modelXbrl):
         if not hasattr(modelXbrl, "efmOptions") and options: # may have already been set by EdgarRenderer in gui startup
             modelXbrl.efmOptions = options  # save options in testcase's modelXbrl
                
-def xbrlLoaded(cntlr, options, modelXbrl, entryPoint, *args):
+def xbrlLoaded(cntlr, options, modelXbrl, entryPoint, *args, **kwargs):
     # cntlr.addToLog("TRACE EFM xbrl loaded")
     modelManager = cntlr.modelManager
     if hasattr(modelManager, "efmFiling"):
@@ -208,7 +208,7 @@ def xbrlLoaded(cntlr, options, modelXbrl, entryPoint, *args):
         elif modelXbrl.modelDocument.type == ModelDocument.Type.RSSFEED:
             testcasesStart(cntlr, options, modelXbrl)
 
-def xbrlRun(cntlr, options, modelXbrl, *args):
+def xbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # cntlr.addToLog("TRACE EFM xbrl run")
     modelManager = cntlr.modelManager
     if (hasattr(modelManager, "efmFiling") and
@@ -220,7 +220,7 @@ def xbrlRun(cntlr, options, modelXbrl, *args):
             for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Xbrl.Run"):
                 pluginXbrlMethod(cntlr, options, modelXbrl, modelManager.efmFiling, _report)
 
-def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=None, responseZipStream=None):
+def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=None, responseZipStream=None, *args, **kwargs):
     # cntlr.addToLog("TRACE EFM xbrl validate")
     modelManager = cntlr.modelManager
     if hasattr(modelManager, "efmFiling"):
@@ -292,7 +292,7 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
                                 {"exhibitType": _exhibitType},
                                 [r.url for r in _exhibitReports])
         
-def roleTypeName(modelXbrl, roleURI):
+def roleTypeName(modelXbrl, roleURI, *args, **kwargs):
     modelManager = modelXbrl.modelManager
     if hasattr(modelManager, "efmFiling"):
         modelRoles = modelXbrl.roleTypes.get(roleURI, ())
@@ -301,7 +301,7 @@ def roleTypeName(modelXbrl, roleURI):
         return roleURI
     return None
     
-def filingEnd(cntlr, options, filesource, entrypointFiles, sourceZipStream=None, responseZipStream=None):
+def filingEnd(cntlr, options, filesource, entrypointFiles, sourceZipStream=None, responseZipStream=None, *args, **kwargs):
     #cntlr.addToLog("TRACE EFM filing end")
     modelManager = cntlr.modelManager
     if hasattr(modelManager, "efmFiling"):
@@ -316,17 +316,17 @@ def filingEnd(cntlr, options, filesource, entrypointFiles, sourceZipStream=None,
         del modelManager.efmFiling
         #cntlr.addToLog("TRACE EFN filing end complete")
         
-def rssItemXbrlLoaded(modelXbrl, rssWatchOptions, rssItem):
+def rssItemXbrlLoaded(modelXbrl, rssWatchOptions, rssItem, *args, **kwargs):
     # Validate of RSS feed item (simulates filing & cmd line load events
     if hasattr(rssItem.modelXbrl, "efmOptions"):
         testcaseVariationXbrlLoaded(rssItem.modelXbrl, modelXbrl)
     
-def rssItemValidated(val, modelXbrl, rssItem):
+def rssItemValidated(val, modelXbrl, rssItem, *args, **kwargs):
     # After validate of RSS feed item (simulates report and end of filing events)
     if hasattr(rssItem.modelXbrl, "efmOptions"):
         testcaseVariationValidated(rssItem.modelXbrl, modelXbrl)
         
-def testcaseVariationXbrlLoaded(testcaseModelXbrl, instanceModelXbrl, modelTestcaseVariation):
+def testcaseVariationXbrlLoaded(testcaseModelXbrl, instanceModelXbrl, modelTestcaseVariation, *args, **kwargs):
     # Validate of RSS feed item or testcase variation (simulates filing & cmd line load events
     modelManager = instanceModelXbrl.modelManager
     if (hasattr(testcaseModelXbrl, "efmOptions") and 
@@ -351,7 +351,7 @@ def testcaseVariationXbrlLoaded(testcaseModelXbrl, instanceModelXbrl, modelTestc
                     _report.entryPoint["exhibitType"] = _report.exhibitType = _instanceElt.get("exhibitType")
                 break
     
-def testcaseVariationXbrlValidated(testcaseModelXbrl, instanceModelXbrl): 
+def testcaseVariationXbrlValidated(testcaseModelXbrl, instanceModelXbrl, *args, **kwargs): 
     modelManager = instanceModelXbrl.modelManager
     if (hasattr(modelManager, "efmFiling") and 
         (instanceModelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or 
@@ -361,7 +361,7 @@ def testcaseVariationXbrlValidated(testcaseModelXbrl, instanceModelXbrl):
         for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Xbrl.Run"):
             pluginXbrlMethod(modelManager.cntlr, efmFiling.options, instanceModelXbrl, efmFiling, _report)
 
-def testcaseVariationValidated(testcaseModelXbrl, instanceModelXbrl, errors=None): 
+def testcaseVariationValidated(testcaseModelXbrl, instanceModelXbrl, errors=None, *args, **kwargs): 
     modelManager = instanceModelXbrl.modelManager
     if (hasattr(modelManager, "efmFiling") and 
         (instanceModelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or 
@@ -538,7 +538,7 @@ class Report:
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EFM',
-    'version': '1.0.0.32',
+    'version': '1.1.35', # SEC EFM version 35
     'description': '''EFM Validation.''',
     'license': 'Apache-2',
     'author': 'Mark V Systems',

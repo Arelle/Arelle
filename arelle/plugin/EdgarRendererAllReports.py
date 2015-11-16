@@ -26,13 +26,13 @@ import os
 from lxml import etree
 from lxml.etree import tostring as treeToString
 
-def edgarRendererFilingStartSupplement(cntlr, options, entrypointFiles, filing):
+def edgarRendererFilingStartSupplement(cntlr, options, entrypointFiles, filing, *args, **kwargs):
     edgarRenderer = filing.edgarRenderer
     edgarRenderer.reportFormat = 'Html' # override report format to force only xml file output
     edgarRenderer.reportXslt = os.path.join(edgarRenderer.resourcesFolder,'InstanceReportTable.xslt')
     edgarRenderer.summaryXslt = '' # no FilingSummary.htm
 
-def edgarRendererFilingEndSupplement(cntlr, options, filing):
+def edgarRendererFilingEndSupplement(cntlr, options, filing, *args, **kwargs):
     edgarRenderer = filing.edgarRenderer
     
     # obtain R files from 

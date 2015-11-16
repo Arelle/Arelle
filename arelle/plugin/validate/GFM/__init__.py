@@ -10,19 +10,19 @@ from arelle.ModelValue import qname
 from arelle.plugin.validate.EFM.Document import checkDTSdocument
 from arelle.plugin.validate.EFM.Filing import validateFiling
 
-def dislosureSystemTypes(disclosureSystem):
+def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
     return (("GFM", "GFMplugin"),)
 
-def disclosureSystemConfigURL(disclosureSystem):
+def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
     return os.path.join(os.path.dirname(__file__), "config.xml")
 
-def validateXbrlStart(val, parameters=None):
+def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateGFMplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "GFMplugin", False)
     if not (val.validateGFMplugin):
         return
 
-def validateXbrlFinally(val):
+def validateXbrlFinally(val, *args, **kwargs):
     if not (val.validateGFMplugin):
         return
 
@@ -37,7 +37,7 @@ def validateXbrlFinally(val):
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
 
-def validateXbrlDtsDocument(val, modelDocument, isFilingDocument):
+def validateXbrlDtsDocument(val, modelDocument, isFilingDocument, *args, **kwargs):
     if not (val.validateGFMplugin):
         return
 

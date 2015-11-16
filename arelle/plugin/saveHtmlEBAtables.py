@@ -198,7 +198,7 @@ table {background:#fff}
             modelXbrl=dts,
             exc_info=True)
 
-def saveHtmlEbaTablesMenuEntender(cntlr, menu):
+def saveHtmlEbaTablesMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the save infoset plugin
     menu.add_command(label="Save HTML EBA Tables", 
                      underline=0, 
@@ -231,20 +231,20 @@ def saveHtmlEbaTablesMenuCommand(cntlr):
     thread.daemon = True
     thread.start()
 
-def saveHtmlEbaTablesCommandLineOptionExtender(parser):
+def saveHtmlEbaTablesCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
     parser.add_option("--save-EBA-tablesets", 
                       action="store", 
                       dest="ebaTablesetIndexFile", 
                       help=_("Save HTML EBA Tablesets index file, with tablest HTML files to out directory specify 'generateOutFiles'."))
 
-def saveHtmlEbaTablesCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args):
+def saveHtmlEbaTablesCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
     from arelle.ModelDocument import Type
     if getattr(options, "ebaTablesetIndexFile", None) and options.ebaTablesetIndexFile == "generateEBAFiles" and modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.TESTCASE):
         cntlr.modelManager.generateEBAFiles = True
 
-def saveHtmlEbaTablesCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
+def saveHtmlEbaTablesCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "ebaTablesetIndexFile", None) and options.ebaTablesetIndexFile != "generateEBAFiles":
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:

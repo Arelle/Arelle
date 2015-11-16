@@ -61,7 +61,7 @@ def precedingComment(elt):
         c = c.getprevious()
     return comment or None
 
-def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
+def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     # check if big instance and has header with an initial incomplete tree walk (just 2 elements
     if not _streamingExtensionsCheck:
         return None
@@ -215,11 +215,11 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, **kwargs):
         incompatibleValidations = []
         _validateDisclosureSystem = modelXbrl.modelManager.validateDisclosureSystem
         _disclosureSystem = modelXbrl.modelManager.disclosureSystem
-        if _validateDisclosureSystem and _disclosureSystem.EFM:
+        if _validateDisclosureSystem and _disclosureSystem.validationType == "EFM":
             incompatibleValidations.append("EFM")
-        if _validateDisclosureSystem and _disclosureSystem.GFM:
+        if _validateDisclosureSystem and _disclosureSystem.validationType == "GFM":
             incompatibleValidations.append("GFM")
-        if _validateDisclosureSystem and _disclosureSystem.HMRC:
+        if _validateDisclosureSystem and _disclosureSystem.validationType == "HMRC":
             incompatibleValidations.append("HMRC")
         if modelXbrl.modelManager.validateCalcLB:
             incompatibleValidations.append("calculation LB")
@@ -821,13 +821,13 @@ def streamingOptionsExtender(parser):
                       help=_('Check streamability of instance document."'))
 '''
 
-def streamingExtensionsSetup(cntlr, options, **kwargs):
+def streamingExtensionsSetup(cntlr, options, *args, **kwargs):
     global _streamingExtensionsCheck, _streamingExtensionsValidate
     # streaming only checked in CmdLine/web server mode if requested
     # _streamingExtensionsCheck = getattr(options, 'check_streaming', False)
     _streamingExtensionsValidate = options.validate
 
-def streamingExtensionsIsValidated(modelXbrl):
+def streamingExtensionsIsValidated(modelXbrl, *args, **kwargs):
     return getattr(modelXbrl, "_streamingExtensionValidated", False)
 
 '''

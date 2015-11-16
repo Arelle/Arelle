@@ -163,7 +163,7 @@ def generateSkos(dts, skosFile):
             modelXbrl=dts,
             exc_info=True)
 
-def saveSkosMenuEntender(cntlr, menu):
+def saveSkosMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
     menu.add_command(label="Save SKOS RDF", 
                      underline=0, 
@@ -195,14 +195,14 @@ def saveSkosMenuCommand(cntlr):
     thread.daemon = True
     thread.start()
 
-def saveSkosCommandLineOptionExtender(parser):
+def saveSkosCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
     parser.add_option("--save-skos", 
                       action="store", 
                       dest="skosFile", 
                       help=_("Save SKOS semantic definition in specified RDF file."))
 
-def saveSkosCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
+def saveSkosCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "skosFile", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
