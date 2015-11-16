@@ -508,8 +508,9 @@ class Report:
             if elt.tag in ("a", "img", "{http://www.w3.org/1999/xhtml}a", "{http://www.w3.org/1999/xhtml}img"):
                 for attrTag, attrValue in elt.items():
                     if attrTag in ("href", "src") and not isHttpUrl(attrValue) and not os.path.isabs(attrValue):
+                        attrValue = os.path.normpath(attrValue) # may have MSDOS separators on unix of vice versa
                         file = os.path.join(sourceDir,attrValue)
-                        if modelXbrl.fileSource.isInArchive(file) or os.path.exists(file):
+                        if modelXbrl.fileSource.isInArchive(file, checkExistence=True) or os.path.exists(file):
                             self.reportedFiles.add(attrValue) # add file name within source directory
         for fact in modelXbrl.facts:
             if fact.concept is not None and fact.isItem and fact.concept.isTextBlock:

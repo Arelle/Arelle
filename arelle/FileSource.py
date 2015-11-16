@@ -331,8 +331,14 @@ class FileSource:
             return [_metaInfTxPkg]  # standard package
         return [f for f in (self.dir or []) if os.path.split(f)[-1] in TAXONOMY_PACKAGE_FILE_NAMES]
     
-    def isInArchive(self,filepath):
-        return self.fileSourceContainingFilepath(filepath) is not None
+    def isInArchive(self,filepath, checkExistence=False):
+        archiveFileSource = self.fileSourceContainingFilepath(filepath)
+        if archiveFileSource is None:
+            return False
+        if checkExistence:
+            archiveFileName = filepath[len(archiveFileSource.basefile) + 1:].replace("\\", "/") # must be / file separators
+            return archiveFileName in archiveFileSource.dir
+        return True # True only means that the filepath maps into the archive, not that the file is really there
     
     def isMappedUrl(self, url):
         if self.mappedPaths is not None:
