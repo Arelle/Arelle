@@ -201,7 +201,14 @@ class CntlrWinMain (Cntlr.Cntlr):
         for pluginMenuExtender in pluginClassMethods("CntlrWinMain.Menu.Tools"):
             pluginMenuExtender(self, toolsMenu)
         self.menubar.add_cascade(label=_("Tools"), menu=toolsMenu, underline=0)
-
+        
+        # view menu only if any plug-in additions provided
+        if any (pluginClassMethods("CntlrWinMain.Menu.View")):
+            viewMenu = Menu(self.menubar, tearoff=0)
+            for pluginMenuExtender in pluginClassMethods("CntlrWinMain.Menu.View"):
+                pluginMenuExtender(self, viewMenu)
+            self.menubar.add_cascade(label=_("View"), menu=viewMenu, underline=0)
+            
         helpMenu = Menu(self.menubar, tearoff=0)
         for label, command, shortcut_text, shortcut in (
                 (_("Check for updates"), lambda: Updater.checkForUpdates(self), None, None),
@@ -645,7 +652,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             # check for archive files
             filesource = openFileSource(filename, self,
                                         checkIfXmlIsEis=self.modelManager.disclosureSystem and
-                                        self.modelManager.disclosureSystem.EFM)
+                                        self.modelManager.disclosureSystem.validationType == "EFM")
             if filesource.isArchive and not filesource.selection: # or filesource.isRss:
                 from arelle import DialogOpenArchive
                 filename = DialogOpenArchive.askArchiveFile(self, filesource)
