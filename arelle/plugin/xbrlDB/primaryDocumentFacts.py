@@ -55,7 +55,7 @@ assetsPattern = re.compile(r"assets(\W|$)", re.IGNORECASE + re.MULTILINE)
 def loadPrimaryDocumentFacts(dts, rssItem, entityInformation):
     # identify tables
     disclosureSystem = dts.modelManager.disclosureSystem
-    if not disclosureSystem.EFM:
+    if disclosureSystem.validationType != "EFM":
         return
     if rssItem is not None:
         formType = rssItem.formType

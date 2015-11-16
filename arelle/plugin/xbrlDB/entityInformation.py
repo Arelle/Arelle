@@ -26,7 +26,7 @@ def loadEntityInformation(dts, rssItem):
     entityInformation = {}
     # identify tables
     disclosureSystem = dts.modelManager.disclosureSystem
-    if disclosureSystem.EFM:
+    if disclosureSystem.validationType == "EFM":
         reloadCache = False
         if rssItem is not None:
             accession = rssItem.url.split('/')[-2]
