@@ -35,9 +35,9 @@ class Validate:
     def __init__(self, modelXbrl):
         self.modelXbrl = modelXbrl
         if modelXbrl.modelManager.validateDisclosureSystem:
-            if modelXbrl.modelManager.disclosureSystem.HMRC:
+            if modelXbrl.modelManager.disclosureSystem.HMRC: # deprecated non-plugin validator
                 self.instValidator = ValidateHmrc.ValidateHmrc(modelXbrl)
-            elif modelXbrl.modelManager.disclosureSystem.EFMorGFM or modelXbrl.modelManager.disclosureSystem.SBRNL:
+            elif modelXbrl.modelManager.disclosureSystem.EFMorGFM or modelXbrl.modelManager.disclosureSystem.SBRNL: # deprecated non-plugin validator
                 self.instValidator = ValidateFiling.ValidateFiling(modelXbrl)
             else: # custom validator, probably a plug-in
                 self.instValidator = ValidateXbrl.ValidateXbrl(modelXbrl)

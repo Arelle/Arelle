@@ -120,7 +120,7 @@ HMRCtableCodes = [
 def evaluateRoleTypesTableCodes(modelXbrl):
     disclosureSystem = modelXbrl.modelManager.disclosureSystem
     
-    if disclosureSystem.EFM or disclosureSystem.HMRC:
+    if disclosureSystem.validationType in ("EFM", "HMRC"):
         detectMultipleOfCode = False
         if disclosureSystem.EFM:
             tableCodes = list( EFMtableCodes ) # separate copy of list so entries can be deleted
@@ -129,7 +129,7 @@ def evaluateRoleTypesTableCodes(modelXbrl):
                                        for docTypeConcept in modelXbrl.nameConcepts.get('DocumentType', ())
                                        for docTypeFact in modelXbrl.factsByQname.get(docTypeConcept.qname, ())
                                        for v in (docTypeFact.value,))
-        elif disclosureSystem.HMRC:
+        elif disclosureSystem.validationType == "HMRC":
             tableCodes = list( HMRCtableCodes ) # separate copy of list so entries can be deleted
  
         codeRoleURI = {}  # lookup by code for roleURI
@@ -167,7 +167,7 @@ def evaluateRoleTypesTableCodes(modelXbrl):
 
 def evaluateTableIndex(modelXbrl):
     disclosureSystem = modelXbrl.modelManager.disclosureSystem
-    if disclosureSystem.EFM:
+    if disclosureSystem.validationType == "EFM":
         COVER    = "1Cover"
         STMTS    = "2Financial Statements"
         NOTES    = "3Notes to Financial Statements"

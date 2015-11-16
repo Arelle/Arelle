@@ -60,7 +60,7 @@ class ValidateXbrl:
         self.modelXbrl = modelXbrl
         self.validateDisclosureSystem = modelXbrl.modelManager.validateDisclosureSystem
         self.disclosureSystem = modelXbrl.modelManager.disclosureSystem
-        self.validateEFM = self.validateDisclosureSystem and self.disclosureSystem.EFM
+        self.validateEFM = self.validateDisclosureSystem and self.disclosureSystem.EFM  # deprecated non-plugin validators
         self.validateGFM = self.validateDisclosureSystem and self.disclosureSystem.GFM
         self.validateEFMorGFM = self.validateDisclosureSystem and self.disclosureSystem.EFMorGFM
         self.validateHMRC = self.validateDisclosureSystem and self.disclosureSystem.HMRC
