@@ -679,6 +679,7 @@ class LogToXmlHandler(LogHandlerWithXml):
                 with open(self.filename, self.filemode, encoding='utf-8') as fh:
                     for logRec in self.logRecordBuffer:
                         fh.write(self.format(logRec) + "\n")
+        self.clearLogBuffer()
                 
     def clearLogBuffer(self):
         del self.logRecordBuffer[:]

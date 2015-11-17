@@ -375,6 +375,8 @@ def testcaseVariationValidated(testcaseModelXbrl, instanceModelXbrl, errors=None
             errors.extend(efmFiling.errors)
         # simulate filingEnd
         filingEnd(modelManager.cntlr, efmFiling.options, modelManager.filesource, [])
+        # flush logfile (assumed to be buffered, empty the buffer for next filing)
+        testcaseModelXbrl.modelManager.cntlr.logHandler.flush()
     
 class Filing:
     def __init__(self, cntlr, options=None, filesource=None, entrypointfiles=None, sourceZipStream=None, responseZipStream=None, errorCaptureLevel=None):
@@ -393,7 +395,12 @@ class Filing:
         else:
             try: #zipOutputFile only present with EdgarRenderer plugin options
                 if options and options.zipOutputFile:
-                    self.reportZip = zipfile.ZipFile(options.zipOutputFile, 'w', zipfile.ZIP_DEFLATED, True)
+                    if not os.path.isabs(options.zipOutputFile):
+                        zipOutDir = os.path.dirname(filesource.basefile)
+                        zipOutFile = os.path.join(zipOutDir,options.zipOutputFile)
+                    else:
+                        zipOutFile = options.zipOutputFile
+                    self.reportZip = zipfile.ZipFile(zipOutFile, 'w', zipfile.ZIP_DEFLATED, True)
             except AttributeError:
                 self.reportZip = None
         self.errorCaptureLevel = errorCaptureLevel or logging._checkLevel("INCONSISTENCY")
@@ -508,10 +515,12 @@ class Report:
             if elt.tag in ("a", "img", "{http://www.w3.org/1999/xhtml}a", "{http://www.w3.org/1999/xhtml}img"):
                 for attrTag, attrValue in elt.items():
                     if attrTag in ("href", "src") and not isHttpUrl(attrValue) and not os.path.isabs(attrValue):
-                        attrValue = os.path.normpath(attrValue) # may have MSDOS separators on unix of vice versa
-                        file = os.path.join(sourceDir,attrValue)
-                        if modelXbrl.fileSource.isInArchive(file, checkExistence=True) or os.path.exists(file):
-                            self.reportedFiles.add(attrValue) # add file name within source directory
+                        attrValue = attrValue.partition('#')[0] # remove anchor
+                        if attrValue: # ignore anchor references to base document
+                            attrValue = os.path.normpath(attrValue) # change url path separators to host separators
+                            file = os.path.join(sourceDir,attrValue)
+                            if modelXbrl.fileSource.isInArchive(file, checkExistence=True) or os.path.exists(file):
+                                self.reportedFiles.add(attrValue) # add file name within source directory
         for fact in modelXbrl.facts:
             if fact.concept is not None and fact.isItem and fact.concept.isTextBlock:
                 # check for img and other filing references so that referenced files are included in the zip.
