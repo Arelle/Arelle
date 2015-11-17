@@ -4,7 +4,7 @@ Created on Oct 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import zipfile, tarfile, os, io, base64, gzip, zlib, re, struct, random, time
+import zipfile, tarfile, os, io, errno, base64, gzip, zlib, re, struct, random, time
 from lxml import etree
 from arelle import XmlUtil
 from arelle import PackageManager
@@ -75,12 +75,12 @@ class FileNamedTextIOWrapper(io.TextIOWrapper):  # provide string IO in memory b
         return self.fileName
     
 class ArchiveFileIOError(IOError):
-    def __init__(self, fileSource, fileName):
+    def __init__(self, fileSource, errno, fileName):
+        super(ArchiveFileIOError, self).__init__(errno,
+                                                 _("Archive {}").format(fileSource.url),
+                                                 fileName)
         self.fileName = fileName
         self.url = fileSource.url
-        
-    def __str__(self):
-        return _("Archive does not contain file: {0}, archive: {1}").format(self.fileName, self.url)
             
 class FileSource:
     def __init__(self, url, cntlr=None, checkIfXmlIsEis=False):
@@ -404,7 +404,7 @@ class FileSource:
                     return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding), 
                             encoding)
                 except KeyError:
-                    raise ArchiveFileIOError(self, archiveFileName)
+                    raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
             elif archiveFileSource.isTarGz:
                 try:
                     fh = archiveFileSource.fs.extractfile(archiveFileName)
@@ -441,7 +441,7 @@ class FileSource:
                                 encoding = XmlUtil.encoding(b, default="latin-1")
                             return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
                                     encoding)
-                raise ArchiveFileIOError(self, archiveFileName)
+                raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
             elif archiveFileSource.isXfd:
                 for data in archiveFileSource.xfdDocument.iter(tag="data"):
                     outfn = data.findtext("filename")
@@ -463,7 +463,7 @@ class FileSource:
                                 encoding = XmlUtil.encoding(b, default="latin-1")
                             return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
                                     encoding)
-                raise ArchiveFileIOError(self, archiveFileName)
+                raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
             elif archiveFileSource.isInstalledTaxonomyPackage:
                 # remove TAXONOMY_PACKAGE_FILE_NAME from file path
                 if filepath.startswith(archiveFileSource.basefile):
