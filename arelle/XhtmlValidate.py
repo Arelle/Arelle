@@ -11,6 +11,15 @@ from arelle.ModelObject import ModelObject
 from lxml import etree
 import os, re
 
+ixElements = {
+     XbrlConst.ixbrl: {
+        "denominator", "exclude", "footnote", "fraction", "header", "hidden",
+        "nonFraction", "nonNumeric", "numerator", "references", "resources", "tuple"},
+     XbrlConst.ixbrl11: {
+        "continuation", "denominator", "exclude", "footnote", "fraction", "header", "hidden", 
+        "nonFraction", "nonNumeric","numerator", "references", "relationship","resources", "tuple"}
+    }
+
 ixAttrType = {
     XbrlConst.ixbrl: {
         "arcrole": "anyURI",
@@ -217,14 +226,19 @@ def xhtmlValidate(modelXbrl, elt):
             if isinstance(fromChild, ModelObject):
                 isIxNs = fromChild.namespaceURI in XbrlConst.ixbrlAll
                 if isIxNs:
-                    checkHierarchyConstraints(fromChild)
-                    for attrTag, attrValue in fromChild.items():
-                        checkAttribute(fromChild, True, attrTag, attrValue)
-                    for attrTag in ixAttrRequired[fromChild.namespaceURI].get(fromChild.localName,[]):
-                        if fromChild.get(attrTag) is None:
-                            modelXbrl.error("ix:attributeRequired",
-                                _("Attribute %(attribute)s required on element ix:%(element)s"),
-                                modelObject=elt, attribute=attrTag, element=fromChild.localName)
+                    if fromChild.localName not in ixElements[fromChild.namespaceURI]:
+                        modelXbrl.error("ix:elementNameInvalid",
+                            _("Inline XBRL element name %(element)s is not valid"),
+                            modelObject=fromChild, element=str(fromChild.elementQname))
+                    else:
+                        checkHierarchyConstraints(fromChild)
+                        for attrTag, attrValue in fromChild.items():
+                            checkAttribute(fromChild, True, attrTag, attrValue)
+                        for attrTag in ixAttrRequired[fromChild.namespaceURI].get(fromChild.localName,[]):
+                            if fromChild.get(attrTag) is None:
+                                modelXbrl.error("ix:attributeRequired",
+                                    _("Attribute %(attribute)s required on element ix:%(element)s"),
+                                    modelObject=elt, attribute=attrTag, element=fromChild.localName)
                 if not (fromChild.localName in {"references", "resources"} and isIxNs):
                     if fromChild.localName in {"footnote", "nonNumeric", "continuation"} and isIxNs:
                         toChild = etree.Element("ixNestedContent")
