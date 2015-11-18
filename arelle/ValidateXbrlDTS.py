@@ -1021,7 +1021,7 @@ def checkElements(val, modelDocument, parent):
                         d = XmlUtil.descendants(elt, '*', '*')
                         if d and (len(d) != 1 or d[0].namespaceURI != elt.namespaceURI or d[0].localName != "nonFraction"):
                             val.modelXbrl.error("ix:nonFractionChildren",
-                                _("Inline XBRL nil ix:nonFraction may only have on child ix:nonFraction"),
+                                _("Inline XBRL nil ix:nonFraction may only have one child ix:nonFraction"),
                                 modelObject=[elt] + d)
                         for e in d:
                             if (e.namespaceURI == elt.namespaceURI and e.localName == "nonFraction" and
