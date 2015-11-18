@@ -575,7 +575,7 @@ class ModelInlineValueObject:
                     except Exception as err:
                         self._ixValue = ModelValue.INVALIDixVALUE
                         raise err
-            if self.localName == "nonNumeric" or self.localName == "tuple":
+            if self.localName == "nonNumeric" or self.localName == "tuple" or self.isNil:
                 self._ixValue = v
             else:  # determine string value of transformed value
                 negate = -1 if self.sign else 1
