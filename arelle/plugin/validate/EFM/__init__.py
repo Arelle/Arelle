@@ -242,7 +242,8 @@ def filingValidate(cntlr, options, filesource, entrypointFiles, sourceZipStream=
             _lSdrEntityReports = defaultdict(list)
             for r in reports:
                 if r.documentType == "L SDR":
-                    _lSdrEntityReports[r.entityRegistrantName].append(r)
+                    _lSdrEntityReports[r.entityCentralIndexKey if r.entityCentralIndexKey != "0000000000" 
+                                       else r.entityRegistrantName].append(r)
             for lSdrEntity, lSdrEntityReports in _lSdrEntityReports.items():
                 if len(lSdrEntityReports) > 1:
                     efmFiling.error("EFM.6.05.24.multipleLSdrReportsForEntity",
