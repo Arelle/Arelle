@@ -22,6 +22,7 @@ from arelle.Locale import format_string
 from arelle.ModelFormulaObject import FormulaOptions
 from arelle import PluginManager
 from arelle.PluginManager import pluginClassMethods
+from arelle.UrlUtil import isHttpUrl
 from arelle.WebCache import proxyTuple
 import logging
 from lxml import etree
@@ -766,6 +767,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         success = True
         # entrypointFile may be absent (if input is a POSTED zip or file name ending in .zip)
         #    or may be a | separated set of file names
+        _entryPoints = []
         if options.entrypointFile:
             _f = options.entrypointFile
             try: # may be a json list
@@ -777,11 +779,11 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                   messageCode="FileNameFormatError",
                                   level=logging.ERROR)
                     success = False
-                    _entryPoints = []
-                else: # try as file names separated by '|'
-                    _entryPoints = [{"file":f} for f in (_f or '').split('|')]
-        else:
-            _entryPoints = []
+                else: # try as file names separated by '|'                    
+                    for f in (_f or '').split('|'):
+                        if not sourceZipStream and not isHttpUrl(f) and not os.path.isabs(f):
+                            f = os.path.normpath(os.path.join(os.getcwd(), f)) # make absolute normed path
+                        _entryPoints.append({"file":f})
         filesource = None # file source for all instances if not None
         if sourceZipStream:
             filesource = FileSource.openFileSource(None, self, sourceZipStream)
