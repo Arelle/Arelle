@@ -346,6 +346,7 @@ def testcaseVariationXbrlLoaded(testcaseModelXbrl, instanceModelXbrl, modelTestc
         modelManager.efmFiling.addReport(instanceModelXbrl)
         _report = modelManager.efmFiling.reports[-1]
         _report.entryPoint = entrypointFiles[0]
+        modelManager.efmFiling.arelleUnitTests = instanceModelXbrl.arelleUnitTests.copy() # allow unit tests to be used after instance processing finished
         # check for parameters on instance
         for _instanceElt in XmlUtil.descendants(modelTestcaseVariation, "*", "instance", "readMeFirst", "true", False):
             if instanceModelXbrl.modelDocument.uri.endswith(_instanceElt.text):
@@ -407,6 +408,7 @@ class Filing:
                 self.reportZip = None
         self.errorCaptureLevel = errorCaptureLevel or logging._checkLevel("INCONSISTENCY")
         self.errors = []
+        self.arelleUnitTests = {} # copied from each instance loaded
                 
     def setReportZipStreamMode(self, mode): # mode is 'w', 'r', 'a'
         # required to switch in-memory zip stream between write, read, and append modes
