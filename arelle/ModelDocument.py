@@ -314,6 +314,9 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             modelDocument.rssFeedDiscover(rootNode)
             
         if isEntry:
+            for pi in modelDocument.processingInstructions:
+                if pi.target == "arelle-unit-test":
+                    modelXbrl.arelleUnitTests[pi.get("location")] = pi.get("action")
             while modelXbrl.schemaDocsToValidate:
                 doc = modelXbrl.schemaDocsToValidate.pop()
                 XmlValidateSchema.validate(doc, doc.xmlRootElement, doc.targetNamespace) # validate schema elements

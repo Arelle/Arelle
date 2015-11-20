@@ -205,6 +205,7 @@ def xbrlLoaded(cntlr, options, modelXbrl, entryPoint, *args, **kwargs):
                 efmFiling.accessionNumber = entryPoint["accessionNumber"]
             if "exhibitType" in entryPoint and not hasattr(_report, "exhibitType"):
                 _report.exhibitType = entryPoint["exhibitType"]
+            efmFiling.arelleUnitTests = modelXbrl.arelleUnitTests.copy() # allow unit tests to be used after instance processing finished
         elif modelXbrl.modelDocument.type == ModelDocument.Type.RSSFEED:
             testcasesStart(cntlr, options, modelXbrl)
 
