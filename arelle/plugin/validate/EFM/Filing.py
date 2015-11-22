@@ -381,7 +381,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         val.entityRegistrantName = deiItems.get("EntityRegistrantName") # used for name check in 6.8.6
         
         # 6.05..23,24 check (after dei facts read)
-        if not (isEFM and (entityIdentifierValue == "0000000000" or documentType == "L SDR")):
+        if not (isEFM and documentType == "L SDR"): # allow entityIdentifierValue == "0000000000" or any other CIK value
             if disclosureSystem.deiFilerIdentifierElement in deiItems:
                 value = deiItems[disclosureSystem.deiFilerIdentifierElement]
                 if entityIdentifierValue != value:
