@@ -121,7 +121,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         elif _filerNames:
             val.modelXbrl.error(("EFM.6.05.24.parameters", "GFM.3.02.02"),
                 _("parameters for cikNameList provided but missing corresponding cikList: %(cikNameList)s"),
-                modelXbrl=val.modelXbrl, cikNameList=_FilerNames)
+                modelXbrl=val.modelXbrl, cikNameList=_filerNames)
 
     if _exhibitType:
         val.paramExhibitType = _exhibitType
