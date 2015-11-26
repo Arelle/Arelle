@@ -641,14 +641,17 @@ def isDefinitionOrXdtArcrole(arcrole):
 def isStandardResourceOrExtLinkElement(element):
     return element.namespaceURI == link and element.localName in {
           "definitionLink", "calculationLink", "presentationLink", "labelLink", "referenceLink", "footnoteLink", 
-          "label", "footnote", "reference"}
+          "label", "footnote", "reference"} or \
+          element.qname == qnIXbrl11Relationship
     
 def isStandardArcElement(element):
     return element.namespaceURI == link and element.localName in {
-          "definitionArc", "calculationArc", "presentationArc", "labelArc", "referenceArc", "footnoteArc"}
+          "definitionArc", "calculationArc", "presentationArc", "labelArc", "referenceArc", "footnoteArc"} or \
+          element.qname == qnIXbrl11Relationship
         
 def isStandardArcInExtLinkElement(element):
-    return isStandardArcElement(element) and isStandardResourceOrExtLinkElement(element.getparent())
+    return ((isStandardArcElement(element) and isStandardResourceOrExtLinkElement(element.getparent())) or
+            element.qname == qnIXbrl11Relationship)
 
 standardExtLinkQnames = {qname("{http://www.xbrl.org/2003/linkbase}definitionLink"), 
                          qname("{http://www.xbrl.org/2003/linkbase}calculationLink"), 
