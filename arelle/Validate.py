@@ -10,6 +10,8 @@ from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlC
                ValidateXbrl, ValidateFiling, ValidateHmrc, ValidateVersReport, ValidateFormula,
                ValidateInfoset, RenderingEvaluator, ViewFileRenderedGrid)
 from arelle.ModelDocument import Type, ModelDocumentReference, load as modelDocumentLoad
+from arelle.ModelDtsObject import ModelResource
+from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods
 
@@ -206,6 +208,7 @@ class Validate:
                                                        _("validating"), 
                                                        base=baseForElement,
                                                        errorCaptureLevel=errorCaptureLevel)
+                        modelXbrl.isTestcaseVariation = True
                     if modelXbrl.modelDocument is None:
                         self.modelXbrl.error("arelle:notLoaded",
                              _("Testcase %(id)s %(name)s document not loaded: %(file)s"),
@@ -319,10 +322,16 @@ class Validate:
                             formulaOutputInstance = modelXbrl.formulaOutputInstance
                             modelXbrl.formulaOutputInstance = None # prevent it from being closed now
                         self.instValidator.close()
-                    for inputDTSlist in inputDTSes.values():
-                        for inputDTS in inputDTSlist:
-                            inputDTS.close()
-                    del inputDTSes # dereference
+                    compareIxResultInstance = getattr(modelXbrl, "extractedInlineInstance", True) and modelTestcaseVariation.resultXbrlInstanceUri
+                    if compareIxResultInstance:
+                        formulaOutputInstance = modelXbrl # compare modelXbrl to generated output instance
+                        errMsgPrefix = "ix"
+                    else: # delete input instances before formula output comparision
+                        for inputDTSlist in inputDTSes.values():
+                            for inputDTS in inputDTSlist:
+                                inputDTS.close()
+                        del inputDTSes # dereference
+                        errMsgPrefix = "formula"
                     if resultIsXbrlInstance and formulaOutputInstance and formulaOutputInstance.modelDocument:
                         expectedInstance = ModelXbrl.load(self.modelXbrl.modelManager, 
                                                    modelTestcaseVariation.resultXbrlInstanceUri,
@@ -331,28 +340,60 @@ class Validate:
                                                    useFileSource=self.useFileSource,
                                                    errorCaptureLevel=errorCaptureLevel)
                         if expectedInstance.modelDocument is None:
-                            self.modelXbrl.error("arelle:notLoaded",
+                            self.modelXbrl.error("{}:expectedResultNotLoaded".format(errMsgPrefix),
                                 _("Testcase %(id)s %(name)s expected result instance not loaded: %(file)s"),
                                 modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, 
-                                file=os.path.basename(modelTestcaseVariation.resultXbrlInstance))
+                                file=os.path.basename(modelTestcaseVariation.resultXbrlInstanceUri),
+                                messageCodes=("formula:expectedResultNotLoaded","ix:expectedResultNotLoaded"))
                             modelTestcaseVariation.status = "result not loadable"
                         else:   # compare facts
                             if len(expectedInstance.facts) != len(formulaOutputInstance.facts):
-                                formulaOutputInstance.error("formula:resultFactCounts",
+                                formulaOutputInstance.error("{}:resultFactCounts".format(errMsgPrefix),
                                     _("Formula output %(countFacts)s facts, expected %(expectedFacts)s facts"),
                                     modelXbrl=modelXbrl, countFacts=len(formulaOutputInstance.facts),
-                                         expectedFacts=len(expectedInstance.facts))
+                                    expectedFacts=len(expectedInstance.facts),
+                                    messageCodes=("formula:resultFactCounts","ix:resultFactCounts"))
                             else:
-                                for fact in expectedInstance.facts:
+                                formulaOutputFootnotesRelSet = ModelRelationshipSet(formulaOutputInstance, "XBRL-footnotes")
+                                expectedFootnotesRelSet = ModelRelationshipSet(expectedInstance, "XBRL-footnotes")
+                                def factFootnotes(fact, footnotesRelSet):
+                                    footnotes = []
+                                    footnoteRels = footnotesRelSet.fromModelObject(fact)
+                                    if footnoteRels:
+                                        for i, footnoteRel in enumerate(footnoteRels):
+                                            modelObject = footnoteRel.toModelObject
+                                            if isinstance(modelObject, ModelResource):
+                                                footnotes.append("Footnote {}: {}".format(
+                                                   i+1, # compare footnote with normalize-space
+                                                   re.sub(r'\s+', ' ', modelObject.stringValue.strip())))
+                                            elif isinstance(modelObject, ModelFact):
+                                                footnotes.append("Footnoted fact {}: {} context: {} value: {}".format(
+                                                    i+1,
+                                                    modelObject.qname,
+                                                    modelObject.contextID,
+                                                    modelObject.value))
+                                    return footnotes
+                                for expectedInstanceFact in expectedInstance.facts:
                                     unmatchedFactsStack = []
-                                    if formulaOutputInstance.matchFact(fact, unmatchedFactsStack, deemP0inf=True) is None:
+                                    formulaOutputFact = formulaOutputInstance.matchFact(expectedInstanceFact, unmatchedFactsStack, deemP0inf=True)
+                                    if formulaOutputFact is None:
                                         if unmatchedFactsStack: # get missing nested tuple fact, if possible
                                             missingFact = unmatchedFactsStack[-1]
                                         else:
-                                            missingFact = fact
-                                        formulaOutputInstance.error("formula:expectedFactMissing",
-                                            _("Formula output missing expected fact %(fact)s"),
-                                            modelXbrl=missingFact, fact=missingFact.qname)
+                                            missingFact = expectedInstanceFact
+                                        formulaOutputInstance.error("{}:expectedFactMissing".format(errMsgPrefix),
+                                            _("Output missing expected fact %(fact)s"),
+                                            modelXbrl=missingFact, fact=missingFact.qname,
+                                            messageCodes=("formula:expectedFactMissing","ix:expectedFactMissing"))
+                                    else: # compare footnotes
+                                        expectedInstanceFactFootnotes = factFootnotes(expectedInstanceFact, expectedFootnotesRelSet)
+                                        formulaOutputFactFootnotes = factFootnotes(formulaOutputFact, formulaOutputFootnotesRelSet)
+                                        if expectedInstanceFactFootnotes != formulaOutputFactFootnotes:
+                                            formulaOutputInstance.error("{}:expectedFactFootnoteDifference".format(errMsgPrefix),
+                                                _("Output expected fact %(fact)s expected footnotes %(footnotes1)s produced footnotes %(footnotes2)s"),
+                                                modelXbrl=(formulaOutputFact,expectedInstanceFact), fact=expectedInstanceFact.qname, footnotes1=expectedInstanceFactFootnotes, footnotes2=formulaOutputFactFootnotes,
+                                                messageCodes=("formula:expectedFactFootnoteDifference","ix:expectedFactFootnoteDifference"))
+
                             # for debugging uncomment next line to save generated instance document
                             # formulaOutputInstance.saveInstance(r"c:\temp\test-out-inst.xml")
                         expectedInstance.close()
@@ -360,6 +401,11 @@ class Validate:
                         self.determineTestStatus(modelTestcaseVariation, formulaOutputInstance.errors)
                         formulaOutputInstance.close()
                         del formulaOutputInstance
+                    if compareIxResultInstance:
+                        for inputDTSlist in inputDTSes.values():
+                            for inputDTS in inputDTSlist:
+                                inputDTS.close()
+                        del inputDTSes # dereference
                 # update ui thread via modelManager (running in background here)
                 self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, modelTestcaseVariation.objectId())
                     

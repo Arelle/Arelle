@@ -80,6 +80,14 @@ ixAttrRequired = {
         "nonNumeric": ("name", "contextRef"),
         "tuple": ("name",)}                    
     }
+nonIxAttrNS = {
+    "footnote": "http://www.w3.org/XML/1998/namespace",
+    "fraction": "##other",
+    "nonFraction": "##other",
+    "nonNumeric": "##other",
+    "references": "##other",
+    "relationship": "http://www.w3.org/XML/1998/namespace",
+    "tuple": "##other"}
 ixHierarchyConstraints = {
     # localName: (-rel means doesnt't have relation, +rel means has rel,
     #   &rel means only listed rels
@@ -114,7 +122,8 @@ def xhtmlValidate(modelXbrl, elt):
         if attrTag.startswith("{"):
             ns, sep, localName = attrTag[1:].partition("}")
             if isIxElt:
-                if ns not in (XbrlConst.xml, XbrlConst.xsi):
+                allowedNs = nonIxAttrNS.get(elt.localName, None)
+                if allowedNs != "##other" and ns != allowedNs:
                     modelXbrl.error("ix:qualifiedAttributeNotExpected",
                         _("Inline XBRL element %(element)s: has qualified attribute %(name)s"),
                         modelObject=elt, element=str(elt.elementQname), name=attrTag)

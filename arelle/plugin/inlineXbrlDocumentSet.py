@@ -149,7 +149,7 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
                     footnoteIdCount[linkChild.footnoteID] = idUseCount
                     newChild = addChild(newLink, linkChild.qname, 
                                         attributes=attributes)
-                    copyIxFootnoteHtml(linkChild, newChild, withText=True)
+                    copyIxFootnoteHtml(linkChild, newChild, targetModelDocument=targetInstance.modelDocument, withText=True)
                     if filingFiles and linkChild.textValue:
                         footnoteHtml = XML("<body/>")
                         copyIxFootnoteHtml(linkChild, footnoteHtml)

@@ -719,6 +719,8 @@ class ModelInlineFraction(ModelInlineFact):
 class ModelInlineFractionTerm(ModelInlineValueObject, ModelObject):
     def init(self, modelDocument):
         super(ModelInlineFractionTerm, self).init(modelDocument)
+        self.isNil = False # required for inherited value property
+        self.modelTupleFacts = [] # required for inherited XmlValudate of fraction term
         
     @property
     def qname(self):
@@ -1499,7 +1501,7 @@ class ModelInlineFootnote(ModelResource):
     def propertyView(self):
         return (("file", self.modelDocument.basename),
                 ("line", self.sourceline)) + \
-               super(ModelInlineFact,self).propertyView + \
+               super(ModelInlineFootnote,self).propertyView + \
                (("html value", XmlUtil.innerText(self)),)
         
     def __repr__(self):
