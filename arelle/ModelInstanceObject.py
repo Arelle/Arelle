@@ -364,7 +364,11 @@ class ModelFact(ModelObject):
                             dec = len(val.partition(".")[2])
                         else: # max decimals at 28
                             dec = max( min(int(dec), 28), -28) # 2.7 wants short int, 3.2 takes regular int, don't use _INT here
-                        return Locale.format(self.modelXbrl.locale, "%.*f", (dec, num), True)
+                        # return Locale.format(self.modelXbrl.locale, "%.*f", (dec, num), True)
+                        # switch to new formatting so long-precision decimal numbers are correct
+                        if dec < 0:
+                            dec = 0 # {} formatting doesn't accept negative dec
+                        return Locale.format(self.modelXbrl.locale, "{:.{}f}", (num,dec), True)
                 except ValueError: 
                     return "(error)"
             return self.value
