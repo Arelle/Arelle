@@ -160,6 +160,8 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
                                         filingFiles.add(attrValue)
         
     targetInstance.saveInstance(overrideFilepath=targetUrl, outputZip=outputZip)
+    if getattr(modelXbrl, "isTestcaseVariation", False):
+        modelXbrl.extractedInlineInstance = True # for validation comparison
     modelXbrl.modelManager.showStatus(_("Saved extracted instance"), 5000)
 
 def identifyInlineXbrlDocumentSet(modelXbrl, rootNode, filepath):
