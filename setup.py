@@ -226,12 +226,12 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'): # works on ubuntu wi
                     'rdflib.plugins.serializers', 'rdflib.plugins.serializers.rdfxml', 'rdflib.plugins.serializers.turtle', 'rdflib.plugins.serializers.xmlwriter', 
                     'rdflib.plugins.sparql', 
                     'rdflib.plugins.stores', 
-                    'isodate', 'regex', 'gzip', 'zlib']
+                    'isodate', 'regex', 'gzip', 'zlib', "openpyxl"]
     
     # uncomment the next two files if cx_Freezing with EdgarRenderer
     # note that openpyxl must be 2.1.4 at this time
     if os.path.exists("arelle/plugin/EdgarRenderer"):
-    	includeLibs += ['dateutil', 'dateutil.relativedelta', 'numpy', "openpyxl", "six", "tornado", "pyparsing", "matplotlib"]
+    	includeLibs += ['dateutil', 'dateutil.relativedelta', 'numpy', "six", "tornado", "pyparsing", "matplotlib"]
 
     if sys.platform != 'sunos5':
         try:
@@ -285,12 +285,12 @@ elif sys.platform == 'win32':
                    'rdflib.plugins.serializers', 'rdflib.plugins.serializers.rdfxml', 'rdflib.plugins.serializers.turtle', 'rdflib.plugins.serializers.xmlwriter', 
                    'rdflib.plugins.sparql', 
                    'rdflib.plugins.stores', 
-                   'isodate', 'regex', 'gzip', 'zlib']
+                   'isodate', 'regex', 'gzip', 'zlib', "openpyxl"]
     # uncomment the next line if cx_Freezing with EdgarRenderer
     # note that openpyxl must be 2.1.4 at this time
     # removed tornado
     if os.path.exists("arelle/plugin/EdgarRenderer"):
-        includeLibs += ['dateutil', 'dateutil.relativedelta', 'numpy', "openpyxl", "six", "pyparsing", "matplotlib"]
+        includeLibs += ['dateutil', 'dateutil.relativedelta', 'numpy', "six", "pyparsing", "matplotlib"]
         
     options = dict( build_exe =  {
         "include_files": win32includeFiles,
