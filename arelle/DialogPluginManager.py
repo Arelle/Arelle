@@ -311,9 +311,9 @@ class DialogPluginManager(Toplevel):
             name = moduleInfo["name"]
             self.moduleNameLabel.config(text=name)
             self.moduleAuthorHdr.config(state=ACTIVE)
-            self.moduleAuthorLabel.config(text=moduleInfo["author"])
+            self.moduleAuthorLabel.config(text=moduleInfo.get("author"))
             self.moduleDescrHdr.config(state=ACTIVE)
-            self.moduleDescrLabel.config(text=moduleInfo["description"])
+            self.moduleDescrLabel.config(text=moduleInfo.get("description"))
             self.moduleClassesHdr.config(state=ACTIVE)
             self.moduleClassesLabel.config(text=', '.join(moduleInfo["classMethods"]))
             self.moduleVersionHdr.config(state=ACTIVE)
