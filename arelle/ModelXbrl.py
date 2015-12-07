@@ -289,6 +289,7 @@ class ModelXbrl:
         self.profileStats = {}
         self.schemaDocsToValidate = set()
         self.modelXbrl = self # for consistency in addressing modelXbrl
+        self.arelleUnitTests = {} # unit test entries (usually from processing instructions
         for pluginXbrlMethod in pluginClassMethods("ModelXbrl.Init"):
             pluginXbrlMethod(self)
 

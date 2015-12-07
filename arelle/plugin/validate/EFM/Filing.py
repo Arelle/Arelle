@@ -6,13 +6,14 @@ Created on Oct 17, 2010
 '''
 import re, datetime
 from collections import defaultdict
-from arelle import (ModelDocument, ModelValue, 
-                ModelRelationshipSet, XmlUtil, XbrlConst, ValidateFilingText)
+from arelle import (ModelDocument, ModelValue, ModelRelationshipSet, 
+                    XmlUtil, XbrlConst, ValidateFilingText)
 from arelle.ValidateXbrlCalcs import insignificantDigits
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelDtsObject import ModelConcept
 from arelle.PluginManager import pluginClassMethods
+from arelle.PythonUtil import pyNamedObject
 from arelle.UrlUtil import isHttpUrl
 from .DTS import checkFilingDTS
 from .Dimensions import checkFilingDimensions
@@ -63,6 +64,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         for pluginXbrlMethod in pluginClassMethods("Validate.EFM.Start"):
             pluginXbrlMethod(val)
             
+    if "EFM/Filing.py#validateFiling_start" in val.modelXbrl.arelleUnitTests:
+        raise pyNamedObject(val.modelXbrl.arelleUnitTests["EFM/Filing.py#validateFiling_start"])
+
     # instance checks
     val.fileNameBasePart = None # prevent testing on fileNameParts if not instance or invalid
     val.fileNameDate = None
@@ -377,7 +381,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         val.entityRegistrantName = deiItems.get("EntityRegistrantName") # used for name check in 6.8.6
         
         # 6.05..23,24 check (after dei facts read)
-        if not (entityIdentifierValue == "0000000000" and isEFM and documentType == "L SDR"):
+        if not (isEFM and documentType == "L SDR"): # allow entityIdentifierValue == "0000000000" or any other CIK value
             if disclosureSystem.deiFilerIdentifierElement in deiItems:
                 value = deiItems[disclosureSystem.deiFilerIdentifierElement]
                 if entityIdentifierValue != value:
@@ -1708,7 +1712,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     # 6 16 4, 1.16.5 Base sets of Domain Relationship Sets testing
     val.modelXbrl.profileActivity("... filer preferred label checks", minTimeToShow=1.0)
     
-
+    if "EFM/Filing.py#validateFiling_end" in val.modelXbrl.arelleUnitTests:
+        raise pyNamedObject(val.modelXbrl.arelleUnitTests["EFM/Filing.py#validateFiling_end"])
 
     if isEFM:
         for pluginXbrlMethod in pluginClassMethods("Validate.EFM.Finally"):

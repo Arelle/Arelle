@@ -591,6 +591,15 @@ class LogHandlerWithXml(logging.Handler):
             s = s if len(s) <= truncateAt else s[:truncateAt] + '...'
             return s.replace("&","&amp;").replace("<","&lt;").replace('"','&quot;')
         
+        def ncNameEncode(arg):
+            s = []
+            for c in arg:
+                if c.isalnum() or c in ('.','-','_'):
+                    s.append(c)
+                else: # covers : and any other non-allowed character
+                    s.append('_') # change : into _ for xml correctness
+            return "".join(s)
+        
         def propElts(properties, indent, truncatAt=128):
             nestedIndent = indent + ' '
             return indent.join('<property name="{0}" value="{1}"{2}>'.format(
@@ -603,14 +612,14 @@ class LogHandlerWithXml(logging.Handler):
         
         msg = self.format(logRec)
         if logRec.args:
-            args = "".join([' {0}="{1}"'.format(n, entityEncode(v, truncateAt=128)) 
+            args = "".join([' {0}="{1}"'.format(ncNameEncode(n), entityEncode(v, truncateAt=128)) 
                             for n, v in logRec.args.items()])
         else:
             args = ""
         refs = "\n ".join('\n <ref href="{0}"{1}{2}{3}>'.format(
                         entityEncode(ref["href"]), 
                         ' sourceLine="{0}"'.format(ref["sourceLine"]) if "sourceLine" in ref else '',
-                        ''.join(' {}="{}"'.format(k,entityEncode(v)) 
+                        ''.join(' {}="{}"'.format(ncNameEncode(k),entityEncode(v)) 
                                                   for k,v in ref["customAttributes"].items())
                              if 'customAttributes' in ref else '',
                         (">\n  " + propElts(ref["properties"],"\n  ", 32767) + "\n </ref" ) if "properties" in ref else '/')
@@ -679,6 +688,7 @@ class LogToXmlHandler(LogHandlerWithXml):
                 with open(self.filename, self.filemode, encoding='utf-8') as fh:
                     for logRec in self.logRecordBuffer:
                         fh.write(self.format(logRec) + "\n")
+        self.clearLogBuffer()
                 
     def clearLogBuffer(self):
         del self.logRecordBuffer[:]

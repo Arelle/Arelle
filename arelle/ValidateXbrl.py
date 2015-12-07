@@ -493,6 +493,12 @@ class ValidateXbrl:
                     modelXbrl.error("ix:relationshipToRefMix",
                         _("Inline XBRL fromRef is not only either footnotes, or ix:fraction, ix:nonFraction, ix:nonNumeric or ix:tuple."),
                         modelObject=ixRel)
+                if ixRel.get("linkRole") is not None: # XBRL 2.1 check of ixRelationships
+                    ValidateXbrlDTS.checkLinkRole(self, ixRel, XbrlConst.qnLinkFootnoteLink, ixRel.get("linkRole"), "extended", self.ixdsRoleRefURIs)
+                if ixRel.get("arcrole") is not None:
+                    ValidateXbrlDTS.checkArcrole(self, ixRel, XbrlConst.qnLinkFootnoteArc, ixRel.get("arcrole"), self.ixdsArcroleRefURIs)
+            
+
             del ixdsIdObjects
             # tupleRefs already checked during loading
             modelXbrl.profileStat(_("validateInline"))

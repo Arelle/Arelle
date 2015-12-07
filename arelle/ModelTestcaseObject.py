@@ -256,6 +256,8 @@ class ModelTestcaseVariation(ModelObject):
                 return expected
             for assertElement in XmlUtil.children(resultElement, None, "assert"):
                 num = assertElement.get("num")
+                if num == "99999": # inline test, use name as expected
+                    return assertElement.get("name")
                 if len(num) == 5:
                     return "EFM.{0}.{1}.{2}".format(num[0],num[1:3],num[3:6])
             asserTests = {}

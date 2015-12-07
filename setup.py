@@ -264,7 +264,7 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         'rdflib.plugins.serializers.xmlwriter',
         'rdflib.plugins.sparql',
         'rdflib.plugins.stores',
-        'isodate', 'regex', 'gzip', 'zlib'
+        'isodate', 'regex', 'gzip', 'zlib', 'openpyxl'
     ]
     
     # uncomment the next two files if cx_Freezing with EdgarRenderer
@@ -274,7 +274,6 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
             'dateutil',
             'dateutil.relativedelta',
             'numpy',
-            'openpyxl',
             'six',
             'tornado',
             'pyparsing',
@@ -350,7 +349,7 @@ elif sys.platform == 'win32':
         'rdflib.plugins.serializers.xmlwriter',
         'rdflib.plugins.sparql',
         'rdflib.plugins.stores',
-        'isodate', 'regex', 'gzip', 'zlib'
+        'isodate', 'regex', 'gzip', 'zlib', 'openpyxl'
     ]
     # uncomment the next line if cx_Freezing with EdgarRenderer
     # note that openpyxl must be 2.1.4 at this time
@@ -358,7 +357,7 @@ elif sys.platform == 'win32':
     if os.path.exists("arelle/plugin/EdgarRenderer"):
         includeLibs += [
             'dateutil', 'dateutil.relativedelta',
-            'numpy', "openpyxl", "six", "pyparsing", "matplotlib"
+            'numpy', "six", "pyparsing", "matplotlib"
         ]
         
     options = dict(

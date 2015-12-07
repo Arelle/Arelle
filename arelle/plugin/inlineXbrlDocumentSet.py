@@ -149,7 +149,7 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
                     footnoteIdCount[linkChild.footnoteID] = idUseCount
                     newChild = addChild(newLink, linkChild.qname, 
                                         attributes=attributes)
-                    copyIxFootnoteHtml(linkChild, newChild, withText=True)
+                    copyIxFootnoteHtml(linkChild, newChild, targetModelDocument=targetInstance.modelDocument, withText=True)
                     if filingFiles and linkChild.textValue:
                         footnoteHtml = XML("<body/>")
                         copyIxFootnoteHtml(linkChild, footnoteHtml)
@@ -160,6 +160,8 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
                                         filingFiles.add(attrValue)
         
     targetInstance.saveInstance(overrideFilepath=targetUrl, outputZip=outputZip)
+    if getattr(modelXbrl, "isTestcaseVariation", False):
+        modelXbrl.extractedInlineInstance = True # for validation comparison
     modelXbrl.modelManager.showStatus(_("Saved extracted instance"), 5000)
 
 def identifyInlineXbrlDocumentSet(modelXbrl, rootNode, filepath):

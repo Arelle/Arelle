@@ -357,19 +357,28 @@ def format(conv, percent, value, grouping=False, monetary=False, *additional):
     additional is for format strings which contain one or more
     '*' modifiers."""
     # this is only for one-percent-specifier strings and this should be checked
-    match = _percent_re.match(percent)
-    if not match or len(match.group())!= len(percent):
-        raise ValueError(("format() must be given exactly one %%char "
-                         "format specifier, %s not valid") % repr(percent))
+    if not percent.startswith("{"):
+        match = _percent_re.match(percent)
+        if not match or len(match.group())!= len(percent):
+            raise ValueError(("format() must be given exactly one %%char "
+                             "format specifier, %s not valid") % repr(percent))
     return _format(conv, percent, value, grouping, monetary, *additional)
 
 def _format(conv, percent, value, grouping=False, monetary=False, *additional):
-    if additional:
-        formatted = percent % ((value,) + additional)
-    else:
-        formatted = percent % value
+    if percent.startswith("{"): # new formatting {:.{}f}
+        formattype = percent[-2]
+        if additional:
+            formatted = percent.format(*((value,) + additional))
+        else:
+            formatted = percent.format(*value if isinstance(value,tuple) else value)
+    else: # percent formatting %.*f
+        formattype = percent[-1]
+        if additional:
+            formatted = percent % ((value,) + additional)
+        else:
+            formatted = percent % value
     # floats and decimal ints need special action!
-    if percent[-1] in 'eEfFgG':
+    if formattype in 'eEfFgG':
         seps = 0
         parts = formatted.split('.')
         if grouping:
@@ -378,7 +387,7 @@ def _format(conv, percent, value, grouping=False, monetary=False, *additional):
         formatted = decimal_point.join(parts)
         if seps:
             formatted = _strip_padding(formatted, seps)
-    elif percent[-1] in 'diu':
+    elif formattype in 'diu':
         seps = 0
         if grouping:
             formatted, seps = _group(conv, formatted, monetary=monetary)

@@ -364,7 +364,11 @@ class ModelFact(ModelObject):
                             dec = len(val.partition(".")[2])
                         else: # max decimals at 28
                             dec = max( min(int(dec), 28), -28) # 2.7 wants short int, 3.2 takes regular int, don't use _INT here
-                        return Locale.format(self.modelXbrl.locale, "%.*f", (dec, num), True)
+                        # return Locale.format(self.modelXbrl.locale, "%.*f", (dec, num), True)
+                        # switch to new formatting so long-precision decimal numbers are correct
+                        if dec < 0:
+                            dec = 0 # {} formatting doesn't accept negative dec
+                        return Locale.format(self.modelXbrl.locale, "{:.{}f}", (num,dec), True)
                 except ValueError: 
                     return "(error)"
             return self.value
@@ -575,7 +579,7 @@ class ModelInlineValueObject:
                     except Exception as err:
                         self._ixValue = ModelValue.INVALIDixVALUE
                         raise err
-            if self.localName == "nonNumeric" or self.localName == "tuple":
+            if self.localName == "nonNumeric" or self.localName == "tuple" or self.isNil:
                 self._ixValue = v
             else:  # determine string value of transformed value
                 negate = -1 if self.sign else 1
@@ -719,6 +723,8 @@ class ModelInlineFraction(ModelInlineFact):
 class ModelInlineFractionTerm(ModelInlineValueObject, ModelObject):
     def init(self, modelDocument):
         super(ModelInlineFractionTerm, self).init(modelDocument)
+        self.isNil = False # required for inherited value property
+        self.modelTupleFacts = [] # required for inherited XmlValudate of fraction term
         
     @property
     def qname(self):
@@ -1499,7 +1505,7 @@ class ModelInlineFootnote(ModelResource):
     def propertyView(self):
         return (("file", self.modelDocument.basename),
                 ("line", self.sourceline)) + \
-               super(ModelInlineFact,self).propertyView + \
+               super(ModelInlineFootnote,self).propertyView + \
                (("html value", XmlUtil.innerText(self)),)
         
     def __repr__(self):

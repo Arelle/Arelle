@@ -7,6 +7,7 @@ input and optionally save an (extension) DTS.
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
 import os, io, time, re
+from collections import defaultdict
 from arelle import XbrlConst
 
 importColumnHeaders = {
@@ -34,19 +35,29 @@ importColumnHeaders = {
     "label, standard": ("label", XbrlConst.standardLabel, "en", "overridePreferred"),
     "label, terse": ("label", XbrlConst.terseLabel, "en"),
     "label, verbose": ("label", XbrlConst.verboseLabel, "en"),
+    "group": "linkrole",
+    "linkrole": "linkrole",
+    "ELR": "linkrole"
     }
 
+importColHeaderMap = defaultdict(list)
+
 def loadFromExcel(cntlr, excelFile):
-    from arelle import xlrd
-    from arelle.xlrd.sheet import empty_cell
+    from openpyxl import load_workbook
     from arelle import ModelDocument, ModelXbrl, XmlUtil
     from arelle.ModelDocument import ModelDocumentReference
     from arelle.ModelValue import qname
     
     startedAt = time.time()
     
-    importExcelBook = xlrd.open_workbook(excelFile)
-    controlSheet = importExcelBook.sheet_by_index(1)
+    importExcelBook = load_workbook(excelFile, read_only=True, data_only=True)
+    sheetNames = importExcelBook.get_sheet_names()
+    if "DTS" in sheetNames: 
+        dtsWs = importExcelBook["DTS"]
+    elif "Sheet2" in sheetNames: 
+        dtsWs = importExcelBook["Sheet2"]
+    else:
+        dtsWs = None
     imports = {"xbrli": ( ("namespace", XbrlConst.xbrli), 
                           ("schemaLocation", "http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd") )} # xml of imports
     importXmlns = {}
@@ -61,7 +72,7 @@ def loadFromExcel(cntlr, excelFile):
     calLB = []
     
     def lbDepthList(lbStruct, depth, parentList=None):
-        if depth == 0:
+        if depth == topDepth:
             if len(lbStruct) > 0:
                 return lbStruct[-1].childStruct
             else:
@@ -74,6 +85,7 @@ def loadFromExcel(cntlr, excelFile):
     extensionElements = {}
     extensionRoles = {} # key is roleURI, value is role definition
     extensionLabels = {}  # key = (prefix, name, lang, role), value = label text
+    importSheetName = None    
     
     def extensionHref(prefix, name):
         if prefix == extensionSchemaPrefix:
@@ -85,16 +97,16 @@ def loadFromExcel(cntlr, excelFile):
         return "{0}#{1}_{2}".format(filename, prefix, name)
             
     isUSGAAP = False
-    for iRow in range(1, controlSheet.nrows):
+    for iRow, row in enumerate(dtsWs.rows if dtsWs else ()):
         try:
-            row = controlSheet.row(iRow)
-            if (row[0].ctype == xlrd.XL_CELL_EMPTY):  # skip if col 1 is empty
+            if (len(row) < 1 or row[0].value is None):  # skip if col 1 is empty
                 continue
-            action = row[0].value
-            filetype = row[1].value
-            prefix = row[2].value
-            filename = row[3].value
-            namespaceURI = row[4].value
+            action = filetype = prefix = filename = namespaceURI = None
+            if len(row) > 0: action = row[0].value
+            if len(row) > 1: filetype = row[1].value
+            if len(row) > 2: prefix = row[2].value
+            if len(row) > 3: filename = row[3].value
+            if len(row) > 4: namespaceURI = row[4].value
             lbType = lang = None
             if action == "import":
                 imports[prefix] = ( ("namespace", namespaceURI), ("schemaLocation", filename) )
@@ -127,6 +139,11 @@ def loadFromExcel(cntlr, excelFile):
                     linkbaseRefs.append( (lbType, filename) )
                 elif filetype == "role" and namespaceURI:
                     extensionRoles[namespaceURI] = filename
+            elif action == "worksheet" and filename:
+                importSheetName = filename
+            elif action == "colheader" and filename and namespaceURI:
+                importColHeaderMap[filename].append(namespaceURI)
+                
                 
         except Exception as err:
             cntlr.addToLog("Exception: {error}, Excel row: {excelRow}"
@@ -137,29 +154,60 @@ def loadFromExcel(cntlr, excelFile):
     if not isUSGAAP: # need extra namespace declaration
         importXmlns["iod"] = "http://disclosure.edinet-fsa.go.jp/taxonomy/common/2013-03-31/iod"
     
-    importExcelSheet = importExcelBook.sheet_by_index(0)
     # find column headers row
     headerCols = {}
+    hasLinkroleSeparateRow = True
     headerRows = set()
+    topDepth = 999999
     
-    # find out which rows are header rows
-    for iRow in range(0, importExcelSheet.nrows):
-        row = importExcelSheet.row(iRow)
+    if importSheetName and importSheetName in sheetNames:
+        conceptsWs = importExcelBook[importSheetName]
+    elif "Concepts" in sheetNames:
+        conceptsWs = importExcelBook["Concepts"]
+    elif "Sheet1" in sheetNames:
+        conceptsWs = importExcelBook["Sheet1"]
+    else:
+        conceptsWs = None
+    
+    def setHeaderCols(row):
+        headerCols.clear()
         for iCol, colCell in enumerate(row):
             v = colCell.value
-            if v in importColumnHeaders:
+            if v in importColHeaderMap:
+                for hdr in importColHeaderMap[v]:
+                    if hdr in importColumnHeaders:
+                        headerCols[importColumnHeaders[hdr]] = iCol
+            elif v in importColumnHeaders:
                 headerCols[importColumnHeaders[v]] = iCol
+
+    # find out which rows are header rows
+    for iRow, row in enumerate(conceptsWs.rows if conceptsWs else ()):
+        for iCol, colCell in enumerate(row):
+            setHeaderCols(row)
         if all(colName in headerCols
                for colName in ("name", "type", "depth")): # must have these to be a header col
             # it's a header col
-            headerRows.add(iRow)
+            headerRows.add(iRow+1)
+        if 'linkrole' in headerCols:
+            hasLinkroleSeparateRow = False
         headerCols.clear()
         
-    def cellValue(row, header):
+    def cellHasValue(row, header, _type):
+        if header in headerCols:
+            iCol = headerCols[header]
+            return iCol < len(row) and isinstance(row[iCol].value, _type)
+        return False
+    
+    def cellValue(row, header, strip=False, nameChars=False):
         if header in headerCols:
             iCol = headerCols[header]
             if iCol < len(row):
-                return row[iCol].value
+                v = row[iCol].value
+                if strip and isinstance(v, str):
+                    v = v.strip()
+                if nameChars and isinstance(v, str):
+                    v = ''.join(c for c in v if c.isalnum() or c in ('.', '_', '-'))
+                return v
         return ''
     
     def checkImport(qname):
@@ -175,25 +223,30 @@ def loadFromExcel(cntlr, excelFile):
                            .format(qname=qname),
                             messageCode="importExcel:warning")
 
-    
+    # find top depth
+    for iRow, row in enumerate(conceptsWs.rows if conceptsWs else ()):
+        if (iRow + 1) in headerRows:
+            setHeaderCols(row)
+        elif not (hasLinkroleSeparateRow and (iRow + 1) in headerRows) and 'depth' in headerCols:
+            depth = cellValue(row, 'depth')
+            if isinstance(depth, int) and depth < topDepth:
+                topDepth = depth
+
     # find header rows
     currentELR = currentELRdefinition = None
-    for iRow in range(0, importExcelSheet.nrows):
+    for iRow, row in enumerate(conceptsWs.rows if conceptsWs else ()):
         useLabels = False
+        if all(col is None for col in row):
+            continue # skip blank row
         try:
-            row = importExcelSheet.row(iRow)
-            isHeaderRow = iRow in headerRows
-            isELRrow = (iRow + 1) in headerRows
+            isHeaderRow = (iRow + 1) in headerRows
+            isELRrow = hasLinkroleSeparateRow and (iRow + 2) in headerRows
             if isHeaderRow:
-                headerCols.clear()
-                for iCol, colCell in enumerate(row):
-                    v = colCell.value
-                    if v in importColumnHeaders:
-                        headerCols[importColumnHeaders[v]] = iCol
+                setHeaderCols(row)
             elif isELRrow:
                 currentELR = currentELRdefinition = None
                 for colCell in row:
-                    v = colCell.value
+                    v = str(colCell.value or '')
                     if v.startswith("http://"):
                         currentELR = v
                     elif not currentELRdefinition and v.endswith("　科目一覧"):
@@ -209,24 +262,48 @@ def loadFromExcel(cntlr, excelFile):
                         calLB.append( LBentry(role=currentELR, name=currentELRdefinition, isELR=True) )
                         calRels = set() # prevent duplications when same rel in different parts of tree
             elif headerCols:
-                prefix = cellValue(row, 'prefix').strip()
-                name = cellValue(row, 'name').strip()
-                if "depth" in headerCols:
-                    try:
-                        depth = int(cellValue(row, 'depth'))
-                    except ValueError:
-                        depth = None
+                if "linkrole" in headerCols and cellHasValue(row, 'linkrole', str):
+                    v = cellValue(row, 'linkrole', strip=True)
+                    _trialELR = _trialELRdefinition = None
+                    if v.startswith("http://"):
+                        _trialELR = v
+                    elif not currentELRdefinition and v.endswith("　科目一覧"):
+                        _trialELRdefinition = v[0:-5]
+                    elif not currentELRdefinition:
+                        _trialELRdefinition = v
+                    if (_trialELR and _trialELR != currentELR) or (_trialELRdefinition and _trialELRdefinition != currentELRdefinition):
+                        currentELR = _trialELR
+                        currentELRdefinition = _trialELRdefinition
+                        if currentELR or currentELRdefinition:
+                            if hasPreLB:
+                                preLB.append( LBentry(role=currentELR, name=currentELRdefinition, isELR=True) )
+                            if hasDefLB:
+                                defLB.append( LBentry(role=currentELR, name=currentELRdefinition, isELR=True) )
+                            if hasCalLB:
+                                calLB.append( LBentry(role=currentELR, name=currentELRdefinition, isELR=True) )
+                                calRels = set() # prevent duplications when same rel in different parts of tree
+                prefix = cellValue(row, 'prefix', nameChars=True) or extensionSchemaPrefix
+                if cellHasValue(row, 'name', str):
+                    name = cellValue(row, 'name', nameChars=True)
+                else:
+                    name = None
+                if cellHasValue(row, 'depth', int):
+                    depth = cellValue(row, 'depth')
                 else:
                     depth = None
-                if prefix == extensionSchemaPrefix and name not in extensionElements:
+                if (not prefix or prefix == extensionSchemaPrefix) and name not in extensionElements and name:
                     # elements row
                     eltType = cellValue(row, 'type')
-                    subsGrp = cellValue(row, 'substitutionGroup')
+                    if not eltType:
+                        eltType = 'xbrli:stringItemType'
+                    elif ':' not in eltType and eltType.endswith("ItemType"):
+                        eltType = 'xbrli:' + eltType
+                    subsGrp = cellValue(row, 'substitutionGroup') or 'xbrli:item'
                     abstract = cellValue(row, 'abstract')
                     nillable = cellValue(row, 'nillable')
                     balance = cellValue(row, 'balance')
                     periodType = cellValue(row, 'periodType')
-                    newElt = [ ("name", name), ("id", prefix + "_" + name) ]                        
+                    newElt = [ ("name", name), ("id", (prefix or "") + "_" + name) ]                        
                     if eltType:
                         newElt.append( ("type", eltType) )
                         checkImport(eltType)
@@ -250,7 +327,7 @@ def loadFromExcel(cntlr, excelFile):
                         if preferredLabel and not preferredLabel.startswith("http://"):
                             preferredLabel = "http://www.xbrl.org/2003/role/" + preferredLabel
                         if entryList is not None:
-                            if depth == 0:
+                            if depth == topDepth:
                                 entryList.append( LBentry(prefix=prefix, name=name, isRoot=True) )
                             else:
                                 entryList.append( LBentry(prefix=prefix, name=name, arcrole=XbrlConst.parentChild,
@@ -258,7 +335,7 @@ def loadFromExcel(cntlr, excelFile):
                     if hasDefLB:
                         entryList = lbDepthList(defLB, depth)
                         if entryList is not None:
-                            if depth == 0:
+                            if depth == topDepth:
                                 entryList.append( LBentry(prefix=prefix, name=name, isRoot=True) )
                             else:
                                 if (not preferredLabel or # prevent start/end labels from causing duplicate dim-mem relationships
@@ -273,7 +350,7 @@ def loadFromExcel(cntlr, excelFile):
                             for i, calcParent in enumerate(calcParents):
                                 calcWeight = calcWeights[i] if i < len(calcWeights) else calcWeights[-1]
                                 calcParentPrefix, sep, calcParentName = calcParent.partition(":")
-                                entryList = lbDepthList(calLB, 0)
+                                entryList = lbDepthList(calLB, topDepth)
                                 if entryList is not None:
                                     calRel = (calcParentPrefix, calcParentName, prefix, name)
                                     if calRel not in calRels:
@@ -285,8 +362,8 @@ def loadFromExcel(cntlr, excelFile):
                                     
             # accumulate extension labels
             if useLabels:
-                prefix = cellValue(row, 'prefix').strip()
-                name = cellValue(row, 'name').strip()
+                prefix = cellValue(row, 'prefix', nameChars=True) or extensionSchemaPrefix
+                name = cellValue(row, 'name', nameChars=True)
                 preferredLabel = cellValue(row, 'preferredLabel')
                 if preferredLabel and not preferredLabel.startswith("http://"):
                     preferredLabel = "http://www.xbrl.org/2003/role/" + preferredLabel
@@ -296,7 +373,7 @@ def loadFromExcel(cntlr, excelFile):
                         role = colItem[1]
                         lang = colItem[2]
                         cell = row[iCol]
-                        if cell.ctype == xlrd.XL_CELL_EMPTY:
+                        if cell.value is None:
                             values = ()
                         elif colItemType == "label":
                             values = (cell.value,)
@@ -371,20 +448,6 @@ def loadFromExcel(cntlr, excelFile):
     annotationElt = XmlUtil.addChild(schemaElt, XbrlConst.xsd, "annotation")
     appinfoElt = XmlUtil.addChild(annotationElt, XbrlConst.xsd, "appinfo")
     
-    for iRow in range(0, importExcelSheet.nrows):
-        try:
-            row = importExcelSheet.row(iRow)
-            if (row[0].ctype == xlrd.XL_CELL_EMPTY):  # skip if col 1 is empty
-                continue
-            testDir = row[0].value
-            uriFrom = row[1].value
-            uriTo = row[2].value
-        except Exception as err:
-            cntlr.addToLog("Exception: {error}, Excel row: {excelRow}"
-                           .format(error=err,
-                                   excelRow=iRow),
-                            messageCode="loadFromExcel:exception")
-            
     # add linkbaseRefs
     appinfoElt = XmlUtil.descendant(schemaElt, XbrlConst.xsd, "appinfo")
     

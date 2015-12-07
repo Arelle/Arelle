@@ -311,9 +311,9 @@ class DialogPluginManager(Toplevel):
             name = moduleInfo["name"]
             self.moduleNameLabel.config(text=name)
             self.moduleAuthorHdr.config(state=ACTIVE)
-            self.moduleAuthorLabel.config(text=moduleInfo["author"])
+            self.moduleAuthorLabel.config(text=moduleInfo.get("author"))
             self.moduleDescrHdr.config(state=ACTIVE)
-            self.moduleDescrLabel.config(text=moduleInfo["description"])
+            self.moduleDescrLabel.config(text=moduleInfo.get("description"))
             self.moduleClassesHdr.config(state=ACTIVE)
             self.moduleClassesLabel.config(text=', '.join(moduleInfo["classMethods"]))
             self.moduleVersionHdr.config(state=ACTIVE)
@@ -508,7 +508,9 @@ class DialogPluginManager(Toplevel):
                     moduleInfo["status"] = "disabled"
                 self.checkClassMethodsChanged(moduleInfo)
                 for importModuleInfo in moduleInfo.get("imports", EMPTYLIST):
-                    _moduleEnable(importModuleInfo)
+                    _moduleEnable(importModuleInfo) # set status on nested moduleInfo
+                    if importModuleInfo['name'] in self.pluginConfig["modules"]: # set status on top level moduleInfo
+                        _moduleEnable(self.pluginConfig["modules"][importModuleInfo['name']])
             _moduleEnable(moduleInfo)
             if self.moduleEnableButton['text'] == self.ENABLE:
                 self.moduleEnableButton['text'] = self.DISABLE

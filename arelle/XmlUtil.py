@@ -544,7 +544,7 @@ def copyChildren(parent, elt):
         if isinstance(childNode,ModelObject):
             copyNodes(parent, childNode)
 
-def copyIxFootnoteHtml(sourceXml, targetHtml, withText=False):
+def copyIxFootnoteHtml(sourceXml, targetHtml, targetModelDocument=None, withText=False):
     if withText:
         _tx = sourceXml.text
         if _tx:
@@ -556,21 +556,21 @@ def copyIxFootnoteHtml(sourceXml, targetHtml, withText=False):
     for sourceChild in sourceXml.iterchildren():
         if not sourceChild.namespaceURI in ixbrlAll:
             # ensure xhtml has an xmlns
-            if sourceChild.namespaceURI == xhtml and xhtml not in targetHtml.nsmap.values():
-                setXmlns(targetHtml.getroottree(), "xhtml", xhtml)
+            if targetModelDocument is not None and sourceChild.namespaceURI == xhtml and xhtml not in targetHtml.nsmap.values():
+                setXmlns(targetModelDocument, "xhtml", xhtml)
             targetChild = etree.SubElement(targetHtml, sourceChild.tag)
             for attrTag, attrValue in sourceChild.items():
                 targetChild.set(attrTag, attrValue)
-            copyIxFootnoteHtml(sourceChild, targetChild, withText=withText)
+            copyIxFootnoteHtml(sourceChild, targetChild, targetModelDocument, withText=withText)
         else:
-            copyIxFootnoteHtml(sourceChild, targetHtml, withText=withText)
+            copyIxFootnoteHtml(sourceChild, targetHtml, targetModelDocument, withText=withText)
     if withText:
         _tl = sourceXml.tail
         if _tl:
             targetHtml.tail = (targetHtml.tail or "") + _tl
     contAt = getattr(sourceXml, "_continuationElement", None)
     if contAt is not None:
-        copyIxFootnoteHtml(contAt, targetHtml, withText=withText)
+        copyIxFootnoteHtml(contAt, targetHtml, targetModelDocument, withText=withText)
         
 def addComment(parent, commentText):
     comment = str(commentText)

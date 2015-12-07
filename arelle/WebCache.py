@@ -371,7 +371,7 @@ class WebCache:
                 except (HTTPError, URLError) as err:
                     try:
                         tryWebAuthentication = False
-                        if err.code == 401:
+                        if isinstance(err, HTTPError) and err.code == 401:
                             tryWebAuthentication = True
                             if 'www-authenticate' in err.hdrs:
                                 match = re.match('[ \t]*([^ \t]+)[ \t]+realm="([^"]*)"', err.hdrs['www-authenticate'])
@@ -388,7 +388,7 @@ class WebCache:
                                                         messageCode="webCache:unsupportedWWWAuthentication",
                                                         messageArgs={"scheme": scheme, "realm": realm, "URL": url, "error": err},
                                                         level=logging.ERROR)
-                        elif err.code == 407:
+                        elif isinstance(err, HTTPError) and err.code == 407:
                             tryWebAuthentication = True
                             if 'proxy-authenticate' in err.hdrs:
                                 match = re.match('[ \t]*([^ \t]+)[ \t]+realm="([^"]*)"', err.hdrs['proxy-authenticate'])

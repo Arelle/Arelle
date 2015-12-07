@@ -64,7 +64,7 @@ class LocPrototype():
 
     def dereference(self):
         if isinstance(self.locObject,_STR_BASE): # dereference by ID
-            return self.modelDocument.idObjects[self.locObject]
+            return self.modelDocument.idObjects.get(self.locObject,None) # id may not exist
         else: # it's an object pointer
             return self.locObject
     
