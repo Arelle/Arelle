@@ -477,6 +477,19 @@ class FileSource:
         else:
             return openXmlFileStream(self.cntlr, filepath, stripDeclaration)
 
+    def exists(self, filepath):
+        archiveFileSource = self.fileSourceContainingFilepath(filepath)
+        if archiveFileSource is not None:
+            if filepath.startswith(archiveFileSource.basefile):
+                archiveFileName = filepath[len(archiveFileSource.basefile) + 1:]
+            else: # filepath.startswith(self.baseurl)
+                archiveFileName = filepath[len(archiveFileSource.baseurl) + 1:]
+            if (archiveFileSource.isZip or archiveFileSource.isTarGz or 
+                archiveFileSource.isEis or archiveFileSource.isXfd or
+                archiveFileSource.isRss or self.isInstalledTaxonomyPackage):
+                return archiveFileName.replace("\\","/") in archiveFileSource.dir
+        # assume it may be a plain ordinary file path
+        return os.path.exists(filepath)
     
     @property
     def dir(self):

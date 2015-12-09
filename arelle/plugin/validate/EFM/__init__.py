@@ -485,6 +485,7 @@ class Report:
         self.isInline = modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL
         self.url = modelXbrl.modelDocument.uri
         self.basename = modelXbrl.modelDocument.basename
+        self.filepath = modelXbrl.modelDocument.filepath
         for attrName in Report.REPORT_ATTRS:
             setattr(self, self.lc(attrName), None)
         self.instanceName = modelXbrl.modelDocument.basename
