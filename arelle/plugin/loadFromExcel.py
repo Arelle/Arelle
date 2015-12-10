@@ -16,6 +16,7 @@ importColumnHeaders = {
     "要素名": "name",
     "name": "name",
     "type": "type",
+    "typePrefix": "typePrefix", # usually part of type but optionally separate column
     "substitutionGroup": "substitutionGroup",
     "periodType": "periodType",
     "balance": "balance",
@@ -50,6 +51,12 @@ def loadFromExcel(cntlr, excelFile):
     
     startedAt = time.time()
     
+    if os.path.isabs(excelFile):
+        # allow relative filenames to loading directory
+        priorCWD = os.getcwd()
+        os.chdir(os.path.dirname(excelFile))
+    else:
+        priorCWD = None
     importExcelBook = load_workbook(excelFile, read_only=True, data_only=True)
     sheetNames = importExcelBook.get_sheet_names()
     if "DTS" in sheetNames: 
@@ -294,8 +301,11 @@ def loadFromExcel(cntlr, excelFile):
                 if (not prefix or prefix == extensionSchemaPrefix) and name not in extensionElements and name:
                     # elements row
                     eltType = cellValue(row, 'type')
+                    eltTypePrefix = cellValue(row, 'typePrefix')
                     if not eltType:
                         eltType = 'xbrli:stringItemType'
+                    elif eltTypePrefix and ':' not in eltType:
+                        eltType = eltTypePrefix + ':' + eltType
                     elif ':' not in eltType and eltType.endswith("ItemType"):
                         eltType = 'xbrli:' + eltType
                     subsGrp = cellValue(row, 'substitutionGroup') or 'xbrli:item'
@@ -683,6 +693,8 @@ def loadFromExcel(cntlr, excelFile):
     #cntlr.addToLog("Completed in {0:.2} secs".format(time.time() - startedAt),
     #               messageCode="loadFromExcel:info")
     
+    if priorCWD:
+        os.chdir(priorCWD) # restore prior current working directory
     return dts
 
 def modelManagerLoad(modelManager, fileSource, *args, **kwargs):
