@@ -875,7 +875,8 @@ class ModelDocument:
                     doc.schemaDiscoverChildElements(doc.xmlRootElement)
             else:
                 doc = load(self.modelXbrl, importSchemaLocation, isDiscovered=self.inDTS, 
-                           isIncluded=isIncluded, namespace=importNamespace, referringElement=element)
+                           isIncluded=isIncluded, namespace=importNamespace, referringElement=element,
+                           base='' if self.uri == self.basename else None)
             if doc is not None and doc not in self.referencesDocument:
                 self.referencesDocument[doc] = ModelDocumentReference(element.localName, element)  #import or include
                 self.referencedNamespaces.add(importNamespace)
