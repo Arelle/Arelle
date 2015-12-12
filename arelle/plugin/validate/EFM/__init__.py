@@ -553,7 +553,7 @@ class Report:
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EFM',
-    'version': '1.1.35', # SEC EFM version 35
+    'version': '1.1.36', # SEC EFM version 36 (EDGAR release 16.0.1)
     'description': '''EFM Validation.''',
     'license': 'Apache-2',
     'author': 'Mark V Systems',
