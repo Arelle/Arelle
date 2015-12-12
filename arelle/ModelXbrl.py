@@ -1028,8 +1028,11 @@ class ModelXbrl:
                 elif isinstance(argValue,(float,Decimal)):
                     # need locale-dependent formatting
                     fmtArgs[argName] = format_string(self.modelManager.locale, '%f', argValue)
+                elif isinstance(argValue, dict):
+                    fmtArgs[argName] = argValue
                 else:
                     fmtArgs[argName] = str(argValue)
+
         if "refs" not in extras:
             try:
                 file = os.path.basename(self.modelDocument.uri)
