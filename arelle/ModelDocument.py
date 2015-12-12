@@ -592,6 +592,7 @@ class ModelDocument:
         self.referencedNamespaces = set()
         self.inDTS = False
         self.definesUTR = False
+        self.isModified = False
 
 
     def objectId(self,refId=""):
@@ -632,6 +633,31 @@ class ModelDocument:
     def __repr__(self):
         return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
 
+    def setTitle(self, cntlr):
+        try:
+            cntlr.parent.wm_title(_("arelle - {0}").format(self.basename))
+        except AttributeError:
+            pass
+
+    def setTitleInBackground(self):
+        try:
+            cntlr = self.modelXbrl.modelManager.cntlr
+            uiThreadQueue = cntlr.uiThreadQueue
+            uiThreadQueue.put((self.setTitle, [cntlr]))
+        except AttributeError:
+            pass
+
+    def updateFileHistoryIfNeeded(self):
+        myCntlr = self.modelXbrl.modelManager.cntlr
+        updateFileHistory = getattr(myCntlr, 'updateFileHistory', None)
+        if updateFileHistory:
+            try:
+                cntlr = self.modelXbrl.modelManager.cntlr
+                uiThreadQueue = cntlr.uiThreadQueue
+                uiThreadQueue.put((updateFileHistory, [self.filepath, False]))
+            except AttributeError:
+                pass
+
     def save(self, overrideFilepath=None, outputZip=None):
         """Saves current document file.
         
@@ -646,8 +672,18 @@ class ModelDocument:
             fh.seek(0)
             outputZip.writestr(os.path.basename(overrideFilepath or self.filepath),fh.read())
         fh.close()
+        if overrideFilepath:
+            self.filepath = overrideFilepath
+            self.setTitleInBackground()
+        self.updateFileHistoryIfNeeded()
+        self.isModified = False
     
     def close(self, visited=None, urlDocs=None):
+        try:
+            if self.modelXbrl is not None:
+                self.modelXbrl = None
+        except:
+            pass
         if visited is None: visited = []
         visited.append(self)
         # note that self.modelXbrl has been closed/dereferenced already, do not use in plug in

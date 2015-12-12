@@ -248,7 +248,7 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         
     includeLibs = [
         'lxml', 'lxml.etree', 'lxml._elementpath', 'lxml.html',
-        'pg8000', 'pymysql', 'sqlite3',
+        'pg8000', 'pymysql', 'sqlite3', 'numpy', 
         # note cx_Oracle isn't here because it is version and machine specific,
         # ubuntu not likely working
         # more rdflib plugin modules may need to be added later
@@ -273,7 +273,6 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         includeLibs += [
             'dateutil',
             'dateutil.relativedelta',
-            'numpy',
             'six',
             'tornado',
             'pyparsing',
@@ -335,7 +334,7 @@ elif sys.platform == 'win32':
         
     includeLibs = [
         'lxml', 'lxml.etree', 'lxml._elementpath', 'lxml.html',
-        'pg8000', 'pymysql', 'cx_Oracle', 'pyodbc', 'sqlite3',
+        'pg8000', 'pymysql', 'cx_Oracle', 'pyodbc', 'sqlite3', 'numpy',
         # more rdflib plugin modules may need to be added later
         'rdflib',
         'rdflib.extras',
@@ -357,7 +356,7 @@ elif sys.platform == 'win32':
     if os.path.exists("arelle/plugin/EdgarRenderer"):
         includeLibs += [
             'dateutil', 'dateutil.relativedelta',
-            'numpy', "six", "pyparsing", "matplotlib"
+            "six", "pyparsing", "matplotlib"
         ]
         
     options = dict(
