@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 '''
 loadFromExcel.py is an example of a plug-in that will load an extension taxonomy from Excel
 input and optionally save an (extension) DTS.
@@ -15,10 +14,10 @@ headerWidths = {
         "prefix": 20,
         "name": 36,
         "type": 24,
-        "abstract": 6,
+        "abstract": 7,
         "nillable": 6,
         "substitutionGroup": 30,
-        "periodType": 8,
+        "periodType": 9,
         "balance": 8,
         "depth": 5,
         "preferredLabel": 16,
@@ -28,7 +27,7 @@ headerWidths = {
 
 headersStyles = (
     # ELR match string, font (size: 20 * pt size)
-    (r"http://[^/]+\.edinet-fsa\.go\.jp", "font: name MS UI Gothic, height 180; ", (
+    (r"http://[^/]+\.edinet-fsa\.go\.jp", {"name":"MS UI Gothic", "size":12.0}, (
         # (display string, content, label role, lang [,indented])
         ("標準ラベル（日本語）", "label", XbrlConst.standardLabel, "ja", "indented"),
         ("冗長ラベル（日本語）", "label", XbrlConst.verboseLabel, "ja"),
@@ -47,7 +46,7 @@ headersStyles = (
         ("calculation parent", "calculationParent"), # qname
         ("calculation weight", "calculationWeight")
         )),
-    (r"http://[^/]+/us-gaap/", "font: name Calibri, height 180; ", (
+    (r"http://[^/]+/us-gaap/", {"name":"Calibri", "size":10.0}, (
         ("label", "label", XbrlConst.standardLabel, "en-US", "indented"),
         ("label, standard", "label", XbrlConst.standardLabel, "en-US", "overridePreferred"),
         ("label, terse", "label", XbrlConst.terseLabel, "en-US"),
@@ -66,7 +65,7 @@ headersStyles = (
         ("calculation weight", "calculationWeight"),
         )),
     # generic pattern taxonomy
-    (r"http://[^/]+/us-gaap/", "font: name Calibri, height 180; ", (
+    (r"http://[^/]+/us-gaap/", {"name":"Calibri", "size":10.0}, (
         ("label", "label", XbrlConst.standardLabel, "en", "indented"),
         ("prefix", "prefix"),
         ("name", "name"),
@@ -83,7 +82,9 @@ headersStyles = (
         )),
     )
 
-sheet2Headers = (
+MAXINDENT = 10
+
+dtsWsHeaders = (
     ("specification", 14),
     ("file type", 12),
     ("prefix (schema)\ntype (linkbase)\nargument (other)", 20),
@@ -92,56 +93,76 @@ sheet2Headers = (
     )
 
 def saveLoadableExcel(dts, excelFile):
-    from arelle import ModelDocument, XmlUtil, xlwt
+    from arelle import ModelDocument, XmlUtil
+    from openpyxl import Workbook, cell
+    from openpyxl.styles import Font, PatternFill, Border, Alignment, Color, fills, Side
+    from openpyxl.worksheet.dimensions import ColumnDimension
     
-    workbook = xlwt.Workbook(encoding="utf-8")
-    sheet1 = workbook.add_sheet("Sheet1")
-    sheet2 = workbook.add_sheet("Sheet2")
+    workbook = Workbook(encoding="utf-8")
+    # remove pre-existing worksheets
+    while len(workbook.worksheets)>0:
+        workbook.remove_sheet(workbook.worksheets[0])
+    conceptsWs = workbook.create_sheet(title="Concepts")
+    dtsWs = workbook.create_sheet(title="DTS")
     
     # identify type of taxonomy
-    sheet1Headers = None
-    cellFont = None
+    conceptsWsHeaders = None
+    cellFontArgs = None
     for doc in dts.urlDocs.values():
         if doc.type == ModelDocument.Type.SCHEMA and doc.inDTS:
             for i in range(len(headersStyles)):
                 if re.match(headersStyles[i][0], doc.targetNamespace):
-                    cellFont = headersStyles[i][1]
-                    sheet1Headers = headersStyles[i][2]
+                    cellFontArgs = headersStyles[i][1] # use as arguments to Font()
+                    conceptsWsHeaders = headersStyles[i][2]
                     break
-    if sheet1Headers is None:
+    if conceptsWsHeaders is None:
         dts.info("error:saveLoadableExcel",
          _("Referenced taxonomy style not identified, assuming general pattern."),
          modelObject=dts)
-        cellFont = headersStyles[-1][1]
-        sheet1Headers = headersStyles[-1][2]
+        cellFontArgs = headersStyles[-1][1] # use as arguments to Font()
+        conceptsWsHeaders = headersStyles[-1][2]
         
-    hdrCellFmt = xlwt.easyxf(cellFont + 
-                             "align: wrap on, vert center, horiz center; " 
-                             "pattern: pattern solid_fill, fore_color light_orange; " 
-                             "border: top thin, right thin, bottom thin, left thin; ")
-    
+        
+    hdrCellFont = Font(**cellFontArgs)
+    hdrCellFill = PatternFill(patternType=fills.FILL_SOLID,
+                              fgColor=Color("00FFBF5F")) # Excel's light orange fill color = 00FF990
+    cellFont = Font(**cellFontArgs)
+
+    def writeCell(ws,row,col,value,fontBold=False,borders=True,indent=0,hAlign=None,vAlign=None,hdr=False):
+        cell = ws.cell(row=row,column=col)
+        cell.value = value
+        if hdr:
+            cell.font = hdrCellFont
+            cell.fill = hdrCellFill
+            if not hAlign: hAlign = "center"
+            if not vAlign: vAlign = "center"
+        else:
+            cell.font = cellFont
+            if not hAlign: hAlign = "left"
+            if not vAlign: vAlign = "top"
+        if borders:
+            cell.border = Border(top=Side(border_style="thin"),
+                                 left=Side(border_style="thin"),
+                                 right=Side(border_style="thin"),
+                                 bottom=Side(border_style="thin"))
+        cell.alignment = Alignment(horizontal=hAlign, vertical=vAlign, wrap_text=True, indent=indent)
+            
     # sheet 1 col widths
-    for i, hdr in enumerate(sheet1Headers):
-        sheet1.col(i).width = 256 * headerWidths.get(hdr[1], 40)
+    for i, hdr in enumerate(conceptsWsHeaders):
+        colLetter = cell.get_column_letter(i+1)
+        conceptsWs.column_dimensions[colLetter] = ColumnDimension(conceptsWs, customWidth=True)
+        conceptsWs.column_dimensions[colLetter].width = headerWidths.get(hdr[1], 40)                                   
         
     # sheet 2 headers
-    for i, hdr in enumerate(sheet2Headers):
-        sheet2.col(i).width = 256 * hdr[1]
-        sheet2.write(0, i, hdr[0], hdrCellFmt) 
+    for i, hdr in enumerate(dtsWsHeaders):
+        colLetter = cell.get_column_letter(i+1)
+        dtsWs.column_dimensions[colLetter] = ColumnDimension(conceptsWs, customWidth=True)
+        dtsWs.column_dimensions[colLetter].width = hdr[1]
+        writeCell(dtsWs, 1, i+1, hdr[0], hdr=True)
         
     # referenced taxonomies
-    sheet1row = 0
-    sheet2row = 2
-    
-    cellFmt = xlwt.easyxf(cellFont + 
-                          "border: top thin, right thin, bottom thin, left thin; "
-                          "align: wrap on, vert top, horiz left;")
-    cellFmtIndented = dict((i, xlwt.easyxf(cellFont + 
-                                           "border: top thin, right thin, bottom thin, left thin; "
-                                           "align: wrap on, vert top, horiz left, indent {0};"
-                                           .format(i)))
-                           for i in range(16))
-
+    conceptsRow = 1
+    dtsRow = 3
     # identify extension schema
     extensionSchemaDoc = None
     if dts.modelDocument.type == ModelDocument.Type.SCHEMA:
@@ -159,22 +180,22 @@ def saveLoadableExcel(dts, excelFile):
             
     for doc, docReference in extensionSchemaDoc.referencesDocument.items():
         if docReference.referenceType == "import" and doc.targetNamespace != XbrlConst.xbrli:
-            sheet2.write(sheet2row, 0, "import", cellFmt) 
-            sheet2.write(sheet2row, 1, "schema", cellFmt) 
-            sheet2.write(sheet2row, 2, XmlUtil.xmlnsprefix(doc.xmlRootElement, doc.targetNamespace), cellFmt) 
-            sheet2.write(sheet2row, 3, doc.uri, cellFmt) 
-            sheet2.write(sheet2row, 4, doc.targetNamespace, cellFmt) 
-            sheet2row += 1
+            writeCell(dtsWs, dtsRow, 1, "import") 
+            writeCell(dtsWs, dtsRow, 2, "schema") 
+            writeCell(dtsWs, dtsRow, 3, XmlUtil.xmlnsprefix(doc.xmlRootElement, doc.targetNamespace)) 
+            writeCell(dtsWs, dtsRow, 4, doc.uri) 
+            writeCell(dtsWs, dtsRow, 5, doc.targetNamespace) 
+            dtsRow += 1
                 
-    sheet2row += 1
+    dtsRow += 1
     
     doc = extensionSchemaDoc
-    sheet2.write(sheet2row, 0, "extension", cellFmt) 
-    sheet2.write(sheet2row, 1, "schema", cellFmt) 
-    sheet2.write(sheet2row, 2, XmlUtil.xmlnsprefix(doc.xmlRootElement, doc.targetNamespace), cellFmt) 
-    sheet2.write(sheet2row, 3, os.path.basename(doc.uri), cellFmt) 
-    sheet2.write(sheet2row, 4, doc.targetNamespace, cellFmt) 
-    sheet2row += 1
+    writeCell(dtsWs, dtsRow, 1, "extension") 
+    writeCell(dtsWs, dtsRow, 2, "schema") 
+    writeCell(dtsWs, dtsRow, 3, XmlUtil.xmlnsprefix(doc.xmlRootElement, doc.targetNamespace)) 
+    writeCell(dtsWs, dtsRow, 4, os.path.basename(doc.uri)) 
+    writeCell(dtsWs, dtsRow, 5, doc.targetNamespace) 
+    dtsRow += 1
 
     for doc, docReference in extensionSchemaDoc.referencesDocument.items():
         if docReference.referenceType == "href" and doc.type == ModelDocument.Type.LINKBASE:
@@ -182,14 +203,14 @@ def saveLoadableExcel(dts, excelFile):
             role = docReference.referringModelObject.get("{http://www.w3.org/1999/xlink}role") or ""
             if role.startswith("http://www.xbrl.org/2003/role/") and role.endswith("LinkbaseRef"):
                 linkbaseType = os.path.basename(role)[0:-11]
-            sheet2.write(sheet2row, 0, "extension", cellFmt) 
-            sheet2.write(sheet2row, 1, "linkbase", cellFmt) 
-            sheet2.write(sheet2row, 2, linkbaseType, cellFmt) 
-            sheet2.write(sheet2row, 3, os.path.basename(doc.uri), cellFmt) 
-            sheet2.write(sheet2row, 4, "", cellFmt) 
-            sheet2row += 1
+            writeCell(dtsWs, dtsRow, 1, "extension") 
+            writeCell(dtsWs, dtsRow, 2, "linkbase") 
+            writeCell(dtsWs, dtsRow, 3, linkbaseType) 
+            writeCell(dtsWs, dtsRow, 4, os.path.basename(doc.uri)) 
+            writeCell(dtsWs, dtsRow, 5, "") 
+            dtsRow += 1
             
-    sheet2row += 1
+    dtsRow += 1
 
     # extended link roles defined in this document
     for roleURI, roleTypes in sorted(dts.roleTypes.items(), 
@@ -197,12 +218,12 @@ def saveLoadableExcel(dts, excelFile):
                                      key=lambda item: (item[1][0].definition or item[0])):
         for roleType in roleTypes:
             if roleType.modelDocument == extensionSchemaDoc:
-                sheet2.write(sheet2row, 0, "extension", cellFmt) 
-                sheet2.write(sheet2row, 1, "role", cellFmt) 
-                sheet2.write(sheet2row, 2, "", cellFmt) 
-                sheet2.write(sheet2row, 3, roleType.definition, cellFmt) 
-                sheet2.write(sheet2row, 4, roleURI, cellFmt) 
-                sheet2row += 1
+                writeCell(dtsWs, dtsRow, 1, "extension") 
+                writeCell(dtsWs, dtsRow, 2, "role") 
+                writeCell(dtsWs, dtsRow, 3, "") 
+                writeCell(dtsWs, dtsRow, 4, roleType.definition) 
+                writeCell(dtsWs, dtsRow, 5, roleURI) 
+                dtsRow += 1
                 
     # tree walk recursive function
     def treeWalk(row, depth, concept, preferredLabel, arcrole, preRelSet, visited):
@@ -213,7 +234,7 @@ def saveLoadableExcel(dts, excelFile):
             for modelRel in calcRelSet.toModelObject(concept):
                 calcRel = modelRel
                 break
-            for i, hdr in enumerate(sheet1Headers):
+            for i, hdr in enumerate(conceptsWsHeaders):
                 colType = hdr[1]
                 value = ""
                 if colType == "name":
@@ -267,10 +288,10 @@ def saveLoadableExcel(dts, excelFile):
                 elif colType == "depth":
                     value = depth
                 if "indented" in hdr:
-                    style = cellFmtIndented[min(depth, len(cellFmtIndented) - 1)]
+                    indent = min(depth, MAXINDENT)
                 else:
-                    style = cellFmt
-                sheet1.write(row, i, value, style) 
+                    indent = 0
+                writeCell(conceptsWs, row, i+1, value, indent=indent)
             row += 1
             if concept not in visited:
                 visited.add(concept)
@@ -280,7 +301,7 @@ def saveLoadableExcel(dts, excelFile):
                 visited.remove(concept)
         return row
     
-    # use presentation relationships for Sheet1
+    # use presentation relationships for conceptsWs
     arcrole = XbrlConst.parentChild
     # sort URIs by definition
     linkroleUris = []
@@ -298,27 +319,25 @@ def saveLoadableExcel(dts, excelFile):
         # for each URI in definition order
         for roledefinition, linkroleUri in linkroleUris:
             # write linkrole
-            sheet1.write(sheet1row, 0, 
-                         (roledefinition or linkroleUri), 
-                         xlwt.easyxf(cellFont))  # ELR has no boarders, just font specified
-            sheet1row += 1
+            writeCell(conceptsWs, conceptsRow, 1, (roledefinition or linkroleUri), borders=False)  # ELR has no boarders, just font specified
+            conceptsRow += 1
             # write header row
-            for i, hdr in enumerate(sheet1Headers):
-                sheet1.write(sheet1row, i, hdr[0], hdrCellFmt)
-            sheet1row += 1
+            for i, hdr in enumerate(conceptsWsHeaders):
+                writeCell(conceptsWs, conceptsRow, i+1, hdr[0], hdr=True)
+            conceptsRow += 1
             # elr relationships for tree walk
             linkRelationshipSet = dts.relationshipSet(arcrole, linkroleUri)
             for rootConcept in linkRelationshipSet.rootConcepts:
-                sheet1row = treeWalk(sheet1row, 0, rootConcept, None, arcrole, linkRelationshipSet, set())
-            sheet1row += 1 # double space rows between tables
+                conceptsRow = treeWalk(conceptsRow, 0, rootConcept, None, arcrole, linkRelationshipSet, set())
+            conceptsRow += 1 # double space rows between tables
     else:
         # write header row
-        for i, hdr in enumerate(sheet1Headers):
-            sheet1.write(sheet1row, i, hdr[0], hdrCellFmt)
-        sheet1row += 1
+        for i, hdr in enumerate(conceptsWsHeaders):
+            writeCell(conceptsWs, conceptsRow, i, hdr[0], hdr=True)
+        conceptsRow += 1
         # get lang
         lang = None
-        for i, hdr in enumerate(sheet1Headers):
+        for i, hdr in enumerate(conceptsWsHeaders):
             colType = hdr[1]
             if colType == "label":
                 lang = hdr[3]
@@ -337,7 +356,7 @@ def saveLoadableExcel(dts, excelFile):
             for objectId in lbls[label]:
                 concept = dts.modelObject(objectId)
                 if concept.modelDocument.targetNamespace not in excludedNamespaces:
-                    for i, hdr in enumerate(sheet1Headers):
+                    for i, hdr in enumerate(conceptsWsHeaders):
                         colType = hdr[1]
                         value = ""
                         if colType == "name":
@@ -361,11 +380,11 @@ def saveLoadableExcel(dts, excelFile):
                         elif colType == "depth":
                             value = 0
                         if "indented" in hdr:
-                            style = cellFmtIndented[min(0, len(cellFmtIndented) - 1)]
+                            indent = min(0, MAXINDENT)
                         else:
-                            style = cellFmt
-                        sheet1.write(sheet1row, i, value, style) 
-                    sheet1row += 1
+                            indent = 0
+                        writeCell(conceptsWs, conceptsRow, i, value, indent=indent) 
+                    conceptsRow += 1
     
     try: 
         workbook.save(excelFile)
@@ -378,7 +397,7 @@ def saveLoadableExcel(dts, excelFile):
             _("File saving exception: %(error)s"), error=ex,
             modelXbrl=dts)
 
-def saveLoadableExcelMenuEntender(cntlr, menu):
+def saveLoadableExcelMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
     menu.add_command(label="Save Loadable Excel", 
                      underline=0, 
@@ -393,8 +412,8 @@ def saveLoadableExcelMenuCommand(cntlr):
     excelFile = cntlr.uiFileDialog("save",
             title=_("arelle - Save Loadable Excel file"),
             initialdir=cntlr.config.setdefault("loadableExcelFileDir","."),
-            filetypes=[(_("Excel file .xls"), "*.xls")],
-            defaultextension=".xls")
+            filetypes=[(_("Excel file .xlsx"), "*.xlsx")],
+            defaultextension=".xlsx")
     if not excelFile:
         return False
     import os
@@ -409,14 +428,14 @@ def saveLoadableExcelMenuCommand(cntlr):
     thread.daemon = True
     thread.start()
     
-def saveLoadableExcelCommandLineOptionExtender(parser):
+def saveLoadableExcelCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
     parser.add_option("--save-loadable-excel", 
                       action="store_true", 
                       dest="saveLoadableExcel", 
                       help=_("Save Loadable Excel file"))
 
-def saveLoadableExcelCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
+def saveLoadableExcelCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
     excelFile = getattr(options, "saveLoadableExcel", None)
     if excelFile:

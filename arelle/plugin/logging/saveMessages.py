@@ -92,7 +92,7 @@ def saveMessages(saveMessagesFile, modelXbrl, rssItem=None, **kwargs):
                                                 for c in mr) + '\n'
                                      for mr in messageRefs))
 
-def saveMsgsCommandLineOptionExtender(parser):
+def saveMsgsCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options to store to database
     parser.add_option("--saveMessagesFile", 
                       action="store", 
@@ -101,34 +101,34 @@ def saveMsgsCommandLineOptionExtender(parser):
     
     logging.getLogger("arelle").addHandler(LogHandler())    
 
-def saveMsgsCommandLineXbrlLoaded(cntlr, options, modelXbrl):
+def saveMsgsCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
     from arelle.ModelDocument import Type
     if modelXbrl.modelDocument.type == Type.RSSFEED and getattr(options, "saveMessagesFile", False):
         modelXbrl.saveMessagesFile = options.saveMessagesFile
     
-def saveMsgsCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
+def saveMsgsCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     from arelle.ModelDocument import Type
     if (modelXbrl.modelDocument.type not in (Type.RSSFEED, Type.TESTCASE, Type.REGISTRYTESTCASE) and 
         getattr(options, "saveMessagesFile", False)):
         saveMessages(options.saveMessagesFile, modelXbrl)
         
-def saveMsgsvalidateRssItem(val, modelXbrl, rssItem):
+def saveMsgsValidateRssItem(val, modelXbrl, rssItem, *args, **kwargs):
     if hasattr(val.modelXbrl, 'saveMessagesFile'):
         saveMessages(val.modelXbrl.saveMessagesFile, modelXbrl, rssItem)
     
-def saveMsgstestcaseVariationXbrlLoaded(val, modelXbrl, *args):
+def saveMsgsTestcaseVariationXbrlLoaded(val, modelXbrl, *args, **kwargs):
     if _saveMessagesFile:
         return saveMessages(_saveMessagesFile, modelXbrl)
     
-def saveMsgsrssWatchHasWatchAction(rssWatchOptions):
+def saveMsgsrssWatchHasWatchAction(rssWatchOptions, *args, **kwargs):
     return rssWatchOptions.get("saveMessagesFile")
     
-def saveMsgsrssDoWatchAction(modelXbrl, rssWatchOptions, rssItem):
+def saveMsgsrssDoWatchAction(modelXbrl, rssWatchOptions, rssItem, *args, **kwargs):
     saveMessagesFile = rssWatchOptions.get("saveMessagesFile")
     if saveMessagesFile:
         saveMessages(saveMessagesFile, modelXbrl)
         
-def saveMsgsLoaderSetup(cntlr, options, **kwargs):
+def saveMsgsLoaderSetup(cntlr, options, *args, **kwargs):
     global _saveMessagesFile
     # set options to load from DB (instead of load from XBRL and store in DB)
     _saveMessagesFile = getattr(options, "saveMessagesFile", None)
@@ -175,6 +175,6 @@ __pluginInfo__ = {
     'CntlrCmdLine.Xbrl.Run': saveMsgsCommandLineXbrlRun,
     'RssWatch.HasWatchAction': saveMsgsrssWatchHasWatchAction,
     'RssWatch.DoWatchAction': saveMsgsrssDoWatchAction,
-    'Validate.RssItem': saveMsgsvalidateRssItem,
-    'TestcaseVariation.Xbrl.Loaded': saveMsgstestcaseVariationXbrlLoaded,
+    'Validate.RssItem': saveMsgsValidateRssItem,
+    'TestcaseVariation.Xbrl.Loaded': saveMsgsTestcaseVariationXbrlLoaded,
 }

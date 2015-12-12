@@ -42,6 +42,11 @@
        to load it.
        
   -->
+
+  
+  <!-- disclosure system validations have been deprecated from core modules 
+       they are provided by plugins that may be in validate folder
+  
   <DisclosureSystem 
      names="Japan FSA|jp-fsa|fsa" 
      description="Japan FSA example entry\n
@@ -88,7 +93,7 @@
      labelCheckPattern="\s{2,}|&lt;"
      labelTrimPattern="\s"
      />
-  <!-- not read for use, still in testing -->
+
   <DisclosureSystem 
      names="SBR-NL|sbr-nl" 
      description="SBR Netherlands\n
@@ -108,7 +113,7 @@
      labelCheckPattern="^\s[^\s]+|[^\s]+\s$|\s{2,}|[\r\n\t]"
      labelTrimPattern="\s"
      />
- <!-- -->
+     
   <DisclosureSystem 
      names="UK HMRC (Joint Filing Validation Checks)|hmrc"
      description="UK HMRC Joint Filing Common Validation Checks\n
@@ -200,6 +205,39 @@
      logLevelFilter="(?!.*-semantic$)"
      logCodeFilter="(?!EFM.6.05.28.linkrole|EFM.6.07.06|EFM.6.07.09.roleEnding|EFM.6.07.13.arcroleEnding|EFM.6.10.01.missingLabelLinkbase)"
      />
+   <DisclosureSystem 
+      names="US SEC (Edgar Filing Manual, Liberal, All Years)|efm-nonblocking|efm-liberal"
+      description="US SEC Edgar Filing Manual, all years\n
+      Default language en-US (en allowed in some cases per EFM)\n
+      CIK identifier patterns\n
+      Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
+      Disallowed references are processed\n
+      No content (semantic) tests are reported"
+      validationType="EFM"
+      exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
+      blockDisallowedReferences="false" 
+      defaultXmlLang="en-US" 
+      defaultLanguage="English" 
+      standardTaxonomiesUrl="edgartaxonomies-all-years.xml"
+      utrUrl="http://www.xbrl.org/utr/2013-05-17/utr.xml"
+      validateFileText="true"
+      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
+      identifierValuePattern="^[0-9]{10}$" 
+      identifierValueName="CIK" 
+      contextElement="segment" 
+      roleDefinitionPattern="^[0-9]+ - (Statement|Disclosure|Schedule|Document) - [^\n]*\S$"
+      labelCheckPattern="[ \n\r\t]{2,}|&lt;|&amp;lt;|&amp;#60;|&amp;#x3C"
+      labelTrimPattern="[ \n\r\t]"
+      deiNamespacePattern="^http://xbrl\.us/dei/|^http://xbrl\.sec\.gov/dei"
+      deiAmendmentFlagElement="AmendmentFlag"
+      deiCurrentFiscalYearEndDateElement="CurrentFiscalYearEndDate"
+      deiDocumentFiscalYearFocusElement="DocumentFiscalYearFocus"
+      deiDocumentPeriodEndDateElement="DocumentPeriodEndDate"
+      deiFilerIdentifierElement="EntityCentralIndexKey" 
+      deiFilerNameElement="EntityRegistrantName"
+      logLevelFilter="(?!.*-semantic$)"
+      logCodeFilter="(?!EFM.6.03.03.matchInstance|EFM.6.05.28.linkrole|EFM.6.07.06|EFM.6.07.09.roleEnding|EFM.6.07.13.arcroleEnding|EFM.6.10.01.missingLabelLinkbase)"
+   />
   <DisclosureSystem 
      names="US SEC (Edgar Filing Manual, Strict, all years)|efm-all-years|efm-strict-all-years"
      description="US SEC Edgar Filing Manual, 2015\n
@@ -293,4 +331,6 @@
      deiFilerIdentifierElement="FilerIdentifier" 
      deiFilerNameElement="EntityRegistrantName"
      />
+     
+     -->
 </DisclosureSystems>

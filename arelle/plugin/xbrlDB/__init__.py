@@ -52,7 +52,7 @@ _loadFromDBoptions = None  # only set for load, vs store operation
 _storeIntoDBoptions = None
 _schemaRefSubstitutions = None # for DPM database
 
-def xbrlDBmenuEntender(cntlr, menu):
+def xbrlDBmenuEntender(cntlr, menu, *args, **kwargs):
     
     def storeIntoDBMenuCommand():
         # save DTS menu item has been invoked
@@ -171,7 +171,7 @@ def storeIntoDB(dbConnection, modelXbrl, rssItem=None, **kwargs):
                               time.time() - startedAt), messageCode="info", file=modelXbrl.uri)
     return result
 
-def xbrlDBcommandLineOptionExtender(parser):
+def xbrlDBcommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options to store to database
     parser.add_option("--store-to-XBRL-DB", 
                       action="store", 
@@ -188,7 +188,7 @@ def xbrlDBcommandLineOptionExtender(parser):
     
     logging.getLogger("arelle").addHandler(LogToDbHandler())    
 
-def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args):
+def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
     from arelle.ModelDocument import Type
     if modelXbrl.modelDocument.type == Type.RSSFEED and getattr(options, "storeIntoXbrlDb", False):
         modelXbrl.xbrlDBconnection = options.storeIntoXbrlDb.split(",")
@@ -201,7 +201,7 @@ def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args):
             modelXbrl.reloadCache = True
             storeIntoDB(modelXbrl.xbrlDBconnection, modelXbrl, rssObject=modelXbrl.modelDocument)
     
-def xbrlDBCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
+def xbrlDBCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     from arelle.ModelDocument import Type
     if (modelXbrl.modelDocument.type not in (Type.RSSFEED, Type.TESTCASE, Type.REGISTRYTESTCASE) and 
         getattr(options, "storeIntoXbrlDb", False) and 
@@ -209,11 +209,11 @@ def xbrlDBCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
         dbConnection = options.storeIntoXbrlDb.split(",")
         storeIntoDB(dbConnection, modelXbrl)
         
-def xbrlDBvalidateRssItem(val, modelXbrl, rssItem):
+def xbrlDBvalidateRssItem(val, modelXbrl, rssItem, *args, **kwargs):
     if hasattr(val.modelXbrl, 'xbrlDBconnection'):
         storeIntoDB(val.modelXbrl.xbrlDBconnection, modelXbrl, rssItem)
     
-def xbrlDBtestcaseVariationXbrlLoaded(val, modelXbrl):
+def xbrlDBtestcaseVariationXbrlLoaded(val, modelXbrl, *args, **kwargs):
     if _storeIntoDBoptions:
         return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl)
     
@@ -224,7 +224,7 @@ def xbrlDBdialogRssWatchDBconnection(*args, **kwargs):
     except ImportError:
         pass
     
-def xbrlDBdialogRssWatchValidateChoices(dialog, frame, row, options, cntlr):
+def xbrlDBdialogRssWatchValidateChoices(dialog, frame, row, *args, **kwargs):
     from arelle.UiUtil import checkbox
     dialog.checkboxes += (
        checkbox(frame, 2, row, 
@@ -232,16 +232,16 @@ def xbrlDBdialogRssWatchValidateChoices(dialog, frame, row, options, cntlr):
                 "storeIntoXbrlDb"),
     )
     
-def xbrlDBrssWatchHasWatchAction(rssWatchOptions):
+def xbrlDBrssWatchHasWatchAction(rssWatchOptions, *args, **kwargs):
     return rssWatchOptions.get("xbrlDBconnection") and rssWatchOptions.get("storeIntoXbrlDB")
     
-def xbrlDBrssDoWatchAction(modelXbrl, rssWatchOptions, rssItem):
+def xbrlDBrssDoWatchAction(modelXbrl, rssWatchOptions, rssItem, *args, **kwargs):
     dbConnectionString = rssWatchOptions.get("xbrlDBconnection")
     if dbConnectionString:
         dbConnection = dbConnectionString.split(',')
         storeIntoDB(dbConnection, modelXbrl)
         
-def xbrlDBLoaderSetup(cntlr, options, **kwargs):
+def xbrlDBLoaderSetup(cntlr, options, *args, **kwargs):
     global _loadFromDBoptions, _storeIntoDBoptions, _schemaRefSubstitutions
     # set options to load from DB (instead of load from XBRL and store in DB)
     _loadFromDBoptions = getattr(options, "loadFromXbrlDb", None)
@@ -255,7 +255,7 @@ def xbrlDBLoaderSetup(cntlr, options, **kwargs):
                 if argName == "schemaRefSubstitutions":
                     _schemaRefSubstitutions = dict(_keyVal.split(":")[0:2] for _keyVal in argValue.split(";"))
 
-def xbrlDBLoader(modelXbrl, mappedUri, filepath, **kwargs):
+def xbrlDBLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     # check if big instance and has header with an initial incomplete tree walk (just 2 elements
     if not _loadFromDBoptions:
         return None
@@ -269,23 +269,23 @@ def xbrlDBLoader(modelXbrl, mappedUri, filepath, **kwargs):
             extraArgs[argName] = argValue
     return storeIntoDB(dbConnection, modelXbrl, **extraArgs)
 
-def xbrlDBmodelXbrlInit(modelXbrl):
+def xbrlDBmodelXbrlInit(modelXbrl, *args, **kwargs):
         modelXbrl.xbrlDBprocessedByStreaming = False
 
-def xbrlDBstartStreaming(modelXbrl):
+def xbrlDBstartStreaming(modelXbrl, *args, **kwargs):
     if _storeIntoDBoptions:
         return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl, streamingState="start", logStoredMsg=False)
 
-def xbrlDBstreamingFacts(modelXbrl, modelFacts):
+def xbrlDBstreamingFacts(modelXbrl, modelFacts, *args, **kwargs):
     if _storeIntoDBoptions:
         return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl, streamingState="acceptFacts", streamedFacts=modelFacts, logStoredMsg=False)
 
-def xbrlDBfinishStreaming(modelXbrl):
+def xbrlDBfinishStreaming(modelXbrl, *args, **kwargs):
     if _storeIntoDBoptions:
         modelXbrl.xbrlDBprocessedByStreaming = True
         return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl, streamingState="finish", logStoredMsg=False)
 
-def modelDocumentInstanceSchemaRefRewriter(modelDocument, url):
+def modelDocumentInstanceSchemaRefRewriter(modelDocument, url, *args, **kwargs):
     if _schemaRefSubstitutions:
         for _from, _to in _schemaRefSubstitutions.items():
             url = url.replace(_from, _to) # for DPM db substitutions

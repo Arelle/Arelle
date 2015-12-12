@@ -65,7 +65,7 @@ class SECCorrespondenceItem:
         return "_{0}_{1}".format(refId, self.objectIndex)
 
 
-def secCorrespondenceLoader(modelXbrl, mappedUri, filepath, **kwargs):
+def secCorrespondenceLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     if (mappedUri.startswith("http://www.sec.gov/Archives/edgar/Feed/") and 
         mappedUri.endswith(".nc.tar.gz")):
         
@@ -193,7 +193,7 @@ def secCorrespondenceLoader(modelXbrl, mappedUri, filepath, **kwargs):
 
     return None
 
-def secCorrespondenceCloser(modelDocument):
+def secCorrespondenceCloser(modelDocument, *args, **kwargs):
     if (modelDocument.uri.startswith("http://www.sec.gov/Archives/edgar/Feed/") and 
         modelDocument.uri.endswith(".nc.tar.gz")):
         # remove prior files

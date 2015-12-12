@@ -11,6 +11,15 @@ from arelle.ModelObject import ModelObject
 from lxml import etree
 import os, re
 
+ixElements = {
+     XbrlConst.ixbrl: {
+        "denominator", "exclude", "footnote", "fraction", "header", "hidden",
+        "nonFraction", "nonNumeric", "numerator", "references", "resources", "tuple"},
+     XbrlConst.ixbrl11: {
+        "continuation", "denominator", "exclude", "footnote", "fraction", "header", "hidden", 
+        "nonFraction", "nonNumeric","numerator", "references", "relationship","resources", "tuple"}
+    }
+
 ixAttrType = {
     XbrlConst.ixbrl: {
         "arcrole": "anyURI",
@@ -71,6 +80,14 @@ ixAttrRequired = {
         "nonNumeric": ("name", "contextRef"),
         "tuple": ("name",)}                    
     }
+nonIxAttrNS = {
+    "footnote": "http://www.w3.org/XML/1998/namespace",
+    "fraction": "##other",
+    "nonFraction": "##other",
+    "nonNumeric": "##other",
+    "references": "##other",
+    "relationship": "http://www.w3.org/XML/1998/namespace",
+    "tuple": "##other"}
 ixHierarchyConstraints = {
     # localName: (-rel means doesnt't have relation, +rel means has rel,
     #   &rel means only listed rels
@@ -81,17 +98,20 @@ ixHierarchyConstraints = {
     "exclude": (("+ancestor",("continuation", "footnote", "nonNumeric")),),
     "denominator": (("-descendant",('*',)),),
     "numerator": (("-descendant",('*',)),),
-    "header": (("&child", ('hidden','references','resources')), # can only have these children, no others
-               ("?child", ('hidden',)),
-               ("?child", ('resources',))),
+    "header": (("&child-sequence", ('hidden','references','resources')), # can only have these children, in order, no others
+               ("?child-choice", ('hidden',)),
+               ("?child-choice", ('resources',))),
     "hidden": (("+parent", ("header",)),
-               ("&child", ('footnote', 'fraction', 'nonFraction', 'nonNumeric', 'tuple')),
-               ("+child", ('footnote', 'fraction', 'nonFraction', 'nonNumeric', 'tuple'))),
+               ("&child-choice", ('footnote', 'fraction', 'nonFraction', 'nonNumeric', 'tuple')),
+               ("+child-choice", ('footnote', 'fraction', 'nonFraction', 'nonNumeric', 'tuple'))),
     "references": (("+parent",("header",)),),
     "relationship": (("+parent",("resources",)),),
-    "resources": (("+parent",("header",)),),
-    "tuple": (("-child",("continuation", "exclude", "denominator", "footnote", "numerator", "header", "hidden",
-                         "references", "relationship", "resources")),)
+    "resources": (("+parent",("header",)),
+                  ("&child-choice", ('relationship', 
+                                     '{http://www.xbrl.org/2003/linkbase}roleRef', '{http://www.xbrl.org/2003/linkbase}arcroleRef', 
+                                     '{http://www.xbrl.org/2003/instance}context', '{http://www.xbrl.org/2003/instance}unit'))),
+    "tuple": (("-child-choice",("continuation", "exclude", "denominator", "footnote", "numerator", "header", "hidden",
+                                "references", "relationship", "resources")),)
     }
 
 def xhtmlValidate(modelXbrl, elt):
@@ -102,7 +122,8 @@ def xhtmlValidate(modelXbrl, elt):
         if attrTag.startswith("{"):
             ns, sep, localName = attrTag[1:].partition("}")
             if isIxElt:
-                if ns not in (XbrlConst.xml, XbrlConst.xsi):
+                allowedNs = nonIxAttrNS.get(elt.localName, None)
+                if allowedNs != "##other" and ns != allowedNs:
                     modelXbrl.error("ix:qualifiedAttributeNotExpected",
                         _("Inline XBRL element %(element)s: has qualified attribute %(name)s"),
                         modelObject=elt, element=str(elt.elementQname), name=attrTag)
@@ -152,7 +173,8 @@ def xhtmlValidate(modelXbrl, elt):
                     nameFilter = names
                 relations = {"ancestor": XmlUtil.ancestor, 
                              "parent": XmlUtil.parent, 
-                             "child": XmlUtil.children, 
+                             "child-choice": XmlUtil.children, 
+                             "child-sequence": XmlUtil.children, 
                              "descendant": XmlUtil.descendants}[rel](
                             elt, 
                             '*' if nameFilter == ('*',) else elt.namespaceURI,
@@ -168,9 +190,18 @@ def xhtmlValidate(modelXbrl, elt):
                 if reqt in ('&', '^'):
                     disallowed = [str(r.elementQname)
                                   for r in relations
-                                  if r.localName not in names or r.namespaceURI != elt.namespaceURI]
+                                  if not (r.tag in names or
+                                          (r.localName in names and r.namespaceURI == elt.namespaceURI))]
                     if disallowed:
                         issue += " and may not have " + ", ".join(disallowed)
+                    elif rel == "child-sequence":
+                        sequencePosition = 0
+                        for i, r in enumerate(relations):
+                            rPos = names.index(str(r.localName))
+                            if rPos < sequencePosition:
+                                issue += " and is out of sequence: " + str(r.elementQname)
+                            else:
+                                sequencePosition = rPos
                 if reqt == '?' and len(relations) > 1:
                     issue = " may only have 0 or 1 but {0} present ".format(len(relations))
                 if reqt == '+' and len(relations) == 0:
@@ -181,7 +212,8 @@ def xhtmlValidate(modelXbrl, elt):
                     code = "ix:" + {
                            'ancestor': "ancestorNode",
                            'parent': "parentNode",
-                           'child': "childNodes",
+                           'child-choice': "childNodes",
+                           'child-sequence': "childNodes",
                            'descendant': "descendantNodes"}[rel] + {
                             '+': "Required",
                             '-': "Disallowed",
@@ -193,7 +225,8 @@ def xhtmlValidate(modelXbrl, elt):
                                  '?': "may", '+': "must"}[reqt],
                                 {'ancestor': "be nested in",
                                  'parent': "have parent",
-                                 'child': "have child",
+                                 'child-choice': "have child",
+                                 'child-sequence': "have child",
                                  'descendant': "have as descendant"}[rel],
                                 ', '.join(str(r.elementQname) for r in relations)
                                 if names == ('*',) and relations else
@@ -217,14 +250,19 @@ def xhtmlValidate(modelXbrl, elt):
             if isinstance(fromChild, ModelObject):
                 isIxNs = fromChild.namespaceURI in XbrlConst.ixbrlAll
                 if isIxNs:
-                    checkHierarchyConstraints(fromChild)
-                    for attrTag, attrValue in fromChild.items():
-                        checkAttribute(fromChild, True, attrTag, attrValue)
-                    for attrTag in ixAttrRequired[fromChild.namespaceURI].get(fromChild.localName,[]):
-                        if fromChild.get(attrTag) is None:
-                            modelXbrl.error("ix:attributeRequired",
-                                _("Attribute %(attribute)s required on element ix:%(element)s"),
-                                modelObject=elt, attribute=attrTag, element=fromChild.localName)
+                    if fromChild.localName not in ixElements[fromChild.namespaceURI]:
+                        modelXbrl.error("ix:elementNameInvalid",
+                            _("Inline XBRL element name %(element)s is not valid"),
+                            modelObject=fromChild, element=str(fromChild.elementQname))
+                    else:
+                        checkHierarchyConstraints(fromChild)
+                        for attrTag, attrValue in fromChild.items():
+                            checkAttribute(fromChild, True, attrTag, attrValue)
+                        for attrTag in ixAttrRequired[fromChild.namespaceURI].get(fromChild.localName,[]):
+                            if fromChild.get(attrTag) is None:
+                                modelXbrl.error("ix:attributeRequired",
+                                    _("Attribute %(attribute)s required on element ix:%(element)s"),
+                                    modelObject=elt, attribute=attrTag, element=fromChild.localName)
                 if not (fromChild.localName in {"references", "resources"} and isIxNs):
                     if fromChild.localName in {"footnote", "nonNumeric", "continuation"} and isIxNs:
                         toChild = etree.Element("ixNestedContent")
@@ -252,6 +290,8 @@ def xhtmlValidate(modelXbrl, elt):
     with open(os.path.join(modelXbrl.modelManager.cntlr.configDir, "xhtml1-strict-ix.dtd")) as fh:
         dtd = DTD(fh)
     try:
+        #with open("/users/hermf/temp/testDtd.htm", "w") as fh:
+        #    fh.write(etree.tostring(ixToXhtml(elt), encoding=_STR_UNICODE, pretty_print=True))
         if not dtd.validate( ixToXhtml(elt) ):
             modelXbrl.error("ix:DTDelementUnexpected",
                 _("%(element)s error %(error)s"),

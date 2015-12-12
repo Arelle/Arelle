@@ -33,15 +33,15 @@ integerItemTypes = {"integerItemType", "nonPositiveIntegerItemType", "negativeIn
 schemaRefDatePattern = re.compile(r".*/([0-9]{4}-[01][0-9]-[0-3][0-9])/mod.*")
 
 
-def dislosureSystemTypes(disclosureSystem):
+def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
     return (("EBA", "EBA"),
             ("EIOPA", "EIOPA"))
 
-def disclosureSystemConfigURL(disclosureSystem):
+def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
     return os.path.join(os.path.dirname(__file__), "config.xml")
 
-def validateSetup(val, parameters=None):
+def validateSetup(val, parameters=None, *args, **kwargs):
     val.validateEBA = val.validateDisclosureSystem and getattr(val.disclosureSystem, "EBA", False)
     val.validateEIOPA = val.validateDisclosureSystem and getattr(val.disclosureSystem, "EIOPA", False)
     if not (val.validateEBA or val.validateEIOPA):
@@ -90,7 +90,7 @@ def validateSetup(val, parameters=None):
     val.firstFact = None
     val.footnotesRelationshipSet = ModelRelationshipSet(val.modelXbrl, "XBRL-footnotes")
 
-def validateStreamingFacts(val, factsToCheck):
+def validateStreamingFacts(val, factsToCheck, *args, **kwargs):
     if not (val.validateEBA or val.validateEIOPA):
         return True
     validateFacts(val, factsToCheck)
@@ -397,12 +397,12 @@ def validateFacts(val, factsToCheck):
                         val.namespacePrefixesUsed[_NS].add(_prefix)
                         val.prefixesUnused.discard(_prefix)
                    
-def validateNonStreamingFinish(val):
+def validateNonStreamingFinish(val, *args, **kwargs):
     # non-streaming EBA checks, ignore when streaming (first all from ValidateXbrl.py)
     if not getattr(val.modelXbrl, "isStreamingMode", False):
         final(val)
         
-def validateStreamingFinish(val):
+def validateStreamingFinish(val, *args, **kwargs):
     final(val)  # always finish validation when streaming
     
 def final(val):
@@ -575,12 +575,12 @@ def final(val):
                 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    'name': 'Validate EBA',
-    'version': '1.0',
-    'description': '''EBA Validation.''',
+    'name': 'Validate EBA, EIOPA',
+    'version': '1.2',
+    'description': 'EBA (2.3), EIOPA (2.0.0) Filing Rules Validation.',
     'license': 'Apache-2',
     'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2015 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,

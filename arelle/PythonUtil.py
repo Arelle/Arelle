@@ -104,6 +104,17 @@ def pyTypeName(object):
     except:
         return str(type(object))
     
+def pyNamedObject(name):
+    try:
+        if sys.version[0] >= '3':
+            import builtins
+            return builtins.__dict__[name]
+        else:
+            import __builtin__
+            return __builtin__.__dict__[name]
+    except:
+        return None
+    
 SEQUENCE_TYPES = (tuple,list,set)
 def flattenSequence(x, sequence=None):
     if sequence is None: 
@@ -118,4 +129,10 @@ def flattenSequence(x, sequence=None):
         else:
             sequence.append(el)
     return sequence
+
+class attrdict(dict):
+    """ utility to simulate an object with named fields from a dict """
+    def __init__(self, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
+        self.__dict__ = self
 

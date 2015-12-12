@@ -8,6 +8,7 @@ from collections import defaultdict
 import os, datetime, re
 from tkinter import Menu, constants, BooleanVar
 from arelle import ViewWinTree, ModelDtsObject, ModelInstanceObject, XbrlConst, XmlUtil
+from arelle.XbrlConst import conceptNameLabelRole
 
 stripXmlPattern = re.compile(r"<.*?>", re.DOTALL)
 decEntityPattern = re.compile(r"&#([0-9]+);")
@@ -215,7 +216,8 @@ class ViewFactTable(ViewWinTree.ViewTree):
                 if toConcept in visited:
                     childPrefix += "(loop)"
                 labelrole = modelRel.preferredLabel
-                if not labelrole: labelrole = self.labelrole
+                if not labelrole or self.labelrole == conceptNameLabelRole: 
+                    labelrole = self.labelrole
                 self.viewConcept(toConcept, modelRel, childPrefix, labelrole, childnode, n + i + 1, nestedRelationshipSet, visited)
             visited.remove(concept)
             

@@ -6,7 +6,7 @@ Profile Formula Validation is an example of a plug-in to GUI menu that will prof
 import os
 from tkinter import simpledialog, messagebox
 
-def profileFormulaMenuEntender(cntlr, menu):
+def profileFormulaMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the profile formula plugin
     menu.add_command(label="Profile formula validation", 
                      underline=0, 

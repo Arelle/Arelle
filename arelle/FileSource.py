@@ -4,7 +4,7 @@ Created on Oct 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import zipfile, tarfile, os, io, base64, gzip, zlib, re, struct, random, time
+import zipfile, tarfile, os, io, errno, base64, gzip, zlib, re, struct, random, time
 from lxml import etree
 from arelle import XmlUtil
 from arelle import PackageManager
@@ -75,12 +75,12 @@ class FileNamedTextIOWrapper(io.TextIOWrapper):  # provide string IO in memory b
         return self.fileName
     
 class ArchiveFileIOError(IOError):
-    def __init__(self, fileSource, fileName):
+    def __init__(self, fileSource, errno, fileName):
+        super(ArchiveFileIOError, self).__init__(errno,
+                                                 _("Archive {}").format(fileSource.url),
+                                                 fileName)
         self.fileName = fileName
         self.url = fileSource.url
-        
-    def __str__(self):
-        return _("Archive does not contain file: {0}, archive: {1}").format(self.fileName, self.url)
             
 class FileSource:
     def __init__(self, url, cntlr=None, checkIfXmlIsEis=False):
@@ -113,7 +113,7 @@ class FileSource:
                     file = open(self.cntlr.webCache.getfilename(self.url), 'r', errors='replace')
                     l = file.read(128)
                     file.close()
-                    if re.match(r"\s*(<[?]xml[^?]+[?]>)?\s*<(cor[a-z]*:)?edgarSubmission", l):
+                    if re.match(r"\s*(<[?]xml[^?]+[?]>)?\s*<(cor[a-z]*:|sdf:)?edgarSubmission", l):
                         self.isEis = True
                 except EnvironmentError as err:
                     if self.cntlr:
@@ -287,13 +287,15 @@ class FileSource:
         if self.referencedFileSources:
             for referencedFileSource in self.referencedFileSources.values():
                 referencedFileSource.close()
-        self.referencedFileSources = None
+        self.referencedFileSources.clear()
         if self.isZip and self.isOpen:
             self.fs.close()
+            self.fs = None
             self.isOpen = False
             self.isZip = False
         if self.isTarGz and self.isOpen:
             self.fs.close()
+            self.fs = None
             self.isOpen = False
             self.isTarGz = False
         if self.isEis and self.isOpen:
@@ -329,8 +331,14 @@ class FileSource:
             return [_metaInfTxPkg]  # standard package
         return [f for f in (self.dir or []) if os.path.split(f)[-1] in TAXONOMY_PACKAGE_FILE_NAMES]
     
-    def isInArchive(self,filepath):
-        return self.fileSourceContainingFilepath(filepath) is not None
+    def isInArchive(self,filepath, checkExistence=False):
+        archiveFileSource = self.fileSourceContainingFilepath(filepath)
+        if archiveFileSource is None:
+            return False
+        if checkExistence:
+            archiveFileName = filepath[len(archiveFileSource.basefile) + 1:].replace("\\", "/") # must be / file separators
+            return archiveFileName in archiveFileSource.dir
+        return True # True only means that the filepath maps into the archive, not that the file is really there
     
     def isMappedUrl(self, url):
         if self.mappedPaths is not None:
@@ -396,7 +404,7 @@ class FileSource:
                     return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding), 
                             encoding)
                 except KeyError:
-                    raise ArchiveFileIOError(self, archiveFileName)
+                    raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
             elif archiveFileSource.isTarGz:
                 try:
                     fh = archiveFileSource.fs.extractfile(archiveFileName)
@@ -433,7 +441,7 @@ class FileSource:
                                 encoding = XmlUtil.encoding(b, default="latin-1")
                             return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
                                     encoding)
-                raise ArchiveFileIOError(self, archiveFileName)
+                raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
             elif archiveFileSource.isXfd:
                 for data in archiveFileSource.xfdDocument.iter(tag="data"):
                     outfn = data.findtext("filename")
@@ -455,7 +463,7 @@ class FileSource:
                                 encoding = XmlUtil.encoding(b, default="latin-1")
                             return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
                                     encoding)
-                raise ArchiveFileIOError(self, archiveFileName)
+                raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
             elif archiveFileSource.isInstalledTaxonomyPackage:
                 # remove TAXONOMY_PACKAGE_FILE_NAME from file path
                 if filepath.startswith(archiveFileSource.basefile):
@@ -469,6 +477,19 @@ class FileSource:
         else:
             return openXmlFileStream(self.cntlr, filepath, stripDeclaration)
 
+    def exists(self, filepath):
+        archiveFileSource = self.fileSourceContainingFilepath(filepath)
+        if archiveFileSource is not None:
+            if filepath.startswith(archiveFileSource.basefile):
+                archiveFileName = filepath[len(archiveFileSource.basefile) + 1:]
+            else: # filepath.startswith(self.baseurl)
+                archiveFileName = filepath[len(archiveFileSource.baseurl) + 1:]
+            if (archiveFileSource.isZip or archiveFileSource.isTarGz or 
+                archiveFileSource.isEis or archiveFileSource.isXfd or
+                archiveFileSource.isRss or self.isInstalledTaxonomyPackage):
+                return archiveFileName.replace("\\","/") in archiveFileSource.dir
+        # assume it may be a plain ordinary file path
+        return os.path.exists(filepath)
     
     @property
     def dir(self):

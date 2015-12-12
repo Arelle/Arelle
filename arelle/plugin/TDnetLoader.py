@@ -77,7 +77,7 @@ def descendantAttr(elt, descendantName, attrName, default=None):
             return descendant.get(attrName).strip()
     return default
 
-def tdNetLoader(modelXbrl, mappedUri, filepath, **kwargs):
+def tdNetLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     if not (mappedUri.startswith("https://www.release.tdnet.info/inbs/I_") and 
             mappedUri.endswith(".html")):
         return None # not a td net info file

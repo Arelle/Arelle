@@ -193,13 +193,23 @@ class CntlrWinMain (Cntlr.Cntlr):
         logmsgMenu.add_checkbutton(label=_("Collect profile stats"), underline=0, variable=self.collectProfileStats, onvalue=True, offvalue=False)
         logmsgMenu.add_command(label=_("Log profile stats"), underline=0, command=self.showProfileStats)
         logmsgMenu.add_command(label=_("Clear profile stats"), underline=0, command=self.clearProfileStats)
+        self.showDebugMessages = BooleanVar(value=self.config.setdefault("showDebugMessages",False))
+        self.showDebugMessages.trace("w", self.setShowDebugMessages)
+        logmsgMenu.add_checkbutton(label=_("Show debug messages"), underline=0, variable=self.showDebugMessages, onvalue=True, offvalue=False)
 
         toolsMenu.add_command(label=_("Language..."), underline=0, command=lambda: DialogLanguage.askLanguage(self))
         
         for pluginMenuExtender in pluginClassMethods("CntlrWinMain.Menu.Tools"):
             pluginMenuExtender(self, toolsMenu)
         self.menubar.add_cascade(label=_("Tools"), menu=toolsMenu, underline=0)
-
+        
+        # view menu only if any plug-in additions provided
+        if any (pluginClassMethods("CntlrWinMain.Menu.View")):
+            viewMenu = Menu(self.menubar, tearoff=0)
+            for pluginMenuExtender in pluginClassMethods("CntlrWinMain.Menu.View"):
+                pluginMenuExtender(self, viewMenu)
+            self.menubar.add_cascade(label=_("View"), menu=viewMenu, underline=0)
+            
         helpMenu = Menu(self.menubar, tearoff=0)
         for label, command, shortcut_text, shortcut in (
                 (_("Check for updates"), lambda: Updater.checkForUpdates(self), None, None),
@@ -680,7 +690,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             # check for archive files
             filesource = openFileSource(filename, self,
                                         checkIfXmlIsEis=self.modelManager.disclosureSystem and
-                                        self.modelManager.disclosureSystem.EFM)
+                                        self.modelManager.disclosureSystem.validationType == "EFM")
             if filesource.isArchive and not filesource.selection: # or filesource.isRss:
                 from arelle import DialogOpenArchive
                 filename = DialogOpenArchive.askArchiveFile(self, filesource)
@@ -1183,6 +1193,10 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.config["collectProfileStats"] = self.modelManager.collectProfileStats
         self.saveConfig()
         
+    def setShowDebugMessages(self, *args):
+        self.config["showDebugMessages"] = self.showDebugMessages.get()
+        self.saveConfig()
+        
     def find(self, *args):
         from arelle.DialogFind import find
         find(self)
@@ -1220,6 +1234,8 @@ class CntlrWinMain (Cntlr.Cntlr):
 
     # worker threads addToLog        
     def addToLog(self, message, messageCode="", messageArgs=None, file="", level=logging.INFO):
+        if level == logging.DEBUG and not self.showDebugMessages.get():
+            return
         if messageCode and messageCode not in message: # prepend message code
             message = "[{}] {}".format(messageCode, message)
         if file:
@@ -1385,7 +1401,7 @@ class WinMainLogHandler(logging.Handler):
         # add to logView        
         msg = self.format(logRecord)        
         try:            
-            self.cntlr.addToLog(msg)
+            self.cntlr.addToLog(msg, level=logRecord.levelno)
         except:
             pass
 

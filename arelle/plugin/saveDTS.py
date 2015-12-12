@@ -33,7 +33,7 @@ def package(dts):
              modelObject=dts,
              entryFile=entryFilename, numberOfFiles=numFiles, packageOutputFile=pkgFilename)
 
-def saveDtsMenuEntender(cntlr, menu):
+def saveDtsMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
     menu.add_command(label="Save DTS in a package", 
                      underline=0, 
@@ -46,14 +46,14 @@ def saveDtsMenuCommand(cntlr):
         return
     package(cntlr.modelManager.modelXbrl)
 
-def saveDtsCommandLineOptionExtender(parser):
+def saveDtsCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
     parser.add_option("--package-dts", 
                       action="store_true", 
                       dest="packageDTS", 
                       help=_("Package the DTS into a zip file"))
 
-def saveDtsCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
+def saveDtsCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "packageDTS", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:

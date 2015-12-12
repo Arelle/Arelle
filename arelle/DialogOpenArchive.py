@@ -14,9 +14,12 @@ try:
     import regex as re
 except ImportError:
     import re
+from arelle.Cntlr import Cntlr
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UrlUtil import isHttpUrl
 from arelle.PackageManager import parsePackage
+from arelle.PythonUtil import attrdict
+from arelle import PluginManager
 
 '''
 caller checks accepted, if True, caller retrieves url
@@ -25,13 +28,14 @@ caller checks accepted, if True, caller retrieves url
 ARCHIVE = 1
 ENTRY_POINTS = 2
 DISCLOSURE_SYSTEM = 3
+PLUGIN = 4
 
-def askArchiveFile(mainWin, filesource):
+def askArchiveFile(parent, filesource):
     filenames = filesource.dir
     if filenames is not None:   # an IO or other error can return None
         
         if filesource.isTaxonomyPackage:            
-            dialog = DialogOpenArchive(mainWin, 
+            dialog = DialogOpenArchive(parent, 
                                        ENTRY_POINTS, 
                                        filesource, 
                                        filenames,
@@ -39,7 +43,7 @@ def askArchiveFile(mainWin, filesource):
                                        _("File"),
                                        showAltViewButton=True)
         else:
-            dialog = DialogOpenArchive(mainWin, 
+            dialog = DialogOpenArchive(parent, 
                                        ARCHIVE, 
                                        filesource, 
                                        filenames,
@@ -49,21 +53,50 @@ def askArchiveFile(mainWin, filesource):
             return filesource.url
     return None
 
-def selectDisclosureSystem(mainWin, disclosureSystem):
-    dialog = DialogOpenArchive(mainWin, 
+def selectDisclosureSystem(parent, disclosureSystem):
+    
+    disclosureSystemSelections = disclosureSystem.dir
+    
+    # if no disclosure system to select, user may need to enable applicable plugin(s)
+    if not disclosureSystemSelections and messagebox.askokcancel(
+        _("Load disclosure systems"), 
+        _("Disclosure systems are provided by plug-ins, no applicable plug-in(s) have been enabled. \n\n"
+          "Press OK to open the plug-in manager and select plug-in(s) (e.g., validate or EdgarRenderer).")):
+        from arelle import DialogPluginManager
+        DialogPluginManager.dialogPluginManager(parent)
+        return None
+
+    dialog = DialogOpenArchive(parent, 
                                DISCLOSURE_SYSTEM, 
                                disclosureSystem, 
-                               disclosureSystem.dir, 
+                               disclosureSystemSelections, 
                                _("Select Disclosure System"), 
                                _("Disclosure System"))
     if dialog and dialog.accepted:
         return disclosureSystem.selection
     return None
 
+def selectPlugin(parent, pluginChoices):
+    
+    filesource = attrdict(isRss=False, url="Plug-ins", selection="") # emulates a filesource object for the selection return
+    dialog = DialogOpenArchive(parent, 
+                               PLUGIN, 
+                               filesource, 
+                               pluginChoices, 
+                               _("File"), 
+                               _("Select Plug-in Module"))
+    if dialog and dialog.accepted:
+        return filesource.selection
+    return None
+
 
 class DialogOpenArchive(Toplevel):
-    def __init__(self, mainWin, openType, filesource, filenames, title, colHeader, showAltViewButton=False):
-        parent = mainWin.parent
+    def __init__(self, parent, openType, filesource, filenames, title, colHeader, showAltViewButton=False):
+        if isinstance(parent, Cntlr):
+            cntlr = parent
+            parent = parent.parent # parent is cntlrWinMain
+        else: # parent is a Toplevel dialog
+            cntlr = parent.cntlr
         super(DialogOpenArchive, self).__init__(parent)
         self.parent = parent
         self.showAltViewButton = showAltViewButton
@@ -90,7 +123,8 @@ class DialogOpenArchive(Toplevel):
         treeFrame.grid(row=0, column=0, columnspan=4, sticky=(N, S, E, W), padx=3, pady=3)
         self.treeView.focus_set()
         
-        mainWin.showStatus(_("loading archive {0}").format(filesource.url))
+        if openType != PLUGIN:
+            cntlr.showStatus(_("loading archive {0}").format(filesource.url))
         self.filesource = filesource
         self.filenames = filenames
         self.selection = filesource.selection
@@ -114,7 +148,7 @@ class DialogOpenArchive(Toplevel):
                             os.path.splitext(os.path.basename(filesource.url))[0])
 
         
-                self.taxonomyPackage = parsePackage(mainWin, filesource, metadata,
+                self.taxonomyPackage = parsePackage(cntlr, filesource, metadata,
                                                     os.sep.join(os.path.split(metadata)[:-1]) + os.sep)
                 
                 # may be a catalog file with no entry oint names
@@ -125,12 +159,13 @@ class DialogOpenArchive(Toplevel):
                 self.close()
                 err = _("Failed to parse metadata; the underlying error was: {0}").format(e)
                 messagebox.showerror(_("Malformed taxonomy package"), err)
-                mainWin.addToLog(err)
+                cntlr.addToLog(err)
                 return
     
-        mainWin.showStatus(None)
+        if openType != PLUGIN:
+            cntlr.showStatus(None)
         
-        if openType == DISCLOSURE_SYSTEM:
+        if openType in (DISCLOSURE_SYSTEM, PLUGIN):
             y = 3
         else:
             y = 1
@@ -171,7 +206,11 @@ class DialogOpenArchive(Toplevel):
 
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.grab_set()
+        
         self.wait_window(self)
+
+    
+        
         
     def loadTreeView(self, openType, title, colHeader):
         self.title(title)
@@ -183,22 +222,31 @@ class DialogOpenArchive(Toplevel):
             self.treeView.delete(previousNode)
 
         # set up treeView widget and tabbed pane
-        if openType in (ARCHIVE, DISCLOSURE_SYSTEM):
-            self.treeView.column("#0", width=500, anchor="w")
+        if openType in (ARCHIVE, DISCLOSURE_SYSTEM, PLUGIN):
+            if openType == PLUGIN: width = 700
+            else: width = 500
+            self.treeView.column("#0", width=width, anchor="w")
             self.treeView.heading("#0", text=colHeader)
-            try:
-                self.isRss = self.filesource.isRss
-                if self.isRss:
-                    self.treeView.column("#0", width=350, anchor="w")
-                    self.treeView["columns"] = ("descr", "date", "instDoc")
-                    self.treeView.column("descr", width=50, anchor="center", stretch=False)
-                    self.treeView.heading("descr", text="Form")
-                    self.treeView.column("date", width=170, anchor="w", stretch=False)
-                    self.treeView.heading("date", text="Pub Date")
-                    self.treeView.column("instDoc", width=200, anchor="w", stretch=False)
-                    self.treeView.heading("instDoc", text="Instance Document")
-            except AttributeError:
-                self.isRss = False
+            self.isRss = getattr(self.filesource, "isRss", False)
+            if self.isRss:
+                self.treeView.column("#0", width=350, anchor="w")
+                self.treeView["columns"] = ("descr", "date", "instDoc")
+                self.treeView.column("descr", width=50, anchor="center", stretch=False)
+                self.treeView.heading("descr", text="Form")
+                self.treeView.column("date", width=170, anchor="w", stretch=False)
+                self.treeView.heading("date", text="Pub Date")
+                self.treeView.column("instDoc", width=200, anchor="w", stretch=False)
+                self.treeView.heading("instDoc", text="Instance Document")
+            elif openType == PLUGIN:
+                self.treeView.column("#0", width=150, anchor="w")
+                self.treeView["columns"] = ("name", "vers", "descr")
+                self.treeView.column("name", width=150, anchor="w", stretch=False)
+                self.treeView.heading("name", text="Name")
+                self.treeView.column("vers", width=60, anchor="w", stretch=False)
+                self.treeView.heading("vers", text="Version")
+                self.treeView.column("descr", width=300, anchor="w", stretch=False)
+                self.treeView.heading("descr", text="Description")
+            else:
                 self.treeView["columns"] = tuple()
         
             loadedPaths = []
@@ -206,6 +254,8 @@ class DialogOpenArchive(Toplevel):
                 if isinstance(filename,tuple):
                     if self.isRss:
                         form, date, instDoc = filename[2:5]
+                    elif openType == PLUGIN:
+                        name, vers, descr = filename[3:6]
                     filename = filename[0] # ignore tooltip
                     self.hasToolTip = True
                 if filename.endswith("/"):
@@ -220,6 +270,10 @@ class DialogOpenArchive(Toplevel):
                     self.treeView.set(node, "descr", form)
                     self.treeView.set(node, "date", date)
                     self.treeView.set(node, "instDoc", os.path.basename(instDoc))
+                elif openType == PLUGIN:
+                    self.treeView.set(node, "name", name)
+                    self.treeView.set(node, "vers", vers)
+                    self.treeView.set(node, "descr", descr)
                 if self.selection == filename:
                     selectedNode = node
                 loadedPaths.append(path)
@@ -271,6 +325,8 @@ class DialogOpenArchive(Toplevel):
                     if not isHttpUrl(filename) and self.metadataFilePrefix != self.taxonomyPkgMetaInf:
                         # assume it's a path inside the archive:
                         filename = self.metadataFilePrefix + filename
+            elif self.openType == PLUGIN:
+                filename = self.filenames[int(selection[0][4:])][2]
             if filename is not None and not filename.endswith("/"):
                 if hasattr(self, "taxonomyPackage"):
                     # attempt to unmap the filename to original file
@@ -284,7 +340,10 @@ class DialogOpenArchive(Toplevel):
                             # set unmmapped file
                             filename = prefix + filename[len(remapStart):]
                             break
-                self.filesource.select(filename)
+                if self.openType == PLUGIN:
+                    self.filesource.selection = filename
+                else:
+                    self.filesource.select(filename)
                 self.accepted = True
                 self.close()
                         
@@ -306,13 +365,13 @@ class DialogOpenArchive(Toplevel):
         tvRowId = self.treeView.identify_row(args[0].y)
         if tvRowId != self.toolTipRowId:
             text = None
-            if self.openType in (ARCHIVE, DISCLOSURE_SYSTEM):
+            if self.openType in (ARCHIVE, DISCLOSURE_SYSTEM, PLUGIN):
                 self.toolTipRowId = tvRowId
                 if tvRowId and len(tvRowId) > 4:
                     try:
                         text = self.filenames[ int(tvRowId[4:]) ]
                         if isinstance(text, tuple):
-                            text = text[1].replace("\\n","\n")
+                            text = (text[1] or "").replace("\\n","\n")
                     except (KeyError, ValueError):
                         pass
             elif self.openType == ENTRY_POINTS:

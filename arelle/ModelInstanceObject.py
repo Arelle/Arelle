@@ -36,7 +36,7 @@ from lxml import etree
 from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue, XmlValidate
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue
 from arelle.PrototypeInstanceObject import DimValuePrototype
-from math import isnan
+from math import isnan, isinf
 from arelle.ModelObject import ModelObject
 from decimal import Decimal, InvalidOperation
 from hashlib import md5
@@ -355,11 +355,20 @@ class ModelFact(ModelObject):
                     # num = float(val)
                     dec = self.decimals
                     num = roundValue(val, self.precision, dec) # round using reported decimals
-                    if dec is None or dec == "INF":  # show using decimals or reported format
-                        dec = len(val.partition(".")[2])
-                    else: # max decimals at 28
-                        dec = max( min(int(dec), 28), -28) # 2.7 wants short int, 3.2 takes regular int, don't use _INT here
-                    return Locale.format(self.modelXbrl.locale, "%.*f", (dec, num), True)
+                    if isinf(num):
+                        return "-INF" if num < 0 else "INF"
+                    elif isnan(num):
+                        return "NaN"
+                    else:
+                        if dec is None or dec == "INF":  # show using decimals or reported format
+                            dec = len(val.partition(".")[2])
+                        else: # max decimals at 28
+                            dec = max( min(int(dec), 28), -28) # 2.7 wants short int, 3.2 takes regular int, don't use _INT here
+                        # return Locale.format(self.modelXbrl.locale, "%.*f", (dec, num), True)
+                        # switch to new formatting so long-precision decimal numbers are correct
+                        if dec < 0:
+                            dec = 0 # {} formatting doesn't accept negative dec
+                        return Locale.format(self.modelXbrl.locale, "{:.{}f}", (num,dec), True)
                 except ValueError: 
                     return "(error)"
             return self.value
@@ -570,7 +579,7 @@ class ModelInlineValueObject:
                     except Exception as err:
                         self._ixValue = ModelValue.INVALIDixVALUE
                         raise err
-            if self.localName == "nonNumeric" or self.localName == "tuple":
+            if self.localName == "nonNumeric" or self.localName == "tuple" or self.isNil:
                 self._ixValue = v
             else:  # determine string value of transformed value
                 negate = -1 if self.sign else 1
@@ -586,9 +595,14 @@ class ModelInlineValueObject:
                     if scale is not None:
                         num *= 10 ** Decimal(scale)
                     num *= negate
-                    if num == num.to_integral():
-                        num = num.quantize(DECIMALONE) # drop any .0
-                    self._ixValue = "{}".format(num)
+                    if isinf(num):
+                        self._ixValue = "-INF" if num < 0 else "INF"
+                    elif isnan(num):
+                        self._ixValue = "NaN"
+                    else:
+                        if num == num.to_integral():
+                            num = num.quantize(DECIMALONE) # drop any .0
+                        self._ixValue = "{}".format(num)
                 except (ValueError, InvalidOperation):
                     self._ixValue = ModelValue.INVALIDixVALUE
                     raise ValueError("Invalid value for {} scale {} for number {}".format(self.localName, scale, v))
@@ -709,6 +723,8 @@ class ModelInlineFraction(ModelInlineFact):
 class ModelInlineFractionTerm(ModelInlineValueObject, ModelObject):
     def init(self, modelDocument):
         super(ModelInlineFractionTerm, self).init(modelDocument)
+        self.isNil = False # required for inherited value property
+        self.modelTupleFacts = [] # required for inherited XmlValudate of fraction term
         
     @property
     def qname(self):
@@ -1489,7 +1505,7 @@ class ModelInlineFootnote(ModelResource):
     def propertyView(self):
         return (("file", self.modelDocument.basename),
                 ("line", self.sourceline)) + \
-               super(ModelInlineFact,self).propertyView + \
+               super(ModelInlineFootnote,self).propertyView + \
                (("html value", XmlUtil.innerText(self)),)
         
     def __repr__(self):

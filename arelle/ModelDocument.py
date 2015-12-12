@@ -314,6 +314,9 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             modelDocument.rssFeedDiscover(rootNode)
             
         if isEntry:
+            for pi in modelDocument.processingInstructions:
+                if pi.target == "arelle-unit-test":
+                    modelXbrl.arelleUnitTests[pi.get("location")] = pi.get("action")
             while modelXbrl.schemaDocsToValidate:
                 doc = modelXbrl.schemaDocsToValidate.pop()
                 XmlValidateSchema.validate(doc, doc.xmlRootElement, doc.targetNamespace) # validate schema elements
@@ -769,6 +772,19 @@ class ModelDocument:
                 return productKey
         return creationSoftwareComment # "Other"
     
+    @property
+    def processingInstructions(self):
+        try:
+            return self._processingInstructions
+        except AttributeError:
+            self._processingInstructions = []
+            node = self.xmlRootElement
+            while node.getprevious() is not None:
+                node = node.getprevious()
+                if isinstance(node, etree._ProcessingInstruction):
+                    self._processingInstructions.append(node)
+            return self._processingInstructions
+    
     def schemaDiscover(self, rootElement, isIncluded, namespace):
         targetNamespace = rootElement.get("targetNamespace")
         if targetNamespace:
@@ -895,7 +911,8 @@ class ModelDocument:
                     doc.schemaDiscoverChildElements(doc.xmlRootElement)
             else:
                 doc = load(self.modelXbrl, importSchemaLocation, isDiscovered=self.inDTS, 
-                           isIncluded=isIncluded, namespace=importNamespace, referringElement=element)
+                           isIncluded=isIncluded, namespace=importNamespace, referringElement=element,
+                           base='' if self.uri == self.basename else None)
             if doc is not None and doc not in self.referencesDocument:
                 self.referencesDocument[doc] = ModelDocumentReference(element.localName, element)  #import or include
                 self.referencedNamespaces.add(importNamespace)
@@ -1256,16 +1273,19 @@ def inlineIxdsDiscover(modelXbrl):
     continuationElements = {}
     continuationReferences = defaultdict(set) # set of elements that have continuedAt source value
     tuplesByTupleID = {}
+    factsByFactID = {} # non-tuple facts
     for htmlElement in modelXbrl.ixdsHtmlElements:  
         mdlDoc = htmlElement.modelDocument
         for modelInlineTuple in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "tuple"):
-            if isinstance(modelInlineTuple,ModelObject):
+            if isinstance(modelInlineTuple,ModelObject) and modelInlineTuple.qname is not None:
                 modelInlineTuple.unorderedTupleFacts = []
                 if modelInlineTuple.tupleID:
                     tuplesByTupleID[modelInlineTuple.tupleID] = modelInlineTuple
                 tupleElements.append(modelInlineTuple)
                 for r in modelInlineTuple.footnoteRefs:
                     footnoteRefs[r].append(modelInlineTuple)
+                if modelInlineTuple.id:
+                    factsByFactID[modelInlineTuple.id] = modelInlineTuple
         for elt in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "continuation"):
             if isinstance(elt,ModelObject) and elt.id:
                 continuationElements[elt.id] = elt
@@ -1342,11 +1362,19 @@ def inlineIxdsDiscover(modelXbrl):
         for tag in factTags:
             for modelInlineFact in htmlElement.iterdescendants(tag=tag):
                 if isinstance(modelInlineFact,ModelInlineFact):
-                    mdlDoc.modelXbrl.factsInInstance.add( modelInlineFact )
-                    locateFactInTuple(modelInlineFact, tuplesByTupleID, ixNStag)
-                    locateContinuation(modelInlineFact)
-                    for r in modelInlineFact.footnoteRefs:
-                        footnoteRefs[r].append(modelInlineFact)
+                    if modelInlineFact.qname is not None: # must have a qname to be in facts
+                        if modelInlineFact.isFraction == (modelInlineFact.localName == "fraction"):
+                            mdlDoc.modelXbrl.factsInInstance.add( modelInlineFact )
+                            locateFactInTuple(modelInlineFact, tuplesByTupleID, ixNStag)
+                            locateContinuation(modelInlineFact)
+                            for r in modelInlineFact.footnoteRefs:
+                                footnoteRefs[r].append(modelInlineFact)
+                            if modelInlineFact.id:
+                                factsByFactID[modelInlineFact.id] = modelInlineFact
+                        else:
+                            modelXbrl.error("ix:fractionDeclaration",
+                                            _("Inline XBRL element %(qname)s base type %(type)s mapped by %(localName)s"),
+                                            modelObject=modelInlineFact, qname=modelInlineFact.qname, type=modelInlineFact.concept.baseXsdType, localName=modelInlineFact.elementQname)
         # order tuple facts
         for tupleFact in tupleElements:
             tupleFact.modelTupleFacts = [
@@ -1354,9 +1382,15 @@ def inlineIxdsDiscover(modelXbrl):
                  for order,objectIndex in sorted(tupleFact.unorderedTupleFacts)]
                         
         # validate particle structure of elements after transformations and established tuple structure
+        fractionTermTags = (ixNStag + "numerator", ixNStag + "denominator")
         for rootModelFact in modelXbrl.facts:
             # validate XBRL (after complete document set is loaded)
-            XmlValidate.validate(modelXbrl, rootModelFact, ixFacts=True)
+            if rootModelFact.localName == "fraction":
+                for tag in fractionTermTags:
+                    for modelInlineFractionTerm in rootModelFact.iterchildren(tag=tag):
+                        XmlValidate.validate(modelXbrl, modelInlineFractionTerm, ixFacts=True)
+            else:
+                XmlValidate.validate(modelXbrl, rootModelFact, ixFacts=True)
             
     footnoteLinkPrototypes = {}
     for htmlElement in modelXbrl.ixdsHtmlElements:  
@@ -1433,6 +1467,7 @@ def inlineIxdsDiscover(modelXbrl):
                 toLabels = set()
                 toFootnoteIds = set()
                 toFactQnames = set()
+                toIdsNotFound = []
                 for toId in modelInlineRel.get("toRefs","").split():
                     toLabels.add(toId)
                     if toId in modelInlineFootnotesById:
@@ -1442,11 +1477,17 @@ def inlineIxdsDiscover(modelXbrl):
                             linkPrototype.childElements.append(modelInlineFootnote)
                             linkModelInlineFootnoteIds[linkrole].add(toId)
                         linkPrototype.labeledResources[toId].append(modelInlineFootnote)
-                    else:
+                    elif toId in factsByFactID:
                         locPrototype = LocPrototype(mdlDoc, linkPrototype, toId, toId)
                         toFactQnames.add(str(locPrototype.dereference().qname))
                         linkPrototype.childElements.append(locPrototype)
                         linkPrototype.labeledResources[toId].append(locPrototype)
+                    else: 
+                        toIdsNotFound.append(toId)
+                if toIdsNotFound:
+                    modelXbrl.error("ix:relationshipToRef",
+                                    _("Inline relationship toRef(s) %(toIds)s not found."),
+                                    modelObject=modelInlineRel, toIds=', '.join(sorted(toIdsNotFound)))
                 for fromLabel in fromLabels:
                     for toLabel in toLabels: 
                         linkPrototype.childElements.append(ArcPrototype(mdlDoc, linkPrototype, XbrlConst.qnLinkFootnoteArc,
@@ -1469,7 +1510,13 @@ def inlineIxdsDiscover(modelXbrl):
                             _("continuedAt %(continuedAt)s has %(referencesCount)s references on %(sourceElements)s elements, only one reference allowed."),
                             modelObject=_contReferences, continuedAt=_contAt, referencesCount=len(_contReferences), 
                             sourceElements=', '.join(str(qn) for qn in sorted(_refEltQnames)))
-                
+
+    # check for orphan continuation elements
+    for _contAt, _contElt in continuationElements.items():
+        if _contAt not in continuationReferences:
+            modelXbrl.error("ix:continuationNotReferenced",
+                            _("ix:continuation %(continuedAt)s is not referenced by a, ix:footnote, ix:nonNumeric or other ix:continuation element."),
+                            modelObject=_contElt, continuedAt=_contAt)
     del modelXbrl.ixdsHtmlElements # dereference
     
 class LoadingException(Exception):

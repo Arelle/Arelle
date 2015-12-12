@@ -276,9 +276,9 @@ def xsString(xc, p, source):
         return 'true' if source else 'false'
     elif isinstance(source,float):
         if isnan(source):
-            return "NaN"
+            return "NaN" # note that -NaN is reported as NaN in XML
         elif isinf(source):
-            return "INF"
+            return "-INF" if source < 0 else "INF"
         '''
         numMagnitude = fabs(source)
         if numMagnitude < 1000000 and numMagnitude > .000001:
@@ -291,9 +291,9 @@ def xsString(xc, p, source):
         return s
     elif isinstance(source,Decimal):
         if isnan(source):
-            return "NaN"
+            return "NaN" # note that -NaN is reported as NaN in XML
         elif isinf(source):
-            return "INF"
+            return "-INF" if source < 0 else "INF"
         return str(source)
     elif isinstance(source,ModelValue.DateTime):
         return ('{0:%Y-%m-%d}' if source.dateOnly else '{0:%Y-%m-%dT%H:%M:%S}').format(source)

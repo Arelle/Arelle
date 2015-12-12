@@ -6,13 +6,14 @@ Created on Oct 17, 2010
 '''
 import re, datetime
 from collections import defaultdict
-from arelle import (ModelDocument, ModelValue, 
-                ModelRelationshipSet, XmlUtil, XbrlConst, ValidateFilingText)
+from arelle import (ModelDocument, ModelValue, ModelRelationshipSet, 
+                    XmlUtil, XbrlConst, ValidateFilingText)
 from arelle.ValidateXbrlCalcs import insignificantDigits
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelDtsObject import ModelConcept
 from arelle.PluginManager import pluginClassMethods
+from arelle.PythonUtil import pyNamedObject
 from arelle.UrlUtil import isHttpUrl
 from .DTS import checkFilingDTS
 from .Dimensions import checkFilingDimensions
@@ -31,6 +32,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     linkroleDefinitionStatementSheet = re.compile(r"[^-]+-\s+Statement\s+-\s+.*", # no restriction to type of statement
                                                   re.IGNORECASE)
     efmCIKpattern = re.compile(r"^[0-9]{10}$")
+    instantPreferredLabelRolePattern = re.compile(r".*[pP]eriod(Start|End)")
+    embeddingCommandPattern = re.compile(r"[^~]*~\s*()[^~]*~")
     
     val._isStandardUri = {}
     modelXbrl.modelManager.disclosureSystem.loadStandardTaxonomiesDict()
@@ -61,6 +64,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         for pluginXbrlMethod in pluginClassMethods("Validate.EFM.Start"):
             pluginXbrlMethod(val)
             
+    if "EFM/Filing.py#validateFiling_start" in val.modelXbrl.arelleUnitTests:
+        raise pyNamedObject(val.modelXbrl.arelleUnitTests["EFM/Filing.py#validateFiling_start"])
+
     # instance checks
     val.fileNameBasePart = None # prevent testing on fileNameParts if not instance or invalid
     val.fileNameDate = None
@@ -375,7 +381,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         val.entityRegistrantName = deiItems.get("EntityRegistrantName") # used for name check in 6.8.6
         
         # 6.05..23,24 check (after dei facts read)
-        if not (entityIdentifierValue == "0000000000" and isEFM and documentType == "L SDR"):
+        if not (isEFM and documentType == "L SDR"): # allow entityIdentifierValue == "0000000000" or any other CIK value
             if disclosureSystem.deiFilerIdentifierElement in deiItems:
                 value = deiItems[disclosureSystem.deiFilerIdentifierElement]
                 if entityIdentifierValue != value:
@@ -541,32 +547,31 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         factsForLang = {}
         factForConceptContextUnitLangHash = defaultdict(list)
         keysNotDefaultLang = {}
-        iF1 = 1
         for f1 in modelXbrl.facts:
-            # build keys table for 6.5.14
-            if not f1.isNil:
-                langTestKey = "{0},{1},{2}".format(f1.qname, f1.contextID, f1.unitID)
-                factsForLang.setdefault(langTestKey, []).append(f1)
-                lang = f1.xmlLang
-                if lang and lang != requiredFactLang: # not lang.startswith(factLangStartsWith):
-                    keysNotDefaultLang[langTestKey] = f1
-                    
-                # 6.5.37 test (insignificant digits due to rounding)
-                if f1.isNumeric and f1.decimals and f1.decimals != "INF" and not f1.isNil and getattr(f1,"xValid", 0) == 4:
-                    try:
-                        insignificance = insignificantDigits(f1.xValue, decimals=f1.decimals)
-                        if insignificance: # if not None, returns (truncatedDigits, insiginficantDigits)
+            if f1.context is not None and f1.concept is not None:
+                # build keys table for 6.5.14
+                if not f1.isNil:
+                    langTestKey = "{0},{1},{2}".format(f1.qname, f1.contextID, f1.unitID)
+                    factsForLang.setdefault(langTestKey, []).append(f1)
+                    lang = f1.xmlLang
+                    if lang and lang != requiredFactLang: # not lang.startswith(factLangStartsWith):
+                        keysNotDefaultLang[langTestKey] = f1
+                        
+                    # 6.5.37 test (insignificant digits due to rounding)
+                    if f1.isNumeric and f1.decimals and f1.decimals != "INF" and not f1.isNil and getattr(f1,"xValid", 0) == 4:
+                        try:
+                            insignificance = insignificantDigits(f1.xValue, decimals=f1.decimals)
+                            if insignificance: # if not None, returns (truncatedDigits, insiginficantDigits)
+                                modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
+                                    _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(insignificantDigits)s."),
+                                    modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, 
+                                    value=f1.xValue, truncatedDigits=insignificance[0], insignificantDigits=insignificance[1])
+                        except (ValueError,TypeError):
                             modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
-                                _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(insignificantDigits)s."),
-                                modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, 
-                                value=f1.xValue, truncatedDigits=insignificance[0], insignificantDigits=insignificance[1])
-                    except (ValueError,TypeError):
-                        modelXbrl.error(("EFM.6.05.37", "GFM.1.02.26"),
-                            _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),
-                            modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
-            # 6.5.12 test
-            factForConceptContextUnitLangHash[f1.conceptContextUnitLangHash].append(f1)
-            iF1 += 1
+                                _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),
+                                modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
+                # 6.5.12 test
+                factForConceptContextUnitLangHash[f1.conceptContextUnitLangHash].append(f1)
         # 6.5.12 test
         aspectEqualFacts = defaultdict(list)
         for hashEquivalentFacts in factForConceptContextUnitLangHash.values():
@@ -1030,7 +1035,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         for name in ("CountryAxis", "GovernmentAxis", "PaymentTypeAxis", "ProjectAxis","PmtAxis",
                                     "AllGovernmentsMember", "AllProjectsMember","BusinessSegmentAxis", "EntityDomain", 
                                     "A", "Cm", "Co", "Cu", "D", "Gv", "E", "K", "Km", "P", "Payments", "Pr", "Sm"):
-                            setattr(val, name, ModelValue.qname(rxdNs, "rxd:" + name))
+                            setattr(self, name, ModelValue.qname(rxdNs, "rxd:" + name))
 
                 rxd = Rxd()
                 f1 = deiFacts.get(disclosureSystem.deiCurrentFiscalYearEndDateElement)
@@ -1049,6 +1054,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         modelObject=documentPeriodEndDateFact, reportingPeriod=documentPeriodEndDateFact.value)
                 for url,doc in modelXbrl.urlDocs.items():
                     if (url not in disclosureSystem.standardTaxonomiesDict and
+                        doc.inDTS and # ignore EdgarRenderer-loaded non-DTS schemas
                         doc.type == ModelDocument.Type.SCHEMA):
                         for concept in XmlUtil.children(doc.xmlRootElement, XbrlConst.xsd, "element"):
                             name = concept.name
@@ -1345,57 +1351,59 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     for concept in modelXbrl.qnameConcepts.values():
         # conceptHasDefaultLangStandardLabel = False
         for modelLabelRel in labelsRelationshipSet.fromModelObject(concept):
-            modelLabel = modelLabelRel.toModelObject
-            role = modelLabel.role
-            text = modelLabel.text
-            lang = modelLabel.xmlLang
-            if role == XbrlConst.documentationLabel:
-                if concept.modelDocument.targetNamespace in disclosureSystem.standardTaxonomiesDict:
-                    modelXbrl.error(("EFM.6.10.05", "GFM.1.05.05"),
-                        _("Concept %(concept)s of a standard taxonomy cannot have a documentation label: %(text)s"),
-                        modelObject=modelLabel, concept=concept.qname, text=text)
-            elif text and lang and disclosureSystem.defaultXmlLang and lang.startswith(disclosureSystem.defaultXmlLang):
-                if role == XbrlConst.standardLabel:
-                    if text in defaultLangStandardLabels:
-                        concept2, modelLabel2 = defaultLangStandardLabels[text]
-                        modelXbrl.error(("EFM.6.10.04", "GFM.1.05.04"),
-                            _("Same labels for concepts %(concept)s and %(concept2)s for %(lang)s standard role: %(text)s."),
-                            modelObject=(concept, modelLabel, concept2, modelLabel2), 
-                            concept=concept.qname, 
-                            concept2=concept2.qname, 
-                            lang=disclosureSystem.defaultLanguage, text=text[:80])
-                    else:
-                        defaultLangStandardLabels[text] = (concept, modelLabel)
-                    # conceptHasDefaultLangStandardLabel = True
-                if len(text) > 511:
-                    modelXbrl.error(("EFM.6.10.06", "GFM.1.05.06"),
-                        _("Label for concept %(concept)s role %(role)s length %(length)s must be shorter than 511 characters: %(text)s"),
-                        modelObject=modelLabel, concept=concept.qname, role=role, length=len(text), text=text[:80])
-                match = modelXbrl.modelManager.disclosureSystem.labelCheckPattern.search(text)
-                if match:
-                    modelXbrl.error(("EFM.6.10.06", "GFM.1.05.07"),
-                        'Label for concept %(concept)s role %(role)s has disallowed characters: "%(text)s"',
-                        modelObject=modelLabel, concept=concept.qname, role=role, text=match.group())
-            if (text is not None and len(text) > 0 and 
-                modelXbrl.modelManager.disclosureSystem.labelTrimPattern and
-               (modelXbrl.modelManager.disclosureSystem.labelTrimPattern.match(text[0]) or \
-                modelXbrl.modelManager.disclosureSystem.labelTrimPattern.match(text[-1]))):
-                modelXbrl.error(("EFM.6.10.08", "GFM.1.05.08"),
-                    _("Label for concept %(concept)s role %(role)s lang %(lang)s is not trimmed: %(text)s"),
-                    modelObject=modelLabel, concept=concept.qname, role=role, lang=lang, text=text)
+            if modelLabelRel.modelDocument.inDTS: # ignore documentation labels added by EdgarRenderer not in DTS
+                modelLabel = modelLabelRel.toModelObject
+                role = modelLabel.role
+                text = modelLabel.text
+                lang = modelLabel.xmlLang
+                if role == XbrlConst.documentationLabel:
+                    if concept.modelDocument.targetNamespace in disclosureSystem.standardTaxonomiesDict:
+                        modelXbrl.error(("EFM.6.10.05", "GFM.1.05.05"),
+                            _("Concept %(concept)s of a standard taxonomy cannot have a documentation label: %(text)s"),
+                            modelObject=modelLabel, concept=concept.qname, text=text)
+                elif text and lang and disclosureSystem.defaultXmlLang and lang.startswith(disclosureSystem.defaultXmlLang):
+                    if role == XbrlConst.standardLabel:
+                        if text in defaultLangStandardLabels:
+                            concept2, modelLabel2 = defaultLangStandardLabels[text]
+                            modelXbrl.error(("EFM.6.10.04", "GFM.1.05.04"),
+                                _("Same labels for concepts %(concept)s and %(concept2)s for %(lang)s standard role: %(text)s."),
+                                modelObject=(concept, modelLabel, concept2, modelLabel2), 
+                                concept=concept.qname, 
+                                concept2=concept2.qname, 
+                                lang=disclosureSystem.defaultLanguage, text=text[:80])
+                        else:
+                            defaultLangStandardLabels[text] = (concept, modelLabel)
+                        # conceptHasDefaultLangStandardLabel = True
+                    if len(text) > 511:
+                        modelXbrl.error(("EFM.6.10.06", "GFM.1.05.06"),
+                            _("Label for concept %(concept)s role %(role)s length %(length)s must be shorter than 511 characters: %(text)s"),
+                            modelObject=modelLabel, concept=concept.qname, role=role, length=len(text), text=text[:80])
+                    match = modelXbrl.modelManager.disclosureSystem.labelCheckPattern.search(text)
+                    if match:
+                        modelXbrl.error(("EFM.6.10.06", "GFM.1.05.07"),
+                            'Label for concept %(concept)s role %(role)s has disallowed characters: "%(text)s"',
+                            modelObject=modelLabel, concept=concept.qname, role=role, text=match.group())
+                if (text is not None and len(text) > 0 and 
+                    modelXbrl.modelManager.disclosureSystem.labelTrimPattern and
+                   (modelXbrl.modelManager.disclosureSystem.labelTrimPattern.match(text[0]) or \
+                    modelXbrl.modelManager.disclosureSystem.labelTrimPattern.match(text[-1]))):
+                    modelXbrl.error(("EFM.6.10.08", "GFM.1.05.08"),
+                        _("Label for concept %(concept)s role %(role)s lang %(lang)s is not trimmed: %(text)s"),
+                        modelObject=modelLabel, concept=concept.qname, role=role, lang=lang, text=text)
         for modelRefRel in referencesRelationshipSetWithProhibits.fromModelObject(concept):
-            modelReference = modelRefRel.toModelObject
-            text = XmlUtil.innerText(modelReference)
-            #6.18.1 no reference to company extension concepts
-            if concept.modelDocument.targetNamespace not in disclosureSystem.standardTaxonomiesDict:
-                modelXbrl.error(("EFM.6.18.01", "GFM.1.9.1"),
-                    _("References for extension concept %(concept)s are not allowed: %(text)s"),
-                    modelObject=modelReference, concept=concept.qname, text=text, xml=XmlUtil.xmlstring(modelReference, stripXmlns=True, contentsOnly=True))
-            elif isEFM and not isStandardUri(val, modelRefRel.modelDocument.uri): 
-                #6.18.2 no extension to add or remove references to standard concepts
-                modelXbrl.error(("EFM.6.18.02"),
-                    _("References for standard taxonomy concept %(concept)s are not allowed in an extension linkbase: %(text)s"),
-                    modelObject=modelReference, concept=concept.qname, text=text, xml=XmlUtil.xmlstring(modelReference, stripXmlns=True, contentsOnly=True))
+            if modelRefRel.modelDocument.inDTS: # ignore references added by EdgarRenderer that are not in DTS
+                modelReference = modelRefRel.toModelObject
+                text = XmlUtil.innerText(modelReference)
+                #6.18.1 no reference to company extension concepts
+                if concept.modelDocument.targetNamespace not in disclosureSystem.standardTaxonomiesDict:
+                    modelXbrl.error(("EFM.6.18.01", "GFM.1.9.1"),
+                        _("References for extension concept %(concept)s are not allowed: %(text)s"),
+                        modelObject=modelReference, concept=concept.qname, text=text, xml=XmlUtil.xmlstring(modelReference, stripXmlns=True, contentsOnly=True))
+                elif isEFM and not isStandardUri(val, modelRefRel.modelDocument.uri): 
+                    #6.18.2 no extension to add or remove references to standard concepts
+                    modelXbrl.error(("EFM.6.18.02"),
+                        _("References for standard taxonomy concept %(concept)s are not allowed in an extension linkbase: %(text)s"),
+                        modelObject=modelReference, concept=concept.qname, text=text, xml=XmlUtil.xmlstring(modelReference, stripXmlns=True, contentsOnly=True))
 
     # role types checks
     # 6.7.10 only one role type declaration in DTS
@@ -1417,6 +1425,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     del defaultLangStandardLabels #dereference
     
     # checks on all documents: instance, schema, instance
+    val.hasExtensionSchema = False
     checkFilingDTS(val, modelXbrl.modelDocument, isEFM, isGFM, [])
     val.modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
 
@@ -1430,6 +1439,11 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     modelObject=modelXbrl, conflictClass=conflictClass, 
                     namespaceConflicts=sorted((d.targetNamespace for d in modelDocuments),
                                               key=lambda ns: ns.rpartition('/')[2]))
+        
+        if not val.hasExtensionSchema and documentType != "L SDR":
+            modelXbrl.error("EFM.6.03.10",
+                            _("%(documentType)s report is missing a extension schema file."),
+                            modelObject=modelXbrl, documentType=documentType)
         
     conceptRelsUsedWithPreferredLabels = defaultdict(list)
     usedCalcsPresented = defaultdict(set) # pairs of concepts objectIds used in calc
@@ -1502,10 +1516,33 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             if order in orderRels:
                                 modelXbrl.error(("EFM.6.12.02", "GFM.1.06.02"),
                                     _("Duplicate presentation relations from concept %(conceptFrom)s for order %(order)s in base set role %(linkrole)s to concept %(conceptTo)s and to concept %(conceptTo2)s"),
-                                    modelObject=(rel, orderRels[order]), conceptFrom=relFrom.qname, order=rel.arcElement.get("order"), linkrole=rel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole),
-                                    conceptTo=rel.toModelObject.qname, conceptTo2=orderRels[order].toModelObject.qname)
+                                    modelObject=(rel, orderRels[order]), conceptFrom=relFrom.qname, order=rel.arcElement.get("order"), linkrole=rel.linkrole, 
+                                    linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole), linkroleName=modelXbrl.roleTypeName(rel.linkrole),
+                                    conceptTo=relTo.qname, conceptTo2=orderRels[order].toModelObject.qname)
                             else:
                                 orderRels[order] = rel
+                            if relTo is not None:
+                                if relTo.periodType == "duration" and instantPreferredLabelRolePattern.match(preferredLabel or ""): 
+                                    modelXbrl.warning("EFM.6.12.07",
+                                        _("In \"%(linkrole)s\", element %(conceptTo)s has period type 'duration' but is given a preferred label %(preferredLabel)s when shown under parent %(conceptFrom)s.  The preferred label will be ignored."),
+                                        modelObject=(rel, relTo), conceptTo=relTo.qname, conceptFrom=relFrom.qname, order=rel.arcElement.get("order"), linkrole=rel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole),
+                                        linkroleName=modelXbrl.roleTypeName(rel.linkrole),
+                                        conceptTo2=orderRels[order].toModelObject.qname, 
+                                        preferredLabel=preferredLabel, preferredLabelValue=preferredLabel.rpartition("/")[2])
+                                if (relTo.isDimensionItem and not any(
+                                    _rel.toModelObject is not None and _rel.toModelObject.type is not None and _rel.toModelObject.type.isDomainItemType
+                                    for _rel in parentChildRels.fromModelObject(relTo))):
+                                        modelXbrl.warning("EFM.6.12.08",
+                                            _("In \"%(linkrole)s\" axis %(axis)s has no domain element children, which effectively filters out every fact."),
+                                            modelObject=relFrom, axis=relFrom.qname, 
+                                            linkrole=ELR, linkroleDefinition=modelXbrl.roleTypeDefinition(ELR), linkroleName=modelXbrl.roleTypeName(ELR))
+                                if (relFrom.isDimensionItem and not any(
+                                    _rel.toModelObject is not None and _rel.toModelObject.type is not None and _rel.toModelObject.type.isDomainItemType
+                                    for _rel in siblingRels)):
+                                        modelXbrl.warning("EFM.6.12.08",
+                                            _("In \"%(linkrole)s\" axis %(axis)s has no domain element children, which effectively filters out every fact."),
+                                            modelObject=relFrom, axis=relFrom.qname, 
+                                            linkrole=ELR, linkroleDefinition=modelXbrl.roleTypeDefinition(ELR), linkroleName=modelXbrl.roleTypeName(ELR))
                         targetConceptPreferredLabels.clear()
                         orderRels.clear()
                     localPreferredLabels.clear() # clear for next relationship
@@ -1518,6 +1555,15 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     if validateLoggingSemantic:
                         for rootConcept in parentChildRels.rootConcepts:
                             checkCalcsTreeWalk(val, parentChildRels, rootConcept, isStatementSheet, False, conceptsUsed, set())
+                    # 6.12.6 
+                    if len(parentChildRels.rootConcepts) > 1:
+                        val.modelXbrl.warning("EFM.6.12.06",
+                            _("Presentation relationship set role %(linkrole)s has multiple (%(numberRootConcepts)s) root nodes.  "
+                              "XBRL allows unordered root nodes, but rendering requires ordering.  They will instead be ordered by their labels.  "
+                              "To avoid undesirable ordering of axes and primary items across multiple root nodes, rearrange the presentation relationships to have only a single root node."),
+                            modelObject=(rel,parentChildRels.rootConcepts), linkrole=ELR, linkroleDefinition=val.modelXbrl.roleTypeDefinition(ELR),
+                            linkroleName=val.modelXbrl.roleTypeName(ELR),
+                            numberRootConcepts=len(parentChildRels.rootConcepts))
                 elif arcrole == XbrlConst.summationItem:
                     # 6.14.3 check for relation concept periods
                     fromRelationships = modelXbrl.relationshipSet(arcrole,ELR).fromModelObjects()
@@ -1666,7 +1712,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     # 6 16 4, 1.16.5 Base sets of Domain Relationship Sets testing
     val.modelXbrl.profileActivity("... filer preferred label checks", minTimeToShow=1.0)
     
-
+    if "EFM/Filing.py#validateFiling_end" in val.modelXbrl.arelleUnitTests:
+        raise pyNamedObject(val.modelXbrl.arelleUnitTests["EFM/Filing.py#validateFiling_end"])
 
     if isEFM:
         for pluginXbrlMethod in pluginClassMethods("Validate.EFM.Finally"):

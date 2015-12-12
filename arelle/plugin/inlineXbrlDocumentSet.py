@@ -42,7 +42,7 @@ class ModelInlineXbrlDocumentSet(ModelDocument):
                                 self.targetDocumentSchemaRefs.add(doc.relativeUri(referencedDoc.uri))
         return True
 
-def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRefs, outputZip=None, filingFiles=None):
+def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRefs, outputZip=None, filingFiles=None, *args, **kwargs):
     targetUrl = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(targetDocumentFilename, modelXbrl.modelDocument.filepath)
     targetUrlParts = targetUrl.rpartition(".")
     targetUrl = targetUrlParts[0] + "_extracted." + targetUrlParts[2]
@@ -149,7 +149,7 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
                     footnoteIdCount[linkChild.footnoteID] = idUseCount
                     newChild = addChild(newLink, linkChild.qname, 
                                         attributes=attributes)
-                    copyIxFootnoteHtml(linkChild, newChild, withText=True)
+                    copyIxFootnoteHtml(linkChild, newChild, targetModelDocument=targetInstance.modelDocument, withText=True)
                     if filingFiles and linkChild.textValue:
                         footnoteHtml = XML("<body/>")
                         copyIxFootnoteHtml(linkChild, footnoteHtml)
@@ -160,6 +160,8 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
                                         filingFiles.add(attrValue)
         
     targetInstance.saveInstance(overrideFilepath=targetUrl, outputZip=outputZip)
+    if getattr(modelXbrl, "isTestcaseVariation", False):
+        modelXbrl.extractedInlineInstance = True # for validation comparison
     modelXbrl.modelManager.showStatus(_("Saved extracted instance"), 5000)
 
 def identifyInlineXbrlDocumentSet(modelXbrl, rootNode, filepath):
@@ -168,12 +170,12 @@ def identifyInlineXbrlDocumentSet(modelXbrl, rootNode, filepath):
         return (Type.INLINEXBRLDOCUMENTSET, ModelInlineXbrlDocumentSet, manifestElt)
     return None # not a document set
 
-def discoverInlineXbrlDocumentSet(modelDocument):
+def discoverInlineXbrlDocumentSet(modelDocument, *args, **kwargs):
     if isinstance(modelDocument, ModelInlineXbrlDocumentSet):
         return modelDocument.discoverInlineXbrlDocumentSet()        
     return False  # not discoverable by this plug-in
 
-def saveTargetDocumentMenuEntender(cntlr, menu):
+def saveTargetDocumentMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
     menu.add_command(label="Save target document", 
                      underline=0, 
@@ -228,7 +230,7 @@ def runSaveTargetDocumentMenuCommand(cntlr, runInBackground=False, saveTargetFil
                     filingZip.write(refFile, modelDocument.relativeUri(refFile))
             
 
-def saveTargetDocumentCommandLineOptionExtender(parser):
+def saveTargetDocumentCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
     parser.add_option("--saveInstance", 
                       action="store_true", 
@@ -247,7 +249,7 @@ def saveTargetDocumentCommandLineOptionExtender(parser):
                       dest="saveTargetFiling", 
                       help=SUPPRESS_HELP)
 
-def saveTargetDocumentCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
+def saveTargetDocumentCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "saveTargetInstance", False) or getattr(options, "saveTargetFiling", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None or not (   

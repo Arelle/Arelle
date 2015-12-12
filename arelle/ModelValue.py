@@ -248,6 +248,7 @@ def lastDayOfMonth(year, month):
 
 class DateTime(datetime.datetime):
     def __new__(cls, y, m, d, hr=0, min=0, sec=0, microsec=0, tzinfo=None, dateOnly=None, addOneDay=None):
+        # note: does not support negative years but xml date does allow negative dates
         lastDay = lastDayOfMonth(y, m)
         # check day and month before adjustment
         if not 1 <= m <= 12: raise ValueError("month must be in 1..12")
@@ -266,6 +267,7 @@ class DateTime(datetime.datetime):
     def __copy__(self):
         return DateTime(self.year, self.month, self.day, self.hour, self.minute, self.second, self.microsecond, self.tzinfo, self.dateOnly)
     def __str__(self):
+        # note does not print negative dates but xml does allow negative date
         if self.dateOnly:
             return "{0.year:04}-{0.month:02}-{0.day:02}".format(self)
         else:
@@ -401,11 +403,11 @@ class Time(datetime.time):
     
 class gYearMonth():
     def __init__(self, year, month):
-        self.year = int(year)
+        self.year = int(year) # may be negative
         self.month = int(month)
 
     def __repr__(self):
-        return "-{0:04}-{1:02}".format(self.year, self.month)
+        return "{0:0{2}}-{1:02}".format(self.year, self.month, 5 if self.year < 0 else 4) # may be negative
     
     
 class gMonthDay():
@@ -418,10 +420,10 @@ class gMonthDay():
     
 class gYear():
     def __init__(self, year):
-        self.year = int(year)
+        self.year = int(year) # may be negative
 
     def __repr__(self):
-        return "{0:04}".format(self.year)
+        return "{0:0{1}}".format(self.year, 5 if self.year < 0 else 4) # may be negative
     
 class gMonth():
     def __init__(self, month):

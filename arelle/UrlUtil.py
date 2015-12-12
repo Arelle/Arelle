@@ -44,6 +44,8 @@ absoluteUrlPattern = None
 relativeUrlPattern = re.compile(r"^(([^:/\?#]+):)?(//([^/\?#]*))?([^\?#]*)(\?([^#]*))?(#([^#]*))?$")
 
 def splitDecodeFragment(url):
+    if url is None: # urldefrag returns byte strings for none, instead of unicode strings
+        return _STR_UNICODE(""), _STR_UNICODE("")
     urlPart, fragPart = urldefrag(url)
     if isPy3:
         return (urlPart, unquote(fragPart, "utf-8", errors=None))

@@ -17,16 +17,16 @@ from .Document import checkDTSdocument
 from .Filing import validateFiling
 
 
-def dislosureSystemTypes(disclosureSystem):
+def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system type name, variable name), ...)
     return (("SBR.NL", "SBRNLplugin"),)
 
-def disclosureSystemConfigURL(disclosureSystem):
+def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
     return os.path.join(os.path.dirname(__file__), "config.xml")
 
-def validateXbrlStart(val, parameters=None):
+def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateSBRNLplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "SBRNLplugin", False)
-    if not (val.validateSBRNLplugin):
+    if not val.validateSBRNLplugin:
         return
 
     val.prefixNamespace = {}
@@ -35,7 +35,7 @@ def validateXbrlStart(val, parameters=None):
 
 
 def validateXbrlFinally(val):
-    if not (val.validateSBRNLplugin):
+    if not val.validateSBRNLplugin:
         return
 
     modelXbrl = val.modelXbrl
@@ -49,11 +49,14 @@ def validateXbrlFinally(val):
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
     
-def validateFinally(val):
+def validateFinally(val, *args, **kwargs):
+    if not val.validateSBRNLplugin:
+        return
+    
     del val.prefixNamespace, val.namespacePrefix, val.idObjects
     
-def validateXbrlDtsDocument(val, modelDocument, isFilingDocument):
-    if not (val.validateSBRNLplugin):
+def validateXbrlDtsDocument(val, modelDocument, isFilingDocument, *args, **kwargs):
+    if not val.validateSBRNLplugin:
         return
 
     checkDTSdocument(val, modelDocument, isFilingDocument)

@@ -273,8 +273,9 @@ class label(Label):
         self.grid(column=x, row=y, sticky=W, padx=8) 
     
 class checkbox(Checkbutton):
-    def __init__(self, master, x, y, text, attr=None, columnspan=None):
+    def __init__(self, master, x, y, text, attr=None, columnspan=None, onclick=None):
         self.attr = attr 
+        self.onclick = onclick
         self.valueVar = StringVar() 
         self.valueVar.trace('w', self.valueChanged)
         Checkbutton.__init__(self, master=master, text=text, variable=self.valueVar) 
@@ -298,6 +299,8 @@ class checkbox(Checkbutton):
         
     def valueChanged(self, *args):
         self.isChanged = True
+        if self.onclick is not None:
+            self.onclick(self)
         
 class radiobutton(Radiobutton):
     def __init__(self, master, x, y, text, value, attr=None, valueVar=None):

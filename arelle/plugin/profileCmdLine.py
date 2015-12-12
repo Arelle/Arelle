@@ -5,13 +5,13 @@ CmdLine Profiler is an example of a plug-in to command line processing that will
 '''
 import os
 
-def profilerOptionExtender(parser):
+def profilerOptionExtender(parser, *args, **kwargs):
     parser.add_option("--saveProfilerReport", 
                       action="store", 
                       dest="profilerReportFile", 
                       help=_("Run command line options under profiler and save report file.  Expect about 3x execution time to collect profiling statistics."))
 
-def profilerCommandLineRun(cntlr, options, sourceZipStream=None, **kwargs):
+def profilerCommandLineRun(cntlr, options, sourceZipStream=None, *args, **kwargs):
     from arelle import Locale
     import cProfile, pstats, sys, time
     profileReportFile = getattr(options, "profilerReportFile", None)

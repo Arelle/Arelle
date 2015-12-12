@@ -107,7 +107,7 @@ def genConcept(dts, parentElt, concept, preferredLabel, arcrole, relationshipSet
     except AttributeError: #  bad relationship
         return    
 
-def saveCHComponentMenuEntender(cntlr, menu):
+def saveCHComponentMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
     menu.add_command(label="Save CH Component file", 
                      underline=0, 
@@ -140,14 +140,14 @@ def saveCHComponentMenuCommand(cntlr):
             modelXbrl=dts,
             exc_info=True)
 
-def saveCHComponentCommandLineOptionExtender(parser):
+def saveCHComponentCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
     parser.add_option("--save-CH-component", 
                       action="store", 
                       dest="chComponentFile", 
                       help=_("Save Charlie Hoffman Component semantic definition in specified xml file."))
 
-def saveCHComponentCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
+def saveCHComponentCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "chComponentFile", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:

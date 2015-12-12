@@ -64,7 +64,7 @@ class CompaniesHouseItem:
         """
         return "_{0}_{1}".format(refId, self.objectIndex)
 
-def companiesHouseInstanceLoaded(modelXbrl, rssWatchOptions, rssItem):
+def companiesHouseInstanceLoaded(modelXbrl, rssWatchOptions, rssItem, *args, **kwargs):
     for fact in modelXbrl.factsInInstance:
         name = fact.qname.localName if fact.qname is not None else None
         if name in ("CompaniesHouseRegisteredNumber", 
@@ -81,7 +81,7 @@ def companiesHouseInstanceLoaded(modelXbrl, rssWatchOptions, rssItem):
                 rssItem.fiscalYearEnd = "{:04}-{:02}".format(fact.xValue.year, fact.xValue.month)
             
 
-def companiesHouseLoader(modelXbrl, mappedUri, filepath, **kwargs):
+def companiesHouseLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     if not (mappedUri.startswith("http://download.companieshouse.gov.uk/") and 
             mappedUri.endswith(".zip")):
         return None # not a companies houst zip file

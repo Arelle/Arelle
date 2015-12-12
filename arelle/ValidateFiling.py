@@ -3,6 +3,8 @@ Created on Oct 17, 2010
 
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+
+Deprecated Nov 15, 2015.  Use plugin/validate/EFM/Filing.py
 '''
 import xml.dom, xml.parsers
 import os, re, collections, datetime

@@ -465,7 +465,7 @@ def saveLoadableOIM(modelXbrl, oimFile, oimStyle, oimQNameSeparator):
                                (oimFtn["value"],))
         csvFile.close()
 
-def saveLoadableOIMMenuEntender(cntlr, menu):
+def saveLoadableOIMMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
     menu.add_command(label="Save Loadable OIM", 
                      underline=0, 
@@ -496,7 +496,7 @@ def saveLoadableOIMMenuCommand(cntlr):
     thread.daemon = True
     thread.start()
     
-def saveLoadableOIMCommandLineOptionExtender(parser):
+def saveLoadableOIMCommandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
     parser.add_option("--saveLoadableOIM", 
                       action="store", 

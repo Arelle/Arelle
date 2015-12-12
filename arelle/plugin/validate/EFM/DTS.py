@@ -55,7 +55,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                 modelObject=modelDocumentReference.referringModelObject,
                     schema=os.path.basename(modelDocument.uri), 
                     include=os.path.basename(referencedDocument.uri))
-        if referencedDocument not in visited:
+        if referencedDocument not in visited and referencedDocument.inDTS: # ignore EdgarRenderer added non-DTS documents
             checkFilingDTS(val, referencedDocument, isEFM, isGFM, visited)
             
     if val.disclosureSystem.standardTaxonomiesDict is None:
@@ -87,6 +87,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
         modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and
         modelDocument.uri.startswith(val.modelXbrl.uriDir)):
         
+        val.hasExtensionSchema = True
         # check schema contents types
         # 6.7.3 check namespace for standard authority
         targetNamespaceAuthority = UrlUtil.authority(modelDocument.targetNamespace) 

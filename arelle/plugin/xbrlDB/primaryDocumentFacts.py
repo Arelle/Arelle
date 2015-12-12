@@ -55,7 +55,7 @@ assetsPattern = re.compile(r"assets(\W|$)", re.IGNORECASE + re.MULTILINE)
 def loadPrimaryDocumentFacts(dts, rssItem, entityInformation):
     # identify tables
     disclosureSystem = dts.modelManager.disclosureSystem
-    if not disclosureSystem.EFM:
+    if disclosureSystem.validationType != "EFM":
         return
     if rssItem is not None:
         formType = rssItem.formType
@@ -73,6 +73,7 @@ def loadPrimaryDocumentFacts(dts, rssItem, entityInformation):
                 parts = SEC10Qparts
             # try to load and use it
             normalizedUrl = dts.modelManager.cntlr.webCache.normalizeUrl(fileUrl)
+            text = ''
             try:
                 filePath = dts.modelManager.cntlr.webCache.getfilename(normalizedUrl, reload=reloadCache)
                 if filePath:
@@ -97,7 +98,6 @@ def loadPrimaryDocumentFacts(dts, rssItem, entityInformation):
                 dts.info("xpDB:primaryDocumentLoadingError",
                                     _("Loading XBRL DB: primary document loading error: %(error)s"),
                                     modelObject=dts, error=err)
-                text = ''
             #with open("/Users/hermf/temp/test.txt", "w", encoding='utf-8') as fh:
             #    fh.write(text)
             

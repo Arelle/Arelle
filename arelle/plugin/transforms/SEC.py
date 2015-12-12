@@ -57,7 +57,7 @@ def getValue(arg):
         return (n, '') # don't add a sign
     except ValueError:
         raise FunctionArgType(1, "xs:duration")
-
+    
 def durationValue(y, m, d, h, sign):
 
     # preprocess each value so we don't print P0Y0M0D or something like that.
@@ -91,15 +91,27 @@ def durationValue(y, m, d, h, sign):
         output += 'T' + str(h) + 'H'
     return output
 
+def numinf(arg):
+    return "INF"
+
+def numneginf(arg):
+    return "-INF"
+
+def numnan(arg):
+    return "NaN"
+
     
-def loadSECtransforms(customTransforms):
+def loadSECtransforms(customTransforms, *args, **kwargs):
     ixtSEC = "http://www.sec.gov/inlineXBRL/transformation/2015-08-31"
     customTransforms.update({
         qname(ixtSEC, "ixt-sec:duryear"): duryear,
         qname(ixtSEC, "ixt-sec:durmonth"): durmonth,
         qname(ixtSEC, "ixt-sec:durweek"): durweek,
         qname(ixtSEC, "ixt-sec:durday"): durday,
-        qname(ixtSEC, "ixt-sec:durhour"): durhour
+        qname(ixtSEC, "ixt-sec:durhour"): durhour,
+        qname(ixtSEC, "ixt-sec:numinf"): numinf,
+        qname(ixtSEC, "ixt-sec:numneginf"): numneginf,
+        qname(ixtSEC, "ixt-sec:numnan"): numnan
     })
     
 __pluginInfo__ = {

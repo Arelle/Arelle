@@ -153,7 +153,8 @@ class ModelManager:
             self.modelXbrl.saveDTSpackage()
     
     def create(self, newDocumentType=None, url=None, schemaRefs=None, createModelDocument=True, isEntry=False, errorCaptureLevel=None, initialXml=None, base=None):
-        self.modelXbrl = ModelXbrl.create(self, newDocumentType, url, schemaRefs, createModelDocument, isEntry, errorCaptureLevel, initialXml, base)
+        self.modelXbrl = ModelXbrl.create(self, newDocumentType=newDocumentType, url=url, schemaRefs=schemaRefs, createModelDocument=createModelDocument, 
+                                          isEntry=isEntry, errorCaptureLevel=errorCaptureLevel, initialXml=initialXml, base=base)
         self.loadedModelXbrls.append(self.modelXbrl)
         return self.modelXbrl
     

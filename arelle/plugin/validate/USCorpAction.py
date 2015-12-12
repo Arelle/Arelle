@@ -110,7 +110,7 @@ eventTypeMap = {
                 "Warrants Issue"}
                 }
 
-def checkCorporateActions(val):
+def checkCorporateActions(val, *args, **kwargs):
     modelXbrl = val.modelXbrl
     if caNamespace2011 in modelXbrl.namespaceDocs:
         caNamespace = caNamespace2011
