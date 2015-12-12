@@ -725,7 +725,7 @@ class LogToXmlHandler(LogHandlerWithXml):
             entries.append(entry)
         if clearLogBuffer:
             self.clearLogBuffer()
-        return json.dumps( {"log": entries}, ensure_ascii=False, indent=1 )
+        return json.dumps( {"log": entries}, ensure_ascii=False, indent=1, default=str )
     
     def getLines(self, clearLogBuffer=True):
         """Returns a list of the message strings in the log buffer, and clears the buffer.
