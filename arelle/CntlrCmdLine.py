@@ -654,15 +654,15 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 return True # success
         self.username = options.username
         self.password = options.password
-        if options.validateEFM:
-            if options.disclosureSystemName:
-                self.addToLog(_("both --efm and --disclosureSystem validation are requested, proceeding with --efm only"),
-                              messageCode="info", file=options.entrypointFile)
-            self.modelManager.validateDisclosureSystem = True
-            self.modelManager.disclosureSystem.select("efm")
-        elif options.disclosureSystemName:
+        if options.disclosureSystemName:
             self.modelManager.validateDisclosureSystem = True
             self.modelManager.disclosureSystem.select(options.disclosureSystemName)
+            if options.validateEFM:
+                self.addToLog(_("both --efm and --disclosureSystem validation are requested, ignoring --efm only"),
+                              messageCode="info", file=options.entrypointFile)
+        elif options.validateEFM:
+            self.modelManager.validateDisclosureSystem = True
+            self.modelManager.disclosureSystem.select("efm")
         elif options.validateHMRC:
             self.modelManager.validateDisclosureSystem = True
             self.modelManager.disclosureSystem.select("hmrc")
