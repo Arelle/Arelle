@@ -503,7 +503,7 @@ class WebCache:
         self.cntlr.addToLog(_("During refresh of web file ignoring error: %(error)s for %(URL)s"),
                             messageCode="webCache:unableToRefreshFile",
                             messageArgs={"URL": url, "error": err},
-                            level=logging.info)
+                            level=logging.INFO)
         # skip this checking cycle, act as if retrieval was ok
         self.cachedUrlCheckTimes[url] = timeNowStr
         self.cachedUrlCheckTimesModified = True
