@@ -41,6 +41,7 @@ from arelle.ModelObject import ModelObject
 from decimal import Decimal, InvalidOperation
 from hashlib import md5
 from arelle.HashUtil import md5hash, Md5Sum
+
 Aspect = None
 utrEntries = None
 utrSymbol = None
@@ -418,8 +419,8 @@ class ModelFact(ModelObject):
                 return False
         selfValue = self.value
         otherValue = other.value
-        if isinstance(selfValue,str) and isinstance(otherValue,str):
-            return selfValue.strip() == otherValue.strip()
+        if isinstance(selfValue,str) and isinstance(otherValue,str): # normalized space comparison
+            return ' '.join(selfValue.split()) == ' '.join(otherValue.split())
         else:
             return selfValue == otherValue
         
