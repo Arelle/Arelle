@@ -122,7 +122,7 @@ def evaluateRoleTypesTableCodes(modelXbrl):
     
     if disclosureSystem.validationType in ("EFM", "HMRC"):
         detectMultipleOfCode = False
-        if disclosureSystem.EFM:
+        if disclosureSystem.validationType == "EFM":
             tableCodes = list( EFMtableCodes ) # separate copy of list so entries can be deleted
             # for Registration and resubmission allow detecting multiple of code
             detectMultipleOfCode = any(v and any(v.startswith(dt) for dt in ('S-', 'F-', '8-K', '6-K'))
