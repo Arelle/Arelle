@@ -267,6 +267,20 @@ class DialogPluginManager(Toplevel):
         self.moduleSelect()  # clear out prior selection
 
     def ok(self, event=None):
+        # check for orphaned classes (for which there is no longer a corresponding module)
+        _moduleNames = self.pluginConfig.get("modules", {}).keys()
+        _orphanedClassNames = set()
+        for className, moduleList in self.pluginConfig.get("classes", {}).items():
+            for _moduleName in moduleList.copy():
+                if _moduleName not in _moduleNames: # it's orphaned
+                    moduleList.remove(_moduleName)
+                    self.pluginConfigChanged = True
+            if not moduleList: # now orphaned
+                _orphanedClassNames.add(className)
+                self.pluginConfigChanged = True
+        for _orphanedClassName in _orphanedClassNames:
+            del self.pluginConfig["classes"][_orphanedClassName]
+        
         if self.pluginConfigChanged:
             PluginManager.pluginConfig = self.pluginConfig
             PluginManager.pluginConfigChanged = True
@@ -385,7 +399,7 @@ class DialogPluginManager(Toplevel):
                                                         moduleInfo.get("version")), 
                                             fPath, moduleInfo["name"], moduleInfo.get("version"), moduleInfo["description"]))
                             dirHasEntries = True
-                    if os.path.isdir(fPath):
+                    if os.path.isdir(fPath) and f not in ("DQC_US_Rules",):
                         if selectChoices(fPath, indent=indent + "   ") and not moduleInfo:
                             choices.insert(dirInsertPoint, (indent + f,None,None,None,None,None))
             return dirHasEntries
