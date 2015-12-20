@@ -237,13 +237,13 @@ class Cntlr:
         self.webCache = WebCache(self, self.config.get("proxySettings"))
         
         # start plug in server (requres web cache initialized, but not logger)
-        PluginManager.init(self)
+        PluginManager.init(self, loadPluginConfig=hasGui)
 
         # requires plug ins initialized
         self.modelManager = ModelManager.initialize(self)
  
         # start taxonomy package server (requres web cache initialized, but not logger)
-        PackageManager.init(self)
+        PackageManager.init(self, loadPackagesConfig=hasGui)
  
         self.startLogging(logFileName, logFileMode, logFileEncoding, logFormat)
         

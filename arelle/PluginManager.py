@@ -29,15 +29,17 @@ _cntlr = None
 _pluginBase = None
 EMPTYLIST = []
 
-def init(cntlr):
+def init(cntlr, loadPluginConfig=True):
     global pluginJsonFile, pluginConfig, modulePluginInfos, pluginMethodsForClasses, pluginConfigChanged, _cntlr, _pluginBase
-    try:
-        pluginJsonFile = cntlr.userAppDir + os.sep + "plugins.json"
-        with io.open(pluginJsonFile, 'rt', encoding='utf-8') as f:
-            pluginConfig = json.load(f)
-        pluginConfigChanged = False
-    except Exception:
-        # on GAE no userAppDir, will always come here
+    pluginConfigChanged = False
+    if loadPluginConfig:
+        try:
+            pluginJsonFile = cntlr.userAppDir + os.sep + "plugins.json"
+            with io.open(pluginJsonFile, 'rt', encoding='utf-8') as f:
+                pluginConfig = json.load(f)
+        except Exception:
+            pass # on GAE no userAppDir, will always come here
+    if pluginConfig is None:
         pluginConfig = {  # savable/reloadable plug in configuration
             "modules": {}, # dict of moduleInfos by module name
             "classes": {}  # dict by class name of list of class modules in execution order

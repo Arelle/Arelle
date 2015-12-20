@@ -174,15 +174,17 @@ packagesConfigChanged = False
 packagesMappings = {}
 _cntlr = None
 
-def init(cntlr):
+def init(cntlr, loadPackagesConfig=True):
     global packagesJsonFile, packagesConfig, packagesMappings, _cntlr
-    try:
-        packagesJsonFile = cntlr.userAppDir + os.sep + "taxonomyPackages.json"
-        with io.open(packagesJsonFile, 'rt', encoding='utf-8') as f:
-            packagesConfig = json.load(f)
-        packagesConfigChanged = False
-    except Exception:
-        # on GAE no userAppDir, will always come here
+    if loadPackagesConfig:
+        try:
+            packagesJsonFile = cntlr.userAppDir + os.sep + "taxonomyPackages.json"
+            with io.open(packagesJsonFile, 'rt', encoding='utf-8') as f:
+                packagesConfig = json.load(f)
+            packagesConfigChanged = False
+        except Exception:
+            pass # on GAE no userAppDir, will always come here
+    if packagesConfig is None:
         packagesConfig = {  # savable/reloadable plug in configuration
             "packages": [], # list taxonomy packages loaded and their remappings
             "remappings": {}  # dict by prefix of remappings in effect
