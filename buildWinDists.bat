@@ -5,10 +5,12 @@ rem arguments may be eiopa, x86, and er3
 rem build x86 only for eiopa or x86
 
 @set PYTHON32DIR=c:\python34x86
-@set PYTHON64DIR=c:\python35
+@set PYTHON64DIR=c:\python34
+rem @set TCL_LIBRARY=c:\python35\tcl\tcl8.6
+rem @set TK_LIBRARY=c:\python35\tcl\tk8.6
 @set NSISDIR=C:\Program Files (x86)\NSIS
 @set BUILT32DIR=build\exe.win32-3.4
-@set BUILT64DIR=build\exe.win-amd64-3.5
+@set BUILT64DIR=build\exe.win-amd64-3.4
 @set ZIP=c:\progra~1\7-zip\7z.exe
 
 @set do32bitBuild=true
