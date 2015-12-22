@@ -340,7 +340,7 @@ def loadSchemalocatedSchema(modelXbrl, element, relativeUrl, namespace, baseUrl)
             doc.inDTS = False
     return doc
             
-def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None, initialComment=None, base=None):
+def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None, initialComment=None, base=None, discover=True):
     """Returns a new modelDocument, created from scratch, with any necessary header elements 
     
     (such as the schema, instance, or RSS feed top level elements)
@@ -410,9 +410,9 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
                 if isinstance(semanticRoot, ModelObject):
                     modelDocument.xmlRootElement = semanticRoot
                     break
-    if type == Type.INSTANCE:
+    if type == Type.INSTANCE and discover:
         modelDocument.instanceDiscover(modelDocument.xmlRootElement)
-    elif type == Type.RSSFEED:
+    elif type == Type.RSSFEED and discover:
         modelDocument.rssFeedDiscover(modelDocument.xmlRootElement)
     elif type == Type.SCHEMA:
         modelDocument.targetNamespace = None
