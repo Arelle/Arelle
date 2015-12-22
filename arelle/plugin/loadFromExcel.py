@@ -189,6 +189,10 @@ def loadFromExcel(cntlr, excelFile):
 
     # find out which rows are header rows
     for iRow, row in enumerate(conceptsWs.rows if conceptsWs else ()):
+        if all(row[i].value.strip() == "n/a"
+               for i in (headerCols.get("name"), headerCols.get("type"), headerCols.get("value"))
+               if i):
+            continue
         for iCol, colCell in enumerate(row):
             setHeaderCols(row)
         if all(colName in headerCols
@@ -243,7 +247,10 @@ def loadFromExcel(cntlr, excelFile):
     currentELR = currentELRdefinition = None
     for iRow, row in enumerate(conceptsWs.rows if conceptsWs else ()):
         useLabels = False
-        if all(col is None for col in row):
+        if (all(col is None for col in row) or 
+            all(row[i].value.strip() == "n/a"
+               for i in (headerCols.get("name"), headerCols.get("type"), headerCols.get("value"))
+               if i)):
             continue # skip blank row
         try:
             isHeaderRow = (iRow + 1) in headerRows
