@@ -38,8 +38,8 @@ from lxml.etree import XML, XMLSyntaxError
 from arelle import ModelDocument, ModelValue, XmlUtil
 from arelle.ModelValue import qname
 from arelle.PluginManager import pluginClassMethods  # , pluginMethodsForClasses, modulePluginInfos
-from arelle.UrlUtil import authority, relativeUri, isHttpUrl
-from arelle.ValidateFilingText import CDATApattern
+from arelle.UrlUtil import authority, relativeUri
+from arelle.ValidateFilingText import referencedFiles
 from .Document import checkDTSdocument
 from .Filing import validateFiling
 try:
@@ -494,7 +494,7 @@ class Report:
             if cntx is not None and cntx.isStartEndPeriod and not cntx.hasSegment:
                 if f.qname is not None and f.qname.localName in Report.REPORT_ATTRS and f.xValue:
                     setattr(self, self.lc(f.qname.localName), f.xValue)
-        self.reportedFiles = {modelXbrl.modelDocument.basename}
+        self.reportedFiles = {modelXbrl.modelDocument.basename} | referencedFiles(modelXbrl)
         self.renderedFiles = set()
         self.hasUsGaapTaxonomy = False
         sourceDir = os.path.dirname(modelXbrl.modelDocument.filepath)
@@ -515,30 +515,6 @@ class Report:
                         if nsAuthority in ("fasb.org", "xbrl.us") and nsPath[-2] == "us-gaap":
                             self.hasUsGaapTaxonomy = True
         addRefDocs(modelXbrl.modelDocument)
-        # add referenced files that are html-referenced image and other files
-        def addLocallyReferencedFile(elt):
-            if elt.tag in ("a", "img", "{http://www.w3.org/1999/xhtml}a", "{http://www.w3.org/1999/xhtml}img"):
-                for attrTag, attrValue in elt.items():
-                    if attrTag in ("href", "src") and not isHttpUrl(attrValue) and not os.path.isabs(attrValue):
-                        attrValue = attrValue.partition('#')[0] # remove anchor
-                        if attrValue: # ignore anchor references to base document
-                            attrValue = os.path.normpath(attrValue) # change url path separators to host separators
-                            file = os.path.join(sourceDir,attrValue)
-                            if modelXbrl.fileSource.isInArchive(file, checkExistence=True) or os.path.exists(file):
-                                self.reportedFiles.add(attrValue) # add file name within source directory
-        for fact in modelXbrl.facts:
-            if fact.concept is not None and fact.isItem and fact.concept.isTextBlock:
-                # check for img and other filing references so that referenced files are included in the zip.
-                text = fact.textValue
-                for xmltext in [text] + CDATApattern.findall(text):
-                    try:
-                        for elt in XML("<body>\n{0}\n</body>\n".format(xmltext)).iter():
-                            addLocallyReferencedFile(elt)
-                    except (XMLSyntaxError, UnicodeDecodeError):
-                        pass  # TODO: Why ignore UnicodeDecodeError?
-        # footnote or other elements
-        for elt in modelXbrl.modelDocument.xmlRootElement.iter("{http://www.w3.org/1999/xhtml}a", "{http://www.w3.org/1999/xhtml}img"):
-            addLocallyReferencedFile(elt)
             
     def close(self):
         self.__dict__.clear() # dereference all contents
