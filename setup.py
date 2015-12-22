@@ -264,7 +264,8 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         'rdflib.plugins.serializers.xmlwriter',
         'rdflib.plugins.sparql',
         'rdflib.plugins.stores',
-        'isodate', 'regex', 'gzip', 'zlib', 'openpyxl'
+        'isodate', 'regex', 'gzip', 'zlib', 
+        'openpyxl' # openpyxl's __init__.py must be hand edited, see https://bitbucket.org/openpyxl/openpyxl/pull-requests/80/__about__py/diff
     ]
     
     # uncomment the next two files if cx_Freezing with EdgarRenderer
@@ -348,7 +349,9 @@ elif sys.platform == 'win32':
         'rdflib.plugins.serializers.xmlwriter',
         'rdflib.plugins.sparql',
         'rdflib.plugins.stores',
-        'isodate', 'regex', 'gzip', 'zlib', 'openpyxl'
+        'isodate', 'regex', 'gzip', 'zlib', 
+        'openpyxl' # openpyxl's __init__.py must be hand edited, see https://bitbucket.org/openpyxl/openpyxl/pull-requests/80/__about__py/diff
+
     ]
     # uncomment the next line if cx_Freezing with EdgarRenderer
     # note that openpyxl must be 2.1.4 at this time
