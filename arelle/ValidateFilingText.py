@@ -10,6 +10,7 @@ import os, re, io
 from arelle.XbrlConst import ixbrlAll, xhtml
 from arelle.XmlUtil import setXmlns
 from arelle.ModelObject import ModelObject
+from arelle.UrlUtil import isHttpUrl
 
 XMLdeclaration = re.compile(r"<\?xml.*\?>", re.DOTALL)
 XMLpattern = re.compile(r".*(<|&lt;|&#x3C;|&#60;)[A-Za-z_]+[A-Za-z0-9_:]*[^>]*(/>|>|&gt;|/&gt;).*", re.DOTALL)
@@ -739,3 +740,35 @@ def validateGraphicFile(elt, graphicFile):
         if data[:3] == b"GIF" and data[3:6] in (b'89a', b'89b', b'87a'):
             return "gif"
     return None
+
+def referencedFiles(modelXbrl, localFilesOnly=True):
+    referencedFiles = set()
+    # add referenced files that are html-referenced image and other files
+    def addReferencedFile(docElt, elt):
+        if elt.tag in ("a", "img", "{http://www.w3.org/1999/xhtml}a", "{http://www.w3.org/1999/xhtml}img"):
+            for attrTag, attrValue in elt.items():
+                if attrTag in ("href", "src") and (
+                        not localFilesOnly or 
+                        (not isHttpUrl(attrValue) and not os.path.isabs(attrValue))):
+                    attrValue = attrValue.partition('#')[0] # remove anchor
+                    if attrValue: # ignore anchor references to base document
+                        base = docElt.modelDocument.baseForElement(docElt)
+                        normalizedUri = docElt.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(attrValue, base)
+                        if not docElt.modelXbrl.fileSource.isInArchive(normalizedUri):
+                            normalizedUri = docElt.modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
+                        if modelXbrl.fileSource.isInArchive(normalizedUri, checkExistence=True) or os.path.exists(normalizedUri):
+                            referencedFiles.add(attrValue) # add file name within source directory
+    for fact in modelXbrl.facts:
+        if fact.concept is not None and fact.isItem and fact.concept.isTextBlock:
+            # check for img and other filing references so that referenced files are included in the zip.
+            text = fact.textValue
+            for xmltext in [text] + CDATApattern.findall(text):
+                try:
+                    for elt in XML("<body>\n{0}\n</body>\n".format(xmltext)).iter():
+                        addReferencedFile(fact, elt)
+                except (XMLSyntaxError, UnicodeDecodeError):
+                    pass  # TODO: Why ignore UnicodeDecodeError?
+    # footnote or other elements
+    for elt in modelXbrl.modelDocument.xmlRootElement.iter("{http://www.w3.org/1999/xhtml}a", "{http://www.w3.org/1999/xhtml}img"):
+        addReferencedFile(elt, elt)
+    return referencedFiles
