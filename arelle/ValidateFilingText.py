@@ -403,9 +403,15 @@ def checkfile(modelXbrl, filepath):
                             _("Disallowed entity code %(text)s in file %(file)s line %(line)s column %(column)s"),
                             modelDocument=filepath, text=text, file=os.path.basename(filepath), line=lineNum, column=match.start())
                 elif isEFM:
-                    modelXbrl.error("EFM.5.02.01.01",
-                        _("Disallowed character '%(text)s' in file %(file)s at line %(line)s col %(column)s"),
-                        modelDocument=filepath, text=text, file=os.path.basename(filepath), line=lineNum, column=match.start())
+                    if len(text) == 1:
+                        modelXbrl.error("EFM.5.02.01.01",
+                            _("Disallowed character '%(text)s' (%(unicodeIndex)s) in file %(file)s at line %(line)s col %(column)s"),
+                            modelDocument=filepath, text=text, unicodeIndex="U+{:04X}".format(ord(text)), 
+                            file=os.path.basename(filepath), line=lineNum, column=match.start())
+                    else:
+                        modelXbrl.error("EFM.5.02.01.01",
+                            _("Disallowed character '%(text)s' in file %(file)s at line %(line)s col %(column)s"),
+                            modelDocument=filepath, text=text, file=os.path.basename(filepath), line=lineNum, column=match.start())
             if lineNum == 1:
                 xmlDeclarationMatch = XMLdeclaration.search(line)
                 if xmlDeclarationMatch: # remove it for lxml
