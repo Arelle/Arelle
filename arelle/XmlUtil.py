@@ -570,7 +570,11 @@ def copyIxFootnoteHtml(sourceXml, targetHtml, targetModelDocument=None, withText
     if withText:
         _tl = sourceXml.tail
         if _tl:
-            targetHtml.tail = (targetHtml.tail or "") + _tl
+            try: # if target has a last child already with a tail, add to tail instead of to text
+                targetLastchild = next(targetHtml.iterchildren(reversed=True))
+                targetLastchild.tail = (targetLastchild.tail or "") + _tl
+            except StopIteration: # no children
+                targetHtml.text = (targetHtml.text or "") + _tl
     contAt = getattr(sourceXml, "_continuationElement", None)
     if contAt is not None:
         copyIxFootnoteHtml(contAt, targetHtml, targetModelDocument, withText=withText)
