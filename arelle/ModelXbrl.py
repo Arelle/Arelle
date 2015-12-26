@@ -826,8 +826,10 @@ class ModelXbrl:
         global ModelFact
         if ModelFact is None:
             from arelle.ModelInstanceObject import ModelFact
+        if hasattr(self, "_factsByQname"):
+            self._factsByQname[newFact.qname].add(newFact)
         if not isinstance(newFact, ModelFact):
-            return None # unable to create fact for this concept
+            return None # unable to create fact for this concept OR DTS not loaded for target instance (e.g., inline extraction, summary output)
         del self.makeelementParentModelObject
         if validate:
             XmlValidate.validate(self, newFact)
@@ -835,8 +837,6 @@ class ModelXbrl:
         # update cached sets
         if not newFact.isNil and hasattr(self, "_nonNilFactsInInstance"):
             self._nonNilFactsInInstance.add(newFact)
-        if hasattr(self, "_factsByQname"):
-            self._factsByQname[newFact.qname].add(newFact)
         if newFact.concept is not None:
             if hasattr(self, "_factsByDatatype"):
                 del self._factsByDatatype # would need to iterate derived type ancestry to populate

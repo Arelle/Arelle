@@ -658,7 +658,7 @@ class ModelDocument:
             except AttributeError:
                 pass
 
-    def save(self, overrideFilepath=None, outputZip=None):
+    def save(self, overrideFilepath=None, outputZip=None, updateFileHistory=True):
         """Saves current document file.
         
         :param overrideFilepath: specify to override saving in instance's modelDocument.filepath
@@ -675,7 +675,8 @@ class ModelDocument:
         if overrideFilepath:
             self.filepath = overrideFilepath
             self.setTitleInBackground()
-        self.updateFileHistoryIfNeeded()
+        if updateFileHistory:
+            self.updateFileHistoryIfNeeded()
         self.isModified = False
     
     def close(self, visited=None, urlDocs=None):
