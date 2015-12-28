@@ -32,7 +32,7 @@ def edgarRendererFilingStartSupplement(cntlr, options, entrypointFiles, filing, 
     edgarRenderer.reportXslt = os.path.join(edgarRenderer.resourcesFolder,'InstanceReportTable.xslt')
     edgarRenderer.summaryXslt = '' # no FilingSummary.htm
 
-def edgarRendererFilingEndSupplement(cntlr, options, filing, *args, **kwargs):
+def edgarRendererFilingEndSupplement(cntlr, options, filesource, filing, *args, **kwargs):
     edgarRenderer = filing.edgarRenderer
     
     # obtain R files from 
