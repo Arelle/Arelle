@@ -36,6 +36,7 @@ importColumnHeaders = {
     "label, standard": ("label", XbrlConst.standardLabel, "en", "overridePreferred"),
     "label, terse": ("label", XbrlConst.terseLabel, "en"),
     "label, verbose": ("label", XbrlConst.verboseLabel, "en"),
+    "label, documentation": ("label", XbrlConst.documentationLabel, "en"),
     "group": "linkrole",
     "linkrole": "linkrole",
     "ELR": "linkrole"
@@ -92,7 +93,8 @@ def loadFromExcel(cntlr, excelFile):
     extensionElements = {}
     extensionRoles = {} # key is roleURI, value is role definition
     extensionLabels = {}  # key = (prefix, name, lang, role), value = label text
-    importSheetName = None    
+    importSheetName = None
+    skipRows = []  # [(from,to),(from,to)]  row number starting at 1 
     
     def extensionHref(prefix, name):
         if prefix == extensionSchemaPrefix:
@@ -150,6 +152,16 @@ def loadFromExcel(cntlr, excelFile):
                 importSheetName = filename
             elif action == "colheader" and filename and namespaceURI:
                 importColHeaderMap[filename].append(namespaceURI)
+            elif action == "skip rows":
+                if filename:
+                    fromRow, _sep, toRow = filename.partition("-")
+                    try:
+                        skipRows.append((int(fromRow), int(toRow) if toRow else int(fromRow)))
+                    except (ValueError, TypeError):
+                        cntlr.addToLog("Exception: {error}, Excel row: {excelRow}"
+                                       .format(error=err,
+                                               excelRow=iRow),
+                                        messageCode="importExcel:skip rows")
                 
                 
         except Exception as err:
@@ -189,9 +201,7 @@ def loadFromExcel(cntlr, excelFile):
 
     # find out which rows are header rows
     for iRow, row in enumerate(conceptsWs.rows if conceptsWs else ()):
-        if all(row[i].value.strip() == "n/a"
-               for i in (headerCols.get("name"), headerCols.get("type"), headerCols.get("value"))
-               if i):
+        if any(fromRow <= iRow+1 <= toRow for fromRow,toRow in skipRows):
             continue
         for iCol, colCell in enumerate(row):
             setHeaderCols(row)
@@ -247,8 +257,10 @@ def loadFromExcel(cntlr, excelFile):
     currentELR = currentELRdefinition = None
     for iRow, row in enumerate(conceptsWs.rows if conceptsWs else ()):
         useLabels = False
+        if any(fromRow <= iRow+1 <= toRow for fromRow,toRow in skipRows):
+            continue
         if (all(col is None for col in row) or 
-            all(row[i].value.strip() == "n/a"
+            all(isinstance(row[i].value, str) and row[i].value.strip() == "n/a"
                for i in (headerCols.get("name"), headerCols.get("type"), headerCols.get("value"))
                if i)):
             continue # skip blank row
@@ -281,9 +293,9 @@ def loadFromExcel(cntlr, excelFile):
                     _trialELR = _trialELRdefinition = None
                     if v.startswith("http://"):
                         _trialELR = v
-                    elif not currentELRdefinition and v.endswith("　科目一覧"):
+                    elif v.endswith("　科目一覧"):
                         _trialELRdefinition = v[0:-5]
-                    elif not currentELRdefinition:
+                    else:
                         _trialELRdefinition = v
                     if (_trialELR and _trialELR != currentELR) or (_trialELRdefinition and _trialELRdefinition != currentELRdefinition):
                         currentELR = _trialELR
@@ -381,27 +393,28 @@ def loadFromExcel(cntlr, excelFile):
             if useLabels:
                 prefix = cellValue(row, 'prefix', nameChars=True) or extensionSchemaPrefix
                 name = cellValue(row, 'name', nameChars=True)
-                preferredLabel = cellValue(row, 'preferredLabel')
-                if preferredLabel and not preferredLabel.startswith("http://"):
-                    preferredLabel = "http://www.xbrl.org/2003/role/" + preferredLabel
-                for colItem, iCol in headerCols.items():
-                    if isinstance(colItem, tuple):
-                        colItemType = colItem[0]
-                        role = colItem[1]
-                        lang = colItem[2]
-                        cell = row[iCol]
-                        if cell.value is None:
-                            values = ()
-                        elif colItemType == "label":
-                            values = (cell.value,)
-                        elif colItemType == "labels":
-                            values = cell.value.split('\n')
-                        else:
-                            values = ()
-                        if preferredLabel and "indented" in colItem:  # indented column sets preferredLabel if any
-                            role = preferredLabel
-                        for value in values:
-                            extensionLabels[prefix, name, lang, role] = value.strip()
+                if name is not None:
+                    preferredLabel = cellValue(row, 'preferredLabel')
+                    if preferredLabel and not preferredLabel.startswith("http://"):
+                        preferredLabel = "http://www.xbrl.org/2003/role/" + preferredLabel
+                    for colItem, iCol in headerCols.items():
+                        if isinstance(colItem, tuple):
+                            colItemType = colItem[0]
+                            role = colItem[1]
+                            lang = colItem[2]
+                            cell = row[iCol]
+                            if cell.value is None:
+                                values = ()
+                            elif colItemType == "label":
+                                values = (cell.value,)
+                            elif colItemType == "labels":
+                                values = cell.value.split('\n')
+                            else:
+                                values = ()
+                            if preferredLabel and "indented" in colItem:  # indented column sets preferredLabel if any
+                                role = preferredLabel
+                            for value in values:
+                                extensionLabels[prefix, name, lang, role] = value.strip()
         except Exception as err:
             cntlr.addToLog("Exception: {error}, Excel row: {excelRow}"
                            .format(error=err,
@@ -735,10 +748,10 @@ def guiXbrlLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
                 return os.path.join(outputDtsDir, url)
             # save entry schema
             dtsSchemaDocument = modelXbrl.modelDocument
-            dtsSchemaDocument.save(saveToFile(dtsSchemaDocument.uri))
+            dtsSchemaDocument.save(saveToFile(dtsSchemaDocument.uri), updateFileHistory=False)
             for lbDoc in dtsSchemaDocument.referencesDocument.keys():
                 if lbDoc.inDTS and lbDoc.type == ModelDocument.Type.LINKBASE:
-                    lbDoc.save(saveToFile(lbDoc.uri))
+                    lbDoc.save(saveToFile(lbDoc.uri), updateFileHistory=False)
 
 def cmdLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
     if options.saveExcelDTSdirectory and getattr(modelXbrl, "loadedFromExcel", False):
