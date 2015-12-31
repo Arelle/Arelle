@@ -158,22 +158,32 @@ class DialogPackageManager(Toplevel):
         self.packageDateHdr.grid(row=5, column=0, sticky=W)
         self.packageDateLabel = Label(packageInfoFrame, wraplength=600, justify="left")
         self.packageDateLabel.grid(row=5, column=1, columnspan=5, sticky=W)
-        ToolTip(self.packageDateLabel, text=_("Date of currently loaded package file (with parenthetical node when an update is available)."), wraplength=240)
+        ToolTip(self.packageDateLabel, text=_("Filesystem date of currently loaded package file (with parenthetical node when an update is available)."), wraplength=240)
+        self.publisherHdr = Label(packageInfoFrame, text=_("publisher:"), state=DISABLED)
+        self.publisherHdr.grid(row=6, column=0, sticky=W)
+        self.publisherLabel = Label(packageInfoFrame, wraplength=600, justify="left")
+        self.publisherLabel.grid(row=6, column=1, columnspan=5, sticky=W)
+        ToolTip(self.publisherLabel, text=_("Publisher of currently loaded package file."), wraplength=240)
+        self.publicationDateHdr = Label(packageInfoFrame, text=_("publication date:"), state=DISABLED)
+        self.publicationDateHdr.grid(row=7, column=0, sticky=W)
+        self.publicationDateLabel = Label(packageInfoFrame, wraplength=600, justify="left")
+        self.publicationDateLabel.grid(row=7, column=1, columnspan=5, sticky=W)
+        ToolTip(self.publicationDateLabel, text=_("Publication date"), wraplength=240)
         self.packageEnableButton = Button(packageInfoFrame, text=self.ENABLE, state=DISABLED, command=self.packageEnable)
         ToolTip(self.packageEnableButton, text=_("Enable/disable package."), wraplength=240)
-        self.packageEnableButton.grid(row=6, column=1, sticky=E)
+        self.packageEnableButton.grid(row=8, column=1, sticky=E)
         self.packageMoveUpButton = Button(packageInfoFrame, text=_("Move Up"), state=DISABLED, command=self.packageMoveUp)
         ToolTip(self.packageMoveUpButton, text=_("Move package up (above other remappings)."), wraplength=240)
-        self.packageMoveUpButton.grid(row=6, column=2, sticky=E)
+        self.packageMoveUpButton.grid(row=8, column=2, sticky=E)
         self.packageMoveDownButton = Button(packageInfoFrame, text=_("Move Down"), state=DISABLED, command=self.packageMoveDown)
         ToolTip(self.packageMoveDownButton, text=_("Move package down (below other remappings)."), wraplength=240)
-        self.packageMoveDownButton.grid(row=6, column=3, sticky=E)
+        self.packageMoveDownButton.grid(row=8, column=3, sticky=E)
         self.packageReloadButton = Button(packageInfoFrame, text=_("Reload"), state=DISABLED, command=self.packageReload)
         ToolTip(self.packageReloadButton, text=_("Reload/update package."), wraplength=240)
-        self.packageReloadButton.grid(row=6, column=4, sticky=E)
+        self.packageReloadButton.grid(row=8, column=4, sticky=E)
         self.packageRemoveButton = Button(packageInfoFrame, text=_("Remove"), state=DISABLED, command=self.packageRemove)
         ToolTip(self.packageRemoveButton, text=_("Remove package from packages table (does not erase the package file)."), wraplength=240)
-        self.packageRemoveButton.grid(row=6, column=5, sticky=E)
+        self.packageRemoveButton.grid(row=8, column=5, sticky=E)
         packageInfoFrame.grid(row=2, column=0, columnspan=5, sticky=(N, S, E, W), padx=3, pady=3)
         packageInfoFrame.config(borderwidth=4, relief="groove")
         
@@ -272,6 +282,17 @@ class DialogPackageManager(Toplevel):
             self.packageDateHdr.config(state=ACTIVE)
             self.packageDateLabel.config(text=packageInfo["fileDate"] + " " +
                     (_("(an update is available)") if name in self.packageNamesWithNewerFileDates else ""))
+            self.publisherHdr.config(state=ACTIVE)
+            _publisher = ''
+            if packageInfo.get("publisher"):
+                _publisher += packageInfo["publisher"]
+            if packageInfo.get("publisherCountry"):
+                _publisher += ", " + packageInfo["publisherCountry"]
+            if packageInfo.get("publisherURL"):
+                _publisher += ". " + packageInfo["publisherURL"]
+            self.publisherLabel.config(text=_publisher)
+            self.publicationDateHdr.config(state=ACTIVE)
+            self.publicationDateLabel.config(text=packageInfo.get("publicationDate",''))
             self.packageEnableButton.config(state=ACTIVE,
                                            text={"enabled":self.DISABLE,
                                                  "disabled":self.ENABLE}[packageInfo["status"]])
@@ -292,6 +313,10 @@ class DialogPackageManager(Toplevel):
             self.packageUrlLabel.config(text="")
             self.packageDateHdr.config(state=DISABLED)
             self.packageDateLabel.config(text="")
+            self.publisherHdr.config(state=DISABLED)
+            self.publisherLabel.config(text="")
+            self.publicationDateHdr.config(state=DISABLED)
+            self.publicationDateLabel.config(text="")
 
             self.packageEnableButton.config(state=DISABLED, text=self.ENABLE)
             self.packageMoveUpButton.config(state=DISABLED)

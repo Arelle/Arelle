@@ -45,7 +45,8 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase):
     
     txmyPkgNSes = ("http://www.corefiling.com/xbrl/taxonomypackage/v1",
                    "http://xbrl.org/PWD/2014-01-15/taxonomy-package",
-                   "http://xbrl.org/PWD/2015-01-14/taxonomy-package")
+                   "http://xbrl.org/PWD/2015-01-14/taxonomy-package",
+                   "http://xbrl.org/WGWD/YYYY-MM-DD/taxonomy-package")
     catalogNSes = ("urn:oasis:names:tc:entity:xmlns:xml:catalog",)
     
     pkg = {}
@@ -58,11 +59,23 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase):
     nsPrefix = "{{{}}}".format(ns)
     
     if ns in  txmyPkgNSes:  # package file
-        for eltName in ("name", "description", "version"):
+        for eltName in ("identifier", "name", "description", "version", "publisher", "publisherURL",
+                        "publisherCountry", "publicationDate"):
             pkg[eltName] = ''
             for m in root.iterchildren(tag=nsPrefix + eltName):
                 pkg[eltName] = m.text.strip()
                 break # take first entry if several
+        for eltName in ("supersededTaxonomyPackages", "versioningReports"):
+            pkg[eltName] = []
+        for m in root.iterchildren(tag=nsPrefix + "supersededTaxonomyPackages"):
+            pkg['supersededTaxonomyPackages'] = [
+                r.text.strip()
+                for r in m.iterchildren(tag=nsPrefix + "taxonomyPackageRef")]
+        for m in root.iterchildren(tag=nsPrefix + "versioningReports"):
+            pkg['versioningReports'] = [
+                r.get("href")
+                for r in m.iterchildren(tag=nsPrefix + "versioningReport")]
+
     else: # oasis catalog, use dirname as the package name
         # metadataFile may be a File object (with name) or string filename 
         fileName = getattr(metadataFile, 'fileName',      # for FileSource named objects 
@@ -206,7 +219,14 @@ def orderedPackagesConfig():
                                                          'fileDate': '04',
                                                          'URL': '05',
                                                          'description': '06',
-                                                         'remappings': '07'}.get(k[0],k[0])))
+                                                         "publisher": '07', 
+                                                         "publisherURL": '08',
+                                                         "publisherCountry": '09', 
+                                                         "publicationDate": '10',
+                                                         "supersededTaxonomyPackages": '11', 
+                                                         "versioningReports": '12',
+                                                         'remappings': '13',
+                                                         }.get(k[0],k[0])))
                        for _packageInfo in packagesConfig['packages']]),
          ('remappings',OrderedDict(sorted(packagesConfig['remappings'].items())))))
     
@@ -279,6 +299,9 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None):
                 elif _metaInf + 'taxonomyPackage.xml' in _dir:
                     # PWD taxonomy packages
                     packageFiles = [_metaInf + 'taxonomyPackage.xml']
+                elif 'META-INF/taxonomyPackage.xml' in _dir:
+                    # root-level META-INF taxonomy packages
+                    packageFiles = ['META-INF/taxonomyPackage.xml']
                 else:
                     # early generation taxonomy packages
                     packageFiles = filesource.taxonomyPackageMetadataFiles
@@ -286,8 +309,10 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None):
                     raise IOError(_("Taxonomy package contained no metadata file: {0}.")
                                   .format(', '.join(packageFiles)))
                 # if current package files found, remove any nonconforming package files
-                if any(pf.startswith(_metaInf) for pf in packageFiles) and any(not pf.startswith(_metaInf) for pf in packageFiles):
+                if any(pf.startswith('_metaInf') for pf in packageFiles) and any(not pf.startswith(_metaInf) for pf in packageFiles):
                     packageFiles = [pf for pf in packageFiles if pf.startswith(_metaInf)]
+                elif any(pf.startswith('META-INF/') for pf in packageFiles) and any(not pf.startswith('META-INF/') for pf in packageFiles):
+                    packageFiles = [pf for pf in packageFiles if pf.startswith('META-INF/')]
                     
                 for packageFile in packageFiles:
                     packageFileUrl = filesource.url + os.sep + packageFile
@@ -331,6 +356,12 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None):
                        'URL': URL,
                        'manifestName': packageManifestName,
                        'description': "; ".join(descriptions),
+                       'publisher': parsedPackage['publisher'], 
+                       'publisherURL': parsedPackage['publisherURL'],
+                       'publisherCountry': parsedPackage['publisherCountry'], 
+                       'publicationDate': parsedPackage['publicationDate'],
+                       'supersededTaxonomyPackages': parsedPackage['supersededTaxonomyPackages'], 
+                       'versioningReports': parsedPackage['versioningReports'],
                        'remappings': remappings,
                        }
             filesource.close()
