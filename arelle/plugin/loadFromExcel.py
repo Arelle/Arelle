@@ -20,7 +20,8 @@ importColumnHeaders = {
     "substitutionGroup": "substitutionGroup",
     "periodType": "periodType",
     "balance": "balance",
-    "abstract": "abstract",
+    "abstract": "abstract", # contains true if abstract
+    "abstractMarker": "abstractMarker", # any non-empty cell means abstract=true, e.g., My Heading Row
     "nillable": "nillable",
     "depth": "depth",
     "preferred label": "preferredLabel",
@@ -229,7 +230,7 @@ def loadFromExcel(cntlr, excelFile):
                 if nameChars and isinstance(v, str):
                     v = ''.join(c for c in v if c.isalnum() or c in ('.', '_', '-'))
                 return v
-        return ''
+        return None
     
     def checkImport(qname):
         prefix, sep, localName = qname.partition(":")
@@ -328,7 +329,7 @@ def loadFromExcel(cntlr, excelFile):
                     elif ':' not in eltType and eltType.endswith("ItemType"):
                         eltType = 'xbrli:' + eltType
                     subsGrp = cellValue(row, 'substitutionGroup') or 'xbrli:item'
-                    abstract = cellValue(row, 'abstract')
+                    abstract = cellValue(row, 'abstract') or (cellValue(row, 'abstractMarker') is not None)
                     nillable = cellValue(row, 'nillable')
                     balance = cellValue(row, 'balance')
                     periodType = cellValue(row, 'periodType')
