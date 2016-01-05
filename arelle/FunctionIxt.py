@@ -703,6 +703,6 @@ deprecatedNamespaceURI = 'http://www.xbrl.org/2008/inlineXBRL/transformation' # 
 ixtNamespaceFunctions = {
     'http://www.xbrl.org/inlineXBRL/transformation/2010-04-20': tr1Functions, # transformation registry v1
     'http://www.xbrl.org/inlineXBRL/transformation/2011-07-31': tr2Functions, # transformation registry v2
-    'http://www.xbrl.org/inlineXBRL/transformation/2014-10-15': tr3Functions, # transformation registry v3
+    'http://www.xbrl.org/inlineXBRL/transformation/2015-02-26': tr3Functions, # transformation registry v3
     'http://www.xbrl.org/2008/inlineXBRL/transformation': tr1Functions # the CR/PR pre-REC namespace
 }
