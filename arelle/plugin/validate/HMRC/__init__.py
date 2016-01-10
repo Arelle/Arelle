@@ -19,7 +19,7 @@ from collections import defaultdict
 
 memNameNumPattern = re.compile(r"^([A-Za-z-]+)([0-9]+)$")
 compTxmyNamespacePattern = re.compile(r"http://www.govtalk.gov.uk/uk/fr/tax/uk-hmrc-ct/[0-9-]{10}")
-busTxmyNamespacePattern = re.compile(r"http://www.xbrl.org/uk/cd/business/[0-9-]{10}")
+busTxmyNamespacePattern = re.compile(r"http://www.xbrl.org/uk/cd/business/[0-9-]{10}|http://xbrl.frc.org.uk/cd/[0-9-]{10}/business")
 EMPTYDICT = {}
 _6_APR_2008 = dateTime("2008-04-06", type=DATE)
 
@@ -90,13 +90,8 @@ genericDimensionValidation = {
         "PartnerLLP": (1,20,"NameEntityOfficer"),
         "OrdinaryShareClass": (1,5, "DescriptionShareType"),
         "PreferenceShareClass": (1,5, "DescriptionShareType"),
-        "DeferredShareClass": (1,5, "DescriptionShareType"),        
-        "OtherShareClass": (1,4, "DescriptionShareType"),    
-        "Share-basedArrangement": (1,8, "NameShare-basedPaymentArrangement"),
-        "Grant": (1,10, "NameOrDescriptionGrantUnderShare-basedPaymentArrangement"),
-        "PensionPlan": (1,6, "NameDefinedContributionPlan", "NameDefinedBenefitPlan"),
-        "Post-employmentMedicalPlan": (1,2, "NameDefinedContributionPlan", "NameDefinedBenefitPlan"),
-        "OtherPost-employmentBenefitPlan": (1,2, "NameDefinedContributionPlan", "NameDefinedBenefitPlan")},
+        "DeferredShareClass": (1,5, "DescriptionShareType"),
+        "OtherShareClass": (1,4, "DescriptionShareType")},
     "charities":    {"Trustee": (1,40,"NameTrustee"),
         "ChairTrustees": ("NameTrustee",),
         "ChiefExecutiveCharity": ("NameTrustee",)},
@@ -121,8 +116,13 @@ genericDimensionValidation = {
         "CloseFamilyMember": (1,5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
         "EntityControlledByKeyManagementPersonnel": (1,5, "NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag"),
         "OtherRelatedPartyRelationshipType1ComponentTotalRelatedParties": ("NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag",),
-        "OtherRelatedPartyRelationshipType2ComponentTotalRelatedParties": ("NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag",)}}
-
+        "OtherRelatedPartyRelationshipType2ComponentTotalRelatedParties": ("NameOrDescriptionRelatedPartyIfNotDefinedByAnotherTag",),
+        "Share-basedArrangement": (1,8, "NameShare-basedPaymentArrangement"),
+        "Grant": (1,10, "NameOrDescriptionGrantUnderShare-basedPaymentArrangement"),
+        "PensionPlan": (1,6, "NameDefinedContributionPlan", "NameDefinedBenefitPlan"),
+        "Post-employmentMedicalPlan": (1,2, "NameDefinedContributionPlan", "NameDefinedBenefitPlan"),
+        "OtherPost-employmentBenefitPlan": (1,2, "NameDefinedContributionPlan", "NameDefinedBenefitPlan")}}
+        
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
     return (("HMRC", "HMRCplugin"),)
@@ -160,7 +160,11 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
             elif ns.startswith("http://xbrl.frc.org.uk/"): val.txmyType = "FRS"
             else: continue
             break
-    if not val.txmyType:
+    if val.txmyType:
+        val.modelXbrl.debug("debug",
+                            "HMRC taxonomy type %(taxonomyType)s",
+                            modelObject=val.modelXbrl, taxonomyType=val.txmyType)
+    else:
         val.modelXbrl.error("HMRC.TBD",
                             _("No recognized standard taxonomy (UK GAAP, UK IFRS, Charity, or FRS)."),
                             modelObject=val.modelXbrl)
@@ -188,7 +192,7 @@ def validateXbrlFinally(val, *args, **kwargs):
 
         uniqueFacts = {}  # key = (qname, context hash, unit hash, lang)
         mandatoryFacts = {}
-        mandatoryGDV = defaultdict(list)
+        mandatoryGDV = defaultdict(set)
         factForConceptContextUnitLangHash = defaultdict(list)
         hasCompaniesHouseContext = any(cntx.entityIdentifier[0] == "http://www.companieshouse.gov.uk/"
                                        for cntx in val.modelXbrl.contexts.values())
@@ -218,10 +222,10 @@ def validateXbrlFinally(val, *args, **kwargs):
                                  (isinstance(gdv[0],int) and isinstance(gdv[1],int) and n >= gdv[0] and n <= gdv[1]))):
                         gdvFacts = [f for f in gdv if isinstance(f,str)]
                         if len(gdvFacts) == 1:
-                            mandatoryGDV[gdvFacts[0]].append(GDV(gdvFacts[0], None, _memName))
+                            mandatoryGDV[gdvFacts[0]].add(GDV(gdvFacts[0], None, _memName))
                         elif len(gdvFacts) == 2:
-                            mandatoryGDV[gdvFacts[0]].append(GDV(gdvFacts[0], gdvFacts[1], _memName))
-                            mandatoryGDV[gdvFacts[1]].append(GDV(gdvFacts[1], gdvFacts[0], _memName))
+                            mandatoryGDV[gdvFacts[0]].add(GDV(gdvFacts[0], gdvFacts[1], _memName))
+                            mandatoryGDV[gdvFacts[1]].add(GDV(gdvFacts[1], gdvFacts[0], _memName))
 
         def checkFacts(facts):
             for f in facts:
@@ -235,7 +239,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                     if factLocalName == "UKCompaniesHouseRegisteredNumber" and val.isAccounts:
                         if hasCompaniesHouseContext:
                             mandatoryFacts[factLocalName] = f
-                        for _cntx in val.modelXbrl.contexts.values():
+                        for _cntx in contextsUsed:
                             _scheme, _identifier = _cntx.entityIdentifier
                             if _scheme == "http://www.companieshouse.gov.uk/" and f.xValue != _identifier:
                                 modelXbrl.error("JFCVC.3316",
@@ -262,18 +266,24 @@ def validateXbrlFinally(val, *args, **kwargs):
                     # check GDV
                     if f.qname.localName in mandatoryGDV:
                         _gdvReqList = mandatoryGDV[factLocalName]
+                        _gdvReqRemovals = []
                         for _gdvReq in _gdvReqList:
                             if any(_gdvReq.memLocalName == dim.memberQname.localName           
                                    for dim in cntx.qnameDims.values()
                                    if dim.isExplicit):
-                                _gdvReqList.remove(_gdvReq)
+                                _gdvReqRemovals.append(_gdvReq)
                                 if _gdvReq.altFact in mandatoryGDV:
                                     _gdvAltList = mandatoryGDV[_gdvReq.altFact]
+                                    _gdvAltRemovals = []
                                     for _gdvAlt in _gdvAltList:
                                         if any(_gdvAlt.memLocalName == dim.memberQname.localName           
                                                for dim in cntx.qnameDims.values()
                                                if dim.isExplicit):
-                                            _gdvAltList.remove(_gdvAlt)
+                                            _gdvAltRemovals.append(_gdvAlt)
+                                    for _gdvAlt in _gdvAltRemovals:
+                                        _gdvAltList.remove(_gdvAlt)
+                        for _gdvReq in _gdvReqRemovals:
+                            _gdvReqList.remove(_gdvReq)
                                     
                     if f.modelTupleFacts:
                         checkFacts(f.modelTupleFacts)
@@ -313,7 +323,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 for fList in aspectEqualFacts.values():
                     f0 = fList[0]
                     if any(not f.isVEqualTo(f0) for f in fList[1:]):
-                        modelXbrl.error("HMRC.3314",
+                        modelXbrl.error("JFCVC.3314",
                             "Inconsistent duplicate fact values %(fact)s: %(values)s.",
                             modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(f.value for f in fList))
                 aspectEqualFacts.clear()
@@ -327,14 +337,23 @@ class GDV:
         self.fact = fact
         self.altFact = altFact
         self.memLocalName = memLocalName
+        self._hash = hash( (hash(self.fact), hash(self.altFact), hash(self.memLocalName)) )
         
     @property
     def factNames(self):
         if self.altFact:
             return ", ".join(sorted(self.fact, self.altFact))
         return self.fact
+    
+    def __hash__(self):          
+        return self._hash
 
+    def __eq__(self,other):
+        return self.fact == other.fact and self.altFact == other.altFact and self.memLocalName == other.memLocalName
                 
+    def __ne__(self,other):
+        return not self.__eq__(other)
+
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate HMRC',
