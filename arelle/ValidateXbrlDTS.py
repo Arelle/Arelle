@@ -94,8 +94,8 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
             val.ixdsTuples = {}
             val.ixdsReferences = defaultdict(list)
             val.ixdsRelationships = []
-            val.ixdsRoleRefURIs = {}  # roleRefs defined for all targets
-            val.ixdsArcroleRefURIs = {}  # arcroleRefs defined for all targets
+            val.ixdsRoleRefURIs = val.modelXbrl.targetRoleRefs  # roleRefs defined for all targets
+            val.ixdsArcroleRefURIs = val.modelXbrl.targetArcroleRefs  # arcroleRefs defined for all targets
         # accumulate all role/arcrole refs across target document instance files
         val.roleRefURIs = val.ixdsRoleRefURIs
         val.arcroleRefURIs = val.ixdsArcroleRefURIs
