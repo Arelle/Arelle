@@ -19,7 +19,6 @@ from collections import defaultdict
 
 memNameNumPattern = re.compile(r"^([A-Za-z-]+)([0-9]+)$")
 compTxmyNamespacePattern = re.compile(r"http://www.govtalk.gov.uk/uk/fr/tax/uk-hmrc-ct/[0-9-]{10}")
-busTxmyNamespacePattern = re.compile(r"http://www.xbrl.org/uk/cd/business/[0-9-]{10}|http://xbrl.frc.org.uk/cd/[0-9-]{10}/business")
 EMPTYDICT = {}
 _6_APR_2008 = dateTime("2008-04-06", type=DATE)
 
@@ -37,8 +36,10 @@ mandatoryItems = {
         "DateAuthorisationFinancialStatementsForIssue", "ExplanationOfBodyOfAuthorisation", 
         "EntityDormant", "EntityTrading", "DateSigningDirectorsReport", "DirectorSigningReport"},
     "FRS": commonMandatoryItems | {
-        "DateAuthorisationFinancialStatementsForIssue", "DirectorSigningFinancialStatements",
-        "EntityDormantTruefalse", "EntityTradingStatus", "EntityTradingStatus", "DirectorSigningDirectorsReport"}
+        "DateSigningDirectorsReport", "DateAuthorisationFinancialStatementsForIssue", "DirectorSigningFinancialStatements",
+        "EntityDormantTruefalse", "EntityTradingStatus", "EntityTradingStatus", "DirectorSigningDirectorsReport",
+        "AccountingStandardsApplied", "AccountsStatusAuditedOrUnaudited", "AccountsTypeFullOrAbbreviated",
+        "LegalFormEntity", "DescriptionPrincipalActivities"}
     }
 
 genericDimensionValidation = {
@@ -51,9 +52,10 @@ genericDimensionValidation = {
         "OtherInvestment": (1,5,"NameOtherParticipatingInterestOrInvestment",    "DescriptionOtherParticipatingInterestOrInvestment"),
         "OtherParticipatingInterest1": (1,5,"NameOtherParticipatingInterestOrInvestment",    "DescriptionOtherParticipatingInterestOrInvestment"),
         "PensionScheme": (1,8,"NameDefinedContributionScheme","DescriptionContributionScheme"),
-        "Post-employmentMedicalScheme": (1,8,"NameDefinedBenefitScheme"    "DescriptionDefinedBenefitScheme"),
+        "Post-employmentMedicalScheme": (1,4,"NameDefinedBenefitScheme"    "DescriptionDefinedBenefitScheme"),
         "Share-basedScheme": (1,8,"NameShare-basedArrangement","DescriptionShare-basedArrangement"),
-        "Subsidiary": (1,30, "NameSubsidiary")},
+        "Subsidiary": (1,30, "NameSubsidiary"),
+        "Quasi-subsidiary": (1,10, "NameSubsidiary")},
     "ukIFRS":    {"Associate": (1,50, "NameAssociate"),
         "Joint-venture": (1,50, "NameJoint-venture"),
         "MajorCustomer": (1,12,"NameIndividualSegmentMember"),
@@ -146,9 +148,6 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
                                 for doc in val.modelXbrl.urlDocs.values()
                                 if doc.targetNamespace)
         val.isAccounts = not val.isComputation
-    val.isBusiness = any(busTxmyNamespacePattern.match(doc.targetNamespace)
-                        for doc in val.modelXbrl.urlDocs.values()
-                        if doc.targetNamespace)
             
     val.txmyType = None
     for doc in val.modelXbrl.modelDocument.referencesDocument:
@@ -199,10 +198,6 @@ def validateXbrlFinally(val, *args, **kwargs):
         
         contextsUsed = set(f.context for f in modelXbrl.factsInInstance if f.context is not None)
         
-        gdvSearch = [val.txmyType]
-        if val.isBusiness:
-            gdvSearch.append("business")
-        
         for cntx in contextsUsed:
             for dim in cntx.qnameDims.values():
                 if dim.isExplicit:
@@ -214,7 +209,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                     else:
                         l = _memName
                         n = None
-                    for _gdvType in gdvSearch: # e.g., look in ukIfrs + business if is business
+                    for _gdvType in (val.txmyType, "business"):
                         gdv = genericDimensionValidation.get(_gdvType,EMPTYDICT).get(l)
                         if gdv: # take first match
                             break
@@ -282,6 +277,10 @@ def validateXbrlFinally(val, *args, **kwargs):
                                             _gdvAltRemovals.append(_gdvAlt)
                                     for _gdvAlt in _gdvAltRemovals:
                                         _gdvAltList.remove(_gdvAlt)
+                        if _gdvReqRemovals and not f.xValue: # fact was a mandatory name or description
+                            modelXbrl.error("JFCVC.3315",
+                                            _("Generic dimension members associated name/description has no text: %(fact)s"), 
+                                            modelObject=f, fact=f.qname)
                         for _gdvReq in _gdvReqRemovals:
                             _gdvReqList.remove(_gdvReq)
                                     
@@ -342,7 +341,7 @@ class GDV:
     @property
     def factNames(self):
         if self.altFact:
-            return ", ".join(sorted(self.fact, self.altFact))
+            return ", ".join(sorted( (self.fact, self.altFact) ))
         return self.fact
     
     def __hash__(self):          
