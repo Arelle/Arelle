@@ -8,7 +8,7 @@ saveLoadableOIM.py is an example of a plug-in that will save a re-loadable JSON 
 import sys, os, io, time, re, json, csv
 from decimal import Decimal
 from math import isinf, isnan
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from arelle import ModelDocument, XbrlConst
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelValue import (qname, QName, DateTime, YearMonthDuration, 
@@ -16,7 +16,7 @@ from arelle.ModelValue import (qname, QName, DateTime, YearMonthDuration,
                                gYearMonth, gMonthDay, gYear, gMonth, gDay)
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ValidateXbrlCalcs import inferredDecimals
-from arelle.XmlUtil import dateunionValue, elementChildSequence, xmlstring
+from arelle.XmlUtil import dateunionValue, elementIndex, xmlstring
 from collections import defaultdict
 
 nsOim = "http://www.xbrl.org/DPWD/2016-01-13/oim"
@@ -203,7 +203,7 @@ def saveLoadableOIM(modelXbrl, oimFile):
         {"type": "schema" if doc.type == ModelDocument.Type.SCHEMA
                  else "linkbase" if doc.type == ModelDocument.Type.LINKBASE
                  else "other",
-         "href": doc.basename}
+         "href": doc.uri}
         for doc,ref in modelXbrl.modelDocument.referencesDocument.items()
         if ref.referringModelObject.qname in SCHEMA_LB_REFS]
     
@@ -216,27 +216,25 @@ def saveLoadableOIM(modelXbrl, oimFile):
     '''
 
     def factAspects(fact):
-        aspects = {qnOimConceptAspect: oimValue(fact.qname)}
+        aspects = OrderedDict()
         if hasId and fact.id:
             aspects["id"] = fact.id
         elif fact.isTuple or footnotesRelationshipSet.toModelObject(fact):
-            aspects["id"] = "f{}".format(f.objectIndex)
+            aspects["id"] = "f{}".format(fact.objectIndex)
         parent = fact.getparent()
-        if parent.qname != XbrlConst.qnXbrliXbrl:
-            aspects[qnOimTupleParentAspect] = oimValue(parent.qname)
-            aspects[qnOimTupleOrderAspect] = elementChildSequence(fact)
         concept = fact.concept
-        if concept is not None:
-            _baseXsdType = concept.baseXsdType
-            if _baseXsdType == "XBRLI_DATEUNION":
-                if getattr(fact.xValue, "dateOnly", False):
-                    _baseXsdType = "date"
-                else:
-                    _baseXsdType = "dateTime"
-            aspects["baseType"] = "xs:{}".format(_baseXsdType)
-            if concept.baseXbrliType in ("string", "normalizedString", "token") and fact.xmlLang:
-                aspects[qnOimLangAspect] = fact.xmlLang
-        aspects[qnOimTypeAspect] = concept.baseXbrliType
+        if not fact.isTuple:
+            if concept is not None:
+                _baseXsdType = concept.baseXsdType
+                if _baseXsdType == "XBRLI_DATEUNION":
+                    if getattr(fact.xValue, "dateOnly", False):
+                        _baseXsdType = "date"
+                    else:
+                        _baseXsdType = "dateTime"
+                aspects["baseType"] = "xs:{}".format(_baseXsdType)
+                if concept.baseXbrliType in ("string", "normalizedString", "token") and fact.xmlLang:
+                    aspects[qnOimLangAspect] = fact.xmlLang
+                aspects[qnOimTypeAspect] = concept.baseXbrliType
         if fact.isItem:
             if fact.isNil:
                 _value = None
@@ -245,6 +243,7 @@ def saveLoadableOIM(modelXbrl, oimFile):
                 _inferredDecimals = inferredDecimals(fact)
                 _value = oimValue(fact.xValue, _inferredDecimals)
                 _strValue = str(_value)
+            aspects["value"] = _strValue
             if fact.concept is not None and fact.concept.isNumeric:
                 _numValue = fact.xValue
                 if isinstance(_numValue, Decimal) and not isinf(_numValue) and not isnan(_numValue):
@@ -257,15 +256,16 @@ def saveLoadableOIM(modelXbrl, oimFile):
                     aspects["accuracy"] = "infinity" if isinf(_inferredDecimals) else _inferredDecimals
             elif isinstance(_value, bool):
                 aspects["booleanValue"] = _value
-            aspects["value"] = _strValue
+        aspects[qnOimConceptAspect] = oimValue(fact.qname)
         cntx = fact.context
         if cntx is not None:
             if cntx.entityIdentifierElement is not None:
                 aspects[qnOimEntityAspect] = oimValue(qname(*cntx.entityIdentifier))
             if cntx.period is not None:
                 aspects[qnOimPeriodAspect] = oimPeriodValue(cntx)
-            for dim in cntx.qnameDims.values():
+            for _qn, dim in sorted(cntx.qnameDims.items(), key=lambda item: item[0]):
                 aspects[dim.dimensionQname] = (oimValue(dim.memberQname) if dim.isExplicit
+                                               else None if dim.typedMember.get("{http://www.w3.org/2001/XMLSchema-instance}nil") in ("true", "1")
                                                else dim.typedMember.stringValue)
         unit = fact.unit
         if unit is not None:
@@ -283,6 +283,9 @@ def saveLoadableOIM(modelXbrl, oimFile):
                 if _mDiv:
                     aspects[qnOimUnitDivAspect] = ",".join(oimValue(m)
                                                         for m in sorted(_mDiv, key=lambda m: str(m)))
+        if parent.qname != XbrlConst.qnXbrliXbrl:
+            aspects[qnOimTupleParentAspect] = parent.id if parent.id else "f{}".format(parent.objectIndex)
+            aspects[qnOimTupleOrderAspect] = elementIndex(fact)
                     
         footnotes = []
         for footnoteRel in footnotesRelationshipSet.fromModelObject(fact):
@@ -303,28 +306,34 @@ def saveLoadableOIM(modelXbrl, oimFile):
     if isJSON:
         # save JSON
         
-        oimReport = {} # top level of oim json output
+        oimReport = OrderedDict() # top level of oim json output
             
         oimFacts = []
+        oimReport["prefixes"] = OrderedDict((p,ns) for ns, p in sorted(namespacePrefixes.items(), 
+                                                                       key=lambda k: k[1]))
         oimReport["dtsReferences"] = dtsReferences
         oimReport["facts"] = oimFacts
-        oimReport["prefixes"] = dict((p,ns) for p, ns in namespacePrefixes.items())
             
         def saveJsonFacts(facts, oimFacts, parentFact):
             for fact in facts:
                 oimFact = factAspects(fact)
+                oimFacts.append(OrderedDict((str(k),v) for k,v in oimFact.items()))
                 if fact.modelTupleFacts:
-                    tupleFacts = []
-                    oimFact[qnOimTupleAspect] = tupleFacts
-                    saveJsonFacts(fact.modelTupleFacts, tupleFacts, fact)
-                oimFacts.append(dict((oimValue(k),v) for k,v in oimFact.items()))
+                    saveJsonFacts(fact.modelTupleFacts, oimFacts, fact)
                 
         saveJsonFacts(modelXbrl.facts, oimFacts, None)
             
         with open(oimFile, "w", encoding="utf-8") as fh:
-            fh.write(json.dumps(oimReport, ensure_ascii=False, indent=1, sort_keys=True))
+            fh.write(json.dumps(oimReport, ensure_ascii=False, indent=1, sort_keys=False))
 
-            
+    elif isXML:
+        '''
+        doc = ModelDocument.create(modelXbrl, ModelDocument.Type.UnknownXML, uri=oimFile,
+                                   initialXml="<oim:report xmlns:oim={}/>".format(nsOim))
+        for dtsReference in dtsReferences:
+            addChild(doc.xmlRootElement, roleRefElt.qname,
+                     attributes=roleRefElt.items())
+        '''
         
     elif isCSV:
         # save CSV
