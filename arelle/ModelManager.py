@@ -51,7 +51,7 @@ class ModelManager:
         self.validateDisclosureSystem = False
         self.disclosureSystem = DisclosureSystem.DisclosureSystem(self)
         self.validateCalcLB = False
-        self.validateInferDecimals = False
+        self.validateInferDecimals = True
         self.validateInfoset = False
         self.validateUtr = False
         self.skipDTS = False
