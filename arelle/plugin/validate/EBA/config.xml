@@ -12,7 +12,7 @@
      Default language English\n
      EDInet identifier patterns\n
      Allowed references TBD"
-     defaultXmlLang="en" 
+     defaultXmlLang="" 
      defaultLanguage="English" 
      validationType="EBA"
      exclusiveTypesPattern="EBA|EIOPA|EFM|GFM|HMRC|SBR.NL"
@@ -28,14 +28,15 @@
 <!--
      standardTaxonomiesUrl="validateEBAtaxonomies.xml"
 -->
-  <!-- defaultXmlEncoding is empty string to force detecting when missing in validation -->
+  <!-- defaultXmlLang is empty string to prevent assuming a lang attribute when none on string facts
+  	   defaultXmlEncoding is empty string to force detecting when missing in validation -->
   <DisclosureSystem 
      names="EIOPA Filing Rules|eiopa" 
      description="EIOPA Filing Rules, Solvency II\n
      Default language English\n
      EDInet identifier patterns\n
      Allowed references TBD"
-     defaultXmlLang="en" 
+     defaultXmlLang="" 
      defaultXmlEncoding=""
      defaultLanguage="English" 
      validationType="EIOPA"

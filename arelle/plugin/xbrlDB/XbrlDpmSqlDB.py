@@ -67,6 +67,7 @@ qnFindFilingIndicators = qname("{http://www.eurofiling.info/xbrl/ext/filing-indi
 qnFindFilingIndicator = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}find:filingIndicator")
 decimalsPattern = re.compile("^(-?[0-9]+|INF)$")
 sigDimPattern = re.compile(r"([^(]+)[(]([^\[)]*)(\[([0-9;]+)\])?[)]")
+schemaRefDatePattern = re.compile(r".*/([0-9]{4}-[01][0-9]-[0-3][0-9])/mod.*")
 ONE = Decimal("1")
 ONE00 = Decimal("1.00")
 ONE0000 = Decimal("1.0000")
@@ -240,7 +241,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         self.numFactsInserted = 0
         self.availableTableRows = defaultdict(set) # index (tableID, zDimVal) = set of yDimVals 
         self.dFilingIndicators = {} # index qName, value filed (boolean)
-        self.metricsForFilingIndicators = set()
+        self.filingIndicatorReportsFacts = {} # index by filing indicator to be reported, value = True if it has any facts reported
+        self.metricsForFilingIndicators = defaultdict(set) # index (metric) of which filing indicators contains metric
         self.signaturesForFilingIndicators = defaultdict(list)
         self.entityCurrency = None
         self.tableIDs = set()
@@ -261,6 +263,11 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         for moduleId in result:
                             self.moduleId = moduleId[0] # only column in row returned
                             break
+                        _match = schemaRefDatePattern.match(_instanceSchemaRef)
+                        if _match:
+                            self.isEIOPAfullVersion = _match.group(1) > "2015-02-28"
+                            self.isEIOPA_2_0_1 = _match.group(1) >= "2015-10-21"
+                            break
                     else:
                         self.modelXbrl.error(("EBA.1.5","EIOPA.S.1.5.a"),
                                              _("Loading XBRL DB: Multiple schema files referenced: %(schemaRef)s"),
@@ -269,7 +276,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             raise DpmDBException(("EBA.1.5","EIOPA.S.1.5.a"),
                     _("A ModuleID could not be found in table mModule for instance schemaRef {0}.")
                     .format(_instanceSchemaRef)) 
-        self.modelXbrl.profileActivity("dpmDB 01. Get ModuleID for instance schema", minTimeToShow=0.0)
+        self.modelXbrl.profileActivity("dpmDB 01. Get ModuleID for instance schema", minTimeToShow=2.0)
         periodInstantDate = None
         entityIdentifier = ''
         entityScheme = ''
@@ -308,13 +315,13 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         for id, fileName in table:
             self.instanceId = id
             break
-        self.modelXbrl.profileActivity("dpmDB 02. Store into dInstance", minTimeToShow=0.0)
+        self.modelXbrl.profileActivity("dpmDB 02. Store into dInstance", minTimeToShow=2.0)
         self.showStatus("deleting prior data points of this instance")
-        for tableName in ("dFact", "dFilingIndicator", "dInstanceLargeDimensionMember"): # "dAvailableTable", 
+        for tableName in ("dFact", "dFilingIndicator", "dInstanceLargeDimensionMember"): # , "dAvailableTable", 
             self.execute("DELETE FROM {0} WHERE {0}.InstanceID = {1}"
                          .format( self.dbTableName(tableName), self.instanceId), 
                          close=False, fetch=False)
-        self.modelXbrl.profileActivity("dpmDB 03. Delete prior data points of this instance", minTimeToShow=0.0)
+        self.modelXbrl.profileActivity("dpmDB 03. Delete prior data points of this instance", minTimeToShow=2.0)
             
         self.showStatus("obtaining mapping table information")
         '''
@@ -324,7 +331,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             self.tableIDs.add(tableID)
             self.metricAndDimensionsTableId[metricAndDimensions].add(tableID)
         '''
-        self.modelXbrl.profileActivity("dpmDB 04. Get TableDimensionSet for Module", minTimeToShow=0.0)
+        self.modelXbrl.profileActivity("dpmDB 04. Get TableDimensionSet for Module", minTimeToShow=2.0)
             
         result = self.execute("SELECT TableID, YDimVal, ZDimVal FROM mTable WHERE TableID in ({})"
                               .format(', '.join(str(i) for i in sorted(self.tableIDs))))
@@ -361,6 +368,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                               " WHERE mld.ModuleId = {} AND dim.DimensionId = mld.DimensionId"
                               .format(self.moduleId))
         self.largeDimensionIds = dict((_dimQname, _dimId) for _dimQname, _dimId in result)
+
         self.largeDimensionMemberIds = defaultdict(dict)
 
         # get explicit dimension domain element qnames
@@ -399,6 +407,17 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         results = self.execute("SELECT * FROM [vwGetNamespacesPrefixes]")            
         self.dpmNsPrefix = dict((namespace, prefix)
                                 for owner, prefix, namespace in results)
+        
+        # get S.2.18.c (a) metrics with dec >= 2 accuracy
+        results = self.execute("select distinct mem.MemberXBRLCode from mOrdinateCategorisation oc "
+                               "inner join mAxisOrdinate ao on ao.OrdinateID = oc.OrdinateID "
+                               "inner join mTableAxis ta on ta.AxisID = ao.AxisID "
+                               "inner join mTable t on t.TableID = ta.TableID "
+                               "inner join mMember mem on mem.MemberID = oc.MemberID "
+                               "inner join mMetric met on met.CorrespondingMemberID = mem.MemberID and met.DataType = 'Monetary' "
+                               "where (t.TableCode like 'S.06.02%' or t.TableCode like 'SE.06.02%' or t.TableCode like 'S.08.01%' or t.TableCode like 'S.08.02%' or t.TableCode like 'S.11.01%' or t.TableCode like 'E.01.01%') and mem.MemberXBRLCode not like 's2hd_met%' "
+                               "order by t.TableCode;")
+        self.s_2_18_c_a_Metrics = set(mem for mem in results)
         return True
     
     def correctQnamePrefix(self, qn):
@@ -427,7 +446,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                              for _filingIndicator, _filed in self.dFilingIndicators.items())
         # check metrics encountered for filing indicators found
         results = self.execute(
-            "select distinct mem.MemberXBRLCode "
+            "select distinct mem.MemberXBRLCode, tott.TemplateOrTableCode "
              "from mTemplateOrTable tott "
              "inner join mTemplateOrTable tottv on tottv.ParentTemplateOrTableID = tott.TemplateOrTableID "
              "   and tott.TemplateOrTableCode in ({0}) "
@@ -442,7 +461,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
              "inner join mModuleBusinessTemplate mbt on mbt.BusinessTemplateID = tottv.TemplateOrTableID "
              "   and mbt.ModuleID = {1} "
              .format(self.filedFilingIndicators, self.moduleId))
-        self.metricsForFilingIndicators = set(r[0] for r in results)
+        for r in results:
+            self.metricsForFilingIndicators[r[0]].add(r[1])
         
         results = self.execute(
              "select distinct tc.DatapointSignature "
@@ -522,7 +542,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             _missingDims = _differentDims = _extraDims = set()
             _closestMatch = 9999
             _closestMatchSig = None
-            if _dimSigs:
+            if _dimSigs and _dimSigs[0]: # don't pass [{}]
                 for _dimSig in _dimSigs: # alternate signatures valid for member
                     _lenDimVals = len(_dimVals)
                     _lenDimSig = sum(1
@@ -587,7 +607,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                                "Extra dimensions of fact: %(extra)s, missing dimensions of fact: %(missing)s, different dimensions of fact: %(different)s"),
                                              modelObject=self.modelXbrl, dpmSignature=dpmSignature, qname=_metQname, value=self.dFactValue(fact),
                                              extra=_extras, missing=_missings, different=_diffs)
-
+            for _filingIndicator in self.metricsForFilingIndicators[_metQname]:
+                if _filingIndicator in self.filingIndicatorReportsFacts:
+                    self.filingIndicatorReportsFacts[_filingIndicator] = True
 
     def insertDataPointsToDB(self, facts, isStreaming=False):
         instanceId = self.instanceId
@@ -726,7 +748,15 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                          modelObject=f, context=f.contextID)
                 for filingIndicator in f.modelTupleFacts:
                     if filingIndicator.qname == qnFindFilingIndicator:
-                        self.dFilingIndicators[filingIndicator.textValue.strip()] = filingIndicator.get("{http://www.eurofiling.info/xbrl/ext/filing-indicators}filed", "true") in ("true", "1")
+                        _filingIndicator = filingIndicator.textValue.strip()
+                        _filed = filingIndicator.get("{http://www.eurofiling.info/xbrl/ext/filing-indicators}filed", "true") in ("true", "1")
+                        if _filingIndicator in self.dFilingIndicators: # duplicate filing indicator
+                            if _filed: # take positive value if duplicate
+                                self.dFilingIndicators[_filingIndicator] = _filed
+                        else:
+                            self.dFilingIndicators[_filingIndicator] = _filed
+                        if _filed:
+                            self.filingIndicatorReportsFacts[_filingIndicator] = False
                         if filingIndicator.context is None:
                             self.modelXbrl.error("sqlDB:filingIndicatorContextError",
                                                  _("Loading XBRL DB: Filing indicator fact missing a context, value %(value)s"),
@@ -877,7 +907,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         if self.instanceId is None:
             return
         
-        self.modelXbrl.profileActivity("dpmDB 06. Build facts table for bulk DB update", minTimeToShow=0.0)
+        self.modelXbrl.profileActivity("dpmDB 06. Build facts table for bulk DB update", minTimeToShow=2.0)
 
         # check filing indicators after facts loaded
         result = self.execute("SELECT InstanceID, DataPointSignature, Unit, Decimals, NumericValue, DateTimeValue, BooleanValue, TextValue " 
@@ -887,6 +917,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         self.largeDimIdMemIds = set()
         for dFact in result:
             self.validateFactSignature(dFact[1], dFact)
+            
         # large Dimension Member Ids
         if self.largeDimIdMemIds:
             self.getTable("dInstanceLargeDimensionMember", None,
@@ -907,7 +938,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                    "        mToT2.TemplateOrTableCode in ({1})"
                                    .format(self.moduleId, self.allFilingIndicators))
             filingIndicatorCodeIDs = dict((code, id) for code, id in results)
-            self.modelXbrl.profileActivity("dpmDB 07. Get business template filing indicator for module", minTimeToShow=0.0)
+            self.modelXbrl.profileActivity("dpmDB 07. Get business template filing indicator for module", minTimeToShow=2.0)
             
             if filingIndicatorCodeIDs.keys() != self.dFilingIndicators.keys():
                 missingIndicators = set(filingIndicatorCodeIDs.keys() - self.dFilingIndicators.keys())
@@ -931,7 +962,15 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                             self.dFilingIndicators.get(filingIndicatorCode))
                            for filingIndicatorCode, filingIndicatorCodeId in sorted(filingIndicatorCodeIDs.items())),
                           returnMatches=False)
-        self.modelXbrl.profileActivity("dpmDB 08. Store dFilingIndicators", minTimeToShow=0.0)
+            unreportedFilingIndicators = set(_filingIndicator
+                                             for _filingIndicator, _isReported in self.filingIndicatorReportsFacts.items()
+                                             if not _isReported)
+            if unreportedFilingIndicators:
+                self.modelXbrl.error(("EIOPA.1.7.b"),
+                                     _("The filing indicator must not indicate filed when not reported in instance %(unreportedFilingIndicators)s"),
+                                     modelObject=self.modelXbrl,
+                                     unreportedFilingIndicators=','.join(sorted(unreportedFilingIndicators)))
+        self.modelXbrl.profileActivity("dpmDB 08. Store dFilingIndicators", minTimeToShow=2.0)
         ''' deprecated
         table = self.getTable("dProcessingFact", None,
                               ('InstanceID', 'Metric', 'ContextID', 
@@ -950,7 +989,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                         len(setOfYDimVals))
                        for availTableKey, setOfYDimVals in self.availableTableRows.items()),
                       returnMatches=False)
-        self.modelXbrl.profileActivity("dpmDB 10. Bulk store dAvailableTable", minTimeToShow=0.0)
+        self.modelXbrl.profileActivity("dpmDB 10. Bulk store dAvailableTable", minTimeToShow=2.0)
         '''
 
         self.modelXbrl.profileStat(_("XbrlSqlDB: instance insertion"), time.time() - self.startedAt)
