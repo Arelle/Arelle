@@ -331,11 +331,15 @@ class YearMonthDuration():
         self.months = months
 
     def __repr__(self):
+        return self.__str__() 
+    def __str__(self):
         return "P{0}Y{1}M".format(self.years, self.months)
     
 def dayTimeDuration(value):
     if isinstance(value,Time):
         return DayTimeDuration(1 if value.hour24 else 0, value.hour, value.minute, value.second)
+    if isinstance(value,datetime.timedelta):
+        return DayTimeDuration(value.days, 0, 0, value.seconds)
     minus, hasYr, yrs, hasMo, mos, hasDay, days, hasTime, hasHr, hrs, hasMin, mins, hasSec, secs = durationPattern.match(value).groups()
     if hasYr or hasMo: raise ValueError
     sign = -1 if minus else 1
@@ -370,9 +374,65 @@ class DayTimeDuration(datetime.timedelta):
         seconds -= minutes * 60
         return (days, hours, minutes, seconds)
     def __repr__(self):
-        x = self.dayHrsMinsSecs
+        return self.__str__() 
+    def __str__(self):
+        x = self.dayHrsMinsSecs()
         return "P{0}DT{1}H{2}M{3}S".format(x[0], x[1], x[2], x[3])
         
+def yearMonthDayTimeDuration(value, value2=None):
+    if isinstance(value, datetime.datetime) and isinstance(value, datetime.datetime):
+        years = value2.year - value.year
+        months = value2.month - value.month
+        if months < 0:
+            years -= 1
+            months += 12
+        days = value2.day - value.day
+        if days < 0:
+            _lastDayPrevMonth = (value2 - datetime.timedelta(value2.day)).day
+            months -= 1
+            days = _lastDayPrevMonth + days
+        hours = value2.hour - value.hour
+        if hours < 0:
+            days -= 1
+            hours += 24
+        minutes = value2.minute - value.minute
+        if minutes < 0:
+            hours -= 1
+            minutes += 60
+        seconds = value2.second - value.second
+        if seconds < 0:
+            minutes -= 1
+            seconds += 60
+        return YearMonthDayTimeDuration(years, months, days, hours, minutes, seconds)
+    minus, hasYr, yrs, hasMo, mos, hasDay, days, hasTime, hasHr, hrs, hasMin, mins, hasSec, secs = durationPattern.match(value).groups()
+    sign = -1 if minus else 1
+    # TBD implement
+    return YearMonthDayTimeDuration(sign * int(yrs if yrs else 0), sign * int(mos if mos else 0))
+    
+class YearMonthDayTimeDuration():
+    def __init__(self, years, months, days, hours, minutes, seconds):
+        self.years = years
+        self.months = months
+        self.days = days
+        self.hours = hours
+        self.minutes = minutes
+        self.seconds = seconds
+
+    def __repr__(self):
+        return self.__str__() 
+    def __str__(self):
+        per = []
+        if self.years: per.append("{}Y".format(self.years))
+        if self.months: per.append("{}Y".format(self.months))
+        if self.days: per.append("{}Y".format(self.days))
+        if self.hours or self.minutes or self.seconds: per.append('T')
+        if self.hours: per.append("{}Y".format(self.hours))
+        if self.minutes: per.append("{}Y".format(self.minutes))
+        if self.seconds: per.append("{}Y".format(self.seconds))
+        if not per:
+            return "PT0S"
+        return "P" + ''.join(per)
+    
 def time(value, castException=None):
     if value == "MinTime":
         return Time(time.min)
@@ -407,6 +467,8 @@ class gYearMonth():
         self.month = int(month)
 
     def __repr__(self):
+        return self.__str__() 
+    def __str__(self):
         return "{0:0{2}}-{1:02}".format(self.year, self.month, 5 if self.year < 0 else 4) # may be negative
     
     
@@ -416,6 +478,8 @@ class gMonthDay():
         self.day = int(day)
 
     def __repr__(self):
+        return self.__str__() 
+    def __str__(self):
         return "--{0:02}-{1:02}".format(self.month, self.day)
     
 class gYear():
@@ -423,6 +487,8 @@ class gYear():
         self.year = int(year) # may be negative
 
     def __repr__(self):
+        return self.__str__() 
+    def __str__(self):
         return "{0:0{1}}".format(self.year, 5 if self.year < 0 else 4) # may be negative
     
 class gMonth():
@@ -430,6 +496,8 @@ class gMonth():
         self.month = int(month)
 
     def __repr__(self):
+        return self.__str__() 
+    def __str__(self):
         return "--{0:02}".format(self.month)
     
 class gDay():
@@ -437,6 +505,8 @@ class gDay():
         self.day = int(day)
 
     def __repr__(self):
+        return self.__str__() 
+    def __str__(self):
         return "---{0:02}".format(self.day)
     
 class InvalidValue(str):
