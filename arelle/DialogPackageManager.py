@@ -259,7 +259,7 @@ class DialogPackageManager(Toplevel):
     def close(self, event=None):
         self.parent.focus_set()
         self.destroy()
-                
+
     def packageSelect(self, *args):
         node = (self.packagesView.selection() or (None,))[0]
         try:
