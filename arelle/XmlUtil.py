@@ -172,7 +172,7 @@ def innerTextNodes(element, ixExclude, ixEscape, ixContinuation):
            not ixExclude or 
            not (child.localName == "exclude" and child.namespaceURI in ixbrlAll)):
             firstChild = True
-            for nestedText in innerTextNodes(child, ixExclude, ixEscape, ixContinuation):
+            for nestedText in innerTextNodes(child, ixExclude, ixEscape, False): # nested elements don't participate in continuation chain
                 if firstChild and ixEscape:
                     yield escapedNode(child, True, False)
                     firstChild = False
