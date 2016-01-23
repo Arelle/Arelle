@@ -322,7 +322,7 @@ class Validate:
                             formulaOutputInstance = modelXbrl.formulaOutputInstance
                             modelXbrl.formulaOutputInstance = None # prevent it from being closed now
                         self.instValidator.close()
-                    compareIxResultInstance = getattr(modelXbrl, "extractedInlineInstance", True) and modelTestcaseVariation.resultXbrlInstanceUri
+                    compareIxResultInstance = getattr(modelXbrl, "extractedInlineInstance", False) and modelTestcaseVariation.resultXbrlInstanceUri
                     if compareIxResultInstance:
                         formulaOutputInstance = modelXbrl # compare modelXbrl to generated output instance
                         errMsgPrefix = "ix"
