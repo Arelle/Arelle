@@ -118,7 +118,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase):
                 else:
                     cntlr.addToLog(_("Package catalog duplicate rewrite start string %(rewriteStartString)s"),
                                    messageArgs={"rewriteStartString": prefixValue},
-                                   messageCode="arelle.catalogDuplicateRewrite",
+                                   messageCode="tpe:multipleRewriteURIsForStartString",
                                    file=os.path.basename(catalogFile),
                                    level=logging.ERROR)
 
