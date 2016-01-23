@@ -1181,8 +1181,16 @@ class ModelDocument:
             XmlValidate.validate(self.modelXbrl, inlineElement) # validate instance elements
             for refElement in inlineElement.iterchildren("{http://www.xbrl.org/2003/linkbase}roleRef"):
                 self.modelXbrl.targetRoleRefs[refElement.get("roleURI")] = refElement
+                if self.discoverHref(refElement) is None: # discover role-defining schema file
+                    self.modelXbrl.error("xmlSchema:requiredAttribute",
+                            _("Reference for roleURI href attribute missing or malformed"),
+                            modelObject=refElement)
             for refElement in inlineElement.iterchildren("{http://www.xbrl.org/2003/linkbase}arcroleRef"):
                 self.modelXbrl.targetArcroleRefs[refElement.get("arcroleURI")] = refElement
+                if self.discoverHref(refElement) is None: # discover arcrole-defining schema file
+                    self.modelXbrl.error("xmlSchema:requiredAttribute",
+                            _("Reference for arcroleURI href attribute missing or malformed"),
+                            modelObject=refElement)
      
         # subsequent inline elements have to be processed after all of the document set is loaded
         if not hasattr(self.modelXbrl, "ixdsHtmlElements"):
