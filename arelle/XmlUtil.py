@@ -787,6 +787,18 @@ def elementFragmentIdentifier(element):
         location = "/".join(childSequence)
         return "element({0})".format(location)
     
+def elementIndex(element):
+    if isinstance(element,etree.ElementBase):
+        try:
+            return element._elementSequence # set by loader in some element hierarchies
+        except AttributeError:
+            siblingPosition = 1
+            for sibling in element.itersiblings(preceding=True):
+                if isinstance(sibling,etree.ElementBase):
+                    siblingPosition += 1
+            return siblingPosition
+    return 0
+    
 def elementChildSequence(element):
     childSequence = [""] # "" represents document element for / (root) on the join below
     while element is not None:
@@ -802,11 +814,16 @@ def elementChildSequence(element):
         element = element.getparent()
     return "/".join(childSequence)
                         
-def xmlstring(elt, stripXmlns=False, prettyPrint=False, contentsOnly=False):
+def xmlstring(elt, stripXmlns=False, prettyPrint=False, contentsOnly=False, includeText=False):
     if contentsOnly:
-        return ('\n' if prettyPrint else '').join(
+        if includeText:
+            _text = elt.text
+            _tail = elt.tail
+        else:
+            _text = _tail = ""
+        return _text + ('\n' if prettyPrint else '').join(
             xmlstring(child, stripXmlns, prettyPrint)
-            for child in elt.iterchildren())
+            for child in elt.iterchildren()) + _tail
     xml = etree.tostring(elt, encoding=_STR_UNICODE, pretty_print=prettyPrint)
     if not prettyPrint:
         xml = xml.strip()
