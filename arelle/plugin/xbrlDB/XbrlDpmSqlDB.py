@@ -241,6 +241,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         self.numFactsInserted = 0
         self.availableTableRows = defaultdict(set) # index (tableID, zDimVal) = set of yDimVals 
         self.dFilingIndicators = {} # index qName, value filed (boolean)
+        self.filedFilingIndicators = None # comma separated list of positive filing indicators
         self.filingIndicatorReportsFacts = {} # index by filing indicator to be reported, value = True if it has any facts reported
         self.metricsForFilingIndicators = defaultdict(set) # index (metric) of which filing indicators contains metric
         self.signaturesForFilingIndicators = defaultdict(list)
@@ -523,7 +524,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
     def validateFactSignature(self, dpmSignature, fact): # omit fact if checking at end
         _met, _sep, _dimVals = dpmSignature.partition("|")
         _metQname = _met[4:-1]
-        if _metQname not in self.metricsForFilingIndicators:
+        if not self.filedFilingIndicators:
+            pass # validate/EBA provides error messages when no positive filing indicators
+        elif _metQname not in self.metricsForFilingIndicators:
             if isinstance(fact, ModelFact):
                 self.modelXbrl.error(("EBA.1.7.1", "EIOPA.1.7.1"),
                                      _("Loading XBRL DB: Fact QName not allowed for filing indicators %(qname)s, contextRef %(context)s, value: %(value)s"),
@@ -762,6 +765,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                                  _("Loading XBRL DB: Filing indicator fact missing a context, value %(value)s"),
                                                  modelObject=filingIndicator, value=filingIndicator.value)
                 self.loadAllowedMetricsAndDims() # reload metrics
+            elif f.qname == qnFindFilingIndicator:
+                continue # ignore root-level filing indicators, reported by validate/EBA 
             elif cntx is None: 
                 self.modelXbrl.error("sqlDB:factContextError",
                                      _("Loading XBRL DB: Fact missing %(qname)s, contextRef %(context)s, value: %(value)s"),

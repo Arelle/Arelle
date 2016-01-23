@@ -128,6 +128,7 @@ def validateSetup(val, parameters=None, *args, **kwargs):
     val.unusedCntxIDs = set()
     val.unusedUnitIDs = set()
     val.currenciesUsed = {}
+    val.reportingCurrency = None
     val.namespacePrefixesUsed = defaultdict(set)
     val.prefixesUnused = set()
     for prefix, ns in val.modelXbrl.modelDocument.xmlRootElement.nsmap.items():
@@ -189,7 +190,7 @@ def validateFacts(val, factsToCheck):
                 messageCodes=("EBA.2.15","EIOPA.N.2.15","EIOPA.S.2.15"))
         val.unusedCntxIDs.add(cntx.id)
         if val.isEIOPA_2_0_1 and len(cntx.id) > 128:
-            modelXbrl.warning("EIOPA.S.2.16",
+            modelXbrl.warning("EIOPA.S.2.6",
                 _("Contexts IDs SHOULD be short: %(cntx)s.'"),
                 modelObject=cntx, cntx=cntx.id)
 
@@ -249,6 +250,8 @@ def validateFacts(val, factsToCheck):
     nonMonetaryNonPureFacts = []
     for qname, facts in factsByQname.items():
         for f in facts:
+            if f.qname == qnFilingIndicator:
+                continue # skip erroneous root-level filing indicators
             if modelXbrl.skipDTS:
                 c = f.qname.localName[0]
                 isNumeric = c in ('m', 'p', 'r', 'i')
@@ -391,6 +394,8 @@ def validateFacts(val, factsToCheck):
                 _eQn = getattr(f,"xValue", None) or qnameEltPfxName(f, f.value)
                 if _eQn:
                     prefixUsed(val, _eQn.namespaceURI, _eQn.prefix)
+                    if val.isEIOPA_2_0_1 and f.qname.localName == "ei1930":
+                        val.reportingCurrency = _eQn.localName
             elif isString: 
                 if f.xmlLang: # requires disclosureSystem to NOT specify default language
                     stringFactsWithXmlLang.append(f)
@@ -466,6 +471,15 @@ def validateFacts(val, factsToCheck):
                     _prefix, _NS, _localName = XmlUtil.clarkNotationToPrefixNsLocalname(elt, attrTag, isAttribute=True)
                     if _prefix:
                         prefixUsed(val, _NS, _prefix)
+        elif val.isEIOPA_2_0_1:
+            if elt.tag in ("{http://www.w3.org/2001/XMLSchema}documentation", "{http://www.w3.org/2001/XMLSchema}annotation"):
+                modelXbrl.error("EIOPA.2.5",
+                    _("xs:documentation element found, all relevant business data MUST only be contained in contexts, units, schemaRef and facts."),
+                    modelObject=modelDocument)
+            elif isinstance(elt, etree._Comment):
+                modelXbrl.error("EIOPA.2.5",
+                    _("XML comment found, all relevant business data MUST only be contained in contexts, units, schemaRef and facts: %(comment)s"),
+                    modelObject=modelDocument, comment=elt.text)
                    
 def validateNonStreamingFinish(val, *args, **kwargs):
     # non-streaming EBA checks, ignore when streaming (first all from ValidateXbrl.py)
@@ -571,7 +585,10 @@ def final(val):
                             _("Successful XBRL facts sum of md5s."),
                             modelObject=modelXbrl)
             
-        if not val.filingIndicators:
+        if any(badError in modelXbrl.errors 
+               for badError in ("EBA.2.1", "EIOPA.2.1", "EIOPA.S.1.5.a/EIOPA.S.1.5.b")):
+            pass # skip checking filingIndicators if bad errors
+        elif not val.filingIndicators:
             modelXbrl.error(("EBA.1.6", "EIOPA.1.6.a"),
                     _('Missing filing indicators.  Reported XBRL instances MUST include appropriate (positive) filing indicator elements'),
                     modelObject=modelDocument)
@@ -638,6 +655,11 @@ def final(val):
             modelXbrl.error(("EBA.3.1","EIOPA.3.1"),
                 _("There MUST be only one currency but %(numCurrencies)s were found: %(currencies)s.'"),
                 modelObject=val.currenciesUsed.values(), numCurrencies=len(val.currenciesUsed), currencies=", ".join(str(c) for c in val.currenciesUsed.keys()))
+            
+        elif val.isEIOPA_2_0_1 and any(_measure.localName != val.reportingCurrency for _measure in val.currenciesUsed.keys()):
+            modelXbrl.error("EIOPA.3.1",
+                _("There MUST be only one currency but reporting currency %(reportingCurrency)s differs from unit currencies: %(currencies)s.'"),
+                modelObject=val.currenciesUsed.values(), reportingCurrency=val.reportingCurrency, currencies=", ".join(str(c) for c in val.currenciesUsed.keys()))
             
         if val.prefixesUnused:
             modelXbrl.warning(("EBA.3.4", "EIOPA.3.4"),
