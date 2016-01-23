@@ -547,7 +547,7 @@ def copyChildren(parent, elt):
         if isinstance(childNode,ModelObject):
             copyNodes(parent, childNode)
 
-def copyIxFootnoteHtml(sourceXml, targetHtml, targetModelDocument=None, withText=False):
+def copyIxFootnoteHtml(sourceXml, targetHtml, targetModelDocument=None, withText=False, isContinChainElt=True):
     if withText:
         _tx = sourceXml.text
         if _tx:
@@ -564,9 +564,9 @@ def copyIxFootnoteHtml(sourceXml, targetHtml, targetModelDocument=None, withText
             targetChild = etree.SubElement(targetHtml, sourceChild.tag)
             for attrTag, attrValue in sourceChild.items():
                 targetChild.set(attrTag, attrValue)
-            copyIxFootnoteHtml(sourceChild, targetChild, targetModelDocument, withText=withText)
+            copyIxFootnoteHtml(sourceChild, targetChild, targetModelDocument, withText=withText, isContinChainElt=False)
         else:
-            copyIxFootnoteHtml(sourceChild, targetHtml, targetModelDocument, withText=withText)
+            copyIxFootnoteHtml(sourceChild, targetHtml, targetModelDocument, withText=withText, isContinChainElt=False)
     if withText:
         _tl = sourceXml.tail
         if _tl:
@@ -575,9 +575,10 @@ def copyIxFootnoteHtml(sourceXml, targetHtml, targetModelDocument=None, withText
                 targetLastchild.tail = (targetLastchild.tail or "") + _tl
             except StopIteration: # no children
                 targetHtml.text = (targetHtml.text or "") + _tl
-    contAt = getattr(sourceXml, "_continuationElement", None)
-    if contAt is not None:
-        copyIxFootnoteHtml(contAt, targetHtml, targetModelDocument, withText=withText)
+    if isContinChainElt: # for inline continuation chain elements, follow chain (but not for nested elements)
+        contAt = getattr(sourceXml, "_continuationElement", None)
+        if contAt is not None:
+            copyIxFootnoteHtml(contAt, targetHtml, targetModelDocument, withText=withText, isContinChainElt=True)
         
 def addComment(parent, commentText):
     comment = str(commentText)

@@ -1149,13 +1149,6 @@ class ModelDocument:
         self.modelXbrl.units[unitElement.id] = unitElement
                 
     def inlineXbrlDiscover(self, htmlElement):
-        if htmlElement.namespaceURI == XbrlConst.xhtml:  # must validate xhtml
-            #load(self.modelXbrl, "http://www.w3.org/2002/08/xhtml/xhtml1-strict.xsd")
-            XhtmlValidate.xhtmlValidate(self.modelXbrl, htmlElement)  # fails on prefixed content
-            # validate ix element
-            #self.schemalocateElementNamespace(htmlElement) # schemaLocate ix/xhtml schemas
-            #self.loadSchemalocatedSchemas() # load ix/html schemas
-            #XmlValidate.validate(self.modelXbrl, htmlElement, ixFacts=False)
         ixNS = None
         conflictingNSelts = []
         # find namespace, only 1 namespace
@@ -1170,11 +1163,16 @@ class ModelDocument:
                     _("Multiple ix namespaces were found"),
                     modelObject=conflictingNSelts)
         self.ixNStag = ixNStag = "{" + ixNS + "}"
+        # load referenced schemas and linkbases (before validating inline HTML
         for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "references"):
             self.schemaLinkbaseRefsDiscover(inlineElement)
             XmlValidate.validate(self.modelXbrl, inlineElement) # validate instance elements
+        # with DTS loaded, now validate inline HTML (so schema definition of facts is available)
+        if htmlElement.namespaceURI == XbrlConst.xhtml:  # must validate xhtml
+            XhtmlValidate.xhtmlValidate(self.modelXbrl, htmlElement)  # fails on prefixed content
+        # may be multiple targets across inline document set
         if not hasattr(self.modelXbrl, "targetRoleRefs"):
-            self.modelXbrl.targetRoleRefs = {}
+            self.modelXbrl.targetRoleRefs = {}     # first inline instance in inline document set
             self.modelXbrl.targetArcroleRefs = {}
         for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "resources"):
             self.instanceContentsDiscover(inlineElement)
