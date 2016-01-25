@@ -21,7 +21,7 @@ else:
                  Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, StringEnd, alphanums,
                  ParserElement, quotedString, delimitedList, Suppress, Regex)
 from arelle.Locale import format_string
-import time, xml.dom
+import time, xml.dom, traceback
 from decimal import Decimal
 from arelle import (XmlUtil, ModelValue, XbrlConst)
 FunctionIxt = None
@@ -45,6 +45,24 @@ class ProgHeader:
     def __repr__(self):
         return ("ProgHeader({0},{1})".format(self.name,self.modelObject))
 
+def exprStackToksRIndex( toks ):
+    toksList = toks.asList()
+    lenToks = len(toksList)
+    if exprStack[-lenToks:] == toksList: # attempt to match from right side
+        return -lenToks
+    # toks could need flattening to be comparable to exprStack, for now just check tok
+    _tok0 = toks[0]
+    for i in range(len(exprStack)-1,0,-1):
+        if exprStack[i] == _tok0:
+            return i
+    raise Exception("Unable to determine replacement index of ParseResults {} in expression stack {}".format(toks, exprStack))
+    
+def exprStackTokRIndex( tok ):
+    for i in range(len(exprStack)-1,0,-1):
+        if exprStack[i] == tok:
+            return i
+    raise Exception("Unable to determine replacement index of ParseResult token {} in expression stack {}".format(tok, exprStack))
+    
 def pushFirst( sourceStr, loc, toks ):
     exprStack.append( toks[0] )
 
@@ -204,7 +222,8 @@ class OperationDef:
         if isinstance(self.name,QNameDef):
             return ("{0}{1}".format(str(self.name), self.args))
         else:
-            return ("{1} {0}".format(self.name, self.args))
+            #return ("{1} {0}".format(self.name, self.args))
+            return ("{0}{1}".format(self.name, self.args))
 
 def pushOperation( sourceStr, loc, toks ):
     if isinstance(toks[0], _STR_BASE):
@@ -221,7 +240,8 @@ def pushOperation( sourceStr, loc, toks ):
         removeFrom = toks[0]
     operation = OperationDef(sourceStr, loc, name, toks, name != "if")
     if removeOp:
-        exprStack[exprStack.index(removeFrom):] = [operation]  # replace tokens with production
+        # exprStack[exprStack.index(removeFrom):] = [operation]  # replace tokens with production
+        exprStack[exprStackTokRIndex(removeFrom):] = [operation]  # replace tokens with production
     else:
         
         exprStack.append(operation)
@@ -233,7 +253,8 @@ def pushUnaryOperation( sourceStr, loc, toks ):
         exprStack.append(operation)
     else:
         operation = OperationDef(sourceStr, loc, 'u' + toks[0].name, toks, True)
-        exprStack[exprStack.index(toks[0]):] = [operation]  # replace tokens with production
+        # exprStack[exprStack.index(toks[0]):] = [operation]  # replace tokens with production
+        exprStack[exprStackToksRIndex(toks):] = [operation]  # replace tokens with production
     return operation
 
 def pushFunction( sourceStr, loc, toks ):
@@ -256,16 +277,20 @@ def pushFunction( sourceStr, loc, toks ):
 
 def pushSequence( sourceStr, loc, toks ):
     operation = OperationDef(sourceStr, loc, 'sequence', toks, False)
+    # print ("push seq toks={} \n  op={}\n  exprStk1={}".format(toks, operation, exprStack))
     if len(toks) == 0:  # empty sequence
         exprStack.append(operation)
     else:
-        exprStack[exprStack.index(toks[0]):] = [operation]  # replace tokens with production
+        # exprStack[exprStack.index(toks[0]):] = [operation]  # replace tokens with production
+        exprStack[exprStackToksRIndex(toks):] = [operation]  # replace tokens with production
+    #print ("  exprStk2={}".format(exprStack))
     return operation
 
 def pushPredicate( sourceStr, loc, toks ):
     # drop the predicate op, used to clean expression stack
     predicate = OperationDef(sourceStr, loc, 'predicate', toks[1:], False)
-    exprStack[exprStack.index(toks[0]):] = [predicate]  # replace tokens with production
+    # exprStack[exprStack.index(toks[0]):] = [predicate]  # replace tokens with production
+    exprStack[exprStackToksRIndex(toks):] = [predicate]  # replace tokens with production
     return predicate
 
 def pushRootStep( sourceStr, loc, toks ):
@@ -330,7 +355,8 @@ class Expr:
 
 def pushExpr( sourceStr, loc, toks ):
     expr = Expr(loc, toks)
-    exprStack[exprStack.index(toks[0]):] = [expr]  # replace tokens with production
+    # exprStack[exprStack.index(toks[0]):] = [expr]  # replace tokens with production
+    exprStack[exprStackToksRIndex(toks):] = [expr]  # replace tokens with production
     return expr
 
 ParserElement.enablePackrat()
@@ -743,6 +769,7 @@ def parse(modelObject, xpathExpression, element, name, traceType):
                 name=name,
                 error=err, 
                 source=normalizedExpr)
+            modelXbrl.debug("debug", str(traceback.format_exception(*sys.exc_info())))
         
         '''
         code = []
