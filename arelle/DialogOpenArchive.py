@@ -223,7 +223,7 @@ class DialogOpenArchive(Toplevel):
 
         # set up treeView widget and tabbed pane
         if openType in (ARCHIVE, DISCLOSURE_SYSTEM, PLUGIN):
-            if openType == PLUGIN: width = 700
+            if openType == PLUGIN: width = 770
             else: width = 500
             self.treeView.column("#0", width=width, anchor="w")
             self.treeView.heading("#0", text=colHeader)
@@ -239,13 +239,15 @@ class DialogOpenArchive(Toplevel):
                 self.treeView.heading("instDoc", text="Instance Document")
             elif openType == PLUGIN:
                 self.treeView.column("#0", width=150, anchor="w")
-                self.treeView["columns"] = ("name", "vers", "descr")
+                self.treeView["columns"] = ("name", "vers", "descr", "license")
                 self.treeView.column("name", width=150, anchor="w", stretch=False)
                 self.treeView.heading("name", text="Name")
                 self.treeView.column("vers", width=60, anchor="w", stretch=False)
                 self.treeView.heading("vers", text="Version")
                 self.treeView.column("descr", width=300, anchor="w", stretch=False)
                 self.treeView.heading("descr", text="Description")
+                self.treeView.column("license", width=60, anchor="w", stretch=False)
+                self.treeView.heading("license", text="License")
             else:
                 self.treeView["columns"] = tuple()
         
@@ -255,7 +257,7 @@ class DialogOpenArchive(Toplevel):
                     if self.isRss:
                         form, date, instDoc = filename[2:5]
                     elif openType == PLUGIN:
-                        name, vers, descr = filename[3:6]
+                        name, vers, descr, license = filename[3:7]
                     filename = filename[0] # ignore tooltip
                     self.hasToolTip = True
                 if filename.endswith("/"):
@@ -274,6 +276,7 @@ class DialogOpenArchive(Toplevel):
                     self.treeView.set(node, "name", name)
                     self.treeView.set(node, "vers", vers)
                     self.treeView.set(node, "descr", descr)
+                    self.treeView.set(node, "license", license)
                 if self.selection == filename:
                     selectedNode = node
                 loadedPaths.append(path)

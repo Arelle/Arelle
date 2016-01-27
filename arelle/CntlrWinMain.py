@@ -1227,6 +1227,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                               "\n   xlrd \u00a9 2005-2013 Stephen J. Machin, Lingfo Pty Ltd, \u00a9 2001 D. Giffin, \u00a9 2000 A. Khan"
                               "\n   xlwt \u00a9 2007 Stephen J. Machin, Lingfo Pty Ltd, \u00a9 2005 R. V. Kiseliov"                              
                               "{3}"
+                              "\n   May include installable plug-in modules with author-specific license terms"
                               )
                             .format(self.__version__, self.systemWordSize, Version.version,
                                     _("\n   Bottle \u00a9 2011-2013 Marcel Hellkamp") if self.hasWebServer else "",

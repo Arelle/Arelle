@@ -393,15 +393,16 @@ class DialogPluginManager(Toplevel):
                         moduleInfo = PluginManager.moduleModuleInfo(fPath)
                         if moduleInfo:
                             choices.append((indent + f, 
-                                            "name: {}\ndescription: {}\n version {}".format(
+                                            "name: {}\ndescription: {}\nversion: {}\nlicense: {}".format(
                                                         moduleInfo["name"],
                                                         moduleInfo["description"],
-                                                        moduleInfo.get("version")), 
-                                            fPath, moduleInfo["name"], moduleInfo.get("version"), moduleInfo["description"]))
+                                                        moduleInfo.get("version"),
+                                                        moduleInfo.get("license")), 
+                                            fPath, moduleInfo["name"], moduleInfo.get("version"), moduleInfo["description"], moduleInfo.get("license")))
                             dirHasEntries = True
                     if os.path.isdir(fPath) and f not in ("DQC_US_Rules",):
                         if selectChoices(fPath, indent=indent + "   ") and not moduleInfo:
-                            choices.insert(dirInsertPoint, (indent + f,None,None,None,None,None))
+                            choices.insert(dirInsertPoint, (indent + f,None,None,None,None,None,None))
             return dirHasEntries
         selectChoices(self.cntlr.pluginDir)
         selectedPath = DialogOpenArchive.selectPlugin(self, choices)
