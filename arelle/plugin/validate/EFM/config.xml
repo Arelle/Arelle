@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <DisclosureSystems  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
-      xsi:noNamespaceSchemaLocation="../config/disclosuresystems.xsd" >
+      xsi:noNamespaceSchemaLocation="../../../config/disclosuresystems.xsd" >
   <!-- see ../config/disclosuresystem.xml for full comments -->
 
   <DisclosureSystem 
@@ -16,7 +16,7 @@
      blockDisallowedReferences="false" 
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
-     standardTaxonomiesUrl="edgartaxonomies.xml"
+     standardTaxonomiesUrl="edgartaxonomies-2016.xml"
      utrUrl="http://www.xbrl.org/utr/2013-05-17/utr.xml"
      validateFileText="true"
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
@@ -47,7 +47,7 @@
      blockDisallowedReferences="true" 
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
-     standardTaxonomiesUrl="edgartaxonomies.xml"
+     standardTaxonomiesUrl="edgartaxonomies-2016.xml"
      utrUrl="http://www.xbrl.org/utr/2013-05-17/utr.xml"
      validateFileText="true"
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
@@ -181,7 +181,7 @@
      exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
      defaultXmlLang="en"
      defaultLanguage="English" 
-     standardTaxonomiesUrl="edgartaxonomies.xml"
+     standardTaxonomiesUrl="edgartaxonomies-2016.xml"
      utrUrl="http://www.xbrl.org/utr/2013-05-17/utr.xml"
      validateFileText="true"
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"

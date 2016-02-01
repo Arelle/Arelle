@@ -82,10 +82,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
             m = htmlFileNamePattern.match(instanceName)
             if m:
-                val.fileNameBasePart = None # html file name not necessarily parseable.
+                val.fileNameBasePart     = None # html file name not necessarily parseable.
                 val.fileNameDatePart = None
             else:
-                modelXbrl.error(self.EFM60303,
+                modelXbrl.error(val.EFM60303,
                                 _('Invalid inline xbrl document in {base}.htm": %(filename)s'),
                                 modelObject=modelXbrl.modelDocument, filename=instanceName,
                                 messageCodes=("EFM.6.03.03",))
