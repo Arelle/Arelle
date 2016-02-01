@@ -340,7 +340,7 @@ def loadSchemalocatedSchema(modelXbrl, element, relativeUrl, namespace, baseUrl)
             doc.inDTS = False
     return doc
             
-def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None, initialComment=None, base=None, discover=True):
+def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None, initialComment=None, base=None, discover=True, documentEncoding="utf-8"):
     """Returns a new modelDocument, created from scratch, with any necessary header elements 
     
     (such as the schema, instance, or RSS feed top level elements)
@@ -402,7 +402,7 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
         modelDocument.parser = _parser # needed for XmlUtil addChild's makeelement 
         modelDocument.parserLookupName = _parserLookupName
         modelDocument.parserLookupClass = _parserLookupClass
-        modelDocument.documentEncoding = "utf-8"
+        modelDocument.documentEncoding = documentEncoding
         rootNode = xmlDocument.getroot()
         rootNode.init(modelDocument)
         if xmlDocument:
@@ -1370,7 +1370,11 @@ def inlineIxdsDiscover(modelXbrl):
             for modelInlineFact in htmlElement.iterdescendants(tag=tag):
                 if isinstance(modelInlineFact,ModelInlineFact):
                     if modelInlineFact.qname is not None: # must have a qname to be in facts
-                        if modelInlineFact.isFraction == (modelInlineFact.localName == "fraction"):
+                        if modelInlineFact.concept is None:
+                            modelXbrl.error("xbrl:schemaImportMissing",
+                                            _("Instance fact missing schema definition: %(qname)s of Inline Element %(localName)s"),
+                                            modelObject=modelInlineFact, qname=modelInlineFact.qname, localName=modelInlineFact.elementQname)
+                        elif modelInlineFact.isFraction == (modelInlineFact.localName == "fraction"):
                             mdlDoc.modelXbrl.factsInInstance.add( modelInlineFact )
                             locateFactInTuple(modelInlineFact, tuplesByTupleID, ixNStag)
                             locateContinuation(modelInlineFact)
@@ -1381,7 +1385,8 @@ def inlineIxdsDiscover(modelXbrl):
                         else:
                             modelXbrl.error("ix:fractionDeclaration",
                                             _("Inline XBRL element %(qname)s base type %(type)s mapped by %(localName)s"),
-                                            modelObject=modelInlineFact, qname=modelInlineFact.qname, type=modelInlineFact.concept.baseXsdType, localName=modelInlineFact.elementQname)
+                                            modelObject=modelInlineFact, qname=modelInlineFact.qname, localName=modelInlineFact.elementQname,
+                                            type=modelInlineFact.concept.baseXsdType)
         # order tuple facts
         for tupleFact in tupleElements:
             tupleFact.modelTupleFacts = [
