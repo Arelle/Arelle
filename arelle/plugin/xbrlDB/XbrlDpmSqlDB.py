@@ -841,6 +841,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                             self.modelXbrl.error("sqlDB:contextDatesError",
                                                  _("Loading XBRL DB: Context has invalid end date: %(context)s"),
                                                  modelObject=cntx, context=cntx.id)
+                ''' moved to validate/EBA
                 if cntx.isInstantPeriod and cntx.endDatetime not in self.cntxDates:
                     self.modelXbrl.error(("EBA.2.13","EIOPA.2.13"),
                                          _("Loading XBRL DB: Context has different date: %(context)s, date %(value)s"),
@@ -851,6 +852,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                      _("Loading XBRL DB: Context has different entity identifier: %(context)s %(value)s"),
                                      modelObject=cntx, context=cntx.id, value=cntx.entityIdentifier[1])
                     self.entityIdentifiers.add(cntx.entityIdentifier[1])
+                '''
                 if cntx.isStartEndPeriod and isInstant:
                     self.modelXbrl.error("sqlDB:factContextError",
                                      _("Loading XBRL DB: Instant metric %(qname)s has start end context: %(context)s"),
@@ -1043,11 +1045,27 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     _("The module in mModule, corresponding to the instance, was not found for {0}")
                     .format(instanceId or instanceURI)) 
             
+        _match = schemaRefDatePattern.match(_instanceSchemaRef)
+        if _match:
+            self.isEIOPAfullVersion = _match.group(1) > "2015-02-28"
+            self.isEIOPA_2_0_1 = _match.group(1) >= "2015-10-21"
+        else:
+            self.isEIOPAfullVersion = self.isEIOPA_2_0_1 = False
+            
         if modelXbrl.skipDTS:
             # find prefixes and namespaces in DB
             results = self.execute("SELECT * FROM [vwGetNamespacesPrefixes]")            
             dpmPrefixedNamespaces = dict((prefix, namespace)
                                          for owner, prefix, namespace in results)
+            
+        # output attributin {comment string}|{processing instruction attributes}
+        outputAttribution = getattr(modelXbrl.modelManager, "outputAttribution", "").partition("|")
+        if self.isEIOPA_2_0_1:
+            outputAttributionPIargs = outputAttribution[0] or None
+            outputAttributionComment = None
+        else:
+            outputAttributionComment = outputAttribution[1] or None
+            outputAttributionPIargs = None
             
         # create the instance document and resulting filing
         modelXbrl.blockDpmDBrecursion = True
@@ -1057,9 +1075,13 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
               loadDBsaveToFile,
               schemaRefs=[xbrlSchemaRef],
               isEntry=True,
-              initialComment=getattr(modelXbrl.modelManager, "outputAttribution", None))
+              initialComment=outputAttributionComment)
         ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl) # needs dimension defaults 
         
+        if outputAttributionPIargs:
+            addProcessingInstruction(modelXbrl.modelDocument.xmlRootElement, 
+                                     'instance-generator', 
+                                     outputAttributionPIargs)
         addProcessingInstruction(modelXbrl.modelDocument.xmlRootElement, 
                                  'xbrl-streamable-instance', 
                                  'version="1.0" contextBuffer="1"')
@@ -1320,6 +1342,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         
         
         self.showStatus("saving XBRL instance")
-        modelXbrl.saveInstance(overrideFilepath=loadDBsaveToFile)
+        _encoding = "UTF-8" if self.isEIOPA_2_0_1 else "utf-8" # need encoding in CAPS for EIOPA 2.0.1
+        modelXbrl.saveInstance(overrideFilepath=loadDBsaveToFile, encoding=_encoding)
         self.showStatus(_("Saved extracted instance"), 5000)
         return modelXbrl.modelDocument
