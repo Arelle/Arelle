@@ -705,7 +705,7 @@ class ModelParameter(ModelFormulaResource):
                 ("label", self.xlinkLabel),
                 ("name", self.name),
                 ("select", self.select) if self.select else () ,
-                ("required", self.required) if self.required else () ,
+                ("required", self.required) if self.isRequired else () ,
                 ("as", self.asType) if self.asType else () )
         
         

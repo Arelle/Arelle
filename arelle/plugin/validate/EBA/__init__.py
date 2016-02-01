@@ -93,6 +93,9 @@ def validateSetup(val, parameters=None, *args, **kwargs):
                                         _('The link:schemaRef element in submitted instances MUST resolve to the full published entry point URL, this schemaRef is missing date portion: %(schemaRef)s.'),
                                         modelObject=modelDocument, schemaRef=doc.uri)
                         
+    val.qnDimAF = val.qnDimOC = val.qnCAx1 = None
+    _nsmap = val.modelXbrl.modelDocument.xmlRootElement.nsmap
+                        
     if val.isEIOPA_2_0_1:
         _hasPiInstanceGenerator = False
         for pi in modelDocument.processingInstructions:
@@ -106,6 +109,10 @@ def validateSetup(val, parameters=None, *args, **kwargs):
             val.modelXbrl.warning("EIOPA.S.2.23",
                                   _('The instance SHOULD include a processing instruction "instance-generator".'),
                                   modelObject=modelDocument)
+            
+        val.qnDimAF = qname("s2c_dim:AF", _nsmap)
+        val.qnDimOC = qname("s2c_dim:OC", _nsmap)
+        val.qnCAx1 = qname("s2c_CA:x1", _nsmap)
 
     val.prefixNamespace = {}
     val.namespacePrefix = {}
@@ -131,7 +138,7 @@ def validateSetup(val, parameters=None, *args, **kwargs):
     val.reportingCurrency = None
     val.namespacePrefixesUsed = defaultdict(set)
     val.prefixesUnused = set()
-    for prefix, ns in val.modelXbrl.modelDocument.xmlRootElement.nsmap.items():
+    for prefix, ns in _nsmap.items():
         val.prefixesUnused.add(prefix)
         val.namespacePrefixesUsed[ns].add(prefix)
     val.firstFactObjectIndex = sys.maxsize
@@ -387,7 +394,18 @@ def validateFacts(val, factsToCheck):
                 if unit is not None:
                     if isMonetary:
                         if unit.measures[0]:
-                            val.currenciesUsed[unit.measures[0][0]] = unit
+                            _currencyMeasure = unit.measures[0][0]
+                            if val.isEIOPA_2_0_1 and f.context is not None:
+                                if f.context.dimMemberQname(val.qnDimAF) == val.qnCAx1 and val.qnDimOC in f.context.qnameDims:
+                                    _ocCurrency = f.context.dimMemberQname(val.qnDimOC).localName
+                                    if _currencyMeasure.localName != _ocCurrency:
+                                        modelXbrl.error("EIOPA.3.1",
+                                            _("There MUST be only one currency but metric %(metric)s reported OC dimension currency %(ocCurrency)s differs from unit currency: %(unitCurrency)s."),
+                                            modelObject=f, metric=f.qname, ocCurrency=_ocCurrency, unitCurrency=_currencyMeasure.localName)
+                                else:
+                                    val.currenciesUsed[_currencyMeasure] = unit
+                            else:
+                                val.currenciesUsed[_currencyMeasure] = unit
                     elif not unit.isSingleMeasure or unit.measures[0][0] != XbrlConst.qnXbrliPure:
                         nonMonetaryNonPureFacts.append(f)
             if isEnum:
@@ -598,12 +616,12 @@ def final(val):
                     modelObject=modelDocument)
     
         if val.numFilingIndicatorTuples > 1:
-            modelXbrl.warning("EBA.1.6.2|EIOPA.1.6.2",                            
+            modelXbrl.warning(("EBA.1.6.2", "EIOPA.1.6.2"),                            
                     _('Multiple filing indicators tuples when not in streaming mode (info).'),
                     modelObject=modelXbrl.factsByQname[qnFIndicators])
 
         if len(val.cntxDates) > 1:
-            modelXbrl.error("EBA.2.13",
+            modelXbrl.error(("EBA.2.13","EIOPA.2.13"),
                     _('Contexts must have the same date: %(dates)s.'),
                     # when streaming values are no longer available, but without streaming they can be logged
                     modelObject=set(_cntx for _cntxs in val.cntxDates.values() for _cntx in _cntxs), 
@@ -611,14 +629,20 @@ def final(val):
                                                            for _dt in val.cntxDates.keys()))
 
         if val.unusedCntxIDs:
-            modelXbrl.warning(("EBA.2.7", "EIOPA.2.7"),
-                    _('Unused xbrli:context nodes SHOULD NOT be present in the instance: %(unusedContextIDs)s.'),
-                    modelObject=[modelXbrl.contexts[unusedCntxID] for unusedCntxID in val.unusedCntxIDs if unusedCntxID in modelXbrl.contexts], 
-                    unusedContextIDs=", ".join(sorted(val.unusedCntxIDs)))
+            if val.isEIOPA_2_0_1:
+                modelXbrl.error("EIOPA.2.7",
+                        _('Unused xbrli:context nodes MUST NOT be present in the instance: %(unusedContextIDs)s.'),
+                        modelObject=[modelXbrl.contexts[unusedCntxID] for unusedCntxID in val.unusedCntxIDs if unusedCntxID in modelXbrl.contexts], 
+                        unusedContextIDs=", ".join(sorted(val.unusedCntxIDs)))
+            else:
+                modelXbrl.warning(("EBA.2.7", "EIOPA.2.7"),
+                        _('Unused xbrli:context nodes SHOULD NOT be present in the instance: %(unusedContextIDs)s.'),
+                        modelObject=[modelXbrl.contexts[unusedCntxID] for unusedCntxID in val.unusedCntxIDs if unusedCntxID in modelXbrl.contexts], 
+                        unusedContextIDs=", ".join(sorted(val.unusedCntxIDs)))
     
         if len(val.cntxEntities) > 1:
-            modelXbrl.warning(("EBA.2.9", "EIOPA.2.9"),
-                    _('All entity identifiers and schemes must be the same, %(count)s found: %(entities)s.'),
+            modelXbrl.error(("EBA.2.9", "EIOPA.2.9"),
+                    _('All entity identifiers and schemes MUST be the same, %(count)s found: %(entities)s.'),
                     modelObject=modelDocument, count=len(val.cntxEntities), 
                     entities=", ".join(sorted(str(cntxEntity) for cntxEntity in val.cntxEntities)))
             
@@ -646,10 +670,16 @@ def final(val):
                     modelObject=modelDocument, scheme=_scheme)
         
         if val.unusedUnitIDs:
-            modelXbrl.warning(("EBA.2.22", "EIOPA.2.22"),
-                    _('Unused xbrli:unit nodes SHOULD NOT be present in the instance: %(unusedUnitIDs)s.'),
-                    modelObject=[modelXbrl.units[unusedUnitID] for unusedUnitID in val.unusedUnitIDs if unusedUnitID in modelXbrl.units], 
-                    unusedUnitIDs=", ".join(sorted(val.unusedUnitIDs)))
+            if val.isEIOPA_2_0_1:
+                modelXbrl.error("EIOPA.2.22",
+                        _('Unused xbrli:unit nodes MUST NOT be present in the instance: %(unusedUnitIDs)s.'),
+                        modelObject=[modelXbrl.units[unusedUnitID] for unusedUnitID in val.unusedUnitIDs if unusedUnitID in modelXbrl.units], 
+                        unusedUnitIDs=", ".join(sorted(val.unusedUnitIDs)))
+            else:
+                modelXbrl.warning(("EBA.2.22", "EIOPA.2.22"),
+                        _('Unused xbrli:unit nodes SHOULD NOT be present in the instance: %(unusedUnitIDs)s.'),
+                        modelObject=[modelXbrl.units[unusedUnitID] for unusedUnitID in val.unusedUnitIDs if unusedUnitID in modelXbrl.units], 
+                        unusedUnitIDs=", ".join(sorted(val.unusedUnitIDs)))
                     
         if len(val.currenciesUsed) > 1:
             modelXbrl.error(("EBA.3.1","EIOPA.3.1"),
