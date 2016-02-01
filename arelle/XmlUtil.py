@@ -587,9 +587,11 @@ def addComment(parent, commentText):
     child = etree.Comment( comment )
     parent.append(child)
     
-def addProcessingInstruction(parent, piTarget, piText, insertBeforeChildElements=True):
+def addProcessingInstruction(parent, piTarget, piText, insertBeforeChildElements=True, insertBeforeParentElement=False):
     child = etree.ProcessingInstruction(piTarget, piText)
-    if insertBeforeChildElements:
+    if insertBeforeParentElement:
+        parent.addprevious(child)
+    elif insertBeforeChildElements:
         i = 0 # find position to insert after other comments and PIs but before any element
         for i, _otherChild in enumerate(parent):
             if not isinstance(_otherChild, (etree._Comment, etree._ProcessingInstruction)):
