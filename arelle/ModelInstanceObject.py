@@ -577,6 +577,9 @@ class ModelInlineValueObject:
                 else:
                     try:
                         v = self.modelXbrl.modelManager.customTransforms[f](v)
+                    except KeyError as err:
+                        self._ixValue = ModelValue.INVALIDixVALUE
+                        raise FunctionIxt.ixtFunctionNotAvailable
                     except Exception as err:
                         self._ixValue = ModelValue.INVALIDixVALUE
                         raise err
@@ -601,7 +604,7 @@ class ModelInlineValueObject:
                     elif isnan(num):
                         self._ixValue = "NaN"
                     else:
-                        if num == num.to_integral():
+                        if num == num.to_integral() and ".0" not in v:
                             num = num.quantize(DECIMALONE) # drop any .0
                         self._ixValue = "{}".format(num)
                 except (ValueError, InvalidOperation):

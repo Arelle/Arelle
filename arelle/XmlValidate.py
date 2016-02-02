@@ -158,6 +158,12 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                         modelObject=elt, element=errElt, fact=elt.qname, transform=elt.format,
                         typeName=modelConcept.baseXsdType if modelConcept is not None else "unknown",
                         value=XmlUtil.innerText(elt, ixExclude=True, ixContinuation=elt.namespaceURI==XbrlConst.ixbrl11))
+                elif isIxFact and err.__class__.__name__ == "ixtFunctionNotAvailable":
+                    modelXbrl.error("ixTransform:transformNotAvailableError",
+                        _("Inline element %(element)s fact %(fact)s type %(typeName)s transform %(transform)s not available, value: %(value)s"),
+                        modelObject=elt, element=errElt, fact=elt.qname, transform=elt.format,
+                        typeName=modelConcept.baseXsdType if modelConcept is not None else "unknown",
+                        value=XmlUtil.innerText(elt, ixExclude=True, ixContinuation=elt.namespaceURI==XbrlConst.ixbrl11))
                 elif isAbstract:
                     modelXbrl.error("xmlSchema:abstractElement",
                         _("Element %(element)s has abstract declaration, value: %(value)s"),
