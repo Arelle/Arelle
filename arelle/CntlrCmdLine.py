@@ -46,8 +46,8 @@ def main():
     gettext.install("arelle") # needed for options messages
     parseAndRun(args)
     
-def wsgiApplication():
-    return parseAndRun( ["--webserver=::wsgi"] )
+def wsgiApplication(extraArgs=[]): # for example call wsgiApplication(["--plugins=EdgarRenderer"])
+    return parseAndRun( ["--webserver=::wsgi"] + extraArgs )
        
 def parseAndRun(args):
     """interface used by Main program and py.test (arelle_test.py)
