@@ -5,6 +5,7 @@ do not convert 3 to 2
 '''
 import sys
 from decimal import Decimal
+from collections import OrderedDict
 
 if sys.version[0] >= '3':
     import builtins
@@ -136,3 +137,25 @@ class attrdict(dict):
         dict.__init__(self, *args, **kwargs)
         self.__dict__ = self
 
+class OrderedDefaultDict(OrderedDict):
+    """ call with default factory and optional sorted initial entries
+        e.g., OrderedDefaultDict(list, ((1,11),(2,22),...))
+    """
+    def __init__(self, *args): 
+        self.default_factory = None
+        if len(args) > 0:
+            # arg0 is default_factory
+            self.default_factory = args[0]
+        if len(args) > 1:
+            # arg1 is initial contents
+            super(OrderedDefaultDict, self).__init__(args[1])
+        else:
+            super(OrderedDefaultDict, self).__init__()
+            
+    def __missing__(self, key):
+        if self.default_factory is None:
+            raise KeyError(key)
+        _missingValue = self.default_factory()
+        self[key] = _missingValue
+        return _missingValue
+        

@@ -5,7 +5,7 @@ Created on Oct 3, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os, io, sys, traceback
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 from lxml import etree
 from xml.sax import SAXParseException
 from arelle import (PackageManager, XbrlConst, XmlUtil, UrlUtil, ValidateFilingText, 
@@ -17,6 +17,7 @@ from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelObjectFactory import parser
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype, DocumentPrototype
 from arelle.PluginManager import pluginClassMethods
+from arelle.PythonUtil import OrderedDefaultDict
 creationSoftwareNames = None
 
 def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDiscovered=False, isIncluded=None, namespace=None, reloadCache=False, **kwargs):
@@ -325,7 +326,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                 
         if isEntry or kwargs.get("isSupplemental", False):  
             # re-order base set keys for entry point or supplemental linkbase addition
-            modelXbrl.baseSets = OrderedDict( # order by linkRole, arcRole of key
+            modelXbrl.baseSets = OrderedDefaultDict( # order by linkRole, arcRole of key
+                modelXbrl.baseSets.default_factory,
                 sorted(modelXbrl.baseSets.items(), key=lambda i: (i[0][0] or "",i[0][1] or "")))
 
     return modelDocument
