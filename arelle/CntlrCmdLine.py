@@ -560,7 +560,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         self.addToLog(_("Activation of plug-in {0} successful, version {1}.").format(moduleInfo.get("name"), moduleInfo.get("version")), 
                                       messageCode="info", file=moduleInfo.get("moduleURL"))
                     else:
-                        self.addToLog(_("Unable to load {0} as a plug-in or {0} is not recognized as a command. ").format(cmd), messageCode="info", file=cmd)
+                        self.addToLog(_("Unable to load \"%(name)s\" as a plug-in or \"%(name)s\" is not recognized as a plugin command. "),
+                                      messageCode="arelle:pluginParameterError", 
+                                      messageArgs={"name": cmd, "file": cmd}, level=logging.ERROR)
                 if resetPlugins:
                     PluginManager.reset()
                     if savePluginChanges:
@@ -614,7 +616,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                       messageCode="info", file=packageInfo.get("URL"))
                         resetPlugins = True
                     else:
-                        self.addToLog(_("Unable to load {0} as a package or {0} is not recognized as a command. ").format(cmd), messageCode="info", file=cmd)
+                        self.addToLog(_("Unable to load package \"%(name)s\" as a package or \"%(name)s\" is not recognized as a packages command. "),
+                                      messageCode="arelle:packageParameterError", 
+                                      messageArgs={"name": cmd, "file": cmd}, level=logging.ERROR)
             if PackageManager.packagesConfigChanged:
                 PackageManager.rebuildRemappings(self)
             if savePackagesChanges:

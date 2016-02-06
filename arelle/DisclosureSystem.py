@@ -4,7 +4,7 @@ Created on Dec 16, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, re
+import os, re, logging
 from collections import defaultdict
 from lxml import etree
 from arelle import UrlUtil
@@ -135,12 +135,16 @@ class DisclosureSystem:
                             namesDefined.add(entryName)
         except (EnvironmentError,
                 etree.LxmlError) as err:
-            self.modelManager.cntlr.addToLog("disclosuresystems.xml: import error: {0}".format(err))
+            self.modelManager.cntlr.addToLog(_("Disclosure System listing, import error: %(error)s"),
+                                             messageCode="arelle:disclosureSystemListingError", 
+                                             messageArgs={"error": str(err)}, 
+                                             level=logging.ERROR)
         self.modelManager.cntlr.showStatus("")
         return namepaths
 
     def select(self, name):
         self.clear()
+        result = False
         status = _("loading disclosure system and mappings")
         try:
             if name:
@@ -208,6 +212,7 @@ class DisclosureSystem:
 
                                 self.selection = self.name
                                 isSelected = True
+                                result = True
                                 break
                     if isSelected:
                         break
@@ -218,13 +223,21 @@ class DisclosureSystem:
             # set log level filters (including resetting prior disclosure systems values if no such filter)
             self.modelManager.cntlr.setLogLevelFilter(self.logLevelFilter)  # None or "" clears out prior filter if any
             self.modelManager.cntlr.setLogCodeFilter(self.logCodeFilter)
-            status = _("loaded")
-            result = True
+            if result:
+                status = _("loaded")
+            else:
+                status = _("unable to load disclosure system {}").format(name)
+                self.modelManager.cntlr.addToLog(_("Disclosure System \"%(name)s\" not recognized (a plug-in may be needed)."),
+                                                 messageCode="arelle:disclosureSystemName", 
+                                                 messageArgs={"name": name}, level=logging.ERROR)
+                
         except (EnvironmentError,
                 etree.LxmlError) as err:
             status = _("exception during loading")
             result = False
-            self.modelManager.cntlr.addToLog("disclosuresystems.xml: import error: {0}".format(err))
+            self.modelManager.cntlr.addToLog(_("Disclosure System \"%(name)s\" loading error: %(error)s"),
+                                             messageCode="arelle:disclosureSystemLoadingError", 
+                                             messageArgs={"error": str(err), "name": name}, level=logging.ERROR)
             etree.clear_error_log()
         self.modelManager.cntlr.showStatus(_("Disclosure system and mappings {0}: {1}").format(status,name), 3500)
         return result
@@ -302,7 +315,10 @@ class DisclosureSystem:
 
             except (EnvironmentError,
                     etree.LxmlError) as err:
-                self.modelManager.cntlr.addToLog("{0}: import error: {1}".format(basename,err))
+                self.modelManager.cntlr.addToLog(_("Disclosure System \"%(name)s\" import %(importFile)s, error: %(error)s"),
+                                                 messageCode="arelle:disclosureSystemImportError", 
+                                                 messageArgs={"error": str(err), "name": self.name, "importFile": basename}, 
+                                                 level=logging.ERROR)
                 etree.clear_error_log()
                 if file:
                     file.close()
@@ -318,7 +334,10 @@ class DisclosureSystem:
                 self.mappedPaths.append((elt.get("from"), elt.get("to")))
         except (EnvironmentError,
                 etree.LxmlError) as err:
-            self.modelManager.cntlr.addToLog("{0}: import error: {1}".format(basename,err))
+            self.modelManager.cntlr.addToLog(_("Disclosure System \"%(name)s\" import %(importFile)s, error: %(error)s"),
+                                             messageCode="arelle:disclosureSystemImportError", 
+                                             messageArgs={"error": str(err), "name": self.name, "importFile": basename}, 
+                                             level=logging.ERROR)
             etree.clear_error_log()
             
     def mappedUrl(self, url):
