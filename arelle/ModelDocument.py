@@ -5,7 +5,7 @@ Created on Oct 3, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os, io, sys, traceback
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from lxml import etree
 from xml.sax import SAXParseException
 from arelle import (PackageManager, XbrlConst, XmlUtil, UrlUtil, ValidateFilingText, 
@@ -322,6 +322,11 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                 XmlValidateSchema.validate(doc, doc.xmlRootElement, doc.targetNamespace) # validate schema elements
             if hasattr(modelXbrl, "ixdsHtmlElements"):
                 inlineIxdsDiscover(modelXbrl) # compile cross-document IXDS references
+                
+        if isEntry or kwargs.get("isSupplemental", False):  
+            # re-order base set keys for entry point or supplemental linkbase addition
+            modelXbrl.baseSets = OrderedDict( # order by linkRole, arcRole of key
+                sorted(modelXbrl.baseSets.items(), key=lambda i: (i[0][0] or "",i[0][1] or "")))
 
     return modelDocument
 
