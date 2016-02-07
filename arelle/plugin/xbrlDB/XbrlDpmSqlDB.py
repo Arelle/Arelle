@@ -655,7 +655,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     xValue = None
                 else:
                     xValue = f.value
-                    if c in ('m', 'p', 'i'):
+                    if c in ('m', 'p', 'i', 'r'):
                         isNumeric = True
                         # not validated, do own xValue
                         try:
@@ -1045,7 +1045,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     _("The module in mModule, corresponding to the instance, was not found for {0}")
                     .format(instanceId or instanceURI)) 
             
-        _match = schemaRefDatePattern.match(_instanceSchemaRef)
+        _match = schemaRefDatePattern.match(xbrlSchemaRef)
         if _match:
             self.isEIOPAfullVersion = _match.group(1) > "2015-02-28"
             self.isEIOPA_2_0_1 = _match.group(1) >= "2015-10-21"
@@ -1061,11 +1061,13 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         # output attributin {comment string}|{processing instruction attributes}
         outputAttribution = getattr(modelXbrl.modelManager, "outputAttribution", "").partition("|")
         if self.isEIOPA_2_0_1:
-            outputAttributionPIargs = outputAttribution[0] or None
+            outputAttributionPIargs = outputAttribution[2] or None
             outputAttributionComment = None
+            outputDocumentEncoding = "UTF-8"
         else:
-            outputAttributionComment = outputAttribution[1] or None
+            outputAttributionComment = outputAttribution[0] or None
             outputAttributionPIargs = None
+            outputDocumentEncoding = "utf-8"
             
         # create the instance document and resulting filing
         modelXbrl.blockDpmDBrecursion = True
@@ -1075,13 +1077,15 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
               loadDBsaveToFile,
               schemaRefs=[xbrlSchemaRef],
               isEntry=True,
-              initialComment=outputAttributionComment)
+              initialComment=outputAttributionComment,
+              documentEncoding=outputDocumentEncoding)
         ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl) # needs dimension defaults 
         
         if outputAttributionPIargs:
             addProcessingInstruction(modelXbrl.modelDocument.xmlRootElement, 
                                      'instance-generator', 
-                                     outputAttributionPIargs)
+                                     outputAttributionPIargs.replace("'",'"'),
+                                     insertBeforeParentElement=True) # passed as ' to avoid cmd line quoting problem in windows
         addProcessingInstruction(modelXbrl.modelDocument.xmlRootElement, 
                                  'xbrl-streamable-instance', 
                                  'version="1.0" contextBuffer="1"')
@@ -1342,7 +1346,6 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         
         
         self.showStatus("saving XBRL instance")
-        _encoding = "UTF-8" if self.isEIOPA_2_0_1 else "utf-8" # need encoding in CAPS for EIOPA 2.0.1
-        modelXbrl.saveInstance(overrideFilepath=loadDBsaveToFile, encoding=_encoding)
+        modelXbrl.saveInstance(overrideFilepath=loadDBsaveToFile, encoding=outputDocumentEncoding)
         self.showStatus(_("Saved extracted instance"), 5000)
         return modelXbrl.modelDocument
