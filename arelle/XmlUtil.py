@@ -769,6 +769,8 @@ def xpointerElement(modelDocument, fragmentIdentifier):
     return None
 
 def elementFragmentIdentifier(element):
+    if getattr(element, "sourceElement", None) is not None: # prototype element
+        return elementFragmentIdentifier(element.sourceElement)
     if isinstance(element,etree.ElementBase) and element.get('id'):
         return element.get('id')  # "short hand pointer" for element fragment identifier
     else:

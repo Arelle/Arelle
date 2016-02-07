@@ -1282,12 +1282,20 @@ class ModelDocument:
 # inline document set level compilation
 def inlineIxdsDiscover(modelXbrl):
     # compile inline result set
+    ixdsEltById = defaultdict(list)
+    for htmlElement in modelXbrl.ixdsHtmlElements:  
+        for elt in htmlElement.iterfind(".//*[@id]"):
+            if isinstance(elt,ModelObject) and elt.id:
+                ixdsEltById[elt.id].append(elt)
     footnoteRefs = defaultdict(list)
     tupleElements = []
     continuationElements = {}
     continuationReferences = defaultdict(set) # set of elements that have continuedAt source value
     tuplesByTupleID = {}
     factsByFactID = {} # non-tuple facts
+    targetReferenceAttrs = defaultdict(dict) # target dict by attrname of elts
+    targetReferencePrefixNs = defaultdict(dict) # target dict by prefix, namespace
+    targetReferencesIDs = {} # target dict by id of reference elts
     for htmlElement in modelXbrl.ixdsHtmlElements:  
         mdlDoc = htmlElement.modelDocument
         for modelInlineTuple in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "tuple"):
@@ -1303,6 +1311,39 @@ def inlineIxdsDiscover(modelXbrl):
         for elt in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "continuation"):
             if isinstance(elt,ModelObject) and elt.id:
                 continuationElements[elt.id] = elt
+        for elt in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "references"):
+            if isinstance(elt,ModelObject):
+                target = elt.get("target")
+                targetReferenceAttrsDict = targetReferenceAttrs[target]
+                for attrName, attrValue in elt.items():
+                    if attrName.startswith('{') and not attrName.startswith(mdlDoc.ixNStag):
+                        if attrName in targetReferenceAttrsDict:
+                            modelXbrl.error("ix:ixReferencesAttributeDuplication",
+                                            _("Inline XBRL ix:references attribute %(name)s duplicated in target %(target)s"),
+                                            modelObject=(elt, targetReferenceAttrsDict[attrName]), name=attrName, target=target)
+                        else:
+                            targetReferenceAttrsDict[attrName] = elt
+                if elt.id:
+                    if ixdsEltById[elt.id] != [elt]:
+                        modelXbrl.error("ix:ixReferencesIdDuplication",
+                                        _("Inline XBRL ix:references id %(id)s duplicated in inline document set"),
+                                        modelObject=ixdsEltById[elt.id], id=elt.id)
+                    if target in targetReferencesIDs:
+                        modelXbrl.error("ix:ixReferencesTargetId",
+                                        _("Inline XBRL has multiple ix:references with id in target %(target)s"),
+                                        modelObject=(elt, targetReferencesIDs[target]), target=target)
+                    else:
+                        targetReferencesIDs[target] = elt
+                targetReferencePrefixNsDict = targetReferencePrefixNs[target]
+                for _prefix, _ns in elt.nsmap.items():
+                    if _prefix in targetReferencePrefixNsDict and _ns != targetReferencePrefixNsDict[_prefix][0]:
+                        modelXbrl.error("ix:ixReferencesNamespacePrefixConflict",
+                                        _("Inline XBRL ix:references prefix %(prefix)s has multiple namespaces %(ns1)s and %(ns2)s in target %(target)s"),
+                                        modelObject=(elt, targetReferencePrefixNsDict[_prefix][1]), prefix=_prefix, ns1=_ns, ns2=targetReferencePrefixNsDict[_prefix], target=target)
+                    else:
+                        targetReferencePrefixNsDict[_prefix] = (_ns, elt)
+                        
+    del targetReferenceAttrs, ixdsEltById, targetReferencePrefixNs, targetReferencesIDs
                     
     def locateFactInTuple(modelFact, tuplesByTupleID, ixNStag):
         tupleRef = modelFact.tupleRef
@@ -1444,7 +1485,7 @@ def inlineIxdsDiscover(modelXbrl):
                 # arc
                 linkPrototype.childElements.append(ArcPrototype(mdlDoc, linkPrototype, XbrlConst.qnLinkFootnoteArc,
                                                                 footnoteLocLabel, footnoteID,
-                                                                linkrole, arcrole))
+                                                                linkrole, arcrole, sourceElement=modelInlineFootnote))
                 
         # inline 1.1 link prototypes, one per link role (so only one extended link element is produced per link role)
         linkPrototypes = {}
@@ -1452,7 +1493,7 @@ def inlineIxdsDiscover(modelXbrl):
             if isinstance(modelInlineRel,ModelObject):
                 linkrole = modelInlineRel.get("linkRole", XbrlConst.defaultLinkRole)
                 if linkrole not in linkPrototypes:
-                    linkPrototypes[linkrole] = LinkPrototype(mdlDoc, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, linkrole) 
+                    linkPrototypes[linkrole] = LinkPrototype(mdlDoc, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, linkrole, sourceElement=modelInlineRel) 
                     
         # inline 1.1 ixRelationships and ixFootnotes
         modelInlineFootnotesById = {}
@@ -1480,7 +1521,7 @@ def inlineIxdsDiscover(modelXbrl):
                 for fromId in modelInlineRel.get("fromRefs","").split():
                     fromLabels.add(fromId)
                     if fromId not in linkModelLocIds:
-                        locPrototype = LocPrototype(mdlDoc, linkPrototype, fromId, fromId)
+                        locPrototype = LocPrototype(mdlDoc, linkPrototype, fromId, fromId, sourceElement=modelInlineRel)
                         linkPrototype.childElements.append(locPrototype)
                         linkPrototype.labeledResources[fromId].append(locPrototype)
                 toLabels = set()
@@ -1497,7 +1538,7 @@ def inlineIxdsDiscover(modelXbrl):
                             linkModelInlineFootnoteIds[linkrole].add(toId)
                         linkPrototype.labeledResources[toId].append(modelInlineFootnote)
                     elif toId in factsByFactID:
-                        locPrototype = LocPrototype(mdlDoc, linkPrototype, toId, toId)
+                        locPrototype = LocPrototype(mdlDoc, linkPrototype, toId, toId, sourceElement=modelInlineRel)
                         toFactQnames.add(str(locPrototype.dereference().qname))
                         linkPrototype.childElements.append(locPrototype)
                         linkPrototype.labeledResources[toId].append(locPrototype)
@@ -1512,7 +1553,7 @@ def inlineIxdsDiscover(modelXbrl):
                         linkPrototype.childElements.append(ArcPrototype(mdlDoc, linkPrototype, XbrlConst.qnLinkFootnoteArc,
                                                                         fromLabel, toLabel,
                                                                         linkrole, arcrole,
-                                                                        modelInlineRel.get("order", "1")))
+                                                                        modelInlineRel.get("order", "1"), sourceElement=modelInlineRel))
                 if toFootnoteIds and toFactQnames:
                     modelXbrl.error("ix:relationshipReferencesMixed",
                                     _("Inline relationship references footnote(s) %(toFootnoteIds)s and thereby is not allowed to reference %(toFactQnames)s."),
