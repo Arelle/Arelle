@@ -374,7 +374,10 @@ def saveLoadableOIM(modelXbrl, oimFile):
             aspectQnCol[aspectQn] = len(aspectsHeader)
             _colName = oimValue(aspectQn)
             aspectsHeader.append(_colName)
-            _colDataType = {"oim:periodStart": "dateTime", # forever is 0000-01-01T00:00:00
+            _colDataType = {"id": "Name",
+                            "baseType": "Name",
+                            "oim:concept": "Name",
+                            "oim:periodStart": "dateTime", # forever is 0000-01-01T00:00:00
                             "oim:periodDuration": "duration", # forever is P9999Y
                             "oim:tupleOrder": "integer",
                             "numericValue": "decimal",
@@ -470,7 +473,7 @@ def saveLoadableOIM(modelXbrl, oimFile):
             csvWriter.writerow((oimRef["type"], oimRef["href"]))
         csvFile.close()
         dtsRefTableSchema = OrderedDict((("columns",[OrderedDict((("type","string"),
-                                                              ("htef","anyURI")))]),))
+                                                              ("href","anyURI")))]),))
         csvTables.append(OrderedDict((("url",os.path.basename(_dtsRefFile)),
                                       ("tableSchema",dtsRefTableSchema))))
         
@@ -488,10 +491,10 @@ def saveLoadableOIM(modelXbrl, oimFile):
                         saveCSVfootnotes(fact.modelTupleFacts)
             saveCSVfootnotes(modelXbrl.facts)
             csvFile.close()
-            footnoteTableSchema = OrderedDict((("columns",[OrderedDict((("group","string"),
-                                                                        ("factId","string"),
-                                                                        ("factRef","string"),
-                                                                        ("footnoteType","string"),
+            footnoteTableSchema = OrderedDict((("columns",[OrderedDict((("group","anyURI"),
+                                                                        ("factId","Name"),
+                                                                        ("factRef","Name"),
+                                                                        ("footnoteType","Name"),
                                                                         ("footnote","string"),
                                                                         ("language","language")))]),))
             csvTables.append(OrderedDict((("url",os.path.basename(_footnoteFile)),
