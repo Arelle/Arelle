@@ -6,7 +6,7 @@ Created on Sept 1, 2013
 
 (originally part of XmlValidate, moved to separate module)
 '''
-from arelle import XbrlConst, XmlUtil, XmlValidate
+from arelle import XbrlConst, XmlUtil, XmlValidate, ValidateFilingText
 from arelle.ModelObject import ModelObject
 from lxml import etree
 import os, re
@@ -118,6 +118,7 @@ ixHierarchyConstraints = {
 def xhtmlValidate(modelXbrl, elt):
     from lxml.etree import DTD, XMLSyntaxError
     ixNsStartTags = ["{" + ns + "}" for ns in XbrlConst.ixbrlAll]
+    isEFM = modelXbrl.modelManager.disclosureSystem.validationType == "EFM"
     
     def checkAttribute(elt, isIxElt, attrTag, attrValue):
         if attrTag.startswith("{"):
@@ -311,6 +312,8 @@ def xhtmlValidate(modelXbrl, elt):
                 _("%(element)s error %(error)s"),
                 modelObject=elt, element=elt.localName.title(),
                 error=', '.join(e.message for e in dtd.error_log.filter_from_errors()))
+        if isEFM:
+            ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", "EFM.5.02.02.") 
     except XMLSyntaxError as err:
         modelXbrl.error("ix:DTDerror",
             _("%(element)s error %(error)s"),
