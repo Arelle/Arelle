@@ -80,6 +80,33 @@ ixAttrRequired = {
         "nonNumeric": ("name", "contextRef"),
         "tuple": ("name",)}                    
     }
+ixAttrDefined = {
+    XbrlConst.ixbrl: {
+        "footnote": ("footnoteID",),
+        "fraction": ("id", "name", "target", "contextRef", "unitRef", "tupleRef", "order",
+                     "footnoteRefs"),
+        "denominator": ("format", "scale", "sign"),
+        "numerator": ("format", "scale", "sign"),
+        "nonFraction": ("id", "name", "target", "contextRef", "unitRef", "tupleRef", "order",
+                        "footnoteRefs", "format", "decimals", "precision", "scale", "sign"),
+        "nonNumeric": ("id", "name", "target", "contextRef", "tupleRef", "order",
+                       "footnoteRefs", "format", "escape"),
+        "references": ("id", "target"),
+        "tuple": ("id", "name", "target", "tupleID", "tupleRef", "order", "footnoteRefs")},
+    XbrlConst.ixbrl11: {  
+        "continuation": ("id", "continuedAt"),
+        "footnote": ("id", "continuedAt", "footnote", "title"),
+        "fraction": ("id", "name", "target", "contextRef", "unitRef", "tupleRef", "order"),
+        "denominator": ("format", "scale", "sign"),
+        "numerator": ("format", "scale", "sign"),
+        "nonFraction": ("id", "name", "target", "contextRef", "unitRef", "tupleRef", "order",
+                        "format", "decimals", "precision", "scale", "sign"),
+        "nonNumeric": ("id", "name", "target", "contextRef", "tupleRef", "order",
+                       "format", "escape", "continuedAt"),
+        "references": ("id", "target"),
+        "relationship": ("arcrole", "linkRole", "fromRefs", "toRefs", "order"),
+        "tuple": ("id", "name", "target", "tupleID", "tupleRef", "order")}                    
+    }
 nonIxAttrNS = {
     "footnote": "http://www.w3.org/XML/1998/namespace",
     "fraction": "##other",
@@ -123,6 +150,10 @@ def xhtmlValidate(modelXbrl, elt):
     def checkAttribute(elt, isIxElt, attrTag, attrValue):
         if attrTag.startswith("{"):
             ns, sep, localName = attrTag[1:].partition("}")
+        else:
+            ns = None
+            localName = attrTag
+        if ns is not None and ns not in XbrlConst.ixbrlAll:
             if isIxElt:
                 allowedNs = nonIxAttrNS.get(elt.localName, None)
                 if allowedNs != "##other" and ns != allowedNs:
@@ -140,7 +171,7 @@ def xhtmlValidate(modelXbrl, elt):
                         modelObject=elt, tag=attrTag)
         elif isIxElt:
             try:
-                _xsdType = ixAttrType[elt.namespaceURI][attrTag]
+                _xsdType = ixAttrType[elt.namespaceURI][localName]
                 if isinstance(_xsdType, dict):
                     baseXsdType = _xsdType["type"]
                     facets = _xsdType
@@ -149,18 +180,20 @@ def xhtmlValidate(modelXbrl, elt):
                     facets = None
                 XmlValidate.validateValue(modelXbrl, elt, attrTag, baseXsdType, attrValue, facets=facets)
                 
-                disallowedXbrliAttrs = ({"scheme", "periodType", "balance", "contextRef", "unitRef", "precision", "decimals"} -
+                if localName not in ixAttrDefined[elt.namespaceURI][elt.localName]:
+                    raise KeyError
+                disallowedXbrliAttrs = ({"scheme", "periodType",     "balance", "contextRef", "unitRef", "precision", "decimals"} -
                                         {"fraction": {"contextRef", "unitRef"},
                                          "nonFraction": {"contextRef", "unitRef", "decimals", "precision"},
                                          "nonNumeric": {"contextRef"}}.get(elt.localName, set()))
-                disallowedAttrs = [a for a in disallowedXbrliAttrs if elt.get(a) is not None]
+                disallowedAttrs = set(a for a in disallowedXbrliAttrs if elt.get(a) is not None)
                 if disallowedAttrs:
                     modelXbrl.error("ix:inlineElementAttributes",
                         _("Inline XBRL element %(element)s has disallowed attributes %(attributes)s"),
                         modelObject=elt, element=elt.elementQname, attributes=", ".join(disallowedAttrs))
             except KeyError:
                 modelXbrl.error("ix:attributeNotExpected",
-                    _("Attribute %(attribute)s is not expected on element element ix:%(element)s"),
+                    _("Attribute %(attribute)s is not expected on element ix:%(element)s"),
                     modelObject=elt, attribute=attrTag, element=elt.localName)
                 
     def checkHierarchyConstraints(elt):
