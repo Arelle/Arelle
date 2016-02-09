@@ -561,6 +561,8 @@ class ModelInlineValueObject:
         try:
             return self._ixValue
         except AttributeError:
+            self.xValid = 0 # may not be initialized otherwise
+            self.xValue = None
             v = XmlUtil.innerText(self, 
                                   ixExclude=True, 
                                   ixEscape=(self.get("escape") in ("true","1")), 
@@ -593,6 +595,7 @@ class ModelInlineValueObject:
                     num = Decimal(v)
                 except (ValueError, InvalidOperation):
                     self._ixValue = ModelValue.INVALIDixVALUE
+                    self.xValid = XmlValidate.INVALID
                     raise ValueError("Invalid value for {} number: {}".format(self.localName, v))
                 try:
                     scale = self.scale
@@ -609,6 +612,7 @@ class ModelInlineValueObject:
                         self._ixValue = "{}".format(num)
                 except (ValueError, InvalidOperation):
                     self._ixValue = ModelValue.INVALIDixVALUE
+                    self.xValid = XmlValidate.INVALID
                     raise ValueError("Invalid value for {} scale {} for number {}".format(self.localName, scale, v))
             return self._ixValue
 
