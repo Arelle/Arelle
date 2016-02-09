@@ -73,6 +73,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     val.entityRegistrantName = None
     val.requiredContext = None
     val.standardNamespaceConflicts = defaultdict(set)
+    documentType = None # needed for non-instance validation too
     if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or \
        modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
         instanceName = modelXbrl.modelDocument.basename
@@ -245,7 +246,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         amendmentFlagFact = None
         documentPeriodEndDate = None # date or None
         documentPeriodEndDateFact = None
-        documentType = None
         documentTypeFact = None
         deiItems = {}
         deiFacts = {}
@@ -1450,7 +1450,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     namespaceConflicts=sorted((d.targetNamespace for d in modelDocuments),
                                               key=lambda ns: ns.rpartition('/')[2]))
         
-        if not val.hasExtensionSchema and documentType != "L SDR":
+        if documentType is not None and not val.hasExtensionSchema and documentType != "L SDR":
             modelXbrl.error("EFM.6.03.10",
                             _("%(documentType)s report is missing a extension schema file."),
                             modelObject=modelXbrl, documentType=documentType)
