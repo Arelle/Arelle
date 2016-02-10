@@ -11,6 +11,7 @@ from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlC
                ValidateInfoset, RenderingEvaluator, ViewFileRenderedGrid)
 from arelle.ModelDocument import Type, ModelDocumentReference, load as modelDocumentLoad
 from arelle.ModelDtsObject import ModelResource
+from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods
