@@ -144,6 +144,8 @@ class DisclosureSystem:
 
     def select(self, name):
         self.clear()
+        if not name:
+            return True # nothing to load
         result = False
         status = _("loading disclosure system and mappings")
         try:
