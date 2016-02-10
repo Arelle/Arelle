@@ -11,6 +11,8 @@ from arelle.ModelObject import ModelObject
 from lxml import etree
 import os, re
 
+EMPTYDICT = {}
+
 ixElements = {
      XbrlConst.ixbrl: {
         "denominator", "exclude", "footnote", "fraction", "header", "hidden",
@@ -148,12 +150,13 @@ def xhtmlValidate(modelXbrl, elt):
     isEFM = modelXbrl.modelManager.disclosureSystem.validationType == "EFM"
     
     def checkAttribute(elt, isIxElt, attrTag, attrValue):
+        ixEltAttrDefs = ixAttrDefined.get(elt.namespaceURI, EMPTYDICT).get(elt.localName, ())
         if attrTag.startswith("{"):
             ns, sep, localName = attrTag[1:].partition("}")
         else:
             ns = None
             localName = attrTag
-        if ns is not None and ns not in XbrlConst.ixbrlAll:
+        if ns is not None and ns not in XbrlConst.ixbrlAll and attrTag not in ixEltAttrDefs:
             if isIxElt:
                 allowedNs = nonIxAttrNS.get(elt.localName, None)
                 if allowedNs != "##other" and ns != allowedNs:
@@ -180,7 +183,8 @@ def xhtmlValidate(modelXbrl, elt):
                     facets = None
                 XmlValidate.validateValue(modelXbrl, elt, attrTag, baseXsdType, attrValue, facets=facets)
                 
-                if localName not in ixAttrDefined[elt.namespaceURI][elt.localName]:
+                if not (attrTag in ixEltAttrDefs or
+                        (localName in ixEltAttrDefs and (not ns or ns in XbrlConst.ixbrlAll))):
                     raise KeyError
                 disallowedXbrliAttrs = ({"scheme", "periodType",     "balance", "contextRef", "unitRef", "precision", "decimals"} -
                                         {"fraction": {"contextRef", "unitRef"},
