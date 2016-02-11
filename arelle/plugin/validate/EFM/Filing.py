@@ -1355,6 +1355,23 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     # entry point schema checks
     elif modelXbrl.modelDocument.type == ModelDocument.Type.SCHEMA:
         pass
+    
+    # inline-only checks
+    if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL and isEFM:
+        ixNStag = modelXbrl.modelDocument.ixNStag
+        ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
+        for tag in ixTags:
+            for ixElt in modelXbrl.modelDocument.xmlRootElement.iterdescendants(tag=tag):
+                if isinstance(ixElt,ModelObject):
+                    if ixElt.get("target"):
+                        modelXbrl.error("EFM.6.28.targetDisallowed",
+                            _("Inline element %(localName)s has disallowed target attribute %(target)s."),
+                            modelObject=ixElt, localName=ixElt.elementQname, target=ixElt.get("target"))
+        for ixElt in modelXbrl.modelDocument.xmlRootElement.iterdescendants(tag=ixNStag+"tuple"):
+            if isinstance(ixElt,ModelObject):
+                modelXbrl.error("EFM.6.28.tupleDisallowed",
+                    _("Inline tuple %(qname)s is disallowed."),
+                    modelObject=ixElt, qname=ixElt.qname)
 
     # all-labels and references checks
     defaultLangStandardLabels = {}
