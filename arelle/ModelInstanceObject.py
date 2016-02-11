@@ -337,8 +337,12 @@ class ModelFact(ModelObject):
     @property
     def fractionValue(self):
         """( (str,str) ) -- (text value of numerator, text value of denominator)"""
-        return (XmlUtil.text(XmlUtil.child(self, None, "numerator")),
-                XmlUtil.text(XmlUtil.child(self, None, "denominator")))
+        try:
+            return self._fractionValue
+        except AttributeError:
+            self._fractionValue = (XmlUtil.text(XmlUtil.child(self, None, "numerator")),
+                                   XmlUtil.text(XmlUtil.child(self, None, "denominator")))
+            return self._fractionValue
     
     @property
     def effectiveValue(self):
@@ -350,6 +354,10 @@ class ModelFact(ModelObject):
         if self.isNil:
             return "(nil)"
         try:
+            if concept.isFraction:
+                if self.xValid == XmlValidate.VALID:
+                    return str(self.xValue)
+                return "/".join(self.fractionValue)
             if concept.isNumeric:
                 val = self.value
                 try:
@@ -587,6 +595,11 @@ class ModelInlineValueObject:
                         raise err
             if self.localName == "nonNumeric" or self.localName == "tuple" or self.isNil:
                 self._ixValue = v
+            elif self.localName == "fraction":
+                if self.xValid == XmlValidate.VALID:
+                    self._ixValue = str(self.xValue)
+                else:
+                    self._ixValue = "NaN"
             else:  # determine string value of transformed value
                 negate = -1 if self.sign else 1
                 try:
@@ -738,7 +751,7 @@ class ModelInlineFractionTerm(ModelInlineValueObject, ModelObject):
     def qname(self):
         if self.localName == "numerator":
             return XbrlConst.qnXbrliNumerator
-        elif self.localName == "denomiantor":
+        elif self.localName == "denominator":
             return XbrlConst.qnXbrliDenominator
         return self.elementQname
     

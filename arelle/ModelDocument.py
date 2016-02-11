@@ -6,6 +6,7 @@ Created on Oct 3, 2010
 '''
 import os, io, sys, traceback
 from collections import defaultdict
+from decimal import Decimal
 from lxml import etree
 from xml.sax import SAXParseException
 from arelle import (PackageManager, XbrlConst, XmlUtil, UrlUtil, ValidateFilingText, 
@@ -17,7 +18,7 @@ from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelObjectFactory import parser
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype, DocumentPrototype
 from arelle.PluginManager import pluginClassMethods
-from arelle.PythonUtil import OrderedDefaultDict
+from arelle.PythonUtil import OrderedDefaultDict, Fraction
 creationSoftwareNames = None
 
 def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDiscovered=False, isIncluded=None, namespace=None, reloadCache=False, **kwargs):
@@ -1446,11 +1447,14 @@ def inlineIxdsDiscover(modelXbrl):
         for rootModelFact in modelXbrl.facts:
             # validate XBRL (after complete document set is loaded)
             if rootModelFact.localName == "fraction":
-                for tag in fractionTermTags:
+                numDenom = [None,None]
+                for i, tag in enumerate(fractionTermTags):
                     for modelInlineFractionTerm in rootModelFact.iterchildren(tag=tag):
                         XmlValidate.validate(modelXbrl, modelInlineFractionTerm, ixFacts=True)
-            else:
-                XmlValidate.validate(modelXbrl, rootModelFact, ixFacts=True)
+                        if modelInlineFractionTerm.xValid == XmlValidate.VALID:
+                            numDenom[i] = modelInlineFractionTerm.xValue
+                rootModelFact._fractionValue = numDenom
+            XmlValidate.validate(modelXbrl, rootModelFact, ixFacts=True)
             
     footnoteLinkPrototypes = {}
     for htmlElement in modelXbrl.ixdsHtmlElements:  

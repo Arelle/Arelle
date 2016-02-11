@@ -5,6 +5,7 @@ do not convert 3 to 2
 '''
 import sys
 from decimal import Decimal
+from fractions import Fraction
 from collections import OrderedDict
 
 if sys.version[0] >= '3':
@@ -14,8 +15,8 @@ if sys.version[0] >= '3':
     builtins.__dict__['_STR_UNICODE'] = str
     builtins.__dict__['_INT'] = int
     builtins.__dict__['_INT_TYPES'] = int
-    builtins.__dict__['_NUM_TYPES'] = (int,float,Decimal)
-    builtins.__dict__['_STR_NUM_TYPES'] = (str,int,float,Decimal)
+    builtins.__dict__['_NUM_TYPES'] = (int,float,Decimal,Fraction)
+    builtins.__dict__['_STR_NUM_TYPES'] = (str,int,float,Decimal,Fraction)
     builtins.__dict__['_RANGE'] = range
     def noop(x): return x
     builtins.__dict__['_DICT_SET'] = noop
@@ -25,8 +26,8 @@ else:
     __builtins__['_STR_UNICODE'] = unicode
     __builtins__['_INT'] = long
     __builtins__['_INT_TYPES'] = (int,long)
-    __builtins__['_NUM_TYPES'] = (int,long,float,Decimal)
-    __builtins__['_STR_NUM_TYPES'] = (basestring,int,long,float,Decimal)
+    __builtins__['_NUM_TYPES'] = (int,long,float,Decimal,Fraction)
+    __builtins__['_STR_NUM_TYPES'] = (basestring,int,long,float,Decimal,Fraction)
     __builtins__['_RANGE'] = xrange
     __builtins__['_DICT_SET'] = set
     
@@ -159,3 +160,10 @@ class OrderedDefaultDict(OrderedDict):
         self[key] = _missingValue
         return _missingValue
         
+def Fraction(numerator,denominator=None):
+    if denominator is None:
+        if isinstance(numerator, (Fraction,_STR_UNICODE,Decimal)):
+            return Fraction(numerator)
+    elif isinstance(numerator, Decimal) and isinstance(denominator, Decimal):
+        return Fraction(int(numerator), int(denominator))
+    return Fraction(numerator, denominator)

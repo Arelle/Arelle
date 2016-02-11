@@ -10,6 +10,7 @@ try:
 except ImportError:
     from re import compile as re_compile
 from decimal import Decimal, InvalidOperation
+from fractions import Fraction
 from arelle import XbrlConst, XmlUtil
 from arelle.ModelValue import (qname, qnameEltPfxName, qnameClarkName, 
                                dateTime, DATE, DATETIME, DATEUNION, 
@@ -80,7 +81,7 @@ baseXsdTypePatterns = {
                 "ID": NCNamePattern,
                 "IDREF": NCNamePattern,
                 "ENTITY": NCNamePattern, 
-                "QName": QNamePattern,               
+                "QName": QNamePattern,             
             }
 predefinedAttributeTypes = {
     qname("{http://www.w3.org/XML/1998/namespace}xml:lang"):("language",None),
@@ -106,6 +107,8 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
             if modelConcept.isAbstract:
                 baseXsdType = "noContent"
                 isAbstract = True
+            elif modelConcept.isFraction:
+                baseXsdType = "fraction"
             else:
                 baseXsdType = modelConcept.baseXsdType
                 facets = modelConcept.facets
@@ -458,6 +461,9 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                             xValue = re_compile(value + "$") # must match whole string
                     except Exception as err:
                         raise ValueError(err)
+                elif baseXsdType == "fraction":
+                    sValue = value
+                    xValue = Fraction("/".join(elt.fractionValue))
                 else:
                     if baseXsdType in lexicalPatterns:
                         match = lexicalPatterns[baseXsdType].match(value)
