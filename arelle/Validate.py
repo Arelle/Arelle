@@ -15,6 +15,7 @@ from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods
+from arelle.XmlUtil import collapseWhitespace
 
 def validate(modelXbrl):
     validate = Validate(modelXbrl)
@@ -361,7 +362,9 @@ class Validate:
                                     footnotes = []
                                     footnoteRels = footnotesRelSet.fromModelObject(fact)
                                     if footnoteRels:
-                                        for i, footnoteRel in enumerate(footnoteRels):
+                                        # most process rels in same order between two instances, use labels to sort
+                                        for i, footnoteRel in enumerate(sorted(footnoteRels,
+                                                                               key=lambda r: (r.fromLabel,r.toLabel))):
                                             modelObject = footnoteRel.toModelObject
                                             if isinstance(modelObject, ModelResource):
                                                 footnotes.append("Footnote {}: {}".format(
@@ -372,7 +375,7 @@ class Validate:
                                                     i+1,
                                                     modelObject.qname,
                                                     modelObject.contextID,
-                                                    modelObject.value))
+                                                    collapseWhitespace(modelObject.value)))
                                     return footnotes
                                 for expectedInstanceFact in expectedInstance.facts:
                                     unmatchedFactsStack = []
