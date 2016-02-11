@@ -369,7 +369,7 @@ class Validate:
                                             if isinstance(modelObject, ModelResource):
                                                 footnotes.append("Footnote {}: {}".format(
                                                    i+1, # compare footnote with normalize-space
-                                                   re.sub(r'\s+', ' ', modelObject.stringValue.strip())))
+                                                   re.sub(r'\s+', ' ', collapseWhitespace(modelObject.stringValue))))
                                             elif isinstance(modelObject, ModelFact):
                                                 footnotes.append("Footnoted fact {}: {} context: {} value: {}".format(
                                                     i+1,
