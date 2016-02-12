@@ -19,6 +19,8 @@ from arelle.ModelObjectFactory import parser
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype, DocumentPrototype
 from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import OrderedDefaultDict, Fraction
+from arelle.XhtmlValidate import ixMsgCode
+
 creationSoftwareNames = None
 
 def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDiscovered=False, isIncluded=None, namespace=None, reloadCache=False, **kwargs):
@@ -1170,6 +1172,7 @@ class ModelDocument:
             self.modelXbrl.error("ix:multipleIxNamespaces",
                     _("Multiple ix namespaces were found"),
                     modelObject=conflictingNSelts)
+        self.ixNS = ixNS
         self.ixNStag = ixNStag = "{" + ixNS + "}"
         # load referenced schemas and linkbases (before validating inline HTML
         for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "references"):
@@ -1319,18 +1322,18 @@ def inlineIxdsDiscover(modelXbrl):
                 for attrName, attrValue in elt.items():
                     if attrName.startswith('{') and not attrName.startswith(mdlDoc.ixNStag):
                         if attrName in targetReferenceAttrsDict:
-                            modelXbrl.error("ix:ixReferencesAttributeDuplication",
+                            modelXbrl.error(ixMsgCode("ixReferencesAttributeDuplication",ns=mdlDoc.ixNS,name="references",sect="validation"),
                                             _("Inline XBRL ix:references attribute %(name)s duplicated in target %(target)s"),
                                             modelObject=(elt, targetReferenceAttrsDict[attrName]), name=attrName, target=target)
                         else:
                             targetReferenceAttrsDict[attrName] = elt
                 if elt.id:
                     if ixdsEltById[elt.id] != [elt]:
-                        modelXbrl.error("ix:ixReferencesIdDuplication",
+                        modelXbrl.error(ixMsgCode("ixReferencesIdDuplication",ns=mdlDoc.ixNS,name="references",sect="validation"),
                                         _("Inline XBRL ix:references id %(id)s duplicated in inline document set"),
                                         modelObject=ixdsEltById[elt.id], id=elt.id)
                     if target in targetReferencesIDs:
-                        modelXbrl.error("ix:ixReferencesTargetId",
+                        modelXbrl.error(ixMsgCode("ixReferencesTargetId",ns=mdlDoc.ixNS,name="references",sect="validation"),
                                         _("Inline XBRL has multiple ix:references with id in target %(target)s"),
                                         modelObject=(elt, targetReferencesIDs[target]), target=target)
                     else:
@@ -1338,7 +1341,7 @@ def inlineIxdsDiscover(modelXbrl):
                 targetReferencePrefixNsDict = targetReferencePrefixNs[target]
                 for _prefix, _ns in elt.nsmap.items():
                     if _prefix in targetReferencePrefixNsDict and _ns != targetReferencePrefixNsDict[_prefix][0]:
-                        modelXbrl.error("ix:ixReferencesNamespacePrefixConflict",
+                        modelXbrl.error(ixMsgCode("ixReferencesNamespacePrefixConflict",ns=mdlDoc.ixNS,name="references",sect="validation"),
                                         _("Inline XBRL ix:references prefix %(prefix)s has multiple namespaces %(ns1)s and %(ns2)s in target %(target)s"),
                                         modelObject=(elt, targetReferencePrefixNsDict[_prefix][1]), prefix=_prefix, ns1=_ns, ns2=targetReferencePrefixNsDict[_prefix], target=target)
                     else:
@@ -1351,7 +1354,7 @@ def inlineIxdsDiscover(modelXbrl):
         tuple = None
         if tupleRef:
             if tupleRef not in tuplesByTupleID:
-                modelXbrl.error("ix:tupleRefMissing",
+                modelXbrl.error(ixMsgCode("tupleRefMissing", modelFact, sect="validation"),
                                 _("Inline XBRL tupleRef %(tupleRef)s not found"),
                                 modelObject=modelFact, tupleRef=tupleRef)
             else:
@@ -1372,11 +1375,11 @@ def inlineIxdsDiscover(modelXbrl):
             if contAt not in continuationElements:
                 if contAt in element.modelDocument.idObjects:
                     _contAtTarget = element.modelDocument.idObjects[contAt]
-                    modelXbrl.error("ix:continuationTarget",
+                    modelXbrl.error(ixMsgCode("continuationTarget", element, sect="validation"),
                                     _("continuedAt %(continuationAt)s target is an %(targetElement)s element instead of ix:continuation element."),
                                     modelObject=(element, _contAtTarget), continuationAt=contAt, targetElement=_contAtTarget.elementQname)
                 else:
-                    modelXbrl.error("ix:continuationMissing",
+                    modelXbrl.error(ixMsgCode("continuationMissing", element, sect="validation"),
                                     _("Inline XBRL continuation %(continuationAt)s not found"),
                                     modelObject=element, continuationAt=contAt)
             else:
@@ -1385,7 +1388,7 @@ def inlineIxdsDiscover(modelXbrl):
                 if contElt in chain:
                     cycle = ", ".join(e.get("continuedAt") for e in chain)
                     chain.append(contElt) # makes the cycle clear
-                    modelXbrl.error("ix:continuationCycle",
+                    modelXbrl.error(ixMsgCode("continuationCycle", element, sect="validation"),
                                     _("Inline XBRL continuation cycle: %(continuationCycle)s"),
                                     modelObject=chain, continuationCycle=cycle)
                 else:
@@ -1400,7 +1403,7 @@ def inlineIxdsDiscover(modelXbrl):
                     if chainEltAncestor in chainSet:
                         if hasattr(chain[0], "_continuationElement"):
                             del chain[0]._continuationElement # break chain to prevent looping in chain
-                        modelXbrl.error("ix:continuationChainNested",
+                        modelXbrl.error(ixMsgCode("continuationChainNested", chainElt, sect="validation"),
                                         _("Inline XBRL continuation chain element %(ancestorElement)s has descendant element %(descendantElement)s"),
                                         modelObject=(chainElt,chainEltAncestor), 
                                         ancestorElement=chainEltAncestor.id or chainEltAncestor.get("name",chainEltAncestor.get("continuedAt")),
@@ -1420,7 +1423,7 @@ def inlineIxdsDiscover(modelXbrl):
                 if isinstance(modelInlineFact,ModelInlineFact):
                     if modelInlineFact.qname is not None: # must have a qname to be in facts
                         if modelInlineFact.concept is None:
-                            modelXbrl.error("xbrl:schemaImportMissing",
+                            modelXbrl.error(ixMsgCode("missingReference", modelInlineFact, name="references", sect="validation"),
                                             _("Instance fact missing schema definition: %(qname)s of Inline Element %(localName)s"),
                                             modelObject=modelInlineFact, qname=modelInlineFact.qname, localName=modelInlineFact.elementQname)
                         elif modelInlineFact.isFraction == (modelInlineFact.localName == "fraction"):
@@ -1432,7 +1435,7 @@ def inlineIxdsDiscover(modelXbrl):
                             if modelInlineFact.id:
                                 factsByFactID[modelInlineFact.id] = modelInlineFact
                         else:
-                            modelXbrl.error("ix:fractionDeclaration",
+                            modelXbrl.error(ixMsgCode("fractionDeclaration", modelInlineFact, name="fraction", sect="validation"),
                                             _("Inline XBRL element %(qname)s base type %(type)s mapped by %(localName)s"),
                                             modelObject=modelInlineFact, qname=modelInlineFact.qname, localName=modelInlineFact.elementQname,
                                             type=modelInlineFact.concept.baseXsdType)
@@ -1549,7 +1552,7 @@ def inlineIxdsDiscover(modelXbrl):
                     else: 
                         toIdsNotFound.append(toId)
                 if toIdsNotFound:
-                    modelXbrl.error("ix:relationshipToRef",
+                    modelXbrl.error(ixMsgCode("relationshipToRef", ns=XbrlConst.ixbrl11, name="relationship", sect="validation"),
                                     _("Inline relationship toRef(s) %(toIds)s not found."),
                                     modelObject=modelInlineRel, toIds=', '.join(sorted(toIdsNotFound)))
                 for fromLabel in fromLabels:
@@ -1559,7 +1562,7 @@ def inlineIxdsDiscover(modelXbrl):
                                                                         linkrole, arcrole,
                                                                         modelInlineRel.get("order", "1"), sourceElement=modelInlineRel))
                 if toFootnoteIds and toFactQnames:
-                    modelXbrl.error("ix:relationshipReferencesMixed",
+                    modelXbrl.error(ixMsgCode("relationshipReferencesMixed", ns=XbrlConst.ixbrl11, name="relationship", sect="validation"),
                                     _("Inline relationship references footnote(s) %(toFootnoteIds)s and thereby is not allowed to reference %(toFactQnames)s."),
                                     modelObject=modelInlineRel, toFootnoteIds=', '.join(sorted(toFootnoteIds)), 
                                     toFactQnames=', '.join(sorted(toFactQnames)))
@@ -1570,7 +1573,7 @@ def inlineIxdsDiscover(modelXbrl):
     for _contAt, _contReferences in continuationReferences.items():
         if len(_contReferences) > 1:
             _refEltQnames = set(str(_contRef.elementQname) for _contRef in _contReferences)
-            modelXbrl.error("ix:continuationReferences",
+            modelXbrl.error(ixMsgCode("continuationReferences", ns=XbrlConst.ixbrl11, name="continuation", sect="validation"),
                             _("continuedAt %(continuedAt)s has %(referencesCount)s references on %(sourceElements)s elements, only one reference allowed."),
                             modelObject=_contReferences, continuedAt=_contAt, referencesCount=len(_contReferences), 
                             sourceElements=', '.join(str(qn) for qn in sorted(_refEltQnames)))
@@ -1578,7 +1581,7 @@ def inlineIxdsDiscover(modelXbrl):
     # check for orphan continuation elements
     for _contAt, _contElt in continuationElements.items():
         if _contAt not in continuationReferences:
-            modelXbrl.error("ix:continuationNotReferenced",
+            modelXbrl.error(ixMsgCode("continuationNotReferenced", ns=XbrlConst.ixbrl11, name="continuation", sect="validation"),
                             _("ix:continuation %(continuedAt)s is not referenced by a, ix:footnote, ix:nonNumeric or other ix:continuation element."),
                             modelObject=_contElt, continuedAt=_contAt)
     del modelXbrl.ixdsHtmlElements # dereference

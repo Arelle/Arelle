@@ -144,10 +144,56 @@ ixHierarchyConstraints = {
                                 "references", "relationship", "resources")),)
     }
 
+ixSect = { 
+    XbrlConst.ixbrl: {
+        "footnote": {"constraint": "ix10.5.1.1", "validation": "ix10.5.1.2"},
+        "fraction": {"constraint": "ix10.6.1.1", "validation": "ix10.6.1.2"},
+        "denominator": {"constraint": "ix10.6.1.1", "validation": "ix10.6.1.2"},
+        "numerator": {"constraint": "ix10.6.1.1", "validation": "ix10.6.1.2"},
+        "header": {"constraint": "ix10.7.1.1", "validation": "ix10.7.1.3"},
+        "hidden": {"constraint": "ix10.8.1.1", "validation": "ix10.8.1.2"},
+        "nonFraction": {"constraint": "ix10.9.1.1", "validation": "ix10.9.1.2"},
+        "nonNumeric": {"constraint": "ix10.10.1.1", "validation": "ix10.10.1.2"},
+        "references": {"constraint": "ix10.11.1.1", "validation": "ix10.11.1.2"},
+        "resources": {"constraint": "ix10.12.1.1", "validation": "ix10.12.1.2"},
+        "tuple": {"constraint": "ix10.13.1.1", "validation": "ix10.13.1.2"},
+        "other": {"constraint": "ix10", "validation": "ix10"}},
+    XbrlConst.ixbrl11: {  
+        "continuation": {"constraint": "ix11.4.1.1", "validation": "ix11.4.1.2"},
+        "exclude": {"constraint": "ix11.5.1.1", "validation": "ix11.5.1.2"},
+        "footnote": {"constraint": "ix11.6.1.1", "validation": "ix11.6.1.2"},
+        "fraction": {"constraint": "ix11.7.1.2", "validation": "ix11.7.1.3"},
+        "denominator": {"constraint": "ix11.7.1.1", "validation": "ix11.7.1.3"},
+        "numerator": {"constraint": "ix11.7.1.1", "validation": "ix11.7.1.3"},
+        "header": {"constraint": "ix11.8.1.1", "validation": "ix11.8.1.3"},
+        "hidden": {"constraint": "ix11.9.1.1", "validation": "ix11.9.1.2"},
+        "nonFraction": {"constraint": "ix11.10.1.1", "validation": "ix11.10.1.2"},
+        "nonNumeric": {"constraint": "ix11.11.1.1", "validation": "ix11.11.1.2"},
+        "references": {"constraint": "ix11.12.1.1", "validation": "ix11.12.1.2"},
+        "relationship": {"constraint": "ix11.13.1.1", "validation": "ix11.13.1.2"},
+        "resources": {"constraint": "ix11.14.1.1", "validation": "ix11.14.1.2"},
+        "tuple": {"constraint": "ix11.15.1.1", "validation": "ix11.15.1.2"},
+        "other": {"constraint": "ix11", "validation": "ix11"}}
+    }                    
+def ixMsgCode(codeName, elt=None, sect="constraint", ns=None, name=None):
+    if elt is None:
+        if ns is None: ns = XbrlConst.ixbrl11
+        if name is None: name = "other"
+    else:
+        if ns is None and elt.namespaceURI in XbrlConst.ixbrlAll:
+            ns = elt.namespaceURI
+        else:
+            ns = XbrlConst.ixbrl11
+        if name is None:
+            name = elt.localName
+    return "{}:{}".format(ixSect[ns].get(name,"other")[sect], codeName)
+
 def xhtmlValidate(modelXbrl, elt):
     from lxml.etree import DTD, XMLSyntaxError
     ixNsStartTags = ["{" + ns + "}" for ns in XbrlConst.ixbrlAll]
     isEFM = modelXbrl.modelManager.disclosureSystem.validationType == "EFM"
+    # find ix version for messages
+    _ixNS = elt.modelDocument.ixNS
     
     def checkAttribute(elt, isIxElt, attrTag, attrValue):
         ixEltAttrDefs = ixAttrDefined.get(elt.namespaceURI, EMPTYDICT).get(elt.localName, ())
@@ -160,16 +206,16 @@ def xhtmlValidate(modelXbrl, elt):
             if isIxElt:
                 allowedNs = nonIxAttrNS.get(elt.localName, None)
                 if allowedNs != "##other" and ns != allowedNs:
-                    modelXbrl.error("ix:qualifiedAttributeNotExpected",
+                    modelXbrl.error(ixMsgCode("qualifiedAttributeNotExpected", elt),
                         _("Inline XBRL element %(element)s: has qualified attribute %(name)s"),
                         modelObject=elt, element=str(elt.elementQname), name=attrTag)
             else:
                 if ns in XbrlConst.ixbrlAll:
-                    modelXbrl.error("ix:inlineAttributeMisplaced",
+                    modelXbrl.error(ixMsgCode("inlineAttributeMisplaced", elt, name="other"),
                         _("Inline XBRL attributes are not allowed on html elements: ix:%(name)s"),
                         modelObject=elt, name=localName)
                 elif ns not in {XbrlConst.xml, XbrlConst.xsi, XbrlConst.xhtml}:
-                    modelXbrl.error("ix:extensionAttributeMisplaced",
+                    modelXbrl.error(ixMsgCode("extensionAttributeMisplaced", ns=_ixNS),
                         _("Extension attributes are not allowed on html elements: %(tag)s"),
                         modelObject=elt, tag=attrTag)
         elif isIxElt:
@@ -192,11 +238,11 @@ def xhtmlValidate(modelXbrl, elt):
                                          "nonNumeric": {"contextRef"}}.get(elt.localName, set()))
                 disallowedAttrs = set(a for a in disallowedXbrliAttrs if elt.get(a) is not None)
                 if disallowedAttrs:
-                    modelXbrl.error("ix:inlineElementAttributes",
+                    modelXbrl.error(ixMsgCode("inlineElementAttributes",elt),
                         _("Inline XBRL element %(element)s has disallowed attributes %(attributes)s"),
                         modelObject=elt, element=elt.elementQname, attributes=", ".join(disallowedAttrs))
             except KeyError:
-                modelXbrl.error("ix:attributeNotExpected",
+                modelXbrl.error(ixMsgCode("attributeNotExpected",elt),
                     _("Attribute %(attribute)s is not expected on element ix:%(element)s"),
                     modelObject=elt, attribute=attrTag, element=elt.localName)
                 
@@ -256,7 +302,7 @@ def xhtmlValidate(modelXbrl, elt):
                 if ((reqt == '+' and not relations) or
                     (reqt == '-' and relations) or
                     (issue)):
-                    code = "ix:" + {
+                    code = "{}:{}".format(ixSect[elt.namespaceURI].get(elt.localName,"other")["constraint"], {
                            'ancestor': "ancestorNode",
                            'parent': "parentNode",
                            'child-choice': "childNodes",
@@ -266,8 +312,8 @@ def xhtmlValidate(modelXbrl, elt):
                             '+': "Required",
                             '-': "Disallowed",
                             '&': "Allowed",
-                            '^': "Specified"}.get(reqt, "Specified")
-                    msg = _("Inline XBRL 1.0 ix:{0} {1} {2} {3} {4} element").format(
+                            '^': "Specified"}.get(reqt, "Specified"))
+                    msg = _("Inline XBRL ix:{0} {1} {2} {3} {4} element").format(
                                 elt.localName,
                                 {'+': "must", '-': "may not", '&': "may only",
                                  '?': "may", '+': "must"}[reqt],
@@ -301,7 +347,7 @@ def xhtmlValidate(modelXbrl, elt):
                 isIxNs = fromChild.namespaceURI in XbrlConst.ixbrlAll
                 if isIxNs:
                     if fromChild.localName not in ixElements[fromChild.namespaceURI]:
-                        modelXbrl.error("ix:elementNameInvalid",
+                        modelXbrl.error(ixMsgCode("elementNameInvalid",ns=_ixNS),
                             _("Inline XBRL element name %(element)s is not valid"),
                             modelObject=fromChild, element=str(fromChild.elementQname))
                     else:
@@ -310,7 +356,7 @@ def xhtmlValidate(modelXbrl, elt):
                             checkAttribute(fromChild, True, attrTag, attrValue)
                         for attrTag in ixAttrRequired[fromChild.namespaceURI].get(fromChild.localName,[]):
                             if fromChild.get(attrTag) is None:
-                                modelXbrl.error("ix:attributeRequired",
+                                modelXbrl.error(ixMsgCode("attributeRequired", fromChild),
                                     _("Attribute %(attribute)s required on element ix:%(element)s"),
                                     modelObject=elt, attribute=attrTag, element=fromChild.localName)
                 if excludeSubtree or (fromChild.localName in {"references", "resources"} and isIxNs):
@@ -345,14 +391,14 @@ def xhtmlValidate(modelXbrl, elt):
         #with open("/users/hermf/temp/testDtd.htm", "w") as fh:
         #    fh.write(etree.tostring(ixToXhtml(elt), encoding=_STR_UNICODE, pretty_print=True))
         if not dtd.validate( ixToXhtml(elt) ):
-            modelXbrl.error("ix:DTDelementUnexpected",
+            modelXbrl.error("html:syntaxError",
                 _("%(element)s error %(error)s"),
                 modelObject=elt, element=elt.localName.title(),
                 error=', '.join(e.message for e in dtd.error_log.filter_from_errors()))
         if isEFM:
             ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", "EFM.5.02.02.") 
     except XMLSyntaxError as err:
-        modelXbrl.error("ix:DTDerror",
+        modelXbrl.error("html:syntaxError",
             _("%(element)s error %(error)s"),
             modelObject=elt, element=elt.localName.title(), error=dtd.error_log.filter_from_errors())
 

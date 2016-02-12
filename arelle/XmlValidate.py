@@ -20,6 +20,7 @@ from arelle import UrlUtil
 validateElementSequence = None  #dynamic import to break dependency loops
 modelGroupCompositorTitle = None
 ModelInlineValueObject = None
+ixSect = None
 
 UNVALIDATED = 0 # note that these values may be used a constants in code for better efficiency
 UNKNOWN = 1
@@ -90,9 +91,10 @@ predefinedAttributeTypes = {
 xAttributesSharedEmptyDict = {}
 
 def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
-    global ModelInlineValueObject
+    global ModelInlineValueObject, ixSect
     if ModelInlineValueObject is None:
         from arelle.ModelInstanceObject import ModelInlineValueObject
+        from arelle.XhtmlValidate import ixSect
     isIxFact = isinstance(elt, ModelInlineValueObject)
     facets = None
 
@@ -156,13 +158,13 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                 else:
                     errElt = elt.elementQname
                 if isIxFact and err.__class__.__name__ == "FunctionArgType":
-                    modelXbrl.error("ixTransform:valueError",
+                    modelXbrl.error("{}:transformValueError".format(ixSect[elt.namespaceURI].get(elt.localName,"other")["constraint"]),
                         _("Inline element %(element)s fact %(fact)s type %(typeName)s transform %(transform)s value error: %(value)s"),
                         modelObject=elt, element=errElt, fact=elt.qname, transform=elt.format,
                         typeName=modelConcept.baseXsdType if modelConcept is not None else "unknown",
                         value=XmlUtil.innerText(elt, ixExclude=True, ixContinuation=elt.namespaceURI==XbrlConst.ixbrl11))
                 elif isIxFact and err.__class__.__name__ == "ixtFunctionNotAvailable":
-                    modelXbrl.error("ixTransform:transformNotAvailableError",
+                    modelXbrl.error("{}:formatCodeUndefined".format(ixSect[elt.namespaceURI].get(elt.localName,"other")["constraint"]),
                         _("Inline element %(element)s fact %(fact)s type %(typeName)s transform %(transform)s not available, value: %(value)s"),
                         modelObject=elt, element=errElt, fact=elt.qname, transform=elt.format,
                         typeName=modelConcept.baseXsdType if modelConcept is not None else "unknown",

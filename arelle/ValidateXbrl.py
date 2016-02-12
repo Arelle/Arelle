@@ -17,6 +17,7 @@ from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelValue import qname
 from arelle.PluginManager import pluginClassMethods
 from arelle.XbrlConst import ixbrlAll
+from arelle.XhtmlValidate import ixMsgCode
 from arelle.XmlValidate import VALID
 from collections import defaultdict
 validateUniqueParticleAttribution = None # dynamic import
@@ -377,6 +378,7 @@ class ValidateXbrl:
             
         if self.validateIXDS:
             modelXbrl.modelManager.showStatus(_("Validating inline document set"))
+            _ixNS = modelXbrl.modelDocument.ixNS
             _customTransforms = self.modelXbrl.modelManager.customTransforms or {}
             ixdsIdObjects = defaultdict(list)
             for ixdsDoc in self.ixdsDocs:
@@ -385,7 +387,8 @@ class ValidateXbrl:
                         ixdsIdObjects[idObject.id].append(idObject)
             for _id, objs in ixdsIdObjects.items():
                 if len(objs) > 1:
-                    modelXbrl.error("ix:uniqueIxId",
+                    idObject = objs[0]
+                    modelXbrl.error(ixMsgCode("uniqueIxId", idObject, sect="validation"),
                         _("Inline XBRL id is not unique in the IXDS: %(id)s, for element(s) %{elements)s"),
                         modelObject=objs, id=_id, elements=set(str(obj.elementQname) for obj in objs))
             self.factsWithDeprecatedIxNamespace = []
@@ -393,22 +396,22 @@ class ValidateXbrl:
             for f in modelXbrl.factsInInstance:
                 for footnoteID in f.footnoteRefs:
                     if footnoteID not in self.ixdsFootnotes:
-                        modelXbrl.error("ix:footnoteRef",
+                        modelXbrl.error(ixMsgCode("footnoteRef", f, name="footnote", sect="validation"),
                             _("Inline XBRL fact's footnoteRef not found: %(id)s"),
                             modelObject=f, id=footnoteID)
                     factFootnoteRefs.add(footnoteID)
                 if f.concept is None:
-                    self.modelXbrl.error("xbrl:schemaImportMissing",
+                    self.modelXbrl.error(ixMsgCode("missingReference", f, name="references", sect="validation"),
                             _("Fact %(fact)s missing schema definition or missing name attribute"),
                             modelObject=f, fact=f.qname)
                 if f.localName in {"fraction", "nonFraction", "nonNumeric"}:
                     if f.context is None:
-                        self.modelXbrl.error("ix:missingContext",
+                        self.modelXbrl.error(ixMsgCode("requiredAttributeContextRef", f, sect="validation"),
                             _("Fact %(fact)s is missing a context for contextRef %(context)s"),
                             modelObject=f, fact=f.qname, context=f.contextID)
                 if f.localName in {"fraction", "nonFraction"}:
                     if f.unit is None:
-                        self.modelXbrl.error("ix:missingUnit",
+                        self.modelXbrl.error(ixMsgCode("requiredAttributeUnitRef", f, sect="validation"),
                             _("Fact %(fact)s is missing a unit for unitRef %(unit)s"),
                             modelObject=f, fact=f.qname, unit=f.unitID)
                 fmt = f.format
@@ -416,18 +419,18 @@ class ValidateXbrl:
                     if fmt in _customTransforms:
                         pass
                     elif fmt.namespaceURI not in FunctionIxt.ixtNamespaceFunctions:
-                        self.modelXbrl.error("ix:invalidTransformation",
+                        self.modelXbrl.error(ixMsgCode("invalidTransformation", f, sect="validation"),
                             _("Fact %(fact)s has unrecognized transformation namespace %(namespace)s"),
                             modelObject=f, fact=f.qname, namespace=fmt.namespaceURI)
                     elif fmt.localName not in FunctionIxt.ixtNamespaceFunctions[fmt.namespaceURI]:
-                        self.modelXbrl.error("ix:invalidTransformation",
+                        self.modelXbrl.error(ixMsgCode("invalidTransformation", f, sect="validation"),
                             _("Fact %(fact)s has unrecognized transformation name %(name)s"),
                             modelObject=f, fact=f.qname, name=fmt.localName)
                     if fmt.namespaceURI == FunctionIxt.deprecatedNamespaceURI:
                         self.factsWithDeprecatedIxNamespace.append(f)
             for _id, objs in self.ixdsFootnotes.items():
                 if len(objs) > 1:
-                    modelXbrl.error("ix:uniqueFootnoteId",
+                    modelXbrl.error(ixMsgCode("uniqueFootnoteId", ns=_ixNS, name="footnote", sect="validation"),
                         _("Inline XBRL footnote id is not unique in the IXDS: %(id)s"),
                         modelObject=objs, id=_id)
                 else:
@@ -439,7 +442,7 @@ class ValidateXbrl:
                                 _("Inline XBRL non-empty footnote %(footnoteID)s is not referenced by any fact"),
                                 modelObject=elt, footnoteID=id)
             if not self.ixdsHeaderCount:
-                modelXbrl.error("ix:headerMissing",
+                modelXbrl.error(ixMsgCode("headerMissing", ns=_ixNS, name="header", sect="validation"),
                     _("Inline XBRL document set must have at least one ix:header element"),
                     modelObject=modelXbrl)
             if self.factsWithDeprecatedIxNamespace:
@@ -458,7 +461,7 @@ class ValidateXbrl:
                     if i == 0:
                         targetDefaultNamespace = defaultNamepace 
                     elif targetDefaultNamespace != defaultNamepace:
-                        modelXbrl.error("ix:referenceInconsistentDefaultNamespaces",
+                        modelXbrl.error(ixMsgCode("referenceInconsistentDefaultNamespaces", ns=_ixNS, sect="validation"),
                             _("Inline XBRL document set must have consistent default namespaces for target %(target)s"),
                             modelObject=ixReferences, target=target)
                     for schemaRef in XmlUtil.children(ixReference, XbrlConst.link, "schemaRef"):
@@ -467,14 +470,14 @@ class ValidateXbrl:
                         if href not in schemaRefUris:
                             schemaRefUris[href] = prefix
                         elif schemaRefUris[href] != prefix:
-                            modelXbrl.error("ix:referenceNamespacePrefixInconsistency",
+                            modelXbrl.error(ixMsgCode("referenceNamespacePrefixInconsistency", ns=_ixNS, sect="validation"),
                                 _("Inline XBRL document set must have consistent prefixes for target %(target)s: %(prefix1)s, %(prefix2)s"),
                                 modelObject=ixReferences, target=target, prefix1=schemaRefUris[href], prefix2=prefix)
             for ixRel in self.ixdsRelationships:
                 for fromRef in ixRel.get("fromRefs","").split():
                     refs = ixdsIdObjects.get(fromRef)
                     if refs is None or refs[0].namespaceURI not in ixbrlAll or refs[0].localName not in ("fraction", "nonFraction", "nonNumeric", "tuple"):
-                        modelXbrl.error("ix:relationshipFromRef",
+                        modelXbrl.error(ixMsgCode("relationshipFromRef", ns=_ixNS, name="relationship", sect="validation"),
                             _("Inline XBRL fromRef %(ref)s is not a fraction, ix:nonFraction, ix:nonNumeric or ix:tuple."),
                             modelObject=ixRel, ref=fromRef)
                 hasFootnoteToRef = None
@@ -482,7 +485,7 @@ class ValidateXbrl:
                 for toRef in ixRel.get("toRefs","").split():
                     refs = ixdsIdObjects.get(fromRef)
                     if refs is None or refs[0].namespaceURI not in ixbrlAll or refs[0].localName not in ("footnote", "fraction", "nonFraction", "nonNumeric", "tuple"):
-                        modelXbrl.error("ix:relationshipToRef",
+                        modelXbrl.error(ixMsgCode("relatirelationshipToRefonshipFromRef", ns=_ixNS, name="relationship", sect="validation"),
                             _("Inline XBRL fromRef %(ref)s is not a footnote, fraction, ix:nonFraction, ix:nonNumeric or ix:tuple."),
                             modelObject=ixRel, ref=fromRef)
                     elif hasFootnoteToRef is None:
@@ -490,7 +493,7 @@ class ValidateXbrl:
                     elif hasFootnoteToRef != (refs[0].localName == "footnote"):
                         hasToRefMixture = True
                 if hasToRefMixture:
-                    modelXbrl.error("ix:relationshipToRefMix",
+                    modelXbrl.error(ixMsgCode("relationshipToRefMix", ns=_ixNS, name="relationship", sect="validation"),
                         _("Inline XBRL fromRef is not only either footnotes, or ix:fraction, ix:nonFraction, ix:nonNumeric or ix:tuple."),
                         modelObject=ixRel)
                 if ixRel.get("linkRole") is not None: # XBRL 2.1 check of ixRelationships
@@ -770,7 +773,7 @@ class ValidateXbrl:
                     
             if isinstance(f, ModelInlineFact):
                 if not inTuple and f.order is not None: 
-                    self.modelXbrl.error("ix:tupleOrder",
+                    self.modelXbrl.error(ixMsgCode("tupleOrder", f, sect="validation"),
                         _("Fact %(fact)s must not have an order (%(order)s) unless in a tuple"),
                         modelObject=f, fact=f.qname, order=f.order)
                 if f.isTuple or f.tupleID:
