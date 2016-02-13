@@ -71,7 +71,7 @@ class Validate:
             try:
                 self.validateTestcase(self.modelXbrl.modelDocument)
             except Exception as err:
-                self.modelXbrl.error("exception",
+                self.modelXbrl.error("exception:" + type(err).__name__,
                     _("Testcase validation exception: %(error)s, testcase: %(testcase)s"),
                     modelXbrl=self.modelXbrl,
                     testcase=self.modelXbrl.modelDocument.basename, error=err,
@@ -81,7 +81,7 @@ class Validate:
             try:
                 ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(self.modelXbrl)
             except Exception as err:
-                self.modelXbrl.error("exception",
+                self.modelXbrl.error("exception:" + type(err).__name__,
                     _("Versioning report exception: %(error)s, testcase: %(reportFile)s"),
                     modelXbrl=self.modelXbrl,
                     reportFile=self.modelXbrl.modelDocument.basename, error=err,
@@ -94,7 +94,7 @@ class Validate:
                 self.instValidator.validate(self.modelXbrl, self.modelXbrl.modelManager.formulaOptions.typedParameters())
                 self.instValidator.close()
             except Exception as err:
-                self.modelXbrl.error("exception",
+                self.modelXbrl.error("exception:" + type(err).__name__,
                     _("Instance validation exception: %(error)s, instance: %(instance)s"),
                     modelXbrl=self.modelXbrl,
                     instance=self.modelXbrl.modelDocument.basename, error=err,
@@ -131,7 +131,7 @@ class Validate:
                     pluginXbrlMethod(self, modelXbrl, rssItem)
                 modelXbrl.close()
             except Exception as err:
-                self.modelXbrl.error("exception",
+                self.modelXbrl.error("exception:" + type(err).__name__,
                     _("RSS item validation exception: %(error)s, instance: %(instance)s"),
                     modelXbrl=(self.modelXbrl, modelXbrl),
                     instance=rssItem.zippedUrl, error=err,
@@ -212,11 +212,11 @@ class Validate:
                                                        errorCaptureLevel=errorCaptureLevel)
                         modelXbrl.isTestcaseVariation = True
                     if modelXbrl.modelDocument is None:
-                        self.modelXbrl.error("arelle:notLoaded",
+                        modelXbrl.error("arelle:notLoaded",
                              _("Testcase %(id)s %(name)s document not loaded: %(file)s"),
                              modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, file=os.path.basename(readMeFirstUri))
+                        self.determineNotLoadedTestStatus(modelTestcaseVariation, modelXbrl.errors)
                         modelXbrl.close()
-                        self.determineNotLoadedTestStatus(modelTestcaseVariation)
                     elif resultIsVersioningReport:
                         inputDTSes[dtsName] = modelXbrl
                     elif modelXbrl.modelDocument.type == Type.VERSIONINGREPORT:
@@ -242,7 +242,7 @@ class Validate:
                             for pluginXbrlMethod in pluginClassMethods("TestcaseVariation.Xbrl.Validated"):
                                 pluginXbrlMethod(self.modelXbrl, modelXbrl)
                         except Exception as err:
-                            self.modelXbrl.error("exception",
+                            modelXbrl.error("exception:" + type(err).__name__,
                                 _("Testcase variation validation exception: %(error)s, instance: %(instance)s"),
                                 modelXbrl=modelXbrl, instance=modelXbrl.modelDocument.basename, error=err, exc_info=True)
                         modelXbrl.hasFormulae = _hasFormulae
@@ -260,7 +260,7 @@ class Validate:
                               versReportFile, inputDTSes["from"], inputDTSes["to"])
                         modelTestcaseVariation.status = "generated"
                     else:
-                        self.modelXbrl.error("arelle:notLoaded",
+                        modelXbrl.error("arelle:notLoaded",
                              _("Testcase %(id)s %(name)s DTSes not loaded, unable to generate versioning report: %(file)s"),
                              modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, file=os.path.basename(readMeFirstUri))
                         modelTestcaseVariation.status = "failed"
@@ -283,7 +283,7 @@ class Validate:
                             self.instValidator.parameters = parameters
                             ValidateFormula.validate(self.instValidator)
                         except Exception as err:
-                            self.modelXbrl.error("exception",
+                            modelXbrl.error("exception:" + type(err).__name__,
                                 _("Testcase formula variation validation exception: %(error)s, instance: %(instance)s"),
                                 modelXbrl=modelXbrl, instance=modelXbrl.modelDocument.basename, error=err, exc_info=True)
                     if modelTestcaseVariation.resultIsInfoset and self.modelXbrl.modelManager.validateInfoset:
@@ -296,7 +296,7 @@ class Validate:
                                                    useFileSource=self.useFileSource,
                                                    errorCaptureLevel=errorCaptureLevel)
                         if infoset.modelDocument is None:
-                            self.modelXbrl.error("arelle:notLoaded",
+                            modelXbrl.error("arelle:notLoaded",
                                 _("Testcase %(id)s %(name)s result infoset not loaded: %(file)s"),
                                 modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, 
                                 file=os.path.basename(modelTestcaseVariation.resultXbrlInstance))

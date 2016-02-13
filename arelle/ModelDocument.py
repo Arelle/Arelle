@@ -1126,7 +1126,7 @@ class ModelDocument:
         if len(self.modelXbrl.undefinedFacts) > nextUndefinedFact:
             undefFacts = self.modelXbrl.undefinedFacts[nextUndefinedFact:]
             self.modelXbrl.error("xbrl:schemaImportMissing",
-                    _("Instance facts missing schema definition: %(elements)s"),
+                    _("Instance facts missing schema concept definition: %(elements)s"),
                     modelObject=undefFacts, 
                     elements=", ".join(sorted(set(str(f.prefixedName) for f in undefFacts))))
                     

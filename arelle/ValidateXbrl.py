@@ -393,6 +393,7 @@ class ValidateXbrl:
                         modelObject=objs, id=_id, elements=set(str(obj.elementQname) for obj in objs))
             self.factsWithDeprecatedIxNamespace = []
             factFootnoteRefs = set()
+            undefinedFacts = []
             for f in modelXbrl.factsInInstance:
                 for footnoteID in f.footnoteRefs:
                     if footnoteID not in self.ixdsFootnotes:
@@ -401,17 +402,15 @@ class ValidateXbrl:
                             modelObject=f, id=footnoteID)
                     factFootnoteRefs.add(footnoteID)
                 if f.concept is None:
-                    self.modelXbrl.error(ixMsgCode("missingReferences", f, name="references", sect="validation"),
-                            _("Fact %(fact)s missing schema definition or missing name attribute"),
-                            modelObject=f, fact=f.qname)
+                    undefinedFacts.append(f)
                 if f.localName in {"fraction", "nonFraction", "nonNumeric"}:
                     if f.context is None:
-                        self.modelXbrl.error(ixMsgCode("requiredAttributeContextRef", f, sect="validation"),
+                        self.modelXbrl.error(ixMsgCode("contextReference", f, sect="validation"),
                             _("Fact %(fact)s is missing a context for contextRef %(context)s"),
                             modelObject=f, fact=f.qname, context=f.contextID)
                 if f.localName in {"fraction", "nonFraction"}:
                     if f.unit is None:
-                        self.modelXbrl.error(ixMsgCode("requiredAttributeUnitRef", f, sect="validation"),
+                        self.modelXbrl.error(ixMsgCode("unitReference", f, sect="validation"),
                             _("Fact %(fact)s is missing a unit for unitRef %(unit)s"),
                             modelObject=f, fact=f.qname, unit=f.unitID)
                 fmt = f.format
@@ -428,6 +427,11 @@ class ValidateXbrl:
                             modelObject=f, fact=f.qname, name=fmt.localName)
                     if fmt.namespaceURI == FunctionIxt.deprecatedNamespaceURI:
                         self.factsWithDeprecatedIxNamespace.append(f)
+            if undefinedFacts:
+                self.modelXbrl.error("xbrl:schemaImportMissing",
+                        _("Instance facts missing schema concept definition: %(elements)s"),
+                        modelObject=undefinedFacts, elements=", ".join(sorted(set(str(f.qname) for f in undefinedFacts))))
+            del undefinedFacts # dereference facts
             for _id, objs in self.ixdsFootnotes.items():
                 if len(objs) > 1:
                     modelXbrl.error(ixMsgCode("uniqueFootnoteId", ns=_ixNS, name="footnote", sect="validation"),

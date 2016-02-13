@@ -866,7 +866,8 @@ def checkElements(val, modelDocument, parent):
                         if elt.get("{http://www.w3.org/1999/xlink}arcrole") != XbrlConst.factFootnote:
                             # must be in a nonDisplay div
                             if not any(inlineDisplayNonePattern.search(e.get("style") or "")
-                                       for e in XmlUtil.ancestors(elt, XbrlConst.xhtml, "div")):
+                                       for ns in (XbrlConst.xhtml, None)  # may be un-namespaced html
+                                       for e in XmlUtil.ancestors(elt, ns, "div")):
                                 val.modelXbrl.error(("EFM.N/A", "GFM:1.10.16"),
                                     _("Inline XBRL footnote %(footnoteID)s must be in non-displayable div due to arcrole %(arcrole)s"),
                                     modelObject=elt, footnoteID=elt.get("footnoteID"), 
@@ -921,7 +922,8 @@ def checkElements(val, modelDocument, parent):
                             modelObject=elt)
                 elif elt.localName == "header":
                     if not any(inlineDisplayNonePattern.search(e.get("style") or "")
-                               for e in XmlUtil.ancestors(elt, XbrlConst.xhtml, "div")):
+                               for ns in (XbrlConst.xhtml, None)  # may be un-namespaced html
+                               for e in XmlUtil.ancestors(elt, ns, "div")):
                         val.modelXbrl.warning(ixMsgCode("headerDisplayNone", elt, sect="validation"),
                             _("Warning, Inline XBRL ix:header is recommended to be nested in a <div> with style display:none"),
                             modelObject=elt)

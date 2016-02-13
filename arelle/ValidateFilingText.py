@@ -385,13 +385,15 @@ xhtmlEntities = {
 
 efmBlockedInlineHtmlElements = {
     'acronym', 'area', 'base', 'bdo', 'button', 'cite', 'col', 'colgroup',
-    'dd', 'del', 'fieldset', 'form', 'input', 'ins', 'label', 'legend',
+    'dd', 'del', 'embed', 'fieldset', 'form', 'input', 'ins', 'label', 'legend',
     'map', 'object', 'option', 'param', 'q', 'script', 'select', 'style',
     'textarea'
     }
 efmBlockedInlineHtmlElementAttributes = {
     'a': ('name',),
-    'body': ('link',)
+    'body': ('link',),
+    'html': ('lang',), # want the xml:lang attribute only in SEC filnigs
+    'link': ('rel', 'rev')
 }
 
 def checkfile(modelXbrl, filepath):
@@ -658,17 +660,12 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                                 attribute=attrValue, element=eltTag, error=err,
                                 messageCodes=("EFM.6.05.34.graphicFileError", "EFM.5.05.02.graphicFileError"))
                     checkedGraphicsFiles.add(attrValue)
-            if eltTag == "html" and not elt.tag.startswith(_xhtmlNs):
+            if eltTag == "meta" and attrTag == "content" and not attrValue.startswith("text/html"):
                 modelXbrl.error(messageCodePrefix + "disallowedMetaContent",
                     _("%(validatedObjectLabel)s <meta> content is \"%(metaContent)s\" but must be \"text/html\""),
                     modelObject=elt, validatedObjectLabel=validatedObjectLabel,
                     metaContent=attrValue,
                     messageCodes=("EFM.6.05.34.disallowedMetaContent", "EFM.5.05.02.disallowedMetaContent"))
-            if eltTag == "meta" and attrTag == "content" and not attrValue.startswith("text/html"):
-                modelXbrl.error(messageCodePrefix + "htmlNamespaceMissing",
-                    _("%(validatedObjectLabel)s <html> element must have the xhtml namespace."),
-                    modelObject=elt, validatedObjectLabel=validatedObjectLabel,
-                    messageCodes=("EFM.6.05.34.htmlNamespaceMissing", "EFM.5.05.02.htmlNamespaceMissing"))
         if eltTag == "table" and any(a.tag in _tableTags
                                      for a in elt.iterancestors()):
             modelXbrl.error(messageCodePrefix + "nestedTable",
