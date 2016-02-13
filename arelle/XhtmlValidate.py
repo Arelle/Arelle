@@ -109,7 +109,7 @@ ixAttrDefined = {
         "relationship": ("arcrole", "linkRole", "fromRefs", "toRefs", "order"),
         "tuple": ("id", "name", "target", "tupleID", "tupleRef", "order")}                    
     }
-nonIxAttrNS = {
+allowedNonIxAttrNS = {
     "footnote": "http://www.w3.org/XML/1998/namespace",
     "fraction": "##other",
     "nonFraction": "##other",
@@ -204,10 +204,15 @@ def xhtmlValidate(modelXbrl, elt):
             localName = attrTag
         if ns is not None and ns not in XbrlConst.ixbrlAll and attrTag not in ixEltAttrDefs:
             if isIxElt:
-                allowedNs = nonIxAttrNS.get(elt.localName, None)
+                allowedNs = allowedNonIxAttrNS.get(elt.localName, None)
                 if allowedNs != "##other" and ns != allowedNs:
                     modelXbrl.error(ixMsgCode("qualifiedAttributeNotExpected", elt),
-                        _("Inline XBRL element %(element)s: has qualified attribute %(name)s"),
+                        _("Inline XBRL element %(element)s has qualified attribute %(name)s"),
+                        modelObject=elt, element=str(elt.elementQname), name=attrTag)
+                if ns == XbrlConst.xbrli and elt.localName in {
+                    "fraction", "nonFraction", "nonNumeric", "references", "relationship", "tuple"}:                
+                    modelXbrl.error(ixMsgCode("qualifiedAttributeDisallowed", elt),
+                        _("Inline XBRL element %(element)s has disallowed attribute %(name)s"),
                         modelObject=elt, element=str(elt.elementQname), name=attrTag)
             else:
                 if ns in XbrlConst.ixbrlAll:
@@ -396,7 +401,7 @@ def xhtmlValidate(modelXbrl, elt):
                 modelObject=elt, element=elt.localName.title(),
                 error=', '.join(e.message for e in dtd.error_log.filter_from_errors()))
         if isEFM:
-            ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", "EFM.5.02.02.") 
+            ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", "EFM.5.02.02.", isInline=True) 
     except XMLSyntaxError as err:
         modelXbrl.error("html:syntaxError",
             _("%(element)s error %(error)s"),

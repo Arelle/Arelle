@@ -557,16 +557,17 @@ def copyIxFootnoteHtml(sourceXml, targetHtml, targetModelDocument=None, withText
             except StopIteration: # no children
                 targetHtml.text = (targetHtml.text or "") + _tx
     for sourceChild in sourceXml.iterchildren():
-        if not sourceChild.namespaceURI in ixbrlAll:
-            # ensure xhtml has an xmlns
-            if targetModelDocument is not None and sourceChild.namespaceURI == xhtml and xhtml not in targetHtml.nsmap.values():
-                setXmlns(targetModelDocument, "xhtml", xhtml)
-            targetChild = etree.SubElement(targetHtml, sourceChild.tag)
-            for attrTag, attrValue in sourceChild.items():
-                targetChild.set(attrTag, attrValue)
-            copyIxFootnoteHtml(sourceChild, targetChild, targetModelDocument, withText=withText, isContinChainElt=False)
-        else:
-            copyIxFootnoteHtml(sourceChild, targetHtml, targetModelDocument, withText=withText, isContinChainElt=False)
+        if isinstance(sourceChild,ModelObject):
+            if not sourceChild.namespaceURI in ixbrlAll:
+                # ensure xhtml has an xmlns
+                if targetModelDocument is not None and sourceChild.namespaceURI == xhtml and xhtml not in targetHtml.nsmap.values():
+                    setXmlns(targetModelDocument, "xhtml", xhtml)
+                targetChild = etree.SubElement(targetHtml, sourceChild.tag)
+                for attrTag, attrValue in sourceChild.items():
+                    targetChild.set(attrTag, attrValue)
+                copyIxFootnoteHtml(sourceChild, targetChild, targetModelDocument, withText=withText, isContinChainElt=False)
+            else:
+                copyIxFootnoteHtml(sourceChild, targetHtml, targetModelDocument, withText=withText, isContinChainElt=False)
     if withText:
         _tl = sourceXml.tail
         if _tl:

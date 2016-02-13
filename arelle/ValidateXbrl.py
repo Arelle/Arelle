@@ -401,7 +401,7 @@ class ValidateXbrl:
                             modelObject=f, id=footnoteID)
                     factFootnoteRefs.add(footnoteID)
                 if f.concept is None:
-                    self.modelXbrl.error(ixMsgCode("missingReference", f, name="references", sect="validation"),
+                    self.modelXbrl.error(ixMsgCode("missingReferences", f, name="references", sect="validation"),
                             _("Fact %(fact)s missing schema definition or missing name attribute"),
                             modelObject=f, fact=f.qname)
                 if f.localName in {"fraction", "nonFraction", "nonNumeric"}:

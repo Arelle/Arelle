@@ -383,6 +383,17 @@ xhtmlEntities = {
     '&diams;': '&#9830;',
     }
 
+efmBlockedInlineHtmlElements = {
+    'acronym', 'area', 'base', 'bdo', 'button', 'cite', 'col', 'colgroup',
+    'dd', 'del', 'fieldset', 'form', 'input', 'ins', 'label', 'legend',
+    'map', 'object', 'option', 'param', 'q', 'script', 'select', 'style',
+    'textarea'
+    }
+efmBlockedInlineHtmlElementAttributes = {
+    'a': ('name',),
+    'body': ('link',)
+}
+
 def checkfile(modelXbrl, filepath):
     result = []
     lineNum = 1
@@ -582,7 +593,7 @@ def validateFootnote(modelXbrl, footnote):
             modelObject=footnote, validatedObjectLabel=validatedObjectLabel,
             error=edbodyDTD.error_log.filter_from_errors())
 
-def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLabel, messageCodePrefix):
+def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLabel, messageCodePrefix, isInline=False):
     checkedGraphicsFiles = set() # only check any graphics file reference once per footnote
     _xhtmlNs = "{{{}}}".format(xhtml)
     _xhtmlNsLen = len(_xhtmlNs)
@@ -596,7 +607,19 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
             eltTag = elt.tag
             if eltTag.startswith(_xhtmlNs):
                 eltTag = eltTag[_xhtmlNsLen:]
+        if isInline and eltTag in efmBlockedInlineHtmlElements:
+            modelXbrl.error(messageCodePrefix + "disallowedElement",
+                _("%(validatedObjectLabel)s has disallowed element <%(element)s>"),
+                modelObject=elt, validatedObjectLabel=validatedObjectLabel,
+                element=eltTag,
+                messageCodes=("EFM.6.05.34.disallowedElement", "EFM.5.05.02.disallowedElement"))
         for attrTag, attrValue in elt.items():
+            if isInline and attrTag in efmBlockedInlineHtmlElementAttributes.get(eltTag,()):
+                modelXbrl.error(messageCodePrefix + "disallowedAttribute",
+                    _("%(validatedObjectLabel)s has disallowed attribute on element <%(element)s>: %(attribute)s=\"%(value)s\""),
+                    modelObject=elt, validatedObjectLabel=validatedObjectLabel,
+                    element=eltTag, attribute=attrTag, value=attrValue,
+                    messageCodes=("EFM.6.05.34.disallowedElement", "EFM.5.05.02.disallowedElement"))
             if ((attrTag == "href" and eltTag == "a") or 
                 (attrTag == "src" and eltTag == "img")):
                 if "javascript:" in attrValue:
@@ -635,6 +658,17 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                                 attribute=attrValue, element=eltTag, error=err,
                                 messageCodes=("EFM.6.05.34.graphicFileError", "EFM.5.05.02.graphicFileError"))
                     checkedGraphicsFiles.add(attrValue)
+            if eltTag == "html" and not elt.tag.startswith(_xhtmlNs):
+                modelXbrl.error(messageCodePrefix + "disallowedMetaContent",
+                    _("%(validatedObjectLabel)s <meta> content is \"%(metaContent)s\" but must be \"text/html\""),
+                    modelObject=elt, validatedObjectLabel=validatedObjectLabel,
+                    metaContent=attrValue,
+                    messageCodes=("EFM.6.05.34.disallowedMetaContent", "EFM.5.05.02.disallowedMetaContent"))
+            if eltTag == "meta" and attrTag == "content" and not attrValue.startswith("text/html"):
+                modelXbrl.error(messageCodePrefix + "htmlNamespaceMissing",
+                    _("%(validatedObjectLabel)s <html> element must have the xhtml namespace."),
+                    modelObject=elt, validatedObjectLabel=validatedObjectLabel,
+                    messageCodes=("EFM.6.05.34.htmlNamespaceMissing", "EFM.5.05.02.htmlNamespaceMissing"))
         if eltTag == "table" and any(a.tag in _tableTags
                                      for a in elt.iterancestors()):
             modelXbrl.error(messageCodePrefix + "nestedTable",

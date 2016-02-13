@@ -250,7 +250,7 @@ Concept %(concept)s name length %(namelength)s exceeds 200 characters
 
 <message code="(dynamic)"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="117"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="118"
          args="">
 (dynamic)
 </message>
@@ -271,51 +271,37 @@ Concept %(concept)s name length %(namelength)s exceeds 200 characters
 
 <message code="EBA.1.5"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="265"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="273"
          args="schemaRef">
 Loading XBRL DB: Multiple schema files referenced: %(schemaRef)s
 </message>
 
 <message code="EBA.1.6"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="915"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="953"
          args="missingFilingIndicatorCodes">
 The filing indicator IDs were not found for codes %(missingFilingIndicatorCodes)s
 </message>
 
 <message code="EBA.1.7.1"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="508"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="531"
          args="dpmSignature qname context value">
 Loading XBRL DB: Fact QName not allowed for filing indicators %(qname)s, contextRef %(context)s, value: %(value)s
 </message>
 
 <message code="EBA.1.7.1"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="512"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="535"
          args="dpmSignature qname value">
 Loading XBRL DB: Fact QName not allowed for filing indicators %(qname)s, value: %(value)s
 </message>
 
 <message code="EBA.2.1"
          level="error"
-         module="ModelDocument.py" line="862"
+         module="ModelDocument.py" line="863"
          args="attribute element">
 Prohibited base attribute: %(attribute)s
-</message>
-
-<message code="EBA.2.13"
-         level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="810"
-         args="context value">
-Loading XBRL DB: Context has different date: %(context)s, date %(value)s
-</message>
-
-<message code="EBA.2.9"
-         level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="815"
-         args="context value">
-Loading XBRL DB: Context has different entity identifier: %(context)s %(value)s
 </message>
 
 <message code="EFM.5.01.01"
@@ -341,7 +327,14 @@ Document file name %(filename)s must not exceed 32 characters.
 
 <message code="EFM.5.02.01.01"
          level="error"
-         module="ValidateFilingText.py" line="406"
+         module="ValidateFilingText.py" line="407"
+         args="modelDocument text unicodeIndex file line column">
+Disallowed character '%(text)s' (%(unicodeIndex)s) in file %(file)s at line %(line)s col %(column)s
+</message>
+
+<message code="EFM.5.02.01.01"
+         level="error"
+         module="ValidateFilingText.py" line="412"
          args="modelDocument text file line column">
 Disallowed character '%(text)s' in file %(file)s at line %(line)s col %(column)s
 </message>
@@ -446,7 +439,7 @@ Href %(elementHref)s may only have shorthand xpointers
 
 <message code="EFM.6.03.11"
          level="error"
-         module="ModelDocument.py" line="862"
+         module="ModelDocument.py" line="863"
          args="attribute element">
 Prohibited base attribute: %(attribute)s
 </message>
@@ -558,70 +551,70 @@ Fact %(fact)s of context %(contextID)s has text of xml:lang '%(lang)s' without c
 
 <message code="EFM.6.05.15"
          level="error"
-         module="ValidateFilingText.py" line="540"
+         module="ValidateFilingText.py" line="546"
          args="fact contextID error">
 Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s
 </message>
 
 <message code="EFM.6.05.15.dtdError"
          level="error"
-         module="ValidateFilingText.py" line="492"
+         module="ValidateFilingText.py" line="498"
          args="fact contextID error">
 Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s
 </message>
 
 <message code="EFM.6.05.16"
          level="error"
-         module="ValidateFilingText.py" line="466"
+         module="ValidateFilingText.py" line="472"
          args="fact contextID entity error">
 Fact %(fact)s contextID %(contextID)s has disallowed entity %(entity)s
 </message>
 
 <message code="EFM.6.05.16"
          level="error"
-         module="ValidateFilingText.py" line="492"
+         module="ValidateFilingText.py" line="498"
          args="fact contextID error">
 Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s
 </message>
 
 <message code="EFM.6.05.16.activeContent"
          level="error"
-         module="ValidateFilingText.py" line="503"
+         module="ValidateFilingText.py" line="509"
          args="fact contextID attribute element">
 Fact %(fact)s of context %(contextID)s has javascript in '%(attribute)s' for &lt;%(element)s>
 </message>
 
 <message code="EFM.6.05.16.externalReference"
          level="error"
-         module="ValidateFilingText.py" line="510"
+         module="ValidateFilingText.py" line="516"
          args="fact contextID attribute element">
 Fact %(fact)s of context %(contextID)s has an invalid external reference in '%(attribute)s' for &lt;%(element)s>
 </message>
 
 <message code="EFM.6.05.16.graphicFileContent"
          level="error"
-         module="ValidateFilingText.py" line="523"
+         module="ValidateFilingText.py" line="529"
          args="fact contextID attribute element">
 Fact %(fact)s of context %(contextID)s references a graphics file which doesn't have expected content '%(attribute)s' for &lt;%(element)s>
 </message>
 
 <message code="EFM.6.05.16.graphicFileError"
          level="error"
-         module="ValidateFilingText.py" line="528"
+         module="ValidateFilingText.py" line="534"
          args="fact contextID attribute element error">
 Fact %(fact)s of context %(contextID)s references a graphics file which isn't openable '%(attribute)s' for &lt;%(element)s>, error: %(error)s
 </message>
 
 <message code="EFM.6.05.16.graphicFileType"
          level="error"
-         module="ValidateFilingText.py" line="516"
+         module="ValidateFilingText.py" line="522"
          args="fact contextID attribute element">
 Fact %(fact)s of context %(contextID)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for &lt;%(element)s>
 </message>
 
 <message code="EFM.6.05.16.nestedTable"
          level="error"
-         module="ValidateFilingText.py" line="534"
+         module="ValidateFilingText.py" line="540"
          args="fact contextID">
 Fact %(fact)s of context %(contextID)s has nested &lt;table> elements.
 </message>
@@ -922,56 +915,56 @@ FootnoteLink %(footnoteLinkNumber)s footnote %(footnoteLabel)s has no linked fac
 
 <message code="EFM.6.05.34"
          level="error"
-         module="ValidateFilingText.py" line="613"
+         module="ValidateFilingText.py" line="619"
          args="xlinkLabel error">
 Footnote %(xlinkLabel)s causes the XML error %(error)s
 </message>
 
 <message code="EFM.6.05.34.activeContent"
          level="error"
-         module="ValidateFilingText.py" line="576"
+         module="ValidateFilingText.py" line="582"
          args="xlinkLabel attribute element">
 Footnote %(xlinkLabel)s has javascript in '%(attribute)s' for &lt;%(element)s>
 </message>
 
 <message code="EFM.6.05.34.dtdError"
          level="error"
-         module="ValidateFilingText.py" line="566"
+         module="ValidateFilingText.py" line="572"
          args="xlinkLabel error">
 Footnote %(xlinkLabel)s causes the XML error %(error)s
 </message>
 
 <message code="EFM.6.05.34.externalReference"
          level="error"
-         module="ValidateFilingText.py" line="583"
+         module="ValidateFilingText.py" line="589"
          args="xlinkLabel attribute element value">
 Footnote %(xlinkLabel)s has an invalid external reference in '%(attribute)s' for &lt;%(element)s>: %(value)s
 </message>
 
 <message code="EFM.6.05.34.graphicFileContent"
          level="error"
-         module="ValidateFilingText.py" line="596"
+         module="ValidateFilingText.py" line="602"
          args="xlinkLabel attribute element">
 Footnote %(xlinkLabel)s references a graphics file which doesn't have expected content '%(attribute)s' for &lt;%(element)s>
 </message>
 
 <message code="EFM.6.05.34.graphicFileError"
          level="error"
-         module="ValidateFilingText.py" line="601"
+         module="ValidateFilingText.py" line="607"
          args="xlinkLabel attribute element error">
 Footnote %(xlinkLabel)s references a graphics file which isn't openable '%(attribute)s' for &lt;%(element)s>, error: %(error)s
 </message>
 
 <message code="EFM.6.05.34.graphicFileType"
          level="error"
-         module="ValidateFilingText.py" line="589"
+         module="ValidateFilingText.py" line="595"
          args="xlinkLabel attribute element">
 Footnote %(xlinkLabel)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for &lt;%(element)s>
 </message>
 
 <message code="EFM.6.05.34.nestedTable"
          level="error"
-         module="ValidateFilingText.py" line="607"
+         module="ValidateFilingText.py" line="613"
          args="xlinkLabel">
 Footnote %(xlinkLabel)s has nested &lt;table> elements.
 </message>
@@ -1632,14 +1625,14 @@ Prohibited file for filings %(blockedIndicator)s: %(url)s
 
 <message code="EFM.6.22.02"
          level="error"
-         module="ModelDocument.py" line="801"
+         module="ModelDocument.py" line="802"
          args="namespace schemaLocation url">
 Namespace: %(namespace)s disallowed schemaLocation %(schemaLocation)s
 </message>
 
 <message code="EFM.6.22.02"
          level="error"
-         module="ModelDocument.py" line="891"
+         module="ModelDocument.py" line="892"
          args="namespace schemaLocation url">
 Namespace: %(namespace)s disallowed schemaLocation blocked %(schemaLocation)s
 </message>
@@ -2052,56 +2045,49 @@ Inline XBRL footnote %(footnoteID)s is missing an xml:lang attribute
 
 <message code="EIOPA.1.6.a"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="915"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="953"
          args="missingFilingIndicatorCodes">
 The filing indicator IDs were not found for codes %(missingFilingIndicatorCodes)s
 </message>
 
 <message code="EIOPA.1.7.1"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="508"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="531"
          args="dpmSignature qname context value">
 Loading XBRL DB: Fact QName not allowed for filing indicators %(qname)s, contextRef %(context)s, value: %(value)s
 </message>
 
 <message code="EIOPA.1.7.1"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="512"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="535"
          args="dpmSignature qname value">
 Loading XBRL DB: Fact QName not allowed for filing indicators %(qname)s, value: %(value)s
 </message>
 
+<message code="EIOPA.1.7.b"
+         level="error"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="976"
+         args="unreportedFilingIndicators">
+The filing indicator must not indicate filed when not reported in instance %(unreportedFilingIndicators)s
+</message>
+
 <message code="EIOPA.2.1"
          level="error"
-         module="ModelDocument.py" line="862"
+         module="ModelDocument.py" line="863"
          args="attribute element">
 Prohibited base attribute: %(attribute)s
 </message>
 
-<message code="EIOPA.2.13"
-         level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="810"
-         args="context value">
-Loading XBRL DB: Context has different date: %(context)s, date %(value)s
-</message>
-
-<message code="EIOPA.2.9"
-         level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="815"
-         args="context value">
-Loading XBRL DB: Context has different entity identifier: %(context)s %(value)s
-</message>
-
 <message code="EIOPA.S.1.5.a"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="265"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="273"
          args="schemaRef">
 Loading XBRL DB: Multiple schema files referenced: %(schemaRef)s
 </message>
 
 <message code="EIOPA.S.1.7.a"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="921"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="959"
          args="missingFilingIndicatorCodes">
 The filing indicator IDs were not in scope for module %(missingFilingIndicatorCodes)s
 </message>
@@ -2298,14 +2284,14 @@ Fact %(fact)s of context %(contextID)s has text of xml:lang '%(lang)s' without c
 
 <message code="GFM.1.02.14"
          level="error"
-         module="ValidateFilingText.py" line="492"
+         module="ValidateFilingText.py" line="498"
          args="fact contextID error">
 Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s
 </message>
 
 <message code="GFM.1.02.14"
          level="error"
-         module="ValidateFilingText.py" line="540"
+         module="ValidateFilingText.py" line="546"
          args="fact contextID error">
 Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s
 </message>
@@ -2868,21 +2854,21 @@ Prohibited file for filings %(blockedIndicator)s: %(url)s
 
 <message code="GFM.1.1.3"
          level="error"
-         module="ModelDocument.py" line="801"
+         module="ModelDocument.py" line="802"
          args="namespace schemaLocation url">
 Namespace: %(namespace)s disallowed schemaLocation %(schemaLocation)s
 </message>
 
 <message code="GFM.1.1.3"
          level="error"
-         module="ModelDocument.py" line="891"
+         module="ModelDocument.py" line="892"
          args="namespace schemaLocation url">
 Namespace: %(namespace)s disallowed schemaLocation blocked %(schemaLocation)s
 </message>
 
 <message code="GFM.1.1.7"
          level="error"
-         module="ModelDocument.py" line="862"
+         module="ModelDocument.py" line="863"
          args="attribute element">
 Prohibited base attribute: %(attribute)s
 </message>
@@ -2903,7 +2889,7 @@ XML declaration encoding %(encoding)s and meta content type encoding %(metaConte
 
 <message code="GFM.1.2.15"
          level="error"
-         module="ValidateFilingText.py" line="466"
+         module="ValidateFilingText.py" line="472"
          args="fact contextID entity error">
 Fact %(fact)s contextID %(contextID)s has disallowed entity %(entity)s
 </message>
@@ -3275,14 +3261,14 @@ Prohibited file for filings %(blockedIndicator)s: %(url)s
 
 <message code="SBR.NL.2.1.0.06"
          level="error"
-         module="ModelDocument.py" line="801"
+         module="ModelDocument.py" line="802"
          args="namespace schemaLocation url">
 Namespace: %(namespace)s disallowed schemaLocation %(schemaLocation)s
 </message>
 
 <message code="SBR.NL.2.1.0.06"
          level="error"
-         module="ModelDocument.py" line="891"
+         module="ModelDocument.py" line="892"
          args="namespace schemaLocation url">
 Namespace: %(namespace)s disallowed schemaLocation blocked %(schemaLocation)s
 </message>
@@ -3401,14 +3387,14 @@ Prohibited file for filings %(blockedIndicator)s: %(url)s
 
 <message code="SBR.NL.2.2.0.17"
          level="error"
-         module="ModelDocument.py" line="801"
+         module="ModelDocument.py" line="802"
          args="namespace schemaLocation url">
 Namespace: %(namespace)s disallowed schemaLocation %(schemaLocation)s
 </message>
 
 <message code="SBR.NL.2.2.0.17"
          level="error"
-         module="ModelDocument.py" line="891"
+         module="ModelDocument.py" line="892"
          args="namespace schemaLocation url">
 Namespace: %(namespace)s disallowed schemaLocation blocked %(schemaLocation)s
 </message>
@@ -4740,7 +4726,7 @@ RSS item %(company)s %(form)s document not loaded: %(date)s
 
 <message code="arelle:creationSoftwareNamesTable"
          level="error"
-         module="ModelDocument.py" line="764"
+         module="ModelDocument.py" line="765"
          args="error">
 Error loading creation software names table %(error)s
 </message>
@@ -4761,7 +4747,7 @@ First column must be Label or Name: %(col1)s
 
 <message code="arelle:hrefWarning"
          level="warning"
-         module="ModelDocument.py" line="1013"
+         module="ModelDocument.py" line="1014"
          args="href">
 Locator href attribute &quot;%(href)s&quot; missing or malformed in non-standard extended link
 </message>
@@ -5135,7 +5121,7 @@ Exception:
 
 <message code="err:XPST0003"
          level="error"
-         module="XPathParser.py" line="733"
+         module="XPathParser.py" line="759"
          args="name error source">
 Parse error in %(name)s error: %(error)s 
 %(source)s
@@ -5157,28 +5143,28 @@ Existence Assertion depends on evaluation variable in message %(xlinkLabel)s, %(
 
 <message code="err:XPST0010"
          level="error"
-         module="XPathParser.py" line="105"
+         module="XPathParser.py" line="123"
          args="axis step">
 Axis %(axis)s is not supported in %(step)s
 </message>
 
 <message code="err:XPST0081"
          level="error"
-         module="XPathParser.py" line="122"
+         module="XPathParser.py" line="140"
          args="name">
 QName prefix not defined for %(name)s
 </message>
 
 <message code="err:XPST0081"
          level="error"
-         module="XPathParser.py" line="190"
+         module="XPathParser.py" line="208"
          args="token">
 wildcard prefix not defined for %(token)s
 </message>
 
 <message code="err:XPST0081"
          level="error"
-         module="XPathParser.py" line="301"
+         module="XPathParser.py" line="326"
          args="variable">
 QName prefix not defined for variable reference $%(variable)s
 </message>
@@ -5637,14 +5623,14 @@ Consistency Assertion %(id)s evaluations : %(satisfiedCount)s satisfied, %(notSa
 
 <message code="formula:trace"
          level="info"
-         module="XPathParser.py" line="712"
+         module="XPathParser.py" line="738"
          args="name source">
 Source %(name)s %(source)s
 </message>
 
 <message code="formula:trace"
          level="info"
-         module="XPathParser.py" line="727"
+         module="XPathParser.py" line="753"
          args="name source">
 Code %(name)s %(source)s
 </message>
@@ -5827,14 +5813,14 @@ Attribute %(attribute)s required on element ix:%(element)s
 
 <message code="ix:continuationChainNested"
          level="error"
-         module="ModelDocument.py" line="1347"
+         module="ModelDocument.py" line="1354"
          args="ancestorElement descendantElement">
 Inline XBRL continuation chain element %(ancestorElement)s has descendant element %(descendantElement)s
 </message>
 
 <message code="ix:continuationCycle"
          level="error"
-         module="ModelDocument.py" line="1332"
+         module="ModelDocument.py" line="1339"
          args="continuationCycle">
 Inline XBRL continuation cycle: %(continuationCycle)s
 </message>
@@ -5848,28 +5834,28 @@ Inline XBRL continuation chain has elements which are descendants of each other.
 
 <message code="ix:continuationMissing"
          level="error"
-         module="ModelDocument.py" line="1323"
+         module="ModelDocument.py" line="1330"
          args="continuationAt">
 Inline XBRL continuation %(continuationAt)s not found
 </message>
 
 <message code="ix:continuationNotReferenced"
          level="error"
-         module="ModelDocument.py" line="1517"
+         module="ModelDocument.py" line="1524"
          args="continuedAt">
 ix:continuation %(continuedAt)s is not referenced by a, ix:footnote, ix:nonNumeric or other ix:continuation element.
 </message>
 
 <message code="ix:continuationReferences"
          level="error"
-         module="ModelDocument.py" line="1509"
+         module="ModelDocument.py" line="1516"
          args="continuedAt referencesCount sourceElements">
 continuedAt %(continuedAt)s has %(referencesCount)s references on %(sourceElements)s elements, only one reference allowed.
 </message>
 
 <message code="ix:continuationTarget"
          level="error"
-         module="ModelDocument.py" line="1319"
+         module="ModelDocument.py" line="1326"
          args="continuationAt targetElement">
 continuedAt %(continuationAt)s target is an %(targetElement)s element instead of ix:continuation element.
 </message>
@@ -5925,7 +5911,7 @@ Inline XBRL fact's footnoteRef not found: %(id)s
 
 <message code="ix:fractionDeclaration"
          level="error"
-         module="ModelDocument.py" line="1375"
+         module="ModelDocument.py" line="1382"
          args="qname type localName">
 Inline XBRL element %(qname)s base type %(type)s mapped by %(localName)s
 </message>
@@ -6023,7 +6009,7 @@ Fact %(fact)s is missing a unit for unitRef %(unit)s
 
 <message code="ix:multipleIxNamespaces"
          level="error"
-         module="ModelDocument.py" line="1168"
+         module="ModelDocument.py" line="1162"
          args="">
 Multiple ix namespaces were found
 </message>
@@ -6093,14 +6079,14 @@ Inline XBRL fromRef %(ref)s is not a fraction, ix:nonFraction, ix:nonNumeric or 
 
 <message code="ix:relationshipReferencesMixed"
          level="error"
-         module="ModelDocument.py" line="1498"
+         module="ModelDocument.py" line="1505"
          args="toFootnoteIds toFactQnames">
 Inline relationship references footnote(s) %(toFootnoteIds)s and thereby is not allowed to reference %(toFactQnames)s.
 </message>
 
 <message code="ix:relationshipToRef"
          level="error"
-         module="ModelDocument.py" line="1488"
+         module="ModelDocument.py" line="1495"
          args="toIds">
 Inline relationship toRef(s) %(toIds)s not found.
 </message>
@@ -6184,7 +6170,7 @@ Fact %(fact)s is recursively nested in tuple %(tuple)s
 
 <message code="ix:tupleRefMissing"
          level="error"
-         module="ModelDocument.py" line="1298"
+         module="ModelDocument.py" line="1305"
          args="tupleRef">
 Inline XBRL tupleRef %(tupleRef)s not found
 </message>
@@ -6233,7 +6219,7 @@ Inline element %(element)s fact %(fact)s type %(typeName)s transform %(transform
 
 <message code="parser:unableToParse"
          level="error"
-         module="XPathParser.py" line="740"
+         module="XPathParser.py" line="766"
          args="name error source">
 Parsing terminated in %(name)s due to error: %(error)s 
 %(source)s
@@ -6262,161 +6248,161 @@ Assertion has more than one severity (%(numSevereties)s) in assertion-%(relType)
 
 <message code="sqlDB:InvalidFactConcept"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="1122"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="1192"
          args="concept dpsignature">
 A concept definition is not found for metric %(concept)s of datapoint signature %(dpsignature)s
 </message>
 
 <message code="sqlDB:contextDatesError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="797"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="832"
          args="context">
 Loading XBRL DB: Context has invalid instant date: %(context)s
 </message>
 
 <message code="sqlDB:contextDatesError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="802"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="837"
          args="context">
 Loading XBRL DB: Context has invalid start date: %(context)s
 </message>
 
 <message code="sqlDB:contextDatesError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="806"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="841"
          args="context">
 Loading XBRL DB: Context has invalid end date: %(context)s
 </message>
 
 <message code="sqlDB:factContextError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="736"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="771"
          args="qname context value">
 Loading XBRL DB: Fact missing %(qname)s, contextRef %(context)s, value: %(value)s
 </message>
 
 <message code="sqlDB:factContextError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="820"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="857"
          args="qname context">
 Loading XBRL DB: Instant metric %(qname)s has start end context: %(context)s
 </message>
 
 <message code="sqlDB:factDecimalsError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="667"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="692"
          args="qname context value decimals">
 Loading XBRL DB: Fact contains an invalid decimals attribute %(qname)s, decimals %(decimals)s, context %(context)s, value %(value)s
 </message>
 
 <message code="sqlDB:factDecimalsError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="713"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="738"
          args="qname context value decimals">
 Loading XBRL DB: Fact is non-numeric but contains a decimals attribute %(qname)s, decimals %(decimals)s, context %(context)s, value %(value)s
 </message>
 
 <message code="sqlDB:factDimensionsError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="579"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="602"
          args="dpmSignature qname context value extra missing different">
 Loading XBRL DB: Fact dimensions not allowed for filing indicators %(qname)s, contextRef %(context)s, value: %(value)s; Extra dimensions of fact: %(extra)s, missing dimensions of fact: %(missing)s, different dimensions of fact: %(different)s
 </message>
 
 <message code="sqlDB:factDimensionsError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="585"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="608"
          args="dpmSignature qname value extra missing different">
 Loading XBRL DB: Fact dimensions not allowed for filing indicators %(qname)s, value: %(value)s; Extra dimensions of fact: %(extra)s, missing dimensions of fact: %(missing)s, different dimensions of fact: %(different)s
 </message>
 
 <message code="sqlDB:factDuplicate"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="768"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="803"
          args="qname context value context2 value2">
 Loading XBRL DB: Fact is a duplicate %(qname)s, contextRef %(context)s, value: %(value)s, other contextRef %(context2)s, other value %(value2)s
 </message>
 
 <message code="sqlDB:factDuplicate"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="847"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="884"
          args="qname value">
 Loading XBRL DB: Fact is a duplicate %(qname)s, value=%(value)s
 </message>
 
 <message code="sqlDB:factPrecisionError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="611"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="636"
          args="qname context value precision">
 Loading XBRL DB: Fact contains a precision attribute %(qname)s, precision %(precision)s, context %(context)s, value %(value)s
 </message>
 
 <message code="sqlDB:factPrecisionError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="662"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="687"
          args="qname context value precision">
 Loading XBRL DB: Fact contains a precision attribute %(qname)s, precision %(precision)s, context %(context)s, value %(value)s
 </message>
 
 <message code="sqlDB:factPrecisionError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="709"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="734"
          args="qname context value precision">
 Loading XBRL DB: Fact contains a precision attribute %(qname)s, precision %(precision)s, context %(context)s, value %(value)s
 </message>
 
 <message code="sqlDB:factUnitError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="657"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="682"
          args="qname context value">
 Loading XBRL DB: Fact missing unit %(qname)s, context %(context)s, value %(value)s
 </message>
 
 <message code="sqlDB:factUnitError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="705"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="730"
          args="qname context value">
 Loading XBRL DB: Fact is non-numeric but has a unit %(qname)s, context %(context)s, value %(value)s
 </message>
 
 <message code="sqlDB:factValueError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="642"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="667"
          args="qname context value">
 Loading XBRL DB: Fact %(qname)s, context %(context)s, value lexical error: %(value)s
 </message>
 
 <message code="sqlDB:factValueError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="679"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="704"
          args="qname context value">
 Loading XBRL DB: Fact %(qname)s, context %(context)s, value: %(value)s
 </message>
 
 <message code="sqlDB:factValueError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="692"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="717"
          args="qname context value">
 Loading XBRL DB: Fact %(qname)s, context %(context)s, value: %(value)s
 </message>
 
 <message code="sqlDB:factValueError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="700"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="725"
          args="qname context value">
 Loading XBRL DB: Fact %(qname)s, context %(context)s, value: %(value)s
 </message>
 
 <message code="sqlDB:filingIndicatorContextError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="731"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="764"
          args="value">
 Loading XBRL DB: Filing indicator fact missing a context, value %(value)s
 </message>
 
 <message code="sqlDB:filingIndicatorsContextError"
          level="error"
-         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="724"
+         module="plugin/xbrlDB/XbrlDpmSqlDB.py" line="749"
          args="context">
 Loading XBRL DB: Filing indicators tuple has a context, contextRef %(context)s
 </message>
@@ -8005,14 +7991,14 @@ Href %(elementHref)s file not found
 
 <message code="xbrl:schemaDefinitionMissing"
          level="error"
-         module="ModelDocument.py" line="1056"
+         module="ModelDocument.py" line="1057"
          args="element">
 Linkbase extended link %(element)s missing schema definition
 </message>
 
 <message code="xbrl:schemaImportMissing"
          level="error"
-         module="ModelDocument.py" line="1117"
+         module="ModelDocument.py" line="1118"
          args="elements">
 Instance facts missing schema definition: %(elements)s
 </message>
@@ -8911,7 +8897,7 @@ Multiple typed domain definitions from %(typedDomain)s to %(equalityDefinition1)
 
 <message code="xbrlve:noCustomFunctionSignature"
          level="error"
-         module="XPathParser.py" line="250"
+         module="XPathParser.py" line="271"
          args="resource custFunction">
 No custom function signature for %(custFunction)s in %(resource)s
 </message>
@@ -8991,7 +8977,7 @@ Variables name %(name)s cannot be determined on arc from %(xlinkLabel)s
 
 <message code="xffe:invalidFunctionUse"
          level="error"
-         module="XPathParser.py" line="130"
+         module="XPathParser.py" line="148"
          args="name name2">
 Function %(name)s cannot be used on an XPath expression associated with a %(name2)s
 </message>
@@ -9054,7 +9040,7 @@ SchemaLocation of %(fileName)s expected namespace %(namespace)s found targetName
 
 <message code="xmlSchema1.4.2.3:refSchemaNamespace"
          level="error"
-         module="ModelDocument.py" line="795"
+         module="ModelDocument.py" line="796"
          args="fileName namespace targetNamespace">
 Discovery of %(fileName)s expected namespace %(namespace)s found targetNamespace %(targetNamespace)s
 </message>
@@ -9103,14 +9089,28 @@ Element %(element)s fact %(fact)s type %(typeName)s is nil but element has not b
 
 <message code="xmlSchema:requiredAttribute"
          level="error"
-         module="ModelDocument.py" line="1009"
+         module="ModelDocument.py" line="1010"
          args="href">
 Locator href attribute &quot;%(href)s&quot; missing or malformed in standard extended link
 </message>
 
 <message code="xmlSchema:requiredAttribute"
          level="error"
-         module="ModelDocument.py" line="975"
+         module="ModelDocument.py" line="1183"
+         args="">
+Reference for roleURI href attribute missing or malformed
+</message>
+
+<message code="xmlSchema:requiredAttribute"
+         level="error"
+         module="ModelDocument.py" line="1189"
+         args="">
+Reference for arcroleURI href attribute missing or malformed
+</message>
+
+<message code="xmlSchema:requiredAttribute"
+         level="error"
+         module="ModelDocument.py" line="976"
          args="linkbaseRefElement">
 Linkbase reference for %(linkbaseRefElement)s href attribute missing or malformed
 </message>

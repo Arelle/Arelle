@@ -1372,7 +1372,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 modelXbrl.error("EFM.6.28.tupleDisallowed",
                     _("Inline tuple %(qname)s is disallowed."),
                     modelObject=ixElt, qname=ixElt.qname)
-
+        if modelXbrl.modelDocument.xmlDocument.docinfo.doctype:
+            modelXbrl.error("EFM.5.02.02.doctypeDisallowed",
+                _("Inline HTML %(doctype)s is disallowed."),
+                modelObject=ixElt, doctype=modelXbrl.modelDocument.xmlDocument.docinfo.doctype)
     # all-labels and references checks
     defaultLangStandardLabels = {}
     for concept in modelXbrl.qnameConcepts.values():

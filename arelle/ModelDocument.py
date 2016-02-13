@@ -1423,7 +1423,7 @@ def inlineIxdsDiscover(modelXbrl):
                 if isinstance(modelInlineFact,ModelInlineFact):
                     if modelInlineFact.qname is not None: # must have a qname to be in facts
                         if modelInlineFact.concept is None:
-                            modelXbrl.error(ixMsgCode("missingReference", modelInlineFact, name="references", sect="validation"),
+                            modelXbrl.error(ixMsgCode("missingReferences", modelInlineFact, name="references", sect="validation"),
                                             _("Instance fact missing schema definition: %(qname)s of Inline Element %(localName)s"),
                                             modelObject=modelInlineFact, qname=modelInlineFact.qname, localName=modelInlineFact.elementQname)
                         elif modelInlineFact.isFraction == (modelInlineFact.localName == "fraction"):
