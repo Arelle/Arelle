@@ -10,6 +10,8 @@ from arelle import XmlUtil, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
 from arelle.PluginManager import pluginClassMethods
 
+TXMY_PLG_SRC_ELTS = ("metadata", "catalog", "taxonomy")
+
 class ModelTestcaseVariation(ModelObject):
     def init(self, modelDocument):
         super(ModelTestcaseVariation, self).init(modelDocument)
@@ -95,6 +97,8 @@ class ModelTestcaseVariation(ModelObject):
                     inputFileElement = XmlUtil.descendant(self, None, "input-file")
                     if inputFileElement is not None: # take instance first
                         self._readMeFirstUris.append("TestSources/" + inputFileElement.text + ".xml")
+                elif self.resultIsTaxonomyPackage:
+                    self._readMeFirstUris.append( os.path.join(self.modelDocument.filepathdir, "tests", self.get("name") + ".zip") )
                 else:
                     # default built-in method for readme first uris
                     for anElement in self.iterdescendants():
@@ -109,7 +113,7 @@ class ModelTestcaseVariation(ModelObject):
                                 self._readMeFirstUris.append( (anElement.get("dts"), uri) )
                             else:
                                 self._readMeFirstUris.append(uri)
-            if not self._readMeFirstUris:  # provide a dummy empty instance document
+            if not self._readMeFirstUris and not self.isTaxonomyPackageVariation:  # provide a dummy empty instance document
                 self._readMeFirstUris.append(os.path.join(self.modelXbrl.modelManager.cntlr.configDir, "empty-instance.xml"))
             return self._readMeFirstUris
     
@@ -175,6 +179,10 @@ class ModelTestcaseVariation(ModelObject):
             return os.path.join(self.modelDocument.outpath, XmlUtil.text(child if child is not None else result))
         return None    
     
+    @property
+    def resultIsTaxonomyPackage(self):
+        return any(e.localName for e in XmlUtil.descendants(self,None,TXMY_PLG_SRC_ELTS))
+
     @property
     def cfcnCall(self):
         # tuple of (expression, element holding the expression)

@@ -154,6 +154,7 @@ class Validate:
                 # is this a versioning report?
                 resultIsVersioningReport = modelTestcaseVariation.resultIsVersioningReport
                 resultIsXbrlInstance = modelTestcaseVariation.resultIsXbrlInstance
+                resultIsTaxonomyPackage = modelTestcaseVariation.resultIsTaxonomyPackage
                 formulaOutputInstance = None
                 inputDTSes = defaultdict(list)
                 baseForElement = testcase.baseForElement(modelTestcaseVariation)
@@ -190,6 +191,11 @@ class Validate:
                         if doc is not None:
                             DTSdoc.referencesDocument[doc] = ModelDocumentReference("import", DTSdoc.xmlRootElement)  #fake import
                             doc.inDTS = True
+                    elif resultIsTaxonomyPackage:
+                        from arelle import PackageManager, PrototypeInstanceObject
+                        dtsName = readMeFirstUri
+                        modelXbrl = PrototypeInstanceObject.XbrlPrototype(self.modelXbrl.modelManager, readMeFirstUri)
+                        PackageManager.packageInfo(self.modelXbrl.modelManager.cntlr, readMeFirstUri, reload=True, errors=modelXbrl.errors)
                     else: # not a multi-schemaRef versioning report
                         if self.useFileSource.isArchive:
                             modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, 
@@ -217,7 +223,7 @@ class Validate:
                              modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, file=os.path.basename(readMeFirstUri))
                         self.determineNotLoadedTestStatus(modelTestcaseVariation, modelXbrl.errors)
                         modelXbrl.close()
-                    elif resultIsVersioningReport:
+                    elif resultIsVersioningReport or resultIsTaxonomyPackage:
                         inputDTSes[dtsName] = modelXbrl
                     elif modelXbrl.modelDocument.type == Type.VERSIONINGREPORT:
                         ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(modelXbrl)
@@ -267,6 +273,9 @@ class Validate:
                     for inputDTS in inputDTSes.values():
                         inputDTS.close()
                     del inputDTSes # dereference
+                elif resultIsTaxonomyPackage:
+                    self.determineTestStatus(modelTestcaseVariation, modelXbrl.errors)
+                    modelXbrl.close()
                 elif inputDTSes:
                     # validate schema, linkbase, or instance
                     modelXbrl = inputDTSes[None][0]

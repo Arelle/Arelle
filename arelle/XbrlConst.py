@@ -485,7 +485,8 @@ errMsgPrefixNS = {
     "utre": "http://www.xbrl.org/2009/utr/errors",
     "enumte": "http://xbrl.org/2014/extensible-enumerations/taxonomy-errors",
     "enumie": "http://xbrl.org/2014/extensible-enumerations/instance-errors",
-    "seve": "http://xbrl.org/2014/assertion-severity/error"
+    "seve": "http://xbrl.org/2014/assertion-severity/error",
+    "tpe": "http://xbrl.org/WGWD/YYYY-MM-DD/taxonomy-package/errors"
     }
 
 arcroleGroupDetect = "*detect*"

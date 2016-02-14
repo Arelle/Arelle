@@ -4,7 +4,8 @@ Separated on Jul 28, 2013 from DialogOpenArchive.py
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import sys, os, io, time, json, logging
+import sys, os, io, re, time, json, logging
+from collections import defaultdict
 from fnmatch import fnmatch
 from lxml import etree
 if sys.version[0] >= '3':
@@ -12,7 +13,7 @@ if sys.version[0] >= '3':
 else:
     from urlparse import urljoin
 openFileSource = None
-from arelle import Locale
+from arelle import Locale, XmlUtil
 from arelle.UrlUtil import isAbsolute
 ArchiveFileIOError = None
 try:
@@ -34,9 +35,18 @@ def baseForElement(element):
                 base = baseAttr + base
         baseElt = baseElt.getparent()
     return base
-        
+   
+def xmlLang(element):
+    return (element.xpath('@xml:lang') + element.xpath('ancestor::*/@xml:lang') + [''])[0]
 
-def parsePackage(cntlr, filesource, metadataFile, fileBase):
+def langCloseness(l1, l2):
+    _len = min(len(l1), len(l2))
+    for i in range(0, _len):
+        if l1[i] != l2[i]:
+            return i
+    return _len
+
+def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
     global ArchiveFileIOError
     if ArchiveFileIOError is None:
         from arelle.FileSource import ArchiveFileIOError
@@ -53,18 +63,39 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase):
 
     currentLang = Locale.getLanguageCode()
     _file = filesource.file(metadataFile)[0] # URL in zip, plain file in file system or web
-    tree = etree.parse(_file)
+    try:
+        tree = etree.parse(_file)
+    except etree.XMLSyntaxError as err:
+        cntlr.addToLog(_("Package catalog syntax error %(error)s"),
+                       messageArgs={"error": str(err)},
+                       messageCode="tpe:invalidMetaDataFile",
+                       file=os.path.basename(metadataFile),
+                       level=logging.ERROR)
+        errors.append("tpe:invalidMetaDataFile")
+        raise # reraise error
     root = tree.getroot()
     ns = root.tag.partition("}")[0][1:]
     nsPrefix = "{{{}}}".format(ns)
     
     if ns in  txmyPkgNSes:  # package file
-        for eltName in ("identifier", "name", "description", "version", "publisher", "publisherURL",
-                        "publisherCountry", "publicationDate"):
+        for eltName in ("identifier", "version", "license", "publisher", "publisherURL", "publisherCountry", "publicationDate"):
             pkg[eltName] = ''
             for m in root.iterchildren(tag=nsPrefix + eltName):
-                pkg[eltName] = m.text.strip()
+                if eltName == "license":
+                    pkg[eltName] = m.get("name")
+                else:
+                    pkg[eltName] = (m.text or "").strip()
                 break # take first entry if several
+        for eltName in ("name", "description"):
+            closest = ''
+            closestLen = 0
+            for m in root.iterchildren(tag=nsPrefix + eltName):
+                s = (m.text or "").strip()
+                l = langCloseness(xmlLang(m), currentLang)
+                if l > closestLen:
+                    closestLen = l
+                    closest = s
+            pkg[eltName] = closest
         for eltName in ("supersededTaxonomyPackages", "versioningReports"):
             pkg[eltName] = []
         for m in root.iterchildren(tag=nsPrefix + "supersededTaxonomyPackages"):
@@ -75,6 +106,29 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase):
             pkg['versioningReports'] = [
                 r.get("href")
                 for r in m.iterchildren(tag=nsPrefix + "versioningReport")]
+        # check for duplicate multi-lingual elements (among children of nodes)
+        langElts = defaultdict(list)
+        for n in root.iter(tag=nsPrefix + "*"):
+            for eltName in ("name", "description"):
+                langElts.clear()
+                for m in n.iterchildren(tag=nsPrefix + eltName):
+                    langElts[xmlLang(m)].append(m)
+                for lang, elts in langElts.items():
+                    if not lang:
+                        cntlr.addToLog(_("Multi-lingual element %(element)s has no in-scope xml:lang attribute"),
+                                       messageArgs={"element": eltName},
+                                       messageCode="tpe:missingLanguageAttribute",
+                                       refs=[{"href":os.path.basename(metadataFile), "sourceLine":m.sourceline} for m in elts],
+                                       level=logging.ERROR)
+                        errors.append("tpe:missingLanguageAttribute")
+                    elif len(elts) > 1:
+                        cntlr.addToLog(_("Multi-lingual element %(element)s has multiple (%(count)s) in-scope xml:lang %(lang)s elements"),
+                                       messageArgs={"element": eltName, "lang": lang, "count": len(elts)},
+                                       messageCode="tpe:duplicateLanguagesForElement",
+                                       refs=[{"href":os.path.basename(metadataFile), "sourceLine":m.sourceline} for m in elts],
+                                       level=logging.ERROR)
+                        errors.append("tpe:duplicateLanguagesForElement")
+        del langElts # dereference
 
     else: # oasis catalog, use dirname as the package name
         # metadataFile may be a File object (with name) or string filename 
@@ -88,7 +142,8 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase):
     remappings = {}
     rewriteTree = tree
     catalogFile = metadataFile
-    if ns in ("http://xbrl.org/PWD/2015-01-14/taxonomy-package",):
+    if ns in ("http://xbrl.org/PWD/2015-01-14/taxonomy-package",
+              "http://xbrl.org/WGWD/YYYY-MM-DD/taxonomy-package"):
         catalogFile = metadataFile.replace('taxonomyPackage.xml','catalog.xml')
         try:
             rewriteTree = etree.parse(filesource.file(catalogFile)[0])
@@ -121,6 +176,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase):
                                    messageCode="tpe:multipleRewriteURIsForStartString",
                                    file=os.path.basename(catalogFile),
                                    level=logging.ERROR)
+                    errors.append("tpe:multipleRewriteURIsForStartString")
 
 
     pkg["remappings"] = remappings
@@ -130,14 +186,15 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase):
 
     for entryPointSpec in tree.iter(tag=nsPrefix + "entryPoint"):
         name = None
+        closestLen = 0
         
         # find closest match name node given xml:lang match to current language or no xml:lang
         for nameNode in entryPointSpec.iter(tag=nsPrefix + "name"):
-            xmlLang = nameNode.get('{http://www.w3.org/XML/1998/namespace}lang')
-            if name is None or not xmlLang or currentLang == xmlLang:
-                name = nameNode.text
-                if currentLang == xmlLang: # most prefer one with the current locale's language
-                    break
+            s = (nameNode.text or "").strip()
+            l = langCloseness(xmlLang(nameNode), currentLang)
+            if l > closestLen:
+                closestLen = l
+                name = s
 
         if not name:
             name = _("<unnamed {0}>").format(unNamedCounter)
@@ -157,6 +214,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase):
                                messageCode="arelle.packageMultipleDocumentEntryPoints",
                                file=os.path.basename(metadataFile),
                                level=logging.WARNING)
+                errors.append("arelle.packageMultipleDocumentEntryPoints")
                 continue
             epDocCount += 1
     
@@ -217,15 +275,16 @@ def orderedPackagesConfig():
                                                          'status': '02',
                                                          'version': '03',
                                                          'fileDate': '04',
-                                                         'URL': '05',
-                                                         'description': '06',
-                                                         "publisher": '07', 
-                                                         "publisherURL": '08',
-                                                         "publisherCountry": '09', 
-                                                         "publicationDate": '10',
-                                                         "supersededTaxonomyPackages": '11', 
-                                                         "versioningReports": '12',
-                                                         'remappings': '13',
+                                                         'license': '05',
+                                                         'URL': '06',
+                                                         'description': '07',
+                                                         "publisher": '08', 
+                                                         "publisherURL": '09',
+                                                         "publisherCountry": '10', 
+                                                         "publicationDate": '11',
+                                                         "supersededTaxonomyPackages": '12', 
+                                                         "versioningReports": '13',
+                                                         'remappings': '14',
                                                          }.get(k[0],k[0])))
                        for _packageInfo in packagesConfig['packages']]),
          ('remappings',OrderedDict(sorted(packagesConfig['remappings'].items())))))
@@ -275,7 +334,7 @@ def packageNamesWithNewerFileDates():
             pass
     return names
 
-def packageInfo(cntlr, URL, reload=False, packageManifestName=None):
+def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
     #TODO several directories, eg User Application Data
     packageFilename = _cntlr.webCache.getfilename(URL, reload=reload, normalize=True)
     if packageFilename:
@@ -288,23 +347,51 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None):
             filesource = openFileSource(packageFilename, _cntlr)
             # allow multiple manifests [[metadata, prefix]...] for multiple catalogs
             packages = []
+            packageFiles = []
             if filesource.isZip:
                 _dir = filesource.dir
-                _metaInf = '{}/META-INF/'.format(
-                            os.path.splitext(os.path.basename(packageFilename))[0])
-                if packageManifestName:
-                    packageFiles = [fileName
-                                    for fileName in filesource.dir
-                                    if fnmatch(fileName, packageManifestName)]
-                elif _metaInf + 'taxonomyPackage.xml' in _dir:
-                    # PWD taxonomy packages
-                    packageFiles = [_metaInf + 'taxonomyPackage.xml']
-                elif 'META-INF/taxonomyPackage.xml' in _dir:
-                    # root-level META-INF taxonomy packages
-                    packageFiles = ['META-INF/taxonomyPackage.xml']
+                # single top level directory
+                topLevelDirectories = set(f.partition('/')[0] for f in _dir)
+                if len(topLevelDirectories) != 1:
+                    cntlr.addToLog(_("Taxonomy package contains %(count)s top level directories:  %(topLevelDirectories)s"),
+                                   messageArgs={"count": len(topLevelDirectories),
+                                                "topLevelDirectories": ', '.join(sorted(topLevelDirectories))},
+                                   messageCode="tpe:invalidDirectoryStructure",
+                                   file=os.path.basename(packageFilename),
+                                   level=logging.ERROR)
+                    errors.append("tpe:invalidDirectoryStructure")
+                elif not any('/META-INF/' in f for f in _dir):
+                    cntlr.addToLog(_("Taxonomy package does not contain a subdirectory META-INF"),
+                                   messageCode="tpe:metadataDirectoryNotFound",
+                                   file=os.path.basename(packageFilename),
+                                   level=logging.ERROR)
+                    errors.append("tpe:metadataDirectoryNotFound")
+                elif any(f.endswith('/META-INF/taxonomyPackage.xml') for f in _dir):
+                    packageFiles = [f for f in _dir if f.endswith('/META-INF/taxonomyPackage.xml')]
                 else:
-                    # early generation taxonomy packages
-                    packageFiles = filesource.taxonomyPackageMetadataFiles
+                    cntlr.addToLog(_("Taxonomy package does not contain a metadata file */META-INF/taxonomyPackage.xml"),
+                                   messageCode="tpe:metadataFileNotFound",
+                                   file=os.path.basename(packageFilename),
+                                   level=logging.ERROR)
+                    errors.append("tpe:metadataFileNotFound")
+                if not packageFiles:
+                    # look for pre-PWD packages
+                    _metaInf = '{}/META-INF/'.format(
+                                os.path.splitext(os.path.basename(packageFilename))[0])
+                    if packageManifestName:
+                        # pre-pwd
+                        packageFiles = [fileName
+                                        for fileName in _dir
+                                        if fnmatch(fileName, packageManifestName)]
+                    elif _metaInf + 'taxonomyPackage.xml' in _dir:
+                        # PWD taxonomy packages
+                        packageFiles = [_metaInf + 'taxonomyPackage.xml']
+                    elif 'META-INF/taxonomyPackage.xml' in _dir:
+                        # root-level META-INF taxonomy packages
+                        packageFiles = ['META-INF/taxonomyPackage.xml']
+                    else:
+                        # early generation taxonomy packages
+                        packageFiles = filesource.taxonomyPackageMetadataFiles
                 if len(packageFiles) < 1:
                     raise IOError(_("Taxonomy package contained no metadata file: {0}.")
                                   .format(', '.join(packageFiles)))
@@ -321,22 +408,28 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None):
                         packageFilePrefix += os.sep
                     packageFilePrefix = filesource.baseurl + os.sep +  packageFilePrefix
                     packages.append([packageFileUrl, packageFilePrefix, packageFile])
-            elif (os.path.basename(filesource.url) in TAXONOMY_PACKAGE_FILE_NAMES or # individual manifest file
-                  (os.path.basename(filesource.url) == "taxonomyPackage.xml" and 
-                   os.path.basename(os.path.dirname(filesource.url)) == "META-INF")):
-                packageFile = packageFileUrl = filesource.url
-                packageFilePrefix = os.path.dirname(packageFile)
-                if packageFilePrefix:
-                    packageFilePrefix += os.sep
-                packages.append([packageFileUrl, packageFilePrefix, ""])
             else:
-                raise IOError(_("File must be a taxonomy package (zip file), catalog file, or manifest (): {0}.")
-                              .format(packageFilename, ', '.join(TAXONOMY_PACKAGE_FILE_NAMES)))
+                cntlr.addToLog(_("Taxonomy package is not a zip file."),
+                               messageCode="tpe:invalidArchiveFormat",
+                               file=os.path.basename(packageFilename),
+                               level=logging.ERROR)
+                errors.append("tpe:invalidArchiveFormat")
+                if (os.path.basename(filesource.url) in TAXONOMY_PACKAGE_FILE_NAMES or # individual manifest file
+                      (os.path.basename(filesource.url) == "taxonomyPackage.xml" and 
+                       os.path.basename(os.path.dirname(filesource.url)) == "META-INF")):
+                    packageFile = packageFileUrl = filesource.url
+                    packageFilePrefix = os.path.dirname(packageFile)
+                    if packageFilePrefix:
+                        packageFilePrefix += os.sep
+                    packages.append([packageFileUrl, packageFilePrefix, ""])
+                else:
+                    raise IOError(_("File must be a taxonomy package (zip file), catalog file, or manifest (): {0}.")
+                                  .format(packageFilename, ', '.join(TAXONOMY_PACKAGE_FILE_NAMES)))
             remappings = {}
             packageNames = []
             descriptions = []
             for packageFileUrl, packageFilePrefix, packageFile in packages:
-                parsedPackage = parsePackage(_cntlr, filesource, packageFileUrl, packageFilePrefix)
+                parsedPackage = parsePackage(_cntlr, filesource, packageFileUrl, packageFilePrefix, errors)
                 packageNames.append(parsedPackage['name'])
                 if parsedPackage.get('description'):
                     descriptions.append(parsedPackage['description'])
@@ -349,24 +442,28 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None):
                                        messageCode="arelle.packageDuplicateMapping",
                                        file=os.path.basename(URL),
                                        level=logging.ERROR)
+                        errors.append("arelle.packageDuplicateMapping")
+            if not parsedPackage:
+                return None
             package = {'name': ", ".join(packageNames),
                        'status': 'enabled',
-                       'version': parsedPackage['version'],
+                       'version': parsedPackage.get('version'),
+                       'license': parsedPackage.get('license'),
                        'fileDate': time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(packageFilename))),
                        'URL': URL,
                        'manifestName': packageManifestName,
                        'description': "; ".join(descriptions),
-                       'publisher': parsedPackage['publisher'], 
-                       'publisherURL': parsedPackage['publisherURL'],
-                       'publisherCountry': parsedPackage['publisherCountry'], 
-                       'publicationDate': parsedPackage['publicationDate'],
-                       'supersededTaxonomyPackages': parsedPackage['supersededTaxonomyPackages'], 
-                       'versioningReports': parsedPackage['versioningReports'],
+                       'publisher': parsedPackage.get('publisher'), 
+                       'publisherURL': parsedPackage.get('publisherURL'),
+                       'publisherCountry': parsedPackage.get('publisherCountry'), 
+                       'publicationDate': parsedPackage.get('publicationDate'),
+                       'supersededTaxonomyPackages': parsedPackage.get('supersededTaxonomyPackages'), 
+                       'versioningReports': parsedPackage.get('versioningReports'),
                        'remappings': remappings,
                        }
             filesource.close()
             return package
-        except EnvironmentError:
+        except (EnvironmentError, etree.XMLSyntaxError):
             pass
         if filesource:
             filesource.close()
