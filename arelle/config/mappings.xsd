@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" >
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
     <xsd:element name="mappings">
         <xsd:complexType>
             <xsd:choice minOccurs="0" maxOccurs="unbounded">
@@ -9,10 +9,12 @@
         </xsd:complexType>
     </xsd:element>
     <xsd:complexType name="mapEntry">
-        <xsd:restriction base="xsd:string">
-            <xsd:attribute name="from" type="anyURI"/>
-            <xsd:attribute name="to" type="anyURI"/>
-        </xsd:restriction>
+      <xsd:simpleContent>
+        <xsd:extension base="xsd:string">
+          <xsd:attribute name="from" type="xsd:anyURI"/>
+          <xsd:attribute name="to" type="xsd:anyURI"/>
+        </xsd:extension>
+      </xsd:simpleContent>
     </xsd:complexType>
     <xsd:element name="mapFile" type="mapEntry" />
     <xsd:element name="mapPath" type="mapEntry" />
