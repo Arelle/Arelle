@@ -468,7 +468,7 @@ class Filing:
             relFiles = [relativeUri(_baseFile, f) for f in file]
         else:
             relFiles = None
-        self.cntlr.addToLog(message, messageCode, messageArgs, relFiles, "ERROR")
+        self.cntlr.addToLog(message, messageCode=messageCode, messageArgs=messageArgs, file=relFiles, level="ERROR")
         self.errors.append(messageCode)
         
     @property

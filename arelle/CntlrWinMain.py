@@ -1234,12 +1234,14 @@ class CntlrWinMain (Cntlr.Cntlr):
                                     sys.version_info, etree.LXML_VERSION))
 
     # worker threads addToLog        
-    def addToLog(self, message, messageCode="", messageArgs=None, file="", level=logging.INFO):
+    def addToLog(self, message, messageCode="", messageArgs=None, file="", refs=[], level=logging.INFO):
         if level == logging.DEBUG and not self.showDebugMessages.get():
             return
         if messageCode and messageCode not in message: # prepend message code
             message = "[{}] {}".format(messageCode, message)
-        if file:
+        if refs:
+            message += " - " + Cntlr.logRefsFileLines(refs)
+        elif file:
             if isinstance(file, (tuple,list,set)):
                 message += " - " + ", ".join(file)
             elif isinstance(file, _STR_BASE):

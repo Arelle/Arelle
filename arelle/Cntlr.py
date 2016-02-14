@@ -324,7 +324,7 @@ class Cntlr:
         if self.logger:
             self.logger.messageCodeFilter = re.compile(logCodeFilter) if logCodeFilter else None
                         
-    def addToLog(self, message, messageCode="", messageArgs=None, file="", level=logging.INFO):
+    def addToLog(self, message, messageCode="", messageArgs=None, file="", refs=[], level=logging.INFO):
         """Add a simple info message to the default logger
            
         :param message: Text of message to add to log.
@@ -341,7 +341,6 @@ class Cntlr:
                 args = (message, messageArgs)
             else:
                 args = (message,)  # pass no args if none provided
-            refs = []
             if isinstance(file, (tuple,list,set)):
                 for _file in file: 
                     refs.append( {"href": _file} )
@@ -516,6 +515,17 @@ class Cntlr:
         except Exception:
             pass
         return 0
+    
+def logRefsFileLines(refs):
+    fileLines = defaultdict(set)
+    for ref in refs:
+        href = ref.get("href")
+        if href:
+            fileLines[href.partition("#")[0]].add(ref.get("sourceLine", 0))
+    return ", ".join(file + " " + ', '.join(str(line) 
+                                            for line in sorted(lines, key=lambda l: l)
+                                            if line)
+                    for file, lines in sorted(fileLines.items()))
 
 class LogFormatter(logging.Formatter):
     def __init__(self, fmt=None, datefmt=None):
@@ -523,15 +533,7 @@ class LogFormatter(logging.Formatter):
         
     def fileLines(self, record):
         # provide a file parameter made up from refs entries
-        fileLines = defaultdict(set)
-        for ref in record.refs:
-            href = ref.get("href")
-            if href:
-                fileLines[href.partition("#")[0]].add(ref.get("sourceLine", 0))
-        return ", ".join(file + " " + ', '.join(str(line) 
-                                                for line in sorted(lines, key=lambda l: l)
-                                                if line)
-                        for file, lines in sorted(fileLines.items()))
+        return logRefsFileLines(record.refs)
         
     def format(self, record):
         record.file = self.fileLines(record)
