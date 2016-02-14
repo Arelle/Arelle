@@ -644,13 +644,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         val.modelXbrl.profileActivity("... filer label and text checks", minTimeToShow=1.0)
 
         if isEFM:
-            if amendmentFlag == "true" and amendmentDescription is None:
+            if amendmentFlag == True and amendmentDescription is None:
                 modelXbrl.log("WARNING" if validateEFMpragmatic else "ERROR",
                               "EFM.6.05.20.missingAmendmentDescription",
                     _("AmendmentFlag is true in context %(contextID)s so AmendmentDescription is also required"),
                     modelObject=amendmentFlagFact, contextID=amendmentFlagFact.contextID if amendmentFlagFact is not None else "unknown")
     
-            if amendmentDescription is not None and amendmentFlag != "true":
+            if amendmentDescription is not None and amendmentFlag != True:
                 modelXbrl.log("WARNING" if validateEFMpragmatic else "ERROR",
                               "EFM.6.05.20.extraneous",
                     _("AmendmentDescription can not be provided when AmendmentFlag is not true in context %(contextID)s"),
@@ -1029,7 +1029,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
                 if rxdNs:
                     qn = ModelValue.qname(rxdNs, "AmendmentNumber")
-                    if amendmentFlag == "true" and (
+                    if amendmentFlag == True and (
                                 qn not in modelXbrl.factsByQname or not any(
                                        f.context is not None and not f.context.hasSegment 
                                        for f in modelXbrl.factsByQname[qn])):
@@ -1358,6 +1358,11 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     
     # inline-only checks
     if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL and isEFM:
+        elt = modelXbrl.modelDocument.xmlRootElement
+        if elt.tag in ("html", "xhtml") or (isinstance(elt, ModelObject) and not elt.namespaceURI):
+            modelXbrl.error("EFM.5.05.02.xhtmlNamespaceMissing",
+                _("InlineXBRL root element <%(element)s> MUST be html and have the xhtml namespace."),
+                modelObject=elt, element=elt.tag)
         ixNStag = modelXbrl.modelDocument.ixNStag
         ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
         for tag in ixTags:
