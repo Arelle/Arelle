@@ -255,14 +255,12 @@ class DisclosureSystem:
                 return
             basename = os.path.basename(self.standardTaxonomiesUrl)
             self.modelManager.cntlr.showStatus(_("parsing {0}").format(basename))
-            file = None
             try:
                 from arelle.FileSource import openXmlFileStream
                 for filepath in (self.standardTaxonomiesUrl, 
                                  os.path.join(self.modelManager.cntlr.configDir,"xbrlschemafiles.xml")):
-                    file = openXmlFileStream(self.modelManager.cntlr, filepath, stripDeclaration=True)[0]
-                    xmldoc = etree.parse(file)
-                    file.close()
+                    xmldoc = etree.parse(filepath) # must open with file path for xinclude to know base of file
+                    xmldoc.xinclude() # to include elements below root use xpointer(/*/*)
                     for erxlElt in xmldoc.iter(tag="Erxl"):
                         v = erxlElt.get("version")
                         if v and re.match(r"[0-9]+([.][0-9]+)*$", v):
@@ -322,14 +320,13 @@ class DisclosureSystem:
                                                  messageArgs={"error": str(err), "name": self.name, "importFile": basename}, 
                                                  level=logging.ERROR)
                 etree.clear_error_log()
-                if file:
-                    file.close()
 
     def loadMappings(self):
         basename = os.path.basename(self.mappingsUrl)
         self.modelManager.cntlr.showStatus(_("parsing {0}").format(basename))
         try:
             xmldoc = etree.parse(self.mappingsUrl)
+            xmldoc.xinclude()
             for elt in xmldoc.iter(tag="mapFile"):
                 self.mappedFiles[elt.get("from")] = elt.get("to")
             for elt in xmldoc.iter(tag="mapPath"):
