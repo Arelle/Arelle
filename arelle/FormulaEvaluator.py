@@ -1034,22 +1034,33 @@ class VariableBinding:
     def matchesSubPartitions(self, partition, aspects):
         if self.var.matches == "true":
             return [partition]
-        subPartitions = []
+        subpartition0 = []
+        subpartitions = [subpartition0]
+        matches = defaultdict(list) # position: [matching facts]
         for fact in partition:
-            foundSubPartition = False
-            for subPartition in subPartitions:
-                matchedInSubPartition = False
-                for fact2 in subPartition:
-                    if aspectsMatch(self.xpCtx, fact, fact2, aspects):
-                        matchedInSubPartition = True
-                        break
-                if not matchedInSubPartition:
-                    subPartition.append(fact)
-                    foundSubPartition = True
+            matched = False
+            for i, fact2 in enumerate(subpartition0):
+                if aspectsMatch(self.xpCtx, fact, fact2, aspects):
+                    matches[i].append(fact)
+                    matched = True
                     break
-            if not foundSubPartition:
-                subPartitions.append([fact,])
-        return subPartitions
+            if not matched:
+                subpartition0.append(fact)
+        if matches:
+            matchIndices = sorted(matches.keys())
+            matchIndicesLen = len(matchIndices)
+            def addSubpartition(l):
+                if l == matchIndicesLen:
+                    subpartitions.append(subpartition0.copy())
+                else:
+                    i = matchIndices[l]
+                    for matchedFact in matches[i]:
+                        nextSubpartition = len(subpartitions)
+                        addSubpartition(l+1)
+                        for j in range(nextSubpartition, len(subpartitions)):
+                            subpartitions[j][i] = matchedFact
+            addSubpartition(0)
+        return subpartitions
  
     @property
     def evaluationResults(self):
