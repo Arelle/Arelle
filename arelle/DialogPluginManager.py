@@ -55,6 +55,7 @@ class DialogPluginManager(Toplevel):
         self.pluginConfigChanged = False
         self.uiClassMethodsChanged = False
         self.modelClassesChanged = False
+        self.customTransformsChanged = False
         self.disclosureSystemTypesChanged = False
         self.hostSystemFeaturesChanged = False
         self.modulesWithNewerFileDates = modulesWithNewerFileDates
@@ -285,7 +286,7 @@ class DialogPluginManager(Toplevel):
             PluginManager.pluginConfig = self.pluginConfig
             PluginManager.pluginConfigChanged = True
             PluginManager.reset()  # force reloading of modules
-        if self.uiClassMethodsChanged or self.modelClassesChanged or self.disclosureSystemTypesChanged or self.hostSystemFeaturesChanged:  # may require reloading UI
+        if self.uiClassMethodsChanged or self.modelClassesChanged or self.customTransformsChanged or self.disclosureSystemTypesChanged or self.hostSystemFeaturesChanged:  # may require reloading UI
             affectedItems = ""
             if self.uiClassMethodsChanged:
                 affectedItems += _("menus of the user interface")
@@ -293,6 +294,10 @@ class DialogPluginManager(Toplevel):
                 if affectedItems:
                     affectedItems += _(" and ")
                 affectedItems += _("model objects of the processor")
+            if self.customTransformsChanged:
+                if affectedItems:
+                    affectedItems += _(" and ")
+                affectedItems += _("custom transforms")
             if self.disclosureSystemTypesChanged:
                 if affectedItems:
                     affectedItems += _(" and ")
@@ -462,6 +467,8 @@ class DialogPluginManager(Toplevel):
                 self.uiClassMethodsChanged = True  # may require reloading UI
             elif classMethod == "ModelObjectFactory.ElementSubstitutionClasses":
                 self.modelClassesChanged = True # model object factor classes changed
+            elif classMethod == "ModelManager.LoadCustomTransforms":
+                self.customTransformsChanged = True
             elif classMethod == "DisclosureSystem.Types":
                 self.disclosureSystemTypesChanged = True # disclosure system types changed
             elif classMethod.startswith("Proxy."):
