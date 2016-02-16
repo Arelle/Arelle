@@ -1322,18 +1322,18 @@ def inlineIxdsDiscover(modelXbrl):
                 for attrName, attrValue in elt.items():
                     if attrName.startswith('{') and not attrName.startswith(mdlDoc.ixNStag):
                         if attrName in targetReferenceAttrsDict:
-                            modelXbrl.error(ixMsgCode("ixReferencesAttributeDuplication",ns=mdlDoc.ixNS,name="references",sect="validation"),
+                            modelXbrl.error(ixMsgCode("referencesAttributeDuplication",ns=mdlDoc.ixNS,name="references",sect="validation"),
                                             _("Inline XBRL ix:references attribute %(name)s duplicated in target %(target)s"),
                                             modelObject=(elt, targetReferenceAttrsDict[attrName]), name=attrName, target=target)
                         else:
                             targetReferenceAttrsDict[attrName] = elt
                 if elt.id:
                     if ixdsEltById[elt.id] != [elt]:
-                        modelXbrl.error(ixMsgCode("ixReferencesIdDuplication",ns=mdlDoc.ixNS,name="references",sect="validation"),
+                        modelXbrl.error(ixMsgCode("referencesIdDuplication",ns=mdlDoc.ixNS,name="references",sect="validation"),
                                         _("Inline XBRL ix:references id %(id)s duplicated in inline document set"),
                                         modelObject=ixdsEltById[elt.id], id=elt.id)
                     if target in targetReferencesIDs:
-                        modelXbrl.error(ixMsgCode("ixReferencesTargetId",ns=mdlDoc.ixNS,name="references",sect="validation"),
+                        modelXbrl.error(ixMsgCode("referencesTargetId",ns=mdlDoc.ixNS,name="references",sect="validation"),
                                         _("Inline XBRL has multiple ix:references with id in target %(target)s"),
                                         modelObject=(elt, targetReferencesIDs[target]), target=target)
                     else:
@@ -1341,7 +1341,7 @@ def inlineIxdsDiscover(modelXbrl):
                 targetReferencePrefixNsDict = targetReferencePrefixNs[target]
                 for _prefix, _ns in elt.nsmap.items():
                     if _prefix in targetReferencePrefixNsDict and _ns != targetReferencePrefixNsDict[_prefix][0]:
-                        modelXbrl.error(ixMsgCode("ixReferencesNamespacePrefixConflict",ns=mdlDoc.ixNS,name="references",sect="validation"),
+                        modelXbrl.error(ixMsgCode("referencesNamespacePrefixConflict",ns=mdlDoc.ixNS,name="references",sect="validation"),
                                         _("Inline XBRL ix:references prefix %(prefix)s has multiple namespaces %(ns1)s and %(ns2)s in target %(target)s"),
                                         modelObject=(elt, targetReferencePrefixNsDict[_prefix][1]), prefix=_prefix, ns1=_ns, ns2=targetReferencePrefixNsDict[_prefix], target=target)
                     else:
