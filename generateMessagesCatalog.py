@@ -18,7 +18,10 @@ if __name__ == "__main__":
     arelleSrcPath = (os.path.dirname(__file__) or os.curdir) + os.sep + "arelle"
     for arelleSrcDir in (arelleSrcPath, 
                          arelleSrcPath + os.sep + "plugin",
-                         arelleSrcPath + os.sep + "plugin" + os.sep + "xbrlDB"):
+                         arelleSrcPath + os.sep + "plugin" + os.sep + "validate" + os.sep + "EFM",
+                         arelleSrcPath + os.sep + "plugin" + os.sep + "EdgarRenderer"
+                         # arelleSrcPath + os.sep + "plugin" + os.sep + "validate" + os.sep + "GL"
+                         ):
         for moduleFilename in os.listdir(arelleSrcDir):
             if moduleFilename.endswith(".py"):
                 numArelleSrcFiles += 1
@@ -57,6 +60,8 @@ if __name__ == "__main__":
                                     msgCodeArg = item.args[0 + iArgOffset]  # str or tuple
                                     if isinstance(msgCodeArg,ast.Str):
                                         msgCodes = (msgCodeArg.s,)
+                                    elif isinstance(msgCodeArg, ast.Call) and getattr(msgCodeArg.func, "id", '') == 'ixMsgCode':
+                                        msgCodes = ("ix{{ver.sect}}.{}".format(msgCodeArg.args[0].s),)
                                     else:
                                         if any(isinstance(elt, (ast.Call, ast.Name))
                                                for elt in ast.walk(msgCodeArg)):
@@ -99,10 +104,14 @@ if __name__ == "__main__":
     lines = []
     for id,msg,level,args,module,line in idMsg:
         try:
-            lines.append("<message code=\"{0}\"\n         level=\"{3}\"\n         module=\"{4}\" line=\"{5}\"\n         args=\"{2}\">\n{1}\n</message>"
+            if args:
+                argAttr = "\n         args=\"{0}\"".format(entityEncode(" ".join(args)))
+            else:
+                argAttr = ""
+            lines.append("<message code=\"{0}\"\n         level=\"{3}\"\n         module=\"{4}\" line=\"{5}\"{2}>\n{1}\n</message>"
                       .format(id, 
                               entityEncode(msg),
-                              entityEncode(" ".join(args)),
+                              argAttr,
                               level,
                               module,
                               line))
