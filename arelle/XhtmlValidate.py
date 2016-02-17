@@ -335,7 +335,12 @@ def xhtmlValidate(modelXbrl, elt):
                                 ", ".join("{}:{}".format(namespacePrefix, n) for n in names),
                                 issue)
                     modelXbrl.error(code, msg, 
-                                    modelObject=[elt] + relations, requirement=reqt)
+                                    modelObject=[elt] + relations, requirement=reqt,
+                                    messageCodes=("ix{ver.sect}:ancestorNode{Required|Disallowed}",
+                                                  "ix{ver.sect}:childNodesOrTextRequired",
+                                                  "ix{ver.sect}:childNodes{Required|Disallowed|Allowed}",
+                                                  "ix{ver.sect}:descendantNodesDisallowed",
+                                                  "ix{ver.sect}:parentNodeRequired"))
                 
     def ixToXhtml(fromRoot):
         toRoot = etree.Element(fromRoot.localName)

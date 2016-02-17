@@ -20,7 +20,7 @@ from arelle import UrlUtil
 validateElementSequence = None  #dynamic import to break dependency loops
 modelGroupCompositorTitle = None
 ModelInlineValueObject = None
-ixSect = None
+ixMsgCode = None
 
 UNVALIDATED = 0 # note that these values may be used a constants in code for better efficiency
 UNKNOWN = 1
@@ -91,10 +91,10 @@ predefinedAttributeTypes = {
 xAttributesSharedEmptyDict = {}
 
 def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
-    global ModelInlineValueObject, ixSect
+    global ModelInlineValueObject, ixMsgCode
     if ModelInlineValueObject is None:
         from arelle.ModelInstanceObject import ModelInlineValueObject
-        from arelle.XhtmlValidate import ixSect
+        from arelle.XhtmlValidate import ixMsgCode
     isIxFact = isinstance(elt, ModelInlineValueObject)
     facets = None
 
@@ -158,13 +158,13 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                 else:
                     errElt = elt.elementQname
                 if isIxFact and err.__class__.__name__ == "FunctionArgType":
-                    modelXbrl.error("{}:transformValueError".format(ixSect[elt.namespaceURI].get(elt.localName,"other")["constraint"]),
+                    modelXbrl.error(ixMsgCode("transformValueError", elt),
                         _("Inline element %(element)s fact %(fact)s type %(typeName)s transform %(transform)s value error: %(value)s"),
                         modelObject=elt, element=errElt, fact=elt.qname, transform=elt.format,
                         typeName=modelConcept.baseXsdType if modelConcept is not None else "unknown",
                         value=XmlUtil.innerText(elt, ixExclude=True, ixContinuation=elt.namespaceURI==XbrlConst.ixbrl11))
                 elif isIxFact and err.__class__.__name__ == "ixtFunctionNotAvailable":
-                    modelXbrl.error("{}:formatCodeUndefined".format(ixSect[elt.namespaceURI].get(elt.localName,"other")["constraint"]),
+                    modelXbrl.error(ixMsgCode("formatCodeUndefined", elt),
                         _("Inline element %(element)s fact %(fact)s type %(typeName)s transform %(transform)s not available, value: %(value)s"),
                         modelObject=elt, element=errElt, fact=elt.qname, transform=elt.format,
                         typeName=modelConcept.baseXsdType if modelConcept is not None else "unknown",

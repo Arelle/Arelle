@@ -253,27 +253,6 @@ Exception:
 
 <message code="(dynamic)"
          level="error"
-         module="XhtmlValidate.py" line="337"
-         args="requirement">
-(dynamic)
-</message>
-
-<message code="(dynamic)"
-         level="error"
-         module="XmlValidate.py" line="161"
-         args="element fact transform typeName value">
-Inline element %(element)s fact %(fact)s type %(typeName)s transform %(transform)s value error: %(value)s
-</message>
-
-<message code="(dynamic)"
-         level="error"
-         module="XmlValidate.py" line="167"
-         args="element fact transform typeName value">
-Inline element %(element)s fact %(fact)s type %(typeName)s transform %(transform)s not available, value: %(value)s
-</message>
-
-<message code="(dynamic)"
-         level="error"
          module="plugin/EdgarRenderer/Embedding.py" line="243"
          args="linkrole linkroleDefinition linkroleName fact contextID iftransposed roworcol colorrow axes">
 In &quot;%(linkroleName)s&quot;, the embedded report created by the fact %(fact)s with the context %(contextID)s, there are no valid %(roworcol)s commands%(iftransposed)s. Change one of the %(axes)s to a %(colorrow)s or add a %(roworcol)s command with an additional axis.
@@ -8362,14 +8341,14 @@ Code %(name)s %(source)s
 
 <message code="html:syntaxError"
          level="error"
-         module="XhtmlValidate.py" line="400"
+         module="XhtmlValidate.py" line="405"
          args="element error">
 %(element)s error %(error)s
 </message>
 
 <message code="html:syntaxError"
          level="error"
-         module="XhtmlValidate.py" line="407"
+         module="XhtmlValidate.py" line="412"
          args="element error">
 %(element)s error %(error)s
 </message>
@@ -8655,337 +8634,386 @@ Fact %(fact)s missing an order in tuple %(tuple)s
 Fact %(fact)s is recursively nested in tuple %(tuple)s
 </message>
 
-<message code="ix{ver.sect}.attributeNotExpected"
+<message code="ix{ver.sect}:ancestorNode{Required|Disallowed}"
+         level="error"
+         module="XhtmlValidate.py" line="337"
+         args="requirement">
+(dynamic)
+</message>
+
+<message code="ix{ver.sect}:attributeNotExpected"
          level="error"
          module="XhtmlValidate.py" line="251"
          args="attribute element">
 Attribute %(attribute)s is not expected on element ix:%(element)s
 </message>
 
-<message code="ix{ver.sect}.attributeRequired"
+<message code="ix{ver.sect}:attributeRequired"
          level="error"
-         module="XhtmlValidate.py" line="365"
+         module="XhtmlValidate.py" line="370"
          args="attribute element">
 Attribute %(attribute)s required on element ix:%(element)s
 </message>
 
-<message code="ix{ver.sect}.contextReference"
+<message code="ix{ver.sect}:childNodesOrTextRequired"
+         level="error"
+         module="XhtmlValidate.py" line="337"
+         args="requirement">
+(dynamic)
+</message>
+
+<message code="ix{ver.sect}:childNodes{Required|Disallowed|Allowed}"
+         level="error"
+         module="XhtmlValidate.py" line="337"
+         args="requirement">
+(dynamic)
+</message>
+
+<message code="ix{ver.sect}:contextReference"
          level="error"
          module="ValidateXbrl.py" line="408"
          args="fact context">
 Fact %(fact)s is missing a context for contextRef %(context)s
 </message>
 
-<message code="ix{ver.sect}.continuationChainNested"
+<message code="ix{ver.sect}:continuationChainNested"
          level="error"
          module="ModelDocument.py" line="1406"
          args="ancestorElement descendantElement">
 Inline XBRL continuation chain element %(ancestorElement)s has descendant element %(descendantElement)s
 </message>
 
-<message code="ix{ver.sect}.continuationCycle"
+<message code="ix{ver.sect}:continuationCycle"
          level="error"
          module="ModelDocument.py" line="1391"
          args="continuationCycle">
 Inline XBRL continuation cycle: %(continuationCycle)s
 </message>
 
-<message code="ix{ver.sect}.continuationMissing"
+<message code="ix{ver.sect}:continuationMissing"
          level="error"
          module="ModelDocument.py" line="1382"
          args="continuationAt">
 Inline XBRL continuation %(continuationAt)s not found
 </message>
 
-<message code="ix{ver.sect}.continuationNotReferenced"
+<message code="ix{ver.sect}:continuationNotReferenced"
          level="error"
          module="ModelDocument.py" line="1584"
          args="continuedAt">
 ix:continuation %(continuedAt)s is not referenced by a, ix:footnote, ix:nonNumeric or other ix:continuation element.
 </message>
 
-<message code="ix{ver.sect}.continuationReferences"
+<message code="ix{ver.sect}:continuationReferences"
          level="error"
          module="ModelDocument.py" line="1576"
          args="continuedAt referencesCount sourceElements">
 continuedAt %(continuedAt)s has %(referencesCount)s references on %(sourceElements)s elements, only one reference allowed.
 </message>
 
-<message code="ix{ver.sect}.continuationTarget"
+<message code="ix{ver.sect}:continuationTarget"
          level="error"
          module="ModelDocument.py" line="1378"
          args="continuationAt targetElement">
 continuedAt %(continuationAt)s target is an %(targetElement)s element instead of ix:continuation element.
 </message>
 
-<message code="ix{ver.sect}.elementNameInvalid"
+<message code="ix{ver.sect}:descendantNodesDisallowed"
          level="error"
-         module="XhtmlValidate.py" line="356"
+         module="XhtmlValidate.py" line="337"
+         args="requirement">
+(dynamic)
+</message>
+
+<message code="ix{ver.sect}:elementNameInvalid"
+         level="error"
+         module="XhtmlValidate.py" line="361"
          args="element">
 Inline XBRL element name %(element)s is not valid
 </message>
 
-<message code="ix{ver.sect}.extensionAttributeMisplaced"
+<message code="ix{ver.sect}:extensionAttributeMisplaced"
          level="error"
          module="XhtmlValidate.py" line="224"
          args="tag">
 Extension attributes are not allowed on html elements: %(tag)s
 </message>
 
-<message code="ix{ver.sect}.footnoteLang"
+<message code="ix{ver.sect}:footnoteLang"
          level="error"
          module="ValidateXbrlDTS.py" line="885">
 Inline XBRL footnotes require an in-scope xml:lang
 </message>
 
-<message code="ix{ver.sect}.footnoteRef"
+<message code="ix{ver.sect}:footnoteRef"
          level="error"
          module="ValidateXbrl.py" line="400"
          args="id">
 Inline XBRL fact's footnoteRef not found: %(id)s
 </message>
 
-<message code="ix{ver.sect}.fractionDeclaration"
+<message code="ix{ver.sect}:formatCodeUndefined"
+         level="error"
+         module="XmlValidate.py" line="167"
+         args="element fact transform typeName value">
+Inline element %(element)s fact %(fact)s type %(typeName)s transform %(transform)s not available, value: %(value)s
+</message>
+
+<message code="ix{ver.sect}:fractionDeclaration"
          level="error"
          module="ModelDocument.py" line="1438"
          args="qname localName type">
 Inline XBRL element %(qname)s base type %(type)s mapped by %(localName)s
 </message>
 
-<message code="ix{ver.sect}.fractionDescendants"
+<message code="ix{ver.sect}:fractionDescendants"
          level="error"
          module="ValidateXbrlDTS.py" line="894"
          args="wrongDescendants">
 Inline XBRL fraction may only contain ix:numerator, ix:denominator, or ix:fraction, but contained %(wrongDescendants)s
 </message>
 
-<message code="ix{ver.sect}.fractionNilTerms"
+<message code="ix{ver.sect}:fractionNilTerms"
          level="error"
          module="ValidateXbrlDTS.py" line="905">
 Inline XBRL fraction must not have ix:numerator or ix:denominator when nil
 </message>
 
-<message code="ix{ver.sect}.fractionTermDescendants"
+<message code="ix{ver.sect}:fractionTermDescendants"
          level="error"
          module="ValidateXbrlDTS.py" line="916"
          args="name wrongDescendants">
 Inline XBRL fraction term ix:%(name)s may only contain text nodes, but contained %(wrongDescendants)s
 </message>
 
-<message code="ix{ver.sect}.fractionTermNegative"
+<message code="ix{ver.sect}:fractionTermNegative"
          level="error"
          module="ValidateXbrlDTS.py" line="920">
 Inline XBRL ix:numerator or ix:denominator without format attribute must be non-negative
 </message>
 
-<message code="ix{ver.sect}.fractionTerms"
+<message code="ix{ver.sect}:fractionTerms"
          level="error"
          module="ValidateXbrlDTS.py" line="900">
 Inline XBRL fraction must have one ix:numerator and one ix:denominator when not nil
 </message>
 
-<message code="ix{ver.sect}.headerDisplayNone"
+<message code="ix{ver.sect}:headerDisplayNone"
          level="warning"
          module="ValidateXbrlDTS.py" line="927">
 Warning, Inline XBRL ix:header is recommended to be nested in a &lt;div> with style display:none
 </message>
 
-<message code="ix{ver.sect}.headerMissing"
+<message code="ix{ver.sect}:headerMissing"
          level="error"
          module="ValidateXbrl.py" line="449">
 Inline XBRL document set must have at least one ix:header element
 </message>
 
-<message code="ix{ver.sect}.inlineAttributeMisplaced"
+<message code="ix{ver.sect}:inlineAttributeMisplaced"
          level="error"
          module="XhtmlValidate.py" line="220"
          args="name">
 Inline XBRL attributes are not allowed on html elements: ix:%(name)s
 </message>
 
-<message code="ix{ver.sect}.inlineElementAttributes"
+<message code="ix{ver.sect}:inlineElementAttributes"
          level="error"
          module="XhtmlValidate.py" line="247"
          args="element attributes">
 Inline XBRL element %(element)s has disallowed attributes %(attributes)s
 </message>
 
-<message code="ix{ver.sect}.invalidTransformation"
+<message code="ix{ver.sect}:invalidTransformation"
          level="error"
          module="ValidateXbrl.py" line="421"
          args="fact namespace">
 Fact %(fact)s has unrecognized transformation namespace %(namespace)s
 </message>
 
-<message code="ix{ver.sect}.invalidTransformation"
+<message code="ix{ver.sect}:invalidTransformation"
          level="error"
          module="ValidateXbrl.py" line="425"
          args="fact name">
 Fact %(fact)s has unrecognized transformation name %(name)s
 </message>
 
-<message code="ix{ver.sect}.missingReferences"
+<message code="ix{ver.sect}:missingReferences"
          level="error"
          module="ModelDocument.py" line="1426"
          args="qname localName">
 Instance fact missing schema definition: %(qname)s of Inline Element %(localName)s
 </message>
 
-<message code="ix{ver.sect}.nestedFractionIsNil"
+<message code="ix{ver.sect}:nestedFractionIsNil"
          level="error"
          module="ValidateXbrlDTS.py" line="910">
 Inline XBRL nil ix:fraction may not have an ancestor ix:fraction
 </message>
 
-<message code="ix{ver.sect}.nestedNonFractionIsNil"
+<message code="ix{ver.sect}:nestedNonFractionIsNil"
          level="error"
          module="ValidateXbrlDTS.py" line="935">
 Inline XBRL nil ix:nonFraction may not have an ancestor ix:nonFraction
 </message>
 
-<message code="ix{ver.sect}.nestedNonFractionProperties"
+<message code="ix{ver.sect}:nestedNonFractionProperties"
          level="error"
          module="ValidateXbrlDTS.py" line="947">
 Inline XBRL nested ix:nonFraction must have matching format, scale, and unitRef properties
 </message>
 
-<message code="ix{ver.sect}.nonFractionChildren"
+<message code="ix{ver.sect}:nonFractionChildren"
          level="error"
          module="ValidateXbrlDTS.py" line="941">
 Inline XBRL nil ix:nonFraction may only have one child ix:nonFraction
 </message>
 
-<message code="ix{ver.sect}.nonFractionNegative"
+<message code="ix{ver.sect}:nonFractionNegative"
          level="error"
          module="ValidateXbrlDTS.py" line="951">
 Inline XBRL ix:nonFraction without format attribute must be non-negative
 </message>
 
-<message code="ix{ver.sect}.qualifiedAttributeDisallowed"
+<message code="ix{ver.sect}:parentNodeRequired"
+         level="error"
+         module="XhtmlValidate.py" line="337"
+         args="requirement">
+(dynamic)
+</message>
+
+<message code="ix{ver.sect}:qualifiedAttributeDisallowed"
          level="error"
          module="XhtmlValidate.py" line="215"
          args="element name">
 Inline XBRL element %(element)s has disallowed attribute %(name)s
 </message>
 
-<message code="ix{ver.sect}.qualifiedAttributeNotExpected"
+<message code="ix{ver.sect}:qualifiedAttributeNotExpected"
          level="error"
          module="XhtmlValidate.py" line="210"
          args="element name">
 Inline XBRL element %(element)s has qualified attribute %(name)s
 </message>
 
-<message code="ix{ver.sect}.referenceInconsistentDefaultNamespaces"
+<message code="ix{ver.sect}:referenceInconsistentDefaultNamespaces"
          level="error"
          module="ValidateXbrl.py" line="468"
          args="target">
 Inline XBRL document set must have consistent default namespaces for target %(target)s
 </message>
 
-<message code="ix{ver.sect}.referenceNamespacePrefixInconsistency"
+<message code="ix{ver.sect}:referenceNamespacePrefixInconsistency"
          level="error"
          module="ValidateXbrl.py" line="477"
          args="target prefix1 prefix2">
 Inline XBRL document set must have consistent prefixes for target %(target)s: %(prefix1)s, %(prefix2)s
 </message>
 
-<message code="ix{ver.sect}.referencesAttributeDuplication"
+<message code="ix{ver.sect}:referencesAttributeDuplication"
          level="error"
          module="ModelDocument.py" line="1325"
          args="name target">
 Inline XBRL ix:references attribute %(name)s duplicated in target %(target)s
 </message>
 
-<message code="ix{ver.sect}.referencesIdDuplication"
+<message code="ix{ver.sect}:referencesIdDuplication"
          level="error"
          module="ModelDocument.py" line="1332"
          args="id">
 Inline XBRL ix:references id %(id)s duplicated in inline document set
 </message>
 
-<message code="ix{ver.sect}.referencesNamespacePrefixConflict"
+<message code="ix{ver.sect}:referencesNamespacePrefixConflict"
          level="error"
          module="ModelDocument.py" line="1344"
          args="prefix ns1 ns2 target">
 Inline XBRL ix:references prefix %(prefix)s has multiple namespaces %(ns1)s and %(ns2)s in target %(target)s
 </message>
 
-<message code="ix{ver.sect}.referencesTargetId"
+<message code="ix{ver.sect}:referencesTargetId"
          level="error"
          module="ModelDocument.py" line="1336"
          args="target">
 Inline XBRL has multiple ix:references with id in target %(target)s
 </message>
 
-<message code="ix{ver.sect}.relationshipFromRef"
+<message code="ix{ver.sect}:relationshipFromRef"
          level="error"
          module="ValidateXbrl.py" line="484"
          args="ref">
 Inline XBRL fromRef %(ref)s is not a fraction, ix:nonFraction, ix:nonNumeric or ix:tuple.
 </message>
 
-<message code="ix{ver.sect}.relationshipReferencesMixed"
+<message code="ix{ver.sect}:relationshipReferencesMixed"
          level="error"
          module="ModelDocument.py" line="1565"
          args="toFootnoteIds toFactQnames">
 Inline relationship references footnote(s) %(toFootnoteIds)s and thereby is not allowed to reference %(toFactQnames)s.
 </message>
 
-<message code="ix{ver.sect}.relationshipToRef"
+<message code="ix{ver.sect}:relationshipToRef"
          level="error"
          module="ModelDocument.py" line="1555"
          args="toIds">
 Inline relationship toRef(s) %(toIds)s not found.
 </message>
 
-<message code="ix{ver.sect}.relationshipToRefMix"
+<message code="ix{ver.sect}:relationshipToRefMix"
          level="error"
          module="ValidateXbrl.py" line="500">
 Inline XBRL fromRef is not only either footnotes, or ix:fraction, ix:nonFraction, ix:nonNumeric or ix:tuple.
 </message>
 
-<message code="ix{ver.sect}.relatirelationshipToRefonshipFromRef"
+<message code="ix{ver.sect}:relatirelationshipToRefonshipFromRef"
          level="error"
          module="ValidateXbrl.py" line="492"
          args="ref">
 Inline XBRL fromRef %(ref)s is not a footnote, fraction, ix:nonFraction, ix:nonNumeric or ix:tuple.
 </message>
 
-<message code="ix{ver.sect}.tupleID"
+<message code="ix{ver.sect}:transformValueError"
+         level="error"
+         module="XmlValidate.py" line="161"
+         args="element fact transform typeName value">
+Inline element %(element)s fact %(fact)s type %(typeName)s transform %(transform)s value error: %(value)s
+</message>
+
+<message code="ix{ver.sect}:tupleID"
          level="error"
          module="ValidateXbrlDTS.py" line="964">
 Inline XBRL non-nil tuples without ix:fraction, ix:nonFraction, ix:nonNumeric or ix:tuple descendants require a tupleID
 </message>
 
-<message code="ix{ver.sect}.tupleOrder"
+<message code="ix{ver.sect}:tupleOrder"
          level="error"
          module="ValidateXbrl.py" line="780"
          args="fact order">
 Fact %(fact)s must not have an order (%(order)s) unless in a tuple
 </message>
 
-<message code="ix{ver.sect}.tupleRefMissing"
+<message code="ix{ver.sect}:tupleRefMissing"
          level="error"
          module="ModelDocument.py" line="1357"
          args="tupleRef">
 Inline XBRL tupleRef %(tupleRef)s not found
 </message>
 
-<message code="ix{ver.sect}.uniqueFootnoteId"
+<message code="ix{ver.sect}:uniqueFootnoteId"
          level="error"
          module="ValidateXbrl.py" line="437"
          args="id">
 Inline XBRL footnote id is not unique in the IXDS: %(id)s
 </message>
 
-<message code="ix{ver.sect}.uniqueIxId"
+<message code="ix{ver.sect}:uniqueIxId"
          level="error"
          module="ValidateXbrl.py" line="391"
          args="id elements">
 Inline XBRL id is not unique in the IXDS: %(id)s, for element(s) %{elements)s
 </message>
 
-<message code="ix{ver.sect}.unitReference"
+<message code="ix{ver.sect}:unitReference"
          level="error"
          module="ValidateXbrl.py" line="413"
          args="fact unit">
