@@ -1291,6 +1291,8 @@ def inlineIxdsDiscover(modelXbrl):
         for elt in htmlElement.iterfind(".//*[@id]"):
             if isinstance(elt,ModelObject) and elt.id:
                 ixdsEltById[elt.id].append(elt)
+                
+    # TODO: ixdsEltById duplication should be tested here and removed from ValidateXbrlDTS (about line 346 after if name == "id" and attrValue in val.elementIDs)
     footnoteRefs = defaultdict(list)
     tupleElements = []
     continuationElements = {}

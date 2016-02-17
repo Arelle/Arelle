@@ -1,4 +1,4 @@
-b'''
+'''
 Created on Oct 17, 2010
 
 @author: Mark V Systems Limited
@@ -344,7 +344,9 @@ def checkElements(val, modelDocument, parent):
                             modelObject=elt, element=elt.prefixedName, attribute=name, value=attrValue)
                     '''
                     if name == "id" and attrValue in val.elementIDs:
-                        val.modelXbrl.error("xmlschema2.3.2.10:idDuplicated",
+                        # 2.1 spec @id validation refers to http://www.w3.org/TR/REC-xml#NT-TokenizedType
+                        # TODO: this check should not test inline elements, those should be in ModelDocument inlineIxdsDiscover using ixdsEltById
+                        val.modelXbrl.error("xml.3.3.1:idMustBeUnique", 
                             _("Element %(element)s id %(value)s is duplicated"),
                             modelObject=elt, element=elt.prefixedName, attribute=name, value=attrValue)
                     val.elementIDs.add(attrValue)

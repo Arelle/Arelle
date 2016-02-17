@@ -2119,7 +2119,7 @@ Concept %(concept)s is a domainItemType and must be periodType duration
 
 <message code="EFM.6.07.29"
          level="error"
-         module="ValidateXbrlDTS.py" line="528"
+         module="ValidateXbrlDTS.py" line="530"
          args="element name length">
 Schema %(element)s has a name length (%(length)s) over 200 bytes long in utf-8, %(name)s.
 </message>
@@ -2133,14 +2133,14 @@ Schema %(element)s has a name length (%(length)s) over 200 bytes long in utf-8, 
 
 <message code="EFM.6.07.30"
          level="error"
-         module="ValidateXbrlDTS.py" line="367"
+         module="ValidateXbrlDTS.py" line="369"
          args="length targetNamespace value">
 Schema targetNamespace length (%(length)s) is over 255 bytes long in utf-8 %(targetNamespace)s
 </message>
 
 <message code="EFM.6.07.30"
          level="error"
-         module="ValidateXbrlDTS.py" line="605"
+         module="ValidateXbrlDTS.py" line="607"
          args="element attribute length roleURI value">
 Schema %(element)s %(attribute)s length (%(length)s) is over 255 bytes long in utf-8 %(roleURI)s
 </message>
@@ -2353,14 +2353,14 @@ to %(conceptTo)s
 
 <message code="EFM.6.09.04"
          level="error"
-         module="ValidateXbrlDTS.py" line="972"
+         module="ValidateXbrlDTS.py" line="974"
          args="element">
 %(element)s is missing an xlink:role
 </message>
 
 <message code="EFM.6.09.04"
          level="error"
-         module="ValidateXbrlDTS.py" line="989"
+         module="ValidateXbrlDTS.py" line="991"
          args="element">
 %(element)s is missing an xlink:role
 </message>
@@ -2381,7 +2381,7 @@ to %(conceptTo)s
 
 <message code="EFM.6.09.05"
          level="error"
-         module="ValidateXbrlDTS.py" line="996"
+         module="ValidateXbrlDTS.py" line="998"
          args="xlinkLabel role element roleDefinition">
 Resource %(xlinkLabel)s role %(role)s is not a standard taxonomy role
 </message>
@@ -2395,7 +2395,7 @@ Resource %(xlinkLabel)s role %(role)s is not a standard taxonomy role
 
 <message code="EFM.6.09.06"
          level="error"
-         module="ValidateXbrlDTS.py" line="701"
+         module="ValidateXbrlDTS.py" line="703"
          args="refURI xlinkHref">
 Arcrole %(refURI)s arcroleRef %(xlinkHref)s must be a standard taxonomy
 </message>
@@ -2409,7 +2409,7 @@ Arcrole %(refURI)s arcroleRef %(xlinkHref)s must be a standard taxonomy
 
 <message code="EFM.6.09.07"
          level="error"
-         module="ValidateXbrlDTS.py" line="979"
+         module="ValidateXbrlDTS.py" line="981"
          args="element element2">
 Extended element %(element)s must be the same as %(element2)s
 </message>
@@ -2423,14 +2423,14 @@ Extended element %(element)s must be the same as %(element2)s
 
 <message code="EFM.6.09.09"
          level="error"
-         module="ValidateXbrlDTS.py" line="1037"
+         module="ValidateXbrlDTS.py" line="1039"
          args="arcElement xlinkFrom xlinkTo priority">
 Arc from %(xlinkFrom)s to %(xlinkTo)s priority %(priority)s must be less than 10
 </message>
 
 <message code="EFM.6.09.09"
          level="error"
-         module="ValidateXbrlDTS.py" line="1045"
+         module="ValidateXbrlDTS.py" line="1047"
          args="arcElement xlinkFrom xlinkTo priority">
 Arc from %(xlinkFrom)s to %(xlinkTo)s priority %(priority)s is not an integer
 </message>
@@ -2605,7 +2605,7 @@ Concept %(concept)s is monetary without a balance and must have a documentation 
 
 <message code="EFM.6.12.01"
          level="error"
-         module="ValidateXbrlDTS.py" line="1054"
+         module="ValidateXbrlDTS.py" line="1056"
          args="xlinkFrom xlinkTo conceptFrom conceptTo">
 PresentationArc from %(xlinkFrom)s to %(xlinkTo)s must have an order
 </message>
@@ -2703,7 +2703,7 @@ Units of measure %(foundMeasureSet)s were found in &quot;%(linkroleName)s&quot; 
 
 <message code="EFM.6.14.01"
          level="error"
-         module="ValidateXbrlDTS.py" line="1063"
+         module="ValidateXbrlDTS.py" line="1065"
          args="xlinkFrom xlinkTo conceptFrom conceptTo">
 CalculationArc from %(xlinkFrom)s to %(xlinkTo)s must have an order
 </message>
@@ -2717,14 +2717,14 @@ CalculationArc from %(xlinkFrom)s to %(xlinkTo)s must have an order
 
 <message code="EFM.6.14.02"
          level="error"
-         module="ValidateXbrlDTS.py" line="1074"
+         module="ValidateXbrlDTS.py" line="1076"
          args="xlinkFrom xlinkTo conceptFrom conceptTo weight">
 CalculationArc from %(xlinkFrom)s to %(xlinkTo)s weight %(weight)s must be 1 or -1
 </message>
 
 <message code="EFM.6.14.02"
          level="error"
-         module="ValidateXbrlDTS.py" line="1083"
+         module="ValidateXbrlDTS.py" line="1085"
          args="xlinkFrom xlinkTo conceptFrom conceptTo weight">
 CalculationArc from %(xlinkFrom)s to %(xlinkTo)s must have an weight (value error in &quot;%(weight)s&quot;)
 </message>
@@ -2801,7 +2801,7 @@ Calculation relationships should have a same set of targets in %(linkrole)s and 
 
 <message code="EFM.6.16.01"
          level="error"
-         module="ValidateXbrlDTS.py" line="1093"
+         module="ValidateXbrlDTS.py" line="1095"
          args="xlinkFrom xlinkTo conceptFrom conceptTo">
 DefinitionArc from %(xlinkFrom)s to %(xlinkTo)s must have an order
 </message>
@@ -3875,14 +3875,14 @@ Inline XBRL non-empty footnote %(footnoteID)s is not referenced by any fact
 
 <message code="EFM.N/A"
          level="error"
-         module="ValidateXbrlDTS.py" line="871"
+         module="ValidateXbrlDTS.py" line="873"
          args="footnoteID arcrole">
 Inline XBRL footnote %(footnoteID)s must be in non-displayable div due to arcrole %(arcrole)s
 </message>
 
 <message code="EFM.N/A"
          level="error"
-         module="ValidateXbrlDTS.py" line="877"
+         module="ValidateXbrlDTS.py" line="879"
          args="footnoteID">
 Inline XBRL footnote %(footnoteID)s is missing an xml:lang attribute
 </message>
@@ -4873,14 +4873,14 @@ to %(conceptTo)s
 
 <message code="GFM.1.04.04"
          level="error"
-         module="ValidateXbrlDTS.py" line="972"
+         module="ValidateXbrlDTS.py" line="974"
          args="element">
 %(element)s is missing an xlink:role
 </message>
 
 <message code="GFM.1.04.04"
          level="error"
-         module="ValidateXbrlDTS.py" line="989"
+         module="ValidateXbrlDTS.py" line="991"
          args="element">
 %(element)s is missing an xlink:role
 </message>
@@ -4901,7 +4901,7 @@ to %(conceptTo)s
 
 <message code="GFM.1.04.05"
          level="error"
-         module="ValidateXbrlDTS.py" line="996"
+         module="ValidateXbrlDTS.py" line="998"
          args="xlinkLabel role element roleDefinition">
 Resource %(xlinkLabel)s role %(role)s is not a standard taxonomy role
 </message>
@@ -4915,7 +4915,7 @@ Resource %(xlinkLabel)s role %(role)s is not a standard taxonomy role
 
 <message code="GFM.1.04.06"
          level="error"
-         module="ValidateXbrlDTS.py" line="701"
+         module="ValidateXbrlDTS.py" line="703"
          args="refURI xlinkHref">
 Arcrole %(refURI)s arcroleRef %(xlinkHref)s must be a standard taxonomy
 </message>
@@ -4929,14 +4929,14 @@ Arcrole %(refURI)s arcroleRef %(xlinkHref)s must be a standard taxonomy
 
 <message code="GFM.1.04.08"
          level="error"
-         module="ValidateXbrlDTS.py" line="1037"
+         module="ValidateXbrlDTS.py" line="1039"
          args="arcElement xlinkFrom xlinkTo priority">
 Arc from %(xlinkFrom)s to %(xlinkTo)s priority %(priority)s must be less than 10
 </message>
 
 <message code="GFM.1.04.08"
          level="error"
-         module="ValidateXbrlDTS.py" line="1045"
+         module="ValidateXbrlDTS.py" line="1047"
          args="arcElement xlinkFrom xlinkTo priority">
 Arc from %(xlinkFrom)s to %(xlinkTo)s priority %(priority)s is not an integer
 </message>
@@ -5055,7 +5055,7 @@ Label for concept %(concept)s role %(role)s lang %(lang)s is not trimmed: %(text
 
 <message code="GFM.1.06.01"
          level="error"
-         module="ValidateXbrlDTS.py" line="1054"
+         module="ValidateXbrlDTS.py" line="1056"
          args="xlinkFrom xlinkTo conceptFrom conceptTo">
 PresentationArc from %(xlinkFrom)s to %(xlinkTo)s must have an order
 </message>
@@ -5111,7 +5111,7 @@ Concept %(concept)s has duplicate preferred label %(preferredLabel)s in link rol
 
 <message code="GFM.1.07.01"
          level="error"
-         module="ValidateXbrlDTS.py" line="1063"
+         module="ValidateXbrlDTS.py" line="1065"
          args="xlinkFrom xlinkTo conceptFrom conceptTo">
 CalculationArc from %(xlinkFrom)s to %(xlinkTo)s must have an order
 </message>
@@ -5125,14 +5125,14 @@ CalculationArc from %(xlinkFrom)s to %(xlinkTo)s must have an order
 
 <message code="GFM.1.07.02"
          level="error"
-         module="ValidateXbrlDTS.py" line="1074"
+         module="ValidateXbrlDTS.py" line="1076"
          args="xlinkFrom xlinkTo conceptFrom conceptTo weight">
 CalculationArc from %(xlinkFrom)s to %(xlinkTo)s weight %(weight)s must be 1 or -1
 </message>
 
 <message code="GFM.1.07.02"
          level="error"
-         module="ValidateXbrlDTS.py" line="1083"
+         module="ValidateXbrlDTS.py" line="1085"
          args="xlinkFrom xlinkTo conceptFrom conceptTo weight">
 CalculationArc from %(xlinkFrom)s to %(xlinkTo)s must have an weight (value error in &quot;%(weight)s&quot;)
 </message>
@@ -5195,7 +5195,7 @@ Duplicate calculations relations from concept %(conceptFrom)s for order %(order)
 
 <message code="GFM.1.08.01"
          level="error"
-         module="ValidateXbrlDTS.py" line="1093"
+         module="ValidateXbrlDTS.py" line="1095"
          args="xlinkFrom xlinkTo conceptFrom conceptTo">
 DefinitionArc from %(xlinkFrom)s to %(xlinkTo)s must have an order
 </message>
@@ -5835,7 +5835,7 @@ parameters for cikNameList provided but missing corresponding cikList: %(cikName
 
 <message code="GFM:1.04.07"
          level="error"
-         module="ValidateXbrlDTS.py" line="979"
+         module="ValidateXbrlDTS.py" line="981"
          args="element element2">
 Extended element %(element)s must be the same as %(element2)s
 </message>
@@ -5849,7 +5849,7 @@ Extended element %(element)s must be the same as %(element2)s
 
 <message code="GFM:1.10.13"
          level="error"
-         module="ValidateXbrlDTS.py" line="877"
+         module="ValidateXbrlDTS.py" line="879"
          args="footnoteID">
 Inline XBRL footnote %(footnoteID)s is missing an xml:lang attribute
 </message>
@@ -5870,7 +5870,7 @@ Inline XBRL non-empty footnote %(footnoteID)s is not referenced by any fact
 
 <message code="GFM:1.10.16"
          level="error"
-         module="ValidateXbrlDTS.py" line="871"
+         module="ValidateXbrlDTS.py" line="873"
          args="footnoteID arcrole">
 Inline XBRL footnote %(footnoteID)s must be in non-displayable div due to arcrole %(arcrole)s
 </message>
@@ -6047,73 +6047,73 @@ File MUST not start with a Byte Order Mark (BOM): %(filename)s
 
 <message code="SBR.NL.2.2.0.01"
          level="error"
-         module="ValidateXbrlDTS.py" line="387"
+         module="ValidateXbrlDTS.py" line="389"
          args="element">
 Schema contains XSD 1.1 content &quot;%(element)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.0.01"
          level="error"
-         module="ValidateXbrlDTS.py" line="407"
+         module="ValidateXbrlDTS.py" line="409"
          args="concept xsdType">
 Schema element %(concept)s contains XSD 1.1 datatype &quot;%(xsdType)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.0.05"
          level="error"
-         module="ValidateXbrlDTS.py" line="1220"
+         module="ValidateXbrlDTS.py" line="1222"
          args="fileType value">
 %(fileType)s must have only one comment node before schema element: &quot;%(value)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.0.06"
          level="error"
-         module="ValidateXbrlDTS.py" line="635"
+         module="ValidateXbrlDTS.py" line="637"
          args="element">
 Schema element is not prefixed: &quot;%(element)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.0.06"
          level="error"
-         module="ValidateXbrlDTS.py" line="642"
+         module="ValidateXbrlDTS.py" line="644"
          args="element">
 Linkbase element is not prefixed: &quot;%(element)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.0.08"
          level="error"
-         module="ValidateXbrlDTS.py" line="372">
+         module="ValidateXbrlDTS.py" line="374">
 Schema element must have a targetNamespace attribute
 </message>
 
 <message code="SBR.NL.2.2.0.09"
          level="error"
-         module="ValidateXbrlDTS.py" line="377">
+         module="ValidateXbrlDTS.py" line="379">
 Schema element attributeFormDefault must be &quot;unqualified&quot; and elementFormDefault must be &quot;qualified&quot;
 </message>
 
 <message code="SBR.NL.2.2.0.10"
          level="error"
-         module="ValidateXbrlDTS.py" line="382"
+         module="ValidateXbrlDTS.py" line="384"
          args="attribute">
 Schema element must not have a %(attribute)s attribute
 </message>
 
 <message code="SBR.NL.2.2.0.12"
          level="error"
-         module="ValidateXbrlDTS.py" line="509">
+         module="ValidateXbrlDTS.py" line="511">
 Annotation/appinfo record must be be behind schema and before import
 </message>
 
 <message code="SBR.NL.2.2.0.12"
          level="error"
-         module="ValidateXbrlDTS.py" line="519">
+         module="ValidateXbrlDTS.py" line="521">
 Schema file annotation missing appinfo element must be be behind schema and before import
 </message>
 
 <message code="SBR.NL.2.2.0.14"
          level="error"
-         module="ValidateXbrlDTS.py" line="513">
+         module="ValidateXbrlDTS.py" line="515">
 Annotation/appinfo record must be followed only by import
 </message>
 
@@ -6154,21 +6154,21 @@ Taxonomy schema %(schema)s includes %(include)s, only import is allowed
 
 <message code="SBR.NL.2.2.0.19"
          level="error"
-         module="ValidateXbrlDTS.py" line="1169"
+         module="ValidateXbrlDTS.py" line="1171"
          args="element fileType prefix">
 %(fileType)s element %(element)s must not have xmlns:%(prefix)s
 </message>
 
 <message code="SBR.NL.2.2.0.20"
          level="error"
-         module="ValidateXbrlDTS.py" line="1145"
+         module="ValidateXbrlDTS.py" line="1147"
          args="element fileType namespace">
 %(fileType)s element %(element)s must not have custom namespace %(namespace)s
 </message>
 
 <message code="SBR.NL.2.2.0.20"
          level="error"
-         module="ValidateXbrlDTS.py" line="1155"
+         module="ValidateXbrlDTS.py" line="1157"
          args="element fileType prefix localName">
 %(fileType)s element %(element)s must not have %(prefix)s:%(localName)s
 </message>
@@ -6233,7 +6233,7 @@ DTS concept %(concept)s not referred to by presentation relationship.
 
 <message code="SBR.NL.2.2.11.02"
          level="error"
-         module="ValidateXbrlDTS.py" line="1185"
+         module="ValidateXbrlDTS.py" line="1187"
          args="value">
 Documentation element must not be used: %(value)s
 </message>
@@ -6247,7 +6247,7 @@ Appinfo contains disallowed non-link element %(element)s
 
 <message code="SBR.NL.2.2.11.06"
          level="error"
-         module="ValidateXbrlDTS.py" line="501">
+         module="ValidateXbrlDTS.py" line="503">
 xs:attribute must not be used
 </message>
 
@@ -6259,7 +6259,7 @@ ComplexType contains disallowed xs:choice element
 
 <message code="SBR.NL.2.2.11.1"
          level="error"
-         module="ValidateXbrlDTS.py" line="536"
+         module="ValidateXbrlDTS.py" line="538"
          args="element">
 Schema file element must not be used &quot;%(element)s&quot;
 </message>
@@ -6272,119 +6272,119 @@ ComplexContent is disallowed
 
 <message code="SBR.NL.2.2.11.10"
          level="error"
-         module="ValidateXbrlDTS.py" line="536"
+         module="ValidateXbrlDTS.py" line="538"
          args="element">
 Schema file element must not be used &quot;%(element)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.11.11"
          level="error"
-         module="ValidateXbrlDTS.py" line="536"
+         module="ValidateXbrlDTS.py" line="538"
          args="element">
 Schema file element must not be used &quot;%(element)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.11.12"
          level="error"
-         module="ValidateXbrlDTS.py" line="536"
+         module="ValidateXbrlDTS.py" line="538"
          args="element">
 Schema file element must not be used &quot;%(element)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.11.13"
          level="error"
-         module="ValidateXbrlDTS.py" line="536"
+         module="ValidateXbrlDTS.py" line="538"
          args="element">
 Schema file element must not be used &quot;%(element)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.11.14"
          level="error"
-         module="ValidateXbrlDTS.py" line="536"
+         module="ValidateXbrlDTS.py" line="538"
          args="element">
 Schema file element must not be used &quot;%(element)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.11.15"
          level="error"
-         module="ValidateXbrlDTS.py" line="536"
+         module="ValidateXbrlDTS.py" line="538"
          args="element">
 Schema file element must not be used &quot;%(element)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.11.16"
          level="error"
-         module="ValidateXbrlDTS.py" line="536"
+         module="ValidateXbrlDTS.py" line="538"
          args="element">
 Schema file element must not be used &quot;%(element)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.11.17"
          level="error"
-         module="ValidateXbrlDTS.py" line="536"
+         module="ValidateXbrlDTS.py" line="538"
          args="element">
 Schema file element must not be used &quot;%(element)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.11.18"
          level="error"
-         module="ValidateXbrlDTS.py" line="536"
+         module="ValidateXbrlDTS.py" line="538"
          args="element">
 Schema file element must not be used &quot;%(element)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.11.2"
          level="error"
-         module="ValidateXbrlDTS.py" line="536"
+         module="ValidateXbrlDTS.py" line="538"
          args="element">
 Schema file element must not be used &quot;%(element)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.11.20"
          level="error"
-         module="ValidateXbrlDTS.py" line="536"
+         module="ValidateXbrlDTS.py" line="538"
          args="element">
 Schema file element must not be used &quot;%(element)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.11.22"
          level="error"
-         module="ValidateXbrlDTS.py" line="536"
+         module="ValidateXbrlDTS.py" line="538"
          args="element">
 Schema file element must not be used &quot;%(element)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.11.23"
          level="error"
-         module="ValidateXbrlDTS.py" line="536"
+         module="ValidateXbrlDTS.py" line="538"
          args="element">
 Schema file element must not be used &quot;%(element)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.11.3"
          level="error"
-         module="ValidateXbrlDTS.py" line="536"
+         module="ValidateXbrlDTS.py" line="538"
          args="element">
 Schema file element must not be used &quot;%(element)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.11.4"
          level="error"
-         module="ValidateXbrlDTS.py" line="536"
+         module="ValidateXbrlDTS.py" line="538"
          args="element">
 Schema file element must not be used &quot;%(element)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.11.7"
          level="error"
-         module="ValidateXbrlDTS.py" line="536"
+         module="ValidateXbrlDTS.py" line="538"
          args="element">
 Schema file element must not be used &quot;%(element)s&quot;
 </message>
 
 <message code="SBR.NL.2.2.2.01"
          level="error"
-         module="ValidateXbrlDTS.py" line="412"
+         module="ValidateXbrlDTS.py" line="414"
          args="concept">
 Schema concept definition is not at the root level: %(concept)s
 </message>
@@ -6426,63 +6426,63 @@ Tuple %(concept)s has a tuple cycle
 
 <message code="SBR.NL.2.2.2.08"
          level="error"
-         module="ValidateXbrlDTS.py" line="421"
+         module="ValidateXbrlDTS.py" line="423"
          args="concept requirement attribute">
 Schema root element %(concept)s %(requirement)s contain attribute %(attribute)s
 </message>
 
 <message code="SBR.NL.2.2.2.09"
          level="error"
-         module="ValidateXbrlDTS.py" line="397"
+         module="ValidateXbrlDTS.py" line="399"
          args="concept requirement attribute">
 Schema element %(concept)s %(requirement)s contain attribute %(attribute)s
 </message>
 
 <message code="SBR.NL.2.2.2.10"
          level="error"
-         module="ValidateXbrlDTS.py" line="397"
+         module="ValidateXbrlDTS.py" line="399"
          args="concept requirement attribute">
 Schema element %(concept)s %(requirement)s contain attribute %(attribute)s
 </message>
 
 <message code="SBR.NL.2.2.2.11"
          level="error"
-         module="ValidateXbrlDTS.py" line="397"
+         module="ValidateXbrlDTS.py" line="399"
          args="concept requirement attribute">
 Schema element %(concept)s %(requirement)s contain attribute %(attribute)s
 </message>
 
 <message code="SBR.NL.2.2.2.12"
          level="error"
-         module="ValidateXbrlDTS.py" line="397"
+         module="ValidateXbrlDTS.py" line="399"
          args="concept requirement attribute">
 Schema element %(concept)s %(requirement)s contain attribute %(attribute)s
 </message>
 
 <message code="SBR.NL.2.2.2.13"
          level="error"
-         module="ValidateXbrlDTS.py" line="421"
+         module="ValidateXbrlDTS.py" line="423"
          args="concept requirement attribute">
 Schema root element %(concept)s %(requirement)s contain attribute %(attribute)s
 </message>
 
 <message code="SBR.NL.2.2.2.14"
          level="error"
-         module="ValidateXbrlDTS.py" line="454"
+         module="ValidateXbrlDTS.py" line="456"
          args="element">
 Schema %(element)s must have minOccurs and maxOccurs
 </message>
 
 <message code="SBR.NL.2.2.2.14"
          level="error"
-         module="ValidateXbrlDTS.py" line="469"
+         module="ValidateXbrlDTS.py" line="471"
          args="element attrName">
 Schema %(element)s must have %(attrName)s
 </message>
 
 <message code="SBR.NL.2.2.2.15"
          level="error"
-         module="ValidateXbrlDTS.py" line="421"
+         module="ValidateXbrlDTS.py" line="423"
          args="concept requirement attribute">
 Schema root element %(concept)s %(requirement)s contain attribute %(attribute)s
 </message>
@@ -6503,7 +6503,7 @@ Tuple %(concept)s must have nillable='false'
 
 <message code="SBR.NL.2.2.2.18"
          level="error"
-         module="ValidateXbrlDTS.py" line="421"
+         module="ValidateXbrlDTS.py" line="423"
          args="concept requirement attribute">
 Schema root element %(concept)s %(requirement)s contain attribute %(attribute)s
 </message>
@@ -6573,35 +6573,35 @@ Concept %(concept)s must have a documentation label or reference
 
 <message code="SBR.NL.2.2.2.30"
          level="error"
-         module="ValidateXbrlDTS.py" line="458"
+         module="ValidateXbrlDTS.py" line="460"
          args="concept">
 Tuple concept %(concept)s must have maxOccurs='1'
 </message>
 
 <message code="SBR.NL.2.2.2.31"
          level="error"
-         module="ValidateXbrlDTS.py" line="462"
+         module="ValidateXbrlDTS.py" line="464"
          args="concept">
 Abstract concept %(concept)s must not be a child of a tuple
 </message>
 
 <message code="SBR.NL.2.2.2.33"
          level="error"
-         module="ValidateXbrlDTS.py" line="473"
+         module="ValidateXbrlDTS.py" line="475"
          args="element attrName">
 Schema %(element)s must have %(attrName)s = &quot;1&quot;
 </message>
 
 <message code="SBR.NL.2.2.3.01"
          level="error"
-         module="ValidateXbrlDTS.py" line="623"
+         module="ValidateXbrlDTS.py" line="625"
          args="element value">
 %(element)s usedOn must not be link:calculationLink
 </message>
 
 <message code="SBR.NL.2.2.3.02"
          level="error"
-         module="ValidateXbrlDTS.py" line="629"
+         module="ValidateXbrlDTS.py" line="631"
          args="element usedOn role">
 %(element)s usedOn %(usedOn)s not addressed for role %(role)s
 </message>
@@ -6666,7 +6666,7 @@ Arcrole type definition is not allowed: %(arcroleURI)s
 
 <message code="SBR.NL.2.2.4.01"
          level="error"
-         module="ValidateXbrlDTS.py" line="592"
+         module="ValidateXbrlDTS.py" line="594"
          args="roleURI">
 ArcroleType is not allowed %(roleURI)s
 </message>
@@ -6687,7 +6687,7 @@ Link:part concept %(concept)s is not allowed
 
 <message code="SBR.NL.2.2.5.01"
          level="error"
-         module="ValidateXbrlDTS.py" line="778"
+         module="ValidateXbrlDTS.py" line="780"
          args="element">
 Link part %(element)s is not authorized
 </message>
@@ -6735,55 +6735,55 @@ Typed dimension domain element %(concept)s has disallowed complex content
 
 <message code="SBR.NL.2.3.0.01"
          level="error"
-         module="ValidateXbrlDTS.py" line="721">
+         module="ValidateXbrlDTS.py" line="723">
 Xlink 1.1 simple type is not allowed (xlink:type is missing)
 </message>
 
 <message code="SBR.NL.2.3.0.05"
          level="error"
-         module="ValidateXbrlDTS.py" line="1220"
+         module="ValidateXbrlDTS.py" line="1222"
          args="fileType value">
 %(fileType)s must have only one comment node before schema element: &quot;%(value)s&quot;
 </message>
 
 <message code="SBR.NL.2.3.0.07"
          level="error"
-         module="ValidateXbrlDTS.py" line="1195"
+         module="ValidateXbrlDTS.py" line="1197"
          args="schemaLocation">
 Linkbase element must not have schemaLocation entry for %(schemaLocation)s
 </message>
 
 <message code="SBR.NL.2.3.0.10"
          level="error"
-         module="ValidateXbrlDTS.py" line="1122"
+         module="ValidateXbrlDTS.py" line="1124"
          args="arc">
 %(arc)s must not contain use='prohibited'
 </message>
 
 <message code="SBR.NL.2.3.0.11"
          level="error"
-         module="ValidateXbrlDTS.py" line="1029"
+         module="ValidateXbrlDTS.py" line="1031"
          args="element element2">
 Resource element %(element)s may not be contained in a linkbase with %(element2)s
 </message>
 
 <message code="SBR.NL.2.3.0.11"
          level="error"
-         module="ValidateXbrlDTS.py" line="1134"
+         module="ValidateXbrlDTS.py" line="1136"
          args="element element2">
 Arc element %(element)s may not be contained in a linkbase with %(element2)s
 </message>
 
 <message code="SBR.NL.2.3.0.11"
          level="error"
-         module="ValidateXbrlDTS.py" line="979"
+         module="ValidateXbrlDTS.py" line="981"
          args="element element2">
 Extended element %(element)s must be the same as %(element2)s
 </message>
 
 <message code="SBR.NL.2.3.0.11"
          level="error"
-         module="ValidateXbrlDTS.py" line="984"
+         module="ValidateXbrlDTS.py" line="986"
          args="element element2">
 Loc element %(element)s may not be contained in a linkbase with %(element2)s
 </message>
@@ -6796,175 +6796,175 @@ Linkbase has no relationships
 
 <message code="SBR.NL.2.3.1.01"
          level="error"
-         module="ValidateXbrlDTS.py" line="1169"
+         module="ValidateXbrlDTS.py" line="1171"
          args="element fileType prefix">
 %(fileType)s element %(element)s must not have xmlns:%(prefix)s
 </message>
 
 <message code="SBR.NL.2.3.10.01"
          level="error"
-         module="ValidateXbrlDTS.py" line="1211"
+         module="ValidateXbrlDTS.py" line="1213"
          args="element attribute">
 Linkbase element %(element)s must not have attribute xlink:%(attribute)s
 </message>
 
 <message code="SBR.NL.2.3.10.02"
          level="error"
-         module="ValidateXbrlDTS.py" line="1211"
+         module="ValidateXbrlDTS.py" line="1213"
          args="element attribute">
 Linkbase element %(element)s must not have attribute xlink:%(attribute)s
 </message>
 
 <message code="SBR.NL.2.3.10.03"
          level="error"
-         module="ValidateXbrlDTS.py" line="1211"
+         module="ValidateXbrlDTS.py" line="1213"
          args="element attribute">
 Linkbase element %(element)s must not have attribute xlink:%(attribute)s
 </message>
 
 <message code="SBR.NL.2.3.10.04"
          level="error"
-         module="ValidateXbrlDTS.py" line="1203"
+         module="ValidateXbrlDTS.py" line="1205"
          args="element attribute">
 Linkbase element %(element)s must not have attribute %(attribute)s
 </message>
 
 <message code="SBR.NL.2.3.10.05"
          level="error"
-         module="ValidateXbrlDTS.py" line="1203"
+         module="ValidateXbrlDTS.py" line="1205"
          args="element attribute">
 Linkbase element %(element)s must not have attribute %(attribute)s
 </message>
 
 <message code="SBR.NL.2.3.10.06"
          level="error"
-         module="ValidateXbrlDTS.py" line="1203"
+         module="ValidateXbrlDTS.py" line="1205"
          args="element attribute">
 Linkbase element %(element)s must not have attribute %(attribute)s
 </message>
 
 <message code="SBR.NL.2.3.10.07"
          level="error"
-         module="ValidateXbrlDTS.py" line="1203"
+         module="ValidateXbrlDTS.py" line="1205"
          args="element attribute">
 Linkbase element %(element)s must not have attribute %(attribute)s
 </message>
 
 <message code="SBR.NL.2.3.10.08"
          level="error"
-         module="ValidateXbrlDTS.py" line="1181"
+         module="ValidateXbrlDTS.py" line="1183"
          args="xlinkLabel">
 Loc %(xlinkLabel)s has unauthorized role attribute
 </message>
 
 <message code="SBR.NL.2.3.10.09"
          level="error"
-         module="ValidateXbrlDTS.py" line="715"
+         module="ValidateXbrlDTS.py" line="717"
          args="refURI xlinkHref attribute">
 Role %(refURI)s roleRef %(xlinkHref)s must not have an %(attribute)s attribute
 </message>
 
 <message code="SBR.NL.2.3.10.10"
          level="error"
-         module="ValidateXbrlDTS.py" line="715"
+         module="ValidateXbrlDTS.py" line="717"
          args="refURI xlinkHref attribute">
 Role %(refURI)s roleRef %(xlinkHref)s must not have an %(attribute)s attribute
 </message>
 
 <message code="SBR.NL.2.3.10.11"
          level="error"
-         module="ValidateXbrlDTS.py" line="1177"
+         module="ValidateXbrlDTS.py" line="1179"
          args="roleURI">
 RoleType %(roleURI)s missing id attribute
 </message>
 
 <message code="SBR.NL.2.3.10.12"
          level="error"
-         module="ValidateXbrlDTS.py" line="1185"
+         module="ValidateXbrlDTS.py" line="1187"
          args="value">
 Documentation element must not be used: %(value)s
 </message>
 
 <message code="SBR.NL.2.3.10.13"
          level="error"
-         module="ValidateXbrlDTS.py" line="772"
+         module="ValidateXbrlDTS.py" line="774"
          args="element xlinkRole">
 Extended link %(element)s must have a standard xlink:role attribute (%(xlinkRole)s)
 </message>
 
 <message code="SBR.NL.2.3.10.13"
          level="error"
-         module="ValidateXbrlDTS.py" line="785"
+         module="ValidateXbrlDTS.py" line="787"
          args="element">
 Extended link %(element)s must have an xlink:role attribute
 </message>
 
 <message code="SBR.NL.2.3.10.14"
          level="error"
-         module="ValidateXbrlDTS.py" line="996"
+         module="ValidateXbrlDTS.py" line="998"
          args="xlinkLabel role element roleDefinition">
 Resource %(xlinkLabel)s role %(role)s is not a standard taxonomy role
 </message>
 
 <message code="SBR.NL.2.3.2.02"
          level="error"
-         module="ValidateXbrlDTS.py" line="1101"
+         module="ValidateXbrlDTS.py" line="1103"
          args="xlinkFrom xlinkTo arcrole">
 DefinitionArc from %(xlinkFrom)s to %(xlinkTo)s has unauthorized arcrole %(arcrole)s
 </message>
 
 <message code="SBR.NL.2.3.2.03"
          level="error"
-         module="ValidateXbrlDTS.py" line="1101"
+         module="ValidateXbrlDTS.py" line="1103"
          args="xlinkFrom xlinkTo arcrole">
 DefinitionArc from %(xlinkFrom)s to %(xlinkTo)s has unauthorized arcrole %(arcrole)s
 </message>
 
 <message code="SBR.NL.2.3.2.04"
          level="error"
-         module="ValidateXbrlDTS.py" line="1101"
+         module="ValidateXbrlDTS.py" line="1103"
          args="xlinkFrom xlinkTo arcrole">
 DefinitionArc from %(xlinkFrom)s to %(xlinkTo)s has unauthorized arcrole %(arcrole)s
 </message>
 
 <message code="SBR.NL.2.3.2.05"
          level="error"
-         module="ValidateXbrlDTS.py" line="707"
+         module="ValidateXbrlDTS.py" line="709"
          args="refURI xlinkHref attribute">
 Arcrole %(refURI)s arcroleRef %(xlinkHref)s must not have an %(attribute)s attribute
 </message>
 
 <message code="SBR.NL.2.3.2.06"
          level="error"
-         module="ValidateXbrlDTS.py" line="707"
+         module="ValidateXbrlDTS.py" line="709"
          args="refURI xlinkHref attribute">
 Arcrole %(refURI)s arcroleRef %(xlinkHref)s must not have an %(attribute)s attribute
 </message>
 
 <message code="SBR.NL.2.3.3.01"
          level="error"
-         module="ValidateXbrlDTS.py" line="1004"
+         module="ValidateXbrlDTS.py" line="1006"
          args="xlinkLabel element">
 Reference %(xlinkLabel)s has unauthorized part element %(element)s
 </message>
 
 <message code="SBR.NL.2.3.3.02"
          level="error"
-         module="ValidateXbrlDTS.py" line="1010"
+         module="ValidateXbrlDTS.py" line="1012"
          args="xlinkLabel">
 Reference %(xlinkLabel)s is missing an id attribute
 </message>
 
 <message code="SBR.NL.2.3.3.03"
          level="error"
-         module="ValidateXbrlDTS.py" line="1014"
+         module="ValidateXbrlDTS.py" line="1016"
          args="xlinkLabel id otherLinkbase">
 Reference %(xlinkLabel)s has duplicated id %(id)s also in linkbase %(otherLinkbase)s
 </message>
 
 <message code="SBR.NL.2.3.3.05"
          level="error"
-         module="ValidateXbrlDTS.py" line="1112"
+         module="ValidateXbrlDTS.py" line="1114"
          args="xlinkFrom xlinkTo">
 ReferenceArc from %(xlinkFrom)s to %(xlinkTo)s has an order
 </message>
@@ -6984,7 +6984,7 @@ Preferred label on presentation relationships not allowed
 
 <message code="SBR.NL.2.3.4.04"
          level="error"
-         module="ValidateXbrlDTS.py" line="1054"
+         module="ValidateXbrlDTS.py" line="1056"
          args="xlinkFrom xlinkTo conceptFrom conceptTo">
 PresentationArc from %(xlinkFrom)s to %(xlinkTo)s must have an order
 </message>
@@ -7136,14 +7136,14 @@ Dimension %(dimension)s in DRS role %(linkrole)s, has usable domain with members
 
 <message code="SBR.NL.2.3.8.01"
          level="error"
-         module="ValidateXbrlDTS.py" line="830"
+         module="ValidateXbrlDTS.py" line="832"
          args="element xlinkLabel lang">
 Element %(element)s %(xlinkLabel)s has unauthorized xml:lang='%(lang)s'
 </message>
 
 <message code="SBR.NL.2.3.8.02"
          level="error"
-         module="ValidateXbrlDTS.py" line="830"
+         module="ValidateXbrlDTS.py" line="832"
          args="element xlinkLabel lang">
 Element %(element)s %(xlinkLabel)s has unauthorized xml:lang='%(lang)s'
 </message>
@@ -7164,7 +7164,7 @@ Concept %(concept)s has en but no nl label in role %(role)s.
 
 <message code="SBR.NL.2.3.8.05"
          level="error"
-         module="ValidateXbrlDTS.py" line="599"
+         module="ValidateXbrlDTS.py" line="601"
          args="roleURI">
 RoleType %(roleURI)s must have a label in lang &quot;nl&quot;
 </message>
@@ -7178,7 +7178,7 @@ Label for concept %(concept)s role %(role)s has disallowed characters: &quot;%(t
 
 <message code="SBR.NL.2.3.8.08"
          level="error"
-         module="ValidateXbrlDTS.py" line="1138"
+         module="ValidateXbrlDTS.py" line="1140"
          args="order">
 labelArc may not be contain order (%(order)s)
 </message>
@@ -7719,7 +7719,7 @@ Exception creating context add-views menu in %(title)s: %(error)s
 
 <message code="arelle:langError"
          level="error"
-         module="ValidateXbrlDTS.py" line="830"
+         module="ValidateXbrlDTS.py" line="832"
          args="element xlinkLabel lang">
 Element %(element)s %(xlinkLabel)s has unauthorized xml:lang='%(lang)s'
 </message>
@@ -8458,7 +8458,7 @@ Successful XBRL facts sum of md5s.
 
 <message code="info:arcroleRefLocation"
          level="info"
-         module="ValidateXbrlDTS.py" line="663"
+         module="ValidateXbrlDTS.py" line="665"
          args="elementName">
 Link:%(elementName)s not child of link:linkbase or xbrli:instance
 </message>
@@ -8500,7 +8500,7 @@ DTS of %(entryFile)s has %(numberOfFiles)s files packaged into %(packageOutputFi
 
 <message code="info:roleRefLocation"
          level="info"
-         module="ValidateXbrlDTS.py" line="663"
+         module="ValidateXbrlDTS.py" line="665"
          args="elementName">
 Link:%(elementName)s not child of link:linkbase or xbrli:instance
 </message>
@@ -8542,7 +8542,7 @@ Unable to load add-on linkbase %(linkbase)s.
 
 <message code="ix:continuationDescendancy"
          level="error"
-         module="ValidateXbrlDTS.py" line="1333">
+         module="ValidateXbrlDTS.py" line="1335">
 Inline XBRL continuation chain has elements which are descendants of each other.
 </message>
 
@@ -8664,42 +8664,42 @@ Fact %(fact)s is missing a context for contextRef %(context)s
 
 <message code="ix{ver.sect}:continuationChainNested"
          level="error"
-         module="ModelDocument.py" line="1406"
+         module="ModelDocument.py" line="1408"
          args="ancestorElement descendantElement">
 Inline XBRL continuation chain element %(ancestorElement)s has descendant element %(descendantElement)s
 </message>
 
 <message code="ix{ver.sect}:continuationCycle"
          level="error"
-         module="ModelDocument.py" line="1391"
+         module="ModelDocument.py" line="1393"
          args="continuationCycle">
 Inline XBRL continuation cycle: %(continuationCycle)s
 </message>
 
 <message code="ix{ver.sect}:continuationMissing"
          level="error"
-         module="ModelDocument.py" line="1382"
+         module="ModelDocument.py" line="1384"
          args="continuationAt">
 Inline XBRL continuation %(continuationAt)s not found
 </message>
 
 <message code="ix{ver.sect}:continuationNotReferenced"
          level="error"
-         module="ModelDocument.py" line="1584"
+         module="ModelDocument.py" line="1586"
          args="continuedAt">
 ix:continuation %(continuedAt)s is not referenced by a, ix:footnote, ix:nonNumeric or other ix:continuation element.
 </message>
 
 <message code="ix{ver.sect}:continuationReferences"
          level="error"
-         module="ModelDocument.py" line="1576"
+         module="ModelDocument.py" line="1578"
          args="continuedAt referencesCount sourceElements">
 continuedAt %(continuedAt)s has %(referencesCount)s references on %(sourceElements)s elements, only one reference allowed.
 </message>
 
 <message code="ix{ver.sect}:continuationTarget"
          level="error"
-         module="ModelDocument.py" line="1378"
+         module="ModelDocument.py" line="1380"
          args="continuationAt targetElement">
 continuedAt %(continuationAt)s target is an %(targetElement)s element instead of ix:continuation element.
 </message>
@@ -8727,7 +8727,7 @@ Extension attributes are not allowed on html elements: %(tag)s
 
 <message code="ix{ver.sect}:footnoteLang"
          level="error"
-         module="ValidateXbrlDTS.py" line="885">
+         module="ValidateXbrlDTS.py" line="887">
 Inline XBRL footnotes require an in-scope xml:lang
 </message>
 
@@ -8747,46 +8747,46 @@ Inline element %(element)s fact %(fact)s type %(typeName)s transform %(transform
 
 <message code="ix{ver.sect}:fractionDeclaration"
          level="error"
-         module="ModelDocument.py" line="1438"
+         module="ModelDocument.py" line="1440"
          args="qname localName type">
 Inline XBRL element %(qname)s base type %(type)s mapped by %(localName)s
 </message>
 
 <message code="ix{ver.sect}:fractionDescendants"
          level="error"
-         module="ValidateXbrlDTS.py" line="894"
+         module="ValidateXbrlDTS.py" line="896"
          args="wrongDescendants">
 Inline XBRL fraction may only contain ix:numerator, ix:denominator, or ix:fraction, but contained %(wrongDescendants)s
 </message>
 
 <message code="ix{ver.sect}:fractionNilTerms"
          level="error"
-         module="ValidateXbrlDTS.py" line="905">
+         module="ValidateXbrlDTS.py" line="907">
 Inline XBRL fraction must not have ix:numerator or ix:denominator when nil
 </message>
 
 <message code="ix{ver.sect}:fractionTermDescendants"
          level="error"
-         module="ValidateXbrlDTS.py" line="916"
+         module="ValidateXbrlDTS.py" line="918"
          args="name wrongDescendants">
 Inline XBRL fraction term ix:%(name)s may only contain text nodes, but contained %(wrongDescendants)s
 </message>
 
 <message code="ix{ver.sect}:fractionTermNegative"
          level="error"
-         module="ValidateXbrlDTS.py" line="920">
+         module="ValidateXbrlDTS.py" line="922">
 Inline XBRL ix:numerator or ix:denominator without format attribute must be non-negative
 </message>
 
 <message code="ix{ver.sect}:fractionTerms"
          level="error"
-         module="ValidateXbrlDTS.py" line="900">
+         module="ValidateXbrlDTS.py" line="902">
 Inline XBRL fraction must have one ix:numerator and one ix:denominator when not nil
 </message>
 
 <message code="ix{ver.sect}:headerDisplayNone"
          level="warning"
-         module="ValidateXbrlDTS.py" line="927">
+         module="ValidateXbrlDTS.py" line="929">
 Warning, Inline XBRL ix:header is recommended to be nested in a &lt;div> with style display:none
 </message>
 
@@ -8826,38 +8826,38 @@ Fact %(fact)s has unrecognized transformation name %(name)s
 
 <message code="ix{ver.sect}:missingReferences"
          level="error"
-         module="ModelDocument.py" line="1426"
+         module="ModelDocument.py" line="1428"
          args="qname localName">
 Instance fact missing schema definition: %(qname)s of Inline Element %(localName)s
 </message>
 
 <message code="ix{ver.sect}:nestedFractionIsNil"
          level="error"
-         module="ValidateXbrlDTS.py" line="910">
+         module="ValidateXbrlDTS.py" line="912">
 Inline XBRL nil ix:fraction may not have an ancestor ix:fraction
 </message>
 
 <message code="ix{ver.sect}:nestedNonFractionIsNil"
          level="error"
-         module="ValidateXbrlDTS.py" line="935">
+         module="ValidateXbrlDTS.py" line="937">
 Inline XBRL nil ix:nonFraction may not have an ancestor ix:nonFraction
 </message>
 
 <message code="ix{ver.sect}:nestedNonFractionProperties"
          level="error"
-         module="ValidateXbrlDTS.py" line="947">
+         module="ValidateXbrlDTS.py" line="949">
 Inline XBRL nested ix:nonFraction must have matching format, scale, and unitRef properties
 </message>
 
 <message code="ix{ver.sect}:nonFractionChildren"
          level="error"
-         module="ValidateXbrlDTS.py" line="941">
+         module="ValidateXbrlDTS.py" line="943">
 Inline XBRL nil ix:nonFraction may only have one child ix:nonFraction
 </message>
 
 <message code="ix{ver.sect}:nonFractionNegative"
          level="error"
-         module="ValidateXbrlDTS.py" line="951">
+         module="ValidateXbrlDTS.py" line="953">
 Inline XBRL ix:nonFraction without format attribute must be non-negative
 </message>
 
@@ -8898,28 +8898,28 @@ Inline XBRL document set must have consistent prefixes for target %(target)s: %(
 
 <message code="ix{ver.sect}:referencesAttributeDuplication"
          level="error"
-         module="ModelDocument.py" line="1325"
+         module="ModelDocument.py" line="1327"
          args="name target">
 Inline XBRL ix:references attribute %(name)s duplicated in target %(target)s
 </message>
 
 <message code="ix{ver.sect}:referencesIdDuplication"
          level="error"
-         module="ModelDocument.py" line="1332"
+         module="ModelDocument.py" line="1334"
          args="id">
 Inline XBRL ix:references id %(id)s duplicated in inline document set
 </message>
 
 <message code="ix{ver.sect}:referencesNamespacePrefixConflict"
          level="error"
-         module="ModelDocument.py" line="1344"
+         module="ModelDocument.py" line="1346"
          args="prefix ns1 ns2 target">
 Inline XBRL ix:references prefix %(prefix)s has multiple namespaces %(ns1)s and %(ns2)s in target %(target)s
 </message>
 
 <message code="ix{ver.sect}:referencesTargetId"
          level="error"
-         module="ModelDocument.py" line="1336"
+         module="ModelDocument.py" line="1338"
          args="target">
 Inline XBRL has multiple ix:references with id in target %(target)s
 </message>
@@ -8933,14 +8933,14 @@ Inline XBRL fromRef %(ref)s is not a fraction, ix:nonFraction, ix:nonNumeric or 
 
 <message code="ix{ver.sect}:relationshipReferencesMixed"
          level="error"
-         module="ModelDocument.py" line="1565"
+         module="ModelDocument.py" line="1567"
          args="toFootnoteIds toFactQnames">
 Inline relationship references footnote(s) %(toFootnoteIds)s and thereby is not allowed to reference %(toFactQnames)s.
 </message>
 
 <message code="ix{ver.sect}:relationshipToRef"
          level="error"
-         module="ModelDocument.py" line="1555"
+         module="ModelDocument.py" line="1557"
          args="toIds">
 Inline relationship toRef(s) %(toIds)s not found.
 </message>
@@ -8967,7 +8967,7 @@ Inline element %(element)s fact %(fact)s type %(typeName)s transform %(transform
 
 <message code="ix{ver.sect}:tupleID"
          level="error"
-         module="ValidateXbrlDTS.py" line="964">
+         module="ValidateXbrlDTS.py" line="966">
 Inline XBRL non-nil tuples without ix:fraction, ix:nonFraction, ix:nonNumeric or ix:tuple descendants require a tupleID
 </message>
 
@@ -8980,7 +8980,7 @@ Fact %(fact)s must not have an order (%(order)s) unless in a tuple
 
 <message code="ix{ver.sect}:tupleRefMissing"
          level="error"
-         module="ModelDocument.py" line="1357"
+         module="ModelDocument.py" line="1359"
          args="tupleRef">
 Inline XBRL tupleRef %(tupleRef)s not found
 </message>
@@ -9600,147 +9600,147 @@ Generated test case %(reportName)s missing expected event %(event)s
 
 <message code="xbrl.3.5.1.1:simpleLinkType"
          level="error"
-         module="ValidateXbrlDTS.py" line="729"
+         module="ValidateXbrlDTS.py" line="731"
          args="element">
 Element %(element)s missing xlink:type=&quot;simple&quot;
 </message>
 
 <message code="xbrl.3.5.1.2:simpleLinkHref"
          level="error"
-         module="ValidateXbrlDTS.py" line="734"
+         module="ValidateXbrlDTS.py" line="736"
          args="element">
 Element %(element)s missing or invalid href
 </message>
 
 <message code="xbrl.3.5.1.2:simpleLink{http://www.w3.org/1999/xlink}arcrole"
          level="error"
-         module="ValidateXbrlDTS.py" line="739"
+         module="ValidateXbrlDTS.py" line="741"
          args="attribute">
 Element %(element)s has empty %(attribute)s
 </message>
 
 <message code="xbrl.3.5.1.2:simpleLink{http://www.w3.org/1999/xlink}role"
          level="error"
-         module="ValidateXbrlDTS.py" line="739"
+         module="ValidateXbrlDTS.py" line="741"
          args="attribute">
 Element %(element)s has empty %(attribute)s
 </message>
 
 <message code="xbrl.3.5.1.3:emptySimpleLinkRole"
          level="error"
-         module="ValidateXbrlDTS.py" line="1227"
+         module="ValidateXbrlDTS.py" line="1229"
          args="xlinkRole">
 Simple link role %(xlinkRole)s is empty
 </message>
 
 <message code="xbrl.3.5.1.4:emptyXlinkArcrole"
          level="error"
-         module="ValidateXbrlDTS.py" line="1288"
+         module="ValidateXbrlDTS.py" line="1290"
          args="element">
 Arcrole on %(element)s is empty
 </message>
 
 <message code="xbrl.3.5.2.4.5:roleRefDuplicate"
          level="error"
-         module="ValidateXbrlDTS.py" line="679"
+         module="ValidateXbrlDTS.py" line="681"
          args="element refURI">
 %(element)s is duplicated for %(refURI)s
 </message>
 
 <message code="xbrl.3.5.2.4.5:roleRefMismatch"
          level="error"
-         module="ValidateXbrlDTS.py" line="692"
+         module="ValidateXbrlDTS.py" line="694"
          args="element refURI">
 %(element)s %(refURI)s defined with different URI
 </message>
 
 <message code="xbrl.3.5.2.4.5:roleRefMissing"
          level="error"
-         module="ValidateXbrlDTS.py" line="674"
+         module="ValidateXbrlDTS.py" line="676"
          args="element refURI">
 %(element)s %(refURI)s missing
 </message>
 
 <message code="xbrl.3.5.2.4.5:roleRefNotDefined"
          level="error"
-         module="ValidateXbrlDTS.py" line="684"
+         module="ValidateXbrlDTS.py" line="686"
          args="element refURI">
 %(element)s %(refURI)s is not defined
 </message>
 
 <message code="xbrl.3.5.2.4:missingRoleRef"
          level="error"
-         module="ValidateXbrlDTS.py" line="1259"
+         module="ValidateXbrlDTS.py" line="1261"
          args="xlinkRole">
 Role %(xlinkRole)s is missing a roleRef
 </message>
 
 <message code="xbrl.3.5.2.4:roleNotAbsolute"
          level="error"
-         module="ValidateXbrlDTS.py" line="1237"
+         module="ValidateXbrlDTS.py" line="1239"
          args="xlinkRole">
 Role %(xlinkRole)s is not absolute
 </message>
 
 <message code="xbrl.3.5.2.5.5:arcroleRefDuplicate"
          level="error"
-         module="ValidateXbrlDTS.py" line="679"
+         module="ValidateXbrlDTS.py" line="681"
          args="element refURI">
 %(element)s is duplicated for %(refURI)s
 </message>
 
 <message code="xbrl.3.5.2.5.5:arcroleRefMismatch"
          level="error"
-         module="ValidateXbrlDTS.py" line="692"
+         module="ValidateXbrlDTS.py" line="694"
          args="element refURI">
 %(element)s %(refURI)s defined with different URI
 </message>
 
 <message code="xbrl.3.5.2.5.5:arcroleRefMissing"
          level="error"
-         module="ValidateXbrlDTS.py" line="674"
+         module="ValidateXbrlDTS.py" line="676"
          args="element refURI">
 %(element)s %(refURI)s missing
 </message>
 
 <message code="xbrl.3.5.2.5.5:arcroleRefNotDefined"
          level="error"
-         module="ValidateXbrlDTS.py" line="684"
+         module="ValidateXbrlDTS.py" line="686"
          args="element refURI">
 %(element)s %(refURI)s is not defined
 </message>
 
 <message code="xbrl.3.5.2.5:arcroleNotAbsolute"
          level="error"
-         module="ValidateXbrlDTS.py" line="1293"
+         module="ValidateXbrlDTS.py" line="1295"
          args="element arcrole">
 Arcrole %(arcrole)s is not absolute
 </message>
 
 <message code="xbrl.3.5.2.5:missingArcroleRef"
          level="error"
-         module="ValidateXbrlDTS.py" line="1303"
+         module="ValidateXbrlDTS.py" line="1305"
          args="element arcrole">
 Arcrole %(arcrole)s is missing an arcroleRef
 </message>
 
 <message code="xbrl.3.5.3.3:emptyStdExtLinkRole"
          level="error"
-         module="ValidateXbrlDTS.py" line="1232"
+         module="ValidateXbrlDTS.py" line="1234"
          args="xlinkRole">
 Standard extended link role %(xlinkRole)s is empty
 </message>
 
 <message code="xbrl.3.5.3.7"
          level="error"
-         module="ValidateXbrlDTS.py" line="1252"
+         module="ValidateXbrlDTS.py" line="1254"
          args="xlinkRole element">
 Standard role %(xlinkRole)s is not defined for %(element)s
 </message>
 
 <message code="xbrl.3.5.3.7.1:linkLocType"
          level="error"
-         module="ValidateXbrlDTS.py" line="750"
+         module="ValidateXbrlDTS.py" line="752"
          args="element">
 Element %(element)s missing xlink:type=&quot;locator&quot;
 </message>
@@ -9754,35 +9754,35 @@ Loc's href %(locHref)s does not identify an element in an XBRL document discover
 
 <message code="xbrl.3.5.3.7.2:linkLocHref"
          level="error"
-         module="ValidateXbrlDTS.py" line="756"
+         module="ValidateXbrlDTS.py" line="758"
          args="element attribute">
 Element %(element)s missing: %(attribute)s
 </message>
 
 <message code="xbrl.3.5.3.7.3:linkLocLabel"
          level="error"
-         module="ValidateXbrlDTS.py" line="756"
+         module="ValidateXbrlDTS.py" line="758"
          args="element attribute">
 Element %(element)s missing: %(attribute)s
 </message>
 
 <message code="xbrl.3.5.3.8.1:resourceType"
          level="error"
-         module="ValidateXbrlDTS.py" line="795"
+         module="ValidateXbrlDTS.py" line="797"
          args="element">
 Element %(element)s appears to be a resource missing xlink:type=&quot;resource&quot;
 </message>
 
 <message code="xbrl.3.5.3.8.2:resourceLabel"
          level="error"
-         module="ValidateXbrlDTS.py" line="807"
+         module="ValidateXbrlDTS.py" line="809"
          args="element">
 Element %(element)s missing xlink:label
 </message>
 
 <message code="xbrl.3.5.3.9.2:arcFrom"
          level="error"
-         module="ValidateXbrlDTS.py" line="814"
+         module="ValidateXbrlDTS.py" line="816"
          args="element attribute">
 Element %(element)s missing xlink:%(attribute)s
 </message>
@@ -9796,7 +9796,7 @@ Arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s at
 
 <message code="xbrl.3.5.3.9.2:arcTo"
          level="error"
-         module="ValidateXbrlDTS.py" line="814"
+         module="ValidateXbrlDTS.py" line="816"
          args="element attribute">
 Element %(element)s missing xlink:%(attribute)s
 </message>
@@ -9824,7 +9824,7 @@ Href %(elementHref)s unsupported scheme: %(scheme)s
 
 <message code="xbrl.4.11.1.1:customLocator"
          level="error"
-         module="ValidateXbrlDTS.py" line="800"
+         module="ValidateXbrlDTS.py" line="802"
          args="element link">
 Element %(element)s is a custom locator in a standard %(link)s
 </message>
@@ -9845,14 +9845,14 @@ Instance loc's href %(locHref)s not an element in same instance
 
 <message code="xbrl.4.11.1.2"
          level="error"
-         module="ValidateXbrlDTS.py" line="1252"
+         module="ValidateXbrlDTS.py" line="1254"
          args="xlinkRole element">
 Standard role %(xlinkRole)s is not defined for %(element)s
 </message>
 
 <message code="xbrl.4.11.1.2.1:footnoteLang"
          level="error"
-         module="ValidateXbrlDTS.py" line="762"
+         module="ValidateXbrlDTS.py" line="764"
          args="xlinkLabel">
 Footnote %(xlinkLabel)s element missing xml:lang attribute
 </message>
@@ -9887,13 +9887,13 @@ LinkbaseRef %(linkbaseHref)s does not identify an link:linkbase element
 
 <message code="xbrl.4.3.3:linkbaseRefArcrole"
          level="error"
-         module="ValidateXbrlDTS.py" line="745">
+         module="ValidateXbrlDTS.py" line="747">
 LinkbaseRef missing arcrole
 </message>
 
 <message code="xbrl.4.3.4"
          level="error"
-         module="ValidateXbrlDTS.py" line="1252"
+         module="ValidateXbrlDTS.py" line="1254"
          args="xlinkRole element">
 Standard role %(xlinkRole)s is not defined for %(element)s
 </message>
@@ -10089,7 +10089,7 @@ Context %(contextID)s %(contextElement)s cannot have xbrli element %(elementName
 
 <message code="xbrl.4.7:instanceElementOrder"
          level="error"
-         module="ValidateXbrlDTS.py" line="843"
+         module="ValidateXbrlDTS.py" line="845"
          args="element">
 Element %(element)s is out of order
 </message>
@@ -10201,7 +10201,7 @@ Tuple %(concept)s must not have simple content
 
 <message code="xbrl.4:xbrlRootElement"
          level="error"
-         module="ValidateXbrlDTS.py" line="852"
+         module="ValidateXbrlDTS.py" line="854"
          args="parent">
 Xbrl must be a root element, and may not be nested in %(parent)s
 </message>
@@ -10270,49 +10270,49 @@ Fact %(fact)s context %(contextID)s may not have child elements %(childElementNa
 
 <message code="xbrl.5.1.3.4:custRoleUsedOn"
          level="error"
-         module="ValidateXbrlDTS.py" line="1273"
+         module="ValidateXbrlDTS.py" line="1275"
          args="xlinkRole element">
 Role %(xlinkRole)s missing usedOn for %(element)s
 </message>
 
 <message code="xbrl.5.1.3:roleTypeAppinfo"
          level="error"
-         module="ValidateXbrlDTS.py" line="558"
+         module="ValidateXbrlDTS.py" line="560"
          args="element">
 %(element)s not child of xsd:appinfo
 </message>
 
 <message code="xbrl.5.1.3:roleTypeCyclesAllowed"
          level="error"
-         module="ValidateXbrlDTS.py" line="587"
+         module="ValidateXbrlDTS.py" line="589"
          args="element roleURI value">
 %(element)s %(roleURI)s invalid cyclesAllowed %(value)s
 </message>
 
 <message code="xbrl.5.1.3:roleTypeDuplicate"
          level="error"
-         module="ValidateXbrlDTS.py" line="571"
+         module="ValidateXbrlDTS.py" line="573"
          args="element attribute roleURI">
 Duplicate %(element)s %(attribute)s %(roleURI)s
 </message>
 
 <message code="xbrl.5.1.3:roleTypeMissing"
          level="error"
-         module="ValidateXbrlDTS.py" line="566"
+         module="ValidateXbrlDTS.py" line="568"
          args="element attribute">
 %(element)s missing or invalid %(attribute)s
 </message>
 
 <message code="xbrl.5.1.3:roleTypes-inequality"
          level="error"
-         module="ValidateXbrlDTS.py" line="579"
+         module="ValidateXbrlDTS.py" line="581"
          args="element roleURI otherSchema">
 %(element)s %(roleURI)s not s-equal in %(otherSchema)s
 </message>
 
 <message code="xbrl.5.1.3:roleTypes-inequality"
          level="error"
-         module="ValidateXbrlDTS.py" line="616"
+         module="ValidateXbrlDTS.py" line="618"
          args="element roleURI value">
 %(element)s %(roleURI)s usedOn %(value)s on has s-equal duplicate
 </message>
@@ -10330,76 +10330,76 @@ path %(path)s
 
 <message code="xbrl.5.1.4.5:custArcroleUsedOn"
          level="error"
-         module="ValidateXbrlDTS.py" line="1313"
+         module="ValidateXbrlDTS.py" line="1315"
          args="element arcrole">
 Arcrole %(arcrole)s missing usedOn for %(element)s
 </message>
 
 <message code="xbrl.5.1.4.5:custArcroleUsedOn"
          level="error"
-         module="ValidateXbrlDTS.py" line="1322"
+         module="ValidateXbrlDTS.py" line="1324"
          args="element arcrole">
 XBRL file {0} standard arcrole %(arcrole)s used on wrong arc %(element)s
 </message>
 
 <message code="xbrl.5.1.4:arcroleTypeAppinfo"
          level="error"
-         module="ValidateXbrlDTS.py" line="558"
+         module="ValidateXbrlDTS.py" line="560"
          args="element">
 %(element)s not child of xsd:appinfo
 </message>
 
 <message code="xbrl.5.1.4:arcroleTypeCyclesAllowed"
          level="error"
-         module="ValidateXbrlDTS.py" line="587"
+         module="ValidateXbrlDTS.py" line="589"
          args="element roleURI value">
 %(element)s %(roleURI)s invalid cyclesAllowed %(value)s
 </message>
 
 <message code="xbrl.5.1.4:arcroleTypeDuplicate"
          level="error"
-         module="ValidateXbrlDTS.py" line="571"
+         module="ValidateXbrlDTS.py" line="573"
          args="element attribute roleURI">
 Duplicate %(element)s %(attribute)s %(roleURI)s
 </message>
 
 <message code="xbrl.5.1.4:arcroleTypeMissing"
          level="error"
-         module="ValidateXbrlDTS.py" line="566"
+         module="ValidateXbrlDTS.py" line="568"
          args="element attribute">
 %(element)s missing or invalid %(attribute)s
 </message>
 
 <message code="xbrl.5.1.4:arcroleTypes-inequality"
          level="error"
-         module="ValidateXbrlDTS.py" line="579"
+         module="ValidateXbrlDTS.py" line="581"
          args="element roleURI otherSchema">
 %(element)s %(roleURI)s not s-equal in %(otherSchema)s
 </message>
 
 <message code="xbrl.5.1.4:arcroleTypes-inequality"
          level="error"
-         module="ValidateXbrlDTS.py" line="616"
+         module="ValidateXbrlDTS.py" line="618"
          args="element roleURI value">
 %(element)s %(roleURI)s usedOn %(value)s on has s-equal duplicate
 </message>
 
 <message code="xbrl.5.1:emptyTargetNamespace"
          level="error"
-         module="ValidateXbrlDTS.py" line="361">
+         module="ValidateXbrlDTS.py" line="363">
 Schema element has an empty targetNamespace
 </message>
 
 <message code="xbrl.5.1:schemaRootElement"
          level="error"
-         module="ValidateXbrlDTS.py" line="858"
+         module="ValidateXbrlDTS.py" line="860"
          args="parent">
 Schema must be a root element, and may not be nested in %(parent)s
 </message>
 
 <message code="xbrl.5.2.2.1:customLocator"
          level="error"
-         module="ValidateXbrlDTS.py" line="800"
+         module="ValidateXbrlDTS.py" line="802"
          args="element link">
 Element %(element)s is a custom locator in a standard %(link)s
 </message>
@@ -10413,14 +10413,14 @@ Element %(element)s is a custom locator in a standard %(link)s
 
 <message code="xbrl.5.2.2.2.1:labelLang"
          level="error"
-         module="ValidateXbrlDTS.py" line="766"
+         module="ValidateXbrlDTS.py" line="768"
          args="xlinkLabel">
 Label %(xlinkLabel)s element missing xml:lang attribute
 </message>
 
 <message code="xbrl.5.2.2.2.2"
          level="error"
-         module="ValidateXbrlDTS.py" line="1252"
+         module="ValidateXbrlDTS.py" line="1254"
          args="xlinkRole element">
 Standard role %(xlinkRole)s is not defined for %(element)s
 </message>
@@ -10434,7 +10434,7 @@ Unprohibited labelArc in extended link %(linkrole)s has illegal remote resource 
 
 <message code="xbrl.5.2.3.1:customLocator"
          level="error"
-         module="ValidateXbrlDTS.py" line="800"
+         module="ValidateXbrlDTS.py" line="802"
          args="element link">
 Element %(element)s is a custom locator in a standard %(link)s
 </message>
@@ -10448,14 +10448,14 @@ Element %(element)s is a custom locator in a standard %(link)s
 
 <message code="xbrl.5.2.3.2.1"
          level="error"
-         module="ValidateXbrlDTS.py" line="1252"
+         module="ValidateXbrlDTS.py" line="1254"
          args="xlinkRole element">
 Standard role %(xlinkRole)s is not defined for %(element)s
 </message>
 
 <message code="xbrl.5.2.4.1:customLocator"
          level="error"
-         module="ValidateXbrlDTS.py" line="800"
+         module="ValidateXbrlDTS.py" line="802"
          args="element link">
 Element %(element)s is a custom locator in a standard %(link)s
 </message>
@@ -10505,7 +10505,7 @@ Presentation relationship from %(source)s to %(target)s in link role %(linkrole)
 
 <message code="xbrl.5.2.5.1:customLocator"
          level="error"
-         module="ValidateXbrlDTS.py" line="800"
+         module="ValidateXbrlDTS.py" line="802"
          args="element link">
 Element %(element)s is a custom locator in a standard %(link)s
 </message>
@@ -10550,7 +10550,7 @@ Calculation relationship has illegal concept from %(source)s%(sourceNumericDecor
 
 <message code="xbrl.5.2.6.1:customLocator"
          level="error"
-         module="ValidateXbrlDTS.py" line="800"
+         module="ValidateXbrlDTS.py" line="802"
          args="element link">
 Element %(element)s is a custom locator in a standard %(link)s
 </message>
@@ -10642,14 +10642,14 @@ Requires-Element %(requiringConcept)s missing required fact for %(requiredConcep
 
 <message code="xbrl.5.2:linkbaseRootElement"
          level="error"
-         module="ValidateXbrlDTS.py" line="651"
+         module="ValidateXbrlDTS.py" line="653"
          args="parent">
 Linkbase must be a root element or child of appinfo, and may not be nested in %(parent)s
 </message>
 
 <message code="xbrl.5.6.1:Redefine"
          level="error"
-         module="ValidateXbrlDTS.py" line="488">
+         module="ValidateXbrlDTS.py" line="490">
 Redefine is not allowed
 </message>
 
@@ -10955,7 +10955,7 @@ path %(path)s
 
 <message code="xbrldte:TargetRoleNotResolvedError"
          level="error"
-         module="ValidateXbrlDTS.py" line="823"
+         module="ValidateXbrlDTS.py" line="825"
          args="element targetRole">
 TargetRole %(targetRole)s is missing a roleRef
 </message>
@@ -11218,63 +11218,63 @@ Formula %(label)s dimension %(dimension)s value is not a node: %(value)s
 
 <message code="xbrlgene:missingArcRoleUsedOnValue"
          level="error"
-         module="ValidateXbrlDTS.py" line="1317"
+         module="ValidateXbrlDTS.py" line="1319"
          args="element arcrole">
 Generic arc arcrole %(arcrole)s missing usedOn for %(element)s
 </message>
 
 <message code="xbrlgene:missingLinkRoleUsedOnValue"
          level="error"
-         module="ValidateXbrlDTS.py" line="1277"
+         module="ValidateXbrlDTS.py" line="1279"
          args="xlinkRole element">
 Generic link role %(xlinkRole)s missing usedOn for {2}
 </message>
 
 <message code="xbrlgene:missingResourceRoleUsedOnValue"
          level="error"
-         module="ValidateXbrlDTS.py" line="1281"
+         module="ValidateXbrlDTS.py" line="1283"
          args="xlinkRole element">
 Generic resource role %(xlinkRole)s missing usedOn for %(element)s
 </message>
 
 <message code="xbrlgene:missingRoleRefForArcRole"
          level="error"
-         module="ValidateXbrlDTS.py" line="1307"
+         module="ValidateXbrlDTS.py" line="1309"
          args="element arcrole">
 Generic arc arcrole %(arcrole)s is missing an arcroleRef
 </message>
 
 <message code="xbrlgene:missingRoleRefForLinkRole"
          level="error"
-         module="ValidateXbrlDTS.py" line="1263"
+         module="ValidateXbrlDTS.py" line="1265"
          args="xlinkRole">
 Generic link role %(xlinkRole)s is missing a roleRef
 </message>
 
 <message code="xbrlgene:missingRoleRefForResourceRole"
          level="error"
-         module="ValidateXbrlDTS.py" line="1267"
+         module="ValidateXbrlDTS.py" line="1269"
          args="xlinkRole">
 Generic resource role %(xlinkRole)s is missing a roleRef
 </message>
 
 <message code="xbrlgene:nonAbsoluteArcRoleURI"
          level="error"
-         module="ValidateXbrlDTS.py" line="1297"
+         module="ValidateXbrlDTS.py" line="1299"
          args="element arcrole">
 Generic arc arcrole %(arcrole)s is not absolute
 </message>
 
 <message code="xbrlgene:nonAbsoluteLinkRoleURI"
          level="error"
-         module="ValidateXbrlDTS.py" line="1241"
+         module="ValidateXbrlDTS.py" line="1243"
          args="xlinkRole">
 Generic link role %(xlinkRole)s is not absolute
 </message>
 
 <message code="xbrlgene:nonAbsoluteResourceRoleURI"
          level="error"
-         module="ValidateXbrlDTS.py" line="1245"
+         module="ValidateXbrlDTS.py" line="1247"
          args="xlinkRole">
 Generic resource role %(xlinkRole)s is not absolute
 </message>
@@ -11734,6 +11734,13 @@ Show %(xlinkShow)s invalid in extended link %(linkrole)s
 Xlink type %(xlinkType)s invalid in extended link %(linkrole)s
 </message>
 
+<message code="xml.3.3.1:idMustBeUnique"
+         level="error"
+         module="ValidateXbrlDTS.py" line="349"
+         args="element attribute value">
+Element %(element)s id %(value)s is duplicated
+</message>
+
 <message code="xmlSchema1.4.2.3:refSchemaNamespace"
          level="error"
          module="ModelDocument.py" line="345"
@@ -11785,7 +11792,7 @@ Element %(element)s fact %(fact)s type %(typeName)s is nil but element has not b
 
 <message code="xmlSchema:refNotFound"
          level="error"
-         module="ValidateXbrlDTS.py" line="497"
+         module="ValidateXbrlDTS.py" line="499"
          args="element ref">
 %(element)s ref %(ref)s not found
 </message>
@@ -11895,16 +11902,9 @@ Element attribute %(typeName)s value error: %(value)s, %(error)s
 
 <message code="xmlschema.3.4.2:contentModel"
          level="error"
-         module="ValidateXbrlDTS.py" line="547"
+         module="ValidateXbrlDTS.py" line="549"
          args="element">
 Element %(element)s is mis-located in schema file
-</message>
-
-<message code="xmlschema2.3.2.10:idDuplicated"
-         level="error"
-         module="ValidateXbrlDTS.py" line="347"
-         args="element attribute value">
-Element %(element)s id %(value)s is duplicated
 </message>
 
 </messages>
