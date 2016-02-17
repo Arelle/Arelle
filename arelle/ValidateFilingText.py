@@ -610,18 +610,16 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
             if eltTag.startswith(_xhtmlNs):
                 eltTag = eltTag[_xhtmlNsLen:]
         if isInline and eltTag in efmBlockedInlineHtmlElements:
-            modelXbrl.error(messageCodePrefix + "disallowedElement",
+            modelXbrl.error("EFM.5.02.05.disallowedElement",
                 _("%(validatedObjectLabel)s has disallowed element <%(element)s>"),
                 modelObject=elt, validatedObjectLabel=validatedObjectLabel,
-                element=eltTag,
-                messageCodes=("EFM.6.05.34.disallowedElement", "EFM.5.05.02.disallowedElement"))
+                element=eltTag)
         for attrTag, attrValue in elt.items():
             if isInline and attrTag in efmBlockedInlineHtmlElementAttributes.get(eltTag,()):
-                modelXbrl.error(messageCodePrefix + "disallowedAttribute",
+                modelXbrl.error("EFM.5.02.05.disallowedAttribute",
                     _("%(validatedObjectLabel)s has disallowed attribute on element <%(element)s>: %(attribute)s=\"%(value)s\""),
                     modelObject=elt, validatedObjectLabel=validatedObjectLabel,
-                    element=eltTag, attribute=attrTag, value=attrValue,
-                    messageCodes=("EFM.6.05.34.disallowedElement", "EFM.5.05.02.disallowedElement"))
+                    element=eltTag, attribute=attrTag, value=attrValue)
             if ((attrTag == "href" and eltTag == "a") or 
                 (attrTag == "src" and eltTag == "img")):
                 if "javascript:" in attrValue:
@@ -629,7 +627,7 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                         _("%(validatedObjectLabel)s has javascript in '%(attribute)s' for <%(element)s>"),
                         modelObject=elt, validatedObjectLabel=validatedObjectLabel,
                         attribute=attrTag, element=eltTag,
-                        messageCodes=("EFM.6.05.34.activeContent", "EFM.5.05.02.activeContent"))
+                        messageCodes=("EFM.6.05.34.activeContent", "EFM.5.02.05.activeContent"))
                 elif attrValue.startswith("http://www.sec.gov/Archives/edgar/data/") and eltTag == "a":
                     pass
                 elif "http:" in attrValue or "https:" in attrValue or "ftp:" in attrValue:
@@ -637,14 +635,14 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                         _("%(validatedObjectLabel)s has an invalid external reference in '%(attribute)s' for <%(element)s>: %(value)s"),
                         modelObject=elt, validatedObjectLabel=validatedObjectLabel,
                         attribute=attrTag, element=eltTag, value=attrValue,
-                        messageCodes=("EFM.6.05.34.externalReference", "EFM.5.05.02.externalReference"))
+                        messageCodes=("EFM.6.05.34.externalReference", "EFM.5.02.05.externalReference"))
                 if attrTag == "src" and attrValue not in checkedGraphicsFiles:
                     if attrValue.lower()[-4:] not in ('.jpg', '.gif'):
                         modelXbrl.error(messageCodePrefix + "graphicFileType",
                             _("%(validatedObjectLabel)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for <%(element)s>"),
                             modelObject=elt, validatedObjectLabel=validatedObjectLabel,
                             attribute=attrValue, element=eltTag,
-                            messageCodes=("EFM.6.05.34.graphicFileType", "EFM.5.05.02.graphicFileType"))
+                            messageCodes=("EFM.6.05.34.graphicFileType", "EFM.5.02.05.graphicFileType"))
                     else:   # test file contents
                         try:
                             if validateGraphicFile(referenceElt, attrValue) != attrValue.lower()[-3:]:
@@ -652,26 +650,26 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                                     _("%(validatedObjectLabel)s references a graphics file which doesn't have expected content '%(attribute)s' for <%(element)s>"),
                                     modelObject=elt, validatedObjectLabel=validatedObjectLabel,
                                     attribute=attrValue, element=eltTag,
-                                    messageCodes=("EFM.6.05.34.graphicFileContent", "EFM.5.05.02.graphicFileContent"))
+                                    messageCodes=("EFM.6.05.34.graphicFileContent", "EFM.5.02.05.graphicFileContent"))
                         except IOError as err:
                             modelXbrl.error(messageCodePrefix + "graphicFileError",
                                 _("%(validatedObjectLabel)s references a graphics file which isn't openable '%(attribute)s' for <%(element)s>, error: %(error)s"),
                                 modelObject=elt, validatedObjectLabel=validatedObjectLabel,
                                 attribute=attrValue, element=eltTag, error=err,
-                                messageCodes=("EFM.6.05.34.graphicFileError", "EFM.5.05.02.graphicFileError"))
+                                messageCodes=("EFM.6.05.34.graphicFileError", "EFM.5.02.05.graphicFileError"))
                     checkedGraphicsFiles.add(attrValue)
             if eltTag == "meta" and attrTag == "content" and not attrValue.startswith("text/html"):
                 modelXbrl.error(messageCodePrefix + "disallowedMetaContent",
                     _("%(validatedObjectLabel)s <meta> content is \"%(metaContent)s\" but must be \"text/html\""),
                     modelObject=elt, validatedObjectLabel=validatedObjectLabel,
                     metaContent=attrValue,
-                    messageCodes=("EFM.6.05.34.disallowedMetaContent", "EFM.5.05.02.disallowedMetaContent"))
+                    messageCodes=("EFM.6.05.34.disallowedMetaContent", "EFM.5.02.05.disallowedMetaContent"))
         if eltTag == "table" and any(a.tag in _tableTags
                                      for a in elt.iterancestors()):
             modelXbrl.error(messageCodePrefix + "nestedTable",
                 _("%(validatedObjectLabel)s has nested <table> elements."),
                 modelObject=elt, validatedObjectLabel=validatedObjectLabel,
-                messageCodes=("EFM.6.05.34.nestedTable", "EFM.5.05.02.nestedTable"))
+                messageCodes=("EFM.6.05.34.nestedTable", "EFM.5.02.05.nestedTable"))
 
 '''
     if parent is None:

@@ -382,77 +382,77 @@ Disallowed character '%(text)s' in file %(file)s at line %(line)s col %(column)s
 Disallowed entity code %(text)s in file %(file)s line %(line)s column %(column)s
 </message>
 
-<message code="EFM.5.02.02.doctypeDisallowed"
+<message code="EFM.5.02.05.activeContent"
          level="error"
-         module="plugin/validate/EFM/Filing.py" line="1381"
-         args="doctype">
-Inline HTML %(doctype)s is disallowed.
-</message>
-
-<message code="EFM.5.05.02.activeContent"
-         level="error"
-         module="ValidateFilingText.py" line="628"
+         module="ValidateFilingText.py" line="626"
          args="validatedObjectLabel attribute element">
 %(validatedObjectLabel)s has javascript in '%(attribute)s' for &lt;%(element)s>
 </message>
 
-<message code="EFM.5.05.02.disallowedElement"
+<message code="EFM.5.02.05.disallowedAttribute"
+         level="error"
+         module="ValidateFilingText.py" line="619"
+         args="validatedObjectLabel element attribute value">
+%(validatedObjectLabel)s has disallowed attribute on element &lt;%(element)s>: %(attribute)s=&quot;%(value)s&quot;
+</message>
+
+<message code="EFM.5.02.05.disallowedElement"
          level="error"
          module="ValidateFilingText.py" line="613"
          args="validatedObjectLabel element">
 %(validatedObjectLabel)s has disallowed element &lt;%(element)s>
 </message>
 
-<message code="EFM.5.05.02.disallowedElement"
+<message code="EFM.5.02.05.disallowedMetaContent"
          level="error"
-         module="ValidateFilingText.py" line="620"
-         args="validatedObjectLabel element attribute value">
-%(validatedObjectLabel)s has disallowed attribute on element &lt;%(element)s>: %(attribute)s=&quot;%(value)s&quot;
-</message>
-
-<message code="EFM.5.05.02.disallowedMetaContent"
-         level="error"
-         module="ValidateFilingText.py" line="664"
+         module="ValidateFilingText.py" line="662"
          args="validatedObjectLabel metaContent">
 %(validatedObjectLabel)s &lt;meta> content is &quot;%(metaContent)s&quot; but must be &quot;text/html&quot;
 </message>
 
-<message code="EFM.5.05.02.externalReference"
+<message code="EFM.5.02.05.doctypeDisallowed"
          level="error"
-         module="ValidateFilingText.py" line="636"
+         module="plugin/validate/EFM/Filing.py" line="1381"
+         args="doctype">
+Inline HTML %(doctype)s is disallowed.
+</message>
+
+<message code="EFM.5.02.05.externalReference"
+         level="error"
+         module="ValidateFilingText.py" line="634"
          args="validatedObjectLabel attribute element value">
 %(validatedObjectLabel)s has an invalid external reference in '%(attribute)s' for &lt;%(element)s>: %(value)s
 </message>
 
-<message code="EFM.5.05.02.graphicFileContent"
+<message code="EFM.5.02.05.graphicFileContent"
          level="error"
-         module="ValidateFilingText.py" line="651"
+         module="ValidateFilingText.py" line="649"
          args="validatedObjectLabel attribute element">
 %(validatedObjectLabel)s references a graphics file which doesn't have expected content '%(attribute)s' for &lt;%(element)s>
 </message>
 
-<message code="EFM.5.05.02.graphicFileError"
+<message code="EFM.5.02.05.graphicFileError"
          level="error"
-         module="ValidateFilingText.py" line="657"
+         module="ValidateFilingText.py" line="655"
          args="validatedObjectLabel attribute element error">
 %(validatedObjectLabel)s references a graphics file which isn't openable '%(attribute)s' for &lt;%(element)s>, error: %(error)s
 </message>
 
-<message code="EFM.5.05.02.graphicFileType"
+<message code="EFM.5.02.05.graphicFileType"
          level="error"
-         module="ValidateFilingText.py" line="643"
+         module="ValidateFilingText.py" line="641"
          args="validatedObjectLabel attribute element">
 %(validatedObjectLabel)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for &lt;%(element)s>
 </message>
 
-<message code="EFM.5.05.02.nestedTable"
+<message code="EFM.5.02.05.nestedTable"
          level="error"
-         module="ValidateFilingText.py" line="671"
+         module="ValidateFilingText.py" line="669"
          args="validatedObjectLabel">
 %(validatedObjectLabel)s has nested &lt;table> elements.
 </message>
 
-<message code="EFM.5.05.02.xhtmlNamespaceMissing"
+<message code="EFM.5.02.05.xhtmlNamespaceMissing"
          level="error"
          module="plugin/validate/EFM/Filing.py" line="1363"
          args="element">
@@ -1587,28 +1587,14 @@ FootnoteLink %(footnoteLinkNumber)s footnote %(footnoteLabel)s has no linked fac
 
 <message code="EFM.6.05.34.activeContent"
          level="error"
-         module="ValidateFilingText.py" line="628"
+         module="ValidateFilingText.py" line="626"
          args="validatedObjectLabel attribute element">
 %(validatedObjectLabel)s has javascript in '%(attribute)s' for &lt;%(element)s>
 </message>
 
-<message code="EFM.6.05.34.disallowedElement"
-         level="error"
-         module="ValidateFilingText.py" line="613"
-         args="validatedObjectLabel element">
-%(validatedObjectLabel)s has disallowed element &lt;%(element)s>
-</message>
-
-<message code="EFM.6.05.34.disallowedElement"
-         level="error"
-         module="ValidateFilingText.py" line="620"
-         args="validatedObjectLabel element attribute value">
-%(validatedObjectLabel)s has disallowed attribute on element &lt;%(element)s>: %(attribute)s=&quot;%(value)s&quot;
-</message>
-
 <message code="EFM.6.05.34.disallowedMetaContent"
          level="error"
-         module="ValidateFilingText.py" line="664"
+         module="ValidateFilingText.py" line="662"
          args="validatedObjectLabel metaContent">
 %(validatedObjectLabel)s &lt;meta> content is &quot;%(metaContent)s&quot; but must be &quot;text/html&quot;
 </message>
@@ -1622,35 +1608,35 @@ FootnoteLink %(footnoteLinkNumber)s footnote %(footnoteLabel)s has no linked fac
 
 <message code="EFM.6.05.34.externalReference"
          level="error"
-         module="ValidateFilingText.py" line="636"
+         module="ValidateFilingText.py" line="634"
          args="validatedObjectLabel attribute element value">
 %(validatedObjectLabel)s has an invalid external reference in '%(attribute)s' for &lt;%(element)s>: %(value)s
 </message>
 
 <message code="EFM.6.05.34.graphicFileContent"
          level="error"
-         module="ValidateFilingText.py" line="651"
+         module="ValidateFilingText.py" line="649"
          args="validatedObjectLabel attribute element">
 %(validatedObjectLabel)s references a graphics file which doesn't have expected content '%(attribute)s' for &lt;%(element)s>
 </message>
 
 <message code="EFM.6.05.34.graphicFileError"
          level="error"
-         module="ValidateFilingText.py" line="657"
+         module="ValidateFilingText.py" line="655"
          args="validatedObjectLabel attribute element error">
 %(validatedObjectLabel)s references a graphics file which isn't openable '%(attribute)s' for &lt;%(element)s>, error: %(error)s
 </message>
 
 <message code="EFM.6.05.34.graphicFileType"
          level="error"
-         module="ValidateFilingText.py" line="643"
+         module="ValidateFilingText.py" line="641"
          args="validatedObjectLabel attribute element">
 %(validatedObjectLabel)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for &lt;%(element)s>
 </message>
 
 <message code="EFM.6.05.34.nestedTable"
          level="error"
-         module="ValidateFilingText.py" line="671"
+         module="ValidateFilingText.py" line="669"
          args="validatedObjectLabel">
 %(validatedObjectLabel)s has nested &lt;table> elements.
 </message>

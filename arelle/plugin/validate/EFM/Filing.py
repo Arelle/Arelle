@@ -1360,7 +1360,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL and isEFM:
         elt = modelXbrl.modelDocument.xmlRootElement
         if elt.tag in ("html", "xhtml") or (isinstance(elt, ModelObject) and not elt.namespaceURI):
-            modelXbrl.error("EFM.5.05.02.xhtmlNamespaceMissing",
+            modelXbrl.error("EFM.5.02.05.xhtmlNamespaceMissing",
                 _("InlineXBRL root element <%(element)s> MUST be html and have the xhtml namespace."),
                 modelObject=elt, element=elt.tag)
         ixNStag = modelXbrl.modelDocument.ixNStag
@@ -1378,7 +1378,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     _("Inline tuple %(qname)s is disallowed."),
                     modelObject=ixElt, qname=ixElt.qname)
         if modelXbrl.modelDocument.xmlDocument.docinfo.doctype:
-            modelXbrl.error("EFM.5.02.02.doctypeDisallowed",
+            modelXbrl.error("EFM.5.02.05.doctypeDisallowed",
                 _("Inline HTML %(doctype)s is disallowed."),
                 modelObject=ixElt, doctype=modelXbrl.modelDocument.xmlDocument.docinfo.doctype)
     # all-labels and references checks

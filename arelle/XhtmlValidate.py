@@ -407,7 +407,7 @@ def xhtmlValidate(modelXbrl, elt):
                 modelObject=elt, element=elt.localName.title(),
                 error=', '.join(e.message for e in dtd.error_log.filter_from_errors()))
         if isEFM:
-            ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", "EFM.5.02.02.", isInline=True) 
+            ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", "EFM.5.02.05.", isInline=True) 
     except XMLSyntaxError as err:
         modelXbrl.error("html:syntaxError",
             _("%(element)s error %(error)s"),
