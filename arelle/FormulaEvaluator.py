@@ -607,7 +607,7 @@ def evaluationIsUnnecessary(thisEval, xpCtx):
                          for vQn, vBoundFact in thisEval.items()
                          if vBoundFact is not None
                          if vQn in otherEvalHashDicts
-                         if hash(vBoundFact) in otherEvalHashDicts[vQn]] # TOREMOVE
+                         if hash(vBoundFact) in otherEvalHashDicts[vQn]]
         if otherEvalSets:
             matchingEvals = [otherEvals[i] for i in  set.intersection(*otherEvalSets)]
         else:
