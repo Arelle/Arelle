@@ -97,7 +97,7 @@ ixAttrDefined = {
         "tuple": ("id", "name", "target", "tupleID", "tupleRef", "order", "footnoteRefs")},
     XbrlConst.ixbrl11: {  
         "continuation": ("id", "continuedAt"),
-        "footnote": ("id", "continuedAt", "footnote", "title"),
+        "footnote": ("id", "continuedAt", "footnoteRole", "title"),
         "fraction": ("id", "name", "target", "contextRef", "unitRef", "tupleRef", "order"),
         "denominator": ("format", "scale", "sign"),
         "numerator": ("format", "scale", "sign"),

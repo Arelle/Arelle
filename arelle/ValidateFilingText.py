@@ -600,6 +600,7 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
     _xhtmlNs = "{{{}}}".format(xhtml)
     _xhtmlNsLen = len(_xhtmlNs)
     _tableTags = ("table", _xhtmlNs + "table")
+    _anchorAncestorTags = set(_xhtmlNs + tag for tag in ("html", "body", "div"))
     for elt in htmlEltTree.iter():
         if isinstance(elt, ModelObject) and elt.namespaceURI == xhtml:
             eltTag = elt.localName
@@ -609,11 +610,16 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
             eltTag = elt.tag
             if eltTag.startswith(_xhtmlNs):
                 eltTag = eltTag[_xhtmlNsLen:]
-        if isInline and eltTag in efmBlockedInlineHtmlElements:
-            modelXbrl.error("EFM.5.02.05.disallowedElement",
-                _("%(validatedObjectLabel)s has disallowed element <%(element)s>"),
-                modelObject=elt, validatedObjectLabel=validatedObjectLabel,
-                element=eltTag)
+        if isInline:
+            if eltTag in efmBlockedInlineHtmlElements:
+                modelXbrl.error("EFM.5.02.05.disallowedElement",
+                    _("%(validatedObjectLabel)s has disallowed element <%(element)s>"),
+                    modelObject=elt, validatedObjectLabel=validatedObjectLabel,
+                    element=eltTag)
+            if eltTag == "a" and "href" not in elt.keys() and any(a.tag not in _anchorAncestorTags for a in elt.iterancestors()):
+                modelXbrl.error("EFM.5.02.05.anchorElementPosition",
+                    _("If element <a> does not have attribute @href, it must not have any ancestors other than html, body, or div.  Disallowed ancestors: %(disallowedAncestors)s"),
+                    modelObject=elt, disallowedAncestors=", ".join(a.tag.rpartition('}')[2] for a in elt.iterancestors() if a.tag not in _anchorAncestorTags))      
         for attrTag, attrValue in elt.items():
             if isInline:
                 if attrTag in efmBlockedInlineHtmlElementAttributes.get(eltTag,()):
