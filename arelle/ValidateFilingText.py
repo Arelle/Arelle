@@ -617,8 +617,8 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                     modelObject=elt, validatedObjectLabel=validatedObjectLabel,
                     element=eltTag)
             if eltTag == "a" and "href" not in elt.keys() and any(a.tag not in _anchorAncestorTags for a in elt.iterancestors()):
-                modelXbrl.error("EFM.5.02.05.anchorElementPosition",
-                    _("If element <a> does not have attribute @href, it must not have any ancestors other than html, body, or div.  Disallowed ancestors: %(disallowedAncestors)s"),
+                modelXbrl.warning("EFM.5.02.05.anchorElementPosition",
+                    _("If element <a> does not have attribute @href, it should not have any ancestors other than html, body, or div.  Disallowed ancestors: %(disallowedAncestors)s"),
                     modelObject=elt, disallowedAncestors=", ".join(a.tag.rpartition('}')[2] for a in elt.iterancestors() if a.tag not in _anchorAncestorTags))      
         for attrTag, attrValue in elt.items():
             if isInline:
@@ -633,7 +633,7 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                         modelObject=elt, validatedObjectLabel=validatedObjectLabel,
                         element=eltTag, value=attrValue)
                 elif attrTag == "{http://www.w3.org/2001/XMLSchema-instance}schemaLocation":
-                    modelXbrl.error("EFM.5.02.05.schemaLocationDisallowed",
+                    modelXbrl.warning("EFM.5.02.05.schemaLocationDisallowed",
                         _("%(validatedObjectLabel)s has disallowed attribute on element <%(element)s>: xsi:schemaLocation=\"%(value)s\""),
                         modelObject=elt, validatedObjectLabel=validatedObjectLabel,
                         element=eltTag, value=attrValue)
