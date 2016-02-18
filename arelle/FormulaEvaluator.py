@@ -137,7 +137,7 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
         # HF try to use dict of vb by result qname
         # thisEvaluation = tuple(vb.matchableBoundFact(fbVars) for vb in xpCtx.varBindings.values())
         thisEvaluation = dict((vbQn, vb.matchableBoundFact(fbVars)) for vbQn, vb in xpCtx.varBindings.items())
-        if evaluationIsUnnecessary(thisEvaluation, xpCtx.evaluationHashDicts, xpCtx.evaluations):
+        if evaluationIsUnnecessary(thisEvaluation, xpCtx):
             if xpCtx.formulaOptions.traceVariableSetExpressionResult:
                 xpCtx.modelXbrl.info("formula:trace",
                     _("Variable set %(xlinkLabel)s skipped non-different or fallback evaluation, duplicates another evaluation"),
@@ -594,23 +594,40 @@ def factsPartitions(xpCtx, facts, aspects):
             factsPartitions.append([fact,])
     return factsPartitions
 
-def evaluationIsUnnecessary(thisEval, otherEvalHashDicts, otherEvals):
+def evaluationIsUnnecessary(thisEval, xpCtx):
+    otherEvals = xpCtx.evaluations
     if otherEvals:
+        otherEvalHashDicts = xpCtx.evaluationHashDicts
         # HF try
         # if all(e is None for e in thisEval):
         if all(e is None for e in thisEval.values()):
             return True  # evaluation not necessary, all fallen back
         # hash check if any hashes merit further look for equality
-        otherEvalSets = [otherEvalHashDicts[vQn].get(hash(vBoundFact), EMPTYSET)
+        otherEvalSets = [otherEvalHashDicts[vQn][hash(vBoundFact)]
                          for vQn, vBoundFact in thisEval.items()
                          if vBoundFact is not None
-                         if vQn in otherEvalHashDicts]
+                         if vQn in otherEvalHashDicts
+                         if hash(vBoundFact) in otherEvalHashDicts[vQn]] # TOREMOVE
         if otherEvalSets:
             matchingEvals = [otherEvals[i] for i in  set.intersection(*otherEvalSets)]
-            # detects evaluations which are not different (duplicate) and extra fallback evaluations
-            # vBoundFact may be single fact or tuple of facts
-            return any(all([vBoundFact == matchingEval[vQn] for vQn, vBoundFact in thisEval.items() if vBoundFact is not None])
-                       for matchingEval in matchingEvals)
+        else:
+            matchingEvals = otherEvals
+        # find set of vQn whose dependencies are fallen back in this eval but not others that match
+        varBindings = xpCtx.varBindings
+        vQnDependentOnOtherVarFallenBackButBoundInOtherEval = set(
+            vQn
+            for vQn, vBoundFact in thisEval.items()
+            if vBoundFact is not None and
+               any(varBindings[varRefQn].isFallback and 
+                   any(m[varRefQn] is not None for m in matchingEvals)
+                   for varRefQn in varBindings[vQn].var.variableRefs()))
+        # detects evaluations which are not different (duplicate) and extra fallback evaluations
+        # vBoundFact may be single fact or tuple of facts
+        return any(all([vBoundFact == matchingEval[vQn] 
+                        for vQn, vBoundFact in thisEval.items() 
+                        if vBoundFact is not None
+                        and vQn not in vQnDependentOnOtherVarFallenBackButBoundInOtherEval])
+                   for matchingEval in matchingEvals)
     return False
     '''
     r = range(len(thisEval))
@@ -1107,7 +1124,10 @@ class VariableBinding:
     def matchableBoundFact(self, fbVars):  # return from this function has to be hashable
         if (self.isFallback or self.isParameter 
             # remove to allow different gen var evaluations: or self.isGeneralVar
-            or (self.isGeneralVar and not fbVars.isdisjoint(self.var.variableRefs()))):
+            ##or (self.isGeneralVar and not fbVars.isdisjoint(self.var.variableRefs()))):
+            or self.isGeneralVar 
+            # or not fbVars.isdisjoint(self.var.variableRefs())
+            ):
             return None
         if self.isBindAsSequence:
             return tuple(self.yieldedEvaluation)
