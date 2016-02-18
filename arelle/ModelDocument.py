@@ -1426,28 +1426,26 @@ def inlineIxdsDiscover(modelXbrl):
         for tupleFact in tupleElements:
             locateFactInTuple(tupleFact, tuplesByTupleID, ixNStag)
 
-        factTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "fraction"))
-        for tag in factTags:
-            for modelInlineFact in htmlElement.iterdescendants(tag=tag):
-                if isinstance(modelInlineFact,ModelInlineFact):
-                    if modelInlineFact.qname is not None: # must have a qname to be in facts
-                        if modelInlineFact.concept is None:
-                            modelXbrl.error(ixMsgCode("missingReferences", modelInlineFact, name="references", sect="validation"),
-                                            _("Instance fact missing schema definition: %(qname)s of Inline Element %(localName)s"),
-                                            modelObject=modelInlineFact, qname=modelInlineFact.qname, localName=modelInlineFact.elementQname)
-                        elif modelInlineFact.isFraction == (modelInlineFact.localName == "fraction"):
-                            mdlDoc.modelXbrl.factsInInstance.add( modelInlineFact )
-                            locateFactInTuple(modelInlineFact, tuplesByTupleID, ixNStag)
-                            locateContinuation(modelInlineFact)
-                            for r in modelInlineFact.footnoteRefs:
-                                footnoteRefs[r].append(modelInlineFact)
-                            if modelInlineFact.id:
-                                factsByFactID[modelInlineFact.id] = modelInlineFact
-                        else:
-                            modelXbrl.error(ixMsgCode("fractionDeclaration", modelInlineFact, name="fraction", sect="validation"),
-                                            _("Inline XBRL element %(qname)s base type %(type)s mapped by %(localName)s"),
-                                            modelObject=modelInlineFact, qname=modelInlineFact.qname, localName=modelInlineFact.elementQname,
-                                            type=modelInlineFact.concept.baseXsdType)
+        for modelInlineFact in htmlElement.iterdescendants(tag=ixNStag + '*'):
+            if isinstance(modelInlineFact,ModelInlineFact) and modelInlineFact.localName in ("nonNumeric", "nonFraction", "fraction"):
+                if modelInlineFact.qname is not None: # must have a qname to be in facts
+                    if modelInlineFact.concept is None:
+                        modelXbrl.error(ixMsgCode("missingReferences", modelInlineFact, name="references", sect="validation"),
+                                        _("Instance fact missing schema definition: %(qname)s of Inline Element %(localName)s"),
+                                        modelObject=modelInlineFact, qname=modelInlineFact.qname, localName=modelInlineFact.elementQname)
+                    elif modelInlineFact.isFraction == (modelInlineFact.localName == "fraction"):
+                        mdlDoc.modelXbrl.factsInInstance.add( modelInlineFact )
+                        locateFactInTuple(modelInlineFact, tuplesByTupleID, ixNStag)
+                        locateContinuation(modelInlineFact)
+                        for r in modelInlineFact.footnoteRefs:
+                            footnoteRefs[r].append(modelInlineFact)
+                        if modelInlineFact.id:
+                            factsByFactID[modelInlineFact.id] = modelInlineFact
+                    else:
+                        modelXbrl.error(ixMsgCode("fractionDeclaration", modelInlineFact, name="fraction", sect="validation"),
+                                        _("Inline XBRL element %(qname)s base type %(type)s mapped by %(localName)s"),
+                                        modelObject=modelInlineFact, qname=modelInlineFact.qname, localName=modelInlineFact.elementQname,
+                                        type=modelInlineFact.concept.baseXsdType)
         # order tuple facts
         for tupleFact in tupleElements:
             tupleFact.modelTupleFacts = [
