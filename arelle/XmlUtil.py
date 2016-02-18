@@ -548,26 +548,27 @@ def copyChildren(parent, elt):
             copyNodes(parent, childNode)
 
 def copyIxFootnoteHtml(sourceXml, targetHtml, targetModelDocument=None, withText=False, isContinChainElt=True):
-    if withText:
-        _tx = sourceXml.text
-        if _tx:
-            try: # if target has a last child already with a tail, add to tail instead of to text
-                targetLastchild = next(targetHtml.iterchildren(reversed=True))
-                targetLastchild.tail = (targetLastchild.tail or "") + _tx
-            except StopIteration: # no children
-                targetHtml.text = (targetHtml.text or "") + _tx
-    for sourceChild in sourceXml.iterchildren():
-        if isinstance(sourceChild,ModelObject):
-            if not sourceChild.namespaceURI in ixbrlAll:
-                # ensure xhtml has an xmlns
-                if targetModelDocument is not None and sourceChild.namespaceURI == xhtml and xhtml not in targetHtml.nsmap.values():
-                    setXmlns(targetModelDocument, "xhtml", xhtml)
-                targetChild = etree.SubElement(targetHtml, sourceChild.tag)
-                for attrTag, attrValue in sourceChild.items():
-                    targetChild.set(attrTag, attrValue)
-                copyIxFootnoteHtml(sourceChild, targetChild, targetModelDocument, withText=withText, isContinChainElt=False)
-            else:
-                copyIxFootnoteHtml(sourceChild, targetHtml, targetModelDocument, withText=withText, isContinChainElt=False)
+    if not (isinstance(sourceXml,ModelObject) and sourceXml.localName == "exclude" and sourceXml.namespaceURI in ixbrlAll):
+        if withText:
+            _tx = sourceXml.text
+            if _tx:
+                try: # if target has a last child already with a tail, add to tail instead of to text
+                    targetLastchild = next(targetHtml.iterchildren(reversed=True))
+                    targetLastchild.tail = (targetLastchild.tail or "") + _tx
+                except StopIteration: # no children
+                    targetHtml.text = (targetHtml.text or "") + _tx
+        for sourceChild in sourceXml.iterchildren():
+            if isinstance(sourceChild,ModelObject):
+                if not sourceChild.namespaceURI in ixbrlAll:
+                    # ensure xhtml has an xmlns
+                    if targetModelDocument is not None and sourceChild.namespaceURI == xhtml and xhtml not in targetHtml.nsmap.values():
+                        setXmlns(targetModelDocument, "xhtml", xhtml)
+                    targetChild = etree.SubElement(targetHtml, sourceChild.tag)
+                    for attrTag, attrValue in sourceChild.items():
+                        targetChild.set(attrTag, attrValue)
+                    copyIxFootnoteHtml(sourceChild, targetChild, targetModelDocument, withText=withText, isContinChainElt=False)
+                else:
+                    copyIxFootnoteHtml(sourceChild, targetHtml, targetModelDocument, withText=withText, isContinChainElt=False)
     if withText:
         _tl = sourceXml.tail
         if _tl:
