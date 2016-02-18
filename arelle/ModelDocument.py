@@ -1287,7 +1287,7 @@ class ModelDocument:
 def inlineIxdsDiscover(modelXbrl):
     # compile inline result set
     ixdsEltById = defaultdict(list)
-    for htmlElement in modelXbrl.ixdsHtmlElements:  
+    for htmlElement in modelXbrl.ixdsHtmlElements:
         for elt in htmlElement.iterfind(".//*[@id]"):
             if isinstance(elt,ModelObject) and elt.id:
                 ixdsEltById[elt.id].append(elt)
@@ -1302,6 +1302,7 @@ def inlineIxdsDiscover(modelXbrl):
     targetReferenceAttrs = defaultdict(dict) # target dict by attrname of elts
     targetReferencePrefixNs = defaultdict(dict) # target dict by prefix, namespace
     targetReferencesIDs = {} # target dict by id of reference elts
+    hasResources = False
     for htmlElement in modelXbrl.ixdsHtmlElements:  
         mdlDoc = htmlElement.modelDocument
         for modelInlineTuple in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "tuple"):
@@ -1348,6 +1349,12 @@ def inlineIxdsDiscover(modelXbrl):
                                         modelObject=(elt, targetReferencePrefixNsDict[_prefix][1]), prefix=_prefix, ns1=_ns, ns2=targetReferencePrefixNsDict[_prefix], target=target)
                     else:
                         targetReferencePrefixNsDict[_prefix] = (_ns, elt)
+        for elt in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "resources"):
+            hasResources = True
+    if not hasResources:
+        modelXbrl.error(ixMsgCode("missingResources", ns=mdlDoc.ixNS, name="resources", sect="validation"),
+                        _("Inline XBRL ix:resources element not found"),
+                        modelObject=modelXbrl)
                         
     del targetReferenceAttrs, ixdsEltById, targetReferencePrefixNs, targetReferencesIDs
                     

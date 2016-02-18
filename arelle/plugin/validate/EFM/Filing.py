@@ -1369,13 +1369,18 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             for ixElt in modelXbrl.modelDocument.xmlRootElement.iterdescendants(tag=tag):
                 if isinstance(ixElt,ModelObject):
                     if ixElt.get("target"):
-                        modelXbrl.error("EFM.6.28.targetDisallowed",
+                        modelXbrl.error("EFM.5.02.05.targetDisallowed",
                             _("Inline element %(localName)s has disallowed target attribute %(target)s."),
                             modelObject=ixElt, localName=ixElt.elementQname, target=ixElt.get("target"))
         for ixElt in modelXbrl.modelDocument.xmlRootElement.iterdescendants(tag=ixNStag+"tuple"):
             if isinstance(ixElt,ModelObject):
-                modelXbrl.error("EFM.6.28.tupleDisallowed",
+                modelXbrl.error("EFM.5.02.05.tupleDisallowed",
                     _("Inline tuple %(qname)s is disallowed."),
+                    modelObject=ixElt, qname=ixElt.qname)
+        for ixElt in modelXbrl.modelDocument.xmlRootElement.iterdescendants(tag=ixNStag+"fraction"):
+            if isinstance(ixElt,ModelObject):
+                modelXbrl.error("EFM.5.02.05.fractionDisallowed",
+                    _("Inline fraction %(qname)s is disallowed."),
                     modelObject=ixElt, qname=ixElt.qname)
         if modelXbrl.modelDocument.xmlDocument.docinfo.doctype:
             modelXbrl.error("EFM.5.02.05.doctypeDisallowed",

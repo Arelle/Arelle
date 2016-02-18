@@ -615,11 +615,22 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                 modelObject=elt, validatedObjectLabel=validatedObjectLabel,
                 element=eltTag)
         for attrTag, attrValue in elt.items():
-            if isInline and attrTag in efmBlockedInlineHtmlElementAttributes.get(eltTag,()):
-                modelXbrl.error("EFM.5.02.05.disallowedAttribute",
-                    _("%(validatedObjectLabel)s has disallowed attribute on element <%(element)s>: %(attribute)s=\"%(value)s\""),
-                    modelObject=elt, validatedObjectLabel=validatedObjectLabel,
-                    element=eltTag, attribute=attrTag, value=attrValue)
+            if isInline:
+                if attrTag in efmBlockedInlineHtmlElementAttributes.get(eltTag,()):
+                    modelXbrl.error("EFM.5.02.05.disallowedAttribute",
+                        _("%(validatedObjectLabel)s has disallowed attribute on element <%(element)s>: %(attribute)s=\"%(value)s\""),
+                        modelObject=elt, validatedObjectLabel=validatedObjectLabel,
+                        element=eltTag, attribute=attrTag, value=attrValue)
+                elif attrTag == "{http://www.w3.org/XML/1998/namespace}base":
+                    modelXbrl.error("EFM.5.02.05.xmlBaseDisallowed",
+                        _("%(validatedObjectLabel)s has disallowed attribute on element <%(element)s>: xml:base=\"%(value)s\""),
+                        modelObject=elt, validatedObjectLabel=validatedObjectLabel,
+                        element=eltTag, value=attrValue)
+                elif attrTag == "{http://www.w3.org/2001/XMLSchema-instance}schemaLocation":
+                    modelXbrl.error("EFM.5.02.05.schemaLocationDisallowed",
+                        _("%(validatedObjectLabel)s has disallowed attribute on element <%(element)s>: xsi:schemaLocation=\"%(value)s\""),
+                        modelObject=elt, validatedObjectLabel=validatedObjectLabel,
+                        element=eltTag, value=attrValue)
             if ((attrTag == "href" and eltTag == "a") or 
                 (attrTag == "src" and eltTag == "img")):
                 if "javascript:" in attrValue:
