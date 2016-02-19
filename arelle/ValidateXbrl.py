@@ -379,7 +379,6 @@ class ValidateXbrl:
         if self.validateIXDS:
             modelXbrl.modelManager.showStatus(_("Validating inline document set"))
             _ixNS = modelXbrl.modelDocument.ixNS
-            _customTransforms = self.modelXbrl.modelManager.customTransforms or {}
             ixdsIdObjects = defaultdict(list)
             for ixdsDoc in self.ixdsDocs:
                 for idObject in ixdsDoc.idObjects.values():
@@ -415,16 +414,6 @@ class ValidateXbrl:
                             modelObject=f, fact=f.qname, unit=f.unitID)
                 fmt = f.format
                 if fmt:
-                    if fmt in _customTransforms:
-                        pass
-                    elif fmt.namespaceURI not in FunctionIxt.ixtNamespaceFunctions:
-                        self.modelXbrl.error(ixMsgCode("invalidTransformation", f, sect="validation"),
-                            _("Fact %(fact)s has unrecognized transformation namespace %(namespace)s"),
-                            modelObject=f, fact=f.qname, namespace=fmt.namespaceURI)
-                    elif fmt.localName not in FunctionIxt.ixtNamespaceFunctions[fmt.namespaceURI]:
-                        self.modelXbrl.error(ixMsgCode("invalidTransformation", f, sect="validation"),
-                            _("Fact %(fact)s has unrecognized transformation name %(name)s"),
-                            modelObject=f, fact=f.qname, name=fmt.localName)
                     if fmt.namespaceURI == FunctionIxt.deprecatedNamespaceURI:
                         self.factsWithDeprecatedIxNamespace.append(f)
             if undefinedFacts:

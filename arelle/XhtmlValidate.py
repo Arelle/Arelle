@@ -7,6 +7,7 @@ Created on Sept 1, 2013
 (originally part of XmlValidate, moved to separate module)
 '''
 from arelle import XbrlConst, XmlUtil, XmlValidate, ValidateFilingText
+from arelle.ModelValue import qname
 from arelle.ModelObject import ModelObject
 from lxml import etree
 import os, re
@@ -191,10 +192,12 @@ def ixMsgCode(codeName, elt=None, sect="constraint", ns=None, name=None):
 
 def xhtmlValidate(modelXbrl, elt):
     from lxml.etree import DTD, XMLSyntaxError
+    from arelle import FunctionIxt
     ixNsStartTags = ["{" + ns + "}" for ns in XbrlConst.ixbrlAll]
     isEFM = modelXbrl.modelManager.disclosureSystem.validationType == "EFM"
     # find ix version for messages
     _ixNS = elt.modelDocument.ixNS
+    _customTransforms = modelXbrl.modelManager.customTransforms or {}
     
     def checkAttribute(elt, isIxElt, attrTag, attrValue):
         ixEltAttrDefs = ixAttrDefined.get(elt.namespaceURI, EMPTYDICT).get(elt.localName, ())
@@ -341,6 +344,57 @@ def xhtmlValidate(modelXbrl, elt):
                                                   "ix{ver.sect}:childNodes{Required|Disallowed|Allowed}",
                                                   "ix{ver.sect}:descendantNodesDisallowed",
                                                   "ix{ver.sect}:parentNodeRequired"))
+        # other static element checks (that don't require a complete object model, context, units, etc
+        if elt.localName == "nonFraction":
+            childElts = XmlUtil.children(elt, '*', '*')
+            hasText = (elt.text or "").strip() or any((childElt.tail or "").strip() for childElt in childElts)
+            if elt.isNil:
+                ancestorNonFractions = XmlUtil.ancestors(elt, _ixNS, elt.localName)
+                if ancestorNonFractions:
+                    modelXbrl.error(ixMsgCode("nonFractionAncestors", elt),
+                        _("Fact %(fact)s is a nil nonFraction and MUST not have an ancestor ix:nonFraction"),
+                        modelObject=[elt] + ancestorNonFractions, fact=elt.qname)
+                if childElts or hasText:
+                    modelXbrl.error(ixMsgCode("nonFractionTextAndElementChildren", elt),
+                        _("Fact %(fact)s is a nil nonFraction and MUST not have an child elements or text"),
+                        modelObject=[elt] + childElts, fact=elt.qname)
+                    elt.setInvalid() # prevent further validation or cascading errors
+            else:
+                if ((childElts and (len(childElts) != 1 or childElts[0].namespaceURI != _ixNS or childElts[0].localName != "nonFraction")) or
+                    (childElts and hasText)):
+                    modelXbrl.error(ixMsgCode("nonFractionTextAndElementChildren", elt),
+                        _("Fact %(fact)s is a non-nil nonFraction and MUST have exactly one ix:nonFraction child element or text."),
+                        modelObject=[elt] + childElts, fact=elt.qname)
+                    elt.setInvalid()
+        if elt.localName == "fraction":
+            if elt.isNil:
+                ancestorFractions = XmlUtil.ancestors(elt, _ixNS, elt.localName)
+                if ancestorFractions:
+                    modelXbrl.error(ixMsgCode("fractionAncestors", elt),
+                        _("Fact %(fact)s is a nil fraction and MUST not have an ancestor ix:fraction"),
+                        modelObject=[elt] + ancestorFractions, fact=elt.qname)
+            else:
+                nonFrChildren = [e for e in XmlUtil.children(elt, _ixNS, '*') if e.localName not in ("fraction", "numerator", "denominator")]
+                if nonFrChildren:
+                    modelXbrl.error(ixMsgCode("fractionElementChildren", elt),
+                        _("Fact %(fact)s is a non-nil fraction and not have any child elements except ix:fraction, ix:numerator and ix:denominator: %(children)s"),
+                        modelObject=[elt] + nonFrChildren, fact=elt.qname, children=", ".join(e.localName for e in nonFrChildren))
+        if elt.localName in ("nonFraction", "numerator", "denominator"):
+            fmt = elt.format
+            if fmt:
+                if fmt in _customTransforms:
+                    pass
+                elif fmt.namespaceURI not in FunctionIxt.ixtNamespaceFunctions:
+                    modelXbrl.error(ixMsgCode("invalidTransformation", elt, sect="validation"),
+                        _("Fact %(fact)s has unrecognized transformation namespace %(namespace)s"),
+                        modelObject=elt, fact=elt.qname, namespace=fmt.namespaceURI)
+                    elt.setInvalid()
+                elif fmt.localName not in FunctionIxt.ixtNamespaceFunctions[fmt.namespaceURI]:
+                    modelXbrl.error(ixMsgCode("invalidTransformation", elt, sect="validation"),
+                        _("Fact %(fact)s has unrecognized transformation name %(name)s"),
+                        modelObject=elt, fact=elt.qname, name=fmt.localName)
+                    elt.setInvalid()
+
                 
     def ixToXhtml(fromRoot):
         toRoot = etree.Element(fromRoot.localName)

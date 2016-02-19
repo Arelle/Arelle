@@ -561,6 +561,9 @@ class ModelInlineValueObject:
         except ValueError:
             return None # should have rasied a validation error in XhtmlValidate.py
     
+    def setInvalid(self):
+        self._ixValue = ModelValue.INVALIDixVALUE
+        self.xValid = XmlValidate.INVALID
     
     @property
     def value(self):
@@ -607,8 +610,7 @@ class ModelInlineValueObject:
                     # use decimal so all number forms work properly
                     num = Decimal(v)
                 except (ValueError, InvalidOperation):
-                    self._ixValue = ModelValue.INVALIDixVALUE
-                    self.xValid = XmlValidate.INVALID
+                    self.setInvalid()
                     raise ValueError("Invalid value for {} number: {}".format(self.localName, v))
                 try:
                     scale = self.scale
@@ -624,8 +626,7 @@ class ModelInlineValueObject:
                             num = num.quantize(DECIMALONE) # drop any .0
                         self._ixValue = "{}".format(num)
                 except (ValueError, InvalidOperation):
-                    self._ixValue = ModelValue.INVALIDixVALUE
-                    self.xValid = XmlValidate.INVALID
+                    self.setInvalid()
                     raise ValueError("Invalid value for {} scale {} for number {}".format(self.localName, scale, v))
             return self._ixValue
 
