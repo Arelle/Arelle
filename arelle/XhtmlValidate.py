@@ -379,7 +379,7 @@ def xhtmlValidate(modelXbrl, elt):
                     modelXbrl.error(ixMsgCode("fractionElementChildren", elt),
                         _("Fact %(fact)s is a non-nil fraction and not have any child elements except ix:fraction, ix:numerator and ix:denominator: %(children)s"),
                         modelObject=[elt] + nonFrChildren, fact=elt.qname, children=", ".join(e.localName for e in nonFrChildren))
-        if elt.localName in ("nonFraction", "numerator", "denominator"):
+        if elt.localName in ("nonFraction", "numerator", "denominator", "nonNumeric"):
             fmt = elt.format
             if fmt:
                 if fmt in _customTransforms:
@@ -387,15 +387,15 @@ def xhtmlValidate(modelXbrl, elt):
                 elif fmt.namespaceURI not in FunctionIxt.ixtNamespaceFunctions:
                     modelXbrl.error(ixMsgCode("invalidTransformation", elt, sect="validation"),
                         _("Fact %(fact)s has unrecognized transformation namespace %(namespace)s"),
-                        modelObject=elt, fact=elt.qname, namespace=fmt.namespaceURI)
+                        modelObject=elt, fact=elt.qname, transform=fmt, namespace=fmt.namespaceURI)
                     elt.setInvalid()
                 elif fmt.localName not in FunctionIxt.ixtNamespaceFunctions[fmt.namespaceURI]:
                     modelXbrl.error(ixMsgCode("invalidTransformation", elt, sect="validation"),
                         _("Fact %(fact)s has unrecognized transformation name %(name)s"),
-                        modelObject=elt, fact=elt.qname, name=fmt.localName)
+                        modelObject=elt, fact=elt.qname, transform=fmt, name=fmt.localName)
                     elt.setInvalid()
 
-                
+                    
     def ixToXhtml(fromRoot):
         toRoot = etree.Element(fromRoot.localName)
         copyNonIxChildren(fromRoot, toRoot)

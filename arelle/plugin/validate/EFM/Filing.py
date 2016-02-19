@@ -13,7 +13,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelDtsObject import ModelConcept
 from arelle.PluginManager import pluginClassMethods
-from arelle.PythonUtil import pyNamedObject
+from arelle.PythonUtil import pyNamedObject, strTruncate
 from arelle.UrlUtil import isHttpUrl
 from .DTS import checkFilingDTS
 from .Dimensions import checkFilingDimensions
@@ -591,7 +591,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     if any(not f.isVEqualTo(f0) for f in fList[1:]):
                         modelXbrl.error(("EFM.6.05.12", "GFM.1.02.11"),
                             "Fact values of %(fact)s in context %(contextID)s are not V-equal: %(values)s.",
-                            modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(f.value for f in fList))
+                            modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(strTruncate(f.value, 128) for f in fList))
                 aspectEqualFacts.clear()
         del factForConceptContextUnitLangHash, aspectEqualFacts
         val.modelXbrl.profileActivity("... filer fact checks", minTimeToShow=1.0)

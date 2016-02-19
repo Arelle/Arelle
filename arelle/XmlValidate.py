@@ -16,6 +16,7 @@ from arelle.ModelValue import (qname, qnameEltPfxName, qnameClarkName,
                                dateTime, DATE, DATETIME, DATEUNION, 
                                anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay)
 from arelle.ModelObject import ModelObject, ModelAttribute
+from arelle.PythonUtil import strTruncate
 from arelle import UrlUtil
 validateElementSequence = None  #dynamic import to break dependency loops
 modelGroupCompositorTitle = None
@@ -164,8 +165,8 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                         typeName=modelConcept.baseXsdType if modelConcept is not None else "unknown",
                         value=XmlUtil.innerText(elt, ixExclude=True, ixContinuation=elt.namespaceURI==XbrlConst.ixbrl11))
                 elif isIxFact and err.__class__.__name__ == "ixtFunctionNotAvailable":
-                    modelXbrl.error(ixMsgCode("formatCodeUndefined", elt),
-                        _("Inline element %(element)s fact %(fact)s type %(typeName)s transform %(transform)s not available, value: %(value)s"),
+                    modelXbrl.error(ixMsgCode("invalidTransformation", elt, sect="validation"),
+                        _("Fact %(fact)s has unrecognized transformation %(transform)s, value: %(value)s"),
                         modelObject=elt, element=errElt, fact=elt.qname, transform=elt.format,
                         typeName=modelConcept.baseXsdType if modelConcept is not None else "unknown",
                         value=XmlUtil.innerText(elt, ixExclude=True, ixContinuation=elt.namespaceURI==XbrlConst.ixbrl11))
@@ -505,7 +506,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     element=errElt,
                     attribute=XmlUtil.clarkNotationToPrefixedName(elt,attrTag,isAttribute=True),
                     typeName=baseXsdType,
-                    value=value if len(value) < 31 else value[:30] + '...',
+                    value=strTruncate(value, 30),
                     error=err)
             else:
                 modelXbrl.error("xmlSchema:valueError",
@@ -513,7 +514,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     modelObject=elt,
                     element=errElt,
                     typeName=baseXsdType,
-                    value=value if len(value) < 31 else value[:30] + '...',
+                    value=strTruncate(value, 30),
                     error=err)
             xValue = None
             sValue = value

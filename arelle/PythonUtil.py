@@ -117,6 +117,12 @@ def pyNamedObject(name):
     except:
         return None
     
+def strTruncate(value, length):
+    _s = str(value).strip()
+    if len(_s) <= length:
+        return _s
+    return _s[0:length] + "..."
+    
 SEQUENCE_TYPES = (tuple,list,set)
 def flattenSequence(x, sequence=None):
     if sequence is None: 
