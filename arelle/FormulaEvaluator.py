@@ -13,6 +13,7 @@ from arelle.ModelFormulaObject import (aspectModels, Aspect, aspectModelAspect,
                                  ModelFactVariable, ModelGeneralVariable, ModelVariable,
                                  ModelParameter, ModelFilter, ModelAspectCover, ModelBooleanFilter)
 from arelle.PrototypeInstanceObject import DimValuePrototype
+from arelle.PythonUtil import OrderedSet
 from arelle.ModelValue import (QName)
 import datetime, time, logging, re
 from decimal import Decimal
@@ -334,9 +335,7 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
             if varSet.implicitFiltering == "true":
                 if any((_vb.isFactVar and not _vb.isFallback) for _vb in xpCtx.varBindings.values()):
                     factCount = len(facts)
-                    # uncovered aspects of the prior variable bindings may include aspects not in current variable binding
-                    uncoveredAspects = (vb.aspectsDefined | _DICT_SET(uncoveredAspectFacts.keys())) - vb.aspectsCovered - {Aspect.DIMENSIONS}
-                    facts = implicitFilter(xpCtx, vb, facts, uncoveredAspects, uncoveredAspectFacts)
+                    facts = implicitFilter(xpCtx, vb, facts, uncoveredAspectFacts)
                     if (considerFallback and varHasNoVariableDependencies and 
                         factCount and
                         factCount - len(facts) == 0 and
@@ -437,18 +436,44 @@ def coverAspectCoverFilterDims(xpCtx, vb, filterRelationships):
         elif isinstance(_filter,ModelBooleanFilter) and varFilterRel.isCovered:
             coverAspectCoverFilterDims(xpCtx, vb, _filter.filterRelationships)
             
-def implicitFilter(xpCtx, vb, facts, aspects, uncoveredAspectFacts):
-    if xpCtx.formulaOptions.traceVariableFilterWinnowing:  # trace shows by aspect by bound variable match    
+def isVbTupleWithOnlyAnUncoveredDimension(xpCtx, vb, facts):
+    # check for special cases (tuple with uncovered dimension matched to anything else)
+    vbUncoveredAspects = (vb.aspectsDefined | xpCtx.dimensionsAspectUniverse) - vb.aspectsCovered - {Aspect.DIMENSIONS}
+    # check if current vb is a tuple with an aspect universe dimension uncovered (46220 v14)
+    return (vbUncoveredAspects and 
+            all(isinstance(a, QName) for a in vbUncoveredAspects) and 
+            all(f.isTuple for f in facts))
+
+def implicitFilter(xpCtx, vb, facts, uncoveredAspectFacts):
+    # determine matchable aspects
+    aspects = (vb.aspectsDefined | _DICT_SET(uncoveredAspectFacts.keys())) - vb.aspectsCovered - {Aspect.DIMENSIONS}
+    if not aspects:
+        if isVbTupleWithOnlyAnUncoveredDimension(xpCtx, vb, facts):
+            return [] # matching a tuple with an existing uncovered dimension to items
+        # no matchable aspects
+        return facts # nothing gets implicitly matched
+    
+    # check for prior vb a tuple with an aspect universe dimension uncovered (46220 v14)
+    if len(xpCtx.varBindings) == 1:
+        f = uncoveredAspectFacts.get(Aspect.DIMENSIONS)
+        if isinstance(f, ModelFact) and f.isTuple and all(
+                f is None for a,f in uncoveredAspectFacts.items() if a != Aspect.DIMENSIONS):
+            if isVbTupleWithOnlyAnUncoveredDimension(xpCtx, next(iter(xpCtx.varBindings.values())), (f,)):
+                return [] # matching a tuple with an existing uncovered dimension to items
+            return facts # no  aspect to implicitly match on
+        
+    if xpCtx.formulaOptions.traceVariableFilterWinnowing:  # trace shows by aspect by bound variable match  
+        _facts = facts  
         for aspect in aspects:
             if uncoveredAspectFacts.get(aspect, "none") is not None:
-                facts = [fact 
-                         for fact in facts 
-                         if aspectMatches(xpCtx, uncoveredAspectFacts.get(aspect), fact, aspect)]
+                _facts = [fact 
+                          for fact in _facts 
+                          if aspectMatches(xpCtx, uncoveredAspectFacts.get(aspect), fact, aspect)]
                 a = str(aspect) if isinstance(aspect,QName) else Aspect.label[aspect]
                 xpCtx.modelXbrl.info("formula:trace",
                     _("Fact Variable %(variable)s implicit filter %(aspect)s passes %(factCount)s facts"), 
                     modelObject=vb.var, variable=vb.qname, aspect=a, factCount=len(facts))
-                if len(facts) == 0: break
+                if len(_facts) == 0: break
     else: 
         testableAspectFacts = [(aspect, uncoveredAspectFacts.get(aspect)) 
                                for aspect in aspects 
@@ -458,11 +483,14 @@ def implicitFilter(xpCtx, vb, facts, aspects, uncoveredAspectFacts):
         #                       if not vb.hasAspectValueCovered(aspect)]
         if testableAspectFacts:
             # not tracing, do bulk aspect filtering
-            facts = [fact
-                     for fact in facts
-                     if all(aspectMatches(xpCtx, uncoveredAspectFact, fact, aspect)
-                            for (aspect, uncoveredAspectFact) in testableAspectFacts)]
-    return facts
+            _facts = [fact
+                      for fact in facts
+                      if all(aspectMatches(xpCtx, uncoveredAspectFact, fact, aspect)
+                             for (aspect, uncoveredAspectFact) in testableAspectFacts)]
+        else:
+            _facts = facts
+            
+    return _facts
     
 def aspectsMatch(xpCtx, fact1, fact2, aspects):
     return all(aspectMatches(xpCtx, fact1, fact2, aspect) for aspect in aspects)

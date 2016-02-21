@@ -772,6 +772,10 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
         
     # validate default dimensions in instances and accumulate multi-instance-default dimension aspects
     xpathContext.defaultDimensionAspects = set(val.modelXbrl.qnameDimensionDefaults.keys())
+    xpathContext.dimensionsAspectUniverse = xpathContext.defaultDimensionAspects
+    for cntx in val.modelXbrl.contexts.values(): # note that this maybe should not include unreferenced contexts
+        xpathContext.dimensionsAspectUniverse |= _DICT_SET(cntx.qnameDims.keys())
+    
     #xpathContext.reportedDimensionAspects = set()
     #_evaluatedContexts = set()
     for instanceQname in instanceQnames:
@@ -780,6 +784,9 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
             for namedInstance in val.parameters[instanceQname][1]:
                 ValidateXbrlDimensions.loadDimensionDefaults(namedInstance)
                 xpathContext.defaultDimensionAspects |= _DICT_SET(namedInstance.qnameDimensionDefaults.keys())
+                xpathContext.dimensionsAspectUniverse |= _DICT_SET(namedInstance.qnameDimensionDefaults.keys())
+                for cntx in namedInstance.contexts.values():
+                    xpathContext.dimensionsAspectUniverse |= _DICT_SET(cntx.qnameDims.keys())
                 #for fact in namedInstance.factsInInstance: 
                 #    _cntx = fact.context
                 #    if fact.isItem and _cntx is not None and _cntx not in _evaluatedContexts:
