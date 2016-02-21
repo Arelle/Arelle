@@ -2701,7 +2701,7 @@ class ModelAssertionSeverity(ModelResource):
         
     @property
     def level(self):
-        return self.get("level")
+        return self.localName
 
     @property
     def propertyView(self):
@@ -2904,7 +2904,9 @@ elementSubstitutionModelClass.update((
      (XbrlConst.qnMessage, ModelMessage),
      (XbrlConst.qnCustomFunctionSignature, ModelCustomFunctionSignature),
      (XbrlConst.qnCustomFunctionImplementation, ModelCustomFunctionImplementation),
-     (XbrlConst.qnAssertionSeverity, ModelAssertionSeverity),
+     (XbrlConst.qnAssertionSeverityError, ModelAssertionSeverity),
+     (XbrlConst.qnAssertionSeverityWarning, ModelAssertionSeverity),
+     (XbrlConst.qnAssertionSeverityOk, ModelAssertionSeverity),
      ))
 
 # import after other modules resolved to prevent circular references

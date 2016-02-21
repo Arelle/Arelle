@@ -221,9 +221,10 @@ qnAssertion = qname("{http://xbrl.org/2008/validation}validation:assertion")
 qnVariableSetAssertion = qname("{http://xbrl.org/2008/validation}validation:variableSetAssertion")
 qnAssertionSet = qname("{http://xbrl.org/2008/validation}validation:assertionSet")
 assertionSet = "http://xbrl.org/arcrole/2008/assertion-set"
-assertionSatisfiedSeverity = "http://xbrl.org/arcrole/2014/assertion-satisfied-severity"
-assertionUnsatisfiedSeverity = "http://xbrl.org/arcrole/2014/assertion-unsatisfied-severity"
-qnAssertionSeverity = qname("{http://xbrl.org/2014/assertion-severity}sev:severity")
+assertionUnsatisfiedSeverity = "http://xbrl.org/arcrole/PR/2015-11-18/assertion-unsatisfied-severity"
+qnAssertionSeverityError = qname("{http://xbrl.org/PR/2015-11-18/assertion-severity}sev:error")
+qnAssertionSeverityWarning = qname("{http://xbrl.org/PR/2015-11-18/assertion-severity}sev:warning")
+qnAssertionSeverityOk = qname("{http://xbrl.org/PR/2015-11-18/assertion-severity}sev:ok")
 
 acf = "http://xbrl.org/2010/filter/aspect-cover"
 qnAspectCover = qname("{http://xbrl.org/2010/filter/aspect-cover}acf:aspectCover")
@@ -485,7 +486,7 @@ errMsgPrefixNS = {
     "utre": "http://www.xbrl.org/2009/utr/errors",
     "enumte": "http://xbrl.org/2014/extensible-enumerations/taxonomy-errors",
     "enumie": "http://xbrl.org/2014/extensible-enumerations/instance-errors",
-    "seve": "http://xbrl.org/2014/assertion-severity/error",
+    "seve": "http://xbrl.org/PR/2015-11-18/assertion-severity/error",
     "tpe": "http://xbrl.org/WGWD/YYYY-MM-DD/taxonomy-package/errors"
     }
 
@@ -740,8 +741,7 @@ def isFormulaArcrole(arcrole):
                        "http://xbrl.org/arcrole/2010/function-implementation",
                        "http://xbrl.org/arcrole/2010/assertion-satisfied-message",
                        "http://xbrl.org/arcrole/2010/assertion-unsatisfied-message",
-                       "http://xbrl.org/arcrole/2014/assertion-satisfied-severity",
-                       "http://xbrl.org/arcrole/2014/assertion-unsatisfied-severity",
+                       "http://xbrl.org/arcrole/PR/2015-11-18/assertion-unsatisfied-severity",
                        "http://xbrl.org/arcrole/2010/instance-variable",
                        "http://xbrl.org/arcrole/2010/formula-instance",
                        "http://xbrl.org/arcrole/2010/function-implementation",

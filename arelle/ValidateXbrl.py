@@ -218,7 +218,7 @@ class ValidateXbrl:
                                     source=fromConcept.qname, target=toConcept.qname, linkrole=ELR)
             elif modelXbrl.hasXDT and arcrole.startswith(XbrlConst.dimStartsWith):
                 ValidateXbrlDimensions.checkBaseSet(self, arcrole, ELR, relsSet)             
-            elif (modelXbrl.hasFormulae or modelXbrl.hasTableRendering) and arcrole.startswith(XbrlConst.formulaStartsWith):
+            elif arcrole in ValidateFormula.arcroleChecks:
                 ValidateFormula.checkBaseSet(self, arcrole, ELR, relsSet)
         modelXbrl.isDimensionsValidated = True
         modelXbrl.profileStat(_("validateRelationships"))
