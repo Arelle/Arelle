@@ -8,6 +8,7 @@ Refactored on Jun 11, 2011 to ModelDtsObject, ModelInstanceObject, ModelTestcase
 from lxml import etree
 from collections import namedtuple
 from arelle import Locale
+VALID_NO_CONTENT = 6
 
 emptySet = set()
 
@@ -229,12 +230,14 @@ class ModelObject(etree.ElementBase):
         return ''.join(self._textNodes())  # no text nodes returns ''
     
     def _textNodes(self, recurse=False):
-        if self.text: yield self.text
+        if self.text and getattr(self,"xValid", 0) != VALID_NO_CONTENT: # skip tuple whitespaces
+                yield self.text
         for c in self.iterchildren():
             if recurse and isinstance(c, ModelObject):
                 for nestedText in c._textNodes(recurse):
                     yield nestedText
-            if c.tail: yield c.tail  # get tail of nested element, comment or processor nodes
+            if c.tail and getattr(self,"xValid", 0) != VALID_NO_CONTENT: # skip tuple whitespaces 
+                yield c.tail  # get tail of nested element, comment or processor nodes
 
     @property
     def document(self):
