@@ -957,13 +957,17 @@ def concept_relationships(xc, p, args, nestResults=False):
     arcroleURI = stringArg(xc, args, 2, "xs:string")
     axis = stringArg(xc, args, 3, "xs:string")
     if not axis in ('descendant', 'child', 'ancestor', 'parent', 'sibling', 'sibling-or-self'):
-        return ()
+        raise XPathContext.FunctionArgType(3, "'descendant', 'child', 'ancestor', 'parent', 'sibling' or 'sibling-or-self'",
+                                           errCode="xfie:InvalidConceptRelationParameters")
     if qnSource != XbrlConst.qnXfiRoot:
         srcConcept = inst.qnameConcepts.get(qnSource)
         if srcConcept is None:
             return ()
     if lenArgs > 4:
         generations = numericArg(xc, p, args, 4, "xs:integer", convertFallback=0)
+        if axis in ('child', 'parent', 'sibling', 'sibling-or-self') and generations != 1:
+            raise XPathContext.FunctionArgType(4, "generations must be 1 for 'child', 'parent', 'sibling' or 'sibling-or-self' axis",
+                                               errCode="xfie:InvalidConceptRelationParameters")
     elif axis in ('child', 'parent', 'sibling', 'sibling-or-self'):
         generations = 1
     else:
