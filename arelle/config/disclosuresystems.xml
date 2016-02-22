@@ -46,6 +46,10 @@
   
   <!-- disclosure system validations have been deprecated from core modules 
        they are provided by plugins that may be in validate folder
+       
+       When plug-ins are loaded the DisclosureSystem.ConfigURL method returns a URL of the plug-in's
+       own <DisclosureSystem ...> constructs.  The current contention is to name these files config.xml
+       when they are in a plug-in package directory.
   
   <DisclosureSystem 
      names="Japan FSA|jp-fsa|fsa" 

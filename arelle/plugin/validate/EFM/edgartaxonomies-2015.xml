@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Erxl version="31" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="erxl.xsd" >
+<Erxl version="31" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../config/erxl.xsd" >
 <Loc>
 <Family>US GAAP</Family>
 <Version>2015</Version>
@@ -740,12 +740,32 @@
 <Loc>
 <Family>RR</Family>
 <Version>2012</Version>
+<Href>http://xbrl.sec.gov/currency/2014/currency-2014-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Schema</FileTypeName>
+<Elements>1</Elements>
+<Namespace>http://xbrl.sec.gov/currency/2014-01-31</Namespace>
+<Prefix>currency</Prefix>
+</Loc>
+<Loc>
+<Family>RR</Family>
+<Version>2012</Version>
 <Href>http://xbrl.sec.gov/currency/2012/currency-2012-01-31.xsd</Href>
 <AttType>SCH</AttType>
 <FileTypeName>Schema</FileTypeName>
 <Elements>1</Elements>
 <Namespace>http://xbrl.sec.gov/currency/2012-01-31</Namespace>
 <Prefix>currency</Prefix>
+</Loc>
+<Loc>
+<Family>RR</Family>
+<Version>2012</Version>
+<Href>http://xbrl.sec.gov/country/2013/country-2013-01-31.xsd</Href>
+<AttType>SCH</AttType>
+<FileTypeName>Schema</FileTypeName>
+<Elements>1</Elements>
+<Namespace>http://xbrl.sec.gov/country/2013-01-31</Namespace>
+<Prefix>country</Prefix>
 </Loc>
 <Loc>
 <Family>RR</Family>

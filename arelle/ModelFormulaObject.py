@@ -1021,9 +1021,12 @@ class ModelAspectCover(ModelFilter):
         self.aspectsCovered  # must have aspectsCovered initialized before the rest of this method
         dimsCovered = set()
         if self.allDimensions:
-            for varBoundAspect in varBinding.aspectsDefined:
-                if isinstance(varBoundAspect, QName) and varBoundAspect not in self._dimsExcluded:
-                    dimsCovered.add(varBoundAspect)
+            # fix for 46220 v17: for varBoundAspect in varBinding.aspectsDefined:
+            #                        if isinstance(varBoundAspect, QName) and varBoundAspect not in self._dimsExcluded:
+            #                             dimsCovered.add(varBoundAspect)
+            for aspectUniverseDimension in varBinding.xpCtx.dimensionsAspectUniverse:
+                if aspectUniverseDimension not in self._dimsExcluded:
+                    dimsCovered.add(aspectUniverseDimension)
         return dimsCovered
         
     def compile(self):
@@ -2698,7 +2701,7 @@ class ModelAssertionSeverity(ModelResource):
         
     @property
     def level(self):
-        return self.get("level")
+        return self.localName
 
     @property
     def propertyView(self):
@@ -2901,7 +2904,9 @@ elementSubstitutionModelClass.update((
      (XbrlConst.qnMessage, ModelMessage),
      (XbrlConst.qnCustomFunctionSignature, ModelCustomFunctionSignature),
      (XbrlConst.qnCustomFunctionImplementation, ModelCustomFunctionImplementation),
-     (XbrlConst.qnAssertionSeverity, ModelAssertionSeverity),
+     (XbrlConst.qnAssertionSeverityError, ModelAssertionSeverity),
+     (XbrlConst.qnAssertionSeverityWarning, ModelAssertionSeverity),
+     (XbrlConst.qnAssertionSeverityOk, ModelAssertionSeverity),
      ))
 
 # import after other modules resolved to prevent circular references

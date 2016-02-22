@@ -5,9 +5,26 @@ from collections import defaultdict
 import decimal, os
 ModelDocument = None
 
-class LinkPrototype():      # behaves like a ModelLink for relationship prototyping
-    def __init__(self, modelDocument, parent, qname, role):
+class PrototypeObject():
+    def __init__(self, modelDocument, sourceElement=None):
         self.modelDocument = modelDocument
+        self.sourceElement = sourceElement
+    
+    @property
+    def sourceline(self):
+        return self.sourceElement.sourceline if self.sourceElement is not None else None
+
+    def itersiblings(self, **kwargs):
+        """Method proxy for itersiblings() of lxml arc element"""
+        return self.sourceElement.itersiblings(**kwargs) if self.sourceElement is not None else ()
+        
+    def getparent(self):
+        """(_ElementBase) -- Method proxy for getparent() of lxml arc element"""
+        return self.sourceElement.getparent() if self.sourceElement is not None else None
+        
+class LinkPrototype(PrototypeObject):      # behaves like a ModelLink for relationship prototyping
+    def __init__(self, modelDocument, parent, qname, role, sourceElement=None):
+        super(LinkPrototype, self).__init__(modelDocument, sourceElement)
         self._parent = parent
         self.modelXbrl = modelDocument.modelXbrl
         self.qname = self.elementQname = qname
@@ -38,9 +55,9 @@ class LinkPrototype():      # behaves like a ModelLink for relationship prototyp
     def __getitem(self, key):
         return self.attributes[key]
     
-class LocPrototype():
-    def __init__(self, modelDocument, parent, label, locObject, role=None):
-        self.modelDocument = modelDocument
+class LocPrototype(PrototypeObject):
+    def __init__(self, modelDocument, parent, label, locObject, role=None, sourceElement=None):
+        super(LocPrototype, self).__init__(modelDocument, sourceElement)
         self._parent = parent
         self.modelXbrl = modelDocument.modelXbrl
         self.qname = self.elementQname = XbrlConst.qnLinkLoc
@@ -77,9 +94,9 @@ class LocPrototype():
     def __getitem(self, key):
         return self.attributes[key]
     
-class ArcPrototype():
-    def __init__(self, modelDocument, parent, qname, fromLabel, toLabel, linkrole, arcrole, order="1"):
-        self.modelDocument = modelDocument
+class ArcPrototype(PrototypeObject):
+    def __init__(self, modelDocument, parent, qname, fromLabel, toLabel, linkrole, arcrole, order="1", sourceElement=None):
+        super(ArcPrototype, self).__init__(modelDocument, sourceElement)
         self._parent = parent
         self.modelXbrl = modelDocument.modelXbrl
         self.qname = self.elementQname = qname
@@ -103,7 +120,11 @@ class ArcPrototype():
 
     def clear(self):
         self.__dict__.clear() # dereference here, not an lxml object, don't use superclass clear()
-    
+
+    @property
+    def arcElement(self):
+        return self.sourceElement if self.sourceElement is not None else None
+        
     def getparent(self):
         return self._parent
         

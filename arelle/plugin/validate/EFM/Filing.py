@@ -13,7 +13,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelDtsObject import ModelConcept
 from arelle.PluginManager import pluginClassMethods
-from arelle.PythonUtil import pyNamedObject
+from arelle.PythonUtil import pyNamedObject, strTruncate
 from arelle.UrlUtil import isHttpUrl
 from .DTS import checkFilingDTS
 from .Dimensions import checkFilingDimensions
@@ -73,6 +73,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     val.entityRegistrantName = None
     val.requiredContext = None
     val.standardNamespaceConflicts = defaultdict(set)
+    documentType = None # needed for non-instance validation too
     if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or \
        modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
         instanceName = modelXbrl.modelDocument.basename
@@ -243,9 +244,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         amendmentDescriptionFact = None
         amendmentFlag = None
         amendmentFlagFact = None
-        documentPeriodEndDate = None
+        documentPeriodEndDate = None # date or None
         documentPeriodEndDateFact = None
-        documentType = None
         documentTypeFact = None
         deiItems = {}
         deiFacts = {}
@@ -270,6 +270,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             "EntityReportingCurrencyISOCode", # for SD 
              }
         #6.5.8 unused contexts
+        candidateRequiredContexts = set()
         for f in modelXbrl.facts:
             factContextID = f.contextID
             contextIDs.discard(factContextID)
@@ -283,10 +284,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 factInDeiNamespace = None
             # standard dei items from required context
             if context is not None: # tests do not apply to tuples
-                if not context.hasSegment and not context.hasScenario: 
-                    #default context
+                if not context.hasSegment and not context.hasScenario and f.xValid: 
+                    #required context
                     if factInDeiNamespace:
-                        value = f.value
+                        value = f.xValue
                         if factElementName == disclosureSystem.deiAmendmentFlagElement:
                             amendmentFlag = value
                             amendmentFlagFact = f
@@ -297,6 +298,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             documentPeriodEndDate = value
                             documentPeriodEndDateFact = f
                             # commonStockMeasurementDatetime = context.endDatetime
+                            if (context.isStartEndPeriod and context.startDatetime is not None and context.endDatetime is not None):
+                                if context.endDatetime.time() == datetime.time(0): # midnight of subsequent day
+                                    if context.endDatetime - datetime.timedelta(1) == f.xValue:
+                                        candidateRequiredContexts.add(context)
+                                elif context.endDatetime.date() == f.xValue: # not midnight, only day portion matches
+                                    candidateRequiredContexts.add(context)
                         elif factElementName == "DocumentType":
                             documentType = value
                             documentTypeFact = f
@@ -309,9 +316,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         elif factElementName in deiCheckLocalNames:
                             deiItems[factElementName] = value
                             deiFacts[factElementName] = f
-                            if (val.requiredContext is None and context.isStartEndPeriod and
-                                context.startDatetime is not None and context.endDatetime is not None):
-                                val.requiredContext = context
                 else:
                     # segment present
                     isEntityCommonStockSharesOutstanding = factElementName == "EntityCommonStockSharesOutstanding"
@@ -502,13 +506,17 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             val.modelXbrl.profileActivity("... filer instant-duration checks", minTimeToShow=1.0)
             
         #6.5.19 required context
-        foundRequiredContext = False
-        for c in contexts:
-            if c.isStartEndPeriod:
-                if not c.hasSegment:
-                    foundRequiredContext = True
+        for c in sorted(candidateRequiredContexts, key=lambda c: c.endDatetime-c.startDatetime, reverse=True):
+            val.requiredContext = c
+            break # longest duration is first
+        """
+        if val.requiredContext is None: # possibly there is no document period end date with matching context
+            for c in contexts:
+                if c.isStartEndPeriod and not c.hasSegment:
+                    val.requiredContext = c
                     break
-        if not foundRequiredContext:
+        """
+        if val.requiredContext is None:
             modelXbrl.error(("EFM.6.05.19", "GFM.1.02.18"),
                 _("Required context (no segment) not found for document type %(documentType)s."),
                 modelObject=documentTypeFact, documentType=documentType)
@@ -583,7 +591,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     if any(not f.isVEqualTo(f0) for f in fList[1:]):
                         modelXbrl.error(("EFM.6.05.12", "GFM.1.02.11"),
                             "Fact values of %(fact)s in context %(contextID)s are not V-equal: %(values)s.",
-                            modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(f.value for f in fList))
+                            modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(strTruncate(f.value, 128) for f in fList))
                 aspectEqualFacts.clear()
         del factForConceptContextUnitLangHash, aspectEqualFacts
         val.modelXbrl.profileActivity("... filer fact checks", minTimeToShow=1.0)
@@ -617,30 +625,32 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         if amendmentFlag is None:
             modelXbrl.log("WARNING" if validateEFMpragmatic else "ERROR",
                           ("EFM.6.05.20.missingAmendmentFlag", "GFM.3.02.01"),
-                _("%(elementName)s is not found in the default context"),
+                _("%(elementName)s is not found in the required context"),
                 modelXbrl=modelXbrl, elementName=disclosureSystem.deiAmendmentFlagElement)
 
         if not documentPeriodEndDate:
             modelXbrl.error(("EFM.6.05.20.missingDocumentPeriodEndDate", "GFM.3.02.01"),
-                _("%(elementName)s is required and was not found in the default context"),
+                _("%(elementName)s was not found in the required context"),
                 modelXbrl=modelXbrl, elementName=disclosureSystem.deiDocumentPeriodEndDateElement)
+        """ not required, now handled by schema validation
         else:
             dateMatch = datePattern.match(documentPeriodEndDate)
             if not dateMatch or dateMatch.lastindex != 3:
                 modelXbrl.error(("EFM.6.05.20", "GFM.3.02.01"),
-                    _("%(elementName)s is in the default context is incorrect '%(date)s'"),
+                    _("%(elementName)s is in the required context is incorrect '%(date)s'"),
                     modelXbrl=modelXbrl, elementName=disclosureSystem.deiDocumentPeriodEndDateElement,
                     date=documentPeriodEndDate)
+        """
         val.modelXbrl.profileActivity("... filer label and text checks", minTimeToShow=1.0)
 
         if isEFM:
-            if amendmentFlag == "true" and amendmentDescription is None:
+            if amendmentFlag == True and amendmentDescription is None:
                 modelXbrl.log("WARNING" if validateEFMpragmatic else "ERROR",
                               "EFM.6.05.20.missingAmendmentDescription",
                     _("AmendmentFlag is true in context %(contextID)s so AmendmentDescription is also required"),
                     modelObject=amendmentFlagFact, contextID=amendmentFlagFact.contextID if amendmentFlagFact is not None else "unknown")
     
-            if amendmentDescription is not None and amendmentFlag != "true":
+            if amendmentDescription is not None and amendmentFlag != True:
                 modelXbrl.log("WARNING" if validateEFMpragmatic else "ERROR",
                               "EFM.6.05.20.extraneous",
                     _("AmendmentDescription can not be provided when AmendmentFlag is not true in context %(contextID)s"),
@@ -648,7 +658,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 
             if documentType is None:
                 modelXbrl.error("EFM.6.05.20.missingDocumentType",
-                    _("DocumentType is required and was not found in the default context"), 
+                    _("DocumentType was not found in the required context"), 
                     modelXbrl=modelXbrl)
             elif documentType not in {
                                         "497",
@@ -912,7 +922,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             ):
                 if documentType in doctypesRequired:
                     for deiItem in deiItemsRequired:
-                        if deiItem not in deiItems or not deiItems[deiItem]: #must exist and value must be non-empty (incl not nil)
+                        if deiItem not in deiItems or deiItems[deiItem] is None: #must exist and value must be non-empty (incl not nil)
                             modelXbrl.log(("WARNING" if validateEFMpragmatic and deiItem in {
                                              "CurrentFiscalYearEndDate", "DocumentFiscalPeriodFocus", "DocumentFiscalYearFocus",
                                              "EntityCurrentReportingStatus", "EntityFilerCategory", "EntityPublicFloat", 
@@ -939,13 +949,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 defaultContextSharesOutstandingValue = deiItems.get("EntityCommonStockSharesOutstanding")
                 errLevel = "WARNING" if validateEFMpragmatic else "ERROR"
                 if commonSharesClassMembers:
-                    if defaultContextSharesOutstandingValue: # checks that it exists and is not empty or nil
+                    if defaultContextSharesOutstandingValue is not None: # checks that it exists and is not empty or nil
                         modelXbrl.log(errLevel, "EFM.6.05.26",
-                            _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but not in the default context because there are multiple classes of common shares"),
+                            _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but not in the required context because there are multiple classes of common shares"),
                             modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType)
                     elif len(commonSharesClassMembers) == 1: # and not hasDefinedStockAxis:
                         modelXbrl.log(errLevel, "EFM.6.05.26",
-                            _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but but a default-context because only one class of stock"),
+                            _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but but a required-context because only one class of stock"),
                             modelObject=documentTypeFact, documentType=documentType)
                     ''' per Dean R, this test no longer makes sense because we don't check against def LB defined members
                     missingClasses = commonSharesClassMembers - _DICT_SET(commonSharesItemsByStockClass.keys())
@@ -965,13 +975,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' in stock class %(stockClass)s with measurement date %(date)s"),
                                 modelObject=documentTypeFact, documentType=documentType, stockClass=mem, date=commonStockMeasurementDatetime)
                         '''
-                elif hasCommonSharesOutstandingDimensionedFactWithDefaultStockClass and not defaultContextSharesOutstandingValue:
+                elif hasCommonSharesOutstandingDimensionedFactWithDefaultStockClass and defaultContextSharesOutstandingValue is None:
                         modelXbrl.log(errLevel, "EFM.6.05.26",
-                            _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but missing for a non-default-context fact"),
+                            _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but missing for a non-required-context fact"),
                             modelObject=documentTypeFact, documentType=documentType)
-                elif not defaultContextSharesOutstandingValue: # missing, empty, or nil
+                elif defaultContextSharesOutstandingValue is None: # missing, empty, or nil
                     modelXbrl.log(errLevel, "EFM.6.05.26",
-                        _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' in the default context because there are not multiple classes of common shares"),
+                        _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' in the required context because there are not multiple classes of common shares"),
                         modelObject=documentTypeFact, documentType=documentType)
             if documentType in ("SD", "SD/A"): # SD documentType
                 val.modelXbrl.profileActivity("... filer required facts checks (other than SD)", minTimeToShow=1.0)
@@ -1019,7 +1029,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
                 if rxdNs:
                     qn = ModelValue.qname(rxdNs, "AmendmentNumber")
-                    if amendmentFlag == "true" and (
+                    if amendmentFlag == True and (
                                 qn not in modelXbrl.factsByQname or not any(
                                        f.context is not None and not f.context.hasSegment 
                                        for f in modelXbrl.factsByQname[qn])):
@@ -1251,7 +1261,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     disclosureSystem.deiFilerNameElement):
                 if deiItem not in deiItems or deiItems[deiItem] == "":
                     modelXbrl.error("GFM.3.02.01",
-                        _("dei:%(elementName)s is required in the default context"),
+                        _("dei:%(elementName)s was not found in the required context"),
                         modelXbrl=modelXbrl, elementName=deiItem)
         if documentType not in ("SD", "SD/A"):
             val.modelXbrl.profileActivity("... filer required facts checks", minTimeToShow=1.0)
@@ -1345,7 +1355,37 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     # entry point schema checks
     elif modelXbrl.modelDocument.type == ModelDocument.Type.SCHEMA:
         pass
-
+    
+    # inline-only checks
+    if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL and isEFM:
+        elt = modelXbrl.modelDocument.xmlRootElement
+        if elt.tag in ("html", "xhtml") or (isinstance(elt, ModelObject) and not elt.namespaceURI):
+            modelXbrl.error("EFM.5.02.05.xhtmlNamespaceMissing",
+                _("InlineXBRL root element <%(element)s> MUST be html and have the xhtml namespace."),
+                modelObject=elt, element=elt.tag)
+        ixNStag = modelXbrl.modelDocument.ixNStag
+        ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
+        for tag in ixTags:
+            for ixElt in modelXbrl.modelDocument.xmlRootElement.iterdescendants(tag=tag):
+                if isinstance(ixElt,ModelObject):
+                    if ixElt.get("target"):
+                        modelXbrl.error("EFM.5.02.05.targetDisallowed",
+                            _("Inline element %(localName)s has disallowed target attribute %(target)s."),
+                            modelObject=ixElt, localName=ixElt.elementQname, target=ixElt.get("target"))
+        for ixElt in modelXbrl.modelDocument.xmlRootElement.iterdescendants(tag=ixNStag+"tuple"):
+            if isinstance(ixElt,ModelObject):
+                modelXbrl.error("EFM.5.02.05.tupleDisallowed",
+                    _("Inline tuple %(qname)s is disallowed."),
+                    modelObject=ixElt, qname=ixElt.qname)
+        for ixElt in modelXbrl.modelDocument.xmlRootElement.iterdescendants(tag=ixNStag+"fraction"):
+            if isinstance(ixElt,ModelObject):
+                modelXbrl.error("EFM.5.02.05.fractionDisallowed",
+                    _("Inline fraction %(qname)s is disallowed."),
+                    modelObject=ixElt, qname=ixElt.qname)
+        if modelXbrl.modelDocument.xmlDocument.docinfo.doctype:
+            modelXbrl.error("EFM.5.02.05.doctypeDisallowed",
+                _("Inline HTML %(doctype)s is disallowed."),
+                modelObject=ixElt, doctype=modelXbrl.modelDocument.xmlDocument.docinfo.doctype)
     # all-labels and references checks
     defaultLangStandardLabels = {}
     for concept in modelXbrl.qnameConcepts.values():
@@ -1440,7 +1480,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     namespaceConflicts=sorted((d.targetNamespace for d in modelDocuments),
                                               key=lambda ns: ns.rpartition('/')[2]))
         
-        if not val.hasExtensionSchema and documentType != "L SDR":
+        if documentType is not None and not val.hasExtensionSchema and documentType != "L SDR":
             modelXbrl.error("EFM.6.03.10",
                             _("%(documentType)s report is missing a extension schema file."),
                             modelObject=modelXbrl, documentType=documentType)

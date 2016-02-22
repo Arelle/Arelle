@@ -227,3 +227,15 @@ class UnitPrototype():  # behaves like a context
         else:
             return tuple(('measure',m) for m in measures[0])
 
+class XbrlPrototype(): # behaves like ModelXbrl
+    def __init__(self, modelManager, uri, *arg, **kwarg):
+        self.modelManager = modelManager
+        self.errors = []
+        self.skipDTS = False
+        from arelle.PrototypeDtsObject import DocumentPrototype
+        self.modelDocument = DocumentPrototype(self, uri)
+
+    def close(self):
+        self.modelDocument.clear()
+        self.__dict__.clear()  # delete local attributes
+        

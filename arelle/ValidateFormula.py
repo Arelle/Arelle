@@ -28,6 +28,11 @@ arcroleChecks = {
     XbrlConst.assertionSet:          (XbrlConst.qnAssertionSet,
                                       (XbrlConst.qnAssertion, XbrlConst.qnVariableSetAssertion),
                                       "xbrlvalide:info"),
+    XbrlConst.assertionUnsatisfiedSeverity:
+                                    ((XbrlConst.qnAssertion,XbrlConst.qnVariableSetAssertion),
+                                     (XbrlConst.qnAssertionSeverityError, XbrlConst.qnAssertionSeverityWarning, XbrlConst.qnAssertionSeverityOk),
+                                     "seve:assertionSeveritySourceError",
+                                     "seve:assertionSeverityTargetError"),
     XbrlConst.variableSet:           (XbrlConst.qnVariableSet,
                                       (XbrlConst.qnVariableVariable, XbrlConst.qnParameter),
                                       "xbrlve:info"),
@@ -208,12 +213,18 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
             if len(rels) > 1:
                 val.modelXbrl.error("xbrlcfie:tooManyCFIRelationships",
                     _("Function-implementation relationship from signature %(name)s has more than one implementation target"),
-                     modelObject=modelRel, name=relFrom.name)
+                     modelObject=[relFrom] + rels, name=relFrom.name)
         for relTo, rels in relsSet.toModelObjects().items():
             if len(rels) > 1:
                 val.modelXbrl.error("xbrlcfie:tooManyCFIRelationships",
                     _("Function implementation %(xlinkLabel)s must be the target of only one function-implementation relationship"),
-                    modelObject=modelRel, xlinkLabel=relTo.xlinkLabel)
+                    modelObject=[relTo] + rels, xlinkLabel=relTo.xlinkLabel)
+    elif arcrole == XbrlConst.assertionUnsatisfiedSeverity:
+        for relFrom, rels in relsSet.fromModelObjects().items():
+            if len(rels) > 1:
+                val.modelXbrl.error("seve:multipleSeveritiesForAssertionError",
+                    _("Assertion-unsatisfied-severity relationship from %(xlinkLabel)s has more than one severity target"),
+                     modelObject=[relFrom] + rels, xlinkLabel=relFrom.xlinkLabel)
                 
 def executeCallTest(val, name, callTuple, testTuple):
     if callTuple:
@@ -747,31 +758,12 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
             modelRel.toModelObject.hasConsistencyAssertion = True
     val.modelXbrl.profileActivity("... consistency assertion setup", minTimeToShow=1.0)
 
-    # check for assertion severity
-    for arcrole, relType in ((XbrlConst.assertionSatisfiedSeverity, "satisfied"),
-                             (XbrlConst.assertionUnsatisfiedSeverity, "unsatisfied")):
-        assertionSeverities = defaultdict(list)
-        for modelRel in val.modelXbrl.relationshipSet(arcrole).modelRelationships:
-            assertion = modelRel.fromModelObject
-            severity = modelRel.toModelObject
-            if not isinstance(assertion, (ModelVariableSetAssertion, ModelConsistencyAssertion)):
-                val.modelXbrl.error("seve:assertionSeveritySourceError",
-                    _("Source of assertion-%(relType)s-severity relationship is not an assertion element: %(sourceElement)s"),
-                    modelObject=(modelRel, assertion), relType=relType, sourceElement=assertion.qname)
-            if not isinstance(severity, ModelAssertionSeverity):
-                val.modelXbrl.error("seve:assertionSeverityTargetError",
-                    _("Target of assertion-%(relType)s-severity relationship is not an severity element: %(targetElement)s"),
-                    modelObject=(modelRel, severity), relType=relType, targetElement=severity.qname)
-            assertionSeverities[assertion].append(severity)
-        for assertion, severities in assertionSeverities.items():
-            if len(severities) > 1:
-                val.modelXbrl.error("seve:multipleAssertionSeveritiesNotAllowed",
-                    _("Assertion has more than one severity (%(numSevereties)s) in assertion-%(relType)s-severity relationships"),
-                    modelObject=[assertion] + list(severities), relType=relType, numSeverities=len(severities))
-        del assertionSeverities # dereference
-        
     # validate default dimensions in instances and accumulate multi-instance-default dimension aspects
     xpathContext.defaultDimensionAspects = set(val.modelXbrl.qnameDimensionDefaults.keys())
+    xpathContext.dimensionsAspectUniverse = xpathContext.defaultDimensionAspects
+    for cntx in val.modelXbrl.contexts.values(): # note that this maybe should not include unreferenced contexts
+        xpathContext.dimensionsAspectUniverse |= _DICT_SET(cntx.qnameDims.keys())
+    
     #xpathContext.reportedDimensionAspects = set()
     #_evaluatedContexts = set()
     for instanceQname in instanceQnames:
@@ -780,6 +772,9 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
             for namedInstance in val.parameters[instanceQname][1]:
                 ValidateXbrlDimensions.loadDimensionDefaults(namedInstance)
                 xpathContext.defaultDimensionAspects |= _DICT_SET(namedInstance.qnameDimensionDefaults.keys())
+                xpathContext.dimensionsAspectUniverse |= _DICT_SET(namedInstance.qnameDimensionDefaults.keys())
+                for cntx in namedInstance.contexts.values():
+                    xpathContext.dimensionsAspectUniverse |= _DICT_SET(cntx.qnameDims.keys())
                 #for fact in namedInstance.factsInInstance: 
                 #    _cntx = fact.context
                 #    if fact.isItem and _cntx is not None and _cntx not in _evaluatedContexts:

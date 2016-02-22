@@ -13,6 +13,7 @@ from arelle.ModelFormulaObject import (aspectModels, Aspect, aspectModelAspect,
                                  ModelFactVariable, ModelGeneralVariable, ModelVariable,
                                  ModelParameter, ModelFilter, ModelAspectCover, ModelBooleanFilter)
 from arelle.PrototypeInstanceObject import DimValuePrototype
+from arelle.PythonUtil import OrderedSet
 from arelle.ModelValue import (QName)
 import datetime, time, logging, re
 from decimal import Decimal
@@ -137,7 +138,7 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
         # HF try to use dict of vb by result qname
         # thisEvaluation = tuple(vb.matchableBoundFact(fbVars) for vb in xpCtx.varBindings.values())
         thisEvaluation = dict((vbQn, vb.matchableBoundFact(fbVars)) for vbQn, vb in xpCtx.varBindings.items())
-        if evaluationIsUnnecessary(thisEvaluation, xpCtx.evaluationHashDicts, xpCtx.evaluations):
+        if evaluationIsUnnecessary(thisEvaluation, xpCtx):
             if xpCtx.formulaOptions.traceVariableSetExpressionResult:
                 xpCtx.modelXbrl.info("formula:trace",
                     _("Variable set %(xlinkLabel)s skipped non-different or fallback evaluation, duplicates another evaluation"),
@@ -334,9 +335,7 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
             if varSet.implicitFiltering == "true":
                 if any((_vb.isFactVar and not _vb.isFallback) for _vb in xpCtx.varBindings.values()):
                     factCount = len(facts)
-                    # uncovered aspects of the prior variable bindings may include aspects not in current variable binding
-                    uncoveredAspects = (vb.aspectsDefined | _DICT_SET(uncoveredAspectFacts.keys())) - vb.aspectsCovered - {Aspect.DIMENSIONS}
-                    facts = implicitFilter(xpCtx, vb, facts, uncoveredAspects, uncoveredAspectFacts)
+                    facts = implicitFilter(xpCtx, vb, facts, uncoveredAspectFacts)
                     if (considerFallback and varHasNoVariableDependencies and 
                         factCount and
                         factCount - len(facts) == 0 and
@@ -437,18 +436,44 @@ def coverAspectCoverFilterDims(xpCtx, vb, filterRelationships):
         elif isinstance(_filter,ModelBooleanFilter) and varFilterRel.isCovered:
             coverAspectCoverFilterDims(xpCtx, vb, _filter.filterRelationships)
             
-def implicitFilter(xpCtx, vb, facts, aspects, uncoveredAspectFacts):
-    if xpCtx.formulaOptions.traceVariableFilterWinnowing:  # trace shows by aspect by bound variable match    
+def isVbTupleWithOnlyAnUncoveredDimension(xpCtx, vb, facts):
+    # check for special cases (tuple with uncovered dimension matched to anything else)
+    vbUncoveredAspects = (vb.aspectsDefined | xpCtx.dimensionsAspectUniverse) - vb.aspectsCovered - {Aspect.DIMENSIONS}
+    # check if current vb is a tuple with an aspect universe dimension uncovered (46220 v14)
+    return (vbUncoveredAspects and 
+            all(isinstance(a, QName) for a in vbUncoveredAspects) and 
+            all(f.isTuple for f in facts))
+
+def implicitFilter(xpCtx, vb, facts, uncoveredAspectFacts):
+    # determine matchable aspects
+    aspects = (vb.aspectsDefined | _DICT_SET(uncoveredAspectFacts.keys())) - vb.aspectsCovered - {Aspect.DIMENSIONS}
+    if not aspects:
+        if isVbTupleWithOnlyAnUncoveredDimension(xpCtx, vb, facts):
+            return [] # matching a tuple with an existing uncovered dimension to items
+        # no matchable aspects
+        return facts # nothing gets implicitly matched
+    
+    # check for prior vb a tuple with an aspect universe dimension uncovered (46220 v14)
+    if len(xpCtx.varBindings) == 1:
+        f = uncoveredAspectFacts.get(Aspect.DIMENSIONS)
+        if isinstance(f, ModelFact) and f.isTuple and all(
+                f is None for a,f in uncoveredAspectFacts.items() if a != Aspect.DIMENSIONS):
+            if isVbTupleWithOnlyAnUncoveredDimension(xpCtx, next(iter(xpCtx.varBindings.values())), (f,)):
+                return [] # matching a tuple with an existing uncovered dimension to items
+            return facts # no  aspect to implicitly match on
+        
+    if xpCtx.formulaOptions.traceVariableFilterWinnowing:  # trace shows by aspect by bound variable match  
+        _facts = facts  
         for aspect in aspects:
             if uncoveredAspectFacts.get(aspect, "none") is not None:
-                facts = [fact 
-                         for fact in facts 
-                         if aspectMatches(xpCtx, uncoveredAspectFacts.get(aspect), fact, aspect)]
+                _facts = [fact 
+                          for fact in _facts 
+                          if aspectMatches(xpCtx, uncoveredAspectFacts.get(aspect), fact, aspect)]
                 a = str(aspect) if isinstance(aspect,QName) else Aspect.label[aspect]
                 xpCtx.modelXbrl.info("formula:trace",
                     _("Fact Variable %(variable)s implicit filter %(aspect)s passes %(factCount)s facts"), 
                     modelObject=vb.var, variable=vb.qname, aspect=a, factCount=len(facts))
-                if len(facts) == 0: break
+                if len(_facts) == 0: break
     else: 
         testableAspectFacts = [(aspect, uncoveredAspectFacts.get(aspect)) 
                                for aspect in aspects 
@@ -458,11 +483,14 @@ def implicitFilter(xpCtx, vb, facts, aspects, uncoveredAspectFacts):
         #                       if not vb.hasAspectValueCovered(aspect)]
         if testableAspectFacts:
             # not tracing, do bulk aspect filtering
-            facts = [fact
-                     for fact in facts
-                     if all(aspectMatches(xpCtx, uncoveredAspectFact, fact, aspect)
-                            for (aspect, uncoveredAspectFact) in testableAspectFacts)]
-    return facts
+            _facts = [fact
+                      for fact in facts
+                      if all(aspectMatches(xpCtx, uncoveredAspectFact, fact, aspect)
+                             for (aspect, uncoveredAspectFact) in testableAspectFacts)]
+        else:
+            _facts = facts
+            
+    return _facts
     
 def aspectsMatch(xpCtx, fact1, fact2, aspects):
     return all(aspectMatches(xpCtx, fact1, fact2, aspect) for aspect in aspects)
@@ -594,23 +622,40 @@ def factsPartitions(xpCtx, facts, aspects):
             factsPartitions.append([fact,])
     return factsPartitions
 
-def evaluationIsUnnecessary(thisEval, otherEvalHashDicts, otherEvals):
+def evaluationIsUnnecessary(thisEval, xpCtx):
+    otherEvals = xpCtx.evaluations
     if otherEvals:
+        otherEvalHashDicts = xpCtx.evaluationHashDicts
         # HF try
         # if all(e is None for e in thisEval):
         if all(e is None for e in thisEval.values()):
             return True  # evaluation not necessary, all fallen back
         # hash check if any hashes merit further look for equality
-        otherEvalSets = [otherEvalHashDicts[vQn].get(hash(vBoundFact), EMPTYSET)
+        otherEvalSets = [otherEvalHashDicts[vQn][hash(vBoundFact)]
                          for vQn, vBoundFact in thisEval.items()
                          if vBoundFact is not None
-                         if vQn in otherEvalHashDicts]
+                         if vQn in otherEvalHashDicts
+                         if hash(vBoundFact) in otherEvalHashDicts[vQn]]
         if otherEvalSets:
             matchingEvals = [otherEvals[i] for i in  set.intersection(*otherEvalSets)]
-            # detects evaluations which are not different (duplicate) and extra fallback evaluations
-            # vBoundFact may be single fact or tuple of facts
-            return any(all([vBoundFact == matchingEval[vQn] for vQn, vBoundFact in thisEval.items() if vBoundFact is not None])
-                       for matchingEval in matchingEvals)
+        else:
+            matchingEvals = otherEvals
+        # find set of vQn whose dependencies are fallen back in this eval but not others that match
+        varBindings = xpCtx.varBindings
+        vQnDependentOnOtherVarFallenBackButBoundInOtherEval = set(
+            vQn
+            for vQn, vBoundFact in thisEval.items()
+            if vBoundFact is not None and
+               any(varBindings[varRefQn].isFallback and 
+                   any(m[varRefQn] is not None for m in matchingEvals)
+                   for varRefQn in varBindings[vQn].var.variableRefs()))
+        # detects evaluations which are not different (duplicate) and extra fallback evaluations
+        # vBoundFact may be single fact or tuple of facts
+        return any(all([vBoundFact == matchingEval[vQn] 
+                        for vQn, vBoundFact in thisEval.items() 
+                        if vBoundFact is not None
+                        and vQn not in vQnDependentOnOtherVarFallenBackButBoundInOtherEval])
+                   for matchingEval in matchingEvals)
     return False
     '''
     r = range(len(thisEval))
@@ -1034,22 +1079,33 @@ class VariableBinding:
     def matchesSubPartitions(self, partition, aspects):
         if self.var.matches == "true":
             return [partition]
-        subPartitions = []
+        subpartition0 = []
+        subpartitions = [subpartition0]
+        matches = defaultdict(list) # position: [matching facts]
         for fact in partition:
-            foundSubPartition = False
-            for subPartition in subPartitions:
-                matchedInSubPartition = False
-                for fact2 in subPartition:
-                    if aspectsMatch(self.xpCtx, fact, fact2, aspects):
-                        matchedInSubPartition = True
-                        break
-                if not matchedInSubPartition:
-                    subPartition.append(fact)
-                    foundSubPartition = True
+            matched = False
+            for i, fact2 in enumerate(subpartition0):
+                if aspectsMatch(self.xpCtx, fact, fact2, aspects):
+                    matches[i].append(fact)
+                    matched = True
                     break
-            if not foundSubPartition:
-                subPartitions.append([fact,])
-        return subPartitions
+            if not matched:
+                subpartition0.append(fact)
+        if matches:
+            matchIndices = sorted(matches.keys())
+            matchIndicesLen = len(matchIndices)
+            def addSubpartition(l):
+                if l == matchIndicesLen:
+                    subpartitions.append(subpartition0.copy())
+                else:
+                    i = matchIndices[l]
+                    for matchedFact in matches[i]:
+                        nextSubpartition = len(subpartitions)
+                        addSubpartition(l+1)
+                        for j in range(nextSubpartition, len(subpartitions)):
+                            subpartitions[j][i] = matchedFact
+            addSubpartition(0)
+        return subpartitions
  
     @property
     def evaluationResults(self):
@@ -1096,7 +1152,10 @@ class VariableBinding:
     def matchableBoundFact(self, fbVars):  # return from this function has to be hashable
         if (self.isFallback or self.isParameter 
             # remove to allow different gen var evaluations: or self.isGeneralVar
-            or (self.isGeneralVar and not fbVars.isdisjoint(self.var.variableRefs()))):
+            ##or (self.isGeneralVar and not fbVars.isdisjoint(self.var.variableRefs()))):
+            or self.isGeneralVar 
+            # or not fbVars.isdisjoint(self.var.variableRefs())
+            ):
             return None
         if self.isBindAsSequence:
             return tuple(self.yieldedEvaluation)

@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" >
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xi="http://www.w3.org/2001/XInclude">
+<xsd:import namespace="http://www.w3.org/2001/XInclude" schemaLocation="http://www.w3.org/2001/XInclude/XInclude.xsd"/>
 <xsd:element name="Erxl">
 <xsd:complexType>
-<xsd:sequence>
-<xsd:element ref="Loc" minOccurs="0" maxOccurs="unbounded"/>
+<xsd:sequence minOccurs="0" maxOccurs="unbounded">
+<xsd:choice>
+<xsd:element ref="Loc"/>
+<xsd:element ref="xi:include"/>
+</xsd:choice>
 </xsd:sequence>
-<xsd:attribute name="version" use="required"><xsd:simpleType><xsd:restriction base="xsd:string"><xsd:pattern value="[1-9][0-9]*([\.][1-9][0-9]*)*"/></xsd:restriction></xsd:simpleType></xsd:attribute>
+<xsd:attribute name="version" use="optional"><xsd:simpleType><xsd:restriction base="xsd:string"><xsd:pattern value="[1-9][0-9]*([\.][1-9][0-9]*)*"/></xsd:restriction></xsd:simpleType></xsd:attribute>
 </xsd:complexType>
 </xsd:element>
 <xsd:element name="Loc">
@@ -27,6 +31,12 @@
 </xsd:simpleType>
 </xsd:element>
 <xsd:element name="Href" minOccurs="0">
+<xsd:simpleType>
+<xsd:restriction base="xsd:string">
+</xsd:restriction>
+</xsd:simpleType>
+</xsd:element>
+<xsd:element name="LocalHref" minOccurs="0">
 <xsd:simpleType>
 <xsd:restriction base="xsd:string">
 </xsd:restriction>

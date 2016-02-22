@@ -5,6 +5,8 @@ do not convert 3 to 2
 '''
 import sys
 from decimal import Decimal
+from fractions import Fraction
+from collections import OrderedDict, MutableSet
 
 if sys.version[0] >= '3':
     import builtins
@@ -13,8 +15,8 @@ if sys.version[0] >= '3':
     builtins.__dict__['_STR_UNICODE'] = str
     builtins.__dict__['_INT'] = int
     builtins.__dict__['_INT_TYPES'] = int
-    builtins.__dict__['_NUM_TYPES'] = (int,float,Decimal)
-    builtins.__dict__['_STR_NUM_TYPES'] = (str,int,float,Decimal)
+    builtins.__dict__['_NUM_TYPES'] = (int,float,Decimal,Fraction)
+    builtins.__dict__['_STR_NUM_TYPES'] = (str,int,float,Decimal,Fraction)
     builtins.__dict__['_RANGE'] = range
     def noop(x): return x
     builtins.__dict__['_DICT_SET'] = noop
@@ -24,8 +26,8 @@ else:
     __builtins__['_STR_UNICODE'] = unicode
     __builtins__['_INT'] = long
     __builtins__['_INT_TYPES'] = (int,long)
-    __builtins__['_NUM_TYPES'] = (int,long,float,Decimal)
-    __builtins__['_STR_NUM_TYPES'] = (basestring,int,long,float,Decimal)
+    __builtins__['_NUM_TYPES'] = (int,long,float,Decimal,Fraction)
+    __builtins__['_STR_NUM_TYPES'] = (basestring,int,long,float,Decimal,Fraction)
     __builtins__['_RANGE'] = xrange
     __builtins__['_DICT_SET'] = set
     
@@ -115,6 +117,12 @@ def pyNamedObject(name):
     except:
         return None
     
+def strTruncate(value, length):
+    _s = str(value).strip()
+    if len(_s) <= length:
+        return _s
+    return _s[0:length] + "..."
+    
 SEQUENCE_TYPES = (tuple,list,set)
 def flattenSequence(x, sequence=None):
     if sequence is None: 
@@ -136,3 +144,93 @@ class attrdict(dict):
         dict.__init__(self, *args, **kwargs)
         self.__dict__ = self
 
+class OrderedDefaultDict(OrderedDict):
+    """ call with default factory and optional sorted initial entries
+        e.g., OrderedDefaultDict(list, ((1,11),(2,22),...))
+    """
+    def __init__(self, *args): 
+        self.default_factory = None
+        if len(args) > 0:
+            # arg0 is default_factory
+            self.default_factory = args[0]
+        if len(args) > 1:
+            # arg1 is initial contents
+            super(OrderedDefaultDict, self).__init__(args[1])
+        else:
+            super(OrderedDefaultDict, self).__init__()
+            
+    def __missing__(self, key):
+        if self.default_factory is None:
+            raise KeyError(key)
+        _missingValue = self.default_factory()
+        self[key] = _missingValue
+        return _missingValue
+
+class OrderedSet(MutableSet):
+
+    def __init__(self, iterable=None):
+        self.end = end = [] 
+        end += [None, end, end]         # sentinel node for doubly linked list
+        self.map = {}                   # key --> [key, prev, next]
+        if iterable is not None:
+            self |= iterable
+
+    def __len__(self):
+        return len(self.map)
+
+    def __contains__(self, key):
+        return key in self.map
+
+    def add(self, key):
+        if key not in self.map:
+            end = self.end
+            curr = end[1]
+            curr[2] = end[1] = self.map[key] = [key, curr, end]
+            
+    def update(self, other):
+        s |= other
+
+    def discard(self, key):
+        if key in self.map:        
+            key, prev, next = self.map.pop(key)
+            prev[2] = next
+            next[1] = prev
+
+    def __iter__(self):
+        end = self.end
+        curr = end[2]
+        while curr is not end:
+            yield curr[0]
+            curr = curr[2]
+
+    def __reversed__(self):
+        end = self.end
+        curr = end[1]
+        while curr is not end:
+            yield curr[0]
+            curr = curr[1]
+
+    def pop(self, last=True):
+        if not self:
+            raise KeyError('set is empty')
+        key = self.end[1][0] if last else self.end[2][0]
+        self.discard(key)
+        return key
+
+    def __repr__(self):
+        if not self:
+            return '%s()' % (self.__class__.__name__,)
+        return '%s(%r)' % (self.__class__.__name__, list(self))
+
+    def __eq__(self, other):
+        if isinstance(other, OrderedSet):
+            return len(self) == len(other) and list(self) == list(other)
+        return set(self) == set(other)
+    
+def Fraction(numerator,denominator=None):
+    if denominator is None:
+        if isinstance(numerator, (Fraction,_STR_UNICODE,Decimal)):
+            return Fraction(numerator)
+    elif isinstance(numerator, Decimal) and isinstance(denominator, Decimal):
+        return Fraction(int(numerator), int(denominator))
+    return Fraction(numerator, denominator)

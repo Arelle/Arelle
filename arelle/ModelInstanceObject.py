@@ -337,8 +337,12 @@ class ModelFact(ModelObject):
     @property
     def fractionValue(self):
         """( (str,str) ) -- (text value of numerator, text value of denominator)"""
-        return (XmlUtil.text(XmlUtil.child(self, None, "numerator")),
-                XmlUtil.text(XmlUtil.child(self, None, "denominator")))
+        try:
+            return self._fractionValue
+        except AttributeError:
+            self._fractionValue = (XmlUtil.text(XmlUtil.child(self, None, "numerator")),
+                                   XmlUtil.text(XmlUtil.child(self, None, "denominator")))
+            return self._fractionValue
     
     @property
     def effectiveValue(self):
@@ -350,6 +354,10 @@ class ModelFact(ModelObject):
         if self.isNil:
             return "(nil)"
         try:
+            if concept.isFraction:
+                if self.xValid == XmlValidate.VALID:
+                    return str(self.xValue)
+                return "/".join(self.fractionValue)
             if concept.isNumeric:
                 val = self.value
                 try:
@@ -553,6 +561,9 @@ class ModelInlineValueObject:
         except ValueError:
             return None # should have rasied a validation error in XhtmlValidate.py
     
+    def setInvalid(self):
+        self._ixValue = ModelValue.INVALIDixVALUE
+        self.xValid = XmlValidate.INVALID
     
     @property
     def value(self):
@@ -561,6 +572,8 @@ class ModelInlineValueObject:
         try:
             return self._ixValue
         except AttributeError:
+            self.xValid = 0 # may not be initialized otherwise
+            self.xValue = None
             v = XmlUtil.innerText(self, 
                                   ixExclude=True, 
                                   ixEscape=(self.get("escape") in ("true","1")), 
@@ -577,11 +590,19 @@ class ModelInlineValueObject:
                 else:
                     try:
                         v = self.modelXbrl.modelManager.customTransforms[f](v)
+                    except KeyError as err:
+                        self._ixValue = ModelValue.INVALIDixVALUE
+                        raise FunctionIxt.ixtFunctionNotAvailable
                     except Exception as err:
                         self._ixValue = ModelValue.INVALIDixVALUE
                         raise err
             if self.localName == "nonNumeric" or self.localName == "tuple" or self.isNil:
                 self._ixValue = v
+            elif self.localName == "fraction":
+                if self.xValid == XmlValidate.VALID:
+                    self._ixValue = str(self.xValue)
+                else:
+                    self._ixValue = "NaN"
             else:  # determine string value of transformed value
                 negate = -1 if self.sign else 1
                 try:
@@ -589,7 +610,7 @@ class ModelInlineValueObject:
                     # use decimal so all number forms work properly
                     num = Decimal(v)
                 except (ValueError, InvalidOperation):
-                    self._ixValue = ModelValue.INVALIDixVALUE
+                    self.setInvalid()
                     raise ValueError("Invalid value for {} number: {}".format(self.localName, v))
                 try:
                     scale = self.scale
@@ -601,11 +622,11 @@ class ModelInlineValueObject:
                     elif isnan(num):
                         self._ixValue = "NaN"
                     else:
-                        if num == num.to_integral():
+                        if num == num.to_integral() and ".0" not in v:
                             num = num.quantize(DECIMALONE) # drop any .0
                         self._ixValue = "{}".format(num)
                 except (ValueError, InvalidOperation):
-                    self._ixValue = ModelValue.INVALIDixVALUE
+                    self.setInvalid()
                     raise ValueError("Invalid value for {} scale {} for number {}".format(self.localName, scale, v))
             return self._ixValue
 
@@ -731,7 +752,7 @@ class ModelInlineFractionTerm(ModelInlineValueObject, ModelObject):
     def qname(self):
         if self.localName == "numerator":
             return XbrlConst.qnXbrliNumerator
-        elif self.localName == "denomiantor":
+        elif self.localName == "denominator":
             return XbrlConst.qnXbrliDenominator
         return self.elementQname
     

@@ -11,9 +11,11 @@ from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlC
                ValidateInfoset, RenderingEvaluator, ViewFileRenderedGrid)
 from arelle.ModelDocument import Type, ModelDocumentReference, load as modelDocumentLoad
 from arelle.ModelDtsObject import ModelResource
+from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods
+from arelle.XmlUtil import collapseWhitespace
 
 def validate(modelXbrl):
     validate = Validate(modelXbrl)
@@ -69,7 +71,7 @@ class Validate:
             try:
                 self.validateTestcase(self.modelXbrl.modelDocument)
             except Exception as err:
-                self.modelXbrl.error("exception",
+                self.modelXbrl.error("exception:" + type(err).__name__,
                     _("Testcase validation exception: %(error)s, testcase: %(testcase)s"),
                     modelXbrl=self.modelXbrl,
                     testcase=self.modelXbrl.modelDocument.basename, error=err,
@@ -79,7 +81,7 @@ class Validate:
             try:
                 ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(self.modelXbrl)
             except Exception as err:
-                self.modelXbrl.error("exception",
+                self.modelXbrl.error("exception:" + type(err).__name__,
                     _("Versioning report exception: %(error)s, testcase: %(reportFile)s"),
                     modelXbrl=self.modelXbrl,
                     reportFile=self.modelXbrl.modelDocument.basename, error=err,
@@ -92,7 +94,7 @@ class Validate:
                 self.instValidator.validate(self.modelXbrl, self.modelXbrl.modelManager.formulaOptions.typedParameters())
                 self.instValidator.close()
             except Exception as err:
-                self.modelXbrl.error("exception",
+                self.modelXbrl.error("exception:" + type(err).__name__,
                     _("Instance validation exception: %(error)s, instance: %(instance)s"),
                     modelXbrl=self.modelXbrl,
                     instance=self.modelXbrl.modelDocument.basename, error=err,
@@ -129,7 +131,7 @@ class Validate:
                     pluginXbrlMethod(self, modelXbrl, rssItem)
                 modelXbrl.close()
             except Exception as err:
-                self.modelXbrl.error("exception",
+                self.modelXbrl.error("exception:" + type(err).__name__,
                     _("RSS item validation exception: %(error)s, instance: %(instance)s"),
                     modelXbrl=(self.modelXbrl, modelXbrl),
                     instance=rssItem.zippedUrl, error=err,
@@ -152,6 +154,7 @@ class Validate:
                 # is this a versioning report?
                 resultIsVersioningReport = modelTestcaseVariation.resultIsVersioningReport
                 resultIsXbrlInstance = modelTestcaseVariation.resultIsXbrlInstance
+                resultIsTaxonomyPackage = modelTestcaseVariation.resultIsTaxonomyPackage
                 formulaOutputInstance = None
                 inputDTSes = defaultdict(list)
                 baseForElement = testcase.baseForElement(modelTestcaseVariation)
@@ -188,6 +191,11 @@ class Validate:
                         if doc is not None:
                             DTSdoc.referencesDocument[doc] = ModelDocumentReference("import", DTSdoc.xmlRootElement)  #fake import
                             doc.inDTS = True
+                    elif resultIsTaxonomyPackage:
+                        from arelle import PackageManager, PrototypeInstanceObject
+                        dtsName = readMeFirstUri
+                        modelXbrl = PrototypeInstanceObject.XbrlPrototype(self.modelXbrl.modelManager, readMeFirstUri)
+                        PackageManager.packageInfo(self.modelXbrl.modelManager.cntlr, readMeFirstUri, reload=True, errors=modelXbrl.errors)
                     else: # not a multi-schemaRef versioning report
                         if self.useFileSource.isArchive:
                             modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, 
@@ -210,12 +218,12 @@ class Validate:
                                                        errorCaptureLevel=errorCaptureLevel)
                         modelXbrl.isTestcaseVariation = True
                     if modelXbrl.modelDocument is None:
-                        self.modelXbrl.error("arelle:notLoaded",
+                        modelXbrl.error("arelle:notLoaded",
                              _("Testcase %(id)s %(name)s document not loaded: %(file)s"),
                              modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, file=os.path.basename(readMeFirstUri))
+                        self.determineNotLoadedTestStatus(modelTestcaseVariation, modelXbrl.errors)
                         modelXbrl.close()
-                        self.determineNotLoadedTestStatus(modelTestcaseVariation)
-                    elif resultIsVersioningReport:
+                    elif resultIsVersioningReport or resultIsTaxonomyPackage:
                         inputDTSes[dtsName] = modelXbrl
                     elif modelXbrl.modelDocument.type == Type.VERSIONINGREPORT:
                         ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(modelXbrl)
@@ -240,7 +248,7 @@ class Validate:
                             for pluginXbrlMethod in pluginClassMethods("TestcaseVariation.Xbrl.Validated"):
                                 pluginXbrlMethod(self.modelXbrl, modelXbrl)
                         except Exception as err:
-                            self.modelXbrl.error("exception",
+                            modelXbrl.error("exception:" + type(err).__name__,
                                 _("Testcase variation validation exception: %(error)s, instance: %(instance)s"),
                                 modelXbrl=modelXbrl, instance=modelXbrl.modelDocument.basename, error=err, exc_info=True)
                         modelXbrl.hasFormulae = _hasFormulae
@@ -258,13 +266,16 @@ class Validate:
                               versReportFile, inputDTSes["from"], inputDTSes["to"])
                         modelTestcaseVariation.status = "generated"
                     else:
-                        self.modelXbrl.error("arelle:notLoaded",
+                        modelXbrl.error("arelle:notLoaded",
                              _("Testcase %(id)s %(name)s DTSes not loaded, unable to generate versioning report: %(file)s"),
                              modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, file=os.path.basename(readMeFirstUri))
                         modelTestcaseVariation.status = "failed"
                     for inputDTS in inputDTSes.values():
                         inputDTS.close()
                     del inputDTSes # dereference
+                elif resultIsTaxonomyPackage:
+                    self.determineTestStatus(modelTestcaseVariation, modelXbrl.errors)
+                    modelXbrl.close()
                 elif inputDTSes:
                     # validate schema, linkbase, or instance
                     modelXbrl = inputDTSes[None][0]
@@ -281,7 +292,7 @@ class Validate:
                             self.instValidator.parameters = parameters
                             ValidateFormula.validate(self.instValidator)
                         except Exception as err:
-                            self.modelXbrl.error("exception",
+                            modelXbrl.error("exception:" + type(err).__name__,
                                 _("Testcase formula variation validation exception: %(error)s, instance: %(instance)s"),
                                 modelXbrl=modelXbrl, instance=modelXbrl.modelDocument.basename, error=err, exc_info=True)
                     if modelTestcaseVariation.resultIsInfoset and self.modelXbrl.modelManager.validateInfoset:
@@ -294,7 +305,7 @@ class Validate:
                                                    useFileSource=self.useFileSource,
                                                    errorCaptureLevel=errorCaptureLevel)
                         if infoset.modelDocument is None:
-                            self.modelXbrl.error("arelle:notLoaded",
+                            modelXbrl.error("arelle:notLoaded",
                                 _("Testcase %(id)s %(name)s result infoset not loaded: %(file)s"),
                                 modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, 
                                 file=os.path.basename(modelTestcaseVariation.resultXbrlInstance))
@@ -360,18 +371,20 @@ class Validate:
                                     footnotes = []
                                     footnoteRels = footnotesRelSet.fromModelObject(fact)
                                     if footnoteRels:
-                                        for i, footnoteRel in enumerate(footnoteRels):
+                                        # most process rels in same order between two instances, use labels to sort
+                                        for i, footnoteRel in enumerate(sorted(footnoteRels,
+                                                                               key=lambda r: (r.fromLabel,r.toLabel))):
                                             modelObject = footnoteRel.toModelObject
                                             if isinstance(modelObject, ModelResource):
                                                 footnotes.append("Footnote {}: {}".format(
                                                    i+1, # compare footnote with normalize-space
-                                                   re.sub(r'\s+', ' ', modelObject.stringValue.strip())))
+                                                   re.sub(r'\s+', ' ', collapseWhitespace(modelObject.stringValue))))
                                             elif isinstance(modelObject, ModelFact):
                                                 footnotes.append("Footnoted fact {}: {} context: {} value: {}".format(
                                                     i+1,
                                                     modelObject.qname,
                                                     modelObject.contextID,
-                                                    modelObject.value))
+                                                    collapseWhitespace(modelObject.value)))
                                     return footnotes
                                 for expectedInstanceFact in expectedInstance.facts:
                                     unmatchedFactsStack = []
