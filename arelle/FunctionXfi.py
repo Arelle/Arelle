@@ -710,9 +710,13 @@ def filter_member_DRS_selection(xc, p, args):
     dimConcept = xc.modelXbrl.qnameConcepts.get(qnDim)
     if dimConcept is None or dimConcept.qname is None or dimConcept.qname.namespaceURI == XbrlConst.xbrli:
         raise XPathContext.XPathException(p, 'xfie:invalidDimensionQName', _('Argument 1 {0} is not in the DTS.').format(qnDim))
+    elif not dimConcept.isDimensionItem:
+        raise XPathContext.XPathException(p, 'xfie:invalidDimensionQName', _('Argument 1 {0} is not a dimension.').format(qnDim))
     priItemConcept = xc.modelXbrl.qnameConcepts.get(qnPriItem)
     if priItemConcept is None  or priItemConcept.qname is None  or priItemConcept.qname.namespaceURI == XbrlConst.xbrli:
-        raise XPathContext.XPathException(p, 'xfie:invalidPrimaryItemConceptQName', _('Argument 1 {0} is not in the DTS.').format(qnPriItem))
+        raise XPathContext.XPathException(p, 'xfie:invalidPrimaryItemConceptQName', _('Argument 2 {0} is not in the DTS.').format(qnPriItem))
+    elif not priItemConcept.isPrimaryItem:
+        raise XPathContext.XPathException(p, 'xfie:invalidPrimaryItemConceptQName', _('Argument 2 {0} is not a primary item.').format(qnPriItem))
     memConcept = xc.modelXbrl.qnameConcepts.get(qnMem)
     if memConcept is None or not memConcept.isDomainMember or not dimConcept.isDimensionItem:
         # not an error, just don't find anything
