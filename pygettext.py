@@ -656,7 +656,7 @@ def main():
     else:
         if options.outpath:
             options.outfile = os.path.join(options.outpath, options.outfile)
-        fp = open(options.outfile, 'w')
+        fp = open(options.outfile, 'w', encoding='utf-8')
         closep = 1
     try:
         eater.write(fp)
