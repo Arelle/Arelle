@@ -597,7 +597,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         self.addToLog(_("Addition of package {0} successful.").format(packageInfo.get("name")), 
                                       messageCode="info", file=packageInfo.get("URL"))
                     else:
-                        self.addToLog(_("Unable to load plug-in."), messageCode="info", file=cmd[1:])
+                        self.addToLog(_("Unable to load package."), messageCode="info", file=cmd[1:])
                 elif cmd.startswith("~"):
                     if PackageManager.reloadPackageModule(self, cmd[1:]):
                         self.addToLog(_("Reload of package successful."), messageCode="info", file=cmd[1:])
@@ -616,8 +616,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                       messageCode="info", file=packageInfo.get("URL"))
                         resetPlugins = True
                     else:
-                        self.addToLog(_("Unable to load package \"%(name)s\" as a package or \"%(name)s\" is not recognized as a packages command. "),
-                                      messageCode="arelle:packageParameterError", 
+                        self.addToLog(_("Unable to load package \"%(name)s\". "),
+                                      messageCode="arelle:packageLoadingError", 
                                       messageArgs={"name": cmd, "file": cmd}, level=logging.ERROR)
             if PackageManager.packagesConfigChanged:
                 PackageManager.rebuildRemappings(self)
