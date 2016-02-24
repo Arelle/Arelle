@@ -706,7 +706,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                                      modelObject=f, qname=f.qname, context=f.contextID, value=f.value)
                                 xValue = None
                                 isValid = False
-                        elif c == 'b':
+                        elif c in ('b', 't'):
                             isBool = True
                             xValue = xValue.strip()
                             if xValue in ("true", "1"):  
@@ -1212,7 +1212,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                     isNumeric = True
                 elif c == 'd':
                     isDateTime = True
-                elif c == 'b':
+                elif c in ('b', 't'):
                     isBool = True
                 elif c == 'e':
                     isQName = True
