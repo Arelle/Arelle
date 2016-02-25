@@ -99,6 +99,8 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                     closest = s
                 elif closestLen == 0 and eltLang.startswith("en"):
                     closest = s   # pick english if nothing better
+            if not closest and eltName == "name":  # assign default name when none in taxonomy package
+                closest = os.path.splitext(os.path.basename(filesource.baseurl))[0]
             pkg[eltName] = closest
         for eltName in ("supersededTaxonomyPackages", "versioningReports"):
             pkg[eltName] = []
@@ -142,7 +144,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
         pkg["name"] = os.path.basename(os.path.dirname(fileName))
         pkg["description"] = "oasis catalog"
         pkg["version"] = "(none)"
-
+        
     remappings = {}
     rewriteTree = tree
     catalogFile = metadataFile
@@ -529,13 +531,11 @@ def mappedUrl(url):
 
 def addPackage(cntlr, url, packageManifestName=None):
     newPackageInfo = packageInfo(cntlr, url, packageManifestName=packageManifestName)
-    if newPackageInfo:
-        packagesList = packagesConfig["packages"]
+    if newPackageInfo and newPackageInfo.get("name"):
         name = newPackageInfo.get("name")
-        if not name: # anonymous package, or missing name field
-            name = "Unnamed Package {}".format(len(packagesList) + 1)
         version = newPackageInfo.get("version")
         j = -1
+        packagesList = packagesConfig["packages"]
         for i, _packageInfo in enumerate(packagesList):
             if _packageInfo['name'] == name and _packageInfo['version'] == version:
                 j = i
