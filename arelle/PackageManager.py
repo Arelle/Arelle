@@ -529,11 +529,13 @@ def mappedUrl(url):
 
 def addPackage(cntlr, url, packageManifestName=None):
     newPackageInfo = packageInfo(cntlr, url, packageManifestName=packageManifestName)
-    if newPackageInfo and newPackageInfo.get("name"):
+    if newPackageInfo:
+        packagesList = packagesConfig["packages"]
         name = newPackageInfo.get("name")
+        if not name: # anonymous package, or missing name field
+            name = "Unnamed Package {}".format(len(packagesList) + 1)
         version = newPackageInfo.get("version")
         j = -1
-        packagesList = packagesConfig["packages"]
         for i, _packageInfo in enumerate(packagesList):
             if _packageInfo['name'] == name and _packageInfo['version'] == version:
                 j = i
