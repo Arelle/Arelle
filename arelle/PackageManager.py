@@ -56,6 +56,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
     txmyPkgNSes = ("http://www.corefiling.com/xbrl/taxonomypackage/v1",
                    "http://xbrl.org/PWD/2014-01-15/taxonomy-package",
                    "http://xbrl.org/PWD/2015-01-14/taxonomy-package",
+                   "http://xbrl.org/PR/2015-12-09/taxonomy-package",
                    "http://xbrl.org/WGWD/YYYY-MM-DD/taxonomy-package")
     catalogNSes = ("urn:oasis:names:tc:entity:xmlns:xml:catalog",)
     
@@ -91,10 +92,13 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
             closestLen = 0
             for m in root.iterchildren(tag=nsPrefix + eltName):
                 s = (m.text or "").strip()
-                l = langCloseness(xmlLang(m), currentLang)
+                eltLang = xmlLang(m)
+                l = langCloseness(eltLang, currentLang)
                 if l > closestLen:
                     closestLen = l
                     closest = s
+                elif closestLen == 0 and eltLang.startswith("en"):
+                    closest = s   # pick english if nothing better
             pkg[eltName] = closest
         for eltName in ("supersededTaxonomyPackages", "versioningReports"):
             pkg[eltName] = []
@@ -191,10 +195,13 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
         # find closest match name node given xml:lang match to current language or no xml:lang
         for nameNode in entryPointSpec.iter(tag=nsPrefix + "name"):
             s = (nameNode.text or "").strip()
-            l = langCloseness(xmlLang(nameNode), currentLang)
+            nameLang = xmlLang(nameNode)
+            l = langCloseness(nameLang, currentLang)
             if l > closestLen:
                 closestLen = l
                 name = s
+            elif closestLen == 0 and nameLang.startswith("en"):
+                name = s   # pick english if nothing better
 
         if not name:
             name = _("<unnamed {0}>").format(unNamedCounter)
@@ -350,6 +357,8 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
             packageFiles = []
             if filesource.isZip:
                 _dir = filesource.dir
+                if not _dir:
+                    raise IOError(_("Unable to open taxonomy package: {0}.").format(packageFilename))
                 # single top level directory
                 topLevelDirectories = set(f.partition('/')[0] for f in _dir)
                 if len(topLevelDirectories) != 1:
