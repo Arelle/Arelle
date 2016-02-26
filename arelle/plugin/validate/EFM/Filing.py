@@ -15,6 +15,7 @@ from arelle.ModelDtsObject import ModelConcept
 from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import pyNamedObject, strTruncate
 from arelle.UrlUtil import isHttpUrl
+from arelle.XmlValidate import VALID
 from .DTS import checkFilingDTS
 from .Dimensions import checkFilingDimensions
 from .PreCalAlignment import checkCalcsTreeWalk
@@ -284,7 +285,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 factInDeiNamespace = None
             # standard dei items from required context
             if context is not None: # tests do not apply to tuples
-                if not context.hasSegment and not context.hasScenario and f.xValid: 
+                if not context.hasSegment and not context.hasScenario and f.xValid >= VALID: 
                     #required context
                     if factInDeiNamespace:
                         value = f.xValue
@@ -566,7 +567,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         keysNotDefaultLang[langTestKey] = f1
                         
                     # 6.5.37 test (insignificant digits due to rounding)
-                    if f1.isNumeric and f1.decimals and f1.decimals != "INF" and not f1.isNil and getattr(f1,"xValid", 0) == 4:
+                    if f1.isNumeric and f1.decimals and f1.decimals != "INF" and not f1.isNil and getattr(f1,"xValid", 0) >= VALID:
                         try:
                             insignificance = insignificantDigits(f1.xValue, decimals=f1.decimals)
                             if insignificance: # if not None, returns (truncatedDigits, insiginficantDigits)
@@ -1049,16 +1050,16 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
                 rxd = Rxd()
                 f1 = deiFacts.get(disclosureSystem.deiCurrentFiscalYearEndDateElement)
-                if f1 is not None and documentPeriodEndDateFact is not None and f1.xValid and documentPeriodEndDateFact.xValid:
+                if f1 is not None and documentPeriodEndDateFact is not None and f1.xValid >= VALID and documentPeriodEndDateFact.xValid >= VALID:
                     d = ModelValue.dateunionDate(documentPeriodEndDateFact.xValue)# is an end date, convert back to a start date without midnight part
                     if f1.xValue.month != d.month or f1.xValue.day != d.day:
                         modelXbrl.error("EFM.6.23.26",
                             _("The dei:CurrentFiscalYearEndDate, %(fyEndDate)s does not match the dei:DocumentReportingPeriod %(reportingPeriod)s"),
                             modelObject=(f1,documentPeriodEndDateFact), fyEndDate=f1.value, reportingPeriod=documentPeriodEndDateFact.value)
-                if (documentPeriodEndDateFact is not None and documentPeriodEndDateFact.xValid and
+                if (documentPeriodEndDateFact is not None and documentPeriodEndDateFact.xValid >= VALID and
                     not any(f2.xValue == documentPeriodEndDateFact.xValue
                             for f2 in modelXbrl.factsByQname[rxd.D]
-                            if f2.xValid)):
+                            if f2.xValid >= VALID)):
                     modelXbrl.error("EFM.6.23.27",
                         _("The dei:DocumentPeriodEndDate %(reportingPeriod)s has no corresponding rxd:D fact."),
                         modelObject=documentPeriodEndDateFact, reportingPeriod=documentPeriodEndDateFact.value)
@@ -1145,7 +1146,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                                       (dimDomRelSet, rxd.BusinessSegmentAxis, rxd.Sm, "EFM.6.23.33"),
                                                       (domMemRelSet, qnDeiEntityDomain, rxd.E, "EFM.6.23.34")):
                     for f in modelXbrl.factsByQname[priItem]:
-                        if (not f.isNil and f.xValid and
+                        if (not f.isNil and f.xValid >= VALID and
                             not relSet.isRelated(dom, "descendant", f.xValue, isDRS=True)):
                             modelXbrl.error(errCode,
                                 _("The %(fact)s %(value)s in context %(context)s is not a %(domain)s."),
@@ -1242,7 +1243,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             modelObject=(context, qnameFacts[rxd.A]), context=context.id)
                 val.modelXbrl.profileActivity("... SD by context for 19-25, 28-29, 35, 37-39, 40-44", minTimeToShow=1.0)
                 for f in modelXbrl.factsByQname[rxd.D]:
-                    if not f.isNil and f.xValid and f.xValue + datetime.timedelta(1) != f.context.endDatetime: # date needs to be midnite to compare to datetime
+                    if not f.isNil and f.xValid >= VALID and f.xValue + datetime.timedelta(1) != f.context.endDatetime: # date needs to be midnite to compare to datetime
                         modelXbrl.error("EFM.6.23.32",
                             _("The rxd:D %(value)s in context %(context)s does not match the context end date %(endDate)s."),
                             modelObject=f, value=f.xValue, context=f.context.id, endDate=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True))

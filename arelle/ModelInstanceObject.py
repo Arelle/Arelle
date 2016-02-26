@@ -33,8 +33,9 @@
 """
 from collections import defaultdict
 from lxml import etree
-from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue, XmlValidate
+from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue
+from arelle.XmlValidate import UNVALIDATED, INVALID, VALID
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from math import isnan, isinf
 from arelle.ModelObject import ModelObject
@@ -355,7 +356,7 @@ class ModelFact(ModelObject):
             return "(nil)"
         try:
             if concept.isFraction:
-                if self.xValid == XmlValidate.VALID:
+                if self.xValid >= VALID:
                     return str(self.xValue)
                 return "/".join(self.fractionValue)
             if concept.isNumeric:
@@ -563,7 +564,8 @@ class ModelInlineValueObject:
     
     def setInvalid(self):
         self._ixValue = ModelValue.INVALIDixVALUE
-        self.xValid = XmlValidate.INVALID
+        self.xValid = INVALID
+        self.xValue = None
     
     @property
     def value(self):
@@ -572,7 +574,7 @@ class ModelInlineValueObject:
         try:
             return self._ixValue
         except AttributeError:
-            self.xValid = 0 # may not be initialized otherwise
+            self.xValid = UNVALIDATED # may not be initialized otherwise
             self.xValue = None
             v = XmlUtil.innerText(self, 
                                   ixExclude=True, 
@@ -599,7 +601,7 @@ class ModelInlineValueObject:
             if self.localName == "nonNumeric" or self.localName == "tuple" or self.isNil:
                 self._ixValue = v
             elif self.localName == "fraction":
-                if self.xValid == XmlValidate.VALID:
+                if self.xValid >= VALID:
                     self._ixValue = str(self.xValue)
                 else:
                     self._ixValue = "NaN"
@@ -1215,7 +1217,7 @@ class ModelDimensionValue(ModelObject):
     def dimensionQname(self):
         """(QName) -- QName of the dimension concept"""
         dimAttr = self.xAttributes.get("dimension", None)
-        if dimAttr is not None and dimAttr.xValid >= 4:
+        if dimAttr is not None and dimAttr.xValid >= VALID:
             return dimAttr.xValue
         return None
         #return self.prefixedNameQname(self.get("dimension"))
@@ -1256,7 +1258,7 @@ class ModelDimensionValue(ModelObject):
         try:
             return self._memberQname
         except AttributeError:
-            if self.isExplicit and self.xValid >= 4:
+            if self.isExplicit and self.xValid >= VALID:
                 self._memberQname = self.xValue
             else:
                 self._memberQname = None
@@ -1299,7 +1301,7 @@ class ModelDimensionValue(ModelObject):
             return (str(self.dimensionQname), XmlUtil.xmlstring( XmlUtil.child(self), stripXmlns=True, prettyPrint=True ) )
         
 def measuresOf(parent):
-    if parent.xValid >= 4: # has DTS and is validated
+    if parent.xValid >= VALID: # has DTS and is validated
         return sorted([m.xValue 
                        for m in parent.iterchildren(tag="{http://www.xbrl.org/2003/instance}measure") 
                        if isinstance(m, ModelObject) and m.xValue])

@@ -58,7 +58,8 @@ from arelle.ModelValue import qname, QName, dateTime, DATE, dateunionDate, DateT
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.ValidateXbrlCalcs import roundValue
 from arelle.XmlUtil import xmlstring, datetimeValue, DATETIME_MAXYEAR, dateunionValue, addChild, addQnameValue, addProcessingInstruction
-from arelle import XbrlConst, XmlValidate
+from arelle import XbrlConst
+from arelle.XmlValidate import UNKNOWN, NONE as xmlValidateNONE, INVALID, VALID
 from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
 from decimal import Decimal, InvalidOperation
 from _ctypes import _memset_addr
@@ -628,7 +629,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             c = f.qname.localName[0]
             isNumeric = isBool = isDateTime = isText = False
             isInstant = None
-            isValid = skipDTS or f.xValid >= XmlValidate.VALID
+            isValid = skipDTS or f.xValid >= VALID
             if concept is not None:
                 if concept.isNumeric:
                     isNumeric = True
@@ -825,8 +826,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                          None))
                 '''
             if cntx is not None:
-                if getattr(cntx, "xValid", XmlValidate.UNKNOWN) == XmlValidate.UNKNOWN: # no validation, such as skipDTS and no streaming
-                    cntx.xValid = XmlValidate.NONE # prevent detecting as UNKNOWN
+                if getattr(cntx, "xValid", UNKNOWN) == UNKNOWN: # no validation, such as skipDTS and no streaming
+                    cntx.xValid = xmlValidateNONE # prevent detecting as UNKNOWN
                     if cntx.isInstantPeriod:
                         if cntx.instantDatetime in (None, DATETIME_MAXYEAR):
                             self.modelXbrl.error("sqlDB:contextDatesError",

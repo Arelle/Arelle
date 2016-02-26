@@ -13,11 +13,10 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.ModelDtsObject import anonymousTypeSuffix, ModelConcept
 from arelle.ModelInstanceObject import ModelDimensionValue, ModelFact, ModelInlineFact
 from arelle.ModelFormulaObject import ModelFormulaResource
-from arelle.XmlValidate import UNKNOWN, VALID, validate, NCNamePattern
+from arelle.XmlValidate import UNKNOWN, VALID, validate as xmlValidate, NCNamePattern
 from arelle.ValidateXbrlCalcs import inferredDecimals, inferredPrecision
 from arelle.ValidateXbrlDimensions import priItemElrHcRels
 from arelle.Locale import format_picture
-from arelle import XmlValidate
 from lxml import etree
 from math import isnan, isinf
 
@@ -1214,7 +1213,7 @@ def  create_element(xc, p, args):
                 newElement.append(element)
                 
     # node myst be validated for use in instance creation (typed dimension references)
-    XmlValidate.validate(xc.modelXbrl, newElement)
+    xmlValidate(xc.modelXbrl, newElement)
                 
     return newElement
 

@@ -10,7 +10,7 @@ from decimal import Decimal
 from lxml import etree
 from xml.sax import SAXParseException
 from arelle import (PackageManager, XbrlConst, XmlUtil, UrlUtil, ValidateFilingText, 
-                    XhtmlValidate, XmlValidate, XmlValidateSchema)
+                    XhtmlValidate, XmlValidateSchema)
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname
 from arelle.ModelDtsObject import ModelLink, ModelResource, ModelRelationship
@@ -20,6 +20,7 @@ from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype,
 from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import OrderedDefaultDict, Fraction
 from arelle.XhtmlValidate import ixMsgCode
+from arelle.XmlValidate import VALID, validate as xmlValidate
 
 creationSoftwareNames = None
 
@@ -1100,7 +1101,7 @@ class ModelDocument:
         self.schemaLinkbaseRefsDiscover(xbrlElement)
         if not self.skipDTS:
             self.linkbaseDiscover(xbrlElement,inInstance=True) # for role/arcroleRefs and footnoteLinks
-        XmlValidate.validate(self.modelXbrl, xbrlElement) # validate instance elements (xValid may be UNKNOWN if skipDTS)
+        xmlValidate(self.modelXbrl, xbrlElement) # validate instance elements (xValid may be UNKNOWN if skipDTS)
         self.instanceContentsDiscover(xbrlElement)
 
     def instanceContentsDiscover(self,xbrlElement):
@@ -1132,7 +1133,7 @@ class ModelDocument:
                     
     def contextDiscover(self, modelContext):
         if not self.skipDTS:
-            XmlValidate.validate(self.modelXbrl, modelContext) # validation may have not completed due to errors elsewhere
+            xmlValidate(self.modelXbrl, modelContext) # validation may have not completed due to errors elsewhere
         id = modelContext.id
         self.modelXbrl.contexts[id] = modelContext
         for container in (("{http://www.xbrl.org/2003/instance}segment", modelContext.segDimValues, modelContext.segNonDimValues),
@@ -1142,7 +1143,7 @@ class ModelDocument:
                 for sElt in containerElement.iterchildren():
                     if isinstance(sElt,ModelObject):
                         if sElt.namespaceURI == XbrlConst.xbrldi and sElt.localName in ("explicitMember","typedMember"):
-                            #XmlValidate.validate(self.modelXbrl, sElt)
+                            #xmlValidate(self.modelXbrl, sElt)
                             modelContext.qnameDims[sElt.dimensionQname] = sElt # both seg and scen
                             if not self.skipDTS:
                                 dimension = sElt.dimension
@@ -1155,7 +1156,7 @@ class ModelDocument:
                             
     def unitDiscover(self, unitElement):
         if not self.skipDTS:
-            XmlValidate.validate(self.modelXbrl, unitElement) # validation may have not completed due to errors elsewhere
+            xmlValidate(self.modelXbrl, unitElement) # validation may have not completed due to errors elsewhere
         self.modelXbrl.units[unitElement.id] = unitElement
                 
     def inlineXbrlDiscover(self, htmlElement):
@@ -1177,7 +1178,7 @@ class ModelDocument:
         # load referenced schemas and linkbases (before validating inline HTML
         for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "references"):
             self.schemaLinkbaseRefsDiscover(inlineElement)
-            XmlValidate.validate(self.modelXbrl, inlineElement) # validate instance elements
+            xmlValidate(self.modelXbrl, inlineElement) # validate instance elements
         # with DTS loaded, now validate inline HTML (so schema definition of facts is available)
         if htmlElement.namespaceURI == XbrlConst.xhtml:  # must validate xhtml
             XhtmlValidate.xhtmlValidate(self.modelXbrl, htmlElement)  # fails on prefixed content
@@ -1187,7 +1188,7 @@ class ModelDocument:
             self.modelXbrl.targetArcroleRefs = {}
         for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "resources"):
             self.instanceContentsDiscover(inlineElement)
-            XmlValidate.validate(self.modelXbrl, inlineElement) # validate instance elements
+            xmlValidate(self.modelXbrl, inlineElement) # validate instance elements
             for refElement in inlineElement.iterchildren("{http://www.xbrl.org/2003/linkbase}roleRef"):
                 self.modelXbrl.targetRoleRefs[refElement.get("roleURI")] = refElement
                 if self.discoverHref(refElement) is None: # discover role-defining schema file
@@ -1460,11 +1461,11 @@ def inlineIxdsDiscover(modelXbrl):
                 numDenom = [None,None]
                 for i, tag in enumerate(fractionTermTags):
                     for modelInlineFractionTerm in rootModelFact.iterchildren(tag=tag):
-                        XmlValidate.validate(modelXbrl, modelInlineFractionTerm, ixFacts=True)
-                        if modelInlineFractionTerm.xValid == XmlValidate.VALID:
+                        xmlValidate(modelXbrl, modelInlineFractionTerm, ixFacts=True)
+                        if modelInlineFractionTerm.xValid >= VALID:
                             numDenom[i] = modelInlineFractionTerm.xValue
                 rootModelFact._fractionValue = numDenom
-            XmlValidate.validate(modelXbrl, rootModelFact, ixFacts=True)
+            xmlValidate(modelXbrl, rootModelFact, ixFacts=True)
             
     footnoteLinkPrototypes = {}
     for htmlElement in modelXbrl.ixdsHtmlElements:  

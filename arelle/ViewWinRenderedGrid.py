@@ -8,7 +8,7 @@ Created on Oct 5, 2010
 import os, threading, time, logging
 from tkinter import Menu, BooleanVar, font as tkFont
 from arelle import (ViewWinTkTable, ModelDocument, ModelDtsObject, ModelInstanceObject, XbrlConst, 
-                    ModelXbrl, XmlValidate, Locale, FunctionXfi,
+                    ModelXbrl, Locale, FunctionXfi,
                     ValidateXbrlDimensions)
 from arelle.ModelValue import qname, QName
 from arelle.RenderingResolver import resolveAxesStructure, RENDER_UNITS_PER_CHAR
@@ -26,6 +26,7 @@ from collections import defaultdict
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XbrlConst import eurofilingModelNamespace, eurofilingModelPrefix
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
+from arelle.XmlValidate import UNVALIDATED, validate as xmlValidate
 
 try:
     from tkinter import ttk
@@ -1036,8 +1037,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                         fact.unitID = unitId
                                     fact.text = str(value)
                                     instance.setIsModified()
-                                    fact.xValid = XmlValidate.UNVALIDATED
-                                    XmlValidate.validate(instance, fact)
+                                    fact.xValid = UNVALIDATED
+                                    xmlValidate(instance, fact)
             tbl.clearModificationStatus()
 
     def saveInstance(self, newFilename=None, onSaved=None):

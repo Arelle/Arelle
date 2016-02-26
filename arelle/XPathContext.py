@@ -11,7 +11,7 @@ from arelle import (ModelXbrl, XbrlConst, XmlUtil)
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI)
-from arelle.XmlValidate import UNKNOWN, VALID, VALID_NO_CONTENT, validate
+from arelle.XmlValidate import UNKNOWN, VALID, VALID_NO_CONTENT, validate as xmlValidate
 from arelle.PluginManager import pluginClassMethods
 from decimal import Decimal, InvalidOperation
 from lxml import etree
@@ -501,7 +501,7 @@ class XPathContext:
                         except (AttributeError, TypeError, IndexError, KeyError):
                             # may be lax or deferred validated
                             try:
-                                validate(node.modelXbrl, node, p)
+                                xmlValidate(node.modelXbrl, node, p)
                                 modelAttribute = node.xAttributes[attrTag]
                             except (AttributeError, TypeError, IndexError, KeyError):
                                 pass

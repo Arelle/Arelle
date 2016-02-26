@@ -1092,16 +1092,16 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
     
                     rxd = Rxd()
                     f1 = deiFacts.get(disclosureSystem.deiCurrentFiscalYearEndDateElement)
-                    if f1 is not None and documentPeriodEndDateFact is not None and f1.xValid and documentPeriodEndDateFact.xValid:
+                    if f1 is not None and documentPeriodEndDateFact is not None and f1.xValid >= VALID and documentPeriodEndDateFact.xValid >= VALID:
                         d = ModelValue.dateunionDate(documentPeriodEndDateFact.xValue)# is an end date, convert back to a start date without midnight part
                         if f1.xValue.month != d.month or f1.xValue.day != d.day:
                             modelXbrl.error("EFM.6.23.26",
                                 _("The dei:CurrentFiscalYearEndDate, %(fyEndDate)s does not match the dei:DocumentReportingPeriod %(reportingPeriod)s"),
                                 modelObject=(f1,documentPeriodEndDateFact), fyEndDate=f1.value, reportingPeriod=documentPeriodEndDateFact.value)
-                    if (documentPeriodEndDateFact is not None and documentPeriodEndDateFact.xValid and
+                    if (documentPeriodEndDateFact is not None and documentPeriodEndDateFact.xValid >= VALID and
                         not any(f2.xValue == documentPeriodEndDateFact.xValue
                                 for f2 in modelXbrl.factsByQname[rxd.D]
-                                if f2.xValid)):
+                                if f2.xValid >= VALID)):
                         modelXbrl.error("EFM.6.23.27",
                             _("The dei:DocumentPeriodEndDate %(reportingPeriod)s has no corresponding rxd:D fact."),
                             modelObject=documentPeriodEndDateFact, reportingPeriod=documentPeriodEndDateFact.value)
@@ -1187,7 +1187,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                                           (dimDomRelSet, rxd.BusinessSegmentAxis, rxd.Sm, "EFM.6.23.33"),
                                                           (domMemRelSet, qnDeiEntityDomain, rxd.E, "EFM.6.23.34")):
                         for f in modelXbrl.factsByQname[priItem]:
-                            if (not f.isNil and f.xValid and
+                            if (not f.isNil and f.xValid >= VALID and
                                 not relSet.isRelated(dom, "descendant", f.xValue, isDRS=True)):
                                 modelXbrl.error(errCode,
                                     _("The %(fact)s %(value)s in context %(context)s is not a %(domain)s."),
@@ -1284,7 +1284,7 @@ class ValidateFiling(ValidateXbrl.ValidateXbrl):
                                 modelObject=(context, qnameFacts[rxd.A]), context=context.id)
                     self.modelXbrl.profileActivity("... SD by context for 19-25, 28-29, 35, 37-39, 40-44", minTimeToShow=1.0)
                     for f in modelXbrl.factsByQname[rxd.D]:
-                        if not f.isNil and f.xValid and f.xValue + datetime.timedelta(1) != f.context.endDatetime: # date needs to be midnite to compare to datetime
+                        if not f.isNil and f.xValid >= VALID and f.xValue + datetime.timedelta(1) != f.context.endDatetime: # date needs to be midnite to compare to datetime
                             modelXbrl.error("EFM.6.23.32",
                                 _("The rxd:D %(value)s in context %(context)s does not match the context end date %(endDate)s."),
                                 modelObject=f, value=f.xValue, context=f.context.id, endDate=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True))
