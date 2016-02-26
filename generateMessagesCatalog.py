@@ -61,7 +61,7 @@ if __name__ == "__main__":
                                     if isinstance(msgCodeArg,ast.Str):
                                         msgCodes = (msgCodeArg.s,)
                                     elif isinstance(msgCodeArg, ast.Call) and getattr(msgCodeArg.func, "id", '') == 'ixMsgCode':
-                                        msgCodes = ("ix{{ver.sect}}.{}".format(msgCodeArg.args[0].s),)
+                                        msgCodes = ("ix{{ver.sect}}:{}".format(msgCodeArg.args[0].s),)
                                     else:
                                         if any(isinstance(elt, (ast.Call, ast.Name))
                                                for elt in ast.walk(msgCodeArg)):
