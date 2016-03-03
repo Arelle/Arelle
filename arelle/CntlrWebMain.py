@@ -212,9 +212,11 @@ def validation(file=None):
         mimeType = request.get_header("Content-Type")
         if mimeType.startswith("multipart/form-data"):
             _upload = request.files.get("upload")
-            if not _upload.filename.endswith(".zip"):
+            if not _upload or not _upload.filename.endswith(".zip"):
                 errors.append(_("POST file upload must be a zip file"))
-            sourceZipStream = _upload.file
+                sourceZipStream = None
+            else:
+                sourceZipStream = _upload.file
         elif mimeType not in ('application/zip', 'application/x-zip', 'application/x-zip-compressed', 'multipart/x-zip'):
             errors.append(_("POST must provide a zip file, Content-Type '{0}' not recognized as a zip file.").format(mimeType))
         sourceZipStream = request.body
