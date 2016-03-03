@@ -1518,12 +1518,7 @@ class ModelInlineFootnote(ModelResource):
         return attributes
 
     def viewText(self, labelrole=None, lang=None):
-        """(str) -- Text of contained (inner) text nodes except for any whose localName 
-        starts with URI, for label and reference parts displaying purposes."""
-        return " ".join([XmlUtil.text(resourceElt)
-                           for resourceElt in self.iter()
-                              if isinstance(resourceElt,ModelObject) and 
-                                  not resourceElt.localName.startswith("URI")])    
+        return value
         
     @property
     def propertyView(self):
