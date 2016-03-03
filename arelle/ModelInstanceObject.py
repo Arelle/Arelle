@@ -1518,7 +1518,7 @@ class ModelInlineFootnote(ModelResource):
         return attributes
 
     def viewText(self, labelrole=None, lang=None):
-        return value
+        return self.value
         
     @property
     def propertyView(self):
