@@ -507,7 +507,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             val.modelXbrl.profileActivity("... filer instant-duration checks", minTimeToShow=1.0)
             
         #6.5.19 required context
-        for c in sorted(candidateRequiredContexts, key=lambda c: c.endDatetime-c.startDatetime, reverse=True):
+        for c in sorted(candidateRequiredContexts, key=lambda c: (c.endDatetime, c.endDatetime-c.startDatetime), reverse=True):
             val.requiredContext = c
             break # longest duration is first
         """
