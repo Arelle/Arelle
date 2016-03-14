@@ -271,7 +271,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             "EntityReportingCurrencyISOCode", # for SD 
              }
         #6.5.8 unused contexts
-        candidateRequiredContexts = set()
+        #candidateRequiredContexts = set()
         for f in modelXbrl.facts:
             factContextID = f.contextID
             contextIDs.discard(factContextID)
@@ -299,12 +299,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             documentPeriodEndDate = value
                             documentPeriodEndDateFact = f
                             # commonStockMeasurementDatetime = context.endDatetime
-                            if (context.isStartEndPeriod and context.startDatetime is not None and context.endDatetime is not None):
-                                if context.endDatetime.time() == datetime.time(0): # midnight of subsequent day
-                                    if context.endDatetime - datetime.timedelta(1) == f.xValue:
-                                        candidateRequiredContexts.add(context)
-                                elif context.endDatetime.date() == f.xValue: # not midnight, only day portion matches
-                                    candidateRequiredContexts.add(context)
+                            #if (context.isStartEndPeriod and context.startDatetime is not None and context.endDatetime is not None):
+                            #    if context.endDatetime.time() == datetime.time(0): # midnight of subsequent day
+                            #        if context.endDatetime - datetime.timedelta(1) == f.xValue:
+                            #            candidateRequiredContexts.add(context)
+                            #    elif context.endDatetime.date() == f.xValue: # not midnight, only day portion matches
+                            #        candidateRequiredContexts.add(context)
                         elif factElementName == "DocumentType":
                             documentType = value
                             documentTypeFact = f
@@ -317,6 +317,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         elif factElementName in deiCheckLocalNames:
                             deiItems[factElementName] = value
                             deiFacts[factElementName] = f
+                            if (val.requiredContext is None and context.isStartEndPeriod and
+                                context.startDatetime is not None and context.endDatetime is not None):
+                                val.requiredContext = context
                 else:
                     # segment present
                     isEntityCommonStockSharesOutstanding = factElementName == "EntityCommonStockSharesOutstanding"
@@ -507,9 +510,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             val.modelXbrl.profileActivity("... filer instant-duration checks", minTimeToShow=1.0)
             
         #6.5.19 required context
-        for c in sorted(candidateRequiredContexts, key=lambda c: (c.endDatetime, c.endDatetime-c.startDatetime), reverse=True):
-            val.requiredContext = c
-            break # longest duration is first
+        #for c in sorted(candidateRequiredContexts, key=lambda c: (c.endDatetime, c.endDatetime-c.startDatetime), reverse=True):
+        #    val.requiredContext = c
+        #    break # longest duration is first
         
         # pre-16.1 code to accept any duration period as start-end (per WH/HF e-mails 2016-03-13)
         if val.requiredContext is None: # possibly there is no document period end date with matching context
