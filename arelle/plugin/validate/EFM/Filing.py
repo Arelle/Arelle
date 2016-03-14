@@ -510,13 +510,14 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         for c in sorted(candidateRequiredContexts, key=lambda c: (c.endDatetime, c.endDatetime-c.startDatetime), reverse=True):
             val.requiredContext = c
             break # longest duration is first
-        """
+        
+        # pre-16.1 code to accept any duration period as start-end (per WH/HF e-mails 2016-03-13)
         if val.requiredContext is None: # possibly there is no document period end date with matching context
             for c in contexts:
-                if c.isStartEndPeriod and not c.hasSegment:
+                if c.isStartEndPeriod and not c.hasSegment and c.startDatetime is not None and c.endDatetime is not None:
                     val.requiredContext = c
                     break
-        """
+
         if val.requiredContext is None:
             modelXbrl.error(("EFM.6.05.19", "GFM.1.02.18"),
                 _("Required context (no segment) not found for document type %(documentType)s."),
