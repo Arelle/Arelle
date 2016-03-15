@@ -1224,8 +1224,6 @@ class CntlrWinMain (Cntlr.Cntlr):
                               "\n   Python\u00ae {4[0]}.{4[1]}.{4[2]} \u00a9 2001-2013 Python Software Foundation"
                               "\n   PyParsing \u00a9 2003-2013 Paul T. McGuire"
                               "\n   lxml {5[0]}.{5[1]}.{5[2]} \u00a9 2004 Infrae, ElementTree \u00a9 1999-2004 by Fredrik Lundh"
-                              "\n   xlrd \u00a9 2005-2013 Stephen J. Machin, Lingfo Pty Ltd, \u00a9 2001 D. Giffin, \u00a9 2000 A. Khan"
-                              "\n   xlwt \u00a9 2007 Stephen J. Machin, Lingfo Pty Ltd, \u00a9 2005 R. V. Kiseliov"                              
                               "{3}"
                               "\n   May include installable plug-in modules with author-specific license terms"
                               )
