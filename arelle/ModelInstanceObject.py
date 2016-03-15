@@ -1298,7 +1298,10 @@ class ModelDimensionValue(ModelObject):
         if self.isExplicit:
             return (str(self.dimensionQname),str(self.memberQname))
         else:
-            return (str(self.dimensionQname), XmlUtil.xmlstring( XmlUtil.child(self), stripXmlns=True, prettyPrint=True ) )
+            if XmlUtil.child(self):
+                return (str(self.dimensionQname), XmlUtil.xmlstring( XmlUtil.child(self), stripXmlns=True, prettyPrint=True ) )
+            else:
+                return (str(self.dimensionQname))
         
 def measuresOf(parent):
     if parent.xValid >= VALID: # has DTS and is validated
