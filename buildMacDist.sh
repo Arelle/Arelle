@@ -14,6 +14,9 @@ python3.4 generateMessagesCatalog.py
 # create new app
 python3.4 setup.py bdist_mac
 
+# remove .git subdirectories
+find build/Arelle.app/Contents/MacOS -name .git -exec rm -fR {} \;
+
 # fix up tkinter library to not use built-in one
 cp /Library/Frameworks/Python.framework/Versions/3.3/lib/python3.3/lib-dynload/_tkinter.so build/Arelle.app/Contents/MacOS
 
@@ -80,13 +83,13 @@ echo '
            set arrangement of viewOptions to not arranged
            set icon size of viewOptions to 72
            set background picture of viewOptions to file ".background:dmg_background.png"
+           set position of item ".background" of container window to {999,999}
+           set position of item ".DS_Store" of container window to {999,1099}
+           set position of item ".Trashes" of container window to {999,1199}
+           set position of item ".fseventsd" of container window to {999,1299}
            set position of item "Arelle.app" of container window to {150, 70}
            set position of item "startWebServer.command" of container window to {360, 70}
            set position of item "Applications" of container window to {260, 240}
-           set position of item ".background" of container window to {999,999}
-           set position of item ".DS_Store" of container window to {999,999}
-           set position of item ".Trashes" of container window to {999,999}
-           set position of item ".fseventsd" of container window to {999,999}
            close
            open
            update without registering applications
