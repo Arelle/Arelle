@@ -36,7 +36,7 @@ from arelle import (DialogURL, DialogLanguage,
                     TableStructure,
                     ViewWinDTS,
                     ViewWinProperties, ViewWinConcepts, ViewWinRelationshipSet, ViewWinFormulae,
-                    ViewWinFactList, ViewWinFactTable, ViewWinRenderedGrid, ViewWinXml,
+                    ViewWinFactList, ViewFileFactList, ViewWinFactTable, ViewWinRenderedGrid, ViewWinXml,
                     ViewWinRoleTypes, ViewFileRoleTypes, ViewFileConcepts,
                     ViewWinTests, ViewWinTree, ViewWinVersReport, ViewWinRssFeed,
                     ViewFileTests,
@@ -568,6 +568,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                         ViewFileRoleTypes.viewRoleTypes(modelXbrl, filename, view.tabTitle, view.isArcrole, lang=view.lang)
                     elif isinstance(view, ViewWinConcepts.ViewConcepts):
                         ViewFileConcepts.viewConcepts(modelXbrl, filename, labelrole=view.labelrole, lang=view.lang)
+                    elif isinstance(view, ViewWinFactList.ViewFactList):
+                        ViewFileFactList.viewFacts(modelXbrl, filename, labelrole=view.labelrole, lang=view.lang)
                     else:
                         ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, filename, view.tabTitle, view.arcrole, labelrole=view.labelrole, lang=view.lang)
                 except (IOError, EnvironmentError) as err:
