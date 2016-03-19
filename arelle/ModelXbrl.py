@@ -829,7 +829,7 @@ class ModelXbrl:
         if hasattr(self, "_factsByQname"):
             self._factsByQname[newFact.qname].add(newFact)
         if not isinstance(newFact, ModelFact):
-            return None # unable to create fact for this concept OR DTS not loaded for target instance (e.g., inline extraction, summary output)
+            return newFact # unable to create fact for this concept OR DTS not loaded for target instance (e.g., inline extraction, summary output)
         del self.makeelementParentModelObject
         if validate:
             XmlValidate.validate(self, newFact)
