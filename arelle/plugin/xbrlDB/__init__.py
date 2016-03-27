@@ -17,6 +17,7 @@ import time, os, io, sys, logging
 from arelle.Locale import format_string
 from .XbrlPublicPostgresDB import insertIntoDB as insertIntoPostgresDB, isDBPort as isPostgresPort
 from .XbrlSemanticSqlDB import insertIntoDB as insertIntoSemanticSqlDB, isDBPort as isSemanticSqlPort
+from .XbrlOpenSqlDB import insertIntoDB as insertIntoOpenSqlDB
 from .XbrlSemanticGraphDB import insertIntoDB as insertIntoRexsterDB, isDBPort as isRexsterPort
 from .XbrlSemanticRdfDB import insertIntoDB as insertIntoRdfDB, isDBPort as isRdfPort
 from .XbrlSemanticJsonDB import insertIntoDB as insertIntoJsonDB, isDBPort as isJsonPort
@@ -30,6 +31,7 @@ dbTypes = {
     "pgSemantic": insertIntoSemanticSqlDB,
     "sqliteSemantic": insertIntoSemanticSqlDB,
     "sqliteDpmDB": insertIntoDpmDB,
+    "pgOpenDB": insertIntoOpenSqlDB,
     "rexster": insertIntoRexsterDB,
     "rdfDB": insertIntoRdfDB,
     "json": insertIntoJsonDB
@@ -41,6 +43,7 @@ dbProduct = {
     "mysqlSemantic": "mysql",
     "orclSemantic": "orcl",
     "pgSemantic": "postgres",
+    "pgOpenDB": "postgres",
     "sqliteSemantic": "sqlite",
     "sqliteDpmDB": "sqlite",
     "rexster": None,
