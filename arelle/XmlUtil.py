@@ -824,8 +824,8 @@ def elementChildSequence(element):
 def xmlstring(elt, stripXmlns=False, prettyPrint=False, contentsOnly=False, includeText=False):
     if contentsOnly:
         if includeText:
-            _text = elt.text
-            _tail = elt.tail
+            _text = elt.text or ""
+            _tail = elt.tail or ""
         else:
             _text = _tail = ""
         return _text + ('\n' if prettyPrint else '').join(
