@@ -155,7 +155,7 @@ def innerText(element, ixExclude=False, ixEscape=False, ixContinuation=False, st
         if strip:
             return text.strip()
         return text
-    except TypeError:
+    except (AttributeError, TypeError):
         return ""
 
 def innerTextList(element, ixExclude=False, ixEscape=False, ixContinuation=False):   
@@ -822,6 +822,8 @@ def elementChildSequence(element):
     return "/".join(childSequence)
                         
 def xmlstring(elt, stripXmlns=False, prettyPrint=False, contentsOnly=False, includeText=False):
+    if elt is None:
+        return ""
     if contentsOnly:
         if includeText:
             _text = elt.text or ""
