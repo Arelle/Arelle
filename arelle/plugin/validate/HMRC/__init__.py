@@ -7,10 +7,15 @@ Created on Dec 12, 2013
 References:
   https://xbrl.frc.org.uk (taxonomies, filing requirements, consistency checks)
   https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/434597/joint-filing-validation-checks.pdf
+  
+  Style Guide: https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/434588/xbrl-style-guide.pdf
+  
 '''
 import os
 from arelle import ModelDocument, XmlUtil
 from arelle.ModelValue import qname, dateTime, DATE
+from arelle.ValidateXbrlCalcs import insignificantDigits
+from arelle.XbrlConst import xbrli
 try:
     import regex as re
 except ImportError:
@@ -19,6 +24,8 @@ from collections import defaultdict
 
 memNameNumPattern = re.compile(r"^([A-Za-z-]+)([0-9]+)$")
 compTxmyNamespacePattern = re.compile(r"http://www.govtalk.gov.uk/uk/fr/tax/uk-hmrc-ct/[0-9-]{10}")
+# capture background-image or list-style-image with URL function
+styleImgUrlPattern = re.compile(r"[a-z]+-image:\s*url[(][^)]+[)]")
 EMPTYDICT = {}
 _6_APR_2008 = dateTime("2008-04-06", type=DATE)
 
@@ -198,6 +205,7 @@ def validateXbrlFinally(val, *args, **kwargs):
         
         contextsUsed = set(f.context for f in modelXbrl.factsInInstance if f.context is not None)
         
+        contextsWithScenario = []
         for cntx in contextsUsed:
             for dim in cntx.qnameDims.values():
                 if dim.isExplicit:
@@ -221,7 +229,16 @@ def validateXbrlFinally(val, *args, **kwargs):
                         elif len(gdvFacts) == 2:
                             mandatoryGDV[gdvFacts[0]].add(GDV(gdvFacts[0], gdvFacts[1], _memName))
                             mandatoryGDV[gdvFacts[1]].add(GDV(gdvFacts[1], gdvFacts[0], _memName))
+            if XmlUtil.hasChild(cntx, xbrli, "scenario"):
+                contextsWithScenario.append(cntx)
 
+        if contextsWithScenario:
+            modelXbrl.error("FRC.TG.3.6.1",
+                _("Context(s) %(identifiers)s is reported with scenario element."), 
+                modelObject=contextsWithScenario, 
+                            identifiers=", ".join(c.id for c in contextsWithScenario))
+        del contextsWithScenario
+        
         def checkFacts(facts):
             for f in facts:
                 cntx = f.context
@@ -255,6 +272,19 @@ def validateXbrlFinally(val, *args, **kwargs):
                                     modelXbrl.error("HMRC.5.3",
                                         _("Numeric fact %(fact)s of context %(contextID)s has a negative value '%(value)s' but label does not have a bracketed negative term (using parentheses): %(label)s"),
                                         modelObject=f, fact=f.qname, contextID=f.contextID, value=f.value, label=label)
+                            # 6.5.37 test (insignificant digits due to rounding)
+                            if f.decimals and f.decimals != "INF" and not f.isNil:
+                                try:
+                                    insignificance = insignificantDigits(f.xValue, decimals=f.decimals)
+                                    if insignificance: # if not None, returns (truncatedDigits, insiginficantDigits)
+                                        modelXbrl.error("HMRC.SG.4.5",
+                                            _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(insignificantDigits)s."),
+                                            modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals, 
+                                            value=f.xValue, truncatedDigits=insignificance[0], insignificantDigits=insignificance[1])
+                                except (ValueError,TypeError):
+                                    modelXbrl.error("HMRC.SG.4.5",
+                                        _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),
+                                        modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
                         except AttributeError:
                             pass  # if not validated it should have failed with a schema error
                         
@@ -328,6 +358,39 @@ def validateXbrlFinally(val, *args, **kwargs):
                 aspectEqualFacts.clear()
         del factForConceptContextUnitLangHash, aspectEqualFacts
  
+    if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
+        rootElt = modelXbrl.modelDocument.xmlRootElement
+        if rootElt.tag in ("html", "xhtml") or not rootElt.tag.startswith("{http://www.w3.org/1999/xhtml}"):
+            modelXbrl.error("HMRC.SG.3.3",
+                _("InlineXBRL root element <%(element)s> MUST be html and have the xhtml namespace."),
+                modelObject=rootElt, element=rootElt.tag)
+        for elt in rootElt.iterdescendants(tag="{http://www.w3.org/1999/xhtml}script"):
+            modelXbrl.error("HMRC.SG.3.3",
+                _("Script element is disallowed."),
+                modelObject=elt)
+        for tag, localName, attr in (("{http://www.w3.org/1999/xhtml}a", "a", "href"),
+                                     ("{http://www.w3.org/1999/xhtml}img", "img", "src")):
+            for elt in rootElt.iterdescendants(tag=tag):
+                attrValue = elt.get(attr) or ""
+                if "javascript:" in attrValue:
+                    modelXbrl.error("HMRC.SG.3.3",
+                        _("Element %(localName)s javascript %(javascript)s is disallowed."),
+                        modelObject=elt, localName=localName, javascript=attrValue[:64])
+                if localName == "img" and not attrValue.strip().startswith("data:image/png;base64"):
+                    modelXbrl.error("HMRC.SG.3.8",
+                        _("Image scope must be base-64 encoded string (starting with data:image/png;base64), src disallowed: %(src)s."),
+                        modelObject=elt, src=attrValue[:128])
+        for elt in rootElt.iterdescendants(tag="{http://www.w3.org/1999/xhtml}style"):
+            if elt.text and styleImgUrlPattern.match(elt.text):
+                modelXbrl.error("HMRC.SG.3.8",
+                    _("Style element has disallowed image reference: %(styleImage)s."),
+                    modelObject=elt, styleImage=styleImgUrlPattern.match(elt.text).group(1))
+        for elt in rootElt.xpath("//xhtml:*[@style]", namespaces={"xhtml": "http://www.w3.org/1999/xhtml"}):
+            for match in styleImgUrlPattern.findall(elt.get("style")):
+                modelXbrl.error("HMRC.SG.3.8",
+                    _("Element %(elt)s style attribute has disallowed image reference: %(styleImage)s."),
+                    modelObject=elt, elt=elt.tag.rpartition("}")[2], styleImage=match)
+
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
     
@@ -364,6 +427,7 @@ __pluginInfo__ = {
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,
+
     'Validate.XBRL.Start': validateXbrlStart,
     'Validate.XBRL.Finally': validateXbrlFinally,
 }
