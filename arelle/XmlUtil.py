@@ -161,7 +161,7 @@ def innerText(element, ixExclude=False, ixEscape=False, ixContinuation=False, st
 def innerTextList(element, ixExclude=False, ixEscape=False, ixContinuation=False):   
     try:
         return ", ".join(text.strip() for text in innerTextNodes(element, ixExclude, ixEscape, ixContinuation) if len(text.strip()) > 0)
-    except TypeError:
+    except (AttributeError, TypeError):
         return ""
 
 def innerTextNodes(element, ixExclude, ixEscape, ixContinuation):
