@@ -257,8 +257,8 @@ def validateFacts(val, factsToCheck):
     nonMonetaryNonPureFacts = []
     for qname, facts in factsByQname.items():
         for f in facts:
-            if f.qname == qnFilingIndicator:
-                continue # skip erroneous root-level filing indicators
+            if f.qname == qnFIndicators or f.qname == qnFIndicators:
+                continue # skip root-level and non-root-level filing indicators
             if modelXbrl.skipDTS:
                 c = f.qname.localName[0]
                 isNumeric = c in ('m', 'p', 'r', 'i')
@@ -283,9 +283,7 @@ def validateFacts(val, factsToCheck):
                  f.context.contextDimAwareHash if f.context is not None else None,
                  f.unit.hash if f.unit is not None else None,
                  hash(f.xmlLang))
-            if f.qname == qnFIndicators and val.validateEIOPA:
-                pass
-            elif k not in otherFacts:
+            if k not in otherFacts:
                 otherFacts[k] = {f}
             else:
                 matches = [o
