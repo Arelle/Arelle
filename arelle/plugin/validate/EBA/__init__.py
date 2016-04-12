@@ -144,6 +144,14 @@ def validateSetup(val, parameters=None, *args, **kwargs):
     val.firstFactObjectIndex = sys.maxsize
     val.firstFact = None
     val.footnotesRelationshipSet = ModelRelationshipSet(val.modelXbrl, "XBRL-footnotes")
+    # re-init batch flag to enable more than one context/unit validation sessions for the same instance.
+    # (note that this monkey-patching would give trouble on two concurrent validation sessions of the same instance)
+    for cntx in val.modelXbrl.contexts.values():
+        if hasattr(cntx, "_batchChecked"):
+            cntx._batchChecked = False
+    for unit in val.modelXbrl.units.values():
+        if hasattr(unit, "_batchChecked"):
+            unit._batchChecked = False
     
 def prefixUsed(val, ns, prefix):
     val.namespacePrefixesUsed[ns].add(prefix)
