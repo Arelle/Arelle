@@ -336,12 +336,34 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                 if any((_vb.isFactVar and not _vb.isFallback) for _vb in xpCtx.varBindings.values()):
                     factCount = len(facts)
                     facts = implicitFilter(xpCtx, vb, facts, uncoveredAspectFacts)
+                    
                     if (considerFallback and varHasNoVariableDependencies and 
                         factCount and
-                        factCount - len(facts) == 0 and
-                        len(xpCtx.varBindings) > 1 and
-                        all((len(_vb.aspectsDefined) == len(vb.aspectsDefined) for _vb in xpCtx.varBindings.values()))):
-                        considerFallback = False
+                        
+                        len(facts) > 0 and                        
+                        len(xpCtx.varBindings) > 1):
+                        numVbAspectsdDefined = len(vb.aspectsDefined)
+                        trial_for_svc_311_1_like = True
+                        if trial_for_svc_311_1_like:
+                            numNotCompletlyDefinedBindings = 0
+                            for _vb in xpCtx.varBindings.values():
+                                num_VbAspectsdDefined = len(_vb.aspectsDefined)
+                                if num_VbAspectsdDefined != numVbAspectsdDefined:
+                                    if numVbAspectsdDefined > num_VbAspectsdDefined:
+                                        if _vb.aspectsDefined.issubset(vb.aspectsDefined):
+                                            pass
+                                        else:
+                                            numNotCompletlyDefinedBindings += 1
+                                            break
+                                    else:
+                                        numNotCompletlyDefinedBindings += 1
+                                        break
+                            if numNotCompletlyDefinedBindings == 0:        
+                                considerFallback = False
+                        else:
+                            if all(len(_vb.aspectsDefined) == numVbAspectsdDefined for _vb in xpCtx.varBindings.values()):
+                                considerFallback = False
+                        
             vb.facts = facts
             if xpCtx.formulaOptions.traceVariableFiltersResult:
                 xpCtx.modelXbrl.info("formula:trace",
