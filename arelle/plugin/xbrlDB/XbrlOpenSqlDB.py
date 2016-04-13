@@ -252,7 +252,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             return None
         self.showStatus("insert filing")
         LEI = None
-        entity_comparator = ('legal_entity_number', 'file_number') if LEI else ('file_number',)
+        filing_comparator = ('legal_entity_number', 'filing_number') if LEI else ('filing_number',)
         table = self.getTable('filing', 'filing_id', 
                               ('filing_number', 
                                'legal_entity_number', 
@@ -280,7 +280,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                'filer_category',
                                'public_float',
                                'trading_symbol'), 
-                              entity_comparator, # cannot compare None = None if LEI is absent, always False
+                              filing_comparator, # cannot compare None = None if LEI is absent, always False
                               ((rssItemGet("accessionNumber") or entityInfo.get("accession-number") or str(int(time.time())),  # NOT NULL
                                 LEI, 
                                 rssItemGet("cikNumber") or entityInfo.get("cik"),
@@ -1095,16 +1095,6 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         
         # footnotes
         footnotesRelationshipSet = ModelRelationshipSet(self.modelXbrl, "XBRL-footnotes")
-        try:
-            s = None
-            for fact in self.modelXbrl.factsInInstance:
-                for footnoteRel in footnotesRelationshipSet.fromModelObject(fact):
-                    toObj = footnoteRel.toModelObject
-                    print("footnote text \"{}\" tail \"{}\"".format(toObj.text, toObj.tail))
-                    if toObj is not None:
-                        s = xmlstring(toObj, stripXmlns=True, contentsOnly=True, includeText=True)
-        except TypeError:
-            print ("footnote Error toObj={} s={}".format(toObj.text, s))
         table = self.getTable('footnote', None, 
                               ('fact_id', 'footnote_group', 'type', 'footnote_value_id', 'language', 'normalized_string_value', 'value'), 
                               ('fact_id', 'footnote_group', 'type', 'footnote_value_id', 'language', 'normalized_string_value', 'value'), 

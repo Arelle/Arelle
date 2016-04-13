@@ -104,7 +104,8 @@ CREATE TABLE filing (
     PRIMARY KEY (filing_id)
 );
 CREATE UNIQUE INDEX filing_index02 ON filing USING btree (filing_number);
-CREATE INDEX filing_index03 ON filing USING btree (filing_id);
+CREATE INDEX filing_index03 ON filing USING btree (reference_number);
+CREATE INDEX filing_index04 ON filing USING btree (legal_entity_number);
 
 
 ALTER TABLE public.filing OWNER TO postgres;
