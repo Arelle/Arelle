@@ -213,7 +213,7 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         '.',  # note that new setuptools finds plugin and lib unwanted stuff
         exclude=['*.plugin.*', '*.lib.*']
     )
-    dataFiles = None 
+    dataFiles = []
     includeFiles = [
         ('arelle/config','config'),
         ('arelle/doc','doc'),
@@ -279,6 +279,8 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
             'pyparsing',
             'matplotlib'
         ]
+        import matplotlib
+        dataFiles += matplotlib.get_py2exe_datafiles()
 
     if sys.platform != 'sunos5':
         try:
@@ -366,7 +368,7 @@ elif sys.platform == 'win32':
         build_exe={
             "include_files": win32includeFiles,
             "include_msvcr": True,  # include MSVCR100
-            "icon": 'arelle\\images\\arelle16x16and32x32.ico',
+            # "icon": 'arelle\\images\\arelle16x16and32x32.ico',
             "packages": packages,
             #
             # rdflib & isodate egg files: rename .zip cpy lib & egg-info
@@ -381,6 +383,7 @@ elif sys.platform == 'win32':
         Executable(
             script="arelleGUI.pyw",
             base="Win32GUI",
+            icon='arelle\\images\\arelle16x16and32x32.ico',
         ),
         Executable(
             script="arelleCmdLine.py",
