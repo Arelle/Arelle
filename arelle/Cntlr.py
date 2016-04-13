@@ -105,12 +105,16 @@ class Cntlr:
             self.imagesDir = os.path.join(resources, "images")
             self.localeDir = os.path.join(resources, "locale")
             self.pluginDir = os.path.join(resources, "plugin")
-        elif self.moduleDir.endswith("library.zip\\arelle") or self.moduleDir.endswith("library.zip/arelle"): # cx_Freexe
+        elif (re.match(r".*[\\/](library|python{0.major}{0.minor}).zip[\\/]arelle".format(sys.version_info),
+                       self.moduleDir)): # cx_Freexe uses library up to 3.4 and python35 after 3.5
             resources = os.path.dirname(os.path.dirname(self.moduleDir))
             self.configDir = os.path.join(resources, "config")
             self.imagesDir = os.path.join(resources, "images")
             self.localeDir = os.path.join(resources, "locale")
             self.pluginDir = os.path.join(resources, "plugin")
+            _mplDir = os.path.join(resources, "mpl-data")
+            if os.path.exists(_mplDir): # set matplotlibdata for cx_Freeze with local directory
+                os.environ["MATPLOTLIBDATA"] = _mplDir
         else:
             self.configDir = os.path.join(self.moduleDir, "config")
             self.imagesDir = os.path.join(self.moduleDir, "images")
