@@ -5,7 +5,7 @@ Refactored on Jun 11, 2011 to ModelDtsObject, ModelInstanceObject, ModelTestcase
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-from arelle.ModelObject import ModelObject
+from arelle.ModelObject import ModelObject, init as moduleObject_init
 
 elementSubstitutionModelClass = {}
 
@@ -25,6 +25,7 @@ from arelle.ModelVersObject import (ModelAssignment, ModelAction, ModelNamespace
                                     ModelRelationshipSet, ModelRelationships)
 
 def parser(modelXbrl, baseUrl, target=None):
+    moduleObject_init() # init ModelObject globals
     parser = etree.XMLParser(recover=True, huge_tree=True, target=target)
     return setParserElementClassLookup(parser, modelXbrl, baseUrl)
 

@@ -8,10 +8,17 @@ Refactored on Jun 11, 2011 to ModelDtsObject, ModelInstanceObject, ModelTestcase
 from lxml import etree
 from collections import namedtuple
 from arelle import Locale
-VALID_NO_CONTENT = 6
+XmlUtil = None
+VALID_NO_CONTENT = None
 
 emptySet = set()
 
+def init(): # init globals
+    global XmlUtil, VALID_NO_CONTENT
+    if XmlUtil is None:
+        from arelle import XmlUtil
+        from arelle.XmlValidate import VALID_NO_CONTENT
+        
 class ModelObject(etree.ElementBase):
     """ModelObjects represent the XML elements within a document, and are implemented as custom 
     lxml proxy objects.  Each modelDocument has a parser with the parser objects in ModelObjectFactory.py, 
@@ -327,8 +334,9 @@ class ModelObject(etree.ElementBase):
     
     @property
     def propertyView(self):
-        return (("QName", self.qname),
-                ("id", self.id))
+        return (("QName", self.elementQname),) + tuple(
+                (XmlUtil.clarkNotationToPrefixedName(self, _tag, isAttribute=True), _value)
+                for _tag, _value in self.items())
         
     def __repr__(self):
         return ("{0}[{1}, {2} line {3})".format(type(self).__name__, self.objectIndex, self.modelDocument.basename, self.sourceline))
