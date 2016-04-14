@@ -229,9 +229,9 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
     ]
     if sys.platform == 'darwin':
         includeFiles.append(('arelle/scripts-macOS','scripts'))
-        # copy mac ports tcl and tk into build
-        includeFiles.append(('/opt/local/lib/tcl8.6','tcl8.6'))
-        includeFiles.append(('/opt/local/lib/tk8.6','tk8.6'))
+        # copy tck and tk built as described: https://www.tcl.tk/doc/howto/compile.html#mac
+        #includeFiles.append(('/Library/Frameworks/Tcl.framework/Versions/8.6','tcl8.6'))
+        #includeFiles.append(('/Library/Frameworks/Tk.framework/Versions/8.6','tk8.6'))
     else: 
         includeFiles.append(('arelle/scripts-unix','scripts'))
         if os.path.exists("/etc/redhat-release"):
