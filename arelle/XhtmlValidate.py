@@ -423,7 +423,7 @@ def xhtmlValidate(modelXbrl, elt):
                             if fromChild.get(attrTag) is None:
                                 modelXbrl.error(ixMsgCode("attributeRequired", fromChild),
                                     _("Attribute %(attribute)s required on element ix:%(element)s"),
-                                    modelObject=elt, attribute=attrTag, element=fromChild.localName)
+                                    modelObject=fromChild, attribute=attrTag, element=fromChild.localName)
                 if excludeSubtree or (fromChild.localName in {"references", "resources"} and isIxNs):
                     copyNonIxChildren(fromChild, toElt, excludeSubtree=True)
                 else:
