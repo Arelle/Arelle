@@ -18,7 +18,7 @@ LEI_INVALID_CHECKSUM = 2
 
 LEI_RESULTS = ("valid", "invalid lexical", "invalid checksum")
 
-leiLexicalPattern = re.compile(r"^\s*[0-9A-Z]{18}[0-9]{2}\s*$")
+leiLexicalPattern = re.compile(r"^[0-9A-Z]{18}[0-9]{2}$")
 
 def checkLei(lei):
     if not leiLexicalPattern.match(lei):
@@ -51,6 +51,8 @@ if __name__ == "__main__":
                         ("213800A9GT65GAE%2V60", "Error 2"),
                         ("213800A9GT65GAES2V62", "Error 3"),
                         ("1234", "Error 4"),
+                        ("""    
+5299003M8JKHEFX58Y02""", "Error 4")
                         ):
             print ("LEI {} result {} name {}".format(lei, LEI_RESULTS[checkLei(lei)], name)  )
 
