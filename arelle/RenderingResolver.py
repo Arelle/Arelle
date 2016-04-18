@@ -439,6 +439,10 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                         childList = structuralNode.choiceStructuralNodes
                     for factsPartition in filteredFactsPartitions:
                         childStructuralNode = StructuralNode(structuralNode, breakdownNode, definitionNode, contextItemFact=factsPartition[0])
+                        
+                        # store the partition for later reuse when spreading facts in body cells
+                        childStructuralNode.factsPartition = factsPartition
+                                 
                         childStructuralNode.indent = 0
                         childStructuralNode.depth -= 1  # for label width; parent is merged/invisible
                         childList.append(childStructuralNode)
