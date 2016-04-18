@@ -1217,7 +1217,10 @@ def orderAspects(aspects):
             d[aspect.localName] = aspect
         else:
             d[str(aspect)] = aspect
-    return sorted(d.keys())
+    result = []
+    for key in sorted(d.keys()):
+        result.append(d[key])
+    return result
     
 xbrlfe_undefinedSAV = VariableBindingError("xbrlfe:undefinedSAV")
          
