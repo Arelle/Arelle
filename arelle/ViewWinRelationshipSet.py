@@ -232,6 +232,9 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     text = (Locale.rtlString(concept.textValue.strip(), lang=concept.xmlLang) or concept.localName)
             else:   # just a resource
                 text = concept.localName
+                # add recognized attributes
+                if concept.localName == "enumeration" and concept.get("value"):
+                    text += ' {}="{}"'.format("value", concept.get("value"))
             childnode = self.treeView.insert(parentnode, "end", modelObject.objectId(self.id), text=text, tags=("odd" if n & 1 else "even",))
             childRelationshipSet = relationshipSet
             if self.arcrole == XbrlConst.parentChild: # extra columns
