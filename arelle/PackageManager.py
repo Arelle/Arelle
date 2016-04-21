@@ -57,6 +57,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                    "http://xbrl.org/PWD/2014-01-15/taxonomy-package",
                    "http://xbrl.org/PWD/2015-01-14/taxonomy-package",
                    "http://xbrl.org/PR/2015-12-09/taxonomy-package",
+                   "http://xbrl.org/REC/2016-04-19/taxonomy-package",
                    "http://xbrl.org/WGWD/YYYY-MM-DD/taxonomy-package")
     catalogNSes = ("urn:oasis:names:tc:entity:xmlns:xml:catalog",)
     
@@ -149,7 +150,9 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
     rewriteTree = tree
     catalogFile = metadataFile
     if ns in ("http://xbrl.org/PWD/2015-01-14/taxonomy-package",
-              "http://xbrl.org/WGWD/YYYY-MM-DD/taxonomy-package"):
+              "http://xbrl.org/PR/2015-12-09/taxonomy-package",
+              "http://xbrl.org/WGWD/YYYY-MM-DD/taxonomy-package",
+              "http://xbrl.org/REC/2016-04-19/taxonomy-package"):
         catalogFile = metadataFile.replace('taxonomyPackage.xml','catalog.xml')
         try:
             rewriteTree = etree.parse(filesource.file(catalogFile)[0])
