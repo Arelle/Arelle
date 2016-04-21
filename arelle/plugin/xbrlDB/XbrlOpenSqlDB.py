@@ -934,19 +934,19 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         # units
         table = self.getTable('unit', 'unit_id', 
                               ('xml_id', 'xml_child_seq', 'measures_hash'), 
-                              ('xml_id',), 
+                              ('measures_hash',), 
                               tuple((unit.id, # unit's xml_id
                                      elementChildSequence(unit),
                                      unit.md5hash)
                                     for unit in unitsUsed.values()))
-        self.unitId = dict((_xmlId, id)
-                           for id, _xmlId in table)
+        self.unitId = dict((_measuresHash, id)
+                           for id, _measuresHash in table)
         # measures
         table = self.getTable('unit_measure', 
                               None, 
                               ('unit_id', 'qname', 'is_multiplicand'), 
                               ('unit_id', 'qname', 'is_multiplicand'), 
-                              tuple((self.unitId[unit.id],
+                              tuple((self.unitId[unit.md5hash],
                                      measure.clarkNotation,
                                      i == 0)
                                     for unit in unitsUsed.values()
@@ -1032,15 +1032,15 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                   tupleFactId, # tuple (parent) fact's database fact_id
                                   self.conceptQnameId.get(fact.qname),
                                   fact.contextID,
-                                  self.entityIdentifierId.get((reportId, cntx.entityIdentifier[0], cntx.entityIdentifier[1]))
+                                  self.entityIdentifierId.get((cntx.entityIdentifier[0], cntx.entityIdentifier[1]))
                                       if cntx is not None else None,
-                                  self.periodId.get((reportId,
+                                  self.periodId.get((
                                                 cntx.startDatetime if cntx.isStartEndPeriod else None,
                                                 cntx.endDatetime if (cntx.isStartEndPeriod or cntx.isInstantPeriod) else None,
                                                 cntx.isInstantPeriod,
                                                 cntx.isForeverPeriod)) if cntx is not None else None,
                                   cntxAspectValueSetId.get(cntx) if cntx is not None else None,
-                                  self.unitId.get((reportId,fact.unit.md5hash)) if fact.unit is not None else None,
+                                  self.unitId.get(fact.unit.md5hash) if fact.unit is not None else None,
                                   fact.isNil,
                                   fact.precision,
                                   fact.decimals,
