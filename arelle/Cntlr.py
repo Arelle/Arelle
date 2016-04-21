@@ -105,7 +105,7 @@ class Cntlr:
             self.imagesDir = os.path.join(resources, "images")
             self.localeDir = os.path.join(resources, "locale")
             self.pluginDir = os.path.join(resources, "plugin")
-        elif (re.match(r".*[\\/](library|python{0.major}{0.minor}).zip[\\/]arelle".format(sys.version_info),
+        elif (re.match(r".*[\\/](library|python{0.major}{0.minor}).zip[\\/]arelle$".format(sys.version_info),
                        self.moduleDir)): # cx_Freexe uses library up to 3.4 and python35 after 3.5
             resources = os.path.dirname(os.path.dirname(self.moduleDir))
             self.configDir = os.path.join(resources, "config")
