@@ -428,19 +428,33 @@ class ModelXbrl:
         :type url: str
         """
         from arelle import (ModelDocument, FileSource)
-        if self.modelDocument.type == ModelDocument.Type.INSTANCE: # entry already is an instance
-            return self.modelDocument # use existing instance entry point
-        priorFileSource = self.fileSource
-        self.fileSource = FileSource.FileSource(url, self.modelManager.cntlr)
-        if isHttpUrl(self.uri):
-            schemaRefUri = self.uri
-        else:   # relativize local paths
-            schemaRefUri = os.path.relpath(self.uri, os.path.dirname(url))
-        self.modelDocument = ModelDocument.create(self, ModelDocument.Type.INSTANCE, url, schemaRefs=[schemaRefUri], isEntry=True)
-        if priorFileSource:
-            priorFileSource.close()
-        self.closeFileSource= True
-        del self.entryLoadingUrl
+        if self.modelDocument.type == ModelDocument.Type.INSTANCE: 
+            # entry already is an instance, delete facts etc.
+            del self.facts[:]
+            self.factsInInstance.clear()
+            del self.undefinedFacts[:]
+            self.contexts.clear()
+            self.units.clear()
+            self.modelDocument.idObjects.clear
+            del self.modelDocument.hrefObjects[:]
+            self.modelDocument.schemaLocationElements.clear()
+            self.modelDocument.referencedNamespaces.clear()
+            for child in list(self.modelDocument.xmlRootElement):
+                if not (isinstance(child, ModelObject) and child.namespaceURI == XbrlConst.link and 
+                        child.localName.endswith("Ref")): # remove contexts, facts, footnotes
+                    self.modelDocument.xmlRootElement.remove(child)
+        else:
+            priorFileSource = self.fileSource
+            self.fileSource = FileSource.FileSource(url, self.modelManager.cntlr)
+            if isHttpUrl(self.uri):
+                schemaRefUri = self.uri
+            else:   # relativize local paths
+                schemaRefUri = os.path.relpath(self.uri, os.path.dirname(url))
+            self.modelDocument = ModelDocument.create(self, ModelDocument.Type.INSTANCE, url, schemaRefs=[schemaRefUri], isEntry=True)
+            if priorFileSource:
+                priorFileSource.close()
+            self.closeFileSource= True
+            del self.entryLoadingUrl
         # reload dts views
         from arelle import ViewWinDTS
         for view in self.views:
