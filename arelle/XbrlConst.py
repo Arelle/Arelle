@@ -67,7 +67,6 @@ qnGenReference = qname("{http://xbrl.org/2008/reference}reference")
 elementLabel = "http://xbrl.org/arcrole/2008/element-label"
 genLabel = "http://xbrl.org/2008/label"
 qnGenLabel = qname("{http://xbrl.org/2008/label}label")
-elementReference = "http://xbrl.org/arcrole/2008/element-reference"
 xbrldt = "http://xbrl.org/2005/xbrldt"
 qnXbrldtHypercubeItem = qname("{http://xbrl.org/2005/xbrldt}xbrldt:hypercubeItem")
 qnXbrldtDimensionItem = qname("{http://xbrl.org/2005/xbrldt}xbrldt:dimensionItem")
