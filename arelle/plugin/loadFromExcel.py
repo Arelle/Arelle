@@ -32,6 +32,7 @@ importColumnHeaders = {
     "maxLength": "maxLength",
     "length": "length",
     "fixed": "fixed",
+    "pattern": "pattern",
     "enumeration": "enumeration",
     "preferred label": "preferredLabel",
     "calculation parent": "calculationParent", # qname
@@ -382,6 +383,9 @@ def loadFromExcel(cntlr, excelFile):
                     depth = cellValue(row, 'depth')
                 else:
                     depth = None
+                subsGrp = cellValue(row, 'substitutionGroup')
+                isConcept = subsGrp in ("xbrli:item", "xbrli:tuple", 
+                                        "xbrldt:hypercubeItem", "xbrldt:dimensionItem")
                 if (not prefix or prefix == extensionSchemaPrefix) and name not in extensionElements and name:
                     # elements row
                     eltType = cellValue(row, 'type')
@@ -392,7 +396,6 @@ def loadFromExcel(cntlr, excelFile):
                         eltType = eltTypePrefix + ':' + eltType
                     elif ':' not in eltType and eltType.endswith("ItemType"):
                         eltType = 'xbrli:' + eltType
-                    subsGrp = cellValue(row, 'substitutionGroup') or 'xbrli:item'
                     abstract = cellValue(row, 'abstract')
                     nillable = cellValue(row, 'nillable')
                     balance = cellValue(row, 'balance')
@@ -430,7 +433,10 @@ def loadFromExcel(cntlr, excelFile):
                     # if extension type is this schema, add extensionType for facets
                     if eltType and eltType.startswith(extensionSchemaPrefix + ":"):
                         _typeName = eltType.rpartition(":")[2]
-                        _baseType = "xbrli:tokenItemType" # should be a column??
+                        if _typeName.endswith("ItemType"):
+                            _baseType = "xbrli:tokenItemType" # should be a column??
+                        else:
+                            _baseType = "xs:token"
                         if _typeName not in extensionTypes:
                             extensionTypes[_typeName] = ({"name":_typeName, "base":_baseType},eltFacets)
                         extensionElements[name] = (eltAttrs, None)
@@ -443,7 +449,7 @@ def loadFromExcel(cntlr, excelFile):
                         preferredLabel = cellValue(row, 'preferredLabel')
                         if preferredLabel and not preferredLabel.startswith("http://"):
                             preferredLabel = "http://www.xbrl.org/2003/role/" + preferredLabel
-                        if entryList is not None:
+                        if entryList is not None and isConcept:
                             if depth == topDepth:
                                 entryList.append( LBentry(prefix=prefix, name=name, isRoot=True) )
                             else:
@@ -453,7 +459,8 @@ def loadFromExcel(cntlr, excelFile):
                         entryList = lbDepthList(defLB, depth)
                         if entryList is not None:
                             if depth == topDepth:
-                                entryList.append( LBentry(prefix=prefix, name=name, isRoot=True) )
+                                if isConcept:
+                                    entryList.append( LBentry(prefix=prefix, name=name, isRoot=True) )
                             else:
                                 if (not preferredLabel or # prevent start/end labels from causing duplicate dim-mem relationships
                                     not any(lbEntry.prefix == prefix and lbEntry.name == name
@@ -472,7 +479,7 @@ def loadFromExcel(cntlr, excelFile):
                                         # typed dimension, no LBentry
                                         typedDomainRef = "#" + eltAttrs.get("id", "")
                                         parentElementAttrs["{http://xbrl.org/2005/xbrldt}typedDomainRef"] = typedDomainRef
-                                    else:
+                                    elif isConcept:
                                         # explicit dimension
                                         entryList.append( LBentry(prefix=prefix, name=name, arcrole="_dimensions_") )
                     if hasCalLB:
@@ -519,9 +526,15 @@ def loadFromExcel(cntlr, excelFile):
                                 role = preferredLabel
                             for value in values:
                                 if colItemType == "label":
+                                    if not isConcept:
+                                        if role == XbrlConst.standardLabel:
+                                            role = XbrlConst.genStandardLabel # must go in generic labels LB
+                                        else:
+                                            continue
                                     extensionLabels[prefix, name, lang, role] = value.strip()
                                 elif hasRefLB and colItemType == "reference":
-                                    extensionReferences[prefix, name, role].add((part, value.strip()))
+                                    if isConcept:
+                                        extensionReferences[prefix, name, role].add((part, value.strip()))
                             
         except Exception as err:
             fatalLoadingErrors.append("Excel row: {excelRow}, error: {error}, Traceback: {traceback}"
@@ -584,7 +597,7 @@ def loadFromExcel(cntlr, excelFile):
         targetNamespace="{targetNamespace}" 
         attributeFormDefault="unqualified" 
         elementFormDefault="qualified" 
-        xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+        xmlns:xs="http://www.w3.org/2001/XMLSchema" 
         xmlns:{extensionPrefix}="{targetNamespace}"
         {importXmlns} 
         xmlns:nonnum="http://www.xbrl.org/dtr/type/non-numeric" 
@@ -647,10 +660,12 @@ def loadFromExcel(cntlr, excelFile):
         if eltFacets and "type" in eltAttrs:
             eltType = eltAttrs["type"]
             del eltAttrs["type"]
+        isConcept = eltAttrs.get('substitutionGroup') in (
+            "xbrli:item", "xbrli:tuple", "xbrldt:hypercubeItem", "xbrldt:dimensionItem")
         elt = XmlUtil.addChild(schemaElt, 
                                XbrlConst.xsd, "element",
                                attributes=eltAttrs)
-        if elt is not None and eltFacets:
+        if elt is not None and eltFacets and isConcept:
             cmplxType = XmlUtil.addChild(elt, XbrlConst.xsd, "complexType")
             cmplxCont = XmlUtil.addChild(cmplxType, XbrlConst.xsd, "simpleContent")
             restrElt = XmlUtil.addChild(cmplxCont, XbrlConst.xsd, "restriction", attributes={"base": eltType})
@@ -659,13 +674,16 @@ def loadFromExcel(cntlr, excelFile):
     # add types
     for typeName, typeDef in sorted(extensionTypes.items(), key=lambda item: item[0]):
         typeAttrs, typeFacets = typeDef
-        cmplxType = XmlUtil.addChild(schemaElt, XbrlConst.xsd, "complexType", attributes={"name": typeAttrs["name"]})
-        cmplxCont = XmlUtil.addChild(cmplxType, XbrlConst.xsd, "simpleContent")
-        restrElt = XmlUtil.addChild(cmplxCont, XbrlConst.xsd, "restriction", attributes={"base": typeAttrs["base"]})
+        if typeName.endswith("ItemType"):
+            cmplxType = XmlUtil.addChild(schemaElt, XbrlConst.xsd, "complexType", attributes={"name": typeAttrs["name"]})
+            contElt = XmlUtil.addChild(cmplxType, XbrlConst.xsd, "simpleContent")
+        else:
+            contElt = XmlUtil.addChild(schemaElt, XbrlConst.xsd, "simpleType", attributes={"name": typeAttrs["name"]})
+        restrElt = XmlUtil.addChild(contElt, XbrlConst.xsd, "restriction", attributes={"base": typeAttrs["base"]})
         addFacets(restrElt, typeFacets)
 
     # add role definitions (for discovery)
-    for roleURI, roleDefinition in extensionRoles.items():
+    for roleURI, roleDefinition in sorted(extensionRoles.items(), key=lambda rd: rd[1]):
         roleElt = XmlUtil.addChild(appinfoElt, XbrlConst.link, "roleType",
                                    attributes=(("roleURI",  roleURI),
                                                ("id", "roleType_" + roleURI.rpartition("/")[2])))
@@ -916,6 +934,8 @@ def loadFromExcel(cntlr, excelFile):
                         if lbEntry.name == definition:
                             role = linkroleUri
                             break
+                if role == "unspecified":
+                    print ("Role {} has no role definition".format(lbEntry.name))
                 if role != XbrlConst.defaultLinkRole and role in dts.roleTypes: # add roleRef
                     roleType = modelRoleTypes[0]
                     roleRefs.add(("roleRef", role, roleType.modelDocument.uri + "#" + roleType.id))
