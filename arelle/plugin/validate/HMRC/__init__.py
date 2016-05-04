@@ -131,6 +131,11 @@ genericDimensionValidation = {
         "PensionPlan": (1,6, "NameDefinedContributionPlan", "NameDefinedBenefitPlan"),
         "Post-employmentMedicalPlan": (1,2, "NameDefinedContributionPlan", "NameDefinedBenefitPlan"),
         "OtherPost-employmentBenefitPlan": (1,2, "NameDefinedContributionPlan", "NameDefinedBenefitPlan")}}
+
+allowedImgMimeTypes = (
+        "data:image/gif;base64", 
+        "data:image/jpeg;base64", "data:image/jpg;base64", # note both jpg and jpeg are in use
+        "data:image/png;base64")
         
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
@@ -371,14 +376,14 @@ def validateXbrlFinally(val, *args, **kwargs):
         for tag, localName, attr in (("{http://www.w3.org/1999/xhtml}a", "a", "href"),
                                      ("{http://www.w3.org/1999/xhtml}img", "img", "src")):
             for elt in rootElt.iterdescendants(tag=tag):
-                attrValue = elt.get(attr) or ""
+                attrValue = (elt.get(attr) or "").strip()
                 if "javascript:" in attrValue:
                     modelXbrl.error("HMRC.SG.3.3",
                         _("Element %(localName)s javascript %(javascript)s is disallowed."),
                         modelObject=elt, localName=localName, javascript=attrValue[:64])
-                if localName == "img" and not attrValue.strip().startswith("data:image/png;base64"):
+                if localName == "img" and not any(attrValue.startswith(m) for m in allowedImgMimeTypes):
                     modelXbrl.error("HMRC.SG.3.8",
-                        _("Image scope must be base-64 encoded string (starting with data:image/png;base64), src disallowed: %(src)s."),
+                        _("Image scope must be base-64 encoded string (starting with data:image/*;base64), *=gif, jpeg or png.  src disallowed: %(src)s."),
                         modelObject=elt, src=attrValue[:128])
         for elt in rootElt.iterdescendants(tag="{http://www.w3.org/1999/xhtml}style"):
             if elt.text and styleImgUrlPattern.match(elt.text):
