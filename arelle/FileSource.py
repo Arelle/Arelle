@@ -653,7 +653,7 @@ def stripDeclarationBytes(xml):
             return xml[indexOfDeclarationEnd + 2:]
     return xml
     
-def saveFile(cntlr, filepath, contents, encoding=None):
+def saveFile(cntlr, filepath, contents, encoding=None, mode='wt'):
     if isHttpUrl(filepath):
         _cacheFilepath = cntlr.webCache.getfilename(filepath)
         if _cacheFilepath is None:
@@ -665,7 +665,7 @@ def saveFile(cntlr, filepath, contents, encoding=None):
         if cntlr.isGAE: # check if in memcache
             gaeSet(cacheKey, contents.encode(encoding or 'utf-8'))
     else:
-        with io.open(filepath, 'wt', encoding=(encoding or 'utf-8')) as f:
+        with io.open(filepath, mode, encoding=(encoding or 'utf-8')) as f:
             f.write(contents)
                           
 # GAE Blobcache
