@@ -5,7 +5,7 @@ Created on Oct 17, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 #import xml.sax, xml.sax.handler
-from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _ProcessingInstruction, XMLSyntaxError
+from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _ProcessingInstruction, XMLSyntaxError, XMLParser
 import os, re, io
 from arelle.XbrlConst import ixbrlAll, xhtml
 from arelle.XmlUtil import setXmlns
@@ -815,6 +815,7 @@ def validateGraphicFile(elt, graphicFile):
     return None
 
 def referencedFiles(modelXbrl, localFilesOnly=True):
+    _parser = XMLParser(resolve_entities=False, remove_comments=True, remove_pis=True, recover=True)
     referencedFiles = set()
     # add referenced files that are html-referenced image and other files
     def addReferencedFile(docElt, elt):
@@ -837,7 +838,7 @@ def referencedFiles(modelXbrl, localFilesOnly=True):
             text = fact.textValue
             for xmltext in [text] + CDATApattern.findall(text):
                 try:
-                    for elt in XML("<body>\n{0}\n</body>\n".format(xmltext)).iter():
+                    for elt in XML("<body>\n{0}\n</body>\n".format(xmltext), parser=_parser).iter():
                         addReferencedFile(fact, elt)
                 except (XMLSyntaxError, UnicodeDecodeError):
                     pass  # TODO: Why ignore UnicodeDecodeError?
