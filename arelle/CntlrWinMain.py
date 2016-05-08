@@ -8,15 +8,20 @@ This module is Arelle's controller in windowing interactive UI mode
 '''
 from arelle import PythonUtil # define 2.x or 3.x string types
 import os, sys, subprocess, pickle, time, locale, re
-from tkinter import (Tk, TclError, Toplevel, Menu, PhotoImage, StringVar, BooleanVar, N, S, E, W, EW, 
+from tkinter import (Tk, Tcl, TclError, Toplevel, Menu, PhotoImage, StringVar, BooleanVar, N, S, E, W, EW, 
                      HORIZONTAL, VERTICAL, END, font as tkFont)
 try:
     from tkinter.ttk import Frame, Button, Label, Combobox, Separator, PanedWindow, Notebook
 except ImportError:  # 3.0 versions of tkinter
     from ttk import Frame, Button, Label, Combobox, Separator, PanedWindow, Notebook
+try:
+    import syslog
+except ImportError:
+    syslog = None
 import tkinter.tix
 import tkinter.filedialog
 import tkinter.messagebox, traceback
+from arelle.FileSource import saveFile as writeToFile
 from arelle.Locale import format_string
 from arelle.CntlrWinTooltip import ToolTip
 from arelle import XbrlConst
@@ -1223,7 +1228,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                               "See the License for the specific language governing permissions and "
                               "limitations under the License."
                               "\n\nIncludes:"
-                              "\n   Python\u00ae {4[0]}.{4[1]}.{4[2]} \u00a9 2001-2013 Python Software Foundation"
+                              "\n   Python\u00ae {4[0]}.{4[1]}.{4[2]} \u00a9 2001-2016 Python Software Foundation"
+                              "\n   Tcl/Tk {6} \u00a9 Univ. of Calif., Sun, Scriptics, ActiveState, and others"
                               "\n   PyParsing \u00a9 2003-2013 Paul T. McGuire"
                               "\n   lxml {5[0]}.{5[1]}.{5[2]} \u00a9 2004 Infrae, ElementTree \u00a9 1999-2004 by Fredrik Lundh"
                               "{3}"
@@ -1231,7 +1237,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                               )
                             .format(self.__version__, self.systemWordSize, Version.version,
                                     _("\n   Bottle \u00a9 2011-2013 Marcel Hellkamp") if self.hasWebServer else "",
-                                    sys.version_info, etree.LXML_VERSION))
+                                    sys.version_info, etree.LXML_VERSION, Tcl().eval('info patchlevel')
+                                    ))
 
     # worker threads addToLog        
     def addToLog(self, message, messageCode="", messageArgs=None, file="", refs=[], level=logging.INFO):
@@ -1436,19 +1443,46 @@ class TkinterCallWrapper:
 
 def main():
     # this is the entry called by arelleGUI.pyw for windows
+    if sys.platform == "darwin": 
+        _resourcesDir = Cntlr.resourcesDir()
+        for _tcltk in ("tcl", "tk"):
+            for _tcltkVer in ("8.5", "8.6"):
+                _tcltkDir = os.path.join(_resourcesDir, _tcltk + _tcltkVer)
+                if os.path.exists(_tcltkDir): 
+                    os.environ[_tcltk.upper() + "_LIBRARY"] = _tcltkDir
     global restartMain
     while restartMain:
         restartMain = False
-        application = Tk()
-        cntlrWinMain = CntlrWinMain(application)
-        application.protocol("WM_DELETE_WINDOW", cntlrWinMain.quit)
-        if sys.platform == "darwin" and not __file__.endswith(".app/Contents/MacOS/arelle"):
-            # not built app - launches behind python or eclipse
-            application.lift()
-            application.call('wm', 'attributes', '.', '-topmost', True)
-            cntlrWinMain.uiThreadQueue.put((application.call, ['wm', 'attributes', '.', '-topmost', False]))
-            os.system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
-        application.mainloop()            
+        try:
+            application = Tk()
+            cntlrWinMain = CntlrWinMain(application)
+            application.protocol("WM_DELETE_WINDOW", cntlrWinMain.quit)
+            if sys.platform == "darwin" and not __file__.endswith(".app/Contents/MacOS/arelle"):
+                # not built app - launches behind python or eclipse
+                application.lift()
+                application.call('wm', 'attributes', '.', '-topmost', True)
+                cntlrWinMain.uiThreadQueue.put((application.call, ['wm', 'attributes', '.', '-topmost', False]))
+                os.system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
+            application.mainloop()            
+        except Exception: # unable to start Tk or other fatal error
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            msg = ''.join(traceback.format_exception_only(exc_type, exc_value))
+            tracebk = ''.join(traceback.format_tb(exc_traceback, limit=7))
+            logMsg = "{}\nCall Trace\n{}\nEnvironment {}".format(msg, tracebk, os.environ)
+            print(logMsg, file=sys.stderr)
+            if syslog is not None:
+                syslog.openlog("Arelle")
+                syslog.syslog(syslog.LOG_ALERT, logMsg)
+            try: # this may crash.  Note syslog has 1k message length
+                logMsg = "tcl_pkgPath {} tcl_library {} tcl version {}".format(
+                    Tcl().getvar("tcl_pkgPath"), Tcl().getvar("tcl_library"), Tcl().eval('info patchlevel'))
+                if syslog is not None:
+                    syslog.syslog(syslog.LOG_ALERT, logMsg)
+                print(logMsg, file=sys.stderr)
+            except:
+                pass
+            if syslog is not None:
+                syslog.closelog()
 
 if __name__ == "__main__":
     # this is the entry called by MacOS open and MacOS shell scripts

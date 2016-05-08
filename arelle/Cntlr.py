@@ -17,6 +17,20 @@ from collections import defaultdict
 osPrcs = None
 isPy3 = (sys.version[0] >= '3')
 
+def resourcesDir():
+    _moduleDir = os.path.dirname(__file__)
+    # for python 3.2 remove __pycache__
+    if _moduleDir.endswith("__pycache__"):
+        _moduleDir = os.path.dirname(_moduleDir)
+    if _moduleDir.endswith("python32.zip/arelle"):
+        _resourcesDir = os.path.dirname(os.path.dirname(os.path.dirname(_moduleDir)))
+    elif (re.match(r".*[\\/](library|python{0.major}{0.minor}).zip[\\/]arelle$".format(sys.version_info),
+                   _moduleDir)): # cx_Freexe uses library up to 3.4 and python35 after 3.5
+        _resourcesDir = os.path.dirname(os.path.dirname(_moduleDir))
+    else:
+        _resourcesDir = _moduleDir
+    return _resourcesDir
+
 class Cntlr:
     """    
     Initialization sets up for platform
@@ -82,44 +96,14 @@ class Cntlr:
         self.isCGI = False
         self.systemWordSize = int(round(math.log(sys.maxsize, 2)) + 1) # e.g., 32 or 64
 
-        self.moduleDir = os.path.dirname(__file__)
-        # for python 3.2 remove __pycache__
-        if self.moduleDir.endswith("__pycache__"):
-            self.moduleDir = os.path.dirname(self.moduleDir)
-        if self.moduleDir.endswith("python32.zip/arelle"):
-            '''
-            distZipFile = os.path.dirname(self.moduleDir)
-            d = os.path.join(self.userAppDir, "arelle")
-            self.configDir = os.path.join(d, "config")
-            self.imagesDir = os.path.join(d, "images")
-            import zipfile
-            distZip = zipfile.ZipFile(distZipFile, mode="r")
-            distNames = distZip.namelist()
-            distZip.extractall(path=self.userAppDir,
-                               members=[f for f in distNames if "/config/" in f or "/images/" in f]
-                               )
-            distZip.close()
-            '''
-            resources = os.path.dirname(os.path.dirname(os.path.dirname(self.moduleDir)))
-            self.configDir = os.path.join(resources, "config")
-            self.imagesDir = os.path.join(resources, "images")
-            self.localeDir = os.path.join(resources, "locale")
-            self.pluginDir = os.path.join(resources, "plugin")
-        elif (re.match(r".*[\\/](library|python{0.major}{0.minor}).zip[\\/]arelle$".format(sys.version_info),
-                       self.moduleDir)): # cx_Freexe uses library up to 3.4 and python35 after 3.5
-            resources = os.path.dirname(os.path.dirname(self.moduleDir))
-            self.configDir = os.path.join(resources, "config")
-            self.imagesDir = os.path.join(resources, "images")
-            self.localeDir = os.path.join(resources, "locale")
-            self.pluginDir = os.path.join(resources, "plugin")
-            _mplDir = os.path.join(resources, "mpl-data")
-            if os.path.exists(_mplDir): # set matplotlibdata for cx_Freeze with local directory
-                os.environ["MATPLOTLIBDATA"] = _mplDir
-        else:
-            self.configDir = os.path.join(self.moduleDir, "config")
-            self.imagesDir = os.path.join(self.moduleDir, "images")
-            self.localeDir = os.path.join(self.moduleDir, "locale")
-            self.pluginDir = os.path.join(self.moduleDir, "plugin")
+        _resourcesDir = resourcesDir()
+        self.configDir = os.path.join(_resourcesDir, "config")
+        self.imagesDir = os.path.join(_resourcesDir, "images")
+        self.localeDir = os.path.join(_resourcesDir, "locale")
+        self.pluginDir = os.path.join(_resourcesDir, "plugin")
+        _mplDir = os.path.join(_resourcesDir, "mpl-data")
+        if os.path.exists(_mplDir): # set matplotlibdata for cx_Freeze with local directory
+            os.environ["MATPLOTLIBDATA"] = _mplDir
         
         serverSoftware = os.getenv("SERVER_SOFTWARE", "")
         if serverSoftware.startswith("Google App Engine/") or serverSoftware.startswith("Development/"):
