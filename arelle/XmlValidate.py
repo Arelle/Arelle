@@ -345,7 +345,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                         raise ValueError("pattern facet " + facets["pattern"].pattern if facets and "pattern" in facets else "pattern mismatch")
                 if facets:
                     if "enumeration" in facets and value not in facets["enumeration"]:
-                        raise ValueError("{0} is not in {1}".format(value, facets["enumeration"]))
+                        raise ValueError("{0} is not in {1}".format(value, facets["enumeration"].keys()))
                     if "length" in facets and len(value) != facets["length"]:
                         raise ValueError("length {0}, expected {1}".format(len(value), facets["length"]))
                     if "minLength" in facets and len(value) < facets["minLength"]:
