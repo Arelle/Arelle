@@ -782,7 +782,38 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
 
     @property
     def propertyView(self):
-        return (("label", self.label(lang=self.modelXbrl.modelManager.defaultLang)),
+        # find default and other labels
+        _labelDefault = self.label(lang=self.modelXbrl.modelManager.defaultLang)
+        _labels = tuple(("{} ({})".format(os.path.basename(label.role), label.xmlLang), label.stringValue)
+                        for labelRel in self.modelXbrl.relationshipSet(XbrlConst.conceptLabel).fromModelObject(self)
+                        for label in (labelRel.toModelObject,))
+        if _labels:
+            _labelProperty = ("label", _labelDefault, sorted(_labels))
+        else:
+            _labelProperty = ("label", _labelDefault)
+        _refs = defaultdict(dict)
+        for refRel in self.modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(self):
+            _ref = refRel.toModelObject
+            for _refPart in _ref.iterchildren():
+                _refs[os.path.basename(_ref.role)][_refPart.localName] = _refPart.stringValue.strip()
+        _refT = tuple((_refRole, " ",#.join(_refPartValue 
+                                     #      for _refPartName, _refPartValue in sorted(_refParts.items())), 
+                       tuple((_refPartName, _refPartValue)
+                            for _refPartName, _refPartValue in sorted(_refParts.items())))
+                      for _refRole, _refParts in sorted(_refs.items()))
+        _refsStrung = " ".join(_refPartValue
+                               for _refRole, _refParts in sorted(_refs.items())
+                               for _refPartName, _refPartValue in sorted(_refParts.items()))
+        _refProperty = ("references", _refsStrung, _refT) if _refT else ()
+        _facets = ("facets", ", ".join(sorted(self.facets.keys())), tuple(
+                    (_name, sorted(_value.keys()), 
+                     tuple((eVal,eElt.genLabel()) 
+                           for eVal, eElt in sorted(_value.items(), key=lambda i:i[0]))
+                     ) if isinstance(_value,dict) 
+                    else (_name, _value)
+                    for _name, _value in sorted(self.facets.items(), key=lambda i:i[0]))
+                   ) if self.facets else ()
+        return (_labelProperty,
                 ("namespace", self.qname.namespaceURI),
                 ("name", self.name),
                 ("QName", self.qname),
@@ -791,7 +822,9 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
                 ("type", self.typeQname),
                 ("subst grp", self.substitutionGroupQname),
                 ("period type", self.periodType) if self.periodType else (),
-                ("balance", self.balance) if self.balance else ())
+                ("balance", self.balance) if self.balance else (),
+                _facets,
+                _refProperty)
         
     def __repr__(self):
         return ("modelConcept[{0}, qname: {1}, type: {2}, abstract: {3}, {4}, line {5}]"
@@ -1267,7 +1300,7 @@ class ModelType(ModelNamableTerm):
                 facetValues[facetName] = facetValue
         if "enumeration" not in facetValues:
             for facetElt in XmlUtil.schemaFacets(self, ("{http://www.w3.org/2001/XMLSchema}enumeration",)):
-                facetValues.setdefault("enumeration",set()).add(facetElt.get("value"))
+                facetValues.setdefault("enumeration",{})[facetElt.get("value")] = facetElt
         typeDerivedFrom = self.typeDerivedFrom
         if isinstance(typeDerivedFrom, ModelType):
             typeDerivedFrom.constrainingFacets(facetValues)
