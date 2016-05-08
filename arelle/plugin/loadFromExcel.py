@@ -53,8 +53,8 @@ importColumnHeaders = {
     "group": "linkrole",
     "linkrole": "linkrole",
     "ELR": "linkrole"
-    # reference, ("reference", reference http resource role, reference part QName)
-    # "reference, required": ("reference", "http://treasury.gov/dataact/role/taxonomyImplementationNote", qname("{http://treasury.gov/dataact/parts-2015-12-31}dataact-part:Required"))
+    # reference ("reference", reference http resource role, reference part QName)
+    # reference, required": ("reference", "http://treasury.gov/dataact/role/taxonomyImplementationNote", qname("{http://treasury.gov/dataact/parts-2015-12-31}dataact-part:Required"))
     }
 
 importColHeaderMap = defaultdict(list)
@@ -514,14 +514,16 @@ def loadFromExcel(cntlr, excelFile):
                             role = colItem[1]
                             lang = part = colItem[2] # lang for label, part for reference
                             cell = row[iCol]
-                            if cell.value is None:
+                            v = cell.value
+                            if v is None or (isinstance(v, str) and not v):
                                 values = ()
-                            elif colItemType in ("label", "reference"):
-                                values = (cell.value,)
-                            elif colItemType == "labels":
-                                values = (cell.value or '').split('\n')
                             else:
-                                values = ()
+                                v = str(v) # may be an int or float instead of str
+                                if colItemType in ("label", "reference"):
+                                    values = (v,)
+                                elif colItemType == "labels":
+                                    values = v.split('\n')
+                                
                             if preferredLabel and "indented" in colItem:  # indented column sets preferredLabel if any
                                 role = preferredLabel
                             for value in values:
@@ -642,6 +644,8 @@ def loadFromExcel(cntlr, excelFile):
                     for valLbl in facetValue.split("\n"):
                         val, _sep, _label = valLbl.partition("=")
                         val = val.strip()
+                        if val == "(empty)":
+                            val = ""
                         _label = _label.strip()
                         if len(val):
                             _attributes = {"value":val.strip()}
@@ -649,7 +653,7 @@ def loadFromExcel(cntlr, excelFile):
                                 _name = "enum{}".format(_enumNum[0])
                                 _attributes["id"] = extensionSchemaPrefix + "_" + _name
                                 _enumNum[0] += 1
-                                extensionLabels[extensionSchemaPrefix, _name, lang, XbrlConst.genStandardLabel] = _label
+                                extensionLabels[extensionSchemaPrefix, _name, defaultLabelLang, XbrlConst.genStandardLabel] = _label
                             XmlUtil.addChild(restrElt, XbrlConst.xsd, facet, attributes=_attributes)
                 else:
                     XmlUtil.addChild(restrElt, XbrlConst.xsd, facet, attributes={"value":str(facetValue)})
