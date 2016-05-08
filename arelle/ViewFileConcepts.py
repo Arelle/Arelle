@@ -70,7 +70,7 @@ class ViewConcepts(ViewFile.View):
                         # facets if any, sorted and separated by ;
                         cols.append(" ".join("{0}={1}".format(
                                        name,
-                                       sorted(value) if isinstance(value,set) else value
+                                       sorted(value.keys()) if isinstance(value,dict) else value
                                        ) for name,value in sorted(concept.type.facets.items())))
                     else:
                         cols.append("")

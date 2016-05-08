@@ -100,16 +100,14 @@ class ViewConcepts(ViewWinTree.ViewTree):
                         self.treeView.set(node, "periodType", concept.periodType)
                     if concept.balance:
                         self.treeView.set(node, "balance", concept.balance)
-                    conceptType = concept.type
-                    if conceptType is not None:
-                        facets = conceptType.facets
-                        if facets:
-                            self.treeView.set(node, "facets",
-                                "\n".join("{0}={1}".format(
-                                       name,
-                                       sorted(value) if isinstance(value,set) else value
-                                       ) for name,value in sorted(facets.items()))
-                                )
+                    facets = concept.facets
+                    if facets:
+                        self.treeView.set(node, "facets",
+                            "\n".join("{0}={1}".format(
+                                   name,
+                                   sorted(value.keys()) if isinstance(value,dict) else value
+                                   ) for name,value in sorted(facets.items()))
+                            )
 
     def treeviewEnter(self, *args):
         self.blockSelectEvent = 0
