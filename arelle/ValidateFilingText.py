@@ -402,6 +402,16 @@ def checkfile(modelXbrl, filepath):
     foundXmlDeclaration = False
     isEFM = modelXbrl.modelManager.disclosureSystem.validationType == "EFM"
     file, encoding = modelXbrl.fileSource.file(filepath)
+    parserResults = {}
+    class checkFileType(object):
+        def start(self, tag, attr): # check root XML element type
+            parserResults["rootIsTestcase"] = tag.rpartition("}")[2] in ("testcases", "documentation", "testSuite", "testcase", "testSet")
+        def end(self, tag): pass
+        def data(self, data): pass
+        def close(self): pass
+    _parser = XMLParser(target=checkFileType())
+    _isTestcase = False
+    
     with file as f:
         while True:
             line = f.readline()
@@ -415,7 +425,7 @@ def checkfile(modelXbrl, filepath):
                         modelXbrl.error(("EFM.5.02.02.06", "GFM.1.01.02"),
                             _("Disallowed entity code %(text)s in file %(file)s line %(line)s column %(column)s"),
                             modelDocument=filepath, text=text, file=os.path.basename(filepath), line=lineNum, column=match.start())
-                elif isEFM:
+                elif isEFM and not _isTestcase:
                     if len(text) == 1:
                         modelXbrl.error("EFM.5.02.01.01",
                             _("Disallowed character '%(text)s' (%(unicodeIndex)s) in file %(file)s at line %(line)s col %(column)s"),
@@ -431,6 +441,11 @@ def checkfile(modelXbrl, filepath):
                     start,end = xmlDeclarationMatch.span()
                     line = line[0:start] + line[end:]
                     foundXmlDeclaration = True
+            if _parser: # feed line after removal of xml declaration
+                _parser.feed(line.encode('utf-8','ignore'))
+                if "rootIsTestcase" in parserResults: # root XML element has been encountered
+                    _isTestcase = parserResults["rootIsTestcase"]
+                    _parser = None # no point to parse past the root element
             result.append(line)
             lineNum += 1
     result = ''.join(result)
