@@ -529,7 +529,7 @@ class Report:
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EFM',
-    'version': '1.1.36', # SEC EFM version 36 (EDGAR release 16.0.1)
+    'version': '1.16.2', # SEC EDGAR release 16.2
     'description': '''EFM Validation.''',
     'license': 'Apache-2',
     'import': ('transforms/SEC.py',), # SEC inline can use SEC transformations
