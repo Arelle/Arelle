@@ -15,6 +15,7 @@ from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import qname, qnameEltPfxName
 from arelle.ValidateUtr import ValidateUtr
 from arelle.XbrlConst import qnEnumerationItemType
+from arelle.ModelInstanceObject import ModelFact
 try:
     import regex as re
 except ImportError:
@@ -249,10 +250,15 @@ def validateFacts(val, factsToCheck):
                 modelXbrl.error("EIOPA.N.1.6.d" if val.isEIOPAfullVersion else "EIOPA.S.1.6.d",
                         _('Filing indicators must not contain segment or scenario elements %(filingIndicator)s.'),
                         modelObject=fIndicator, filingIndicator=_value)
-        if fIndicators.objectIndex > val.firstFactObjectIndex:
-            modelXbrl.warning("EIOPA.1.6.2",
-                    _('Filing indicators should precede first fact %(firstFact)s.'),
-                    modelObject=(fIndicators, val.firstFact), firstFact=val.firstFact.qname)
+        # Using model object id's is not accurate in case of edition
+        prevObj = fIndicators.getprevious()
+        while prevObj is not None:
+            if isinstance(prevObj, ModelFact) and prevObj.qname != qnFIndicators:
+                modelXbrl.warning("EIOPA.1.6.2",
+                              _('Filing indicators should precede first fact %(firstFact)s.'),
+                              modelObject=(fIndicators, val.firstFact), firstFact=val.firstFact.qname)
+                break
+            prevObj = prevObj.getprevious()
     
     if val.isEIOPAfullVersion:
         for fIndicator in factsByQname[qnFilingIndicator]:
