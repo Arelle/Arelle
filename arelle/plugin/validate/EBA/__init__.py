@@ -89,7 +89,7 @@ def validateSetup(val, parameters=None, *args, **kwargs):
                         val.isEIOPA_2_0_1 = _match.group(1) >= "2015-10-21"
                         break
                     else:
-                        val.modelXbrl.error("EIOPA.S.1.5.a/EIOPA.S.1.5.b",
+                        val.modelXbrl.error( ("EBA.S.1.5.a/EBA.S.1.5.b", "EIOPA.S.1.5.a/EIOPA.S.1.5.b"),
                                         _('The link:schemaRef element in submitted instances MUST resolve to the full published entry point URL, this schemaRef is missing date portion: %(schemaRef)s.'),
                                         modelObject=modelDocument, schemaRef=doc.uri)
                         
@@ -113,6 +113,11 @@ def validateSetup(val, parameters=None, *args, **kwargs):
         val.qnDimAF = qname("s2c_dim:AF", _nsmap)
         val.qnDimOC = qname("s2c_dim:OC", _nsmap)
         val.qnCAx1 = qname("s2c_CA:x1", _nsmap)
+    elif val.validateEBA:
+        val.eba_qnDimCUS = qname("eba_dim:CUS", _nsmap)
+        val.eba_qnDimCCA = qname("eba_dim:CCA", _nsmap)
+        val.eba_qnCAx1 = qname("eba_CA:x1", _nsmap)
+        
 
     val.prefixNamespace = {}
     val.namespacePrefix = {}
@@ -404,6 +409,15 @@ def validateFacts(val, factsToCheck):
                                             modelObject=f, metric=f.qname, ocCurrency=_ocCurrency, unitCurrency=_currencyMeasure.localName)
                                 else:
                                     val.currenciesUsed[_currencyMeasure] = unit
+                            elif val.validateEBA and f.context is not None:
+                                if f.context.dimMemberQname(val.eba_qnDimCCA) == val.eba_qnCAx1 and val.eba_qnDimCUS in f.context.qnameDims:
+                                    currency = f.context.dimMemberQname(val.eba_qnDimCUS).localName
+                                    if _currencyMeasure.localName != currency:
+                                        modelXbrl.error("EBA.3.1",
+                                            _("There MUST be only one currency but metric %(metric)s reported CCA dimension currency %(currency)s differs from unit currency: %(unitCurrency)s."),
+                                            modelObject=f, metric=f.qname, currency=currency, unitCurrency=_currencyMeasure.localName)
+                                else:
+                                    val.currenciesUsed[_currencyMeasure] = unit
                             else:
                                 val.currenciesUsed[_currencyMeasure] = unit
                     elif not unit.isSingleMeasure or unit.measures[0][0] != XbrlConst.qnXbrliPure:
@@ -649,19 +663,19 @@ def final(val):
         for _scheme, _LEI in val.cntxEntities:
             if (_scheme in ("http://standards.iso.org/iso/17442", "http://standard.iso.org/iso/17442", "LEI") or
                 (not val.isEIOPAfullVersion and _scheme == "PRE-LEI")):
+                if _scheme == "http://standard.iso.org/iso/17442":
+                    modelXbrl.warning(("EBA.3.6", "EIOPA.S.2.8.c"),
+                        _("Warning, context has entity scheme %(scheme)s should be plural: http://standards.iso.org/iso/17442."),
+                        modelObject=modelDocument, scheme=_scheme)
                 result = LeiUtil.checkLei(_LEI)
                 if result == LeiUtil.LEI_INVALID_LEXICAL:
                     modelXbrl.error("EIOPA.S.2.8.c",
-                        _("Context has lexically invalid LEI %(lei)s."),
-                        modelObject=modelDocument, lei=_LEI)
+                                    _("Context has lexically invalid LEI %(lei)s."),
+                                    modelObject=modelDocument, lei=_LEI)
                 elif result == LeiUtil.LEI_INVALID_CHECKSUM:
                     modelXbrl.error("EIOPA.S.2.8.c",
-                        _("Context has LEI checksum error in %(lei)s."),
-                        modelObject=modelDocument, lei=_LEI)
-                if _scheme == "http://standard.iso.org/iso/17442":
-                    modelXbrl.warning("EIOPA.S.2.8.c",
-                        _("Warning, context has entity scheme %(scheme)s should be plural: http://standards.iso.org/iso/17442."),
-                        modelObject=modelDocument, scheme=_scheme)
+                                    _("Context has LEI checksum error in %(lei)s."),
+                                    modelObject=modelDocument, lei=_LEI)
             elif _scheme == "SC":
                 pass # anything is ok for Specific Code
             else:
