@@ -57,7 +57,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                    "http://xbrl.org/PWD/2014-01-15/taxonomy-package",
                    "http://xbrl.org/PWD/2015-01-14/taxonomy-package",
                    "http://xbrl.org/PR/2015-12-09/taxonomy-package",
-                   "http://xbrl.org/REC/2016-04-19/taxonomy-package",
+                   "http://xbrl.org/2016/taxonomy-package",
                    "http://xbrl.org/WGWD/YYYY-MM-DD/taxonomy-package")
     catalogNSes = ("urn:oasis:names:tc:entity:xmlns:xml:catalog",)
     
