@@ -311,7 +311,7 @@ class Cntlr:
     def setLogCodeFilter(self, logCodeFilter):
         if self.logger:
             self.logger.messageCodeFilter = re.compile(logCodeFilter) if logCodeFilter else None
-                        
+
     def addToLog(self, message, messageCode="", messageArgs=None, file="", refs=None, level=logging.INFO):
         """Add a simple info message to the default logger
            

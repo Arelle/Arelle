@@ -1117,7 +1117,7 @@ def element_attribute(element, attrQname):
     except (AttributeError, TypeError, IndexError, KeyError):
         # may be lax or deferred validated
         try:
-            validate(element.modelXbrl, element, attrQname)
+            xmlValidate(element.modelXbrl, element, attrQname)
             modelAttribute = element.xAttributes[attrTag]
         except (AttributeError, TypeError, IndexError, KeyError):
             pass
