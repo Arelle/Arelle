@@ -264,7 +264,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             
             startedAt2 = time.time()
             self.bodyCells(self.dataFirstRow, yTopStructuralNode, xStructuralNodes, self.zAspectStructuralNodes, self.yAxisChildrenFirst.get())
-            print("bodyCells {:.2f}secs ".format(time.time() - startedAt2) + self.roledefinition)
+            #print("bodyCells {:.2f}secs ".format(time.time() - startedAt2) + self.roledefinition)
             
             self.table.clearModificationStatus()
             self.table.disableUnusedCells()

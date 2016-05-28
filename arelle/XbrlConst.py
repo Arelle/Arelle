@@ -313,23 +313,23 @@ xpath2err = "http://www.w3.org/2005/xqt-errors"
 variablesScope = "http://xbrl.org/arcrole/2010/variables-scope"
 
 # 2014-MM-DD current IWD
-tableMMDD = "http://xbrl.org/PWD/2014-MM-DD/table"
-tableModelMMDD = "http://xbrl.org/PWD/2014-MM-DD/table/model"
+tableMMDD = "http://xbrl.org/PWD/2016-MM-DD/table"
+tableModelMMDD = "http://xbrl.org/PWD/2016-MM-DD/table/model"
 tableBreakdownMMDD = "http://xbrl.org/arcrole/PWD/2014-MM-DD/table-breakdown"
 tableBreakdownTreeMMDD = "http://xbrl.org/arcrole/PWD/2014-MM-DD/breakdown-tree"
 tableDefinitionNodeSubtreeMMDD = "http://xbrl.org/arcrole/PWD/2014-MM-DD/definition-node-subtree"
 tableFilterMMDD = "http://xbrl.org/arcrole/PWD/2014-MM-DD/table-filter"
 tableAspectNodeFilterMMDD = "http://xbrl.org/arcrole/PWD/2014-MM-DD/aspect-node-filter"
 tableParameterMMDD = "http://xbrl.org/arcrole/PWD/2014-MM-DD/table-parameter"
-qnTableTableMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:table")
-qnTableBreakdownMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:breakdown")
-qnTableRuleNodeMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:ruleNode")
-qnTableRuleSetMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:ruleSet")
-qnTableDefinitionNodeMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:definitionNode")
-qnTableClosedDefinitionNodeMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:closedDefinitionNode")
-qnTableConceptRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:conceptRelationshipNode")
-qnTableDimensionRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:dimensionRelationshipNode")
-qnTableAspectNodeMMDD = qname("{http://xbrl.org/PWD/2014-MM-DD/table}table:aspectNode")
+qnTableTableMMDD = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:table")
+qnTableBreakdownMMDD = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:breakdown")
+qnTableRuleNodeMMDD = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:ruleNode")
+qnTableRuleSetMMDD = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:ruleSet")
+qnTableDefinitionNodeMMDD = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:definitionNode")
+qnTableClosedDefinitionNodeMMDD = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:closedDefinitionNode")
+qnTableConceptRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:conceptRelationshipNode")
+qnTableDimensionRelationshipNodeMMDD = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:dimensionRelationshipNode")
+qnTableAspectNodeMMDD = qname("{http://xbrl.org/PWD/2016-MM-DD/table}table:aspectNode")
 
 # REC
 table = "http://xbrl.org/2014/table"
