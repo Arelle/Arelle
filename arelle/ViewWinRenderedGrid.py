@@ -643,10 +643,6 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         justify = None
                         fp = FactPrototype(self, cellAspectValues)
                         if conceptNotAbstract:
-                            if factsPartition is not None:
-                                # pick from this set of facts
-                                facts = factsPartition    
-                            else:     
                             # reduce set of matchable facts to those with pri item qname and have dimension aspects
                             facts = self.modelXbrl.factsByQname[priItemQname] if priItemQname else self.modelXbrl.factsInInstance
                             if self.hasTableFilters:
