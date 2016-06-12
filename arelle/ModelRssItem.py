@@ -138,6 +138,10 @@ class ModelRssItem(ModelObject):
             return self._url
         
     @property
+    def enclosureUrl(self):
+        return XmlUtil.childAttr(self, None, "enclosure", "url")
+    
+    @property
     def zippedUrl(self):
         enclosure = XmlUtil.childAttr(self, None, "enclosure", "url")
         if enclosure:
