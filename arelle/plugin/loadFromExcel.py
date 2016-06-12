@@ -35,6 +35,7 @@ importColumnHeaders = {
     "pattern": "pattern",
     "enumeration": "enumeration",
     "preferred label": "preferredLabel",
+    "preferredLabel": "preferredLabel",
     "calculation parent": "calculationParent", # qname
     "calculation weight": "calculationWeight",
     # label col heading: ("label", role, lang [indented]),
@@ -58,7 +59,7 @@ importColumnHeaders = {
     }
 
 importColHeaderMap = defaultdict(list)
-resourceParsePattern = re.compile(r"(label|reference),?\s*(\w+)(\s*[(]([^)]+)[)])?")
+resourceParsePattern = re.compile(r"(label|reference),?\s*([\w][\w\s#+-]+[\w#+-])(\s*[(]([^)]+)[)])?$")
 
 NULLENTRY = ({},)
 
@@ -248,6 +249,8 @@ def loadFromExcel(cntlr, excelFile):
         headerCols.clear()
         for iCol, colCell in enumerate(row):
             v = colCell.value
+            if isinstance(v,str):
+                v = v.strip()
             if v in importColHeaderMap:
                 for hdr in importColHeaderMap[v]:
                     if hdr in importColumnHeaders:
@@ -447,8 +450,6 @@ def loadFromExcel(cntlr, excelFile):
                     if hasPreLB:
                         entryList = lbDepthList(preLB, depth)
                         preferredLabel = cellValue(row, 'preferredLabel')
-                        if preferredLabel and not preferredLabel.startswith("http://"):
-                            preferredLabel = "http://www.xbrl.org/2003/role/" + preferredLabel
                         if entryList is not None and isConcept:
                             if depth == topDepth:
                                 entryList.append( LBentry(prefix=prefix, name=name, isRoot=True) )
@@ -506,8 +507,6 @@ def loadFromExcel(cntlr, excelFile):
                 name = cellValue(row, 'name', nameChars=True)
                 if name is not None:
                     preferredLabel = cellValue(row, 'preferredLabel')
-                    if preferredLabel and not preferredLabel.startswith("http://"):
-                        preferredLabel = "http://www.xbrl.org/2003/role/" + preferredLabel
                     for colItem, iCol in headerCols.items():
                         if isinstance(colItem, tuple):
                             colItemType = colItem[0]
@@ -735,8 +734,9 @@ def loadFromExcel(cntlr, excelFile):
                     _resourceRoleURI = _roleURI
                     break
             if _resourceRoleURI is None: # try custom roles
+                _resourceRoleMatchPart = _resourceRole.partition("#")[0] # remove # part
                 for _roleURI in dts.roleTypes:
-                    if _roleURI.endswith(_resourceRole):
+                    if _roleURI.endswith(_resourceRoleMatchPart):
                         for _roleType in dts.roleTypes[_roleURI]:
                             if _resourceQName in _roleType.usedOns:
                                 _resourceRoleURI = _roleURI
@@ -746,7 +746,7 @@ def loadFromExcel(cntlr, excelFile):
             elif _resourceType == "reference" and _resourceRoleURI:
                 extReferenceRoles[_resourceRole] = _resourceRoleURI
                 # find part QName
-                for partConcept in dts.nameConcepts.get(_resourceLangOrPart, None):
+                for partConcept in dts.nameConcepts.get(_resourceLangOrPart, ()):
                     if partConcept is not None and partConcept.subGroupHeadQname == qnLinkPart:
                         extReferenceParts[_resourceLangOrPart] = partConcept.qname
                         extReferenceSchemaDocs[partConcept.qname.namespaceURI] = (
@@ -977,6 +977,18 @@ def loadFromExcel(cntlr, excelFile):
                     if lbType == "calculation" and lbEntry.weight is not None:
                         otherAttrs = ( ("weight", lbEntry.weight), )
                     elif lbType == "presentation" and lbEntry.role:
+                        if not lbEntry.role.startswith("http://"):
+                            # check if any defined labels for this role
+                            _labelRoleMatchPart = "/" + lbEntry.role
+                            for _roleURI in dts.roleTypes:
+                                if _roleURI.endswith(_labelRoleMatchPart):
+                                    for _roleType in dts.roleTypes[_roleURI]:
+                                        if XbrlConst.qnLinkLabel in _roleType.usedOns:
+                                            lbEntry.role = _roleURI
+                                            break
+                        if not lbEntry.role.startswith("http://"):
+                            # default to built in label roles
+                            lbEntry.role = "http://www.xbrl.org/2003/role/" + lbEntry.role
                         otherAttrs = ( ("preferredLabel", lbEntry.role), )
                         if lbEntry.role and lbEntry.role in dts.roleTypes:
                             roleType = dts.roleTypes[lbEntry.role][0]
