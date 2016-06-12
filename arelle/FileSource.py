@@ -325,10 +325,9 @@ class FileSource:
     
     @property
     def taxonomyPackageMetadataFiles(self):
-        _metaInfTxPkg = '{}/META-INF/taxonomyPackage.xml'.format(
-                        os.path.splitext(os.path.basename(self.basefile))[0])
-        if _metaInfTxPkg in self.dir:
-            return [_metaInfTxPkg]  # standard package
+        for f in (self.dir or []):
+            if f.endswith("/META-INF/taxonomyPackage.xml"):
+                return [f]  # standard package
         return [f for f in (self.dir or []) if os.path.split(f)[-1] in TAXONOMY_PACKAGE_FILE_NAMES]
     
     def isInArchive(self,filepath, checkExistence=False):
