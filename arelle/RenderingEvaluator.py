@@ -142,7 +142,7 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisDispo
                     definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel)
             labelRels = modelXbrl.relationshipSet(XbrlConst.elementLabel).fromModelObject(definitionNode)
             if labelRels:
-                modelXbrl.error("xbrlte:mergedRuleNodeWithLabel",
+                modelXbrl.error("xbrlte:invalidUseOfLabel",
                     _("Merged %(definitionNode)s %(xlinkLabel)s has label(s)"),
                     modelObject=[modelTable, definitionNode] + [r.toModelObject for r in labelRels], 
                     definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel)
