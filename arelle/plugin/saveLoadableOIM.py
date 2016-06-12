@@ -21,13 +21,12 @@ from collections import defaultdict
 
 nsOim = "http://www.xbrl.org/DPWD/2016-01-13/oim"
 qnOimConceptAspect = qname(nsOim, "oim:concept")
-qnOimTypeAspect = qname(nsOim, "oim:type")
 qnOimLangAspect = qname(nsOim, "oim:language")
 qnOimTupleParentAspect = qname(nsOim, "oim:tupleParent")
 qnOimTupleOrderAspect = qname(nsOim, "oim:tupleOrder")
 qnOimPeriodAspect = qname(nsOim, "oim:period")
 qnOimPeriodStartAspect = qname(nsOim, "oim:periodStart")
-qnOimPeriodDurationAspect = qname(nsOim, "oim:periodDuration")
+qnOimPeriodEndAspect = qname(nsOim, "oim:periodEnd")
 qnOimEntityAspect = qname(nsOim, "oim:entity")
 qnOimUnitAspect = qname(nsOim, "oim:unit")
 qnOimUnitNumeratorsAspect = qname(nsOim, "oim:unitNumerators")
@@ -60,13 +59,12 @@ def saveLoadableOIM(modelXbrl, oimFile):
             
     aspectsDefined = {
         qnOimConceptAspect,
-        qnOimEntityAspect,
-        qnOimTypeAspect}
+        qnOimEntityAspect}
     if isJSON:
         aspectsDefined.add(qnOimPeriodAspect)
     elif isCSV:
         aspectsDefined.add(qnOimPeriodStartAspect)
-        aspectsDefined.add(qnOimPeriodDurationAspect)
+        aspectsDefined.add(qnOimPeriodEndAspect)
             
     def oimValue(object, decimals=None):
         if isinstance(object, QName):
@@ -98,18 +96,16 @@ def saveLoadableOIM(modelXbrl, oimFile):
     
     def oimPeriodValue(cntx):
         if cntx.isForeverPeriod:
-            if isCSV:
-                return "0000-01-01T00:00:00/P9999Y"
-            return "forever"
+            pass # not supported
         elif cntx.isStartEndPeriod:
-            d = cntx.startDatetime
-            duration = yearMonthDayTimeDuration(cntx.startDatetime, cntx.endDatetime)
+            s = cntx.startDatetime
+            e = cntx.endDatetime
         else: # instant
-            d = cntx.instantDatetime
-            duration = "PT0S"
-        return "{0:04n}-{1:02n}-{2:02n}T{3:02n}:{4:02n}:{5:02n}/{6}".format(
-                d.year, d.month, d.day, d.hour, d.minute, d.second,
-                duration)
+            s = e = cntx.instantDatetime
+        return {"start": "{0:04n}-{1:02n}-{2:02n}T{3:02n}:{4:02n}:{5:02n}".format(
+                          s.year, s.month, s.day, s.hour, s.minute, s.second),
+                "end":    "{0:04n}-{1:02n}-{2:02n}T{3:02n}:{4:02n}:{5:02n}".format(
+                          e.year, e.month, e.day, e.hour, e.minute, e.second)}
               
     hasId = False
     hasTuple = False
@@ -233,7 +229,8 @@ def saveLoadableOIM(modelXbrl, oimFile):
     def factFootnotes(fact):
         footnotes = []
         for footnoteRel in footnotesRelationshipSet.fromModelObject(fact):
-            footnote = OrderedDict((("group", footnoteRel.arcrole),))
+            footnote = OrderedDict((("group", footnoteRel.linkrole),
+                                    ("footnoteType", footnoteRel.arcrole)))
             footnotes.append(footnote)
             if isCSV:
                 footnote["factId"] = fact.id if fact.id else "f{}".format(fact.objectIndex)
@@ -241,7 +238,6 @@ def saveLoadableOIM(modelXbrl, oimFile):
             if isinstance(toObj, ModelFact):
                 footnote["factRef"] = toObj.id if toObj.id else "f{}".format(toObj.objectIndex)
             else:
-                footnote["footnoteType"] = toObj.role
                 footnote["footnote"] = xmlstring(toObj, stripXmlns=True, contentsOnly=True, includeText=True)
                 if toObj.xmlLang:
                     footnote["language"] = toObj.xmlLang
@@ -268,7 +264,6 @@ def saveLoadableOIM(modelXbrl, oimFile):
                 aspects["baseType"] = "xs:{}".format(_baseXsdType)
                 if concept.baseXbrliType in ("string", "normalizedString", "token") and fact.xmlLang:
                     aspects[qnOimLangAspect] = fact.xmlLang
-                aspects[qnOimTypeAspect] = concept.baseXbrliType
         if fact.isItem:
             if fact.isNil:
                 _value = None
@@ -293,7 +288,7 @@ def saveLoadableOIM(modelXbrl, oimFile):
                         elif isCSV: _accuracy = "INF"
                     else:
                         _accuracy = _inferredDecimals
-                    aspects["accuracy"] = _inferredDecimals
+                    aspects["accuracy"] = _accuracy
             elif isinstance(_value, bool):
                 aspects["booleanValue"] = _value
             elif isCSV:
@@ -307,9 +302,9 @@ def saveLoadableOIM(modelXbrl, oimFile):
                 if isJSON:
                     aspects[qnOimPeriodAspect] = oimPeriodValue(cntx)
                 elif isCSV:
-                    _periodValue = oimPeriodValue(cntx).split("/") + ["", ""] # default blank if no value
-                    aspects[qnOimPeriodStartAspect] = _periodValue[0]
-                    aspects[qnOimPeriodDurationAspect] = _periodValue[1]
+                    _periodValue = oimPeriodValue(cntx)
+                    aspects[qnOimPeriodStartAspect] = _periodValue["start"]
+                    aspects[qnOimPeriodEndAspect] = _periodValue["end"]
             for _qn, dim in sorted(cntx.qnameDims.items(), key=lambda item: item[0]):
                 aspects[dim.dimensionQname] = (oimValue(dim.memberQname) if dim.isExplicit
                                                else None if dim.typedMember.get("{http://www.w3.org/2001/XMLSchema-instance}nil") in ("true", "1")
@@ -377,8 +372,8 @@ def saveLoadableOIM(modelXbrl, oimFile):
             _colDataType = {"id": "Name",
                             "baseType": "Name",
                             "oim:concept": "Name",
-                            "oim:periodStart": "dateTime", # forever is 0000-01-01T00:00:00
-                            "oim:periodDuration": "duration", # forever is P9999Y
+                            "oim:periodStart": "dateTime",
+                            "oim:periodEnd": "dateTime",
                             "oim:tupleOrder": "integer",
                             "numericValue": "decimal",
                             "accuracy": "decimal",
@@ -406,7 +401,7 @@ def saveLoadableOIM(modelXbrl, oimFile):
             addAspectQnCol(qnOimEntityAspect)
         if qnOimPeriodStartAspect in aspectsDefined:
             addAspectQnCol(qnOimPeriodStartAspect)
-            addAspectQnCol(qnOimPeriodDurationAspect)
+            addAspectQnCol(qnOimPeriodEndAspect)
         if qnOimUnitNumeratorsAspect in aspectsDefined:
             addAspectQnCol(qnOimUnitNumeratorsAspect)
         if qnOimUnitDenominatorsAspect in aspectsDefined:
@@ -482,7 +477,7 @@ def saveLoadableOIM(modelXbrl, oimFile):
             _footnoteFile = oimFile.replace(".csv", "-footnotes.csv")
             csvFile = open(_footnoteFile, csvOpenMode, newline=csvOpenNewline, encoding='utf-8-sig')
             csvWriter = csv.writer(csvFile, dialect="excel")
-            cols = ("group", "factId", "factRef", "footnoteType", "footnote", "language")
+            cols = ("group", "footnoteType", "factId", "factRef", "footnote", "language")
             csvWriter.writerow(cols)
             def saveCSVfootnotes(facts):
                 for fact in facts:
@@ -492,9 +487,9 @@ def saveLoadableOIM(modelXbrl, oimFile):
             saveCSVfootnotes(modelXbrl.facts)
             csvFile.close()
             footnoteTableSchema = OrderedDict((("columns",[OrderedDict((("group","anyURI"),
+                                                                        ("footnoteType","Name"),
                                                                         ("factId","Name"),
                                                                         ("factRef","Name"),
-                                                                        ("footnoteType","Name"),
                                                                         ("footnote","string"),
                                                                         ("language","language")))]),))
             csvTables.append(OrderedDict((("url",os.path.basename(_footnoteFile)),
