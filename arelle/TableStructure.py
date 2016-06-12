@@ -165,9 +165,27 @@ def evaluateRoleTypesTableCodes(modelXbrl):
             for roleType in roleTypes:
                 roleType._tableCode = None
 
-def evaluateTableIndex(modelXbrl):
+def evaluateTableIndex(modelXbrl, lang=None):
+    usgaapRoleDefinitionPattern = re.compile(r"([0-9]+) - (Statement|Disclosure|Schedule|Document) - (.+)")
+    ifrsRoleDefinitionPattern = re.compile(r"\[([0-9]+)\] (.+)")
+    # build EFM rendering-compatible index
+    definitionElrs = dict((modelXbrl.roleTypeDefinition(roleURI, lang), roleType)
+                          for roleURI in modelXbrl.relationshipSet(XbrlConst.parentChild).linkRoleUris
+                          for roleType in modelXbrl.roleTypes.get(roleURI,()))
+    sortedRoleTypes = sorted(definitionElrs.items(), key=lambda item: item[0])
     disclosureSystem = modelXbrl.modelManager.disclosureSystem
+    _usgaapStyleELRs = _isJpFsa = _ifrsStyleELRs = False
     if disclosureSystem.validationType == "EFM":
+        _usgaapStyleELRs = True
+    elif "jp-fsa" in modelXbrl.modelManager.disclosureSystem.names:
+        _isJpFsa = True
+    else:
+        # attempt to determine type
+        if any(usgaapRoleDefinitionPattern.match(r[0]) for r in sortedRoleTypes if r[0]):
+            _usgaapStyleELRs = True
+        elif any(ifrsRoleDefinitionPattern.match(r[0]) for r in sortedRoleTypes if r[0]):
+            _ifrsStyleELRs = True
+    if _usgaapStyleELRs:
         COVER    = "1Cover"
         STMTS    = "2Financial Statements"
         NOTES    = "3Notes to Financial Statements"
@@ -175,19 +193,13 @@ def evaluateTableIndex(modelXbrl):
         TABLES   = "5Notes Tables"
         DETAILS  = "6Notes Details"
         UNCATEG  = "7Uncategorized"
-        roleDefinitionPattern = re.compile(r"([0-9]+) - (Statement|Disclosure|Schedule|Document) - (.+)")
-        # build EFM rendering-compatible index
-        definitionElrs = dict((roleType.definition, roleType)
-                              for roleURI in modelXbrl.relationshipSet(XbrlConst.parentChild).linkRoleUris
-                              for roleType in modelXbrl.roleTypes.get(roleURI,()))
         isRR = any(ns.startswith("http://xbrl.sec.gov/rr/") for ns in modelXbrl.namespaceDocs.keys() if ns)
         tableGroup = None
         firstTableLinkroleURI = None
         firstDocumentLinkroleURI = None
-        sortedRoleTypes = sorted(definitionElrs.items(), key=lambda item: item[0])
         for roleDefinition, roleType in sortedRoleTypes:
             roleType._tableChildren = []
-            match = roleDefinitionPattern.match(roleDefinition) if roleDefinition else None
+            match = usgaapRoleDefinitionPattern.match(roleDefinition) if roleDefinition else None
             if not match: 
                 roleType._tableIndex = (UNCATEG, "", roleType.roleURI)
                 continue
@@ -408,7 +420,7 @@ def evaluateTableIndex(modelXbrl):
                     roleType._tableTopicCode = ugtTopic[4]
                     # print ("Match score {:.2f} topic {} preGrp {}".format(_score, ugtTopic[3], roleType.definition))
         return (firstTableLinkroleURI or firstDocumentLinkroleURI), None # no restriction on contents linkroles
-    elif "jp-fsa" in modelXbrl.modelManager.disclosureSystem.names:
+    elif _isJpFsa:
         # find ELR with only iod:identifierItem subs group concepts
         roleElrs = dict((roleURI, roleType)
                         for roleURI in modelXbrl.relationshipSet(XbrlConst.parentChild).linkRoleUris
@@ -451,7 +463,11 @@ def evaluateTableIndex(modelXbrl):
                 addRoleIdentifiers(rootConcept, None, set())
                 if not linkroleUri and len(roleType._tableChildren) > 0:
                     linkroleUri = roleURI
-        return linkroleUri, linkroleUri  # only show linkroleUri in index table                      
+        return linkroleUri, linkroleUri  # only show linkroleUri in index table   
+    elif _ifrsStyleELRs: 
+        for roleType in definitionElrs.values():
+            roleType._tableChildren = []
+        return sortedRoleTypes[0][1], None # first link role in order             
     return None, None
 
 def parentNameMatchLen(tableName, parentRoleType):

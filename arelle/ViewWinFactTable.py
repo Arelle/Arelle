@@ -20,25 +20,25 @@ def viewFacts(modelXbrl, tabWin, header="Fact Table", arcrole=XbrlConst.parentCh
     view = ViewFactTable(modelXbrl, tabWin, header, arcrole, linkrole, linkqname, arcqname, lang, expandAll)
     view.ignoreDims = BooleanVar(value=False)
     view.showDimDefaults = BooleanVar(value=False)
-    if view.view():
-        view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, '+')
-        view.treeView.bind("<ButtonRelease-1>", view.treeviewClick, '+')
-        view.treeView.bind("<Enter>", view.treeviewEnter, '+')
-        view.treeView.bind("<Leave>", view.treeviewLeave, '+')
+    view.view()
+    view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, '+')
+    view.treeView.bind("<ButtonRelease-1>", view.treeviewClick, '+')
+    view.treeView.bind("<Enter>", view.treeviewEnter, '+')
+    view.treeView.bind("<Leave>", view.treeviewLeave, '+')
 
-        # languages menu
-        menu = view.contextMenu()
-        optionsMenu = Menu(view.viewFrame, tearoff=0)
-        view.ignoreDims.trace("w", view.viewReloadDueToMenuAction)
-        optionsMenu.add_checkbutton(label=_("Ignore Dimensions"), underline=0, variable=view.ignoreDims, onvalue=True, offvalue=False)
-        menu.add_cascade(label=_("Options"), menu=optionsMenu, underline=0)
-        view.menuAddExpandCollapse()
-        view.menuAddClipboard()
-        view.menuAddLangs()
-        view.menuAddLabelRoles(includeConceptName=True)
-        #saveMenu = Menu(view.viewFrame, tearoff=0)
-        #saveMenu.add_command(label=_("HTML file"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view, fileType="html"))
-        #menu.add_cascade(label=_("Save"), menu=saveMenu, underline=0)
+    # languages menu
+    menu = view.contextMenu()
+    optionsMenu = Menu(view.viewFrame, tearoff=0)
+    view.ignoreDims.trace("w", view.viewReloadDueToMenuAction)
+    optionsMenu.add_checkbutton(label=_("Ignore Dimensions"), underline=0, variable=view.ignoreDims, onvalue=True, offvalue=False)
+    menu.add_cascade(label=_("Options"), menu=optionsMenu, underline=0)
+    view.menuAddExpandCollapse()
+    view.menuAddClipboard()
+    view.menuAddLangs()
+    view.menuAddLabelRoles(includeConceptName=True)
+    #saveMenu = Menu(view.viewFrame, tearoff=0)
+    #saveMenu.add_command(label=_("HTML file"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view, fileType="html"))
+    #menu.add_cascade(label=_("Save"), menu=saveMenu, underline=0)
     
 class ViewFactTable(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin, header, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None, expandAll=False):
