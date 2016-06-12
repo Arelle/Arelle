@@ -144,9 +144,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             modelRoleTypes = self.modelXbrl.roleTypes.get(linkroleUri)
             if modelRoleTypes:
                 roledefinition = ((self.hasTableIndex and getattr(modelRoleTypes[0], "_tableIndex", False)) or
-                                  modelRoleTypes[0].genLabel(lang=self.lang, strip=True) or 
-                                  modelRoleTypes[0].definition or 
-                                  linkroleUri)
+                                  self.modelXbrl.roleTypeDefinition(linkroleUri, self.lang))
                 roleId = modelRoleTypes[0].objectId(self.id)
                 if (self.hasTableIndex and getattr(modelRoleTypes[0], "_tableChildren")):
                     linkroleUriChildren[linkroleUri] = [roleType.roleURI
@@ -240,7 +238,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             if self.arcrole == XbrlConst.parentChild: # extra columns
                 if isRelation:
                     preferredLabel = modelObject.preferredLabel
-                    if preferredLabel and preferredLabel.startswith("http://www.xbrl.org/2003/role/"):
+                    if preferredLabel and preferredLabel.startswith("http://"):
                         preferredLabel = os.path.basename(preferredLabel)
                     self.treeView.set(childnode, "preferredLabel", preferredLabel)
                 self.treeView.set(childnode, "type", concept.niceType)

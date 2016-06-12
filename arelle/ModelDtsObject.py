@@ -783,7 +783,8 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     @property
     def propertyView(self):
         # find default and other labels
-        _labelDefault = self.label(lang=self.modelXbrl.modelManager.defaultLang)
+        _lang = self.modelXbrl.modelManager.defaultLang
+        _labelDefault = self.label(lang=_lang)
         _labels = tuple(("{} ({})".format(os.path.basename(label.role), label.xmlLang), label.stringValue)
                         for labelRel in self.modelXbrl.relationshipSet(XbrlConst.conceptLabel).fromModelObject(self)
                         for label in (labelRel.toModelObject,))
@@ -795,7 +796,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         for refRel in self.modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(self):
             _ref = refRel.toModelObject
             for _refPart in _ref.iterchildren():
-                _refs[os.path.basename(_ref.role)][_refPart.localName] = _refPart.stringValue.strip()
+                _refs[self.modelXbrl.roleTypeDefinition(_ref.role, _lang)][_refPart.localName] = _refPart.stringValue.strip()
         _refT = tuple((_refRole, " ",#.join(_refPartValue 
                                      #      for _refPartName, _refPartValue in sorted(_refParts.items())), 
                        tuple((_refPartName, _refPartValue)

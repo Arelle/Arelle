@@ -141,7 +141,7 @@ class ViewRelationshipSet(ViewFile.View):
             if self.arcrole == XbrlConst.parentChild: # extra columns
                 if isRelation:
                     preferredLabel = modelObject.preferredLabel
-                    if preferredLabel and preferredLabel.startswith("http://www.xbrl.org/2003/role/"):
+                    if preferredLabel and preferredLabel.startswith("http://"):
                         preferredLabel = os.path.basename(preferredLabel)
                 else:
                     preferredLabel = None
