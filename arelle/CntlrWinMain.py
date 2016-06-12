@@ -710,9 +710,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 if not isHttpUrl(filename):
                     self.config["fileOpenDir"] = os.path.dirname(filesource.baseurl if filesource.isArchive else filename)
             self.updateFileHistory(filename, importToDTS)
-            thread = threading.Thread(target=lambda: self.backgroundLoadXbrl(filesource,importToDTS,selectTopView))
-            thread.daemon = True
-            thread.start()
+            thread = threading.Thread(target=self.backgroundLoadXbrl, args=(filesource,importToDTS,selectTopView), daemon=True).start()
             
     def webOpen(self, *ignore):
         if not self.okayToContinue():
@@ -725,9 +723,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 from arelle import DialogOpenArchive
                 url = DialogOpenArchive.askArchiveFile(self, filesource)
             self.updateFileHistory(url, False)
-            thread = threading.Thread(target=lambda: self.backgroundLoadXbrl(filesource,False,False))
-            thread.daemon = True
-            thread.start()
+            thread = threading.Thread(target=self.backgroundLoadXbrl, args=(filesource,False,False), daemon=True).start()
             
     def importWebOpen(self, *ignore):
         if not self.modelManager.modelXbrl or self.modelManager.modelXbrl.modelDocument.type not in (
@@ -815,7 +811,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                                                                treeColHdr="Table Index", showLinkroles=False, showColumns=False, expandAll=True)
                 elif modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
                     currentAction = "table index view"
-                    firstTableLinkroleURI, indexLinkroleURI = TableStructure.evaluateTableIndex(modelXbrl)
+                    firstTableLinkroleURI, indexLinkroleURI = TableStructure.evaluateTableIndex(modelXbrl, lang=self.labelLang)
                     if firstTableLinkroleURI:
                         ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopLeft, ("Tables", (XbrlConst.parentChild,)), lang=self.labelLang, linkrole=indexLinkroleURI,
                                                                    treeColHdr="Table Index", showRelationships=False, showColumns=False, expandAll=False, hasTableIndex=True)
@@ -927,9 +923,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 if modelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
                     for pluginXbrlMethod in pluginClassMethods("Testcases.Start"):
                         pluginXbrlMethod(self, None, modelXbrl)
-                thread = threading.Thread(target=lambda: self.backgroundValidate())
-                thread.daemon = True
-                thread.start()
+                thread = threading.Thread(target=self.backgroundValidate, daemon=True).start()
             
     def backgroundValidate(self):
         startedAt = time.time()
@@ -961,9 +955,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             return False
         self.config["versioningReportDir"] = os.path.dirname(versReportFile)
         self.saveConfig()
-        thread = threading.Thread(target=lambda: self.backgroundCompareDTSes(versReportFile))
-        thread.daemon = True
-        thread.start()
+        thread = threading.Thread(target=self.backgroundCompareDTSes, args=(versReportFile,), daemon=True).start()
             
     def backgroundCompareDTSes(self, versReportFile):
         startedAt = time.time()
@@ -1042,9 +1034,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 self.showStatus(_("Clearing internet cache"))
                 self.webCache.clear()
                 self.showStatus(_("Internet cache cleared"), 5000)
-            thread = threading.Thread(target=lambda: backgroundClearCache())
-            thread.daemon = True
-            thread.start()
+            thread = threading.Thread(target=backgroundClearCache, daemon=True).start()
             
     def manageWebCache(self):
         if sys.platform.startswith("win"):
