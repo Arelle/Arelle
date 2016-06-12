@@ -152,7 +152,7 @@ class DialogOpenArchive(Toplevel):
                                                     os.sep.join(os.path.split(metadata)[:-1]) + os.sep)
                 
                 # may be a catalog file with no entry oint names
-                if not self.taxonomyPackage["nameToUrls"]:
+                if not self.taxonomyPackage["entryPoints"]:
                     openType = ARCHIVE  # no entry points to show, just archive
                     self.showAltViewButton = False
             except Exception as e:
@@ -289,9 +289,8 @@ class DialogOpenArchive(Toplevel):
             self.treeView.column("url", width=350, anchor="w")
             self.treeView.heading("url", text="URL")
             
-            for name, urls in self.taxonomyPackage["nameToUrls"].items():
-                displayUrl = urls[1] # display the canonical URL
-                self.treeView.insert("", "end", name, values=[displayUrl], text=name)
+            for name, urls in sorted(self.taxonomyPackage["entryPoints"].items(), key=lambda i:i[1][2]):
+                self.treeView.insert("", "end", name, values=[urls[1]], text=urls[2])
                 
             self.hasToolTip = True
         else: # unknown openType
@@ -322,7 +321,7 @@ class DialogOpenArchive(Toplevel):
                 epName = selection[0]
                 #index 0 is the remapped Url, as opposed to the canonical one used for display
                 # Greg Acsone reports [0] does not work for Corep 1.6 pkgs, need [1], old style packages
-                filename = self.taxonomyPackage["nameToUrls"][epName][0]
+                filename = self.taxonomyPackage["entryPoints"][epName][0]
                 if not filename.endswith("/"):
                     # check if it's an absolute URL rather than a path into the archive
                     if not isHttpUrl(filename) and self.metadataFilePrefix != self.taxonomyPkgMetaInf:
@@ -379,7 +378,7 @@ class DialogOpenArchive(Toplevel):
                         pass
             elif self.openType == ENTRY_POINTS:
                 try:
-                    epUrl = self.taxonomyPackage["nameToUrls"][tvRowId][1]
+                    epUrl = self.taxonomyPackage["entryPoints"][tvRowId][1]
                     text = "{0}\n{1}".format(tvRowId, epUrl)
                 except KeyError:
                     pass

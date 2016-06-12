@@ -152,6 +152,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
     if ns in ("http://xbrl.org/PWD/2015-01-14/taxonomy-package",
               "http://xbrl.org/PR/2015-12-09/taxonomy-package",
               "http://xbrl.org/WGWD/YYYY-MM-DD/taxonomy-package",
+              "http://xbrl.org/2016/taxonomy-package",
               "http://xbrl.org/REC/2016-04-19/taxonomy-package"):
         catalogFile = metadataFile.replace('taxonomyPackage.xml','catalog.xml')
         try:
@@ -190,8 +191,8 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
 
     pkg["remappings"] = remappings
 
-    nameToUrls = {}
-    pkg["nameToUrls"] = nameToUrls
+    entryPoints = {}
+    pkg["entryPoints"] = entryPoints
 
     for entryPointSpec in tree.iter(tag=nsPrefix + "entryPoint"):
         name = None
@@ -245,7 +246,22 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                         longestPrefix = prefixLength
             if longestPrefix:
                 remappedUrl = _remappedUrl.replace(os.sep, "/")  # always used as FileSource select
-            nameToUrls[name] = (remappedUrl, resolvedUrl)
+                
+            # find closest language description
+            closest = ''
+            closestLen = 0
+            for m in entryPointSpec.iterchildren(tag=nsPrefix + "description"):
+                s = (m.text or "").strip()
+                eltLang = xmlLang(m)
+                l = langCloseness(eltLang, currentLang)
+                if l > closestLen:
+                    closestLen = l
+                    closest = s
+                elif closestLen == 0 and eltLang.startswith("en"):
+                    closest = s   # pick english if nothing better
+            if not closest and name:  # assign default name when none in taxonomy package
+                closest = name
+            entryPoints[name] = (remappedUrl, resolvedUrl, closest)
 
     return pkg
 
