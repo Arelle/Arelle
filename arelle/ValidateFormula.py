@@ -225,6 +225,11 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
                 val.modelXbrl.error("seve:multipleSeveritiesForAssertionError",
                     _("Assertion-unsatisfied-severity relationship from %(xlinkLabel)s has more than one severity target"),
                      modelObject=[relFrom] + rels, xlinkLabel=relFrom.xlinkLabel)
+        for relTo, rels in relsSet.toModelObjects().items():
+            if relTo.modelDocument.basename != "severities.xml" or relTo.getparent().qname != XbrlConst.qnGenLink or relTo.getparent().getparent().qname != XbrlConst.qnLinkLinkbase:
+                val.modelXbrl.error("seve:assertionSeverityTargetError",
+                    _("Target of assertion-unsatisfied-severity relationship must be a severity element in the published severities linkbase."),
+                     modelObject=[relTo] + rels)
                 
 def executeCallTest(val, name, callTuple, testTuple):
     if callTuple:
