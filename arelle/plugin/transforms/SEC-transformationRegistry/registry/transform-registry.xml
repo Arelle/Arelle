@@ -1,0 +1,253 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="stylesheets/functionRegistry.xsl"?>
+<registry 
+  xmlns="http://xbrl.org/2008/registry"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xsi:schemaLocation="
+  http://xbrl.org/2008/registry schemas/registry.xsd
+  ">
+
+  <!-- Herm: added ixt-sec transforms 2015-08-23 -->
+  
+  <lastUpdated moment="2015-08-23T12:00:00"/>
+  
+  <name>SEC Inline XBRL Transform Registry</name>
+  
+  <documentation>
+    <xhtml:p>
+      This registry contains SEC transform declarations for iXBRL
+    </xhtml:p>
+  </documentation>
+  
+  <entry>
+    <added moment="2015-08-23T12:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-sec-duryear.xml"/>
+  </entry>
+ 
+  <entry>
+    <added moment="2015-08-23T12:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-sec-durmonth.xml"/>
+  </entry>
+ 
+  <entry>
+    <added moment="2015-08-23T12:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-sec-durweek.xml"/>
+  </entry>
+ 
+  <entry>
+    <added moment="2015-08-23T12:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-sec-durday.xml"/>
+  </entry>
+ 
+  <entry>
+    <added moment="2015-08-23T12:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-sec-durhour.xml"/>
+  </entry>
+ 
+  <!--  Below are the xii-transformationRegistry-v3 files
+        Please obtain the latest of the xii files from xbrl.org
+        For convenience they are repeated below but commented out
+        
+  <lastUpdated moment="2012-11-28T12:00:00"/>
+
+  <name>Inline XBRL Transform Registry</name>
+
+  <documentation>
+    <xhtml:p>
+      This registry contains sample transform declarations for iXBRL
+    </xhtml:p>
+  </documentation>
+  
+  <entry>
+    <added moment="2010-10-11T12:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-booleanfalse.xml"/>
+  </entry>
+  
+  <entry>
+    <added moment="2010-10-11T12:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-booleantrue.xml"/>
+  </entry>
+  
+  <entry>
+    <added moment="2012-11-28T12:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-calindaymonthyear.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2010-12-20T18:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-datedaymonth.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2012-05-15T18:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-datedaymonthdk.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2010-12-20T18:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-datedaymonthen.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2010-12-20T18:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-datedaymonthyear.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2012-05-15T18:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-datedaymonthyeardk.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2010-12-20T18:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-datedaymonthyearen.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2012-11-28T12:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-datedaymonthyearin.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2010-12-20T18:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-dateerayearmonthdayjp.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2010-12-20T18:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-dateerayearmonthjp.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2010-12-20T18:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-datemonthday.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2010-12-20T18:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-datemonthdayen.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2010-12-20T18:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-datemonthdayyear.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2010-12-20T18:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-datemonthdayyearen.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2012-11-28T12:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-datemonthyear.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2012-05-15T18:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-datemonthyeardk.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2010-12-20T18:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-datemonthyearen.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2012-11-28T12:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-datemonthyearin.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2010-12-20T18:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-dateyearmonthcjk.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2012-08-16T12:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-dateyearmonthday.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2010-12-20T18:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-dateyearmonthdaycjk.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2010-12-20T18:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-dateyearmonthen.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2010-10-11T14:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-nocontent.xml"/>
+  </entry>
+  <entry>
+    <added moment="2011-05-17T16:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-numcommadecimal.xml"/>
+  </entry>
+  
+  <entry>
+    <added moment="2011-05-17T16:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-numdotdecimal.xml"/>
+  </entry>
+  
+  <entry>
+    <added moment="2012-11-28T12:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-numdotdecimalin.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2011-05-17T16:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-numunitdecimal.xml"/>
+  </entry>
+
+  <entry>
+    <added moment="2012-11-28T12:00:00" />
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-numunitdecimalin.xml" />
+  </entry>
+
+  <entry>
+    <added moment="2011-06-17T10:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-zerodash.xml"/>
+  </entry>
+  -->
+</registry>

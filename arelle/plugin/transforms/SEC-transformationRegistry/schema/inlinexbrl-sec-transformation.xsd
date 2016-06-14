@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+  targetNamespace="http://www.sec.gov/inlineXBRL/transformation/2015-08-31" 
+  xmlns:ixt-sec="http://www.sec.gov/inlineXBRL/transformation/2015-08-31"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<!--
+     Duration year.
+-->
+  
+  <xs:simpleType name="duryearType">
+    <xs:annotation>
+      <xs:documentation>
+
+Duration years.
+
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:whiteSpace value="collapse" />
+      <xs:pattern value="[+\-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)"></xs:pattern>
+    </xs:restriction>
+  </xs:simpleType>
+  
+<!--
+     Duration month.
+-->
+  
+  <xs:simpleType name="durmonthType">
+    <xs:annotation>
+      <xs:documentation>
+
+Duration month.
+
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:whiteSpace value="collapse" />
+      <xs:pattern value="[+\-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)"></xs:pattern>
+    </xs:restriction>
+  </xs:simpleType>
+  
+<!--
+     Duration week.
+-->
+  
+  <xs:simpleType name="durweekType">
+    <xs:annotation>
+      <xs:documentation>
+
+Duration weeks.
+
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:whiteSpace value="collapse" />
+      <xs:pattern value="[+\-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)"></xs:pattern>
+    </xs:restriction>
+  </xs:simpleType>
+  
+<!--
+     Duration day.
+-->
+  
+  <xs:simpleType name="durdayType">
+    <xs:annotation>
+      <xs:documentation>
+
+Duration days.
+
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:whiteSpace value="collapse" />
+      <xs:pattern value="[+\-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)"></xs:pattern>
+    </xs:restriction>
+  </xs:simpleType>
+  
+<!--
+     Duration hour.
+-->
+  
+  <xs:simpleType name="durhourType">
+    <xs:annotation>
+      <xs:documentation>
+
+Duration hours.
+
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:whiteSpace value="collapse" />
+      <xs:pattern value="[+\-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)"></xs:pattern>
+    </xs:restriction>
+  </xs:simpleType>
+  
+
+<!--
+
+XBRL and XSLT QName placeholders
+
+The following are empty content elements in order to "hold" the QNames for the
+iXBRL Function Registry signatures, and corresponding XSLT 2.0 Function
+definitions.
+
+ -->
+
+  <xs:element name="duryear">
+    <xs:complexType />
+  </xs:element>
+
+  <xs:element name="durmonth">
+    <xs:complexType />
+  </xs:element>
+
+  <xs:element name="durweek">
+    <xs:complexType />
+  </xs:element>
+
+  <xs:element name="durday">
+    <xs:complexType />
+  </xs:element>
+  
+  <xs:element name="durhour">
+    <xs:complexType />
+  </xs:element>
+  
+</xs:schema>
