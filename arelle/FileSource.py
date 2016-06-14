@@ -580,7 +580,7 @@ def openFileStream(cntlr, filepath, mode='r', encoding=None):
     if archiveFilenameParts(filepath): # file is in an archive
         return openFileSource(filepath, cntlr).file(filepath, binary='b' in mode, encoding=encoding)[0]
     if isHttpUrl(filepath) and cntlr:
-        _cacheFilepath = cntlr.webCache.getfilename(filepath)
+        _cacheFilepath = cntlr.webCache.getfilename(filepath, normalize=True) # normalize is separate step in ModelDocument retrieval, combined here
         if _cacheFilepath is None:
             raise IOError(_("Unable to open file: {0}.").format(filepath))
         filepath = _cacheFilepath
