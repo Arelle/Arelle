@@ -865,6 +865,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             if selectTopView and topView:
                 topView.select()
             self.currentView = topView
+            currentAction = "plugin method CntlrWinMain.Xbrl.Loaded"
             for xbrlLoadedMethod in pluginClassMethods("CntlrWinMain.Xbrl.Loaded"):
                 xbrlLoadedMethod(self, modelXbrl, attach) # runs in GUI thread
         except Exception as err:
@@ -1226,7 +1227,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                               "\n   May include installable plug-in modules with author-specific license terms"
                               )
                             .format(self.__version__, self.systemWordSize, Version.version,
-                                    _("\n   Bottle \u00a9 2011-2013 Marcel Hellkamp") if self.hasWebServer else "",
+                                    _("\n   Bottle \u00a9 2011-2013 Marcel Hellkamp"
+                                      "\n   CherryPy \u00a9 2002-2013 CherryPy Team") if self.hasWebServer else "",
                                     sys.version_info, etree.LXML_VERSION, Tcl().eval('info patchlevel')
                                     ))
 
@@ -1440,6 +1442,18 @@ def main():
                 _tcltkDir = os.path.join(_resourcesDir, _tcltk + _tcltkVer)
                 if os.path.exists(_tcltkDir): 
                     os.environ[_tcltk.upper() + "_LIBRARY"] = _tcltkDir
+    elif sys.platform == 'win32':
+        if getattr(sys, 'frozen', False): # windows requires fake stdout/stderr because no write/flush (e.g., EdgarRenderer LocalViewer pybottle)
+            class dummyFrozenStream:
+                def __init__(self): pass
+                def write(self,data): pass
+                def read(self,data): pass
+                def flush(self): pass
+                def close(self): pass
+            sys.stdout = dummyFrozenStream()
+            sys.stderr = dummyFrozenStream()
+            sys.stdin = dummyFrozenStream()
+        
     global restartMain
     while restartMain:
         restartMain = False
