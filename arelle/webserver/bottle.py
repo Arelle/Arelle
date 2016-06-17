@@ -11,6 +11,9 @@ Homepage and documentation: http://bottlepy.org/
 
 Copyright (c) 2014, Marcel Hellkamp.
 License: MIT (see LICENSE for details)
+
+Modified by HF for more_headers on static_file 2016-06-17
+
 """
 
 from __future__ import with_statement
@@ -2460,7 +2463,8 @@ def _file_iter_range(fp, offset, bytes, maxread=1024 * 1024):
 def static_file(filename, root,
                 mimetype='auto',
                 download=False,
-                charset='UTF-8'):
+                charset='UTF-8',
+                more_headers=None): # added by HF
     """ Open a file in a safe way and return :exc:`HTTPResponse` with status
         code 200, 305, 403 or 404. The ``Content-Type``, ``Content-Encoding``,
         ``Content-Length`` and ``Last-Modified`` headers are set if possible.
@@ -2483,6 +2487,8 @@ def static_file(filename, root,
     root = os.path.abspath(root) + os.sep
     filename = os.path.abspath(os.path.join(root, filename.strip('/\\')))
     headers = dict()
+    if more_headers is not None:    # HF - add extra headers
+        headers.update(more_headers)
 
     if not filename.startswith(root):
         return HTTPError(403, "Access denied.")
