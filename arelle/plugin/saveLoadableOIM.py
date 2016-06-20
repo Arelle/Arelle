@@ -29,8 +29,6 @@ qnOimPeriodStartAspect = qname(nsOim, "oim:periodStart")
 qnOimPeriodEndAspect = qname(nsOim, "oim:periodEnd")
 qnOimEntityAspect = qname(nsOim, "oim:entity")
 qnOimUnitAspect = qname(nsOim, "oim:unit")
-qnOimUnitNumeratorsAspect = qname(nsOim, "oim:unitNumerators")
-qnOimUnitDenominatorsAspect = qname(nsOim, "oim:unitDenominators")
 
 ONE = Decimal(1)
 TEN = Decimal(10)
@@ -39,6 +37,34 @@ SCHEMA_LB_REFS = {qname("{http://www.xbrl.org/2003/linkbase}schemaRef"),
                   qname("{http://www.xbrl.org/2003/linkbase}linkbaseRef")}
 ROLE_REFS = {qname("{http://www.xbrl.org/2003/linkbase}roleRef"), 
              qname("{http://www.xbrl.org/2003/linkbase}arcroleRef")}
+
+baseTypes = {
+    "integer": "decimal",
+    "long": "decimal",
+    "int": "decimal",
+    "short": "decimal",
+    "byte": "decimal",
+    "nonNegativeInteger": "decimal",
+    "positiveInteger": "decimal",
+    "unsignedLong": "decimal",
+    "unsignedInt": "decimal",
+    "unsignedShort": "decimal",
+    "unsignedByte": "decimal",
+    "nonPositiveInteger": "decimal",
+    "negativeInteger": "decimal",
+    "normalizedString": "string",
+    "token": "string",
+    "language": "string",
+    "Name": "string",
+    "NMTOKEN": "string",
+    "xml": "string",
+    "html": "string",
+    "json": "string",
+    # xml schema 1.1 alias types supported by W3C metadata
+    "any": "anyAtomicType",
+    "binary": "base64Binary",
+    "datetime": "dataTime"         
+    }
 
 if sys.version[0] >= '3':
     csvOpenMode = 'w'
@@ -51,8 +77,13 @@ def saveLoadableOIM(modelXbrl, oimFile):
     
     isJSON = oimFile.endswith(".json")
     isCSV = oimFile.endswith(".csv")
+    isXL = oimFile.endswith(".xlsx")
+    isCSVorXL = isCSV or isXL
+    if not isJSON and not isCSVorXL:
+        return
 
     namespacePrefixes = {}
+    prefixNamespaces = {}
     def compileQname(qname):
         if qname.namespaceURI not in namespacePrefixes:
             namespacePrefixes[qname.namespaceURI] = qname.prefix or ""
@@ -62,7 +93,7 @@ def saveLoadableOIM(modelXbrl, oimFile):
         qnOimEntityAspect}
     if isJSON:
         aspectsDefined.add(qnOimPeriodAspect)
-    elif isCSV:
+    elif isCSVorXL:
         aspectsDefined.add(qnOimPeriodStartAspect)
         aspectsDefined.add(qnOimPeriodEndAspect)
             
@@ -111,32 +142,34 @@ def saveLoadableOIM(modelXbrl, oimFile):
     hasTuple = False
     hasType = True
     hasLang = False
-    hasUnits = False      
-    hasUnitMulMeasures = False
-    hasUnitDivMeasures = False
+    hasUnits = False   
     
     footnotesRelationshipSet = ModelRelationshipSet(modelXbrl, "XBRL-footnotes")
+    factBaseTypes = set()
             
     #compile QNames in instance for OIM
     for fact in modelXbrl.factsInInstance:
         if (fact.id or fact.isTuple or 
             footnotesRelationshipSet.toModelObject(fact) or
-            (isCSV and footnotesRelationshipSet.fromModelObject(fact))):
+            (isCSVorXL and footnotesRelationshipSet.fromModelObject(fact))):
             hasId = True
         concept = fact.concept
         if concept is not None:
             if concept.baseXbrliType in ("string", "normalizedString", "token") and fact.xmlLang:
                 hasLang = True
+            _baseXsdType = concept.baseXsdType
+            if _baseXsdType == "XBRLI_DATEUNION":
+                if getattr(fact.xValue, "dateOnly", False):
+                    _baseXsdType = "date"
+                else:
+                    _baseXsdType = "dateTime"
+            factBaseTypes.add(baseTypes.get(_baseXsdType,_baseXsdType))
         compileQname(fact.qname)
         if hasattr(fact, "xValue") and isinstance(fact.xValue, QName):
             compileQname(fact.xValue)
         unit = fact.unit
         if unit is not None:
             hasUnits = True
-            if unit.measures[0]:
-                hasUnitMulMeasures = True
-            if unit.measures[1]:
-                hasUnitDivMeasures = True
         if fact.modelTupleFacts:
             hasTuple = True
             
@@ -167,10 +200,6 @@ def saveLoadableOIM(modelXbrl, oimFile):
             for measures in unit.measures:
                 for measure in measures:
                     compileQname(measure)
-            if unit.measures[0]:
-                aspectsDefined.add(qnOimUnitNumeratorsAspect)
-            if unit.measures[1]:
-                aspectsDefined.add(qnOimUnitDenominatorsAspect)
                     
     if XbrlConst.xbrli in namespacePrefixes and namespacePrefixes[XbrlConst.xbrli] != "xbrli":
         namespacePrefixes[XbrlConst.xbrli] = "xbrli" # normalize xbrli prefix
@@ -232,7 +261,7 @@ def saveLoadableOIM(modelXbrl, oimFile):
             footnote = OrderedDict((("group", footnoteRel.linkrole),
                                     ("footnoteType", footnoteRel.arcrole)))
             footnotes.append(footnote)
-            if isCSV:
+            if isCSVorXL:
                 footnote["factId"] = fact.id if fact.id else "f{}".format(fact.objectIndex)
             toObj = footnoteRel.toModelObject
             if isinstance(toObj, ModelFact):
@@ -249,10 +278,11 @@ def saveLoadableOIM(modelXbrl, oimFile):
             aspects["id"] = fact.id
         elif (fact.isTuple or 
               footnotesRelationshipSet.toModelObject(fact) or
-              (isCSV and footnotesRelationshipSet.fromModelObject(fact))):
+              (isCSVorXL and footnotesRelationshipSet.fromModelObject(fact))):
             aspects["id"] = "f{}".format(fact.objectIndex)
         parent = fact.getparent()
         concept = fact.concept
+        _csvType = "Value"
         if not fact.isTuple:
             if concept is not None:
                 _baseXsdType = concept.baseXsdType
@@ -262,6 +292,7 @@ def saveLoadableOIM(modelXbrl, oimFile):
                     else:
                         _baseXsdType = "dateTime"
                 aspects["baseType"] = "xs:{}".format(_baseXsdType)
+                _csvType = baseTypes.get(_baseXsdType,_baseXsdType) + "Value"
                 if concept.baseXbrliType in ("string", "normalizedString", "token") and fact.xmlLang:
                     aspects[qnOimLangAspect] = fact.xmlLang
         if fact.isItem:
@@ -272,7 +303,7 @@ def saveLoadableOIM(modelXbrl, oimFile):
                 _inferredDecimals = inferredDecimals(fact)
                 _value = oimValue(fact.xValue, _inferredDecimals)
                 _strValue = str(_value)
-            if not isCSV:
+            if not isCSVorXL:
                 aspects["value"] = _strValue
             if fact.concept is not None and fact.concept.isNumeric:
                 _numValue = fact.xValue
@@ -281,18 +312,21 @@ def saveLoadableOIM(modelXbrl, oimFile):
                         _numValue = int(_numValue)
                     else:
                         _numValue = float(_numValue)
-                aspects["numericValue"] = _numValue
+                if isCSVorXL:
+                    aspects[_csvType] = _numValue
+                else:
+                    aspects["numericValue"] = _numValue
                 if not fact.isNil:
                     if isinf(_inferredDecimals):
                         if isJSON: _accuracy = "infinity"
-                        elif isCSV: _accuracy = "INF"
+                        elif isCSVorXL: _accuracy = "INF"
                     else:
                         _accuracy = _inferredDecimals
                     aspects["accuracy"] = _accuracy
             elif isinstance(_value, bool):
                 aspects["booleanValue"] = _value
-            elif isCSV:
-                aspects["stringValue"] = _strValue
+            elif isCSVorXL:
+                aspects[_csvType] = _strValue
         aspects[qnOimConceptAspect] = oimValue(fact.qname)
         cntx = fact.context
         if cntx is not None:
@@ -301,7 +335,7 @@ def saveLoadableOIM(modelXbrl, oimFile):
             if cntx.period is not None:
                 if isJSON:
                     aspects[qnOimPeriodAspect] = oimPeriodValue(cntx)
-                elif isCSV:
+                elif isCSVorXL:
                     _periodValue = oimPeriodValue(cntx)
                     aspects[qnOimPeriodStartAspect] = _periodValue["start"]
                     aspects[qnOimPeriodEndAspect] = _periodValue["end"]
@@ -312,19 +346,22 @@ def saveLoadableOIM(modelXbrl, oimFile):
         unit = fact.unit
         if unit is not None:
             _mMul, _mDiv = unit.measures
-            if isJSON:
-                aspects[qnOimUnitAspect] = OrderedDict( # use tuple instead of list for hashability
-                    (("numerators", tuple(oimValue(m) for m in sorted(_mMul, key=lambda m: oimValue(m)))),)
-                )
-                if _mDiv:
-                    aspects[qnOimUnitAspect]["denominators"] = tuple(oimValue(m) for m in sorted(_mDiv, key=lambda m: oimValue(m)))
-            else: # CSV
-                if _mMul:
-                    aspects[qnOimUnitNumeratorsAspect] = " ".join(oimValue(m)
-                                                                  for m in sorted(_mMul, key=lambda m: str(m)))
-                if _mDiv:
-                    aspects[qnOimUnitDenominatorsAspect] = " ".join(oimValue(m)
-                                                                    for m in sorted(_mDiv, key=lambda m: str(m)))
+            _sMul = '*'.join(oimValue(m) for m in sorted(_mMul, key=lambda m: str(m)))
+            if _mDiv:
+                _sDiv = '*'.join(oimValue(m) for m in sorted(_mDiv, key=lambda m: str(m)))
+                if len(mDiv) > 1:
+                    if len(mMul) > 1:
+                        _sUnit = "({})/({})".format(_sMul,_sDiv)
+                    else:
+                        _sUnit = "{}/({})".format(_sMul,_sDiv)
+                else:
+                    if len(mMul) > 1:
+                        _sUnit = "({})/{}".format(_sMul,_sDiv)
+                    else:
+                        _sUnit = "{}/{}".format(_sMul,_sDiv)
+            else:
+                _sUnit = _sMul
+            aspects[qnOimUnitAspect] = _sUnit
         if parent.qname != XbrlConst.qnXbrliXbrl:
             aspects[qnOimTupleParentAspect] = parent.id if parent.id else "f{}".format(parent.objectIndex)
             aspects[qnOimTupleOrderAspect] = elementIndex(fact)
@@ -358,7 +395,7 @@ def saveLoadableOIM(modelXbrl, oimFile):
         with open(oimFile, "w", encoding="utf-8") as fh:
             fh.write(json.dumps(oimReport, ensure_ascii=False, indent=1, sort_keys=False))
 
-    elif isCSV:
+    elif isCSVorXL:
         # save CSV
         
         aspectQnCol = {}
@@ -371,41 +408,48 @@ def saveLoadableOIM(modelXbrl, oimFile):
             aspectsHeader.append(_colName)
             _colDataType = {"id": "Name",
                             "baseType": "Name",
-                            "oim:concept": "Name",
+                            "oim:concept": "QName",
                             "oim:periodStart": "dateTime",
                             "oim:periodEnd": "dateTime",
                             "oim:tupleOrder": "integer",
                             "numericValue": "decimal",
                             "accuracy": "decimal",
                             "booleanValue": "boolean",
-                            "oim:unitNumerators": OrderedDict((("base","Name"), ("separator"," "))), 
-                            "oim:unitDenominators": OrderedDict((("base","Name"), ("separator"," "))),
-                            }.get(_colName, "string")
+                            "oim:entity": "QName",
+                            "oim:unit": "string"
+                            }.get(_colName)
+            if _colDataType is None:
+                if isCSVorXL and _colName.endswith("Value"):
+                    _colDataType = _colName[:-5]
+                else:
+                    _colDataType = "string"
             factsColumns.append(OrderedDict((("name", _colName),
                                              ("datatype", _colDataType))))
             
         # pre-ordered aspect columns
         if hasId:
             addAspectQnCol("id")
+        addAspectQnCol(qnOimConceptAspect)
         if hasType:
             addAspectQnCol("baseType")
-        addAspectQnCol("stringValue")
-        addAspectQnCol("numericValue")
+        if isCSVorXL:
+            for _baseType in sorted(factBaseTypes):
+                addAspectQnCol(_baseType + "Value")
+        else:
+            addAspectQnCol("stringValue")
+            addAspectQnCol("numericValue")
+            addAspectQnCol("booleanValue")
         addAspectQnCol("accuracy")
-        addAspectQnCol("booleanValue")
         if hasTuple:
             addAspectQnCol(qnOimTupleParentAspect)
             addAspectQnCol(qnOimTupleOrderAspect)
-        addAspectQnCol(qnOimConceptAspect)
         if qnOimEntityAspect in aspectsDefined:
             addAspectQnCol(qnOimEntityAspect)
         if qnOimPeriodStartAspect in aspectsDefined:
             addAspectQnCol(qnOimPeriodStartAspect)
             addAspectQnCol(qnOimPeriodEndAspect)
-        if qnOimUnitNumeratorsAspect in aspectsDefined:
-            addAspectQnCol(qnOimUnitNumeratorsAspect)
-        if qnOimUnitDenominatorsAspect in aspectsDefined:
-            addAspectQnCol(qnOimUnitDenominatorsAspect)
+        if qnOimUnitAspect in aspectsDefined:
+            addAspectQnCol(qnOimUnitAspect)
         for aspectQn in sorted(aspectsDefined, key=lambda qn: str(qn)):
             if aspectQn.namespaceURI != nsOim:
                 addAspectQnCol(aspectQn) 
@@ -423,81 +467,136 @@ def saveLoadableOIM(modelXbrl, oimFile):
         csvMetadata = OrderedDict((("@context",[ "http://www.w3.org/ns/csvw", { "@base": "./" }]),
                                    ("tables", csvTables)))
         
-        if oimFile.endswith("-facts.csv"): # strip -facts.csv if a prior -facts.csv file was chosen
-            _baseURL = oimFile[:-10]
-        elif oimFile.endswith(".csv"):
-            _baseURL = oimFile[:-4]
-        else:
-            _baseURL = oimFile
+        _open = _writerow = _close = None
+        _tableinfo = {}
+        if isCSV:
+            if oimFile.endswith("-facts.csv"): # strip -facts.csv if a prior -facts.csv file was chosen
+                _baseURL = oimFile[:-10]
+            elif oimFile.endswith(".csv"):
+                _baseURL = oimFile[:-4]
+            else:
+                _baseURL = oimFile
+            _csvinfo = {} # open file, writer
+            def _open(filesuffix, tabname):
+                _filename = _tableinfo["url"] = _baseURL + filesuffix
+                _csvinfo["file"] = open(_filename, csvOpenMode, newline=csvOpenNewline, encoding='utf-8-sig')
+                _csvinfo["writer"] = csv.writer(csvFile, dialect="excel")
+            def _writerow(row, header=False):
+                _csvinfo["writer"].writerow(row)
+            def _close():
+                _csvinfo["writer"].close()
+                _csvinfo.clear()
+        elif isXL:
+            headerWidths = {"href": 100, "oim:concept": 70, "accuracy": 8, "baseType": 10, "language": 9, "URI": 80,
+                            "stringValue": 60, "decimalValue": 12, "booleanValue": 12, "dateValue": 12, "dateTimeValue": 20,
+                            "group": 60, "footnoteType": 40, "footnote": 70, "column": 60}
+            from openpyxl import Workbook
+            from openpyxl.writer.write_only import WriteOnlyCell
+            from openpyxl.styles import Font, PatternFill, Border, Alignment, Color, fills, Side
+            from openpyxl.worksheet.dimensions import ColumnDimension
+            hdrCellFill = PatternFill(patternType=fills.FILL_SOLID, fgColor=Color("00FFBF5F")) # Excel's light orange fill color = 00FF990
+            workbook = Workbook(encoding="utf-8", write_only=True)
+            _xlinfo = {} # open file, writer
+            def _open(filesuffix, tabname):
+                _tableinfo["url"] = tabname
+                _xlinfo["ws"] = workbook.create_sheet(title=tabname)
+            def _writerow(rowvalues, header=False):
+                row = []
+                _ws = _xlinfo["ws"]
+                for i, v in enumerate(rowvalues):
+                    cell = WriteOnlyCell(_ws, value=v)
+                    if header:
+                        cell.fill = hdrCellFill
+                        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+                        colLetter = chr(ord('A') + i)
+                        _ws.column_dimensions[colLetter] = ColumnDimension(_ws, customWidth=True)
+                        _ws.column_dimensions[colLetter].width = headerWidths.get(v, 20)                                   
+
+                    else:
+                        cell.alignment = Alignment(horizontal="right" if isinstance(v, _NUM_TYPES)
+                                                   else "center" if isinstance(v, bool)
+                                                   else "left", 
+                                                   vertical="top",
+                                                   wrap_text=isinstance(v, str))
+                    row.append(cell)
+                _ws.append(row)
+            def _close():
+                _xlinfo.clear()
+
         
         # save facts
-        _factsFile = _baseURL + "-facts.csv"
-        csvFile = open(_factsFile, csvOpenMode, newline=csvOpenNewline, encoding='utf-8-sig')
-        csvWriter = csv.writer(csvFile, dialect="excel")
-        csvWriter.writerow(aspectsHeader)
+        _open("-facts.csv", "facts")
+        _writerow(aspectsHeader, header=True)
         
         def saveCSVfacts(facts):
             for fact in facts:
-                csvWriter.writerow(aspectCols(fact))
+                _writerow(aspectCols(fact))
                 saveCSVfacts(fact.modelTupleFacts)
         saveCSVfacts(modelXbrl.facts)
-        csvFile.close()
+        _close()
         factsTableSchema = OrderedDict((("columns",factsColumns),))
-        csvTables.append(OrderedDict((("url",os.path.basename(_factsFile)),
+        csvTables.append(OrderedDict((("url",_tableinfo["url"]),
                                       ("tableSchema",factsTableSchema))))
         
         # save namespaces
-        _nsFile = _baseURL + "-prefixes.csv"
-        csvFile = open(_nsFile, csvOpenMode, newline=csvOpenNewline, encoding='utf-8-sig')
-        csvWriter = csv.writer(csvFile, dialect="excel")
-        csvWriter.writerow(("prefix", "URI"))
+        _open("-prefixes.csv", "prefixes")
+        _writerow(("prefix", "URI"), header=True)
         for _URI, prefix in sorted(namespacePrefixes.items(), key=lambda item: item[1]):
-            csvWriter.writerow((prefix, _URI))
-        csvFile.close()
-        nsTableSchema = OrderedDict((("columns",[OrderedDict((("prefix","string"),
-                                                              ("URI","anyURI")))]),))
-        csvTables.append(OrderedDict((("url",os.path.basename(_nsFile)),
+            _writerow((prefix, _URI))
+        _close()
+        nsTableSchema = OrderedDict((("columns",[OrderedDict((("name","prefix"),("datatype","Name"))),
+                                                 OrderedDict((("name","URI"),("datatype","anyURI")))]),))
+        csvTables.append(OrderedDict((("url",_tableinfo["url"]),
                                       ("tableSchema",nsTableSchema))))
         
         # save dts references
-        _dtsRefFile = _baseURL + "-dtsReferences.csv"
-        csvFile = open(_dtsRefFile, csvOpenMode, newline=csvOpenNewline, encoding='utf-8-sig')
-        csvWriter = csv.writer(csvFile, dialect="excel")
-        csvWriter.writerow(("type", "href"))
+        _open("-dtsReferences.csv", "dtsReferences")
+        _writerow(("type", "href"), header=True)
         for oimRef in dtsReferences:
-            csvWriter.writerow((oimRef["type"], oimRef["href"]))
-        csvFile.close()
-        dtsRefTableSchema = OrderedDict((("columns",[OrderedDict((("type","string"),
-                                                              ("href","anyURI")))]),))
-        csvTables.append(OrderedDict((("url",os.path.basename(_dtsRefFile)),
+            _writerow((oimRef["type"], oimRef["href"]))
+        _close()
+        dtsRefTableSchema = OrderedDict((("columns",[OrderedDict((("name","type"),("datatype","Name"))),
+                                                     OrderedDict((("name","href"),("datatype","anyURI")))]),))
+        csvTables.append(OrderedDict((("url",_tableinfo["url"]),
                                       ("tableSchema",dtsRefTableSchema))))
         
         # save footnotes
         if footnotesRelationshipSet.modelRelationships:
-            _footnoteFile = oimFile.replace(".csv", "-footnotes.csv")
-            csvFile = open(_footnoteFile, csvOpenMode, newline=csvOpenNewline, encoding='utf-8-sig')
-            csvWriter = csv.writer(csvFile, dialect="excel")
+            _open("-footnotes.csv", "footnotes")
             cols = ("group", "footnoteType", "factId", "factRef", "footnote", "language")
-            csvWriter.writerow(cols)
+            _writerow(cols, header=True)
             def saveCSVfootnotes(facts):
                 for fact in facts:
                     for _footnote in factFootnotes(fact):
-                        csvWriter.writerow(tuple((_footnote.get(col,"") for col in cols)))
+                        _writerow(tuple((_footnote.get(col,"") for col in cols)))
                         saveCSVfootnotes(fact.modelTupleFacts)
             saveCSVfootnotes(modelXbrl.facts)
-            csvFile.close()
-            footnoteTableSchema = OrderedDict((("columns",[OrderedDict((("group","anyURI"),
-                                                                        ("footnoteType","Name"),
-                                                                        ("factId","Name"),
-                                                                        ("factRef","Name"),
-                                                                        ("footnote","string"),
-                                                                        ("language","language")))]),))
-            csvTables.append(OrderedDict((("url",os.path.basename(_footnoteFile)),
+            _close()
+            footnoteTableSchema = OrderedDict((("columns",[OrderedDict((("name","group"),("datatype","anyURI"))),
+                                                           OrderedDict((("name","footnoteType"),("datatype","Name"))),
+                                                           OrderedDict((("name","factId"),("datatype","Name"))),
+                                                           OrderedDict((("name","factRef"),("datatype","Name"))),
+                                                           OrderedDict((("name","footnote"),("datatype","string"))),
+                                                           OrderedDict((("name","language"),("datatype","language")))]),))
+            csvTables.append(OrderedDict((("url",_tableinfo["url"]),
                                           ("tableSchema",footnoteTableSchema))))
             
         # save metadata
-        with open(_baseURL + "-metadata.csv", "w", encoding="utf-8") as fh:
-            fh.write(json.dumps(csvMetadata, ensure_ascii=False, indent=1, sort_keys=False))
+        if isCSV:
+            with open(_baseURL + "-metadata.csv", "w", encoding="utf-8") as fh:
+                fh.write(json.dumps(csvMetadata, ensure_ascii=False, indent=1, sort_keys=False))
+        elif isXL:
+            _open(None, "metadata")
+            cols = ("group", "footnoteType", "factId", "factRef", "footnote", "language")
+            _writerow(("table", "column", "datatype"), header=True)
+            for table in csvTables:
+                tablename = table["url"]
+                for column in table["tableSchema"]["columns"]:
+                    _writerow((tablename, column["name"], column["datatype"]))
+            _close()
+                
+        if isXL:
+            workbook.save(oimFile)
 
 def saveLoadableOIMMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
@@ -514,7 +613,7 @@ def saveLoadableOIMMenuCommand(cntlr):
     oimFile = cntlr.uiFileDialog("save",
             title=_("arelle - Save Loadable OIM file"),
             initialdir=cntlr.config.setdefault("loadableExcelFileDir","."),
-            filetypes=[(_("JSON file .json"), "*.json"), (_("CSV file .csv"), "*.csv")],
+            filetypes=[(_("JSON file .json"), "*.json"), (_("CSV file .csv"), "*.csv"), (_("XLSX file .xlsx"), "*.xlsx")],
             defaultextension=".json")
     if not oimFile:
         return False
@@ -535,7 +634,7 @@ def saveLoadableOIMCommandLineOptionExtender(parser, *args, **kwargs):
     parser.add_option("--saveLoadableOIM", 
                       action="store", 
                       dest="saveLoadableOIM", 
-                      help=_("Save Loadable OIM file (JSON or CSV)"))
+                      help=_("Save Loadable OIM file (JSON, CSV or XLSX)"))
 
 def saveLoadableOIMCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
@@ -545,12 +644,15 @@ def saveLoadableOIMCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs
             modelXbrl.modelDocument.type not in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL)):
             cntlr.addToLog("No XBRL instance has been loaded.")
             return
-        saveLoadableOIM(modelXbrl, oimFile)
+        try:
+            saveLoadableOIM(modelXbrl, oimFile)
+        except Exception as ex:
+            cntlr.addToLog("Exception saving OIM {}".format(ex))
 
 __pluginInfo__ = {
     'name': 'Save Loadable OIM',
     'version': '0.9',
-    'description': "This plug-in saves XBRL in OIM JSON or CSV that can be re-loaded per se.",
+    'description': "This plug-in saves XBRL in OIM JSON, CSV or XLSX that can be re-loaded per se.",
     'license': 'Apache-2',
     'author': 'Mark V Systems Limited',
     'copyright': '(c) Copyright 2015 Mark V Systems Limited, All rights reserved.',
