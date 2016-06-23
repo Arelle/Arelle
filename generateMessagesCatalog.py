@@ -4,7 +4,7 @@ Created on Aug 26, 2012
 @author: Mark V Systems Limited
 (c) Copyright 2012 Mark V Systems Limited, All rights reserved.
 '''
-import os, time, io, ast
+import os, time, io, ast, sys, traceback
 
 def entityEncode(arg):  # be sure it's a string, vs int, etc, and encode &, <, ".
     return str(arg).replace("&","&amp;").replace("<","&lt;").replace('"','&quot;')
@@ -104,8 +104,9 @@ if __name__ == "__main__":
     lines = []
     for id,msg,level,args,module,line in idMsg:
         try:
-            if args:
-                argAttr = "\n         args=\"{0}\"".format(entityEncode(" ".join(args)))
+            if args and any(isinstance(arg,str) for arg in args):
+                argAttr = "\n         args=\"{0}\"".format(
+                            entityEncode(" ".join(arg for arg in args if arg is not None)))
             else:
                 argAttr = ""
             lines.append("<message code=\"{0}\"\n         level=\"{3}\"\n         module=\"{4}\" line=\"{5}\"{2}>\n{1}\n</message>"
@@ -117,7 +118,7 @@ if __name__ == "__main__":
                               line))
         except Exception as ex:
             print(ex)
-
+            print("traceback {}".format(traceback.format_tb(sys.exc_info()[2])))
     os.makedirs(arelleSrcPath + os.sep + "doc", exist_ok=True)
     with io.open(arelleSrcPath + os.sep + "doc" + os.sep + "messagesCatalog.xml", 'wt', encoding='utf-8') as f:
         f.write(
