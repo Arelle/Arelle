@@ -92,9 +92,9 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         
     # don't try reloading if not loadable
     
-    if any(pluginMethod(modelXbrl, mappedUri, normalizedUri, isEntry=isEntry, namespace=namespace, **kwargs)
-           for pluginMethod in pluginClassMethods("ModelDocument.IsPullLoadable")):
-        filePath = normalizedUri
+    isPullLoadable = any(pluginMethod(modelXbrl, mappedUri, normalizedUri, isEntry=isEntry, namespace=namespace, **kwargs)
+                         for pluginMethod in pluginClassMethods("ModelDocument.IsPullLoadable"))
+    
     if modelXbrl.fileSource.isInArchive(mappedUri):
         filepath = mappedUri
     else:
@@ -114,9 +114,9 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             modelXbrl.urlUnloadableDocs[normalizedUri] = True # always blocked if not loadable on this error
         return None
     
-    if filepath.endswith(".xlsx") or filepath.endswith(".xls"):
+    if not isPullLoadable and os.path.splitext(filepath)[1] in (".xlsx", ".xls", ".csv", ".json"):
         modelXbrl.error("FileNotLoadable",
-                _("File can not be loaded, requires loadFromExcel plug-in: %(fileName)s"),
+                _("File can not be loaded, requires loadFromExcel or loadFromOIM plug-in: %(fileName)s"),
                 modelObject=referringElement, fileName=normalizedUri)
         return None
     
