@@ -136,9 +136,8 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                     errElt = elt.elementQname
                 modelXbrl.error("xmlSchema:nilNonNillableElement",
                     _("Element %(element)s fact %(fact)s type %(typeName)s is nil but element has not been defined nillable"),
-                    modelObject=elt, element=errElt, fact=elt.qname, transform=elt.format,
-                    typeName=modelConcept.baseXsdType if modelConcept is not None else "unknown",
-                    value=XmlUtil.innerText(elt, ixExclude=True))
+                    modelObject=elt, element=errElt, fact=elt.qname, 
+                    typeName=modelConcept.baseXsdType if modelConcept is not None else "unknown")
             try:
                 if isAbstract:
                     raise ValueError("element is abstract")
