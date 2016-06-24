@@ -116,9 +116,9 @@ def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
                         header = dict((col,i) for i,col in enumerate(row))
                     else:
                         prefixes[row[header["prefix"]]] = row[header["URI"]]
-            currentAction = "loading CSV defaults table"
             defaults = {}
             if os.path.exists(oimFileBase + "-defaults.csv"):
+                currentAction = "loading CSV defaults table"
                 with io.open(oimFileBase + "-defaults.csv", 'rt', encoding='utf-8-sig') as f:
                     csvReader = csv.reader(f)
                     for i, row in enumerate(csvReader):
@@ -133,6 +133,7 @@ def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
             for filename in os.listdir(_dir):
                 filepath = os.path.join(_dir, filename)
                 if "-facts" in filename and filepath.startswith(oimFileBase):
+                    currentAction = "loading CSV facts table {}".format(filename)
                     tableDefaults = defaults.get(filename, {})
                     with io.open(filepath, 'rt', encoding='utf-8-sig') as f:
                         csvReader = csv.reader(f)
@@ -144,14 +145,16 @@ def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
                                 fact.update(tableDefaults)
                                 for j, col in enumerate(row):
                                     if col is not None:
-                                        if header[j].endswith("Value"):
-                                            if col: # ignore empty columns (= null CSV value)
-                                                fact["value"] = col
-                                        else:
-                                            fact[header[j]] = col
+                                        if header[j]: # skip cols with no header
+                                            if header[j].endswith("Value"):
+                                                if col: # ignore empty columns (= null CSV value)
+                                                    fact["value"] = col
+                                            else:
+                                                fact[header[j]] = col
                                 facts.append(fact)
             footnotes = []
             if os.path.exists(oimFileBase + "-footnotes.csv"):
+                currentAction = "loading CSV footnotes table"
                 with io.open(oimFileBase + "-footnotes.csv", 'rt', encoding='utf-8-sig') as f:
                     csvReader = csv.reader(f)
                     for i, row in enumerate(csvReader):
@@ -160,6 +163,7 @@ def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
                         else:
                             footnotes.append(dict((header[j], col) for j, col in enumerate(row) if col))
         elif isXL:
+            currentAction = "identifying workbook input worksheets"
             oimWb = load_workbook(oimFile, read_only=True, data_only=True)
             sheetNames = oimWb.get_sheet_names()
             if (not any(sheetName == "prefixes" for sheetName in sheetNames) or
@@ -167,56 +171,62 @@ def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
                 not any("facts" in sheetName for sheetName in sheetNames)):
                 if priorCWD: os.chdir(priorCWD)
                 return None
-            try:
-                dtsReferences = []
-                for i, row in oimWb["dtsReferences"]:
-                    if i == 0:
-                        header = [col.value for col in row]
-                    else:
-                        dtsReferences.append(dict((header[j], col.value) for j, col in enumerate(row)))
-                prefixes = {}
-                for i, row in oimWb["dtsReferences"]:
-                    if i == 0:
-                        header = dict((col.value,i) for i,col in enumerate(row))
-                    else:
-                        prefixes[row[header["prefix"]].value] = row[header["URI"].value]
-                defaults = {}
-                for i, row in oimW.get("defaults", ()):
+            currentAction = "loading worksheet: dtsReferences"
+            dtsReferences = []
+            for i, row in enumerate(oimWb["dtsReferences"]):
+                if i == 0:
+                    header = [col.value for col in row]
+                else:
+                    dtsReferences.append(dict((header[j], col.value) for j, col in enumerate(row)))
+            currentAction = "loading worksheet: prefixes"
+            prefixes = {}
+            for i, row in enumerate(oimWb["prefixes"]):
+                if i == 0:
+                    header = dict((col.value,i) for i,col in enumerate(row))
+                else:
+                    prefixes[row[header["prefix"]].value] = row[header["URI"]].value
+            defaults = {}
+            if "defaults" in sheetNames:
+                currentAction = "loading worksheet: defaults"
+                for i, row in enumerate(oimWb["defaults"]):
                     if i == 0:
                         header = dict((col.value,i) for i,col in enumerate(row))
                         fileCol = header["file"]
                     else:
                         defaults[row[fileCol].value] = dict((header[j], col.value) for j, col in enumerate(row) if j != fileCol)
-                facts = []
-                _dir = os.path.dirpart(oimFileBase)
-                for sheetName in sheetNames:
-                    if sheetName == "facts" or "-facts" in sheetName:
-                        for i, row in oimWb[sheetName]:
-                            if i == 0:
-                                header = [col.value for col in row]
-                            else:
-                                fact = {}
-                                fact.update(tableDefaults)
-                                for j, col in enumerate(row):
-                                    if col.value is not None:
+            facts = []
+            for sheetName in sheetNames:
+                if sheetName == "facts" or "-facts" in sheetName:
+                    currentAction = "loading worksheet: {}".format(sheetName)
+                    tableDefaults = defaults.get(sheetName, {})
+                    for i, row in enumerate(oimWb[sheetName]):
+                        if i == 0:
+                            header = [col.value for col in row]
+                        else:
+                            fact = {}
+                            fact.update(tableDefaults)
+                            for j, col in enumerate(row):
+                                if col.value is not None:
+                                    if header[j]: # skip cols with no header
                                         if header[j].endswith("Value"):
                                             fact["value"] = str(col.value)
                                         else:
                                             fact[header[j]] = str(col.value)
-                                facts.append(fact)
-                footnotes = []
-                for i, row in oimWb.get("footnotes", ()):
+                            facts.append(fact)
+            footnotes = []
+            if "footnotes" in sheetNames:
+                currentAction = "loading worksheet: footnotes"
+                for i, row in enumerate(oimWb["footnotes"]):
                     if i == 0:
                         header = dict((col.value,i) for i,col in enumerate(row) if col.value)
                     else:
                         footnotes.append(dict((header[j], col.value) for j, col in enumerate(row) if col.value))
-            except Exception as ex:
-                if priorCWD: os.chdir(priorCWD)
-                return None
     
+        currentAction = "identifying default dimensions"
         ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl) # needs dimension defaults 
             
         # create the instance document
+        currentAction = "creating instance document"
         modelXbrl.blockDpmDBrecursion = True
         modelXbrl.modelDocument = createModelDocument(
               modelXbrl, 
@@ -228,6 +238,7 @@ def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
               documentEncoding="utf-8")
         cntxTbl = {}
         unitTbl = {}
+        currentAction = "creating facts"
         for fact in facts:
             conceptQn = qname(fact["oim:concept"], prefixes)
             concept = modelXbrl.qnameConcepts.get(conceptQn)
@@ -252,7 +263,7 @@ def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
                 cntxId = 'c-{:02}'.format(len(cntxTbl) + 1)
                 qnameDims = {}
                 for dimName, dimVal in fact.items():
-                    if ":" in dimName and not dimName.startswith("oim:"):
+                    if ":" in dimName and not dimName.startswith("oim:") and dimVal:
                         dimQname = qname(dimName, prefixes)
                         dimConcept = modelXbrl.qnameConcepts.get(dimQname)
                         if ":" in dimVal and dimVal.partition[':'][0] in prefixes:
@@ -265,7 +276,7 @@ def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
                                         entityAsQn.namespaceURI,
                                         entityAsQn.localName,
                                         concept.periodType,
-                                        None if concept.periodType == "instnat" else dateTime(periodStart, type=DATETIME),
+                                        None if concept.periodType == "instant" else dateTime(periodStart, type=DATETIME),
                                         dateTime(periodEnd, type=DATETIME),
                                         None, # no dimensional validity checking (like formula does)
                                         qnameDims, [], [],
@@ -315,6 +326,7 @@ def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
     
             f = modelXbrl.createFact(conceptQn, attributes=attrs, text=text)
             
+        currentAction = "creating footnotes"
         footnoteLinks = {} # ELR elements
         factLocs = {} # index by (linkrole, factId)
         footnoteNbr = 0
@@ -377,6 +389,7 @@ def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
                                                    XLINKFROM: locLabel,
                                                    XLINKTO: footnoteLabel})
                     
+        currentAction = "done loading facts and footnotes"
         
         #cntlr.addToLog("Completed in {0:.2} secs".format(time.time() - startedAt),
         #               messageCode="loadFromExcel:info")
@@ -384,15 +397,20 @@ def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
         if ex is OIMException:
             modelXbrl.error(ex.code, ex.message, modelObject=modelXbrl, **ex.msgArgs)
         else:
-            modelXbrl.error("Error while %(action)s, error %(error)s",
-                            modelObject=modelXbrl, action=currentAction, error=ex)
+            modelXbrl.error("arelleOIMloader:error",
+                            "Error while %(action)s, error %(error)s\ntraceback %(traceback)s",
+                            modelObject=modelXbrl, action=currentAction, error=ex,
+                            traceback=traceback.format_tb(sys.exc_info()[2]))
     
     if priorCWD:
         os.chdir(priorCWD) # restore prior current working directory
-    return modelXbrl.modelDocument
+    return getattr(modelXbrl, "modelDocument", None) # none if returning from exception
+
+def isOimLoadable(modelXbrl, mappedUri, normalizedUri, **kwargs):
+    return os.path.splitext(mappedUri)[1] in (".csv", ".json", ".xlsx", ".xls")
 
 def oimLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
-    if not any(filepath.endswith(suffix) for suffix in (".csv", ".json", ".xslx", ".xls")):
+    if os.path.splitext(filepath)[1] not in (".csv", ".json", ".xlsx", ".xls"):
         return None # not an OIM file
 
     cntlr = modelXbrl.modelManager.cntlr
@@ -412,12 +430,12 @@ def guiXbrlLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
                 initialdir=cntlr.config.setdefault("outputInstanceDir","."),
                 filetypes=[(_("XBRL file .xbrl"), "*.xbrl"), (_("XBRL file .xml"), "*.xml")],
                 defaultextension=".xbrl")
-        if not excelFile:
+        if not instanceFile:
             return False
         cntlr.config["outputInstanceDir"] = os.path.dirname(instanceFile)
         cntlr.saveConfig()
         if instanceFile:
-            modelXbrl.modelDocument.save(saveToFile(instanceFile), updateFileHistory=False)
+            modelXbrl.modelDocument.save(instanceFile, updateFileHistory=False)
             cntlr.showStatus(_("Saving XBRL instance: {0}").format(os.path.basename(instanceFile)))
         cntlr.showStatus(_("OIM loading completed"), 3500)
 
@@ -442,6 +460,7 @@ __pluginInfo__ = {
     'author': 'Mark V Systems Limited',
     'copyright': '(c) Copyright 2016 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
+    'ModelDocument.IsPullLoadable': isOimLoadable,
     'ModelDocument.PullLoader': oimLoader,
     'CntlrWinMain.Xbrl.Loaded': guiXbrlLoaded,
     'CntlrCmdLine.Options': excelLoaderOptionExtender,
