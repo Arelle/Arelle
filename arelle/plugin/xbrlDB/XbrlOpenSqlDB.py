@@ -35,21 +35,26 @@ windows
    arelleCmdLine --plugin "+xbrlDB|show"
    arelleCmdLine -f http://sec.org/somewhere/some.rss -v --store-to-XBRL-DB "myserver.com,portnumber,pguser,pgpasswd,database,timeoutseconds"
 
+examples of arguments:
+   store from instance into DB: -f "my_traditional_instance.xbrl" -v --plugins "xbrlDB" --store-to-XBRL-DB "localhost,8084,userid,passwd,open_db,90,pgOpenDB"
+   store from OIM excel instance into DB: -f "my_oim_instance.xlsx" -v --plugins "loadFromOIM.py|xbrlDB" --store-to-XBRL-DB "localhost,8084,userid,passwd,open_db,90,pgOpenDB"
+   load from DB save into instance: -f "output_instance.xbrl" --plugins "xbrlDB" --load-from-XBRL-DB "localhost,8084,userid,passwd,open_db,90,pgOpenDB,loadInstanceId=214147"
 '''
 
 import time, datetime, logging
-from arelle.ModelDocument import Type
+from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelDtsObject import ModelConcept, ModelType, ModelResource, ModelRelationship
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ModelDocument import ModelDocument
 from arelle.ModelObject import ModelObject
-from arelle.ModelValue import qname
+from arelle.ModelValue import qname, QName, dateTime, DATETIME
 from arelle.ModelRelationshipSet import ModelRelationshipSet
+from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.ValidateXbrlCalcs import roundValue
 from arelle.XmlValidate import collapseWhitespacePattern, UNVALIDATED, VALID
-from arelle.XmlUtil import elementChildSequence, xmlstring
-from arelle import XbrlConst
+from arelle.XmlUtil import elementChildSequence, xmlstring, addQnameValue, addChild
+from arelle import XbrlConst, ValidateXbrlDimensions
 from arelle.UrlUtil import authority, ensureUrl
 from .SqlDb import XPDBException, isSqlConnection, SqlDbConnection
 from .tableFacts import tableFacts
@@ -60,15 +65,23 @@ from collections import defaultdict
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
+                 loadDBsaveToFile=None, loadInstanceId=None,
                  product=None, rssItem=None, **kwargs):
+    if getattr(modelXbrl, "blockOpenDBrecursion", False):
+        return None
     xbrlDbConn = None
+    result = True
     try:
         xbrlDbConn = XbrlSqlDatabaseConnection(modelXbrl, user, password, host, port, database, timeout, product)
         if "rssObject" in kwargs: # initialize batch
             xbrlDbConn.initializeBatch(kwargs["rssObject"])
         else:
             xbrlDbConn.verifyTables()
-            xbrlDbConn.insertXbrl(rssItem=rssItem)
+            if loadDBsaveToFile:
+                # load modelDocument from database saving to file
+                result = xbrlDbConn.loadXbrlFromDB(loadDBsaveToFile, loadInstanceId)
+            else:
+                xbrlDbConn.insertXbrl(rssItem=rssItem)
         xbrlDbConn.close()
     except Exception as ex:
         if xbrlDbConn is not None:
@@ -77,6 +90,7 @@ def insertIntoDB(modelXbrl,
             except Exception as ex2:
                 pass
         raise # reraise original exception with original traceback    
+    return result
         
 def isDBPort(host, port, timeout=10, product="postgres"):
     return isSqlConnection(host, port, timeout)
@@ -253,6 +267,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         self.showStatus("insert filing")
         LEI = None
         filing_comparator = ('legal_entity_number', 'filing_number') if LEI else ('filing_number',)
+        _fiscalYearEnd = rssItemGet("fiscalYearEnd") or entityInfo.get("fiscal-year-end")
+        _fiscalYearEndAdjusted = "02-28" if _fiscalYearEnd == "02-29" else _fiscalYearEnd
+        # _fiscalPeriod = 
         table = self.getTable('filing', 'filing_id', 
                               ('filing_number', 
                                'legal_entity_number', 
@@ -293,14 +310,14 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                 self.modelXbrl.modelDocument.creationSoftware,
                                 rssItemGet("htmlUrl") or entityInfo.get("primary-document-url"),
                                 rssItemGet("url") or entityInfo.get("instance-url"),
-                                None, #'fiscal_year',
-                                None, #'fiscal_period',
+                                entityInfo.get("fiscal-year-focus"),
+                                entityInfo.get("fiscal-period-focus"),
                                 rssItemGet("companyName") or entityInfo.get("conformed-name"),
                                 entityInfo.get("state-of-incorporation"),
                                 None, #'restatement_index',
                                 None, #'period_index',
                                 None, #'first_5_comments',
-                                None, #'zip_url',
+                                rssItemGet("enclosureUrl"), # enclsure zip URL if any
                                 rssItemGet("fileNumber") or entityInfo.get("file-number")  or str(int(time.time())),
                                 entityInfo.get("business-address.phone"),
                                 entityInfo.get("business-address.street1"),
@@ -315,7 +332,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                 entityInfo.get("mail-address.state"),
                                 entityInfo.get("mail-address.zip"),
                                 countryOfState.get(entityInfo.get("mail-address.state")),
-                                rssItemGet("fiscalYearEnd") or entityInfo.get("fiscal-year-end"),
+                                _fiscalYearEnd,
                                 entityInfo.get("filer-category"),
                                 entityInfo.get("public-float"),
                                 entityInfo.get("trading-symbol")
@@ -977,7 +994,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                               modelDimValue.isTyped,
                               None if not modelDimValue.isTyped else ( # typed_value is null if not typed dimension
                               modelDimValue.typedMember.xValue.clarkNotation # if typed member is QName use clark name because QName is not necessarily a concept in the DTS
-                                 if (modelDimValue.typedMember is not None and getattr(modelDimValue.typedMember, "xValid", UNVALIDATED) >= VALID and isinstance(QName,modelDimValue.typedMember.xValue))
+                                 if (modelDimValue.typedMember is not None and getattr(modelDimValue.typedMember, "xValid", UNVALIDATED) >= VALID and isinstance(modelDimValue.typedMember.xValue,QName))
                                  else modelDimValue.stringValue)) # otherwise typed member is string value of the typed member
                              for modelDimValue in cntx.qnameDims.values()
                              if modelDimValue.dimensionQname in self.conceptQnameId)
@@ -1176,6 +1193,178 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                         for objectId in objectIds
                                         for messageId in (messageIds[sequenceInReport],)))
                         
+    def loadXbrlFromDB(self, loadDBsaveToFile, loadReportId):
+        # load from database
+        modelXbrl = self.modelXbrl
+        
+        # find instance in DB
+        self.showStatus("finding loadReportId in database")
+        if loadReportId and loadReportId.isnumeric():
+            # use report ID to get specific report
+            results = self.execute("select r.report_id, d.document_url from report r, document d "  
+                                   "where r.report_id = {} and r.report_schema_doc_id = d.document_id"
+                                   .format(loadReportId))
+        else:
+            # use filename to get instance
+            instanceURI = os.path.basename(loadDBsaveToFile)
+            results = self.execute("select r.report_id, d.document_url from report r, document d "  
+                                   "where r.report_schema_doc_id = d.document_id")
+        for reportId, xbrlSchemaRef in results:
+            break
+        if not reportId:
+            raise DpmDBException("sqlDB:MissingReport",
+                    _("The report was not found in table report")) 
+        if not xbrlSchemaRef:
+            raise DpmDBException("sqlDB:MissingSchemaRef",
+                    _("The report schemaRef was not found in table report")) 
+
+        # create the instance document and resulting filing
+        modelXbrl.blockOpenDBrecursion = True
+        modelXbrl.modelDocument = createModelDocument(
+              modelXbrl, 
+              Type.INSTANCE,
+              loadDBsaveToFile,
+              schemaRefs=[xbrlSchemaRef],
+              isEntry=True,
+              initialComment="Generated by Arelle(r) for Data Act project",
+              documentEncoding="utf-8")
+        ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl) # needs dimension defaults 
+        
+        prefixes = modelXbrl.prefixedNamespaces
+        prefixes["iso4217"] = XbrlConst.iso4217
+        prefixes["xbrli"] = XbrlConst.xbrli
+        prefixes[None] = XbrlConst.xbrli # createInstance expects default prefix for xbrli
+        # make prefixes reverse lookupable for qname function efficiency
+        prefixes.update(dict((ns,prefix) for prefix, ns in prefixes.items()))
+        
+        # add roleRef and arcroleRef (e.g. for footnotes, if any, see inlineXbrlDocue)
+        
+        cntxTbl = {} # index by d
+        unitTbl = {}
+        
+
+        # facts in this instance
+        self.showStatus("finding facts in database")
+        factsTbl = self.execute(_(
+                               "select f.fact_id, fc.qname, f.value, f.decimals_value, "
+                               "avd.qname as dim_name, avm.qname as mem_name, av.typed_value, "
+                               "um.qname as u_measure, um.is_multiplicand as u_mul,p.start_date, p.end_date, p.is_instant, "
+                               "ei.scheme, ei.identifier "
+                               "from fact f "
+                               "join concept fc on f.concept_id = fc.concept_id "
+                               "and f.report_id = {} "
+                               "left join aspect_value_set av on av.aspect_value_set_id = f.aspect_value_set_id "
+                               "join concept avd on av.aspect_concept_id = avd.concept_id "
+                               "left join concept avm on av.aspect_value_id = avm.concept_id "
+                               "left join unit_measure um on um.unit_id = f.unit_id "
+                               "left join period p on p.period_id = f.period_id "
+                               "left join entity_identifier ei on ei.entity_identifier_id = f.entity_identifier_id ")
+                               .format(reportId))
+        prevId = None
+        factRows = []
+        cntxTbl = {}
+        unitTbl = {}
+
+        def storeFact():
+            unitMul = set()
+            unitDiv = set()
+            dims = set()
+            for _dbFactId, _qname, _value, _decimals, _dimQName, _memQName, _typedValue, \
+                _unitMeasure, _unitIsMul, \
+                _perStart, _perEnd, _perIsInstant, \
+                _scheme, _identifier in factRows:
+                if _unitMeasure:
+                    if _unitIsMul:
+                        unitMul.add(_unitMeasure)
+                    else:
+                        unitDiv.add(_unitMeasure)
+                if _dimQName:
+                    dims.add((_dimQName, _memQName, _typedValue))
+
+            cntxKey = (_perStart, _perEnd, _perIsInstant, _scheme, _identifier) + tuple(sorted(dims))
+            if cntxKey in cntxTbl:
+                _cntx = cntxTbl[cntxKey]
+            else:
+                cntxId = 'c-{:02}'.format(len(cntxTbl) + 1)
+                qnameDims = {}
+                for _dimQn, _memQn, _dimVal in dims:
+                    dimQname = qname(_dimQn, prefixes)
+                    dimConcept = modelXbrl.qnameConcepts.get(dimQname)
+                    if _memQn:
+                        mem = qname(_memQn, prefixes) # explicit dim
+                    elif dimConcept.isTypedDimension:
+                        # a modelObject xml element is needed for all of the instance functions to manage the typed dim
+                        mem = addChild(modelXbrl.modelDocument, dimConcept.typedDomainElement.qname, text=_dimVal, appendChild=False)
+                    qnameDims[dimQname] = DimValuePrototype(modelXbrl, None, dimQname, mem, "segment")
+                _cntx = modelXbrl.createContext(
+                                        _scheme,
+                                        _identifier,
+                                        ("duration","instant")[_perIsInstant],
+                                        None if _perIsInstant else dateTime(_perStart, type=DATETIME),
+                                        dateTime(_perEnd, type=DATETIME),
+                                        None, # no dimensional validity checking (like formula does)
+                                        qnameDims, [], [],
+                                        id=cntxId)
+                cntxTbl[cntxKey] = _cntx
+
+                    
+            if unitMul or unitDiv:
+                unitKey = (tuple(sorted(unitMul)),tuple(sorted(unitDiv)))
+                if unitKey in unitTbl:
+                    unit = unitTbl[unitKey]
+                else:
+                    mulQns = [qname(u, prefixes) for u in sorted(unitMul) if u]
+                    divQns = [qname(u, prefixes) for u in sorted(unitDiv) if u]
+                    unitId = 'u-{:02}'.format(len(unitTbl) + 1)
+                    for _measures in mulQns, divQns:
+                        for _measure in _measures:
+                            addQnameValue(modelXbrl.modelDocument, _measure)
+                    unit = modelXbrl.createUnit(mulQns, divQns, id=unitId)
+                    unitTbl[unitKey] = unit
+            else:
+                unit = None
+            
+            attrs = {"contextRef": _cntx.id}
+                
+            conceptQn = qname(_qname,prefixes)
+            concept = modelXbrl.qnameConcepts.get(conceptQn)
+    
+            if _value is None or (
+                len(_value) == 0 and concept.baseXbrliType not in ("string", "normalizedString", "token")):
+                attrs[XbrlConst.qnXsiNil] = "true"
+                text = None
+            else:
+                text = _value
+            if concept.isNumeric:
+                if unit is not None:
+                    attrs["unitRef"] = unit.id
+                if _decimals:
+                    attrs["decimals"] = _decimals
+                    
+            # is value a QName?
+            if concept.baseXbrliType == "QName":
+                addQnameValue(modelXbrl.modelDocument, qname(text.strip(), prefixes))
+    
+            f = modelXbrl.createFact(conceptQn, attributes=attrs, text=text) 
+            
+            del factRows[:]
+                               
+        prevId = None
+        for fact in factsTbl:
+            id = fact[0]
+            if id != prevId and prevId:
+                storeFact()
+            factRows.append(fact)
+            prevId = id
+        if prevId and factRows:
+            storeFact()
+        
+        
+        self.showStatus("saving XBRL instance")
+        modelXbrl.saveInstance(overrideFilepath=loadDBsaveToFile, encoding="utf-8")
+        self.showStatus(_("Saved extracted instance"), 5000)
+        return modelXbrl.modelDocument
+    
 countryOfState = {
     "AL": "US","AK": "US","AZ": "US","AR": "US","CA": "US","CO": "US", "CT": "US","DE": "US",
     "FL": "US","GA": "US","HI": "US","ID": "US","IL": "US","IN": "US","IA": "US","KS": "US",
