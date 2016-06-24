@@ -230,8 +230,8 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
     if sys.platform == 'darwin':
         includeFiles.append(('arelle/scripts-macOS','scripts'))
         # copy tck and tk built as described: https://www.tcl.tk/doc/howto/compile.html#mac
-        #includeFiles.append(('/Library/Frameworks/Tcl.framework/Versions/8.6','tcl8.6'))
-        #includeFiles.append(('/Library/Frameworks/Tk.framework/Versions/8.6','tk8.6'))
+        includeFiles.append(('/Library/Frameworks/Tcl.framework/Versions/8.6/Resources/Scripts','tcl8.6'))
+        includeFiles.append(('/Library/Frameworks/Tk.framework/Versions/8.6/Resources/Scripts','tk8.6'))
     else: 
         includeFiles.append(('arelle/scripts-unix','scripts'))
         if os.path.exists("/etc/redhat-release"):
@@ -242,7 +242,7 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
             includeFiles.append(('/usr/local/lib/libxml2.so.2', 'libxml2.so.2'))
             includeFiles.append(('/usr/local/lib/libxslt.so', 'libxslt.so'))
             includeFiles.append(('/usr/local/lib/libz.so', 'libz.so'))
-            
+                
     if os.path.exists("version.txt"):
         includeFiles.append(('version.txt', 'version.txt'))
         
@@ -272,6 +272,7 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
     # note that openpyxl must be 2.1.4 at this time
     if os.path.exists("arelle/plugin/EdgarRenderer"):
         includeLibs += [
+            'cherrypy', 'cherrypy.wsgiserver.wsgiserver3',
             'dateutil',
             'dateutil.relativedelta',
             'six',
@@ -302,7 +303,7 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
     if sys.platform == 'darwin':
         options["bdist_mac"] = {
             "iconfile": 'arelle/images/arelle.icns',
-            "bundle_name": 'Arelle'
+            "bundle_name": 'Arelle',
         }
         
     
@@ -360,6 +361,7 @@ elif sys.platform == 'win32':
     # removed tornado
     if os.path.exists("arelle/plugin/EdgarRenderer"):
         includeLibs += [
+            'cherrypy', 'cherrypy.wsgiserver.wsgiserver3', 
             'dateutil', 'dateutil.relativedelta',
             "six", "pyparsing", "matplotlib"
         ]
