@@ -42,6 +42,14 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
         prefix,sep,localName = prefixedLocalName.rpartition(':')
         if not sep:
             prefix = None
+            if isinstance(name, dict):
+                if namespaceURI in name:
+                    prefix = name[namespaceURI]
+                else: # reverse lookup
+                    for _prefix, _namespaceURI in name.items():
+                        if _namespaceURI == namespaceURI:
+                            prefix = _prefix
+                            break
         namespaceDict = None
     else:
         if isinstance(name, dict):
