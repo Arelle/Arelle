@@ -191,6 +191,9 @@ class WebCache:
         
     
     def normalizeUrl(self, url, base=None):
+        if url:
+            if url.startswith("file://"): url = url[7:]
+            elif url.startswith("file:\\"): url = url[6:]
         if url and not (isHttpUrl(url) or os.path.isabs(url)):
             if base is not None and not isHttpUrl(base) and '%' in url:
                 url = unquote(url)
