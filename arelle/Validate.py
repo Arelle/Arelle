@@ -221,7 +221,7 @@ class Validate:
                         modelXbrl.error("arelle:notLoaded",
                              _("Testcase %(id)s %(name)s document not loaded: %(file)s"),
                              modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, file=os.path.basename(readMeFirstUri))
-                        self.determineNotLoadedTestStatus(modelTestcaseVariation, modelXbrl.errors)
+                        self.determineNotLoadedTestStatus(modelTestcaseVariation)
                         modelXbrl.close()
                     elif resultIsVersioningReport or resultIsTaxonomyPackage:
                         inputDTSes[dtsName] = modelXbrl
