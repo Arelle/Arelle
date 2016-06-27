@@ -65,8 +65,9 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
         else:
             namespaceURI = None
             namespaceDict = None
-        prefix,sep,localName = value.strip().rpartition(":")  # must be whitespace collapsed
-        if not prefix:
+        prefix,sep,localName = value.strip().partition(":")  # must be whitespace collapsed
+        if not sep:
+            localName = prefix
             prefix = None # don't want '' but instead None if no prefix
             if noPrefixIsNoNamespace:
                 return QName(None, None, localName)
