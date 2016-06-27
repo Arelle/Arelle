@@ -226,9 +226,13 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                 _type = Type.LINKBASE
             elif ln == "xbrl":
                 _type = Type.INSTANCE
+            else:
+                _type = Type.UnknownXML
         elif isEntry and ns == XbrlConst.xbrli:
             if ln == "xbrl":
                 _type = Type.INSTANCE
+            else:
+                _type = Type.UnknownXML
         elif ns == XbrlConst.xhtml and \
              (ln == "html" or ln == "xhtml"):
             _type = Type.UnknownXML
