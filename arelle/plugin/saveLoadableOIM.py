@@ -5,7 +5,7 @@ saveLoadableOIM.py is an example of a plug-in that will save a re-loadable JSON 
 
 (c) Copyright 2015 Mark V Systems Limited, All rights reserved.
 '''
-import sys, os, io, time, re, json, csv
+import sys, os, io, time, regex as re, json, csv
 from decimal import Decimal
 from math import isinf, isnan
 from collections import defaultdict, OrderedDict
@@ -19,7 +19,7 @@ from arelle.ValidateXbrlCalcs import inferredDecimals
 from arelle.XmlUtil import dateunionValue, elementIndex, xmlstring
 from collections import defaultdict
 
-nsOim = "http://www.xbrl.org/DPWD/2016-01-13/oim"
+nsOim = "http://www.xbrl.org/PWD/2016-01-13/oim"
 qnOimConceptAspect = qname(nsOim, "oim:concept")
 qnOimLangAspect = qname(nsOim, "oim:language")
 qnOimTupleParentAspect = qname(nsOim, "oim:tupleParent")
@@ -82,8 +82,8 @@ def saveLoadableOIM(modelXbrl, oimFile):
     if not isJSON and not isCSVorXL:
         return
 
-    namespacePrefixes = {}
-    prefixNamespaces = {}
+    namespacePrefixes = {nsOim: "oim"}
+    prefixNamespaces = {"oim": nsOim}
     def compileQname(qname):
         if qname.namespaceURI not in namespacePrefixes:
             namespacePrefixes[qname.namespaceURI] = qname.prefix or ""
@@ -142,7 +142,8 @@ def saveLoadableOIM(modelXbrl, oimFile):
     hasTuple = False
     hasType = True
     hasLang = False
-    hasUnits = False   
+    hasUnits = False
+    hasNumeric = False 
     
     footnotesRelationshipSet = ModelRelationshipSet(modelXbrl, "XBRL-footnotes")
     factBaseTypes = set()
@@ -155,6 +156,8 @@ def saveLoadableOIM(modelXbrl, oimFile):
             hasId = True
         concept = fact.concept
         if concept is not None:
+            if concept.isNumeric:
+                hasNumeric = True
             if concept.baseXbrliType in ("string", "normalizedString", "token") and fact.xmlLang:
                 hasLang = True
             _baseXsdType = concept.baseXsdType
@@ -291,7 +294,7 @@ def saveLoadableOIM(modelXbrl, oimFile):
                         _baseXsdType = "date"
                     else:
                         _baseXsdType = "dateTime"
-                aspects["baseType"] = "xs:{}".format(_baseXsdType)
+                aspects["baseType"] = "xsd:{}".format(_baseXsdType)
                 _csvType = baseTypes.get(_baseXsdType,_baseXsdType) + "Value"
                 if concept.baseXbrliType in ("string", "normalizedString", "token") and fact.xmlLang:
                     aspects[qnOimLangAspect] = fact.xmlLang
@@ -346,16 +349,16 @@ def saveLoadableOIM(modelXbrl, oimFile):
         unit = fact.unit
         if unit is not None:
             _mMul, _mDiv = unit.measures
-            _sMul = '*'.join(oimValue(m) for m in sorted(_mMul, key=lambda m: str(m)))
+            _sMul = '*'.join(oimValue(m) for m in sorted(_mMul, key=lambda m: oimValue(m)))
             if _mDiv:
-                _sDiv = '*'.join(oimValue(m) for m in sorted(_mDiv, key=lambda m: str(m)))
-                if len(mDiv) > 1:
-                    if len(mMul) > 1:
+                _sDiv = '*'.join(oimValue(m) for m in sorted(_mDiv, key=lambda m: oimValue(m)))
+                if len(_mDiv) > 1:
+                    if len(_mMul) > 1:
                         _sUnit = "({})/({})".format(_sMul,_sDiv)
                     else:
                         _sUnit = "{}/({})".format(_sMul,_sDiv)
                 else:
-                    if len(mMul) > 1:
+                    if len(_mMul) > 1:
                         _sUnit = "({})/{}".format(_sMul,_sDiv)
                     else:
                         _sUnit = "{}/{}".format(_sMul,_sDiv)
@@ -393,7 +396,7 @@ def saveLoadableOIM(modelXbrl, oimFile):
         saveJsonFacts(modelXbrl.facts, oimFacts, None)
             
         with open(oimFile, "w", encoding="utf-8") as fh:
-            fh.write(json.dumps(oimReport, ensure_ascii=False, indent=1, sort_keys=False))
+            fh.write(json.dumps(oimReport, indent=1))
 
     elif isCSVorXL:
         # save CSV
@@ -439,7 +442,8 @@ def saveLoadableOIM(modelXbrl, oimFile):
             addAspectQnCol("stringValue")
             addAspectQnCol("numericValue")
             addAspectQnCol("booleanValue")
-        addAspectQnCol("accuracy")
+        if hasNumeric:
+            addAspectQnCol("accuracy")
         if hasTuple:
             addAspectQnCol(qnOimTupleParentAspect)
             addAspectQnCol(qnOimTupleOrderAspect)
@@ -480,11 +484,11 @@ def saveLoadableOIM(modelXbrl, oimFile):
             def _open(filesuffix, tabname):
                 _filename = _tableinfo["url"] = _baseURL + filesuffix
                 _csvinfo["file"] = open(_filename, csvOpenMode, newline=csvOpenNewline, encoding='utf-8-sig')
-                _csvinfo["writer"] = csv.writer(csvFile, dialect="excel")
+                _csvinfo["writer"] = csv.writer(_csvinfo["file"], dialect="excel")
             def _writerow(row, header=False):
                 _csvinfo["writer"].writerow(row)
             def _close():
-                _csvinfo["writer"].close()
+                _csvinfo["file"].close()
                 _csvinfo.clear()
         elif isXL:
             headerWidths = {"href": 100, "oim:concept": 70, "accuracy": 8, "baseType": 10, "language": 9, "URI": 80,
@@ -587,7 +591,6 @@ def saveLoadableOIM(modelXbrl, oimFile):
                 fh.write(json.dumps(csvMetadata, ensure_ascii=False, indent=1, sort_keys=False))
         elif isXL:
             _open(None, "metadata")
-            cols = ("group", "footnoteType", "factId", "factRef", "footnote", "language")
             _writerow(("table", "column", "datatype"), header=True)
             for table in csvTables:
                 tablename = table["url"]
@@ -606,7 +609,7 @@ def saveLoadableOIMMenuEntender(cntlr, menu, *args, **kwargs):
 
 def saveLoadableOIMMenuCommand(cntlr):
     # save DTS menu item has been invoked
-    if (cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None or
+    if (cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None or cntlr.modelManager.modelXbrl.modelDocument is None or
         cntlr.modelManager.modelXbrl.modelDocument.type not in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL)):
         return
         # get file name into which to save log file while in foreground thread
