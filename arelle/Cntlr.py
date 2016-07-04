@@ -29,6 +29,9 @@ def resourcesDir():
         _resourcesDir = os.path.dirname(os.path.dirname(_moduleDir))
     else:
         _resourcesDir = _moduleDir
+    if not os.path.exists(os.path.join(_resourcesDir,"images")) and \
+       os.path.exists(os.path.join(os.path.dirname(_resourcesDir),"images")):
+        _resourcesDir = os.path.dirname(_resourcesDir)
     return _resourcesDir
 
 class Cntlr:

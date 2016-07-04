@@ -219,7 +219,7 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
                             else: # check if exists relative to this module's directory
                                 _importURL = os.path.join(os.path.dirname(moduleURL), os.path.normpath(_url))
                                 if not os.path.exists(_importURL): # not relative to this plugin, assume standard plugin base
-                                    _importURL = os.path.join(_pluginBase, _url)
+                                    _importURL = _url # moduleModuleInfo adjusts relative URL to plugin base
                             _importModuleInfo = moduleModuleInfo(_importURL, reload, _moduleImportsSubtree)
                             if _importModuleInfo:
                                 _importModuleInfo["isImported"] = True
