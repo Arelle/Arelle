@@ -270,26 +270,27 @@ def validateXbrlFinally(val, *args, **kwargs):
                             modelXbrl.error("HMRC.5.4",
                                 _("Numeric fact %(fact)s of context %(contextID)s has a precision attribute '%(precision)s'"),
                                 modelObject=f, fact=f.qname, contextID=f.contextID, precision=f.precision)
-                        try: # only process validated facts    
-                            if f.xValue < 0: 
-                                label = f.concept.label(lang="en")
-                                if not labelHasNegativeTermPattern.match(label):
-                                    modelXbrl.error("HMRC.5.3",
-                                        _("Numeric fact %(fact)s of context %(contextID)s has a negative value '%(value)s' but label does not have a bracketed negative term (using parentheses): %(label)s"),
-                                        modelObject=f, fact=f.qname, contextID=f.contextID, value=f.value, label=label)
-                            # 6.5.37 test (insignificant digits due to rounding)
-                            if f.decimals and f.decimals != "INF" and not f.isNil:
-                                try:
-                                    insignificance = insignificantDigits(f.xValue, decimals=f.decimals)
-                                    if insignificance: # if not None, returns (truncatedDigits, insiginficantDigits)
+                        try: # only process validated facts
+                            if not f.isNil:
+                                if f.xValue < 0: 
+                                    label = f.concept.label(lang="en")
+                                    if not labelHasNegativeTermPattern.match(label):
+                                        modelXbrl.error("HMRC.5.3",
+                                            _("Numeric fact %(fact)s of context %(contextID)s has a negative value '%(value)s' but label does not have a bracketed negative term (using parentheses): %(label)s"),
+                                            modelObject=f, fact=f.qname, contextID=f.contextID, value=f.value, label=label)
+                                # 6.5.37 test (insignificant digits due to rounding)
+                                if f.decimals and f.decimals != "INF":
+                                    try:
+                                        insignificance = insignificantDigits(f.xValue, decimals=f.decimals)
+                                        if insignificance: # if not None, returns (truncatedDigits, insiginficantDigits)
+                                            modelXbrl.error("HMRC.SG.4.5",
+                                                _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(insignificantDigits)s."),
+                                                modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals, 
+                                                value=f.xValue, truncatedDigits=insignificance[0], insignificantDigits=insignificance[1])
+                                    except (ValueError,TypeError):
                                         modelXbrl.error("HMRC.SG.4.5",
-                                            _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s has nonzero digits in insignificant portion %(insignificantDigits)s."),
-                                            modelObject=f, fact=f.qname, contextID=f.contextID, decimals=f.decimals, 
-                                            value=f.xValue, truncatedDigits=insignificance[0], insignificantDigits=insignificance[1])
-                                except (ValueError,TypeError):
-                                    modelXbrl.error("HMRC.SG.4.5",
-                                        _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),
-                                        modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
+                                            _("Fact %(fact)s of context %(contextID)s decimals %(decimals)s value %(value)s causes Value Error exception."),
+                                            modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
                         except AttributeError:
                             pass  # if not validated it should have failed with a schema error
                         
@@ -334,7 +335,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                     modelObject=modelXbrl, missingItems=", ".join(_missingItems))
             
             f = mandatoryFacts.get("StartDateForPeriodCoveredByReport")
-            if f is not None and f.xValue < _6_APR_2008:
+            if f is not None and (f.isNil or f.xValue < _6_APR_2008):
                 modelXbrl.error("JFCVC.3313",
                     _("Period Start Date (StartDateForPeriodCoveredByReport) must be 6 April 2008 or later, but is %(value)s"),
                     modelObject=f, value=f.value)
