@@ -401,6 +401,8 @@ class ModelFact(ModelObject):
         """
         if self.isTuple or other.isTuple:
             return False
+        if self.context is None or self.concept is None:
+            return False # need valid context and concept for v-Equality of nonTuple
         if self.isNil:
             return other.isNil
         if other.isNil:
@@ -409,7 +411,7 @@ class ModelFact(ModelObject):
             return False
         if self.concept.isNumeric:
             if other.concept.isNumeric:
-                if not self.unit.isEqualTo(other.unit):
+                if self.unit is None or not self.unit.isEqualTo(other.unit):
                     return False
                 if self.modelXbrl.modelManager.validateInferDecimals:
                     d = min((inferredDecimals(self), inferredDecimals(other))); p = None

@@ -8,7 +8,8 @@ import re
 from collections import defaultdict
 from arelle import (ModelDocument, ModelValue, 
                 ModelRelationshipSet, XmlUtil, XbrlConst)
-from arelle.ModelDtsObject import ModelConcept
+from arelle.ModelDtsObject import ModelConcept, ModelResource
+from arelle.ModelObject import ModelObject
 from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
 from .Dimensions import checkFilingDimensions
@@ -164,7 +165,7 @@ def validateFiling(val, modelXbrl):
                     ineffectiveArcs = ModelRelationshipSet.ineffectiveArcs(baseSetModelLinks, arcrole)
                     #validate ineffective arcs
                     for modelRel in ineffectiveArcs:
-                        if modelRel.fromModelObject is not None and modelRel.toModelObject is not None:
+                        if isinstance(modelRel.fromModelObject, ModelObject) and isinstance(modelRel.toModelObject, ModelObject):
                             modelXbrl.error("SBR.NL.2.3.4.06",
                                 _("Ineffective arc %(arc)s in \nlink role %(linkrole)s \narcrole %(arcrole)s \nfrom %(conceptFrom)s \nto %(conceptTo)s \n%(ineffectivity)s"),
                                 modelObject=modelRel, arc=modelRel.qname, arcrole=modelRel.arcrole,
@@ -433,7 +434,7 @@ def checkConceptLabels(val, modelXbrl, labelsRelationshipSet, disclosureSystem, 
     dupLabels = {}
     for modelLabelRel in labelsRelationshipSet.fromModelObject(concept):
         modelLabel = modelLabelRel.toModelObject
-        if modelLabel is not None and modelLabel.xmlLang:
+        if isinstance(modelLabel, ModelResource) and modelLabel.xmlLang:
             if modelLabel.xmlLang.startswith(disclosureSystem.defaultXmlLang) and \
                modelLabel.role == XbrlConst.standardLabel:
                 hasDefaultLangStandardLabel = True

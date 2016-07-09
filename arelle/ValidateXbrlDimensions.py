@@ -86,7 +86,7 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
                                 if cycle is not None:
                                     cycle.append(hcDimRel)
                                     path = str(hcConcept.qname) + " " + " - ".join(
-                                        "{0}:{1} {2}".format(rel.modelDocument.basename, rel.sourceline, (rel.toModelObject.qname if rel.toModelObject is not None else None))
+                                        "{0}:{1} {2}".format(rel.modelDocument.basename, rel.sourceline, (rel.toModelObject.qname if isinstance(rel.toModelObject, ModelObject) else None))
                                         for rel in reversed(cycle))
                                 val.modelXbrl.error("xbrldte:DRSDirectedCycleError",
                                     _("Dimension relationships have a directed cycle in DRS role %(linkrole)s \nstarting from hypercube %(hypercube)s, \ndimension %(dimension)s, \npath %(path)s"),
@@ -96,7 +96,7 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
                                 if cycle is not None:
                                     cycle.append(hcDimRel)
                                     path = str(priItemConcept.qname) + " " + " - ".join(
-                                        "{0}:{1} {2}".format(rel.modelDocument.basename, rel.sourceline, (rel.toModelObject.qname if rel.toModelObject is not None else None))
+                                        "{0}:{1} {2}".format(rel.modelDocument.basename, rel.sourceline, (rel.toModelObject.qname if isinstance(rel.toModelObject, ModelObject) else None))
                                         for rel in reversed(cycle))
                                 val.modelXbrl.error("xbrldte:PrimaryItemPolymorphismError",
                                     _("Dimension relationships have a polymorphism cycle in DRS role %(linkrole)s \nstarting from hypercube %(hypercube)s, \ndimension %(dimension)s, \npath %(path)s"),

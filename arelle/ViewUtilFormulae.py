@@ -5,6 +5,7 @@ Created on Nov 27, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import XbrlConst
+from arelle.ModelObject import ModelObject
 
 def rootFormulaObjects(view):
     # relationship set based on linkrole parameter, to determine applicable linkroles
@@ -26,7 +27,7 @@ def rootFormulaObjects(view):
     # remove assertions under assertion sets from root objects
     assertionSetRelSet = view.modelXbrl.relationshipSet(XbrlConst.assertionSet)
     for modelRel in assertionSetRelSet.modelRelationships:
-        if modelRel.fromModelObject is not None and modelRel.toModelObject is not None:
+        if isinstance(modelRel.fromModelObject, ModelObject) and isinstance(modelRel.toModelObject, ModelObject):
             rootObjects.add(modelRel.fromModelObject)   # display assertion set
             rootObjects.discard(modelRel.toModelObject) # remove assertion from root objects
             

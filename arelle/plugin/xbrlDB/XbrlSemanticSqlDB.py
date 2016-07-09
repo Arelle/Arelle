@@ -781,7 +781,6 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                  resource.objectIndex), resource)
                                for arcrole in arcroles
                                for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
-                               if rel.fromModelObject is not None and rel.toModelObject is not None
                                for resource in (rel.fromModelObject, rel.toModelObject)
                                if isinstance(resource, ModelResource))
         table = self.getTable('resource', 'resource_id', 

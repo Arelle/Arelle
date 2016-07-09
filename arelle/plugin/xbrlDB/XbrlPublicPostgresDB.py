@@ -42,6 +42,7 @@ windows
 import time, datetime
 from arelle.ModelDocument import Type
 from arelle.ModelDtsObject import ModelConcept, ModelResource
+from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
 from arelle.ValidateXbrlCalcs import roundValue
 from arelle.XmlUtil import elementFragmentIdentifier
@@ -421,7 +422,6 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                                for arcrole in (XbrlConst.conceptLabel, XbrlConst.conceptReference,
                                                XbrlConst.elementLabel, XbrlConst.elementReference)
                                for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
-                               if rel.fromModelObject is not None and rel.toModelObject is not None
                                for resource in (rel.fromModelObject, rel.toModelObject)
                                if isinstance(resource, ModelResource))
         resourceData = tuple((self.uriId[resource.role],
@@ -445,7 +445,6 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                                                      resource.objectIndex]), resource)
                                for arcrole in (XbrlConst.conceptLabel, XbrlConst.elementLabel)
                                for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
-                               if rel.fromModelObject is not None and rel.toModelObject is not None
                                for resource in (rel.fromModelObject, rel.toModelObject)
                                if isinstance(resource, ModelResource))
         table = self.getTable('label_resource', 'resource_id', 
@@ -481,7 +480,7 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
         
         def walkTree(rels, seq, depth, relationshipSet, visited, dbRels, networkId):
             for rel in rels:
-                if rel not in visited and rel.toModelObject is not None:
+                if rel not in visited and isinstance(rel.toModelObject, ModelObject):
                     visited.add(rel)
                     dbRels.append((rel, seq, depth, networkId))
                     seq += 1
@@ -520,7 +519,7 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                           depth,
                           self.qnameId.get(rel.preferredLabel) if rel.preferredLabel else None)
                          for rel, sequence, depth, networkId in dbRels
-                         if rel.fromModelObject is not None and rel.toModelObject is not None)
+                         if isinstance(rel.fromModelObject, ModelConcept) and isinstance(rel.toModelObject, ModelConcept))
         del dbRels[:]   # dererefence
         table = self.getTable('relationship', 'relationship_id', 
                               ('network_id', 'from_element_id', 'to_element_id', 'reln_order', 

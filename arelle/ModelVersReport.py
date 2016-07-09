@@ -8,6 +8,7 @@ import os, re, datetime
 from collections import defaultdict
 from arelle import (XbrlConst, XbrlUtil, XmlUtil, UrlUtil, ModelXbrl, ModelDocument, ModelVersObject,
                     Version, XmlValidate)
+from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, QName
 from arelle.FileSource import FileNamedStringIO
@@ -654,7 +655,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
             fromTgtConcept = fromRel.toModelObject
             toTgtQname = self.toDTSqname(fromTgtConcept.qname) if fromTgtConcept is not None else None
             toRel = toRels[i] if i < len(toRels) else None
-            if toRel is not None and toRel.toModelObject is not None and toRel.toModelObject.qname == toTgtQname:
+            if toRel is not None and isinstance(toRel.toModelObject, ModelConcept) and toRel.toModelObject.qname == toTgtQname:
                 fromRelAttrs = XbrlUtil.attributes(self.modelXbrl, fromRel.arcElement,
                      exclusions=relationshipSetArcAttributesExclusion)
                 toRelAttrs = XbrlUtil.attributes(self.modelXbrl, toRel.arcElement,
@@ -684,9 +685,9 @@ class ModelVersReport(ModelDocument.ModelDocument):
                 self.createRelationshipSetEvent("relationships", eventParent=self.relSetDeletedEvent, fromConcept=fromConcept, toConcept=fromTgtConcept, comment=comment)
         for i, toRel in enumerate(toRels):
             toTgtConcept = toRel.toModelObject
-            fromTgtQname = self.fromDTSqname(toTgtConcept.qname) if toRel.toModelObject is not None else None
+            fromTgtQname = self.fromDTSqname(toTgtConcept.qname) if isinstance(toRel.toModelObject, ModelConcept) else None
             fromRel = fromRels[i] if i < len(fromRels) else None
-            if fromRel is None or fromRel.toModelObject is None or fromRel.toModelObject.qname != fromTgtQname:
+            if fromRel is None or not isinstance(fromRel.toModelObject, ModelConcept) or fromRel.toModelObject.qname != fromTgtQname:
                 if self.relSetAddedEvent is None:
                     relSetMdlEvent = self.createRelationshipSetEvent("relationshipSetModelAdd")
                     relSetEvent = self.createRelationshipSetEvent("toRelationshipSet", eventParent=relSetMdlEvent)
@@ -729,7 +730,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
         for dts, DRSrels in ((self.fromDTS, fromDRSrels), (self.toDTS, toDRSrels)):
             for hasHcArcrole in (XbrlConst.all, XbrlConst.notAll):
                 for DRSrel in dts.relationshipSet(hasHcArcrole).modelRelationships:
-                    if DRSrel.fromModelObject is not None:
+                    if isinstance(DRSrel.fromModelObject, ModelConcept):
                         DRSrels[DRSrel.fromModelObject.qname,DRSrel.linkrole].append( DRSrel )
         # removed, added pri item dimensions
         for dts, DRSrels, otherDTS, otherDRSrels, otherDTSqname, roleChanges, e1, e2, isFrom in (
@@ -889,7 +890,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
             fromTgtConcept = fromRel.toModelObject
             toTgtQname = self.toDTSqname(fromTgtConcept.qname) if fromTgtConcept is not None else None
             toRel = toRels[i] if i < len(toRels) else None
-            if toRel is not None and toRel.toModelObject is not None and toRel.toModelObject.qname == toTgtQname:
+            if toRel is not None and isinstance(toRel.toModelObject, ModelConcept) and toRel.toModelObject.qname == toTgtQname:
                 toTgtConcept = toRel.toModelObject
                 fromRelAttrs = XbrlUtil.attributes(self.modelXbrl, fromRel.arcElement,
                      exclusions=relationshipSetArcAttributesExclusion)
@@ -906,9 +907,9 @@ class ModelVersReport(ModelDocument.ModelDocument):
                 diffs.append((fromRel, None, set(), set()))
         for i, toRel in enumerate(toRels):
             toTgtConcept = toRel.toModelObject
-            fromTgtQname = self.fromDTSqname(toTgtConcept.qname) if toRel.toModelObject is not None else None
+            fromTgtQname = self.fromDTSqname(toTgtConcept.qname) if isinstance(toRel.toModelObject, ModelConcept) else None
             fromRel = fromRels[i] if i < len(fromRels) else None
-            if fromRel is None or fromRel.toModelObject is None or fromRel.toModelObject.qname != fromTgtQname:
+            if fromRel is None or not isinstance(fromRel.toModelObject, ModelConcept) or fromRel.toModelObject.qname != fromTgtQname:
                 diffs.append((None, toRel, set(), set()))
         return diffs
     

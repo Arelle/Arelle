@@ -8,6 +8,7 @@ import os, io, sys, json
 from collections import defaultdict
 from arelle import XbrlConst
 from arelle.ModelObject import ModelObject
+from arelle.ModelDtsObject import ModelResource
 from arelle.ModelValue import QName
 from arelle.ModelFormulaObject import Aspect
 from arelle.ModelRenderingObject import (ModelEuTable, ModelTable, ModelBreakdown,
@@ -295,7 +296,7 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
             if axisDisposition in ("x", "y"):
                 hdrNonStdPosition = -1  # where a match last occured
                 for rel in view.modelXbrl.relationshipSet(XbrlConst.elementLabel).fromModelObject(definitionNode):
-                    if rel.toModelObject is not None and rel.toModelObject.role != XbrlConst.genStandardLabel:
+                    if isinstance(rel.toModelObject, ModelResource) and rel.toModelObject.role != XbrlConst.genStandardLabel:
                         labelLang = rel.toModelObject.xmlLang
                         labelRole = rel.toModelObject.role
                         if (labelLang == view.lang or labelLang.startswith(view.lang) or view.lang.startswith(labelLang)

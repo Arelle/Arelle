@@ -1552,8 +1552,8 @@ class ModelConceptRelation(ModelFilter):
             factOk = False
             factQname = fact.qname
             for modelRel in relationships:
-                if (((isFromAxis and modelRel.fromModelObject is not None and factQname == modelRel.fromModelObject.qname) or
-                     (not isFromAxis and modelRel.toModelObject is not None and factQname == modelRel.toModelObject.qname)) and
+                if (((isFromAxis and isinstance(modelRel.fromModelObject, ModelObject) and factQname == modelRel.fromModelObject.qname) or
+                     (not isFromAxis and isinstance(modelRel.toModelObject, ModelObject) and factQname == modelRel.toModelObject.qname)) and
                      (hasNoTest or self.evalTest(xpCtx, modelRel))):
                     factOk = True
                     break

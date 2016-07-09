@@ -384,9 +384,9 @@ def evaluateTableIndex(modelXbrl, lang=None):
             def roleUgtConcepts(roleType):
                 roleConcepts = set()
                 for rel in modelXbrl.relationshipSet(XbrlConst.parentChild, roleType.roleURI).modelRelationships:
-                    if rel.toModelObject is not None:
+                    if isinstance(rel.toModelObject, ModelConcept):
                         roleConcepts.add(rel.toModelObject.name)
-                    if rel.fromModelObject is not None:
+                    if isinstance(rel.fromModelObject, ModelConcept):
                         roleConcepts.add(rel.fromModelObject.name)
                 if hasattr(roleType, "_tableChildren"):
                     for _tableChild in roleType._tableChildren:

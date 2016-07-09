@@ -1935,8 +1935,8 @@ class ModelRelationship(ModelObject):
         return hash((self.qname, 
                      self.linkQname,
                      self.linkrole,  # needed when linkrole=None merges multiple links
-                     self.fromModelObject.objectIndex if self.fromModelObject is not None else -1, 
-                     self.toModelObject.objectIndex if self.toModelObject is not None else -1, 
+                     self.fromModelObject.objectIndex if isinstance(self.fromModelObject, ModelObject) else -1, 
+                     self.toModelObject.objectIndex if isinstance(self.toModelObject, ModelObject) else -1, 
                      self.order, 
                      self.weight, 
                      self.preferredLabel))
@@ -1948,8 +1948,8 @@ class ModelRelationship(ModelObject):
         return (self.qname, 
                 self.linkQname,
                 self.linkrole,  # needed when linkrole=None merges multiple links
-                self.fromModelObject.objectIndex if self.fromModelObject is not None else -1, 
-                self.toModelObject.objectIndex if self.toModelObject is not None else -1, 
+                self.fromModelObject.objectIndex if isinstance(self.fromModelObject, ModelObject) else -1, 
+                self.toModelObject.objectIndex if isinstance(self.toModelObject, ModelObject) else -1, 
                 self.order, 
                 self.weight, 
                 self.preferredLabel) + \
@@ -1996,13 +1996,13 @@ class ModelRelationship(ModelObject):
                 ("targetRole", self.targetRole) if self.arcrole.startswith(XbrlConst.dimStartsWith) else (),
                 ("order", self.order),
                 ("priority", self.priority)) + \
-               (("from", self.fromModelObject.qname),) if isinstance(self.fromModelObject,ModelConcept) else ()
+               (("from", self.fromModelObject.qname),) if isinstance(self.fromModelObject,ModelObject) else ()
         
     def __repr__(self):
         return ("modelRelationship[{0}, linkrole: {1}, arcrole: {2}, from: {3}, to: {4}, {5}, line {6}]"
                 .format(self.objectIndex, os.path.basename(self.linkrole), os.path.basename(self.arcrole),
-                        self.fromModelObject.qname if self.fromModelObject is not None else "??",
-                        self.toModelObject.qname if self.toModelObject is not None else "??",
+                        self.fromModelObject.qname if isinstance(self.fromModelObject, ModelObject) else "??",
+                        self.toModelObject.qname if isinstance(self.toModelObject, ModelObject) else "??",
                         self.modelDocument.basename, self.sourceline))
 
     @property

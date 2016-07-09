@@ -11,7 +11,7 @@ from arelle import (ModelDocument, ModelValue, ModelRelationshipSet,
 from arelle.ValidateXbrlCalcs import insignificantDigits
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact
-from arelle.ModelDtsObject import ModelConcept
+from arelle.ModelDtsObject import ModelConcept, ModelResource
 from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import pyNamedObject, strTruncate
 from arelle.UrlUtil import isHttpUrl
@@ -1136,7 +1136,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 for rel in domMemRelSet.modelRelationships:
                     if isinstance(rel.fromModelObject, ModelConcept) and isinstance(rel.toModelObject, ModelConcept):
                         for rel2 in modelXbrl.relationshipSet(XbrlConst.domainMember, rel.consecutiveLinkrole).fromModelObject(rel.toModelObject):
-                            if rel2.fromModelObject is not None and rel2.toModelObject is not None:
+                            if isinstance(rel2.fromModelObject, ModelConcept) and isinstance(rel2.toModelObject, ModelConcept):
                                 modelXbrl.error("EFM.6.23.15",
                                     _("The domain-member relationship in %(linkrole)s from %(source)s to %(target)s is consecutive with domain-member relationship in %(linkrole2)s to %(target2)s. "),
                                     modelObject=(rel, rel.fromModelObject, rel.toModelObject), 
@@ -1509,7 +1509,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 ineffectiveArcs = ModelRelationshipSet.ineffectiveArcs(baseSetModelLinks, arcrole)
                 #validate ineffective arcs
                 for modelRel in ineffectiveArcs:
-                    if modelRel.fromModelObject is not None and modelRel.toModelObject is not None:
+                    if isinstance(modelRel.fromModelObject, ModelObject) and isinstance(modelRel.toModelObject, ModelObject):
                         modelXbrl.error(("EFM.6.09.03", "GFM.1.04.03"),
                             _("Ineffective arc %(arc)s in \nlink role %(linkrole)s \narcrole %(arcrole)s \nfrom %(conceptFrom)s \nto %(conceptTo)s \n%(ineffectivity)s"),
                             modelObject=modelRel, arc=modelRel.qname, arcrole=modelRel.arcrole,
@@ -1566,7 +1566,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     conceptTo=relTo.qname, conceptTo2=orderRels[order].toModelObject.qname)
                             else:
                                 orderRels[order] = rel
-                            if relTo is not None:
+                            if isinstance(relTo, ModelConcept):
                                 if relTo.periodType == "duration" and instantPreferredLabelRolePattern.match(preferredLabel or ""): 
                                     modelXbrl.warning("EFM.6.12.07",
                                         _("In \"%(linkrole)s\", element %(conceptTo)s has period type 'duration' but is given a preferred label %(preferredLabel)s when shown under parent %(conceptFrom)s.  The preferred label will be ignored."),
@@ -1575,14 +1575,14 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                         conceptTo2=orderRels[order].toModelObject.qname, 
                                         preferredLabel=preferredLabel, preferredLabelValue=preferredLabel.rpartition("/")[2])
                                 if (relTo.isDimensionItem and not any(
-                                    _rel.toModelObject is not None and _rel.toModelObject.type is not None and _rel.toModelObject.type.isDomainItemType
+                                    isinstance(_rel.toModelObject, ModelConcept) and _rel.toModelObject.type is not None and _rel.toModelObject.type.isDomainItemType
                                     for _rel in parentChildRels.fromModelObject(relTo))):
                                         modelXbrl.warning("EFM.6.12.08",
                                             _("In \"%(linkrole)s\" axis %(axis)s has no domain element children, which effectively filters out every fact."),
                                             modelObject=relFrom, axis=relFrom.qname, 
                                             linkrole=ELR, linkroleDefinition=modelXbrl.roleTypeDefinition(ELR), linkroleName=modelXbrl.roleTypeName(ELR))
                                 if (relFrom.isDimensionItem and not any(
-                                    _rel.toModelObject is not None and _rel.toModelObject.type is not None and _rel.toModelObject.type.isDomainItemType
+                                    isinstance(_rel.toModelObject, ModelConcept) and _rel.toModelObject.type is not None and _rel.toModelObject.type.isDomainItemType
                                     for _rel in siblingRels)):
                                         modelXbrl.warning("EFM.6.12.08",
                                             _("In \"%(linkrole)s\" axis %(axis)s has no domain element children, which effectively filters out every fact."),
@@ -1802,7 +1802,7 @@ def checkConceptLabels(val, modelXbrl, labelsRelationshipSet, disclosureSystem, 
     dupLabels = {}
     for modelLabelRel in labelsRelationshipSet.fromModelObject(concept):
         modelLabel = modelLabelRel.toModelObject
-        if modelLabel is not None and modelLabel.xmlLang:
+        if isinstance(modelLabel, ModelResource) and modelLabel.xmlLang:
             if modelLabel.xmlLang.startswith(disclosureSystem.defaultXmlLang) and \
                modelLabel.role == XbrlConst.standardLabel:
                 hasDefaultLangStandardLabel = True
