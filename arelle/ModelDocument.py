@@ -1539,7 +1539,8 @@ def inlineIxdsDiscover(modelXbrl):
                 fromLabels = set()
                 for fromId in modelInlineRel.get("fromRefs","").split():
                     fromLabels.add(fromId)
-                    if fromId not in linkModelLocIds:
+                    if fromId not in linkModelLocIds[linkrole]:
+                        linkModelLocIds[linkrole].add(fromId)
                         locPrototype = LocPrototype(mdlDoc, linkPrototype, fromId, fromId, sourceElement=modelInlineRel)
                         linkPrototype.childElements.append(locPrototype)
                         linkPrototype.labeledResources[fromId].append(locPrototype)
@@ -1557,10 +1558,12 @@ def inlineIxdsDiscover(modelXbrl):
                             linkModelInlineFootnoteIds[linkrole].add(toId)
                         linkPrototype.labeledResources[toId].append(modelInlineFootnote)
                     elif toId in factsByFactID:
-                        locPrototype = LocPrototype(mdlDoc, linkPrototype, toId, toId, sourceElement=modelInlineRel)
-                        toFactQnames.add(str(locPrototype.dereference().qname))
-                        linkPrototype.childElements.append(locPrototype)
-                        linkPrototype.labeledResources[toId].append(locPrototype)
+                        if toId not in linkModelLocIds[linkrole]:
+                            linkModelLocIds[linkrole].add(toId)
+                            locPrototype = LocPrototype(mdlDoc, linkPrototype, toId, toId, sourceElement=modelInlineRel)
+                            toFactQnames.add(str(locPrototype.dereference().qname))
+                            linkPrototype.childElements.append(locPrototype)
+                            linkPrototype.labeledResources[toId].append(locPrototype)
                     else: 
                         toIdsNotFound.append(toId)
                 if toIdsNotFound:
