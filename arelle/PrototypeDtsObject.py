@@ -9,11 +9,15 @@ class PrototypeObject():
     def __init__(self, modelDocument, sourceElement=None):
         self.modelDocument = modelDocument
         self.sourceElement = sourceElement
+        self.attributes = {}
     
     @property
     def sourceline(self):
         return self.sourceElement.sourceline if self.sourceElement is not None else None
 
+    def get(self, key, default=None):
+        return self.attributes.get(key, default)
+    
     def itersiblings(self, **kwargs):
         """Method proxy for itersiblings() of lxml arc element"""
         return self.sourceElement.itersiblings(**kwargs) if self.sourceElement is not None else ()
@@ -28,6 +32,8 @@ class LinkPrototype(PrototypeObject):      # behaves like a ModelLink for relati
         self._parent = parent
         self.modelXbrl = modelDocument.modelXbrl
         self.qname = self.elementQname = qname
+        self.namespaceURI = qname.namespaceURI
+        self.localName = qname.localName
         self.role = role
         # children are arc and loc elements or prototypes
         self.childElements = []
@@ -49,9 +55,6 @@ class LinkPrototype(PrototypeObject):      # behaves like a ModelLink for relati
     def iterchildren(self):
         return iter(self.childElements)
         
-    def get(self, key, default=None):
-        return self.attributes.get(key, default)
-    
     def __getitem(self, key):
         return self.attributes[key]
     
@@ -61,6 +64,8 @@ class LocPrototype(PrototypeObject):
         self._parent = parent
         self.modelXbrl = modelDocument.modelXbrl
         self.qname = self.elementQname = XbrlConst.qnLinkLoc
+        self.namespaceURI = self.qname.namespaceURI
+        self.localName = self.qname.localName
         self.text = self.textValue = None
         # children are arc and loc elements or prototypes
         self.attributes = {"{http://www.w3.org/1999/xlink}type":"locator",
@@ -100,6 +105,8 @@ class ArcPrototype(PrototypeObject):
         self._parent = parent
         self.modelXbrl = modelDocument.modelXbrl
         self.qname = self.elementQname = qname
+        self.namespaceURI = qname.namespaceURI
+        self.localName = qname.localName
         self.linkrole = linkrole
         self.arcrole = arcrole
         self.order = order

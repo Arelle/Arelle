@@ -10,9 +10,10 @@ from arelle import (ModelDocument, ModelValue, ModelRelationshipSet,
                     XmlUtil, XbrlConst, ValidateFilingText)
 from arelle.ValidateXbrlCalcs import insignificantDigits
 from arelle.ModelObject import ModelObject
-from arelle.ModelInstanceObject import ModelFact
+from arelle.ModelInstanceObject import ModelFact, ModelInlineFootnote
 from arelle.ModelDtsObject import ModelConcept, ModelResource
 from arelle.PluginManager import pluginClassMethods
+from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype
 from arelle.PythonUtil import pyNamedObject, strTruncate
 from arelle.UrlUtil import isHttpUrl
 from arelle.XmlValidate import VALID
@@ -75,13 +76,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     val.requiredContext = None
     val.standardNamespaceConflicts = defaultdict(set)
     documentType = None # needed for non-instance validation too
-    if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or \
-       modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
+    isInlineXbrl = modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL
+    if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or isInlineXbrl:
         instanceName = modelXbrl.modelDocument.basename
         
         #6.3.3 filename check
         m = instanceFileNamePattern.match(instanceName)
-        if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
+        if isInlineXbrl:
             m = htmlFileNamePattern.match(instanceName)
             if m:
                 val.fileNameBasePart     = None # html file name not necessarily parseable.
@@ -1273,8 +1274,17 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
         #6.5.27 footnote elements, etc
         footnoteLinkNbr = 0
-        for footnoteLinkElt in xbrlInstDoc.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}footnoteLink"):
-            if isinstance(footnoteLinkElt,ModelObject):
+        if isInlineXbrl and isEFM:
+            _linkEltIter = (linkPrototype
+                            for linkKey, links in modelXbrl.baseSets.items()
+                            for linkPrototype in links
+                            if linkPrototype.modelDocument.type == ModelDocument.Type.INLINEXBRL
+                            and linkKey[1] and linkKey[2] and linkKey[3]  # fully specified roles
+                            and linkKey[0] != "XBRL-footnotes")
+        else: 
+            _linkEltIter = xbrlInstDoc.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}footnoteLink")
+        for footnoteLinkElt in _linkEltIter:
+            if isinstance(footnoteLinkElt, (ModelObject,LinkPrototype)):
                 footnoteLinkNbr += 1
                 
                 linkrole = footnoteLinkElt.get("{http://www.w3.org/1999/xlink}role")
@@ -1291,11 +1301,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 locNbr = 0
                 arcNbr = 0
                 for child in footnoteLinkElt:
-                    if isinstance(child,ModelObject):
+                    if isinstance(child,(ModelObject,LocPrototype,ArcPrototype)):
                         xlinkType = child.get("{http://www.w3.org/1999/xlink}type")
-                        if child.namespaceURI != XbrlConst.link or \
-                           xlinkType not in ("locator", "resource", "arc") or \
-                           child.localName not in ("loc", "footnote", "footnoteArc"):
+                        if (not isinstance(child,ModelInlineFootnote) and
+                            (child.namespaceURI != XbrlConst.link or 
+                             xlinkType not in ("locator", "resource", "arc") or
+                             child.localName not in ("loc", "footnote", "footnoteArc"))):
                                 modelXbrl.error(("EFM.6.05.27", "GFM.1.02.19"),
                                     _("FootnoteLink %(footnoteLinkNumber)s has disallowed child element %(elementName)s"),
                                     modelObject=child, footnoteLinkNumber=footnoteLinkNbr, elementName=child.prefixedName)
@@ -1327,23 +1338,23 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     modelObject=child, footnoteLinkNumber=footnoteLinkNbr, arcNumber=arcNbr, 
                                     arcToLabel=child.get("{http://www.w3.org/1999/xlink}to"),
                                     arcrole=arcrole)
-                        elif xlinkType == "resource": # footnote
-                            footnoterole = child.get("{http://www.w3.org/1999/xlink}role")
+                        elif xlinkType == "resource" or isinstance(child,ModelInlineFootnote): # footnote
+                            footnoterole = child.role if isinstance(child,ModelInlineFootnote) else child.get("{http://www.w3.org/1999/xlink}role")
                             if footnoterole == "":
                                 modelXbrl.error(("EFM.6.05.28.missingRole", "GFM.1.2.20"),
                                     _("Footnote %(xlinkLabel)s is missing a role"),
-                                    modelObject=child, xlinkLabel=child.get("{http://www.w3.org/1999/xlink}label"))
+                                    modelObject=child, xlinkLabel=getattr(child, "xlinkLabel", None))
                             elif (isEFM and not disclosureSystem.uriAuthorityValid(footnoterole)) or \
                                  (disclosureSystem.GFM  and footnoterole != XbrlConst.footnote): 
                                 modelXbrl.error(("EFM.6.05.28", "GFM.1.2.20"),
                                     _("Footnote %(xlinkLabel)s has disallowed role %(role)s"),
-                                    modelObject=child, xlinkLabel=child.get("{http://www.w3.org/1999/xlink}label"),
+                                    modelObject=child, xlinkLabel=getattr(child, "xlinkLabel", None),
                                     role=footnoterole)
-                            if isEFM:
+                            if isEFM and not isInlineXbrl: # inline content was validated before and needs continuations assembly
                                 ValidateFilingText.validateFootnote(modelXbrl, child)
                             # find modelResource for this element
                             foundFact = False
-                            if XmlUtil.text(child) != "":
+                            if XmlUtil.text(child) != "" and not isInlineXbrl:
                                 if relationshipSet:
                                     for relationship in relationshipSet.toModelObject(child):
                                         if isinstance(relationship.fromModelObject, ModelFact):
@@ -1353,7 +1364,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     modelXbrl.error(("EFM.6.05.33", "GFM.1.02.24"),
                                         _("FootnoteLink %(footnoteLinkNumber)s footnote %(footnoteLabel)s has no linked fact"),
                                         modelObject=child, footnoteLinkNumber=footnoteLinkNbr, 
-                                        footnoteLabel=child.get("{http://www.w3.org/1999/xlink}label"),
+                                        footnoteLabel=getattr(child, "xlinkLabel", None),
                                         text=XmlUtil.text(child)[:100])
         val.modelXbrl.profileActivity("... filer rfootnotes checks", minTimeToShow=1.0)
 

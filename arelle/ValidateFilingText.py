@@ -8,7 +8,7 @@ Created on Oct 17, 2010
 from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _ProcessingInstruction, XMLSyntaxError, XMLParser
 import os, re, io
 from arelle.XbrlConst import ixbrlAll, xhtml
-from arelle.XmlUtil import setXmlns
+from arelle.XmlUtil import setXmlns, xmlstring
 from arelle.ModelObject import ModelObject
 from arelle.UrlUtil import isHttpUrl
 
@@ -28,6 +28,7 @@ namedEntityPattern = re.compile("&[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02
 
 
 edbodyDTD = None
+isInlineDTD = None
 
 ''' replace with lxml DTD validation
 bodyTags = {
@@ -457,10 +458,17 @@ def checkfile(modelXbrl, filepath):
             foundXmlDeclaration = True
     return (io.StringIO(initial_value=result), encoding)
 
+ModelDocumentTypeINLINEXBRL = None
 def loadDTD(modelXbrl):
-    global edbodyDTD
-    if edbodyDTD is None:
-        with open(os.path.join(modelXbrl.modelManager.cntlr.configDir, "edbody.dtd")) as fh:
+    global edbodyDTD, isInlineDTD, ModelDocumentTypeINLINEXBRL
+    if ModelDocumentTypeINLINEXBRL is None:
+        from arelle.ModelDocument import Type
+        ModelDocumentTypeINLINEXBRL = Type.INLINEXBRL
+    _isInline = modelXbrl.modelDocument.type == ModelDocumentTypeINLINEXBRL
+    if isInlineDTD is None or isInlineDTD != _isInline:
+        isInlineDTD = _isInline
+        with open(os.path.join(modelXbrl.modelManager.cntlr.configDir, 
+                               "xhtml1-strict-ix.dtd" if _isInline else "edbody.dtd")) as fh:
             edbodyDTD = DTD(fh)
         
 def removeEntities(text):
@@ -484,13 +492,19 @@ def validateTextBlockFacts(modelXbrl):
     loadDTD(modelXbrl)
     checkedGraphicsFiles = set() #  only check any graphics file reference once per fact
     
+    if isInlineDTD:
+        htmlBodyTemplate = "<body><div>\n{0}\n</div></body>\n"
+    else:
+        htmlBodyTemplate = "<body>\n{0}\n</body>\n"
+    _xhtmlNs = "{{{}}}".format(xhtml)
+    _xhtmlNsLen = len(_xhtmlNs)
+    
     for f1 in modelXbrl.facts:
         # build keys table for 6.5.14
         concept = f1.concept
         if f1.xsiNil != "true" and \
            concept is not None and \
            concept.isTextBlock and \
-           f1.namespaceURI not in ixbrlAll and \
            XMLpattern.match(f1.value):
             #handler.fact = f1
             # test encoded entity tags
@@ -516,7 +530,7 @@ def validateTextBlockFacts(modelXbrl):
                             _("Fact %(fact)s contextID %(contextID)s has text which causes the XML error %(error)s"),
                             modelObject=f1, fact=f1.qname, contextID=f1.contextID, error=err)
                 '''
-                xmlBodyWithoutEntities = "<body>\n{0}\n</body>\n".format(removeEntities(xmltext))
+                xmlBodyWithoutEntities = htmlBodyTemplate.format(removeEntities(xmltext))
                 try:
                     textblockXml = XML(xmlBodyWithoutEntities)
                     if not edbodyDTD.validate( textblockXml ):
@@ -530,7 +544,26 @@ def validateTextBlockFacts(modelXbrl):
                             messageCodes=("EFM.6.05.16", "EFM.6.05.15.dtdError", "GFM.1.02.14"))
                     for elt in textblockXml.iter():
                         eltTag = elt.tag
+                        if isinstance(elt, ModelObject) and elt.namespaceURI == xhtml:
+                            eltTag = elt.localName
+                        elif isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction)):
+                            continue # comment or other non-parsed element
+                        else:
+                            eltTag = elt.tag
+                            if eltTag.startswith(_xhtmlNs):
+                                eltTag = eltTag[_xhtmlNsLen:]
+                        if isInlineDTD and eltTag in efmBlockedInlineHtmlElements:
+                            modelXbrl.error("EFM.5.02.05.disallowedElement",
+                                _("%(validatedObjectLabel)s has disallowed element <%(element)s>"),
+                                modelObject=elt, validatedObjectLabel=f1.qname,
+                                element=eltTag)
                         for attrTag, attrValue in elt.items():
+                            if isInlineDTD:
+                                if attrTag in efmBlockedInlineHtmlElementAttributes.get(eltTag,()):
+                                    modelXbrl.error("EFM.5.02.05.disallowedAttribute",
+                                        _("%(validatedObjectLabel)s has disallowed attribute on element <%(element)s>: %(attribute)s=\"%(value)s\""),
+                                        modelObject=elt, validatedObjectLabel=validatedObjectLabel,
+                                        element=eltTag, attribute=attrTag, value=attrValue)
                             if ((attrTag == "href" and eltTag == "a") or 
                                 (attrTag == "src" and eltTag == "img")):
                                 if "javascript:" in attrValue:
