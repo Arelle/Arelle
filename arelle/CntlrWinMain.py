@@ -102,6 +102,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 (_("Open Web..."), self.webOpen, "Shift+Alt+O", "<Shift-Alt-o>"),
                 (_("Import File..."), self.importFileOpen, None, None),
                 (_("Import Web..."), self.importWebOpen, None, None),
+                (_("Reopen"), self.fileReopen, None, None),
                 ("PLUG-IN", "CntlrWinMain.Menu.File.Open", None, None),
                 (_("Save"), self.fileSaveExistingFile, "Ctrl+S", "<Control-s>"),
                 (_("Save As..."), self.fileSave, None, None),
@@ -252,6 +253,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 #("images/toolbarNewFile.gif", self.fileNew),
                 ("toolbarOpenFile.gif", self.fileOpen, _("Open local file"), _("Open by choosing a local XBRL file, testcase, or archive file")),
                 ("toolbarOpenWeb.gif", self.webOpen, _("Open web file"), _("Enter an http:// URL of an XBRL file or testcase")),
+                ("toolbarReopen.gif", self.fileReopen, _("Reopen"), _("Reopen last opened XBRL file or testcase(s)")),
                 ("toolbarSaveFile.gif", self.fileSaveExistingFile, _("Save file"), _("Saves currently selected local XBRL file")),
                 ("toolbarClose.gif", self.fileClose, _("Close"), _("Closes currently selected instance/DTS or testcase(s)")),
                 (None,None,None,None),
@@ -911,6 +913,12 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.parent.title(_("arelle - Unnamed"))
         self.setValidateTooltipText()
         self.currentView = None
+        
+    def fileReopen(self, *ignore):
+        self.fileClose()
+        fileHistory = self.config.setdefault("fileHistory", [])
+        if len(fileHistory) > 0:
+            self.fileOpenFile(fileHistory[0])
 
     def validate(self):
         modelXbrl = self.modelManager.modelXbrl
