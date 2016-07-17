@@ -23,13 +23,14 @@ NaN = decimal.Decimal("NaN")
 floatNaN = float("NaN")
 floatINF = float("INF")
 
-def validate(modelXbrl, inferDecimals=False):
-    ValidateXbrlCalcs(modelXbrl, inferDecimals).validate()
+def validate(modelXbrl, inferDecimals=False, deDuplicate=False):
+    ValidateXbrlCalcs(modelXbrl, inferDecimals, deDuplicate).validate()
     
 class ValidateXbrlCalcs:
-    def __init__(self, modelXbrl, inferDecimals=False):
+    def __init__(self, modelXbrl, inferDecimals=False, deDuplicate=False):
         self.modelXbrl = modelXbrl
         self.inferDecimals = inferDecimals
+        self.deDuplicate = deDuplicate
         self.mapContext = {}
         self.mapUnit = {}
         self.sumFacts = defaultdict(list)
@@ -38,6 +39,7 @@ class ValidateXbrlCalcs:
         self.itemConceptBindKeys = defaultdict(set)
         self.duplicateKeyFacts = {}
         self.duplicatedFacts = set()
+        self.consistentDupFacts = set() # when deDuplicatig, holds the less-precise of v-equal dups
         self.esAlFacts = defaultdict(list)
         self.esAlConceptBindKeys = defaultdict(set)
         self.conceptsInEssencesAlias = set()
@@ -124,7 +126,7 @@ class ValidateXbrlCalcs:
                                             for fact in self.itemFacts[factKey]:
                                                 if fact in self.duplicatedFacts:
                                                     dupBindingKeys.add(itemBindKey)
-                                                else:
+                                                elif fact not in self.consistentDupFacts:
                                                     roundedValue = roundFact(fact, self.inferDecimals)
                                                     boundSums[itemBindKey] += roundedValue * weight
                                                     boundSummationItems[itemBindKey].append(wrappedFactWithWeight(fact,weight,roundedValue))
@@ -136,7 +138,7 @@ class ValidateXbrlCalcs:
                                     for fact in sumFacts:
                                         if fact in self.duplicatedFacts:
                                             dupBindingKeys.add(sumBindKey)
-                                        elif sumBindKey not in dupBindingKeys:
+                                        elif sumBindKey not in dupBindingKeys and fact not in self.consistentDupFacts:
                                             roundedSum = roundFact(fact, self.inferDecimals)
                                             roundedItemsSum = roundFact(fact, self.inferDecimals, vDecimal=boundSums[sumBindKey])
                                             if roundedItemsSum  != roundFact(fact, self.inferDecimals):
@@ -228,8 +230,33 @@ class ValidateXbrlCalcs:
                         self.sumConceptBindKeys[concept].add(bindKey)
                     # calcKey is the last ancestor added (immediate parent of fact)
                     if calcKey in self.duplicateKeyFacts:
-                        self.duplicatedFacts.add(f)
-                        self.duplicatedFacts.add(self.duplicateKeyFacts[calcKey])
+                        fDup = self.duplicateKeyFacts[calcKey]
+                        if self.deDuplicate: # add lesser precision fact to consistentDupFacts
+                            if self.inferDecimals:
+                                d = inferredDecimals(f); dDup = inferredDecimals(fDup)
+                                dMin = min((d, dDup)); pMin = None
+                                hasAccuracy = (not isnan(d) and not isnan(dDup))
+                                fIsMorePrecise = (d > dDup)
+                            else:
+                                p = inferredPrecision(f); pDup = inferredPrecision(fDup)
+                                dMin = None; pMin = min((p, pDup))
+                                hasAccuracy = (p != 0)
+                                fIsMorePrecise = (p > pDup)
+                            if (hasAccuracy and
+                                roundValue(f.value,precision=pMin,decimals=dMin) == 
+                                roundValue(fDup.value,precision=pMin,decimals=dMin)):
+                                # consistent duplicate, f more precise than fDup, replace fDup with f
+                                if fIsMorePrecise: # works for inf and integer mixtures
+                                    self.duplicateKeyFacts[calcKey] = f
+                                    self.consistentDupFacts.add(fDup)
+                                else: # fDup is more precise or equally precise
+                                    self.consistentDupFacts.add(f)
+                            else: # invalid accuracy or inconsistent duplicates
+                                self.duplicatedFacts.add(f)
+                                self.duplicatedFacts.add(fDup)
+                        else: # add both this fact and matching calcKey'ed fact to duplicatedFacts
+                            self.duplicatedFacts.add(f)
+                            self.duplicatedFacts.add(fDup)
                     else:
                         self.duplicateKeyFacts[calcKey] = f
                 elif concept.isTuple:

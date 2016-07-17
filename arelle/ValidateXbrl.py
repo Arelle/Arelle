@@ -70,6 +70,7 @@ class ValidateXbrl:
         self.validateXmlLang = self.validateDisclosureSystem and self.disclosureSystem.xmlLangPattern
         self.validateCalcLB = modelXbrl.modelManager.validateCalcLB
         self.validateInferDecimals = modelXbrl.modelManager.validateInferDecimals
+        self.validateDedupCalcs = modelXbrl.modelManager.validateDedupCalcs
         self.validateUTR = (modelXbrl.modelManager.validateUtr or
                             (self.parameters and self.parameters.get(qname("forceUtrValidation",noPrefixIsNoNamespace=True),(None,"false"))[1] == "true") or
                             (self.validateEFM and 
@@ -369,7 +370,9 @@ class ValidateXbrl:
         
         if self.validateCalcLB:
             modelXbrl.modelManager.showStatus(_("Validating instance calculations"))
-            ValidateXbrlCalcs.validate(modelXbrl, inferDecimals=self.validateInferDecimals)
+            ValidateXbrlCalcs.validate(modelXbrl, 
+                                       inferDecimals=self.validateInferDecimals,
+                                       deDuplicate=self.validateDedupCalcs)
             modelXbrl.profileStat(_("validateCalculations"))
             
         if self.validateUTR:

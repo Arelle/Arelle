@@ -37,6 +37,10 @@ class ModelManager:
         
         True for calculation linkbase validation to infer decimals (instead of precision)
         
+        .. attribute:: validateDedupCalcs
+        
+        True for calculation linkbase validation de-duplicate calculations
+        
         .. attribute:: validateUTR
         
         True for validation of unit type registry
@@ -52,6 +56,7 @@ class ModelManager:
         self.disclosureSystem = DisclosureSystem.DisclosureSystem(self)
         self.validateCalcLB = False
         self.validateInferDecimals = True
+        self.validateDedupCalcs = False
         self.validateInfoset = False
         self.validateUtr = False
         self.skipDTS = False

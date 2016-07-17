@@ -146,6 +146,10 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.validateInferDecimals = BooleanVar(value=self.modelManager.validateInferDecimals)
         self.validateInferDecimals.trace("w", self.setValidateInferDecimals)
         validateMenu.add_checkbutton(label=_("Infer Decimals in calculations"), underline=0, variable=self.validateInferDecimals, onvalue=True, offvalue=False)
+        self.modelManager.validateDedupCalcs = self.config.setdefault("validateDedupCalcs",False)
+        self.validateDedupCalcs = BooleanVar(value=self.modelManager.validateDedupCalcs)
+        self.validateDedupCalcs.trace("w", self.setValidateDedupCalcs)
+        validateMenu.add_checkbutton(label=_("De-duplicate calculations"), underline=0, variable=self.validateDedupCalcs, onvalue=True, offvalue=False)
         self.modelManager.validateUtr = self.config.setdefault("validateUtr",True)
         self.validateUtr = BooleanVar(value=self.modelManager.validateUtr)
         self.validateUtr.trace("w", self.setValidateUtr)
@@ -1161,6 +1165,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                         c = _("\nCheck calculations (infer decimals)")
                     else:
                         c = _("\nCheck calculations (infer precision)")
+                    if self.modelManager.validateDedupCalcs:
+                        c += _("\nDeduplicate calculations")
                 else:
                     c = ""
                 if self.modelManager.validateUtr:
@@ -1185,6 +1191,12 @@ class CntlrWinMain (Cntlr.Cntlr):
     def setValidateInferDecimals(self, *args):
         self.modelManager.validateInferDecimals = self.validateInferDecimals.get()
         self.config["validateInferDecimals"] = self.modelManager.validateInferDecimals
+        self.saveConfig()
+        self.setValidateTooltipText()
+            
+    def setValidateDedupCalcs(self, *args):
+        self.modelManager.validateDedupCalcs = self.validateDedupCalcs.get()
+        self.config["validateDedupCalcs"] = self.modelManager.validateDedupCalcs
         self.saveConfig()
         self.setValidateTooltipText()
             

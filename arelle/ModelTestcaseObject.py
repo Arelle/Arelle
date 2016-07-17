@@ -113,7 +113,7 @@ class ModelTestcaseVariation(ModelObject):
                                 self._readMeFirstUris.append( (anElement.get("dts"), uri) )
                             else:
                                 self._readMeFirstUris.append(uri)
-            if not self._readMeFirstUris and not self.isTaxonomyPackageVariation:  # provide a dummy empty instance document
+            if not self._readMeFirstUris:  # provide a dummy empty instance document
                 self._readMeFirstUris.append(os.path.join(self.modelXbrl.modelManager.cntlr.configDir, "empty-instance.xml"))
             return self._readMeFirstUris
     

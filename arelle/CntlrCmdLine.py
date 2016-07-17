@@ -104,6 +104,9 @@ def parseAndRun(args):
     parser.add_option("--calcPrecision", action="store_true", dest="calcPrecision",
                       help=_("Specify calculation linkbase validation inferring precision."))
     parser.add_option("--calcprecision", action="store_true", dest="calcPrecision", help=SUPPRESS_HELP)
+    parser.add_option("--calcDeduplicate", action="store_true", dest="calcDeduplicate",
+                      help=_("Specify de-duplication of consistent facts when performing calculation validation, chooses most accurate fact."))
+    parser.add_option("--calcdeduplicate", action="store_true", dest="calcDeduplicate", help=SUPPRESS_HELP)
     parser.add_option("--efm", action="store_true", dest="validateEFM",
                       help=_("Select Edgar Filer Manual (U.S. SEC) disclosure system validation (strict)."))
     parser.add_option("--gfm", action="store", dest="disclosureSystemName", help=SUPPRESS_HELP)
@@ -695,6 +698,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
         elif options.calcPrecision:
             self.modelManager.validateInferDecimals = False
             self.modelManager.validateCalcLB = True
+        if options.calcDeduplicate:
+            self.modelManager.validateDedupCalcs = True
         if options.utrValidate:
             self.modelManager.validateUtr = True
         if options.infosetValidate:
