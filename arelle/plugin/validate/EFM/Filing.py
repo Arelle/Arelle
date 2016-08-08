@@ -16,6 +16,7 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype
 from arelle.PythonUtil import pyNamedObject, strTruncate
 from arelle.UrlUtil import isHttpUrl
+from arelle.ValidateXbrlCalcs import inferredDecimals
 from arelle.XmlValidate import VALID
 from .DTS import checkFilingDTS
 from .Dimensions import checkFilingDimensions
@@ -593,6 +594,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 for f in hashEquivalentFacts:
                     aspectEqualFacts[(f.qname,f.contextID,f.unitID,f.xmlLang)].append(f)
                 for fList in aspectEqualFacts.values():
+                    fList.sort(key=lambda f: inferredDecimals(f), reverse=True)
                     f0 = fList[0]
                     if any(not f.isVEqualTo(f0) for f in fList[1:]):
                         modelXbrl.error(("EFM.6.05.12", "GFM.1.02.11"),
