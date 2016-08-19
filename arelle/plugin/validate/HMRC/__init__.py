@@ -332,7 +332,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             if _missingItems:
                 modelXbrl.error("JFCVC.3312",
                     _("Mandatory facts missing: %(missingItems)s"), 
-                    modelObject=modelXbrl, missingItems=", ".join(_missingItems))
+                    modelObject=modelXbrl, missingItems=", ".join(sorted(_missingItems)))
             
             f = mandatoryFacts.get("StartDateForPeriodCoveredByReport")
             if f is not None and (f.isNil or f.xValue < _6_APR_2008):
