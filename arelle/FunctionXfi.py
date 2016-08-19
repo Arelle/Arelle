@@ -4,7 +4,7 @@ Created on Dec 20, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import xml.dom, datetime
+import xml.dom, datetime, re
 from arelle import XPathContext, XbrlConst, XbrlUtil, XmlUtil
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelValue import qname, QName, dateTime, DATE, DATETIME, DATEUNION, DateTime, dateUnionEqual, anyURI
@@ -643,6 +643,17 @@ def concept_data_type_derived_from(xc, p, args):
 def concept_substitutions(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     return concept(xc,p,args).substitutionGroupQnames
+
+def concepts_from_local_name(xc, p, args):
+    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    localName = stringArg(xc, args, 0, "xs:string")
+    return [c.qname for c in xc.modelXbrl.nameConcepts.get(localName,()) if c.isItem or c.isTuple]
+
+def concepts_from_local_name_pattern(xc, p, args):
+    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    localNamePattern = re.compile(stringArg(xc, args, 0, "xs:string"))
+    return [c.qname for c in xc.modelXbrl.qnameConcepts.values() 
+            if (c.isItem or c.isTuple) and bool(localNamePattern.search(c.name))]
 
 def filter_member_network_selection(xc, p, args):
     if len(args) != 5: raise XPathContext.FunctionNumArgs()
@@ -1287,6 +1298,8 @@ xfiFunctions = {
     'concept-data-type': concept_data_type,
     'concept-data-type-derived-from' : concept_data_type_derived_from,
     'concept-substitutions': concept_substitutions,
+    'concepts-from-local-name': concepts_from_local_name,
+    'concepts-from-local-name-pattern': concepts_from_local_name_pattern,
     'filter-member-network-selection' : filter_member_network_selection,
     'filter-member-DRS-selection' : filter_member_DRS_selection,
     'fact-segment-remainder': fact_segment_remainder,
