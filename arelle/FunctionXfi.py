@@ -771,6 +771,20 @@ def filter_member_DRS_members(xc, fromRels, axis, memConcept, inSelection, visit
                                       memSelectionQnames)
             visited.discard(toConcept)
 
+def dimension_default(xc, p, args):
+    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    qnDim = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
+    dimConcept = xc.modelXbrl.qnameConcepts.get(qnDim)
+    if dimConcept is None or dimConcept.qname is None or dimConcept.qname.namespaceURI == XbrlConst.xbrli:
+        raise XPathContext.XPathException(p, 'xfie:invalidDimensionQName', _('Argument 1 {0} is not in the DTS.').format(qnDim))
+    elif not dimConcept.isDimensionItem:
+        raise XPathContext.XPathException(p, 'xfie:invalidDimensionQName', _('Argument 1 {0} is not a dimension.').format(qnDim))
+    for dimDefRel in xc.modelXbrl.relationshipSet(XbrlConst.dimensionDefault).fromModelObject(dimConcept):
+        dimConcept = dimDefRel.toModelObject
+        if dimConcept is not None and dimConcept.isDomainMember:
+            return [dimConcept.qname]
+    return []
+
 def fact_segment_remainder(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     context = item_context(xc, args)
@@ -1302,6 +1316,7 @@ xfiFunctions = {
     'concepts-from-local-name-pattern': concepts_from_local_name_pattern,
     'filter-member-network-selection' : filter_member_network_selection,
     'filter-member-DRS-selection' : filter_member_DRS_selection,
+    'dimension-default': dimension_default,
     'fact-segment-remainder': fact_segment_remainder,
     'fact-scenario-remainder': fact_scenario_remainder,
     'fact-has-explicit-dimension': fact_has_explicit_dimension,
