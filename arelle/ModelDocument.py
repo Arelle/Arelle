@@ -425,6 +425,10 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
                 if isinstance(semanticRoot, ModelObject):
                     modelDocument.xmlRootElement = semanticRoot
                     break
+        # init subtree
+        for elt in xmlDocument.iter():
+            if isinstance(elt, ModelObject):
+                elt.init(modelDocument)
     if type == Type.INSTANCE and discover:
         modelDocument.instanceDiscover(modelDocument.xmlRootElement)
     elif type == Type.RSSFEED and discover:
