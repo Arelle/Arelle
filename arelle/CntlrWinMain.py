@@ -1447,7 +1447,7 @@ class TkinterCallWrapper:
             # this was tkinter's standard coding: self.widget._report_exception()
             exc_type, exc_value, exc_traceback = sys.exc_info()
             msg = ''.join(traceback.format_exception_only(exc_type, exc_value))
-            tracebk = ''.join(traceback.format_tb(exc_traceback, limit=7))
+            tracebk = ''.join(traceback.format_tb(exc_traceback, limit=30))
             tkinter.messagebox.showerror(_("Exception"), 
                                          _("{0}\nCall trace\n{1}").format(msg, tracebk))
                 
