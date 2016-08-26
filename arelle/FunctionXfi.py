@@ -645,15 +645,26 @@ def concept_substitutions(xc, p, args):
     return concept(xc,p,args).substitutionGroupQnames
 
 def concepts_from_local_name(xc, p, args):
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    if not 1 <= len(args) <= 2: raise XPathContext.FunctionNumArgs()
     localName = stringArg(xc, args, 0, "xs:string")
-    return [c.qname for c in xc.modelXbrl.nameConcepts.get(localName,()) if c.isItem or c.isTuple]
+    if len(args) == 2:
+        nsPattern = re.compile(stringArg(xc, args, 1, "xs:string"))
+        return [c.qname for c in xc.modelXbrl.nameConcepts.get(localName,()) 
+                if (c.isItem or c.isTuple) and bool(nsPattern.search(c.qname.namespaceURI))]
+    else:
+        return [c.qname for c in xc.modelXbrl.nameConcepts.get(localName,()) 
+                if c.isItem or c.isTuple]
 
 def concepts_from_local_name_pattern(xc, p, args):
-    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    if not 1 <= len(args) <= 2: raise XPathContext.FunctionNumArgs()
     localNamePattern = re.compile(stringArg(xc, args, 0, "xs:string"))
-    return [c.qname for c in xc.modelXbrl.qnameConcepts.values() 
-            if (c.isItem or c.isTuple) and bool(localNamePattern.search(c.name))]
+    if len(args) == 2:
+        nsPattern = re.compile(stringArg(xc, args, 1, "xs:string"))
+        return [c.qname for c in xc.modelXbrl.qnameConcepts.values() 
+                if (c.isItem or c.isTuple) and bool(localNamePattern.search(c.name)) and bool(nsPattern.search(c.qname.namespaceURI))]
+    else:
+        return [c.qname for c in xc.modelXbrl.qnameConcepts.values() 
+                if (c.isItem or c.isTuple) and bool(localNamePattern.search(c.name))]
 
 def filter_member_network_selection(xc, p, args):
     if len(args) != 5: raise XPathContext.FunctionNumArgs()
