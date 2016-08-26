@@ -8,10 +8,11 @@ Loads xbrl formula file syntax into formula linkbase.
 
 To run as a main program and save xbrl formula files (.xf) into xbrl formula linkbase:
 
-   python3.5  formulaLoader.py {files}
+   python3.5  formulaLoader.py {files} {debug}
    where {files} are formula files separated by | characters (enclose in single quotes on unix)
    loads from {name}.xf file
    saves formula linkbase to {name}-formula.xml file
+   if arg2 is debug then parsing debug trace is printed (helpful to see where parsing got stuck if parse errors)
    
 As a plugin this enables Arelle to load formula files (*.xf) into Arelle's object model for formula linkbases and execute them.
 When run from GUI first load the instance/DTS and then import the xf file(s).
@@ -576,7 +577,7 @@ def compileDimensionFilter( sourceStr, loc, toks ):
             if isinstance(tok, XPathExpression):
                 lbGen.subElement(memElt, "df:qnameExpression", text=str(tok))
             elif tok.startswith('$'):
-                lbGen.subElement(memElt, "df:variable", text=tok)
+                lbGen.subElement(memElt, "df:variable", text=tok[1:]) # remove $ from variable name
             elif ':' in tok: # it's a QName
                 lbGen.subElement(memElt, "df:qname", text=tok)
             else: # it's a local name
@@ -906,7 +907,7 @@ def compileMatchFilter( sourceStr, loc, toks ):
                 filterEltQname = "mf:matchDimension"
                 isMatchDimension = True
         elif filterEltQname is not None and "variable" not in filterAttrib:
-            filterAttrib["variable"] = tok
+            filterAttrib["variable"] = tok[1:] # remove $ from variable name
         elif isMatchDimension and prevTok == "dimension":
             filterAttrib["dimension"] = lbGen.clarkName(tok) # must be a qname (not a local name)
         elif tok == "match-any":
@@ -916,10 +917,6 @@ def compileMatchFilter( sourceStr, loc, toks ):
     return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
             FormulaResourceElt(filterElt)]
     
-def compileMessage( sourceStr, loc, toks ):
-    global lastLoc; lastLoc = loc
-    return []
-
 def compileNamespaceDeclaration( sourceStr, loc, toks ):
     lbGen.checkXmlns(dequotedString(toks[0]), dequotedString(toks[1]))
     return []
@@ -1008,7 +1005,7 @@ def compilePeriodFilter( sourceStr, loc, toks ):
         elif isInstantDuration and tok in ("start", "end"):
             filterAttrib["boundary"] = tok
         elif isInstantDuration and prevTok in ("start", "end"):
-            filterAttrib["variable"] = tok
+            filterAttrib["variable"] = tok[1:] # remove $ from variable name
         prevTok = tok
     filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
     return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
@@ -1054,7 +1051,7 @@ def compileRelativeFilter( sourceStr, loc, toks ):
         elif tok == "non-covering":
             arcAttrib["cover"] = "false"
         elif prevTok == "relative":
-            filterAttrib["variable"] = lbGen.clarkName(tok)
+            filterAttrib["variable"] = tok[1:] # remove $ from variable name
         prevTok = tok
     filterElt = lbGen.subElement(lbGen.genLinkElement, "rf:relativeFilter", attrib=filterAttrib)
     return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
@@ -1090,7 +1087,7 @@ def compileTupleFilter( sourceStr, loc, toks ):
             tupleRelationTok = tok
         elif prevTok == "sibling":
             filterEltQname = "tf:siblingFilter"
-            filterAttrib["variable"] = str(tok)
+            filterAttrib["variable"] = tok[1:] # remove $ from variable name
         prevTok = tok
     filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
     if filterEltQname in ("tf:parentFilter", "tf:ancestorFilter"):
@@ -1181,19 +1178,18 @@ def compileXPathExpression( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
     return XPathExpression(toks)
 
-def compileXfsGrammar( cntlr ):
+def compileXfsGrammar( cntlr, debugParsing ):
     global isGrammarCompiled, xfsProg, lineno, line, col
 
     if isGrammarCompiled:
         return xfsProg
     
-    debugParsing = True
-    
     cntlr.showStatus(_("Compiling Formula Grammar"))
     from pyparsing import (Word, Keyword, alphas, 
                  Literal, CaselessLiteral, 
                  Combine, Optional, nums, Or, Forward, Group, ZeroOrMore, OneOrMore, StringEnd, alphanums,
-                 ParserElement, quotedString, dblQuotedString, sglQuotedString, delimitedList, Suppress, Regex, FollowedBy,
+                 ParserElement, quotedString, dblQuotedString, sglQuotedString, QuotedString,
+                 delimitedList, Suppress, Regex, FollowedBy,
                  lineno, line, col)
     
     ParserElement.enablePackrat()
@@ -1236,8 +1232,8 @@ def compileXfsGrammar( cntlr ):
     digits = Word(nums) 
     integerLiteral = Combine( Optional(plusorminusLiteral) + digits )
     decimalFractionLiteral = Combine( Optional(plusorminusLiteral) + decimalPoint + digits )
-    infLiteral = Combine( Optional(plusorminusLiteral) + Literal("INF") )
-    nanLiteral = Literal("NaN")
+    infLiteral = Combine( Optional(plusorminusLiteral) + Keyword("INF") )
+    nanLiteral = Keyword("NaN")
     floatLiteral = ( Combine( integerLiteral +
                          ( ( decimalPoint + Optional(digits) + exponentLiteral + integerLiteral ) |
                            ( exponentLiteral + integerLiteral ) )
@@ -1262,33 +1258,33 @@ def compileXfsGrammar( cntlr ):
                        Suppress(Literal("}"))).setParseAction(compileXPathExpression)
     separator = Suppress( Literal(";") )
     
-    namespaceDeclaration = (Suppress(Literal("namespace")) + quotedString + Suppress(Literal("=")) + quotedString + separator
+    namespaceDeclaration = (Suppress(Keyword("namespace")) + quotedString + Suppress(Literal("=")) + quotedString + separator
                             ).setParseAction(compileNamespaceDeclaration).ignore(xfsComment)
-    defaultDeclaration = (Suppress(Literal("unsatisfied-severity") | Literal("default-language")) + ncName + separator
+    defaultDeclaration = (Suppress(Keyword("unsatisfied-severity") | Keyword("default-language")) + ncName + separator
                          ).setParseAction(compileDefaults).ignore(xfsComment)
 
-    parameterDeclaration = (Suppress(Keyword("parameter")) + ncName  +  
-                            Optional(Literal("required")) +
-                            Optional(Literal("select") + xpathExpression) +
-                            Optional(Literal("as") + qName) + separator
+    parameterDeclaration = (Suppress(Keyword("parameter")) + qName  +  
+                            Optional(Keyword("required")) +
+                            Optional(Keyword("select") + xpathExpression) +
+                            Optional(Keyword("as") + qName) + separator
                            ).setParseAction(compileParameterDeclaration).ignore(xfsComment)
                            
     occurenceIndicator = Literal("?") | Literal("*") | Literal("+")
                            
-    functionParameter = (variableRef + Suppress(Literal("as")) + Combine(qName + Optional(occurenceIndicator))
+    functionParameter = (variableRef + Suppress(Keyword("as")) + Combine(qName + Optional(occurenceIndicator))
                          ).setParseAction(compileFunctionParameter).ignore(xfsComment)
                          
-    functionStep = (Suppress(Literal("step")) + variableRef + xpathExpression + 
+    functionStep = (Suppress(Keyword("step")) + variableRef + xpathExpression + 
                     separator).setParseAction(compileFunctionStep).ignore(xfsComment)
                          
     functionImplementation = (Suppress(Literal("{")) + 
                               ZeroOrMore(functionStep) + 
-                              Literal("return") + xpathExpression + separator +
+                              Keyword("return") + xpathExpression + separator +
                               Suppress(Literal("}"))).ignore(xfsComment)
     
     functionDeclaration = (Suppress(Keyword("function")) + ncName  + 
                            Suppress(Literal("(")) + Optional(delimitedList(functionParameter)) + Suppress(Literal(")")) +
-                              Literal("as") + Combine(qName + Optional(occurenceIndicator)) +
+                              Keyword("as") + Combine(qName + Optional(occurenceIndicator)) +
                            Optional(functionImplementation) + separator
                            ).setParseAction(compileFunctionDeclaration).ignore(xfsComment)
     
@@ -1296,56 +1292,57 @@ def compileXfsGrammar( cntlr ):
     
     severity = ( Suppress(Keyword("unsatisfied-severity")) + ( ncName ) + separator ).setParseAction(compileSeverity).ignore(xfsComment) 
     
-    label = ( (Literal("label") | Literal("unsatisfied-message") | Literal("satisfied-message")) +
+    label = ( (Keyword("label") | Keyword("unsatisfied-message") | Keyword("satisfied-message")) +
               Optional( Combine(Literal("(") + Regex("[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*") + Literal(")")) ) + 
-              dblQuotedString + separator).setParseAction(compileLabel).ignore(xfsComment)
+              (QuotedString('"',multiline=True,escQuote='""') | QuotedString("'",multiline=True,escQuote="''")) +
+              separator).setParseAction(compileLabel).ignore(xfsComment)
               
-    aspectRuleConcept = ( Suppress(Literal("concept")) + (qName | xpathExpression) + separator
+    aspectRuleConcept = ( Suppress(Keyword("concept")) + (qName | xpathExpression) + separator
                         ).setParseAction(compileAspectRuleConcept).ignore(xfsComment)
                         
-    aspectRuleEntityIdentifier = (Suppress(Literal("entity-identifier")) + 
-                                  Optional( Literal("scheme") + xpathExpression) + 
-                                  Optional( Literal("identifier") + xpathExpression) + separator
+    aspectRuleEntityIdentifier = (Suppress(Keyword("entity-identifier")) + 
+                                  Optional( Keyword("scheme") + xpathExpression) + 
+                                  Optional( Keyword("identifier") + xpathExpression) + separator
                         ).setParseAction(compileAspectRuleEntityIdentifier).ignore(xfsComment)
                         
-    aspectRulePeriod = (Suppress(Literal("period")) + 
-                        ( Literal("forever") |
-                          Literal("instant") +  xpathExpression |
-                          Literal("duration") +  
-                                  Optional( Literal("start") + xpathExpression) + 
-                                  Optional( Literal("end") + xpathExpression) ) + separator
+    aspectRulePeriod = (Suppress(Keyword("period")) + 
+                        ( Keyword("forever") |
+                          Keyword("instant") +  xpathExpression |
+                          Keyword("duration") +  
+                                  Optional( Keyword("start") + xpathExpression) + 
+                                  Optional( Keyword("end") + xpathExpression) ) + separator
                         ).setParseAction(compileAspectRulePeriod).ignore(xfsComment)
                         
-    aspectRuleUnitTerm = ((Literal("multiply-by") | Literal("divide-by")) + 
-                          Optional( Literal("source") + qName ) +
-                          Optional( Literal("measure") + xpathExpression ) + separator
+    aspectRuleUnitTerm = ((Keyword("multiply-by") | Keyword("divide-by")) + 
+                          Optional( Keyword("source") + qName ) +
+                          Optional( Keyword("measure") + xpathExpression ) + separator
                         ).setParseAction(compileAspectRuleUnitTerm).ignore(xfsComment)
                         
-    aspectRuleUnit = (Suppress(Literal("unit")) + Optional(Literal("augment")) + Suppress(Literal("{")) +
+    aspectRuleUnit = (Suppress(Keyword("unit")) + Optional(Keyword("augment")) + Suppress(Literal("{")) +
                       ZeroOrMore( aspectRuleUnitTerm ) + Suppress(Literal("}")) + separator
                         ).setParseAction(compileAspectRuleUnit).ignore(xfsComment)
               
     aspectRuleExplicitDimensionTerm = (
-                         (Literal("member") + (qName | xpathExpression) |
-                          Literal("omit")) + separator
+                         (Keyword("member") + (qName | xpathExpression) |
+                          Keyword("omit")) + separator
                         ).setParseAction(compileAspectRuleExplicitDimensionTerm).ignore(xfsComment)
                         
-    aspectRuleExplicitDimension = (Suppress(Literal("explicit-dimension")) + qName + Suppress(Literal("{")) +
+    aspectRuleExplicitDimension = (Suppress(Keyword("explicit-dimension")) + qName + Suppress(Literal("{")) +
                       ZeroOrMore( aspectRuleExplicitDimensionTerm ) + Suppress(Literal("}")) + separator
                         ).setParseAction(compileAspectRuleExplicitDimension).ignore(xfsComment)
               
     aspectRuleTypedDimensionTerm = (
-                         (Literal("xpath") + xpathExpression |
-                          Literal("value") + dblQuotedString |
-                          Literal("omit")) + separator
+                         (Keyword("xpath") + xpathExpression |
+                          Keyword("value") + dblQuotedString |
+                          Keyword("omit")) + separator
                         ).setParseAction(compileAspectRuleTypedDimensionTerm).ignore(xfsComment)
                         
-    aspectRuleTypedDimension = (Suppress(Literal("tyoed-dimension")) + qName + Suppress(Literal("{")) +
+    aspectRuleTypedDimension = (Suppress(Keyword("tyoed-dimension")) + qName + Suppress(Literal("{")) +
                       ZeroOrMore( aspectRuleTypedDimensionTerm ) + Suppress(Literal("}")) + separator
                         ).setParseAction(compileAspectRuleTypedDimension).ignore(xfsComment)
               
-    aspectRules = ( Suppress(Literal("aspect-rules")) +
-                    Optional( Literal("source") + qName ) +
+    aspectRules = ( Suppress(Keyword("aspect-rules")) +
+                    Optional( Keyword("source") + qName ) +
                     Suppress(Literal("{")) +
                     ZeroOrMore( aspectRuleConcept |
                                 aspectRuleEntityIdentifier |
@@ -1359,125 +1356,125 @@ def compileXfsGrammar( cntlr ):
     filter = Forward()
                      
     conceptFilter = ( 
-        ZeroOrMore( Literal("complemented") | Literal("covering") | Literal("non-covering") ) + 
-        (Literal("concept-name") + OneOrMore(qName | xpathExpression) + separator) |
-         Literal("concept-period-type") + (Literal("instant") | Literal("duration")) + separator |
-         Literal("concept-balance") + (Literal("credit") | Literal("debit") | Literal("none")) + separator |
-         Literal("concept-data-type") + (Literal("strict") | Literal("not-strict")) + (qName | xpathExpression) + separator |
-         Literal("concept-substitution-group") + (Literal("strict") | Literal("not-strict")) + (qName | xpathExpression) + separator
+        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+        (Keyword("concept-name") + OneOrMore(qName | xpathExpression) + separator) |
+         Keyword("concept-period-type") + (Keyword("instant") | Keyword("duration")) + separator |
+         Keyword("concept-balance") + (Keyword("credit") | Keyword("debit") | Keyword("none")) + separator |
+         Keyword("concept-data-type") + (Keyword("strict") | Keyword("not-strict")) + (qName | xpathExpression) + separator |
+         Keyword("concept-substitution-group") + (Keyword("strict") | Keyword("not-strict")) + (qName | xpathExpression) + separator
         ).setParseAction(compileConceptFilter).ignore(xfsComment).setName("concept-filter").setDebug(debugParsing)
 
 
     generalFilter = ( 
-        Optional( Literal("complemented") ) + 
-        Literal("general") + xpathExpression + separator
+        Optional( Keyword("complemented") ) + 
+        Keyword("general") + xpathExpression + separator
         ).setParseAction(compileGeneralFilter).ignore(xfsComment).setName("general-filter").setDebug(debugParsing)
 
 
     periodFilter = ( 
-        ZeroOrMore( Literal("complemented") | Literal("covering") | Literal("non-covering") ) + 
-        (Literal("period") + xpathExpression |
-         (Literal("period-start") | Literal("period-end") | Literal("period-instant")) + 
-           (dateTime | Literal("date") + xpathExpression + Optional(Literal("time") + xpathExpression)) |
-         Literal("instant-duration") + (Literal("start") | Literal("end")) + variableRef
+        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+        (Keyword("period") + xpathExpression |
+         (Keyword("period-start") | Keyword("period-end") | Keyword("period-instant")) + 
+           (dateTime | Keyword("date") + xpathExpression + Optional(Keyword("time") + xpathExpression)) |
+         Keyword("instant-duration") + (Keyword("start") | Keyword("end")) + variableRef
          ) + separator
         ).setParseAction(compilePeriodFilter).ignore(xfsComment).setName("period-filter").setDebug(debugParsing)
 
-    dimensionAxis = (Literal("child-or-self") | Literal("child") | Literal("descendant") | Literal("descendant-or-self"))
+    dimensionAxis = (Keyword("child-or-self") | Keyword("child") | Keyword("descendant") | Keyword("descendant-or-self"))
     
     dimensionFilter = ( 
-        ZeroOrMore( Literal("complemented") | Literal("covering") | Literal("non-covering") ) + 
-         (Literal("explicit-dimension") + (qName | xpathExpression) + 
-            ZeroOrMore( Literal("default-member") | 
-               (Literal("member") + (variableRef | qName | xpathExpression) +
-                Optional(Literal("linkrole") + quotedString) + 
-                Optional(Literal("arcrole") + quotedString) +
-                Optional(Literal("axis") + dimensionAxis))) + separator) |
-         (Literal("typed-dimension") + (variableRef | qName | xpathExpression) + 
-            Optional( Literal("test") + xpathExpression )  + separator)
+        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+         (Keyword("explicit-dimension") + (qName | xpathExpression) + 
+            ZeroOrMore( Keyword("default-member") | 
+               (Keyword("member") + (variableRef | qName | xpathExpression) +
+                Optional(Keyword("linkrole") + quotedString) + 
+                Optional(Keyword("arcrole") + quotedString) +
+                Optional(Keyword("axis") + dimensionAxis))) + separator) |
+         (Keyword("typed-dimension") + (variableRef | qName | xpathExpression) + 
+            Optional( Keyword("test") + xpathExpression )  + separator)
         ).setParseAction(compileDimensionFilter).ignore(xfsComment).setName("dimension-filter").setDebug(debugParsing)
 
     unitFilter = ( 
-        ZeroOrMore( Literal("complemented") | Literal("covering") | Literal("non-covering") ) + 
-        (Literal("unit-single-measure") + (qName | xpathExpression) |
-         Literal("unit-general-measures") + xpathExpression) + separator
+        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+        (Keyword("unit-single-measure") + (qName | xpathExpression) |
+         Keyword("unit-general-measures") + xpathExpression) + separator
         ).setParseAction(compileUnitFilter).ignore(xfsComment).setName("unit-filter").setDebug(debugParsing)
 
 
     entityFilter = ( 
-        ZeroOrMore( Literal("complemented") | Literal("covering") | Literal("non-covering") ) + 
-        (Literal("entity") + Literal("scheme") + xpathExpression + Literal("value") + xpathExpression |
-         Literal("entity-scheme") + xpathExpression |
-         Literal("entity-scheme-pattern") + quotedString |
-         Literal("entity-identifier-pattern") + quotedString) + separator
+        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+        (Keyword("entity") + Keyword("scheme") + xpathExpression + Keyword("value") + xpathExpression |
+         Keyword("entity-scheme") + xpathExpression |
+         Keyword("entity-scheme-pattern") + quotedString |
+         Keyword("entity-identifier-pattern") + quotedString) + separator
         ).setParseAction(compileEntityFilter).ignore(xfsComment).setName("entity-filter").setDebug(debugParsing)
 
     matchFilter = ( 
-        ZeroOrMore( Literal("complemented") | Literal("covering") | Literal("non-covering") ) + 
-        (Literal("match-concept") + variableRef |
-         Literal("match-location") + variableRef |
-         Literal("match-entity-identifier") + variableRef |
-         Literal("match-period") + variableRef |
-         Literal("match-unit") + variableRef |
-         Literal("match-dimension") + variableRef + Literal("dimension") + (qName | xpathExpression)
-        ) + Optional( Literal("match-any") ) + separator
+        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+        (Keyword("match-concept") + variableRef |
+         Keyword("match-location") + variableRef |
+         Keyword("match-entity-identifier") + variableRef |
+         Keyword("match-period") + variableRef |
+         Keyword("match-unit") + variableRef |
+         Keyword("match-dimension") + variableRef + Keyword("dimension") + (qName | xpathExpression)
+        ) + Optional( Keyword("match-any") ) + separator
         ).setParseAction(compileMatchFilter).ignore(xfsComment).setName("match-filter").setDebug(debugParsing)
 
     relativeFilter = ( 
-        Optional( Literal("complemented") ) + 
-        Literal("relative") + variableRef + separator
+        Optional( Keyword("complemented") ) + 
+        Keyword("relative") + variableRef + separator
         ).setParseAction(compileRelativeFilter).ignore(xfsComment).setName("relative-filter").setDebug(debugParsing)
 
 
     tupleFilter = ( 
-        ZeroOrMore( Literal("complemented") | Literal("covering") | Literal("non-covering") ) + 
-        (Literal("parent") + (qName | xpathExpression) |
-         Literal("ancestor") + (qName | xpathExpression) |
-         Literal("sibling") + variableRef) + separator
+        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+        (Keyword("parent") + (qName | xpathExpression) |
+         Keyword("ancestor") + (qName | xpathExpression) |
+         Keyword("sibling") + variableRef) + separator
         ).setParseAction(compileTupleFilter).ignore(xfsComment).setName("tuple-filter").setDebug(debugParsing)
 
 
     valueFilter = ( 
-        Optional( Literal("complemented") ) + 
-        Literal("nilled")
+        Optional( Keyword("complemented") ) + 
+        Keyword("nilled")
         ).setParseAction(compileValueFilter).ignore(xfsComment).setName("value-filter").setDebug(debugParsing)
 
     aspectCoverFilter = ( 
-        Optional( Literal("complemented") ) + 
-        Literal("aspect-cover") + 
-        OneOrMore( Literal("all") | Literal("concept") | Literal("entity-identifier") | Literal("location") | 
-                   Literal("period") | Literal("unit") | Literal("dimensions") |
-                   Literal("dimension") + (qName | xpathExpression) |
-                   Literal("exclude-dimension")+ (qName | xpathExpression) ) +
+        Optional( Keyword("complemented") ) + 
+        Keyword("aspect-cover") + 
+        OneOrMore( Keyword("all") | Keyword("concept") | Keyword("entity-identifier") | Keyword("location") | 
+                   Keyword("period") | Keyword("unit") | Keyword("dimensions") |
+                   Keyword("dimension") + (qName | xpathExpression) |
+                   Keyword("exclude-dimension")+ (qName | xpathExpression) ) +
         separator
         ).setParseAction(compileAspectCoverFilter).ignore(xfsComment).setName("aspect-cover-filter").setDebug(debugParsing)
 
 
-    relationAxis = (Literal("child-or-self") | Literal("child") | Literal("descendant-or-self") | Literal("descendant") |
-                    Literal("parent-or-self") | Literal("parent") | Literal("ancestor-or-self") | Literal("ancestor") |
-                    Literal("sibling-or-self") | Literal("sibling-or-descendant") | Literal("sibling") )
+    relationAxis = (Keyword("child-or-self") | Keyword("child") | Keyword("descendant-or-self") | Keyword("descendant") |
+                    Keyword("parent-or-self") | Keyword("parent") | Keyword("ancestor-or-self") | Keyword("ancestor") |
+                    Keyword("sibling-or-self") | Keyword("sibling-or-descendant") | Keyword("sibling") )
 
     conceptRelationFilter = ( 
-        Optional( Literal("complemented") ) + 
-        Literal("concept-relation") + (
+        Optional( Keyword("complemented") ) + 
+        Keyword("concept-relation") + (
             (variableRef | qName | xpathExpression) +
-            Optional(Literal("linkrole") + (quotedString | xpathExpression)) +
-            Optional(Literal("arcrole") + (quotedString | xpathExpression)) +
-            Optional(Literal("axis") + relationAxis) +
-            Optional(Literal("generations") + nonNegativeInteger) +
-            Optional(Literal("test") + xpathExpression)
+            Optional(Keyword("linkrole") + (quotedString | xpathExpression)) +
+            Optional(Keyword("arcrole") + (quotedString | xpathExpression)) +
+            Optional(Keyword("axis") + relationAxis) +
+            Optional(Keyword("generations") + nonNegativeInteger) +
+            Optional(Keyword("test") + xpathExpression)
         ) + separator
         ).setParseAction(compileConceptRelationFilter).ignore(xfsComment).setName("concept-relation-filter").setDebug(debugParsing)
 
     booleanFilter = ( 
-        Optional( Literal("complemented") ) + 
-        (Literal("and") | Literal("or")) + Suppress(Literal("{")) +
+        Optional( Keyword("complemented") ) + 
+        (Keyword("and") | Keyword("or")) + Suppress(Literal("{")) +
          OneOrMore(filter) +
         Suppress(Literal("}")) +
         separator
         ).setParseAction(compileBooleanFilter).ignore(xfsComment).setName("boolean-filter").setDebug(debugParsing)
 
-    declaredFilterReference = ( Literal("filter") + variableRef ).setParseAction(compileFilterReference).ignore(xfsComment).setName("filter-reference").setDebug(debugParsing)
+    declaredFilterReference = ( Keyword("filter") + variableRef ).setParseAction(compileFilterReference).ignore(xfsComment).setName("filter-reference").setDebug(debugParsing)
     
     filters = ( conceptFilter |
                 generalFilter |
@@ -1502,18 +1499,18 @@ def compileXfsGrammar( cntlr ):
                          Suppress(Literal("}"))).setParseAction(compileFilterDeclaration).ignore(xfsComment).setName("fact-variable").setDebug(debugParsing)
     
     factVariable = (Suppress(Keyword("variable")) + variableRef + Suppress(Literal("{")) +
-                    ZeroOrMore( Literal("bind-as-sequence") | Literal("nils") | Literal("matches") ) +
-                    Optional( Keyword("fallback") + xpathExpression ) +
+                    ZeroOrMore( Keyword("bind-as-sequence") | Keyword("nils") | Keyword("matches") |
+                                ( Keyword("fallback") + xpathExpression ) ) +
                     ZeroOrMore( filter ) +
                     Suppress(Literal("}")) + separator).setParseAction(compileFactVariable).ignore(xfsComment).setName("fact-variable").setDebug(debugParsing)
 
 
     generalVariable = (Suppress(Keyword("variable")) + variableRef + Suppress(Literal("{")) +
-                       ZeroOrMore( Literal("bind-as-sequence") ) +
-                       Literal("select") + xpathExpression +
+                       Optional( Keyword("bind-as-sequence") ) +
+                       Keyword("select") + xpathExpression + separator +
                        Suppress(Literal("}")) + separator).setParseAction(compileGeneralVariable).ignore(xfsComment).setName("general-variable").setDebug(debugParsing)
     
-    referencedParameter = (Suppress(Keyword("parameter")) + variableRef + Suppress(Keyword("references")) + variableRef
+    referencedParameter = (Suppress(Keyword("parameter")) + variableRef + Suppress(Keyword("references")) + qName
                         + separator).setParseAction(compileParameterReference).ignore(xfsComment).setName("renamed-parameter").setDebug(debugParsing)
     
     precondition = ( Suppress(Keyword("precondition")) + xpathExpression + separator
@@ -1521,12 +1518,12 @@ def compileXfsGrammar( cntlr ):
     
     formula = ( Suppress(Keyword("formula")) + ncName + Suppress(Literal("{")) +
                   ZeroOrMore( label | severity | 
-                              Literal("aspect-model-non-dimensional") +separator | 
-                              Literal("no-implicit-filtering") + separator |
-                              Literal("decimals") + xpathExpression + separator |
-                              Literal("precision") + xpathExpression + separator |
-                              Literal("value") + xpathExpression + separator |
-                              Literal("source") + qName + separator ) +
+                              Keyword("aspect-model-non-dimensional") +separator | 
+                              Keyword("no-implicit-filtering") + separator |
+                              Keyword("decimals") + xpathExpression + separator |
+                              Keyword("precision") + xpathExpression + separator |
+                              Keyword("value") + xpathExpression + separator |
+                              Keyword("source") + qName + separator ) +
                   ZeroOrMore( aspectRules ) +
                   ZeroOrMore( filter ) +
                   ZeroOrMore( generalVariable | factVariable | referencedParameter) +
@@ -1536,25 +1533,25 @@ def compileXfsGrammar( cntlr ):
                   
     assertion = ( Suppress(Keyword("assertion")) + ncName + Suppress(Literal("{")) +
                   ZeroOrMore( label | severity | 
-                              Literal("aspect-model-non-dimensional") +separator | 
-                              Literal("no-implicit-filtering") + separator ) +
+                              Keyword("aspect-model-non-dimensional") +separator | 
+                              Keyword("no-implicit-filtering") + separator ) +
                   ZeroOrMore( filter ) +
                   ZeroOrMore( generalVariable | factVariable | referencedParameter) +
                   ZeroOrMore( precondition ) +
-                  Optional( ( Literal("test") | Literal("evaluation-count") ) + xpathExpression + separator) + 
+                  Optional( ( Keyword("test") | Keyword("evaluation-count") ) + xpathExpression + separator) + 
                   Suppress(Literal("}") + separator)).setParseAction(compileAssertion).ignore(xfsComment).setName("assertion").setDebug(debugParsing)
                   
     consistencyAssertion = ( Suppress(Keyword("consistency-assertion")) + ncName + Suppress(Literal("{")) +
                   ZeroOrMore( label | severity | 
-                              Literal("strict") + separator | 
-                              (Literal("absolute-acceptance-radius") | Literal("proportional-acceptance-radius")) + 
+                              Keyword("strict") + separator | 
+                              (Keyword("absolute-acceptance-radius") | Keyword("proportional-acceptance-radius")) + 
                                   xpathExpression + separator ) +
                   ZeroOrMore( formula ) +
                   Suppress(Literal("}") + separator)).setParseAction(compileConsistencyAssertion).ignore(xfsComment).setName("assertion").setDebug(debugParsing)
 
     assertionSet = ( Suppress(Keyword("assertion-set")) + ncName + Suppress(Literal("{")) +
                    ZeroOrMore( label ) +
-                   (ZeroOrMore( consistencyAssertion ) | ZeroOrMore( assertion ) ) +
+                   (ZeroOrMore( consistencyAssertion | assertion ) ) +
                    Suppress(Literal("}") + separator)).setParseAction( compileAssertionSet ).ignore(xfsComment).setName("assertionSet").setDebug(debugParsing)
     
     xfsProg = ( ZeroOrMore( namespaceDeclaration | xfsComment ) + 
@@ -1577,13 +1574,13 @@ def compileXfsGrammar( cntlr ):
 
     return xfsProg
 
-def parse(cntlr, _logMessage, xfsFiles, modelXbrl=None):
+def parse(cntlr, _logMessage, xfsFiles, modelXbrl=None, debugParsing=False):
     from pyparsing import ParseException, ParseSyntaxException
     
     global xc, logMessage
     logMessage = _logMessage
     
-    xfsGrammar = compileXfsGrammar(cntlr)
+    xfsGrammar = compileXfsGrammar(cntlr, debugParsing)
     
     successful = True
 
@@ -1840,8 +1837,8 @@ xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/x
            )
         if self.modelXbrl is None:
             _xbrlLBfile = io.StringIO(initialXml)
-            self.parser = etree.XMLParser(remove_blank_text=True, recover=True, huge_tree=True)                       
-            self.lbDocument = etree.parse(_xbrlLBfile,base_url=self.lbFile,parser=self.parser)
+            self.xmlParser = etree.XMLParser(remove_blank_text=True, recover=True, huge_tree=True)                       
+            self.lbDocument = etree.parse(_xbrlLBfile,base_url=self.lbFile,parser=self.xmlParser)
             _xbrlLBfile.close()
         else:
             from arelle.ModelDocument import Type, create as createModelDocument
@@ -2047,7 +2044,10 @@ if __name__ == "__main__":
         print("[{}] {}".format(code, message % kwargs))
         
     xfiFilesList = sys.argv[1].split("|")
+    
+    debugParsing = len(sys.argv) > 2 and sys.argv[2] == "debug"
+    
     # load formula syntax
-    xfsProgs = parse(_cntlr(), _logMessage, xfiFilesList)
+    xfsProgs = parse(_cntlr(), _logMessage, xfiFilesList, debugParsing=debugParsing)
                 
 
