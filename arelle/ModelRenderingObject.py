@@ -202,7 +202,7 @@ class StructuralNode:
     def objectId(self, refId=""):
         return self.definitionNode.objectId(refId)
         
-    def header(self, role=None, lang=None, evaluate=True, returnGenLabel=True, returnMsgFormatString=False, recurseParent=True):
+    def header(self, role=None, lang=None, evaluate=True, returnGenLabel=True, returnMsgFormatString=False, recurseParent=True, returnStdLabel=True):
         # if ord is a nested selectionAxis selection, use selection-message or text contents instead of axis headers
         isZSelection = isinstance(self.definitionNode, ModelSelectionDefinitionNode) and hasattr(self, "zSelection")
         if role is None:
@@ -235,7 +235,7 @@ class StructuralNode:
             return self.rollUpStructuralNode.header(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent)
         # if aspect is a concept of dimension, return its standard label
         concept = None
-        if role is None:
+        if role is None and returnStdLabel:
             for aspect in self.aspectsCovered():
                 aspectValue = self.aspectValue(aspect, inherit=recurseParent)
                 if isinstance(aspect, QName) or aspect == Aspect.CONCEPT: # dimension or concept

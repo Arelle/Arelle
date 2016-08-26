@@ -2013,7 +2013,7 @@ class ModelExplicitDimension(ModelFilter):
     @property
     def dimQnameExpression(self):
         qnameExpression = XmlUtil.descendant(XmlUtil.child(self,XbrlConst.df,"dimension"), XbrlConst.df, "qnameExpression")
-        if qnameExpression:
+        if qnameExpression is not None:
             return XmlUtil.text(qnameExpression)
         return None    
 
