@@ -10,7 +10,7 @@ from collections import defaultdict
 from arelle import ModelDtsObject, XbrlConst, XmlUtil, ModelValue
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelResource
-from arelle.PrototypeDtsObject import LocPrototype
+from arelle.PrototypeDtsObject import LocPrototype, PrototypeObject
 from arelle.XbrlConst import consecutiveArcrole
 import os, sys
 
@@ -23,7 +23,7 @@ def ineffectiveArcs(baseSetModelLinks, arcrole, arcqname=None):
     hashEquivalentRels = defaultdict(list)
     for modelLink in baseSetModelLinks:
         for linkChild in modelLink:
-            if (isinstance(linkChild,ModelObject) and 
+            if (isinstance(linkChild,(ModelObject,PrototypeObject)) and 
                 linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and 
                 arcrole == linkChild.get("{http://www.w3.org/1999/xlink}arcrole") and
                 (arcqname is None or arcqname == linkChild)):
@@ -137,7 +137,7 @@ class ModelRelationshipSet:
             for linkChild in modelLink:
                 linkChildArcrole = linkChild.get("{http://www.w3.org/1999/xlink}arcrole")
                 if linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and linkChildArcrole:
-                    if isFootnoteRel:
+                    if isFootnoteRel: # arcrole is fact-footnote or other custom footnote relationship
                         arcs.append(linkChild)
                     elif isDimensionRel: 
                         if XbrlConst.isDimensionArcrole(linkChildArcrole):
@@ -166,13 +166,14 @@ class ModelRelationshipSet:
                                 relationships[modelRelEquivalenceHash] = modelRel
                             else: # use equivalenceKey instead of hash
                                 otherRel = relationships[modelRelEquivalenceHash]
-                                if otherRel is not USING_EQUIVALENCE_KEY: # move equivalentRel to use key instead of hasn
-                                    relationships[otherRel.equivalenceKey] = otherRel
-                                    relationships[modelRelEquivalenceHash] = USING_EQUIVALENCE_KEY
-                                modelRelEquivalenceKey = modelRel.equivalenceKey    # this is a complex tuple to compute, get once for below
-                                if modelRelEquivalenceKey not in relationships or \
-                                   modelRel.priorityOver(relationships[modelRelEquivalenceKey]):
-                                    relationships[modelRelEquivalenceKey] = modelRel
+                                if not modelRel.isIdenticalTo(otherRel):
+                                    if otherRel is not USING_EQUIVALENCE_KEY: # move equivalentRel to use key instead of hasn
+                                        relationships[otherRel.equivalenceKey] = otherRel
+                                        relationships[modelRelEquivalenceHash] = USING_EQUIVALENCE_KEY
+                                    modelRelEquivalenceKey = modelRel.equivalenceKey    # this is a complex tuple to compute, get once for below
+                                    if modelRelEquivalenceKey not in relationships or \
+                                       modelRel.priorityOver(relationships[modelRelEquivalenceKey]):
+                                        relationships[modelRelEquivalenceKey] = modelRel
 
         #reduce effective arcs and order relationships...
         self.modelRelationshipsFrom = None

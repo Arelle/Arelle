@@ -1560,7 +1560,7 @@ def inlineIxdsDiscover(modelXbrl):
                         if toId not in linkModelInlineFootnoteIds[linkrole]:
                             linkPrototype.childElements.append(modelInlineFootnote)
                             linkModelInlineFootnoteIds[linkrole].add(toId)
-                        linkPrototype.labeledResources[toId].append(modelInlineFootnote)
+                            linkPrototype.labeledResources[toId].append(modelInlineFootnote)
                     elif toId in factsByFactID:
                         if toId not in linkModelLocIds[linkrole]:
                             linkModelLocIds[linkrole].add(toId)
