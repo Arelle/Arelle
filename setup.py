@@ -234,14 +234,6 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         includeFiles.append(('/Library/Frameworks/Tk.framework/Versions/8.6/Resources/Scripts','tk8.6'))
     else: 
         includeFiles.append(('arelle/scripts-unix','scripts'))
-        if os.path.exists("/etc/redhat-release"):
-            # extra libraries needed for red hat
-            includeFiles.append(('/usr/local/lib/libexslt.so', 'libexslt.so'))
-            includeFiles.append(('/usr/local/lib/libxml2.so', 'libxml2.so'))
-            # for some reason redhat needs libxml2.so.2 as well
-            includeFiles.append(('/usr/local/lib/libxml2.so.2', 'libxml2.so.2'))
-            includeFiles.append(('/usr/local/lib/libxslt.so', 'libxslt.so'))
-            includeFiles.append(('/usr/local/lib/libz.so', 'libz.so'))
                 
     if os.path.exists("version.txt"):
         includeFiles.append(('version.txt', 'version.txt'))

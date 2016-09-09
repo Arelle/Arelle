@@ -19,6 +19,8 @@ isPy3 = (sys.version[0] >= '3')
 
 def resourcesDir():
     _moduleDir = os.path.dirname(__file__)
+    if not os.path.isabs(_moduleDir):
+        _moduleDir = os.path.abspath(_moduleDir)
     # for python 3.2 remove __pycache__
     if _moduleDir.endswith("__pycache__"):
         _moduleDir = os.path.dirname(_moduleDir)
