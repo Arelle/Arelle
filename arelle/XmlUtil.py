@@ -922,7 +922,11 @@ def writexml(writer, node, encoding=None, indent='', xmlcharrefreplace=False, pa
         for aName in aSortedNames:
             writer.write("%s%s=\"" % (indentAttrs, aName))
             if aName != "xsi:schemaLocation":
-                writer.write(attrs[aName].replace("&","&amp;").replace('"','&quot;'))
+                writer.write(''.join("&amp;" if c == "&"
+                                     else '&quot;' if c == '"'
+                                     else "&#x%x;" % ord(c) if c >= '\x80' and xmlcharrefreplace
+                                     else c
+                                     for c in attrs[aName]))
             else:
                 indentUri = "\n" + indent + "                      "
                 for i, a_uri in enumerate(attrs[aName].split()):
@@ -939,20 +943,20 @@ def writexml(writer, node, encoding=None, indent='', xmlcharrefreplace=False, pa
         text = node.text
         if text is not None:
             text = ''.join("&amp;" if c == "&"
-                           else ("&nbsp;" if xmlcharrefreplace else "&#160;") if c == "\u00A0" 
+                           else "&#160;" if c == "\u00A0" 
                            else "&lt;" if c == "<"
                            else "&gt;" if c == ">"
-                           else ("&shy;" if xmlcharrefreplace else "&#173;") if c == "\u00AD"
+                           else "&#173;" if c == "\u00AD"
                            else "&#x%x;" % ord(c) if c >= '\x80' and xmlcharrefreplace
                            else c
                            for c in text)
         tail = node.tail
         if tail is not None:
             tail = ''.join("&amp;" if c == "&"
-                           else ("&nbsp;" if xmlcharrefreplace else "&#160;") if c == "\u00A0" 
+                           else "&#160;" if c == "\u00A0" 
                            else "&lt;" if c == "<"
                            else "&gt;" if c == ">"
-                           else ("&shy;" if xmlcharrefreplace else "&#173;") if c == "\u00AD"
+                           else "&#173;" if c == "\u00AD"
                            else "&#x%x;" % ord(c) if c >= '\x80' and xmlcharrefreplace
                            else c
                            for c in tail)
