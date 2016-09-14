@@ -166,14 +166,15 @@ class ModelRelationshipSet:
                                 relationships[modelRelEquivalenceHash] = modelRel
                             else: # use equivalenceKey instead of hash
                                 otherRel = relationships[modelRelEquivalenceHash]
-                                if not modelRel.isIdenticalTo(otherRel):
-                                    if otherRel is not USING_EQUIVALENCE_KEY: # move equivalentRel to use key instead of hasn
-                                        relationships[otherRel.equivalenceKey] = otherRel
-                                        relationships[modelRelEquivalenceHash] = USING_EQUIVALENCE_KEY
-                                    modelRelEquivalenceKey = modelRel.equivalenceKey    # this is a complex tuple to compute, get once for below
-                                    if modelRelEquivalenceKey not in relationships or \
-                                       modelRel.priorityOver(relationships[modelRelEquivalenceKey]):
-                                        relationships[modelRelEquivalenceKey] = modelRel
+                                if otherRel is not USING_EQUIVALENCE_KEY: # move equivalentRel to use key instead of hasn
+                                    if modelRel.isIdenticalTo(otherRel):
+                                        continue # skip identical arc
+                                    relationships[otherRel.equivalenceKey] = otherRel
+                                    relationships[modelRelEquivalenceHash] = USING_EQUIVALENCE_KEY
+                                modelRelEquivalenceKey = modelRel.equivalenceKey    # this is a complex tuple to compute, get once for below
+                                if modelRelEquivalenceKey not in relationships or \
+                                   modelRel.priorityOver(relationships[modelRelEquivalenceKey]):
+                                    relationships[modelRelEquivalenceKey] = modelRel
 
         #reduce effective arcs and order relationships...
         self.modelRelationshipsFrom = None
