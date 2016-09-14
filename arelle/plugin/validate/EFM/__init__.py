@@ -308,7 +308,7 @@ def filingEnd(cntlr, options, filesource, entrypointFiles, sourceZipStream=None,
     modelManager = cntlr.modelManager
     if hasattr(modelManager, "efmFiling"):
         for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Filing.End"):
-            pluginXbrlMethod(cntlr, options, filesource, modelManager.efmFiling)
+            pluginXbrlMethod(cntlr, options, filesource, modelManager.efmFiling, sourceZipStream=sourceZipStream)
         #cntlr.addToLog("TRACE EdgarRenderer end")
         # save JSON file of instances and referenced documents
         filingReferences = dict((report.url, report)
