@@ -677,7 +677,7 @@ class ModelDocument:
             except AttributeError:
                 pass
 
-    def save(self, overrideFilepath=None, outputZip=None, updateFileHistory=True, encoding="utf-8"):
+    def save(self, overrideFilepath=None, outputZip=None, updateFileHistory=True, encoding="utf-8", **kwargs):
         """Saves current document file.
         
         :param overrideFilepath: specify to override saving in instance's modelDocument.filepath
@@ -686,7 +686,7 @@ class ModelDocument:
             fh = io.StringIO();
         else:
             fh = open( (overrideFilepath or self.filepath), "w", encoding='utf-8')
-        XmlUtil.writexml(fh, self.xmlDocument, encoding=encoding)
+        XmlUtil.writexml(fh, self.xmlDocument, encoding=encoding, **kwargs)
         if outputZip:
             fh.seek(0)
             outputZip.writestr(os.path.basename(overrideFilepath or self.filepath),fh.read())
