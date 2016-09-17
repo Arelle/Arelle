@@ -7,7 +7,7 @@ This module is Arelle's controller in windowing interactive UI mode
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import PythonUtil # define 2.x or 3.x string types
-import os, sys, subprocess, pickle, time, locale, re
+import os, sys, subprocess, pickle, time, locale, re, fnmatch
 from tkinter import (Tk, Tcl, TclError, Toplevel, Menu, PhotoImage, StringVar, BooleanVar, N, S, E, W, EW, 
                      HORIZONTAL, VERTICAL, END, font as tkFont)
 try:
@@ -400,6 +400,16 @@ class CntlrWinMain (Cntlr.Cntlr):
         if not self.modelManager.disclosureSystem.select(self.config.setdefault("disclosureSystem", None)):
             self.validateDisclosureSystem.set(False)
             self.modelManager.validateDisclosureSystem = False
+            
+        # load argv overrides for modelManager options
+        lastArg = None
+        for arg in sys.argv:
+            if not arg: continue
+            if lastArg == "--skipLoading": # skip loading matching files (list of unix patterns)
+                self.modelManager.skipLoading = re.compile('|'.join(fnmatch.translate(f) for f in arg.split('|')))
+            elif lastArg == "skipDTS":# skip DTS loading, discovery, etc
+                self.modelManager.skipDTS = True    
+            lastArg = arg
         self.setValidateTooltipText()
         
         
