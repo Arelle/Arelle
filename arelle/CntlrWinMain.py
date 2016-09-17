@@ -407,7 +407,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             if not arg: continue
             if lastArg == "--skipLoading": # skip loading matching files (list of unix patterns)
                 self.modelManager.skipLoading = re.compile('|'.join(fnmatch.translate(f) for f in arg.split('|')))
-            elif lastArg == "skipDTS":# skip DTS loading, discovery, etc
+            elif arg == "--skipDTS": # skip DTS loading, discovery, etc
                 self.modelManager.skipDTS = True    
             lastArg = arg
         self.setValidateTooltipText()
