@@ -166,7 +166,7 @@ def innerTextList(element, ixExclude=False, ixEscape=False, ixContinuation=False
 
 def innerTextNodes(element, ixExclude, ixEscape, ixContinuation):
     if element.text:
-        yield element.text
+        yield escapedText(element.text) if ixEscape else element.text
     for child in element.iterchildren():
         if isinstance(child,ModelObject) and (
            not ixExclude or 
@@ -180,7 +180,7 @@ def innerTextNodes(element, ixExclude, ixEscape, ixContinuation):
             if ixEscape:
                 yield escapedNode(child, False, firstChild)
         if child.tail:
-            yield child.tail
+            yield escapedText(child.tail) if ixEscape else child.tail
     if ixContinuation:
         contAt = getattr(element, "_continuationElement", None)
         if contAt is not None:
@@ -202,6 +202,13 @@ def escapedNode(elt, start, empty):
         s.append('/')
     s.append('>')
     return ''.join(s)
+
+def escapedText(text):
+    return ''.join("&amp;" if c == "&"
+                   else "&lt;" if c == "<"
+                   else "&gt;" if c == ">"
+                   else c
+                   for c in text)
 
 def collapseWhitespace(s):
     return ' '.join( nonSpacePattern.findall(s) ) 
