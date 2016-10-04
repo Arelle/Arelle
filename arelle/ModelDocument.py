@@ -108,9 +108,14 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                     modelObject=referringElement, fileName=mappedUri)
             raise LoadingException()
         if normalizedUri not in modelXbrl.urlUnloadableDocs:
-            modelXbrl.error("FileNotLoadable",
-                    _("File can not be loaded: %(fileName)s"),
-                    modelObject=referringElement, fileName=normalizedUri)
+            if "referringElementUrl" in kwargs:
+                modelXbrl.error("FileNotLoadable",
+                        _("File can not be loaded: %(fileName)s, referenced from %(referencingFileName)s"),
+                        modelObject=referringElement, fileName=normalizedUri, referencingFileName=kwargs["referringElementUrl"])
+            else:
+                modelXbrl.error("FileNotLoadable",
+                        _("File can not be loaded: %(fileName)s"),
+                        modelObject=referringElement, fileName=normalizedUri)
             modelXbrl.urlUnloadableDocs[normalizedUri] = True # always blocked if not loadable on this error
         return None
     
@@ -344,7 +349,7 @@ def loadSchemalocatedSchema(modelXbrl, element, relativeUrl, namespace, baseUrl)
     if namespace == XbrlConst.xhtml: # block loading xhtml as a schema (e.g., inline which is xsd validated instead)
         return None
     importSchemaLocation = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(relativeUrl, baseUrl)
-    doc = load(modelXbrl, importSchemaLocation, isIncluded=False, isDiscovered=False, namespace=namespace, referringElement=element)
+    doc = load(modelXbrl, importSchemaLocation, isIncluded=False, isDiscovered=False, namespace=namespace, referringElement=element, referringElementUrl=baseUrl)
     if doc:
         if doc.targetNamespace != namespace:
             modelXbrl.error("xmlSchema1.4.2.3:refSchemaNamespace",
