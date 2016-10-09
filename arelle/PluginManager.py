@@ -32,11 +32,14 @@ EMPTYLIST = []
 def init(cntlr, loadPluginConfig=True):
     global pluginJsonFile, pluginConfig, modulePluginInfos, pluginMethodsForClasses, pluginConfigChanged, _cntlr, _pluginBase
     pluginConfigChanged = False
+    _cntlr = cntlr
+    _pluginBase = cntlr.pluginDir + os.sep
     if loadPluginConfig:
         try:
             pluginJsonFile = cntlr.userAppDir + os.sep + "plugins.json"
             with io.open(pluginJsonFile, 'rt', encoding='utf-8') as f:
                 pluginConfig = json.load(f)
+            freshenModuleInfos()
         except Exception:
             pass # on GAE no userAppDir, will always come here
     if pluginConfig is None:
@@ -47,8 +50,6 @@ def init(cntlr, loadPluginConfig=True):
         pluginConfigChanged = False # don't save until something is added to pluginConfig
     modulePluginInfos = {}  # dict of loaded module pluginInfo objects by module names
     pluginMethodsForClasses = {} # dict by class of list of ordered callable function objects
-    _cntlr = cntlr
-    _pluginBase = cntlr.pluginDir + os.sep
     
 def reset():  # force reloading modules and plugin infos
     modulePluginInfos.clear()  # dict of loaded module pluginInfo objects by module names
@@ -135,7 +136,7 @@ def modulesWithNewerFileDates():
             if moduleInfo["fileDate"] < time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
                 names.add(moduleInfo["name"])
         except Exception as err:
-            _msg = _("Exception at plug-in method modulesWihtNewerFileDates: {error}").format(error=err)
+            _msg = _("Exception at plug-in method modulesWithNewerFileDates: {error}").format(error=err)
             if PLUGIN_TRACE_FILE:
                 with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
                     fh.write(_msg + '\n')
@@ -143,6 +144,24 @@ def modulesWithNewerFileDates():
                 print(_msg, file=sys.stderr)
 
     return names
+
+def freshenModuleInfos():
+    # for modules with different date-times, re-load module info
+    for moduleName in pluginConfig["modules"].keys():
+        moduleInfo = pluginConfig["modules"][moduleName]
+        freshenedFilename = _cntlr.webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
+        try: # check if moduleInfo cached may differ from referenced moduleInfo
+            if moduleInfo["fileDate"] != time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
+                freshenedModuleInfo = moduleModuleInfo(moduleInfo["moduleURL"], reload=True)
+                if freshenedModuleInfo is not None:
+                    pluginConfig["modules"][moduleName] = freshenedModuleInfo
+        except Exception as err:
+            _msg = _("Exception at plug-in method freshenModules: {error}").format(error=err)
+            if PLUGIN_TRACE_FILE:
+                with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
+                    fh.write(_msg + '\n')
+            else:
+                print(_msg, file=sys.stderr)
 
 def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
     #TODO several directories, eg User Application Data

@@ -575,7 +575,7 @@ class FileSource:
 def openFileStream(cntlr, filepath, mode='r', encoding=None):
     if PackageManager.isMappedUrl(filepath):
         filepath = PackageManager.mappedUrl(filepath)
-    else:
+    elif isHttpUrl(filepath) and cntlr and hasattr(cntlr, "modelManager"): # may be called early in initialization for PluginManager
         filepath = cntlr.modelManager.disclosureSystem.mappedUrl(filepath)
     if archiveFilenameParts(filepath): # file is in an archive
         return openFileSource(filepath, cntlr).file(filepath, binary='b' in mode, encoding=encoding)[0]
