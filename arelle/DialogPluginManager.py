@@ -412,7 +412,7 @@ class DialogPluginManager(Toplevel):
         selectChoices(self.cntlr.pluginDir)
         selectedPath = DialogOpenArchive.selectPlugin(self, choices)
         if selectedPath:
-            moduleInfo = PluginManager.moduleModuleInfo(selectedPath)
+            moduleInfo = PluginManager.moduleModuleInfo(selectedPath[len(self.cntlr.pluginDir)+1:])
             self.loadFoundModuleInfo(moduleInfo, selectedPath)
         
     def browseLocally(self):
