@@ -13,6 +13,7 @@ import os, io, json
 from datetime import datetime, timedelta
 from arelle import XbrlConst
 from arelle.ModelDtsObject import ModelConcept
+from arelle.XmlValidate import VALID
 
 # regular expression components
 STMT = r".* - statement - "
@@ -258,7 +259,7 @@ def evaluateTableIndex(modelXbrl, lang=None):
                         break
         if "DocumentType" in deiFact:
             fact = deiFact["DocumentType"]
-            if "-Q" in fact.xValue:
+            if fact.xValid >= VALID and "-Q" in fact.xValue or "": # fact may be invalid
                 # need quarterly and yr to date durations
                 endDatetime = fact.context.endDatetime
                 # if within 2 days of end of month use last day of month
