@@ -46,8 +46,12 @@ def getLanguageCode():
 def getLanguageCodes():
     lang = getLanguageCode()
     # allow searching on the lang with country part, either python or standard form, or just language
-    return [lang, lang.replace("-","_"), lang.partition("-")[0]]
-
+    try:
+        return [lang, lang.replace("-","_"), lang.partition("-")[0]]
+    except AttributeError: 
+        #language code and encoding may be None if their values cannot be determined.
+        return "en"
+    
 def rtlString(source, lang):
     if lang and lang[0:2] in {"ar","he"}:
         line = []
