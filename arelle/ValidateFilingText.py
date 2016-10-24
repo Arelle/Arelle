@@ -10,7 +10,7 @@ import os, re, io
 from arelle.XbrlConst import ixbrlAll, xhtml
 from arelle.XmlUtil import setXmlns, xmlstring
 from arelle.ModelObject import ModelObject
-from arelle.UrlUtil import isHttpUrl
+from arelle.UrlUtil import isHttpUrl, scheme
 
 XMLdeclaration = re.compile(r"<\?xml.*\?>", re.DOTALL)
 XMLpattern = re.compile(r".*(<|&lt;|&#x3C;|&#60;)[A-Za-z_]+[A-Za-z0-9_:]*[^>]*(/>|>|&gt;|/&gt;).*", re.DOTALL)
@@ -485,7 +485,7 @@ def removeEntities(text):
     entitylessText.append(text[findAt:])
     return ''.join(entitylessText)
     '''
-    return namedEntityPattern.sub("", text)
+    return namedEntityPattern.sub("", text).replace('&','&amp;')
 
 def validateTextBlockFacts(modelXbrl):
     #handler = TextBlockHandler(modelXbrl)
@@ -573,13 +573,18 @@ def validateTextBlockFacts(modelXbrl):
                                         attribute=attrTag, element=eltTag)
                                 elif attrValue.startswith("http://www.sec.gov/Archives/edgar/data/") and eltTag == "a":
                                     pass
-                                elif "http:" in attrValue or "https:" in attrValue or "ftp:" in attrValue:
+                                elif scheme(attrValue) in ("http", "https", "ftp"):
                                     modelXbrl.error("EFM.6.05.16.externalReference",
                                         _("Fact %(fact)s of context %(contextID)s has an invalid external reference in '%(attribute)s' for <%(element)s>"),
                                         modelObject=f1, fact=f1.qname, contextID=f1.contextID,
                                         attribute=attrTag, element=eltTag)
                                 if attrTag == "src" and attrValue not in checkedGraphicsFiles:
-                                    if attrValue.lower()[-4:] not in ('.jpg', '.gif'):
+                                    if scheme(attrValue)  == "data":
+                                        modelXbrl.error("EFM.6.05.16.graphicDataUrl",
+                                            _("Fact %(fact)s of context %(contextID)s references a graphics data URL which isn't accepted '%(attribute)s' for <%(element)s>"),
+                                            modelObject=f1, fact=f1.qname, contextID=f1.contextID,
+                                            attribute=attrValue[:32], element=eltTag)
+                                    elif attrValue.lower()[-4:] not in ('.jpg', '.gif'):
                                         modelXbrl.error("EFM.6.05.16.graphicFileType",
                                             _("Fact %(fact)s of context %(contextID)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for <%(element)s>"),
                                             modelObject=f1, fact=f1.qname, contextID=f1.contextID,
@@ -695,14 +700,19 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                         messageCodes=("EFM.6.05.34.activeContent", "EFM.5.02.05.activeContent"))
                 elif attrValue.startswith("http://www.sec.gov/Archives/edgar/data/") and eltTag == "a":
                     pass
-                elif "http:" in attrValue or "https:" in attrValue or "ftp:" in attrValue:
+                elif scheme(attrValue) in ("http", "https", "ftp"):
                     modelXbrl.error(messageCodePrefix + "externalReference",
                         _("%(validatedObjectLabel)s has an invalid external reference in '%(attribute)s' for <%(element)s>: %(value)s"),
                         modelObject=elt, validatedObjectLabel=validatedObjectLabel,
                         attribute=attrTag, element=eltTag, value=attrValue,
                         messageCodes=("EFM.6.05.34.externalReference", "EFM.5.02.05.externalReference"))
                 if attrTag == "src" and attrValue not in checkedGraphicsFiles:
-                    if attrValue.lower()[-4:] not in ('.jpg', '.gif'):
+                    if scheme(attrValue) == "data":
+                        modelXbrl.error(messageCodePrefix + "graphicDataUrl",
+                            _("%(validatedObjectLabel)s references a graphics data URL which isn't accepted '%(attribute)s' for <%(element)s>"),
+                            modelObject=elt, validatedObjectLabel=validatedObjectLabel,
+                            attribute=attrValue[:32], element=eltTag)
+                    elif attrValue.lower()[-4:] not in ('.jpg', '.gif'):
                         modelXbrl.error(messageCodePrefix + "graphicFileType",
                             _("%(validatedObjectLabel)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for <%(element)s>"),
                             modelObject=elt, validatedObjectLabel=validatedObjectLabel,
@@ -869,9 +879,10 @@ def referencedFiles(modelXbrl, localFilesOnly=True):
     def addReferencedFile(docElt, elt):
         if elt.tag in ("a", "img", "{http://www.w3.org/1999/xhtml}a", "{http://www.w3.org/1999/xhtml}img"):
             for attrTag, attrValue in elt.items():
-                if attrTag in ("href", "src") and (
+                if (attrTag in ("href", "src") and 
+                    scheme(attrValue) not in ("data", "javascript") and (
                         not localFilesOnly or 
-                        (not isHttpUrl(attrValue) and not os.path.isabs(attrValue))):
+                        (not isHttpUrl(attrValue) and not os.path.isabs(attrValue)))):
                     attrValue = attrValue.partition('#')[0] # remove anchor
                     if attrValue: # ignore anchor references to base document
                         base = docElt.modelDocument.baseForElement(docElt)

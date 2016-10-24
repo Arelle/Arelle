@@ -36,6 +36,9 @@ def authority(url, includeScheme=True):
                 return url[authPart:]
     return url  #no path part of url
 
+def scheme(url): # returns None if no scheme part
+    return (url or "").rpartition(":")[0] or None
+
 absoluteUrlPattern = None
 # http://www.ietf.org/rfc/rfc2396.txt section 4.3
 # this pattern doesn't allow some valid unicode characters

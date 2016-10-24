@@ -539,7 +539,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         """(bool) -- True if element has form attribute qualified or its document default"""
         if self.get("form") is not None: # form is almost never used
             return self.get("form") == "qualified"
-        return self.modelDocument.isQualifiedElementFormDefault
+        return getattr(self.modelDocument, "isQualifiedElementFormDefault", False) # parent might not be a schema document
         
     @property
     def nillable(self):

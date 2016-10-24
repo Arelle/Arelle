@@ -55,7 +55,8 @@ def equalityHash(elt, equalMode=S_EQUAL, excludeIDs=NO_IDs_EXCLUDED):
                 hashableValue = (hashableValue,elt)    # ensure this NaN only compares to itself and no other NaN
             _hash = hash((elt.elementQname,
                           hashableValue,
-                          tuple(attributeDict(dts, elt, (), equalMode, excludeIDs, distinguishNaNs=True).items()),
+                          tuple(sorted(attributeDict(dts, elt, (), equalMode, excludeIDs, distinguishNaNs=True).items(),
+                                       key=lambda item: item[0])), # must sort so attrs always hashed in same order
                           tuple(equalityHash(child,equalMode,excludeIDs) for child in childElements(elt))
                           ))
             if equalMode == S_EQUAL:

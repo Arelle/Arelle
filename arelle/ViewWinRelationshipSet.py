@@ -146,7 +146,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 roledefinition = ((self.hasTableIndex and getattr(modelRoleTypes[0], "_tableIndex", False)) or
                                   self.modelXbrl.roleTypeDefinition(linkroleUri, self.lang))
                 roleId = modelRoleTypes[0].objectId(self.id)
-                if (self.hasTableIndex and getattr(modelRoleTypes[0], "_tableChildren")):
+                if (self.hasTableIndex and hasattr(modelRoleTypes[0], "_tableChildren")):
                     linkroleUriChildren[linkroleUri] = [roleType.roleURI
                                                         for roleType in modelRoleTypes[0]._tableChildren]
             else:
