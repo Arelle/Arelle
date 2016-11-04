@@ -269,8 +269,14 @@ def compileAssertion( sourceStr, loc, toks ):
             break
     for tok in toks:
         if isinstance(tok, FormulaArc):
-            tok.attrib["xlink:from"] = assertionLabel
-            lbGen.subElement(lbGen.genLinkElement, tok.tag, tok.attrib)
+            tag = tok.tag
+            attrib = tok.attrib.copy()
+            if tag == "variable:variableFilterArc":
+                tag = "variable:variableSetFilterArc"
+                if "cover" in attrib:
+                    del attrib["cover"] # no cover on variable set filter arc
+            attrib["xlink:from"] = assertionLabel
+            lbGen.subElement(lbGen.genLinkElement, tag, attrib)
     return [FormulaArc("generic:arc",
                        attrib={"xlink:type": "arc",
                                "xlink:arcrole": "assertion-set",
@@ -718,8 +724,14 @@ def compileFormula( sourceStr, loc, toks ):
             elt.append(tok.elt)
     for tok in toks:
         if isinstance(tok, FormulaArc):
-            tok.attrib["xlink:from"] = formulaLabel
-            lbGen.subElement(lbGen.genLinkElement, tok.tag, tok.attrib)
+            tag = tok.tag
+            attrib = tok.attrib.copy()
+            if tag == "variable:variableFilterArc":
+                tag = "variable:variableSetFilterArc"
+                if "cover" in attrib:
+                    del attrib["cover"] # no cover on variable set filter arc
+            attrib["xlink:from"] = formulaLabel
+            lbGen.subElement(lbGen.genLinkElement, tag, attrib)
     return [FormulaArc("generic:arc",
                        attrib={"xlink:type": "arc",
                                "xlink:arcrole": "consistency-assertion-formula",
@@ -1645,8 +1657,8 @@ def parse(cntlr, _logMessage, xfsFiles, modelXbrl=None, debugParsing=False):
             print(traceback.format_tb(sys.exc_info()[2]))
             successful = False
 
-        cntlr.showStatus("Compiled sphinx files {0}".format({True:"successful", 
-                                                             False:"with errors"}[successful]),
+        cntlr.showStatus("Compiled formula files {0}".format({True:"successful", 
+                                                              False:"with errors"}[successful]),
                          clearAfter=5000)
         return successful
         

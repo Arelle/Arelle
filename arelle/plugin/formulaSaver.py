@@ -186,7 +186,7 @@ class GenerateXbrlFormula:
         elif isinstance(fObj, ModelFilter):
             if fromRel.isComplemented:
                 self.xf = "{}complemented".format(pIndent)
-            if not fromRel.isCovered:
+            if not fromRel.isCovered and fromRel.localName == "variableFilterArc":
                 self.xf = "{}non-covering".format(pIndent)
             if isinstance(fObj, ModelConceptName):
                 if len(fObj.conceptQnames) == 1 and not fObj.qnameExpressions:
@@ -284,9 +284,9 @@ class GenerateXbrlFormula:
                 self.xf = "{}nilled;".format(pIndent)
             elif isinstance(fObj, ModelAspectCover):
                 aspects = []
-                for aspectElt in XmlUtil.children(self, XbrlConst.acf, "aspect"):
+                for aspectElt in XmlUtil.children(fObj, XbrlConst.acf, "aspect"):
                     aspects.append(XmlUtil.text(aspectElt))
-                for dimElt in XmlUtil.descendants(self, XbrlConst.acf, ("qname", "qnameExpression")):
+                for dimElt in XmlUtil.descendants(fObj, XbrlConst.acf, ("qname", "qnameExpression")):
                     dimAspect = qname( dimElt, XmlUtil.text(dimElt) )
                     aspects.append("exclude-dimension" if dimElt.getparent().localName == "excludeDimension" else "dimension")
                     if dimElt.localName == "qname":
@@ -324,13 +324,13 @@ class GenerateXbrlFormula:
                     conceptRelationTerms.append("{{{}}}".format(fObj.test))
                 self.xf = "{}concept-relation {};".format(pIndent, " ".join(conceptRelationTerms))
             elif isinstance(fObj, (ModelAndFilter, ModelOrFilter)):
-                self.xf = "{}{} {{{".format(pIndent, "and" if isinstance(fObj, ModelAndFilter)else "or")
+                self.xf = "{}{} {{".format(pIndent, "and" if isinstance(fObj, ModelAndFilter)else "or")
                 if fObj not in visited:
                     visited.add(fObj)
                     for modelRel in self.modelXbrl.relationshipSet(XbrlConst.booleanFilter).fromModelObject(fObj):
                         self.doObject(modelRel.toModelObject, modelRel, cIndent, visited)
                     visited.remove(fObj)
-                self.xf = "}}};".format(pIndent)
+                self.xf = "{}}};".format(pIndent)
         elif isinstance(fObj, ModelMessage):
             self.xf = "{}{}{} \"{}\";".format(
                 pIndent, 
@@ -346,12 +346,12 @@ class GenerateXbrlFormula:
                     hasImplementation = True
                 visited.remove(fObj)
             if not hasImplementation:
-                self.xf = "{}abstract-function {} ({}) as {};".format(pIndent, fObj.name, 
+                self.xf = "{}abstract-function {}({}) as {};".format(pIndent, fObj.name, 
                                                                       ", ".join(str(t) for t in fObj.inputTypes), 
                                                                       fObj.outputType)
         elif isinstance(fObj, ModelCustomFunctionImplementation):
             sigObj = fromRel.fromModelObject
-            self.xf = "{}function {} ({}) as {} {{;".format(pIndent, 
+            self.xf = "{}function {}({}) as {} {{;".format(pIndent, 
                                                             sigObj.name, 
                                                             ", ".join("{} as {}".format(inputName, sigObj.inputTypes[i])
                                                                       for i, inputName in enumerate(fObj.inputNames)),
@@ -365,7 +365,7 @@ class GenerateXbrlFormula:
                         self.xf = "{}   {}".format(cIndent, exprLine.lstrip())
                     self.xf = "{}}};".format(cIndent)
             self.xf = "{}return {{{}}};".format(cIndent, fObj.outputExpression)
-            self.xf = "}};".format(pIndent)
+            self.xf = "{}}};".format(pIndent)
         elif fObj.getparent().tag == "{http://xbrl.org/2008/formula}aspects":
             # aspect rules
             arg = ""
