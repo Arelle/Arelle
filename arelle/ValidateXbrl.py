@@ -77,7 +77,7 @@ class ValidateXbrl:
                              any((concept.qname.namespaceURI in self.disclosureSystem.standardTaxonomiesDict) 
                                  for concept in self.modelXbrl.nameConcepts.get("UTR",()))))
         self.validateIXDS = False # set when any inline document found
-        self.validateEnum = XbrlConst.enum in modelXbrl.namespaceDocs
+        self.validateEnum = XbrlConst.enums & _DICT_SET(modelXbrl.namespaceDocs.keys())
         
         for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Start"):
             pluginXbrlMethod(self, parameters)
@@ -742,8 +742,10 @@ class ValidateXbrl:
                         #            _("Fact %(fact)s value %(value)s context %(contextID)s rounding exception %(error)s"),
                         #            modelObject=f, fact=f.qname, value=f.value, contextID=f.contextID, error = err)
                     if self.validateEnum and concept.isEnumeration and getattr(f,"xValid", 0) == 4 and not f.isNil:
-                        memConcept = self.modelXbrl.qnameConcepts.get(f.xValue)
-                        if not ValidateXbrlDimensions.enumerationMemberUsable(self, concept, memConcept):
+                        qnEnums = f.xValue
+                        if not isinstance(qnEnums, list): qnEnums = (qnEnums,)
+                        if not all(ValidateXbrlDimensions.enumerationMemberUsable(self, concept, self.modelXbrl.qnameConcepts.get(qnEnum))
+                                   for qnEnum in qnEnums):
                             self.modelXbrl.error("enumie:InvalidFactValue",
                                 _("Fact %(fact)s context %(contextID)s enumeration %(value)s is not in the domain of %(concept)s"),
                                 modelObject=f, fact=f.qname, contextID=f.contextID, value=f.xValue, concept=f.qname)

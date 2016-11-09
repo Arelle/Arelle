@@ -74,6 +74,7 @@ xmlSchemaPatterns = {
 # patterns to replace \c and \i in names
 iNameChar = "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
 cNameChar = r"[_\-\.:"   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
+cMinusCNameChar = r"[_\-\."   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
 
 baseXsdTypePatterns = {
                 "Name": namePattern,
@@ -147,11 +148,14 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                     text = elt.textValue # no descendant text nodes
                 else:
                     text = elt.stringValue # include descendant text nodes
-                    if len(text) == 0 and modelConcept is not None:
-                        if modelConcept.default is not None:
-                            text = modelConcept.default
-                        elif modelConcept.fixed is not None:
-                            text = modelConcept.fixed
+                    if modelConcept is not None:
+                        if len(text) == 0:
+                            if modelConcept.default is not None:
+                                text = modelConcept.default
+                            elif modelConcept.fixed is not None:
+                                text = modelConcept.fixed
+                        if baseXsdType == "string" and modelConcept.isEnumeration:
+                            baseXsdType = "enumerationQNames"
             except Exception as err:
                 if ModelInlineValueObject is not None and isinstance(elt, ModelInlineValueObject):
                     errElt = "{0} fact {1}".format(elt.elementQname, elt.qname)
@@ -436,6 +440,9 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                             xValue not in modelXbrl.qnameAttributeGroups):
                             raise ValueError("qname not defined " + str(xValue))
                     '''
+                elif baseXsdType == "enumerationQNames":
+                    xValue = [qnameEltPfxName(elt, qn, prefixException=ValueError) for qn in value.split()]
+                    sValue = value
                 elif baseXsdType in ("XBRLI_DECIMALSUNION", "XBRLI_PRECISIONUNION"):
                     xValue = sValue = value if value == "INF" else _INT(value)
                 elif baseXsdType in ("XBRLI_NONZERODECIMAL"):
@@ -459,7 +466,8 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                             xValue = xmlSchemaPatterns[value]
                         else:
                             if r"\i" in value or r"\c" in value:
-                                value = value.replace(r"\i", iNameChar).replace(r"\c", cNameChar)
+                                value = value.replace(r"[\i-[:]]", iNameChar).replace(r"\i", iNameChar) \
+                                              .replace(r"[\c-[:]]", cMinusCNameChar).replace(r"\c", cNameChar)
                             xValue = re_compile(value + "$") # must match whole string
                     except Exception as err:
                         raise ValueError(err)

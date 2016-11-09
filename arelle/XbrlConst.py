@@ -167,11 +167,16 @@ verPrefixNS = {"ver":ver,
                }
 
 # extended enumeration spec
-enum = "http://xbrl.org/2014/extensible-enumerations"
-qnEnumerationItemType = qname("{http://xbrl.org/2014/extensible-enumerations}enum:enumerationItemType")
-attrEnumerationDomain = "{http://xbrl.org/2014/extensible-enumerations}domain"
-attrEnumerationLinkrole = "{http://xbrl.org/2014/extensible-enumerations}linkrole"
-attrEnumerationUsable = "{http://xbrl.org/2014/extensible-enumerations}headUsable"
+enums = {"http://xbrl.org/2014/extensible-enumerations", "http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1"}
+qnEnumerationItemType2014 = qname("{http://xbrl.org/2014/extensible-enumerations}enum:enumerationItemType")
+qnEnumerationItemType2016 = qname("{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}enum:enumerationItemType")
+qnEnumerationsItemType2016 = qname("{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}enum:enumerationsItemType")
+attrEnumerationDomain2014 = "{http://xbrl.org/2014/extensible-enumerations}domain"
+attrEnumerationDomain2016 = "{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}domain"
+attrEnumerationLinkrole2014 = "{http://xbrl.org/2014/extensible-enumerations}linkrole"
+attrEnumerationLinkrole2016 = "{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}linkrole"
+attrEnumerationUsable2014 = "{http://xbrl.org/2014/extensible-enumerations}headUsable"
+attrEnumerationUsable2016 = "{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}headUsable"
 
 # formula specs
 variable = "http://xbrl.org/2008/variable"
@@ -484,8 +489,10 @@ errMsgPrefixNS = {
     "xbrlvarscopee": "http://xbrl.org/2010/variable/variables-scope/error",
     "xbrlte": "http://xbrl.org/PWD/2014-MM-DD/table/error",
     "utre": "http://www.xbrl.org/2009/utr/errors",
-    "enumte": "http://xbrl.org/2014/extensible-enumerations/taxonomy-errors",
-    "enumie": "http://xbrl.org/2014/extensible-enumerations/instance-errors",
+    #"enumte": "http://xbrl.org/2014/extensible-enumerations/taxonomy-errors",
+    #"enumie": "http://xbrl.org/2014/extensible-enumerations/instance-errors",
+    "enumte": "http://xbrl.org/PWD/2016-10-12/extensible-enumerations/taxonomy-errors-1.1",
+    "enumie": "http://xbrl.org/PWD/2016-10-12/extensible-enumerations/instance-errors-1.1",
     "seve": "http://xbrl.org/2016/assertion-severity/error",
     "tpe": "http://xbrl.org/WGWD/YYYY-MM-DD/taxonomy-package/errors"
     }

@@ -715,13 +715,15 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         try:
             return self._isEnum
         except AttributeError:
-            self._isEnum = self.instanceOfType(XbrlConst.qnEnumerationItemType)
+            self._isEnum = (self.instanceOfType(XbrlConst.qnEnumerationItemType2014) or
+                            self.instanceOfType(XbrlConst.qnEnumerationItemType2016) or
+                            self.instanceOfType(XbrlConst.qnEnumerationsItemType2016))
             return self._isEnum
         
     @property
     def enumDomainQname(self):
         """(QName) -- enumeration domain qname """
-        return self.schemaNameQname(self.get(XbrlConst.attrEnumerationDomain))
+        return self.schemaNameQname(self.get(XbrlConst.attrEnumerationDomain2014) or self.get(XbrlConst.attrEnumerationDomain2016))
 
     @property
     def enumDomain(self):
@@ -735,12 +737,12 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     @property
     def enumLinkrole(self):
         """(anyURI) -- enumeration linkrole """
-        return self.get(XbrlConst.attrEnumerationLinkrole)
+        return self.get(XbrlConst.attrEnumerationLinkrole2014) or self.get(XbrlConst.attrEnumerationLinkrole2016)
     
     @property
     def enumDomainUsable(self):
         """(string) -- enumeration usable attribute """
-        return self.get(XbrlConst.attrEnumerationUsable) or "false"
+        return self.get(XbrlConst.attrEnumerationUsable2014) or self.get(XbrlConst.attrEnumerationUsable2016) or "false"
 
     @property
     def isEnumDomainUsable(self):
