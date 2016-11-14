@@ -290,26 +290,31 @@ class WebCache:
             timeNow = time.time()
             timeNowStr = time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(timeNow))
             retrievingDueToRecheckInterval = False
-            if reload and os.path.exists(filepath):
-                if url in self.cachedUrlCheckTimes and not checkModifiedTime:
-                    cachedTime = calendar.timegm(time.strptime(self.cachedUrlCheckTimes[url], '%Y-%m-%dT%H:%M:%S UTC'))
-                else:
-                    cachedTime = 0
-                if timeNow - cachedTime > self.maxAgeSeconds:
-                    # weekly check if newer file exists
-                    newerOnWeb = False
-                    try: # no provision here for proxy authentication!!!
-                        remoteFileTime = lastModifiedTime( self.getheaders(quotedUrl) )
-                        if remoteFileTime and remoteFileTime > os.path.getmtime(filepath):
-                            newerOnWeb = True
-                    except:
-                        pass # for now, forget about authentication here
-                    if not newerOnWeb:
-                        # update ctime by copying file and return old file
-                        self.cachedUrlCheckTimes[url] = timeNowStr
-                        self.cachedUrlCheckTimesModified = True
+            if os.path.exists(filepath):
+                if reload:
+                    if url in self.cachedUrlCheckTimes and not checkModifiedTime:
+                        cachedTime = calendar.timegm(time.strptime(self.cachedUrlCheckTimes[url], '%Y-%m-%dT%H:%M:%S UTC'))
+                    else:
+                        cachedTime = 0
+                    if timeNow - cachedTime > self.maxAgeSeconds:
+                        # weekly check if newer file exists
+                        newerOnWeb = False
+                        try: # no provision here for proxy authentication!!!
+                            logger.debug('Arelle GetHeaders Detail - start')
+                            remoteFileTime = lastModifiedTime( self.getheaders(quotedUrl) )
+                            logger.debug('Arelle GetHeaders Detail - stop')
+                            if remoteFileTime and remoteFileTime > os.path.getmtime(filepath):
+                                newerOnWeb = True
+                        except:
+                            pass # for now, forget about authentication here
+                        if not newerOnWeb:
+                            # update ctime by copying file and return old file
+                            self.cachedUrlCheckTimes[url] = timeNowStr
+                            self.cachedUrlCheckTimesModified = True
+                            return filepath
+                        retrievingDueToRecheckInterval = True
+                    else:
                         return filepath
-                    retrievingDueToRecheckInterval = True
                 else:
                     return filepath
             filedir = os.path.dirname(filepath)
