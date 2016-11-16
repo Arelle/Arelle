@@ -146,7 +146,7 @@ class ModelRssItem(ModelObject):
         enclosure = XmlUtil.childAttr(self, None, "enclosure", "url")
         if enclosure:
             # modify url to use zip file
-            path, sep, file = self.url.rpartition("/")
+            _path, sep, file = (self.url or "").rpartition("/")
             # return path + sep + self.accessionNumber + "-xbrl.zip" + sep + file
             return enclosure + sep + file
         else: # no zipped enclosure, just use unzipped file
