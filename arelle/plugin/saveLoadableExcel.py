@@ -97,6 +97,7 @@ def saveLoadableExcel(dts, excelFile):
     from openpyxl import Workbook, cell
     from openpyxl.styles import Font, PatternFill, Border, Alignment, Color, fills, Side
     from openpyxl.worksheet.dimensions import ColumnDimension
+    from openpyxl.utils import get_column_letter
     
     workbook = Workbook(encoding="utf-8")
     # remove pre-existing worksheets
@@ -149,13 +150,13 @@ def saveLoadableExcel(dts, excelFile):
             
     # sheet 1 col widths
     for i, hdr in enumerate(conceptsWsHeaders):
-        colLetter = cell.get_column_letter(i+1)
+        colLetter = get_column_letter(i+1)
         conceptsWs.column_dimensions[colLetter] = ColumnDimension(conceptsWs, customWidth=True)
         conceptsWs.column_dimensions[colLetter].width = headerWidths.get(hdr[1], 40)                                   
         
     # sheet 2 headers
     for i, hdr in enumerate(dtsWsHeaders):
-        colLetter = cell.get_column_letter(i+1)
+        colLetter = get_column_letter(i+1)
         dtsWs.column_dimensions[colLetter] = ColumnDimension(conceptsWs, customWidth=True)
         dtsWs.column_dimensions[colLetter].width = hdr[1]
         writeCell(dtsWs, 1, i+1, hdr[0], hdr=True)

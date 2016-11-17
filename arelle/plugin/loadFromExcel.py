@@ -81,7 +81,7 @@ def loadFromExcel(cntlr, excelFile):
         os.chdir(os.path.dirname(excelFile))
     else:
         priorCWD = None
-    importExcelBook = load_workbook(excelFile, read_only=True, data_only=True)
+    importExcelBook = load_workbook(excelFile, data_only=True)
     sheetNames = importExcelBook.get_sheet_names()
     if "XBRL DTS" in sheetNames: 
         dtsWs = importExcelBook["XBRL DTS"]
@@ -146,15 +146,17 @@ def loadFromExcel(cntlr, excelFile):
             if len(row) > 0: action = row[0].value
             if len(row) > 1: filetype = row[1].value
             if len(row) > 2: prefix = row[2].value
-            if len(row) > 3: filename = row[3].value
-            if len(row) > 4: namespaceURI = row[4].value
+            if len(row) > 3: filename = row[5].value
+            if len(row) > 4: namespaceURI = row[6].value
             lbType = lang = None
             if action == "import":
+                if filetype == "role":
+                    continue
                 imports[prefix] = ( ("namespace", namespaceURI), ("schemaLocation", filename) )
                 importXmlns[prefix] = namespaceURI
                 if re.match(r"http://[^/]+/us-gaap/", namespaceURI):
                     isUSGAAP = True
-            elif action == "extension":
+            elif action in ("extension", "generate"):
                 if filetype == "schema":
                     extensionSchemaPrefix = prefix
                     extensionSchemaFilename = filename
@@ -188,6 +190,8 @@ def loadFromExcel(cntlr, excelFile):
                     extensionSchemaVersion = filename
                 elif filetype == "table-style" and filename == "xbrl-us":
                     isUSGAAP = True
+            elif action == "meta" and filetype == "table-style" and filename == "xbrl-us":
+                isUSGAAP = True
             elif action == "workbook" and filename:
                 importFileName = filename
             elif action == "worksheet" and filename:
@@ -447,6 +451,13 @@ def loadFromExcel(cntlr, excelFile):
                         extensionElements[name] = (eltAttrs, eltFacets)
                 useLabels = True
                 if depth is not None:
+                    if name is None:
+                        _label = None
+                        for colCell in row:
+                            if colCell.value is not None:
+                                _label = colCell.value
+                                break
+                        print ("Row {} has relationships and no \"name\" field, label: {}".format(iRow+1, _label))
                     if hasPreLB:
                         entryList = lbDepthList(preLB, depth)
                         preferredLabel = cellValue(row, 'preferredLabel')

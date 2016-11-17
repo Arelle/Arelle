@@ -89,6 +89,15 @@ class NotOIMException(Exception):
     def __repr__(self):
         return _('[NotOIM] not an OIM document')
 
+def csvCellValue(cellValue):
+    if cellValue == "#nil":
+        return None
+    elif cellValue == "#empty":
+        return ""
+    elif cellValue.startswith("##"):
+        return cellValue[1:]
+    else:
+        return cellValue
 
 def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
     from openpyxl import load_workbook
@@ -213,7 +222,7 @@ def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
                 if tableType not in ("fact", "footnote"):
                     modelXbrl.error("xbrlce:unrecognizedTableType",
                                     _("Table type %(tableType)s was not recognized, table URI %(uri)s."),
-                                    modelObject=modelXbrl, uri=_uri, tableType=tableType)
+                                    modelObject=modelXbrl, uri=oimFile, tableType=tableType)
                     continue
                 if not tableColumns:
                     modelXbrl.error("xbrlce:noTableColumns",
@@ -245,25 +254,26 @@ def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
                                 for iCol in factCols:
                                     fact = {"aspects": {}}
                                     cellValue = row[iCol]
+                                    if cellValue == "": # no fact produced for this cell
+                                        continue
                                     tableCol = tableColumns[iCol]
                                     if CSVtupleFactAspects in tableCol:
                                         aspectsObjectName = CSVtupleFactAspects
                                     else:
                                         aspectsObjectName = CSVsimpleFactAspects
                                     cellAspects = (colAspects, 
-                                                   specificColAspects.get(tableColumns[iCol].get("name"), EMPTYDICT),
+                                                   specificColAspects.get(tableCol.get("name"), EMPTYDICT),
                                                    tableColumns[iCol].get(aspectsObjectName), EMPTYDICT)
                                     
                                     inapplicableAspects = set()
-                                    if CSVtupleReferenceId in tableCol:
+                                    if tableCol.get(CSVtupleReferenceId) == "true":
                                         if cellValue:
                                             if cellValue in tupleIds:
                                                 continue # don't duplicate parent tuple
                                             fact["id"] = cellValue
                                             tupleIds.add(cellValue) # prevent tuple duplication
                                     elif CSVsimpleFactAspects in tableCol:
-                                        if cellValue != None:
-                                            fact["value"] = cellValue
+                                        fact["value"] = csvCellValue(cellValue)
                                             
                                     if CSVtupleFactAspects in tableCol:
                                         inapplicableAspects.update(oimSimpleFactAspects)
@@ -273,16 +283,16 @@ def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
                                                     inapplicableAspects.add(aspectName)
                                             
                                     # block any row aspect produced by this column from this column's fact
-                                    _colAspect = tableColumns[iCol].get(CSVcolumnAspect)
+                                    _colAspect = tableCol.get(CSVcolumnAspect)
                                     if isinstance(_colAspect, str): # applies to all cols
                                         inapplicableAspects.add(_colAspect)
                                             
                                     for _aspects in cellAspects:
                                         if _aspects:
                                             for aspectName, aspectValue in _aspects.items():
-                                                if aspectName not in inapplicableAspects:
+                                                if aspectName not in inapplicableAspects and aspectValue  != "":
                                                     if ":" in aspectName:
-                                                        fact["aspects"][aspectName] = aspectValue
+                                                        fact["aspects"][aspectName] = csvCellValue(aspectValue)
                                                     else:
                                                         fact[aspectName] = aspectValue
                                     facts.append(fact)
@@ -501,7 +511,7 @@ def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
                                             id=cntxId,
                                             beforeSibling=topTupleFact)
                     cntxTbl[cntxKey] = _cntx
-                if oimUnit in aspects:
+                if oimUnit in aspects and concept.isNumeric:
                     unitKey = aspects[oimUnit]
                     if unitKey in unitTbl:
                         _unit = unitTbl[unitKey]
