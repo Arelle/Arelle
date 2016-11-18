@@ -154,7 +154,7 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                                 text = modelConcept.default
                             elif modelConcept.fixed is not None:
                                 text = modelConcept.fixed
-                        if baseXsdType == "string" and modelConcept.isEnumeration:
+                        if baseXsdType == "token" and modelConcept.isEnumeration:
                             baseXsdType = "enumerationQNames"
             except Exception as err:
                 if ModelInlineValueObject is not None and isinstance(elt, ModelInlineValueObject):

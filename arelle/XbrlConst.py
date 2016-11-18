@@ -491,8 +491,8 @@ errMsgPrefixNS = {
     "utre": "http://www.xbrl.org/2009/utr/errors",
     #"enumte": "http://xbrl.org/2014/extensible-enumerations/taxonomy-errors",
     #"enumie": "http://xbrl.org/2014/extensible-enumerations/instance-errors",
-    "enumte": "http://xbrl.org/PWD/2016-10-12/extensible-enumerations/taxonomy-errors-1.1",
-    "enumie": "http://xbrl.org/PWD/2016-10-12/extensible-enumerations/instance-errors-1.1",
+    "enumte": "http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1/taxonomy-errors",
+    "enumie": "http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1/instance-errors",
     "seve": "http://xbrl.org/2016/assertion-severity/error",
     "tpe": "http://xbrl.org/WGWD/YYYY-MM-DD/taxonomy-package/errors"
     }

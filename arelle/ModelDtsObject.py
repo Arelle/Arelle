@@ -711,7 +711,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     
     @property
     def isEnumeration(self):
-        """(bool) -- True if derived from enum:enumerationItemType"""
+        """(bool) -- True if derived from enum:enumerationItemType or enum:enumerationsItemType"""
         try:
             return self._isEnum
         except AttributeError:
