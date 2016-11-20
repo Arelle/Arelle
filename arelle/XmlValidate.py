@@ -14,7 +14,7 @@ from fractions import Fraction
 from arelle import XbrlConst, XmlUtil
 from arelle.ModelValue import (qname, qnameEltPfxName, qnameClarkName, 
                                dateTime, DATE, DATETIME, DATEUNION, 
-                               anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay)
+                               anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay, isoDuration)
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.PythonUtil import strTruncate
 from arelle import UrlUtil
@@ -29,7 +29,7 @@ INVALID = 2
 NONE = 3
 VALID = 4 # values >= VALID are valid
 VALID_ID = 5
-VALID_NO_CONTENT = 6 # may be a complex type with children
+VALID_NO_CONTENT = 6 # may be a complex type with children, must be last (after VALID with content enums)
 
 normalizeWhitespacePattern = re_compile(r"\s")
 collapseWhitespacePattern = re_compile(r"\s+")
@@ -496,6 +496,8 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                         elif baseXsdType == "gDay":
                             day, zSign, zHrMin, zHr, zMin = match.groups()
                             xValue = gDay(day)
+                        elif baseXsdType == "duration":
+                            xValue = isoDuration(value)
                         else:
                             xValue = value
                     else: # no lexical pattern, forget compiling value

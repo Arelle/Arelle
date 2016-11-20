@@ -5,7 +5,8 @@ Created on Jan 4, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import PythonUtil # define 2.x or 3.x string types
-import copy, datetime
+import copy, datetime, isodate
+from decimal import Decimal
 try:
     import regex as re
 except ImportError:
@@ -517,6 +518,112 @@ class gDay():
         return self.__str__() 
     def __str__(self):
         return "---{0:02}".format(self.day)
+    
+isoDurationPattern = re.compile(
+    r"^(?P<sign>[+-])?"
+    r"P(?!\b)"
+    r"(?P<years>[0-9]+([,.][0-9]+)?Y)?"
+    r"(?P<months>[0-9]+([,.][0-9]+)?M)?"
+    r"(?P<weeks>[0-9]+([,.][0-9]+)?W)?"
+    r"(?P<days>[0-9]+([,.][0-9]+)?D)?"
+    r"((?P<separator>T)(?P<hours>[0-9]+([,.][0-9]+)?H)?"
+    r"(?P<minutes>[0-9]+([,.][0-9]+)?M)?"
+    r"(?P<seconds>[0-9]+([,.][0-9]+)?S)?)?$")
+
+def isoDuration(value):
+    """(str) -- Text of contained (inner) text nodes except for any whose localName 
+        starts with URI, for label and reference parts displaying purposes.
+        (Footnotes, which return serialized html content of footnote.)
+    """
+    if not isinstance(value, str):
+        raise TypeError("Expecting a string {}".format(value))
+    match = isoDurationPattern.match(value)
+    if not match:
+        raise ValueError("Unable to parse duration string {}".format(value))
+    groups = match.groupdict()
+    for key, val in list(groups.items()):
+        if key not in ('separator', 'sign'):
+            if val is None:
+                groups[key] = "0n"
+            # print groups[key]
+            if key in ('years', 'months'):
+                groups[key] = Decimal(groups[key][:-1].replace(',', '.'))
+            else:
+                # these values are passed into a timedelta object,
+                # which works with floats.
+                groups[key] = float(groups[key][:-1].replace(',', '.'))
+    return IsoDuration(years=groups["years"], months=groups["months"],
+                       days=groups["days"], hours=groups["hours"],
+                       minutes=groups["minutes"], seconds=groups["seconds"],
+                       weeks=groups["weeks"],
+                       negate=(groups["sign"]=='-'),
+                       sourceValue=value) # preserve source lexical value for str() value
+    
+DAYSPERMONTH = Decimal("30.4375") # see: https://www.ibm.com/support/knowledgecenter/SSLVMB_20.0.0/com.ibm.spss.statistics.help/alg_adp_date-time_handling.htm
+
+"""
+    XPath 2.0 does not define arithmetic operations on xs:duration 
+    for arithmetic one must use xs:yearMonthDuration or xs:dayTimeDuration instead
+
+    Arelle provides value comparisons for xs:duration even though they are not "totally ordered" per XPath 1.0
+    because these are necessary in order to define typed dimension ordering
+"""
+class IsoDuration(isodate.Duration):
+    """
+    .. class:: IsoDuration(modelDocument)
+    
+    Implements custom class for xs:duration to work for typed dimensions
+    Uses DAYSPERMONTH approximation of ordering days/months (only for typed dimensions, not XPath).
+    
+    For formula purposes this object is not used because xpath 1.0 requires use of
+    xs:yearMonthDuration or xs:dayTimeDuration which are totally ordered instead.
+    """
+    def __init__(self,  days=0, seconds=0, microseconds=0, milliseconds=0,
+                 minutes=0, hours=0, weeks=0, months=0, years=0,
+                 negate=False, sourceValue=None):
+        super(IsoDuration, self).__init__(days, seconds, microseconds, milliseconds,
+                                          minutes, hours, weeks, months, years)
+        if negate:
+            self.years = -self.years
+            self.months = -self.months
+            self.tdelta = -self.tdelta
+        self.sourceValue = sourceValue
+        self.avgdays = (self.years * 12 + self.months) * DAYSPERMONTH + self.tdelta.days
+        self._hash = hash((self.avgdays, self.tdelta))
+    def __hash__(self):
+        return self._hash
+    def __eq__(self,other):
+        return self.avgdays == other.avgdays and self.tdelta.seconds == other.tdelta.seconds and self.tdelta.microseconds == other.tdelta.microseconds
+    def __ne__(self,other):
+        return not self.__eq__(other)
+    def __lt__(self,other):
+        if self.avgdays < other.avgdays:
+            return True
+        elif self.avgdays == other.avgdays:
+            if self.tdelta.seconds < other.tdelta.seconds:
+                return True
+            elif self.tdelta.seconds == other.tdelta.seconds:
+                if self.tdelta.microseconds < other.tdelta.microseconds:
+                    return True
+        return False
+    def __le__(self,other):
+        return self.__lt__(other) or self.__eq__(other)
+    def __gt__(self,other):
+        if self.avgdays > other.avgdays:
+            return True
+        elif self.avgdays > other.avgdays:
+            if self.tdelta.seconds > other.tdelta.seconds:
+                return True
+            elif self.tdelta.seconds == other.tdelta.seconds:
+                if self.tdelta.microseconds > other.tdelta.microseconds:
+                    return True
+        return False
+    def __ge__(self,other):
+        return self.__gt__(other) or self.__eq__(other)
+    def viewText(self, labelrole=None, lang=None):
+        return super(IsoDuration, self).__str__() # textual words form of duration
+    def __str__(self):
+        return self.sourceValue
     
 class InvalidValue(str):
     def __new__(cls, value):
