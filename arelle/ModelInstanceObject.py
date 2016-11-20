@@ -581,7 +581,7 @@ class ModelInlineValueObject:
             self.xValid = UNVALIDATED # may not be initialized otherwise
             self.xValue = None
             v = XmlUtil.innerText(self, 
-                                  ixExclude=True, 
+                                  ixExclude="html", 
                                   ixEscape=(self.get("escape") in ("true","1")), 
                                   ixContinuation=(self.elementQname == XbrlConst.qnIXbrl11NonNumeric),
                                   strip=True) # transforms are whitespace-collapse
@@ -1478,8 +1478,9 @@ class ModelInlineFootnote(ModelResource):
         except AttributeError:
             self._ixValue = XmlUtil.innerText(self, 
                                   ixExclude=True, 
+                                  ixEscape="html", 
                                   ixContinuation=(self.namespaceURI != XbrlConst.ixbrl),
-                                  strip=True) # transforms are whitespace-collapse
+                                  strip=True) # include HTML constructs
 
             return self._ixValue
         

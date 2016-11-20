@@ -130,7 +130,7 @@ class ViewFactList(ViewWinTree.ViewTree):
                         if isinstance(modelObject, ModelResource):
                             fns.append("Footnote {}: {}".format(
                                i+1,
-                               modelObject.stringValue))
+                               modelObject.viewText()))
                         elif isinstance(modelObject, ModelFact):
                             fns.append("Footnoted fact {}: {} context: {} value: {}".format(
                                 i+1,

@@ -1555,7 +1555,10 @@ class ModelResource(ModelObject):
     
     def viewText(self, labelrole=None, lang=None):
         """(str) -- Text of contained (inner) text nodes except for any whose localName 
-        starts with URI, for label and reference parts displaying purposes."""
+        starts with URI, for label and reference parts displaying purposes.
+        (Footnotes, which return serialized html content of footnote.)"""
+        if self.qname == XbrlConst.qnLinkFootnote:
+            return XmlUtil.innerText(self, ixEscape="html", strip=True) # include HTML construct
         return " ".join([XmlUtil.text(resourceElt)
                            for resourceElt in self.iter()
                               if isinstance(resourceElt,ModelObject) and 

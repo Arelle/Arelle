@@ -623,7 +623,7 @@ def copyHtml(sourceXml, targetHtml):
         targetChild = SubElement(targetHtml,
                                  sourceChild.localName if sourceChild.namespaceURI == xhtml else sourceChild.tag)
         for attrTag, attrValue in sourceChild.items():
-            targetChild.set(attrTag, attrValue)
+            targetChild.set("lang" if attrTag == "{http://www.w3.org/XML/1998/namespace}lang" else attrTag, attrValue)
         copyHtml(sourceChild, targetChild)
         
 def validateFootnote(modelXbrl, footnote):
@@ -633,7 +633,7 @@ def validateFootnote(modelXbrl, footnote):
     
     try:
         footnoteHtml = XML("<body/>")
-        copyHtml(footnote, footnoteHtml)
+        copyHtml(footnote, footnoteHtml) # convert from xhtml to html (with no prefixes) for DTD validation
         if not edbodyDTD.validate( footnoteHtml ):
             modelXbrl.error("EFM.6.05.34.dtdError",
                 _("%(validatedObjectLabel)s causes the XML error %(error)s"),
