@@ -142,7 +142,7 @@
 <!ENTITY % fontstyle "%fontstyle.basic; | %fontstyle.extra;">
 
 <!ENTITY % phrase.extra "sub | sup">
-<!ENTITY % phrase.basic "em | strong | dfn | code |
+<!ENTITY % phrase.basic "span | em | strong | dfn | code |
                    samp | kbd | var | cite">
 
 <!ENTITY % phrase "%phrase.basic; | %phrase.extra;">
@@ -194,6 +194,11 @@
   %attrs;
   %TextAlign;
   >
+  
+<!ELEMENT span %Inline; >
+<!ATTLIST  span
+  %attrs;
+>
 
 <!--=================== Paragraphs =======================================-->
 
@@ -526,8 +531,11 @@
   >
 
 <!ELEMENT table
-     (caption?, tr+)>
+     (caption?, (tr+ | ( thead?, tfoot?, tbody+)))>
 <!ELEMENT caption  %Inline;>
+<!ELEMENT thead (tr+) >
+<!ELEMENT tbody (tr+) >
+<!ELEMENT tfoot (tr+) >
 <!ELEMENT tr       (th|td)+>
 <!ELEMENT th       %Flow;>
 <!ELEMENT td       %Flow;>
@@ -586,4 +594,20 @@
   height      %Length;       #IMPLIED
   >
 
+<!ATTLIST  thead
+  %attrs;
+  %cellhalign;
+  %cellvalign;
+>
 
+<!ATTLIST  tfoot
+  %attrs;
+  %cellhalign;
+  %cellvalign;
+>
+
+<!ATTLIST  tbody
+  %attrs;
+  %cellhalign;
+  %cellvalign;
+>
