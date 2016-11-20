@@ -16,7 +16,8 @@ roleTypePattern = None
 arcroleTypePattern = None
 arcroleDefinitionPattern = None
 namePattern = None
-namespacesConflictPattern = None
+usNamespacesConflictPattern = None
+ifrsNamespacesConflictPattern = None
 linkroleDefinitionBalanceIncomeSheet = None
 extLinkEltFileNameEnding = {
     "calculationLink": "_cal",
@@ -28,7 +29,7 @@ extLinkEltFileNameEnding = {
 def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
     global targetNamespaceDatePattern, efmFilenamePattern, htmlFileNamePattern, roleTypePattern, arcroleTypePattern, \
             arcroleDefinitionPattern, namePattern, linkroleDefinitionBalanceIncomeSheet, \
-            namespacesConflictPattern
+            usNamespacesConflictPattern, ifrsNamespacesConflictPattern
     if targetNamespaceDatePattern is None:
         targetNamespaceDatePattern = re.compile(r"/([12][0-9]{3})-([01][0-9])-([0-3][0-9])|"
                                             r"/([12][0-9]{3})([01][0-9])([0-3][0-9])|")
@@ -40,7 +41,8 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
         namePattern = re.compile("[][()*+?\\\\/^{}|@#%^=~`\"';:,<>&$\u00a3\u20ac]") # u20ac=Euro, u00a3=pound sterling 
         linkroleDefinitionBalanceIncomeSheet = re.compile(r"[^-]+-\s+Statement\s+-\s+.*(income|balance|financial\W+position)",
                                                           re.IGNORECASE)
-        namespacesConflictPattern = re.compile(r"http://(xbrl\.us|fasb\.org|xbrl\.sec\.gov)/(dei|us-types|us-roles|rr)/([0-9]{4}-[0-9]{2}-[0-9]{2})$")
+        usNamespacesConflictPattern = re.compile(r"http://(xbrl\.us|fasb\.org|xbrl\.sec\.gov)/(dei|us-types|us-roles|rr)/([0-9]{4}-[0-9]{2}-[0-9]{2})$")
+        ifrsNamespacesConflictPattern = re.compile(r"http://xbrl.ifrs.org/taxonomy/([0-9]{4}-[0-9]{2}-[0-9]{2})/(ifrs[\w-]*)$")
     nonDomainItemNameProblemPattern = re.compile(
         r"({0})|(FirstQuarter|SecondQuarter|ThirdQuarter|FourthQuarter|[1-4]Qtr|Qtr[1-4]|ytd|YTD|HalfYear)(?:$|[A-Z\W])"
         .format(re.sub(r"\W", "", (val.entityRegistrantName or "").title())))
@@ -65,9 +67,11 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
         if modelDocument.uri in val.disclosureSystem.standardTaxonomiesDict:
             if modelDocument.targetNamespace:
                 # check for duplicates of us-types, dei, and rr taxonomies
-                match = namespacesConflictPattern.match(modelDocument.targetNamespace)
-                if match is not None:
-                    val.standardNamespaceConflicts[match.group(2)].add(modelDocument)
+                for pattern, indexGroup in ((usNamespacesConflictPattern,2),(ifrsNamespacesConflictPattern,2)):
+                    match = pattern.match(modelDocument.targetNamespace)
+                    if match is not None:
+                        val.standardNamespaceConflicts[match.group(indexGroup)].add(modelDocument)
+                
         else:
             if len(modelDocument.basename) > 32:
                 val.modelXbrl.error("EFM.5.01.01.tooManyCharacters",
