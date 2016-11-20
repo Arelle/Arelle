@@ -14,7 +14,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import qname, qnameEltPfxName
 from arelle.ValidateUtr import ValidateUtr
-from arelle.XbrlConst import qnEnumerationItemType
+from arelle.XbrlConst import qnEnumerationItemType2014
 from arelle.ModelInstanceObject import ModelFact
 try:
     import regex as re
