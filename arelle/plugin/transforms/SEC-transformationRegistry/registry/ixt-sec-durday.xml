@@ -59,6 +59,7 @@ Duration in days
 
 The duration in xs:duration.
 
+Transformed value is in integer days/hours, hours are truncated (no value smaller than an hour). 
       </xhtml:p>
     </output>
   </signature>

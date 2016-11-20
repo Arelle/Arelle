@@ -1,7 +1,5 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
-
+<?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="stylesheets/functionDefinition.xsl"?>
-
 <function
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -13,13 +11,13 @@
   xmlns:xbrli="http://www.xbrl.org/2003/instance"
   xmlns:reg="http://xbrl.org/2008/registry"
   xsi:schemaLocation="http://xbrl.org/2008/registry schemas/registry.xsd http://xbrl.org/2008/function schemas/function.xsd">
-  <lastUpdated moment="2015-08-23T12:00:00"/>
+  <lastUpdated moment="2016-10-20T15:00:00"/>
   <owners>
     <reg:owner id="herm">
       <reg:name>Herm Fischer</reg:name>
       <reg:affiliation>Mark V Systems Limited</reg:affiliation>
       <reg:email>fischer@markv.com</reg:email>
-      <reg:assumedOwnership moment="2015-08-23T12:00:00"/>
+      <reg:assumedOwnership moment="2016-10-20T15:00:00"/>
     </reg:owner>
     <reg:owner id="walter">
       <reg:name>Walter Hamscher</reg:name>
@@ -27,45 +25,41 @@
       <reg:email>HamscherW@sec.gov</reg:email>
       <reg:assumedOwnership moment="2015-08-23T12:00:00"/>
     </reg:owner>
-
   </owners>
   <summary>
-
-Transforms durmonth.
-
+Transforms durations with number words or numbers for years, months, and/or days.
   </summary>
   <documentation>
     <xhtml:p>
-
-Transforms duration in months
-
-Accepts decimal number for months.
-
+Transforms number word durations (English).
+    </xhtml:p>
+    <xhtml:p>
+Duration year/month/day parts are expressed only in short-form notation words or numerals.
+Years, months and days up to 1999 (nineteen-hundred ninety-nine).
+Examples:  three years four months no days, or three years, 11 months and four days
+Plural is optional.  Comma and "and" are optional.
     </xhtml:p>
   </documentation>
-  <reference xlink:type="simple" 
-             xlink:href="inlineXBRL-part1/REC-2010-04-20/inlineXBRL-part1-REC-2010-04-20.html#sec-transformationrules"
-             >Inline XBRL Part 1: Specification 1.0 Section 14</reference>
-  <signature name="ixt-sec:durmonth">
-    <input name="input" type="ixt-sec:durmonthType">
+  <reference xlink:type="simple" xlink:href="inlineXBRL-part1/REC-2010-04-20/inlineXBRL-part1-REC-2010-04-20.html#sec-transformationrules">Inline XBRL Part 1: Specification 1.0 Section 14</reference>
+  <reference xlink:type="simple" xlink:href="https://en.wikipedia.org/wiki/English_numerals">English Durations</reference>
+  <signature name="ixt-sec:durwordsen">
+    <input name="input" type="ixt-sec:durwordsenType">
       <xhtml:p>
-
-Duration in months
-
+Words expressing a duration in short-form notation, such as "seven days" or "twelve years".
       </xhtml:p>
     </input>
       <output type="xs:duration">
       <xhtml:p>
-
-The duration in xs:duration.
-
-Number of months are computed as 30.4375 days.
-
-Transformed value is in integer months/days, days are truncated (no value smaller than a day).
+The value in xs:duration. 
       </xhtml:p>
     </output>
   </signature>
   <revisions>
-    <reg:revision on="2016-02-08T12:00:00" by="walter"/> 
+    <reg:revision on="2016-09-06T15:00:00" by="herm">
+    Initial version
+    </reg:revision> 
+ 	<reg:revision on="2016-10-20T15:00:00" by="walter">
+    Initial version
+    </reg:revision> 
   </revisions>
 </function>

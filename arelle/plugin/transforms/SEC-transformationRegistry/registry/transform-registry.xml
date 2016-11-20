@@ -51,6 +51,18 @@
     <url xlink:type="simple" xlink:href="ixt-sec-durhour.xml"/>
   </entry>
  
+  <entry>
+    <added moment="2016-09-06T15:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-sec-durwordsen.xml"/>
+  </entry>
+ 
+  <entry>
+    <added moment="2016-09-06T15:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-sec-numwordsen.xml"/>
+  </entry>
+ 
   <!--  Below are the xii-transformationRegistry-v3 files
         Please obtain the latest of the xii files from xbrl.org
         For convenience they are repeated below but commented out

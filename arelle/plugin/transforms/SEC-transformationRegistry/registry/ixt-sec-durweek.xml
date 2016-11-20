@@ -59,6 +59,8 @@ Duration in weeks
 
 The duration in xs:duration.
 
+Transformed value is in integer days, days are truncated (no value smaller than a day).
+
       </xhtml:p>
     </output>
   </signature>
