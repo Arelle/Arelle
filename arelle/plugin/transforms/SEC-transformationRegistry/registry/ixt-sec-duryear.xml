@@ -40,6 +40,7 @@ Transforms duryear.
 Transforms duration in years
 
 Accepts decimal number for years.
+
     </xhtml:p>
   </documentation>
   <reference xlink:type="simple" 
@@ -60,7 +61,7 @@ The duration in xs:duration.
 
 Number of months are computed as 30.4375 days.
 
-Transformed value is in integer years/months/days, days are truncated (no value smaller than a day).
+Transformed value is in integer years/months/days, days are rounded (no value smaller than a day).
 
       </xhtml:p>
     </output>
