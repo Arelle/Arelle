@@ -15,7 +15,7 @@ from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, load
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateFilingText import CDATApattern
-from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier
+from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier, elementChildSequence
 import os, zipfile
 from optparse import SUPPRESS_HELP
 from lxml.etree import XML, XMLSyntaxError
@@ -44,14 +44,32 @@ class ModelInlineXbrlDocumentSet(ModelDocument):
 
 def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRefs, outputZip=None, filingFiles=None, *args, **kwargs):
     targetUrl = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(targetDocumentFilename, modelXbrl.modelDocument.filepath)
+    def addLocallyReferencedFile(elt,filingFiles):
+        if elt.tag in ("a", "img"):
+            for attrTag, attrValue in elt.items():
+                if attrTag in ("href", "src") and not isHttpUrl(attrValue) and not os.path.isabs(attrValue):
+                    attrValue = attrValue.partition('#')[0] # remove anchor
+                    if attrValue: # ignore anchor references to base document
+                        attrValue = os.path.normpath(attrValue) # change url path separators to host separators
+                        file = os.path.join(sourceDir,attrValue)
+                        if modelXbrl.fileSource.isInArchive(file, checkExistence=True) or os.path.exists(file):
+                            filingFiles.add(file)
     targetUrlParts = targetUrl.rpartition(".")
     targetUrl = targetUrlParts[0] + "_extracted." + targetUrlParts[2]
     modelXbrl.modelManager.showStatus(_("Extracting instance ") + os.path.basename(targetUrl))
+    rootElt = modelXbrl.modelDocument.xmlRootElement
+    # take baseXmlLang from <html> or <base>
+    baseXmlLang = rootElt.get("{http://www.w3.org/XML/1998/namespace}lang") or rootElt.get("lang")
+    for ixElt in modelXbrl.modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/1999/xhtml}body"):
+        baseXmlLang = ixElt.get("{http://www.w3.org/XML/1998/namespace}lang") or rootElt.get("lang") or baseXmlLang
     targetInstance = ModelXbrl.create(modelXbrl.modelManager, 
                                       newDocumentType=Type.INSTANCE,
                                       url=targetUrl,
                                       schemaRefs=targetDocumentSchemaRefs,
-                                      isEntry=True)
+                                      isEntry=True,
+                                      discover=False) # don't attempt to load DTS
+    if baseXmlLang:
+        targetInstance.modelDocument.xmlRootElement.set("{http://www.w3.org/XML/1998/namespace}lang", baseXmlLang)
     ValidateXbrlDimensions.loadDimensionDefaults(targetInstance) # need dimension defaults 
     # roleRef and arcroleRef (of each inline document)
     for sourceRefs in (modelXbrl.targetRoleRefs, modelXbrl.targetArcroleRefs):
@@ -60,8 +78,8 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
                      attributes=roleRefElt.items())
     
     # contexts
-    for context in modelXbrl.contexts.values():
-        newCntx = targetInstance.createContext(context.entityIdentifier[0],
+    for context in sorted(modelXbrl.contexts.values(), key=lambda c: elementChildSequence(c)):
+        ignore = targetInstance.createContext(context.entityIdentifier[0],
                                                context.entityIdentifier[1],
                                                'instant' if context.isInstantPeriod else
                                                'duration' if context.isStartEndPeriod
@@ -73,13 +91,13 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
                                                id=context.id)
     for unit in modelXbrl.units.values():
         measures = unit.measures
-        newUnit = targetInstance.createUnit(measures[0], measures[1], id=unit.id)
+        ignore = targetInstance.createUnit(measures[0], measures[1], id=unit.id)
 
     modelXbrl.modelManager.showStatus(_("Creating and validating facts"))
     newFactForOldObjId = {}
     def createFacts(facts, parent):
         for fact in facts:
-            if fact.isItem:
+            if fact.isItem: # HF does not de-duplicate, which is currently-desired behavior
                 attrs = {"contextRef": fact.contextID}
                 if fact.id:
                     attrs["id"] = fact.id
@@ -94,33 +112,34 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
                     text = None
                 else:
                     text = fact.xValue if fact.xValid else fact.textValue
+                    if fact.concept is not None and fact.concept.baseXsdType in ("string", "normalizedString"): # default
+                        xmlLang = fact.xmlLang
+                        if xmlLang is not None and xmlLang != baseXmlLang:
+                            attrs["{http://www.w3.org/XML/1998/namespace}lang"] = xmlLang
                 newFact = targetInstance.createFact(fact.qname, attributes=attrs, text=text, parent=parent)
+                # if fact.isFraction, create numerator and denominator
                 newFactForOldObjId[fact.objectIndex] = newFact
-                if filingFiles and fact.concept is not None and fact.concept.isTextBlock:
-                    # check for img and other filing references
+                if filingFiles is not None and fact.concept is not None and fact.concept.isTextBlock:
+                    # check for img and other filing references so that referenced files are included in the zip.
                     for xmltext in [text] + CDATApattern.findall(text):
                         try:
-                            for elt in XML("<body>\n{0}\n</body>\n".format(xmltext)):
-                                if elt.tag in ("a", "img") and not isHttpUrl(attrValue) and not os.path.isabs(attrvalue):
-                                    for attrTag, attrValue in elt.items():
-                                        if attrTag in ("href", "src"):
-                                            filingFiles.add(attrValue)
+                            for elt in XML("<body>\n{0}\n</body>\n".format(xmltext)).iter():
+                                addLocallyReferencedFile(elt, filingFiles)
                         except (XMLSyntaxError, UnicodeDecodeError):
-                            pass
+                            pass  # TODO: Why ignore UnicodeDecodeError?
             elif fact.isTuple:
                 newTuple = targetInstance.createFact(fact.qname, parent=parent)
                 newFactForOldObjId[fact.objectIndex] = newTuple
                 createFacts(fact.modelTupleFacts, newTuple)
                 
     createFacts(modelXbrl.facts, None)
-    # footnote links
-    footnoteIdCount = {}
-    modelXbrl.modelManager.showStatus(_("Creating and validating footnotes & relationships"))
+    modelXbrl.modelManager.showStatus(_("Creating and validating footnotes and relationships"))
     HREF = "{http://www.w3.org/1999/xlink}href"
     footnoteLinks = defaultdict(list)
+    footnoteIdCount = {}
     for linkKey, linkPrototypes in modelXbrl.baseSets.items():
         arcrole, linkrole, linkqname, arcqname = linkKey
-        if (linkrole and linkqname and arcqname and # fully specified roles
+        if (linkrole and linkqname and arcqname and  # fully specified roles
             arcrole != "XBRL-footnotes" and
             any(lP.modelDocument.type == Type.INLINEXBRL for lP in linkPrototypes)):
             for linkPrototype in linkPrototypes:
@@ -149,16 +168,16 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
                     footnoteIdCount[linkChild.footnoteID] = idUseCount
                     newChild = addChild(newLink, linkChild.qname, 
                                         attributes=attributes)
+                    xmlLang = linkChild.xmlLang
+                    if xmlLang is not None and xmlLang != baseXmlLang: # default
+                        newChild.set("{http://www.w3.org/XML/1998/namespace}lang", xmlLang)
                     copyIxFootnoteHtml(linkChild, newChild, targetModelDocument=targetInstance.modelDocument, withText=True)
+
                     if filingFiles and linkChild.textValue:
                         footnoteHtml = XML("<body/>")
                         copyIxFootnoteHtml(linkChild, footnoteHtml)
                         for elt in footnoteHtml.iter():
-                            if elt.tag in ("a", "img"):
-                                for attrTag, attrValue in elt.items():
-                                    if attrTag in ("href", "src") and not isHttpUrl(attrValue) and not os.path.isabs(attrvalue):
-                                        filingFiles.add(attrValue)
-        
+                            addLocallyReferencedFile(elt,filingFiles)
     targetInstance.saveInstance(overrideFilepath=targetUrl, outputZip=outputZip)
     if getattr(modelXbrl, "isTestcaseVariation", False):
         modelXbrl.extractedInlineInstance = True # for validation comparison
