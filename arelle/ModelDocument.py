@@ -385,7 +385,7 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
         initialComment = "<!--" + initialComment + "-->"
     # XML document has nsmap root element to replace nsmap as new xmlns entries are required
     if initialXml and type in (Type.INSTANCE, Type.SCHEMA, Type.LINKBASE, Type.RSSFEED):
-        Xml = '<nsmap>{0}</nsmap>'.format(initialXml or '')
+        Xml = '<nsmap>{}{}</nsmap>'.format(initialComment or '', initialXml or '')
     elif type == Type.INSTANCE:
         # modelXbrl.uriDir = os.path.dirname(normalizedUri)
         Xml = ('<nsmap>{}'
