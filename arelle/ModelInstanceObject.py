@@ -977,10 +977,12 @@ class ModelContext(ModelObject):
         dimValue = self.dimValue(dimQname)
         if isinstance(dimValue, (ModelDimensionValue,DimValuePrototype)) and dimValue.isExplicit:
             return dimValue.memberQname
-        elif isinstance(dimValue, ModelValue.QName):
+        if isinstance(dimValue, ModelValue.QName):
             return dimValue
         if dimValue is None and includeDefaults and dimQname in self.modelXbrl.qnameDimensionDefaults:
             return self.modelXbrl.qnameDimensionDefaults[dimQname]
+        if dimValue is not None and dimValue.isTyped:
+            return dimValue.typedMember.sValue
         return None
     
     def dimAspects(self, defaultDimensionAspects=None):
