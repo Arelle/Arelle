@@ -87,7 +87,9 @@ class CntlrWinMain (Cntlr.Cntlr):
             #label = Label(None, image=image)
             #parent.iconwindow(label)
         else:
-            parent.iconbitmap("@" + imgpath + "arelle.xbm")
+            self.iconImage = PhotoImage(file=imgpath + "arelle.gif") # must keep reference during life of window
+            parent.tk.call('wm', 'iconphoto', parent._w, self.iconImage)
+            #parent.iconbitmap("@" + imgpath + "arelle.xbm")
             # try with gif file
             #parent.iconbitmap(path + "arelle.gif")
 
@@ -1491,7 +1493,7 @@ def main():
             application = Tk()
             cntlrWinMain = CntlrWinMain(application)
             application.protocol("WM_DELETE_WINDOW", cntlrWinMain.quit)
-            if sys.platform == "darwin" and not __file__.endswith(".app/Contents/MacOS/arelle"):
+            if sys.platform == "darwin" and not __file__.endswith(".app/Contents/MacOS/arelleGUI"):
                 # not built app - launches behind python or eclipse
                 application.lift()
                 application.call('wm', 'attributes', '.', '-topmost', True)

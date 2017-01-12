@@ -18,13 +18,17 @@ osPrcs = None
 isPy3 = (sys.version[0] >= '3')
 
 def resourcesDir():
+    if getattr(sys, 'frozen', False): # Check if frozen by cx_Freeze
+        _resourcesDir = os.path.dirname(sys.executable)
+        if os.path.exists(os.path.join(_resourcesDir,"images")):
+            return _resourcesDir
     _moduleDir = os.path.dirname(__file__)
     if not os.path.isabs(_moduleDir):
         _moduleDir = os.path.abspath(_moduleDir)
     # for python 3.2 remove __pycache__
     if _moduleDir.endswith("__pycache__"):
         _moduleDir = os.path.dirname(_moduleDir)
-    if _moduleDir.endswith("python32.zip/arelle"):
+    if _moduleDir.endswith("python32.zip/arelle"): # older cx_Freezes use this
         _resourcesDir = os.path.dirname(os.path.dirname(os.path.dirname(_moduleDir)))
     elif (re.match(r".*[\\/](library|python{0.major}{0.minor}).zip[\\/]arelle$".format(sys.version_info),
                    _moduleDir)): # cx_Freexe uses library up to 3.4 and python35 after 3.5
