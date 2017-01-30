@@ -388,12 +388,15 @@ def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
                 prefixes[_prefix] = _uri
                 prefixedUris[_uri] = _prefix
                 
-        for _nsOim in nsOim:
-            if _nsOim in prefixedUris:
-                _oimPrefix = prefixedUris[_nsOim]
-        if not _oimPrefix:
-            raise OIMException("oime:noOimPrefix",
-                               _("The oim namespace must have a declared prefix"))
+        if "xbrl" not in prefixes:
+            raise OIMException("oime:noXbrlPrefix",
+                               _("The xbrl namespace must have a declared prefix"))
+        elif prefixes["xbrl"] not in nsOim:
+            raise OIMException("oime:unrecognizedXbrlPrefix",
+                               _("The xbrl prefix must have the standard namespace value"))
+        if "xbrli" in prefixes and prefixes["xbrli"] != XbrlConst.xbrli:
+            raise OIMException("oime:unrecognizedXbrliPrefix",
+                               _("The xbrli prefix must have the standard namespace value"))
             
         # create the instance document
         currentAction = "creating instance document"
@@ -450,6 +453,8 @@ def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
                 return
             conceptQn = qname(aspects[oimConcept], prefixes)
             concept = modelXbrl.qnameConcepts.get(conceptQn)
+            if concept is None:
+                return
             attrs = {}
             if concept.isItem:
                 missingAspects = []
@@ -482,7 +487,7 @@ def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
                     cntxId = 'c-{:02}'.format(len(cntxTbl) + 1)
                     qnameDims = {}
                     for dimName, dimVal in aspects.items():
-                        if ":" in dimName and not dimName.startswith(oimPrefix) and dimVal:
+                        if ":" in dimName and not dimName.startswith(oimPrefix):
                             dimQname = qname(dimName, prefixes)
                             dimConcept = modelXbrl.qnameConcepts.get(dimQname)
                             if dimConcept is None:
@@ -490,15 +495,19 @@ def loadFromOIM(cntlr, modelXbrl, oimFile, mappedUri):
                                                 _("The taxonomy defined aspect concept QName %(qname)s could not be determined"),
                                                 modelObject=modelXbrl, qname=dimQname)
                                 continue
-                            if isinstance(dimVal, dict):
-                                dimVal = dimVal["value"]
+                            if dimVal is None:
+                                memberAttrs = {"{http://www.w3.org/2001/XMLSchema-instance}nil": "true"}
                             else:
-                                dimVal = str(dimVal) # may be int or boolean
+                                memberAttrs = None
+                                if isinstance(dimVal, dict):
+                                    dimVal = dimVal["value"]
+                                else:
+                                    dimVal = str(dimVal) # may be int or boolean
                             if isinstance(dimVal,str) and ":" in dimVal and dimVal.partition(':')[0] in prefixes:
                                 mem = qname(dimVal, prefixes) # explicit dim
                             elif dimConcept.isTypedDimension:
                                 # a modelObject xml element is needed for all of the instance functions to manage the typed dim
-                                mem = addChild(modelXbrl.modelDocument, dimConcept.typedDomainElement.qname, text=dimVal, appendChild=False)
+                                mem = addChild(modelXbrl.modelDocument, dimConcept.typedDomainElement.qname, text=dimVal, attributes=memberAttrs, appendChild=False)
                             qnameDims[dimQname] = DimValuePrototype(modelXbrl, None, dimQname, mem, "segment")
                     _cntx = modelXbrl.createContext(
                                             entityAsQn.namespaceURI,
