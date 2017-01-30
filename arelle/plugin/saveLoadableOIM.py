@@ -243,13 +243,17 @@ def saveLoadableOIM(modelXbrl, oimFile):
                  else "linkbase" if doc.type == ModelDocument.Type.LINKBASE
                  else "other",
          "href": doc.uri}
-        for doc,ref in modelXbrl.modelDocument.referencesDocument.items()
+        for doc,ref in sorted(modelXbrl.modelDocument.referencesDocument.items(),
+                              key=lambda _item:_item[0].uri)
         if ref.referringModelObject.qname in SCHEMA_LB_REFS
-        ] + [
-        {"type": "role" if ref.referringModelObject.localName == "roleRef" else "arcroleRef",
-         "href": ref.referringModelObject["href"]}
-        for doc,ref in modelXbrl.modelDocument.referencesDocument.items()
-        if ref.referringModelObject.qname in ROLE_REFS]
+        ] + [{"type": refType,
+              "href": refElt.get("{http://www.w3.org/1999/xlink}href")}
+             for refType in ("role", "arcrole")
+             for refElt in sorted(modelXbrl.modelDocument.xmlRootElement.iterchildren(
+                                    "{{http://www.xbrl.org/2003/linkbase}}{}Ref".format(refType)),
+                                  key=lambda elt:elt.get(refType+"URI")
+                                  )
+        ]
             
     def factFootnotes(fact):
         footnotes = []
@@ -263,9 +267,10 @@ def saveLoadableOIM(modelXbrl, oimFile):
             if isinstance(toObj, ModelFact):
                 footnote["factRef"] = toObj.id if toObj.id else "f{}".format(toObj.objectIndex)
             else:
-                footnote["footnote"] = xmlstring(toObj, stripXmlns=True, contentsOnly=True, includeText=True)
+                footnote["footnote"] = toObj.viewText()
                 if toObj.xmlLang:
                     footnote["language"] = toObj.xmlLang
+        footnotes.sort(key=lambda f:(f["group"],f.get("factId",f.get("factRef")),f.get("language")))
         return footnotes
 
     def factAspects(fact): 
@@ -293,7 +298,7 @@ def saveLoadableOIM(modelXbrl, oimFile):
                     else:
                         _baseXsdType = "dateTime"
                 _csvType = baseTypes.get(_baseXsdType,_baseXsdType) + "Value"
-                if concept.baseXbrliType in ("string", "normalizedString", "token") and fact.xmlLang:
+                if concept.baseXbrliType in ("stringItemType", "normalizedStringItemType") and fact.xmlLang:
                     aspects[str(qnOimLangAspect)] = fact.xmlLang
         if fact.isItem:
             if fact.isNil:

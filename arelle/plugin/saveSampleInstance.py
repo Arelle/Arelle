@@ -151,12 +151,12 @@ def genFact(dts, concept, preferredLabel, arcrole, relationshipSet, level, visit
                     elrInfo["dims"][concept.qname] = (concept, concept.typedDomainElement)
                     if concept.typedDomainElement.isNumeric:
                         elrInfo["domainIter"] = 1
-            elif concept.name.endswith("Member"): # don't generate entries for default dim (Domain) (for now)
+            elif concept.name.endswith("Member") or concept.name.endswith("_member"): # don't generate entries for default dim (Domain) (for now)
                 dimConcept = elrInfo["currentDim"]
                 if dimConcept.qname not in elrInfo["dims"]:
                     elrInfo["dims"][dimConcept.qname] = (dimConcept, concept)
             else:
-                if concept.name.endswith("LineItems"):
+                if concept.name.endswith("LineItems") or concept.name.endswith("_line_items"):
                     elrInfo["lineItems"] = True
                 elif ((not elrInfo["inCube"] or # before any hypercube
                        elrInfo["lineItems"]) # in Cube and within Line Items
@@ -180,7 +180,7 @@ def genFact(dts, concept, preferredLabel, arcrole, relationshipSet, level, visit
                             _dimObj = DimValuePrototype(dts, None, _dimConcept.qname, _memVal, "segment")
                             qnameDims[_dimConcept.qname] = _dimObj
                         elrInfo[concept.periodType] = dts.createContext(
-                                    "http://treasury.gov", "entityId", 
+                                    "http://www.treasury.gov", "entityId", 
                                     concept.periodType, 
                                     sampVals["periodStart"] if concept.periodType == "duration"
                                     else None, 
