@@ -7,13 +7,13 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 
 (c) Copyright 2015 Mark V Systems Limited, All rights reserved.
 
-Requires installing text2num.py into site-packages (from https://github.com/ghewgill/text2num)
+Local copy of text2num.py was obtained from https://github.com/ghewgill/text2num
 
 '''
 from arelle.ModelValue import qname
 from arelle.XPathContext import FunctionArgType
 
-#Requires installing text2num.py into site-packages (from https://github.com/ghewgill/text2num)
+#local copy of text2num.py from https://github.com/ghewgill/text2num
 from text2num import text2num, NumberException
 
 try:
