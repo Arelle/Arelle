@@ -21,13 +21,6 @@
       <reg:email>fischer@markv.com</reg:email>
       <reg:assumedOwnership moment="2015-08-23T12:00:00"/>
     </reg:owner>
-    <reg:owner id="walter">
-      <reg:name>Walter Hamscher</reg:name>
-      <reg:affiliation>SEC</reg:affiliation>
-      <reg:email>HamscherW@sec.gov</reg:email>
-      <reg:assumedOwnership moment="2015-08-23T12:00:00"/>
-    </reg:owner>
-
   </owners>
   <summary>
 
@@ -67,6 +60,5 @@ Transformed value is in integer years/months/days, days are rounded (no value sm
     </output>
   </signature>
   <revisions>
-    <reg:revision on="2016-02-08T12:00:00" by="walter"/> 
   </revisions>
 </function>

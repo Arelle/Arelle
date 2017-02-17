@@ -19,12 +19,6 @@
       <reg:email>fischer@markv.com</reg:email>
       <reg:assumedOwnership moment="2016-07-24T12:00:00"/>
     </reg:owner>
-      <reg:owner id="walter">
-      <reg:name>Walter Hamscher</reg:name>
-      <reg:affiliation>SEC</reg:affiliation>
-      <reg:email>HamscherW@sec.gov</reg:email>
-      <reg:assumedOwnership moment="2015-08-23T12:00:00"/>
-    </reg:owner>
   </owners>
   <summary>
 Transforms number words into integer numbers.
@@ -55,9 +49,6 @@ The value in xs:integer.
   </signature>
   <revisions>
     <reg:revision on="2016-07-24T12:00:00" by="herm">
-    Initial version
-    </reg:revision> 
-      <reg:revision on="2016-10-20T15:00:00" by="walter">
     Initial version
     </reg:revision> 
   </revisions>

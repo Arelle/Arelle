@@ -19,13 +19,7 @@
       <reg:email>fischer@markv.com</reg:email>
       <reg:assumedOwnership moment="2016-10-20T15:00:00"/>
     </reg:owner>
-    <reg:owner id="walter">
-      <reg:name>Walter Hamscher</reg:name>
-      <reg:affiliation>SEC</reg:affiliation>
-      <reg:email>HamscherW@sec.gov</reg:email>
-      <reg:assumedOwnership moment="2015-08-23T12:00:00"/>
-    </reg:owner>
-  </owners>
+    </owners>
   <summary>
 Transforms durations with number words or numbers for years, months, and/or days.
   </summary>
@@ -58,8 +52,5 @@ The value in xs:duration.
     <reg:revision on="2016-09-06T15:00:00" by="herm">
     Initial version
     </reg:revision> 
- 	<reg:revision on="2016-10-20T15:00:00" by="walter">
-    Initial version
-    </reg:revision> 
-  </revisions>
+ 	</revisions>
 </function>
