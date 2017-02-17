@@ -718,11 +718,13 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                         emptyLinks.append(lvl1Entry)
                     foundTable |= foundNestedTable
                     del foundHeadingItems[:]
+            #if foundLineItems or foundHeadingItems:
+            #    print("lvlentry {}\n headingITems {}\n emptyLinks {}\n\n".format(foundLineItems, foundHeadingItems, emptyLinks))
             for lvl1Entry, lvl2Entry, lvl3Entry in foundLineItems:
                 i1 = lvl1Entry.childStruct.index(lvl2Entry)
                 lvl1Entry.childStruct.insert(i1, lvl3Entry)  # must keep lvl1Rel if it is __root__
                 lvl3Entry.childStruct.insert(0, lvl2Entry)
-                if any(lvl1Entry.name.endswith(suffix) for suffix in ("Abstract", "_abstract", "Root", "_root")):
+                if any(lvl1Entry.name.endswith(suffix) for suffix in ("Abstract", "_abstract", "Root", "_root", "_package")):
                     lvl1Entry.childStruct.remove(lvl2Entry)
                 lvl2Entry.childStruct.remove(lvl3Entry)
             for lvl1Entry, lvl2Entry in foundHeadingItems:
