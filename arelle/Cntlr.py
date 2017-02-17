@@ -350,7 +350,7 @@ class Cntlr:
             self.logger.log(level, *args, extra={"messageCode":messageCode,"refs":refs})
         else:
             try:
-                print(message)
+                print(message % (messageArgs or {}))
             except UnicodeEncodeError:
                 # extra parentheses in print to allow for 3-to-2 conversion
                 print((message
