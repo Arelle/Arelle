@@ -797,7 +797,8 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         _refT = tuple((self.modelXbrl.roleTypeDefinition(_ref.role, _lang), " ",
                        tuple((_refPart.localName, _refPart.stringValue.strip())
                              for _refPart in _ref.iterchildren()))
-                      for _refRel in self.modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(self)
+                      for _refRel in sorted(self.modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(self),
+                                            key=lambda r:r.toModelObject.roleRefPartSortKey())
                       for _ref in (_refRel.toModelObject,))
         _refsStrung = " ".join(_refPart.stringValue.strip()
                                for _refRel in self.modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(self)
@@ -1558,6 +1559,12 @@ class ModelResource(ModelObject):
                            for resourceElt in self.iter()
                               if isinstance(resourceElt,ModelObject) and 
                                   not resourceElt.localName.startswith("URI")])
+        
+    def roleRefPartSortKey(self):
+        return "{} {}".format(self.role,
+                              " ".join("{} {}".format(_refPart.localName, _refPart.stringValue.strip())
+                                       for _refPart in self.iterchildren()))[:200] # limit length of sort
+        
     def dereference(self):
         return self
         
