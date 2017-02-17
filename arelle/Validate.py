@@ -15,7 +15,7 @@ from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods
-from arelle.XmlUtil import collapseWhitespace
+from arelle.XmlUtil import collapseWhitespace, xmlstring
 
 def validate(modelXbrl):
     validate = Validate(modelXbrl)
@@ -376,9 +376,12 @@ class Validate:
                                                                                key=lambda r: (r.fromLabel,r.toLabel))):
                                             modelObject = footnoteRel.toModelObject
                                             if isinstance(modelObject, ModelResource):
+                                                xml = modelObject.viewText().strip()
                                                 footnotes.append("Footnote {}: {}".format(
-                                                   i+1, # compare footnote with normalize-space
-                                                   re.sub(r'\s+', ' ', collapseWhitespace(modelObject.stringValue))))
+                                                   i+1, # compare footnote with HTML serialized
+                                                   xml,
+                                                   #re.sub(r'\s+', ' ', collapseWhitespace(modelObject.stringValue))
+                                                   ))
                                             elif isinstance(modelObject, ModelFact):
                                                 footnotes.append("Footnoted fact {}: {} context: {} value: {}".format(
                                                     i+1,
