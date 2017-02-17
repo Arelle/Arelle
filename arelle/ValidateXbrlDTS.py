@@ -764,7 +764,7 @@ def checkElements(val, modelDocument, parent):
                         val.modelXbrl.error("xbrl.4.11.1.2.1:footnoteLang",
                             _("Footnote %(xlinkLabel)s element missing xml:lang attribute"),
                             modelObject=elt, xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"))
-                    elif elt.localName == "footnote" and elt.get("{http://www.w3.org/XML/1998/namespace}lang") is None:
+                    elif elt.localName == "label" and elt.get("{http://www.w3.org/XML/1998/namespace}lang") is None:
                         val.modelXbrl.error("xbrl.5.2.2.2.1:labelLang",
                             _("Label %(xlinkLabel)s element missing xml:lang attribute"),
                             modelObject=elt, xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"))
@@ -926,7 +926,7 @@ def checkElements(val, modelDocument, parent):
                     if not any(inlineDisplayNonePattern.search(e.get("style") or "")
                                for ns in (XbrlConst.xhtml, None)  # may be un-namespaced html
                                for e in XmlUtil.ancestors(elt, ns, "div")):
-                        val.modelXbrl.warning(ixMsgCode("headerDisplayNone", elt, sect="validation"),
+                        val.modelXbrl.warning(ixMsgCode("headerDisplayNone", elt, sect="non-validatable"),
                             _("Warning, Inline XBRL ix:header is recommended to be nested in a <div> with style display:none"),
                             modelObject=elt)
                     val.ixdsHeaderCount += 1
