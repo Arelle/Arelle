@@ -343,7 +343,7 @@ class DialogPluginManager(Toplevel):
             self.moduleDateLabel.config(text=moduleInfo["fileDate"] + " " +
                     (_("(an update is available)") if name in self.modulesWithNewerFileDates else ""))
             self.moduleLicenseHdr.config(state=ACTIVE)
-            self.moduleLicenseLabel.config(text=moduleInfo["license"])
+            self.moduleLicenseLabel.config(text=moduleInfo.get("license"))
             if moduleInfo.get("imports"):
                 self.moduleImportsHdr.config(state=ACTIVE)
                 _text = ", ".join(mi["name"] for mi in moduleInfo["imports"][:3])
