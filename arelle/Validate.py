@@ -221,7 +221,7 @@ class Validate:
                         modelXbrl.error("arelle:notLoaded",
                              _("Testcase %(id)s %(name)s document not loaded: %(file)s"),
                              modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, file=os.path.basename(readMeFirstUri))
-                        self.determineNotLoadedTestStatus(modelTestcaseVariation)
+                        self.determineNotLoadedTestStatus(modelTestcaseVariation, modelXbrl.errors)
                         modelXbrl.close()
                     elif resultIsVersioningReport or resultIsTaxonomyPackage:
                         inputDTSes[dtsName] = modelXbrl
@@ -459,7 +459,9 @@ class Validate:
                 if isinstance(expected,QName) and isinstance(testErr,_STR_BASE):
                     errPrefix, sep, errLocalName = testErr.partition(":")
                     if ((not sep and errPrefix == expected.localName) or
-                        (expected == qname(XbrlConst.errMsgPrefixNS.get(errPrefix), errLocalName)) or
+                        (expected == qname(
+                            modelTestcaseVariation.nsmap.get(errPrefix) or 
+                            XbrlConst.errMsgPrefixNS.get(errPrefix), errLocalName)) or
                         # XDT xml schema tests expected results 
                         (expected.namespaceURI == XbrlConst.xdtSchemaErrorNS and errPrefix == "xmlSchema")):
                         _passCount += 1
@@ -509,7 +511,10 @@ class Validate:
                 if isinstance(error,dict):
                     modelTestcaseVariation.actual.append(error)
                 
-    def determineNotLoadedTestStatus(self, modelTestcaseVariation):
+    def determineNotLoadedTestStatus(self, modelTestcaseVariation, errors):
+        if errors:
+            self.determineTestStatus(modelTestcaseVariation, errors)
+            return
         expected = modelTestcaseVariation.expected
         status = "not loadable"
         if expected in ("EFM.6.03.04", "EFM.6.03.05"):
