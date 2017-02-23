@@ -14,7 +14,7 @@ from arelle.ModelValue import qname
 from arelle.XPathContext import FunctionArgType
 
 #local copy of text2num.py from https://github.com/ghewgill/text2num
-from text2num import text2num, NumberException
+from .text2num import text2num, NumberException
 
 try:
     from regex import compile as re_compile

@@ -532,7 +532,7 @@ __pluginInfo__ = {
     'version': '1.16.2', # SEC EDGAR release 16.2
     'description': '''EFM Validation.''',
     'license': 'Apache-2',
-    'import': ('transforms/SEC.py',), # SEC inline can use SEC transformations
+    'import': ('transforms/SEC',), # SEC inline can use SEC transformations
     'author': 'Mark V Systems',
     'copyright': '(c) Copyright 2013-15 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
