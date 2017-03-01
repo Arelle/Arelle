@@ -457,11 +457,11 @@ class Validate:
             _passCount = 0
             for testErr in _errors:
                 if isinstance(expected,QName) and isinstance(testErr,_STR_BASE):
-                    errPrefix, sep, errLocalName = testErr.partition(":")
-                    if ((not sep and errPrefix == expected.localName) or
-                        (expected == qname(
-                            modelTestcaseVariation.nsmap.get(errPrefix) or 
-                            XbrlConst.errMsgPrefixNS.get(errPrefix), errLocalName)) or
+                    errPrefix, sep, errLocalName = testErr.rpartition(":")
+                    if ((not sep and errLocalName == expected.localName) or
+                        (expected == qname(XbrlConst.errMsgPrefixNS.get(errPrefix) or 
+                                           (errPrefix == expected.prefix and expected.namespaceURI), 
+                                           errLocalName)) or
                         # XDT xml schema tests expected results 
                         (expected.namespaceURI == XbrlConst.xdtSchemaErrorNS and errPrefix == "xmlSchema")):
                         _passCount += 1

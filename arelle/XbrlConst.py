@@ -463,38 +463,9 @@ qnEuAxisCoord = qname("{http://www.eurofiling.info/2010/rendering}rendering:axis
 euGroupTable = "http://www.eurofiling.info/xbrl/arcrole/group-table"
 
 xdtSchemaErrorNS = "http://www.xbrl.org/2005/genericXmlSchemaError"
-errMsgPrefixNS = {
+errMsgPrefixNS = { # err prefixes which are not declared, such as XPath's "err" prefix
     "err": xpath2err,
-    "xbrldte": "http://xbrl.org/2005/xbrldt/errors",
-    "xbrldie": "http://xbrl.org/2005/xbrldi/errors",
-    "xbrlfe": "http://xbrl.org/2008/formula/error",
-    "xbrlmsge": "http://xbrl.org/2010/message/error",
-    "xbrlvarinste": "http://xbrl.org/2010/variable/instance/error",
-    "xbrlve": "http://xbrl.org/2008/variable/error",
-    "xbrlcae": "http://xbrl.org/2008/assertion/consistency/error",
-    "xbrleae": "http://xbrl.org/2008/assertion/existence/error",
-    "xbrldfe": "http://xbrl.org/2008/filter/dimension/error",  
-    "xffe": "http://www.xbrl.org/2010/function/formula/error",
-    "xfie": "http://www.xbrl.org/2008/function/instance/error",
-    "xfxce":"http://www.xbrl.org/2010/function/xml-creation/error",
-    "vere": "http://xbrl.org/2010/versioning-base/error",
-    "vercue": "http://xbrl.org/2010/versioning-concept-use/error",
-    "vercde" :"http://xbrl.org/2010/versioning-concept-details/error",
-    "verdime": "http://xbrl.org/2010/versioning-dimensions/error",
-    "verrelse": "http://xbrl.org/2010/versioning-relationship-sets/error",
-    "veriae": "http://xbrl.org/2010/versioning-instance-aspects/error",
-    "xbrlacfe": "http://xbrl.org/2010/filter/aspect-cover/error",
-    "xbrlcfie": "http://xbrl.org/2010/custom-function/error",
-    "xbrlmfe": "http://xbrl.org/2008/filter/match/error",
-    "xbrlvarscopee": "http://xbrl.org/2010/variable/variables-scope/error",
-    "xbrlte": "http://xbrl.org/PWD/2014-MM-DD/table/error",
-    "utre": "http://www.xbrl.org/2009/utr/errors",
-    #"enumte": "http://xbrl.org/2014/extensible-enumerations/taxonomy-errors",
-    #"enumie": "http://xbrl.org/2014/extensible-enumerations/instance-errors",
-    "enumte": "http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1/taxonomy-errors",
-    "enumie": "http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1/instance-errors",
-    "seve": "http://xbrl.org/2016/assertion-severity/error",
-    "tpe": "http://xbrl.org/WGWD/YYYY-MM-DD/taxonomy-package/errors"
+    "xmlSchema": xdtSchemaErrorNS,
     }
 
 arcroleGroupDetect = "*detect*"
