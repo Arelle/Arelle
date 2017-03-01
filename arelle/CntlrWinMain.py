@@ -767,7 +767,8 @@ class CntlrWinMain (Cntlr.Cntlr):
             else:
                 action = _("loaded")
                 profileStat = "load"
-                modelXbrl = self.modelManager.load(filesource, _("views loading"))
+                modelXbrl = self.modelManager.load(filesource, _("views loading"),
+                                                   checkModifiedTime=isHttpUrl(filesource.url)) # check modified time if GUI-loading from web
         except ModelDocument.LoadingException:
             self.showStatus(_("Loading terminated, unrecoverable error"), 20000)
             return

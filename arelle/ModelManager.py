@@ -117,7 +117,7 @@ class ModelManager:
         """
         self.cntlr.reloadViews(modelXbrl)
         
-    def load(self, filesource, nextaction=None):
+    def load(self, filesource, nextaction=None, **kwargs):
         """Load an entry point modelDocument object(s), which in turn load documents they discover 
         (for the case of instance, taxonomies, and versioning reports), but defer loading instances 
         for test case and RSS feeds.  
@@ -146,7 +146,7 @@ class ModelManager:
             if modelXbrl is not None:
                 break # custom loader did the loading
         if modelXbrl is None:  # use default xbrl loader
-            modelXbrl = ModelXbrl.load(self, filesource, nextaction)
+            modelXbrl = ModelXbrl.load(self, filesource, nextaction, **kwargs)
         self.modelXbrl = modelXbrl
         self.loadedModelXbrls.append(self.modelXbrl)
         return self.modelXbrl

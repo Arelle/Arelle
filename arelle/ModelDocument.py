@@ -43,6 +43,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     :type namespace: str
     :param reloadCache: True if desired to reload the web cache for any web-referenced files.
     :type reloadCache: bool
+    :param checkModifiedTime: True if desired to check modifed time of web cached entry point (ahead of usual time stamp checks).
+    :type checkModifiedTime: bool
     """
     
     if referringElement is None: # used for error messages
@@ -92,13 +94,10 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         
     # don't try reloading if not loadable
     
-    isPullLoadable = any(pluginMethod(modelXbrl, mappedUri, normalizedUri, isEntry=isEntry, namespace=namespace, **kwargs)
-                         for pluginMethod in pluginClassMethods("ModelDocument.IsPullLoadable"))
-    
     if modelXbrl.fileSource.isInArchive(mappedUri):
         filepath = mappedUri
     else:
-        filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(mappedUri, reload=reloadCache)
+        filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(mappedUri, reload=reloadCache, checkModifiedTime=kwargs.get("checkModifiedTime",False))
         if filepath:
             uri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(filepath)
     if filepath is None: # error such as HTTPerror is already logged
@@ -118,6 +117,9 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                         modelObject=referringElement, fileName=normalizedUri)
             modelXbrl.urlUnloadableDocs[normalizedUri] = True # always blocked if not loadable on this error
         return None
+    
+    isPullLoadable = any(pluginMethod(modelXbrl, mappedUri, normalizedUri, filepath, isEntry=isEntry, namespace=namespace, **kwargs)
+                         for pluginMethod in pluginClassMethods("ModelDocument.IsPullLoadable"))
     
     if not isPullLoadable and os.path.splitext(filepath)[1] in (".xlsx", ".xls", ".csv", ".json"):
         modelXbrl.error("FileNotLoadable",
