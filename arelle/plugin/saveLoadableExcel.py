@@ -99,7 +99,7 @@ def saveLoadableExcel(dts, excelFile):
     from openpyxl.worksheet.dimensions import ColumnDimension
     from openpyxl.utils import get_column_letter
     
-    workbook = Workbook(encoding="utf-8")
+    workbook = Workbook()
     # remove pre-existing worksheets
     while len(workbook.worksheets)>0:
         workbook.remove_sheet(workbook.worksheets[0])
@@ -215,8 +215,8 @@ def saveLoadableExcel(dts, excelFile):
 
     # extended link roles defined in this document
     for roleURI, roleTypes in sorted(dts.roleTypes.items(), 
-                                     # sort on definition if any else URI
-                                     key=lambda item: (item[1][0].definition or item[0])):
+            # sort on definition if any else URI
+            key=lambda item: (item[1][0].definition if len(item[1]) and item[1][0].definition else item[0])):
         for roleType in roleTypes:
             if roleType.modelDocument == extensionSchemaDoc:
                 writeCell(dtsWs, dtsRow, 1, "extension") 
