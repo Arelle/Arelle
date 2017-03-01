@@ -11,6 +11,7 @@ from arelle import XbrlConst, ModelDocument, ModelXbrl, ValidateXbrlDimensions
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelValue import qname, dateTime, DATETIME
 from arelle.PrototypeInstanceObject import DimValuePrototype
+from arelle.UrlUtil import isHttpUrl
 from arelle.XbrlConst import (qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
                               qnLinkPart, gen, link, defaultLinkRole,
                               conceptLabel, elementLabel, conceptReference,
@@ -117,15 +118,15 @@ def loadFromOIM(cntlr, error, modelXbrl, oimFile, mappedUri, oimObject=None):
             priorCWD = None
             
         currentAction = "determining file type"
-        isJSON = oimFile.endswith(".json")
-        isCSV = False # oimFile.endswith(".csv") # this option is not currently supported
         isXL = oimFile.endswith(".xlsx") or oimFile.endswith(".xls")
+        isJSON = False
+        isCSV = False # oimFile.endswith(".csv") # this option is not currently supported
         isCSVorXL = isCSV or isXL
         instanceFileName = os.path.splitext(oimFile)[0] + ".xbrl"
         _csvwContext = None
         anonymousFactId = 0 
         
-        if isJSON:
+        if not isXL: # try as JSON
             errPrefix = "xbrlje"
             currentAction = "loading and parsing JSON OIM file"
             def loadDict(keyValuePairs):
@@ -149,6 +150,7 @@ def loadFromOIM(cntlr, error, modelXbrl, oimFile, mappedUri, oimObject=None):
             if oimObject is None:
                 with io.open(oimFile, 'rt', encoding='utf-8') as f:
                     oimObject = json.load(f, object_pairs_hook=loadDict)
+            isJSON = True # would raise exception before here if not json
             # check if it's a CSVW metadata
             _csvwContext = oimObject.get("@context")
             if _csvwContext == "http://www.w3.org/ns/csvw" or (
@@ -530,6 +532,11 @@ def loadFromOIM(cntlr, error, modelXbrl, oimFile, mappedUri, oimObject=None):
                 if oimPeriodStart in aspects and oimPeriodEnd in aspects:
                     periodStart = aspects[oimPeriodStart]
                     periodEnd = aspects[oimPeriodEnd]
+                for periodDate in periodStart, periodEnd:
+                    if not re.match(r"\d{4,}-[0-1][0-9]-[0-3][0-9]T(24:00:00|[0-1][0-9]:[0-5][0-9]:[0-5][0-9])", periodDate):
+                        error("{}:periodDateTime".format(errPrefix),
+                              _("The concept %(element)s has a lexically invalid period dateTime %(periodError)s"),
+                              modelObject=modelXbrl, element=conceptQn, periodError=periodDate)
                 cntxKey = ( # hashable context key
                     ("periodType", concept.periodType),
                     ("entity", entityAsQn),
@@ -756,13 +763,30 @@ def loadFromOIM(cntlr, error, modelXbrl, oimFile, mappedUri, oimObject=None):
     #    # had errors, don't allow ModelDocument.load to continue
     #    return OIMException("arelleOIMloader:unableToLoad", "Unable to load due to reported errors")
 
+    global lastFilePath, lastFilePath
+    lastFilePath = None
+    lastFilePathIsOIM = False
     return _return
 
-def isOimLoadable(modelXbrl, mappedUri, normalizedUri, **kwargs):
-    return os.path.splitext(mappedUri)[1] in (".csv", ".json", ".xlsx", ".xls")
+lastFilePath = None
+lastFilePathIsOIM = False
+
+def isOimLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
+    global lastFilePath, lastFilePathIsOIM
+    lastFilePath = filepath
+    lastFilePathIsOIM = False
+    _ext = os.path.splitext(filepath)[1]
+    if _ext in (".csv", ".json", ".xlsx", ".xls"):
+        lastFilePathIsOIM = True
+    elif isHttpUrl(normalizedUri) and '?' in _ext: # query parameters and not .json, may be JSON anyway
+        with io.open(filepath, 'rt', encoding='utf-8') as f:
+            _fileStart = f.read(4096)
+        if _fileStart and re.match(r"\s*\{\s*\"documentType\":\s*\"http:\\+/\\+/www.xbrl.org\\+/WGWD\\+/YYYY-MM-DD\\+/xbrl-json\"", _fileStart):
+            lastFilePathIsOIM = True
+    return lastFilePathIsOIM
 
 def oimLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
-    if os.path.splitext(filepath)[1] not in (".csv", ".json", ".xlsx", ".xls"):
+    if filepath != lastFilePath or not lastFilePathIsOIM:
         return None # not an OIM file
 
     cntlr = modelXbrl.modelManager.cntlr
