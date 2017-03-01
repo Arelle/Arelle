@@ -188,7 +188,8 @@ class OrderedSet(MutableSet):
             curr[2] = end[1] = self.map[key] = [key, curr, end]
             
     def update(self, other):
-        s |= other
+        for key in other:
+            self.add(key)
 
     def discard(self, key):
         if key in self.map:        
