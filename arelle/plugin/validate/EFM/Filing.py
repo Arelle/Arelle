@@ -1579,7 +1579,50 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     modelObject=modelXbrl, conflictClass=conflictClass, 
                     namespaceConflicts=sorted((d.targetNamespace for d in modelDocuments),
                                               key=lambda ns: ns.rpartition('/')[2]))
-        
+        if 'ifrs-full' in val.standardNamespaceConflicts:
+            ''' HF: both ifrs and us-types allowed for purposes of reconciliation
+            if 'us-types' in val.standardNamespaceConflicts:
+                modelXbrl.error("EFM.6.22.03",
+                    _("References for conflicting standard taxonomies %(namespaceConflicts)s are not allowed in same DTS"),
+                    modelObject=modelXbrl, 
+                    namespaceConflicts=sorted((d.targetNamespace 
+                                               for k in ('us-types', 'ifrs-full')
+                                               for d in val.standardNamespaceConflicts[k]),
+                                              key=lambda ns: ns.rpartition('/')[2]))
+            '''
+            if documentType not in { # IFRS document types
+                                        "20-F",
+                                        "20-F/A",
+                                        "20FR12B",
+                                        "20FR12B/A",
+                                        "20FR12G",
+                                        "20FR12G/A",
+                                        "40-F",
+                                        "40-F/A",
+                                        "40FR12B",
+                                        "40FR12B/A",
+                                        "40FR12G",
+                                        "40FR12G/A",
+                                        "6-K",
+                                        "6-K/A",
+                                        "F-4",
+                                        "F-4 POS",
+                                        "F-4/A",
+                                        "F-4EF",
+                                        "F-4MEF",
+                                        "F-9 POS",
+                                        "F-9/A",
+                                        "F-9",
+                                        "F-9EF",
+                                        "F-10",
+                                        "F-10/A",
+                                        "F-10EF",
+                                        "F-10POS"
+                                      }:
+                modelXbrl.error("EFM.6.05.20.documentTypeNamespaceInconsistency",
+                    _("DocumentType '%(documentType)s' of context %(contextID)s is not consistent with standard namespace %(namespace)s"),
+                    modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType,
+                    namespace=next(iter(val.standardNamespaceConflicts['ifrs-full'])).targetNamespace)        
         if documentType is not None and not val.hasExtensionSchema and documentType != "L SDR":
             modelXbrl.error("EFM.6.03.10",
                             _("%(documentType)s report is missing a extension schema file."),
