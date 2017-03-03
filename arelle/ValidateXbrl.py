@@ -479,11 +479,11 @@ class ValidateXbrl:
                 hasFootnoteToRef = None
                 hasToRefMixture = False
                 for toRef in ixRel.get("toRefs","").split():
-                    refs = ixdsIdObjects.get(fromRef)
+                    refs = ixdsIdObjects.get(toRef)
                     if refs is None or refs[0].namespaceURI not in ixbrlAll or refs[0].localName not in ("footnote", "fraction", "nonFraction", "nonNumeric", "tuple"):
-                        modelXbrl.error(ixMsgCode("relatirelationshipToRefonshipFromRef", ns=_ixNS, name="relationship", sect="validation"),
-                            _("Inline XBRL fromRef %(ref)s is not a footnote, fraction, ix:nonFraction, ix:nonNumeric or ix:tuple."),
-                            modelObject=ixRel, ref=fromRef)
+                        modelXbrl.error(ixMsgCode("relationshipToRef", ns=_ixNS, name="relationship", sect="validation"),
+                            _("Inline XBRL toRef %(ref)s is not a footnote, fraction, ix:nonFraction, ix:nonNumeric or ix:tuple."),
+                            modelObject=ixRel, ref=toRef)
                     elif hasFootnoteToRef is None:
                         hasFootnoteToRef = refs[0].localName == "footnote"
                     elif hasFootnoteToRef != (refs[0].localName == "footnote"):
