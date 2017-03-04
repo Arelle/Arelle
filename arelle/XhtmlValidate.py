@@ -53,7 +53,7 @@ ixAttrType = {
         "escape": "boolean",
         "footnoteRole": "anyURI",
         "format": "QName",
-        "fromRefs": "IDREFS",
+        "fromRefs": {"type": "IDREFS", "minLength": 1},
         "id": "NCName",
         "linkRole": "anyURI",
         "name": "QName",
@@ -63,7 +63,7 @@ ixAttrType = {
         "sign": {"type": "string", "pattern": re.compile("-$")},
         "target": "NCName",
         "title": "string",
-        "toRefs": "IDREFS",
+        "toRefs": {"type": "IDREFS", "minLength": 1},
         "tupleID": "NCName",
         "tupleRef": "NCName",
         "unitRef": "NCName"}
