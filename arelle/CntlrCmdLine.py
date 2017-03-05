@@ -275,6 +275,9 @@ def parseAndRun(args):
     parser.add_option("--internetLogDownloads", action="store_true", dest="internetLogDownloads", 
                       help=_("Log info message for downloads to web cache."))
     parser.add_option("--internetlogdownloads", action="store_true", dest="internetLogDownloads", help=SUPPRESS_HELP)
+    parser.add_option("--noCertificateCheck", action="store_true", dest="noCertificateCheck", 
+                      help=_("Specify no checking of internet secure connection certificate"))
+    parser.add_option("--nocertificatecheck", action="store_true", dest="noCertificateCheck", help=SUPPRESS_HELP)
     parser.add_option("--xdgConfigHome", action="store", dest="xdgConfigHome", 
                       help=_("Specify non-standard location for configuration and cache files (overrides environment parameter XDG_CONFIG_HOME)."))
     parser.add_option("--plugins", action="store", dest="plugins",
@@ -517,6 +520,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     ":{0}".format(urlPort) if urlPort else ""), messageCode="info")
             else:
                 self.addToLog(_("Proxy is disabled."), messageCode="info")
+        if options.noCertificateCheck:
+            self.webCache.noCertificateCheck = True # also resets proxy handler stack
         if options.plugins:
             resetPlugins = False
             savePluginChanges = True

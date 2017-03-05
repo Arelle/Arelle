@@ -17,6 +17,10 @@ else: # python 2.7.2
     from httplib import IncompleteRead
     from urllib2 import URLError, HTTPError
     import urllib2 as proxyhandlers
+try:
+    import ssl
+except ImportError:
+    ssl = None
 from arelle.FileSource import SERVER_WEB_CACHE
 from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
@@ -77,6 +81,7 @@ class WebCache:
         #self.proxies = {'ftp': 'ftp://63.192.17.1:3128', 'http': 'http://63.192.17.1:3128', 'https': 'https://63.192.17.1:3128'}
         self._timeout = None        
         
+        self._noCertificateCheck = False
         self.resetProxies(httpProxyTuple)
         
         #self.opener.addheaders = [('User-agent', 'Mozilla/5.0')]
@@ -111,7 +116,6 @@ class WebCache:
             self.cachedUrlCheckTimes = {}
         self.cachedUrlCheckTimesModified = False
             
-
     @property
     def timeout(self):
         return self._timeout or WebCache.default_timeout
@@ -154,9 +158,21 @@ class WebCache:
                 f.write(jsonStr)  # 2.7 gets unicode this way
         self.cachedUrlCheckTimesModified = False
         
+    @property
+    def noCertificateCheck(self):
+        return self._noCertificateCheck
+    
+    @noCertificateCheck.setter
+    def noCertificateCheck(self, check):
+        priorValue = self._noCertificateCheck
+        self._noCertificateCheck = check
+        if priorValue != check:
+            self.resetProxies(self._httpProxyTuple)
+
     def resetProxies(self, httpProxyTuple):
         # for ntlm user and password are required
         self.hasNTLM = False
+        self._httpProxyTuple = httpProxyTuple # save for resetting in noCertificateCheck setter
         if isinstance(httpProxyTuple,(tuple,list)) and len(httpProxyTuple) == 5:
             useOsProxy, _urlAddr, _urlPort, user, password = httpProxyTuple
             _proxyDirFmt = proxyDirFmt(httpProxyTuple)
@@ -174,17 +190,23 @@ class WebCache:
                         pass
             if self.hasNTLM:    
                 pwrdmgr = proxyhandlers.HTTPPasswordMgrWithDefaultRealm()
-                pwrdmgr.add_password(None, _proxyDirFmt["http"], user, password)                
+                pwrdmgr.add_password(None, _proxyDirFmt["http"], user, password)
                 self.proxy_handler = proxyhandlers.ProxyHandler({})
                 self.proxy_auth_handler = proxyhandlers.ProxyBasicAuthHandler(pwrdmgr)
                 self.http_auth_handler = proxyhandlers.HTTPBasicAuthHandler(pwrdmgr)
-                self.ntlm_auth_handler = HTTPNtlmAuthHandler.HTTPNtlmAuthHandler(pwrdmgr)            
-                self.opener = proxyhandlers.build_opener(self.proxy_handler, self.ntlm_auth_handler, self.proxy_auth_handler, self.http_auth_handler)
+                self.ntlm_auth_handler = HTTPNtlmAuthHandler.HTTPNtlmAuthHandler(pwrdmgr)
+                proxyHandlers = [self.proxy_handler, self.ntlm_auth_handler, self.proxy_auth_handler, self.http_auth_handler]          
         if not self.hasNTLM:
             self.proxy_handler = proxyhandlers.ProxyHandler(proxyDirFmt(httpProxyTuple))
             self.proxy_auth_handler = proxyhandlers.ProxyBasicAuthHandler()
             self.http_auth_handler = proxyhandlers.HTTPBasicAuthHandler()
-            self.opener = proxyhandlers.build_opener(self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler)
+            proxyHandlers = [self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler]
+        if ssl and self.noCertificateCheck:
+            context = ssl.create_default_context()
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+            proxyHandlers.append(proxyhandlers.HTTPSHandler(context=context))
+        self.opener = proxyhandlers.build_opener(*proxyHandlers)
 
         #self.opener.close()
         #self.opener = WebCacheUrlOpener(self.cntlr, proxyDirFmt(httpProxyTuple))
@@ -252,12 +274,13 @@ class WebCache:
     def cacheFilepathToUrl(self, cacheFilepath):
         urlparts = cacheFilepath[len(self.cacheDir)+1:].split(os.sep)
         urlparts[0] += ':/'  # add separator between http and file parts, less one '/'
-        if urlparts[2].startswith("^port"):
-            urlparts[1] += ":" + urlparts[2][5:]  # the port number
-            del urlparts[2]
-        if urlparts[2].startswith("^user"):
-            urlparts[1] = urlparts[2][5:] + "@" + urlparts[1]  # the user part
-            del urlparts[2]
+        if len(urlparts) > 2:
+            if urlparts[2].startswith("^port"):
+                urlparts[1] += ":" + urlparts[2][5:]  # the port number
+                del urlparts[2]
+            if urlparts[2].startswith("^user"):
+                urlparts[1] = urlparts[2][5:] + "@" + urlparts[1]  # the user part
+                del urlparts[2]
         if urlparts[-1] == DIRECTORY_INDEX_FILE:
             urlparts[-1] = ""  # restore default index file syntax
         return '/'.join(self.decodeFileChars  # remove cacheDir part
@@ -434,7 +457,8 @@ class WebCache:
                         return self.internetRecheckFailedRecovery(filepath, url, err, timeNowStr) 
                     self.cntlr.addToLog(_("%(error)s \nretrieving %(URL)s"),
                                         messageCode="webCache:retrievalError",
-                                        messageArgs={"error": err, "URL": url},
+                                        messageArgs={"error": err.reason if hasattr(err, "reason") else err, 
+                                                     "URL": url},
                                         level=logging.ERROR)
                     return None
                 
