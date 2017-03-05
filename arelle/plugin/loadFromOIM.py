@@ -97,7 +97,7 @@ def csvCellValue(cellValue):
     else:
         return cellValue
 
-def loadFromOIM(cntlr, error, modelXbrl, oimFile, mappedUri, oimObject=None):
+def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=None):
     from openpyxl import load_workbook
     from arelle import ModelDocument, ModelXbrl, XmlUtil
     from arelle.ModelDocument import ModelDocumentReference
@@ -256,8 +256,11 @@ def loadFromOIM(cntlr, error, modelXbrl, oimFile, mappedUri, oimObject=None):
                                     colProperties[property] = value
                                 elif isinstance(property, dict): # applies to specific cols
                                     for _property, _colNames in property.items():
-                                        for _colName in _colNames:
-                                            specificColProperties[_colName][_property] = value
+                                        if _colNames:
+                                            for _colName in _colNames:
+                                                specificColProperties[_colName][_property] = value
+                                        else:
+                                            specificColProperties['*'][_property] = value
                             for iCol in footnoteCols:
                                 cellValue = row[iCol]
                                 if cellValue == "": # no fact produced for this cell
@@ -265,6 +268,7 @@ def loadFromOIM(cntlr, error, modelXbrl, oimFile, mappedUri, oimObject=None):
                                 tableCol = tableColumns[iCol]
                                 colType = tableCol.get(CSVcolumnType)
                                 cellProperties = (colProperties, 
+                                                  specificColProperties.get("*", EMPTYDICT),
                                                   specificColProperties.get(tableCol.get("name"), EMPTYDICT),
                                                   tableCol.get(CSVproperties, EMPTYDICT))                                
                                 footnote = {}
@@ -298,6 +302,7 @@ def loadFromOIM(cntlr, error, modelXbrl, oimFile, mappedUri, oimObject=None):
                                 tableCol = tableColumns[iCol]
                                 colType = tableCol.get(CSVcolumnType)
                                 cellProperties = (colProperties, 
+                                                  specificColProperties.get("*", EMPTYDICT),
                                                   specificColProperties.get(tableCol.get("name"), EMPTYDICT),
                                                   tableColumns[iCol].get(CSVproperties, EMPTYDICT))
                                 fact = {"aspects": {}}
@@ -672,6 +677,14 @@ def loadFromOIM(cntlr, error, modelXbrl, oimFile, mappedUri, oimObject=None):
         factLocs = {} # index by (linkrole, factId)
         footnoteNbr = 0
         locNbr = 0
+        if isCSV:
+            missingFootnotes = footnoteRefFactIds.keys()  - set(
+                                    footnote["footnoteId"] for footnote in footnotes)
+            if missingFootnotes:
+                error("xbrlce:footnoteNotDefined",
+                        _("FootnoteId(s) not defined %(footnoteIds)s."),
+                        modelObject=modelXbrl, footnoteIds=", ".join(sorted(missingFootnotes)))
+        footnoteIdsNotReferenced = set()
         for factOrFootnote in footnotes:
             if isJSON:
                 factFootnotes = factOrFootnote.get("footnotes", ()) # footnotes is facts, contains fact objects
@@ -682,13 +695,22 @@ def loadFromOIM(cntlr, error, modelXbrl, oimFile, mappedUri, oimObject=None):
                         factIDs = ()
             elif isCSV or isXL: # footnotes contains footnote objects
                 factFootnotes = (factOrFootnote,)
-                factIDs = tuple(sorted(footnoteRefFactIds[factOrFootnote["footnoteId"]]))
+                factIDs = tuple(sorted(footnoteRefFactIds[factOrFootnote.get("footnoteId")]))
+                if not factIDs:
+                    footnoteIdsNotReferenced.add(factOrFootnote.get("footnoteId"))
             for footnote in factFootnotes:
                 linkrole = footnote.get("group")
                 arcrole = footnote.get("footnoteType")
                 if not factIDs or not linkrole or not arcrole or not (
                     footnote.get("factRef") or footnote.get("footnote") is not None):
-                    # invalid footnote
+                    if not linkrole:
+                        warning("oime:footnoteMissingLinkrole",
+                                        _("FootnoteId has no linkrole %(footnoteId)s."),
+                                        modelObject=modelXbrl, footnoteId=footnote.get("footnoteId"))
+                    if not arcrole:
+                        warning("oime:footnoteMissingArcrole",
+                                        _("FootnoteId has no arcrole %(footnoteId)s."),
+                                        modelObject=modelXbrl, footnoteId=footnote.get("footnoteId"))
                     continue
                 if linkrole not in footnoteLinks:
                     footnoteLinks[linkrole] = addChild(modelXbrl.modelDocument.xmlRootElement, 
@@ -737,6 +759,10 @@ def loadFromOIM(cntlr, error, modelXbrl, oimFile, mappedUri, oimObject=None):
                                                    XLINKARCROLE: arcrole,
                                                    XLINKFROM: locFromLabel,
                                                    XLINKTO: footnoteToLabel})
+        if isCSV and footnoteIdsNotReferenced:
+            warning("xbrlce:footnotesNotReferenced",
+                    _("FootnoteId(s) not referenced %(footnoteIds)s."),
+                    modelObject=modelXbrl, footnoteIds=", ".join(sorted(footnoteIdsNotReferenced)))
         if footnoteLinks:
             modelXbrl.modelDocument.linkbaseDiscover(footnoteLinks.values(), inInstance=True)
                     
@@ -791,7 +817,7 @@ def oimLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
 
     cntlr = modelXbrl.modelManager.cntlr
     cntlr.showStatus(_("Loading OIM file: {0}").format(os.path.basename(filepath)))
-    doc = loadFromOIM(cntlr, modelXbrl.error, modelXbrl, filepath, mappedUri)
+    doc = loadFromOIM(cntlr, modelXbrl.error, modelXbrl.warning, modelXbrl, filepath, mappedUri)
     if doc is None:
         return None # not an OIM file
     modelXbrl.loadedFromOIM = True
@@ -830,8 +856,10 @@ def excelLoaderOptionExtender(parser, *args, **kwargs):
 def oimJsonSaveXml(cntlr, oimJsonObject, jsonFileName, xbrlFileName):
     def _error(code, message, **kwargs):
         cntlr.addToLog(message, code, kwargs, level=logging.ERROR)
+    def _warning(code, message, **kwargs):
+        cntlr.addToLog(message, code, kwargs, level=logging.WARNING)
         
-    doc = loadFromOIM(cntlr, _error, None, jsonFileName, "OIM", oimJsonObject)
+    doc = loadFromOIM(cntlr, _error, _warning, None, jsonFileName, "OIM", oimJsonObject)
     if xbrlFileName:
         doc.save(xbrlFileName)
     doc.modelXbrl.close()
