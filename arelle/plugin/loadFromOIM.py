@@ -11,6 +11,7 @@ from arelle import XbrlConst, ModelDocument, ModelXbrl, ValidateXbrlDimensions
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelValue import qname, dateTime, DATETIME
 from arelle.PrototypeInstanceObject import DimValuePrototype
+from arelle.PythonUtil import attrdict
 from arelle.UrlUtil import isHttpUrl
 from arelle.XbrlConst import (qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
                               qnLinkPart, gen, link, defaultLinkRole,
@@ -71,6 +72,17 @@ UnitPattern = re.compile(
                 # numerator and optional denominator, with parentheses if more than one term in either
                 "(^((\x07)|([(]\x07([*]\x07)+[)]))([/]((\x07)|([(]\x07([*]\x07)+[)])))?$)"
                 )
+
+xlUnicodePattern = re.compile("_x([0-9A-F]{4})_")
+
+def xlUnicodeChar(match):
+    return chr(int(match.group(1), 16))
+    
+def xlValue(cell): # excel values may have encoded unicode, such as _0000D_
+    v = cell.value
+    if isinstance(v, str):
+        return xlUnicodePattern.sub(xlUnicodeChar, v).replace('\r\n','\n').replace('\r','\n')
+    return v
 
 class OIMException(Exception):
     def __init__(self, code, message, **kwargs):
@@ -265,12 +277,12 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 cellValue = row[iCol]
                                 if cellValue == "": # no fact produced for this cell
                                     continue
-                                tableCol = tableColumns[iCol]
-                                colType = tableCol.get(CSVcolumnType)
+                                colDef = tableColumns[iCol]
+                                colType = colDef.get(CSVcolumnType)
                                 cellProperties = (colProperties, 
                                                   specificColProperties.get("*", EMPTYDICT),
-                                                  specificColProperties.get(tableCol.get("name"), EMPTYDICT),
-                                                  tableCol.get(CSVproperties, EMPTYDICT))                                
+                                                  specificColProperties.get(colDef.get("name"), EMPTYDICT),
+                                                  colDef.get(CSVproperties, EMPTYDICT))                                
                                 footnote = {}
                                 if colType == "textFootnote":
                                     footnote["footnote"] = cellValue
@@ -287,9 +299,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 if colType.endswith("Fact"):
                                     anonymousFootnoteId += 1
                                     footnote["factRef"] = "_f_{:02}".format(anonymousFootnoteId)
-                                    refs = specificColProperties[tableCol.get("name")].setdefault("footnoteRefs", [])
+                                    refs = specificColProperties[colDef.get("name")].setdefault("footnoteRefs", [])
                                     refs.append(footnote["factRef"])
-                                colProperty = tableCol.get(CSVcolumnProperty)
+                                colProperty = colDef.get(CSVcolumnProperty)
                                 if isinstance(colProperty, dict) and "footnoteFor" in colProperty and isinstance(colProperty["footnoteFor"], list):
                                     for footnoteForCol in colProperty["footnoteFor"]:
                                         refs = specificColProperties[footnoteForCol].setdefault("footnoteRefs", [])
@@ -299,15 +311,15 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 cellValue = row[iCol]
                                 if cellValue == "": # no fact produced for this cell
                                     continue
-                                tableCol = tableColumns[iCol]
-                                colType = tableCol.get(CSVcolumnType)
+                                colDef = tableColumns[iCol]
+                                colType = colDef.get(CSVcolumnType)
                                 cellProperties = (colProperties, 
                                                   specificColProperties.get("*", EMPTYDICT),
-                                                  specificColProperties.get(tableCol.get("name"), EMPTYDICT),
+                                                  specificColProperties.get(colDef.get("name"), EMPTYDICT),
                                                   tableColumns[iCol].get(CSVproperties, EMPTYDICT))
                                 fact = {"aspects": {}}
                                 inapplicableProperties = set()
-                                if tableCol.get(CSVtupleReferenceId) == "true":
+                                if colType == "tupleFact":
                                     if cellValue:
                                         if cellValue in tupleIds:
                                             continue # don't duplicate parent tuple
@@ -324,7 +336,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                                 inapplicableProperties.add(propertyName)
                                         
                                 # block any row property produced by this column from this column's fact
-                                _colProperty = tableCol.get(CSVcolumnProperty)
+                                _colProperty = colDef.get(CSVcolumnProperty)
                                 if isinstance(_colProperty, str): # applies to all cols
                                     inapplicableProperties.add(_colProperty)
                                         
@@ -354,63 +366,207 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
         elif isXL:
             errPrefix = "xbrlwe"
             currentAction = "identifying workbook input worksheets"
-            oimWb = load_workbook(oimFile, read_only=True, data_only=True)
+            oimWb = load_workbook(oimFile, data_only=True)
             sheetNames = oimWb.get_sheet_names()
             if (not any(sheetName == "prefixes" for sheetName in sheetNames) or
                 not any(sheetName == "dtsReferences" for sheetName in sheetNames) or
-                not any("facts" in sheetName for sheetName in sheetNames)):
+                not any("metadata" in sheetName for sheetName in sheetNames)):
                 raise OIMException("xbrlwe:missingWorkbookWorksheets", 
-                                   _("Unable to identify worksheet tabs for dtsReferences, prefixes or facts"))
+                                   _("Unable to identify worksheet tabs for dtsReferences, prefixes or metadata"))
             currentAction = "loading worksheet: dtsReferences"
             dtsReferences = []
             for i, row in enumerate(oimWb["dtsReferences"]):
                 if i == 0:
-                    header = [col.value for col in row]
-                else:
+                    header = [xlValue(col) for col in row]
+                elif any(col.value is not None for col in row): # skip entirely empty rows
                     dtsReferences.append(dict((header[j], col.value) for j, col in enumerate(row)))
             currentAction = "loading worksheet: prefixes"
             prefixesList = []
             for i, row in enumerate(oimWb["prefixes"]):
                 if i == 0:
-                    header = dict((col.value,i) for i,col in enumerate(row))
-                else:
+                    header = dict((xlValue(col),i) for i,col in enumerate(row))
+                elif any(col.value is not None for col in row): # skip entirely empty rows
                     prefixesList.append((row[header["prefix"]].value, row[header["URI"]].value))
-            defaults = {}
-            if "defaults" in sheetNames:
-                currentAction = "loading worksheet: defaults"
-                for i, row in enumerate(oimWb["defaults"]):
+                    tableMetadata = OrderedDict() # list of rows per table name
+            if "metadata" in sheetNames:
+                currentAction = "loading worksheet: metadata"
+                topLevelProperties = {}
+                missingTables = set()
+                for i, row in enumerate(oimWb["metadata"]):
                     if i == 0:
-                        header = dict((col.value,i) for i,col in enumerate(row))
-                        fileCol = header["file"]
-                    else:
-                        defaults[row[fileCol].value] = dict((header[j], col.value) for j, col in enumerate(row) if j != fileCol)
-            facts = []
-            for sheetName in sheetNames:
-                if sheetName == "facts" or "-facts" in sheetName:
-                    currentAction = "loading worksheet: {}".format(sheetName)
-                    tableDefaults = defaults.get(sheetName, {})
-                    for i, row in enumerate(oimWb[sheetName]):
-                        if i == 0:
-                            header = [col.value for col in row]
+                        metaTitles = [col.value for col in row]
+                        metaHdr = dict((title,i) for i,title in enumerate(metaTitles))
+                        missingCols = {"table", "column name", "column type"} - set(metaHdr.keys())
+                        if missingCols:
+                            raise OIMException("xbrlwe:missingMetadataColumns", 
+                                               _("Required columns missing: %(missing)s"),
+                                               missing=", ".join(sorted(missingCols)))
+                        metaColPropCols = [] # pairs of property name and applies to metadata column indices
+                        for i, col in enumerate(metaTitles):
+                            if col == "column property":
+                                metaColPropCols.append([i, None])
+                            elif col == "applies to" and metaColPropCols:
+                                metaColPropCols[-1][1] = i
+                    elif any(col.value is not None for col in row): # skip entirely empty rows
+                        tableName = xlValue(row[metaHdr["table"]])
+                        if not tableName: # top level properties
+                            for col, iCol in metaHdr.items():
+                                value = xlValue(row[iCol])
+                                if col not in ("table", "column name", "column type", "column property", "applies to") and value is not None:
+                                    topLevelProperties[col] = value
+                        elif tableName not in sheetNames:
+                            missingTables.add(tableName)
                         else:
-                            fact = {}
-                            fact.update(tableDefaults)
-                            for j, col in enumerate(row):
-                                if col.value is not None:
-                                    if header[j]: # skip cols with no header
-                                        if header[j].endswith("Value"):
-                                            fact["value"] = str(col.value)
-                                        else:
-                                            fact[header[j]] = str(col.value)
-                            facts.append(fact)
-            footnotes = []
-            if "footnotes" in sheetNames:
-                currentAction = "loading worksheet: footnotes"
-                for i, row in enumerate(oimWb["footnotes"]):
-                    if i == 0:
-                        header = [col.value for j,col in enumerate(row) if col.value]
-                    else:
-                        footnotes.append(dict((header[j], col.value) for j, col in enumerate(row) if col.value))
+                            tableMetadata.setdefault(tableName, []).append(row)
+                if missingTables:
+                    raise OIMException("xbrlwe:missingTables", 
+                                       _("Referenced table tab(s): %(missing)s"),
+                                       missing=", ".join(sorted(missingTables)))
+                facts = []
+                footnotes = []
+                footnoteRefFactIds = defaultdict(set)
+                anonymousFootnoteId = 0 # integer always for anonymous (same row) footnotes
+                # process by table
+                for tableName, tableRows in tableMetadata.items():
+                    # compile column dependencies
+                    propertyCols = []
+                    factCols = []
+                    footnoteCols = []
+                    # columns for tableName worksheet
+                    tableLevelProperties = {}
+                    tableLevelProperties = dict((col, xlValue(row[iCol]))
+                                                for row in tableRows
+                                                if row[metaHdr["column name"]].value in (None, '')
+                                                for col, iCol in metaHdr.items()
+                                                if col not in ("table", "column name", "datatype", "column type", "column property", "applies to") and row[iCol].value is not None)
+                    colDefs = [] # column definitions
+                    for iCol, row in enumerate(tableRows):
+                        colDef = attrdict(colName=xlValue(row[metaHdr["column name"]]),
+                                          colType=xlValue(row[metaHdr["column type"]]),
+                                          colProperty={},
+                                          producedProperties=set())
+                        colDefs.append(colDef)
+                        # find column properties that apply to lists of column names
+                        _firstColProp = True
+                        for colPropName, colPropAppliesTo in metaColPropCols:
+                            _colProperty = xlValue(row[colPropName])
+                            if _colProperty:
+                                colDef.colProperty[_colProperty] = (xlValue(row[colPropAppliesTo]) or "").split if colPropAppliesTo is not None else []
+                                if _firstColProp:
+                                    propertyCols.append(iCol)
+                                    _firstColProp = False
+                            colDef.producedProperties.add(colPropName)
+                        # next apply properties specified for just this column
+                        for col, hCol in metaHdr.items():
+                            if col not in ("table", "column name", "datatype", "column type", "column property", "applies to") and row[hCol].value is not None:
+                                colDef.colProperty[col] = xlValue(row[hCol])
+                        if colDef.colType in ("tupleFact", "simpleFact", "numericSimpleFact", "textSimpleFact"):
+                            factCols.append(iCol)
+                            if "footnoteFor" in colDef.colProperty:
+                                footnoteCols.append(iCol) # in-row fact footnotes
+                        elif colDef.colType in ("textFootnote", "factFootnote"):
+                            footnoteCols.append(iCol)
+                    tableProperties = topLevelProperties.copy()
+                    tableProperties.update(tableLevelProperties)
+                    tupleIds = set()
+                    for i, row in enumerate(oimWb[tableName]):
+                        if i == 0:
+                            tblHdr = dict((col.value,j) for j,col in enumerate(row))
+                        elif any(col.value is not None for col in row):
+                            colProperties = tableProperties.copy()
+                            specificColProperties = defaultdict(dict)
+                            for iCol in propertyCols:
+                                value = xlValue(row[iCol])
+                                for _property, _colNames in colDefs[iCol].colProperty.items():
+                                    if _colNames and isinstance(_colNames, list):
+                                        for _colName in _colNames:
+                                            specificColProperties[_colName][_property] = value
+                                    else:
+                                        specificColProperties['*'][_property] = value
+                            for iCol in footnoteCols:
+                                cellValue = xlValue(row[iCol])
+                                if cellValue in (None, ""): # no fact produced for this cell
+                                    continue
+                                colDef = colDefs[iCol]
+                                cellProperties = (colProperties, 
+                                                  specificColProperties.get("*", EMPTYDICT),
+                                                  specificColProperties[colDef.colName],
+                                                  colDef.colProperty)              
+                                footnote = {}
+                                if colDef.colType == "textFootnote":
+                                    footnote["footnote"] = cellValue
+                                elif colDef.colType == "factFootnote":
+                                    footnote["factRef"] = cellValue
+                                for _properties in cellProperties:
+                                    if _properties:
+                                        for propertyName, propertyValue in _properties.items():
+                                            if propertyName in ("footnoteId", "footnoteType", "footnoteGroup"):
+                                                footnote[{"footnoteGroup":"group"}.get(propertyName,propertyName)] = propertyValue
+                                if "footnoteId" not in footnote:
+                                    anonymousFootnoteId += 1
+                                    footnote["footnoteId"] = "_f_{:02}".format(anonymousFootnoteId)
+                                if colDef.colType.endswith("Fact"):
+                                    anonymousFootnoteId += 1
+                                    footnote["factRef"] = "_f_{:02}".format(anonymousFootnoteId)
+                                    refs = specificColProperties[colDef.get("name")].setdefault("footnoteRefs", [])
+                                    refs.append(footnote["factRef"])
+                                for footnoteForCol in (colDef.colProperty.get("footnoteFor") or "").split():
+                                    refs = specificColProperties[footnoteForCol].setdefault("footnoteRefs", [])
+                                    refs.append(footnote["footnoteId"])                                        
+                                footnotes.append(footnote)
+                            for iCol in factCols:
+                                cellValue = xlValue(row[iCol])
+                                if cellValue == "": # no fact produced for this cell
+                                    continue
+                                colDef = colDefs[iCol]
+                                cellProperties = (colProperties, 
+                                                  specificColProperties.get("*", EMPTYDICT),
+                                                  specificColProperties.get(colDef.colName, EMPTYDICT),
+                                                  colDef.colProperty)
+                                fact = {"aspects": {}}
+                                inapplicableProperties = set()
+                                if colDef.colType == "tupleFact":
+                                    if cellValue:
+                                        if cellValue in tupleIds:
+                                            continue # don't duplicate parent tuple
+                                        fact["id"] = cellValue
+                                        tupleIds.add(cellValue) # prevent tuple duplication
+                                elif colDef.colType in ("simpleFact", "numericSimpleFact", "textSimpleFact"):
+                                    fact["value"] = csvCellValue(cellValue)
+                                        
+                                if colDef.colType == "tupleFact":
+                                    inapplicableProperties.update(oimSimpleFactProperties)
+                                    for _properties in cellProperties:
+                                        for propertyName, propertyValue in _properties.items():
+                                            if not propertyName.startswith(oimPrefix):
+                                                inapplicableProperties.add(propertyName)
+                                        
+                                # block any row property produced by this column from this column's fact
+                                inapplicableProperties.update(colDef.producedProperties)
+                                        
+                                footnoteRefs = set()
+                                for _properties in cellProperties:
+                                    if _properties:
+                                        for propertyName, propertyValue in _properties.items():
+                                            if propertyName not in inapplicableProperties and propertyValue  != "":
+                                                if ":" in propertyName:
+                                                    fact["aspects"][propertyName] = csvCellValue(propertyValue)
+                                                elif propertyName == "footnoteRefs":
+                                                    if isinstance(propertyValue, str): # obtained from column of blank-separated refs
+                                                        propertyValue = propertyValue.split()
+                                                    footnoteRefs.update(propertyValue)
+                                                elif propertyName not in ("datatype",):
+                                                    fact[propertyName] = propertyValue
+                                if footnoteRefs:
+                                    if "id" not in fact:
+                                        anonymousFactId += 1
+                                        fact["id"] = "_f_{:02}".format(anonymousFactId)
+                                    factId = fact["id"]
+                                    for footnoteRef in footnoteRefs:
+                                        footnoteRefFactIds[footnoteRef].add(factId)
+                                facts.append(fact)
+                del tupleIds
+                            
     
         currentAction = "identifying default dimensions"
         if modelXbrl is not None:
@@ -518,6 +674,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
             conceptQn = qname(aspects[oimConcept], prefixes)
             concept = modelXbrl.qnameConcepts.get(conceptQn)
             if concept is None:
+                error("{}:conceptQName".format(errPrefix),
+                                _("The concept QName could not be resolved with available DTS: %(concept)s."),
+                                modelObject=modelXbrl, concept=conceptQn)
                 return
             attrs = {}
             if concept.isItem:
@@ -568,16 +727,19 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 memberAttrs = {"{http://www.w3.org/2001/XMLSchema-instance}nil": "true"}
                             else:
                                 memberAttrs = None
-                                if isinstance(dimVal, dict):
-                                    dimVal = dimVal["value"]
-                                else:
-                                    dimVal = str(dimVal) # may be int or boolean
+                            if isinstance(dimVal, dict):
+                                dimVal = dimVal["value"]
+                            else:
+                                dimVal = str(dimVal) # may be int or boolean
                             if isinstance(dimVal,str) and ":" in dimVal and dimVal.partition(':')[0] in prefixes:
                                 mem = qname(dimVal, prefixes) # explicit dim
                             elif dimConcept.isTypedDimension:
                                 # a modelObject xml element is needed for all of the instance functions to manage the typed dim
                                 mem = addChild(modelXbrl.modelDocument, dimConcept.typedDomainElement.qname, text=dimVal, attributes=memberAttrs, appendChild=False)
-                            qnameDims[dimQname] = DimValuePrototype(modelXbrl, None, dimQname, mem, "segment")
+                            else:
+                                mem = None # absent typed dimension
+                            if mem is not None:
+                                qnameDims[dimQname] = DimValuePrototype(modelXbrl, None, dimQname, mem, "segment")
                     _cntx = modelXbrl.createContext(
                                             entityAsQn.namespaceURI,
                                             entityAsQn.localName,
@@ -739,7 +901,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                     addChild(footnoteLink, XbrlConst.qnLinkFootnote, attributes=attrs, text=footnote["footnote"])
                 elif footnote.get("factRef"):
                     factRef = footnote.get("factRef")
-                    if isCSV and factRef in footnoteRefFactIds:
+                    if (isCSV or isXL) and factRef in footnoteRefFactIds:
                         fact2IDs = tuple(sorted(footnoteRefFactIds[factRef]))
                     else:
                         fact2IDs = (factRef,)
