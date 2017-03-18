@@ -44,14 +44,13 @@ CSVcolumnProperty = "http://xbrl.org/YYYY/model#columnProperty"
 
 oimConcept = "xbrl:concept"
 oimEntity = "xbrl:entity"
-oimPeriod = "xbrl:period"
 oimPeriodStart = "xbrl:periodStart"
 oimPeriodEnd = "xbrl:periodEnd"
 oimUnit = "xbrl:unit"
 oimTupleParent = "xbrl:tupleParent"
 oimTupleOrder = "xbrl:tupleOrder"
 oimPrefix = "xbrl:"
-oimSimpleFactProperties = {oimEntity, oimPeriod, oimPeriodStart, oimPeriodEnd, oimUnit, "accuracy"}
+oimSimpleFactProperties = {oimEntity, oimPeriodStart, oimPeriodEnd, oimUnit, "accuracy"}
 
 DUPJSONKEY = "!@%duplicates%@!"
 
@@ -293,6 +292,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                         for propertyName, propertyValue in _properties.items():
                                             if propertyName in ("footnoteId", "footnoteType", "footnoteGroup"):
                                                 footnote[{"footnoteGroup":"group"}.get(propertyName,propertyName)] = propertyValue
+                                            elif propertyName == "deleteInheritedProperties":
+                                                for prop in propertyValue:
+                                                    footnote({"footnoteGroup":"group"}.pop(prop,prop), None)
                                 if "footnoteId" not in footnote:
                                     anonymousFootnoteId += 1
                                     footnote["footnoteId"] = "_f_{:02}".format(anonymousFootnoteId)
@@ -308,6 +310,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                         refs.append(footnote["footnoteId"])                                        
                                 footnotes.append(footnote)
                             for iCol in factCols:
+                                if iCol >= len(row):
+                                    continue
                                 cellValue = row[iCol]
                                 if cellValue == "": # no fact produced for this cell
                                     continue
@@ -344,7 +348,15 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 for _properties in cellProperties:
                                     if _properties:
                                         for propertyName, propertyValue in _properties.items():
-                                            if propertyName not in inapplicableProperties and propertyValue  != "":
+                                            if propertyName == "deleteInheritedProperties":
+                                                for prop in propertyValue:
+                                                    if ":" in prop:
+                                                        fact["aspects"].pop(prop, None)
+                                                    elif prop == "footnoteRefs":
+                                                        footnoteRefs.clear()
+                                                    elif prop not in ("datatype",):
+                                                        fact.pop(prop, None)
+                                            elif propertyName not in inapplicableProperties and propertyValue  != "":
                                                 if ":" in propertyName:
                                                     fact["aspects"][propertyName] = csvCellValue(propertyValue)
                                                 elif propertyName == "footnoteRefs":
@@ -364,7 +376,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                 del tupleIds
                 
         elif isXL:
-            errPrefix = "xbrlwe"
+            errPrefix = "xbrlce" # use same prefix as CSV since workbook is a use of xBRL-CSV specification
             currentAction = "identifying workbook input worksheets"
             oimWb = load_workbook(oimFile, data_only=True)
             sheetNames = oimWb.get_sheet_names()
@@ -485,7 +497,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                         specificColProperties['*'][_property] = value
                             for iCol in footnoteCols:
                                 cellValue = xlValue(row[iCol])
-                                if cellValue in (None, ""): # no fact produced for this cell
+                                if cellValue is None or cellValue == "": # no fact produced for this cell
                                     continue
                                 colDef = colDefs[iCol]
                                 cellProperties = (colProperties, 
@@ -502,6 +514,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                         for propertyName, propertyValue in _properties.items():
                                             if propertyName in ("footnoteId", "footnoteType", "footnoteGroup"):
                                                 footnote[{"footnoteGroup":"group"}.get(propertyName,propertyName)] = propertyValue
+                                            elif propertyName == "deleteInheritedProperties":
+                                                for prop in propertyValue:
+                                                    footnote({"footnoteGroup":"group"}.pop(prop,prop), None)
                                 if "footnoteId" not in footnote:
                                     anonymousFootnoteId += 1
                                     footnote["footnoteId"] = "_f_{:02}".format(anonymousFootnoteId)
@@ -515,8 +530,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                     refs.append(footnote["footnoteId"])                                        
                                 footnotes.append(footnote)
                             for iCol in factCols:
+                                if iCol >= len(row):
+                                    continue
                                 cellValue = xlValue(row[iCol])
-                                if cellValue == "": # no fact produced for this cell
+                                if cellValue is None or cellValue == "": # no fact produced for this cell
                                     continue
                                 colDef = colDefs[iCol]
                                 cellProperties = (colProperties, 
@@ -538,7 +555,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                     inapplicableProperties.update(oimSimpleFactProperties)
                                     for _properties in cellProperties:
                                         for propertyName, propertyValue in _properties.items():
-                                            if not propertyName.startswith(oimPrefix):
+                                            if not propertyName.startswith(oimPrefix) and propertyName != "deleteInheritedProperties":
                                                 inapplicableProperties.add(propertyName)
                                         
                                 # block any row property produced by this column from this column's fact
@@ -548,7 +565,15 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 for _properties in cellProperties:
                                     if _properties:
                                         for propertyName, propertyValue in _properties.items():
-                                            if propertyName not in inapplicableProperties and propertyValue  != "":
+                                            if propertyName == "deleteInheritedProperties":
+                                                for prop in propertyValue:
+                                                    if ":" in prop:
+                                                        fact["aspects"].pop(prop, None)
+                                                    elif prop == "footnoteRefs":
+                                                        footnoteRefs.clear()
+                                                    elif prop not in ("datatype",):
+                                                        fact.pop(prop, None)
+                                            elif propertyName not in inapplicableProperties and propertyValue  != "":
                                                 if ":" in propertyName:
                                                     fact["aspects"][propertyName] = csvCellValue(propertyValue)
                                                 elif propertyName == "footnoteRefs":
@@ -683,24 +708,26 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                 missingAspects = []
                 if oimEntity not in aspects: 
                     missingAspects.append(oimEntity)
-                if oimPeriod not in aspects and (oimPeriodStart not in aspects or oimPeriodEnd not in aspects):
-                    missingAspects.append(oimPeriod)
+                if oimPeriodStart in aspects and oimPeriodEnd not in aspects:
+                    missingAspects.append(oimPeriodEnd)
+                elif oimPeriodStart not in aspects and oimPeriodEnd  in aspects:
+                    missingAspects.append(oimPeriodStart)
                 if missingAspects:
                     error("{}:missingAspects".format(errPrefix),
                                     _("The concept %(element)s is missing aspects %(missingAspects)s"),
                                     modelObject=modelXbrl, element=conceptQn, missingAspects=", ".join(missingAspects))
                     return
                 entityAsQn = qname(aspects[oimEntity], prefixes) or qname("error",fact[oimEntity])
-                if oimPeriod in aspects:
-                    periodStart = periodEnd = aspects[oimPeriod]
                 if oimPeriodStart in aspects and oimPeriodEnd in aspects:
                     periodStart = aspects[oimPeriodStart]
                     periodEnd = aspects[oimPeriodEnd]
-                for periodDate in periodStart, periodEnd:
-                    if not re.match(r"\d{4,}-[0-1][0-9]-[0-3][0-9]T(24:00:00|[0-1][0-9]:[0-5][0-9]:[0-5][0-9])", periodDate):
-                        error("{}:periodDateTime".format(errPrefix),
-                              _("The concept %(element)s has a lexically invalid period dateTime %(periodError)s"),
-                              modelObject=modelXbrl, element=conceptQn, periodError=periodDate)
+                    for periodDate in periodStart, periodEnd:
+                        if not re.match(r"\d{4,}-[0-1][0-9]-[0-3][0-9]T(24:00:00|[0-1][0-9]:[0-5][0-9]:[0-5][0-9])", periodDate):
+                            error("{}:periodDateTime".format(errPrefix),
+                                  _("The concept %(element)s has a lexically invalid period dateTime %(periodError)s"),
+                                  modelObject=modelXbrl, element=conceptQn, periodError=periodDate)
+                else:
+                    periodStart = periodEnd = "forever"
                 cntxKey = ( # hashable context key
                     ("periodType", concept.periodType),
                     ("entity", entityAsQn),
@@ -743,9 +770,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                     _cntx = modelXbrl.createContext(
                                             entityAsQn.namespaceURI,
                                             entityAsQn.localName,
-                                            concept.periodType,
-                                            None if concept.periodType == "instant" else dateTime(periodStart, type=DATETIME),
-                                            dateTime(periodEnd, type=DATETIME),
+                                            "forever" if periodEnd == "forever" else concept.periodType,
+                                            None if concept.periodType != "instant" or periodEnd == "forever" 
+                                                else dateTime(periodStart, type=DATETIME),
+                                            None if periodEnd == "forever"
+                                                else dateTime(periodEnd, type=DATETIME),
                                             None, # no dimensional validity checking (like formula does)
                                             qnameDims, [], [],
                                             id=cntxId,
@@ -839,9 +868,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
         factLocs = {} # index by (linkrole, factId)
         footnoteNbr = 0
         locNbr = 0
-        if isCSV:
+        if isCSV or isXL:
             missingFootnotes = footnoteRefFactIds.keys()  - set(
-                                    footnote["footnoteId"] for footnote in footnotes)
+                                    footnote["footnoteId"] for footnote in footnotes) - set(
+                                    footnote["factRef"] for footnote in footnotes if "factRef" in footnote)
             if missingFootnotes:
                 error("xbrlce:footnoteNotDefined",
                         _("FootnoteId(s) not defined %(footnoteIds)s."),
