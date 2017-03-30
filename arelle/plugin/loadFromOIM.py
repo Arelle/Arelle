@@ -110,6 +110,7 @@ def csvCellValue(cellValue):
 
 def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=None):
     from openpyxl import load_workbook
+    from openpyxl.cell import Cell
     from arelle import ModelDocument, ModelXbrl, XmlUtil
     from arelle.ModelDocument import ModelDocumentReference
     from arelle.ModelValue import qname
@@ -249,7 +250,15 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                     modelObject=modelXbrl, uri=_uri)
                     continue
                 tableProperties = topLevelProperties.copy()
-                tableProperties.update(tableLevelProperties)
+                for propertyName, propertyValue in tableLevelProperties.items():
+                    if propertyName == "deleteInheritedProperties":
+                        for prop in propertyValue:
+                            tableProperties.pop(prop, None)
+                for propertyName, propertyValue in tableLevelProperties.items():
+                    if propertyName in ("footnoteRefs",):
+                        tableProperties[propertyName].extend(propertyValue) 
+                    elif propertyName != "deleteInheritedProperties":
+                        tableProperties[propertyName] = propertyValue
                 filepath = os.path.join(_dir, tableUrl)
                 tupleIds = set()
                 with io.open(filepath, 'rt', encoding='utf-8-sig') as f:
@@ -263,7 +272,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                             for iCol in propertyCols:
                                 value = row[iCol]
                                 property = tableColumns[iCol][CSVcolumnProperty]
-                                if isinstance(property, str): # applies to all cols
+                                if isinstance(property, (str,list)): # applies to all cols
                                     colProperties[property] = value
                                 elif isinstance(property, dict): # applies to specific cols
                                     for _property, _colNames in property.items():
@@ -290,11 +299,12 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 for _properties in cellProperties:
                                     if _properties:
                                         for propertyName, propertyValue in _properties.items():
-                                            if propertyName in ("footnoteId", "footnoteType", "footnoteGroup"):
-                                                footnote[{"footnoteGroup":"group"}.get(propertyName,propertyName)] = propertyValue
-                                            elif propertyName == "deleteInheritedProperties":
+                                            if propertyName == "deleteInheritedProperties":
                                                 for prop in propertyValue:
                                                     footnote({"footnoteGroup":"group"}.pop(prop,prop), None)
+                                        for propertyName, propertyValue in _properties.items():
+                                            if propertyName != "deleteInheritedProperties" and propertyName in ("footnoteId", "footnoteType", "footnoteGroup"):
+                                                footnote[{"footnoteGroup":"group"}.get(propertyName,propertyName)] = propertyValue
                                 if "footnoteId" not in footnote:
                                     anonymousFootnoteId += 1
                                     footnote["footnoteId"] = "_f_{:02}".format(anonymousFootnoteId)
@@ -356,7 +366,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                                         footnoteRefs.clear()
                                                     elif prop not in ("datatype",):
                                                         fact.pop(prop, None)
-                                            elif propertyName not in inapplicableProperties and propertyValue  != "":
+                                        for propertyName, propertyValue in _properties.items():
+                                            if propertyName != "deleteInheritedProperties" and propertyName not in inapplicableProperties and propertyValue  != "":
                                                 if ":" in propertyName:
                                                     fact["aspects"][propertyName] = csvCellValue(propertyValue)
                                                 elif propertyName == "footnoteRefs":
@@ -404,6 +415,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                 currentAction = "loading worksheet: metadata"
                 topLevelProperties = {}
                 missingTables = set()
+                missingRanges = set()
                 for i, row in enumerate(oimWb["metadata"]):
                     if i == 0:
                         metaTitles = [col.value for col in row]
@@ -420,26 +432,45 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                             elif col == "applies to" and metaColPropCols:
                                 metaColPropCols[-1][1] = i
                     elif any(col.value is not None for col in row): # skip entirely empty rows
-                        tableName = xlValue(row[metaHdr["table"]])
-                        if not tableName: # top level properties
+                        tableRangeName = xlValue(row[metaHdr["table"]])
+                        if not tableRangeName: # top level properties
                             for col, iCol in metaHdr.items():
                                 value = xlValue(row[iCol])
                                 if col not in ("table", "column name", "column type", "column property", "applies to") and value is not None:
                                     topLevelProperties[col] = value
-                        elif tableName not in sheetNames:
-                            missingTables.add(tableName)
                         else:
-                            tableMetadata.setdefault(tableName, []).append(row)
+                            if tableRangeName not in tableMetadata: # first encounter of tableRangeName, check if it's a range
+                                table, _sep, namedRange = tableRangeName.partition('!')
+                                if table not in sheetNames:
+                                    missingTables.add(table)
+                                elif namedRange:
+                                    if namedRange in oimWb.defined_names:
+                                        defn = oimWb.defined_names[namedRange]
+                                        if defn.type != "RANGE":
+                                            raise OIMException("xbrlwe:unusableRange", 
+                                                               _("Referenced range does not refer to a range: %(tableRange)s"),
+                                                               tableRange=tableRangeName)
+                                        elif any(_table != table for _table, cellsRange in defn.destinations):
+                                            raise OIMException("xbrlwe:unusableRange", 
+                                                               _("Referenced range refers to a different table: %(tableRange)s"),
+                                                               tableRange=tableRangeName)
+                                    else:
+                                        missingRanges.add(tableRangeName)
+                            tableMetadata.setdefault(tableRangeName, []).append(row)
                 if missingTables:
                     raise OIMException("xbrlwe:missingTables", 
                                        _("Referenced table tab(s): %(missing)s"),
                                        missing=", ".join(sorted(missingTables)))
+                if missingRanges:
+                    raise OIMException("xbrlwe:missingTableNamedRanges", 
+                                       _("Referenced named ranges tab(s): %(missing)s"),
+                                       missing=", ".join(sorted(missingRanges)))
                 facts = []
                 footnotes = []
                 footnoteRefFactIds = defaultdict(set)
                 anonymousFootnoteId = 0 # integer always for anonymous (same row) footnotes
                 # process by table
-                for tableName, tableRows in tableMetadata.items():
+                for tableRangeName, tableRows in tableMetadata.items():
                     # compile column dependencies
                     propertyCols = []
                     factCols = []
@@ -479,10 +510,32 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                         elif colDef.colType in ("textFootnote", "factFootnote"):
                             footnoteCols.append(iCol)
                     tableProperties = topLevelProperties.copy()
-                    tableProperties.update(tableLevelProperties)
+                    for propertyName, propertyValue in tableLevelProperties.items():
+                        if propertyName == "deleteInheritedProperties":
+                            for prop in propertyValue:
+                                tableProperties.pop(prop, None)
+                    for propertyName, propertyValue in tableLevelProperties.items():
+                        if propertyName in ("footnoteRefs",):
+                            tableProperties[propertyName].extend(propertyValue) 
+                        elif propertyName != "deleteInheritedProperties":
+                            tableProperties[propertyName] = propertyValue
                     tupleIds = set()
-                    for i, row in enumerate(oimWb[tableName]):
-                        if i == 0:
+                    tableName, _sep, namedRange = tableRangeName.partition('!')
+                    rangeRows = []
+                    if tableName in oimWb:
+                        ws = oimWb[tableName]
+                        if namedRange and oimWb.defined_names[namedRange].type == "RANGE":
+                            for _tableName, cells_range in oimWb.defined_names[namedRange].destinations:
+                                if _tableName == tableName:
+                                    rows = ws[cells_range]
+                                    if isinstance(rows, Cell):
+                                        rangeRows.append((rows, ))
+                                    else:
+                                        rangeRows.extend(rows)
+                        else:
+                            rangeRows = ws
+                    for i, row in enumerate(rangeRows):
+                        if i == 0 and not namedRange:
                             tblHdr = dict((col.value,j) for j,col in enumerate(row))
                         elif any(col.value is not None for col in row):
                             colProperties = tableProperties.copy()
@@ -512,11 +565,12 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 for _properties in cellProperties:
                                     if _properties:
                                         for propertyName, propertyValue in _properties.items():
-                                            if propertyName in ("footnoteId", "footnoteType", "footnoteGroup"):
-                                                footnote[{"footnoteGroup":"group"}.get(propertyName,propertyName)] = propertyValue
-                                            elif propertyName == "deleteInheritedProperties":
+                                            if propertyName == "deleteInheritedProperties":
                                                 for prop in propertyValue:
                                                     footnote({"footnoteGroup":"group"}.pop(prop,prop), None)
+                                        for propertyName, propertyValue in _properties.items():
+                                            if propertyName != "deleteInheritedProperties" and propertyName in ("footnoteId", "footnoteType", "footnoteGroup"):
+                                                footnote[{"footnoteGroup":"group"}.get(propertyName,propertyName)] = propertyValue
                                 if "footnoteId" not in footnote:
                                     anonymousFootnoteId += 1
                                     footnote["footnoteId"] = "_f_{:02}".format(anonymousFootnoteId)
@@ -573,7 +627,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                                         footnoteRefs.clear()
                                                     elif prop not in ("datatype",):
                                                         fact.pop(prop, None)
-                                            elif propertyName not in inapplicableProperties and propertyValue  != "":
+                                        for propertyName, propertyValue in _properties.items():
+                                            if propertyName != "deleteInheritedProperties" and propertyName not in inapplicableProperties and propertyValue  != "":
                                                 if ":" in propertyName:
                                                     fact["aspects"][propertyName] = csvCellValue(propertyValue)
                                                 elif propertyName == "footnoteRefs":
@@ -771,7 +826,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                             entityAsQn.namespaceURI,
                                             entityAsQn.localName,
                                             "forever" if periodEnd == "forever" else concept.periodType,
-                                            None if concept.periodType != "instant" or periodEnd == "forever" 
+                                            None if concept.periodType == "instant" or periodEnd == "forever" 
                                                 else dateTime(periodStart, type=DATETIME),
                                             None if periodEnd == "forever"
                                                 else dateTime(periodEnd, type=DATETIME),
