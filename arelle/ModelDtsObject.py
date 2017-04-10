@@ -1285,7 +1285,7 @@ class ModelType(ModelNamableTerm):
     
     def constrainingFacets(self, facetValues=None):
         """helper function for facets discovery"""  
-        facetValues = facetValues if facetValues else {}
+        if facetValues is None: facetValues = {}
         for facetElt in XmlUtil.schemaFacets(self, (
                     "{http://www.w3.org/2001/XMLSchema}length", "{http://www.w3.org/2001/XMLSchema}minLength", 
                     "{http://www.w3.org/2001/XMLSchema}maxLength", 
