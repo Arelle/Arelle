@@ -167,15 +167,27 @@ verPrefixNS = {"ver":ver,
                }
 
 # extended enumeration spec
-enums = {"http://xbrl.org/2014/extensible-enumerations", "http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1"}
+enums = {"http://xbrl.org/2014/extensible-enumerations", "http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1",
+         "http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1"}
 qnEnumerationItemType2014 = qname("{http://xbrl.org/2014/extensible-enumerations}enum:enumerationItemType")
+qnEnumerationItemTypeYYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}enum:enumerationItemType")
+qnEnumerationSetItemTypeYYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}enum:enumerationSetItemType")
+qnEnumerationListItemTypeYYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}enum:enumerationListItemType")
 qnEnumerationItemType2016 = qname("{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}enum:enumerationItemType")
 qnEnumerationsItemType2016 = qname("{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}enum:enumerationsItemType")
+qnEnumerationListItemTypes = (qnEnumerationListItemTypeYYYY, qnEnumerationSetItemTypeYYYY, qnEnumerationsItemType2016)
+qnEnumerationSetItemTypes = (qnEnumerationSetItemTypeYYYY,)
+qnEnumerationItemTypes = (qnEnumerationItemType2014, 
+                          qnEnumerationItemTypeYYYY, qnEnumerationSetItemTypeYYYY, qnEnumerationListItemTypeYYYY,
+                          qnEnumerationItemType2016, qnEnumerationsItemType2016)
 attrEnumerationDomain2014 = "{http://xbrl.org/2014/extensible-enumerations}domain"
+attrEnumerationDomainYYYY = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}domain"
 attrEnumerationDomain2016 = "{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}domain"
 attrEnumerationLinkrole2014 = "{http://xbrl.org/2014/extensible-enumerations}linkrole"
+attrEnumerationLinkroleYYYY = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}linkrole"
 attrEnumerationLinkrole2016 = "{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}linkrole"
 attrEnumerationUsable2014 = "{http://xbrl.org/2014/extensible-enumerations}headUsable"
+attrEnumerationUsableYYYY = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}headUsable"
 attrEnumerationUsable2016 = "{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}headUsable"
 
 # formula specs
@@ -466,6 +478,7 @@ xdtSchemaErrorNS = "http://www.xbrl.org/2005/genericXmlSchemaError"
 errMsgPrefixNS = { # err prefixes which are not declared, such as XPath's "err" prefix
     "err": xpath2err,
     "xmlSchema": xdtSchemaErrorNS,
+    "utre" : "http://www.xbrl.org/2009/utr/errors",
     }
 
 arcroleGroupDetect = "*detect*"

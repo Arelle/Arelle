@@ -746,11 +746,16 @@ class ValidateXbrl:
                         if not isinstance(qnEnums, list): qnEnums = (qnEnums,)
                         if not all(ValidateXbrlDimensions.enumerationMemberUsable(self, concept, self.modelXbrl.qnameConcepts.get(qnEnum))
                                    for qnEnum in qnEnums):
-                            self.modelXbrl.error("enumie:InvalidListFactValue" if concept.instanceOfType(XbrlConst.qnEnumerationsItemType2016)
+                            self.modelXbrl.error("enumie:InvalidListFactValue" if concept.instanceOfType(XbrlConst.qnEnumerationListItemTypes)
                                                  else "enumie:InvalidFactValue",
                                 _("Fact %(fact)s context %(contextID)s enumeration %(value)s is not in the domain of %(concept)s"),
                                 modelObject=f, fact=f.qname, contextID=f.contextID, value=f.xValue, concept=f.qname,
                                 messageCodes=("enumie:InvalidFactValue", "enumie:InvalidListFactValue"))
+                        if concept.instanceOfType(XbrlConst.qnEnumerationSetItemTypes) and len(qnEnums) > len(set(qnEnums)):
+                            self.modelXbrl.error("enumie:RepeatedSetValue",
+                                _("Fact %(fact)s context %(contextID)s enumeration has non-unique values %(value)s"),
+                                modelObject=f, fact=f.qname, contextID=f.contextID, value=f.xValue, concept=f.qname)
+                            
                 elif concept.isTuple:
                     if f.contextID:
                         self.modelXbrl.error("xbrl.4.6.1:tupleContextRef",

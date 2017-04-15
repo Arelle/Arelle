@@ -442,11 +442,15 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
             return self._baseXbrliTypeQname
         
     def instanceOfType(self, typeqname):
-        """(bool) -- True if element is declared by, or derived from type of given qname"""
-        if typeqname == self.typeQname:
-            return True
+        """(bool) -- True if element is declared by, or derived from type of given qname or list of qnames"""
+        if isinstance(typeqname, (tuple,list)): # union
+            if self.typeQname in typeqname:
+                return True
+        else: # not union, single type
+            if self.typeQname == typeqname:
+                return True
         type = self.type
-        if type is not None and self.type.isDerivedFrom(typeqname):
+        if type is not None and type.isDerivedFrom(typeqname): # allows list or single type name
             return True
         subs = self.substitutionGroup
         if subs is not None: 
@@ -715,15 +719,13 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         try:
             return self._isEnum
         except AttributeError:
-            self._isEnum = (self.instanceOfType(XbrlConst.qnEnumerationItemType2014) or
-                            self.instanceOfType(XbrlConst.qnEnumerationItemType2016) or
-                            self.instanceOfType(XbrlConst.qnEnumerationsItemType2016))
+            self._isEnum = self.instanceOfType(XbrlConst.qnEnumerationItemTypes)
             return self._isEnum
         
     @property
     def enumDomainQname(self):
         """(QName) -- enumeration domain qname """
-        return self.schemaNameQname(self.get(XbrlConst.attrEnumerationDomain2014) or self.get(XbrlConst.attrEnumerationDomain2016))
+        return self.schemaNameQname(self.get(XbrlConst.attrEnumerationDomain2014) or self.get(XbrlConst.attrEnumerationDomainYYYY) or self.get(XbrlConst.attrEnumerationDomain2016))
 
     @property
     def enumDomain(self):
@@ -737,12 +739,12 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     @property
     def enumLinkrole(self):
         """(anyURI) -- enumeration linkrole """
-        return self.get(XbrlConst.attrEnumerationLinkrole2014) or self.get(XbrlConst.attrEnumerationLinkrole2016)
+        return self.get(XbrlConst.attrEnumerationLinkrole2014) or self.get(XbrlConst.attrEnumerationLinkroleYYYY) or self.get(XbrlConst.attrEnumerationLinkrole2016)
     
     @property
     def enumDomainUsable(self):
         """(string) -- enumeration usable attribute """
-        return self.get(XbrlConst.attrEnumerationUsable2014) or self.get(XbrlConst.attrEnumerationUsable2016) or "false"
+        return self.get(XbrlConst.attrEnumerationUsable2014) or self.get(XbrlConst.attrEnumerationUsableYYYY) or self.get(XbrlConst.attrEnumerationUsable2016) or "false"
 
     @property
     def isEnumDomainUsable(self):
@@ -1191,16 +1193,24 @@ class ModelType(ModelNamableTerm):
         return typeDerivedFrom.isDomainItemType if typeDerivedFrom is not None else False
     
     def isDerivedFrom(self, typeqname):
-        """(bool) -- True if type is derived from type specified by QName"""
+        """(bool) -- True if type is derived from type specified by QName.  Type can be a single type QName or list of QNames"""
         qnamesDerivedFrom = self.qnameDerivedFrom # can be single qname or list of qnames if union
         if qnamesDerivedFrom is None:    # not derived from anything
-            return typeqname is None
-        if isinstance(qnamesDerivedFrom, list): # union
-            if typeqname in qnamesDerivedFrom:
-                return True
+            return typeqname is None or not typeqname # may be none or empty list
+        if isinstance(qnamesDerivedFrom, (tuple,list)): # union
+            if isinstance(typeqname, (tuple,list)):
+                if any(t in qnamesDerivedFrom for t in typeqname):
+                    return True
+            else:
+                if typeqname in qnamesDerivedFrom:
+                    return True
         else: # not union, single type
-            if qnamesDerivedFrom == typeqname:
-                return True
+            if isinstance(typeqname, (tuple,list)):
+                if qnamesDerivedFrom in typeqname:
+                    return True
+            else:
+                if qnamesDerivedFrom == typeqname:
+                    return True
             qnamesDerivedFrom = (qnamesDerivedFrom,)
         for qnameDerivedFrom in qnamesDerivedFrom:
             typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
