@@ -1306,13 +1306,13 @@ class ModelDimensionValue(ModelObject):
         
 def measuresOf(parent):
     if parent.xValid >= VALID: # has DTS and is validated
-        return sorted([m.xValue 
-                       for m in parent.iterchildren(tag="{http://www.xbrl.org/2003/instance}measure") 
-                       if isinstance(m, ModelObject) and m.xValue])
+        return tuple(sorted([m.xValue 
+                             for m in parent.iterchildren(tag="{http://www.xbrl.org/2003/instance}measure") 
+                             if isinstance(m, ModelObject) and m.xValue]))
     else:  # probably skipDTS
-        return sorted([m.prefixedNameQname(m.textValue) or XbrlConst.qnInvalidMeasure
-                       for m in parent.iterchildren(tag="{http://www.xbrl.org/2003/instance}measure") 
-                       if isinstance(m, ModelObject)])
+        return tuple(sorted([m.prefixedNameQname(m.textValue) or XbrlConst.qnInvalidMeasure
+                             for m in parent.iterchildren(tag="{http://www.xbrl.org/2003/instance}measure") 
+                             if isinstance(m, ModelObject)]))
 
 def measuresStr(m):
     return m.localName if m.namespaceURI in (XbrlConst.xbrli, XbrlConst.iso4217) else str(m)
@@ -1340,7 +1340,7 @@ class ModelUnit(ModelObject):
                 self._measures = (measuresOf(XmlUtil.descendant(self, XbrlConst.xbrli, "unitNumerator")),
                                   measuresOf(XmlUtil.descendant(self, XbrlConst.xbrli, "unitDenominator")))
             else:
-                self._measures = (measuresOf(self),[])
+                self._measures = (measuresOf(self),())
             return self._measures
 
     @property
@@ -1350,7 +1350,7 @@ class ModelUnit(ModelObject):
             return self._hash
         except AttributeError:
             # should this use frozenSet of each measures element?
-            self._hash = hash( ( tuple(self.measures[0]),tuple(self.measures[1]) ) )
+            self._hash = hash( self.measures ) # measures must be immutable (tuple)
             return self._hash
 
     @property
