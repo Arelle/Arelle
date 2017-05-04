@@ -86,7 +86,7 @@ class ValidateUtr:
                         _type = concept.type
                         while _type is not None:
                             unitMatched, typeMatched, _utrEntry = self.measuresMatch(
-                                False, *unit.measures, _type.name, _type.modelDocument.targetNamespace)
+                                False, unit.measures[0], unit.measures[1], _type.name, _type.modelDocument.targetNamespace)
                             if typeMatched:
                                 break
                             _type = _type.typeDerivedFrom
@@ -132,7 +132,7 @@ class ValidateUtr:
         _type = modelType
         while _type is not None:
             unitMatched, typeMatched, utrEntry = self.measuresMatch(
-                False, *unit.measures, _type.name, _type.modelDocument.targetNamespace)
+                False, unit.measures[0], unit.measures[1], _type.name, _type.modelDocument.targetNamespace)
             if typeMatched:
                 if unitMatched:
                     utrSatisfyingEntries.add(utrEntry)
