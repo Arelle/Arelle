@@ -4,7 +4,7 @@ Created on Dec 30, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010-2017 Mark V Systems Limited, All rights reserved.
 '''
-import os
+import os, logging
 from lxml import etree
 from arelle import ModelDocument
 from collections import defaultdict
@@ -14,13 +14,15 @@ DIVISOR = "*DIV*"
 class UtrEntry(): # use slotted class for execution efficiency
     __slots__ = ("id", "unitId", "nsUnit", "itemType", "nsItemType", "isSimple",
                  "numeratorItemType", "nsNumeratorItemType", 
-                 "denominatorItemType", "nsDenominatorItemType", "symbol")
+                 "denominatorItemType", "nsDenominatorItemType", "symbol",
+                 "status")
 
     def __repr__(self):
         return "utrEntry({})".format(', '.join("{}={}".format(n, getattr(self,n))
                                                for n in self.__slots__))
 
-def loadUtr(modelManager): # Build a dictionary of item types that are constrained by the UTR
+def loadUtr(modelXbrl): # Build a dictionary of item types that are constrained by the UTR
+    modelManager = modelXbrl.modelManager
     modelManager.disclosureSystem.utrItemTypeEntries = utrItemTypeEntries = defaultdict(dict)
     # print('UTR LOADED FROM '+utrUrl);
     # skip status message as it hides prior activity during which this might have just obtained symbols
@@ -29,6 +31,7 @@ def loadUtr(modelManager): # Build a dictionary of item types that are constrain
     try:
         from arelle.FileSource import openXmlFileStream
         # normalize any relative paths to config directory
+        unitDupCheck = set()
         file = openXmlFileStream(modelManager.cntlr, modelManager.disclosureSystem.utrUrl, stripDeclaration=True)[0]
         xmldoc = etree.parse(file)
         for unitElt in xmldoc.iter(tag="{http://www.xbrl.org/2009/utr}unit"):
@@ -42,13 +45,41 @@ def loadUtr(modelManager): # Build a dictionary of item types that are constrain
             u.nsNumeratorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsNumeratorItemType")
             u.denominatorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}denominatorItemType")
             u.nsDenominatorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsDenominatorItemType")
-            u.isSimple = u.numeratorItemType is None and u.denominatorItemType is None
+            u.isSimple = all(e is None for e in (u.numeratorItemType, u.nsNumeratorItemType, u.denominatorItemType, u.nsDenominatorItemType))
             u.symbol = unitElt.findtext("{http://www.xbrl.org/2009/utr}symbol")
-            # TO DO: This indexing scheme assumes that there are no name clashes in item types of the registry.
-            (utrItemTypeEntries[u.itemType])[u.id] = u
+            u.status = unitElt.findtext("{http://www.xbrl.org/2009/utr}status")
+            if u.status == "REC":
+                # TO DO: This indexing scheme assumes that there are no name clashes in item types of the registry.
+                (utrItemTypeEntries[u.itemType])[u.id] = u
+            unitDupKey = (u.unitId, u.nsUnit, u.status)
+            if unitDupKey in unitDupCheck:
+                modelXbrl.error("arelleUtrLoader:entryDuplication",
+                                "Unit Type Registry entry duplication: id %(id)s unit %(unitId)s nsUnit %(nsUnit)s status %(status)s",
+                                modelObject=modelXbrl, id=u.id, unitId=u.unitId, nsUnit=u.nsUnit, status=u.status)
+            unitDupCheck.add(unitDupKey)
+            if u.isSimple:
+                if not u.itemType:
+                    modelXbrl.error("arelleUtrLoader:simpleDefMissingField",
+                                    "Unit Type Registry simple unit definition missing item type: id %(id)s unit %(unitId)s nsUnit %(nsUnit)s status %(status)s",
+                                    modelObject=modelXbrl, id=u.id, unitId=u.unitId, nsUnit=u.nsUnit, status=u.status)
+                if u.numeratorItemType or u.denominatorItemType or u.nsNumeratorItemType or u.nsDenominatorItemType:
+                    modelXbrl.error("arelleUtrLoader",
+                                    "Unit Type Registry simple unit definition may not have complex fields: id %(id)s unit %(unitId)s nsUnit %(nsUnit)s status %(status)s",
+                                    modelObject=modelXbrl, id=u.id, unitId=u.unitId, nsUnit=u.nsUnit, status=u.status)
+            else:
+                if u.symbol:
+                    modelXbrl.error("arelleUtrLoader:complexDefSymbol",
+                                    "Unit Type Registry complex unit definition may not have symbol: id %(id)s unit %(unitId)s nsUnit %(nsUnit)s status %(status)s",
+                                    modelObject=modelXbrl, id=u.id, unitId=u.unitId, nsUnit=u.nsUnit, status=u.status)
+                if not u.numeratorItemType or not u.denominatorItemType:
+                    modelXbrl.error("arelleUtrLoader:complexDefMissingField",
+                                    "Unit Type Registry complex unit definition must have numerator and denominator fields: id %(id)s unit %(unitId)s nsUnit %(nsUnit)s status %(status)s",
+                                    modelObject=modelXbrl, id=u.id, unitId=u.unitId, nsUnit=u.nsUnit, status=u.status)
     except (EnvironmentError,
             etree.LxmlError) as err:
-        modelManager.cntlr.addToLog("Unit Type Registry Import error: {0}".format(err))
+        modelManager.modelXbrl.error("arelleUtrLoader:error",
+                                     "Unit Type Registry Import error: %(error)s",
+                                     modelObject=modelXbrl, error=err)
         etree.clear_error_log()
     if file:
         file.close()
@@ -68,7 +99,7 @@ class ValidateUtr:
         self.messageLevel = messageLevel
         self.messageCode = messageCode
         if getattr(modelXbrl.modelManager.disclosureSystem, "utrItemTypeEntries", None) is None: 
-            loadUtr(modelXbrl.modelManager)
+            loadUtr(modelXbrl)
         self.utrItemTypeEntries = modelXbrl.modelManager.disclosureSystem.utrItemTypeEntries
         
     def validateFacts(self):
