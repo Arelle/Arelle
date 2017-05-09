@@ -901,8 +901,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                 attrs["id"] = fact["id"]
                     
             # is value a QName?
-            if concept.baseXbrliType == "QName":
-                addQnameValue(modelXbrl.modelDocument, qname(text.strip(), prefixes))
+            if concept.baseXbrliType == "QNameItemType": # renormalize prefix of instance fact
+                text = addQnameValue(modelXbrl.modelDocument, qname(text.strip(), prefixes))
     
             f = modelXbrl.createFact(conceptQn, attributes=attrs, text=text, parent=parentModelFact, validate=False)
             
