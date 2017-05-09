@@ -16,6 +16,7 @@ To run from command line, loading formula linkbase and saving formula syntax fil
 '''
 from arelle.ViewUtilFormulae import rootFormulaObjects, formulaObjSortKey
 from arelle.ModelFormulaObject import (ModelValueAssertion, ModelExistenceAssertion, ModelConsistencyAssertion,
+                                       ModelAssertionSet,
                                        ModelFactVariable, ModelGeneralVariable, ModelFormula, ModelParameter,
                                        ModelFilter, ModelConceptName, ModelConceptPeriodType, ModelConceptBalance,
                                        ModelConceptCustomAttribute, ModelConceptDataType, ModelConceptSubstitutionGroup,
@@ -48,6 +49,7 @@ class GenerateXbrlFormula:
         self.xfLines = []
         self.xmlns = {}
         self.eltTypeCount = {}
+        self.nextIdDupNbr = {}
         
         for cfQnameArity in sorted(qnameArity
                                    for qnameArity in self.modelXbrl.modelCustomFunctionSignatures.keys()
@@ -85,15 +87,29 @@ class GenerateXbrlFormula:
     def xf(self, line):
         self.xfLines.append(line)
         
+    def objectId(self, fObj, elementType):
+        eltNbr = self.eltTypeCount[elementType] = self.eltTypeCount.get(elementType, 0) + 1
+        _id = fObj.id
+        if _id:
+            idDupNbr = self.nextIdDupNbr.get(_id,"")
+            self.nextIdDupNbr[_id] = (idDupNbr or 1) + 1
+            _id = "{}{}".format(_id, idDupNbr)
+        else:
+            _id = "{}{}".format(elementType, eltNbr)
+        return _id
+        
     def doObject(self, fObj, fromRel, pIndent, visited):
         if fObj is None:
             return
         cIndent = pIndent + "   "
-        if isinstance(fObj, (ModelValueAssertion, ModelExistenceAssertion, ModelFormula)):
+        if isinstance(fObj, ModelAssertionSet):
+            self.xf = "{}assertion-set {} {{".format(pIndent,  self.objectId(fObj, "assertionSet"))
+            for modelRel in self.modelXbrl.relationshipSet(XbrlConst.assertionSet).fromModelObject(fObj):
+                self.doObject(modelRel.toModelObject, modelRel, cIndent, visited)
+            self.xf = "{}}};".format(pIndent)
+        elif isinstance(fObj, (ModelValueAssertion, ModelExistenceAssertion, ModelFormula)):
             varSetType = "formula" if isinstance(fObj, ModelFormula) else "assertion"
-            eltNbr = self.eltTypeCount[varSetType] = self.eltTypeCount.get(varSetType, 0) + 1
-            _id = fObj.id or "{}{}".format(varSetType, eltNbr)
-            self.xf = "{}{} {} {{".format(pIndent, varSetType, _id)
+            self.xf = "{}{} {} {{".format(pIndent, varSetType, self.objectId(fObj, varSetType))
             for arcrole in (XbrlConst.elementLabel,
                             XbrlConst.assertionSatisfiedMessage,
                             XbrlConst.assertionUnsatisfiedMessage):
@@ -126,9 +142,7 @@ class GenerateXbrlFormula:
                 self.xf = "{}evaluation-count {{{}}}".format(cIndent, fObj.viewExpression or ". gt 0")
             self.xf = "{}}};".format(pIndent)
         elif isinstance(fObj, ModelConsistencyAssertion):
-            eltNbr = self.eltTypeCount["consistencyAssertion"] = self.eltTypeCount.get("consistencyAssertion", 0) + 1
-            _id = fObj.id or "{}{}".format("consistencyAssertion", eltNbr)
-            self.xf = "{}consistency-assertion {} {{".format(pIndent, _id)
+            self.xf = "{}consistency-assertion {} {{".format(pIndent, self.objectId(fObj, "consistencyAssertion"))
             for arcrole in (XbrlConst.elementLabel,
                             XbrlConst.assertionSatisfiedMessage,
                             XbrlConst.assertionUnsatisfiedMessage):
@@ -452,7 +466,7 @@ def saveXfMenuCommand(cntlr):
     cntlr.saveConfig()
 
     try: 
-        GenerateCHComponent(cntlr.modelManager.modelXbrl, xbrlFormulaFile)
+        GenerateXbrlFormula(cntlr.modelManager.modelXbrl, xbrlFormulaFile)
     except Exception as ex:
         dts = cntlr.modelManager.modelXbrl
         dts.error("exception",
