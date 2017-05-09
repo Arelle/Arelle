@@ -170,8 +170,11 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
         f = None
         try:
             # if moduleFilename is a directory containing an __ini__.py file, open that instead
-            if os.path.isdir(moduleFilename) and os.path.isfile(os.path.join(moduleFilename, "__init__.py")):
-                moduleFilename = os.path.join(moduleFilename, "__init__.py")
+            if os.path.isdir(moduleFilename):
+                if os.path.isfile(os.path.join(moduleFilename, "__init__.py")):
+                    moduleFilename = os.path.join(moduleFilename, "__init__.py")
+                else: # impossible to get a moduleinfo from a directory without an __init__.py
+                    return None
             moduleDir, moduleName = os.path.split(moduleFilename)
             if PLUGIN_TRACE_FILE:
                 with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:

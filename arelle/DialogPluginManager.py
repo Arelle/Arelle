@@ -400,10 +400,10 @@ class DialogPluginManager(Toplevel):
                             choices.append((indent + f, 
                                             "name: {}\ndescription: {}\nversion: {}\nlicense: {}".format(
                                                         moduleInfo["name"],
-                                                        moduleInfo["description"],
+                                                        moduleInfo.get("description"),
                                                         moduleInfo.get("version"),
                                                         moduleInfo.get("license")), 
-                                            fPath, moduleInfo["name"], moduleInfo.get("version"), moduleInfo["description"], moduleInfo.get("license")))
+                                            fPath, moduleInfo["name"], moduleInfo.get("version"), moduleInfo.get("description"), moduleInfo.get("license")))
                             dirHasEntries = True
                     if os.path.isdir(fPath) and f not in ("DQC_US_Rules",):
                         if selectChoices(fPath, indent=indent + "   ") and not moduleInfo:
