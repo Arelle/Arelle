@@ -280,7 +280,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 elif filetype == "enumerationDocumentation":
                     thisDoc.hasEnumerationDocumentation = True
                 elif filetype == "role" and namespaceURI:
-                    thisDoc.extensionRoles[namespaceURI] = filename
+                    thisDoc.extensionRoles[namespaceURI] = (filename, prefix)
                 elif filetype == "schema-version" and filename:
                     thisDoc.extensionSchemaVersion = filename
                 elif filetype == "table-style" and filename == "xbrl-us":
@@ -925,18 +925,22 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 del eltType
                 
         # add role definitions (for discovery)
-        for roleURI, roleDefinition in sorted(thisDoc.extensionRoles.items(), key=lambda rd: rd[1]):
+        for roleURI, (roleDefinition, usedOnRoles) in sorted(thisDoc.extensionRoles.items(), key=lambda rd: rd[1]):
             roleElt = XmlUtil.addChild(appinfoElt, XbrlConst.link, "roleType",
                                        attributes=(("roleURI",  roleURI),
                                                    ("id", "roleType_" + roleURI.rpartition("/")[2])))
             if roleDefinition:
                 XmlUtil.addChild(roleElt, XbrlConst.link, "definition", text=roleDefinition)
-            if hasPreLB:
-                XmlUtil.addChild(roleElt, XbrlConst.link, "usedOn", text="link:presentationLink")
-            if hasDefLB:
-                XmlUtil.addChild(roleElt, XbrlConst.link, "usedOn", text="link:definitionLink")
-            if hasCalLB:
-                XmlUtil.addChild(roleElt, XbrlConst.link, "usedOn", text="link:calculationLink")
+            if usedOnRoles:
+                for usedOnRole in usedOnRoles.split():
+                    XmlUtil.addChild(roleElt, XbrlConst.link, "usedOn", text=usedOnRole)
+            else:
+                if hasPreLB:
+                    XmlUtil.addChild(roleElt, XbrlConst.link, "usedOn", text="link:presentationLink")
+                if hasDefLB:
+                    XmlUtil.addChild(roleElt, XbrlConst.link, "usedOn", text="link:definitionLink")
+                if hasCalLB:
+                    XmlUtil.addChild(roleElt, XbrlConst.link, "usedOn", text="link:calculationLink")
             
         doc.schemaDiscover(schemaElt, False, thisDoc.extensionSchemaNamespaceURI)
 
