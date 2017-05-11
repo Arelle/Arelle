@@ -252,11 +252,11 @@ class GenerateXbrlFormula:
                         members.append("axis")
                         members.append(axis)
                 self.xf = "{}explicit-dimension {}{};".format(pIndent, 
-                                                              fObj.dimQname or "{{{}}}".format(fObj.dimQnameExpression) if fObj.dimQnameExpression else "",
+                                                              fObj.dimQname or ("{{{}}}".format(fObj.dimQnameExpression) if fObj.dimQnameExpression else ""),
                                                               " ".join(members))
             elif isinstance(fObj, ModelTypedDimension): # this is a ModelTestFilter not same as genera/unit/period
                 self.xf = "{}typed-dimension {}{};".format(pIndent, 
-                                                           fObj.dimQname or "{{{}}}".format(fObj.dimQnameExpression) if fObj.dimQnameExpression else "",
+                                                           fObj.dimQname or ("{{{}}}".format(fObj.dimQnameExpression) if fObj.dimQnameExpression else ""),
                                                            " {{{}}}".format(fObj.test) if fObj.test else "")
             elif isinstance(fObj, ModelTestFilter):
                 self.xf = "{}{} {{{}}};".format(pIndent, 
@@ -288,10 +288,10 @@ class GenerateXbrlFormula:
                 self.xf = "{}relative ${};".format(pIndent, fObj.variable)
             elif isinstance(fObj, ModelAncestorFilter):
                 self.xf = "{}ancestor {};".format(pIndent, 
-                                                  fObj.ancestorQname or "{{{}}}".format(fObj.qnameExpression) if fObj.qnameExpression else "")
+                                                  fObj.ancestorQname or ("{{{}}}".format(fObj.qnameExpression) if fObj.qnameExpression else ""))
             elif isinstance(fObj, ModelParentFilter):
                 self.xf = "{}parent {};".format(pIndent, 
-                                                  fObj.parentQname or "{{{}}}".format(fObj.qnameExpression) if fObj.qnameExpression else "")
+                                                  fObj.parentQname or ("{{{}}}".format(fObj.qnameExpression) if fObj.qnameExpression else ""))
             elif isinstance(fObj, ModelSiblingFilter):
                 self.xf = "{}sibling ${};".format(pIndent, fObj.variable)
             elif isinstance(fObj, ModelNilFilter):
