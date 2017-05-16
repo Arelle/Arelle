@@ -654,8 +654,8 @@ class ModelXbrl:
         :type divideBy: [QName]
         :returns: ModelUnit -- Matching unit object or None
         """
-        multiplyBy.sort()
-        divideBy.sort()
+        tuple(sorted(multiplyBy))
+        tuple(sorted(divideBy))
         for u in self.units.values():
             if u.measures == (multiplyBy,divideBy):
                 return u

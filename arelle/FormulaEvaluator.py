@@ -923,8 +923,8 @@ def produceOutputFact(xpCtx, formula, result):
                         lookForCommonUnits = False
                         for commonUnit in multiplyBy:
                             if commonUnit in divideBy:
-                                multiplyBy.remove(commonUnit)
-                                divideBy.remove(commonUnit)
+                                multiplyBy = tuple(u for u in multiplyBy if u != commonUnit)
+                                divideBy = tuple(u for u in divideBy if u != commonUnit)
                                 lookForCommonUnits = True
                                 break
                     if len(multiplyBy) == 0: # if no units add pure
@@ -933,7 +933,7 @@ def produceOutputFact(xpCtx, formula, result):
                             xpCtx.modelXbrl.error("xbrlfe:missingUnitRule",
                                _("Formula %(label)s"), 
                                modelObject=formula, label=formula.logLabel())
-                        multiplyBy.append(XbrlConst.qnXbrliPure)
+                        multiplyBy = (XbrlConst.qnXbrliPure,)
                             
         
         # dimensions
@@ -1152,12 +1152,12 @@ def formulaAspectValue(xpCtx, formula, aspect, srcMissingErr):
         if aspectSourceValue and (not augment or augment == "true"): # true is the default behavior
             return aspectSourceValue
         else:
-            return ([],[])
+            return ((),())
     elif aspect in (Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY):
         if sourceQname and aspectSourceValue:
             return aspectSourceValue
         else:
-            return (ruleValue,[])
+            return (ruleValue,())
     elif aspect == Aspect.DIMENSIONS:
         if aspectSourceValue is None: aspectSourceValue = set()
         if ruleValue is None: ruleValueSet = set()
