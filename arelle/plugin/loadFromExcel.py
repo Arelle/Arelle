@@ -207,7 +207,10 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
     dtsNamespaceURIColIndex = 4
     for iRow, row in enumerate(dtsWs.rows if dtsWs else ()):
         try:
-            if (len(row) < 1 or row[0].value is None):  # skip if col 1 is empty
+            if (len(row) < 1):  # skip if col 1 is non-existent
+                continue
+            _col0 = row[0].value
+            if isinstance(_col0, str) and _col0.startswith("#"): # empty or "#"
                 continue
             if iRow == 0:
                 # title row may have columns differently laid out
@@ -227,8 +230,6 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             if len(row) > dtsFilenameColIndex: filename = xlValue(row[dtsFilenameColIndex])
             if len(row) > dtsNamespaceURIColIndex: namespaceURI = xlValue(row[dtsNamespaceURIColIndex])
             lbType = lang = None
-            if action is not None and action.startswith("#"):
-                continue # comment line
             if action == "import":
                 if filetype == "role":
                     continue
@@ -1375,7 +1376,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
     return modelXbrl.modelDocument
 
 def isExcelLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
-    return os.path.splitext(mappedUri)[1] in (".xlsx", ".xls")
+    return os.path.splitext(mappedUri)[1] in (".xlsx", ".xls", ".xlsm")
 
 def excelLoaderFilingStart(cntlr, options, *args, **kwargs):
     global excludeDesignatedEnumerations, annotateEnumerationsDocumentation, annotateElementDocumentation, saveXmlLang
@@ -1385,7 +1386,7 @@ def excelLoaderFilingStart(cntlr, options, *args, **kwargs):
     saveXmlLang = options.ensure_value("saveLang", None)
 
 def excelLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
-    if os.path.splitext(filepath)[1] not in (".xlsx", ".xls"):
+    if os.path.splitext(filepath)[1] not in (".xlsx", ".xls", ".xlsm"):
         return None # not an OIM file
 
     cntlr = modelXbrl.modelManager.cntlr
