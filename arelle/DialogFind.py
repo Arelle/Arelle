@@ -239,6 +239,9 @@ class DialogFind(Toplevel):
         
         objsFound = set()
         
+        self.result = "Found "
+
+        
         try:
             if exprType == "text":
                 # escape regex metacharacters
@@ -306,11 +309,14 @@ class DialogFind(Toplevel):
                              )
                             ):
                             objsFound.add(fact)
-        except XPathContext.XPathException as err:
-            err = _("Find expression error: {0} \n{1}").format(err.message, err.sourceErrorIndication)
+        except (XPathContext.XPathException, TypeError, ValueError, OverflowError, IndexError, KeyError, re.error) as err:
+            err = _("Find expression error: {0} \n{1}").format(
+                str(err), 
+                getattr(err, "sourceErrorIndication",getattr(err, "pattern","")))
             self.modelManager.addToLog(err)
             self.modelManager.cntlr.uiThreadQueue.put((self.resultText.setValue, [err]))
             self.modelManager.showStatus(_("Completed with errors"), 5000)
+            self.result = err + "\n"
                             
         numConcepts = 0
         numFacts = 0
@@ -331,7 +337,6 @@ class DialogFind(Toplevel):
                 numRssItems += 1
                 self.objsList.append( ('r', obj.__hash__(), obj.objectId()) )
         self.objsList.sort()
-        self.result = "Found "
         if numConcepts:
             self.result += "{0} concepts".format(numConcepts)
             if numFacts: self.result += ", "
