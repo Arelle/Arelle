@@ -318,7 +318,7 @@ def parseAndRun(args):
 
     # install any dynamic plugins so their command line options can be parsed if present
     for i, arg in enumerate(args):
-        if arg.startswith('--plugins'):
+        if arg.startswith('--plugin'): # allow singular or plural (option must simply be non-ambiguous
             if len(arg) > 9 and arg[9] == '=':
                 preloadPlugins = arg[10:]
             elif i < len(args) - 1:
