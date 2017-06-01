@@ -405,26 +405,33 @@ def compileConceptFilter( sourceStr, loc, toks ):
             filterAttrib["balance"] = tok
         elif isSubstitution and tok == "strict":
             filterAttrib["strict"] = "true"
-        elif isSubstitution and prevTok == "not-strict":
+        elif isSubstitution and prevTok == "non-strict":
             filterAttrib["strict"] = "false"
         elif isName and not hasLocalName and isinstance(tok, str) and ":" not in tok:
             hasLocalName = True
         prevTok = tok
     filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
+    if isDataType:
+        subEltParent = lbGen.subElement(filterElt, "cf:type")
+    else:
+        subEltParent = filterElt
     # sub-elements of filter
-    if isName or isSubstitution:
+    if isName or isSubstitution or isDataType:
         useTok = False
         for tok in toks:
-            if not useTok and tok in ("concept-name", "concept-substitution-group"):
+            # "concept-name" (qname | local-name | enclosed-expression)+
+            # "concept-data-type" ("strict" | "not-strict") (qname | enclosed-expression)
+            # "concept-substitution-group" ("strict" | "not-strict") (qname | enclosed-expression)
+            if not useTok and tok in ("concept-name", "strict", "non-strict"):
                 useTok = True
             elif useTok:
                 if isinstance(tok, XPathExpression):
-                    lbGen.subElement(filterElt, "cf:qnameExpression", text=str(tok))
+                    lbGen.subElement(subEltParent, "cf:qnameExpression", text=str(tok))
                 elif ':' in tok: # it's a QName
-                    lbGen.subElement(filterElt, "cf:qname", text=tok)
+                    lbGen.subElement(subEltParent, "cf:qname", text=tok)
                 else: # it's a local name, requires general & aspect cover filter
                     lbGen.checkXmlns("xfi")
-                    lbGen.subElement(filterElt, "cf:qnameExpression", 
+                    lbGen.subElement(subEltParent, "cf:qnameExpression", 
                                      text="xfi:concepts-from-local-name('{}')".format(tok))
     return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
             FormulaResourceElt(filterElt)]
@@ -1277,13 +1284,15 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
     parameterDeclaration = (Suppress(Keyword("parameter")) + qName  +  
                             Optional(Keyword("required")) +
+                            Suppress(Literal("{")) +
                             Optional(Keyword("select") + xpathExpression) +
-                            Optional(Keyword("as") + qName) + separator
+                            Optional(Keyword("as") + qName) + 
+                            Suppress(Literal("}")) + separator
                            ).setParseAction(compileParameterDeclaration).ignore(xfsComment)
                            
     occurenceIndicator = Literal("?") | Literal("*") | Literal("+")
                            
-    functionParameter = (variableRef + Suppress(Keyword("as")) + Combine(qName + Optional(occurenceIndicator))
+    functionParameter = (qName + Suppress(Keyword("as")) + Combine(qName + Optional(occurenceIndicator))
                          ).setParseAction(compileFunctionParameter).ignore(xfsComment)
                          
     functionStep = (Suppress(Keyword("step")) + variableRef + xpathExpression + 
@@ -1294,7 +1303,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                               Keyword("return") + xpathExpression + separator +
                               Suppress(Literal("}"))).ignore(xfsComment)
     
-    functionDeclaration = (Suppress(Keyword("function")) + ncName  + 
+    functionDeclaration = (Suppress(Keyword("function")) + qName  + 
                            Suppress(Literal("(")) + Optional(delimitedList(functionParameter)) + Suppress(Literal(")")) +
                               Keyword("as") + Combine(qName + Optional(occurenceIndicator)) +
                            Optional(functionImplementation) + separator
@@ -1372,8 +1381,8 @@ def compileXfsGrammar( cntlr, debugParsing ):
         (Keyword("concept-name") + OneOrMore(qName | xpathExpression) + separator) |
          Keyword("concept-period-type") + (Keyword("instant") | Keyword("duration")) + separator |
          Keyword("concept-balance") + (Keyword("credit") | Keyword("debit") | Keyword("none")) + separator |
-         Keyword("concept-data-type") + (Keyword("strict") | Keyword("not-strict")) + (qName | xpathExpression) + separator |
-         Keyword("concept-substitution-group") + (Keyword("strict") | Keyword("not-strict")) + (qName | xpathExpression) + separator
+         Keyword("concept-data-type") + (Keyword("strict") | Keyword("non-strict")) + (qName | xpathExpression) + separator |
+         Keyword("concept-substitution-group") + (Keyword("strict") | Keyword("non-strict")) + (qName | xpathExpression) + separator
         ).setParseAction(compileConceptFilter).ignore(xfsComment).setName("concept-filter").setDebug(debugParsing)
 
 
@@ -1891,6 +1900,11 @@ xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/x
                     schemaLoc = nsAndSchemaloc[1]
             if self.modelXbrl is not None:
                 self.arelleSetXmlns(self.modelDocument, prefix, ns)
+                if schemaLoc:
+                    self.modelDocument.xmlRootElement.set(
+                        "{http://www.w3.org/2001/XMLSchema-instance}schemaLocation",
+                        self.modelDocument.xmlRootElement.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation", "")
+                        + " {} {}".format(ns, schemaLoc))
                 return
             newmap = root.nsmap
             newmap[prefix] = ns
@@ -1943,6 +1957,8 @@ xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/x
     def subElement(self, parentElt, tag, attrib=None, text=None):
         elt = self.element(tag, attrib, text)
         parentElt.append(elt)
+        if self.modelXbrl is not None:
+            elt.setNamespaceLocalName() # correct prefixed name after adding to parent
         return elt
     
     def arcrole(self, arcrole):
@@ -1976,7 +1992,7 @@ xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/x
         return _labelNbr   
     
 # interfaces for Arelle plugin operation
-def isXfLoadable(modelXbrl, mappedUri, normalizedUri, **kwargs):
+def isXfLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
     return os.path.splitext(mappedUri)[1] == ".xf"
 
 def xfLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
@@ -1993,13 +2009,13 @@ def xfLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     return doc
 
 def guiXbrlLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
-    return
+    #return
     #### disabled for future less annoying option
     if cntlr.hasGui and getattr(modelXbrl, "loadedFromXbrlFormula", False):
         from arelle import ModelDocument
         from tkinter.filedialog import askdirectory
         for doc in modelXbrl.urlDocs.values():
-            if getattr(doc,"loadedFromXbrlFormula"):
+            if getattr(doc,"loadedFromXbrlFormula", False):
                 linkbaseFile = cntlr.uiFileDialog("save",
                         title=_("arelle - Save XBRL formula linkbase"),
                         initialdir=cntlr.config.setdefault("outputInstanceDir","."),
@@ -2017,7 +2033,7 @@ def guiXbrlLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
 def cmdLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
     if options.saveFormulaLinkbase and getattr(modelXbrl, "loadedFromXf", False):
         for doc in modelXbrl.urlDocs.values():
-            if getattr(doc,"loadedFromXbrlFormula"):
+            if getattr(doc,"loadedFromXbrlFormula", False):
                 doc.save(options.saveFormulaLinkbase)
                 cntlr.showStatus(_("Saving XBRL formula linkbase: {0}").format(doc.basename))
 

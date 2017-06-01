@@ -137,9 +137,9 @@ class GenerateXbrlFormula:
                 for modelRel in self.modelXbrl.relationshipSet(arcrole).fromModelObject(fObj):
                     self.doObject(modelRel.toModelObject, modelRel, cIndent, visited)
             if isinstance(fObj, ModelValueAssertion):
-                self.xf = "{}test {{{}}}".format(cIndent, fObj.viewExpression)
+                self.xf = "{}test {{{}}};".format(cIndent, fObj.viewExpression)
             elif isinstance(fObj, ModelExistenceAssertion):
-                self.xf = "{}evaluation-count {{{}}}".format(cIndent, fObj.viewExpression or ". gt 0")
+                self.xf = "{}evaluation-count {{{}}};".format(cIndent, fObj.viewExpression or ". gt 0")
             self.xf = "{}}};".format(pIndent)
         elif isinstance(fObj, ModelConsistencyAssertion):
             self.xf = "{}consistency-assertion {} {{".format(pIndent, self.objectId(fObj, "consistencyAssertion"))
@@ -281,8 +281,8 @@ class GenerateXbrlFormula:
             elif isinstance(fObj, ModelEntityRegexpIdentifier):
                 self.xf = "{}entity-identifier-pattern \"{}\";".format(pIndent, fObj.pattern)
             elif isinstance(fObj, ModelMatchFilter):
-                self.xf = "{}{} ${} {}{};".format(pIndent, kebabCase(fObj.localName), fObj.variable, 
-                                                  fObj.dimension or "",
+                self.xf = "{}{} ${} {}{};".format(pIndent, kebabCase(fObj.localName), fObj.variable,
+                                                  " dimension {}".format(fObj.dimension) if fObj.get("dimension") else "",
                                                   " match-any" if fObj.matchAny else "")
             elif isinstance(fObj, ModelRelativeFilter):
                 self.xf = "{}relative ${};".format(pIndent, fObj.variable)
@@ -365,11 +365,11 @@ class GenerateXbrlFormula:
                                                                       fObj.outputType)
         elif isinstance(fObj, ModelCustomFunctionImplementation):
             sigObj = fromRel.fromModelObject
-            self.xf = "{}function {}({}) as {} {{;".format(pIndent, 
-                                                            sigObj.name, 
-                                                            ", ".join("{} as {}".format(inputName, sigObj.inputTypes[i])
-                                                                      for i, inputName in enumerate(fObj.inputNames)),
-                                                            sigObj.outputType)
+            self.xf = "{}function {}({}) as {} {{".format(pIndent, 
+                                                          sigObj.name, 
+                                                          ", ".join("{} as {}".format(inputName, sigObj.inputTypes[i])
+                                                                    for i, inputName in enumerate(fObj.inputNames)),
+                                                          sigObj.outputType)
             for name, stepExpr in fObj.stepExpressions:
                 if "\n" not in stepExpr:
                     self.xf = "{}step ${} {{{}}};".format(cIndent, name, stepExpr)
@@ -457,8 +457,8 @@ def saveXfMenuCommand(cntlr):
     xbrlFormulaFile = cntlr.uiFileDialog("save",
             title=_("arelle - Save XBRL Formula file"),
             initialdir=cntlr.config.setdefault("xbrlFormulaFileDir","."),
-            filetypes=[(_("Component file .xml"), "*.xml")],
-            defaultextension=".xml")
+            filetypes=[(_("XBRL formula file .xf"), "*.xf")],
+            defaultextension=".xf")
     if not xbrlFormulaFile:
         return False
     import os
