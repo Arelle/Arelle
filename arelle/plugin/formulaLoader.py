@@ -1277,7 +1277,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                        Suppress(Literal("}"))).setParseAction(compileXPathExpression)
     separator = Suppress( Literal(";") )
     
-    namespaceDeclaration = (Suppress(Keyword("namespace")) + quotedString + Suppress(Literal("=")) + quotedString + separator
+    namespaceDeclaration = (Suppress(Keyword("namespace")) + ncName + Suppress(Literal("=")) + quotedString + separator
                             ).setParseAction(compileNamespaceDeclaration).ignore(xfsComment)
     defaultDeclaration = (Suppress(Keyword("unsatisfied-severity") | Keyword("default-language")) + ncName + separator
                          ).setParseAction(compileDefaults).ignore(xfsComment)

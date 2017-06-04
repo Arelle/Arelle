@@ -69,7 +69,7 @@ class GenerateXbrlFormula:
         if self.xmlns:
             self.xfLines.insert(0, "")
             for prefix, ns in sorted(self.xmlns.items(), reverse=True):
-                self.xfLines.insert(0, "namespace \"{}\" = \"{}\";".format(prefix, ns))
+                self.xfLines.insert(0, "namespace {} = \"{}\";".format(prefix, ns))
             
         self.xfLines.insert(0, "")
         self.xfLines.insert(0, "(: Generated from {} by Arelle on {} :)".format(modelXbrl.modelDocument.basename, XmlUtil.dateunionValue(datetime.datetime.now())))
