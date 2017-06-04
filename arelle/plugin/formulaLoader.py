@@ -8,11 +8,11 @@ Loads xbrl formula file syntax into formula linkbase.
 
 To run as a main program and save xbrl formula files (.xf) into xbrl formula linkbase:
 
-   python3.5  formulaLoader.py {files} {debug}
-   where {files} are formula files separated by | characters (enclose in single quotes on unix)
+   python3.5  formulaLoader.py [--debug] {files}
+   where {files} are formula files 
    loads from {name}.xf file
    saves formula linkbase to {name}-formula.xml file
-   if arg2 is debug then parsing debug trace is printed (helpful to see where parsing got stuck if parse errors)
+   if --debug is specified then pyparsing debug trace is printed (helpful to see where parsing got stuck if parse errors)
    
 As a plugin this enables Arelle to load formula files (*.xf) into Arelle's object model for formula linkbases and execute them.
 When run from GUI first load the instance/DTS and then import the xf file(s).
@@ -1595,7 +1595,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
     return xfsProg
 
-def parse(cntlr, _logMessage, xfsFiles, modelXbrl=None, debugParsing=False):
+def parse(cntlr, _logMessage, xfFiles, modelXbrl=None, debugParsing=False):
     from pyparsing import ParseException, ParseSyntaxException
     
     global xc, logMessage
@@ -1701,7 +1701,7 @@ def parse(cntlr, _logMessage, xfsFiles, modelXbrl=None, debugParsing=False):
         return successful
           
     successful = True          
-    for filename in xfsFiles:
+    for filename in xfFiles:
         if not parseFile(filename):
             successful = False
                 
@@ -2071,11 +2071,37 @@ if __name__ == "__main__":
     def _logMessage(severity, code, message, **kwargs):
         print("[{}] {}".format(code, message % kwargs))
         
-    xfiFilesList = sys.argv[1].split("|")
+    debugParsing = False
+    xfFiles = []
     
-    debugParsing = len(sys.argv) > 2 and sys.argv[2] == "debug"
-    
-    # load formula syntax
-    xfsProgs = parse(_cntlr(), _logMessage, xfiFilesList, debugParsing=debugParsing)
+    for arg in sys.argv[1:]:
+        if arg in ("-a", "--about"):
+            print("\narelle(r) xf formula loader"
+                  "(c) 2017 Mark V Systems Limited\n"
+                  "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
+                  "Licensed under the Apache License, Version 2.0 (the \"License\"); "
+                  "you may not \nuse this file except in compliance with the License.  "
+                  "You may obtain a copy \nof the License at "
+                  "'http://www.apache.org/licenses/LICENSE-2.0'\n\n"
+                  "Unless required by applicable law or agreed to in writing, software \n"
+                  "distributed under the License is distributed on an \"AS IS\" BASIS, \n"
+                  "WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  \n"
+                  "See the License for the specific language governing permissions and \n"
+                  "limitations under the License.")
+        elif arg in ("-h", "-?", "--help"):
+            print("command line arguments: \n"
+                  "  --debug: specifies a pyparsing debug trace \n"
+                  "  {file}: parse and save as linkbase named {file}-formula.xml")
+        elif arg == "--debug":
+            debugParsing = True
+        else:
+            if os.path.exists(arg):
+                xfFiles.append(arg)
+            else:
+                print("file named {} not found".format(arg))
+            
+    # load xf formula files
+    if xfFiles:
+        xfsProgs = parse(_cntlr(), _logMessage, xfFiles, debugParsing=debugParsing)
                 
 
