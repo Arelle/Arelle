@@ -103,6 +103,7 @@ class Cntlr:
         self.hasFileSystem = True # no file system on Google App Engine servers
         self.isGAE = False
         self.isCGI = False
+        self.localOnly = False # if true, webCAche will not try to fetch any non local files
         self.systemWordSize = int(round(math.log(sys.maxsize, 2)) + 1) # e.g., 32 or 64
 
         _resourcesDir = resourcesDir()
