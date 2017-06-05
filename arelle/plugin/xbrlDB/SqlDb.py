@@ -103,13 +103,13 @@ except ImportError:
 
 
 
-def isSqlConnection(host, port, timeout=10, product=None):
+def isSqlConnection(host, port, timeout=10, product=None, ssl=False):
     # determine if postgres port
     t = 2
     while t < timeout:
         try:
             if product == "postgres" and hasPostgres:
-                pgConnect(user='', host=host, port=int(port or 5432), socket_timeout=t)
+                pgConnect(user='', host=host, port=int(port or 5432), socket_timeout=t, ssl=ssl)
             elif product == "mysql" and hasMySql:
                 mysqlConnect(user='', host=host, port=int(port or 5432), socket_timeout=t)
             elif product == "orcl" and hasOracle:
@@ -120,6 +120,8 @@ def isSqlConnection(host, port, timeout=10, product=None):
                 mssqlConnect(user='', host=host, socket_timeout=t)
             elif product == "sqlite" and hasSQLite:
                 sqliteConnect("", t) # needs a database specified for this test
+        except pg8000.InterfaceError:
+            return isSqlConnection(host, port, timeout, product, False)
         except (pgProgrammingError, mysqlProgrammingError, oracleDatabaseError, sqliteProgrammingError):
             return True # success, this is really a postgres socket, wants user name
         except (pgInterfaceError, mysqlInterfaceError, oracleInterfaceError, 
@@ -146,10 +148,19 @@ class SqlDbConnection():
             if not hasPostgres:
                 raise XPDBException("xpgDB:MissingPostgresInterface",
                                     _("Postgres interface is not installed")) 
-            self.conn = pgConnect(user=user, password=password, host=host, 
-                                  port=int(port or 5432), 
-                                  database=database, 
-                                  socket_timeout=timeout or 60)
+            
+            try:
+                self.conn = pgConnect(user=user, password=password, host=host, 
+                                      port=int(port or 5432), 
+                                      database=database, 
+                                      socket_timeout=timeout or 60,
+                                      ssl=True)
+            except pg8000.InterfaceError:
+                self.conn = pgConnect(user=user, password=password, host=host, 
+                                      port=int(port or 5432), 
+                                      database=database, 
+                                      socket_timeout=timeout or 60,
+                                      ssl=False)
             self.product = product
         elif product == "mysql":
             if not hasMySql:

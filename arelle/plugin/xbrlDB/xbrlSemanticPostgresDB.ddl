@@ -111,7 +111,7 @@ CREATE TABLE filing (
     form_type character varying(30),
     entity_id bigint NOT NULL,
     reference_number character varying(30), -- external code, e.g. CIK (which may change for an entity during entity's life)
-    accepted_timestamp timestamp without time zone DEFAULT now() NOT NULL,
+    accepted_timestamp timestamp without time zone DEFAULT now(),
     is_most_current boolean DEFAULT false NOT NULL,
     filing_date date NOT NULL,
     creation_software text,
