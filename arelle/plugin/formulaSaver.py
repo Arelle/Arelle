@@ -29,7 +29,7 @@ from arelle.ModelFormulaObject import (ModelValueAssertion, ModelExistenceAssert
                                        ModelCustomFunctionSignature, ModelCustomFunctionImplementation,
                                        ModelPeriod,
                                        ModelAndFilter, ModelOrFilter, ModelMessage)
-from arelle import XbrlConst, XmlUtil
+from arelle import XbrlConst, XmlUtil, XPathParser
 import os, datetime
 
 class NotExportable(Exception):
@@ -271,7 +271,8 @@ class GenerateXbrlFormula:
             elif isinstance(fObj, ModelInstantDuration):
                 self.xf = "{}instant-duration {} {};".format(pIndent, fObj.boundary, fObj.variable)
             elif isinstance(fObj, ModelSingleMeasure):
-                self.xf = "{}unit {} {};".format(pIndent, fObj.boundary, fObj.variable)
+                self.xf = "{}unit-single-measure {};".format(pIndent, 
+                                                             fObj.measureQname or ("{{{}}}".format(fObj.qnameExpression) if fObj.qnameExpression else ""))
             elif isinstance(fObj, ModelEntitySpecificIdentifier):
                 self.xf = "{}entity scheme {{{}}} value {{{}}};".format(pIndent, fObj.scheme, fObj.value)
             elif isinstance(fObj, ModelEntityScheme):
@@ -360,11 +361,13 @@ class GenerateXbrlFormula:
                     hasImplementation = True
                 visited.remove(fObj)
             if not hasImplementation:
+                self.xmlns[fObj.functionQname.prefix] = fObj.functionQname.namespaceURI
                 self.xf = "{}abstract-function {}({}) as {};".format(pIndent, fObj.name, 
                                                                       ", ".join(str(t) for t in fObj.inputTypes), 
                                                                       fObj.outputType)
         elif isinstance(fObj, ModelCustomFunctionImplementation):
             sigObj = fromRel.fromModelObject
+            self.xmlns[sigObj.functionQname.prefix] = sigObj.functionQname.namespaceURI
             self.xf = "{}function {}({}) as {} {{".format(pIndent, 
                                                           sigObj.name, 
                                                           ", ".join("{} as {}".format(inputName, sigObj.inputTypes[i])
@@ -438,8 +441,13 @@ class GenerateXbrlFormula:
                     self.xf = "{}{}{};".format(cIndent, kebabCase(elt.localName), arg)
             if fObj.localName not in ("concept", "entityIdentifier", "period"):
                 self.xf = "{}}};".format(pIndent)
-            
-                
+        # check for prefixes in AST of programs of fObj
+        if hasattr(fObj, "compile") and type(fObj.compile).__name__ == "method":
+            fObj.compile()
+            for _prog, _ast in fObj.__dict__.items():
+                if _prog.endswith("Prog") and isinstance(_ast, list):
+                    XPathParser.prefixDeclarations(_ast, self.xmlns, fObj)
+
 
 def saveXfMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin

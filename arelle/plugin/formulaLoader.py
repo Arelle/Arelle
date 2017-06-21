@@ -396,6 +396,7 @@ def compileConceptFilter( sourceStr, loc, toks ):
             elif tok == "concept-data-type":
                 isDataType = True
                 filterEltQname = "cf:conceptDataType"
+                filterAttrib["strict"] = "false"
             elif tok == "concept-substitution-group":
                 isSubstitution = True
                 filterEltQname = "cf:conceptSubstitutionGroup"
@@ -653,13 +654,13 @@ def compileFactVariable( sourceStr, loc, toks ):
     varLabel = "variable{}".format(lbGen.labelNbr("variable"))
     attrib = {"xlink:type": "resource",
               "xlink:label": varLabel,
-              "bind-as-sequence": "false"}
+              "bindAsSequence": "false"}
     prevTok = name = None
     for tok in toks:
         if prevTok is None:
             name = tok[1:] # remove $ from variable name
         elif tok == "bind-as-sequence":
-            attrib["bind-as-sequence"] = "true"
+            attrib["bindAsSequence"] = "true"
         elif tok == "nils":
             attrib["nils"] = "true"
         elif tok == "matches":
@@ -766,13 +767,13 @@ def compileFunctionDeclaration( sourceStr, loc, toks ):
     prevTok = None
     for tok in toks:
         if isinstance(tok, FunctionParameter):
-            lbGen.subElement(signatureElt, "variable:input", attrib={"name": tok.qname,"type": tok.ptype})
+            lbGen.subElement(signatureElt, "variable:input", attrib={"type": tok.ptype})
     # function implementation
     if hasImplementation:
+        cfiLabel = "functionImplementation{}".format(lbGen.labelNbr("functionImplementation"))
         cfiElt = lbGen.subElement(lbGen.genLinkElement, "cfi:implementation", attrib={
             "xlink:type": "resource",
-            "xlink:label": signatureLabel})
-        cfiLabel = "functionImplementation{}".format(lbGen.labelNbr("functionImplementation"))
+            "xlink:label": cfiLabel})
         lbGen.subElement(lbGen.genLinkElement, "generic:arc", attrib={
             "xlink:type": "arc",
             "xlink:arcrole": "function-implementation",
@@ -824,13 +825,13 @@ def compileGeneralVariable( sourceStr, loc, toks ):
     varLabel = "variable{}".format(lbGen.labelNbr("variable"))
     attrib = {"xlink:type": "resource",
               "xlink:label": varLabel,
-              "bind-as-sequence": "false"}
+              "bindAsSequence": "false"}
     prevTok = name = None
     for tok in toks:
         if prevTok is None:
             name = tok[1:] # remove $ from variable name
         elif tok == "bind-as-sequence":
-            attrib["bind-as-sequence"] = "true"
+            attrib["bindAsSequence"] = "true"
         elif prevTok == "select":
             attrib["select"] = str(tok)
         prevTok = tok
@@ -859,25 +860,27 @@ def compileLabel( sourceStr, loc, toks ):
     for tok in toks:
         if tok.startswith("(") and tok.endswith(")"):
             langTok = tok[1:-1]
-        if prevTok == "label":
-            labelType = "label"
-            arcrole = "element-label"
-            role = "label"
-            labelElt = "generic:label"
-            label = tok
-        elif prevTok == "satisfied-message":
-            labelType = "message"
-            arcrole = "assertion-satisfied-message"
-            role = "message"
-            labelElt = "msg:message"
-            label = tok
-        elif prevTok == "unsatisfied-message":
-            labelType = "message"
-            arcrole = "assertion-unsatisfied-message"
-            role = "message"
-            labelElt = "msg:message"
-            label = tok
-        prevTok = tok
+        else:
+            if prevTok == "label":
+                labelType = "label"
+                arcrole = "element-label"
+                role = "label"
+                labelElt = "generic:label"
+                label = tok
+            elif prevTok == "satisfied-message":
+                labelType = "message"
+                arcrole = "assertion-satisfied-message"
+                role = "message"
+                labelElt = "msg:message"
+                label = tok
+            elif prevTok == "unsatisfied-message":
+                labelType = "message"
+                arcrole = "assertion-unsatisfied-message"
+                role = "message"
+                labelElt = "msg:message"
+                label = tok
+            # Don't set prevTok if it was a language
+            prevTok = tok
     labelLabel = "{}{}".format(labelType, lbGen.labelNbr(labelType))
     arcAttrib={"xlink:type": "arc",
                "xlink:arcrole": arcrole,
@@ -1947,7 +1950,7 @@ xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/x
             return None
     
     def element(self, tag, attrib=None, text=None):
-        elt = self.xmlParser.makeelement(self.clarkName(tag), attrib=self.clarkAttrib(attrib))
+        elt = self.xmlParser.makeelement(self.clarkName(tag), attrib=self.clarkAttrib(attrib), nsmap=self.lbDocument.getroot().nsmap)
         if self.modelXbrl is not None:
             elt.init(self.modelDocument) # modelObject in arelle
         if text:

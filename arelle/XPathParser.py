@@ -819,6 +819,30 @@ def variableReferences(exprStack, varRefSet, element, rangeVars=None):
     for localRangeVar in localRangeVars:
         if localRangeVar in rangeVars:
             rangeVars.remove(localRangeVar)
+            
+def prefixDeclarations(exprStack, xmlnsDict, element):
+    from arelle.ModelValue import qname
+    for p in exprStack:
+        if isinstance(p, ProgHeader):
+            element = p.element
+        elif isinstance(p,VariableRef):
+            var = qname(element, p.name, noPrefixIsNoNamespace=True)
+            if var.prefix:
+                xmlnsDict[var.prefix] = var.namespaceURI
+        elif isinstance(p,OperationDef):
+            op = p.name
+            if isinstance(op, QNameDef) and op.prefix:
+                xmlnsDict[op.prefix] = op.namespaceURI
+            prefixDeclarations(p.args, xmlnsDict, element)
+        elif isinstance(p,Expr):
+            prefixDeclarations(p.expr, xmlnsDict, element)
+        elif isinstance(p,RangeDecl):
+            var = p.rangeVar.name
+            if var.prefix:
+                xmlnsDict[var.prefix] = var.namespaceURI
+            prefixDeclarations(p.bindingSeq, xmlnsDict, element)
+        elif hasattr(p, '__iter__') and not isinstance(p, _STR_BASE):
+            prefixDeclarations(p, xmlnsDict, element)
 
 def clearProg(exprStack):
     if exprStack:
