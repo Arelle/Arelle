@@ -23,10 +23,10 @@ def get_version():
 
     source_dir = 'arelle'
 
-    with open('{}/_pkg_meta.py'.format(source_dir), 'rb') as fp:
-        mod = imp.load_source('_pkg_meta', source_dir, fp)
+    with open('{}/Version.py'.format(source_dir), 'rb') as fp:
+        mod = imp.load_source('Version', source_dir, fp)
 
-    return mod.version
+    return mod.version[:10]
 
 
 setup_requires = ['lxml']
