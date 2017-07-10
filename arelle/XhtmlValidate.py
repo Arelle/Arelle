@@ -308,9 +308,12 @@ def xhtmlValidate(modelXbrl, elt):
                     issue = " may only have 0 or 1 but {0} present ".format(len(relations))
                 if reqt == '+' and len(relations) == 0:
                     issue = " must have at least 1 but none present "
+                disallowedChildText = bool(reqt == '&' and 
+                                           rel in ("child-sequence", "child-choice") 
+                                           and elt.textValue.strip())
                 if ((reqt == '+' and not relations) or
                     (reqt == '-' and relations) or
-                    (issue)):
+                    (issue) or disallowedChildText):
                     code = "{}:{}".format(ixSect[elt.namespaceURI].get(elt.localName,"other")["constraint"], {
                            'ancestor': "ancestorNode",
                            'parent': "parentNode",
@@ -322,7 +325,7 @@ def xhtmlValidate(modelXbrl, elt):
                             '-': "Disallowed",
                             '&': "Allowed",
                             '^': "Specified"}.get(reqt, "Specified"))
-                    msg = _("Inline XBRL ix:{0} {1} {2} {3} {4} element").format(
+                    msg = _("Inline XBRL ix:{0} {1} {2} {3} {4} element{5}").format(
                                 elt.localName,
                                 {'+': "must", '-': "may not", '&': "may only",
                                  '?': "may", '+': "must"}[reqt],
@@ -336,7 +339,8 @@ def xhtmlValidate(modelXbrl, elt):
                                 ', '.join(str(r.elementQname) for r in relations)
                                 if names == ('*',) and relations else
                                 ", ".join("{}:{}".format(namespacePrefix, n) for n in names),
-                                issue)
+                                issue,
+                                " and no child text" if disallowedChildText else "")
                     modelXbrl.error(code, msg, 
                                     modelObject=[elt] + relations, requirement=reqt,
                                     messageCodes=("ix{ver.sect}:ancestorNode{Required|Disallowed}",
