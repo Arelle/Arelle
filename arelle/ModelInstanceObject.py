@@ -585,55 +585,58 @@ class ModelInlineValueObject:
                                   ixEscape=(self.get("escape") in ("true","1")), 
                                   ixContinuation=(self.elementQname == XbrlConst.qnIXbrl11NonNumeric),
                                   strip=True) # transforms are whitespace-collapse
-            f = self.format
-            if f is not None:
-                if f.namespaceURI in FunctionIxt.ixtNamespaceFunctions:
-                    try:
-                        v = FunctionIxt.ixtNamespaceFunctions[f.namespaceURI][f.localName](v)
-                    except Exception as err:
-                        self._ixValue = ModelValue.INVALIDixVALUE
-                        raise err
-                else:
-                    try:
-                        v = self.modelXbrl.modelManager.customTransforms[f](v)
-                    except KeyError as err:
-                        self._ixValue = ModelValue.INVALIDixVALUE
-                        raise FunctionIxt.ixtFunctionNotAvailable
-                    except Exception as err:
-                        self._ixValue = ModelValue.INVALIDixVALUE
-                        raise err
-            if self.localName == "nonNumeric" or self.localName == "tuple" or self.isNil:
+            if self.isNil:
                 self._ixValue = v
-            elif self.localName == "fraction":
-                if self.xValid >= VALID:
-                    self._ixValue = str(self.xValue)
-                else:
-                    self._ixValue = "NaN"
-            else:  # determine string value of transformed value
-                negate = -1 if self.sign else 1
-                try:
-                    # concept may be unknown or invalid but transformation would still occur
-                    # use decimal so all number forms work properly
-                    num = Decimal(v)
-                except (ValueError, InvalidOperation):
-                    self.setInvalid()
-                    raise ValueError("Invalid value for {} number: {}".format(self.localName, v))
-                try:
-                    scale = self.scale
-                    if scale is not None:
-                        num *= 10 ** Decimal(scale)
-                    num *= negate
-                    if isinf(num):
-                        self._ixValue = "-INF" if num < 0 else "INF"
-                    elif isnan(num):
-                        self._ixValue = "NaN"
+            else:
+                f = self.format
+                if f is not None:
+                    if f.namespaceURI in FunctionIxt.ixtNamespaceFunctions:
+                        try:
+                            v = FunctionIxt.ixtNamespaceFunctions[f.namespaceURI][f.localName](v)
+                        except Exception as err:
+                            self._ixValue = ModelValue.INVALIDixVALUE
+                            raise err
                     else:
-                        if num == num.to_integral() and ".0" not in v:
-                            num = num.quantize(DECIMALONE) # drop any .0
-                        self._ixValue = "{}".format(num)
-                except (ValueError, InvalidOperation):
-                    self.setInvalid()
-                    raise ValueError("Invalid value for {} scale {} for number {}".format(self.localName, scale, v))
+                        try:
+                            v = self.modelXbrl.modelManager.customTransforms[f](v)
+                        except KeyError as err:
+                            self._ixValue = ModelValue.INVALIDixVALUE
+                            raise FunctionIxt.ixtFunctionNotAvailable
+                        except Exception as err:
+                            self._ixValue = ModelValue.INVALIDixVALUE
+                            raise err
+                if self.localName == "nonNumeric" or self.localName == "tuple":
+                    self._ixValue = v
+                elif self.localName == "fraction":
+                    if self.xValid >= VALID:
+                        self._ixValue = str(self.xValue)
+                    else:
+                        self._ixValue = "NaN"
+                else:  # determine string value of transformed value
+                    negate = -1 if self.sign else 1
+                    try:
+                        # concept may be unknown or invalid but transformation would still occur
+                        # use decimal so all number forms work properly
+                        num = Decimal(v)
+                    except (ValueError, InvalidOperation):
+                        self.setInvalid()
+                        raise ValueError("Invalid value for {} number: {}".format(self.localName, v))
+                    try:
+                        scale = self.scale
+                        if scale is not None:
+                            num *= 10 ** Decimal(scale)
+                        num *= negate
+                        if isinf(num):
+                            self._ixValue = "-INF" if num < 0 else "INF"
+                        elif isnan(num):
+                            self._ixValue = "NaN"
+                        else:
+                            if num == num.to_integral() and ".0" not in v:
+                                num = num.quantize(DECIMALONE) # drop any .0
+                            self._ixValue = "{}".format(num)
+                    except (ValueError, InvalidOperation):
+                        self.setInvalid()
+                        raise ValueError("Invalid value for {} scale {} for number {}".format(self.localName, scale, v))
             return self._ixValue
 
     @property
