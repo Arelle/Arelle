@@ -73,7 +73,7 @@ class ViewTests(ViewWinTree.ViewTree):
         self.id = 1
         if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
             node = self.treeView.insert(parentNode, "end", modelDocument.objectId(self.id),
-                                        text=os.path.basename(modelDocument.uri), tags=("odd",))
+                                        text=os.path.basename(modelDocument.url), tags=("odd",))
             self.id += 1;
             # sort test cases by uri
             testcases = []
@@ -92,7 +92,7 @@ class ViewTests(ViewWinTree.ViewTree):
                 
     def viewTestcase(self, modelDocument, parentNode, n):
         node = self.treeView.insert(parentNode, "end", modelDocument.objectId(),
-                                    text=os.path.basename(modelDocument.uri), 
+                                    text=os.path.basename(modelDocument.url), 
                                     tags=("odd" if n & 1 else "even",))
         self.id += 1;
         if hasattr(modelDocument, "testcaseVariations"):

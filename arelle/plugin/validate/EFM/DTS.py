@@ -55,7 +55,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
             val.modelXbrl.error(("EFM.6.07.01", "GFM.1.03.01"),
                 _("Taxonomy schema %(schema)s includes %(include)s, only import is allowed"),
                 modelObject=modelDocumentReference.referringModelObject,
-                    schema=os.path.basename(modelDocument.uri), 
+                    schema=os.path.basename(modelDocument.url), 
                     include=os.path.basename(referencedDocument.uri))
         if referencedDocument not in visited and referencedDocument.inDTS: # ignore EdgarRenderer added non-DTS documents
             checkFilingDTS(val, referencedDocument, isEFM, isGFM, visited)
@@ -64,7 +64,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
         pass
 
     if isEFM: 
-        if modelDocument.uri in val.disclosureSystem.standardTaxonomiesDict:
+        if modelDocument.url in val.disclosureSystem.standardTaxonomiesDict:
             if modelDocument.targetNamespace:
                 # check for duplicates of us-types, dei, and rr taxonomies
                 for pattern, indexGroup in ((usNamespacesConflictPattern,2),(ifrsNamespacesConflictPattern,2)):
@@ -89,7 +89,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
     
     if (modelDocument.type == ModelDocument.Type.SCHEMA and 
         modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and
-        modelDocument.uri.startswith(val.modelXbrl.uriDir)):
+        modelDocument.url.startswith(val.modelXbrl.uriDir)):
         
         val.hasExtensionSchema = True
         # check schema contents types
@@ -98,7 +98,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
         if targetNamespaceAuthority in val.disclosureSystem.standardAuthorities:
             val.modelXbrl.error(("EFM.6.07.03", "GFM.1.03.03"),
                 _("Taxonomy schema %(schema)s namespace %(targetNamespace)s is a disallowed authority"),
-                modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace, 
+                modelObject=modelDocument, schema=os.path.basename(modelDocument.url), targetNamespace=modelDocument.targetNamespace, 
                 targetNamespaceAuthority=UrlUtil.authority(modelDocument.targetNamespace, includeScheme=False))
             
         # 6.7.4 check namespace format
@@ -120,11 +120,11 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
         if match is None:
             val.modelXbrl.error(("EFM.6.07.04", "GFM.1.03.04"),
                 _("Taxonomy schema %(schema)s namespace %(targetNamespace)s must have format http://{authority}/{versionDate}"),
-                modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace)
+                modelObject=modelDocument, schema=os.path.basename(modelDocument.url), targetNamespace=modelDocument.targetNamespace)
         elif val.fileNameDate and date > val.fileNameDate:
             val.modelXbrl.info(("EFM.6.07.06", "GFM.1.03.06"),
                 _("Warning: Taxonomy schema %(schema)s namespace %(targetNamespace)s has date later than document name date %(docNameDate)s"),
-                modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace,
+                modelObject=modelDocument, schema=os.path.basename(modelDocument.url), targetNamespace=modelDocument.targetNamespace,
                 docNameDate=val.fileNameDate)
 
         if modelDocument.targetNamespace is not None:
@@ -133,16 +133,16 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
             if not re.match(r"(http://|https://|ftp://|urn:)\w+",authority):
                 val.modelXbrl.error(("EFM.6.07.05", "GFM.1.03.05"),
                     _("Taxonomy schema %(schema)s namespace %(targetNamespace)s must be a valid URL with a valid authority for the namespace."),
-                    modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace)
+                    modelObject=modelDocument, schema=os.path.basename(modelDocument.url), targetNamespace=modelDocument.targetNamespace)
             prefix = XmlUtil.xmlnsprefix(modelDocument.xmlRootElement,modelDocument.targetNamespace)
             if not prefix:
                 val.modelXbrl.error(("EFM.6.07.07", "GFM.1.03.07"),
                     _("Taxonomy schema %(schema)s namespace %(targetNamespace)s missing prefix for the namespace."),
-                    modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace)
+                    modelObject=modelDocument, schema=os.path.basename(modelDocument.url), targetNamespace=modelDocument.targetNamespace)
             elif "_" in prefix:
                 val.modelXbrl.error(("EFM.6.07.07", "GFM.1.03.07"),
                     _("Taxonomy schema %(schema)s namespace %(targetNamespace)s prefix %(prefix)s must not have an '_'"),
-                    modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace, prefix=prefix)
+                    modelObject=modelDocument, schema=os.path.basename(modelDocument.url), targetNamespace=modelDocument.targetNamespace, prefix=prefix)
 
             for modelConcept in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}element"):
                 if isinstance(modelConcept,ModelConcept):
@@ -154,10 +154,10 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                             continue    # don't validate ref's here
                     for c in val.modelXbrl.nameConcepts.get(name, []):
                         if c.modelDocument != modelDocument:
-                            if not c.modelDocument.uri.startswith(val.modelXbrl.uriDir):
+                            if not c.modelDocument.url.startswith(val.modelXbrl.uriDir):
                                 val.modelXbrl.error(("EFM.6.07.16", "GFM.1.03.18"),
                                     _("Concept %(concept)s is also defined in standard taxonomy schema schema %(standardSchema)s"),
-                                    modelObject=(modelConcept,c), concept=modelConcept.qname, standardSchema=os.path.basename(c.modelDocument.uri), standardConcept=c.qname)
+                                    modelObject=(modelConcept,c), concept=modelConcept.qname, standardSchema=os.path.basename(c.modelDocument.url), standardConcept=c.qname)
 
                     # 6.7.17 id properly formed
                     _id = modelConcept.id
@@ -172,7 +172,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                     if nillable != "true" and modelConcept.isItem:
                         val.modelXbrl.error(("EFM.6.07.18", "GFM.1.03.20"),
                             _("Taxonomy schema %(schema)s element %(concept)s nillable %(nillable)s should be 'true'"),
-                            modelObject=modelConcept, schema=os.path.basename(modelDocument.uri),
+                            modelObject=modelConcept, schema=os.path.basename(modelDocument.url),
                             concept=name, nillable=nillable)
         
                     # 6.7.19 not tuple
@@ -193,7 +193,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                     if modelConcept.isAbstract and not isDuration:
                         val.modelXbrl.error(("EFM.6.07.21", "GFM.1.03.23"),
                             _("Taxonomy schema %(schema)s element %(concept)s is abstract but period type is not duration"),
-                            modelObject=modelConcept, schema=os.path.basename(modelDocument.uri), concept=modelConcept.qname)
+                            modelObject=modelConcept, schema=os.path.basename(modelDocument.url), concept=modelConcept.qname)
                         
                     # 6.7.22 abstract must be stringItemType
                     ''' removed SEC EFM v.17, Edgar release 10.4, and GFM 2011-04-08
@@ -213,7 +213,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                     if name.endswith("Table") ^ (substitutionGroupQname == XbrlConst.qnXbrldtHypercubeItem):
                         val.modelXbrl.error(("EFM.6.07.24", "GFM.1.03.26"),
                             _("Concept %(concept)s must end in Table to be in xbrldt:hypercubeItem substitution group"),
-                            modelObject=modelConcept, schema=os.path.basename(modelDocument.uri), concept=modelConcept.qname)
+                            modelObject=modelConcept, schema=os.path.basename(modelDocument.url), concept=modelConcept.qname)
 
                     # 6.7.25 if neither hypercube or dimension, substitution group must be item
                     if substitutionGroupQname not in (None,
@@ -256,7 +256,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                     if modelConcept.isItem and (not modelConcept.isNumeric and not isDuration and not modelConcept.isAbstract and not isDomainItemType):
                         val.modelXbrl.error("EFM.6.07.32",
                             _("Taxonomy schema %(schema)s element %(concept)s is non-numeric but period type is not duration"),
-                            modelObject=modelConcept, schema=os.path.basename(modelDocument.uri), concept=modelConcept.qname)
+                            modelObject=modelConcept, schema=os.path.basename(modelDocument.url), concept=modelConcept.qname)
                         
                     # 6.8.5 semantic check, check LC3 name
                     if name:

@@ -43,7 +43,7 @@ if __name__ == "__main__":
             fh.write("mv dist_dmg/arelle.dmg dist_dmg/arelle-macOS-{}.dmg\n".format(distFileDate))
     if sys.platform == "linux2":
         with open("buildRenameLinux-x86_64.sh", "w") as fh:
-            fh.write("mv dist/exe.linux-x86_64-{}.{}.tar.gz dist/arelle-linux-x86_64-{}.tar.gz\n"
+            fh.write("mv dist/exe.linux-x86_64-{}.{}.tar.gz dist/arelle-linux-x86_64-{}.tgz\n"
                      .format(sys.version_info[0], sys.version_info[1], distFileDate))
     elif sys.platform == "linux": # python 3.3
         if len(sys.argv) > 1 and sys.argv[1]:
@@ -51,12 +51,12 @@ if __name__ == "__main__":
         else:
             sysName = "linux"
         with open("buildRenameLinux-x86_64.sh", "w") as fh:
-            fh.write("mv dist/exe.linux-x86_64-{}.{}.tar.gz dist/arelle-{}-x86_64-{}.tar.gz\n"
+            fh.write("mv dist/exe.linux-x86_64-{}.{}.tgz dist/arelle-{}-x86_64-{}.tgz\n"
                      .format(sys.version_info[0], sys.version_info[1], 
                              sysName, distFileDate))
     elif sys.platform == "sunos5":
         with open("buildRenameSol10Sun4.sh", "w") as fh:
-            fh.write("mv dist/exe.solaris-2.10-sun4v{0}-{1}.{2}.tar.gz dist/arelle-solaris10-sun4{0}-{3}.tar.gz\n"
+            fh.write("mv dist/exe.solaris-2.10-sun4v{0}-{1}.{2}.tgz dist/arelle-solaris10-sun4{0}-{3}.tgz\n"
                      .format(".64bit" if is64BitPython else "",
                              sys.version_info[0],sys.version_info[1], 
                              distFileDate))

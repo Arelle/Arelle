@@ -337,7 +337,7 @@ def testcaseVariationXbrlLoaded(testcaseModelXbrl, instanceModelXbrl, modelTestc
         instanceModelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL)):
         cntlr = modelManager.cntlr
         options = testcaseModelXbrl.efmOptions
-        entrypointFiles = [{"file":instanceModelXbrl.modelDocument.uri}]
+        entrypointFiles = [{"file":instanceModelXbrl.modelDocument.url}]
         if not hasattr(modelManager, "efmFiling"): # first instance of filing
             modelManager.efmFiling = Filing(cntlr, options, instanceModelXbrl.fileSource, entrypointFiles, None, None, instanceModelXbrl.errorCaptureLevel)
             # this event is called for filings (of instances) as well as test cases, for test case it just keeps options accessible
@@ -349,7 +349,7 @@ def testcaseVariationXbrlLoaded(testcaseModelXbrl, instanceModelXbrl, modelTestc
         modelManager.efmFiling.arelleUnitTests = instanceModelXbrl.arelleUnitTests.copy() # allow unit tests to be used after instance processing finished
         # check for parameters on instance
         for _instanceElt in XmlUtil.descendants(modelTestcaseVariation, "*", "instance", "readMeFirst", "true", False):
-            if instanceModelXbrl.modelDocument.uri.endswith(_instanceElt.text):
+            if instanceModelXbrl.modelDocument.url.endswith(_instanceElt.text):
                 if _instanceElt.get("exhibitType"):
                     _report.entryPoint["exhibitType"] = _report.exhibitType = _instanceElt.get("exhibitType")
                 break
@@ -483,7 +483,7 @@ class Report:
     
     def __init__(self, modelXbrl):
         self.isInline = modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL
-        self.url = modelXbrl.modelDocument.uri
+        self.url = modelXbrl.modelDocument.url
         self.basename = modelXbrl.modelDocument.basename
         self.filepath = modelXbrl.modelDocument.filepath
         for attrName in Report.REPORT_ATTRS:

@@ -17,7 +17,7 @@ edgrUrl = "{http://www.sec.gov/Archives/edgar}url"
 
 newRssWatchOptions = {
     "feedSource": "",
-    "feedSourceUri": None,
+    "feedSourceUrl": None,
     "matchTextExpr": "",
     "formulaFileUri": "",
     "logFileUri": "",

@@ -255,7 +255,7 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
     # XML validation checks (remove if using validating XML)
     val.extendedElementName = None
     isFilingDocument = False
-    if (modelDocument.uri.startswith(val.modelXbrl.uriDir) and
+    if (modelDocument.url.startswith(val.modelXbrl.uriDir) and
         modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and 
         modelDocument.xmlDocument):
         isFilingDocument = True

@@ -145,12 +145,12 @@ class ModelRoleType(ModelObject):
             return (("arcrole Uri", self.arcroleURI),
                     ("definition", self.definition),
                     ("used on", self.usedOns),
-                    ("defined in", self.modelDocument.uri))
+                    ("defined in", self.modelDocument.url))
         else:
             return (("role Uri", self.roleURI),
                     ("definition", self.definition),
                     ("used on", self.usedOns),
-                    ("defined in", self.modelDocument.uri))
+                    ("defined in", self.modelDocument.url))
         
     def __repr__(self):
         return ("{0}[{1}, uri: {2}, definition: {3}, {4} line {5}])"
@@ -1284,8 +1284,8 @@ class ModelType(ModelNamableTerm):
             return self._facets
     
     def constrainingFacets(self, facetValues=None):
-        """helper function for facets discovery"""  
-        facetValues = facetValues if facetValues else {}
+        """helper function for facets discovery"""
+        if facetValues is None: facetValues = {}
         for facetElt in XmlUtil.schemaFacets(self, (
                     "{http://www.w3.org/2001/XMLSchema}length", "{http://www.w3.org/2001/XMLSchema}minLength", 
                     "{http://www.w3.org/2001/XMLSchema}maxLength", 
@@ -2022,6 +2022,8 @@ class ModelRelationship(ModelObject):
            
 from arelle.ModelObjectFactory import elementSubstitutionModelClass
 elementSubstitutionModelClass.update((
+     (XbrlConst.qnLinkRoleType, ModelRoleType),
+     (XbrlConst.qnLinkArcroleType, ModelRoleType),
      (XbrlConst.qnXlExtended, ModelLink),
      (XbrlConst.qnXlLocator, ModelLocator),
      (XbrlConst.qnXlResource, ModelResource),

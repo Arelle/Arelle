@@ -8,7 +8,7 @@ from collections import defaultdict
 import os, sys, re, traceback, uuid
 import logging
 from decimal import Decimal
-from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
+from arelle import arelle_c, UrlUtil, XmlUtil, ModelValue, PackageManager, XbrlConst, XmlValidate, ValidateFilingText
 from arelle.FileSource import FileNamedStringIO
 from arelle.ModelObject import ModelObject, ObjectPropertyViewWrapper
 from arelle.Locale import format_string
@@ -58,6 +58,8 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None, erro
     else:
         modelXbrl.fileSource = FileSource.FileSource(url, modelManager.cntlr)
         modelXbrl.closeFileSource= True
+    modelXbrl.reloadCache = kwargs.get("reloadCache", False)
+    modelXbrl.checkModifiedTime = kwargs.get("checkModifiedTime",False)
     modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True, **kwargs)
     del modelXbrl.entryLoadingUrl
     loadSchemalocatedSchemas(modelXbrl)
@@ -96,7 +98,7 @@ def loadSchemalocatedSchemas(modelXbrl):
             modelDocumentsSchemaLocated.add(modelDocument)
             modelDocument.loadSchemalocatedSchemas()
         
-class ModelXbrl:
+class ModelXbrl(arelle_c.ModelXbrl):
     """
     .. class:: ModelXbrl(modelManager)
     
@@ -110,6 +112,10 @@ class ModelXbrl:
         .. attribute:: urlDocs
         
         Dict, by URL, of loaded modelDocuments
+        
+        .. attribute:: mappedUrls
+        
+        Dict, by mapped URL, of unmapped URL (source URL before catalog, cache, or taxonomyPackage)
         
         .. attribute:: errorCaptureLevel
         
@@ -238,14 +244,16 @@ class ModelXbrl:
     """
     
     def __init__(self, modelManager, errorCaptureLevel=None):
-        self.modelManager = modelManager
+        super(ModelXbrl, self).__init__(modelManager)
         self.skipDTS = modelManager.skipDTS
         self.init(errorCaptureLevel=errorCaptureLevel)
+        self.reloadCache = self.checkModifiedTime = False
         
     def init(self, keepViews=False, errorCaptureLevel=None):
         self.uuid = uuid.uuid1().urn
         self.namespaceDocs = defaultdict(list)
-        self.urlDocs = {}
+        self.resolvedUrls = {} # URI of referencor: {relationship: set of referencees}
+        self.resolvedUrlLog = [] # log of referencor, type, and referencee
         self.urlUnloadableDocs = {}  # if entry is True, entry is blocked and unloadable, False means loadable but warned
         self.errorCaptureLevel = (errorCaptureLevel or logging._checkLevel("INCONSISTENCY"))
         self.errors = []
@@ -310,6 +318,7 @@ class ModelXbrl:
             self.__dict__.clear() # dereference everything before closing document
             if modelDocument:
                 modelDocument.close(urlDocs=urlDocs)
+            #super(ModelObject, self).close()
             
     @property
     def isClosed(self):
@@ -339,6 +348,81 @@ class ModelXbrl:
             for view in range(len(self.views)):
                 if len(self.views) > 0:
                     self.views[0].close()
+                    
+    def xerces_resolve_entity(self, request_type, public_id, system_id, schemaLocation, base_url, namespace,
+                              loc_public_id, loc_system_id, loc_line_number, loc_column_number):
+        """Xerces resolver call to provide fileDesc for input
+        :param request_type: int 0=SchemaGrammar, 1=SchemaImport, 2=SchemaInclude, 3=SchemaRedefine, 4=ExternalEntity, 255=UnKnown
+        :type int
+        :param public_id
+        :type string
+        :param system_id
+        :type string
+        :param schemaLocation
+        :type string
+        :param base_url
+        :type string
+        :param namespace
+        :type string
+        :param loc_public_id
+        :type string
+        :param loc_system_id
+        :type string
+        :param loc_line_number
+        :type int
+        :param loc_column_number
+        :type int
+        """
+        # print("xerces_resolve_entity type {} pub {} sys {} schLoc {} base {} ns {} loc_pub {} loc_sys {} loc_line {} loc_col {}".format(request_type, public_id, system_id, schemaLocation, base_url, namespace, loc_public_id, loc_system_id, loc_line_number, loc_column_number))
+        _baseUrl = base_url or loc_system_id
+        if not (os.path.isabs(system_id) or UrlUtil.isAbsolute(system_id)) and not _baseUrl:
+            # relative
+            print("xerces system id is relative {}, allowing xerces default processing".format(system_id))
+            return None
+        _unmappedBaseUrl = self.mappedUrls.get(_baseUrl, _baseUrl)
+        normalizedUrl = self.modelManager.cntlr.webCache.normalizeUrl(system_id, _unmappedBaseUrl)
+        if self.fileSource.isMappedUrl(normalizedUrl):
+            mappedUrl = self.fileSource.mappedUrl(normalizedUrl)
+        elif PackageManager.isMappedUrl(normalizedUrl):
+            mappedUrl = PackageManager.mappedUrl(normalizedUrl)
+        else:
+            mappedUrl = self.modelManager.disclosureSystem.mappedUrl(normalizedUrl)
+            
+        if self.fileSource.isInArchive(mappedUrl):
+            filepath = mappedUrl
+        else:
+            filepath = self.modelManager.cntlr.webCache.getfilename(mappedUrl, reload=self.reloadCache, checkModifiedTime=self.checkModifiedTime)
+        if filepath is None: # error such as HTTPerror is already logged
+            if self.modelManager.abortOnMajorError and (isEntry or isDiscovered):
+                self.error("FileNotLoadable",
+                        _("File can not be loaded: %(fileName)s \nLoading terminated."),
+                        modelObject=referringElement, fileName=mappedUrl)
+                raise LoadingException()
+            if normalizedUrl not in self.urlUnloadableDocs:
+                if "referringElementUrl" in kwargs:
+                    self.error("FileNotLoadable",
+                            _("File can not be loaded: %(fileName)s, referenced from %(referencingFileName)s"),
+                            modelObject=referringElement, fileName=normalizedUrl, referencingFileName=kwargs["referringElementUrl"])
+                else:
+                    self.error("FileNotLoadable",
+                            _("File can not be loaded: %(fileName)s"),
+                            modelObject=referringElement, fileName=normalizedUrl)
+                self.urlUnloadableDocs[normalizedUrl] = True # always blocked if not loadable on this error
+            return None
+        if (self.modelManager.validateDisclosureSystem and 
+            self.modelManager.disclosureSystem.validateFileText):
+            fileDesc = ValidateFilingText.checkfile(self,filepath)
+        else:
+            fileDesc = self.fileSource.file(filepath, stripDeclaration=True)
+        fileDesc.url = normalizedUrl
+        if normalizedUrl != fileDesc.filepath and fileDesc.filepath not in self.mappedUrls:
+            self.mappedUrls[fileDesc.filepath] = normalizedUrl
+        if _unmappedBaseUrl not in self.resolvedUrls:
+            self.resolvedUrls[_unmappedBaseUrl] = defaultdict(set)
+        self.resolvedUrls[_unmappedBaseUrl][request_type].add(normalizedUrl)
+        self.resolvedUrlLog.append((_unmappedBaseUrl, request_type, normalizedUrl))
+        # print("resolve_xerces_entity sys id {} fileDesc {}".format(system_id, fileDesc))
+        return fileDesc
         
     def relationshipSet(self, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
         """Returns a relationship set matching specified parameters (only arcrole is required).
@@ -450,11 +534,11 @@ class ModelXbrl:
         else:
             priorFileSource = self.fileSource
             self.fileSource = FileSource.FileSource(url, self.modelManager.cntlr)
-            if isHttpUrl(self.uri):
-                schemaRefUri = self.uri
+            if isHttpUrl(self.url):
+                schemaRefUrl = self.url
             else:   # relativize local paths
-                schemaRefUri = os.path.relpath(self.uri, os.path.dirname(url))
-            self.modelDocument = ModelDocument.create(self, ModelDocument.Type.INSTANCE, url, schemaRefs=[schemaRefUri], isEntry=True)
+                schemaRefUrl = os.path.relpath(self.url, os.path.dirname(url))
+            self.modelDocument = ModelDocument.create(self, ModelDocument.Type.INSTANCE, url, schemaRefs=[schemaRefUrl], isEntry=True)
             if priorFileSource:
                 priorFileSource.close()
             self.closeFileSource= True
@@ -967,7 +1051,7 @@ class ModelXbrl:
         for argName, argValue in codedArgs.items():
             if argName in ("modelObject", "modelXbrl", "modelDocument"):
                 try:
-                    entryUrl = self.modelDocument.uri
+                    entryUrl = self.modelDocument.url
                 except AttributeError:
                     try:
                         entryUrl = self.entryLoadingUrl
@@ -981,10 +1065,10 @@ class ModelXbrl:
                             objectUrl = arg
                         else:
                             try:
-                                objectUrl = arg.modelDocument.uri
+                                objectUrl = arg.modelDocument.url
                             except AttributeError:
                                 try:
-                                    objectUrl = self.modelDocument.uri
+                                    objectUrl = self.modelDocument.url
                                 except AttributeError:
                                     objectUrl = self.entryLoadingUrl
                         try:
@@ -1068,7 +1152,7 @@ class ModelXbrl:
 
         if "refs" not in extras:
             try:
-                file = os.path.basename(self.modelDocument.uri)
+                file = os.path.basename(self.modelDocument.url)
             except AttributeError:
                 try:
                     file = os.path.basename(self.entryLoadingUrl)

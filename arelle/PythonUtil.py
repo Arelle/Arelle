@@ -144,6 +144,13 @@ class attrdict(dict):
         dict.__init__(self, *args, **kwargs)
         self.__dict__ = self
 
+class genobj:
+    """ utility to simulate an generic object with named fields from the kwargs """
+    def __init__(self, **kwargs):
+        self.__dict__ = kwargs
+    def __repr__(self):
+        return str(self.__dict__)
+
 class OrderedDefaultDict(OrderedDict):
     """ call with default factory and optional sorted initial entries
         e.g., OrderedDefaultDict(list, ((1,11),(2,22),...))

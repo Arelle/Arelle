@@ -526,7 +526,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 except AttributeError:
                     pass
             if isinstance(view, ViewWinRenderedGrid.ViewRenderedGrid):
-                initialdir = os.path.dirname(modelXbrl.modelDocument.uri)
+                initialdir = os.path.dirname(modelXbrl.modelDocument.url)
                 if fileType in ("html", "xml", None):
                     if fileType == "html" and filename is None:
                         filename = self.uiFileDialog("save",
@@ -585,7 +585,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             elif isinstance(view, ViewWinTree.ViewTree):
                 filename = self.uiFileDialog("save",
                         title=_("arelle - Save {0}").format(view.tabTitle),
-                        initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),
+                        initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.url),
                         filetypes=[(_("CSV file"), "*.csv"),(_("HTML file"), "*.html"),(_("XML file"), "*.xml"),(_("JSON file"), "*.json")],
                         defaultextension=".csv")
                 if not filename:
@@ -609,7 +609,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             elif isinstance(view, ViewWinXml.ViewXml) and self.modelManager.modelXbrl.formulaOutputInstance:
                 filename = self.uiFileDialog("save",
                         title=_("arelle - Save Formula Result Instance Document"),
-                        initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),
+                        initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.url),
                         filetypes=[(_("XBRL output instance .xml"), "*.xml"), (_("XBRL output instance .xbrl"), "*.xbrl")],
                         defaultextension=".xml")
                 if not filename:
@@ -812,7 +812,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             if attach:
                 modelXbrl.closeViews()
             self.parent.title(_("arelle - {0}").format(
-                            os.path.basename(modelXbrl.modelDocument.uri)))
+                            os.path.basename(modelXbrl.modelDocument.url)))
             self.setValidateTooltipText()
             if modelXbrl.modelDocument.type in ModelDocument.Type.TESTCASETYPES:
                 currentAction = "tree view of tests"
@@ -1126,7 +1126,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         rssModelXbrl = None
         for loadedModelXbrl in self.modelManager.loadedModelXbrls:
             if (loadedModelXbrl.modelDocument.type == Type.RSSFEED and
-                loadedModelXbrl.modelDocument.uri == self.modelManager.rssWatchOptions.get("feedSourceUri")):
+                loadedModelXbrl.modelDocument.url == self.modelManager.rssWatchOptions.get("feedSourceUrl")):
                 rssModelXbrl = loadedModelXbrl
                 break                
         #not loaded

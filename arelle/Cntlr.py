@@ -10,6 +10,7 @@
 """
 from arelle import PythonUtil # define 2.x or 3.x string types
 import tempfile, os, io, sys, logging, gettext, json, re, subprocess, math
+from arelle import arelle_c
 from arelle import ModelManager
 from arelle.Locale import getLanguageCodes
 from arelle import PluginManager, PackageManager
@@ -40,7 +41,7 @@ def resourcesDir():
         _resourcesDir = os.path.dirname(_resourcesDir)
     return _resourcesDir
 
-class Cntlr:
+class Cntlr(arelle_c.Cntlr):
     """    
     Initialization sets up for platform
     
@@ -98,6 +99,7 @@ class Cntlr:
     __version__ = "1.6.0"
     
     def __init__(self, hasGui=False, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None):
+        super(Cntlr, self).__init__()
         self.hasWin32gui = False
         self.hasGui = hasGui
         self.hasFileSystem = True # no file system on Google App Engine servers
@@ -383,6 +385,9 @@ class Cntlr:
                 self.logHandler.close()
             except Exception: # fails on some earlier pythons (3.1)
                 pass
+            
+        super(Cntlr, self).close()
+        
         
     def saveConfig(self):
         """Save user preferences configuration (in json configuration file)."""

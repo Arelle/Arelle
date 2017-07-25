@@ -151,6 +151,10 @@ class ValidateUtr:
         else: # Entry requires a Divide
             if not unit.isDivide:
                 return False
+            
+            # find measures relating to numerator
+            #applicableMeasures = ([],[])
+            # find measures relating to denominator
             elif not self.measureSatisfies(unit.measures[0], 
                                            utrEntry.nsNumeratorItemType, 
                                            utrEntry.numeratorItemType):
@@ -225,8 +229,8 @@ class ValidateUtr:
                 return m.localName # localName is last choice to use
         # otherwise generate compound symbol
         def symbols(measures, wrapMult=True):
-            measuresString = " ".join(self.utrSymbol([measure], None)
-                                                for measure in measures)
+            measuresString = " ".join(sorted(self.utrSymbol([measure], None)
+                                             for measure in measures))
             if len(measures) > 1 and wrapMult:
                 return "({})".format(measuresString)
             return measuresString

@@ -452,7 +452,7 @@ def saveXfMenuCommand(cntlr):
     cntlr.saveConfig()
 
     try: 
-        GenerateCHComponent(cntlr.modelManager.modelXbrl, xbrlFormulaFile)
+        GenerateXbrlFormula(cntlr.modelManager.modelXbrl, xbrlFormulaFile)
     except Exception as ex:
         dts = cntlr.modelManager.modelXbrl
         dts.error("exception",

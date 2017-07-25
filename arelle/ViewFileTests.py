@@ -46,9 +46,9 @@ class ViewTests(ViewFile.View):
             for col in self.cols:
                 if col == "Index":
                     if self.type == ViewFile.CSV:
-                        cols.append(os.path.basename(modelDocument.uri))
+                        cols.append(os.path.basename(modelDocument.url))
                     else:
-                        attr["name"] = os.path.basename(modelDocument.uri)
+                        attr["name"] = os.path.basename(modelDocument.url)
                     break
                 else:
                     cols.append("")
@@ -71,9 +71,9 @@ class ViewTests(ViewFile.View):
         for col in self.cols:
             if col == "Testcase":
                 if self.type != ViewFile.XML:
-                    cols.append(os.path.basename(modelDocument.uri))
+                    cols.append(os.path.basename(modelDocument.url))
                 else:
-                    attr["name"] = os.path.basename(modelDocument.uri)
+                    attr["name"] = os.path.basename(modelDocument.url)
                 break
             else:
                 cols.append("")

@@ -74,17 +74,6 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
                     return ModelAnyAttribute
                 elif ln == "enumeration":
                     return ModelEnumeration
-            elif ns == XbrlConst.link:
-                if self.type is None:
-                    self.type = LINKBASE
-                if ln == "roleType" or ln == "arcroleType":
-                    return ModelRoleType
-            elif ns == "http://edgar/2009/conformance":
-                # don't force loading of test schema
-                if ln == "variation":
-                    return ModelTestcaseVariation
-                else:
-                    return ModelObject
             elif ln == "testcase" and (
                 ns is None or ns in ("http://edgar/2009/conformance",) or ns.startswith("http://xbrl.org/")):
                 return ModelObject
@@ -92,8 +81,6 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
                 ns is None or ns in ("http://edgar/2009/conformance",) or ns.startswith("http://xbrl.org/")):
                 return ModelTestcaseVariation
             elif ln == "testGroup" and ns == "http://www.w3.org/XML/2004/xml-schema-test-suite/":
-                return ModelTestcaseVariation
-            elif ln == "test-case" and ns == "http://www.w3.org/2005/02/query-test-XQTSCatalog":
                 return ModelTestcaseVariation
             elif ns == XbrlConst.ver:
                 if self.type is None:

@@ -14,6 +14,7 @@ builtinAttributes = {qnXsiNil,
                      ,qname(xsi,"xsi:noNamespaceSchemaLocation")}
 xml = "http://www.w3.org/XML/1998/namespace"
 xbrli = "http://www.xbrl.org/2003/instance"
+hrefXbrli = "http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"
 eurofilingModelNamespace = "http://www.eurofiling.info/xbrl/ext/model"
 eurofilingModelPrefix = "model"
 qnNsmap = qname("nsmap") # artificial parent for insertion of xmlns in saving xml documents
@@ -41,6 +42,9 @@ qnXbrliDecimalsUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:decimalsT
 qnXbrliPrecisionUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:precisionType")
 qnXbrliNonZeroDecimalUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:nonZeroDecimal")
 link = "http://www.xbrl.org/2003/linkbase"
+hrefLink = "http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"
+qnLinkRoleType = qname("{http://www.xbrl.org/2003/linkbase}link:roleType")
+qnLinkArcroleType = qname("{http://www.xbrl.org/2003/linkbase}link:arcroleType")
 qnLinkLinkbase = qname("{http://www.xbrl.org/2003/linkbase}link:linkbase")
 qnLinkLoc = qname("{http://www.xbrl.org/2003/linkbase}link:loc")
 qnLinkLabelLink = qname("{http://www.xbrl.org/2003/linkbase}link:labelLink")
@@ -76,6 +80,7 @@ xbrldi = "http://xbrl.org/2006/xbrldi"
 qnXbrldiExplicitMember = qname("{http://xbrl.org/2006/xbrldi}xbrldi:explicitMember")
 qnXbrldiTypedMember = qname("{http://xbrl.org/2006/xbrldi}xbrldi:typedMember")
 xlink = "http://www.w3.org/1999/xlink"
+hrefXlink = "http://www.xbrl.org/2003/xlink-2003-12-31.xsd"
 xl = "http://www.xbrl.org/2003/XLink"
 qnXlExtended = qname("{http://www.xbrl.org/2003/XLink}xl:extended")
 qnXlLocator = qname("{http://www.xbrl.org/2003/XLink}xl:locator")
@@ -466,6 +471,7 @@ xdtSchemaErrorNS = "http://www.xbrl.org/2005/genericXmlSchemaError"
 errMsgPrefixNS = { # err prefixes which are not declared, such as XPath's "err" prefix
     "err": xpath2err,
     "xmlSchema": xdtSchemaErrorNS,
+    "utre" : "http://www.xbrl.org/2009/utr/errors",
     }
 
 arcroleGroupDetect = "*detect*"

@@ -34,7 +34,7 @@ class ViewDTS(ViewWinTree.ViewTree):
     def viewDtsElement(self, modelDocument, parentNode, n, parents, siblings):
         node = self.treeView.insert(parentNode, "end", 
                     text="{0} - {1}".format(
-                        os.path.basename(modelDocument.uri),
+                        os.path.basename(modelDocument.url),
                         modelDocument.gettype()), 
                     tags=("odd" if n & 1 else "even",))
         children = modelDocument.referencesDocument.keys()

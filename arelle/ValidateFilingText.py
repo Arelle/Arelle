@@ -7,9 +7,11 @@ Created on Oct 17, 2010
 #import xml.sax, xml.sax.handler
 from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _ProcessingInstruction, XMLSyntaxError, XMLParser
 import os, re, io
+from arelle.FileSource import openXmlFileStream
 from arelle.XbrlConst import ixbrlAll, xhtml
 from arelle.XmlUtil import setXmlns, xmlstring
 from arelle.ModelObject import ModelObject
+from arelle.PythonUtil import genobj
 from arelle.UrlUtil import isHttpUrl, scheme
 
 XMLdeclaration = re.compile(r"<\?xml.*\?>", re.DOTALL)
@@ -400,9 +402,11 @@ efmBlockedInlineHtmlElementAttributes = {
 def checkfile(modelXbrl, filepath):
     result = []
     lineNum = 1
-    foundXmlDeclaration = False
+    # don't strip declaration for xerces
+    #foundXmlDeclaration = False
     isEFM = modelXbrl.modelManager.disclosureSystem.validationType == "EFM"
-    file, encoding = modelXbrl.fileSource.file(filepath)
+    fileDesc = modelXbrl.fileSource.file(filepath)
+    file, encoding = openXmlFileStream(modelXbrl.fileSource.cntlr, filepath)
     parserResults = {}
     class checkFileType(object):
         def start(self, tag, attr): # check root XML element type
@@ -436,12 +440,12 @@ def checkfile(modelXbrl, filepath):
                         modelXbrl.error("EFM.5.02.01.01",
                             _("Disallowed character '%(text)s' in file %(file)s at line %(line)s col %(column)s"),
                             modelDocument=filepath, text=text, file=os.path.basename(filepath), line=lineNum, column=match.start())
-            if lineNum == 1:
-                xmlDeclarationMatch = XMLdeclaration.search(line)
-                if xmlDeclarationMatch: # remove it for lxml
-                    start,end = xmlDeclarationMatch.span()
-                    line = line[0:start] + line[end:]
-                    foundXmlDeclaration = True
+            #if lineNum == 1:
+            #    xmlDeclarationMatch = XMLdeclaration.search(line)
+            #    if xmlDeclarationMatch: # remove it for lxml
+            #        start,end = xmlDeclarationMatch.span()
+            #        line = line[0:start] + line[end:]
+            #        foundXmlDeclaration = True
             if _parser: # feed line after removal of xml declaration
                 _parser.feed(line.encode('utf-8','ignore'))
                 if "rootIsTestcase" in parserResults: # root XML element has been encountered
@@ -450,13 +454,13 @@ def checkfile(modelXbrl, filepath):
             result.append(line)
             lineNum += 1
     result = ''.join(result)
-    if not foundXmlDeclaration: # may be multiline, try again
-        xmlDeclarationMatch = XMLdeclaration.search(result)
-        if xmlDeclarationMatch: # remove it for lxml
-            start,end = xmlDeclarationMatch.span()
-            result = result[0:start] + result[end:]
-            foundXmlDeclaration = True
-    return (io.StringIO(initial_value=result), encoding)
+    #if not foundXmlDeclaration: # may be multiline, try again
+    #    xmlDeclarationMatch = XMLdeclaration.search(result)
+    #    if xmlDeclarationMatch: # remove it for lxml
+    #        start,end = xmlDeclarationMatch.span()
+    #        result = result[0:start] + result[end:]
+    #        foundXmlDeclaration = True
+    return genobj(bytes=result.encode(encoding), filepath=fileDesc.filepath, encoding=encoding, cntlr=modelXbrl.modelManager.cntlr)
 
 ModelDocumentTypeINLINEXBRL = None
 def loadDTD(modelXbrl):

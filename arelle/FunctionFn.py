@@ -62,11 +62,11 @@ def base_uri(xc, p, contextItem, args):
     if item == (): 
         return ''
     if isinstance(item, (ModelObject, ModelDocument)):
-        return UrlUtil.ensureUrl(item.modelDocument.uri)
+        return UrlUtil.ensureUrl(item.modelDocument.url)
     return ''
 
 def document_uri(xc, p, contextItem, args):
-    return xc.modelXbrl.modelDocument.uri
+    return xc.modelXbrl.modelDocument.url
 
 def error(xc, p, contextItem, args):
     if len(args) > 2: raise XPathContext.FunctionNumArgs()

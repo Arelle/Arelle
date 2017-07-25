@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: Arelle
-Version: 2015.8.30.21
+Version: 1.0.0
 Summary: An open source XBRL platform
 Home-page: http://www.arelle.org
 Author: arelle.org
@@ -48,7 +48,8 @@ Classifier: Development Status :: 1 - Active
 Classifier: Intended Audience :: End Users/Desktop
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: Apache-2 License
+Classifier: Natural Language :: English
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
 Classifier: Operating System :: OS Independent
 Classifier: Topic :: XBRL Validation and Versioning

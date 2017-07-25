@@ -546,7 +546,7 @@ def final(val):
     
     if modelDocument.type == ModelDocument.Type.INSTANCE and (val.validateEBA or val.validateEIOPA):
 
-        if not modelDocument.uri.endswith(".xbrl"):
+        if not modelDocument.url.endswith(".xbrl"):
             modelXbrl.warning("EBA.1.1",
                     _('XBRL instance documents SHOULD use the extension ".xbrl" but it is "%(extension)s"'),
                     modelObject=modelDocument, extension=os.path.splitext(modelDocument.basename)[1])

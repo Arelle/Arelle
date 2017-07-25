@@ -9,6 +9,7 @@ import os
 import datetime
 from distutils.command.build_py import build_py as _build_py
 
+print ("argv={}".format(sys.argv))
 
 def get_version():
     """
@@ -264,7 +265,7 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
     # note that openpyxl must be 2.1.4 at this time
     if os.path.exists("arelle/plugin/EdgarRenderer"):
         includeLibs += [
-            'cherrypy', 'cherrypy.wsgiserver.wsgiserver3',
+            'cherrypy', # 'cherrypy.wsgiserver.wsgiserver3',
             'dateutil',
             'dateutil.relativedelta',
             'six',
@@ -296,6 +297,8 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         options["bdist_mac"] = {
             "iconfile": 'arelle/images/arelle.icns',
             "bundle_name": 'Arelle',
+            "include_frameworks": ["/Library/Frameworks/Tcl.framework/Versions/8.6/Tcl",
+                                   "/Library/Frameworks/Tk.framework/Versions/8.6/Tk"]
         }
         
     
@@ -408,7 +411,7 @@ setup(
     url='http://www.arelle.org',
     download_url='http://www.arelle.org/download',
     cmdclass=cmdclass,
-    include_package_data=True,  # note: this uses MANIFEST.in
+    #include_package_data=True,  # note: this uses MANIFEST.in
     packages=packages,
     data_files=dataFiles,
     platforms=['OS Independent'],

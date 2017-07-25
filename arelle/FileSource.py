@@ -8,6 +8,7 @@ import zipfile, tarfile, os, io, errno, base64, gzip, zlib, re, struct, random, 
 from lxml import etree
 from arelle import XmlUtil
 from arelle import PackageManager
+from arelle.PythonUtil import genobj
 from arelle.UrlUtil import isHttpUrl
 from operator import indexOf
 
@@ -382,7 +383,7 @@ class FileSource:
     
     def file(self, filepath, binary=False, stripDeclaration=False, encoding=None):
         ''' 
-            for text, return a tuple of (open file handle, encoding)
+            for text, return genobj(filepath=filepath, encoding)
             for binary, return a tuple of (open file handle, )
         '''
         archiveFileSource = self.fileSourceContainingFilepath(filepath)
@@ -400,8 +401,7 @@ class FileSource:
                         encoding = XmlUtil.encoding(b)
                     if stripDeclaration:
                         b = stripDeclarationBytes(b)
-                    return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding), 
-                            encoding)
+                    return genobj(bytes=b, encoding=encoding, cntlr=self.cntlr)
                 except KeyError:
                     raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
             elif archiveFileSource.isTarGz:
@@ -415,8 +415,7 @@ class FileSource:
                         encoding = XmlUtil.encoding(b)
                     if stripDeclaration:
                         b = stripDeclarationBytes(b)
-                    return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding), 
-                            encoding)
+                    return genobj(bytes=b, encoding=encoding, cntlr=self.cntlr)
                 except KeyError:
                     raise ArchiveFileIOError(self, archiveFileName)
             elif archiveFileSource.isEis:
@@ -438,8 +437,7 @@ class FileSource:
                                 return (io.BytesIO(b), )
                             if encoding is None:
                                 encoding = XmlUtil.encoding(b, default="latin-1")
-                            return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
-                                    encoding)
+                            return genobj(bytes=b, encoding=encoding, cntlr=self.cntlr)
                 raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
             elif archiveFileSource.isXfd:
                 for data in archiveFileSource.xfdDocument.iter(tag="data"):
@@ -460,8 +458,7 @@ class FileSource:
                                 return (io.BytesIO(b), )
                             if encoding is None:
                                 encoding = XmlUtil.encoding(b, default="latin-1")
-                            return (io.TextIOWrapper(io.BytesIO(b), encoding=encoding), 
-                                    encoding)
+                            return genobj(bytes=b, encoding=encoding, cntlr=self.cntlr)
                 raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName)
             elif archiveFileSource.isInstalledTaxonomyPackage:
                 # remove TAXONOMY_PACKAGE_FILE_NAME from file path
@@ -471,10 +468,7 @@ class FileSource:
                         if filepath[l - len(f):l] == f:
                             filepath = filepath[0:l - len(f) - 1] + filepath[l:]
                             break
-        if binary:
-            return (openFileStream(self.cntlr, filepath, 'rb'), )
-        else:
-            return openXmlFileStream(self.cntlr, filepath, stripDeclaration)
+        return genobj(filepath=filepath, cntlr=self.cntlr)
 
     def exists(self, filepath):
         archiveFileSource = self.fileSourceContainingFilepath(filepath)

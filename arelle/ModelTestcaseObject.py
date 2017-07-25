@@ -8,6 +8,7 @@ Refactored from ModelObject on Jun 11, 2011
 import os, io, logging
 from arelle import XmlUtil, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
+from arelle.ModelValue import qname
 from arelle.PluginManager import pluginClassMethods
 
 TXMY_PLG_SRC_ELTS = ("metadata", "catalog", "taxonomy")
@@ -345,3 +346,10 @@ class ModelTestcaseVariation(ModelObject):
         
     def __repr__(self):
         return ("modelTestcaseVariation[{0}]{1})".format(self.objectId(),self.propertyView))
+
+from arelle.ModelObjectFactory import elementSubstitutionModelClass
+elementSubstitutionModelClass.update((
+     (qname("{http://edgar/2009/conformance}variation"), ModelTestcaseVariation),
+     (qname("{http://www.w3.org/XML/2004/xml-schema-test-suite/}testGroup"), ModelTestcaseVariation),
+     (qname("{http://www.w3.org/2005/02/query-test-XQTSCatalog}test-case"), ModelTestcaseVariation),
+    ))

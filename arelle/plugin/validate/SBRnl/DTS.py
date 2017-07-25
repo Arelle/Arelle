@@ -47,7 +47,7 @@ def checkFilingDTS(val, modelDocument, visited):
             val.modelXbrl.error("SBR.NL.2.2.0.18",
                 _("Taxonomy schema %(schema)s includes %(include)s, only import is allowed"),
                 modelObject=modelDocumentReference.referringModelObject,
-                    schema=os.path.basename(modelDocument.uri), 
+                    schema=os.path.basename(modelDocument.url), 
                     include=os.path.basename(referencedDocument.uri))
         if referencedDocument not in visited:
             checkFilingDTS(val, referencedDocument, visited)
@@ -57,7 +57,7 @@ def checkFilingDTS(val, modelDocument, visited):
 
     if (modelDocument.type == ModelDocument.Type.SCHEMA and 
         modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and
-        modelDocument.uri.startswith(val.modelXbrl.uriDir)):
+        modelDocument.url.startswith(val.modelXbrl.uriDir)):
         
         # check schema contents types
         definesLinkroles = False
@@ -89,7 +89,7 @@ def checkFilingDTS(val, modelDocument, visited):
                         if not (genrlSpeclRelSet.isRelated(modelConcept, "child", c) or genrlSpeclRelSet.isRelated(c, "child", modelConcept)):
                             val.modelXbrl.error("SBR.NL.2.2.2.02",
                                 _("Concept %(concept)s is also defined in standard taxonomy schema %(standardSchema)s without a general-special relationship"),
-                                modelObject=c, concept=modelConcept.qname, standardSchema=os.path.basename(c.modelDocument.uri))
+                                modelObject=c, concept=modelConcept.qname, standardSchema=os.path.basename(c.modelDocument.url))
                 ''' removed RH 2011-12-23 corresponding set up of table in ValidateFiling
                 if val.validateSBRNL and name in val.nameWordsTable:
                     if not any( any( genrlSpeclRelSet.isRelated(c, "child", modelConcept)

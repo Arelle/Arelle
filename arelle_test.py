@@ -106,7 +106,7 @@ def runTest(section, args):
         if modelDocument is not None:
             if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX,
                                       ModelDocument.Type.REGISTRY):
-                index = os.path.basename(modelDocument.uri)
+                index = os.path.basename(modelDocument.url)
                 for tc in sorted(modelDocument.referencesDocument.keys(), key=lambda doc: doc.uri):
                     test_case = os.path.basename(tc.uri)
                     if hasattr(tc, "testcaseVariations"):
