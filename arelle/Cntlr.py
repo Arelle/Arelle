@@ -240,7 +240,7 @@ class Cntlr:
         self.modelManager = ModelManager.initialize(self)
  
         # start taxonomy package server (requres web cache initialized, but not logger)
-        PackageManager.init(self, loadPackagesConfig=hasGui)
+        PackageManager.init(self)
  
         self.startLogging(logFileName, logFileMode, logFileEncoding, logFormat)
         
