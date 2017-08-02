@@ -401,7 +401,7 @@ def parseAndRun(args):
             print(text.encode("ascii", "replace").decode("ascii"))
     elif len(leftoverArgs) != 0 and (not hasWebServer or options.webserver is None):
         parser.error(_("unrecognized arguments: {}".format(', '.join(leftoverArgs))))
-    elif (options.entrypointFile is None and 
+    elif (options.entrypointFile is None and options.packages is None and
           ((not options.proxy) and (not options.plugins) and
            (not any(pluginOption for pluginOption in parser.option_list[pluginOptionsIndex:pluginLastOptionIndex])) and
            (not hasWebServer or options.webserver is None))):
