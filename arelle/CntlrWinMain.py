@@ -1288,7 +1288,10 @@ class CntlrWinMain (Cntlr.Cntlr):
             elif isinstance(file, _STR_BASE):
                 message += " - " + file
         if isinstance(messageArgs, dict):
-            message = message % messageArgs
+            try:
+                message = message % messageArgs
+            except (KeyError, TypeError, ValueError) as ex:
+                message += " \nMessage log error: " + str(ex)
         self.uiThreadQueue.put((self.uiAddToLog, [message]))
         
     # ui thread addToLog
