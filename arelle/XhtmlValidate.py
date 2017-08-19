@@ -85,7 +85,7 @@ ixAttrRequired = {
     }
 ixAttrDefined = {
     XbrlConst.ixbrl: {
-        "footnote": ("footnoteID",),
+        "footnote": ("id", "footnoteID", "arcrole", "footnoteLinkRole", "footnoteRole", "title"),
         "fraction": ("id", "name", "target", "contextRef", "unitRef", "tupleRef", "order",
                      "footnoteRefs"),
         "denominator": ("format", "scale", "sign"),
