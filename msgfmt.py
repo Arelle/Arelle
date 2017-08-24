@@ -23,6 +23,9 @@ Options:
     -V
     --version
         Display version information and exit.
+        
+Example (for russian in arelle, run from this directory)
+    python3.5 msgfmt.py -o arelle/locale/ru/LC_MESSAGES/arelle.mo arelle/locale/ru/LC_MESSAGES/ru.po 
 """
 
 import sys
