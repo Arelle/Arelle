@@ -31,7 +31,7 @@ linux
    
 windows
    rem be sure plugin is installed
-   arelleCmdLine --plugin "+xbrlDB|show"
+   arelleCmdLine --plugin "xbrlDB"
    arelleCmdLine -f http://sec.org/somewhere/some.rss -v --store-to-XBRL-DB "myserver.com,portnumber,pguser,pgpasswd,database,timeoutseconds"
 
 '''
