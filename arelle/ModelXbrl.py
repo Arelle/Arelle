@@ -654,10 +654,10 @@ class ModelXbrl:
         :type divideBy: [QName]
         :returns: ModelUnit -- Matching unit object or None
         """
-        tuple(sorted(multiplyBy))
-        tuple(sorted(divideBy))
+        _multiplyBy = tuple(sorted(multiplyBy))
+        _divideBy = tuple(sorted(divideBy))
         for u in self.units.values():
-            if u.measures == (multiplyBy,divideBy):
+            if u.measures == (_multiplyBy,_divideBy):
                 return u
         return None
 
