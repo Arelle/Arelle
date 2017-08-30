@@ -11,6 +11,7 @@ from arelle.ModelObject import ModelObject
 edgr = "http://www.sec.gov/Archives/edgar"
 edgrDescription = "{http://www.sec.gov/Archives/edgar}description"
 edgrFile = "{http://www.sec.gov/Archives/edgar}file"
+edgrInlineXBRL = "{http://www.sec.gov/Archives/edgar}inlineXBRL"
 edgrSequence = "{http://www.sec.gov/Archives/edgar}sequence"
 edgrType = "{http://www.sec.gov/Archives/edgar}type"
 edgrUrl = "{http://www.sec.gov/Archives/edgar}url"
@@ -132,7 +133,7 @@ class ModelRssItem(ModelObject):
         except AttributeError:
             self._url = None
             for instDocElt in XmlUtil.descendants(self, edgr, "xbrlFile"):
-                if instDocElt.get(edgrType).endswith(".INS"):
+                if instDocElt.get(edgrType).endswith(".INS") or instDocElt.get(edgrInlineXBRL) == "true":
                     self._url = instDocElt.get(edgrUrl)
                     break
             return self._url
