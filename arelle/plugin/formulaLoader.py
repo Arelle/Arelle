@@ -771,6 +771,7 @@ def compileFunctionDeclaration( sourceStr, loc, toks ):
     # function implementation
     if hasImplementation:
         cfiLabel = "functionImplementation{}".format(lbGen.labelNbr("functionImplementation"))
+        lbGen.checkXmlns("cfi")
         cfiElt = lbGen.subElement(lbGen.genLinkElement, "cfi:implementation", attrib={
             "xlink:type": "resource",
             "xlink:label": cfiLabel})
@@ -873,12 +874,14 @@ def compileLabel( sourceStr, loc, toks ):
                 role = "message"
                 labelElt = "msg:message"
                 label = tok
+                lbGen.checkXmlns("msg")
             elif prevTok == "unsatisfied-message":
                 labelType = "message"
                 arcrole = "assertion-unsatisfied-message"
                 role = "message"
                 labelElt = "msg:message"
                 label = tok
+                lbGen.checkXmlns("msg")
             # Don't set prevTok if it was a language
             prevTok = tok
     labelLabel = "{}{}".format(labelType, lbGen.labelNbr(labelType))
