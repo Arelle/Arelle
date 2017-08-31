@@ -1859,7 +1859,7 @@ xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/x
 </link:linkbase>
 '''.format('\n'.join("xmlns{0}='{1}'".format((":" + prefix) if prefix else "",
                                              namespace)           
-                     for prefix in ("xlink", "link", "xbrli", "xsi", "xs", "generic")
+                     for prefix in ("xlink", "link", "xbrli", "xsi", "xs", "generic", "xfi")
                      for namespace in (formulaPrefixes[prefix][0],))
            )
         if self.modelXbrl is None:
