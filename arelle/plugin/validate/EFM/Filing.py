@@ -1908,7 +1908,7 @@ def checkConceptLabels(val, modelXbrl, labelsRelationshipSet, disclosureSystem, 
     dupLabels = {}
     for modelLabelRel in labelsRelationshipSet.fromModelObject(concept):
         modelLabel = modelLabelRel.toModelObject
-        if isinstance(modelLabel, ModelResource) and modelLabel.xmlLang:
+        if isinstance(modelLabel, ModelResource) and modelLabel.xmlLang and modelLabel.modelDocument.inDTS:
             if modelLabel.xmlLang.startswith(disclosureSystem.defaultXmlLang) and \
                modelLabel.role == XbrlConst.standardLabel:
                 hasDefaultLangStandardLabel = True
