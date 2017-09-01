@@ -391,7 +391,7 @@ class Validate:
                                     return footnotes
                                 for expectedInstanceFact in expectedInstance.facts:
                                     unmatchedFactsStack = []
-                                    formulaOutputFact = formulaOutputInstance.matchFact(expectedInstanceFact, unmatchedFactsStack, deemP0inf=True)
+                                    formulaOutputFact = formulaOutputInstance.matchFact(expectedInstanceFact, unmatchedFactsStack, deemP0inf=True, matchId=True)
                                     if formulaOutputFact is None:
                                         if unmatchedFactsStack: # get missing nested tuple fact, if possible
                                             missingFact = unmatchedFactsStack[-1]

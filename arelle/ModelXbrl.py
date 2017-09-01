@@ -796,7 +796,7 @@ class ModelXbrl:
                         fbdq[DEFAULT].add(fact)
             return fbdq[memQname]
         
-    def matchFact(self, otherFact, unmatchedFactsStack=None, deemP0inf=False):
+    def matchFact(self, otherFact, unmatchedFactsStack=None, deemP0inf=False, matchId=False):
         """Finds matching fact, by XBRL 2.1 duplicate definition (if tuple), or by
         QName and VEquality (if an item), lang and accuracy equality, as in formula and test case usage
         
@@ -806,17 +806,18 @@ class ModelXbrl:
         :returns: ModelFact -- Matching fact or None
         """
         for fact in self.facts:
-            if (fact.isTuple):
-                if otherFact.isDuplicateOf(fact, unmatchedFactsStack=unmatchedFactsStack):
-                    return fact
-            elif (fact.qname == otherFact.qname and fact.isVEqualTo(otherFact, deemP0inf=deemP0inf)):
-                if not fact.isNumeric:
-                    if fact.xmlLang == otherFact.xmlLang:
+            if not matchId or otherFact.id == fact.id:
+                if (fact.isTuple):
+                    if otherFact.isDuplicateOf(fact, unmatchedFactsStack=unmatchedFactsStack):
                         return fact
-                else:
-                    if (fact.decimals == otherFact.decimals and
-                        fact.precision == otherFact.precision):
-                        return fact
+                elif (fact.qname == otherFact.qname and fact.isVEqualTo(otherFact, deemP0inf=deemP0inf)):
+                    if not fact.isNumeric:
+                        if fact.xmlLang == otherFact.xmlLang:
+                            return fact
+                    else:
+                        if (fact.decimals == otherFact.decimals and
+                            fact.precision == otherFact.precision):
+                            return fact
         return None
             
     def createFact(self, conceptQname, attributes=None, text=None, parent=None, afterSibling=None, beforeSibling=None, validate=True):
