@@ -1548,16 +1548,18 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     # role types checks
     # 6.7.10 only one role type declaration in DTS
     for roleURI, modelRoleTypes in modelXbrl.roleTypes.items():
-        if len(modelRoleTypes) > 1:
+        countInDTS = sum(1 for m in modelRoleTypes if m.modelDocument.inDTS)
+        if countInDTS > 1:
             modelXbrl.error(("EFM.6.07.10", "GFM.1.03.10"),
                 _("RoleType %(roleType)s is defined in multiple taxonomies"),
-                modelObject=modelRoleTypes, roleType=roleURI, numberOfDeclarations=len(modelRoleTypes))
+                modelObject=modelRoleTypes, roleType=roleURI, numberOfDeclarations=countInDTS)
     # 6.7.14 only one arcrole type declaration in DTS
     for arcroleURI, modelRoleTypes in modelXbrl.arcroleTypes.items():
-        if len(modelRoleTypes) > 1:
+        countInDTS = sum(1 for m in modelRoleTypes if m.modelDocument.inDTS)
+        if countInDTS > 1:
             modelXbrl.error(("EFM.6.07.14", "GFM.1.03.16"),
                 _("ArcroleType %(arcroleType)s is defined in multiple taxonomies"),
-                modelObject=modelRoleTypes, arcroleType=arcroleURI, numberOfDeclarations=len(modelRoleTypes) )
+                modelObject=modelRoleTypes, arcroleType=arcroleURI, numberOfDeclarations=countInDTS )
                 
 
     val.modelXbrl.profileActivity("... filer concepts checks", minTimeToShow=1.0)

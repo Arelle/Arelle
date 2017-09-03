@@ -74,7 +74,7 @@ class ValidateXbrl:
         self.validateUTR = (modelXbrl.modelManager.validateUtr or
                             (self.parameters and self.parameters.get(qname("forceUtrValidation",noPrefixIsNoNamespace=True),(None,"false"))[1] == "true") or
                             (self.validateEFM and 
-                             any((concept.qname.namespaceURI in self.disclosureSystem.standardTaxonomiesDict) 
+                             any((concept.qname.namespaceURI in self.disclosureSystem.standardTaxonomiesDict and concept.modelDocument.inDTS) 
                                  for concept in self.modelXbrl.nameConcepts.get("UTR",()))))
         self.validateIXDS = False # set when any inline document found
         self.validateEnum = XbrlConst.enums & _DICT_SET(modelXbrl.namespaceDocs.keys())

@@ -133,7 +133,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     else:
         val.EFM60303 = "EFM.6.03.03"
                 
-    if any((concept.qname.namespaceURI in val.disclosureSystem.standardTaxonomiesDict) 
+    if any((concept.qname.namespaceURI in val.disclosureSystem.standardTaxonomiesDict and concept.modelDocument.inDTS) 
            for concept in val.modelXbrl.nameConcepts.get("UTR",())):
         val.validateUTR = True
         
