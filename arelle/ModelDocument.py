@@ -140,7 +140,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             if modelDocument is not None:
                 return modelDocument
         if (modelXbrl.modelManager.validateDisclosureSystem and 
-            modelXbrl.modelManager.disclosureSystem.validateFileText):
+            modelXbrl.modelManager.disclosureSystem.validateFileText and
+            not normalizedUri in modelXbrl.modelManager.disclosureSystem.standardTaxonomiesDict):
             file, _encoding = ValidateFilingText.checkfile(modelXbrl,filepath)
         else:
             file, _encoding = modelXbrl.fileSource.file(filepath, stripDeclaration=True)
