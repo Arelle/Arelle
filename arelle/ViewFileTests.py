@@ -18,45 +18,64 @@ class ViewTests(ViewFile.View):
         super(ViewTests, self).__init__(modelXbrl, outfile, "Tests")
         self.cols = cols
         
-    def viewTestcaseIndexElement(self, modelDocument):
-        if self.cols:
-            if isinstance(self.cols,str): self.cols = self.cols.replace(',',' ').split()
-            unrecognizedCols = []
-            for col in self.cols:
-                if col not in ("Index", "Testcase", "Id", "Name", "Reference", "ReadMeFirst", "Status", "Expected","Actual"):
-                    unrecognizedCols.append(col)
-            if unrecognizedCols:
-                self.modelXbrl.error("arelle:unrecognizedTestReportColumn",
-                                     _("Unrecognized columns: %(cols)s"),
-                                     modelXbrl=self.modelXbrl, cols=','.join(unrecognizedCols))
-            if "Period" in self.cols:
-                i = self.cols.index("Period")
-                self.cols[i:i+1] = ["Start", "End/Instant"]
-        else:
-            self.cols = ["Index", "Testcase", "Id"]
-            if self.type != ViewFile.XML:
-                self.cols.append("Name")
-            self.cols += ["ReadMeFirst", "Status", "Expected", "Actual"]
-        
-        self.addRow(self.cols, asHeader=True)
+    def viewTestcaseIndexElement(self, modelDocument, parentDocument=None, nestedDepth=0):
+        if parentDocument is None: # not a nested testacases index
+            self.nestedIndexDepth = 0
+            if self.cols:
+                if isinstance(self.cols,str): self.cols = self.cols.replace(',',' ').split()
+                unrecognizedCols = []
+                for col in self.cols:
+                    if col not in ("Index", "Testcase", "Id", "Name", "Reference", "ReadMeFirst", "Status", "Expected","Actual"):
+                        unrecognizedCols.append(col)
+                if unrecognizedCols:
+                    self.modelXbrl.error("arelle:unrecognizedTestReportColumn",
+                                         _("Unrecognized columns: %(cols)s"),
+                                         modelXbrl=self.modelXbrl, cols=','.join(unrecognizedCols))
+                if "Period" in self.cols:
+                    i = self.cols.index("Period")
+                    self.cols[i:i+1] = ["Start", "End/Instant"]
+            else:
+                self.cols = ["Index"]
+                def determineNestedIndexDepth(doc, nestedDepth):
+                    if nestedDepth > self.nestedIndexDepth:
+                        self.nestedIndexDepth = nestedDepth
+                        self.cols.append("Index.{}".format(nestedDepth))
+                    for referencedDocument in doc.referencesDocument.keys():
+                        if referencedDocument.type == ModelDocument.Type.TESTCASESINDEX:
+                            determineNestedIndexDepth(referencedDocument, nestedDepth + 1)
+                determineNestedIndexDepth(modelDocument, 0)
+                self.cols += ["Testcase", "Id"]
+                if self.type != ViewFile.XML:
+                    self.cols.append("Name")
+                self.cols += ["ReadMeFirst", "Status", "Expected", "Actual"]
+            
+            self.addRow(self.cols, asHeader=True)
 
         if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
             cols = []
             attr = {}
+            indexColName = "Index.{}".format(nestedDepth) if nestedDepth else "Index"
             for col in self.cols:
-                if col == "Index":
+                if col == indexColName:
+                    docName = os.path.basename(modelDocument.uri)
+                    if parentDocument and os.path.basename(parentDocument.uri) == docName:
+                        docName = os.path.basename(os.path.dirname(modelDocument.uri))
                     if self.type == ViewFile.CSV:
-                        cols.append(os.path.basename(modelDocument.uri))
+                        cols.append(docName)
                     else:
-                        attr["name"] = os.path.basename(modelDocument.uri)
+                        attr["name"] = docName
                     break
                 else:
                     cols.append("")
             self.addRow(cols, treeIndent=0, xmlRowElementName="testcaseIndex", xmlRowEltAttr=attr, xmlCol0skipElt=True)
             # sort test cases by uri
             testcases = []
-            for referencedDocument in modelDocument.referencesDocument.keys():
-                testcases.append((referencedDocument.uri, referencedDocument.objectId()))
+            for referencedDocument, _ref in sorted(modelDocument.referencesDocument.items(),
+                                             key=lambda i:i[1].referringModelObject.objectIndex if i[1] else 0):
+                if referencedDocument.type == ModelDocument.Type.TESTCASESINDEX:
+                    self.viewTestcaseIndexElement(referencedDocument, modelDocument, nestedDepth+1)
+                else:
+                    testcases.append((referencedDocument.uri, referencedDocument.objectId()))
             testcases.sort()
             for testcaseTuple in testcases:
                 self.viewTestcase(self.modelXbrl.modelObject(testcaseTuple[1]), 1)

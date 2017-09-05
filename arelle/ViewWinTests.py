@@ -57,7 +57,7 @@ def viewTests(modelXbrl, tabWin):
     menu = view.contextMenu()
     view.menuAddExpandCollapse()
     view.menuAddClipboard()
-
+    view.id = 0
     view.viewTestcaseIndexElement(modelDocument, "")
     view.blockSelectEvent = 1
     view.blockViewModelObject = 0
@@ -69,16 +69,23 @@ class ViewTests(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin):
         super(ViewTests, self).__init__(modelXbrl, tabWin, "Tests", True)
         
-    def viewTestcaseIndexElement(self, modelDocument, parentNode):
-        self.id = 1
+    def viewTestcaseIndexElement(self, modelDocument, parentNode, parentNodeText=None):
+        self.id += 1
         if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
+            nodeText = os.path.basename(modelDocument.uri)
+            if nodeText == parentNodeText: # may be same name, index.xml, use directory name instead
+                nodeText = os.path.basename(os.path.dirname(modelDocument.uri))
             node = self.treeView.insert(parentNode, "end", modelDocument.objectId(self.id),
-                                        text=os.path.basename(modelDocument.uri), tags=("odd",))
+                                        text=nodeText, tags=("odd",))
             self.id += 1;
             # sort test cases by uri
             testcases = []
-            for referencedDocument in modelDocument.referencesDocument.keys():
-                testcases.append((referencedDocument.uri, referencedDocument.objectId()))
+            for referencedDocument, _ref in sorted(modelDocument.referencesDocument.items(),
+                                                   key=lambda i:i[1].referringModelObject.objectIndex if i[1] else 0):
+                if referencedDocument.type == ModelDocument.Type.TESTCASESINDEX:
+                    self.viewTestcaseIndexElement(referencedDocument, node, nodeText)
+                else:
+                    testcases.append((referencedDocument.uri, referencedDocument.objectId()))
             testcases.sort()
             for i, testcaseTuple in enumerate(testcases):
                 self.viewTestcase(self.modelXbrl.modelObject(testcaseTuple[1]), node, i)

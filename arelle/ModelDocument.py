@@ -1185,12 +1185,17 @@ class ModelDocument:
                     ixNS = inlineElement.namespaceURI
                 elif ixNS != inlineElement.namespaceURI:
                     conflictingNSelts.append(inlineElement)
+        if ixNS is None: # no inline element, look for xmlns namespaces on htmlElement:
+            for _ns in htmlElement.nsmap.values():
+                if _ns in XbrlConst.ixbrlAll:
+                    ixNS = _ns
+                    break
         if conflictingNSelts:
             self.modelXbrl.error("ix:multipleIxNamespaces",
                     _("Multiple ix namespaces were found"),
                     modelObject=conflictingNSelts)
         self.ixNS = ixNS
-        self.ixNStag = ixNStag = "{" + ixNS + "}"
+        self.ixNStag = ixNStag = "{" + ixNS + "}" if ixNS else ""
         # load referenced schemas and linkbases (before validating inline HTML
         for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "references"):
             self.schemaLinkbaseRefsDiscover(inlineElement)
@@ -1253,6 +1258,12 @@ class ModelDocument:
                     base = self.filepath
                 for testcaseElement in testcasesElement:
                     if isinstance(testcaseElement,ModelObject) and testcaseElement.localName in ("testcase", "testSetRef"):
+                        uriAttr = testcaseElement.get("uri") or testcaseElement.get("{http://www.w3.org/1999/xlink}href")
+                        if uriAttr:
+                            doc = load(self.modelXbrl, uriAttr, base=base, referringElement=testcaseElement)
+                            if doc is not None and doc not in self.referencesDocument:
+                                self.referencesDocument[doc] = ModelDocumentReference("testcaseIndex", testcaseElement)
+                    elif isinstance(testcaseElement,ModelObject) and testcaseElement.localName == "testcases":
                         uriAttr = testcaseElement.get("uri") or testcaseElement.get("{http://www.w3.org/1999/xlink}href")
                         if uriAttr:
                             doc = load(self.modelXbrl, uriAttr, base=base, referringElement=testcaseElement)
@@ -1323,15 +1334,16 @@ def inlineIxdsDiscover(modelXbrl):
     for htmlElement in modelXbrl.ixdsHtmlElements:  
         mdlDoc = htmlElement.modelDocument
         for modelInlineTuple in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "tuple"):
-            if isinstance(modelInlineTuple,ModelObject) and modelInlineTuple.qname is not None:
+            if isinstance(modelInlineTuple,ModelObject):
                 modelInlineTuple.unorderedTupleFacts = []
-                if modelInlineTuple.tupleID:
-                    tuplesByTupleID[modelInlineTuple.tupleID] = modelInlineTuple
-                tupleElements.append(modelInlineTuple)
-                for r in modelInlineTuple.footnoteRefs:
-                    footnoteRefs[r].append(modelInlineTuple)
-                if modelInlineTuple.id:
-                    factsByFactID[modelInlineTuple.id] = modelInlineTuple
+                if modelInlineTuple.qname is not None:
+                    if modelInlineTuple.tupleID:
+                        tuplesByTupleID[modelInlineTuple.tupleID] = modelInlineTuple
+                    tupleElements.append(modelInlineTuple)
+                    for r in modelInlineTuple.footnoteRefs:
+                        footnoteRefs[r].append(modelInlineTuple)
+                    if modelInlineTuple.id:
+                        factsByFactID[modelInlineTuple.id] = modelInlineTuple
         for elt in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "continuation"):
             if isinstance(elt,ModelObject) and elt.id:
                 continuationElements[elt.id] = elt
@@ -1390,7 +1402,8 @@ def inlineIxdsDiscover(modelXbrl):
                 tuple = tupleParent
                 break
         if tuple is not None:
-            tuple.unorderedTupleFacts.append((modelFact.order, modelFact.objectIndex))
+            if modelFact.order is not None: # None when order failed validation
+                tuple.unorderedTupleFacts.append((modelFact.order, modelFact.objectIndex))
         else:
             modelXbrl.modelXbrl.facts.append(modelFact)
             

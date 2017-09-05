@@ -147,7 +147,10 @@ class Validate:
     def validateTestcase(self, testcase):
         self.modelXbrl.info("info", "Testcase", modelDocument=testcase)
         self.modelXbrl.viewModelObject(testcase.objectId())
-        if hasattr(testcase, "testcaseVariations"):
+        if testcase.type == Type.TESTCASESINDEX:
+            for doc in sorted(testcase.referencesDocument.keys(), key=lambda doc: doc.uri):
+                self.validateTestcase(doc)  # testcases doc's are sorted by their uri (file names), e.g., for formula
+        elif hasattr(testcase, "testcaseVariations"):
             for modelTestcaseVariation in testcase.testcaseVariations:
                 # update ui thread via modelManager (running in background here)
                 self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, modelTestcaseVariation.objectId())
@@ -333,7 +336,8 @@ class Validate:
                             formulaOutputInstance = modelXbrl.formulaOutputInstance
                             modelXbrl.formulaOutputInstance = None # prevent it from being closed now
                         self.instValidator.close()
-                    compareIxResultInstance = getattr(modelXbrl, "extractedInlineInstance", False) and modelTestcaseVariation.resultXbrlInstanceUri
+                    compareIxResultInstance = (modelXbrl.modelDocument.type == Type.INLINEXBRL and 
+                                               modelTestcaseVariation.resultXbrlInstanceUri is not None)
                     if compareIxResultInstance:
                         formulaOutputInstance = modelXbrl # compare modelXbrl to generated output instance
                         errMsgPrefix = "ix"
