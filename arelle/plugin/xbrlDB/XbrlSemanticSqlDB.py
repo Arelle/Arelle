@@ -370,7 +370,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             results = self.execute("SELECT document_id, document_url FROM {} WHERE document_url IN ({})"
                                    .format(self.dbTableName("document"),
                                            ', '.join(docUris)))
-            self.existingDocumentIds = dict((self.urlDocs[docUrl],docId) 
+            self.existingDocumentIds = dict((self.urlDocs[self.pyStrFromDbStr(docUrl)],docId) 
                                             for docId, docUrl in results)
             
             # identify whether taxonomyRelsSetsOwner is existing
@@ -466,7 +466,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                   if mdlDoc not in self.existingDocumentIds and 
                                      self.isSemanticDocument(mdlDoc)),
                               checkIfExisting=True)
-        self.documentIds = dict((self.urlDocs[url], id)
+        self.documentIds = dict((self.urlDocs[self.pyStrFromDbStr(url)], id) 
                                 for id, url in table)
         self.documentIds.update(self.existingDocumentIds)
 

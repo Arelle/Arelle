@@ -216,6 +216,11 @@ class SqlDbConnection():
     def showStatus(self, msg, clearAfter=None):
         self.modelXbrl.modelManager.showStatus(msg, clearAfter)
         
+    def pyStrFromDbStr(self, str):
+        if self.product == "postgres":
+            return str.replace("%%", "%")
+        return str
+        
     def pyBoolFromDbBool(self, str):
         return str in ("TRUE", "t", True)  # may be DB string or Python boolean (preconverted)
     
