@@ -367,12 +367,14 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     # encode PSVI xValue similarly to Xerces and other implementations
                     xValue = anyURI(UrlUtil.anyUriQuoteForPSVI(value))
                     sValue = value
-                elif baseXsdType in ("decimal", "float", "double"):
-                    if baseXsdType == "decimal":
+                elif baseXsdType in ("decimal", "float", "double", "XBRLI_NONZERODECIMAL"):
+                    if baseXsdType in ("decimal", "XBRLI_NONZERODECIMAL"):
                         if decimalPattern.match(value) is None:
                             raise ValueError("lexical pattern mismatch")
                         xValue = Decimal(value)
                         sValue = float(value) # s-value uses Number (float) representation
+                        if sValue == 0 and baseXsdType == "XBRLI_NONZERODECIMAL":
+                            raise ValueError("zero is not allowed")
                     else:
                         if floatPattern.match(value) is None:
                             raise ValueError("lexical pattern mismatch")
@@ -472,8 +474,18 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     except Exception as err:
                         raise ValueError(err)
                 elif baseXsdType == "fraction":
-                    sValue = value
-                    xValue = Fraction("/".join(elt.fractionValue))
+                    numeratorStr, denominatorStr = elt.fractionValue
+                    if numeratorStr == INVALIDixVALUE or denominatorStr == INVALIDixVALUE:
+                        sValue = xValue = INVALIDixVALUE
+                        xValid = INVALID
+                    else:
+                        sValue = value
+                        numeratorNum = float(numeratorStr)
+                        denominatorNum = float(denominatorStr)
+                        if numeratorNum.is_integer() and denominatorNum.is_integer():
+                            xValue = Fraction(int(numeratorNum), int(denominatorNum))
+                        else:
+                            xValue = Fraction(numeratorNum / denominatorNum)
                 else:
                     if baseXsdType in lexicalPatterns:
                         match = lexicalPatterns[baseXsdType].match(value)

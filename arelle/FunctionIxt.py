@@ -72,6 +72,12 @@ numDotDecimalInPattern = re.compile(r"^(([0-9]{1,2}[, \xA0])?([0-9]{2}[, \xA0])*
 numCommaDecimalPattern = re.compile(r"^\s*[0-9]{1,3}([. \xA0]?[0-9]{3})*(,[0-9]+)?\s*$")
 numUnitDecimalPattern = re.compile(r"^([0]|([1-9][0-9]{0,2}([.,\uFF0C\uFF0E]?[0-9]{3})*))[^0-9,.\uFF0C\uFF0E]+([0-9]{1,2})[^0-9,.\uFF0C\uFF0E]*$")
 numUnitDecimalInPattern = re.compile(r"^(([0-9]{1,2}[, \xA0])?([0-9]{2}[, \xA0])*[0-9]{3})([^0-9]+)([0-9]{1,2})([^0-9]*)$|^([0-9]+)([^0-9]+)([0-9]{1,2})([^0-9]*)$")
+numCommaPattern = re.compile(r"^\s*[0-9]+(,[0-9]+)?\s*$")
+numCommaDotPattern = re.compile(r"^\s*[0-9]{1,3}(,[0-9]{3,3})*([.][0-9]+)?\s*$")
+numDashPattern = re.compile(r"^\s*-\s*$")
+numDotCommaPattern = re.compile(r"^\s*[0-9]{1,3}([.][0-9]{3,3})*(,[0-9]+)?\s*$")
+numSpaceDotPattern = re.compile(r"^\s*[0-9]{1,3}([ \xA0][0-9]{3,3})*([.][0-9]+)?\s*$")
+numSpaceCommaPattern = re.compile(r"^\s*[0-9]{1,3}([ \xA0][0-9]{3,3})*(,[0-9]+)?\s*$")
 
 monthnumber = {"January":1, "February":2, "March":3, "April":4, "May":5, "June":6, 
                "July":7, "August":8, "September":9, "October":10, "November":11, "December":12, 
@@ -558,19 +564,34 @@ def numcommadecimal(arg):
     raise XPathContext.FunctionArgType(1,"ixt:nonNegativeDecimalType")
 
 def numcommadot(arg):
-    return arg.replace(',', '')
+    if numCommaDotPattern.match(arg):
+        return arg.replace(',', '')
+    raise XPathContext.FunctionArgType(1,"ixt:numcommadot")
 
 def numdash(arg):
-    return arg.replace('-','0')
+    if numDashPattern.match(arg):
+        return arg.replace('-','0')
+    raise XPathContext.FunctionArgType(1,"ixt:numdash")
 
 def numspacedot(arg):
-    return arg.replace(' ', '')
+    if numSpaceDotPattern.match(arg):
+        return arg.replace(' ', '').replace('\u00A0', '')
+    raise XPathContext.FunctionArgType(1,"ixt:numspacedot")
+
+def numcomma(arg):
+    if numCommaPattern.match(arg):
+        return arg.replace(',', '.')
+    raise XPathContext.FunctionArgType(1,"ixt:numcomma")
 
 def numdotcomma(arg):
-    return arg.replace('.', '').replace(',', '.')
+    if numDotCommaPattern.match(arg):
+        return arg.replace('.', '').replace(',', '.')
+    raise XPathContext.FunctionArgType(1,"ixt:numdotcomma")
 
 def numspacecomma(arg):
-    return arg.replace(' ', '').replace(',', '.')
+    if numSpaceCommaPattern.match(arg):
+        return arg.replace(' ', '').replace('\u00A0', '').replace(',', '.')
+    raise XPathContext.FunctionArgType(1,"ixt:numspacecomma")
 
 def zerodash(arg):
     if zeroDashPattern.match(arg):
@@ -623,7 +644,7 @@ tr1Functions = {
     'numdash': numdash,
     'numspacedot': numspacedot,
     'numdotcomma': numdotcomma,
-    'numcomma': numdotcomma,
+    'numcomma': numcomma,
     'numspacecomma': numspacecomma,
     'dateshortdaymonthuk': datedaymonthShortEnTR1,
     'dateshortmonthdayus': datemonthdayShortEnTR1,
