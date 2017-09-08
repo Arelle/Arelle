@@ -94,11 +94,11 @@ def durationValue(y, m, d, h, sign):
     output = sign + "P"
     if y is not None:
         output += str(y) + 'Y'
-    if m is not None:
+    if m is not None and (m != 0 or y is None):
         output += str(m) + 'M'
-    if d is not None:
+    if d is not None and (d != 0 or (y is None and m is None)):
         output += str(d) + 'D'
-    if h is not None:
+    if h is not None and (h != 0 or (y is None and m is None and d is None)):
         output += 'T' + str(h) + 'H'
     return output
 
