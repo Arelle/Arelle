@@ -811,7 +811,9 @@ class ModelXbrl:
                     if otherFact.isDuplicateOf(fact, unmatchedFactsStack=unmatchedFactsStack):
                         return fact
                 elif (fact.qname == otherFact.qname and fact.isVEqualTo(otherFact, deemP0inf=deemP0inf)):
-                    if not fact.isNumeric:
+                    if fact.isFraction:
+                        return fact
+                    elif not fact.isNumeric:
                         if fact.xmlLang == otherFact.xmlLang:
                             return fact
                     else:
