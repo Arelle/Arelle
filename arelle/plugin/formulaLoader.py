@@ -1758,7 +1758,7 @@ formulaArcroleRefs = {
     "variable-set": ('http://xbrl.org/arcrole/2008/variable-set', 'http://www.xbrl.org/2008/variable.xsd#variable-set'),
     "variable-set-precondition": ('http://xbrl.org/arcrole/2008/variable-set-precondition', 'http://www.xbrl.org/2008/variable.xsd#variable-set-precondition'),
     "consistency-assertion-formula": ('http://xbrl.org/arcrole/2008/consistency-assertion-formula', 'http://www.xbrl.org/2008/consistency-assertion.xsd#consistency-assertion-formula'),
-    "assertion-unsatisfied-message": ("http://xbrl.org/arcrole/2010/assertion-unsatisfied-message", "http://www.xbrl.org/2010/validation-message.xsd#assertion-satisfied-message"),
+    "assertion-unsatisfied-message": ("http://xbrl.org/arcrole/2010/assertion-unsatisfied-message", "http://www.xbrl.org/2010/validation-message.xsd#assertion-unsatisfied-message"),
     "assertion-satisfied-message": ("http://xbrl.org/arcrole/2010/assertion-satisfied-message", "http://www.xbrl.org/2010/validation-message.xsd#assertion-satisfied-message"),
     "boolean-filter": ('http://xbrl.org/arcrole/2008/boolean-filter', 'http://www.xbrl.org/2008/boolean-filter.xsd#boolean-filter'),
     "function-implementation": ('http://xbrl.org/arcrole/2010/function-implementation','http://www.xbrl.org/2010/custom-function-implementation.xsd#cfi-implementation')
