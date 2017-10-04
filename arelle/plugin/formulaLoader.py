@@ -1731,7 +1731,6 @@ formulaPrefixes = {
     "ca": ('http://xbrl.org/2008/assertion/consistency', 'http://www.xbrl.org/2008/consistency-assertion.xsd'),
     "ea": ('http://xbrl.org/2008/assertion/existence', 'http://www.xbrl.org/2008/existence-assertion.xsd'),
     "va": ('http://xbrl.org/2008/assertion/value', 'http://www.xbrl.org/2008/value-assertion.xsd'),
-    "msg": ('http://xbrl.org/2010/message', 'http://www.xbrl.org/2010/generic-message.xsd'),
     "bf": ('http://xbrl.org/2008/filter/boolean', 'http://www.xbrl.org/2008/boolean-filter.xsd'),
     "cf": ('http://xbrl.org/2008/filter/concept', 'http://www.xbrl.org/2008/concept-filter.xsd'),
     "df": ('http://xbrl.org/2008/filter/dimension', 'http://www.xbrl.org/2008/dimension-filter.xsd'),
