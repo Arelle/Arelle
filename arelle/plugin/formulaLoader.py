@@ -2032,7 +2032,7 @@ def guiXbrlLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
         cntlr.showStatus(_("XBRL formula loading completed"), 3500)
 
 def cmdLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
-    if options.saveFormulaLinkbase and getattr(modelXbrl, "loadedFromXf", False):
+    if options.saveFormulaLinkbase:
         for doc in modelXbrl.urlDocs.values():
             if getattr(doc,"loadedFromXbrlFormula", False):
                 doc.save(options.saveFormulaLinkbase)
