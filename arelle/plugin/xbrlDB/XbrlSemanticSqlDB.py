@@ -58,7 +58,7 @@ from collections import defaultdict
 
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
-                 product=None, rssItem=None, **kwargs):
+                 product=None, entrypoint=None, rssItem=None, **kwargs):
     xbrlDbConn = None
     try:
         xbrlDbConn = XbrlSqlDatabaseConnection(modelXbrl, user, password, host, port, database, timeout, product)
@@ -66,7 +66,7 @@ def insertIntoDB(modelXbrl,
             xbrlDbConn.initializeBatch(kwargs["rssObject"])
         else:
             xbrlDbConn.verifyTables()
-            xbrlDbConn.insertXbrl(rssItem=rssItem)
+            xbrlDbConn.insertXbrl(entrypoint, rssItem)
         xbrlDbConn.close()
     except Exception as ex:
         if xbrlDbConn is not None:
@@ -107,7 +107,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                 _("The following tables are missing: %(missingTableNames)s"),
                                 missingTableNames=', '.join(t for t in sorted(missingTables))) 
             
-    def insertXbrl(self, rssItem):
+    def insertXbrl(self, entrypoint, rssItem):
         try:
             # must also have default dimensions loaded
             from arelle import ValidateXbrlDimensions
@@ -126,7 +126,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                     _("No XBRL instance or schema loaded for this filing.")) 
             
             # obtain supplementaion entity information
-            self.entityInformation = loadEntityInformation(self.modelXbrl, rssItem)
+            self.entityInformation = loadEntityInformation(self.modelXbrl, entrypoint, rssItem)
             # identify table facts (table datapoints) (prior to locked database transaction
             self.tableFacts = tableFacts(self.modelXbrl)  # for EFM & HMRC this is ( (roleType, table_code, fact) )
             loadPrimaryDocumentFacts(self.modelXbrl, rssItem, self.entityInformation) # load primary document facts for SEC filing

@@ -26,6 +26,7 @@ DROP TABLE IF EXISTS role_type CASCADE;
 DROP TABLE IF EXISTS arcrole_type CASCADE;
 DROP TABLE IF EXISTS used_on CASCADE;
 DROP TABLE IF EXISTS resource CASCADE;
+DROP TABLE IF EXISTS reference_part CASCADE;
 DROP TABLE IF EXISTS relationship_set CASCADE;
 DROP TABLE IF EXISTS relationship CASCADE;
 DROP TABLE IF EXISTS root CASCADE;
@@ -190,11 +191,12 @@ CREATE INDEX data_type_index03 ON data_type USING hash (qname);
 ALTER TABLE public.data_type OWNER TO postgres;
 
 CREATE TABLE enumeration (
-    concept_id bigint NOT NULL,
-    concept_value_id bigint NOT NULL,
+    data_type_id bigint NOT NULL,
+    document_id bigint NOT NULL,
     value text
 );
-CREATE INDEX enumeration_index01 ON enumeration USING btree (concept_id);
+CREATE INDEX enumeration_index01 ON enumeration USING btree (data_type_id);
+CREATE INDEX enumeration_index02 ON enumeration USING btree (document_id);
 
 ALTER TABLE public.enumeration OWNER TO postgres;
 
@@ -250,6 +252,17 @@ CREATE TABLE resource (
 CREATE INDEX resource_index02 ON resource USING btree (document_id, xml_child_seq);
 
 ALTER TABLE public.resource OWNER TO postgres;
+
+CREATE TABLE reference_part (
+    resource_id bigint NOT NULL,
+    document_id bigint NOT NULL,
+    qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
+    value text
+);
+CREATE INDEX reference_part_index01 ON reference_part USING btree (resource_id);
+CREATE INDEX reference_part_index02 ON reference_part USING btree (document_id);
+
+ALTER TABLE public.reference_part OWNER TO postgres;
 
 CREATE SEQUENCE seq_relationship_set;
 ALTER TABLE public.seq_relationship_set OWNER TO postgres;

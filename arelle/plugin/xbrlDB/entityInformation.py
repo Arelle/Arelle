@@ -22,7 +22,7 @@ from arelle.ModelValue import qname
 from arelle.ValidateXbrlCalcs import roundValue
 
 
-def loadEntityInformation(dts, rssItem):
+def loadEntityInformation(dts, entrypoint, rssItem):
     entityInformation = {}
     # identify tables
     disclosureSystem = dts.modelManager.disclosureSystem

@@ -66,7 +66,7 @@ from collections import defaultdict
 def insertIntoDB(modelXbrl, 
                  user=None, password=None, host=None, port=None, database=None, timeout=None,
                  loadDBsaveToFile=None, loadInstanceId=None,
-                 product=None, rssItem=None, **kwargs):
+                 product=None, entrypoint=None, rssItem=None, **kwargs):
     if getattr(modelXbrl, "blockOpenDBrecursion", False):
         return None
     xbrlDbConn = None
@@ -81,7 +81,7 @@ def insertIntoDB(modelXbrl,
                 # load modelDocument from database saving to file
                 result = xbrlDbConn.loadXbrlFromDB(loadDBsaveToFile, loadInstanceId)
             else:
-                xbrlDbConn.insertXbrl(rssItem=rssItem)
+                xbrlDbConn.insertXbrl(entrypoint=entrypoint, rssItem=rssItem)
         xbrlDbConn.close()
     except Exception as ex:
         if xbrlDbConn is not None:
@@ -98,8 +98,8 @@ def isDBPort(host, port, timeout=10, product="postgres"):
 XBRLDBTABLES = {
                 "filing", "report",
                 "document", "referenced_documents",
-                "concept", "enumeration", "data_type", "role_type", "arcrole_type",
-                "resource", "relationship_set", "root", "relationship",
+                "concept", "data_type", "enumeration", "role_type", "arcrole_type",
+                "resource", "reference_part", "relationship_set", "root", "relationship",
                 "fact", "footnote", "entity_identifier", "period", "unit", "unit_measure", "aspect_value_set",
                 "message", "message_reference",
                 "industry", "industry_level", "industry_structure",
@@ -112,18 +112,18 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         missingTables = XBRLDBTABLES - self.tablesInDB()
         # if no tables, initialize database
         if missingTables == XBRLDBTABLES:
-            self.create({"mssql": "xbrlOpenDBMSSql.sql",
-                         "mysql": "xbrlOpenDBMySql.ddl",
-                         "sqlite": "xbrlOpenSqlDBSQLite.ddl",
-                         "orcl": "xbrlOpenSqlDBOracle.sql",
-                         "postgres": "xbrlOpenSqlDBPostgres.ddl"}[self.product])
+            self.create({"mssql": "xbrlOpenMSSqlDB.sql",
+                         "mysql": "xbrlOpenMySqlDB.ddl",
+                         "sqlite": "xbrlOpenSQLiteDB.ddl",
+                         "orcl": "xbrlOpenOracleDB.sql",
+                         "postgres": "xbrlOpenPostgresDB.ddl"}[self.product])
             missingTables = XBRLDBTABLES - self.tablesInDB()
         if missingTables and missingTables != {"sequences"}:
             raise XPDBException("sqlDB:MissingTables",
                                 _("The following tables are missing: %(missingTableNames)s"),
                                 missingTableNames=', '.join(t for t in sorted(missingTables))) 
             
-    def insertXbrl(self, rssItem):
+    def insertXbrl(self, entrypoint, rssItem):
         try:
             # must also have default dimensions loaded
             from arelle import ValidateXbrlDimensions
@@ -142,7 +142,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                     _("No XBRL instance or schema loaded for this filing.")) 
             
             # obtain supplementaion entity information
-            self.entityInformation = loadEntityInformation(self.modelXbrl, rssItem)
+            self.entityInformation = loadEntityInformation(self.modelXbrl, entrypoint, rssItem)
             # identify table facts (table datapoints) (prior to locked database transaction
             self.tableFacts = tableFacts(self.modelXbrl)  # for EFM & HMRC this is ( (roleType, table_code, fact) )
             loadPrimaryDocumentFacts(self.modelXbrl, rssItem, self.entityInformation) # load primary document facts for SEC filing
@@ -381,7 +381,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             results = self.execute("SELECT document_id, document_url FROM {} WHERE document_url IN ({})"
                                    .format(self.dbTableName("document"),
                                            ', '.join(docUris)))
-            self.existingDocumentIds = dict((self.urlDocs[docUrl],docId) 
+            self.existingDocumentIds = dict((self.urlDocs[self.pyStrFromDbStr(docUrl)],docId) 
                                             for docId, docUrl in results)
             
             # identify whether taxonomyRelsSetsOwner is existing
@@ -477,7 +477,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                   if mdlDoc not in self.existingDocumentIds and 
                                      self.isSemanticDocument(mdlDoc)),
                               checkIfExisting=True)
-        self.documentIds = dict((self.urlDocs[url], id)
+        self.documentIds = dict((self.urlDocs[self.pyStrFromDbStr(url)], id)
                                 for id, url in table)
         self.documentIds.update(self.existingDocumentIds)
 
@@ -592,6 +592,24 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                              )
         for typeId, docId, qn in table:
             self.typeQnameId[qname(qn)] = typeId
+            
+        if any(modelType.facets.get("enumeration") # might be an empty enumeration dict
+               for modelType in filingDocumentTypes
+               if modelType.modelDocument in self.documentIds
+               if modelType.facets is not None):
+            # note: do we have to remove pre-existing facets for dataType if it was there before?
+            table = self.getTable('enumeration', 
+                                  None, # no record id in this table  
+                                  ('data_type_id', 'document_id', 'value'), 
+                                  ('data_type_id', 'document_id'), 
+                                  tuple((self.typeQnameId[modelType.qname],
+                                         self.documentIds[modelType.modelDocument],
+                                         enumValue)
+                                        for modelType in filingDocumentTypes
+                                        if modelType.modelDocument in self.documentIds
+                                        if modelType.facets is not None and "enumeration" in modelType.facets
+                                        for enumValue in modelType.facets.get("enumeration"))
+                                 )
         
         updatesToDerivedFrom = set()
         for modelType in filingDocumentTypes:
@@ -811,6 +829,23 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                               checkIfExisting=True)
         self.resourceId = dict(((docId, xml_child_seq), id)
                                for id, docId, xml_child_seq in table)
+        
+        # is there a need to delete prior-existing reference parts??
+        if any(isinstance(referencePart,ModelObject)
+               for resource in uniqueResources.values()
+               for referencePart in resource.iterchildren()):
+            table = self.getTable('reference_part',  
+                                  None, # no record id in this table  
+                                  ('resource_id', 'document_id', 'qname', 'value'), 
+                                  ('resource_id', 'document_id'), 
+                                  tuple((self.resourceId[(self.documentIds[resource.modelDocument], elementChildSequence(resource))],
+                                         self.documentIds[resource.modelDocument],
+                                         referencePart.qname.clarkNotation,
+                                         referencePart.textValue)
+                                        for resource in uniqueResources.values()
+                                        for referencePart in resource.iterchildren()
+                                        if isinstance(referencePart,ModelObject)),
+                                  checkIfExisting=True)
         uniqueResources.clear()
         
                 

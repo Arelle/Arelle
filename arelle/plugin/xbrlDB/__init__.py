@@ -191,7 +191,7 @@ def xbrlDBcommandLineOptionExtender(parser, *args, **kwargs):
     
     logging.getLogger("arelle").addHandler(LogToDbHandler())    
 
-def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
+def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl, entrypoint, *args, **kwargs):
     from arelle.ModelDocument import Type
     if modelXbrl.modelDocument.type == Type.RSSFEED and getattr(options, "storeIntoXbrlDb", False):
         modelXbrl.xbrlDBconnection = options.storeIntoXbrlDb.split(",")
@@ -202,15 +202,15 @@ def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
             modelXbrl.xbrlDBconnection[7] == "skipLoadedFilings"):
             # specify reloading of cached source documents (may have been corrupted originally or refiled)
             modelXbrl.reloadCache = True
-            storeIntoDB(modelXbrl.xbrlDBconnection, modelXbrl, rssObject=modelXbrl.modelDocument)
+            storeIntoDB(modelXbrl.xbrlDBconnection, modelXbrl, entrypoint=entrypoint, rssObject=modelXbrl.modelDocument)
     
-def xbrlDBCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
+def xbrlDBCommandLineXbrlRun(cntlr, options, modelXbrl, entrypoint, *args, **kwargs):
     from arelle.ModelDocument import Type
     if (modelXbrl.modelDocument.type not in (Type.RSSFEED, Type.TESTCASE, Type.REGISTRYTESTCASE) and 
         getattr(options, "storeIntoXbrlDb", False) and 
         not getattr(modelXbrl, "xbrlDBprocessedByStreaming", False)):
         dbConnection = options.storeIntoXbrlDb.split(",")
-        storeIntoDB(dbConnection, modelXbrl)
+        storeIntoDB(dbConnection, modelXbrl, entrypoint=entrypoint)
         
 def xbrlDBvalidateRssItem(val, modelXbrl, rssItem, *args, **kwargs):
     if hasattr(val.modelXbrl, 'xbrlDBconnection'):
