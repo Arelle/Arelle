@@ -122,6 +122,9 @@ def strTruncate(value, length):
     if len(_s) <= length:
         return _s
     return _s[0:length] + "..."
+
+# normalizeSpace
+# use:  " ".join(string.split())
     
 SEQUENCE_TYPES = (tuple,list,set)
 def flattenSequence(x, sequence=None):
