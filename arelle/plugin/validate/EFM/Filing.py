@@ -18,7 +18,7 @@ from arelle.PythonUtil import pyNamedObject, strTruncate
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlCalcs import inferredDecimals
 from arelle.XmlValidate import VALID
-from .DTS import checkFilingDTS
+from .DTS import checkFilingDTS, usNamespacesConflictPattern, ifrsNamespacesConflictPattern
 from .Dimensions import checkFilingDimensions
 from .PreCalAlignment import checkCalcsTreeWalk
 
@@ -1576,11 +1576,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         # check number of us-roles taxonomies referenced
         for conflictClass, modelDocuments in val.standardNamespaceConflicts.items():
             if len(modelDocuments) > 1:
-                modelXbrl.error("EFM.6.22.03.incompatibleTaxonomyVersions",
-                    _("References for conflicting standard %(conflictClass)s taxonomies %(namespaceConflicts)s are not allowed in same DTS"),
+                modelXbrl.error("EFM.6.22.03.incompatibleSchemas",
+                    _("References for conflicting standard taxonomies %(conflictClass)s are not allowed in same DTS %(namespaceConflicts)s"),
                     modelObject=modelXbrl, conflictClass=conflictClass,
-                    namespaceConflicts=sorted((d.targetNamespace for d in modelDocuments),
-                                              key=lambda ns: ns.rpartition('/')[2]))
+                    namespaceConflicts=", ".join(sorted([conflictClassFromNamespace(d.targetNamespace) for d in modelDocuments])))
         if 'rr' in val.standardNamespaceConflicts and documentType not in {"485BPOS", "497"}:
             modelXbrl.error("EFM.6.22.03.incompatibleTaxonomyDocumentType",
                 _("Taxonomy class %(conflictClass)s may not be used with document type %(documentType)s"),
@@ -1589,7 +1588,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             modelXbrl.error("EFM.6.22.03.incompatibleTaxonomyDocumentType",
                 _("Taxonomy class %(conflictClass)s may not be used with document type %(documentType)s"),
                 modelObject=modelXbrl, conflictClass="IFRS", documentType=documentType)
-        if isInlineXbrl and documentType in {"485BPOS", "497", "K SDR", "L SDR"}:
+        if isInlineXbrl and documentType in {
+            "485BPOS", "497", "K SDR", "L SDR",
+            "S-1", "S-1/A", "S-1MEF", "S-3", "S-3/A", "S-3ASR", "S-3D", "S-3DPOS", "S-3MEF", "S-4", "S-4/A", "S-4EF", 
+            "S-4MEF", "S-4 POS", "S-11", "S-11/A", "S-11MEF", "F-1", "F-1/A", "F-1MEF", "F-3", "F-3/A", "F-3ASR", 
+            "F-3D", "F-3DPOS", "F-3MEF", "F-4", "F-4/A", "F-4EF", "F-4MEF", "F-4 POS", "F-10", "F-10/A", "F-10EF", 
+            "F-10POS", "N-Q", "N-Q/A", "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A"}:
             modelXbrl.error("EFM.6.22.03.incompatibleInlineDocumentType",
                 _("Inline XBRL may not be used with document type %(documentType)s"),
                 modelObject=modelXbrl, conflictClass="inline XBRL", documentType=documentType)
@@ -1953,4 +1957,15 @@ def checkConceptLabels(val, modelXbrl, labelsRelationshipSet, disclosureSystem, 
     except Exception:
         pass
 
-
+def conflictClassFromNamespace(namespaceURI):
+    for pattern, _classIndex, _yearIndex in ((ifrsNamespacesConflictPattern, 2, 1),
+                                             (usNamespacesConflictPattern, 2, 3)):
+        match = pattern.match(namespaceURI)
+        if match:
+            _class = match.group(_classIndex)
+            _year = match.group(_yearIndex)
+            if _class.startswith("ifrs"):
+                _class = "ifrs"
+            if _year:
+                _year = _year.partition("-")[0]
+            return "{}/{}".format(_class, _year)

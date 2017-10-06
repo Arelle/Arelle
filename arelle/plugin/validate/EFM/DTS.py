@@ -16,8 +16,8 @@ roleTypePattern = None
 arcroleTypePattern = None
 arcroleDefinitionPattern = None
 namePattern = None
-usNamespacesConflictPattern = None
-ifrsNamespacesConflictPattern = None
+usNamespacesConflictPattern = re.compile(r"http://(xbrl\.us|fasb\.org|xbrl\.sec\.gov)/(dei|us-types|us-roles|rr)/([0-9]{4}-[0-9]{2}-[0-9]{2})$")
+ifrsNamespacesConflictPattern = re.compile(r"http://xbrl.ifrs.org/taxonomy/([0-9]{4}-[0-9]{2}-[0-9]{2})/(ifrs[\w-]*)$")
 linkroleDefinitionBalanceIncomeSheet = None
 extLinkEltFileNameEnding = {
     "calculationLink": "_cal",
@@ -28,8 +28,7 @@ extLinkEltFileNameEnding = {
 
 def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
     global targetNamespaceDatePattern, efmFilenamePattern, htmlFileNamePattern, roleTypePattern, arcroleTypePattern, \
-            arcroleDefinitionPattern, namePattern, linkroleDefinitionBalanceIncomeSheet, \
-            usNamespacesConflictPattern, ifrsNamespacesConflictPattern
+            arcroleDefinitionPattern, namePattern, linkroleDefinitionBalanceIncomeSheet
     if targetNamespaceDatePattern is None:
         targetNamespaceDatePattern = re.compile(r"/([12][0-9]{3})-([01][0-9])-([0-3][0-9])|"
                                             r"/([12][0-9]{3})([01][0-9])([0-3][0-9])|")
@@ -41,8 +40,6 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
         namePattern = re.compile("[][()*+?\\\\/^{}|@#%^=~`\"';:,<>&$\u00a3\u20ac]") # u20ac=Euro, u00a3=pound sterling 
         linkroleDefinitionBalanceIncomeSheet = re.compile(r"[^-]+-\s+Statement\s+-\s+.*(income|balance|financial\W+position)",
                                                           re.IGNORECASE)
-        usNamespacesConflictPattern = re.compile(r"http://(xbrl\.us|fasb\.org|xbrl\.sec\.gov)/(dei|us-types|us-roles|rr)/([0-9]{4}-[0-9]{2}-[0-9]{2})$")
-        ifrsNamespacesConflictPattern = re.compile(r"http://xbrl.ifrs.org/taxonomy/([0-9]{4}-[0-9]{2}-[0-9]{2})/(ifrs[\w-]*)$")
     nonDomainItemNameProblemPattern = re.compile(
         r"({0})|(FirstQuarter|SecondQuarter|ThirdQuarter|FourthQuarter|[1-4]Qtr|Qtr[1-4]|ytd|YTD|HalfYear)(?:$|[A-Z\W])"
         .format(re.sub(r"\W", "", (val.entityRegistrantName or "").title())))
@@ -134,15 +131,25 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                 val.modelXbrl.error(("EFM.6.07.05", "GFM.1.03.05"),
                     _("Taxonomy schema %(schema)s namespace %(targetNamespace)s must be a valid URL with a valid authority for the namespace."),
                     modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace)
-            prefix = XmlUtil.xmlnsprefix(modelDocument.xmlRootElement,modelDocument.targetNamespace)
-            if not prefix:
+            # may be multiple prefixes for namespace
+            prefixes = [(prefix if prefix is not None else "")
+                        for prefix, NS in modelDocument.xmlRootElement.nsmap.items()
+                        if NS == modelDocument.targetNamespace]
+            if not prefixes:
+                prefix = None
                 val.modelXbrl.error(("EFM.6.07.07", "GFM.1.03.07"),
                     _("Taxonomy schema %(schema)s namespace %(targetNamespace)s missing prefix for the namespace."),
                     modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace)
-            elif "_" in prefix:
-                val.modelXbrl.error(("EFM.6.07.07", "GFM.1.03.07"),
-                    _("Taxonomy schema %(schema)s namespace %(targetNamespace)s prefix %(prefix)s must not have an '_'"),
-                    modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace, prefix=prefix)
+            else:
+                prefix = prefixes[0]
+                if len(prefixes) > 1:
+                    val.modelXbrl.error(("EFM.6.07.07", "GFM.1.03.07"),
+                        _("Taxonomy schema %(schema)s namespace %(targetNamespace)s has multiple prefixes."),
+                        modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace, prefix=", ".join(prefixes))
+                elif "_" in prefix:
+                    val.modelXbrl.error(("EFM.6.07.07", "GFM.1.03.07"),
+                        _("Taxonomy schema %(schema)s namespace %(targetNamespace)s prefix %(prefix)s must not have an '_'"),
+                        modelObject=modelDocument, schema=os.path.basename(modelDocument.uri), targetNamespace=modelDocument.targetNamespace, prefix=prefix)
 
             for modelConcept in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}element"):
                 if isinstance(modelConcept,ModelConcept):
