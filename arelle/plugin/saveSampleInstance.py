@@ -12,24 +12,51 @@ sample cmd line args:
   -f /Users/hermf/Documents/mvsl/projects/DataAct/daims-20160331.xsd 
   --save-sample-instance /Users/hermf/Documents/mvsl/projects/DataAct/sample.xbrl 
   --separate-linkrole-files
+  
+If sample values of concepts are in the taxonomy, then
+  --concept-sample-value
+  --concept-sample-unit
+specifies a search order for reference parts and/or labels as follows:
+  multiple options are separated by solidus "|"
+  a label option is label:role or label:role (lang)
+  (only the last path segment of the label role)
+  a reference option is reference:part
+  (only the local name of the part)
+  
+To specify entity identifier scheme:
+
+  --sample-entity-scheme http://foo.com/scheme
 '''
 
-import os, io
+import os, io, re
 from arelle.ModelDtsObject import ModelConcept, ModelRelationship
 from arelle import Locale, XbrlConst, ModelXbrl, XmlUtil
 from arelle.ModelValue import qname
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.ValidateXbrlDimensions import loadDimensionDefaults
+from arelle.XbrlConst import conceptLabel, conceptReference
 from lxml import etree
 try:
     import exrex
 except ImportError:
     exrex = None
+    
+resourceParsePattern = re.compile(r"(label|reference):([\w][\w\s#+-:/]+[\w#+-/])(\s*[(]([^)]+)[)])?$")
 
-def generateSampleInstance(dts, instanceFilename, separateLinkroleFiles=None):
+def generateSampleInstance(dts, instanceFilename, 
+                           separateLinkroleFiles=None, 
+                           conceptSampleValue=None, 
+                           conceptSampleUnit=None,
+                           conceptSampleScheme=None):
     if dts.fileSource.isArchive:
         return
-    
+    dts.conceptSampleValue = conceptSampleValue
+    dts.conceptSampleUnit = conceptSampleUnit
+    dts.conceptSampleScheme = conceptSampleScheme
+    if conceptSampleUnit is not None:
+        from arelle.ValidateUtr import loadUtr
+        loadUtr(dts)
+
     # requires dimensino defaults
     loadDimensionDefaults(dts)
     # use presentation relationships for broader and narrower concepts
@@ -70,22 +97,26 @@ def generateSampleInstance(dts, instanceFilename, separateLinkroleFiles=None):
                          entryFile=dts.uri, instanceFile=dts.modelDocument.basename)
 
     if dts:
-        dts.saveInstance(overrideFilepath=instanceFilename)
-        dts.info("info:savedSampleInstance",
-                 _("Instance file written for %(entryFile)s in file %(instanceFile)s."),
-                 modelObject=dts,
-                 entryFile=dts.uri, instanceFile=instanceFilename)
+        if not separateLinkroleFiles:
+            dts.saveInstance(overrideFilepath=instanceFilename)
+            dts.info("info:savedSampleInstance",
+                     _("Instance file written for %(entryFile)s in file %(instanceFile)s."),
+                     modelObject=dts,
+                     entryFile=dts.uri, instanceFile=instanceFilename)
     elif not separateLinkroleFiles:
         dts.info("info:noSampleInstance",
                  _("Instance file not written (no presentation line items) for %(entryFile)s in file %(instanceFile)s."),
                  modelObject=dts,
                  entryFile=dts.uri, instanceFile=instanceFilename)
+        
+    del dts.conceptSampleValue, conceptSampleUnit, conceptSampleScheme
 
 sampleDataValues = {
     1: {"periodStart": XmlUtil.datetimeValue("2016-01-01"),
         "periodEnd": XmlUtil.datetimeValue("2016-03-31", addOneDay=True),
         "date": "2016-03-03",
         "dateTime": "2016-03-03T12:00:00",
+        "duration": "P1D",
         "gYear": "2016",
         "gMonth": "--03",
         "str": "abc"},
@@ -93,6 +124,7 @@ sampleDataValues = {
         "periodEnd": XmlUtil.datetimeValue("2016-06-30", addOneDay=True),
         "date": "2016-06-04",
         "dateTime": "2016-06-04T13:00:00",
+        "duration": "P1D",
         "gMonth": "--06",
         "gYear": "2016",
         "str": "def"},
@@ -100,18 +132,55 @@ sampleDataValues = {
         "periodEnd": XmlUtil.datetimeValue("2016-09-30", addOneDay=True),
         "date": "2016-09-05",
         "dateTime": "2016-09-05T15:00:00",
+        "duration": "P1D",
         "gMonth": "--09",
         "gYear": "2016",
         "str": "ghi"},
     }
 
 def genSampleValue(sampVals, concept):
+    modelXbrl = concept.modelDocument.modelXbrl
+    if modelXbrl.conceptSampleValue is not None:
+        sampleValues = concept.modelDocument.modelXbrl.conceptSampleValue.split("|")
+        for v in sampleValues:
+            m = resourceParsePattern.match(v)
+            if m:
+                _resourceType = m.group(1)
+                _resourceRole = "/" + m.group(2) # last path seg of role
+                _referencePart = m.group(2)
+                _resourceLang = m.group(4) # lang or part
+                if _resourceType == "label":
+                    for lblRel in modelXbrl.relationshipSet(XbrlConst.conceptLabel).fromModelObject(concept):
+                        if lblRel.toModelObject.role.endswith(_resourceRole) and (
+                            not _resourceLang or lblRel.toModelObject.xmlLang == _resourceLang):
+                            return lblRel.toModelObject.textValue
+                elif _resourceType == "reference":
+                    for refRel in modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(concept):
+                        for refPart in refRel.toModelObject.iterchildren():
+                            if refPart.localName == _referencePart:
+                                value = refPart.stringValue
+                                # fix up values
+                                if concept.baseXsdType == "date" and len(value) == 8 and value.isnumeric():
+                                    value = value[0:4] + "-" + value[4:6] + "-" + value[6:]
+                                # allow dates to be missing the "-"
+                                return value
     if concept.isNumeric:
-        value = 123
+        try: # try to get an enumeration
+            facets = concept.type.facets
+            if facets and "enumeration" in facets:
+                value = sorted(facets["enumeration"])[0]
+            elif "minInclusive" in facets:
+                value = facets["minInclusive"]
+            else:
+                value = 123
+        except (AttributeError, IndexError, TypeError): # no enumeration value
+            value = 123
     elif concept.baseXsdType == "date":
         value = sampVals["date"]
     elif concept.baseXsdType in ("dateTime", "XBRLI_DATEUNION"):
         value = sampVals["dateTime"]
+    elif concept.baseXsdType == "duration":
+        value = sampVals["duration"]
     elif concept.baseXsdType == "gYear":
         value = sampVals["gYear"]
     elif concept.baseXsdType == "gMonth":
@@ -136,6 +205,33 @@ def genSampleValue(sampVals, concept):
             value = sampVals["str"]
     return value
 
+def genSampleUtrUnitId(concept):
+    modelXbrl = concept.modelDocument.modelXbrl
+    if modelXbrl.conceptSampleUnit is not None:
+        sampleUnits = concept.modelDocument.modelXbrl.conceptSampleUnit.split("|")
+        for u in sampleUnits:
+            m = resourceParsePattern.match(u)
+            if m:
+                _resourceType = m.group(1)
+                _resourceRole = "/" + m.group(2) # last path seg of role
+                _referencePart = m.group(2)
+                _resourceLang = m.group(4) # lang or part
+                if _resourceType == "label":
+                    for lblRel in modelXbrl.relationshipSet(XbrlConst.conceptLabel).fromModelObject(concept):
+                        if lblRel.toModelObject.role.endswith(_resourceRole) and (
+                            not _resourceLang or lblRel.toModelObject.xmlLang == _resourceLang):
+                            return lblRel.toModelObject.textValue
+                elif _resourceType == "reference":
+                    for refRel in modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(concept):
+                        for refPart in refRel.toModelObject.iterchildren():
+                            if refPart.localName == _referencePart:
+                                value = refPart.stringValue
+                                # fix up values
+                                if concept.baseXsdType == "date" and len(value) == 8 and value.isnumeric():
+                                    value = value[0:4] + "-" + value[4:6] + "-" + value[6:]
+                                # allow dates to be missing the "-"
+                                return value
+                            
 def genFact(dts, concept, preferredLabel, arcrole, relationshipSet, level, visited, elrInfo):
     try:
         if concept is not None:
@@ -180,7 +276,8 @@ def genFact(dts, concept, preferredLabel, arcrole, relationshipSet, level, visit
                             _dimObj = DimValuePrototype(dts, None, _dimConcept.qname, _memVal, "segment")
                             qnameDims[_dimConcept.qname] = _dimObj
                         elrInfo[concept.periodType] = dts.createContext(
-                                    "http://www.treasury.gov", "entityId", 
+                                    dts.conceptSampleScheme or "http://www.treasury.gov", 
+                                    "entityId", 
                                     concept.periodType, 
                                     sampVals["periodStart"] if concept.periodType == "duration"
                                     else None, 
@@ -199,6 +296,15 @@ def genFact(dts, concept, preferredLabel, arcrole, relationshipSet, level, visit
                         else:
                             unitMeasure = XbrlConst.qnXbrliPure
                             decimals = 0
+                        # check if utr unitId is specified
+                        utrUnitId = genSampleUtrUnitId(concept)
+                        if utrUnitId is not None:
+                            _utrEntries = dts.modelManager.disclosureSystem.utrItemTypeEntries[concept.type.name]
+                            if _utrEntries:
+                                for _utrEntry in _utrEntries.values():
+                                    if _utrEntry.unitId == utrUnitId and _utrEntry.isSimple:
+                                        unitMeasure = qname(_utrEntry.nsUnit, _utrEntry.unitId)
+                                        break
                         prevUnit = dts.matchUnit([unitMeasure], [])
                         if prevUnit is not None:
                             unitId = prevUnit.id
@@ -287,6 +393,18 @@ def saveSampleInstanceCommandLineOptionExtender(parser, *args, **kwargs):
                       action="store_true", 
                       dest="separateLinkroleFiles", 
                       help=_("Separate each linkrole into its own file."))
+    parser.add_option("--concept-sample-value", 
+                      action="store", 
+                      dest="conceptSampleValue", 
+                      help=_("Sample values relationships per concept."))
+    parser.add_option("--concept-sample-unit", 
+                      action="store", 
+                      dest="conceptSampleUnit", 
+                      help=_("Sample value's unit (UTR unitId)."))
+    parser.add_option("--sample-entity-scheme", 
+                      action="store", 
+                      dest="conceptSampleScheme", 
+                      help=_("Sample entity identifier scheme."))
 
 def saveSampleInstanceCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
@@ -296,7 +414,10 @@ def saveSampleInstanceCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwa
             return
         generateSampleInstance(cntlr.modelManager.modelXbrl, 
                                options.sampleInstanceFile,
-                               separateLinkroleFiles=getattr(options, "separateLinkroleFiles", None))
+                               separateLinkroleFiles=getattr(options, "separateLinkroleFiles", None),
+                               conceptSampleValue=getattr(options, "conceptSampleValue", None),
+                               conceptSampleUnit=getattr(options, "conceptSampleUnit", None),
+                               conceptSampleScheme=getattr(options, "conceptSampleScheme", None))
 
 
 __pluginInfo__ = {
