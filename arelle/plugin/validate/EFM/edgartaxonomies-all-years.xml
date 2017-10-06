@@ -98,6 +98,29 @@
   <Loc><Family>US GAAP</Family><Version>2017</Version><Href>http://xbrl.fasb.org/us-gaap/2017/dis/us-gaap-dis-rcctmp03-def-2017-01-31.xml</Href><AttType>DEF</AttType><FileTypeName>Definition, Dimensions</FileTypeName><Elements>1</Elements></Loc>
   <Loc><Family>US GAAP</Family><Version>2017</Version><Href>http://xbrl.fasb.org/us-gaap/2017/dis/us-gaap-dis-rcctmp04-def-2017-01-31.xml</Href><AttType>DEF</AttType><FileTypeName>Definition, Dimensions</FileTypeName><Elements>1</Elements></Loc>
   <Loc><Family>US GAAP</Family><Version>2017</Version><Href>http://xbrl.fasb.org/us-gaap/2017/dis/us-gaap-dis-rcctmp05-def-2017-01-31.xml</Href><AttType>DEF</AttType><FileTypeName>Definition, Dimensions</FileTypeName><Elements>1</Elements></Loc>
+  <Loc><Family>IFRS</Family><Version>2017</Version><Href>http://xbrl.ifrs.org/taxonomy/2017-03-09/full_ifrs/full_ifrs-cor_2017-03-09.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://xbrl.ifrs.org/taxonomy/2017-03-09/ifrs-full</Namespace><Prefix>ifrs-full</Prefix>
+  </Loc>
+  <Loc><Family>IFRS</Family><Version>2017</Version><Href>http://xbrl.sec.gov/country/2017/country-2017-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://xbrl.sec.gov/country/2017-01-31</Namespace><Prefix>country</Prefix>
+  </Loc>
+  <Loc><Family>IFRS</Family><Version>2017</Version><Href>http://xbrl.sec.gov/currency/2017/currency-2017-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://xbrl.sec.gov/currency/2017-01-31</Namespace><Prefix>currency</Prefix>
+  </Loc>
+  <Loc><Family>IFRS</Family><Version>2017</Version><Href>http://xbrl.sec.gov/dei/2014/dei-2014-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://xbrl.sec.gov/dei/2014-01-31</Namespace><Prefix>dei</Prefix>
+  </Loc>
+  <Loc><Family>IFRS</Family><Version>2017</Version><Href>http://xbrl.sec.gov/exch/2017/exch-2017-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://xbrl.sec.gov/exch/2017-01-31</Namespace><Prefix>exch</Prefix>
+  </Loc>
+  <Loc><Family>IFRS</Family><Version>2017</Version><Href>http://xbrl.sec.gov/invest/2013/invest-2013-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://xbrl.sec.gov/invest/2013-01-31</Namespace><Prefix>invest</Prefix>
+  </Loc>
+  <Loc><Family>IFRS</Family><Version>2017</Version><Href>http://xbrl.sec.gov/naics/2017/naics-2017-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://xbrl.sec.gov/naics/2017-01-31</Namespace><Prefix>naics</Prefix>
+  </Loc>
+  <Loc><Family>IFRS</Family><Version>2017</Version><Href>http://xbrl.sec.gov/sic/2011/sic-2011-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://xbrl.sec.gov/sic/2011-01-31</Namespace><Prefix>sic</Prefix>
+  </Loc>
+  <Loc><Family>IFRS</Family><Version>2017</Version><Href>http://xbrl.sec.gov/stpr/2011/stpr-2011-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://xbrl.sec.gov/stpr/2011-01-31</Namespace><Prefix>stpr</Prefix>
+  </Loc>
+  <Loc><Family>IFRS</Family><Version>2017</Version><Href>http://xbrl.fasb.org/us-gaap/2016/elts/us-gaap-2016-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://fasb.org/us-gaap/2016-01-31</Namespace><Prefix>us-gaap</Prefix>
+  </Loc>
+  <Loc><Family>IFRS</Family><Version>2017</Version><Href>http://xbrl.fasb.org/us-gaap/2017/elts/us-gaap-2017-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://fasb.org/us-gaap/2017-01-31</Namespace><Prefix>us-gaap</Prefix>
+  </Loc>
+  
   <Loc><Family>US GAAP</Family><Version>2016</Version><Href>http://xbrl.fasb.org/us-gaap/2016/elts/us-gaap-2016-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://fasb.org/us-gaap/2016-01-31</Namespace><Prefix>us-gaap</Prefix></Loc>
   <Loc><Family>US GAAP</Family><Version>2016</Version><Href>http://xbrl.sec.gov/dei/2014/dei-2014-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://xbrl.sec.gov/dei/2014-01-31</Namespace><Prefix>dei</Prefix></Loc>
   <Loc><Family>US GAAP</Family><Version>2016</Version><Href>http://xbrl.fasb.org/us-gaap/2016/elts/us-types-2016-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>0</Elements><Namespace>http://fasb.org/us-types/2016-01-31</Namespace><Prefix>us-types</Prefix></Loc>
