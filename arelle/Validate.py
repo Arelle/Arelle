@@ -12,6 +12,7 @@ from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlC
 from arelle.ModelDocument import Type, ModelDocumentReference, load as modelDocumentLoad
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact
+from arelle.ModelObject import ModelObject
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods
@@ -64,12 +65,25 @@ class Validate:
             self.modelXbrl.info("arelle:notValdated",
                 _("Validation skipped, document not successfully loaded: %(file)s"),
                 modelXbrl=self.modelXbrl, file=self.modelXbrl.modelDocument.basename)
-        elif self.modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.REGISTRY):
-            for doc in sorted(self.modelXbrl.modelDocument.referencesDocument.keys(), key=lambda doc: doc.uri):
-                self.validateTestcase(doc)  # testcases doc's are sorted by their uri (file names), e.g., for formula
-        elif self.modelXbrl.modelDocument.type in (Type.TESTCASE, Type.REGISTRYTESTCASE):
+        elif self.modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.REGISTRY, Type.TESTCASE, Type.REGISTRYTESTCASE):
             try:
-                self.validateTestcase(self.modelXbrl.modelDocument)
+                _disclosureSystem = self.modelXbrl.modelManager.disclosureSystem
+                if _disclosureSystem.name:
+                    self.modelXbrl.info("info",
+                        _("Disclosure system %(disclosureSystemName)s, version %(disclosureSystemVersion)s"),
+                        modelXbrl=self.modelXbrl, disclosureSystemName=_disclosureSystem.name, disclosureSystemVersion=_disclosureSystem.version)
+                if self.modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.REGISTRY):
+                    _name = self.modelXbrl.modelDocument.basename
+                    for testcasesElement in self.modelXbrl.modelDocument.xmlRootElement.iter():
+                        if isinstance(testcasesElement,ModelObject) and testcasesElement.localName in ("testcases", "testSuite"):
+                            if testcasesElement.get("name"):
+                                _name = testcasesElement.get("name")
+                            break
+                    self.modelXbrl.info("info", _("Testcases - %(name)s"), modelXbrl=self.modelXbrl.modelDocument, name=_name)
+                    for doc in sorted(self.modelXbrl.modelDocument.referencesDocument.keys(), key=lambda doc: doc.uri):
+                        self.validateTestcase(doc)  # testcases doc's are sorted by their uri (file names), e.g., for formula
+                elif self.modelXbrl.modelDocument.type in (Type.TESTCASE, Type.REGISTRYTESTCASE):
+                    self.validateTestcase(self.modelXbrl.modelDocument)
             except Exception as err:
                 self.modelXbrl.error("exception:" + type(err).__name__,
                     _("Testcase validation exception: %(error)s, testcase: %(testcase)s"),
