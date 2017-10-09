@@ -371,7 +371,7 @@ def parseAndRun(args):
         
     (options, leftoverArgs) = parser.parse_args(args)
     if options.about:
-        print(_("\narelle(r) {0}bit {1}\n\n"
+        print(_("\narelle(r) {0} ({1}bit)\n\n"
                 "An open source XBRL platform\n"
                 "(c) 2010-2017 Mark V Systems Limited\n"
                 "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
@@ -385,12 +385,12 @@ def parseAndRun(args):
                 "See the License for the specific language governing permissions and \n"
                 "limitations under the License."
                 "\n\nIncludes:"
-                "\n   Python(r) {3[0]}.{3[1]}.{3[2]} (c) 2001-2013 Python Software Foundation"
+                "\n   Python(r) {4[0]}.{4[1]}.{4[2]} (c) 2001-2013 Python Software Foundation"
                 "\n   PyParsing (c) 2003-2013 Paul T. McGuire"
-                "\n   lxml {4[0]}.{4[1]}.{4[2]} (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh"
-                "{2}"
+                "\n   lxml {5[0]}.{5[1]}.{5[2]} (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh"
+                "{3}"
                 "\n   May include installable plug-in modules with author-specific license terms"
-                ).format(cntlr.systemWordSize, Version.version,
+                ).format(Version.__version__, cntlr.systemWordSize, Version.version,
                          _("\n   Bottle (c) 2011-2013 Marcel Hellkamp") if hasWebServer else "",
                          sys.version_info, etree.LXML_VERSION))
     elif options.disclosureSystemName in ("help", "help-verbose"):

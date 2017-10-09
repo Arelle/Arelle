@@ -1247,7 +1247,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         DialogAbout.about(self.parent,
                           _("About arelle"),
                           os.path.join(self.imagesDir, "arelle32.gif"),
-                          _("arelle\u00ae {0} {1}bit {2}\n"
+                          _("arelle\u00ae {0} ({1}bit)\n"
                               "An open source XBRL platform\n"
                               "\u00a9 2010-2017 Mark V Systems Limited\n"
                               "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
@@ -1268,7 +1268,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                               "{3}"
                               "\n   May include installable plug-in modules with author-specific license terms"
                               )
-                            .format(self.__version__, self.systemWordSize, Version.version,
+                            .format(Version.__version__, self.systemWordSize, Version.version,
                                     _("\n   Bottle \u00a9 2011-2013 Marcel Hellkamp"
                                       "\n   CherryPy \u00a9 2002-2013 CherryPy Team") if self.hasWebServer else "",
                                     sys.version_info, etree.LXML_VERSION, Tcl().eval('info patchlevel')
