@@ -8,11 +8,12 @@ Loads xbrl formula file syntax into formula linkbase.
 
 To run as a main program and save xbrl formula files (.xf) into xbrl formula linkbase:
 
-   python3.5  formulaLoader.py [--debug] {files}
+   python3.5  formulaLoader.py [--debug] [--omit-sourceline-attributes] {files}
    where {files} are formula files 
    loads from {name}.xf file
    saves formula linkbase to {name}-formula.xml file
    if --debug is specified then pyparsing debug trace is printed (helpful to see where parsing got stuck if parse errors)
+   if --omit-sourceline-attributes is specified, then resulting linkbase omits "xfs:sourceline" attributes
    
 As a plugin this enables Arelle to load formula files (*.xf) into Arelle's object model for formula linkbases and execute them.
 When run from GUI first load the instance/DTS and then import the xf file(s).
@@ -31,6 +32,8 @@ lastLoc = 0
 lineno = col = line = None
 
 lbGen = None
+
+omitSourceLineAttributes = False
 
 reservedWords = {} # words that can't be qnames
 
@@ -77,9 +80,12 @@ def compileAspectCoverFilter( sourceStr, loc, toks ):
     arcAttrib={"xlink:type": "arc",
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
-               "xfs:sourceline": "{}".format(loc),
                "complement": "false",
                "cover": "true"}   
+
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] = "{}".format(loc)
+
     filterAttrib = {"xlink:type": "resource",
                     "xlink:label": filterLabel}
     prevTok = None
@@ -136,7 +142,7 @@ def compileAspectRuleConcept( sourceStr, loc, toks ):
     if isinstance(toks[0], XPathExpression):
         lbGen.subElement(elt, "formula:qnameExpression", text=str(toks[0]))
     else:
-        lbGen.subElement(elt, "formula:qname", text=toks[0])
+        lbGen.subElement(elt, "formula:qname", text=lbGen.checkedQName(toks[0]))
     return [FormulaAspectElt(elt)]
     
 def compileAspectRuleEntityIdentifier( sourceStr, loc, toks ):
@@ -209,7 +215,7 @@ def compileAspectRuleExplicitDimensionTerm( sourceStr, loc, toks ):
             if isinstance(toks, XPathExpression):
                 lbGen.subElement(elt, "formula:qnameExpression", text=str(tok))
             else:
-                lbGen.subElement(elt, "formula:qname", text=tok)
+                lbGen.subElement(elt, "formula:qname", text=lbGen.checkedQName(tok))
         elif prevTok == "omit": 
             elt = lbGen.element("formula:omit")
         prevTok = tok
@@ -277,12 +283,14 @@ def compileAssertion( sourceStr, loc, toks ):
                     del attrib["cover"] # no cover on variable set filter arc
             attrib["xlink:from"] = assertionLabel
             lbGen.subElement(lbGen.genLinkElement, tag, attrib)
-    return [FormulaArc("generic:arc",
-                       attrib={"xlink:type": "arc",
-                               "xlink:arcrole": "assertion-set",
-                               "xlink:to": assertionLabel,
-                               "xfs:sourceline": "{}".format(loc)}),
-            FormulaResourceElt(elt)]
+    arcAttrib =  {"xlink:type": "arc",
+                  "xlink:arcrole": "assertion-set",
+                  "xlink:to": assertionLabel}
+
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+
+    return [FormulaArc("generic:arc", attrib=arcAttrib), FormulaResourceElt(elt)]
 
 def compileAssertionSet( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
@@ -325,9 +333,12 @@ def compileBooleanFilter( sourceStr, loc, toks ):
     arcAttrib={"xlink:type": "arc",
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
-               "xfs:sourceline": "{}".format(loc),
                "complement": "false",
                "cover": "true"}   
+
+    if not omitSourceLineAttributes:
+       arcAttrib["xfs:sourceline"] = "{}".format(loc)
+
     filterAttrib = {"xlink:type": "resource",
                     "xlink:label": filterLabel}
     prevTok = filterEltQname = None
@@ -368,9 +379,10 @@ def compileConceptFilter( sourceStr, loc, toks ):
     arcAttrib={"xlink:type": "arc",
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
-               "xfs:sourceline": "{}".format(loc),
                "complement": "false",
                "cover": "true"}   
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] = "{}".format(loc)
     filterAttrib = {"xlink:type": "resource",
                     "xlink:label": filterLabel}
     prevTok = filterEltQname = None
@@ -414,6 +426,8 @@ def compileConceptFilter( sourceStr, loc, toks ):
     filterElt = lbGen.subElement(lbGen.genLinkElement, filterEltQname, attrib=filterAttrib)
     if isDataType:
         subEltParent = lbGen.subElement(filterElt, "cf:type")
+    elif isName:
+        subEltParent = lbGen.subElement(filterElt, "cf:concept")
     else:
         subEltParent = filterElt
     # sub-elements of filter
@@ -429,7 +443,7 @@ def compileConceptFilter( sourceStr, loc, toks ):
                 if isinstance(tok, XPathExpression):
                     lbGen.subElement(subEltParent, "cf:qnameExpression", text=str(tok))
                 elif ':' in tok: # it's a QName
-                    lbGen.subElement(subEltParent, "cf:qname", text=tok)
+                    lbGen.subElement(subEltParent, "cf:qname", text=lbGen.checkedQName(tok))
                 else: # it's a local name, requires general & aspect cover filter
                     lbGen.checkXmlns("xfi")
                     lbGen.subElement(subEltParent, "cf:qnameExpression", 
@@ -443,9 +457,12 @@ def compileConceptRelationFilter( sourceStr, loc, toks ):
     arcAttrib={"xlink:type": "arc",
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
-               "xfs:sourceline": "{}".format(loc),
                "complement": "false",
                "cover": "true"}   
+
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+
     filterAttrib = {"xlink:type": "resource",
                     "xlink:label": filterLabel}
     prevTok = None
@@ -485,7 +502,7 @@ def compileConceptRelationFilter( sourceStr, loc, toks ):
             elif tok.startswith('$'):
                 lbGen.subElement(filterElt, "crf:variable", text=tok)
             elif ':' in tok: # it's a QName
-                lbGen.subElement(filterElt, "crf:qname", text=tok)
+                lbGen.subElement(filterElt, "crf:qname", text=lbGen.checkedQName(tok))
             else: # it's a local name, requires general & aspect cover filter
                 lbGen.checkXmlns("xfi")
                 lbGen.subElement(filterElt, "crf:qnameExpression", 
@@ -522,11 +539,16 @@ def compileConsistencyAssertion( sourceStr, loc, toks ):
             tok.attrib["xlink:arcrole"] = "consistency-assertion-formula"
             tok.attrib["xlink:from"] = assertionLabel
             lbGen.subElement(lbGen.genLinkElement, tok.tag, tok.attrib)
+
+    arcAttrib = {"xlink:type": "arc",
+                 "xlink:arcrole": "assertion-set",
+                 "xlink:to": assertionLabel}
+
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+
     return [FormulaArc("generic:arc",
-                       attrib={"xlink:type": "arc",
-                               "xlink:arcrole": "assertion-set",
-                               "xlink:to": assertionLabel,
-                               "xfs:sourceline": "{}".format(loc)}),
+                       attrib= arcAttrib),
             FormulaResourceElt(elt)]
     
 def compileDefaults( sourceStr, loc, toks ):
@@ -546,9 +568,12 @@ def compileDimensionFilter( sourceStr, loc, toks ):
     arcAttrib={"xlink:type": "arc",
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
-               "xfs:sourceline": "{}".format(loc),
                "complement": "false",
                "cover": "true"}   
+
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] = "{}".format(loc)
+
     filterAttrib = {"xlink:type": "resource",
                     "xlink:label": filterLabel}
     prevTok = filterEltQname = None
@@ -580,8 +605,8 @@ def compileDimensionFilter( sourceStr, loc, toks ):
                 dimQNameExpr = str(tok)
                 lbGen.subElement(dimElt, "df:qnameExpression", text=dimQNameExpr)
             elif ':' in tok: # it's a QName
-                lbGen.subElement(dimElt, "df:qname", text=tok)
-                dimQNameExpr = "resolve-QName({})".format(tok)
+                lbGen.subElement(dimElt, "df:qname", text=lbGen.checkedQName(tok))
+                dimQNameExpr = "resolve-QName({})".format(lbGen.checkedQName(tok))
             else: # it's a local name
                 dimQNameExpr = "xfi:concepts-from-local-name('{}')".format(tok)
                 lbGen.checkXmlns("xfi")
@@ -593,7 +618,7 @@ def compileDimensionFilter( sourceStr, loc, toks ):
             elif tok.startswith('$'):
                 lbGen.subElement(memElt, "df:variable", text=tok[1:]) # remove $ from variable name
             elif ':' in tok: # it's a QName
-                lbGen.subElement(memElt, "df:qname", text=tok)
+                lbGen.subElement(memElt, "df:qname", text=lbGen.checkedQName(tok))
             else: # it's a local name
                 lbGen.checkXmlns("xfi")
                 lbGen.subElement(memElt, "df:qnameExpression", 
@@ -614,9 +639,12 @@ def compileEntityFilter( sourceStr, loc, toks ):
     arcAttrib={"xlink:type": "arc",
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
-               "xfs:sourceline": "{}".format(loc),
                "complement": "false",
                "cover": "true"}   
+
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] = "{}".format(loc)
+
     filterAttrib = {"xlink:type": "resource",
                     "xlink:label": filterLabel}
     prevTok = filterEltQname = None
@@ -682,13 +710,16 @@ def compileFactVariable( sourceStr, loc, toks ):
             break
     if fvElt is not None: # no filter to preceede
         lbGen.genLinkElement.append(fvElt)
-    return [FormulaArc("variable:variableArc",
-                       attrib={"xlink:type": "arc",
-                               "xlink:arcrole": "variable-set",
-                               "xlink:to": varLabel,
-                               "xfs:sourceline": "{}".format(loc),
-                               "name": name}),
-            fvFormulaResource]
+
+    arcAttrib={"xlink:type": "arc",
+               "xlink:arcrole": "variable-set",
+               "xlink:to": varLabel,
+               "name": lbGen.checkedQName(name)}
+    
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] = "{}".format(loc)
+
+    return [FormulaArc("variable:variableArc", attrib=arcAttrib), fvFormulaResource]
     
 def compileFilterDeclaration( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
@@ -740,19 +771,21 @@ def compileFormula( sourceStr, loc, toks ):
                     del attrib["cover"] # no cover on variable set filter arc
             attrib["xlink:from"] = formulaLabel
             lbGen.subElement(lbGen.genLinkElement, tag, attrib)
-    return [FormulaArc("generic:arc",
-                       attrib={"xlink:type": "arc",
-                               "xlink:arcrole": "consistency-assertion-formula",
-                               "xlink:to": formulaLabel,
-                               "xfs:sourceline": "{}".format(loc)}),
-            FormulaResourceElt(elt)]
+    arcAttrib={"xlink:type": "arc",
+               "xlink:arcrole": "consistency-assertion-formula",
+               "xlink:to": formulaLabel}
+
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] = "{}".format(loc)
+
+    return [FormulaArc("generic:arc", attrib=arcAttrib), FormulaResourceElt(elt)]
 
 
 def compileFunctionDeclaration( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
     # first do function signature (may not have an implementation part
     signatureAttrib = {"xlink:type": "resource",
-                       "name": toks[0]}
+                       "name": lbGen.checkedQName(toks[0])}
     hasImplementation = False
     prevTok = None
     for tok in toks:
@@ -775,18 +808,23 @@ def compileFunctionDeclaration( sourceStr, loc, toks ):
         cfiElt = lbGen.subElement(lbGen.genLinkElement, "cfi:implementation", attrib={
             "xlink:type": "resource",
             "xlink:label": cfiLabel})
-        lbGen.subElement(lbGen.genLinkElement, "generic:arc", attrib={
+        arcAttrib = {
             "xlink:type": "arc",
             "xlink:arcrole": "function-implementation",
             "xlink:from": signatureLabel,
-            "xlink:to": cfiLabel,
-            "xfs:sourceline": "{}".format(loc)})
+            "xlink:to": cfiLabel
+        }
+
+        if not omitSourceLineAttributes:
+            arcAttrib["xfs:sourceline"] = "{}".format(loc)
+
+        lbGen.subElement(lbGen.genLinkElement, "generic:arc", attrib= arcAttrib)
         prevTok = None
         for tok in toks:
             if isinstance(tok, FunctionParameter):
-                lbGen.subElement(cfiElt, "cfi:input", attrib={"name": tok.qname})
+                lbGen.subElement(cfiElt, "cfi:input", attrib={"name": lbGen.checkedQName(tok.qname)})
             elif isinstance(tok, FunctionStep):
-                lbGen.subElement(cfiElt, "cfi:step", attrib={"name": tok.qname}, text=str(tok.xpathExpression))
+                lbGen.subElement(cfiElt, "cfi:step", attrib={"name": lbGen.checkedQName(tok.qname)}, text=str(tok.xpathExpression))
             elif prevTok == "return":
                 lbGen.subElement(cfiElt, "cfi:output", attrib={}, text=str(tok))
             prevTok = tok
@@ -805,9 +843,12 @@ def compileGeneralFilter( sourceStr, loc, toks ):
     arcAttrib={"xlink:type": "arc",
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
-               "xfs:sourceline": "{}".format(loc),
                "complement": "false",
                "cover": "true"}
+
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+
     filterAttrib = {"xlink:type": "resource",
                     "xlink:label": filterLabel}
     prevTok = filterEltQname = None
@@ -847,13 +888,15 @@ def compileGeneralVariable( sourceStr, loc, toks ):
             break
     if gvElt is not None: # no filter to preceede
         lbGen.genLinkElement.append(gvElt)
-    return [FormulaArc("variable:variableArc",
-                       attrib={"xlink:type": "arc",
-                               "xlink:arcrole": "variable-set",
-                               "xlink:to": varLabel,
-                               "xfs:sourceline": "{}".format(loc),
-                               "name": name}),
-            gvFormulaResource]
+    arcAttrib={"xlink:type": "arc",
+               "xlink:arcrole": "variable-set",
+               "xlink:to": varLabel,
+               "name": lbGen.checkedQName(name)}
+
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+    
+    return [FormulaArc("variable:variableArc", attrib=arcAttrib), gvFormulaResource]
 
 def compileLabel( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
@@ -887,8 +930,11 @@ def compileLabel( sourceStr, loc, toks ):
     labelLabel = "{}{}".format(labelType, lbGen.labelNbr(labelType))
     arcAttrib={"xlink:type": "arc",
                "xlink:arcrole": arcrole,
-               "xlink:to": labelLabel,
-               "xfs:sourceline": "{}".format(loc)}
+               "xlink:to": labelLabel}
+
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+
     labelAttrib = {"xlink:type": "resource",
                    "xlink:role": role,
                    "xlink:label": labelLabel,
@@ -903,9 +949,12 @@ def compileMatchFilter( sourceStr, loc, toks ):
     arcAttrib={"xlink:type": "arc",
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
-               "xfs:sourceline": "{}".format(loc),
                "complement": "false",
                "cover": "true"}   
+
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+
     filterAttrib = {"xlink:type": "resource",
                     "xlink:label": filterLabel}
     prevTok = filterEltQname = None
@@ -934,7 +983,7 @@ def compileMatchFilter( sourceStr, loc, toks ):
         elif filterEltQname is not None and "variable" not in filterAttrib:
             filterAttrib["variable"] = tok[1:] # remove $ from variable name
         elif isMatchDimension and prevTok == "dimension":
-            filterAttrib["dimension"] = lbGen.clarkName(tok) # must be a qname (not a local name)
+            filterAttrib["dimension"] = lbGen.checkedQName(tok) # must be a qname in nsmap (not a local name)
         elif tok == "match-any":
             filterAttrib["matchAny"] = "true"
         prevTok = tok
@@ -955,7 +1004,8 @@ def compileParameterDeclaration( sourceStr, loc, toks ):
     generalVarLabel = cleanedName(name)
     lbGen.params[name] = generalVarLabel
     attrib = {"xlink:type": "resource",
-              "xlink:label": generalVarLabel}
+              "xlink:label": generalVarLabel,
+              "name": lbGen.checkedQName(name)}
     prevTok = None
     for tok in toks:
         if tok == "required":
@@ -972,12 +1022,16 @@ def compileParameterDeclaration( sourceStr, loc, toks ):
 
 def compileParameterReference( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
-    return [FormulaArc("variable:variableFilterArc", attrib={
+    arcAttrib={
             "xlink:type": "arc",
             "xlink:arcrole": "variable-set",
             "xlink:to": lbGen.params[tok[1]],
-            "xfs:sourceline": "{}".format(loc),
-            "name": tok[0]})]
+            "name": lbGen.checkedQName(tok[0])}
+    
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+
+    return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib)]
     
 dateTimePattern = re.compile("([0-9]{4})-([0-9]{2})-([0-9]{2})[T ]([0-9]{2}):([0-9]{2}):([0-9]{2})")
 dateOnlyPattern = re.compile("([0-9]{4})-([0-9]{2})-([0-9]{2})")
@@ -988,9 +1042,12 @@ def compilePeriodFilter( sourceStr, loc, toks ):
     arcAttrib={"xlink:type": "arc",
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
-               "xfs:sourceline": "{}".format(loc),
                "complement": "false",
                "cover": "true"}   
+
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+
     filterAttrib = {"xlink:type": "resource",
                     "xlink:label": filterLabel}
     prevTok = filterEltQname = None
@@ -1041,8 +1098,11 @@ def compilePrecondition( sourceStr, loc, toks ):
     precondLabel = "precondition{}".format(lbGen.labelNbr("precondition"))
     arcAttrib={"xlink:type": "arc",
                "xlink:arcrole": "variable-set-precondition",
-               "xlink:to": precondLabel,
-               "xfs:sourceline": "{}".format(loc)}   
+               "xlink:to": precondLabel}
+
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+
     precondAttrib = {"xlink:type": "resource",
                     "xlink:label": precondLabel}
     for tok in toks:
@@ -1062,9 +1122,12 @@ def compileRelativeFilter( sourceStr, loc, toks ):
     arcAttrib={"xlink:type": "arc",
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
-               "xfs:sourceline": "{}".format(loc),
                "complement": "false",
                "cover": "true"}   
+
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+
     filterAttrib = {"xlink:type": "resource",
                     "xlink:label": filterLabel}
     prevTok = None
@@ -1091,9 +1154,10 @@ def compileTupleFilter( sourceStr, loc, toks ):
     arcAttrib={"xlink:type": "arc",
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
-               "xfs:sourceline": "{}".format(loc),
                "complement": "false",
                "cover": "true"}   
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
     filterAttrib = {"xlink:type": "resource",
                     "xlink:label": filterLabel}
     prevTok = None
@@ -1120,7 +1184,7 @@ def compileTupleFilter( sourceStr, loc, toks ):
         if isinstance(tupleRelationTok, XPathExpression):
             lbGen.subElement(relationElt, "tf:qnameExpression", text=str(tupleRelationTok))
         else:
-            lbGen.subElement(relationElt, "tf:qname", text=tupleRelationTok)
+            lbGen.subElement(relationElt, "tf:qname", text=lbGen.checkedQName(tupleRelationTok))
     return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
             FormulaResourceElt(filterElt)]
 
@@ -1130,9 +1194,12 @@ def compileUnitFilter( sourceStr, loc, toks ):
     arcAttrib={"xlink:type": "arc",
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
-               "xfs:sourceline": "{}".format(loc),
                "complement": "false",
                "cover": "true"}   
+
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+
     filterAttrib = {"xlink:type": "resource",
                     "xlink:label": filterLabel}
     prevTok = None
@@ -1160,7 +1227,7 @@ def compileUnitFilter( sourceStr, loc, toks ):
         if isinstance(singleMeasureTok, XPathExpression):
             lbGen.subElement(measureElt, "uf:qnameExpression", text=str(singleMeasureTok))
         else:
-            lbGen.subElement(measureElt, "uf:qname", text=singleMeasureTok)
+            lbGen.subElement(measureElt, "uf:qname", text=lbGen.checkedQName(singleMeasureTok))
     return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
             FormulaResourceElt(filterElt)]
 
@@ -1171,9 +1238,12 @@ def compileValueFilter( sourceStr, loc, toks ):
     arcAttrib={"xlink:type": "arc",
                "xlink:arcrole": "variable-filter",
                "xlink:to": filterLabel,
-               "xfs:sourceline": "{}".format(loc),
                "complement": "false",
                "cover": "true"}   
+
+    if not omitSourceLineAttributes:
+        arcAttrib["xfs:sourceline"] =  "{}".format(loc)
+
     filterAttrib = {"xlink:type": "resource",
                     "xlink:label": filterLabel}
     prevTok = None
@@ -1918,7 +1988,7 @@ xsi:schemaLocation=""
             self.lbDocument._setroot(newroot)
             
     def clarkName(self, prefixedName):
-        if prefixedName.startswith("{") or not ":" in prefixedName:
+        if prefixedName.startswith("{") or ":" not in prefixedName:
             return prefixedName
         prefix,_sep,localName = prefixedName.partition(":")
         if prefix == "xml":
@@ -1932,7 +2002,7 @@ xsi:schemaLocation=""
                 return prefixedName
             else:
                 self.checkXmlns(prefix)
-        return "{{{}}}{}".format(formulaPrefixes[prefix][0], localName)
+        return "{{{}}}{}".format(self.lbDocument.getroot().nsmap[prefix], localName)
             
     def clarkAttrib(self, attrib):
         if attrib:
@@ -1947,6 +2017,30 @@ xsi:schemaLocation=""
         else:
             return None
     
+    def checkedQName(self, prefixedName):
+        # convert prefix to nsmap prefix if needed
+        if ":" not in prefixedName:
+            return prefixedName
+        if prefixedName.startswith("{"):
+            logMessage("ERROR", "formulaSyntax:qnameFormat",
+                _("Expecting prefxed QName but appears to be Clark Name: \n%(qname)s"), 
+                xfsFile=self.xfsFile,
+                qname=prefixedName)
+            return prefixedName
+        prefix,_sep,localName = prefixedName.partition(":")
+        if prefix == "xml":
+            return prefixedName
+        if prefix not in self.lbDocument.getroot().nsmap:
+            if prefix not in formulaPrefixes:
+                logMessage("ERROR", "formulaSyntax:prefixUndefined",
+                    _("Prefix undefined: \n%(qname)s"), 
+                    xfsFile=self.xfsFile,
+                    qname=prefixedName)
+                return prefixedName
+            else:
+                self.checkXmlns(prefix)
+        return prefixedName
+            
     def element(self, tag, attrib=None, text=None):
         elt = self.xmlParser.makeelement(self.clarkName(tag), attrib=self.clarkAttrib(attrib), nsmap=self.lbDocument.getroot().nsmap)
         if self.modelXbrl is not None:
@@ -2038,11 +2132,20 @@ def cmdLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
                 doc.save(options.saveFormulaLinkbase)
                 cntlr.showStatus(_("Saving XBRL formula linkbase: {0}").format(doc.basename))
 
+def cmdLineFilingStart(cntlr, options, *args, **kwargs):
+    global omitSourceLineAttributes
+    omitSourceLineAttributes = options.omitSourceLineAttributes
+
 def cmdLineOptionExtender(parser, *args, **kwargs):
     parser.add_option("--save-formula-linkbase", 
                       action="store", 
                       dest="saveFormulaLinkbase", 
                       help=_("Save a linkbase loaded from formula syntax into this file name."))
+
+    parser.add_option("--omit-sourceline-attributes", 
+                      action="store_true", 
+                      dest="omitSourceLineAttributes", 
+                      help=_("Do not include attributes identifying the source lines in the .xf files."))
 
 
 __pluginInfo__ = {
@@ -2057,7 +2160,8 @@ __pluginInfo__ = {
     'ModelDocument.PullLoader': xfLoader,
     'CntlrWinMain.Xbrl.Loaded': guiXbrlLoaded,
     'CntlrCmdLine.Options': cmdLineOptionExtender,
-    'CntlrCmdLine.Xbrl.Loaded': cmdLineXbrlLoaded
+    'CntlrCmdLine.Xbrl.Loaded': cmdLineXbrlLoaded,
+    'CntlrCmdLine.Filing.Start': cmdLineFilingStart,
 }
     
 if __name__ == "__main__":
@@ -2095,6 +2199,8 @@ if __name__ == "__main__":
                   "  {file}: parse and save as linkbase named {file}-formula.xml")
         elif arg == "--debug":
             debugParsing = True
+        elif arg == "--omit-sourceline-attributes":
+            omitSourceLineAttributes = True
         else:
             if os.path.exists(arg):
                 xfFiles.append(arg)
