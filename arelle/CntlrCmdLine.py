@@ -281,17 +281,14 @@ def parseAndRun(args):
     parser.add_option("--xdgConfigHome", action="store", dest="xdgConfigHome", 
                       help=_("Specify non-standard location for configuration and cache files (overrides environment parameter XDG_CONFIG_HOME)."))
     parser.add_option("--plugins", action="store", dest="plugins",
-                      help=_("Modify plug-in configuration.  "
-                             "Re-save unless 'temp' is in the module list.  " 
-                             "Enter 'show' to show current plug-in configuration.  "
+                      help=_("Specify plug-in configuration for this invocation.  "
+                             "Enter 'show' to confirm plug-in configuration.  "
                              "Commands show, and module urls are '|' separated: "
-                             "+url to add plug-in by its url or filename, ~name to reload a plug-in by its name, -name to remove a plug-in by its name, "
+                             "url specifies a plug-in by its url or filename, "
                              "relative URLs are relative to installation plug-in directory, "
-                             " (e.g., '+http://arelle.org/files/hello_web.py', '+C:\Program Files\Arelle\examples\plugin\hello_dolly.py' to load, "
-                             "or +../examples/plugin/hello_dolly.py for relative use of examples directory, "
-                             "~Hello Dolly to reload, -Hello Dolly to remove).  "
-                             "If + is omitted from .py file nothing is saved (same as temp).  "
-                             "Packaged plug-in urls are their directory's url.  " ))
+                             " (e.g., 'http://arelle.org/files/hello_web.py', 'C:\Program Files\Arelle\examples\plugin\hello_dolly.py' to load, "
+                             "or ../examples/plugin/hello_dolly.py for relative use of examples directory) "
+                             "Packaged plug-in urls are their directory's url (e.g., --plugins EdgarRenderer or --plugins xbrlDB).  " ))
     parser.add_option("--packages", action="store", dest="packages",
                       help=_("Modify taxonomy packages configuration.  "
                              "Re-save unless 'temp' is in the module list.  " 
