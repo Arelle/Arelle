@@ -796,7 +796,7 @@ class ModelXbrl:
                         fbdq[DEFAULT].add(fact)
             return fbdq[memQname]
         
-    def matchFact(self, otherFact, unmatchedFactsStack=None, deemP0inf=False, matchId=False):
+    def matchFact(self, otherFact, unmatchedFactsStack=None, deemP0inf=False, matchId=False, matchLang=True):
         """Finds matching fact, by XBRL 2.1 duplicate definition (if tuple), or by
         QName and VEquality (if an item), lang and accuracy equality, as in formula and test case usage
         
@@ -813,9 +813,10 @@ class ModelXbrl:
                 elif (fact.qname == otherFact.qname and fact.isVEqualTo(otherFact, deemP0inf=deemP0inf)):
                     if fact.isFraction:
                         return fact
-                    elif not fact.isNumeric:
+                    elif fact.isMultiLanguage and matchLang:
                         if fact.xmlLang == otherFact.xmlLang:
                             return fact
+                        # else: print('*** lang mismatch extracted "{}" expected "{}" on {} in {}'.format(fact.xmlLang or "", otherFact.xmlLang or "", fact.qname, otherFact.modelDocument.uri))
                     else:
                         if (fact.decimals == otherFact.decimals and
                             fact.precision == otherFact.precision):

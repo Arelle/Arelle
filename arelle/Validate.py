@@ -386,7 +386,7 @@ class Validate:
                                 formulaOutputFootnotesRelSet = ModelRelationshipSet(formulaOutputInstance, "XBRL-footnotes")
                                 expectedFootnotesRelSet = ModelRelationshipSet(expectedInstance, "XBRL-footnotes")
                                 def factFootnotes(fact, footnotesRelSet):
-                                    footnotes = []
+                                    footnotes = {}
                                     footnoteRels = footnotesRelSet.fromModelObject(fact)
                                     if footnoteRels:
                                         # most process rels in same order between two instances, use labels to sort
@@ -395,21 +395,18 @@ class Validate:
                                             modelObject = footnoteRel.toModelObject
                                             if isinstance(modelObject, ModelResource):
                                                 xml = modelObject.viewText().strip()
-                                                footnotes.append("Footnote {}: {}".format(
-                                                   i+1, # compare footnote with HTML serialized
-                                                   xml,
-                                                   #re.sub(r'\s+', ' ', collapseWhitespace(modelObject.stringValue))
-                                                   ))
+                                                footnotes["Footnote {}".format(i+1)] = xml #re.sub(r'\s+', ' ', collapseWhitespace(modelObject.stringValue))
                                             elif isinstance(modelObject, ModelFact):
-                                                footnotes.append("Footnoted fact {}: {} context: {} value: {}".format(
-                                                    i+1,
+                                                footnotes["Footnoted fact {}".format(i+1)] = \
+                                                    "{} context: {} value: {}".format(
                                                     modelObject.qname,
                                                     modelObject.contextID,
-                                                    collapseWhitespace(modelObject.value)))
+                                                    collapseWhitespace(modelObject.value))
                                     return footnotes
                                 for expectedInstanceFact in expectedInstance.facts:
                                     unmatchedFactsStack = []
-                                    formulaOutputFact = formulaOutputInstance.matchFact(expectedInstanceFact, unmatchedFactsStack, deemP0inf=True, matchId=True)
+                                    formulaOutputFact = formulaOutputInstance.matchFact(expectedInstanceFact, unmatchedFactsStack, deemP0inf=True, matchId=True, matchLang=False)
+                                    #formulaOutputFact = formulaOutputInstance.matchFact(expectedInstanceFact, unmatchedFactsStack, deemP0inf=True, matchId=True, matchLang=True)
                                     if formulaOutputFact is None:
                                         if unmatchedFactsStack: # get missing nested tuple fact, if possible
                                             missingFact = unmatchedFactsStack[-1]
@@ -422,10 +419,11 @@ class Validate:
                                     else: # compare footnotes
                                         expectedInstanceFactFootnotes = factFootnotes(expectedInstanceFact, expectedFootnotesRelSet)
                                         formulaOutputFactFootnotes = factFootnotes(formulaOutputFact, formulaOutputFootnotesRelSet)
-                                        if expectedInstanceFactFootnotes != formulaOutputFactFootnotes:
+                                        if (len(expectedInstanceFactFootnotes) != len(formulaOutputFactFootnotes) or
+                                            set(expectedInstanceFactFootnotes.values()) != set(formulaOutputFactFootnotes.values())):
                                             formulaOutputInstance.error("{}:expectedFactFootnoteDifference".format(errMsgPrefix),
                                                 _("Output expected fact %(fact)s expected footnotes %(footnotes1)s produced footnotes %(footnotes2)s"),
-                                                modelXbrl=(formulaOutputFact,expectedInstanceFact), fact=expectedInstanceFact.qname, footnotes1=expectedInstanceFactFootnotes, footnotes2=formulaOutputFactFootnotes,
+                                                modelXbrl=(formulaOutputFact,expectedInstanceFact), fact=expectedInstanceFact.qname, footnotes1=sorted(expectedInstanceFactFootnotes.items()), footnotes2=sorted(formulaOutputFactFootnotes.items()),
                                                 messageCodes=("formula:expectedFactFootnoteDifference","ix:expectedFactFootnoteDifference"))
 
                             # for debugging uncomment next line to save generated instance document

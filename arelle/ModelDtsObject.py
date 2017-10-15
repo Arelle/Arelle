@@ -1192,6 +1192,11 @@ class ModelType(ModelNamableTerm):
         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
         return typeDerivedFrom.isDomainItemType if typeDerivedFrom is not None else False
     
+    @property
+    def isMultiLanguage(self):
+        """(bool) -- True if type is, or is derived from, stringItemType or normalizedStringItemType."""
+        return self.baseXbrliType in {"stringItemType", "normalizedStringItemType", "string", "normalizedString"}
+    
     def isDerivedFrom(self, typeqname):
         """(bool) -- True if type is derived from type specified by QName.  Type can be a single type QName or list of QNames"""
         qnamesDerivedFrom = self.qnameDerivedFrom # can be single qname or list of qnames if union

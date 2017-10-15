@@ -227,6 +227,12 @@ class ModelFact(ModelObject):
             return self._isNumeric
 
     @property
+    def isMultiLanguage(self):
+        """(bool) -- concept.type.isMultiLanguage (string or normalized string)"""
+        concept = self.concept
+        return concept is not None and concept.type is not None and concept.type.isMultiLanguage
+
+    @property
     def isFraction(self):
         """(bool) -- concept.isFraction"""
         try:
@@ -587,7 +593,7 @@ class ModelInlineValueObject:
             self.xValid = UNVALIDATED # may not be initialized otherwise
             self.xValue = None
             v = XmlUtil.innerText(self, 
-                                  ixExclude="html", 
+                                  ixExclude="tuple" if self.elementQname == XbrlConst.qnIXbrl11Tuple else "html", 
                                   ixEscape=(self.get("escape") in ("true","1")), 
                                   ixContinuation=(self.elementQname == XbrlConst.qnIXbrl11NonNumeric),
                                   strip=True) # transforms are whitespace-collapse
