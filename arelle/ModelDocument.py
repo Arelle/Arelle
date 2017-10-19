@@ -1415,8 +1415,9 @@ def inlineIxdsDiscover(modelXbrl):
             else:
                 tuple = tuplesByTupleID[tupleRef]
         else:
-            for tupleParent in modelFact.iterancestors(tag=ixNStag + "tuple"):
-                tuple = tupleParent
+            for tupleParent in modelFact.iterancestors(tag=ixNStag + '*'):
+                if tupleParent.localName == "tuple":
+                    tuple = tupleParent
                 break
         if tuple is not None:
             if modelFact.order is not None: # None when order missing failed validation
