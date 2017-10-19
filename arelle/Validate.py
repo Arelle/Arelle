@@ -303,7 +303,8 @@ class Validate:
                             parameters[XbrlConst.qnStandardInputInstance] = (None, inputDTS) # allow error detection in validateFormula
                     if modelXbrl.hasTableRendering or modelTestcaseVariation.resultIsTable:
                         RenderingEvaluator.init(modelXbrl)
-                    if modelXbrl.hasFormulae:
+                    modelXbrlHasFormulae = modelXbrl.hasFormulae
+                    if modelXbrlHasFormulae:
                         try:
                             # validate only formulae
                             self.instValidator.parameters = parameters
@@ -362,7 +363,7 @@ class Validate:
                         del inputDTSes # dereference
                         errMsgPrefix = "formula"
                     if resultIsXbrlInstance and formulaOutputInstance and formulaOutputInstance.modelDocument:
-                        _matchExpectedResultIDs = not modelXbrl.hasFormulae # formula restuls have inconsistent IDs
+                        _matchExpectedResultIDs = not modelXbrlHasFormulae # formula restuls have inconsistent IDs
                         expectedInstance = ModelXbrl.load(self.modelXbrl.modelManager, 
                                                    modelTestcaseVariation.resultXbrlInstanceUri,
                                                    _("loading expected result XBRL instance"), 
