@@ -221,14 +221,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                 resolvedUrl = urljoin(base, epUrl)
             else:
                 resolvedUrl = epUrl
-            if epDocCount:
-                cntlr.addToLog(_("Skipping multiple-document entry point (not supported) %(href)s"),
-                               messageArgs={"href": epUrl},
-                               messageCode="arelle.packageMultipleDocumentEntryPoints",
-                               file=os.path.basename(metadataFile),
-                               level=logging.WARNING)
-                errors.append("arelle.packageMultipleDocumentEntryPoints")
-                continue
+                
             epDocCount += 1
     
             #perform prefix remappings
