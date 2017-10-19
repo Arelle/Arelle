@@ -51,7 +51,13 @@ monthyearInPattern = re.compile(r"^\s*([^\s0-9\u0966-\u096F]+)\s([0-9\u0966-\u09
 yearmonthEnPattern = re.compile(r"^\s*([0-9]{1,2}|[0-9]{4})[^0-9]+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)\s*$")
 
 # TR1-only patterns, only allow space separators, no all-CAPS month name, only 2 or 4 digit years
+dateLongUkTR1Pattern = re.compile(r"^\s*(\d|\d{2,2}) (January|February|March|April|May|June|July|August|September|October|November|December) (\d{2,2}|\d{4,4})\s*$")
+dateShortUkTR1Pattern = re.compile(r"^\s*(\d|\d{2,2}) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{2,2}|\d{4,4})\s*$")
+dateLongUsTR1Pattern = re.compile(r"^\s*(January|February|March|April|May|June|July|August|September|October|November|December) (\d|\d{2,2}), (\d{2,2}|\d{4,4})\s*$")
+dateShortUsTR1Pattern = re.compile(r"^\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d|\d{2,2}), (\d{2,2}|\d{4,4})\s*$")
+daymonthLongEnTR1Pattern = re.compile(r"^\s*(\d|\d{2,2}) (January|February|March|April|May|June|July|August|September|October|November|December)\s*$")
 daymonthShortEnTR1Pattern = re.compile(r"^\s*([0-9]{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*$")
+monthdayLongEnTR1Pattern = re.compile(r"^\s*(January|February|March|April|May|June|July|August|September|October|November|December) (\d|\d{2,2})\s*$")
 monthdayShortEnTR1Pattern = re.compile(r"^\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+([0-9]{1,2})[A-Za-z]{0,2}\s*$")
 monthyearShortEnTR1Pattern = re.compile(r"^\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+([0-9]{2}|[0-9]{4})\s*$")
 monthyearLongEnTR1Pattern = re.compile(r"^\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s+([0-9]{2}|[0-9]{4})\s*$")
@@ -262,10 +268,28 @@ def datedoteu(arg):
         return "{0}-{1}-{2}".format(yr(m.group(3)), z2(m.group(2)), z2(m.group(1)))
     raise XPathContext.FunctionArgType(1,"xs:date")
     
-def datelongus(arg):
-    m = dateUsPattern.match(arg)
+def datelongusTR1(arg):
+    m = dateLongUsTR1Pattern.match(arg)
     if m and m.lastindex == 3:
         return "{0}-{1:02}-{2}".format(yr(m.group(3)), monthnumber[m.group(1)], z2(m.group(2)))
+    raise XPathContext.FunctionArgType(1,"xs:date")
+    
+def dateshortusTR1(arg):
+    m = dateShortUsTR1Pattern.match(arg)
+    if m and m.lastindex == 3:
+        return "{0}-{1:02}-{2}".format(yr(m.group(3)), monthnumber[m.group(1)], z2(m.group(2)))
+    raise XPathContext.FunctionArgType(1,"xs:date")
+    
+def datelongukTR1(arg):
+    m = dateLongUkTR1Pattern.match(arg)
+    if m and m.lastindex == 3:
+        return "{0}-{1:02}-{2}".format(yr(m.group(3)), monthnumber[m.group(2)], z2(m.group(1)))
+    raise XPathContext.FunctionArgType(1,"xs:date")
+    
+def dateshortukTR1(arg):
+    m = dateShortUkTR1Pattern.match(arg)
+    if m and m.lastindex == 3:
+        return "{0}-{1:02}-{2}".format(yr(m.group(3)), monthnumber[m.group(2)], z2(m.group(1)))
     raise XPathContext.FunctionArgType(1,"xs:date")
     
 def datelongeu(arg):
@@ -342,6 +366,14 @@ def datedaymonthShortEnTR1(arg):
         return "--{0:02}-{1}".format(_mo, _day)
     raise XPathContext.FunctionArgType(1,"xs:gMonthDay")
     
+def datedaymonthLongEnTR1(arg):
+    m = daymonthLongEnTR1Pattern.match(arg)
+    if m and m.lastindex == 2:
+        _mo = monthnumber[m.group(2)]
+        _day = z2(m.group(1))
+        return "--{0:02}-{1}".format(_mo, _day)
+    raise XPathContext.FunctionArgType(1,"xs:gMonthDay")
+    
 def datemonthdayen(arg):
     m = monthdayEnPattern.match(arg)
     if m and m.lastindex == 2:
@@ -349,6 +381,14 @@ def datemonthdayen(arg):
         _day = z2(m.group(2))
         if "01" <= _day <= maxDayInMo.get(_mo, "00"): 
             return "--{0:02}-{1}".format(_mo, _day)
+    raise XPathContext.FunctionArgType(1,"xs:gMonthDay")
+
+def datemonthdayLongEnTR1(arg):
+    m = monthdayLongEnTR1Pattern.match(arg)
+    if m and m.lastindex == 2:
+        _mo = monthnumber[m.group(1)]
+        _day = z2(m.group(2))
+        return "--{0:02}-{1}".format(_mo, _day)
     raise XPathContext.FunctionArgType(1,"xs:gMonthDay")
 
 def datemonthdayShortEnTR1(arg):
@@ -634,19 +674,19 @@ tr1Functions = {
     'dateslasheu': dateslasheu,
     'datedotus': datedotus,
     'datedoteu': datedoteu,
-    'datelongus': datelongus,
-    'dateshortus': datelongus,
-    'datelongeu': datelongeu,
-    'dateshorteu': datelongeu,
-    'datelonguk': datelongeu,
-    'dateshortuk': datelongeu,
+    'datelongus': datelongusTR1,
+    'dateshortus': dateshortusTR1,
+    'datelonguk': datelongukTR1,
+    'dateshortuk': dateshortukTR1,
     'numcommadot': numcommadot,
     'numdash': numdash,
     'numspacedot': numspacedot,
     'numdotcomma': numdotcomma,
     'numcomma': numcomma,
     'numspacecomma': numspacecomma,
+    'datelongdaymonthuk': datedaymonthLongEnTR1,
     'dateshortdaymonthuk': datedaymonthShortEnTR1,
+    'datelongmonthdayus': datemonthdayLongEnTR1,
     'dateshortmonthdayus': datemonthdayShortEnTR1,
     'dateslashdaymontheu': datedaymonthSlashTR1,
     'dateslashmonthdayus': datemonthdaySlashTR1,

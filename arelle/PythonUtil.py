@@ -123,8 +123,10 @@ def strTruncate(value, length):
         return _s
     return _s[0:length] + "..."
 
-# normalizeSpace
-# use:  " ".join(string.split())
+def normalizeSpace(s):
+    if isinstance(s, str):
+        return " ".join(s.split())
+    return s
     
 SEQUENCE_TYPES = (tuple,list,set)
 def flattenSequence(x, sequence=None):

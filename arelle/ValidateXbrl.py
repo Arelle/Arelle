@@ -391,8 +391,8 @@ class ValidateXbrl:
                 if len(objs) > 1:
                     idObject = objs[0]
                     modelXbrl.error(ixMsgCode("uniqueIxId", idObject, sect="validation"),
-                        _("Inline XBRL id is not unique in the IXDS: %(id)s, for element(s) %{elements)s"),
-                        modelObject=objs, id=_id, elements=set(str(obj.elementQname) for obj in objs))
+                        _("Inline XBRL id is not unique in the IXDS: %(id)s, for element(s) %(elements)s"),
+                        modelObject=objs, id=_id, elements=",".join(sorted(set(str(obj.elementQname) for obj in objs))))
             self.factsWithDeprecatedIxNamespace = []
             factFootnoteRefs = set()
             undefinedFacts = []

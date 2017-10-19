@@ -142,6 +142,11 @@ class ModelTestcaseVariation(ModelObject):
         
     @property
     def resultXbrlInstanceUri(self):
+        for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ResultXbrlInstanceUri"):
+            resultInstanceUri = pluginXbrlMethod(self)
+            if resultInstanceUri is not None:
+                return resultInstanceUri or None # (empty string returns None)
+            
         resultInstance = XmlUtil.descendant(XmlUtil.descendant(self, None, "result"), None, "instance")
         if resultInstance is not None:
             return XmlUtil.text(resultInstance)

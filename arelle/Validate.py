@@ -350,7 +350,7 @@ class Validate:
                             formulaOutputInstance = modelXbrl.formulaOutputInstance
                             modelXbrl.formulaOutputInstance = None # prevent it from being closed now
                         self.instValidator.close()
-                    compareIxResultInstance = (modelXbrl.modelDocument.type == Type.INLINEXBRL and 
+                    compareIxResultInstance = (modelXbrl.modelDocument.type in (Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET) and 
                                                modelTestcaseVariation.resultXbrlInstanceUri is not None)
                     if compareIxResultInstance:
                         formulaOutputInstance = modelXbrl # compare modelXbrl to generated output instance

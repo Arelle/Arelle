@@ -18,7 +18,7 @@ from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelObjectFactory import parser
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype, DocumentPrototype
 from arelle.PluginManager import pluginClassMethods
-from arelle.PythonUtil import OrderedDefaultDict, Fraction
+from arelle.PythonUtil import OrderedDefaultDict, Fraction, normalizeSpace
 from arelle.XhtmlValidate import ixMsgCode
 from arelle.XmlValidate import VALID, validate as xmlValidate
 
@@ -1327,6 +1327,7 @@ def inlineIxdsDiscover(modelXbrl):
     continuationReferences = defaultdict(set) # set of elements that have continuedAt source value
     tuplesByTupleID = {}
     factsByFactID = {} # non-tuple facts
+    factTargetIDs = set() # target IDs referenced on facts
     targetReferenceAttrs = defaultdict(dict) # target dict by attrname of elts
     targetReferencePrefixNs = defaultdict(dict) # target dict by prefix, namespace
     targetReferencesIDs = {} # target dict by id of reference elts
@@ -1335,15 +1336,23 @@ def inlineIxdsDiscover(modelXbrl):
         mdlDoc = htmlElement.modelDocument
         for modelInlineTuple in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "tuple"):
             if isinstance(modelInlineTuple,ModelObject):
-                modelInlineTuple.unorderedTupleFacts = []
+                modelInlineTuple.unorderedTupleFacts = defaultdict(list)
                 if modelInlineTuple.qname is not None:
                     if modelInlineTuple.tupleID:
-                        tuplesByTupleID[modelInlineTuple.tupleID] = modelInlineTuple
+                        if modelInlineTuple.tupleID not in tuplesByTupleID:
+                            tuplesByTupleID[modelInlineTuple.tupleID] = modelInlineTuple
+                        else:
+                            modelXbrl.error(ixMsgCode("tupleIdDuplication", modelInlineTuple, sect="validation"),
+                                            _("Inline XBRL tuples have same tupleID %(tupleID)s: %(qname1)s and %(qname2)s"),
+                                            modelObject=(modelInlineTuple,tuplesByTupleID[modelInlineTuple.tupleID]), 
+                                            tupleID=modelInlineTuple.tupleID, qname1=modelInlineTuple.qname, 
+                                            qname2=tuplesByTupleID[modelInlineTuple.tupleID].qname)
                     tupleElements.append(modelInlineTuple)
                     for r in modelInlineTuple.footnoteRefs:
                         footnoteRefs[r].append(modelInlineTuple)
                     if modelInlineTuple.id:
                         factsByFactID[modelInlineTuple.id] = modelInlineTuple
+                factTargetIDs.add(modelInlineTuple.get("target"))
         for elt in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "continuation"):
             if isinstance(elt,ModelObject) and elt.id:
                 continuationElements[elt.id] = elt
@@ -1352,7 +1361,7 @@ def inlineIxdsDiscover(modelXbrl):
                 target = elt.get("target")
                 targetReferenceAttrsDict = targetReferenceAttrs[target]
                 for attrName, attrValue in elt.items():
-                    if attrName.startswith('{') and not attrName.startswith(mdlDoc.ixNStag):
+                    if attrName.startswith('{') and not attrName.startswith(mdlDoc.ixNStag) and attrName != "{http://www.w3.org/XML/1998/namespace}base":
                         if attrName in targetReferenceAttrsDict:
                             modelXbrl.error(ixMsgCode("referencesAttributeDuplication",ns=mdlDoc.ixNS,name="references",sect="validation"),
                                             _("Inline XBRL ix:references attribute %(name)s duplicated in target %(target)s"),
@@ -1378,14 +1387,22 @@ def inlineIxdsDiscover(modelXbrl):
                                         modelObject=(elt, targetReferencePrefixNsDict[_prefix][1]), prefix=_prefix, ns1=_ns, ns2=targetReferencePrefixNsDict[_prefix], target=target)
                     else:
                         targetReferencePrefixNsDict[_prefix] = (_ns, elt)
+
         for elt in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "resources"):
             hasResources = True
+            for subEltTag in ("{http://www.xbrl.org/2003/instance}context","{http://www.xbrl.org/2003/instance}unit"):
+                for resElt in elt.iterdescendants(tag=subEltTag):
+                    if resElt.id:
+                        if ixdsEltById[resElt.id] != [resElt]:
+                            modelXbrl.error(ixMsgCode("resourceIdDuplication",ns=mdlDoc.ixNS,name="resources",sect="validation"),
+                                            _("Inline XBRL ix:resources descendant id %(id)s duplicated in inline document set"),
+                                            modelObject=ixdsEltById[resElt.id], id=resElt.id)
     if not hasResources:
         modelXbrl.error(ixMsgCode("missingResources", ns=mdlDoc.ixNS, name="resources", sect="validation"),
                         _("Inline XBRL ix:resources element not found"),
                         modelObject=modelXbrl)
                         
-    del targetReferenceAttrs, ixdsEltById, targetReferencePrefixNs, targetReferencesIDs
+    del ixdsEltById, targetReferencePrefixNs, targetReferencesIDs
                     
     def locateFactInTuple(modelFact, tuplesByTupleID, ixNStag):
         tupleRef = modelFact.tupleRef
@@ -1402,8 +1419,12 @@ def inlineIxdsDiscover(modelXbrl):
                 tuple = tupleParent
                 break
         if tuple is not None:
-            if modelFact.order is not None: # None when order failed validation
-                tuple.unorderedTupleFacts.append((modelFact.order, modelFact.objectIndex))
+            if modelFact.order is not None: # None when order missing failed validation
+                tuple.unorderedTupleFacts[modelFact.order].append(modelFact)
+            else:
+                modelXbrl.error(ixMsgCode("tupleMemberOrderMissing", modelFact, sect="validation"),
+                                _("Inline XBRL tuple member %(qname)s must have a numeric order attribute"),
+                                modelObject=modelFact, qname=modelFact.qname)
         else:
             modelXbrl.modelXbrl.facts.append(modelFact)
             
@@ -1448,6 +1469,15 @@ def inlineIxdsDiscover(modelXbrl):
                                         ancestorElement=chainEltAncestor.id or chainEltAncestor.get("name",chainEltAncestor.get("continuedAt")),
                                         descendantElement=chainElt.id or chainElt.get("name",chainElt.get("continuedAt")))
                         
+    def checkTupleIxDescendants(tupleFact, parentElt):
+        for childElt in parentElt.iterchildren():
+            if isinstance(childElt,ModelObject) and childElt.namespaceURI in XbrlConst.ixbrlAll:
+                if childElt.localName in ("numerator", "denominator"):                
+                    modelXbrl.error(ixMsgCode("tupleContentError", tupleFact, sect="validation"),
+                                    _("Inline XBRL tuple content illegal %(qname)s"),
+                                    modelObject=(tupleFact, childElt), qname=childElt.qname)
+            else:
+                checkTupleIxDescendants(tupleFact, childElt)
 
     for htmlElement in modelXbrl.ixdsHtmlElements:  
         mdlDoc = htmlElement.modelDocument
@@ -1458,6 +1488,7 @@ def inlineIxdsDiscover(modelXbrl):
 
         for modelInlineFact in htmlElement.iterdescendants(tag=ixNStag + '*'):
             if isinstance(modelInlineFact,ModelInlineFact) and modelInlineFact.localName in ("nonNumeric", "nonFraction", "fraction"):
+                factTargetIDs.add(modelInlineFact.get("target"))
                 if modelInlineFact.qname is not None: # must have a qname to be in facts
                     if modelInlineFact.concept is None:
                         modelXbrl.error(ixMsgCode("missingReferences", modelInlineFact, name="references", sect="validation"),
@@ -1478,9 +1509,39 @@ def inlineIxdsDiscover(modelXbrl):
                                         type=modelInlineFact.concept.baseXsdType)
         # order tuple facts
         for tupleFact in tupleElements:
-            tupleFact.modelTupleFacts = [
-                 mdlDoc.modelXbrl.modelObject(objectIndex) 
-                 for order,objectIndex in sorted(tupleFact.unorderedTupleFacts)]
+            # check for duplicates
+            for order, facts in tupleFact.unorderedTupleFacts.items():
+                if len(facts) > 1:
+                    if not all(normalizeSpace(facts[0].value) == normalizeSpace(f.value) and
+                               all(normalizeSpace(facts[0].get(attr)) == normalizeSpace(f.get(attr))
+                                   for attr in facts[0].keys() if attr != "order")
+                               for f in facts[1:]):
+                        modelXbrl.error(ixMsgCode("tupleSameOrderMembersUnequal", facts[0], sect="validation"),
+                                        _("Inline XBRL tuple members %(qnames)s values %(values)s and attributes not whitespace-normalized equal"),
+                                        modelObject=facts, qnames=", ".join(str(f.qname) for f in facts), 
+                                        values=", ".join(f.value for f in facts))
+            # check nearest ix: descendants
+            checkTupleIxDescendants(tupleFact, tupleFact)
+            tupleFact.modelTupleFacts = [facts[0] # this deduplicates by order number
+                                         for order,facts in sorted(tupleFact.unorderedTupleFacts.items(), key=lambda i:i[0])
+                                         if len(facts) > 0]
+            
+        # check for tuple cycles
+        def checkForTupleCycle(parentTuple, tupleNesting):
+            for fact in parentTuple.modelTupleFacts:
+                if fact in tupleNesting:
+                    tupleNesting.append(fact)
+                    modelXbrl.error(ixMsgCode("tupleNestingCycle", fact, sect="validation"),
+                                    _("Tuple nesting cycle: %(tupleCycle)s"),
+                                    modelObject=tupleNesting, tupleCycle="->".join(str(t.qname) for t in tupleNesting))
+                    tupleNesting.pop()
+                else:
+                    tupleNesting.append(fact)
+                    checkForTupleCycle(fact, tupleNesting)
+                    tupleNesting.pop()
+                    
+        for tupleFact in tupleElements:
+            checkForTupleCycle(tupleFact, [tupleFact])
                         
         # validate particle structure of elements after transformations and established tuple structure
         fractionTermTags = (ixNStag + "numerator", ixNStag + "denominator")
@@ -1495,6 +1556,20 @@ def inlineIxdsDiscover(modelXbrl):
                             numDenom[i] = modelInlineFractionTerm.xValue
                 rootModelFact._fractionValue = numDenom
             xmlValidate(modelXbrl, rootModelFact, ixFacts=True)
+            
+    if len(targetReferenceAttrs) == 0:
+        modelXbrl.error(ixMsgCode("missingReferences", None, name="references", sect="validation"),
+                        _("There must be at least one reference"),
+                        modelObject=modelXbrl)
+    if factTargetIDs - set(targetReferenceAttrs.keys()):
+        modelXbrl.error(ixMsgCode("missingReferenceTargets", None, name="references", sect="validation"),
+                        _("Instance fact targets without reference: %(missingReferenceTargets)s"),
+                        modelObject=modelXbrl, missingReferenceTargets=",".join(sorted(
+                            "(default)" if t is None else t
+                            for t in factTargetIDs - set(targetReferenceAttrs.keys()))))
+        
+    del targetReferenceAttrs, factTargetIDs
+
             
     footnoteLinkPrototypes = {}
     for htmlElement in modelXbrl.ixdsHtmlElements:  
@@ -1572,6 +1647,7 @@ def inlineIxdsDiscover(modelXbrl):
                 toLabels = set()
                 toFootnoteIds = set()
                 toFactQnames = set()
+                fromToMatchedIds = set()
                 toIdsNotFound = []
                 for toId in modelInlineRel.get("toRefs","").split():
                     toLabels.add(toId)
@@ -1591,10 +1667,16 @@ def inlineIxdsDiscover(modelXbrl):
                             linkPrototype.labeledResources[toId].append(locPrototype)
                     else: 
                         toIdsNotFound.append(toId)
+                    if toId in fromLabels:
+                        fromToMatchedIds.add(toId)
                 if toIdsNotFound:
                     modelXbrl.error(ixMsgCode("relationshipToRef", ns=XbrlConst.ixbrl11, name="relationship", sect="validation"),
                                     _("Inline relationship toRef(s) %(toIds)s not found."),
                                     modelObject=modelInlineRel, toIds=', '.join(sorted(toIdsNotFound)))
+                if fromToMatchedIds:
+                    modelXbrl.error(ixMsgCode("relationshipFromToMatch", ns=XbrlConst.ixbrl11, name="relationship", sect="validation"),
+                                    _("Inline relationship has matching values in fromRefs and toRefs: %(fromToMatchedIds)s"),
+                                    modelObject=modelInlineRel, fromToMatchedIds=', '.join(sorted(fromToMatchedIds)))
                 for fromLabel in fromLabels:
                     for toLabel in toLabels: 
                         linkPrototype.childElements.append(ArcPrototype(mdlDoc, linkPrototype, XbrlConst.qnLinkFootnoteArc,

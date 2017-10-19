@@ -12,7 +12,8 @@ Saves extracted instance document.
 from arelle import ModelXbrl, ValidateXbrlDimensions, XbrlConst
 from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
 from arelle.ModelInstanceObject import ModelInlineFootnote
-from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, load
+from arelle.ModelObject import ModelObject
+from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, load, create, inlineIxdsDiscover
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateFilingText import CDATApattern
 from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier, elementChildSequence
@@ -21,9 +22,15 @@ from optparse import SUPPRESS_HELP
 from lxml.etree import XML, XMLSyntaxError
 from collections import defaultdict
 
+INLINE_DOCUMENTSET_SURROGATE = os.sep + "_arelle_inline_document_set#?#"
+
+skipExpectedInstanceComparison = None
+
+# class representing surrogate object for multi-document inline xbrl document set, references individual ix documents
 class ModelInlineXbrlDocumentSet(ModelDocument):
         
     def discoverInlineXbrlDocumentSet(self):
+        # for JP FSA inline document set manifest, acting as document set surrogate entry object, load referenced ix documents
         for instanceElt in self.xmlRootElement.iter(tag="{http://disclosure.edinet-fsa.go.jp/2013/manifest}instance"):
             targetId = instanceElt.id
             self.targetDocumentId = targetId
@@ -32,8 +39,10 @@ class ModelInlineXbrlDocumentSet(ModelDocument):
             for ixbrlElt in instanceElt.iter(tag="{http://disclosure.edinet-fsa.go.jp/2013/manifest}ixbrl"):
                 uri = ixbrlElt.textValue.strip()
                 if uri:
+                    # load ix document
                     doc = load(self.modelXbrl, uri, base=self.filepath, referringElement=instanceElt)
                     if doc is not None and doc not in self.referencesDocument:
+                        # set reference to ix document if not in circular reference
                         referencedDocument = ModelDocumentReference("inlineDocument", instanceElt)
                         referencedDocument.targetId = targetId
                         self.referencesDocument[doc] = referencedDocument
@@ -41,6 +50,34 @@ class ModelInlineXbrlDocumentSet(ModelDocument):
                             if referencedDoc.type == Type.SCHEMA:
                                 self.targetDocumentSchemaRefs.add(doc.relativeUri(referencedDoc.uri))
         return True
+
+# this loader is used for test cases of multi-ix doc sets
+def xbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=False, namespace=None, **kwargs):
+    if INLINE_DOCUMENTSET_SURROGATE in normalizedUri:
+        # create surrogate entry object for inline document set which references ix documents
+        xml = ["<instances>\n"]
+        for i, url in enumerate(normalizedUri.split("#?#")):
+            if i == 0:
+                docsetUrl = url
+            else:
+                xml.append("<instance>{}</instance>\n".format(url))
+        xml.append("</instances>\n")
+        ixdocset = create(modelXbrl, Type.INLINEXBRLDOCUMENTSET, docsetUrl, isEntry=True, initialXml="".join(xml))
+        ixdocset.type = Type.INLINEXBRLDOCUMENTSET
+        ixdocset.targetDocumentSchemaRefs = set()  # union all the instance schemaRefs
+        for elt in ixdocset.xmlRootElement.iter(tag="instance"):
+            # load ix document
+            ixdoc = load(modelXbrl, elt.text, referringElement=elt)
+            # set reference to ix document in document set surrogate object
+            referencedDocument = ModelDocumentReference("inlineDocument", elt)
+            ixdocset.referencesDocument[ixdoc] = referencedDocument
+            for referencedDoc in ixdoc.referencesDocument.keys():
+                if referencedDoc.type == Type.SCHEMA:
+                    ixdocset.targetDocumentSchemaRefs.add(ixdoc.relativeUri(referencedDoc.uri))
+            ixdocset.ixNS = ixdoc.ixNS # set docset ixNS
+        inlineIxdsDiscover(modelXbrl) # compile cross-document IXDS references
+        return ixdocset
+    return None
 
 def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRefs, outputZip=None, filingFiles=None, *args, **kwargs):
     targetUrl = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(targetDocumentFilename, modelXbrl.modelDocument.filepath)
@@ -182,7 +219,7 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
     if getattr(modelXbrl, "isTestcaseVariation", False):
         modelXbrl.extractedInlineInstance = True # for validation comparison
     modelXbrl.modelManager.showStatus(_("Saved extracted instance"), 5000)
-
+    
 def identifyInlineXbrlDocumentSet(modelXbrl, rootNode, filepath):
     for manifestElt in rootNode.iter(tag="{http://disclosure.edinet-fsa.go.jp/2013/manifest}manifest"):
         # it's an edinet fsa manifest of an inline XBRL document set
@@ -249,7 +286,7 @@ def runSaveTargetDocumentMenuCommand(cntlr, runInBackground=False, saveTargetFil
                     filingZip.write(refFile, modelDocument.relativeUri(refFile))
             
 
-def saveTargetDocumentCommandLineOptionExtender(parser, *args, **kwargs):
+def commandLineOptionExtender(parser, *args, **kwargs):
     # extend command line options with a save DTS option
     parser.add_option("--saveInstance", 
                       action="store_true", 
@@ -267,8 +304,16 @@ def saveTargetDocumentCommandLineOptionExtender(parser, *args, **kwargs):
                       action="store", 
                       dest="saveTargetFiling", 
                       help=SUPPRESS_HELP)
+    parser.add_option("--skipExpectedInstanceComparison", 
+                      action="store_true", 
+                      dest="skipExpectedInstanceComparison", 
+                      help=_("Skip inline XBRL testcases from comparing expected result instances"))
+    
+def commandLineFilingStart(cntlr, options, *args, **kwargs):
+    global skipExpectedInstanceComparison
+    skipExpectedInstanceComparison = getattr(options, "skipExpectedInstanceComparison", False)
 
-def saveTargetDocumentCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
+def commandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "saveTargetInstance", False) or getattr(options, "saveTargetFiling", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None or not (   
@@ -279,7 +324,22 @@ def saveTargetDocumentCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwa
         runSaveTargetDocumentMenuCommand(cntlr, 
                                          runInBackground=False,
                                          saveTargetFiling=getattr(options, "saveTargetFiling", False))
+        
+def testcaseVariationReadMeFirstUris(modelTestcaseVariation):
+    _readMeFirstUris = [os.path.join(modelTestcaseVariation.modelDocument.filepathdir, elt.text.strip())
+                        for elt in modelTestcaseVariation.iterdescendants()
+                        if isinstance(elt,ModelObject) and elt.get("readMeFirst") == "true"]
+    if len(_readMeFirstUris) > 1 and all(
+        Type.identify(modelTestcaseVariation.modelXbrl.fileSource, f) == Type.INLINEXBRL for f in _readMeFirstUris):
+        docsetSurrogatePath = os.path.dirname(_readMeFirstUris[0]) + INLINE_DOCUMENTSET_SURROGATE
+        modelTestcaseVariation._readMeFirstUris = [docsetSurrogatePath + "#?#".join(_readMeFirstUris)]
+        return True
 
+def testcaseVariationResultInstanceUri(modelTestcaseObject):
+    if skipExpectedInstanceComparison:
+        # block any comparison URIs
+        return "" # block any testcase URIs
+    return None # default behavior
 
 __pluginInfo__ = {
     'name': 'Inline XBRL Document Set',
@@ -292,8 +352,12 @@ __pluginInfo__ = {
     'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveTargetDocumentMenuEntender,
-    'CntlrCmdLine.Options': saveTargetDocumentCommandLineOptionExtender,
-    'CntlrCmdLine.Xbrl.Run': saveTargetDocumentCommandLineXbrlRun,
+    'CntlrCmdLine.Options': commandLineOptionExtender,
+    'CntlrCmdLine.Filing.Start': commandLineFilingStart,
+    'CntlrCmdLine.Xbrl.Run': commandLineXbrlRun,
+    'ModelDocument.PullLoader': xbrlDocumentSetLoader,
     'ModelDocument.IdentifyType': identifyInlineXbrlDocumentSet,
     'ModelDocument.Discover': discoverInlineXbrlDocumentSet,
+    'ModelTestcaseVariation.ReadMeFirstUris': testcaseVariationReadMeFirstUris,
+    'ModelTestcaseVariation.ResultXbrlInstanceUri': testcaseVariationResultInstanceUri,
 }

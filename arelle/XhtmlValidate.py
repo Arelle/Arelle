@@ -9,6 +9,7 @@ Created on Sept 1, 2013
 from arelle import XbrlConst, XmlUtil, XmlValidate, ValidateFilingText
 from arelle.ModelValue import qname
 from arelle.ModelObject import ModelObject
+from arelle.PythonUtil import normalizeSpace
 from lxml import etree
 import os, re
 
@@ -113,6 +114,8 @@ ixAttrDefined = {
 allowedNonIxAttrNS = {
     "footnote": "http://www.w3.org/XML/1998/namespace",
     "fraction": "##other",
+    "denominator": "##other",
+    "numerator": "##other",
     "nonFraction": "##other",
     "nonNumeric": "##other",
     "references": "##other",
@@ -122,7 +125,7 @@ ixHierarchyConstraints = {
     # localName: (-rel means doesnt't have relation, +rel means has rel,
     #   &rel means only listed rels
     #   ^rel means must have at least one of listed rels and can't have any non-listed rels
-    #   1rel means must have only one of listed rels
+    #   1rel means non-nil element must have only one of listed rels
     #   ?rel means 0 or 1 cardinality
     #   +rel means 1 or more cardinality
     "continuation": (("-ancestor",("hidden",)),),
@@ -132,7 +135,8 @@ ixHierarchyConstraints = {
                  ("1descendant",('denominator',))),
     "header": (("&child-sequence", ('hidden','references','resources')), # can only have these children, in order, no others
                ("?child-choice", ('hidden',)),
-               ("?child-choice", ('resources',))),
+               ("?child-choice", ('resources',)),
+               ("-ancestor",("{http://www.w3.org/1999/xhtml}head",))),
     "hidden": (("+parent", ("header",)),
                ("&child-choice", ('footnote', 'fraction', 'nonFraction', 'nonNumeric', 'tuple')),
                ("+child-choice", ('footnote', 'fraction', 'nonFraction', 'nonNumeric', 'tuple'))),
@@ -188,9 +192,11 @@ def ixMsgCode(codeName, elt=None, sect="constraint", ns=None, name=None):
         if ns is None and elt.namespaceURI in XbrlConst.ixbrlAll:
             ns = elt.namespaceURI
         else:
-            ns = XbrlConst.ixbrl11
+            ns = getattr(elt.modelDocument, "ixNS", XbrlConst.ixbrl11)
         if name is None:
             name = elt.localName
+            if name in ("context", "unit"):
+                name = "resources"
     return "{}:{}".format(ixSect[ns].get(name,"other")[sect], codeName)
 
 def xhtmlValidate(modelXbrl, elt):
@@ -210,7 +216,9 @@ def xhtmlValidate(modelXbrl, elt):
             ns = None
             localName = attrTag
         if ns is not None and ns not in XbrlConst.ixbrlAll and attrTag not in ixEltAttrDefs:
-            if isIxElt:
+            if ns == XbrlConst.xsi:
+                pass # xsi attributes are always allowed
+            elif isIxElt:
                 allowedNs = allowedNonIxAttrNS.get(elt.localName, None)
                 if allowedNs != "##other" and ns != allowedNs:
                     modelXbrl.error(ixMsgCode("qualifiedAttributeNotExpected", elt),
@@ -270,6 +278,9 @@ def xhtmlValidate(modelXbrl, elt):
                     nameFilter = names
                 if nameFilter == ('*',):
                     namespaceFilter = namespacePrefix = '*'
+                elif len(nameFilter) == 1 and "}" in nameFilter[0] and nameFilter[0][0] == "{":
+                    namespaceFilter, _sep, nameFilter = nameFilter[0][1:].partition("}")
+                    namespacePrefix = XmlUtil.xmlnsprefix(elt,namespaceFilter)
                 else:
                     namespaceFilter = elt.namespaceURI
                     namespacePrefix = elt.prefix
@@ -292,7 +303,7 @@ def xhtmlValidate(modelXbrl, elt):
                     if not any(r.localName in names and r.namespaceURI == elt.namespaceURI
                                for r in relations):
                         issue = " and is missing one of " + ', '.join(names)
-                if reqt in ('1',):
+                if reqt in ('1',) and not elt.isNil:
                     if sum(r.localName in names and r.namespaceURI == elt.namespaceURI
                            for r in relations) != 1:
                         issue = " and must have exactly one of " + ', '.join(names)
@@ -359,7 +370,7 @@ def xhtmlValidate(modelXbrl, elt):
         # other static element checks (that don't require a complete object model, context, units, etc
         if elt.localName == "nonFraction":
             childElts = XmlUtil.children(elt, '*', '*')
-            hasText = (elt.text or "").strip() or any((childElt.tail or "").strip() for childElt in childElts)
+            hasText = (elt.text or "") or any((childElt.tail or "") for childElt in childElts)
             if elt.isNil:
                 ancestorNonFractions = XmlUtil.ancestors(elt, _ixNS, elt.localName)
                 if ancestorNonFractions:
@@ -391,6 +402,11 @@ def xhtmlValidate(modelXbrl, elt):
                     modelXbrl.error(ixMsgCode("fractionElementChildren", elt),
                         _("Fact %(fact)s is a non-nil fraction and not have any child elements except ix:fraction, ix:numerator and ix:denominator: %(children)s"),
                         modelObject=[elt] + nonFrChildren, fact=elt.qname, children=", ".join(e.localName for e in nonFrChildren))
+                for ancestorFraction in XmlUtil.ancestors(elt, XbrlConst.ixbrl11, "fraction"): # only ix 1.1
+                    if normalizeSpace(elt.get("unitRef")) != normalizeSpace(ancestorFraction.get("unitRef")):
+                        modelXbrl.error(ixMsgCode("fractionNestedUnitRef", elt),
+                            _("Fact %(fact)s fraction and ancestor fractions must have matching unitRefs: %(unitRef)s, %(unitRef2)s"),
+                            modelObject=[elt] + nonFrChildren, fact=elt.qname, unitRef=elt.get("unitRef"), unitRef2=ancestorFraction.get("unitRef"))
         if elt.localName in ("nonFraction", "numerator", "denominator", "nonNumeric"):
             fmt = elt.format
             if fmt:
