@@ -362,6 +362,7 @@ class Validate:
                         del inputDTSes # dereference
                         errMsgPrefix = "formula"
                     if resultIsXbrlInstance and formulaOutputInstance and formulaOutputInstance.modelDocument:
+                        _matchExpectedResultIDs = not modelXbrl.hasFormulae # formula restuls have inconsistent IDs
                         expectedInstance = ModelXbrl.load(self.modelXbrl.modelManager, 
                                                    modelTestcaseVariation.resultXbrlInstanceUri,
                                                    _("loading expected result XBRL instance"), 
@@ -405,7 +406,7 @@ class Validate:
                                     return footnotes
                                 for expectedInstanceFact in expectedInstance.facts:
                                     unmatchedFactsStack = []
-                                    formulaOutputFact = formulaOutputInstance.matchFact(expectedInstanceFact, unmatchedFactsStack, deemP0inf=True, matchId=True, matchLang=False)
+                                    formulaOutputFact = formulaOutputInstance.matchFact(expectedInstanceFact, unmatchedFactsStack, deemP0inf=True, matchId=_matchExpectedResultIDs, matchLang=False)
                                     #formulaOutputFact = formulaOutputInstance.matchFact(expectedInstanceFact, unmatchedFactsStack, deemP0inf=True, matchId=True, matchLang=True)
                                     if formulaOutputFact is None:
                                         if unmatchedFactsStack: # get missing nested tuple fact, if possible
