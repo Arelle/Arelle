@@ -357,7 +357,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                     aspectEqualFacts[(f.qname,f.contextID,f.unitID,f.xmlLang)].append(f)
                 for fList in aspectEqualFacts.values():
                     f0 = fList[0]
-                    if any(not f.isVEqualTo(f0) for f in fList[1:]):
+                    if any(not f.isVEqualTo(f0, normalizeSpace=False) for f in fList[1:]):
                         modelXbrl.error("JFCVC.3314",
                             "Inconsistent duplicate fact values %(fact)s: %(values)s.",
                             modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(f.value for f in fList))

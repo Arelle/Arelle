@@ -400,7 +400,7 @@ class ModelFact(ModelObject):
             return float(self.value)
         return self.value
     
-    def isVEqualTo(self, other, deemP0Equal=False, deemP0inf=False):
+    def isVEqualTo(self, other, deemP0Equal=False, deemP0inf=False, normalizeSpace=True):
         """(bool) -- v-equality of two facts
         
         Note that facts may be in different instances
@@ -444,7 +444,7 @@ class ModelFact(ModelObject):
             return self.xValue == other.xValue # required to handle date/time with 24 hrs.
         selfValue = self.value
         otherValue = other.value
-        if isinstance(selfValue,str) and isinstance(otherValue,str): # normalized space comparison
+        if normalizeSpace and isinstance(selfValue,str) and isinstance(otherValue,str): # normalized space comparison
             return ' '.join(selfValue.split()) == ' '.join(otherValue.split())
         else:
             return selfValue == otherValue
@@ -617,8 +617,10 @@ class ModelInlineValueObject:
                         except Exception as err:
                             self._ixValue = ModelValue.INVALIDixVALUE
                             raise err
-                if self.localName == "nonNumeric" or self.localName == "tuple":
+                if self.localName == "nonNumeric":
                     self._ixValue = v
+                elif self.localName == "tuple":
+                    self._ixValue = ""
                 elif self.localName == "fraction":
                     if self.xValid >= VALID:
                         self._ixValue = str(self.xValue)
@@ -707,7 +709,7 @@ class ModelInlineFact(ModelInlineValueObject, ModelFact):
 
     @property
     def order(self):
-        """(float) -- order attribute of inline element or None if absent or float conversion error"""
+        """(Decimal) -- order attribute of inline element or None if absent or Decimal conversion error"""
         try:
             return self._order
         except AttributeError:
