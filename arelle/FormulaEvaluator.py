@@ -212,13 +212,15 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                             factVarBindings.append(", \n${}: fallback {}".format(vb.qname, xpCtx.flattenSequence(vb.values)))
                         else:
                             if vb.isBindAsSequence:
-                                _modelObjects.extend(vb.yieldedEvaluation)
-                            else:
+                                if isinstance(vb.yieldedEvaluation, list):
+                                    _modelObjects.extend(vb.yieldedEvaluation)
+                            elif vb.yieldedFact is not None:
                                 _modelObjects.append(vb.yieldedFact)
-                            if vb.yieldedFact.isItem:
-                                factVarBindings.append(", \n${}: {} context {}".format(vb.qname, vb.yieldedFact.qname, vb.yieldedFactContext.id))
-                            elif vb.yieldedFact.isTuple and isinstance(vb.yieldedFact.parentElement, ModelFact):
-                                factVarBindings.append(", \n${}: {} tuple {}".format(vb.qname, vb.yieldedFact.qname, vb.yieldedFact.parentElement.qname))
+                            if vb.yieldedFact is not None:
+                                if vb.yieldedFact.isItem:
+                                    factVarBindings.append(", \n${}: {} context {}".format(vb.qname, vb.yieldedFact.qname, vb.yieldedFactContext.id))
+                                elif vb.yieldedFact.isTuple and isinstance(vb.yieldedFact.parentElement, ModelFact):
+                                    factVarBindings.append(", \n${}: {} tuple {}".format(vb.qname, vb.yieldedFact.qname, vb.yieldedFact.parentElement.qname))
                     xpCtx.modelXbrl.log(
                         "ERROR" if (xpCtx.formulaOptions.errorUnsatisfiedAssertions and not result) else "INFO",
                         "formula:assertionSatisfied" if result else "formula:assertionUnsatisfied",
