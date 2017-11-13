@@ -252,7 +252,7 @@ def isValidAbsolute(url):
             
             # note this pattern does not process urn: as valid!!!
             # regex to validate a full URL from http://stackoverflow.com/questions/827557/how-do-you-validate-a-url-with-a-regular-expression-in-python/835527#835527
-            r"(?:http://(?:(?:(?:(?:(?:[a-zA-Z\d](?:(?:[a-zA-Z\d]|-)*[a-zA-Z\d])?)\."
+            r"(?:(http|https|ftp)://(?:(?:(?:(?:(?:[a-zA-Z\d](?:(?:[a-zA-Z\d]|-)*[a-zA-Z\d])?)\."
             r")*(?:[a-zA-Z](?:(?:[a-zA-Z\d]|-)*[a-zA-Z\d])?))|(?:(?:\d+)(?:\.(?:\d+)"
             r"){3}))(?::(?:\d+))?)(?:/(?:(?:(?:(?:[a-zA-Z\d$\-_.+!*'(),]|(?:%[a-fA-F"
             r"\d]{2}))|[;:@&=])*)(?:/(?:(?:(?:[a-zA-Z\d$\-_.+!*'(),]|(?:%[a-fA-F\d]{"
@@ -375,7 +375,7 @@ def isAbsolute(url):
     return False
 
 def isHttpUrl(url):
-    return url and (url.startswith("http://") or url.startswith("https://"))
+    return isinstance(url,str) and (url.startswith("http://") or url.startswith("https://"))
 
 def ensureUrl(maybeUrl):
     if isAbsolute(maybeUrl) or isHttpUrl(maybeUrl):
@@ -393,7 +393,7 @@ def parseRfcDatetime(rfc2822date):
     return None
        
 def relativeUri(baseUri, relativeUri): # return uri relative to this modelDocument uri
-    if relativeUri.startswith('http://'):
+    if isHttpUrl(relativeUri):
         return relativeUri
     else:
         return os.path.relpath(relativeUri, os.path.dirname(baseUri)).replace('\\','/')

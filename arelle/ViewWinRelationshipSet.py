@@ -38,6 +38,8 @@ def viewRelationshipSet(modelXbrl, tabWin, arcrole,
     view.menuAddLangs()
     view.menuAddLabelRoles(includeConceptName=True)
     view.menuAddViews()
+    
+    return True
 
     
 class ViewRelationshipSet(ViewWinTree.ViewTree):

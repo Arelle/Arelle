@@ -47,6 +47,7 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None, erro
     if nextaction is None: nextaction = _("loading")
     from arelle import (ModelDocument, FileSource)
     modelXbrl = create(modelManager, errorCaptureLevel=errorCaptureLevel)
+    supplementalUrls = None
     if useFileSource is not None:
         modelXbrl.fileSource = useFileSource
         modelXbrl.closeFileSource = False
@@ -54,11 +55,19 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None, erro
     elif isinstance(url,FileSource.FileSource):
         modelXbrl.fileSource = url
         modelXbrl.closeFileSource= True
-        url = modelXbrl.fileSource.url
+        if isinstance(modelXbrl.fileSource.url, list): # json list
+            url = modelXbrl.fileSource.url[0]
+            supplementalUrls = modelXbrl.fileSource.url[1:]
+        #elif isinstance(modelXbrl.fileSource.url, dict): # json object
+        else:
+            url = modelXbrl.fileSource.url
     else:
         modelXbrl.fileSource = FileSource.FileSource(url, modelManager.cntlr)
         modelXbrl.closeFileSource= True
     modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True, **kwargs)
+    if supplementalUrls:
+        for url in supplementalUrls:
+            ModelDocument.load(modelXbrl, url, base, isEntry=False, isDiscovered=True, **kwargs)
     del modelXbrl.entryLoadingUrl
     loadSchemalocatedSchemas(modelXbrl)
     

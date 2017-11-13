@@ -563,14 +563,24 @@ class FileSource:
             
         return self.filesDir
     
+    def basedUrl(self, selection):
+        if isHttpUrl(selection) or os.path.isabs(selection):
+            return selection
+        elif self.baseIsHttp or os.sep == '/':
+            return self.baseurl + "/" + selection
+        else: # MSFT os.sep == '\\'
+            return self.baseurl + os.sep + selection.replace("/", os.sep)
+    
     def select(self, selection):
         self.selection = selection
-        if isHttpUrl(selection) or os.path.isabs(selection):
-            self.url = selection
-        elif self.baseIsHttp or os.sep == '/':
-            self.url = self.baseurl + "/" + selection
-        else: # MSFT os.sep == '\\'
-            self.url = self.baseurl + os.sep + selection.replace("/", os.sep)
+        if not selection:
+            self.url = None
+        else:
+            if isinstance(selection, list): # json list
+                self.url = [self.basedUrl(s) for s in selection]
+            # elif isinstance(selection, dict): # json objects
+            else:
+                self.url = basedUrl(selection)
             
 def openFileStream(cntlr, filepath, mode='r', encoding=None):
     if PackageManager.isMappedUrl(filepath):

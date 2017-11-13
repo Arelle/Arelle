@@ -725,13 +725,14 @@ class CntlrWinMain (Cntlr.Cntlr):
                 filename = DialogOpenArchive.askArchiveFile(self, filesource)
                 
         if filename:
-            if importToDTS:
-                if not isHttpUrl(filename):
-                    self.config["importOpenDir"] = os.path.dirname(filename)
-            else:
-                if not isHttpUrl(filename):
-                    self.config["fileOpenDir"] = os.path.dirname(filesource.baseurl if filesource.isArchive else filename)
-            self.updateFileHistory(filename, importToDTS)
+            if not isinstance(filename, (dict, list)): # json objects
+                if importToDTS:
+                    if not isHttpUrl(filename):
+                        self.config["importOpenDir"] = os.path.dirname(filename)
+                else:
+                    if not isHttpUrl(filename):
+                        self.config["fileOpenDir"] = os.path.dirname(filesource.baseurl if filesource.isArchive else filename)
+                self.updateFileHistory(filename, importToDTS)
             thread = threading.Thread(target=self.backgroundLoadXbrl, args=(filesource,importToDTS,selectTopView), daemon=True).start()
             
     def webOpen(self, *ignore):
@@ -860,24 +861,28 @@ class CntlrWinMain (Cntlr.Cntlr):
                     currentAction = "tree/list of facts"
                     ViewWinFactList.viewFacts(modelXbrl, self.tabWinTopRt, lang=self.labelLang)
                     if topView is None: topView = modelXbrl.views[-1]
+                currentAction = "presentation linkbase view"
+                hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.parentChild, lang=self.labelLang)
+                if hasView and topView is None: topView = modelXbrl.views[-1]
+                currentAction = "calculation linkbase view"
+                hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.summationItem, lang=self.labelLang)
+                if hasView and topView is None: topView = modelXbrl.views[-1]
+                currentAction = "dimensions relationships view"
+                hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "XBRL-dimensions", lang=self.labelLang)
+                if hasView and topView is None: topView = modelXbrl.views[-1]
+                if modelXbrl.hasTableRendering:
+                    currentAction = "rendering view"
+                    hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "Table-rendering", lang=self.labelLang)
+                    if hasView and topView is None: topView = modelXbrl.views[-1]
                 if modelXbrl.hasFormulae:
                     currentAction = "formulae view"
                     ViewWinFormulae.viewFormulae(modelXbrl, self.tabWinTopRt)
                     if topView is None: topView = modelXbrl.views[-1]
-                currentAction = "presentation linkbase view"
-                ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.parentChild, lang=self.labelLang)
-                if topView is None: topView = modelXbrl.views[-1]
-                currentAction = "calculation linkbase view"
-                ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.summationItem, lang=self.labelLang)
-                currentAction = "dimensions relationships view"
-                ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "XBRL-dimensions", lang=self.labelLang)
-                if modelXbrl.hasTableRendering:
-                    currentAction = "rendering view"
-                    ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "Table-rendering", lang=self.labelLang)
                 for name, arcroles in sorted(self.config.get("arcroleGroups", {}).items()):
                     if XbrlConst.arcroleGroupDetect in arcroles:
                         currentAction = name + " view"
-                        ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, (name, arcroles), lang=self.labelLang)
+                        hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, (name, arcroles), lang=self.labelLang)
+                        if hasView and topView is None: topView = modelXbrl.views[-1]
             currentAction = "property grid"
             ViewWinProperties.viewProperties(modelXbrl, self.tabWinTopLeft)
             currentAction = "log view creation time"

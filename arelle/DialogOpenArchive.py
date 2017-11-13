@@ -290,7 +290,9 @@ class DialogOpenArchive(Toplevel):
             self.treeView.heading("url", text="URL")
             
             for name, urls in sorted(self.taxonomyPackage["entryPoints"].items(), key=lambda i:i[1][2]):
-                self.treeView.insert("", "end", name, values=[urls[1]], text=name or urls[2])
+                self.treeView.insert("", "end", name, 
+                                     values="\n".join(url[1] for url in urls), 
+                                     text=name or urls[0][2])
                 
             self.hasToolTip = True
         else: # unknown openType
@@ -321,12 +323,20 @@ class DialogOpenArchive(Toplevel):
                 epName = selection[0]
                 #index 0 is the remapped Url, as opposed to the canonical one used for display
                 # Greg Acsone reports [0] does not work for Corep 1.6 pkgs, need [1], old style packages
-                filename = self.taxonomyPackage["entryPoints"][epName][0]
-                if not filename.endswith("/"):
-                    # check if it's an absolute URL rather than a path into the archive
-                    if not isHttpUrl(filename) and self.metadataFilePrefix != self.taxonomyPkgMetaInf:
-                        # assume it's a path inside the archive:
-                        filename = self.metadataFilePrefix + filename
+                filenames = []
+                for url in self.taxonomyPackage["entryPoints"][epName]:
+                    filename = url[0]
+                    if not filename.endswith("/"):
+                        # check if it's an absolute URL rather than a path into the archive
+                        if not isHttpUrl(filename) and self.metadataFilePrefix != self.taxonomyPkgMetaInf:
+                            # assume it's a path inside the archive:
+                            filename = self.metadataFilePrefix + filename
+                    filenames.append(filename)
+                if filenames:
+                    self.filesource.select(filenames)
+                    self.accepted = True
+                    self.close()
+                return
             elif self.openType == PLUGIN:
                 filename = self.filenames[int(selection[0][4:])][2]
             if filename is not None and not filename.endswith("/"):
@@ -378,8 +388,8 @@ class DialogOpenArchive(Toplevel):
                         pass
             elif self.openType == ENTRY_POINTS:
                 try:
-                    epUrl = self.taxonomyPackage["entryPoints"][tvRowId][1]
-                    text = "{0}\n{1}".format(tvRowId, epUrl)
+                    text = "{0}\n{1}".format(tvRowId, 
+                             "\n".join(url[1] for url in self.taxonomyPackage["entryPoints"][tvRowId]))
                 except KeyError:
                     pass
             self.setToolTip(text)
