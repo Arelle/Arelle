@@ -1274,7 +1274,7 @@ class ModelDocument:
         isTransformTestcase = testcaseElement.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms"
         if XmlUtil.xmlnsprefix(testcaseElement, XbrlConst.cfcn) or isTransformTestcase:
             self.type = Type.REGISTRYTESTCASE
-        self.outpath = self.xmlRootElement.get("outpath") 
+        self.outpath = self.xmlRootElement.get("outpath") or self.filepathdir
         self.testcaseVariations = []
         priorTransformName = None
         for modelVariation in XmlUtil.descendants(testcaseElement, testcaseElement.namespaceURI, ("variation", "testGroup")):

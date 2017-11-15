@@ -215,16 +215,16 @@ def validateRenderingInfoset(modelXbrl, comparisonFile, sourceDoc):
             sourceEltTag = sourceElt.tag if sourceElt is not None else '(no more elements)'
             comparisonEltTag = comparisonElt.tag if comparisonElt is not None else '(no more elements)'
             if sourceEltTag != comparisonEltTag:
-                modelXbrl.error("arelle:infosetElementMismatch",
-                    _("Infoset expecting %(elt1)s found %(elt2)s source line %(elt1line)s comparison line %(elt2line)s"),
+                modelXbrl.error("arelle:tableModelElementMismatch",
+                    _("Table model expecting %(elt1)s found %(elt2)s source line %(elt1line)s comparison line %(elt2line)s"),
                     modelObject=modelXbrl, elt1=sourceEltTag, elt2=comparisonEltTag,
                     elt1line=sourceElt.sourceline, elt2line=comparisonElt.sourceline)
             else:
                 text1 = (sourceElt.text or '').strip() or '(none)'
                 text2 = (comparisonElt.text or '').strip() or '(none)'
                 if text1 != text2:
-                    modelXbrl.error("arelle:infosetTextMismatch",
-                        _("Infoset comparison element %(elt)s expecting text %(text1)s found %(text2)s source line %(elt1line)s comparison line %(elt2line)s"),
+                    modelXbrl.error("arelle:tableModelTextMismatch",
+                        _("Table model comparison element %(elt)s expecting text %(text1)s found %(text2)s source line %(elt1line)s comparison line %(elt2line)s"),
                         modelObject=modelXbrl, elt=sourceElt.tag, text1=text1, text2=text2,
                         elt1line=sourceElt.sourceline, elt2line=comparisonElt.sourceline)
                 attrs1 = dict(sourceElt.items())
@@ -235,8 +235,8 @@ def validateRenderingInfoset(modelXbrl, comparisonFile, sourceDoc):
                     if attr in attrs1: del attrs1[attr]
                     if attr in attrs2: del attrs2[attr]
                 if attrs1 != attrs2:
-                    modelXbrl.error("arelle:infosetAttributesMismatch",
-                        _("Infoset comparison element %(elt)s expecting attributes %(attrs1)s found %(attrs2)s source line %(elt1line)s comparison line %(elt2line)s"),
+                    modelXbrl.error("arelle:tableModelAttributesMismatch",
+                        _("Table model comparison element %(elt)s expecting attributes %(attrs1)s found %(attrs2)s source line %(elt1line)s comparison line %(elt2line)s"),
                         modelObject=modelXbrl, elt=sourceElt.tag, 
                         attrs1=', '.join('{0}="{1}"'.format(k,v) for k,v in sorted(attrs1.items())), 
                         attrs2=', '.join('{0}="{1}"'.format(k,v) for k,v in sorted(attrs2.items())),
@@ -244,8 +244,8 @@ def validateRenderingInfoset(modelXbrl, comparisonFile, sourceDoc):
             sourceElt = next(sourceIter, None)
             comparisonElt = next(comparisonIter, None)
     except (IOError, etree.LxmlError) as err:
-        modelXbrl.error("arelle:infosetFileError",
-            _("Infoset comparison file %(xmlfile)s error %(error)s"),
+        modelXbrl.error("arelle:tableModelFileError",
+            _("Table model comparison file %(xmlfile)s error %(error)s"),
             modelObject=modelXbrl, xmlfile=comparisonFile, error=str(err))
 
 

@@ -762,6 +762,13 @@ def parse(modelObject, xpathExpression, element, name, traceType):
                 name=name,
                 error=err, 
                 source=exceptionErrorIndication(err))
+            # insert after ProgHeader before ordinary executable expression that may have successfully compiled
+            exprStack.insert(1, OperationDef(normalizedExpr, 0, 
+                                             QNameDef(0, "fn", XbrlConst.fn, "error"), 
+                                             (OperationDef(normalizedExpr, 0, 
+                                                           QNameDef(0, "fn", XbrlConst.fn, "QName"),
+                                                           (XbrlConst.xpath2err, "err:XPST0003"),False),
+                                              str(err)), False))
         except (ValueError) as err:
             modelXbrl.error("parser:unableToParse",
                 _("Parsing terminated in %(name)s due to error: %(error)s \n%(source)s"),

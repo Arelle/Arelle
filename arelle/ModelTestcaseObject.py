@@ -10,7 +10,7 @@ from arelle import XmlUtil, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
 from arelle.PluginManager import pluginClassMethods
 
-TXMY_PLG_SRC_ELTS = ("metadata", "catalog", "taxonomy")
+TXMY_PKG_SRC_ELTS = ("metadata", "catalog", "taxonomy")
 
 class ModelTestcaseVariation(ModelObject):
     def init(self, modelDocument):
@@ -173,7 +173,8 @@ class ModelTestcaseVariation(ModelObject):
         result = XmlUtil.descendant(self, None, "result")
         if result is not None :
             child = XmlUtil.child(result, None, "table")
-            return child is not None and XmlUtil.text(child).endswith(".xml")
+            if child is not None and XmlUtil.text(child).endswith(".xml"):
+                return True
         return False
         
     @property
@@ -181,12 +182,13 @@ class ModelTestcaseVariation(ModelObject):
         result = XmlUtil.descendant(self, None, "result")
         if result is not None:
             child = XmlUtil.child(result, None, "table")
-            return os.path.join(self.modelDocument.outpath, XmlUtil.text(child if child is not None else result))
+            if child is not None:
+                return os.path.join(self.modelDocument.outpath, XmlUtil.text(child))
         return None    
     
     @property
     def resultIsTaxonomyPackage(self):
-        return any(e.localName for e in XmlUtil.descendants(self,None,TXMY_PLG_SRC_ELTS))
+        return any(e.localName for e in XmlUtil.descendants(self,None,TXMY_PKG_SRC_ELTS))
 
     @property
     def cfcnCall(self):

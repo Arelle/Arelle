@@ -19,7 +19,7 @@ def init(modelXbrl):
     # setup modelXbrl for rendering evaluation
 
     # dimension defaults required in advance of validation
-    from arelle import ValidateXbrlDimensions, ValidateFormula, ModelDocument
+    from arelle import ValidateXbrlDimensions, ValidateFormula, FormulaEvaluator, ModelDocument
     ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
     
     hasXbrlTables = False
@@ -42,6 +42,7 @@ def init(modelXbrl):
         
     if hasXbrlTables:
         # formula processor is needed for 2011 XBRL tables but not for 2010 Eurofiling tables
+        FormulaEvaluator.init()
         modelXbrl.rendrCntx = XPathContext.create(modelXbrl, instance)
         
         modelXbrl.profileStat(None)
@@ -175,7 +176,7 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisDispo
                     _("%(definitionNode)s %(xlinkLabel)s constraint set mismatches between %(tag1)s and %(tag2)s in constraints %(aspects)s"),
                     modelObject=(modelTable, definitionNode, otherConstraintSet, constraintSet), 
                     definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel, 
-                    tag1=otherConstraintSet.tagName, tag2=constraintSet.tagName,
+                    tag1=getattr(otherConstraintSet,"tagName","(no tag)"), tag2=getattr(constraintSet, "tagName", "(no tag)"),
                     aspects=", ".join(aspectStr(aspect) 
                                       for aspect in otherConstraintSet.aspectsCovered() ^ constraintSet.aspectsCovered()
                                       if aspect != Aspect.DIMENSIONS))

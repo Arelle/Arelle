@@ -5,7 +5,7 @@ Created on Oct 17, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os, sys, traceback, re
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlConst, 
                ValidateXbrl, ValidateFiling, ValidateHmrc, ValidateVersReport, ValidateFormula,
                ValidateInfoset, RenderingEvaluator, ViewFileRenderedGrid)
@@ -80,8 +80,12 @@ class Validate:
                                 _name = testcasesElement.get("name")
                             break
                     self.modelXbrl.info("info", _("Testcases - %(name)s"), modelXbrl=self.modelXbrl.modelDocument, name=_name)
+                    _statusCounts = OrderedDict((("pass",0),("fail",0)))
                     for doc in sorted(self.modelXbrl.modelDocument.referencesDocument.keys(), key=lambda doc: doc.uri):
                         self.validateTestcase(doc)  # testcases doc's are sorted by their uri (file names), e.g., for formula
+                        for tv in getattr(doc, "testcaseVariations", ()):
+                            _statusCounts[tv.status] = _statusCounts.get(tv.status, 0) + 1
+                    self.modelXbrl.info("arelle:testResults", ", ".join("{}={}".format(k,c) for k, c in _statusCounts.items() if k))
                 elif self.modelXbrl.modelDocument.type in (Type.TESTCASE, Type.REGISTRYTESTCASE):
                     self.validateTestcase(self.modelXbrl.modelDocument)
             except Exception as err:
@@ -224,7 +228,7 @@ class Validate:
                         else: # need own file source, may need instance discovery
                             filesource = FileSource.FileSource(readMeFirstUri, self.modelXbrl.modelManager.cntlr)
                             if filesource and not filesource.selection and filesource.isArchive:
-                                for _archiveFile in filesource.dir: # find instance document in archive
+                                for _archiveFile in filesource.dir or (): # find instance document in archive
                                     filesource.select(_archiveFile)
                                     if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
                                         break # use this selection
@@ -302,7 +306,12 @@ class Validate:
                         elif len(inputDTS) > 1: # standard-input-instance with multiple instance documents
                             parameters[XbrlConst.qnStandardInputInstance] = (None, inputDTS) # allow error detection in validateFormula
                     if modelXbrl.hasTableRendering or modelTestcaseVariation.resultIsTable:
-                        RenderingEvaluator.init(modelXbrl)
+                        try:
+                            RenderingEvaluator.init(modelXbrl)
+                        except Exception as err:
+                            modelXbrl.error("exception:" + type(err).__name__,
+                                _("Testcase RenderingEvaluator.init exception: %(error)s, instance: %(instance)s"),
+                                modelXbrl=modelXbrl, instance=modelXbrl.modelDocument.basename, error=err, exc_info=True)
                     modelXbrlHasFormulae = modelXbrl.hasFormulae
                     if modelXbrlHasFormulae:
                         try:
@@ -331,12 +340,17 @@ class Validate:
                         else:   # check infoset
                             ValidateInfoset.validate(self.instValidator, modelXbrl, infoset)
                         infoset.close()
-                    if modelTestcaseVariation.resultIsTable: # and self.modelXbrl.modelManager.validateInfoset:
+                    if modelXbrl.hasTableRendering or modelTestcaseVariation.resultIsTable: # and self.modelXbrl.modelManager.validateInfoset:
                         # diff (or generate) table infoset
                         resultTableUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(modelTestcaseVariation.resultTableUri, baseForElement)
                         if not any(alternativeValidation(modelXbrl, resultTableUri)
                                    for alternativeValidation in pluginClassMethods("Validate.TableInfoset")):
-                            ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, resultTableUri, diffToFile=True)  # false to save infoset files
+                            try:
+                                ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, resultTableUri, diffToFile=True)  # false to save infoset files
+                            except Exception as err:
+                                modelXbrl.error("exception:" + type(err).__name__,
+                                    _("Testcase table linkbase validation exception: %(error)s, instance: %(instance)s"),
+                                    modelXbrl=modelXbrl, instance=modelXbrl.modelDocument.basename, error=err, exc_info=True)
                     self.instValidator.close()
                     extraErrors = []
                     for pluginXbrlMethod in pluginClassMethods("TestcaseVariation.Validated"):
@@ -516,15 +530,16 @@ class Validate:
         else:
             status = "fail"
         modelTestcaseVariation.status = status
-        modelTestcaseVariation.actual = []
+        _actual = {} # code and quantity
         if numErrors > 0: # either coded errors or assertions (in errors list)
             # put error codes first, sorted, then assertion result (dict's)
             for error in _errors:
                 if isinstance(error,dict):  # asserion results
                     modelTestcaseVariation.assertions = error
                 else:   # error code results
-                    modelTestcaseVariation.actual.append(error)
-            modelTestcaseVariation.actual.sort(key=lambda d: str(d))
+                    _actual[error] = _actual.get(error, 0) + 1
+            modelTestcaseVariation.actual = [error if qty == 1 else "{} ({})".format(error,qty)
+                                             for error, qty in sorted(_actual.items(), key=lambda i:i[0])]
             for error in _errors:
                 if isinstance(error,dict):
                     modelTestcaseVariation.actual.append(error)

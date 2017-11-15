@@ -19,6 +19,7 @@ from arelle.ModelRenderingObject import (ModelEuTable, ModelTable, ModelBreakdow
                                          ROLLUP_NOT_ANALYZED, CHILDREN_BUT_NO_ROLLUP, CHILD_ROLLUP_FIRST, CHILD_ROLLUP_LAST,
                                          OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.PrototypeInstanceObject import FactPrototype
+from arelle.XPathContext import XPathException
 
 RENDER_UNITS_PER_CHAR = 16 # nominal screen units per char for wrapLength computation and adjustment
 
@@ -246,7 +247,15 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
         try:
             
             #cartesianProductNestedArgs = (view, depth, axisDisposition, facts, tblAxisRels, i)
-            ordCardinality, ordDepth = definitionNode.cardinalityAndDepth(structuralNode)
+            try:
+                ordCardinality, ordDepth = definitionNode.cardinalityAndDepth(structuralNode, handleXPathException=False)
+            except XPathException as ex:
+                if isinstance(definitionNode, ModelConceptRelationshipDefinitionNode):
+                    view.modelXbrl.error("xbrlte:expressionNotCastableToRequiredType",
+                        _("Relationship node %(xlinkLabel)s expression not castable to required type (%(xpathError)s)"),
+                        modelObject=(view.modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel, axis=definitionNode.localName,
+                        xpathError=str(ex))
+                    return
             if (not definitionNode.isAbstract and
                 isinstance(definitionNode, ModelClosedDefinitionNode) and 
                 ordCardinality == 0):
@@ -484,7 +493,8 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                         structuralNode.childStructuralNodes.sort(key=lambda childStructuralNode: childStructuralNode.header(lang=view.lang) or '')
                 elif isinstance(definitionNode, ModelRuleDefinitionNode):
                     for constraintSet in definitionNode.constraintSets.values():
-                        for aspect in constraintSet.aspectsCovered():
+                        _aspectsCovered = constraintSet.aspectsCovered()
+                        for aspect in _aspectsCovered:
                             if not constraintSet.aspectValueDependsOnVars(aspect):
                                 if aspect == Aspect.CONCEPT:
                                     conceptQname = definitionNode.aspectValue(view.rendrCntx, Aspect.CONCEPT)
@@ -494,18 +504,16 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                                             _("Rule node %(xlinkLabel)s specifies concept %(concept)s does not refer to an existing primary item concept."),
                                             modelObject=definitionNode, xlinkLabel=definitionNode.xlinkLabel, concept=conceptQname)
                                 elif isinstance(aspect, QName):
-                                    dim = view.modelXbrl.qnameConcepts.get(aspect)
                                     memQname = definitionNode.aspectValue(view.rendrCntx, aspect)
                                     mem = view.modelXbrl.qnameConcepts.get(memQname)
-                                    if dim is None or not dim.isDimensionItem:
-                                        view.modelXbrl.error("xbrlte:invalidQNameAspectValue",
-                                            _("Rule node %(xlinkLabel)s specifies dimension %(concept)s does not refer to an existing dimension concept."),
-                                            modelObject=definitionNode, xlinkLabel=definitionNode.xlinkLabel, concept=aspect)
-                                    if isinstance(memQname, QName) and (mem is None or not mem.isDomainMember):
+                                    if isinstance(memQname, QName) and (mem is None or not mem.isDomainMember) and memQname != XbrlConst.qnFormulaDimensionSAV: # SAV is absent dimension member, reported in validateFormula:
                                         view.modelXbrl.error("xbrlte:invalidQNameAspectValue",
                                             _("Rule node %(xlinkLabel)s specifies domain member %(concept)s does not refer to an existing domain member concept."),
                                             modelObject=definitionNode, xlinkLabel=definitionNode.xlinkLabel, concept=memQname)
-    
+                    if not definitionNode.constraintSets:
+                        view.modelXbrl.error("xbrlte:incompleteAspectRule",
+                            _("Rule node %(xlinkLabel)s does not specify an aspect value."),
+                            modelObject=definitionNode, xlinkLabel=definitionNode.xlinkLabel)
                 if axisDisposition == "z":
                     if structuralNode.choiceStructuralNodes:
                         choiceNodeIndex = view.zOrdinateChoices.get(definitionNode, 0)

@@ -21,6 +21,13 @@ from arelle.ModelValue import (qname,QName)
 from arelle import (XbrlConst, XmlUtil, ModelXbrl, ModelDocument, XPathParser, XPathContext, FunctionXs,
                     ValidateXbrlDimensions) 
 
+class FormulaValidationException(Exception):
+    def __init__(self):
+        self.args = ( self.__repr__(), )
+    def __repr__(self):
+        return _("Formula has validation error")
+
+
 arcroleChecks = {
     XbrlConst.equalityDefinition:   (None, 
                                      XbrlConst.qnEqualityDefinition, 
@@ -1139,30 +1146,46 @@ def checkDefinitionNodeRules(val, table, parent, arcrole, xpathContext):
         if axis is not None:
             if isinstance(axis, ModelFilterDefinitionNode):
                 checkFilterAspectModel(val, table, axis.filterRelationships, xpathContext)
-                #if not checkFilterAspectModel(val, table, axis.filterRelationships, xpathContext):
-                    # this removed after 2013-01-06 PWD
-                    #val.modelXbrl.error("xbrlte:axisFilterCoversNoAspects",
-                    #    _("FilterAxis %(xlinkLabel)s does not cover any aspects."),
-                    #    modelObject=axis, xlinkLabel=axis.xlinkLabel)
             else:
                 if isinstance(axis, ModelRuleDefinitionNode):
-                    # check dimension elements
-                    for eltName, dim, badUsageErr in (("explicitDimension", "explicit", "xbrlfe:badUsageOfExplicitDimensionRule"),
-                                                      ("typedDimension", "typed", "xbrlfe:badUsageOfTypedDimensionRule")):
-                        for dimElt in XmlUtil.descendants(axis, XbrlConst.formula, eltName):
-                            dimQname = qname(dimElt, dimElt.get("dimension"))
-                            dimConcept = val.modelXbrl.qnameConcepts.get(dimQname)
-                            if dimQname and (dimConcept is None or (not dimConcept.isExplicitDimension if dim == "explicit" else not dimConcept.isTypedDimension)):
-                                val.modelXbrl.error(badUsageErr,
-                                    _("RuleAxis %(xlinkLabel)s dimension attribute %(dimension)s on the %(dimensionType)s dimension rule contains a QName that does not identify an (dimensionType)s dimension."),
-                                    modelObject=axis, xlinkLabel=axis.xlinkLabel, dimensionType=dim, dimension=dimQname,
-                                    messageCodes=("xbrlfe:badUsageOfExplicitDimensionRule", "xbrlfe:badUsageOfTypedDimensionRule"))
-                            memQname = axis.evaluateRule(None, dimQname)
-                            if dimConcept.isExplicitDimension and memQname is not None and memQname not in val.modelXbrl.qnameConcepts:  
-                                val.modelXbrl.info("table:info",
-                                                   _("RuleAxis rule %(xlinkLabel)s contains a member QName %(memQname)s which is not in the DTS."),
-                                                   modelObject=axis, xlinkLabel=axis.xlinkLabel, memQname=memQname)
-                    
+                    # check rules for completeness
+                    rulesByAspect = defaultdict(set)
+                    for elt in XmlUtil.descendants(axis, XbrlConst.formula, "*"):
+                        try:
+                            if elt.localName in ("concept", "entityIdentifier", "period", "unit"):
+                                rulesByAspect[elt.localName].add(elt)
+                            elif elt.localName in ("explicitDimension", "typedDimension"):
+                                rulesByAspect[elt.localName, elt.xAttributes["dimension"].xValue].add(elt)
+                            elif elt.localName == "occFragments":
+                                rulesByAspect[elt.localName, elt.xAttributes["occ"].xValue].add(elt)
+                            if ((elt.localName == ("concept","member") and not any(c.localName in ("qname", "qnameExpression") 
+                                                                                   for c in XmlUtil.children(elt, XbrlConst.formula, "*"))) or
+                                (elt.localName == "explicitDimension" and (
+                                    not XmlUtil.children(elt, XbrlConst.formula, "member") or
+                                    not val.modelXbrl.qnameConcepts.get(elt.xAttributes["dimension"].xValue).isDimensionItem)) or
+                                (elt.localName == "typedDimension" and not any(c.localName in ("xpath", "value") 
+                                                                    for c in XmlUtil.children(elt, XbrlConst.formula, "*"))) or
+                                (elt.localName == "instant" and not elt.get("value")) or
+                                (elt.localName == "duration" and not (elt.get("start") or elt.get("end"))) or
+                                (elt.localName == "entityIdentifier" and not (elt.get("scheme") and elt.get("value"))) or
+                                (elt.localName == "unit" and not any(c.localName in ("multiplyBy", "divideBy") 
+                                                                    for c in XmlUtil.children(elt, XbrlConst.formula, "*"))) or
+                                (elt.localName in ("multiplyBy", "divideBy") and not elt.get("measure"))):
+                                 raise FormulaValidationException
+                        except (FormulaValidationException,KeyError,AttributeError):
+                            val.modelXbrl.error("xbrlte:incompleteAspectRule",
+                                _("RuleAxis %(xlinkLabel)s includes an incomplete rule aspect: %(incompleteAspect)s"),
+                                modelObject=axis, xlinkLabel=axis.xlinkLabel, incompleteAspect=elt.qname)
+                        if elt.localName == "occFragments" and XmlUtil.children(elt, XbrlConst.xbrldi, "*"):
+                            val.modelXbrl.error("xbrlfe:badSubsequentOCCValue",
+                               _("Formula %(label)s OCC element in rule aspect %(occ)s covers a dimensional aspect"),
+                               modelObject=axis, label=axis.xlinkLabel, occ=elt.qname)
+                    for aspect, rules in rulesByAspect.items():
+                        if len(rules) > 1:
+                            val.modelXbrl.error("xbrlte:multipleValuesForAspect",
+                                _("RuleAxis %(xlinkLabel)s has %(count)s rules for aspect: %(multipleAspect)s"),
+                                modelObject=axis, xlinkLabel=axis.xlinkLabel, count=len(rules), multipleAspect=aspect)
+                    del rulesByAspect
                     # check aspect model expectations
                     if table.aspectModel == "non-dimensional":
                         unexpectedElts = XmlUtil.descendants(axis, XbrlConst.formula, ("explicitDimension", "typedDimension"))
@@ -1179,12 +1202,13 @@ def checkDefinitionNodeRules(val, table, parent, arcrole, xpathContext):
                             val.modelXbrl.info("table:info",
                                                _("RuleAxis rule %(xlinkLabel)s contains a @source attribute %(qnSource)s which is not applicable to table rule axes."),
                                                modelObject=axis, xlinkLabel=axis.xlinkLabel, qnSource=qnSource)
-                    conceptQname = axis.evaluateRule(None, Aspect.CONCEPT)
-                    if conceptQname and conceptQname not in val.modelXbrl.qnameConcepts:  
-                        val.modelXbrl.info("table:info",
-                                           _("RuleAxis rule %(xlinkLabel)s contains a concept QName %(conceptQname)s which is not in the DTS."),
-                                           modelObject=axis, xlinkLabel=axis.xlinkLabel, conceptQname=conceptQname)
-                        
+                    # check any custom unrecognized aspect rules
+                    for childElt in XmlUtil.children(axis, "*", "*"):
+                        if childElt.namespaceURI not in (XbrlConst.formula, axis.namespaceURI):
+                            val.modelXbrl.error("xbrlte:unrecognisedAspectRule",
+                                _("RuleAxis %(xlinkLabel)s aspect model includes an unrecognized rule aspect: %(unrecognizedAspect)s"),
+                                modelObject=axis, xlinkLabel=axis.xlinkLabel, unrecognizedAspect=childElt.qname)
+                            
                 elif isinstance(axis, ModelRelationshipDefinitionNode):
                     for qnameAttr in ("relationshipSourceQname", "arcQname", "linkQname", "dimensionQname"):
                         eltQname = axis.get(qnameAttr)

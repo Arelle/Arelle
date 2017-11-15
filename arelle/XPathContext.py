@@ -17,6 +17,11 @@ from decimal import Decimal, InvalidOperation
 from lxml import etree
 from types import LambdaType
 
+# deferred types initialization
+boolean = None
+testTypeCompatiblity = None
+Trace = None
+
 class XPathException(Exception):
     def __init__(self, progStep, code, message):
         self.column = None
@@ -75,6 +80,12 @@ class RunTimeExceededException(Exception):
 
    
 def create(modelXbrl, inputXbrlInstance=None, sourceElement=None):
+    global boolean, testTypeCompatiblity, Trace
+    if boolean is None:
+        from arelle.FunctionUtil import testTypeCompatiblity
+        from arelle.ModelFormulaObject import Trace
+        from arelle.FunctionFn import boolean
+
     return XPathContext(modelXbrl, 
                         inputXbrlInstance if inputXbrlInstance else modelXbrl.modelDocument,
                         sourceElement)
@@ -204,7 +215,6 @@ class XPathContext:
                     else:
                         op1 = s1[0]
                         op2 = s2[0]
-                        from arelle.FunctionUtil import (testTypeCompatiblity)
                         testTypeCompatiblity( self, p, op, op1, op2 )
                         if type(op1) != type(op2) and op in ('+', '-', '*', 'div', 'idiv', 'mod'):
                             # check if type promotion needed (Decimal-float, not needed for integer-Decimal)
@@ -250,6 +260,7 @@ class XPathContext:
                     result = [];
                     for op1 in s1:
                         for op2 in s2:
+                            testTypeCompatiblity( self, p, op, op1, op2 )
                             if op == '>=':
                                 result = op1 >= op2
                             elif op == '>':
@@ -408,7 +419,6 @@ class XPathContext:
                     result = self.documentOrderedNodes(self.flattenSequence(navSequence))
             elif isinstance(p,ProgHeader):
                 self.progHeader = p
-                from arelle.ModelFormulaObject import Trace
                 if p.traceType not in (Trace.MESSAGE, Trace.CUSTOM_FUNCTION): 
                     self.traceType = p.traceType
                 setProgHeader = True
@@ -696,7 +706,6 @@ class XPathContext:
         return x
     
     def effectiveBooleanValue(self, p, x):
-        from arelle.FunctionFn import boolean
         return boolean( self, p, None, (self.flattenSequence(x),) )
     
     def traceEffectiveVariableValue(self, elt, varname):

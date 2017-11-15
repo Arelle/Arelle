@@ -261,7 +261,7 @@ class StructuralNode:
             return self.parentStructuralNode.header(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent)
         return None
     
-    def evaluate(self, evalObject, evalMethod, otherAxisStructuralNode=None, evalArgs=()):
+    def evaluate(self, evalObject, evalMethod, otherAxisStructuralNode=None, evalArgs=(), handleXPathException=True, **kwargs):
         xc = self._rendrCntx
         if self.contextItemBinding and not isinstance(xc.contextItem, ModelFact):
             previousContextItem = xc.contextItem # xbrli.xbrl
@@ -286,9 +286,12 @@ class StructuralNode:
         elif self.zInheritance is not None:
             result = self.zInheritance.evaluate(evalObject, evalMethod, None, evalArgs)
         else:
+            result = evalMethod(xc, *evalArgs)
             try:
                 result = evalMethod(xc, *evalArgs)
             except XPathContext.XPathException as err:
+                if not handleXPathException:
+                    raise
                 xc.modelXbrl.error(err.code,
                          _("%(element)s set %(xlinkLabel)s \nException: %(error)s"), 
                          modelObject=evalObject, element=evalObject.localName, 
@@ -582,7 +585,7 @@ class ModelEuAxisCoord(ModelResource):
                                      addOneDay=True)
     '''
 
-    def cardinalityAndDepth(self, structuralNode):
+    def cardinalityAndDepth(self, structuralNode, **kwargs):
         return (1, 1)
         
     ''' now only accessed from structural node    
@@ -776,7 +779,7 @@ class ModelDefinitionNode(ModelFormulaResource):
     def isRollUp(self):
         return self.get("rollUp") == 'true'
     
-    def cardinalityAndDepth(self, structuralNode):
+    def cardinalityAndDepth(self, structuralNode, **kwargs):
         return (1, 
                 1 if (structuralNode.header(evaluate=False) is not None) else 0)
         
@@ -924,7 +927,7 @@ class ModelConstraintSet(ModelFormulaRules):
                                   "duration": Aspect.END}[periodType])
     '''
     
-    def cardinalityAndDepth(self, structuralNode):
+    def cardinalityAndDepth(self, structuralNode, **kwargs):
         if self.aspectValues or self.aspectProgs or structuralNode.header(evaluate=False) is not None:
             return (1, 1)
         else:
@@ -1134,8 +1137,8 @@ class ModelRelationshipDefinitionNode(ModelClosedDefinitionNode):
             return self.generations
         return xpCtx.evaluateAtomicValue(self.generationsExpressionProg, 'xs:integer', fact)
 
-    def cardinalityAndDepth(self, structuralNode):
-        return self.lenDepth(self.relationships(structuralNode), 
+    def cardinalityAndDepth(self, structuralNode, **kwargs):
+        return self.lenDepth(self.relationships(structuralNode, **kwargs), 
                              self.axis.endswith('-or-self'))
     
     def lenDepth(self, nestedRelationships, includeSelf):
@@ -1235,8 +1238,8 @@ class ModelConceptRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
     def coveredAspect(self, ordCntx=None):
         return Aspect.CONCEPT
 
-    def relationships(self, structuralNode):
-        self._sourceQname = structuralNode.evaluate(self, self.evalRrelationshipSourceQname) or XbrlConst.qnXfiRoot
+    def relationships(self, structuralNode, **kwargs):
+        self._sourceQname = structuralNode.evaluate(self, self.evalRrelationshipSourceQname, **kwargs) or XbrlConst.qnXfiRoot
         linkrole = structuralNode.evaluate(self, self.evalLinkrole)
         if not linkrole:
             linkrole = "XBRL-all-linkroles"
