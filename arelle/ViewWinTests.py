@@ -144,7 +144,7 @@ class ViewTests(ViewWinTree.ViewTree):
         if getattr(self.modelXbrl.modelDocument, "outpath", None) and modelTestcaseVariation.resultIsInfoset:
             self.treeView.set(node, "infoset", modelTestcaseVariation.resultInfosetUri)
         self.treeView.set(node, "expected", modelTestcaseVariation.expected)
-        self.treeView.set(node, "actual", " ".join(modelTestcaseVariation.actual))
+        self.treeView.set(node, "actual", ", ".join(modelTestcaseVariation.actual))
         self.id += 1;
                 
     def treeviewEnter(self, *args):
@@ -167,7 +167,7 @@ class ViewTests(ViewWinTree.ViewTree):
                 if hasattr(modelObject, "status"):
                     self.treeView.set(testcaseVariationId, "status", modelObject.status)
                 if hasattr(modelObject, "actual"):
-                    self.treeView.set(testcaseVariationId, "actual", " ".join(
+                    self.treeView.set(testcaseVariationId, "actual", ", ".join(
                           str(code) for code in modelObject.actual))
                 self.treeView.see(testcaseVariationId)
                 self.treeView.selection_set(testcaseVariationId)

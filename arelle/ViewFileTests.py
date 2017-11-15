@@ -13,6 +13,17 @@ def viewTests(modelXbrl, outfile, cols=None):
     view.viewTestcaseIndexElement(modelXbrl.modelDocument)
     view.close()
     
+COL_WIDTHS = {
+    "Index": 8, 
+    "Testcase": 8, 
+    "Id": 10, 
+    "Name": 50, 
+    "Reference": 20, 
+    "ReadMeFirst": 20, 
+    "Status": 8, 
+    "Expected": 20,
+    "Actual": 100}
+
 class ViewTests(ViewFile.View):
     def __init__(self, modelXbrl, outfile, cols):
         super(ViewTests, self).__init__(modelXbrl, outfile, "Tests")
@@ -25,7 +36,7 @@ class ViewTests(ViewFile.View):
                 if isinstance(self.cols,str): self.cols = self.cols.replace(',',' ').split()
                 unrecognizedCols = []
                 for col in self.cols:
-                    if col not in ("Index", "Testcase", "Id", "Name", "Reference", "ReadMeFirst", "Status", "Expected","Actual"):
+                    if col not in COL_WIDTHS:
                         unrecognizedCols.append(col)
                 if unrecognizedCols:
                     self.modelXbrl.error("arelle:unrecognizedTestReportColumn",
@@ -49,6 +60,7 @@ class ViewTests(ViewFile.View):
                     self.cols.append("Name")
                 self.cols += ["ReadMeFirst", "Status", "Expected", "Actual"]
             
+            self.setColWidths([COL_WIDTHS.get(col, 8) for col in self.cols])
             self.addRow(self.cols, asHeader=True)
 
         if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
@@ -97,9 +109,8 @@ class ViewTests(ViewFile.View):
             else:
                 cols.append("")
         self.addRow(cols, treeIndent=indent, xmlRowElementName="testcase", xmlRowEltAttr=attr, xmlCol0skipElt=True)
-        if hasattr(modelDocument, "testcaseVariations"):
-            for modelTestcaseVariation in modelDocument.testcaseVariations:
-                self.viewTestcaseVariation(modelTestcaseVariation, indent+1)
+        for modelTestcaseVariation in getattr(modelDocument, "testcaseVariations", ()):
+            self.viewTestcaseVariation(modelTestcaseVariation, indent+1)
                 
     def viewTestcaseVariation(self, modelTestcaseVariation, indent):
         id = modelTestcaseVariation.id
@@ -124,7 +135,7 @@ class ViewTests(ViewFile.View):
             elif col == "Expected":
                 cols.append(modelTestcaseVariation.expected)
             elif col == "Actual":
-                cols.append(" ".join(str(code) for code in modelTestcaseVariation.actual))
+                cols.append(", ".join(str(code) for code in modelTestcaseVariation.actual))
             else:
                 cols.append("")
         self.addRow(cols, treeIndent=indent, xmlRowElementName="variation", xmlRowEltAttr=attr, xmlCol0skipElt=False)

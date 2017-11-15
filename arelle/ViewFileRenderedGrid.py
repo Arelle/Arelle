@@ -41,7 +41,7 @@ def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=
         view.xAxisChildrenFirst.set(sourceView.xAxisChildrenFirst.get())
         view.yAxisChildrenFirst.set(sourceView.yAxisChildrenFirst.get())
     view.view(viewTblELR)
-    if diffToFile:
+    if diffToFile and outfile:
         from arelle.ValidateInfoset import validateRenderingInfoset
         validateRenderingInfoset(modelXbrl, outfile, view.xmlDoc)
         view.close(noWrite=True)
@@ -151,12 +151,10 @@ class ViewRenderedGrid(ViewFile.View):
                                     tableElt.append(etree.Comment("No breakdown group for \"{0}\" axis".format(axis)))
                             self.zAxis(1, zTopStructuralNode, zAspectStructuralNodes, True)
                             self.cellsParentElt = tableElt
-                            if self.breakdownNodes.get("z"):
-                                self.cellsParentElt = etree.SubElement(self.cellsParentElt, self.tableModelQName("cells"),
-                                                                       attrib={"axis": "z"})
-                            if self.breakdownNodes.get("y"):
-                                self.cellsParentElt = etree.SubElement(self.cellsParentElt, self.tableModelQName("cells"),
-                                                                       attrib={"axis": "y"})
+                            self.cellsParentElt = etree.SubElement(self.cellsParentElt, self.tableModelQName("cells"),
+                                                                   attrib={"axis": "z"})
+                            self.cellsParentElt = etree.SubElement(self.cellsParentElt, self.tableModelQName("cells"),
+                                                                   attrib={"axis": "y"})
                             ''' move into body cells, for entry row-by-row
                             self.cellsParentElt = etree.SubElement(self.cellsParentElt, self.tableModelQName("cells"),
                                                                   attrib={"axis": "x"})
@@ -196,7 +194,8 @@ class ViewRenderedGrid(ViewFile.View):
                                     modelElt.addprevious(etree.Comment("   variable ${0}: {1}".format(varName, varValue)))
                         for headerElt in self.headerElts.values(): # remove empty header elements
                             if not any(e is not None for e in headerElt.iterchildren()):
-                                headerElt.getparent().remove(headerElt)
+                                if headerElt.getparent() is not None:
+                                    headerElt.getparent().remove(headerElt)
                     self.bodyCells(self.dataFirstRow, yTopStructuralNode, xStructuralNodes, zAspectStructuralNodes, self.yAxisChildrenFirst.get())
                 # find next choice structural node
                 moreDiscriminators = False
@@ -337,12 +336,15 @@ class ViewRenderedGrid(ViewFile.View):
                         if columnspan > 1:
                             attrib["colspan"] = str(columnspan)
                         if leafNode and row > topRow:
-                            attrib["rowspan"] = str(row - topRow + 1)
+                            rowspan = row - topRow + 1
+                            if rowspan > 1:
+                                attrib["rowspan"] = str(rowspan)
                         elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
                                             attrib=attrib)
                         self.rowElts[topRow-1].insert(leftCol,elt)
                     elif (self.type == XML and # is leaf or no sub-breakdown cardinality
-                          (xStructuralNode.childStructuralNodes is None or columnspan > 0)): # ignore no-breakdown situation
+                          # TBD: determine why following clause is needed
+                          (True or xStructuralNode.childStructuralNodes is None or columnspan > 0)): # ignore no-breakdown situation
                         brkdownNode = xStructuralNode.breakdownNode
                         cellElt = etree.Element(self.tableModelQName("cell"),
                                             attrib={"span": str(columnspan)} if columnspan > 1 else None)
@@ -371,6 +373,11 @@ class ViewRenderedGrid(ViewFile.View):
                                 if aspectValue is None: aspectValue = "(bound dynamically)"
                                 if isinstance(aspectValue, ModelObject): # typed dimension value
                                     aspectValue = innerTextList(aspectValue)
+                                if isinstance(aspectValue, QName) and aspectValue.prefix is None: # may be dynamic
+                                    try:
+                                        aspectValue = self.modelXbrl.qnameConcepts[aspectValue].qname # usually has a prefix
+                                    except KeyError:
+                                        pass
                                 aspElt = etree.SubElement(cellElt, self.tableModelQName("constraint"))
                                 etree.SubElement(aspElt, self.tableModelQName("aspect")
                                                  ).text = aspectStr(aspect)
@@ -595,6 +602,11 @@ class ViewRenderedGrid(ViewFile.View):
                             if aspectValue is None: aspectValue = "(bound dynamically)"
                             if isinstance(aspectValue, ModelObject): # typed dimension value
                                 aspectValue = innerTextList(aspectValue)
+                            if isinstance(aspectValue, QName) and aspectValue.prefix is None: # may be dynamic
+                                try:
+                                    aspectValue = self.modelXbrl.qnameConcepts[aspectValue].qname # usually has a prefix
+                                except KeyError:
+                                    pass
                             if isinstance(aspectValue, str) and aspectValue.startswith(OPEN_ASPECT_ENTRY_SURROGATE):
                                 continue  # not an aspect, position for a new entry
                             elt = etree.SubElement(cellElt, self.tableModelQName("constraint"))

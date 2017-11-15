@@ -6,7 +6,7 @@ Created on Jan 24, 2011
 '''
 from arelle import ViewFile, ModelDtsObject, XbrlConst, XmlUtil
 from arelle.XbrlConst import conceptNameLabelRole
-from arelle.ViewFile import CSV, HTML, XML, JSON
+from arelle.ViewFile import CSV, XLSX, HTML, XML, JSON
 import datetime, re
 from collections import defaultdict
 
@@ -57,7 +57,7 @@ class ViewFacts(ViewFile.View):
         self.periodContexts = defaultdict(set)
         contextStartDatetimes = {}
         for context in self.modelXbrl.contexts.values():
-            if self.type in (CSV, HTML):
+            if self.type in (CSV, XLSX, HTML):
                 if self.ignoreDims:
                     if context.isForeverPeriod:
                         contextkey = datetime.datetime(datetime.MINYEAR,1,1)
@@ -124,6 +124,8 @@ class ViewFacts(ViewFile.View):
                 heading.append(colHeading)
 
                     
+        self.setColWidths([(70 if iCol==0 else 24) for iCol, col in enumerate(heading)])
+        self.setColWrapText([True for col in heading])
         self.addRow(heading, asHeader=True) # must do after determining tree depth
 
         if relationshipSet:

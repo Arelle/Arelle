@@ -488,6 +488,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         self.xAxis(leftCol + (1 if isNonAbstract else 0), topRow + isLabeled, rowBelow, xStructuralNode, xStructuralNodes, childrenFirst, True, False) # render on this pass
                     leftCol = rightCol
             return (rightCol, parentRow, widthToSpanParent, noDescendants)
+        return (leftCol, rowBelow, 0, True) # nothing to do return
             
     def yAxis(self, leftCol, row, yParentStructuralNode, childrenFirst, renderNow, atLeft):
         if yParentStructuralNode is not None:
@@ -557,6 +558,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     if not childrenFirst:
                         dummy, row = self.yAxis(leftCol + isLabeled, row, yStructuralNode, childrenFirst, renderNow, False) # render on this pass
             return (nestedBottomRow, row)
+        return (None, row)
 
     def getbackgroundColor(self, factPrototype):
         bgColor = XbrlTable.TG_BG_DEFAULT # default monetary
@@ -1022,37 +1024,38 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 self.factPrototypes[factPrototypeIndex] = None #dereference fact prototype
                             elif objId[0] != "a": # instance fact, not prototype
                                 fact = self.modelXbrl.modelObject(objId)
-                                if fact.concept.isNumeric:
-                                    value = Locale.atof(self.modelXbrl.locale, value, str.strip)
-                                    if fact.concept.isMonetary:
-                                        unitMeasure = qname(XbrlConst.iso4217, self.newFactItemOptions.monetaryUnit)
-                                        unitMeasure.prefix = "iso4217" # want to save with a recommended prefix
-                                        decimals = self.newFactItemOptions.monetaryDecimals
-                                    elif fact.concept.isShares:
-                                        unitMeasure = XbrlConst.qnXbrliShares
-                                        decimals = self.newFactItemOptions.nonMonetaryDecimals
-                                    else:
-                                        unitMeasure = XbrlConst.qnXbrliPure
-                                        decimals = self.newFactItemOptions.nonMonetaryDecimals
-                                if fact.value != str(value):
-                                    if fact.isNil != (not value):
-                                        fact.isNil = not value
-                                        if fact.isNil:
-                                            pass
-                                            #TODO: clear out nil facts
-                                    if fact.concept.isNumeric and (not fact.isNil): # if nil, there is no need to update these values
-                                        fact.decimals = decimals
-                                        prevUnit = instance.matchUnit([unitMeasure], [])
-                                        if prevUnit is not None:
-                                            unitId = prevUnit.id
+                                if isinstance(fact, ModelInstanceObject.ModelFact):
+                                    if fact.concept.isNumeric:
+                                        value = Locale.atof(self.modelXbrl.locale, value, str.strip)
+                                        if fact.concept.isMonetary:
+                                            unitMeasure = qname(XbrlConst.iso4217, self.newFactItemOptions.monetaryUnit)
+                                            unitMeasure.prefix = "iso4217" # want to save with a recommended prefix
+                                            decimals = self.newFactItemOptions.monetaryDecimals
+                                        elif fact.concept.isShares:
+                                            unitMeasure = XbrlConst.qnXbrliShares
+                                            decimals = self.newFactItemOptions.nonMonetaryDecimals
                                         else:
-                                            newUnit = instance.createUnit([unitMeasure], [], afterSibling=newUnit)
-                                            unitId = newUnit.id
-                                        fact.unitID = unitId
-                                    fact.text = str(value)
-                                    instance.setIsModified()
-                                    fact.xValid = UNVALIDATED
-                                    xmlValidate(instance, fact)
+                                            unitMeasure = XbrlConst.qnXbrliPure
+                                            decimals = self.newFactItemOptions.nonMonetaryDecimals
+                                    if fact.value != str(value):
+                                        if fact.isNil != (not value):
+                                            fact.isNil = not value
+                                            if fact.isNil:
+                                                pass
+                                                #TODO: clear out nil facts
+                                        if fact.concept.isNumeric and (not fact.isNil): # if nil, there is no need to update these values
+                                            fact.decimals = decimals
+                                            prevUnit = instance.matchUnit([unitMeasure], [])
+                                            if prevUnit is not None:
+                                                unitId = prevUnit.id
+                                            else:
+                                                newUnit = instance.createUnit([unitMeasure], [], afterSibling=newUnit)
+                                                unitId = newUnit.id
+                                            fact.unitID = unitId
+                                        fact.text = str(value)
+                                        instance.setIsModified()
+                                        fact.xValid = UNVALIDATED
+                                        xmlValidate(instance, fact)
             tbl.clearModificationStatus()
 
     def saveInstance(self, newFilename=None, onSaved=None):

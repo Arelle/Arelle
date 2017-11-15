@@ -13,6 +13,21 @@ def viewConcepts(modelXbrl, outFile, labelrole=None, lang=None):
     view.view(modelXbrl.modelDocument)
     view.close()
     
+COL_WIDTHS = {
+    "Label": 60,
+    "Name": 60,
+    "ID": 40,
+    "Abstract": 8,
+    "Substitution Group": 12,
+    "Type": 32,
+    "Period Type": 16, 
+    "Balance": 16,
+    "Nillable": 5,
+    "Typed Domain Ref": 20,
+    "Facets": 60,
+    "Documentation": 100
+    }
+    
 class ViewConcepts(ViewFile.View):
     def __init__(self, modelXbrl, outFile, labelrole, lang):
         super(ViewConcepts, self).__init__(modelXbrl, outFile, "concepts", lang)
@@ -46,6 +61,7 @@ class ViewConcepts(ViewFile.View):
             headings.append("Typed Domain Ref")
         headings.append("Facets")
         headings.append("Doc\u00ADu\u00ADmen\u00ADta\u00ADtion")
+        self.setColWidths([COL_WIDTHS.get(hdg.replace('\u00AD',''), 8) for hdg in headings])
         self.addRow(headings, asHeader=True)
         srtLbls = sorted(lbls)
         for label in srtLbls:

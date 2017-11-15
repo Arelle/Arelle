@@ -17,6 +17,13 @@ def viewRelationshipSet(modelXbrl, outfile, header, arcrole, linkrole=None, link
     view.view(arcrole, linkrole, linkqname, arcqname)
     view.close()
     
+COL_WIDTHS = {
+    "Presentation Relationships":80, "Pref. Label":16, "Type": 16, "References":120,
+    "Calculation Relationships": 80, "Weight": 16, "Balance": 16,
+    "Dimensions Relationships": 80, "Arcrole": 32,"CntxElt": 12,"Closed": 8,"Usable": 8,
+    "Resource Relationships": 80, "Arcrole": 32,"Resource": 50,"ResourceRole": 32,"Language": 20
+    }
+
 class ViewRelationshipSet(ViewFile.View):
     def __init__(self, modelXbrl, outfile, header, labelrole, lang):
         super(ViewRelationshipSet, self).__init__(modelXbrl, outfile, header, lang)
@@ -61,6 +68,7 @@ class ViewRelationshipSet(ViewFile.View):
                     self.treeDepth(rootConcept, rootConcept, 2, arcrole, linkRelationshipSet, set())
                     
         self.addRow(heading, asHeader=True) # must do after determining tree depth
+        self.setColWidths([COL_WIDTHS.get(hdg, 80 if hdg.endswith("  Relationships") else 8) for hdg in heading])
         
         if relationshipSet:
             # for each URI in definition order
