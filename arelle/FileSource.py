@@ -580,7 +580,7 @@ class FileSource:
                 self.url = [self.basedUrl(s) for s in selection]
             # elif isinstance(selection, dict): # json objects
             else:
-                self.url = basedUrl(selection)
+                self.url = self.basedUrl(selection)
             
 def openFileStream(cntlr, filepath, mode='r', encoding=None):
     if PackageManager.isMappedUrl(filepath):
