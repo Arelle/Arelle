@@ -283,9 +283,9 @@ class DateTime(datetime.datetime):
         else:
             return "{0.year:04}-{0.month:02}-{0.day:02}T{0.hour:02}:{0.minute:02}:{0.second:02}".format(self)
     def addYearMonthDuration(self, other, sign):
-        m = self.month + sign * other.months
+        m = self.month + sign * other.months - 1 # m is zero based now (0 - Jan, 11 - Dec)
         y = self.year + sign * other.years + m // 12
-        m %= 12
+        m = (m % 12) + 1 # m back to 1 based (1 = Jan)
         d = self.day
         lastDay = lastDayOfMonth(y, m)
         if d > lastDay: d = lastDay
