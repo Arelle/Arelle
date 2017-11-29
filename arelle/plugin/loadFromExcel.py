@@ -415,7 +415,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 headerRows.add(iRow+1)
             if 'linkrole' in headerCols:
                 hasLinkroleSeparateRow = False
-            if 'preferredLabel' in headerCols and ('label', '/preferredLabel', None) in headerCols:
+            if 'preferredLabel' in headerCols and any(isinstance(h, tuple) and h[0] == 'label' and h[1] == '/preferredLabel' 
+                                                      for h in headerCols):
                 hasPreferredLabelTextColumn = True
             if 'depth' in headerCols:
                 hasDepthColumn = True
@@ -1148,6 +1149,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             for _roleURI in _standardRoles:
                 if _roleURI.endswith(_resourceRole):
                     _resourceRoleURI = _roleURI
+                    _resourceRoleMatchPart = _resourceRole
                     break
             if _resourceRoleURI is None: # try custom roles
                 _resourceRoleMatchPart = _resourceRole.partition("#")[0] # remove # part
