@@ -175,6 +175,8 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
                     moduleFilename = os.path.join(moduleFilename, "__init__.py")
                 else: # impossible to get a moduleinfo from a directory without an __init__.py
                     return None
+            elif not moduleFilename.endswith(".py") and not os.path.exists(moduleFilename) and os.path.exists(moduleFilename + ".py"):
+                moduleFilename += ".py" # extension module without .py suffix
             moduleDir, moduleName = os.path.split(moduleFilename)
             if PLUGIN_TRACE_FILE:
                 with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
