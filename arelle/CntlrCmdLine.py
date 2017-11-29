@@ -288,6 +288,7 @@ def parseAndRun(args):
                              "relative URLs are relative to installation plug-in directory, "
                              " (e.g., 'http://arelle.org/files/hello_web.py', 'C:\Program Files\Arelle\examples\plugin\hello_dolly.py' to load, "
                              "or ../examples/plugin/hello_dolly.py for relative use of examples directory) "
+                             "Local python files do not require .py suffix, e.g., hello_dolly without .py is sufficient, "
                              "Packaged plug-in urls are their directory's url (e.g., --plugins EdgarRenderer or --plugins xbrlDB).  " ))
     parser.add_option("--packages", action="store", dest="packages",
                       help=_("Modify taxonomy packages configuration.  "

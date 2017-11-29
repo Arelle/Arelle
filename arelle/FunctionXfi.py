@@ -13,6 +13,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.ModelDtsObject import anonymousTypeSuffix, ModelConcept
 from arelle.ModelInstanceObject import ModelDimensionValue, ModelFact, ModelInlineFact
 from arelle.ModelFormulaObject import ModelFormulaResource
+from arelle.PythonUtil import flattenSequence
 from arelle.XmlValidate import UNKNOWN, VALID, validate as xmlValidate, NCNamePattern
 from arelle.ValidateXbrlCalcs import inferredDecimals, inferredPrecision
 from arelle.ValidateXbrlDimensions import priItemElrHcRels
@@ -375,8 +376,8 @@ def uncovered_aspects(xc, p, args, dimensionAspects=False):
 
 def nodesEqual(xc, args, test, mustBeItems=False, nonItemErrCode=None):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
-    seq1 = args[0] if isinstance(args[0],(list,tuple)) else (args[0],)
-    seq2 = args[1] if isinstance(args[1],(list,tuple)) else (args[1],)
+    seq1 = flattenSequence(args[0])
+    seq2 = flattenSequence(args[1])
     for i, node1 in enumerate(seq1):
         try:
             node2 = seq2[i]
@@ -397,8 +398,8 @@ def nodesEqual(xc, args, test, mustBeItems=False, nonItemErrCode=None):
 
 def setsEqual(xc, args, test, mustBeItems=False):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
-    seq1 = args[0] if isinstance(args[0],(list,tuple)) else (args[0],)
-    seq2 = args[1] if isinstance(args[1],(list,tuple)) else (args[1],)
+    seq1 = flattenSequence(args[0])
+    seq2 = flattenSequence(args[1])
     for node1 in seq1:
         if not isinstance(node1, ModelObject): 
             raise XPathContext.FunctionArgType(1,"node()*")
@@ -1201,7 +1202,7 @@ def  format_number(xc, p, args):
 def  create_element(xc, p, args):
     if not 2 <= len(args) <= 4: raise XPathContext.FunctionNumArgs()
     qn = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
-    attrArg = args[1] if isinstance(args[1],(list,tuple)) else (args[1],)
+    attrArg = flattenSequence(args[1])
     # attributes have to be pairs
     if attrArg:
         if (len(attrArg) & 1 or 

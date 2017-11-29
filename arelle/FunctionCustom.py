@@ -8,6 +8,7 @@ import xml.dom, math, re
 from arelle.ModelValue import qname
 from arelle import XPathContext, XbrlUtil
 from arelle.ModelInstanceObject import ModelDimensionValue
+from arelle.PythonUtil import flattenSequence
 from decimal import Decimal
     
 class fnFunctionNotAvailable(Exception):
@@ -99,8 +100,8 @@ def callCfi(xc, p, qname, cfSig, contextItem, args):
 # for test case 22015 v01        
 def  my_fn_PDxEV(xc, p, contextItem, args):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
-    PDseq = args[0] if isinstance(args[0],(list,tuple)) else (args[0],)
-    EVseq = args[1] if isinstance(args[1],(list,tuple)) else (args[1],)
+    PDseq = flattenSequence(args[0])
+    EVseq = flattenSequence(args[1])
     dimQname = qname("{http://www.example.com/wgt-avg}ExposuresDimension")
     PDxEV = []
     for pd in PDseq:
