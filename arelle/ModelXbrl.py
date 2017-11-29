@@ -469,10 +469,11 @@ class ModelXbrl:
             self.closeFileSource= True
             del self.entryLoadingUrl
         # reload dts views
-        from arelle import ViewWinDTS
-        for view in self.views:
-            if isinstance(view, ViewWinDTS.ViewDTS):
-                self.modelManager.cntlr.uiThreadQueue.put((view.view, []))
+        if self.views: # runs with GUI
+            from arelle import ViewWinDTS
+            for view in self.views:
+                if isinstance(view, ViewWinDTS.ViewDTS):
+                    self.modelManager.cntlr.uiThreadQueue.put((view.view, []))
                 
     def saveInstance(self, **kwargs):
         """Saves current instance document file.
