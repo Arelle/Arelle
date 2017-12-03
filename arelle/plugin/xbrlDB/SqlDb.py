@@ -4,10 +4,11 @@ This module provides database interfaces to postgres SQL
 (c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 '''
-import sys, os, io, time, re, datetime
+import sys, os, io, glob, time, re, datetime
 from math import isnan, isinf
 from decimal import Decimal
 from arelle.ModelValue import dateTime
+from arelle.PythonUtil import flattenSequence
 import socket
 
 TRACESQLFILE = None
@@ -353,75 +354,85 @@ class SqlDbConnection():
             self.closeCursor()
         return result
     
-    def create(self, ddlFile):
-        # drop tables
-        startedAt = time.time()
-        self.showStatus("Dropping prior tables")
-        for table in self.tablesInDB():
-            result = self.execute('DROP TABLE %s' % self.dbTableName(table),
-                                  close=False, commit=False, fetch=False, action="dropping table")
-        self.showStatus("Dropping prior sequences")
-        for sequence in self.sequencesInDB():
-            result = self.execute('DROP SEQUENCE %s' % sequence,
-                                  close=False, commit=False, fetch=False, action="dropping sequence")
-        self.modelXbrl.profileStat(_("XbrlPublicDB: drop prior tables"), time.time() - startedAt)
+    def create(self, ddlFiles, dropPriorTables=True): # ddl Files may be a sequence (or not) of file names, glob wildcards ok, relative ok
+        if dropPriorTables:
+            # drop tables
+            startedAt = time.time()
+            self.showStatus("Dropping prior tables")
+            for table in self.tablesInDB():
+                result = self.execute('DROP TABLE %s' % self.dbTableName(table),
+                                      close=False, commit=False, fetch=False, action="dropping table")
+            self.showStatus("Dropping prior sequences")
+            for sequence in self.sequencesInDB():
+                result = self.execute('DROP SEQUENCE %s' % sequence,
+                                      close=False, commit=False, fetch=False, action="dropping sequence")
+            self.modelXbrl.profileStat(_("XbrlPublicDB: drop prior tables"), time.time() - startedAt)
                     
         startedAt = time.time()
-        with io.open(os.path.dirname(__file__) + os.sep + ddlFile, 
-                     'rt', encoding='utf-8') as fh:
-            sql = fh.read().replace('%', '%%')
-        # separate dollar-quoted bodies and statement lines
-        sqlstatements = []
-        def findstatements(start, end, laststatement):
-            for line in sql[start:end].split('\n'):
-                stmt, comment1, comment2 = line.partition("--")
-                laststatement += stmt + '\n'
-                if ';' in stmt:
-                    sqlstatements.append(laststatement)
-                    laststatement = ''
-            return laststatement
-        stmt = ''
-        i = 0
-        patternDollarEsc = re.compile(r"([$]\w*[$])", re.DOTALL + re.MULTILINE)
-        while i < len(sql):  # preserve $$ function body escaping
-            match = patternDollarEsc.search(sql, i)
-            if not match:
-                stmt = findstatements(i, len(sql), stmt)
-                sqlstatements.append(stmt)
-                break
-            # found match
-            dollarescape = match.group()
-            j = match.end()
-            stmt = findstatements(i, j, stmt)  # accumulate statements before match
-            i = sql.find(dollarescape, j)
-            if i > j: # found end of match
-                if self.product == "mysql":
-                    # mysql doesn't want DELIMITER over the interface
-                    stmt = sql[j:i]
-                    i += len(dollarescape)
-                else:
-                    # postgres and others want the delimiter in the sql sent
-                    i += len(dollarescape)
-                    stmt += sql[j:i]
-                sqlstatements.append(stmt)
-                # problem with driver and $$ statements, skip them (for now)
-                stmt = ''
-        action = "executing ddl in {}".format(os.path.basename(ddlFile))
-        for i, sql in enumerate(sqlstatements):
-            if any(cmd in sql
-                   for cmd in ('CREATE TABLE', 'CREATE SEQUENCE', 'INSERT INTO', 'CREATE TYPE',
-                               'CREATE FUNCTION', 
-                               'SET',
-                               'CREATE INDEX', 'CREATE UNIQUE INDEX' # 'ALTER TABLE ONLY'
-                               )):
-                statusMsg, sep, rest = sql.strip().partition('\n')
-                self.showStatus(statusMsg[0:50])
-                result = self.execute(sql, close=False, commit=False, fetch=False, action=action)
-                if TRACESQLFILE:
-                    with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
-                        fh.write("\n\n>>> ddl {0}: \n{1} \n\n>>> result: \n{2}\n"
-                                 .format(i, sql, result))
-                        fh.write(sql)
+        # process ddlFiles to make absolute and de-globbed
+        _ddlFiles = []
+        for ddlFile in flattenSequence(ddlFiles):
+            if not os.path.isabs(ddlFile):
+                ddlFile = os.path.join(os.path.dirname(__file__), ddlFile)
+            for _ddlFile in glob.glob(ddlFile):
+                _ddlFiles.append(_ddlFile)
+        for ddlFile in _ddlFiles:
+            with io.open(ddlFile, 'rt', encoding='utf-8') as fh:
+                sql = fh.read().replace('%', '%%')
+            # separate dollar-quoted bodies and statement lines
+            sqlstatements = []
+            def findstatements(start, end, laststatement):
+                for line in sql[start:end].split('\n'):
+                    stmt, comment1, comment2 = line.partition("--")
+                    laststatement += stmt + '\n'
+                    if ';' in stmt:
+                        sqlstatements.append(laststatement)
+                        laststatement = ''
+                return laststatement
+            stmt = ''
+            i = 0
+            patternDollarEsc = re.compile(r"([$]\w*[$])", re.DOTALL + re.MULTILINE)
+            while i < len(sql):  # preserve $$ function body escaping
+                match = patternDollarEsc.search(sql, i)
+                if not match:
+                    stmt = findstatements(i, len(sql), stmt)
+                    sqlstatements.append(stmt)
+                    break
+                # found match
+                dollarescape = match.group()
+                j = match.end()
+                stmt = findstatements(i, j, stmt)  # accumulate statements before match
+                i = sql.find(dollarescape, j)
+                if i > j: # found end of match
+                    if self.product == "mysql":
+                        # mysql doesn't want DELIMITER over the interface
+                        stmt = sql[j:i]
+                        i += len(dollarescape)
+                    else:
+                        # postgres and others want the delimiter in the sql sent
+                        i += len(dollarescape)
+                        stmt += sql[j:i]
+                    sqlstatements.append(stmt)
+                    # problem with driver and $$ statements, skip them (for now)
+                    stmt = ''
+            action = "executing ddl in {}".format(os.path.basename(ddlFile))
+            for i, sql in enumerate(sqlstatements):
+                if any(cmd in sql
+                       for cmd in ('CREATE TABLE', 'CREATE SEQUENCE', 'INSERT INTO', 'CREATE TYPE',
+                                   'CREATE FUNCTION', 
+                                   'DROP'
+                                   'SET',
+                                   'CREATE INDEX', 'CREATE UNIQUE INDEX', # 'ALTER TABLE ONLY'
+                                   'CREATE VIEW', 'CREATE OR REPLACE VIEW', 'CREATE MATERIALIZED VIEW'
+                                   )):
+                    statusMsg, sep, rest = sql.strip().partition('\n')
+                    self.showStatus(statusMsg[0:50])
+                    result = self.execute(sql, close=False, commit=False, fetch=False, action=action)
+                    if TRACESQLFILE:
+                        with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
+                            fh.write("\n\n>>> ddl {0}: \n{1} \n\n>>> result: \n{2}\n"
+                                     .format(i, sql, result))
+                            fh.write(sql)
         self.showStatus("")
         self.conn.commit()
         self.modelXbrl.profileStat(_("XbrlPublicDB: create tables"), time.time() - startedAt)

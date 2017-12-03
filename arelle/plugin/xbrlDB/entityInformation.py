@@ -132,7 +132,8 @@ def loadEntityInformation(dts, entrypoint, rssItem):
                                       ("EntityPublicFloat", "public-float"), 
                                       ("TradingSymbol", "trading-symbol"), 
                                       ("DocumentFisalYearFocus", "fiscal-year-focus"),
-                                      ("DocumentFisalPeriodFocus", "fiscal-period-focus")):
+                                      ("DocumentFisalPeriodFocus", "fiscal-period-focus"),
+                                      ("DocumentType", "document-type")):
             try:
                 concept = dts.nameConcepts[factName][0] # get qname irrespective of taxonomy year
                 facts = dts.factsByQname[concept.qname]

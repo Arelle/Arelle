@@ -36,7 +36,7 @@ windows
 
 '''
 
-import time, datetime, logging
+import os, time, datetime, logging
 from arelle.ModelDocument import Type
 from arelle.ModelDtsObject import ModelConcept, ModelType, ModelResource, ModelRelationship
 from arelle.ModelInstanceObject import ModelFact
@@ -96,11 +96,11 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         missingTables = XBRLDBTABLES - self.tablesInDB()
         # if no tables, initialize database
         if missingTables == XBRLDBTABLES:
-            self.create({"mssql": "xbrlSemanticMSSqlDB.sql",
-                         "mysql": "xbrlSemanticMySqlDB.ddl",
-                         "sqlite": "xbrlSemanticSQLiteDB.ddl",
-                         "orcl": "xbrlSemanticOracleDB.sql",
-                         "postgres": "xbrlSemanticPostgresDB.ddl"}[self.product])
+            self.create(os.path.join("sql", "semantic", {"mssql": "xbrlSemanticMSSqlDB.sql",
+                                                         "mysql": "xbrlSemanticMySqlDB.ddl",
+                                                         "sqlite": "xbrlSemanticSQLiteDB.ddl",
+                                                         "orcl": "xbrlSemanticOracleDB.sql",
+                                                         "postgres": "xbrlSemanticPostgresDB.ddl"}[self.product]))
             missingTables = XBRLDBTABLES - self.tablesInDB()
         if missingTables and missingTables != {"sequences"}:
             raise XPDBException("sqlDB:MissingTables",
