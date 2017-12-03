@@ -189,6 +189,8 @@ class View:
                         cell.alignment = Alignment(indent=treeIndent)
                 if self.xlsxColWrapText and iCol < len(self.xlsxColWrapText) and self.xlsxColWrapText[iCol]:
                     cell.alignment = Alignment(wrap_text=True)
+            if asHeader and self.xlsxRow == 0:
+                self.xlsxWs.freeze_panes = self.xlsxWs["A2"] # freezes row 1 and no columns
             self.xlsxRow += 1
         elif self.type == HTML:
             tr = etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")
