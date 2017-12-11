@@ -30,7 +30,8 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
             l = len(modelDocument.targetNamespace.encode("utf-8"))
             if l > 255:
                 val.modelXbrl.error("EFM.6.07.30",
-                    _("Schema targetNamespace length (%(length)s) is over 255 bytes long in utf-8 %(targetNamespace)s"),
+                    _("Shorten this declaration URI from %(length)s to 255 bytes or fewer in UTF-8: %(value)s."),
+                    edgarCode="du-0730-uri-length-limit",
                     modelObject=modelDocument.xmlRootElement, length=l, targetNamespace=modelDocument.targetNamespace, value=modelDocument.targetNamespace)
 
     if modelDocument.type in (ModelDocument.Type.SCHEMA, ModelDocument.Type.LINKBASE):
@@ -45,7 +46,8 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                             l = len(name.encode("utf-8"))
                             if l > 200:
                                 val.modelXbrl.error("EFM.6.07.29",
-                                    _("Schema %(element)s has a name length (%(length)s) over 200 bytes long in utf-8, %(name)s."),
+                                    _("Shorten this declaration name from %(length)s to 200 bytes or fewer in UTF-8: %(name)s"),
+                                    edgarCode="du-0729-name-length-limit",
                                     modelObject=elt, element=localName, name=name, length=l)
     
     for elt in modelDocument.xmlRootElement.iter():
@@ -61,7 +63,8 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                         l = len(roleURI.encode("utf-8"))
                         if l > 255:
                             val.modelXbrl.error("EFM.6.07.30",
-                                _("Schema %(element)s %(attribute)s length (%(length)s) is over 255 bytes long in utf-8 %(roleURI)s"),
+                                _("Shorten this declaration URI from %(length)s to 255 bytes or fewer in UTF-8: %(value)s."),
+                                edgarCode="du-0730-uri-length-limit",
                                 modelObject=elt, element=elt.qname, attribute=uriAttr, length=l, roleURI=roleURI, value=roleURI)
     
                 if elt.localName == "arcroleRef":
@@ -70,7 +73,9 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                     hrefUri, hrefId = UrlUtil.splitDecodeFragment(hrefAttr)
                     if hrefUri not in val.disclosureSystem.standardTaxonomiesDict:
                         val.modelXbrl.error(("EFM.6.09.06", "GFM.1.04.06"),
-                            _("Arcrole %(refURI)s arcroleRef %(xlinkHref)s must be a standard taxonomy"),
+                            _("An arcroleRef element refers to %(xlinkHref)s, an arcrole, %(refURI)s, that is not defined in a standard taxonomy. "
+                              "Please recheck submission."),
+                            edgarCode="fs-0906-Custom-Arcrole-Referenced",
                             modelObject=elt, refURI=refUri, xlinkHref=hrefUri)
             if modelDocument.type == ModelDocument.Type.INLINEXBRL and elt.namespaceURI in XbrlConst.ixbrlAll: 
                 if elt.localName == "footnote":
@@ -91,25 +96,34 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
             if xlinkType == "extended":
                 if not xlinkRole or xlinkRole == "":
                     val.modelXbrl.error(("EFM.6.09.04", "GFM.1.04.04"),
-                        "%(element)s is missing an xlink:role",
+                        "The %(element)s element requires an xlink:role such as the default, 'http://www.xbrl.org/2003/role/label'.  "
+                        "Please recheck submission.",
+                        edgarCode="fs-0904-Resource-Role-Missing",
                         modelObject=elt, element=elt.qname)
                 if not val.extendedElementName:
                     val.extendedElementName = elt.qname
                 elif val.extendedElementName != elt.qname:
                     val.modelXbrl.error(("EFM.6.09.07", "GFM:1.04.07"),
-                        _("Extended element %(element)s must be the same as %(element2)s"),
+                        _("Your filing contained extended type links with roles of different namesapces and local names, %(element)s "
+                          "and %(element2)s in the same linkbase, %(refUrl)s.  Please recheck your submission and ensure that all "
+                          "extended-type links in a single linkbase have the same namespace and local name."),
+                        edgarCode="cp-0907-Linkbases-Distinct", refUrl=elt.modelDocument.basename,
                         modelObject=elt, element=elt.qname, element2=val.extendedElementName)
             elif xlinkType == "resource":
                 if not xlinkRole:
                     val.modelXbrl.error(("EFM.6.09.04", "GFM.1.04.04"),
-                        _("%(element)s is missing an xlink:role"),
+                        _("The %(element)s element requires an xlink:role such as the default, 'http://www.xbrl.org/2003/role/label'.  "
+                          "Please recheck submission."),
+                        edgarCode="fs-0904-Resource-Role-Missing",
                         modelObject=elt, element=elt.qname)
                 elif not XbrlConst.isStandardRole(xlinkRole):
                     modelsRole = val.modelXbrl.roleTypes.get(xlinkRole)
                     if (modelsRole is None or len(modelsRole) == 0 or 
                         modelsRole[0].modelDocument.targetNamespace not in val.disclosureSystem.standardTaxonomiesDict):
                         val.modelXbrl.error(("EFM.6.09.05", "GFM.1.04.05"),
-                            _("Resource %(xlinkLabel)s role %(role)s is not a standard taxonomy role"),
+                            _("The %(element)s element has a role, %(roleDefinition)s, that is not defined in a standard taxonomy, "
+                              "resource labeled %(xlinkLabel)s.  Please recheck submission."),
+                            edgarCode="fs-0905-Custom-Resource-Role-Used",
                             modelObject=elt, xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"), role=xlinkRole, element=elt.qname,
                             roleDefinition=val.modelXbrl.roleTypeDefinition(xlinkRole))
             elif xlinkType == "arc":
@@ -118,7 +132,9 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                     try:
                         if int(priority) >= 10:
                             val.modelXbrl.error(("EFM.6.09.09", "GFM.1.04.08"),
-                                _("Arc from %(xlinkFrom)s to %(xlinkTo)s priority %(priority)s must be less than 10"),
+                                _("The priority attribute %(priority)s has a value of ten or greater, on arc %(arcElement)s from %(xlinkFrom)s to %(xlinkTo)s. "
+                                  "Please change the priority to value less than 10 and resubmit."),
+                                edgarCode="du-0909-Relationship-Priority-Not-Less-Than-Ten",
                                 modelObject=elt, 
                                 arcElement=elt.qname,
                                 xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
@@ -126,7 +142,9 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                                 priority=priority)
                     except (ValueError) :
                         val.modelXbrl.error(("EFM.6.09.09", "GFM.1.04.08"),
-                            _("Arc from %(xlinkFrom)s to %(xlinkTo)s priority %(priority)s is not an integer"),
+                            _("The priority attribute %(priority)s has a value of ten or greater, on arc %(arcElement)s from %(xlinkFrom)s to %(xlinkTo)s. "
+                              "Please change the priority to value less than 10 and resubmit."),
+                            edgarCode="du-0909-Relationship-Priority-Not-Less-Than-Ten",
                             modelObject=elt, 
                             arcElement=elt.qname,
                             xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
@@ -135,7 +153,9 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                 if elt.namespaceURI == XbrlConst.link:
                     if elt.localName == "presentationArc" and not elt.get("order"):
                         val.modelXbrl.error(("EFM.6.12.01", "GFM.1.06.01"),
-                            _("PresentationArc from %(xlinkFrom)s to %(xlinkTo)s must have an order"),
+                            _("The presentation relationship from %(conceptFrom)s to %(conceptTo)s does not have an order attribute.  "
+                              "Please provide a value."),
+                            edgarCode="rq-1201-Presentation-Order-Missing",
                             modelObject=elt, 
                             xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
                             xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
@@ -144,7 +164,8 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                     elif elt.localName == "calculationArc":
                         if not elt.get("order"):
                             val.modelXbrl.error(("EFM.6.14.01", "GFM.1.07.01"),
-                                _("CalculationArc from %(xlinkFrom)s to %(xlinkTo)s must have an order"),
+                                _("The calculation relationship from %(conceptFrom)s to %(conceptTo)s does not have an order attribute."),
+                                edgarCode="du-1401-Calculation-Relationship-Order-Missing",
                                 modelObject=elt, 
                                 xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
                                 xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
@@ -155,7 +176,9 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                             weight = float(weightAttr)
                             if not weight in (1, -1):
                                 val.modelXbrl.error(("EFM.6.14.02", "GFM.1.07.02"),
-                                    _("CalculationArc from %(xlinkFrom)s to %(xlinkTo)s weight %(weight)s must be 1 or -1"),
+                                    _("Weight value %(weight)s on the calculation relationship from %(conceptFrom)s to %(conceptTo)s "
+                                      "must be equal to 1 or to -1. Please recheck submission."),
+                                    edgarCode="fs-1402-Calculation-Relationship-Weight-Not-Unitary",
                                     modelObject=elt, 
                                     xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
                                     xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
@@ -164,7 +187,9 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                                     weight=weightAttr)
                         except ValueError:
                             val.modelXbrl.error(("EFM.6.14.02", "GFM.1.07.02"),
-                                _("CalculationArc from %(xlinkFrom)s to %(xlinkTo)s must have an weight (value error in \"%(weight)s\")"),
+                                _("Weight value %(weight)s on the calculation relationship from %(conceptFrom)s to %(conceptTo)s "
+                                  "must be equal to 1 or to -1. Please recheck submission."),
+                                edgarCode="fs-1402-Calculation-Relationship-Weight-Not-Unitary", 
                                 modelObject=elt, 
                                 xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
                                 xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
@@ -174,7 +199,8 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                     elif elt.localName == "definitionArc":
                         if not elt.get("order"):
                             val.modelXbrl.error(("EFM.6.16.01", "GFM.1.08.01"),
-                                _("DefinitionArc from %(xlinkFrom)s to %(xlinkTo)s must have an order"),
+                                _("The Definition relationship from %(conceptFrom)s to %(conceptTo)s does not have an order attribute."),
+                                edgarCode="du-1601-Definition-Relationship-Order-Missing",
                                 modelObject=elt, 
                                 xlinkFrom=elt.get("{http://www.w3.org/1999/xlink}from"),
                                 xlinkTo=elt.get("{http://www.w3.org/1999/xlink}to"),
