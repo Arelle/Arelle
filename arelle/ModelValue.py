@@ -99,7 +99,12 @@ def qnameClarkName(clarkname):  # does not handle clark names with prefix
         return QName(None, None, clarkname)
 
 def qnameEltPfxName(element, prefixedName, prefixException=None):
-    prefix,sep,localName = prefixedName.rpartition(':')
+    # check for href name style first
+    if "#" in prefixedName:
+        namespaceURI, _sep, localName = prefixedName.rpartition('#')
+        return QName(None, namespaceURI, localName)
+    # check for prefixed name style
+    prefix,_sep,localName = prefixedName.rpartition(':')
     if not prefix:
         prefix = None # don't want '' but instead None if no prefix
     namespaceURI = element.nsmap.get(prefix)

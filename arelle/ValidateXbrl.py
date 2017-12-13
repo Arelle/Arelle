@@ -77,7 +77,7 @@ class ValidateXbrl:
                              any((concept.qname.namespaceURI in self.disclosureSystem.standardTaxonomiesDict and concept.modelDocument.inDTS) 
                                  for concept in self.modelXbrl.nameConcepts.get("UTR",()))))
         self.validateIXDS = False # set when any inline document found
-        self.validateEnum = XbrlConst.enums & _DICT_SET(modelXbrl.namespaceDocs.keys())
+        self.validateEnum = bool(XbrlConst.enums & _DICT_SET(modelXbrl.namespaceDocs.keys()))
         
         for pluginXbrlMethod in pluginClassMethods("Validate.XBRL.Start"):
             pluginXbrlMethod(self, parameters)
@@ -323,17 +323,23 @@ class ValidateXbrl:
                         modelObject=concept, concept=concept.qname, itemType=concept.baseXbrliType)
                 if self.validateEnum and concept.isEnumeration:
                     if not concept.enumDomainQname:
-                        self.modelXbrl.error("enumte:MissingDomainError",
+                        self.modelXbrl.error(("enum2te:" if concept.instanceOfType(XbrlConst.qnEnumeration2ItemTypes) else "enumte:") +
+                                             "MissingDomainError",
                             _("Item %(concept)s enumeration type must specify a domain."),
-                            modelObject=concept, concept=concept.qname)
+                            modelObject=concept, concept=concept.qname,
+                            messageCodes=("enumte:MissingDomainError", "enum2te:MissingDomainError"))
                     elif concept.enumDomain is None or (not concept.enumDomain.isItem) or concept.enumDomain.isHypercubeItem or concept.enumDomain.isDimensionItem:
-                        self.modelXbrl.error("enumte:InvalidDomainError",
+                        self.modelXbrl.error(("enum2te:" if concept.instanceOfType(XbrlConst.qnEnumeration2ItemTypes) else "enumte:") +
+                                             "InvalidDomainError",
                             _("Item %(concept)s enumeration type must be a xbrli:item that is neither a hypercube nor dimension."),
-                            modelObject=concept, concept=concept.qname)
+                            modelObject=concept, concept=concept.qname,
+                            messageCodes=("enumte:InvalidDomainError", "enum2te:InvalidDomainError"))
                     if not concept.enumLinkrole:
-                        self.modelXbrl.error("enumte:MissingLinkRoleError",
+                        self.modelXbrl.error(("enum2te:" if concept.instanceOfType(XbrlConst.qnEnumeration2ItemTypes) else "enumte:") +
+                                             "MissingLinkRoleError",
                             _("Item %(concept)s enumeration type must specify a linkrole."),
-                            modelObject=concept, concept=concept.qname)
+                            modelObject=concept, concept=concept.qname,
+                            messageCodes=("enumte:MissingLinkRoleError", "enum2te:MissingLinkRoleError"))
                 if modelXbrl.hasXDT:
                     if concept.isHypercubeItem and not concept.abstract == "true":
                         self.modelXbrl.error("xbrldte:HypercubeElementIsNotAbstractError",
@@ -746,14 +752,24 @@ class ValidateXbrl:
                         if not isinstance(qnEnums, list): qnEnums = (qnEnums,)
                         if not all(ValidateXbrlDimensions.enumerationMemberUsable(self, concept, self.modelXbrl.qnameConcepts.get(qnEnum))
                                    for qnEnum in qnEnums):
-                            self.modelXbrl.error("enumie:InvalidListFactValue" if concept.instanceOfType(XbrlConst.qnEnumerationListItemTypes)
-                                                 else "enumie:InvalidFactValue",
+                            self.modelXbrl.error(("enum2ie:" if concept.instanceOfType(XbrlConst.qnEnumeration2ItemTypes) else "enumie:") +
+                                "InvalidListFactValue" if concept.instanceOfType(XbrlConst.qnEnumerationListItemTypes) else
+                                "InvalidSetFactValue" if concept.instanceOfType(XbrlConst.qnEnumerationSetItemTypes) else
+                                "InvalidFactValue",
                                 _("Fact %(fact)s context %(contextID)s enumeration %(value)s is not in the domain of %(concept)s"),
                                 modelObject=f, fact=f.qname, contextID=f.contextID, value=f.xValue, concept=f.qname,
-                                messageCodes=("enumie:InvalidFactValue", "enumie:InvalidListFactValue"))
+                                messageCodes=("enumie:InvalidFactValue", "enumie:InvalidListFactValue",
+                                              "enum2ie:InvalidFactValue", "enum2ie:InvalidSetFactValue"))
                         if concept.instanceOfType(XbrlConst.qnEnumerationSetItemTypes) and len(qnEnums) > len(set(qnEnums)):
-                            self.modelXbrl.error("enumie:RepeatedSetValue",
+                            self.modelXbrl.error(("enum2ie:" if concept.instanceOfType(XbrlConst.qnEnumeration2ItemTypes) else "enumie:") +
+                                                 "RepeatedSetValue",
                                 _("Fact %(fact)s context %(contextID)s enumeration has non-unique values %(value)s"),
+                                modelObject=f, fact=f.qname, contextID=f.contextID, value=f.xValue, concept=f.qname,
+                                messageCodes=("enumie:RepeatedSetValue", "enum2ie:RepeatedSetValue"))
+                        if concept.instanceOfType(XbrlConst.qnEnumerationSetItemTypeYYYY) and any(
+                                qnEnum < qnEnums[i] for i, qnEnum in enumerate(qnEnums[1:])):
+                            self.modelXbrl.error("enum2ie:SetFactInvalidOrder",
+                                _("Fact %(fact)s context %(contextID)s enumeration is not in lexicographical order %(value)s"),
                                 modelObject=f, fact=f.qname, contextID=f.contextID, value=f.xValue, concept=f.qname)
                             
                 elif concept.isTuple:
