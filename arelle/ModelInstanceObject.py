@@ -592,15 +592,15 @@ class ModelInlineValueObject:
         except AttributeError:
             self.xValid = UNVALIDATED # may not be initialized otherwise
             self.xValue = None
+            f = self.format
             v = XmlUtil.innerText(self, 
                                   ixExclude="tuple" if self.elementQname == XbrlConst.qnIXbrl11Tuple else "html", 
                                   ixEscape=(self.get("escape") in ("true","1")), 
                                   ixContinuation=(self.elementQname == XbrlConst.qnIXbrl11NonNumeric),
-                                  strip=True) # transforms are whitespace-collapse
+                                  strip=(f is not None)) # transforms are whitespace-collapse, otherwise it is preserved.
             if self.isNil:
                 self._ixValue = v
             else:
-                f = self.format
                 if f is not None:
                     if f.namespaceURI in FunctionIxt.ixtNamespaceFunctions:
                         try:
