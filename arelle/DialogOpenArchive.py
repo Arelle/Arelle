@@ -289,7 +289,7 @@ class DialogOpenArchive(Toplevel):
             self.treeView.column("url", width=300, anchor="w")
             self.treeView.heading("url", text="URL")
             
-            for name, urls in sorted(self.taxonomyPackage["entryPoints"].items(), key=lambda i:i[1][2]):
+            for name, urls in sorted(self.taxonomyPackage["entryPoints"].items(), key=lambda i:i[0][2]):
                 self.treeView.insert("", "end", name, 
                                      values="\n".join(url[1] for url in urls), 
                                      text=name or urls[0][2])
