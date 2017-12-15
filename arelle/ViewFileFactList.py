@@ -62,7 +62,7 @@ class ViewFacts(ViewFile.View):
         else:
             lastColSpan = None
         self.addRow(self.cols, asHeader=True, lastColSpan=lastColSpan)
-        self.setColWidths([COL_WIDTHS.get(col, 8) for col in cols])
+        self.setColWidths([COL_WIDTHS.get(col, 8) for col in self.cols])
         self.viewFacts(self.modelXbrl.facts, 0)
         
     def tupleDepth(self, modelFacts, indentedCol):
