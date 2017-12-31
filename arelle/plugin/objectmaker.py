@@ -9,10 +9,57 @@ This product uses graphviz, which must be installed separately on the platform.
 (c) Copyright 2017 Mark V Systems Limited, All rights reserved.
 '''
 import os, io, time, re
-from arelle import ModelDocument, XmlUtil
+from arelle import ModelDocument, XmlUtil, XbrlConst
+from arelle.ModelDtsObject import ModelConcept
 
+diagramNetworks = {
+    "uml": ("http://xbrl.us/arcrole/Aggregation", "http://xbrl.us/arcrole/Composition", "http://xbrl.us/arcrole/Inheritance"),
+    "dts": (),
+    "pre": (XbrlConst.parentChild,),
+    "cal": (XbrlConst.summationItem,),
+    "def": (XbrlConst.essenceAlias, XbrlConst.similarTuples, XbrlConst.requiresElement, XbrlConst.generalSpecial,
+            XbrlConst.all, XbrlConst.notAll, XbrlConst.hypercubeDimension, XbrlConst.dimensionDomain,
+            XbrlConst.domainMember, XbrlConst.dimensionDefault)
+    }
 
-def drawDiagram(modelXbrl, diagramFile, viewDiagram=False):
+# graphviz attributes: http://www.graphviz.org/doc/info/attrs.html
+
+networkEdgeTypes = {
+    "uml": {
+        "inheritance": {"dir": "back", "arrowtail": "empty"}, 
+        "aggregation": {"dir": "back", "arrowtail": "odiamond"}, 
+        "composition": {"dir": "back", "arrowtail": "diamond"}
+        },
+    "dts": {
+        "all-types": {"dir": "forward", "arrowhead": "normal"}
+        },
+    "pre": {
+        "parent-child": {"dir": "forward", "arrowhead": "normal"}
+        },
+    "cal": {
+        "summation-item": {"dir": "forward", "arrowhead": "normal"}
+        },
+    "def": {
+        "essence-alias": {"dir": "forward", "arrowhead": "normal"},
+        "similar-tuples": {"dir": "forward", "arrowhead": "normal"},
+        "requires-element": {"dir": "forward", "arrowhead": "normal"},
+        "general-special": {"dir": "forward", "arrowhead": "normal"},
+        "all": {"dir": "forward", "arrowhead": "normal"},
+        "notAll": {"dir": "forward", "arrowhead": "normal"},
+        "hypercube-dimension": {"dir": "forward", "arrowhead": "normal"},
+        "dimension-domain": {"dir": "forward", "arrowhead": "normal"},
+        "domain-member": {"dir": "forward", "arrowhead": "normal"},
+        "dimension-default": {"dir": "forward", "arrowhead": "normal"}
+        }
+    }
+
+def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
+    if diagramNetwork not in diagramNetworks:
+        modelXbrl.error("objectmaker:diagramNetwork",
+                        "Diagram network %(diagramNetwork)s not recognized, please specify one of %(recognizedDiagramNetworks)s",
+                        modelXbrl=modelXbrl, diagramNetwork=diagramNetwork, recognizedDiagramNetworks=", ".join(diagramNetworks))
+        return
+        
     try:
         from graphviz import Digraph
     except ImportError:
@@ -21,6 +68,8 @@ def drawDiagram(modelXbrl, diagramFile, viewDiagram=False):
                         modelXbrl=modelXbrl)
         return
     
+    isUML = diagramNetwork == "uml"
+    isBaseSpec = diagramNetwork in ("pre", "cal", "def")
     graphName = os.path.splitext(modelXbrl.modelDocument.basename)[0]
     mdl = Digraph(comment=graphName)
     mdl.attr("graph")
@@ -29,23 +78,44 @@ def drawDiagram(modelXbrl, diagramFile, viewDiagram=False):
     mdl.attr('node', fontname="Bitstream Vera Sans")
     mdl.attr('node', fontsize="8")
     
-    propertiesRelationshipSet = modelXbrl.relationshipSet("http://xbrl.us/arcrole/Property")
-    if not propertiesRelationshipSet:
-        modelXbrl.modelManager.addToLog(_("no relationships for {0}").format(arcroleName))
-        return False
+    if isUML:
+        arcroleName = "http://xbrl.us/arcrole/Property"
+        propertiesRelationshipSet = modelXbrl.relationshipSet(arcroleName)
+        if not propertiesRelationshipSet:
+            modelXbrl.modelManager.addToLog(_("no relationships for {0}").format(arcroleName))
+            return False
 
     def node(mdl, id, modelObject):
         if modelObject is not None:
-            _properties = "".join("+{} {}\l".format(rel.toModelObject.qname.localName, rel.toModelObject.niceType)
-                                                    for rel in propertiesRelationshipSet.fromModelObject(modelObject)
-                                                    if rel.toModelObject is not None)
             mdl.attr("node", style="") # white classes
-            mdl.node(id, "{{{}|{}}}".format(modelObject.qname.localName, _properties))
+            if isUML:
+                _properties = "".join("+{} {}\l".format(rel.toModelObject.qname.localName, rel.toModelObject.niceType)
+                                                        for rel in propertiesRelationshipSet.fromModelObject(modelObject)
+                                                        if rel.toModelObject is not None)
+                mdl.node(id, "{{{}|{}}}".format(modelObject.qname.localName, _properties))
+            elif isBaseSpec and isinstance(modelObject, ModelConcept):
+                concept = modelObject
+                if concept.isHypercubeItem:
+                    _properties = "Hypercube"
+                elif concept.isExplicitDimension:
+                    _properties = "Dimension, Explicit"
+                elif concept.isExplicitDimension:
+                    _properties = "Dimension, Typed ({} {})".format(typedDomainElement.qname, typedDomainElement.niceType)
+                elif concept.isEnumeration:
+                    _properties = "Enumeration ({})".format(concept.enumDomain.qname)
+                else:
+                    _properties = "{}{}".format("Abstract " if modelObject.isAbstract else "",
+                                                modelObject.niceType)
+                mdl.node(id, "{{{}|{}}}".format(modelObject.qname.localName, _properties))
+            elif isinstance(modelObject, ModelDocument.ModelDocument):
+                mdl.node(id, "{{{}|{}}}".format(modelObject.basename, modelObject.gettype()))
+            else:
+                mdl.node(id, "{{{}}}".format(modelObject.qname.localName))
     
     nodes = set()
     edges = set()
 
-    for arcrole in ("http://xbrl.us/arcrole/Aggregation", "http://xbrl.us/arcrole/Composition", "http://xbrl.us/arcrole/Inheritance"):
+    for arcrole in diagramNetworks[diagramNetwork]:
         relationshipType = arcrole.rpartition("/")[2].lower()
         graphRelationshipSet = modelXbrl.relationshipSet(arcrole)
         if not graphRelationshipSet:
@@ -66,8 +136,29 @@ def drawDiagram(modelXbrl, diagramFile, viewDiagram=False):
             edgeKey = (relationshipType, parentName, childName)
             if edgeKey not in edges:
                 edges.add(edgeKey)
-                arrowType = {"inheritance": "empty", "aggregation": "odiamond", "composition": "diamond"}[relationshipType]
-                mdl.edge(parentName, childName, arrowtail=arrowType, dir="back")
+                edgeType = networkEdgeTypes[diagramNetwork][relationshipType]
+                mdl.edge(parentName, childName, 
+                         dir=edgeType.get("dir"), arrowhead=edgeType.get("arrowhead"), arrowtail=edgeType.get("arrowtail"))
+    
+    if diagramNetwork == "dts":
+        def viewDtsDoc(modelDoc, parentDocName, grandparentDocName):
+            docName = modelDoc.basename
+            docType = modelDoc.gettype()
+            if docName not in nodes:
+                node(mdl, docName, modelDoc)
+            if parentDocName:
+                edgeKey = (parentDocName, docType, docName)
+                if edgeKey in edges:
+                    return
+                edges.add(edgeKey)
+                edgeType = networkEdgeTypes[diagramNetwork]["all-types"]
+                mdl.edge(parentDocName, docName, 
+                         dir=edgeType.get("dir"), arrowhead=edgeType.get("arrowhead"), arrowtail=edgeType.get("arrowtail"))
+            for referencedDoc in modelDoc.referencesDocument.keys():
+                if referencedDoc.basename != parentDocName: # skip reverse linkbase ref
+                    viewDtsDoc(referencedDoc, docName, parentDocName)
+            
+        viewDtsDoc(modelXbrl.modelDocument, None, None)
             
     mdl.format = "pdf"
     mdl.render(diagramFile.replace(".pdf", ".gv"), view=viewDiagram) 
@@ -99,7 +190,7 @@ def objectmakerMenuCommand(cntlr):
     thread = threading.Thread(target=lambda 
                                   _modelXbrl=cntlr.modelManager.modelXbrl,
                                   _diagramFile=diagramFile: 
-                                        drawDiagram(_modelXbrl, _diagramFile, True))
+                                        drawDiagram(_modelXbrl, _diagramFile, "uml", True))
     thread.daemon = True
     thread.start()
     
@@ -109,6 +200,14 @@ def objectmakerCommandLineOptionExtender(parser, *args, **kwargs):
                       action="store", 
                       dest="saveDiagram", 
                       help=_("Save Diagram file"))
+    parser.add_option("--diagram-network", 
+                      action="store", 
+                      dest="diagramNetwork", 
+                      help=_("Network to diagram: dts, pre, cal, def, uml"))
+    parser.add_option("--view-diagram", 
+                      action="store_true", 
+                      dest="viewDiagram", 
+                      help=_("Show diagram in GUI viewer"))
 
 def objectmakerCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
@@ -117,7 +216,9 @@ def objectmakerCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
             cntlr.addToLog("No taxonomy loaded.")
             return
-        drawDiagram(cntlr.modelManager.modelXbrl, diagramFile)
+        diagramNetwork = getattr(options, "diagramNetwork")
+        viewDiagram = getattr(options, "viewDiagram", False)
+        drawDiagram(cntlr.modelManager.modelXbrl, diagramFile, diagramNetwork, viewDiagram)
 
 __pluginInfo__ = {
     'name': 'ObjectMaker',
