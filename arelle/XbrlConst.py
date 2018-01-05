@@ -130,6 +130,7 @@ dimensionDefault = "http://xbrl.org/int/dim/arcrole/dimension-default"
 dtrTypesStartsWith = "http://www.xbrl.org/dtr/type/"
 dtrNumeric = "http://www.xbrl.org/dtr/type/numeric"
 defaultLinkRole = "http://www.xbrl.org/2003/role/link"
+defaultGenLinkRole = "http://www.xbrl.org/2008/role/link"
 iso4217 = "http://www.xbrl.org/2003/iso4217"
 def qnIsoCurrency(token):
     return qname(iso4217, "iso4217:" + token) if token else None
