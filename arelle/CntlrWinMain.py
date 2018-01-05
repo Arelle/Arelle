@@ -8,6 +8,11 @@ This module is Arelle's controller in windowing interactive UI mode
 '''
 from arelle import PythonUtil # define 2.x or 3.x string types
 import os, sys, subprocess, pickle, time, locale, re, fnmatch
+
+if sys.platform == 'win32' and getattr(sys, 'frozen', False): 
+    # need the .dll directory in path to be able to access Tk and Tcl DLLs efore importinng Tk, etc.
+    os.environ['PATH'] = os.path.dirname(sys.executable) + ";" + os.environ['PATH']
+
 from tkinter import (Tk, Tcl, TclError, Toplevel, Menu, PhotoImage, StringVar, BooleanVar, N, S, E, W, EW, 
                      HORIZONTAL, VERTICAL, END, font as tkFont)
 try:
