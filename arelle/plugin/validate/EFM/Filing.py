@@ -8,6 +8,7 @@ import re, datetime
 from collections import defaultdict
 from arelle import (ModelDocument, ModelValue, ModelRelationshipSet, 
                     XmlUtil, XbrlConst, ValidateFilingText)
+from arelle.ModelValue import qname
 from arelle.ValidateXbrlCalcs import insignificantDigits
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFootnote
@@ -21,6 +22,16 @@ from arelle.XmlValidate import VALID
 from .DTS import checkFilingDTS, usNamespacesConflictPattern, ifrsNamespacesConflictPattern
 from .Dimensions import checkFilingDimensions
 from .PreCalAlignment import checkCalcsTreeWalk
+
+qnFasbExtensibleListItemTypes = (qname("{http://fasb.org/us-types/2017-01-31}us-types:extensibleListItemType"),
+                                 qname("{http://fasb.org/srt-types/2018-01-31}srt-types:extensibleListItemType"))
+
+ifrsSrtConcepts = {
+    "MajorCustomersAxis": "MajorCustomersAxis",
+    "RangeAxis": "RangeAxis",
+    "RetrospectiveApplicationAndRetrospectiveRestatementAxis": "RestatementAxis",
+    "GeographicalAreasAxis": "StatementGeographicalAxis"
+    }
 
 def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     if not hasattr(modelXbrl.modelDocument, "xmlDocument"): # not parsed
@@ -410,6 +421,22 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         _("The domain item %(fact)s cannot appear as a fact.  Please remove the fact from context %(contextID)s."),
                         edgarCode="du-0525-Domain-As-Fact",
                         modelObject=f, fact=f.qname, contextID=factContextID)
+                    
+                # fasb extensibleListItemType checks (2017-2018 only)
+                if concept.instanceOfType(qnFasbExtensibleListItemTypes):
+                    qnEnumsInvalid = []
+                    for qnToken in value.split():
+                        for qnValue in qnameEltPfxName(f, qnToken):
+                            qnConcept = modelXbrl.qnameConcepts.get(qnValue)
+                            if qnConcept is None:
+                                qnEnumsInvalid.append(qnToken)
+                            else:
+                                conceptsUsed[qnConcept] = False
+                    if qnEnumsInvalid:
+                        modelXbrl.error("EFM.tbd",
+                            _("The fact %(fact)s contains inappropriate enumeration items %(enumerationItems)s in context %(contextID)s.  Please remove the inappropriate enumeratiuon items."),
+                            edgarCode="du-tbd",
+                            modelObject=f, fact=f.qname, contextID=factContextID, enumerationItems=", ".join(qnEnumsInvalid))
                 
             if validateInlineXbrlGFM:
                 if f.localName == "nonFraction" or f.localName == "fraction":
@@ -1108,7 +1135,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             deiNS = doc.targetNamespace
 
                 if rxdNs:
-                    qn = ModelValue.qname(rxdNs, "AmendmentNumber")
+                    qn = qname(rxdNs, "AmendmentNumber")
                     if amendmentFlag == True and (
                                 qn not in modelXbrl.factsByQname or not any(
                                        f.context is not None and not f.context.hasSegment 
@@ -1127,7 +1154,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         for name in ("CountryAxis", "GovernmentAxis", "PaymentTypeAxis", "ProjectAxis","PmtAxis",
                                     "AllGovernmentsMember", "AllProjectsMember","BusinessSegmentAxis", "EntityDomain", 
                                     "A", "Cm", "Co", "Cu", "D", "Gv", "E", "K", "Km", "P", "Payments", "Pr", "Sm"):
-                            setattr(self, name, ModelValue.qname(rxdNs, "rxd:" + name))
+                            setattr(self, name, qname(rxdNs, "rxd:" + name))
 
                 rxd = Rxd()
                 f1 = deiFacts.get(disclosureSystem.deiCurrentFiscalYearEndDateElement)
@@ -1236,7 +1263,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     source=rel.fromModelObject.qname, target=rel.toModelObject.qname, target2=rel2.toModelObject.qname)
                         checkMemMultDims(rel, None, rel.fromModelObject, rel.linkrole, set())
                 val.modelXbrl.profileActivity("... SD checks 14-18", minTimeToShow=1.0)
-                qnDeiEntityDomain = ModelValue.qname(deiNS, "dei:EntityDomain")
+                qnDeiEntityDomain = qname(deiNS, "dei:EntityDomain")
                 for relSet, dom, priItem, errCode in ((domMemRelSet, rxd.AllProjectsMember, rxd.Pr, "EFM.6.23.30"),
                                                       (domMemRelSet, rxd.AllGovernmentsMember, rxd.Gv, "EFM.6.23.31"),
                                                       (dimDomRelSet, rxd.BusinessSegmentAxis, rxd.Sm, "EFM.6.23.33"),
@@ -1257,7 +1284,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 
                 qnCurrencyMeasure = XbrlConst.qnIsoCurrency(deiItems.get("EntityReportingCurrencyISOCode"))
                 currencyMeasures = ([qnCurrencyMeasure],[])
-                qnAllCountriesDomain = ModelValue.qname(countryNs, "country:AllCountriesDomain")
+                qnAllCountriesDomain = qname(countryNs, "country:AllCountriesDomain")
                 for cntxFacts in cntxEqualFacts.values():
                     qnameFacts = dict((f.qname,f) for f in cntxFacts)
                     context = cntxFacts[0].context
@@ -1705,6 +1732,17 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             modelXbrl.error("EFM.6.22.03.incompatibleTaxonomyDocumentType",
                 _("Taxonomy class %(conflictClass)s may not be used with document type %(documentType)s"),
                 modelObject=modelXbrl, conflictClass="IFRS", documentType=documentType)
+        if 'ifrs-full' in val.standardNamespaceConflicts:
+            ifrsSrtConceptQNs = set(qname(ifrsModelDocument.targetNamespace, ifrsConceptName)
+                                    for ifrsModelDocument in val.standardNamespaceConflicts['ifrs-full']
+                                    for ifrsConceptName in ifrsSrtConcepts.keys())
+            ifrsSrtConceptsUsed = set(c.qname for c in conceptsUsed if c.qname in ifrsSrtConceptQNs)
+            if ifrsSrtConceptsUsed:
+                ifrsSrtObjs = set(f for f in modelXbrl.facts if f.qname in ifrsSrtConceptsUsed
+                                  ) | set(c for c in modelXbrl.contexts.values() if _DICT_SET(c.qnameDims.keys()) & ifrsSrtConceptsUsed)
+                modelXbrl.warning("EFM.6.22.03.srtConceptsForIFRSConcepts",
+                    _("Taxonomy concepts from the SRT taxonomy should be used for the following IFRS concepts: %(ifrsSrtConceptsUsed)s"),
+                    modelObject=ifrsSrtObjs, ifrsSrtConceptsUsed=", ".join(str(qn) for qn in sorted(ifrsSrtConceptsUsed)))
         if isInlineXbrl and documentType in {
             "485BPOS", "497", "K SDR", "L SDR",
             "S-1", "S-1/A", "S-1MEF", "S-3", "S-3/A", "S-3ASR", "S-3D", "S-3DPOS", "S-3MEF", "S-4", "S-4/A", "S-4EF", 
@@ -1718,6 +1756,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             modelXbrl.error("EFM.6.03.10",
                             _("%(documentType)s report is missing a extension schema file."),
                             modelObject=modelXbrl, documentType=documentType)
+            
         
     conceptRelsUsedWithPreferredLabels = defaultdict(list)
     usedCalcsPresented = defaultdict(set) # pairs of concepts objectIds used in calc
