@@ -443,7 +443,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         
     def instanceOfType(self, typeqname):
         """(bool) -- True if element is declared by, or derived from type of given qname or list of qnames"""
-        if isinstance(typeqname, (tuple,list)): # union
+        if isinstance(typeqname, (tuple,list,set)): # union
             if self.typeQname in typeqname:
                 return True
         else: # not union, single type
@@ -2040,4 +2040,11 @@ elementSubstitutionModelClass.update((
      (XbrlConst.qnXlExtended, ModelLink),
      (XbrlConst.qnXlLocator, ModelLocator),
      (XbrlConst.qnXlResource, ModelResource),
+     (XbrlConst.qnLinkLabelLink, ModelLink), # needed for dynamic object creation (e.g., loadFromExcel, OIM)
+     (XbrlConst.qnLinkReferenceLink, ModelLink),
+     (XbrlConst.qnLinkFootnoteLink, ModelLink),
+     (XbrlConst.qnLinkPresentationLink, ModelLink),
+     (XbrlConst.qnLinkCalculationLink, ModelLink),
+     (XbrlConst.qnLinkDefinitionLink, ModelLink),
+     (XbrlConst.qnGenLink, ModelLink),
     ))
