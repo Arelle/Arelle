@@ -12,14 +12,14 @@ from collections import defaultdict, OrderedDict
 from arelle import PythonUtil, XbrlConst, ModelDocument
 from arelle.PythonUtil import OrderedDefaultDict, OrderedSet
 from arelle.ModelDocument import Type, create as createModelDocument
-from arelle.ModelValue import qname
+from arelle.ModelValue import qname, QName
 from arelle.XbrlConst import (qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
                               qnLinkPart, gen, link, defaultLinkRole,
                               conceptLabel, elementLabel, conceptReference, summationItem
                               )
 
 importColHeaderMap = defaultdict(list)
-resourceParsePattern = re.compile(r"(label[s]?|reference[s]?),?\s*([\w][\w\s#+-:/]+[\w#+-/])(\s*[(]([^)]+)[)])?$")
+resourceParsePattern = re.compile(r"(label[s]?|reference[s]?|relationship to),?\s*([\w][\w\s#+-:/]+[\w#+-/])(\s*[(]([^)]+)[)])?$")
 roleNumberPattern = re.compile(r"(.*)[#]([0-9][0-9A-Za-z]*)")
 xlUnicodePattern = re.compile("_x([0-9A-F]{4})_")
 excludeDesignatedEnumerations = False
@@ -131,7 +131,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
     imports = {"xbrli": ( ("namespace", XbrlConst.xbrli), 
                           ("schemaLocation", "http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd") )} # xml of imports
     importXmlns = {}
-    hasPreLB = hasCalLB = hasDefLB = hasRefLB = False
+    hasPreLB = hasCalLB = hasDefLB = hasRefLB = hasGenLB = False
     # xxxLB structure [ (elr1, def1, "_ELR_", [roots]), (elr2, def2, "_ELR_", [rootw]) ...]
     #   roots = (rootHref, None, "_root_", [children])
     #   children = (childPrefix, childName, arcrole, [grandChildren])
@@ -139,6 +139,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
     defLB = []
     calLB = []
     refLB = []
+    genLB = []
     
     def lbDepthList(lbStruct, depth, parentList=None):
         if len(lbStruct) > 0:
@@ -186,6 +187,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             hasCalLB = False,
             hasDefLB = False,
             hasRefLB = False,
+            hasGenLB = False,
             generated = False
             )
         return genDocs[name]
@@ -225,7 +227,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             if len(row) > dtsNamespaceURIColIndex: namespaceURI = xlValue(row[dtsNamespaceURIColIndex])
             lbType = lang = None
             if action == "import":
-                if filetype == "role":
+                if filetype in ("role", "arcrole"):
                     continue
                 elif filetype == "schema":
                     thisDoc.imports[prefix] = ( ("namespace", namespaceURI), ("schemaLocation", filename) )
@@ -276,6 +278,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                         thisDoc.hasDefLB = hasDefLB = True
                     elif lbType == "calculation":
                         thisDoc.hasCalLB = hasCalLB = True
+                    elif lbType == "generic":
+                        thisDoc.hasGenLB = hasGenLB = True
                     thisDoc.linkbaseRefs.append( (lbType, filename, True) )
                 elif filetype == "initialComment" and prefix:
                     thisDoc.initialComment = prefix
@@ -364,17 +368,27 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
     
     # find column headers row
     headerCols = OrderedDict()
+    headerColsAllElrs = set()
     hasLinkroleSeparateRow = True
     hasPreferredLabelTextColumn = False
     hasConceptAttributeColumn = False
     hasDepthColumn = False
     hasPresentationParentColumn = False
+    hasRelationshipToCol = False
+    hasrelationshipAttributeColumn = False
     headerRows = set()
     topDepth = 999999
     
     for importSheetName in importSheetNames:
         if importSheetName not in sheetNames:
             continue
+        headerCols.clear()
+        headerRows.clear()
+        hasConceptAttributeColumn = False
+        hasDepthColumn = False
+        hasPresentationParentColumn = False
+        hasRelationshipToCol = False
+        hasrelationshipAttributeColumn = False
         conceptsWs = importExcelBook[importSheetName]
     
         def setHeaderCols(row):
@@ -390,7 +404,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 elif v in importColumnHeaders:
                     headerCols[importColumnHeaders[v]] = iCol
                 elif isinstance(v,str):
-                    if any(v.startswith(r) for r in ("label,", "labels,", "reference,", "references,")):
+                    if any(v.startswith(r) for r in ("label,", "labels,", "reference,", "references,", "relationship to,")):
                         # custom/extension label/reference
                         m = resourceParsePattern.match(v)
                         if m:
@@ -410,7 +424,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             #for iCol, colCell in enumerate(row):
             setHeaderCols(row)
             # must have some of these to be a header col
-            if sum(1 for colName in headerCols if colName in ("name", "type", "depth", "periodType")) >= 3:
+            if (sum(1 for h in headerCols if h in ("name", "type", "depth", "periodType")) >= 3 or
+                sum(1 for h in headerCols if h == "name" or (isinstance(h, tuple) and h[0] == "relationship to")) >= 2):
                 # it's a header col
                 headerRows.add(iRow+1)
             if 'linkrole' in headerCols:
@@ -424,6 +439,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 hasPresentationParentColumn = True
             if not hasDepthColumn and hasPresentationParentColumn:
                 topDepth = 0
+            hasRelationshipToCol = any(h[0] == "relationship to" for h in headerCols if isinstance(h, tuple))
             headerCols.clear()
     
         def cellHasValue(row, header, _type):
@@ -483,6 +499,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             if (iRow + 1) in headerRows:
                 setHeaderCols(row)
                 hasConceptAttributeColumn = any(v.startswith("attribute, ") for v in headerCols if isinstance(v,str))
+                hasRelationshipAttributeColumn = any(v.startswith("relationship attribute, ") for v in headerCols if isinstance(v,str))
             elif not (hasLinkroleSeparateRow and (iRow + 1) in headerRows) and 'depth' in headerCols:
                 depth = cellValue(row, 'depth')
                 if isinstance(depth, int) and depth < topDepth:
@@ -495,16 +512,17 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             eltEnumRefsParts = None
             if any(fromRow <= iRow+1 <= toRow for fromRow,toRow in skipRows):
                 continue
-            if (all(col is None for col in row) or 
+            if (all(col.value is None for col in row) or 
                 all(isinstance(row[i].value, str) and row[i].value.strip() == "n/a"
                    for i in (headerCols.get("name"), headerCols.get("type"), headerCols.get("value"))
-                   if i)):
+                   if i is not None)):
                 continue # skip blank row
             try:
                 isHeaderRow = (iRow + 1) in headerRows
                 isELRrow = hasLinkroleSeparateRow and (iRow + 2) in headerRows
                 if isHeaderRow:
                     setHeaderCols(row)
+                    headerColsAllElrs |= _DICT_SET(headerCols.keys()) # accumulate all header cols for role checks
                 elif isELRrow:
                     currentELR = currentELRdefinition = None
                     for colCell in row:
@@ -525,6 +543,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                         if hasCalLB:
                             calLB.append( LBentry(role=currentELR, name=currentELRdefinition, isELR=True) )
                             calRels = set() # prevent duplications when same rel in different parts of tree
+                        if hasGenLB:
+                            genLB.append( LBentry(role=currentELR, name=currentELRdefinition, isELR=True) )
                 elif headerCols:
                     if "linkrole" in headerCols and cellHasValue(row, 'linkrole', str):
                         v = cellValue(row, 'linkrole', strip=True)
@@ -546,6 +566,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                 if hasCalLB:
                                     calLB.append( LBentry(role=currentELR, name=currentELRdefinition, isELR=True) )
                                     calRels = set() # prevent duplications when same rel in different parts of tree
+                                if hasGenLB:
+                                    genLB.append( LBentry(role=currentELR, name=currentELRdefinition, isELR=True) )
                     prefix, name = rowPrefixNameValues(row)
                     if cellHasValue(row, 'depth', int):
                         depth = cellValue(row, 'depth')
@@ -559,7 +581,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     try:
                         _xx = (not prefix or prefix in genDocs) and name not in genDocs[prefix].extensionElements and name
                     except Exception as ex:
-                        print (str(ex))
+                        print ("Sheet {} row {} name {} exception: {}".format(importSheetName, iRow+1, name, ex))
                     if (prefix in genDocs) and name not in genDocs[prefix].extensionElements and name:
                         thisDoc = genDocs[prefix]
                         # elements row
@@ -670,7 +692,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                 if colCell.value is not None:
                                     _label = xlValue(colCell)
                                     break
-                            print ("Row {} has relationships and no \"name\" field, label: {}".format(iRow+1, _label))
+                            print ("Sheet {} row {} has relationships and no \"name\" field, label: {}".format(importSheetName, iRow+1, _label))
                         if hasPreLB:
                             preferredLabel = cellValue(row, 'preferredLabel')
                             if hasDepthColumn:
@@ -749,7 +771,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                             pass
                                         
                 # accumulate extension labels and any reference parts
-                if useLabels:
+                if useLabels or hasRelationshipToCol:
                     prefix, name = rowPrefixNameValues(row)
                     if name is not None and prefix in genDocs:
                         thisDoc = genDocs[prefix]
@@ -765,7 +787,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                     values = ()
                                 else:
                                     v = str(v) # may be an int or float instead of str
-                                    if colItemType in ("label", "reference"):
+                                    if colItemType in ("label", "reference", "relationship to"):
                                         values = (v,)
                                     elif colItemType in ("labels", "references"):
                                         values = v.split('\n')
@@ -803,6 +825,25 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                                 _part = part
                                             # keep parts in order and not duplicated
                                             thisDoc.extensionReferences[prefix, name, _role].add((_part, _value))
+                                    elif colItemType == "relationship to":
+                                        entryList = lbDepthList(genLB, topDepth)
+                                        if entryList is not None:
+                                            toName = value
+                                            if ":" in toName:
+                                                toPrefix, _sep, toName = value.partition(":")
+                                            else:
+                                                toPrefix = prefix
+                                            if hasRelationshipAttributeColumn:
+                                                # custom attributes (attribute, prefix:localName in header)
+                                                relAttrs = None
+                                                for header in headerCols:
+                                                    if isinstance(header, str) and header.startswith("relationship attribute, "):
+                                                        attrValue = cellValue(row, header)
+                                                        if attrValue not in (None, ""):
+                                                            if relAttrs is None: relAttrs = {}
+                                                            relAttrs[header[24:]] = attrValue # fix QName later after schemaElt exists
+                                            entryList.append( LBentry(prefix=prefix, name=name, isRoot=True, childStruct=
+                                                                      [LBentry(prefix=toPrefix, name=toName, arcrole=role, relAttrs=relAttrs)]) )
                         if isConcept and eltEnumRefsParts:
                             for i, _enumRefParts in enumerate(eltEnumRefsParts):
                                 for (colItemType, role, part), value in _enumRefParts:
@@ -1020,7 +1061,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             if eltFacets and "type" in eltAttrs:
                 eltType = eltAttrs["type"]
                 del eltAttrs["type"]
-            if hasConceptAttributeColumn: # fix up any prefixed attr names to be clark notation
+            if any(':' in attrname for attrname in eltAttrs.keys()): # fix up any prefixed attr names to be clark notation
                 for attrname, attrvalue in eltAttrs.copy().items():
                     if not attrname.startswith('{') and ':' in attrname:
                         del eltAttrs[attrname]
@@ -1055,13 +1096,15 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 for usedOnRole in usedOnRoles.split():
                     XmlUtil.addChild(roleElt, XbrlConst.link, "usedOn", text=usedOnRole)
             else:
-                if hasPreLB:
+                if hasPreLB and any(e.childStruct and e.isELR and (e.role == roleURI or e.name == roleDefinition) for e in preLB):
                     XmlUtil.addChild(roleElt, XbrlConst.link, "usedOn", text="link:presentationLink")
-                if hasDefLB:
+                if hasDefLB and any(e.childStruct and e.isELR and (e.role == roleURI or e.name == roleDefinition) for e in defLB):
                     XmlUtil.addChild(roleElt, XbrlConst.link, "usedOn", text="link:definitionLink")
-                if hasCalLB:
+                if hasCalLB and any(e.childStruct and e.isELR and (e.role == roleURI or e.name == roleDefinition) for e in calLB):
                     XmlUtil.addChild(roleElt, XbrlConst.link, "usedOn", text="link:calculationLink")
-    
+                if hasGenLB and any(e.childStruct and e.isELR and (e.role == roleURI or e.name == roleDefinition) for e in genLB):
+                    XmlUtil.addChild(roleElt, XbrlConst.link, "usedOn", text=qname("{http://xbrl.org/2008/generic}genlink:link"))
+                        
         def addLinkbaseRef(lbType, lbFilename, lbDoc):
             role = "http://www.xbrl.org/2003/role/{0}LinkbaseRef".format(lbType)
             lbRefElt = XmlUtil.addChild(appinfoElt, XbrlConst.link, "linkbaseRef",
@@ -1117,6 +1160,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
         extReferenceParts = {}
         extReferenceSchemaDocs = {}
         extUnrecognizedRoles = set()
+        relationshipArcroles = {}
+        relationshipArcqnames = {}
         def setExtRefPart(partLocalName):
             if partLocalName not in extReferenceParts:
                 for partConcept in modelXbrl.nameConcepts.get(partLocalName, ()):
@@ -1126,7 +1171,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                             partConcept.modelDocument.uri if partConcept.modelDocument.uri.startswith("http://") else
                             partConcept.modelDocument.basename)
                         break
-        for _headerColKey in headerCols:
+        for _headerColKey in headerColsAllElrs:
             if isinstance(_headerColKey, tuple) and len(_headerColKey) >= 3 and not _headerColKey[1].startswith("http://"):
                 _resourceType = _headerColKey[0]
                 _resourceRole = _headerColKey[1]
@@ -1143,7 +1188,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     "labels": (qnLinkLabel, standardLabelRoles), 
                     "reference": (qnLinkReference, standardReferenceRoles),
                     "references": (qnLinkReference, standardReferenceRoles)
-                    }[_resourceType]
+                    }.get(_resourceType, (None,()))
             _resourceRoleURI = None
             # find resource role
             for _roleURI in _standardRoles:
@@ -1175,6 +1220,20 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     modelXbrl.error("loadFromExcel:referenceResourceRole",
                         "Reference resource role not found: %(role)s",
                         modelXbrl=modelXbrl, role=_resourceRoleMatchPart, filename=thisDoc.extensionSchemaNamespaceURI)
+            elif _resourceType == "relationship to":
+                for _arcroleURI in modelXbrl.arcroleTypes:
+                    if _arcroleURI.endswith(_resourceRoleMatchPart):
+                        for _arcroleType in modelXbrl.arcroleTypes[_arcroleURI]:
+                            for _resourceQName in _arcroleType.usedOns:
+                                break
+                        break
+                if _resourceQName is None:
+                    modelXbrl.error("loadFromExcel:relationshipArcrole",
+                        "Relationship arcrole not found: %(arcrole)s",
+                        modelXbrl=modelXbrl, arcrole=_resourceRoleMatchPart, filename=thisDoc.extensionSchemaNamespaceURI)
+                else:
+                    relationshipArcroles[_resourceRoleMatchPart] = _arcroleURI
+                    relationshipArcqnames[_arcroleURI] = _resourceQName
     
         # label linkbase
         for lbType, lang, filename in thisDoc.labelLinkbases:
@@ -1401,11 +1460,24 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                             "QName not defined: %(prefix)s:%(localName)s",
                             modelXbrl=modelXbrl, prefix=prefix, localName=name)
             return None
+        
+        def prefixedNameQName(prefixedName):
+            if ":" not in prefixedName:
+                return prefixedName
+            prefix, _sep, name = prefixedName.rpartition(":")
+            if prefix not in prefixedNamespaces:
+                modelXbrl.error("loadFromExcel:undefinedRelationshipAttributePrefix",
+                                "Prefix not defined: %(prefix)s",
+                                modelXbrl=modelXbrl, prefix=prefix)
+                return prefixedName
+            return QName(prefix, prefixedNamespaces[prefix], name)
                 
         def lbTreeWalk(lbType, parentElt, lbStruct, roleRefs, locs=None, arcsFromTo=None, fromPrefix=None, fromName=None):
             order = 1.0
             for lbEntry in lbStruct:
                 if lbEntry.isELR:
+                    if not lbEntry.childStruct: # skip empty ELRs
+                        continue
                     role = "unspecified"
                     if lbEntry.role and lbEntry.role.startswith("http://"): # have a role specified
                         role = lbEntry.role
@@ -1435,7 +1507,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     else: 
                         extUnrecognizedRoles.add(role)
                     linkElt = XmlUtil.addChild(parentElt, 
-                                               XbrlConst.link, lbType + "Link",
+                                               XbrlConst.gen if lbType == "generic" else XbrlConst.link, 
+                                               "link" if lbType == "generic" else lbType + "Link",
                                                attributes=(("{http://www.w3.org/1999/xlink}type", "extended"),
                                                            ("{http://www.w3.org/1999/xlink}role", role)))
                     locs = set()
@@ -1492,6 +1565,15 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                     roleRefs.add(("roleRef", lbEntry.role, roleType.modelDocument.uri + "#" + roleType.id))
                                 else: 
                                     extUnrecognizedRoles.add(lbEntry.role)
+                        elif lbType == "generic" and lbEntry.arcrole:
+                            if not lbEntry.arcrole.startswith("http://"):
+                                # check if any defined labels for this role
+                                for _arcroleURI in modelXbrl.arcroleTypes:
+                                    if _arcroleURI.endswith(lbEntry.arcrole):
+                                        lbEntry.arcrole = _arcroleURI
+                                        break
+                            otherAttrs = tuple( (prefixedNameQName(_key), _value) # may need to process qname in key into clark name
+                                                for _key, _value in (lbEntry.relAttrs.items() if lbEntry.relAttrs is not None else ()))
                         else:
                             otherAttrs = ( )
                         if lbEntry.arcrole == "_dimensions_":  # pick proper consecutive arcrole
@@ -1508,8 +1590,18 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                 arcrole = XbrlConst.domainMember
                         else:
                             arcrole = lbEntry.arcrole
+                        if arcrole in relationshipArcqnames:
+                            arcqname = relationshipArcqnames[arcrole]
+                            arcNS = arcqname.namespaceURI
+                            arcLocalname = arcqname.localName
+                        elif lbType == "generic":
+                            arcNS = XbrlConst.gen
+                            arcLocalname = "arc"
+                        else:
+                            arcNS = XbrlConst.link
+                            arcLocalname = lbType + "Arc"
                         XmlUtil.addChild(parentElt,
-                                         XbrlConst.link, lbType + "Arc",
+                                         arcNS, arcLocalname,
                                          attributes=(("{http://www.w3.org/1999/xlink}type", "arc"),
                                                      ("{http://www.w3.org/1999/xlink}arcrole", arcrole),
                                                      ("{http://www.w3.org/1999/xlink}from", fromLabel), 
@@ -1521,7 +1613,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                         
         for hasLB, lbType, lbLB in ((hasPreLB and thisDoc.hasPreLB, "presentation", preLB),
                                     (hasDefLB and thisDoc.hasDefLB, "definition", defLB),
-                                    (hasCalLB and thisDoc.hasCalLB, "calculation", calLB)):
+                                    (hasCalLB and thisDoc.hasCalLB, "calculation", calLB),
+                                    (hasGenLB and thisDoc.hasGenLB, "generic", genLB)):
             if hasLB:
                 for lbRefType, filename, generate in thisDoc.linkbaseRefs:
                     if generate and lbType == lbRefType:
@@ -1530,11 +1623,18 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                         <linkbase 
                             xmlns="http://www.xbrl.org/2003/linkbase" 
                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-                            xsi:schemaLocation="http://www.xbrl.org/2003/linkbase 
-                            http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd" 
                             xmlns:xlink="http://www.w3.org/1999/xlink" 
-                            xmlns:xbrli="http://www.xbrl.org/2003/instance"/>
-                        """,
+                            xmlns:xbrli="http://www.xbrl.org/2003/instance"{}
+                            xsi:schemaLocation="http://www.xbrl.org/2003/linkbase 
+                            http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd{}" 
+                            />
+                        """.format("""
+                        xmlns:generic="http://xbrl.org/2008/generic"
+                        """ if lbType == "generic" else "",
+                        """
+                        http://xbrl.org/2008/generic  http://www.xbrl.org/2008/generic-link.xsd
+                        """ if lbType == "generic" else ""
+                        ),
                             initialComment=thisDoc.initialComment)
                         lbDoc.inDTS = True
                         addLinkbaseRef(lbRefType, filename, lbDoc)
@@ -1546,6 +1646,11 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                              ("arcroleRef", XbrlConst.dimensionDomain, "http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain"),
                                              ("arcroleRef", XbrlConst.domainMember, "http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"),
                                              ("arcroleRef", XbrlConst.hypercubeDimension, "http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension")))
+                        elif lbType == "generic":
+                            for _arcroleURI in relationshipArcroles.values():
+                                for _arcroleType in modelXbrl.arcroleTypes[_arcroleURI]:
+                                    roleRefs.add(("arcroleRef", _arcroleURI, _arcroleType.modelDocument.uri + "#" + _arcroleType.id))
+                                    break
                         lbTreeWalk(lbType, lbElt, lbLB, roleRefs)
                         firstLinkElt = None
                         for firstLinkElt in lbElt.iterchildren():
@@ -1686,9 +1791,9 @@ def excelLoaderOptionExtender(parser, *args, **kwargs):
                       help=_("Save an xml:lang on top level elements (schema, linkbase)."))
 
 class LBentry:
-    __slots__ = ("prefix", "name", "arcrole", "role", "childStruct", "preferredLabel")
+    __slots__ = ("prefix", "name", "arcrole", "role", "childStruct", "preferredLabel", "relAttrs")
     def __init__(self, prefix=None, name=None, arcrole=None, role=None, weight=None, 
-                 isELR=False, isRoot=False, childStruct=None, preferredLabel=None):
+                 isELR=False, isRoot=False, childStruct=None, preferredLabel=None, relAttrs=None):
         if childStruct is not None:
             self.childStruct = childStruct
         else:
@@ -1706,6 +1811,7 @@ class LBentry:
         else:
             self.role = role
         self.preferredLabel = preferredLabel
+        self.relAttrs = relAttrs
             
     @property
     def isELR(self):
