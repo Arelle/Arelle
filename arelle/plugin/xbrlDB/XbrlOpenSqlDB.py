@@ -110,10 +110,10 @@ XBRLDBTABLES = {
 
 class XbrlSqlDatabaseConnection(SqlDbConnection):
     def verifyTables(self):
-        extTables = set()
-        for pluginXbrlMethod in pluginClassMethods("xbrlDB.Open.Ext.Tables"):
-            extTables |= pluginXbrlMethod(self)
-        coreAndExtTables = XBRLDBTABLES.copy() | extTables
+        allExtTables = set()
+        for pluginXbrlMethod in pluginClassMethods("xbrlDB.Open.Ext.TableDDLFiles"):
+            allExtTables |= pluginXbrlMethod(self)[0]
+        coreAndExtTables = XBRLDBTABLES | allExtTables
         presentTables = self.tablesInDB()
         # check for missing core tables and missing ext tables separately, ext tables can  be added by ext use later
         # if no tables, initialize database
@@ -125,14 +125,13 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                                      "orcl": "xbrlOpenOracleDB.sql",
                                                      "postgres": "xbrlOpenPostgresDB.ddl"}[self.product]))
             presentTables.clear() # db is cleared
-        # for this extension, add extension tables if all are missing
-        if not (presentTables & extTables):
-            ddlFiles = []
-            for pluginXbrlMethod in pluginClassMethods("xbrlDB.Open.Ext.DDLFiles"):
-                ddlFiles.extend(pluginXbrlMethod(self))
-            self.create(ddlFiles, dropPriorTables=False)
+        # for this extension, add extension tables if any ext's tables are missing
+        for pluginXbrlMethod in pluginClassMethods("xbrlDB.Open.Ext.TableDDLFiles"):
+            _extTables, _extDdlFiles = pluginXbrlMethod(self)
+            if not (presentTables & _extTables):
+                self.create(_extDdlFiles, dropPriorTables=False)
         
-        missingTables = (XBRLDBTABLES | extTables) - self.tablesInDB()
+        missingTables = coreAndExtTables - self.tablesInDB()
         if missingTables and missingTables != {"sequences"}:
             raise XPDBException("sqlDB:MissingTables",
                                 _("The following tables are missing: %(missingTableNames)s"),
@@ -622,6 +621,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 self.elementQnameId[qname(qn)] = elementId
                 
         elements = []
+        unreferencedDocumentsElements = []
         for element in filingDocumentElements:
             niceType  = element.niceType
             if niceType is not None and len(niceType) > 128:
@@ -642,6 +642,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                 element.isNumeric,
                                 element.isMonetary,
                                 element.isTextBlock))
+            else:
+                unreferencedDocumentsElements.append(element.qname)
         table = self.getTable('element', 'element_pk', 
                               ('document_fk', 'xml_id', 'xml_child_seq',
                                'qname', 'name', 'datatype_fk', 'base_type', 'substitution_group_element_fk',  
@@ -652,7 +654,22 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                              )
         for elementId, docId, qn in table:
             self.elementQnameId[qname(qn)] = elementId
-            
+
+        if unreferencedDocumentsElements:
+            results = self.execute("SELECT element_pk, qname FROM {} WHERE qname IN ({})"
+                                   .format(self.dbTableName("element"),
+                                           ', '.join(self.dbStr(qn.clarkNotation) for qn in unreferencedDocumentsElements)))
+            for elementId, qn in results:
+                self.elementQnameId[qname(qn)] = elementId
+                
+            # report on unmatched QNames
+            unmatchedElements = set(qn for qn in unreferencedDocumentsElements if qn not in self.elementQnameId)
+            if unmatchedElements:
+                self.modelXbrl.info("xpDB:warning",
+                                    _("Loading XBRL DB: Elements not found in DTS or database: %(unmatchedElements)s"),
+                                    modelObject=self.modelXbrl, 
+                                    unmatchedElements=", ".join(sorted(str(qn) for qn in unmatchedElements)))
+                
         updatesToSubstitutionGroup = set()
         for element in filingDocumentElements:
             if element.substitutionGroup in filingDocumentElements and element.modelDocument in self.documentIds:
@@ -817,7 +834,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                   tuple((self.resourceId[(self.documentIds[resource.modelDocument], elementChildSequence(resource))],
                                          self.documentIds[resource.modelDocument],
                                          elementChildSequence(referencePart),
-                                         self.elementQnameId[referencePart.qname],
+                                         self.elementQnameId.get(referencePart.qname), # null if element not in DB or referenced properly
                                          referencePart.textValue)
                                         for resource in uniqueResources.values()
                                         for referencePart in resource.iterchildren()

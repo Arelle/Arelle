@@ -1,6 +1,6 @@
--- This DDL (SQL) script initializes a database for the XBRL Abstract Model using Postgres
+-- This DDL (SQL) script initializes EDGAR extension tables for the XBRL Open Model using Postgres
 
--- (c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
+-- (c) Copyright 2017 Mark V Systems Limited, California US, All rights reserved.  
 -- Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 
 
@@ -14,77 +14,37 @@ SET escape_string_warning = off;
 SET search_path = public, pg_catalog;
 
 -- drop tables and sequences
--- DROP TABLE IF EXISTS entity CASCADE;
-DROP TABLE IF EXISTS filing CASCADE;
-DROP TABLE IF EXISTS report CASCADE;
-DROP TABLE IF EXISTS document CASCADE;
-DROP TABLE IF EXISTS referenced_documents CASCADE;
-DROP TABLE IF EXISTS concept CASCADE;
-DROP TABLE IF EXISTS data_type CASCADE;
-DROP TABLE IF EXISTS enumeration CASCADE;
-DROP TABLE IF EXISTS role_type CASCADE;
-DROP TABLE IF EXISTS arcrole_type CASCADE;
-DROP TABLE IF EXISTS used_on CASCADE;
-DROP TABLE IF EXISTS resource CASCADE;
-DROP TABLE IF EXISTS reference_part CASCADE;
-DROP TABLE IF EXISTS relationship_set CASCADE;
-DROP TABLE IF EXISTS relationship CASCADE;
-DROP TABLE IF EXISTS root CASCADE;
-DROP TABLE IF EXISTS fact CASCADE;
-DROP TABLE IF EXISTS footnote CASCADE;
-DROP TABLE IF EXISTS entity_identifier CASCADE;
-DROP TABLE IF EXISTS period CASCADE;
-DROP TABLE IF EXISTS unit CASCADE;
-DROP TABLE IF EXISTS unit_measure CASCADE;
-DROP TABLE IF EXISTS aspect_value_report_set CASCADE;
-DROP TABLE IF EXISTS aspect_value_set CASCADE;
-DROP TABLE IF EXISTS table_facts CASCADE;
-DROP TABLE IF EXISTS message CASCADE;
-DROP TABLE IF EXISTS message_reference CASCADE;
-DROP TABLE IF EXISTS industry CASCADE;
-DROP TABLE IF EXISTS industry_level CASCADE;
-DROP TABLE IF EXISTS industry_structure CASCADE;
+DROP TABLE IF EXISTS filing_edgar CASCADE;
+DROP TABLE IF EXISTS report_edgar CASCADE;
+DROP TABLE IF EXISTS industry_edgar CASCADE;
+DROP TABLE IF EXISTS industry_edgar_level CASCADE;
+DROP TABLE IF EXISTS industry_edgar_structure CASCADE;
 
-DROP SEQUENCE IF EXISTS seq_filing;
-DROP SEQUENCE IF EXISTS seq_object;
-DROP SEQUENCE IF EXISTS seq_relationship_set;
-DROP SEQUENCE IF EXISTS seq_message;
-DROP SEQUENCE IF EXISTS seq_industry;
-DROP SEQUENCE IF EXISTS seq_industry_level;
-DROP SEQUENCE IF EXISTS seq_industry_structure;
+DROP SEQUENCE IF EXISTS seq_industry_edgar;
+DROP SEQUENCE IF EXISTS seq_industry_edgar_level;
+DROP SEQUENCE IF EXISTS seq_industry_edgar_structure;
 
---
--- note that dropping table also drops the indexes and triggers
---
--- CREATE SEQUENCE seq_entity;
--- ALTER TABLE public.seq_entity OWNER TO postgres;
-
-CREATE SEQUENCE seq_filing;
-ALTER TABLE public.seq_filing OWNER TO postgres;
-
-CREATE TABLE filing (
-    filing_id bigint DEFAULT nextval('seq_filing'::regclass) NOT NULL,
-    filing_number character varying(30) NOT NULL, -- SEC accession number
-    legal_entity_number character varying(30), -- LEI
-    reference_number character varying(30), -- external code, e.g. CIK (which may change for an entity during entity's life)
-    standard_industry_code integer DEFAULT (-1) NOT NULL,
-    tax_number character varying(30),
-    form_type character varying(30),
-    accepted_timestamp timestamp without time zone DEFAULT now() NOT NULL,
-    is_most_current boolean DEFAULT false NOT NULL,
+CREATE TABLE filing_edgar (
+    filing_pk bigint NOT NULL,
+    accession_number character varying(30) NOT NULL, -- SEC accession number
     filing_date date NOT NULL,
-    creation_software text,
     authority_html_url text,
     entry_url text,
+    entity_name character varying,
+    zip_url text,
     fiscal_year character varying(6),
     fiscal_period character varying(30),
-    name_at_filing character varying,
-    legal_state_at_filing character varying,
     restatement_index character varying(6),
     period_index character varying(6),
-    first_5_comments character varying,
-    zip_url text,
-    file_number character varying(30), -- authority internal number
+    fiscal_year_end character varying(6),
+    file_number character varying(30), -- SEC file number
+    cik character varying(30),
+    tax_number character varying(30),
+    standard_industry_code integer DEFAULT (-1) NOT NULL,
+    filer_category character varying,
+    public_float float,
+    trading_symbol character varying,
+    legal_state character varying,
     phone character varying,
     phys_addr1 character varying, -- physical (real) address
     phys_addr2 character varying,
@@ -98,384 +58,41 @@ CREATE TABLE filing (
     mail_state character varying,
     mail_zip character varying,
     mail_country character varying,
-    fiscal_year_end character varying(6),
-    filer_category character varying,
-    public_float float,
-    trading_symbol character varying,
-    PRIMARY KEY (filing_id)
+    PRIMARY KEY (filing_pk)
 );
-CREATE UNIQUE INDEX filing_index02 ON filing USING btree (filing_number);
-CREATE INDEX filing_index03 ON filing USING btree (reference_number);
-CREATE INDEX filing_index04 ON filing USING btree (legal_entity_number);
+CREATE UNIQUE INDEX filing_edgar_index02 ON filing_edgar USING btree (accession_number);
+CREATE INDEX filing_edgar_index03 ON filing_edgar USING btree (file_number);
+CREATE INDEX filing_edgar_index04 ON filing_edgar USING btree (cik);
 
+ALTER TABLE public.filing_edgar OWNER TO postgres;
 
-ALTER TABLE public.filing OWNER TO postgres;
--- object sequence can be any element that can terminate a relationship (concept, type, resource, data point, document, role type, ...)
--- or be a reference of a message (report or any of above)
-CREATE SEQUENCE seq_object;
-ALTER TABLE public.seq_object OWNER TO postgres;
-
-CREATE TABLE report (
-    report_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
-    filing_id bigint NOT NULL,
-    report_data_doc_id bigint,  -- instance or primary inline document
-    report_schema_doc_id bigint,  -- extension schema of the report (primary)
-    agency_schema_doc_id bigint,  -- agency schema (receiving authority)
-    standard_schema_doc_id bigint,  -- e.g., IFRS, XBRL-US, or EDInet schema
-    PRIMARY KEY (report_id)
+CREATE TABLE report_edgar (
+    report_pk bigint NOT NULL,
+    form_type character varying(30),
+    first_5_comments character varying,
+    agency_schema_doc_fk bigint,  -- agency schema (receiving authority)
+    standard_schema_doc_fk bigint,  -- e.g., IFRS, XBRL-US, or EDInet schema
+    PRIMARY KEY (report_pk)
 );
-CREATE INDEX report_index02 ON report USING btree (filing_id);
 
+ALTER TABLE public.report_edgar OWNER TO postgres;
 
-ALTER TABLE public.report OWNER TO postgres;
+CREATE SEQUENCE seq_industry_edgar;
+ALTER TABLE public.seq_industry_edgar OWNER TO postgres;
 
-CREATE TABLE document (
-    document_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
-    document_url character varying(2048) NOT NULL,
-    document_type character varying(32),  -- ModelDocument.Type string value
-    namespace character varying(1024),  -- targetNamespace if schema else NULL
-    PRIMARY KEY (document_id)
-);
-CREATE INDEX document_index02 ON document USING hash (document_url);
-
-ALTER TABLE public.document OWNER TO postgres;
--- documents referenced by report or document
-
-CREATE TABLE referenced_documents (
-    object_id bigint NOT NULL,
-    document_id bigint NOT NULL
-);
-CREATE INDEX referenced_documents_index01 ON referenced_documents USING btree (object_id);
-CREATE UNIQUE INDEX referenced_documents_index02 ON referenced_documents USING btree (object_id, document_id);
-
-ALTER TABLE public.referenced_documents OWNER TO postgres;
-
-CREATE TABLE concept (
-    concept_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
-    document_id bigint NOT NULL,
-    xml_id text,
-    xml_child_seq character varying(1024),
-    qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    name character varying(1024) NOT NULL,  -- local qname
-    datatype_id bigint,
-    base_type character varying(128), -- xml base type if any
-    substitution_group_concept_id bigint,
-    balance character varying(16),
-    period_type character varying(16),
-    abstract boolean NOT NULL,
-    nillable boolean NOT NULL,
-    is_numeric boolean NOT NULL,
-    is_monetary boolean NOT NULL,
-    is_text_block boolean NOT NULL,
-    PRIMARY KEY (concept_id)
-);
-CREATE INDEX concept_index02 ON concept USING btree (document_id);
-CREATE INDEX concept_index03 ON concept USING hash (qname);
-
-ALTER TABLE public.concept OWNER TO postgres;
-
-CREATE TABLE data_type (
-    data_type_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
-    document_id bigint NOT NULL,
-    xml_id text,
-    xml_child_seq character varying(1024),
-    qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    name character varying(1024) NOT NULL,  -- local qname
-    base_type character varying(128), -- xml base type if any
-    derived_from_type_id bigint,
-    PRIMARY KEY (data_type_id)
-);
-CREATE INDEX data_type_index02 ON data_type USING btree (document_id);
-CREATE INDEX data_type_index03 ON data_type USING hash (qname);
-
-ALTER TABLE public.data_type OWNER TO postgres;
-
-CREATE TABLE enumeration (
-    data_type_id bigint NOT NULL,
-    document_id bigint NOT NULL,
-    value text
-);
-CREATE INDEX enumeration_index01 ON enumeration USING btree (data_type_id);
-CREATE INDEX enumeration_index02 ON enumeration USING btree (document_id);
-
-ALTER TABLE public.enumeration OWNER TO postgres;
-
-CREATE TABLE role_type (
-    role_type_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
-    document_id bigint NOT NULL,
-    xml_id text,
-    xml_child_seq character varying(1024),
-    role_uri character varying(1024) NOT NULL,
-    definition text,
-    PRIMARY KEY (role_type_id)
-);
-CREATE INDEX role_type_index02 ON role_type USING btree (document_id);
-CREATE INDEX role_type_index03 ON role_type USING hash (role_uri);
-
-ALTER TABLE public.role_type OWNER TO postgres;
-
-CREATE TABLE arcrole_type (
-    arcrole_type_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
-    document_id bigint NOT NULL,
-    xml_id text,
-    xml_child_seq character varying(1024),
-    arcrole_uri character varying(1024) NOT NULL,
-    cycles_allowed character varying(10) NOT NULL,
-    definition text,
-    PRIMARY KEY (arcrole_type_id)
-);
-CREATE INDEX arcrole_type_index02 ON arcrole_type USING btree (document_id);
-CREATE INDEX arcrole_type_index03 ON arcrole_type USING hash (arcrole_uri);
-
-ALTER TABLE public.arcrole_type OWNER TO postgres;
-
-CREATE TABLE used_on (
-    object_id bigint NOT NULL,
-    concept_id bigint NOT NULL
-);
-CREATE INDEX used_on_index01 ON used_on USING btree (object_id);
-CREATE UNIQUE INDEX used_on_index02 ON used_on USING btree (object_id, concept_id);
-
-ALTER TABLE public.used_on OWNER TO postgres;
-
-CREATE TABLE resource (
-    resource_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
-    document_id bigint NOT NULL,
-    xml_id text,
-    xml_child_seq character varying(1024),
-    qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    role character varying(1024),
-    value text,
-    xml_lang character varying(16),
-    PRIMARY KEY (resource_id)
-);
-CREATE INDEX resource_index02 ON resource USING btree (document_id, xml_child_seq);
-
-ALTER TABLE public.resource OWNER TO postgres;
-
-CREATE TABLE reference_part (
-    resource_id bigint NOT NULL,
-    document_id bigint NOT NULL,
-    qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    value text
-);
-CREATE INDEX reference_part_index01 ON reference_part USING btree (resource_id);
-CREATE INDEX reference_part_index02 ON reference_part USING btree (document_id);
-
-ALTER TABLE public.reference_part OWNER TO postgres;
-
-CREATE SEQUENCE seq_relationship_set;
-ALTER TABLE public.seq_relationship_set OWNER TO postgres;
-
-CREATE TABLE relationship_set (
-    relationship_set_id bigint DEFAULT nextval('seq_relationship_set'::regclass) NOT NULL,
-    document_id bigint NOT NULL,
-    arc_qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    link_qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    arc_role character varying(1024) NOT NULL,
-    link_role character varying(1024) NOT NULL,
-    PRIMARY KEY (relationship_set_id)
-);
-CREATE INDEX relationship_set_index02 ON relationship_set USING btree (document_id); 
-CREATE INDEX relationship_set_index03 ON relationship_set USING hash (arc_role); 
-CREATE INDEX relationship_set_index04 ON relationship_set USING hash (link_role); 
-
-ALTER TABLE public.relationship_set OWNER TO postgres;
-
-CREATE TABLE root (
-    relationship_set_id bigint NOT NULL,
-    relationship_id bigint NOT NULL
-);
-CREATE INDEX root_index01 ON root USING btree (relationship_set_id); 
-
-ALTER TABLE public.root OWNER TO postgres;
-
-
-CREATE TABLE relationship (
-    relationship_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
-    document_id bigint NOT NULL,
-    xml_id text,
-    xml_child_seq character varying(1024),
-    relationship_set_id bigint NOT NULL,
-    reln_order double precision,
-    from_id bigint,
-    to_id bigint,
-    calculation_weight double precision,
-    tree_sequence integer NOT NULL,
-    tree_depth integer NOT NULL,
-    preferred_label_role character varying(1024),
-    PRIMARY KEY (relationship_id)
-);
-CREATE INDEX relationship_index02 ON relationship USING btree (relationship_set_id); 
-CREATE INDEX relationship_index03 ON relationship USING btree (relationship_set_id, tree_depth); 
-CREATE INDEX relationship_index04 ON relationship USING btree (relationship_set_id, document_id, xml_child_seq);
-CREATE INDEX relationship_index05 ON relationship USING btree (from_id);
-
-ALTER TABLE public.relationship OWNER TO postgres;
-
-CREATE TABLE fact (
-    fact_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
-    report_id bigint,
-    document_id bigint NOT NULL,  -- multiple inline documents are sources of data points
-    xml_id text,
-    xml_child_seq character varying(1024),
-    source_line integer,
-    tuple_fact_id bigint, -- id of tuple parent
-    concept_id bigint NOT NULL,
-    context_xml_id character varying(1024), -- (do we need this?)
-    entity_identifier_id bigint,
-    period_id bigint,
-    aspect_value_set_id bigint,
-    unit_id bigint,
-    is_nil boolean DEFAULT FALSE,
-    precision_value character varying(16),
-    decimals_value character varying(16),
-    effective_value double precision,
-    language character varying(16), -- for string-valued facts else NULL
-    normalized_string_value character varying,
-    value text,
-    PRIMARY KEY (fact_id)
-);
-CREATE INDEX fact_index02 ON fact USING btree (document_id, xml_child_seq);
-CREATE INDEX fact_index03 ON fact USING btree (report_id);
-CREATE INDEX fact_index04 ON fact USING btree (concept_id);
-
-ALTER TABLE public.fact OWNER TO postgres;
-
-CREATE TABLE footnote (
-    fact_id bigint NOT NULL,
-    footnote_group character varying(1024),
-    type character varying(1024),
-    footnote_value_id character varying(1024),
-    language character varying(30),
-    normalized_string_value text,
-    value text
-);
-CREATE INDEX footnote_index01 ON footnote USING btree (fact_id);
-
-
-ALTER TABLE public.footnote OWNER TO postgres;
-
-CREATE TABLE entity_identifier (
-    entity_identifier_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
-    report_id bigint,
-    scheme character varying NOT NULL,
-    identifier character varying NOT NULL,
-    PRIMARY KEY (entity_identifier_id)
-);
-CREATE INDEX entity_identifier_index02 ON entity_identifier USING btree (report_id, identifier);
-
-ALTER TABLE public.entity_identifier OWNER TO postgres;
-
-CREATE TABLE period (
-    period_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
-    report_id bigint,
-    start_date date,
-    end_date date,
-    is_instant boolean NOT NULL,
-    is_forever boolean NOT NULL,
-    PRIMARY KEY (period_id)
-);
-CREATE INDEX period_index02 ON period USING btree (report_id, start_date, end_date, is_instant, is_forever);
-
-ALTER TABLE public.period OWNER TO postgres;
-
-CREATE TABLE unit (
-    unit_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
-    report_id bigint,
-    xml_id text,
-    xml_child_seq character varying(1024),
-    measures_hash char(32),
-    PRIMARY KEY (unit_id)
-);
-CREATE INDEX unit_index02 ON unit USING btree (report_id, measures_hash);
-
-ALTER TABLE public.unit OWNER TO postgres;
-
-
-CREATE TABLE unit_measure (
-    unit_id bigint NOT NULL,
-    qname character varying(1024) NOT NULL,  -- clark notation qname (do we need this?)
-    is_multiplicand boolean NOT NULL
-);
-CREATE INDEX unit_measure_index01 ON unit_measure USING btree (unit_id);
-CREATE INDEX unit_measure_index02 ON unit_measure USING btree (unit_id, (right(qname,16)), is_multiplicand);
-
-ALTER TABLE public.unit_measure OWNER TO postgres;
-
--- table to create aspect_value_set_id's for a report's aspect_value_sets
-CREATE TABLE aspect_value_report_set (
-    aspect_value_set_id bigint DEFAULT nextval('seq_object'::regclass) NOT NULL,
-    report_id bigint
-);
-CREATE INDEX aspect_value_report_set_index01 ON aspect_value_report_set (report_id);
-
-ALTER TABLE public.aspect_value_report_set OWNER TO postgres;
-
-
-CREATE TABLE aspect_value_set (
-    aspect_value_set_id bigint NOT NULL, -- index assigned by aspect_value_report_set
-    aspect_concept_id bigint NOT NULL,
-    aspect_value_id bigint,
-    is_typed_value boolean,
-    typed_value text
-);
-CREATE INDEX aspect_value_setindex01 ON aspect_value_set USING btree (aspect_value_set_id);
-CREATE INDEX aspect_value_setindex02 ON aspect_value_set USING btree (aspect_concept_id);
-
-ALTER TABLE public.aspect_value_set OWNER TO postgres;
-
-CREATE TABLE table_facts(
-    report_id bigint,
-    object_id bigint NOT NULL, -- may be any role_type or concept defining a table table with 'seq_object' id
-    table_code character varying(16),  -- short code of table, like BS, PL, or 4.15.221
-    fact_id bigint -- id of fact in this table (according to its concepts)
-);
-CREATE INDEX table_facts_index01 ON table_facts USING btree (report_id);
-CREATE INDEX table_facts_index02 ON table_facts USING btree (table_code);
-CREATE INDEX table_facts_index03 ON table_facts USING btree (fact_id);
-
-CREATE SEQUENCE seq_message;
-ALTER TABLE public.seq_message OWNER TO postgres;
-
-CREATE TABLE message (
-    message_id bigint DEFAULT nextval('seq_message'::regclass) NOT NULL,
-    report_id bigint,
-    sequence_in_report int,
-    message_code character varying(256),
-    message_level character varying(256),
-    value text,
-    PRIMARY KEY (message_id)
-);
-CREATE INDEX message_index02 ON message USING btree (report_id, sequence_in_report);
-
-ALTER TABLE public.message OWNER TO postgres;
-
-CREATE TABLE message_reference (
-    message_id bigint NOT NULL,
-    object_id bigint NOT NULL -- may be any table with 'seq_object' id
-);
-CREATE INDEX message_reference_index01 ON message_reference USING btree (message_id);
-CREATE UNIQUE INDEX message_reference_index02 ON message_reference USING btree (message_id, object_id);
-
-ALTER TABLE public.message_reference OWNER TO postgres;
-
-CREATE SEQUENCE seq_industry;
-ALTER TABLE public.seq_industry OWNER TO postgres;
-
-CREATE TABLE industry (
-    industry_id bigint DEFAULT nextval('seq_industry'::regclass) NOT NULL,
+CREATE TABLE industry_edgar (
+    industry_pk bigint DEFAULT nextval('seq_industry_edgar'::regclass) NOT NULL,
     industry_classification character varying,
     industry_code integer,
     industry_description character varying,
     depth integer,
-    parent_id bigint,
-    PRIMARY KEY (industry_id)
+    parent_fk bigint,
+    PRIMARY KEY (industry_pk)
 );
 
-ALTER TABLE public.industry OWNER TO postgres;
+ALTER TABLE public.industry_edgar OWNER TO postgres;
 
-INSERT INTO industry (industry_id, industry_classification, industry_code, industry_description, depth, parent_id) VALUES
+INSERT INTO industry_edgar (industry_pk, industry_classification, industry_code, industry_description, depth, parent_fk) VALUES
 (4315, 'SEC', 3576, 'Computer Communications Equipment', 4, 2424),
 (4316, 'SEC', 4955, 'Hazardous Waste Management', 4, 2552),
 (4317, 'SEC', 4990, 'Hazardous Waste Management', 3, 2792),
@@ -4809,31 +4426,31 @@ INSERT INTO industry (industry_id, industry_classification, industry_code, indus
 (4300, 'SIC', 9720, 'International Affairs', 3, 4297),
 (4298, 'SIC', 9710, 'National Security', 3, 4297),
 (4303, 'SIC', 9990, 'Nonclassifiable Establishments', 3, 4302)
-RETURNING industry_id;
+RETURNING industry_pk;
 
 --
 -- Data for Name: industry_level; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-CREATE SEQUENCE seq_industry_level;
-ALTER TABLE public.seq_industry_level OWNER TO postgres;
+CREATE SEQUENCE seq_industry_edgar_level;
+ALTER TABLE public.seq_industry_edgar_level OWNER TO postgres;
 
-CREATE TABLE industry_level (
-    industry_level_id bigint DEFAULT nextval('seq_industry_level'::regclass) NOT NULL,
+CREATE TABLE industry_edgar_level (
+    industry_level_pk bigint DEFAULT nextval('seq_industry_edgar_level'::regclass) NOT NULL,
     industry_classification character varying,
-    ancestor_id bigint,
+    ancestor_fk bigint,
     ancestor_code integer,
     ancestor_depth integer,
-    descendant_id bigint,
+    descendant_fk bigint,
     descendant_code integer,
     descendant_depth integer,
-    PRIMARY KEY (industry_level_id)
+    PRIMARY KEY (industry_level_pk)
 );
 
 
-ALTER TABLE public.industry_level OWNER TO postgres;
+ALTER TABLE public.industry_edgar_level OWNER TO postgres;
 
-INSERT INTO industry_level (industry_level_id, industry_classification, ancestor_id, ancestor_code, ancestor_depth, descendant_id, descendant_code, descendant_depth) VALUES
+INSERT INTO industry_edgar_level (industry_level_pk, industry_classification, ancestor_fk, ancestor_code, ancestor_depth, descendant_fk, descendant_code, descendant_depth) VALUES
 (1, 'SEC', 2677, 6300, 2, 2689, 6390, 3),
 (2, 'NAICS', 1666, 5415, 3, 1671, 541519, 5),
 (3, 'NAICS', 931, 423, 2, 999, 42384, 4),
@@ -14160,22 +13777,22 @@ INSERT INTO industry_level (industry_level_id, industry_classification, ancestor
 (9324, 'NAICS', 2037, 81, 1, 2082, 81221, 4),
 (9325, 'NAICS', 2037, 81, 1, 2078, 812191, 5),
 (9326, 'SIC', 3681, 4810, 3, 3682, 4812, 4)
-RETURNING industry_level_id;
+RETURNING industry_level_pk;
 
-CREATE SEQUENCE seq_industry_structure;
-ALTER TABLE public.seq_industry_structure OWNER TO postgres;
+CREATE SEQUENCE seq_industry_edgar_structure;
+ALTER TABLE public.seq_industry_edgar_structure OWNER TO postgres;
 
-CREATE TABLE industry_structure (
-    industry_structure_id bigint DEFAULT nextval('seq_industry_structure'::regclass) NOT NULL,
+CREATE TABLE industry_edgar_structure (
+    industry_structure_pk bigint DEFAULT nextval('seq_industry_edgar_structure'::regclass) NOT NULL,
     industry_classification character varying NOT NULL,
     depth integer NOT NULL,
     level_name character varying,
-    PRIMARY KEY (industry_structure_id)
+    PRIMARY KEY (industry_structure_pk)
 );
 
-ALTER TABLE public.industry_structure OWNER TO postgres;
+ALTER TABLE public.industry_edgar_structure OWNER TO postgres;
 
-INSERT INTO industry_structure (industry_structure_id, industry_classification, depth, level_name) VALUES
+INSERT INTO industry_edgar_structure (industry_structure_pk, industry_classification, depth, level_name) VALUES
 (1, 'SIC', 1, 'Division'),
 (2, 'SIC', 2, 'Major Group'),
 (3, 'SIC', 3, 'Industry Group'),
@@ -14189,5 +13806,4 @@ INSERT INTO industry_structure (industry_structure_id, industry_classification, 
 (51, 'NAICS', 3, 'Industry Group'),
 (52, 'NAICS', 4, 'NAICS Industry'),
 (53, 'NAICS', 5, 'National Industry')
-RETURNING industry_structure_id;
-
+RETURNING industry_structure_pk;

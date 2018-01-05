@@ -100,7 +100,7 @@ CREATE TABLE former_entity (
 );
 CREATE INDEX former_entity_index02 ON former_entity USING btree (entity_id);
 
-ALTER TABLE public.entity OWNER TO postgres;
+ALTER TABLE public.former_entity OWNER TO postgres;
 
 CREATE SEQUENCE seq_filing;
 ALTER TABLE public.seq_filing OWNER TO postgres;
