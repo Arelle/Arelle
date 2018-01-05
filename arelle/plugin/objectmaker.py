@@ -61,7 +61,7 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
         return
         
     try:
-        from graphviz import Digraph
+        from graphviz import Digraph, backend
     except ImportError:
         modelXbrl.error("objectmaker:missingLibrary",
                         "Missing library, please install graphviz for python importing",
@@ -114,31 +114,50 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
     
     nodes = set()
     edges = set()
+    arcroles = diagramNetworks[diagramNetwork]
 
-    for arcrole in diagramNetworks[diagramNetwork]:
-        relationshipType = arcrole.rpartition("/")[2].lower()
-        graphRelationshipSet = modelXbrl.relationshipSet(arcrole)
-        if not graphRelationshipSet:
-            continue
-        for rel in graphRelationshipSet.modelRelationships:
-            parent = rel.fromModelObject
-            parentName = parent.qname.localName
-            child = rel.toModelObject
-            if child is None:
+    lang = None # from parameter for override
+
+    # sort URIs by definition
+    linkroleUris = set()
+    if False: # isBaseSpec:
+        for arcrole in arcroles:
+            graphRelationshipSet = modelXbrl.relationshipSet(arcrole)
+            for linkroleUri in relationshipSet.linkRoleUris:
+                modelRoleTypes = self.modelXbrl.roleTypes.get(linkroleUri)
+                if modelRoleTypes:
+                    roledefinition = (modelRoleTypes[0].genLabel(lang=lang, strip=True) or modelRoleTypes[0].definition or linkroleUri)                    
+                else:
+                    roledefinition = linkroleUri
+                linkroleUris.add((roledefinition, linkroleUri))
+    else:
+        linkroleUris.add((None, None))
+
+    for roledefinition, linkroleUri in sorted(linkroleUris):
+        for arcrole in arcroles:
+            relationshipType = arcrole.rpartition("/")[2].lower()
+            graphRelationshipSet = modelXbrl.relationshipSet(arcrole, linkroleUri)
+            if not graphRelationshipSet:
                 continue
-            childName = child.qname.localName
-            if parentName not in nodes:
-                node(mdl, parentName, parent)
-                nodes.add(parentName)
-            if childName not in nodes:
-                node(mdl, childName, child)
-                nodes.add(childName)
-            edgeKey = (relationshipType, parentName, childName)
-            if edgeKey not in edges:
-                edges.add(edgeKey)
-                edgeType = networkEdgeTypes[diagramNetwork][relationshipType]
-                mdl.edge(parentName, childName, 
-                         dir=edgeType.get("dir"), arrowhead=edgeType.get("arrowhead"), arrowtail=edgeType.get("arrowtail"))
+            for rel in graphRelationshipSet.modelRelationships:
+                parent = rel.fromModelObject
+                parentName = parent.qname.localName
+                child = rel.toModelObject
+                if child is None:
+                    continue
+                childName = child.qname.localName
+                if parentName not in nodes:
+                    node(mdl, parentName, parent)
+                    nodes.add(parentName)
+                if childName not in nodes:
+                    node(mdl, childName, child)
+                    nodes.add(childName)
+                edgeKey = (relationshipType, parentName, childName)
+                if edgeKey not in edges:
+                    edges.add(edgeKey)
+                    edgeType = networkEdgeTypes[diagramNetwork][relationshipType]
+                    mdl.edge(parentName, childName, 
+                             dir=edgeType.get("dir"), arrowhead=edgeType.get("arrowhead"), arrowtail=edgeType.get("arrowtail"))
     
     if diagramNetwork == "dts":
         def viewDtsDoc(modelDoc, parentDocName, grandparentDocName):
@@ -161,7 +180,13 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
         viewDtsDoc(modelXbrl.modelDocument, None, None)
             
     mdl.format = "pdf"
-    mdl.render(diagramFile.replace(".pdf", ".gv"), view=viewDiagram) 
+    try:
+        mdl.render(diagramFile.replace(".pdf", ".gv"), view=viewDiagram)
+    except backend.ExecutableNotFound as ex:
+        modelXbrl.warning("objectmaker:graphvizExecutable",
+                        "Diagram saving requires installation of graphviz, error: %(error)s:",
+                        modelXbrl=modelXbrl, error=ex)
+         
 
 def objectmakerMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
