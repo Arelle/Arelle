@@ -9,6 +9,7 @@ This product uses graphviz, which must be installed separately on the platform.
 (c) Copyright 2017 Mark V Systems Limited, All rights reserved.
 '''
 import os, io, time, re
+from tkinter import Menu
 from arelle import ModelDocument, XmlUtil, XbrlConst
 from arelle.ModelDtsObject import ModelConcept
 
@@ -109,6 +110,8 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
                 mdl.node(id, "{{{}|{}}}".format(modelObject.qname.localName, _properties))
             elif isinstance(modelObject, ModelDocument.ModelDocument):
                 mdl.node(id, "{{{}|{}}}".format(modelObject.basename, modelObject.gettype()))
+            elif isinstance(modelObject, str): # linkrole definition
+                mdl.node(id, "{{{}}}".format(modelObject))
             else:
                 mdl.node(id, "{{{}}}".format(modelObject.qname.localName))
     
@@ -120,11 +123,11 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
 
     # sort URIs by definition
     linkroleUris = set()
-    if False: # isBaseSpec:
+    if isBaseSpec:
         for arcrole in arcroles:
             graphRelationshipSet = modelXbrl.relationshipSet(arcrole)
-            for linkroleUri in relationshipSet.linkRoleUris:
-                modelRoleTypes = self.modelXbrl.roleTypes.get(linkroleUri)
+            for linkroleUri in graphRelationshipSet.linkRoleUris:
+                modelRoleTypes = modelXbrl.roleTypes.get(linkroleUri)
                 if modelRoleTypes:
                     roledefinition = (modelRoleTypes[0].genLabel(lang=lang, strip=True) or modelRoleTypes[0].definition or linkroleUri)                    
                 else:
@@ -136,16 +139,26 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
     for roledefinition, linkroleUri in sorted(linkroleUris):
         for arcrole in arcroles:
             relationshipType = arcrole.rpartition("/")[2].lower()
-            graphRelationshipSet = modelXbrl.relationshipSet(arcrole, linkroleUri)
+            edgeType = networkEdgeTypes[diagramNetwork][relationshipType]
+            graphRelationshipSet = modelXbrl.relationshipSet(arcrole, linkroleUri)    
+            roleprefix = (linkroleUri.replace("/","_").replace(":","_") + "_") if linkroleUri else ""
             if not graphRelationshipSet:
                 continue
+            if linkroleUri is not None:
+                node(mdl, roleprefix, roledefinition or roleUri)
+                for rootConcept in graphRelationshipSet.rootConcepts:
+                    childName = roleprefix + rootConcept.qname.localName
+                    node(mdl, childName, rootConcept)
+                    nodes.add(childName)
+                    mdl.edge(roleprefix, childName, 
+                             dir=edgeType.get("dir"), arrowhead=edgeType.get("arrowhead"), arrowtail=edgeType.get("arrowtail"))
             for rel in graphRelationshipSet.modelRelationships:
                 parent = rel.fromModelObject
-                parentName = parent.qname.localName
+                parentName = roleprefix + parent.qname.localName
                 child = rel.toModelObject
                 if child is None:
                     continue
-                childName = child.qname.localName
+                childName = roleprefix + child.qname.localName
                 if parentName not in nodes:
                     node(mdl, parentName, parent)
                     nodes.add(parentName)
@@ -155,7 +168,6 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
                 edgeKey = (relationshipType, parentName, childName)
                 if edgeKey not in edges:
                     edges.add(edgeKey)
-                    edgeType = networkEdgeTypes[diagramNetwork][relationshipType]
                     mdl.edge(parentName, childName, 
                              dir=edgeType.get("dir"), arrowhead=edgeType.get("arrowhead"), arrowtail=edgeType.get("arrowtail"))
     
@@ -190,18 +202,22 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
 
 def objectmakerMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
-    menu.add_command(label="Draw Diagram", 
-                     underline=0, 
-                     command=lambda: objectmakerMenuCommand(cntlr) )
+    drawDiagMenu = Menu(cntlr.menubar, tearoff=0)
+    menu.add_cascade(label="Draw Diagram", underline=0, menu=drawDiagMenu)
+    drawDiagMenu.add_command(label=_("DTS"), underline=0, command=lambda: objectmakerMenuCommand(cntlr, "dts") )
+    drawDiagMenu.add_command(label=_("Presentation"), underline=0, command=lambda: objectmakerMenuCommand(cntlr, "pre") )
+    drawDiagMenu.add_command(label=_("Calculation"), underline=0, command=lambda: objectmakerMenuCommand(cntlr, "cal") )
+    drawDiagMenu.add_command(label=_("Definition"), underline=0, command=lambda: objectmakerMenuCommand(cntlr, "def") )
+    drawDiagMenu.add_command(label=_("UML"), underline=0, command=lambda: objectmakerMenuCommand(cntlr, "uml") )
 
-def objectmakerMenuCommand(cntlr):
+def objectmakerMenuCommand(cntlr, diagramNetwork):
     # save DTS menu item has been invoked
     if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
         cntlr.addToLog("No taxonomy loaded.")
         return
         # get file name into which to save log file while in foreground thread
     diagramFile = cntlr.uiFileDialog("save",
-            title=_("objectmaker - Save Diagram"),
+            title=_("objectmaker - Save {} diagram").format(diagramNetwork),
             initialdir=cntlr.config.setdefault("diagramFileDir","."),
             filetypes=[(_("Diagram file .pdf"), "*.pdf")],
             defaultextension=".pdf")
@@ -215,7 +231,7 @@ def objectmakerMenuCommand(cntlr):
     thread = threading.Thread(target=lambda 
                                   _modelXbrl=cntlr.modelManager.modelXbrl,
                                   _diagramFile=diagramFile: 
-                                        drawDiagram(_modelXbrl, _diagramFile, "uml", True))
+                                        drawDiagram(_modelXbrl, _diagramFile, diagramNetwork, True))
     thread.daemon = True
     thread.start()
     
