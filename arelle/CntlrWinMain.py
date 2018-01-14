@@ -720,6 +720,8 @@ class CntlrWinMain (Cntlr.Cntlr):
         
     def fileOpenFile(self, filename, importToDTS=False, selectTopView=False):
         if filename:
+            for xbrlLoadedMethod in pluginClassMethods("CntlrWinMain.Xbrl.Open"):
+                filename = xbrlLoadedMethod(self, filename) # runs in GUI thread, allows mapping filename, mult return filename
             filesource = None
             # check for archive files
             filesource = openFileSource(filename, self,
@@ -746,11 +748,13 @@ class CntlrWinMain (Cntlr.Cntlr):
         url = DialogURL.askURL(self.parent, buttonSEC=True, buttonRSS=True)
         if url:
             self.updateFileHistory(url, False)
+            for xbrlLoadedMethod in pluginClassMethods("CntlrWinMain.Xbrl.Open"):
+                url = xbrlLoadedMethod(self, url) # runs in GUI thread, allows mapping url, mult return url
             filesource = openFileSource(url,self)
             if filesource.isArchive and not filesource.selection: # or filesource.isRss:
                 from arelle import DialogOpenArchive
                 url = DialogOpenArchive.askArchiveFile(self, filesource)
-            self.updateFileHistory(url, False)
+                self.updateFileHistory(url, False)
             thread = threading.Thread(target=self.backgroundLoadXbrl, args=(filesource,False,False), daemon=True).start()
             
     def importWebOpen(self, *ignore):
