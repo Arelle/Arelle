@@ -102,7 +102,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
         "label, documentation": ("label", XbrlConst.documentationLabel, defaultLabelLang),
         "group": "linkrole",
         "linkrole": "linkrole",
-        "ELR": "linkrole"
+        "ELR": "linkrole",
+        "dimension default": "dimensionDefault"
         # reference ("reference", reference http resource role, reference part QName)
         # reference, required": ("reference", "http://treasury.gov/dataact/role/taxonomyImplementationNote", qname("{http://treasury.gov/dataact/parts-2015-12-31}dataact-part:Required"))
         # attribute, qname (attribute on element in xsd)
@@ -196,6 +197,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
     
     isUSGAAP = False
     isGenerateAndImport = True
+    extensionPrefixForCoreLabels = None
     dtsActionColIndex = 0
     dtsFiletypeColIndex = 1
     dtsPrefixColIndex = 2
@@ -269,6 +271,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     if lbType in ("label", "generic-label"):
                         # lang, if provided, is a regex pattern
                         thisDoc.labelLinkbases.append((lbType, lang, filename))
+                        if action == "extension" and not extensionPrefixForCoreLabels:
+                            extensionPrefixForCoreLabels = thisDoc.extensionSchemaPrefix
                     elif lbType in ("reference", "generic-reference"):
                         hasRefLB = True
                         thisDoc.referenceLinkbases.append((lbType, referenceRole, filename))
@@ -578,10 +582,6 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     subsGrp = cellValue(row, 'substitutionGroup')
                     isConcept = subsGrp in ("xbrli:item", "xbrli:tuple", 
                                             "xbrldt:hypercubeItem", "xbrldt:dimensionItem")
-                    try:
-                        _xx = (not prefix or prefix in genDocs) and name not in genDocs[prefix].extensionElements and name
-                    except Exception as ex:
-                        print ("Sheet {} row {} name {} exception: {}".format(importSheetName, iRow+1, name, ex))
                     if (prefix in genDocs) and name not in genDocs[prefix].extensionElements and name:
                         thisDoc = genDocs[prefix]
                         # elements row
@@ -709,8 +709,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                 preParent = cellValue(row, 'presentationParent', default='') # only one top parent makes sense
                                 if preParent:
                                     preParentPrefix, _sep, preParentName = preParent.rpartition(":")
-                                    if _sep:
-                                        preParentName = valueNameChars(preParentName)
+                                    preParentName = valueNameChars(preParentName)
                                     entryList = lbDepthList(preLB, topDepth)
                                     if entryList is not None:
                                         preRel = (preParentPrefix, preParentName, prefix, name, currentELR or currentELRdefinition)
@@ -721,7 +720,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                             preRels.add(preRel)
                                         else:
                                             pass
-                        if hasDefLB:
+                        if hasDefLB and topDepth != 999999:
                             entryList = lbDepthList(defLB, depth)
                             if entryList is not None:
                                 if depth == topDepth:
@@ -749,7 +748,12 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                             parentEltAttrs["{http://xbrl.org/2005/xbrldt}typedDomainRef"] = typedDomainRef
                                         elif isConcept:
                                             # explicit dimension
-                                            entryList.append( LBentry(prefix=prefix, name=name, arcrole="_dimensions_") )
+                                            role = None # default for a default dimension
+                                            if "dimensionDefault" in headerCols and cellHasValue(row, 'dimensionDefault', (str,bool)):
+                                                v = cellValue(row, 'dimensionDefault', strip=True)
+                                                if v:
+                                                    role = "_dimensionDefault_"
+                                            entryList.append( LBentry(prefix=prefix, name=name, arcrole="_dimensions_", role=role) )
                         if hasCalLB:
                             calcParents = cellValue(row, 'calculationParent', default='').split()
                             calcWeights = str(cellValue(row, 'calculationWeight', default='')).split() # may be float or string
@@ -757,9 +761,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                 # may be multiple parents split by whitespace
                                 for i, calcParent in enumerate(calcParents):
                                     calcWeight = calcWeights[i] if i < len(calcWeights) else calcWeights[-1]
-                                    calcParentPrefix, _sep, calcParentName = calcParent.partition(":")
-                                    if _sep:
-                                        calcParentName = valueNameChars(calcParentName)
+                                    calcParentPrefix, _sep, calcParentName = calcParent.rpartition(":")
+                                    calcParentName = valueNameChars(calcParentName)
                                     entryList = lbDepthList(calLB, topDepth)
                                     if entryList is not None:
                                         calRel = (calcParentPrefix, calcParentName, prefix, name)
@@ -773,8 +776,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 # accumulate extension labels and any reference parts
                 if useLabels or hasRelationshipToCol:
                     prefix, name = rowPrefixNameValues(row)
-                    if name is not None and prefix in genDocs:
-                        thisDoc = genDocs[prefix]
+                    if name is not None and (prefix in genDocs or extensionPrefixForCoreLabels):
+                        thisDoc = genDocs[extensionPrefixForCoreLabels or prefix]
                         preferredLabel = cellValue(row, 'preferredLabel')
                         for colItem, iCol in headerCols.items():
                             if isinstance(colItem, tuple):
@@ -853,8 +856,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                         thisDoc = None # deref for debugging
                                 
             except Exception as err:
-                fatalLoadingErrors.append("Excel row: {excelRow}, error: {error}, Traceback: {traceback}"
-                                   .format(error=err, excelRow=iRow, traceback=traceback.format_tb(sys.exc_info()[2])))            # uncomment to debug raise
+                fatalLoadingErrors.append("Excel sheet: {excelSheet}, row: {excelRow}, error: {error}, Traceback: {traceback}"
+                                   .format(error=err, excelSheet=importSheetName, excelRow=iRow, traceback=traceback.format_tb(sys.exc_info()[2])))            # uncomment to debug raise
                 
         if not headerCols:
             if not conceptsWs:
@@ -1448,14 +1451,16 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
            
         prefixedNamespaces = modelXbrl.prefixedNamespaces 
         def hrefConcept(prefix, name):
+            qn = qname(prefixedNamespaces[prefix], name)
+            if qn in modelXbrl.qnameConcepts:
+                return modelXbrl.qnameConcepts[qn]
+            elif name in modelXbrl.nameConcepts: # prefix may be null or ambiguous to multiple documents, try concept local name
+                return modelXbrl.nameConcepts[name][0]
             if prefix not in prefixedNamespaces:
                 modelXbrl.error("loadFromExcel:undefinedRelationshipElementPrefix",
                                 "Prefix not defined: %(prefix)s",
                                 modelXbrl=modelXbrl, prefix=prefix)
                 return None
-            qn = qname(prefixedNamespaces[prefix], name)
-            if qn in modelXbrl.qnameConcepts:
-                return modelXbrl.qnameConcepts[qn]
             modelXbrl.error("loadFromExcel:undefinedRelationshipElement",
                             "QName not defined: %(prefix)s:%(localName)s",
                             modelXbrl=modelXbrl, prefix=prefix, localName=name)
@@ -1472,7 +1477,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 return prefixedName
             return QName(prefix, prefixedNamespaces[prefix], name)
                 
-        def lbTreeWalk(lbType, parentElt, lbStruct, roleRefs, locs=None, arcsFromTo=None, fromPrefix=None, fromName=None):
+        def lbTreeWalk(lbType, parentElt, lbStruct, roleRefs, dimDef=False, locs=None, arcsFromTo=None, fromPrefix=None, fromName=None):
             order = 1.0
             for lbEntry in lbStruct:
                 if lbEntry.isELR:
@@ -1513,7 +1518,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                                            ("{http://www.w3.org/1999/xlink}role", role)))
                     locs = set()
                     arcsFromTo = set()
-                    lbTreeWalk(lbType, linkElt, lbEntry.childStruct, roleRefs, locs, arcsFromTo)
+                    lbTreeWalk(lbType, linkElt, lbEntry.childStruct, roleRefs, dimDef, locs, arcsFromTo)
                 else:
                     toPrefix = lbEntry.prefix
                     toName = lbEntry.name
@@ -1523,9 +1528,13 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                         "%(linkbase)s relationship element with prefix '%(prefix)s' localName '%(localName)s' not found",
                                         modelXbrl=modelXbrl, linkbase=lbType, prefix=lbEntry.prefix, localName=lbEntry.name)
                         continue
+                    if not toPrefix and toName in modelXbrl.nameConcepts:
+                        toPrefix = modelXbrl.nameConcepts[toName][0].qname.prefix
                     toLabel = "{}_{}".format(toPrefix, toName)
                     toLabelAlt = None
                     if not lbEntry.isRoot:
+                        if not fromPrefix and fromName in modelXbrl.nameConcepts:
+                            fromPrefix = modelXbrl.nameConcepts[fromName][0].qname.prefix
                         fromLabel = "{}_{}".format(fromPrefix, fromName)
                         if (fromLabel, toLabel) in arcsFromTo:
                             # need extra loc to prevent arc from/to duplication in ELR
@@ -1534,7 +1543,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                 if (fromLabel, toLabelAlt) not in arcsFromTo:
                                     toLabel = toLabelAlt
                                     break
-                    if toHref not in locs or toLabelAlt:
+                    if (toHref not in locs or toLabelAlt) and not dimDef:
                         XmlUtil.addChild(parentElt,
                                          XbrlConst.link, "loc",
                                          attributes=(("{http://www.w3.org/1999/xlink}type", "locator"),
@@ -1579,7 +1588,31 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                         if lbEntry.arcrole == "_dimensions_":  # pick proper consecutive arcrole
                             fromConcept = hrefConcept(fromPrefix, fromName)
                             toConcept = hrefConcept(toPrefix, toName)
-                            if toConcept is not None and toConcept.isHypercubeItem:
+                            if dimDef: # special case for default dimension
+                                if lbEntry.role != "_dimensionDefault_" and not lbTreeHasDimDefault(lbEntry.childStruct):
+                                    continue # forget subtree, no default
+                                if toConcept is not None and (toConcept.isDimensionItem or lbEntry.role == "_dimensionDefault_"):
+                                    if (toHref not in locs or toLabelAlt):
+                                        XmlUtil.addChild(parentElt,
+                                                         XbrlConst.link, "loc",
+                                                         attributes=(("{http://www.w3.org/1999/xlink}type", "locator"),
+                                                                     ("{http://www.w3.org/1999/xlink}href", toHref),
+                                                                     ("{http://www.w3.org/1999/xlink}label", toLabel)))        
+                                        locs.add(toHref)
+                                    if lbEntry.role != "_dimensionDefault_":
+                                        lbTreeWalk(lbType, parentElt, lbEntry.childStruct, roleRefs, dimDef, locs, arcsFromTo, toPrefix, toName)
+                                    else:
+                                        XmlUtil.addChild(parentElt, XbrlConst.link, "definitionArc",
+                                                         attributes=(("{http://www.w3.org/1999/xlink}type", "arc"),
+                                                                     ("{http://www.w3.org/1999/xlink}arcrole", XbrlConst.dimensionDefault),
+                                                                     ("{http://www.w3.org/1999/xlink}from", fromLabel), 
+                                                                     ("{http://www.w3.org/1999/xlink}to", toLabel), 
+                                                                     ("order", order)) + otherAttrs )
+                                        order += 1.0
+                                else:
+                                    lbTreeWalk(lbType, parentElt, lbEntry.childStruct, roleRefs, dimDef, locs, arcsFromTo, fromPrefix, fromName)
+                                continue
+                            elif toConcept is not None and toConcept.isHypercubeItem:
                                 arcrole = XbrlConst.all
                                 otherAttrs += ( (XbrlConst.qnXbrldtContextElement, "segment"), )
                             elif toConcept is not None and toConcept.isDimensionItem:
@@ -1609,8 +1642,22 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                                      ("order", order)) + otherAttrs )
                         order += 1.0
                     if lbType != "calculation" or lbEntry.isRoot:
-                        lbTreeWalk(lbType, parentElt, lbEntry.childStruct, roleRefs, locs, arcsFromTo, toPrefix, toName)
-                        
+                        lbTreeWalk(lbType, parentElt, lbEntry.childStruct, roleRefs, dimDef, locs, arcsFromTo, toPrefix, toName)
+
+        def lbTreeHasDimDefault(lbStruct):
+            for lbEntry in lbStruct:
+                if lbEntry.isELR:
+                    if not lbEntry.childStruct:
+                        continue
+                    if lbTreeHasDimDefault(lbEntry.childStruct):
+                        return True
+                else:
+                    if not lbEntry.isRoot and (lbEntry.arcrole == "_dimensions_" and lbEntry.role == "_dimensionDefault_"):
+                        return True
+                    if lbTreeHasDimDefault(lbEntry.childStruct):
+                        return True
+            return False
+                              
         for hasLB, lbType, lbLB in ((hasPreLB and thisDoc.hasPreLB, "presentation", preLB),
                                     (hasDefLB and thisDoc.hasDefLB, "definition", defLB),
                                     (hasCalLB and thisDoc.hasCalLB, "calculation", calLB),
@@ -1652,6 +1699,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                     roleRefs.add(("arcroleRef", _arcroleURI, _arcroleType.modelDocument.uri + "#" + _arcroleType.id))
                                     break
                         lbTreeWalk(lbType, lbElt, lbLB, roleRefs)
+                        if lbType == "definition" and lbTreeHasDimDefault(lbLB):
+                            lbTreeWalk(lbType, lbElt, lbLB, roleRefs, dimDef=True) # second tree walk for any dimension-defaults
                         firstLinkElt = None
                         for firstLinkElt in lbElt.iterchildren():
                             break
@@ -1673,7 +1722,11 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
         visitedDocNames.pop()
     
     def extensionHref(thisDoc, prefix, name):
-        if prefix == thisDoc.extensionSchemaPrefix:
+        if not prefix and name in modelXbrl.nameConcepts:
+            _concept = modelXbrl.nameConcepts[name][0]
+            filename = _concept.modelDocument.uri
+            prefix = _concept.qname.prefix
+        elif prefix == thisDoc.extensionSchemaPrefix:
             filename = thisDoc.extensionSchemaFilename
         elif prefix in thisDoc.imports:
             filename = thisDoc.imports[prefix][1][1]
@@ -1701,10 +1754,13 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
         os.chdir(priorCWD) # restore prior current working directory
     return modelXbrl.modelDocument
 
-def isExcelLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
-    return os.path.splitext(mappedUri)[1] in (".xlsx", ".xls", ".xlsm")
+def isExcelPath(filepath):
+    return os.path.splitext(filepath)[1] in (".xlsx", ".xls", ".xlsm")
 
-def excelLoaderFilingStart(cntlr, options, *args, **kwargs):
+def isExcelLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
+    return isExcelPath(filepath)
+
+def excelLoaderFilingStart(cntlr, options, filesource, entrypointFiles, *args, **kwargs):
     global excludeDesignatedEnumerations, annotateEnumerationsDocumentation, annotateElementDocumentation, saveXmlLang
     excludeDesignatedEnumerations = options.ensure_value("excludeDesignatedEnumerations", False)
     annotateEnumerationsDocumentation = options.ensure_value("annotateEnumerationsDocumentation", False)
@@ -1712,7 +1768,7 @@ def excelLoaderFilingStart(cntlr, options, *args, **kwargs):
     saveXmlLang = options.ensure_value("saveLang", None)
 
 def excelLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
-    if os.path.splitext(filepath)[1] not in (".xlsx", ".xls", ".xlsm"):
+    if not isExcelLoadable(modelXbrl, mappedUri, None, filepath):
         return None # not an OIM file
 
     cntlr = modelXbrl.modelManager.cntlr
@@ -1809,7 +1865,7 @@ class LBentry:
         if weight is not None:  # summationItem
             self.role = weight
         else:
-            self.role = role
+            self.role = role # resource role, or "default" if conept is a default dimension
         self.preferredLabel = preferredLabel
         self.relAttrs = relAttrs
             
