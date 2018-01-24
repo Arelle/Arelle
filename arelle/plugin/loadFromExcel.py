@@ -121,12 +121,15 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
         priorCWD = None
     importExcelBook = load_workbook(excelFile, data_only=True)
     sheetNames = importExcelBook.get_sheet_names()
+    dtsSheet = None
     if "XBRL DTS" in sheetNames: 
-        dtsWs = importExcelBook["XBRL DTS"]
+        dtsSheet = "XBRL DTS"
     elif "DTS" in sheetNames: 
-        dtsWs = importExcelBook["DTS"]
+        dtsSheet = "DTS"
     elif "Sheet2" in sheetNames: 
-        dtsWs = importExcelBook["Sheet2"]
+        dtsSheet = "Sheet2"
+    if dtsSheet:
+        dtsWs = importExcelBook[dtsSheet]
     else:
         dtsWs = None
     imports = {"xbrli": ( ("namespace", XbrlConst.xbrli), 
@@ -149,8 +152,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             return lbDepthList(lbStruct[-1].childStruct, depth-1, list)
         else:
             if hasDepthColumn:
-                cntlr.addToLog("Depth error, Excel row: {excelRow}"
-                               .format(excelRow=iRow),
+                cntlr.addToLog("Depth error, Excel sheet: {excelSheet} row: {excelRow}"
+                               .format(excelSheet=importSheetName, excelRow=iRow),
                                 messageCode="importExcel:depth")
             return None
     
@@ -171,6 +174,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             extensionSchemaNamespaceURI = "",
             extensionSchemaVersion = None, # <schema @version>
             extensionRoles = {}, # key is roleURI, value is role definition
+            extensionRoleLabels= defaultdict(set), # key is roleURI, value is set( (lang, label) )
             extensionElements = {},
             extensionTypes = {}, # attrs are name, base.  has facets in separate dict same as elements
             extensionLabels = {},  # key = (prefix, name, lang, role), value = label text
@@ -291,8 +295,10 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     thisDoc.schemaDocumentation = prefix
                 elif filetype == "enumerationDocumentation":
                     thisDoc.hasEnumerationDocumentation = True
-                elif filetype == "role" and namespaceURI:
+                elif filetype == "role" and namespaceURI: # filename is definition, prefix is optional used-on QNames
                     thisDoc.extensionRoles[namespaceURI] = (filename, prefix)
+                elif filetype == "role label" and namespaceURI and prefix: # filename is label, prefix is language
+                    thisDoc.extensionRoleLabels[namespaceURI].add( (filename, prefix) )
                 elif filetype == "schema-version" and filename:
                     thisDoc.extensionSchemaVersion = filename
                 elif filetype == "table-style" and filename == "xbrl-us":
@@ -319,13 +325,13 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 try:
                     skipRows.append((int(fromRow), int(toRow) if toRow else int(fromRow)))
                 except (ValueError, TypeError):
-                    fatalLoadingErrors.append("Exception (at skip rows): {error}, Excel row: {excelRow}"
-                                              .format(error=err, excelRow=iRow))
+                    fatalLoadingErrors.append("Exception (at skip rows): {error}, Excel sheet: {excelSheet} row: {excelRow}"
+                                              .format(error=err, excelSheet=dtsSheet, excelRow=iRow))
                 
                 
         except Exception as err:
-            fatalLoadingErrors.append("Exception: {error}, Excel row: {excelRow}, Traceback: {traceback}"
-                                      .format(error=err, excelRow=iRow, traceback=traceback.format_tb(sys.exc_info()[2])))
+            fatalLoadingErrors.append("Exception: {error}, Excel sheet: {excelSheet} row: {excelRow}, Traceback: {traceback}"
+                                      .format(error=err, excelSheet=dtsSheet, excelRow=iRow, traceback=traceback.format_tb(sys.exc_info()[2])))
     # remove any imported linkbaseRefs that are also generated
     for thisDoc in genDocs.values():
         linkbaseRefsToRemove = [i
@@ -1088,7 +1094,6 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 addFacets(thisDoc, restrElt, eltFacets)
                 del eltType
                 
-        # add role definitions (for discovery)
         for roleURI, (roleDefinition, usedOnRoles) in sorted(thisDoc.extensionRoles.items(), key=lambda rd: rd[1]):
             roleElt = XmlUtil.addChild(appinfoElt, XbrlConst.link, "roleType",
                                        attributes=(("roleURI",  roleURI),
@@ -1108,6 +1113,41 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 if hasGenLB and any(e.childStruct and e.isELR and (e.role == roleURI or e.name == roleDefinition) for e in genLB):
                     XmlUtil.addChild(roleElt, XbrlConst.link, "usedOn", text=qname("{http://xbrl.org/2008/generic}genlink:link"))
                         
+        # add role definitions (for discovery) and generic labels
+        if any(roleURI in thisDoc.extensionRoleLabels for roleURI in thisDoc.extensionRoles.keys()):
+            # add appinfo generic linkbase for gen labels
+            genLabLB = XmlUtil.addChild(appinfoElt, XbrlConst.link, "linkbase")
+            XmlUtil.addChild(genLabLB, XbrlConst.link, "roleRef",
+                             attributes=(("roleURI",  XbrlConst.genStandardLabel),
+                                         ("{http://www.w3.org/1999/xlink}href",  "http://www.xbrl.org/2008/generic-label.xsd#standard-label"),
+                                         ("{http://www.w3.org/1999/xlink}type",  "simple")))
+            XmlUtil.addChild(genLabLB, XbrlConst.link, "arcroleRef",
+                             attributes=(("arcroleURI",  elementLabel),
+                                         ("{http://www.w3.org/1999/xlink}href",  "http://www.xbrl.org/2008/generic-label.xsd#element-label"),
+                                         ("{http://www.w3.org/1999/xlink}type",  "simple")))
+            linkElt = XmlUtil.addChild(genLabLB, qname("{http://xbrl.org/2008/generic}genlink:link"),
+                                       attributes=(("{http://www.w3.org/1999/xlink}type", "extended"),
+                                                   ("{http://www.w3.org/1999/xlink}role", defaultLinkRole)))
+            for roleURI, _defLabel in sorted(thisDoc.extensionRoles.items(), key=lambda rd: rd[0]):
+                if roleURI in thisDoc.extensionRoleLabels:
+                    xlLabel = roleURI.rpartition("/")[2]
+                    XmlUtil.addChild(linkElt, XbrlConst.link, "loc",
+                                     attributes=(("{http://www.w3.org/1999/xlink}type", "locator"),
+                                                 ("{http://www.w3.org/1999/xlink}href", "#roleType_" + xlLabel),
+                                                 ("{http://www.w3.org/1999/xlink}label", "loc_" + xlLabel)))   
+                    XmlUtil.addChild(linkElt, XbrlConst.qnGenArc, 
+                                     attributes=(("{http://www.w3.org/1999/xlink}type", "arc"),
+                                                 ("{http://www.w3.org/1999/xlink}arcrole", elementLabel),
+                                                 ("{http://www.w3.org/1999/xlink}from", "loc_" + xlLabel), 
+                                                 ("{http://www.w3.org/1999/xlink}to", "label_" + xlLabel)))
+                    for (text, lang) in thisDoc.extensionRoleLabels[roleURI]:
+                        XmlUtil.addChild(linkElt, qname("{http://xbrl.org/2008/label}genlabel:label"),
+                                         attributes=(("{http://www.w3.org/1999/xlink}type", "resource"),
+                                                     ("{http://www.w3.org/1999/xlink}label", "label_" + xlLabel),
+                                                     ("{http://www.w3.org/1999/xlink}role", XbrlConst.genStandardLabel),
+                                                     ("{http://www.w3.org/XML/1998/namespace}lang", lang)),
+                                         text=text)
+            
         def addLinkbaseRef(lbType, lbFilename, lbDoc):
             role = "http://www.xbrl.org/2003/role/{0}LinkbaseRef".format(lbType)
             lbRefElt = XmlUtil.addChild(appinfoElt, XbrlConst.link, "linkbaseRef",
