@@ -866,7 +866,9 @@ def validateGraphicFile(elt, graphicFile):
     #normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
     with elt.modelXbrl.fileSource.file(normalizedUri,binary=True)[0] as fh:
         data = fh.read(11)
-        if data[:4] == b'\xff\xd8\xff\xe0' and data[6:] == b'JFIF\0': 
+        # Support both JFIF APP0 (0xffe0 + 'JFIF') and APP1 Exif (0xffe1 + 'Exif') JPEG application segement types
+        if (data[:4] == b'\xff\xd8\xff\xe0' and data[6:] == b'JFIF\0') or \
+           (data[:4] == b'\xff\xd8\xff\xe1' and data[6:] == b'Exif\0'):
             return "jpg"
         if data[:3] == b"GIF" and data[3:6] in (b'89a', b'89b', b'87a'):
             return "gif"
