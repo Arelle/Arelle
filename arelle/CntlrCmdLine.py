@@ -927,7 +927,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         if not options.validate:
                             ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
                         # setup fresh parameters from formula optoins
-                        modelXbrl.parameters = fo.typedParameters()
+                        modelXbrl.parameters = fo.typedParameters(modelXbrl.prefixedNamespaces)
                         ValidateFormula.validate(modelXbrl, compileOnly=(options.formulaAction != "run"))
                         self.addToLog(format_string(self.modelManager.locale, 
                                                     _("formula validation and execution in %.2f secs")

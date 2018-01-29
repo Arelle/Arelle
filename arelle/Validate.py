@@ -109,7 +109,7 @@ class Validate:
             self.validateRssFeed()
         else:
             try:
-                self.instValidator.validate(self.modelXbrl, self.modelXbrl.modelManager.formulaOptions.typedParameters())
+                self.instValidator.validate(self.modelXbrl, self.modelXbrl.modelManager.formulaOptions.typedParameters(self.modelXbrl.prefixedNamespaces))
                 self.instValidator.close()
             except Exception as err:
                 self.modelXbrl.error("exception:" + type(err).__name__,
@@ -141,7 +141,7 @@ class Validate:
                 if getattr(rssItem, "doNotProcessRSSitem", False) or modelXbrl.modelDocument is None:
                     modelXbrl.close()
                     continue # skip entry based on processing criteria
-                self.instValidator.validate(modelXbrl, self.modelXbrl.modelManager.formulaOptions.typedParameters())
+                self.instValidator.validate(modelXbrl, self.modelXbrl.modelManager.formulaOptions.typedParameters(self.modelXbrl.prefixedNamespaces))
                 self.instValidator.close()
                 rssItem.setResults(modelXbrl)
                 self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, rssItem.objectId())

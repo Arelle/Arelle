@@ -158,7 +158,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath):
                     beforeInstanceStream = False
                     if _streamingExtensionsValidate:
                         validator = Validate(modelXbrl)
-                        validator.instValidator.validate(modelXbrl, modelXbrl.modelManager.formulaOptions.typedParameters())
+                        validator.instValidator.validate(modelXbrl, modelXbrl.modelManager.formulaOptions.typedParameters(modelXbrl.prefixedNamespaces))
                     else: # need default dimensions
                         ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
             mdlObj = None # deref

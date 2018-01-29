@@ -48,7 +48,7 @@ def init(modelXbrl):
         modelXbrl.profileStat(None)
         
         # setup fresh parameters from formula options
-        modelXbrl.parameters = modelXbrl.modelManager.formulaOptions.typedParameters()
+        modelXbrl.parameters = modelXbrl.modelManager.formulaOptions.typedParameters(modelXbrl.prefixedNamespaces)
         
         # validate parameters and custom function signatures
         ValidateFormula.validate(modelXbrl, xpathContext=modelXbrl.rendrCntx, parametersOnly=True, statusMsg=_("compiling rendering tables"))

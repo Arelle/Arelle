@@ -390,7 +390,16 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
             try:
                 if val.parameters and paramQname in val.parameters:
                     paramDataType, paramValue = val.parameters[paramQname]
-                    typeLocalName = paramDataType.localName if paramDataType else "string"
+                    if isinstance(paramDataType, str):
+                        if paramDataType.startswith("xs:"):
+                            typeLocalName = paramDataType[3:]
+                        elif ":" in paramDataType:
+                            paramDataType = qname(paramDataType, val.modelXbrl.prefixedNamespaces)
+                            typeLocalName = paramDataType.localName
+                    elif isinstance(paramDataType, QName):
+                        typeLocalName = paramDataType.localName
+                    else:
+                        typeLocalName = "string"
                     value = FunctionXs.call(xpathContext, None, typeLocalName, [paramValue])
                     result = FunctionXs.call(xpathContext, None, asLocalName, [value])
                     if formulaOptions.traceParameterInputValue:
