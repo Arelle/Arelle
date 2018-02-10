@@ -23,15 +23,20 @@ from .DTS import checkFilingDTS, usNamespacesConflictPattern, ifrsNamespacesConf
 from .Dimensions import checkFilingDimensions
 from .PreCalAlignment import checkCalcsTreeWalk
 
-qnFasbExtensibleListItemTypes = (qname("{http://fasb.org/us-types/2017-01-31}us-types:extensibleListItemType"),
-                                 qname("{http://fasb.org/srt-types/2018-01-31}srt-types:extensibleListItemType"))
+#qnFasbExtensibleListItemTypes = (qname("{http://fasb.org/us-types/2017-01-31}us-types:extensibleListItemType"),
+#                                 qname("{http://fasb.org/srt-types/2018-01-31}srt-types:extensibleListItemType"))
 
-ifrsSrtConcepts = {
+ifrsSrtConcepts = { # concepts of ifrs items or axes which have a corresponding srt element
+    "CounterpartiesAxis": "CounterpartyNameAxis",
     "MajorCustomersAxis": "MajorCustomersAxis",
-    "RangeAxis": "RangeAxis",
-    "RetrospectiveApplicationAndRetrospectiveRestatementAxis": "RestatementAxis",
-    "GeographicalAreasAxis": "StatementGeographicalAxis"
+    "ProductsAndServicesAxis": "ProductOrServiceAxis",
+    "RangeAxis": "RangeAxis"
     }
+srtAxisIfrsMembers = { # members of IFRS axes which have SRT corresponding member elements
+    "CounterpartyNameAxis": {"CounterpartiesMember"},
+    "MajorCustomersAxis": {"MajorCustomersMember", "GovernmentMember"},
+    "ProductOrServiceAxis": {"ProductsAndServicesMember"},
+    "RangeAxis": {"RangesMember", "BottomOfRangeMember", "WeightedAverageMember", "TopOfRangeMember"}    }
 
 def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     if not hasattr(modelXbrl.modelDocument, "xmlDocument"): # not parsed
@@ -423,20 +428,20 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         modelObject=f, fact=f.qname, contextID=factContextID)
                     
                 # fasb extensibleListItemType checks (2017-2018 only)
-                if concept.instanceOfType(qnFasbExtensibleListItemTypes):
-                    qnEnumsInvalid = []
-                    for qnToken in value.split():
-                        for qnValue in qnameEltPfxName(f, qnToken):
-                            qnConcept = modelXbrl.qnameConcepts.get(qnValue)
-                            if qnConcept is None:
-                                qnEnumsInvalid.append(qnToken)
-                            else:
-                                conceptsUsed[qnConcept] = False
-                    if qnEnumsInvalid:
-                        modelXbrl.error("EFM.tbd",
-                            _("The fact %(fact)s contains inappropriate enumeration items %(enumerationItems)s in context %(contextID)s.  Please remove the inappropriate enumeratiuon items."),
-                            edgarCode="du-tbd",
-                            modelObject=f, fact=f.qname, contextID=factContextID, enumerationItems=", ".join(qnEnumsInvalid))
+                #if concept.instanceOfType(qnFasbExtensibleListItemTypes):
+                #    qnEnumsInvalid = []
+                #    for qnToken in value.split():
+                #        for qnValue in qnameEltPfxName(f, qnToken):
+                #            qnConcept = modelXbrl.qnameConcepts.get(qnValue)
+                #            if qnConcept is None:
+                #                qnEnumsInvalid.append(qnToken)
+                #            else:
+                #                conceptsUsed[qnConcept] = False
+                #    if qnEnumsInvalid:
+                #        modelXbrl.error("EFM.tbd",
+                #            _("The fact %(fact)s contains inappropriate enumeration items %(enumerationItems)s in context %(contextID)s.  Please remove the inappropriate enumeratiuon items."),
+                #            edgarCode="du-tbd",
+                #            modelObject=f, fact=f.qname, contextID=factContextID, enumerationItems=", ".join(qnEnumsInvalid))
                 
             if validateInlineXbrlGFM:
                 if f.localName == "nonFraction" or f.localName == "fraction":
@@ -1733,16 +1738,39 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 _("Taxonomy class %(conflictClass)s may not be used with document type %(documentType)s"),
                 modelObject=modelXbrl, conflictClass="IFRS", documentType=documentType)
         if 'ifrs-full' in val.standardNamespaceConflicts:
-            ifrsSrtConceptQNs = set(qname(ifrsModelDocument.targetNamespace, ifrsConceptName)
-                                    for ifrsModelDocument in val.standardNamespaceConflicts['ifrs-full']
-                                    for ifrsConceptName in ifrsSrtConcepts.keys())
+            ifrsNS = next(iter(val.standardNamespaceConflicts['ifrs-full'])).targetNamespace
+            srtNS = None
+            for ns in modelXbrl.namespaceDocs:
+                if "fasb.org/srt/" in ns:
+                    srtNS = ns
+                    break
+            ifrsSrtConceptQNs = set(qname(ifrsNS, ifrsConceptName) for ifrsConceptName in ifrsSrtConcepts.keys())
             ifrsSrtConceptsUsed = set(c.qname for c in conceptsUsed if c.qname in ifrsSrtConceptQNs)
-            if ifrsSrtConceptsUsed:
+            if ifrsSrtConceptsUsed and srtNS:
                 ifrsSrtObjs = set(f for f in modelXbrl.facts if f.qname in ifrsSrtConceptsUsed
                                   ) | set(c for c in modelXbrl.contexts.values() if _DICT_SET(c.qnameDims.keys()) & ifrsSrtConceptsUsed)
-                modelXbrl.warning("EFM.6.22.03.srtConceptsForIFRSConcepts",
+                modelXbrl.warning("EFM.6.05.40.srtConceptsForIFRSConcepts",
                     _("Taxonomy concepts from the SRT taxonomy should be used for the following IFRS concepts: %(ifrsSrtConceptsUsed)s"),
+                    edgarCode="cp-1610-SRT-Concepts-For-IFRS-Concepts",
                     modelObject=ifrsSrtObjs, ifrsSrtConceptsUsed=", ".join(str(qn) for qn in sorted(ifrsSrtConceptsUsed)))
+            srtAxesIfrsMemberQNs = {}
+            for srtAxisName, ifrsMems in srtAxisIfrsMembers.items():
+                srtAxisQn = qname(srtNS, srtAxisName)
+                srtAxisConcept = modelXbrl.qnameConcepts.get(srtAxisQn)
+                if srtAxisConcept in conceptsUsed:
+                    srtAxesIfrsMemberQNs[srtAxisQn] = set(qname(ifrsNS, ifrsMem) for ifrsMem in ifrsMems)
+            if srtAxesIfrsMemberQNs:
+                ifrsSrtMembersUsed = set(dim.memberQname 
+                                         for c in modelXbrl.contexts.values()
+                                         for dim in c.qnameDims.values()
+                                         if dim.dimensionQname in srtAxesIfrsMemberQNs and dim.memberQname in srtAxesIfrsMemberQNs[dim.dimensionQname])
+                if ifrsSrtMembersUsed:
+                    ifrsSrtObjs = set(c for c in modelXbrl.contexts.values() for dim in c.qnameDims.values()
+                                      if dim.dimensionQname in srtAxesIfrsMemberQNs and dim.memberQname in srtAxesIfrsMemberQNs[dim.dimensionQname])
+                    modelXbrl.warning("EFM.6.05.40.srtMembersForSRTAxes",
+                        _("Taxonomy axes from the SRT taxonomy should use SRT or extension members for the following IFRS member concepts: %(ifrsSrtConceptsUsed)s."),
+                        edgarCode="cp-1610-SRT-Members-For-SRT-Axes",
+                        modelObject=ifrsSrtObjs, ifrsSrtConceptsUsed=", ".join(str(qn) for qn in sorted(ifrsSrtMembersUsed)))
         if isInlineXbrl and documentType in {
             "485BPOS", "497", "K SDR", "L SDR",
             "S-1", "S-1/A", "S-1MEF", "S-3", "S-3/A", "S-3ASR", "S-3D", "S-3DPOS", "S-3MEF", "S-4", "S-4/A", "S-4EF", 
