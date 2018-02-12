@@ -912,7 +912,8 @@ class ModelDocument:
             importNamespace = element.get("namespace")
             isIncluded = False
         if importNamespace and schemaLocation:
-            importSchemaLocation = self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(schemaLocation, self.baseForElement(element))
+            importElementBase = self.baseForElement(element)
+            importSchemaLocation = self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(schemaLocation, importElementBase)
             if (self.modelXbrl.modelManager.validateDisclosureSystem and 
                     self.modelXbrl.modelManager.disclosureSystem.blockDisallowedReferences and
                     self.modelXbrl.modelManager.disclosureSystem.disallowedHrefOfNamespace(importSchemaLocation, importNamespace)):
@@ -938,9 +939,8 @@ class ModelDocument:
                     doc.inDTS = True    # now known to be discovered
                     doc.schemaDiscoverChildElements(doc.xmlRootElement)
             else:
-                doc = load(self.modelXbrl, importSchemaLocation, isDiscovered=self.inDTS, 
-                           isIncluded=isIncluded, namespace=importNamespace, referringElement=element,
-                           base='' if self.uri == self.basename else None)
+                doc = load(self.modelXbrl, schemaLocation, base=importElementBase, isDiscovered=self.inDTS, 
+                           isIncluded=isIncluded, namespace=importNamespace, referringElement=element)
             if doc is not None and doc not in self.referencesDocument:
                 self.referencesDocument[doc] = ModelDocumentReference(element.localName, element)  #import or include
                 self.referencedNamespaces.add(importNamespace)
