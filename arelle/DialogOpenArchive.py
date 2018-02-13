@@ -29,6 +29,7 @@ ARCHIVE = 1
 ENTRY_POINTS = 2
 DISCLOSURE_SYSTEM = 3
 PLUGIN = 4
+PACKAGE = 5
 
 def askArchiveFile(parent, filesource):
     filenames = filesource.dir
@@ -89,6 +90,19 @@ def selectPlugin(parent, pluginChoices):
         return filesource.selection
     return None
 
+def selectPackage(parent, packageChoices):
+    
+    filesource = attrdict(isRss=False, url="Packages", selection="") # emulates a filesource object for the selection return
+    dialog = DialogOpenArchive(parent, 
+                               PACKAGE, 
+                               filesource, 
+                               packageChoices, 
+                               _("Name"), 
+                               _("Select Package"))
+    if dialog and dialog.accepted:
+        return filesource.selection
+    return None
+
 
 class DialogOpenArchive(Toplevel):
     def __init__(self, parent, openType, filesource, filenames, title, colHeader, showAltViewButton=False):
@@ -123,7 +137,7 @@ class DialogOpenArchive(Toplevel):
         treeFrame.grid(row=0, column=0, columnspan=4, sticky=(N, S, E, W), padx=3, pady=3)
         self.treeView.focus_set()
         
-        if openType != PLUGIN:
+        if openType not in (PLUGIN, PACKAGE):
             cntlr.showStatus(_("loading archive {0}").format(filesource.url))
         self.filesource = filesource
         self.filenames = filenames
@@ -162,10 +176,10 @@ class DialogOpenArchive(Toplevel):
                 cntlr.addToLog(err)
                 return
     
-        if openType != PLUGIN:
+        if openType not in (PLUGIN, PACKAGE):
             cntlr.showStatus(None)
         
-        if openType in (DISCLOSURE_SYSTEM, PLUGIN):
+        if openType in (DISCLOSURE_SYSTEM, PLUGIN, PACKAGE):
             y = 3
         else:
             y = 1
@@ -222,8 +236,8 @@ class DialogOpenArchive(Toplevel):
             self.treeView.delete(previousNode)
 
         # set up treeView widget and tabbed pane
-        if openType in (ARCHIVE, DISCLOSURE_SYSTEM, PLUGIN):
-            if openType == PLUGIN: width = 770
+        if openType in (ARCHIVE, DISCLOSURE_SYSTEM, PLUGIN, PACKAGE):
+            if openType in (PLUGIN, PACKAGE): width = 770
             else: width = 500
             self.treeView.column("#0", width=width, anchor="w")
             self.treeView.heading("#0", text=colHeader)
@@ -248,6 +262,15 @@ class DialogOpenArchive(Toplevel):
                 self.treeView.heading("descr", text="Description")
                 self.treeView.column("license", width=60, anchor="w", stretch=False)
                 self.treeView.heading("license", text="License")
+            elif openType == PACKAGE:
+                self.treeView.column("#0", width=200, anchor="w")
+                self.treeView["columns"] = ("vers", "descr", "license")
+                self.treeView.column("vers", width=100, anchor="w", stretch=False)
+                self.treeView.heading("vers", text="Version")
+                self.treeView.column("descr", width=400, anchor="w", stretch=False)
+                self.treeView.heading("descr", text="Description")
+                self.treeView.column("license", width=70, anchor="w", stretch=False)
+                self.treeView.heading("license", text="License")
             else:
                 self.treeView["columns"] = tuple()
         
@@ -258,6 +281,8 @@ class DialogOpenArchive(Toplevel):
                         form, date, instDoc = filename[2:5]
                     elif openType == PLUGIN:
                         name, vers, descr, license = filename[3:7]
+                    elif openType == PACKAGE:
+                        vers, descr, license = filename[3:6]
                     filename = filename[0] # ignore tooltip
                     self.hasToolTip = True
                 if filename.endswith("/"):
@@ -274,6 +299,10 @@ class DialogOpenArchive(Toplevel):
                     self.treeView.set(node, "instDoc", os.path.basename(instDoc))
                 elif openType == PLUGIN:
                     self.treeView.set(node, "name", name)
+                    self.treeView.set(node, "vers", vers)
+                    self.treeView.set(node, "descr", descr)
+                    self.treeView.set(node, "license", license)
+                elif openType == PACKAGE:
                     self.treeView.set(node, "vers", vers)
                     self.treeView.set(node, "descr", descr)
                     self.treeView.set(node, "license", license)
@@ -337,7 +366,7 @@ class DialogOpenArchive(Toplevel):
                     self.accepted = True
                     self.close()
                 return
-            elif self.openType == PLUGIN:
+            elif self.openType in (PLUGIN, PACKAGE):
                 filename = self.filenames[int(selection[0][4:])][2]
             if filename is not None and not filename.endswith("/"):
                 if hasattr(self, "taxonomyPackage"):
@@ -352,7 +381,7 @@ class DialogOpenArchive(Toplevel):
                             # set unmmapped file
                             filename = prefix + filename[len(remapStart):]
                             break
-                if self.openType == PLUGIN:
+                if self.openType in (PLUGIN, PACKAGE):
                     self.filesource.selection = filename
                 else:
                     self.filesource.select(filename)
@@ -377,7 +406,7 @@ class DialogOpenArchive(Toplevel):
         tvRowId = self.treeView.identify_row(args[0].y)
         if tvRowId != self.toolTipRowId:
             text = None
-            if self.openType in (ARCHIVE, DISCLOSURE_SYSTEM, PLUGIN):
+            if self.openType in (ARCHIVE, DISCLOSURE_SYSTEM, PLUGIN, PACKAGE):
                 self.toolTipRowId = tvRowId
                 if tvRowId and len(tvRowId) > 4:
                     try:

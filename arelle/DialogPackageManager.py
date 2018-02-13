@@ -10,9 +10,9 @@ try:
     from tkinter.ttk import Treeview, Scrollbar, Frame, Label, Button
 except ImportError:
     from ttk import Treeview, Scrollbar, Frame, Label, Button
-from arelle import PackageManager, DialogURL
+from arelle import PackageManager, DialogURL, DialogOpenArchive
 from arelle.CntlrWinTooltip import ToolTip
-import os, time
+import os, time, json
 try:
     import regex as re
 except ImportError:
@@ -44,6 +44,7 @@ class DialogPackageManager(Toplevel):
         self.DISABLE = _("Disable")
         self.parent = mainWin.parent
         self.cntlr = mainWin
+        self.webCache = mainWin.webCache
         
         # copy plugins for temporary display
         self.packagesConfig = PackageManager.packagesConfig
@@ -61,6 +62,9 @@ class DialogPackageManager(Toplevel):
         buttonFrame = Frame(frame, width=40)
         buttonFrame.columnconfigure(0, weight=1)
         addLabel = Label(buttonFrame, text=_("Find taxonomy packages:"), wraplength=64, justify="center")
+        if not self.webCache.workOffline:
+            addSelectFromRegistryButton = Button(buttonFrame, text=_("Select"), command=self.selectFromRegistry)
+            ToolTip(addSelectFromRegistryButton, text=_("Select package from the XBRL Package Registry."), wraplength=240)
         addLocalButton = Button(buttonFrame, text=_("Locally"), command=self.findLocally)
         ToolTip(addLocalButton, text=_("File chooser allows selecting taxonomy packages to add (or reload), from the local file system.  "
                                        "Select either a PWD or prior taxonomy package zip file, or a taxonomy manifest (.taxonomyPackage.xml) within an unzipped taxonomy package.  "), wraplength=360)
@@ -74,9 +78,16 @@ class DialogPackageManager(Toplevel):
                                            "(Replaces pre-PWD search for either .taxonomyPackage.xml or catalog.xml).  "), wraplength=480)
         self.manifestNamePattern = ""
         addLabel.grid(row=0, column=0, pady=4)
-        addLocalButton.grid(row=1, column=0, pady=4)
-        addWebButton.grid(row=2, column=0, pady=4)
-        manifestNameButton.grid(row=3, column=0, pady=4)
+        selBtnRow = 1
+        if not self.webCache.workOffline:
+            addSelectFromRegistryButton.grid(row=selBtnRow, column=0, pady=4)
+            selBtnRow += 1
+        addLocalButton.grid(row=selBtnRow, column=0, pady=4)
+        selBtnRow += 1
+        addWebButton.grid(row=selBtnRow, column=0, pady=4)
+        selBtnRow += 1
+        manifestNameButton.grid(row=selBtnRow, column=0, pady=4)
+        selBtnRow += 1
         buttonFrame.grid(row=0, column=0, rowspan=3, sticky=(N, S, W), padx=3, pady=3)
         
         # right tree frame (packages already known to arelle)
@@ -95,10 +106,10 @@ class DialogPackageManager(Toplevel):
         packagesFrame.grid(row=0, column=1, columnspan=4, sticky=(N, S, E, W), padx=3, pady=3)
         self.packagesView.focus_set()
 
-        self.packagesView.column("#0", width=120, anchor="w")
+        self.packagesView.column("#0", width=190, anchor="w")
         self.packagesView.heading("#0", text=_("Name"))
         self.packagesView["columns"] = ("ver", "status", "date", "update", "descr")
-        self.packagesView.column("ver", width=150, anchor="w", stretch=False)
+        self.packagesView.column("ver", width=80, anchor="w", stretch=False)
         self.packagesView.heading("ver", text=_("Version"))
         self.packagesView.column("status", width=50, anchor="w", stretch=False)
         self.packagesView.heading("status", text=_("Status"))
@@ -331,6 +342,33 @@ class DialogPackageManager(Toplevel):
             self.packageMoveDownButton.config(state=DISABLED)
             self.packageReloadButton.config(state=DISABLED)
             self.packageRemoveButton.config(state=DISABLED)
+
+
+    def selectFromRegistry(self):
+        choices = [] # list of tuple of (file name, description)
+        uiLang = (self.cntlr.config.get("userInterfaceLangOverride") or self.cntlr.modelManager.defaultLang or "en")[:2]
+        def langLabel(labels):
+            for _lang in uiLang, "en":
+                for label in labels:
+                    if label["Language"].startswith(_lang):
+                         return label["Label"]
+            for label in labels:
+                 return label["Label"]
+            return ""
+            
+        with open(self.webCache.getfilename("https://taxonomies.xbrl.org/api/v0/taxonomy", reload=True), 'r', errors='replace') as fh:
+            regPkgs = json.load(fh) # always reload
+        for pkgTxmy in regPkgs.get("taxonomies", []):
+            _name = langLabel(pkgTxmy["Name"])
+            _description = langLabel(pkgTxmy.get("Description"))
+            _version = pkgTxmy.get("Version")
+            _license = pkgTxmy.get("License",{}).get("Name")
+            _url = pkgTxmy.get("Links",{}).get("AuthoritativeURL")
+            choices.append((_name,
+                            "name: {}\ndescription: {}\nversion: {}\nlicense: {}".format(
+                                    _name, _description, _version, _license),
+                            _url,  _version, _description, _license))
+        self.loadPackageUrl(DialogOpenArchive.selectPackage(self, choices))                                    
         
     def findLocally(self):
         initialdir = self.cntlr.pluginDir # default plugin directory
@@ -353,7 +391,9 @@ class DialogPackageManager(Toplevel):
                 
 
     def findOnWeb(self):
-        url = DialogURL.askURL(self)
+        self.loadPackageUrl(DialogURL.askURL(self))
+        
+    def loadPackageUrl(self, url):
         if url:  # url is the in-cache or local file
             packageInfo = PackageManager.packageInfo(self.cntlr, url, packageManifestName=self.manifestNamePattern)
             self.cntlr.showStatus("") # clear web loading status
