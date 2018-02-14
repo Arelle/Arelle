@@ -111,10 +111,12 @@ def validateXbrlFinally(val, *args, **kwargs):
                                 modelXbrl.error("cipc:disallowedScript",
                                     _("Element %(element)s has javascript in '%(attribute)s'"),
                                     modelObject=elt, attribute=attrTag, element=eltTag)
-                if isinstance(elt, (ModelInlineFootnote, ModelFootnote)):
+                if isinstance(elt, ModelInlineFootnote):
+                    checkFootnote(elt, elt.value)
+                elif isinstance(elt, ModelResource) and elt.qname == XbrlConst.qnLinkFootnote:
                     checkFootnote(elt, elt.value)
                 elif isinstance(elt, ModelInlineFact):
-                    if elt.format is not None and elt.format.qname != 'http://www.xbrl.org/inlineXBRL/transformation/2015-02-26':
+                    if elt.format is not None and elt.format.namespaceURI != 'http://www.xbrl.org/inlineXBRL/transformation/2015-02-26':
                         transformRegistryErrors.add(elt)
         elif modelDocument.type == ModelDocument.Type.INSTANCE:
             for elt in modelDocument.xmlRootElement.iter():
