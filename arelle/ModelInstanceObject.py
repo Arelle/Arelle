@@ -721,6 +721,12 @@ class ModelInlineFact(ModelInlineValueObject, ModelFact):
             return self._order
 
     @property
+    def parentElement(self):
+        """(ModelObject) -- parent element (tuple or xbrli:xbrl) of the inline target instance document
+            for inline root element, the xbrli:xbrl element is substituted for by the inline root element"""
+        return getattr(self, "_ixFactParent") # set by ModelDocument locateFactInTuple for the inline target's root element
+
+    @property
     def fractionValue(self):
         """( (str,str) ) -- (text value of numerator, text value of denominator)"""
         return (XmlUtil.text(XmlUtil.descendant(self, self.namespaceURI, "numerator")),

@@ -490,7 +490,10 @@ def addChild(parent, childName1, childName2=None, attributes=None, text=None, af
                     
     if isinstance(childName1, QName):
         addQnameValue(modelDocument, childName1)
-        child = modelDocument.parser.makeelement(childName1.clarkNotation)
+        if childName1.prefix:
+            child = modelDocument.parser.makeelement(childName1.clarkNotation, nsmap={childName1.prefix:childName1.namespaceURI}) 
+        else:
+            child = modelDocument.parser.makeelement(childName1.clarkNotation)
     else:   # called with namespaceURI, localName
         existingPrefix = xmlnsprefix(parent, childName1)
         prefix, sep, localName = childName2.partition(":")

@@ -338,7 +338,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                 doc = modelXbrl.schemaDocsToValidate.pop()
                 XmlValidateSchema.validate(doc, doc.xmlRootElement, doc.targetNamespace) # validate schema elements
             if hasattr(modelXbrl, "ixdsHtmlElements"):
-                inlineIxdsDiscover(modelXbrl) # compile cross-document IXDS references
+                inlineIxdsDiscover(modelXbrl, modelDocument) # compile cross-document IXDS references
                 
         if isEntry or kwargs.get("isSupplemental", False):  
             # re-order base set keys for entry point or supplemental linkbase addition
@@ -1312,7 +1312,8 @@ class ModelDocument:
         pass
     
 # inline document set level compilation
-def inlineIxdsDiscover(modelXbrl):
+# modelIxdsDocument is an inlineDocumentSet or entry inline document (if not a document set)
+def inlineIxdsDiscover(modelXbrl, modelIxdsDocument): 
     # compile inline result set
     ixdsEltById = defaultdict(list)
     for htmlElement in modelXbrl.ixdsHtmlElements:
@@ -1403,6 +1404,11 @@ def inlineIxdsDiscover(modelXbrl):
                         modelObject=modelXbrl)
                         
     del ixdsEltById, targetReferencePrefixNs, targetReferencesIDs
+    
+    # root elements by target
+    modelXbrl.ixTargetRootElements = {}
+    for target in targetReferenceAttrs.keys() | {None}: # need default target in case any facts have no or invalid target
+        modelXbrl.ixTargetRootElements[target] = XmlUtil.addChild(modelIxdsDocument, XbrlConst.qnXbrliXbrl, appendChild=False)
                     
     def locateFactInTuple(modelFact, tuplesByTupleID, ixNStag):
         tupleRef = modelFact.tupleRef
@@ -1426,8 +1432,13 @@ def inlineIxdsDiscover(modelXbrl):
                 modelXbrl.error(ixMsgCode("tupleMemberOrderMissing", modelFact, sect="validation"),
                                 _("Inline XBRL tuple member %(qname)s must have a numeric order attribute"),
                                 modelObject=modelFact, qname=modelFact.qname)
+            modelFact._ixFactParent = tuple # support ModelInlineFact parentElement()
         else:
             modelXbrl.modelXbrl.facts.append(modelFact)
+            try:
+                modelFact._ixFactParent = modelXbrl.ixTargetRootElements[modelFact.get("target")]
+            except KeyError:
+                modelFact._ixFactParent = modelXbrl.ixTargetRootElements[None]
             
     def locateContinuation(element, chain=None):
         contAt = element.get("continuedAt")

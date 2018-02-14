@@ -321,12 +321,17 @@ class XPathContext:
                         result = []
                     else:
                         op1 = self.effectiveBooleanValue( p, resultStack.pop() ) if len(resultStack) > 0 else False
-                        op2 = self.effectiveBooleanValue( p, self.evaluate(p.args, contextItem=contextItem) )
-                        result = False;
-                        if op == 'and':
-                            result = op1 and op2
-                        elif op == 'or':
-                            result = op1 or op2
+                        # consider short circuit possibilities
+                        if op == 'or' and op1:
+                            result = True
+                        elif op == 'and' and not op1:
+                            result = False
+                        else: # must evaluate other operand
+                            op2 = self.effectiveBooleanValue( p, self.evaluate(p.args, contextItem=contextItem) )
+                            if op == 'and':
+                                result = op1 and op2
+                            elif op == 'or':
+                                result = op1 or op2
                 elif op in UNARY_OPS:
                     s1 = self.atomize( p, self.evaluate(p.args, contextItem=contextItem) )
                     if len(s1) > 1:

@@ -674,7 +674,7 @@ def aspectMatches(xpCtx, fact1, fact2, aspect):
     if aspect == 1: # Aspect.LOCATION:
         return (fact2 is not None and
                 fact1.modelXbrl != fact2.modelXbrl or # test deemed true for multi-instance comparisons
-                fact1.getparent() == fact2.getparent())
+                fact1.parentElement == fact2.parentElement)
     if aspect == 2: # Aspect.CONCEPT:
         return fact2 is not None and fact1.qname == fact2.qname
     if fact1.isTuple or fact2.isTuple:

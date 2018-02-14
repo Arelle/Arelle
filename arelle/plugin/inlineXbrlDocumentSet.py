@@ -75,7 +75,7 @@ def xbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=False, nam
                 if referencedDoc.type == Type.SCHEMA:
                     ixdocset.targetDocumentSchemaRefs.add(ixdoc.relativeUri(referencedDoc.uri))
             ixdocset.ixNS = ixdoc.ixNS # set docset ixNS
-        inlineIxdsDiscover(modelXbrl) # compile cross-document IXDS references
+        inlineIxdsDiscover(modelXbrl, ixdocset) # compile cross-document IXDS references
         return ixdocset
     return None
 
