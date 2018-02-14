@@ -289,6 +289,7 @@ def checkContext(val, cntx):
                             problem = _("wrong content {0}").format(element.prefixedName)
                         else:
                             problem = None
+                            # validate enumeration typed dimension value here
                 if problem:
                     val.modelXbrl.error("xbrldie:IllegalTypedDimensionContentError",
                         _("Context %(contextID)s typed dimension %(dimension)s has %(error)s"),

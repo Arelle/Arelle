@@ -715,11 +715,11 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     
     @property
     def isEnumeration(self):
-        """(bool) -- True if derived from enum:enumerationItemType or enum:enumerationsItemType"""
+        """(bool) -- True if derived from enum:enumerationItemType or enum:enumerationsItemType or enum2:setValueDimensionType"""
         try:
             return self._isEnum
         except AttributeError:
-            self._isEnum = self.instanceOfType(XbrlConst.qnEnumerationItemTypes)
+            self._isEnum = self.instanceOfType(XbrlConst.qnEnumerationTypes)
             return self._isEnum
         
     @property

@@ -321,25 +321,6 @@ class ValidateXbrl:
                     self.modelXbrl.error("xbrl.5.1.1.3:itemType",
                         _("Item %(concept)s type %(itemType)s invalid"),
                         modelObject=concept, concept=concept.qname, itemType=concept.baseXbrliType)
-                if self.validateEnum and concept.isEnumeration:
-                    if not concept.enumDomainQname:
-                        self.modelXbrl.error(("enum2te:" if concept.instanceOfType(XbrlConst.qnEnumeration2ItemTypes) else "enumte:") +
-                                             "MissingDomainError",
-                            _("Item %(concept)s enumeration type must specify a domain."),
-                            modelObject=concept, concept=concept.qname,
-                            messageCodes=("enumte:MissingDomainError", "enum2te:MissingDomainError"))
-                    elif concept.enumDomain is None or (not concept.enumDomain.isItem) or concept.enumDomain.isHypercubeItem or concept.enumDomain.isDimensionItem:
-                        self.modelXbrl.error(("enum2te:" if concept.instanceOfType(XbrlConst.qnEnumeration2ItemTypes) else "enumte:") +
-                                             "InvalidDomainError",
-                            _("Item %(concept)s enumeration type must be a xbrli:item that is neither a hypercube nor dimension."),
-                            modelObject=concept, concept=concept.qname,
-                            messageCodes=("enumte:InvalidDomainError", "enum2te:InvalidDomainError"))
-                    if not concept.enumLinkrole:
-                        self.modelXbrl.error(("enum2te:" if concept.instanceOfType(XbrlConst.qnEnumeration2ItemTypes) else "enumte:") +
-                                             "MissingLinkRoleError",
-                            _("Item %(concept)s enumeration type must specify a linkrole."),
-                            modelObject=concept, concept=concept.qname,
-                            messageCodes=("enumte:MissingLinkRoleError", "enum2te:MissingLinkRoleError"))
                 if modelXbrl.hasXDT:
                     if concept.isHypercubeItem and not concept.abstract == "true":
                         self.modelXbrl.error("xbrldte:HypercubeElementIsNotAbstractError",
@@ -349,6 +330,25 @@ class ValidateXbrl:
                         self.modelXbrl.error("xbrldte:DimensionElementIsNotAbstractError",
                             _("Dimension item %(concept)s must be abstract"),
                             modelObject=concept, concept=concept.qname)
+            if self.validateEnum and concept.isEnumeration: # either a enum item type or enum set dimension type
+                if not concept.enumDomainQname:
+                    self.modelXbrl.error(("enum2te:" if concept.instanceOfType(XbrlConst.qnEnumeration2ItemTypes) else "enumte:") +
+                                         "MissingDomainError",
+                        _("Item %(concept)s enumeration type must specify a domain."),
+                        modelObject=concept, concept=concept.qname,
+                        messageCodes=("enumte:MissingDomainError", "enum2te:MissingDomainError"))
+                elif concept.enumDomain is None or (not concept.enumDomain.isItem) or concept.enumDomain.isHypercubeItem or concept.enumDomain.isDimensionItem:
+                    self.modelXbrl.error(("enum2te:" if concept.instanceOfType(XbrlConst.qnEnumeration2ItemTypes) else "enumte:") +
+                                         "InvalidDomainError",
+                        _("Item %(concept)s enumeration type must be a xbrli:item that is neither a hypercube nor dimension."),
+                        modelObject=concept, concept=concept.qname,
+                        messageCodes=("enumte:InvalidDomainError", "enum2te:InvalidDomainError"))
+                if not concept.enumLinkrole:
+                    self.modelXbrl.error(("enum2te:" if concept.instanceOfType(XbrlConst.qnEnumeration2ItemTypes) else "enumte:") +
+                                         "MissingLinkRoleError",
+                        _("Item %(concept)s enumeration type must specify a linkrole."),
+                        modelObject=concept, concept=concept.qname,
+                        messageCodes=("enumte:MissingLinkRoleError", "enum2te:MissingLinkRoleError"))
             if modelXbrl.hasXDT:
                 ValidateXbrlDimensions.checkConcept(self, concept)
         modelXbrl.profileStat(_("validateConcepts"))

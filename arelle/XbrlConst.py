@@ -172,9 +172,9 @@ enums = {"http://xbrl.org/2014/extensible-enumerations", "http://xbrl.org/PWD/20
          "http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1",
          "http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0"}
 qnEnumerationItemType2014 = qname("{http://xbrl.org/2014/extensible-enumerations}enum:enumerationItemType")
-qnEnumerationItemTypeYYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}enum:enumerationItemType")
-qnEnumerationSetItemTypeYYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}enum:enumerationSetItemType")
-qnEnumerationListItemTypeYYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}enum:enumerationListItemType")
+qnEnumerationItemTypeYYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}enum2:enumerationItemType")
+qnEnumerationSetItemTypeYYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}enum2:enumerationSetItemType")
+qnEnumerationSetValDimTypeYYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}enum2:setValueDimensionType")
 qnEnumerationItemType11YYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}enum:enumerationItemType")
 qnEnumerationSetItemType11YYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}enum:enumerationSetItemType")
 qnEnumerationListItemType11YYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}enum:enumerationListItemType")
@@ -187,6 +187,7 @@ qnEnumerationItemTypes = (qnEnumerationItemType2014,
                           qnEnumerationItemTypeYYYY, qnEnumerationSetItemTypeYYYY, 
                           qnEnumerationItemType11YYYY, qnEnumerationSetItemType11YYYY, qnEnumerationListItemType11YYYY,
                           qnEnumerationItemType2016, qnEnumerationsItemType2016)
+qnEnumerationTypes = qnEnumerationItemTypes + (qnEnumerationSetValDimTypeYYYY,)
 attrEnumerationDomain2014 = "{http://xbrl.org/2014/extensible-enumerations}domain"
 attrEnumerationDomainYYYY = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}domain"
 attrEnumerationDomain11YYYY = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}domain"

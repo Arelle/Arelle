@@ -88,6 +88,11 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
         namespaceURI = None # cancel namespace if it is a zero length string
     return QName(prefix, namespaceURI, localName)
 
+def qnameHref(href): # namespaceUri#localname
+    namespaceURI, _sep, localName = href.rpartition("#")
+    return QName(None, namespaceURI or None, localName)
+
+
 def qnameNsLocalName(namespaceURI, localName):  # does not handle localNames with prefix
     return QName(None, namespaceURI or None, localName)
 

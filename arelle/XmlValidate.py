@@ -12,7 +12,7 @@ except ImportError:
 from decimal import Decimal, InvalidOperation
 from fractions import Fraction
 from arelle import XbrlConst, XmlUtil
-from arelle.ModelValue import (qname, qnameEltPfxName, qnameClarkName, 
+from arelle.ModelValue import (qname, qnameEltPfxName, qnameClarkName, qnameHref,
                                dateTime, DATE, DATETIME, DATEUNION, 
                                anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay, isoDuration)
 from arelle.ModelObject import ModelObject, ModelAttribute
@@ -155,7 +155,10 @@ def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
                             elif modelConcept.fixed is not None:
                                 text = modelConcept.fixed
                         if baseXsdType == "token" and modelConcept.isEnumeration:
-                            baseXsdType = "enumerationQNames"
+                            if modelConcept.instanceOfType(XbrlConst.qnEnumeration2ItemTypes):
+                                baseXsdType = "enumerationHrefs"
+                            else:
+                                baseXsdType = "enumerationQNames"
             except Exception as err:
                 if ModelInlineValueObject is not None and isinstance(elt, ModelInlineValueObject):
                     errElt = "{0} fact {1}".format(elt.elementQname, elt.qname)
@@ -442,6 +445,9 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                             xValue not in modelXbrl.qnameAttributeGroups):
                             raise ValueError("qname not defined " + str(xValue))
                     '''
+                elif baseXsdType == "enumerationHrefs":
+                    xValue = [qnameHref(href) for href in value.split()]
+                    sValue = value
                 elif baseXsdType == "enumerationQNames":
                     xValue = [qnameEltPfxName(elt, qn, prefixException=ValueError) for qn in value.split()]
                     sValue = value
