@@ -351,7 +351,7 @@ class GenerateXbrlFormula:
                 pIndent, 
                 "satisfied-message" if fromRel.arcrole == XbrlConst.assertionSatisfiedMessage else "unsatisfied-message",
                 " ({})".format(fObj.xmlLang) if fObj.xmlLang else "",
-                fObj.text)
+                fObj.text.replace('"', '""'))
         elif isinstance(fObj, ModelCustomFunctionSignature):
             hasImplememntation = False
             if fObj not in visited:
