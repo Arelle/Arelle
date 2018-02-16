@@ -289,7 +289,24 @@ def checkContext(val, cntx):
                             problem = _("wrong content {0}").format(element.prefixedName)
                         else:
                             problem = None
-                            # validate enumeration typed dimension value here
+                            # validate enumeration set typed dimension value here
+                            if (val.validateEnum and typedDomainConcept.isEnumeration and getattr(element,"xValid", 0) == 4 and 
+                                element.get("{http://www.w3.org/2001/XMLSchema-instance}nil") not in ("true","1")):
+                                qnEnums = element.xValue
+                                if not isinstance(qnEnums, list): qnEnums = (qnEnums,)
+                                if not all(enumerationMemberUsable(val, typedDomainConcept, val.modelXbrl.qnameConcepts.get(qnEnum))
+                                           for qnEnum in qnEnums):
+                                    val.modelXbrl.error("enum2ie:InvalidDimensionSetValue",
+                                        _("Dimension value %(dimensionMember)s context %(contextID)s enumeration %(value)s is not in the domain of %(concept)s"),
+                                        modelObject=element, dimensionMember=element.qname, contextID=cntx.id, value=element.xValue, concept=element.qname)
+                                if len(qnEnums) > len(set(qnEnums)):
+                                    val.modelXbrl.error("enum2ie:RepeatedDimensionSetValue",
+                                        _("Dimension value %(dimensionMember)s context %(contextID)s enumeration has non-unique values %(value)s"),
+                                        modelObject=element, dimensionMember=element.qname, contextID=cntx.id, value=element.xValue, concept=element.qname)
+                                if any(qnEnum < qnEnums[i] for i, qnEnum in enumerate(qnEnums[1:])):
+                                    val.modelXbrl.error("enum2ie:InvalidDimensionSetOrder",
+                                        _("Dimension value %(dimensionMember) context %(contextID)s enumeration is not in lexicographical order %(value)s"),
+                                        modelObject=element, dimensionMember=element.qname, contextID=cntx.id, value=element.xValue, concept=element.qname)
                 if problem:
                     val.modelXbrl.error("xbrldie:IllegalTypedDimensionContentError",
                         _("Context %(contextID)s typed dimension %(dimension)s has %(error)s"),

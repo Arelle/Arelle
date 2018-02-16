@@ -752,23 +752,25 @@ class ValidateXbrl:
                         if not isinstance(qnEnums, list): qnEnums = (qnEnums,)
                         if not all(ValidateXbrlDimensions.enumerationMemberUsable(self, concept, self.modelXbrl.qnameConcepts.get(qnEnum))
                                    for qnEnum in qnEnums):
-                            self.modelXbrl.error(("enum2ie:" if concept.instanceOfType(XbrlConst.qnEnumeration2ItemTypes) else "enumie:") +
-                                "InvalidListFactValue" if concept.instanceOfType(XbrlConst.qnEnumerationListItemTypes) else
-                                "InvalidSetFactValue" if concept.instanceOfType(XbrlConst.qnEnumerationSetItemTypes) else
-                                "InvalidFactValue",
+                            self.modelXbrl.error(
+                                ("enum2ie:InvalidEnumerationSetValue" if concept.instanceOfType(XbrlConst.qnEnumerationSetItemTypes)
+                                 else "enum2ie:InvalidEnumerationValue") if concept.instanceOfType(XbrlConst.qnEnumeration2ItemTypes)
+                                else ("InvalidListFactValue" if concept.instanceOfType(XbrlConst.qnEnumerationListItemTypes) 
+                                      else "InvalidFactValue"),
                                 _("Fact %(fact)s context %(contextID)s enumeration %(value)s is not in the domain of %(concept)s"),
                                 modelObject=f, fact=f.qname, contextID=f.contextID, value=f.xValue, concept=f.qname,
                                 messageCodes=("enumie:InvalidFactValue", "enumie:InvalidListFactValue",
-                                              "enum2ie:InvalidFactValue", "enum2ie:InvalidSetFactValue"))
+                                              "enum2ie:InvalidEnumerationValue", "enum2ie:InvalidEnumerationSetValue"))
                         if concept.instanceOfType(XbrlConst.qnEnumerationSetItemTypes) and len(qnEnums) > len(set(qnEnums)):
-                            self.modelXbrl.error(("enum2ie:" if concept.instanceOfType(XbrlConst.qnEnumeration2ItemTypes) else "enumie:") +
-                                                 "RepeatedSetValue",
+                            self.modelXbrl.error(("enum2ie:" if concept.instanceOfType(XbrlConst.qnEnumeration2ItemTypes) 
+                                                  else "enumie:") +
+                                                 "RepeatedEnumerationSetValue",
                                 _("Fact %(fact)s context %(contextID)s enumeration has non-unique values %(value)s"),
                                 modelObject=f, fact=f.qname, contextID=f.contextID, value=f.xValue, concept=f.qname,
-                                messageCodes=("enumie:RepeatedSetValue", "enum2ie:RepeatedSetValue"))
-                        if concept.instanceOfType(XbrlConst.qnEnumerationSetItemTypeYYYY) and any(
+                                messageCodes=("enumie:RepeatedEnumerationSetValue", "enum2ie:RepeatedEnumerationSetValue"))
+                        if concept.instanceOfType(XbrlConst.qnEnumerationSetItemTypes) and any(
                                 qnEnum < qnEnums[i] for i, qnEnum in enumerate(qnEnums[1:])):
-                            self.modelXbrl.error("enum2ie:SetFactInvalidOrder",
+                            self.modelXbrl.error("enum2ie:InvalidEnumerationSetOrder",
                                 _("Fact %(fact)s context %(contextID)s enumeration is not in lexicographical order %(value)s"),
                                 modelObject=f, fact=f.qname, contextID=f.contextID, value=f.xValue, concept=f.qname)
                             
