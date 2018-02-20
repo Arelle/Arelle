@@ -6,10 +6,10 @@ input and optionally save an (extension) DTS.
 
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
-import os, io, sys, time, re, traceback, json
+import os, io, sys, time, re, traceback, json, posixpath
 from fnmatch import fnmatch
 from collections import defaultdict, OrderedDict
-from arelle import PythonUtil, XbrlConst, ModelDocument
+from arelle import PythonUtil, XbrlConst, ModelDocument, UrlUtil
 from arelle.PythonUtil import OrderedDefaultDict, OrderedSet
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelValue import qname, QName
@@ -17,6 +17,7 @@ from arelle.XbrlConst import (qnLinkLabel, standardLabelRoles, qnLinkReference, 
                               qnLinkPart, gen, link, defaultLinkRole,
                               conceptLabel, elementLabel, conceptReference, summationItem
                               )
+qnXbrldtClosed = qname("{http://xbrl.org/2005/xbrldt}xbrldt:closed")
 
 importColHeaderMap = defaultdict(list)
 resourceParsePattern = re.compile(r"(label[s]?|reference[s]?|relationship to),?\s*([\w][\w\s#+-:/]+[\w#+-/])(\s*[(]([^)]+)[)])?$")
@@ -171,6 +172,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             schemaDocumentation = None,
             extensionSchemaPrefix = "",
             extensionSchemaFilename = "",
+            extensionSchemaRelDirname = None, # only non-null for relative directory path
             extensionSchemaNamespaceURI = "",
             extensionSchemaVersion = None, # <schema @version>
             extensionRoles = {}, # key is roleURI, value is role definition
@@ -184,6 +186,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                   ("schemaLocation", "http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd") )}, # xml of imports
             includes = [], # just schemaLocation
             importXmlns = {},
+            importFilenames = {}, # file names relative to base
             childGenDocs = [],
             linkbaseRefs = [],
             labelLinkbases = [],
@@ -198,6 +201,16 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
         return genDocs[name]
     
     thisDoc = newDoc(None)
+    
+    excelDir = os.path.dirname(excelFile) + os.path.sep
+    
+    def docRelpath(filename, baseDir=None):
+        if baseDir is None:
+            baseDir = thisDoc.extensionSchemaRelDirname
+        if (baseDir is not None and 
+            not (UrlUtil.isAbsolute(filename) or os.path.isabs(filename))):
+            return posixpath.relpath(filename, baseDir)
+        return filename
     
     isUSGAAP = False
     isGenerateAndImport = True
@@ -236,8 +249,9 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 if filetype in ("role", "arcrole"):
                     continue
                 elif filetype == "schema":
-                    thisDoc.imports[prefix] = ( ("namespace", namespaceURI), ("schemaLocation", filename) )
+                    thisDoc.imports[prefix] = ( ("namespace", namespaceURI), ("schemaLocation", docRelpath(filename)) )
                     thisDoc.importXmlns[prefix] = namespaceURI
+                    thisDoc.importFilenames[prefix] = filename
                     if re.match(r"http://[^/]+/us-gaap/", namespaceURI):
                         isUSGAAP = True
                 elif filetype == "linkbase":
@@ -248,7 +262,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                         lbType = "unknown"
                     thisDoc.linkbaseRefs.append( (lbType, filename, False) )
             elif action == "include" and filename:
-                thisDoc.includes.append(filename)
+                thisDoc.includes.append(docRelpath(filename))
             elif action == "xmlns" and prefix and namespaceURI:
                 thisDoc.importXmlns[prefix] = namespaceURI
             elif action in ("extension", "generate"):
@@ -261,6 +275,10 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     thisDoc.extensionSchemaPrefix = prefix
                     thisDoc.extensionSchemaFilename = filename
                     thisDoc.extensionSchemaNamespaceURI = namespaceURI
+                    if not UrlUtil.isAbsolute(filename) and not os.path.isabs(filename):
+                        thisDoc.extensionSchemaRelDirname = posixpath.dirname(filename)
+                    else:
+                        thisDoc.extensionSchemaRelDirname = None
                 elif filetype == "linkbase":
                     typeLang = prefix.split()
                     if len(typeLang) > 0:
@@ -988,19 +1006,22 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             
         # add includes
         for filename in thisDoc.includes:
-            XmlUtil.addChild(schemaElt, 
-                             XbrlConst.xsd, "include",
-                             attributes=( ("schemaLocation", filename), ) )
+            XmlUtil.addChild(schemaElt, XbrlConst.xsd, "include", attributes=( ("schemaLocation", filename), ) )
+            
         # add imports
         for importPrefix, importAttributes in sorted(thisDoc.imports.items(),
                                                      key=lambda item:item[1]):
-            XmlUtil.addChild(schemaElt, 
-                             XbrlConst.xsd, "import",
-                             attributes=importAttributes)
+            XmlUtil.addChild(schemaElt, XbrlConst.xsd, "import", attributes=importAttributes)
             # is the import an xsd which we have to generate
             if importPrefix in genDocs and not genDocs[importPrefix].generated:
                 generateDoc(genDocs[importPrefix], doc, visitedDocNames) # generate document
             
+        # add imports for gen LB if any role definitions (for discovery) and generic labels
+        if any(roleURI in thisDoc.extensionRoleLabels for roleURI in thisDoc.extensionRoles.keys()):
+            for importAttributes in ((("namespace", XbrlConst.gen), ("schemaLocation", "http://www.xbrl.org/2008/generic-link.xsd")),
+                                     (("namespace", XbrlConst.genLabel), ("schemaLocation", "http://www.xbrl.org/2008/generic-label.xsd"))):
+                XmlUtil.addChild(schemaElt, XbrlConst.xsd, "import", attributes=importAttributes )
+
         _enumNum = [1] # must be inside an object to be referenced in a nested procedure
         
         def addFacets(thisDoc, restrElt, facets):
@@ -1152,7 +1173,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             role = "http://www.xbrl.org/2003/role/{0}LinkbaseRef".format(lbType)
             lbRefElt = XmlUtil.addChild(appinfoElt, XbrlConst.link, "linkbaseRef",
                                         attributes=(("{http://www.w3.org/1999/xlink}type",  "simple"),
-                                                    ("{http://www.w3.org/1999/xlink}href",  lbFilename),
+                                                    ("{http://www.w3.org/1999/xlink}href",  
+                                                     docRelpath(lbFilename, thisDoc.extensionSchemaRelDirname)),
                                                     ("{http://www.w3.org/1999/xlink}arcrole",  "http://www.w3.org/1999/xlink/properties/linkbase"),
                                                     # generic label ref has no role
                                                     ) + (() if lbType.startswith("generic") else
@@ -1280,6 +1302,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
     
         # label linkbase
         for lbType, lang, filename in thisDoc.labelLinkbases:
+            thisDoc.thisLBdir = posixpath.dirname(filename)
             langPattern = re.compile(lang or ".*")
             _isGeneric = lbType.startswith("generic")
             if _isGeneric and "http://xbrl.org/2008/label" not in modelXbrl.namespaceDocs:
@@ -1310,6 +1333,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 """ if _isGeneric else ""),
                 initialComment=thisDoc.initialComment)
             lbDoc.inDTS = True
+            lbDoc.loadedFromExcel = True
             if isGenerateAndImport:
                 addLinkbaseRef(lbType, filename, lbDoc) # must be explicitly imported
             lbElt = lbDoc.xmlRootElement
@@ -1333,7 +1357,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                         XmlUtil.addChild(linkElt,
                                          XbrlConst.link, "loc",
                                          attributes=(("{http://www.w3.org/1999/xlink}type", "locator"),
-                                                     ("{http://www.w3.org/1999/xlink}href", extensionHref(thisDoc, prefix, name)),
+                                                     ("{http://www.w3.org/1999/xlink}href", LBHref(thisDoc, prefix, name)),
                                                      ("{http://www.w3.org/1999/xlink}label", locLabel)))        
                         XmlUtil.addChild(linkElt,
                                          gen if _isGeneric else link, 
@@ -1379,6 +1403,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                          
         # reference linkbase
         for lbType, referenceRole, filename in thisDoc.referenceLinkbases:
+            thisDoc.thisLBdir = posixpath.dirname(filename)
             _isGeneric = lbType.startswith("generic")
             lbDoc = ModelDocument.create(modelXbrl, ModelDocument.Type.LINKBASE, filename, base="", initialXml="""
             <linkbase 
@@ -1406,6 +1431,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 """ if _isGeneric else ""),
                 initialComment=thisDoc.initialComment)
             lbDoc.inDTS = True
+            lbDoc.loadedFromExcel = True
             if isGenerateAndImport:
                 addLinkbaseRef(lbType, filename, lbDoc) # must be explicitly imported
             lbElt = lbDoc.xmlRootElement
@@ -1440,7 +1466,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     XmlUtil.addChild(linkElt,
                                      XbrlConst.link, "loc",
                                      attributes=(("{http://www.w3.org/1999/xlink}type", "locator"),
-                                                 ("{http://www.w3.org/1999/xlink}href", extensionHref(thisDoc, prefix, name)),
+                                                 ("{http://www.w3.org/1999/xlink}href", LBHref(thisDoc, prefix, name)),
                                                  ("{http://www.w3.org/1999/xlink}label", locLabel)))        
                     XmlUtil.addChild(linkElt,
                                      XbrlConst.link, "referenceArc",
@@ -1562,7 +1588,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 else:
                     toPrefix = lbEntry.prefix
                     toName = lbEntry.name
-                    toHref = extensionHref(thisDoc, toPrefix, toName)
+                    toHref = LBHref(thisDoc, toPrefix, toName)
                     if toHref is None:
                         modelXbrl.error("loadFromExcel:invalidQName",
                                         "%(linkbase)s relationship element with prefix '%(prefix)s' localName '%(localName)s' not found",
@@ -1654,7 +1680,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                 continue
                             elif toConcept is not None and toConcept.isHypercubeItem:
                                 arcrole = XbrlConst.all
-                                otherAttrs += ( (XbrlConst.qnXbrldtContextElement, "segment"), )
+                                otherAttrs += ( (XbrlConst.qnXbrldtContextElement, "segment"), 
+                                                (qnXbrldtClosed, "true") )
                             elif toConcept is not None and toConcept.isDimensionItem:
                                 arcrole = XbrlConst.hypercubeDimension
                             elif fromConcept is not None and fromConcept.isDimensionItem:
@@ -1704,6 +1731,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                     (hasGenLB and thisDoc.hasGenLB, "generic", genLB)):
             if hasLB:
                 for lbRefType, filename, generate in thisDoc.linkbaseRefs:
+                    thisDoc.thisLBdir = posixpath.dirname(filename)
                     if generate and lbType == lbRefType:
                         # output presentation linkbase
                         lbDoc = ModelDocument.create(modelXbrl, ModelDocument.Type.LINKBASE, filename, base='', initialXml="""
@@ -1724,6 +1752,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                         ),
                             initialComment=thisDoc.initialComment)
                         lbDoc.inDTS = True
+                        lbDoc.loadedFromExcel = True
                         addLinkbaseRef(lbRefType, filename, lbDoc)
                         lbElt = lbDoc.xmlRootElement
                         roleRefs = set()
@@ -1750,7 +1779,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                              link, roleref,
                                              attributes=(("arcroleURI" if roleref == "arcroleRef" else "roleURI", roleURI),
                                                          ("{http://www.w3.org/1999/xlink}type", "simple"),
-                                                         ("{http://www.w3.org/1999/xlink}href", href)),
+                                                         ("{http://www.w3.org/1999/xlink}href", 
+                                                          docRelpath(href, thisDoc.thisLBdir))),
                                              beforeSibling=firstLinkElt)
                         lbDoc.linkbaseDiscover(lbElt)  
                         break
@@ -1761,15 +1791,15 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     extUnrecognizedRoles.clear()
         visitedDocNames.pop()
     
-    def extensionHref(thisDoc, prefix, name):
+    def LBHref(thisDoc, prefix, name):
         if not prefix and name in modelXbrl.nameConcepts:
             _concept = modelXbrl.nameConcepts[name][0]
             filename = _concept.modelDocument.uri
             prefix = _concept.qname.prefix
         elif prefix == thisDoc.extensionSchemaPrefix:
             filename = thisDoc.extensionSchemaFilename
-        elif prefix in thisDoc.imports:
-            filename = thisDoc.imports[prefix][1][1]
+        elif prefix in thisDoc.importFilenames:
+            filename = thisDoc.importFilenames[prefix]
         elif prefix in genDocs:
             doc = genDocs[prefix]
             if not doc.generated:
@@ -1779,9 +1809,17 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 filename = doc.extensionSchemaFilename
             else:
                 return None
+        elif name in modelXbrl.nameConcepts:
+            filename = None
+            for _concept in modelXbrl.nameConcepts[name]:
+                if prefix == _concept.qname.prefix:
+                    filename = _concept.modelDocument.uri
+                    break
+            if not filename:
+                return None
         else:
             return None
-        return "{0}#{1}_{2}".format(filename, prefix, name)
+        return "{0}#{1}_{2}".format(docRelpath(filename, thisDoc.thisLBdir), prefix, name)
 
     for thisDoc in genOrder:
         if not thisDoc.generated:
@@ -1819,9 +1857,40 @@ def excelLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     modelXbrl.loadedFromExcel = True
     return doc
 
+def saveDts(cntlr, modelXbrl, outputDtsDir):
+    from arelle import ModelDocument
+    import shutil
+    excelFileDir = os.path.dirname(modelXbrl.fileSource.url)
+    def saveToFile(url):
+        if os.path.isabs(url):
+            return url
+        filepath = os.path.join(outputDtsDir, url)
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        return filepath
+    # save generated schema and their linkbases
+    for doc in modelXbrl.urlDocs.values():
+        if getattr(doc, "loadedFromExcel", False):
+            doc.save(saveToFile(doc.uri), updateFileHistory=False)
+            cntlr.showStatus(_("Saving XBRL DTS: {0}").format(os.path.basename(doc.uri)))
+            for refDoc in doc.referencesDocument.keys():
+                if refDoc.inDTS:
+                    if refDoc.type == ModelDocument.Type.LINKBASE:
+                        cntlr.showStatus(_("Saving XBRL DTS: {0}").format(os.path.basename(refDoc.uri)))
+                        refDoc.save(saveToFile(refDoc.uri), updateFileHistory=False)
+        elif not (UrlUtil.isAbsolute(doc.uri) or os.path.isabs(doc.uri) or outputDtsDir == excelFileDir):
+            srcfile = os.path.join(excelFileDir, doc.uri)
+            destfile = saveToFile(doc.uri)
+            if os.path.exists(srcfile):
+                if not os.path.exists(destfile):
+                    shutil.copyfile(srcfile, destfile)
+            else:
+                modelXbrl.error("loadFromExcel:missingReference",
+                                "Missing source file to copy to output DTS directory: %(missingFile)s",
+                                modelXbrl=modelXbrl, missingFile=doc.uri)
+            
+
 def guiXbrlLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
     if cntlr.hasGui and getattr(modelXbrl, "loadedFromExcel", False):
-        from arelle import ModelDocument
         from tkinter.filedialog import askdirectory
         outputDtsDir = askdirectory(parent=cntlr.parent,
                                     initialdir=cntlr.config.setdefault("outputDtsDir","."),
@@ -1829,40 +1898,12 @@ def guiXbrlLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
         cntlr.config["outputDtsDir"] = outputDtsDir
         cntlr.saveConfig()
         if outputDtsDir:
-            def saveToFile(url):
-                if os.path.isabs(url):
-                    return url
-                return os.path.join(outputDtsDir, url)
-            # save generated schema and their linkbases
-            for doc in modelXbrl.urlDocs.values():
-                if getattr(doc, "loadedFromExcel", False):
-                    doc.save(saveToFile(doc.uri), updateFileHistory=False)
-                    cntlr.showStatus(_("Saving XBRL DTS: {0}").format(os.path.basename(doc.uri)))
-                    for refDoc in doc.referencesDocument.keys():
-                        if refDoc.inDTS:
-                            if refDoc.type == ModelDocument.Type.LINKBASE:
-                                cntlr.showStatus(_("Saving XBRL DTS: {0}").format(os.path.basename(refDoc.uri)))
-                                refDoc.save(saveToFile(refDoc.uri), updateFileHistory=False)
+            saveDts(cntlr, modelXbrl, outputDtsDir)
         cntlr.showStatus(_("Excel loading completed"), 3500)
 
 def cmdLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
     if options.saveExcelDTSdirectory and getattr(modelXbrl, "loadedFromExcel", False):
-        from arelle import ModelDocument
-        def saveToFile(url):
-            if os.path.isabs(url):
-                return url
-            # create any needed subdirectories
-            return os.path.join(options.saveExcelDTSdirectory, url)
-        # save generated schema and their linkbases
-        for doc in modelXbrl.urlDocs.values():
-            if getattr(doc, "loadedFromExcel", False):
-                doc.save(saveToFile(doc.uri))
-                cntlr.showStatus(_("Saving XBRL DTS: {0}").format(os.path.basename(doc.uri)))
-                for refDoc in doc.referencesDocument.keys():
-                    if refDoc.inDTS:
-                        if refDoc.type == ModelDocument.Type.LINKBASE:
-                            cntlr.showStatus(_("Saving XBRL DTS: {0}").format(os.path.basename(refDoc.uri)))
-                            refDoc.save(saveToFile(refDoc.uri))
+        saveDts(cntlr, modelXbrl, options.saveExcelDTSdirectory)
 
 def excelLoaderOptionExtender(parser, *args, **kwargs):
     parser.add_option("--save-Excel-DTS-directory", 
