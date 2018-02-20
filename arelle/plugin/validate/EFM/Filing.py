@@ -1722,8 +1722,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     # checks for namespace clashes
     if isEFM:
         # check number of us-roles taxonomies referenced
-        for conflictClass, modelDocuments in val.standardNamespaceConflicts.items():
-            if len(modelDocuments) > 1:
+        for conflictClass, modelDocuments in val.standardNamespaceConflicts.items():                                                                
+            if len(modelDocuments) > 1 and (conflictClass != 'srt+us-gaap' or 
+                                            ('srt-types' in val.standardNamespaceConflicts)): # ignore multi us-gaap conflicts without srt
                 modelXbrl.error("EFM.6.22.03.incompatibleSchemas",
                     _("References for conflicting standard taxonomies %(conflictClass)s are not allowed in same DTS %(namespaceConflicts)s"),
                     edgarCode="cp-2203-Incompatible-Taxonomy-Versions",

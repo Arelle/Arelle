@@ -16,7 +16,7 @@ roleTypePattern = None
 arcroleTypePattern = None
 arcroleDefinitionPattern = None
 namePattern = None
-usNamespacesConflictPattern = re.compile(r"http://(xbrl\.us|fasb\.org|xbrl\.sec\.gov)/(dei|us-types|us-roles|srt-types|srt-roles|rr)/([0-9]{4}-[0-9]{2}-[0-9]{2})$")
+usNamespacesConflictPattern = re.compile(r"http://(xbrl\.us|fasb\.org|xbrl\.sec\.gov)/(dei|us-gaap|srt|us-types|us-roles|srt-types|srt-roles|rr)/([0-9]{4}-[0-9]{2}-[0-9]{2})$")
 ifrsNamespacesConflictPattern = re.compile(r"http://xbrl.ifrs.org/taxonomy/([0-9]{4}-[0-9]{2}-[0-9]{2})/(ifrs[\w-]*)$")
 linkroleDefinitionBalanceIncomeSheet = None
 extLinkEltFileNameEnding = {
@@ -67,7 +67,11 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                 for pattern, indexGroup in ((usNamespacesConflictPattern,2),(ifrsNamespacesConflictPattern,2)):
                     match = pattern.match(modelDocument.targetNamespace)
                     if match is not None:
-                        val.standardNamespaceConflicts[match.group(indexGroup)].add(modelDocument)
+                        conflictClass = match.group(indexGroup)
+                        if (conflictClass == 'us-gaap' and match.group(3) < '2018') or conflictClass == 'srt':
+                            val.standardNamespaceConflicts['srt+us-gaap'].add(modelDocument) # ignore non-srt multi-usgaap in Filing.py
+                        if conflictClass not in ('us-gaap', 'srt'):
+                            val.standardNamespaceConflicts[conflictClass].add(modelDocument)
                 
         else:
             if len(modelDocument.basename) > 32:
