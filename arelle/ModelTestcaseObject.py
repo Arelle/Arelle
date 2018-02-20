@@ -6,6 +6,7 @@ Refactored from ModelObject on Jun 11, 2011
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 import os, io, logging
+from collections import defaultdict
 from arelle import XmlUtil, XbrlConst, ModelValue
 from arelle.ModelObject import ModelObject
 from arelle.PluginManager import pluginClassMethods
@@ -116,6 +117,17 @@ class ModelTestcaseVariation(ModelObject):
             if not self._readMeFirstUris:  # provide a dummy empty instance document
                 self._readMeFirstUris.append(os.path.join(self.modelXbrl.modelManager.cntlr.configDir, "empty-instance.xml"))
             return self._readMeFirstUris
+    
+    @property
+    def dataUris(self):
+        try:
+            return self._dataUris
+        except AttributeError:
+            self._dataUris = defaultdict(list) # may contain instances, schemas, linkbases
+            for dataElement in XmlUtil.descendants(self, None, ("data", "input")):
+                for elt in XmlUtil.descendants(dataElement, None, ("xsd", "schema", "linkbase", "instance")):
+                    self._dataUris["schema" if elt.localName == "xsd" else elt.localName].append(elt.textValue.strip())
+            return self._dataUris
     
     @property
     def parameters(self):

@@ -8,7 +8,7 @@ import os, sys, traceback, re
 from collections import defaultdict, OrderedDict
 from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlConst, 
                ValidateXbrl, ValidateFiling, ValidateHmrc, ValidateVersReport, ValidateFormula,
-               ValidateInfoset, RenderingEvaluator, ViewFileRenderedGrid)
+               ValidateInfoset, RenderingEvaluator, ViewFileRenderedGrid, UrlUtil)
 from arelle.ModelDocument import Type, ModelDocumentReference, load as modelDocumentLoad
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact
@@ -240,7 +240,7 @@ class Validate:
                         modelXbrl.isTestcaseVariation = True
                     if modelXbrl.modelDocument is None:
                         modelXbrl.error("arelle:notLoaded",
-                             _("Testcase %(id)s %(name)s document not loaded: %(file)s"),
+                             _("Variation %(id)s %(name)s readMeFirst document not loaded: %(file)s"),
                              modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, file=os.path.basename(readMeFirstUri))
                         self.determineNotLoadedTestStatus(modelTestcaseVariation, modelXbrl.errors)
                         modelXbrl.close()
@@ -288,7 +288,7 @@ class Validate:
                         modelTestcaseVariation.status = "generated"
                     else:
                         modelXbrl.error("arelle:notLoaded",
-                             _("Testcase %(id)s %(name)s DTSes not loaded, unable to generate versioning report: %(file)s"),
+                             _("Variation %(id)s %(name)s input DTSes not loaded, unable to generate versioning report: %(file)s"),
                              modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, file=os.path.basename(readMeFirstUri))
                         modelTestcaseVariation.status = "failed"
                     for inputDTS in inputDTSes.values():
@@ -300,11 +300,30 @@ class Validate:
                 elif inputDTSes:
                     # validate schema, linkbase, or instance
                     modelXbrl = inputDTSes[None][0]
+                    expectedDataFiles = set(modelXbrl.modelManager.cntlr.webCache.normalizeUrl(uri, baseForElement)
+                                            for d in modelTestcaseVariation.dataUris.values() for uri in d
+                                            if not UrlUtil.isAbsolute(uri))
+                    foundDataFiles = set()
+                    variationBase = os.path.dirname(baseForElement)
                     for dtsName, inputDTS in inputDTSes.items():  # input instances are also parameters
                         if dtsName: # named instance
                             parameters[dtsName] = (None, inputDTS) #inputDTS is a list of modelXbrl's (instance DTSes)
                         elif len(inputDTS) > 1: # standard-input-instance with multiple instance documents
                             parameters[XbrlConst.qnStandardInputInstance] = (None, inputDTS) # allow error detection in validateFormula
+                        for _inputDTS in inputDTS:
+                            for docUrl in _inputDTS.urlDocs.keys():
+                                if docUrl.startswith(variationBase):
+                                    foundDataFiles.add(docUrl)
+                    if expectedDataFiles - foundDataFiles:
+                        modelXbrl.error("arelle:testcaseDataNotUsed",
+                            _("Variation %(id)s %(name)s data files not used: %(missingDataFiles)s"),
+                            modelObject=modelTestcaseVariation, name=modelTestcaseVariation.name, id=modelTestcaseVariation.id, 
+                            missingDataFiles=", ".join(sorted(os.path.basename(f) for f in expectedDataFiles - foundDataFiles)))
+                    if foundDataFiles - expectedDataFiles:
+                        modelXbrl.warning("arelle:testcaseDataUnexpected",
+                            _("Variation %(id)s %(name)s files not in variation data: %(unexpectedDataFiles)s"),
+                            modelObject=modelTestcaseVariation, name=modelTestcaseVariation.name, id=modelTestcaseVariation.id,
+                            unexpectedDataFiles=", ".join(sorted(os.path.basename(f) for f in foundDataFiles - expectedDataFiles)))
                     if modelXbrl.hasTableRendering or modelTestcaseVariation.resultIsTable:
                         try:
                             RenderingEvaluator.init(modelXbrl)
@@ -333,7 +352,7 @@ class Validate:
                                                    errorCaptureLevel=errorCaptureLevel)
                         if infoset.modelDocument is None:
                             modelXbrl.error("arelle:notLoaded",
-                                _("Testcase %(id)s %(name)s result infoset not loaded: %(file)s"),
+                                _("Variation %(id)s %(name)s result infoset not loaded: %(file)s"),
                                 modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, 
                                 file=os.path.basename(modelTestcaseVariation.resultXbrlInstance))
                             modelTestcaseVariation.status = "result infoset not loadable"
@@ -386,7 +405,7 @@ class Validate:
                                                    errorCaptureLevel=errorCaptureLevel)
                         if expectedInstance.modelDocument is None:
                             self.modelXbrl.error("{}:expectedResultNotLoaded".format(errMsgPrefix),
-                                _("Testcase %(id)s %(name)s expected result instance not loaded: %(file)s"),
+                                _("Testcase \"%(name)s\" %(id)s expected result instance not loaded: %(file)s"),
                                 modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, 
                                 file=os.path.basename(modelTestcaseVariation.resultXbrlInstanceUri),
                                 messageCodes=("formula:expectedResultNotLoaded","ix:expectedResultNotLoaded"))
