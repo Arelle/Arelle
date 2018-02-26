@@ -28,7 +28,7 @@ from arelle.ModelFormulaObject import (ModelValueAssertion, ModelExistenceAssert
                                        ModelAspectCover, ModelConceptRelation,
                                        ModelCustomFunctionSignature, ModelCustomFunctionImplementation,
                                        ModelPeriod,
-                                       ModelAndFilter, ModelOrFilter, ModelMessage)
+                                       ModelAndFilter, ModelOrFilter, ModelMessage, ModelAssertionSeverity)
 from arelle import XbrlConst, XmlUtil, XPathParser
 import os, datetime
 
@@ -112,7 +112,9 @@ class GenerateXbrlFormula:
             self.xf = "{}{} {} {{".format(pIndent, varSetType, self.objectId(fObj, varSetType))
             for arcrole in (XbrlConst.elementLabel,
                             XbrlConst.assertionSatisfiedMessage,
-                            XbrlConst.assertionUnsatisfiedMessage):
+                            XbrlConst.assertionUnsatisfiedMessage,
+                            XbrlConst.assertionUnsatisfiedSeverity
+                            ):
                 for modelRel in self.modelXbrl.relationshipSet(arcrole).fromModelObject(fObj):
                     self.doObject(modelRel.toModelObject, modelRel, cIndent, visited)
             if fObj.aspectModel == "non-dimensional":
@@ -352,6 +354,11 @@ class GenerateXbrlFormula:
                 "satisfied-message" if fromRel.arcrole == XbrlConst.assertionSatisfiedMessage else "unsatisfied-message",
                 " ({})".format(fObj.xmlLang) if fObj.xmlLang else "",
                 fObj.text.replace('"', '""'))
+        elif isinstance(fObj, ModelAssertionSeverity):
+            self.xf = "{}{} {};".format(
+                pIndent, 
+                "unsatisfied-severity",
+                fObj.level)
         elif isinstance(fObj, ModelCustomFunctionSignature):
             hasImplememntation = False
             if fObj not in visited:
