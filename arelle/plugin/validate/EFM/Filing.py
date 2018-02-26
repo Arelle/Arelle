@@ -1752,7 +1752,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                   ) | set(c for c in modelXbrl.contexts.values() if _DICT_SET(c.qnameDims.keys()) & ifrsSrtConceptsUsed)
                 modelXbrl.warning("EFM.6.05.40.srtConceptsForIFRSConcepts",
                     _("Taxonomy concepts from the SRT taxonomy should be used for the following IFRS concepts: %(ifrsSrtConceptsUsed)s"),
-                    edgarCode="cp-1610-SRT-Concepts-For-IFRS-Concepts",
+                    edgarCode="cp-0540-SRT-Concepts-For-IFRS-Concepts",
                     modelObject=ifrsSrtObjs, ifrsSrtConceptsUsed=", ".join(str(qn) for qn in sorted(ifrsSrtConceptsUsed)))
             srtAxesIfrsMemberQNs = {}
             for srtAxisName, ifrsMems in srtAxisIfrsMembers.items():
@@ -1770,7 +1770,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                       if dim.dimensionQname in srtAxesIfrsMemberQNs and dim.memberQname in srtAxesIfrsMemberQNs[dim.dimensionQname])
                     modelXbrl.warning("EFM.6.05.40.srtMembersForSRTAxes",
                         _("Taxonomy axes from the SRT taxonomy should use SRT or extension members for the following IFRS member concepts: %(ifrsSrtConceptsUsed)s."),
-                        edgarCode="cp-1610-SRT-Members-For-SRT-Axes",
+                        edgarCode="cp-0540-SRT-Members-For-SRT-Axes",
                         modelObject=ifrsSrtObjs, ifrsSrtConceptsUsed=", ".join(str(qn) for qn in sorted(ifrsSrtMembersUsed)))
         if isInlineXbrl and documentType in {
             "485BPOS", "497", "K SDR", "L SDR",
