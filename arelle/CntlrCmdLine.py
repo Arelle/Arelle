@@ -291,13 +291,13 @@ def parseAndRun(args):
                              "Local python files do not require .py suffix, e.g., hello_dolly without .py is sufficient, "
                              "Packaged plug-in urls are their directory's url (e.g., --plugins EdgarRenderer or --plugins xbrlDB).  " ))
     parser.add_option("--packages", action="store", dest="packages",
-                      help=_("Modify taxonomy packages configuration.  "
-                             "Re-save unless 'temp' is in the module list.  " 
+                      help=_("Specify taxonomy packages configuration.  "
                              "Enter 'show' to show current packages configuration.  "
                              "Commands show, and module urls are '|' separated: "
-                             "+url to add package by its url or filename, ~name to reload package by its name, -name to remove a package by its name, "
-                             "URLs are full absolute paths.  "
-                             "If + is omitted from package file nothing is saved (same as temp).  " ))
+                             "url specifies a package by its url or filename, please use full paths. "
+                             "(Package settings from GUI are no longer shared with cmd line operation. "
+                             "Cmd line package settings are not persistent.)  " ))
+    parser.add_option("--package", action="store", dest="packages", help=SUPPRESS_HELP)
     parser.add_option("--packageManifestName", action="store", dest="packageManifestName",
                       help=_("Provide non-standard archive manifest file name pattern (e.g., *taxonomyPackage.xml).  "
                              "Uses unix file name pattern matching.  "
