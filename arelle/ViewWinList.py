@@ -87,7 +87,7 @@ class ViewList():
             self.listBoxToolTip._hide()
             if text and len(text) > 0:
                 if len(text) * 8 > 200:
-                    self.listBoxToolTipText.set(text)
+                    self.listBoxToolTipText.set(text[:2048] + "..." if len(text) > 2048 else text)
                     self.listBoxToolTip.configure(state="normal")
                     self.listBoxToolTip._schedule()
                 else:
