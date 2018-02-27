@@ -233,6 +233,8 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         # copy tck and tk built as described: https://www.tcl.tk/doc/howto/compile.html#mac
         includeFiles.append(('/Library/Frameworks/Tcl.framework/Versions/8.6/Resources/Scripts','tcl8.6'))
         includeFiles.append(('/Library/Frameworks/Tk.framework/Versions/8.6/Resources/Scripts','tk8.6'))
+        includeFiles.append(('/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/tkinter','lib/tkinter'))
+        includeFiles.append(('/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload/_tkinter.cpython-35m-darwin.so','lib/_tkinter.cpython-35m-darwin.so'))
     else: 
         includeFiles.append(('arelle/scripts-unix','scripts'))
         if os.path.exists("/etc/redhat-release"):
@@ -270,13 +272,14 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         'rdflib.plugins.sparql',
         'rdflib.plugins.stores',
         'isodate', 'regex', 'gzip', 'zlib', 'aniso8601', 'graphviz',
-        'openpyxl' # openpyxl's __init__.py must be hand edited, see https://bitbucket.org/openpyxl/openpyxl/pull-requests/80/__about__py/diff
+        'openpyxl', # openpyxl's __init__.py must be hand edited, see https://bitbucket.org/openpyxl/openpyxl/pull-requests/80/__about__py/diff
+        'google_api_python_client', 'oauth2client', 'six', 'httplib2', 'uritemplate', 'pyasn1', 'rsa', 'pyasn1_modules' # google-api-python-client
     ]
 
     excludeLibs = []
 
     if sys.platform == 'darwin':
-        excludeLibs += ['tkinter', 'Tkinter'] # copied in as files
+        excludeLibs += ['tkinter'] # copied in as files
     
     # uncomment the next two files if cx_Freezing with EdgarRenderer
     # note that openpyxl must be 2.1.4 at this time
@@ -285,7 +288,7 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
             'cherrypy', # 'cherrypy.wsgiserver.wsgiserver3',
             'dateutil',
             'dateutil.relativedelta',
-            'six',
+            
             'tornado',
             'pyparsing',
             'matplotlib', "matplotlib.pyplot"

@@ -1,7 +1,12 @@
 rem Run SEC Edgar Filer Manual (EFM) Conformance Suite tests
 
 rem @set TESTCASESROOT=C:\Users\Herm Fischer\Documents\mvsl\projects\SEC\efm-18-111122\conf
-@set TESTCASESROOT=C:\Users\Herm Fischer\Documents\mvsl\projects\SEC\efm-19-120614\conf
+:q
+:q!
+:
+
+
+:q!TESTCASESROOT=C:\Users\Herm Fischer\Documents\mvsl\projects\SEC\efm-19-120614\conf
 
 @set TESTCASESINDEXFILE=%TESTCASESROOT%\testcases.xml
 

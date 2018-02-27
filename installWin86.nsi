@@ -68,7 +68,7 @@ Section "Arelle" SecArelle
   SetOutPath "$INSTDIR"
   
   ;ADD YOUR OWN FILES HERE...
-  File /r build\exe.win32-3.4\*.*
+  File /r build\exe.win32-3.5\*.*
   
   ;Store installation folder
   WriteRegStr HKLM "Software\Arelle" "" $INSTDIR
