@@ -24,7 +24,7 @@ cipcBlockedInlineHtmlElements = {
     'object', 'script'}
 
 namePattern = re.compile(r"^(.*) - (20[12][0-9]-[0-9]+-(06|07|08|09|10|12|20|21|22|23|24|25|26|30|31)) - (20[12][0-9])[.](xbrl|htm|html)")
-reportingModulePattern = re.compile(r"http://xbrl.cipc.co.za/taxonomy/.*/full_cipc_entry_point_(\w+)[-_]20[12][0-9]-[0-9]{2}-[0-9]{2}.xsd")
+reportingModulePattern = re.compile(r"http://xbrl.cipc.co.za/taxonomy/.*/\w*(ca_fas|full_ifrs|ifrs_for_smes)\w*[_-]20[12][0-9]-[0-9]{2}-[0-9]{2}.xsd")
                 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
