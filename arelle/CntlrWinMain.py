@@ -855,7 +855,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                     ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopLeft, ("Tables", (XbrlConst.parentChild,)), lang=self.labelLang,
                                                                treeColHdr="Fact Table Index", showLinkroles=True, showColumns=False, showRelationships=False, expandAll=False)
                 '''
-                currentAction = "tree view of tests"
+                currentAction = "tree view of DTS"
                 ViewWinDTS.viewDTS(modelXbrl, self.tabWinTopLeft, altTabWin=self.tabWinTopRt)
                 currentAction = "view of concepts"
                 ViewWinConcepts.viewConcepts(modelXbrl, self.tabWinBtm, "Concepts", lang=self.labelLang, altTabWin=self.tabWinTopRt)
@@ -864,7 +864,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                     if topView is None: topView = modelXbrl.views[-1]
                 if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
                     currentAction = "table view of facts"
-                    if not modelXbrl.hasTableRendering: # table view only if not grid rendered view
+                    if (not modelXbrl.hasTableRendering and # table view only if not grid rendered view
+                        modelXbrl.relationshipSet(XbrlConst.parentChild)): # requires presentation relationships to render this tab
                         ViewWinFactTable.viewFacts(modelXbrl, self.tabWinTopRt, linkrole=firstTableLinkroleURI, lang=self.labelLang, expandAll=firstTableLinkroleURI is not None)
                         if topView is None: topView = modelXbrl.views[-1]
                     currentAction = "tree/list of facts"
