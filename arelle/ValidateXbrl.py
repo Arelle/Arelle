@@ -122,8 +122,8 @@ class ValidateXbrl:
                                       or (modelXbrl.hasXDT and arcrole.startswith(XbrlConst.dimStartsWith)):
                 relsSet = modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname)
             if cyclesAllowed != "any" and \
-                   (XbrlConst.isStandardExtLinkQname(linkqname) and XbrlConst.isStandardArcQname(arcqname)) \
-                   or arcrole in self.genericArcArcroles:
+                   ((XbrlConst.isStandardExtLinkQname(linkqname) and XbrlConst.isStandardArcQname(arcqname)) \
+                    or arcrole in self.genericArcArcroles):
                 noUndirected = cyclesAllowed == "none"
                 fromRelationships = relsSet.fromModelObjects()
                 for relFrom, rels in fromRelationships.items():
