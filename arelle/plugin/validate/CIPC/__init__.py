@@ -23,7 +23,7 @@ from .Const import cpicModules, mandatoryElements
 cipcBlockedInlineHtmlElements = {
     'object', 'script'}
 
-namePattern = re.compile(r"^(.*) - (20[12][0-9]-[0-9]+-(06|07|08|09|10|12|20|21|22|23|24|25|26|30|31)) - (20[12][0-9])[.](xbrl|htm|html)")
+namePattern = re.compile(r"^(.*) - (20[12][0-9]-[0-9]+-(06|07|08|09|10|12|20|21|22|23|24|25|26|30|31)) - (20[12][0-9])$")
 reportingModulePattern = re.compile(r"http://xbrl.cipc.co.za/taxonomy/.*/\w*(ca_fas|full_ifrs|ifrs_for_smes)\w*[_-]20[12][0-9]-[0-9]{2}-[0-9]{2}.xsd")
                 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
@@ -77,9 +77,9 @@ def validateXbrlFinally(val, *args, **kwargs):
                 
         if modelDocument.type == ModelDocument.Type.INLINEXBRL:
             _baseName, _baseExt = os.path.splitext(modelDocument.basename)
-            if _baseExt not in (".htm", ".html", ".xhtml") or not namePattern.match(_baseName):
-                modelXbrl.error("cipc:fileNameMalformed",
-                    _("FileName must have the pattern \"Co. name - regYr-regNbr-coCode - finYr.xbrl: %(fileName)s"),
+            if _baseExt not in (".xhtml",) or not namePattern.match(_baseName):
+                modelXbrl.warning("cipc:fileNameMalformed",
+                    _("FileName should have the pattern \"Co. name - regYr-regNbr-coCode - finYr.xhtml: %(fileName)s"),
                     modelObject=modelXbrl, fileName=modelDocument.basename)
             rootElt = modelDocument.xmlRootElement
             if rootElt.tag not in ("{http://www.w3.org/1999/xhtml}html", "{http://www.w3.org/1999/xhtml}xhtml"):
@@ -102,7 +102,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                             modelObject=elt, element=eltTag)
                     if eltTag == "title" and not namePattern.match(elt.text):
                         modelXbrl.error("cipc:titleElementMalformed",
-                            _("Title element must have the pattern \"Co. name - regYr-regNbr-coCode - finYr: %(title)s"),
+                            _("Title element required to have the pattern \"Co. name - regYr-regNbr-coCode - finYr: %(title)s"),
                             modelObject=elt, title=elt.text)
                     for attrTag, attrValue in elt.items():
                         if ((attrTag == "href" and eltTag == "a") or 

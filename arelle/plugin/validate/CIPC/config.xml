@@ -13,7 +13,7 @@
      defaultXmlLang="en" 
      defaultLanguage="English" 
      validateFileText="false"
-     contextElement="segment" 
+     contextElement="scenario" 
      />
 
 
