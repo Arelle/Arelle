@@ -33,7 +33,7 @@ ifrsSrtConcepts = { # concepts of ifrs items or axes which have a corresponding 
     "RangeAxis": "RangeAxis"
     }
 srtAxisIfrsMembers = { # members of IFRS axes which have SRT corresponding member elements
-    "CounterpartyNameAxis": {"CounterpartiesMember"},
+    "CounterpartyNameAxis": {"CounterpartiesMember", "IndividuallyInsignificantCounterpartiesMember"},
     "MajorCustomersAxis": {"MajorCustomersMember", "GovernmentMember"},
     "ProductOrServiceAxis": {"ProductsAndServicesMember"},
     "RangeAxis": {"RangesMember", "BottomOfRangeMember", "WeightedAverageMember", "TopOfRangeMember"}    }
@@ -1723,8 +1723,18 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     if isEFM:
         # check number of us-roles taxonomies referenced
         for conflictClass, modelDocuments in val.standardNamespaceConflicts.items():                                                                
-            if len(modelDocuments) > 1 and (conflictClass != 'srt+us-gaap' or 
-                                            ('srt-types' in val.standardNamespaceConflicts)): # ignore multi us-gaap conflicts without srt
+            if (len(modelDocuments) > 1 and 
+                (conflictClass != 'srt+us-gaap' or ('us-types' in val.standardNamespaceConflicts and
+                                                    'srt-types' in val.standardNamespaceConflicts)) and # ignore multi us-gaap/srt conflicts without the other
+                (conflictClass != 'ifrs+us-gaap' or ('us-types' in val.standardNamespaceConflicts and
+                                                     'ifrs-full' in val.standardNamespaceConflicts)) # ignore multi us-gaap/ifrs conflicts without the other
+                ):
+                if conflictClass == 'ifrs+us-gaap':
+                    if set(d.targetNamespace for d in val.standardNamespaceConflicts['ifrs+us-gaap']) >= {
+                        "http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full", "http://fasb.org/us-gaap/2017-01-31"}:
+                        conflictClass = 'ifrs-2018+us-gaap-2017'
+                    else:
+                        continue
                 modelXbrl.error("EFM.6.22.03.incompatibleSchemas",
                     _("References for conflicting standard taxonomies %(conflictClass)s are not allowed in same DTS %(namespaceConflicts)s"),
                     edgarCode="cp-2203-Incompatible-Taxonomy-Versions",
@@ -1734,7 +1744,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             modelXbrl.error("EFM.6.22.03.incompatibleTaxonomyDocumentType",
                 _("Taxonomy class %(conflictClass)s may not be used with document type %(documentType)s"),
                 modelObject=modelXbrl, conflictClass="RR", documentType=documentType)
-        if 'ifrs-full' in val.standardNamespaceConflicts and documentType in {"485BPOS", "497", "K SDR", "L SDR"}:
+        if 'ifrs-full' in val.standardNamespaceConflicts and documentType in {"485BPOS", "497", "K SDR", "L SDR",
+                                                                              "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A", "N-Q", "N-Q/A"}:
             modelXbrl.error("EFM.6.22.03.incompatibleTaxonomyDocumentType",
                 _("Taxonomy class %(conflictClass)s may not be used with document type %(documentType)s"),
                 modelObject=modelXbrl, conflictClass="IFRS", documentType=documentType)
