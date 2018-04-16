@@ -272,6 +272,9 @@ def parseAndRun(args):
     parser.add_option("--internetRecheck", choices=("weekly", "daily", "never"), dest="internetRecheck", 
                       help=_("Specify rechecking cache files (weekly is default)"))
     parser.add_option("--internetrecheck", choices=("weekly", "daily", "never"), action="store", dest="internetRecheck", help=SUPPRESS_HELP)
+    parser.add_option("--internetRetries", type="int", dest="internetRetries", 
+                      help=_("Specify number of times to try retrieving urls (5 is default)"))
+    parser.add_option("--internetretries", type="int", action="store", dest="internetRetries", help=SUPPRESS_HELP)
     parser.add_option("--internetLogDownloads", action="store_true", dest="internetLogDownloads", 
                       help=_("Log info message for downloads to web cache."))
     parser.add_option("--internetlogdownloads", action="store_true", dest="internetLogDownloads", help=SUPPRESS_HELP)
@@ -719,6 +722,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.webCache.workOffline = False
         if options.internetTimeout is not None:
             self.webCache.timeout = (options.internetTimeout or None)  # use None if zero specified to disable timeout
+        if options.internetRetries is not None:
+            self.webCache.retries = options.internetRetries
         if options.internetLogDownloads:
             self.webCache.logDownloads = True
         fo = FormulaOptions()

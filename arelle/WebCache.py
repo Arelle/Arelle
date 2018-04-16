@@ -115,6 +115,7 @@ class WebCache:
         else:
             self.cachedUrlCheckTimes = {}
         self.cachedUrlCheckTimesModified = False
+        self.retries = 5
             
     @property
     def timeout(self):
@@ -342,7 +343,7 @@ class WebCache:
             # self.modelManager.addToLog('web caching: {0}'.format(url))
             
             # download to a temporary name so it is not left readable corrupted if download fails
-            retryCount = 5
+            retryCount = self.retries
             while retryCount > 0:
                 try:
                     self.progressUrl = url
