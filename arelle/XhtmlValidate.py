@@ -359,7 +359,7 @@ def xhtmlValidate(modelXbrl, elt):
                                 if names == ('*',) and relations else
                                 ", ".join("{}:{}".format(namespacePrefix, n) for n in names),
                                 issue,
-                                " and no child text" if disallowedChildText else "")
+                                " and no child text (\"{}\")".format(elt.textValue.strip()[:32]) if disallowedChildText else "")
                     modelXbrl.error(code, msg, 
                                     modelObject=[elt] + relations, requirement=reqt,
                                     messageCodes=("ix{ver.sect}:ancestorNode{Required|Disallowed}",
