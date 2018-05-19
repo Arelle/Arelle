@@ -311,8 +311,11 @@ class Validate:
                         elif len(inputDTS) > 1: # standard-input-instance with multiple instance documents
                             parameters[XbrlConst.qnStandardInputInstance] = (None, inputDTS) # allow error detection in validateFormula
                         for _inputDTS in inputDTS:
-                            for docUrl in _inputDTS.urlDocs.keys():
+                            for docUrl, doc in _inputDTS.urlDocs.items():
                                 if docUrl.startswith(variationBase):
+                                    if getattr(doc,"loadedFromXbrlFormula", False): # may have been sourced from xf file
+                                        if docUrl.replace("-formula.xml", ".xf") in expectedDataFiles:
+                                            docUrl = docUrl.replace("-formula.xml", ".xf")
                                     foundDataFiles.add(docUrl)
                     if expectedDataFiles - foundDataFiles:
                         modelXbrl.error("arelle:testcaseDataNotUsed",
