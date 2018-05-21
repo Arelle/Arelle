@@ -4,7 +4,7 @@ input and optionally save an (extension) DTS.
 
 (c) Copyright 2016 Mark V Systems Limited, All rights reserved.
 '''
-import os, sys, io, time, re, traceback, json, csv, logging
+import os, sys, io, time, re, traceback, json, csv, logging, math
 from collections import defaultdict, OrderedDict
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle import XbrlConst, ModelDocument, ModelXbrl, ValidateXbrlDimensions
@@ -44,11 +44,10 @@ CSVcolumnProperty = "http://xbrl.org/YYYY/model#columnProperty"
 
 oimConcept = "xbrl:concept"
 oimEntity = "xbrl:entity"
-oimPeriodStart = "xbrl:periodStart"
-oimPeriodEnd = "xbrl:periodEnd"
+oimPeriodStart = "xbrl:start"
+oimPeriodEnd = "xbrl:end"
 oimUnit = "xbrl:unit"
-oimTupleParent = "xbrl:tupleParent"
-oimTupleOrder = "xbrl:tupleOrder"
+oimLanguage = "xbrl:language"
 oimPrefix = "xbrl:"
 oimSimpleFactProperties = {oimEntity, oimPeriodStart, oimPeriodEnd, oimUnit, "accuracy"}
 
@@ -172,7 +171,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                 isJSON = False
                 isCSV = True
             else:
-                missing = [t for t in ("documentType", "dtsReferences", "prefixes", "facts") if t not in oimObject]
+                missing = [t for t in ("documentType", "taxonomy", "prefixes", "facts") if t not in oimObject]
                 if missing:
                     raise OIMException("xbrlje:missingJSONElements", 
                                        _("Required element(s) are missing from JSON input: %(missing)s"),
@@ -181,15 +180,17 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                     raise OIMException("xbrlje:unrecognizedJSONDocumentType", 
                                        _("Required documentType is missing from JSON input"))
                 currentAction = "identifying JSON objects"
-                dtsReferences = oimObject["dtsReferences"]
+                dtsReferences = oimObject["taxonomy"]
                 prefixesList = oimObject["prefixes"].items()
                 facts = oimObject["facts"]
-                footnotes = oimObject["facts"] # shares this object
+                footnotes = oimObject["facts"].values() # shares this object
                 # add IDs if needed for footnotes
+                ''' TBD, facts is now a dict
                 for fact in facts:
-                    if fact.get("footnotes") and "id" not in fact:
+                    if isinstance(fact, dict) and fact.get("footnotes") and "id" not in fact:
                         anonymousFactId += 1
                         fact["id"] = "_f_{:02}".format(anonymousFactId)
+                '''
 
         if isCSV:
             errPrefix = "xbrlce"
@@ -205,7 +206,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
             # mandatory sections of metadata file
             oimMetadata = oimObject.get(CSVmetadata)
             missing = [t for t in ("@context", CSVmetadata, "tables") if t not in oimObject]
-            missing += [t for t in ("documentType", "dtsReferences", "prefixes") if t not in (oimMetadata or ())]
+            missing += [t for t in ("documentType", "taxonomy", "prefixes") if t not in (oimMetadata or ())]
             if missing:
                 raise OIMException("xbrlce:missingOIMMetadataProperties", 
                                    _("Required properties(s) are missing from CSV metadata: %(missing)s"),
@@ -215,7 +216,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                    _("Document type %(documentType)s not recognized, expecting %(expectedDocumentType)s"),
                                    documentType=oimMetadata.get("documentType"), expectedDocumentType=CSVdocumentType)
             
-            dtsReferences = oimMetadata.get("dtsReferences", {})
+            dtsReferences = oimMetadata.get("taxonomy", {})
             prefixesList = oimMetadata.get("prefixes", {}).items()
             topLevelProperties = oimObject.get(CSVproperties, {})
             
@@ -690,7 +691,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
         currentAction = "creating instance document"
         _schemaRefs = [dtsRef["href"] 
                        for dtsRef in dtsReferences 
-                       if dtsRef.get("type") == "schema" and dtsRef.get("href")]
+                       if isinstance(dtsRef, dict) and dtsRef.get("type") == "schema" and dtsRef.get("href")
+                      ] + [
+                      href for href in dtsReferences if isinstance(href, str)
+                      ]
         if modelXbrl: # pull loader implementation
             modelXbrl.blockDpmDBrecursion = True
             modelXbrl.modelDocument = _return = createModelDocument(
@@ -713,6 +717,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
             _return = modelXbrl.modelDocument
         
         # add linkbase, role and arcrole refs
+        ''' deprecated
         for refType in ("linkbase", "role", "arcrole"):
             for dtsRef in dtsReferences:
                 if dtsRef.get("type") == refType and dtsRef.get("href"):
@@ -729,22 +734,17 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                             _uriAttrValue = _defElt.get(_uriAttrName)
                             if _uriAttrValue:
                                 elt.set(_uriAttrName, _uriAttrValue)
+        '''
+        firstCntxUnitFactElt = None
+            
         cntxTbl = {}
         unitTbl = {}
-        # determine tuple dependency order
-        idFacts = {}
-        parentedFacts =  defaultdict(list)
-        for i, fact in enumerate(facts):
-            aspects = fact["aspects"]
-            id = fact.get("id")
-            tupleParent = fact.get("aspects", EMPTYDICT).get(oimTupleParent)
-            if id is not None:
-                idFacts[id] = i
-            parentedFacts[tupleParent].append(i) # root facts have tupleParent None
             
         currentAction = "creating facts"
+        factNum = 0 # for synthetic fact number
+        syntheticFactFormat = "_f{{:0{}}}".format(int(math.log10(len(facts)))) #want 
         
-        def createModelFact(fact, parentModelFact, topTupleFact):
+        for id, fact in facts.items():
             aspects = fact.get("aspects", EMPTYDICT)
             if oimConcept not in aspects:
                 error("{}:conceptQName".format(errPrefix),
@@ -772,6 +772,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                     _("The concept %(element)s is missing aspects %(missingAspects)s"),
                                     modelObject=modelXbrl, element=conceptQn, missingAspects=", ".join(missingAspects))
                     return
+                if oimLanguage in aspects:
+                    attrs["{http://www.w3.org/XML/1998/namespace}lang"] = aspects[oimLanguage]
                 entityAsQn = qname(aspects[oimEntity], prefixes) or qname("error",fact[oimEntity])
                 if oimPeriodStart in aspects and oimPeriodEnd in aspects:
                     periodStart = aspects[oimPeriodStart]
@@ -832,9 +834,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                                 else dateTime(periodEnd, type=DATETIME),
                                             None, # no dimensional validity checking (like formula does)
                                             qnameDims, [], [],
-                                            id=cntxId,
-                                            beforeSibling=topTupleFact)
+                                            id=cntxId)
                     cntxTbl[cntxKey] = _cntx
+                    if firstCntxUnitFactElt is None:
+                        firstCntxUnitFactElt = _cntx
                 if oimUnit in aspects and concept.isNumeric:
                     unitKey = aspects[oimUnit]
                     if unitKey in unitTbl:
@@ -872,7 +875,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 for _measures in mulQns, divQns:
                                     for _measure in _measures:
                                         addQnameValue(modelXbrl.modelDocument, _measure)
-                                _unit = modelXbrl.createUnit(mulQns, divQns, id=unitId, beforeSibling=topTupleFact)
+                                _unit = modelXbrl.createUnit(mulQns, divQns, id=unitId)
+                                if firstCntxUnitFactElt is None:
+                                    firstCntxUnitFactElt = _unit
                             except OIMException as ex:
                                 error(ex.code, ex.message, modelObject=modelXbrl, **ex.msgArgs)
                         unitTbl[unitKey] = _unit
@@ -896,28 +901,23 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
             else:
                 text = None #tuple
                     
-            id = fact.get("id")
-            if id is not None:
-                attrs["id"] = fact["id"]
+            if not id:
+                id = syntheticFactFormat.format(factNum)
+                factNum += 1
+            attrs["id"] = id
+            if "id" not in fact: # needed for footnote generation
+                fact["id"] = id
                     
             # is value a QName?
             if concept.baseXbrliType == "QNameItemType": # renormalize prefix of instance fact
                 text = addQnameValue(modelXbrl.modelDocument, qname(text.strip(), prefixes))
     
-            f = modelXbrl.createFact(conceptQn, attributes=attrs, text=text, parent=parentModelFact, validate=False)
+            f = modelXbrl.createFact(conceptQn, attributes=attrs, text=text, validate=False)
+            if firstCntxUnitFactElt is None:
+                firstCntxUnitFactElt = f
             
-            if id is not None and id in parentedFacts:
-                # create child facts
-                for i in sorted(parentedFacts[id],
-                                key=lambda j: facts[j].get("aspects", EMPTYDICT).get(oimTupleOrder,0)):
-                    createModelFact(facts[i], f, f if topTupleFact is None else topTupleFact)
-                    
-            # validate after creating tuple contents
             xmlValidate(modelXbrl, f)
                     
-        for i in parentedFacts[None]:
-            createModelFact(facts[i], None, None)
-            
         currentAction = "creating footnotes"
         footnoteLinks = OrderedDict() # ELR elements
         factLocs = {} # index by (linkrole, factId)
@@ -931,6 +931,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                 error("xbrlce:footnoteNotDefined",
                         _("FootnoteId(s) not defined %(footnoteIds)s."),
                         modelObject=modelXbrl, footnoteIds=", ".join(sorted(missingFootnotes)))
+        definedInstanceRoles = set()
         footnoteIdsNotReferenced = set()
         for factOrFootnote in footnotes:
             if isJSON:
@@ -959,6 +960,27 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                         _("FootnoteId has no arcrole %(footnoteId)s."),
                                         modelObject=modelXbrl, footnoteId=footnote.get("footnoteId"))
                     continue
+                for refType, refValue, roleTypes in (("role", linkrole, modelXbrl.roleTypes),
+                                                     ("arcrole", arcrole, modelXbrl.arcroleTypes)):
+                    if (not XbrlConst.isStandardRole(refValue) or XbrlConst.isStandardArcrole(refValue)
+                        ) and refValue in roleTypes and refValue not in definedInstanceRoles:
+                        definedInstanceRoles.add(refValue)
+                        hrefElt = roleTypes[refValue][0]
+                        href = hrefElt.modelDocument.uri + "#" + hrefElt.id
+                        elt = addChild(modelXbrl.modelDocument.xmlRootElement, 
+                                       qname(link, refType+"Ref"), 
+                                       attributes=(("{http://www.w3.org/1999/xlink}href", href),
+                                                   ("{http://www.w3.org/1999/xlink}type", "simple")),
+                                       beforeSibling=firstCntxUnitFactElt)
+                        href = modelXbrl.modelDocument.discoverHref(elt)
+                        if href:
+                            _elt, hrefDoc, hrefId = href
+                            _defElt = hrefDoc.idObjects.get(hrefId)
+                            if _defElt is not None:
+                                _uriAttrName = refType + "URI"
+                                _uriAttrValue = _defElt.get(_uriAttrName)
+                                if _uriAttrValue:
+                                    elt.set(_uriAttrName, _uriAttrValue)
                 if linkrole not in footnoteLinks:
                     footnoteLinks[linkrole] = addChild(modelXbrl.modelDocument.xmlRootElement, 
                                                        XbrlConst.qnLinkFootnoteLink, 
