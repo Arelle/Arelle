@@ -510,10 +510,10 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                                         view.modelXbrl.error("xbrlte:invalidQNameAspectValue",
                                             _("Rule node %(xlinkLabel)s specifies domain member %(concept)s does not refer to an existing domain member concept."),
                                             modelObject=definitionNode, xlinkLabel=definitionNode.xlinkLabel, concept=memQname)
-                    if not definitionNode.constraintSets:
-                        view.modelXbrl.error("xbrlte:incompleteAspectRule",
-                            _("Rule node %(xlinkLabel)s does not specify an aspect value."),
-                            modelObject=definitionNode, xlinkLabel=definitionNode.xlinkLabel)
+                    #if not definitionNode.constraintSets:
+                    #    view.modelXbrl.error("xbrlte:incompleteAspectRule",
+                    #        _("Rule node %(xlinkLabel)s does not specify an aspect value."),
+                    #        modelObject=definitionNode, xlinkLabel=definitionNode.xlinkLabel)
                 if axisDisposition == "z":
                     if structuralNode.choiceStructuralNodes:
                         choiceNodeIndex = view.zOrdinateChoices.get(definitionNode, 0)
