@@ -26,6 +26,7 @@ from .PreCalAlignment import checkCalcsTreeWalk
 #qnFasbExtensibleListItemTypes = (qname("{http://fasb.org/us-types/2017-01-31}us-types:extensibleListItemType"),
 #                                 qname("{http://fasb.org/srt-types/2018-01-31}srt-types:extensibleListItemType"))
 
+""" removed per PCR22280 5/16/18
 ifrsSrtConcepts = { # concepts of ifrs items or axes which have a corresponding srt element
     "CounterpartiesAxis": "CounterpartyNameAxis",
     "MajorCustomersAxis": "MajorCustomersAxis",
@@ -37,6 +38,7 @@ srtAxisIfrsMembers = { # members of IFRS axes which have SRT corresponding membe
     "MajorCustomersAxis": {"MajorCustomersMember", "GovernmentMember"},
     "ProductOrServiceAxis": {"ProductsAndServicesMember"},
     "RangeAxis": {"RangesMember", "BottomOfRangeMember", "WeightedAverageMember", "TopOfRangeMember"}    }
+"""
 
 def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     if not hasattr(modelXbrl.modelDocument, "xmlDocument"): # not parsed
@@ -1756,6 +1758,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 if "fasb.org/srt/" in ns:
                     srtNS = ns
                     break
+            """ removed per PCR22280 5/16/18
             ifrsSrtConceptQNs = set(qname(ifrsNS, ifrsConceptName) for ifrsConceptName in ifrsSrtConcepts.keys())
             ifrsSrtConceptsUsed = set(c.qname for c in conceptsUsed if c.qname in ifrsSrtConceptQNs)
             if ifrsSrtConceptsUsed and srtNS:
@@ -1783,6 +1786,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         _("Taxonomy axes from the SRT taxonomy should use SRT or extension members for the following IFRS member concepts: %(ifrsSrtConceptsUsed)s."),
                         edgarCode="cp-0540-SRT-Members-For-SRT-Axes",
                         modelObject=ifrsSrtObjs, ifrsSrtConceptsUsed=", ".join(str(qn) for qn in sorted(ifrsSrtMembersUsed)))
+            """
         if isInlineXbrl and documentType in {
             "485BPOS", "497", "K SDR", "L SDR",
             "S-1", "S-1/A", "S-1MEF", "S-3", "S-3/A", "S-3ASR", "S-3D", "S-3DPOS", "S-3MEF", "S-4", "S-4/A", "S-4EF", 
