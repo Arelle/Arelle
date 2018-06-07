@@ -85,7 +85,7 @@ class Validate:
                         self.validateTestcase(doc)  # testcases doc's are sorted by their uri (file names), e.g., for formula
                         for tv in getattr(doc, "testcaseVariations", ()):
                             _statusCounts[tv.status] = _statusCounts.get(tv.status, 0) + 1
-                    self.modelXbrl.info("arelle:testResults", ", ".join("{}={}".format(k,c) for k, c in _statusCounts.items() if k))
+                    self.modelXbrl.info("arelle:testSuiteResults", ", ".join("{}={}".format(k,c) for k, c in _statusCounts.items() if k))
                 elif self.modelXbrl.modelDocument.type in (Type.TESTCASE, Type.REGISTRYTESTCASE):
                     self.validateTestcase(self.modelXbrl.modelDocument)
             except Exception as err:
@@ -479,6 +479,11 @@ class Validate:
                 # update ui thread via modelManager (running in background here)
                 self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, modelTestcaseVariation.objectId())
                     
+            _statusCounts = OrderedDict((("pass",0),("fail",0)))
+            for tv in getattr(testcase, "testcaseVariations", ()):
+                _statusCounts[tv.status] = _statusCounts.get(tv.status, 0) + 1
+            self.modelXbrl.info("arelle:testCaseResults", ", ".join("{}={}".format(k,c) for k, c in _statusCounts.items() if k))
+
             self.modelXbrl.modelManager.showStatus(_("ready"), 2000)
             
     def noErrorCodes(self, modelTestcaseVariation):
