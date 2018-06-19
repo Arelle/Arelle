@@ -281,8 +281,8 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
                 with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
                     fh.write("Successful module plug-in info: " + moduleFilename + '\n')
         except Exception as err:
-            _msg = _("Exception obtaining plug-in module info: {error}\n{traceback}").format(
-                    error=err, traceback=traceback.format_tb(sys.exc_info()[2]))
+            _msg = _("Exception obtaining plug-in module info: {moduleFilename}\n{error}\n{traceback}").format(
+                    error=err, moduleFilename=moduleFilename, traceback=traceback.format_tb(sys.exc_info()[2]))
             if PLUGIN_TRACE_FILE:
                 with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
                     fh.write(_msg + '\n')
