@@ -165,8 +165,30 @@ class DialogOpenArchive(Toplevel):
                 self.taxonomyPackage = parsePackage(cntlr, filesource, metadata,
                                                     os.sep.join(os.path.split(metadata)[:-1]) + os.sep)
                 
-                # may be a catalog file with no entry oint names
-                if not self.taxonomyPackage["entryPoints"]:
+                
+                if self.taxonomyPackage["entryPoints"]:
+                    # may have instance documents too
+                    self.packageContainedInstances = []
+                    packageContentTypeCounts = {}
+                    for suffix in (".xhtml", ".htm", ".html"):
+                        for potentialInstance in filesource.dir:
+                            if potentialInstance.endswith(".xhtml"):
+                                _type = "Inline Instance"
+                                self.packageContainedInstances.append([potentialInstance, _type])
+                                packageContentTypeCounts[potentialInstance] = packageContentTypeCounts.get(potentialInstance, 0) + 1
+                        if self.packageContainedInstances:
+                            break 
+                    if self.packageContainedInstances: # add sequences to any duplicated entry types
+                        for _type, count in packageContentTypeCounts.items():
+                            if count > 1:
+                                _dupNo = 0
+                                for i in range(len(self.packageContainedInstances)):
+                                    if self.packageContainedInstances[i][0] == _type:
+                                        _dupNo += 1
+                                        self.packageContainedInstances[i][0] = "{} {}".format(_type, _dupNo)
+                                    
+                else:
+                    # may be a catalog file with no entry oint names
                     openType = ARCHIVE  # no entry points to show, just archive
                     self.showAltViewButton = False
             except Exception as e:
@@ -318,6 +340,10 @@ class DialogOpenArchive(Toplevel):
             self.treeView.column("url", width=300, anchor="w")
             self.treeView.heading("url", text="URL")
             
+            for fileType, fileUrl in getattr(self, "packageContainedInstances", ()):
+                self.treeView.insert("", "end", fileUrl, 
+                                     values=fileType, 
+                                     text=fileUrl or urls[0][2])
             for name, urls in sorted(self.taxonomyPackage["entryPoints"].items(), key=lambda i:i[0][2]):
                 self.treeView.insert("", "end", name, 
                                      values="\n".join(url[1] for url in urls), 
@@ -353,14 +379,18 @@ class DialogOpenArchive(Toplevel):
                 #index 0 is the remapped Url, as opposed to the canonical one used for display
                 # Greg Acsone reports [0] does not work for Corep 1.6 pkgs, need [1], old style packages
                 filenames = []
-                for url in self.taxonomyPackage["entryPoints"][epName]:
-                    filename = url[0]
-                    if not filename.endswith("/"):
-                        # check if it's an absolute URL rather than a path into the archive
-                        if not isHttpUrl(filename) and self.metadataFilePrefix != self.taxonomyPkgMetaInf:
-                            # assume it's a path inside the archive:
-                            filename = self.metadataFilePrefix + filename
-                    filenames.append(filename)
+                for _url, _type in self.packageContainedInstances: # check if selection was an inline instance
+                    if _type == epName:
+                        filenames.append(_url)
+                if not filenames: # else if it's a named taxonomy entry point
+                    for url in self.taxonomyPackage["entryPoints"][epName]:
+                        filename = url[0]
+                        if not filename.endswith("/"):
+                            # check if it's an absolute URL rather than a path into the archive
+                            if not isHttpUrl(filename) and self.metadataFilePrefix != self.taxonomyPkgMetaInf:
+                                # assume it's a path inside the archive:
+                                filename = self.metadataFilePrefix + filename
+                        filenames.append(filename)
                 if filenames:
                     self.filesource.select(filenames)
                     self.accepted = True

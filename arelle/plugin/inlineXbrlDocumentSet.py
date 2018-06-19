@@ -7,6 +7,8 @@ Saves extracted instance document.
 
 (Does not currently support multiple target instance documents in a document set.)
 
+CmdLine allows --file '[{"ixDocumentSet":[{"file":file1},{"file":file2}...]}]'
+
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import ModelXbrl, ValidateXbrlDimensions, XbrlConst
@@ -309,9 +311,19 @@ def commandLineOptionExtender(parser, *args, **kwargs):
                       dest="skipExpectedInstanceComparison", 
                       help=_("Skip inline XBRL testcases from comparing expected result instances"))
     
-def commandLineFilingStart(cntlr, options, *args, **kwargs):
+def commandLineFilingStart(cntlr, options, filesource, entrypointFiles, *args, **kwargs):
     global skipExpectedInstanceComparison
     skipExpectedInstanceComparison = getattr(options, "skipExpectedInstanceComparison", False)
+    if isinstance(entrypointFiles, list):
+        # check for any inlineDocumentSet in list
+        for entrypointFile in entrypointFiles:
+            if "ixDocumentSet" in entrypointFile and isinstance(entrypointFile["ixDocumentSet"], list):
+                # build file surrogate for inline document set
+                _files = [e["file"] for e in entrypointFile["ixDocumentSet"] if isinstance(e, dict)]
+                if len(_files) > 1:
+                    docsetSurrogatePath = os.path.dirname(_files[0]) + INLINE_DOCUMENTSET_SURROGATE
+                    entrypointFile["file"] = docsetSurrogatePath + "#?#".join(_files)
+                    
 
 def commandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
