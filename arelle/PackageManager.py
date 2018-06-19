@@ -176,7 +176,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                             if not os.path.isabs(replaceValue):
                                 replaceValue = fileBase + replaceValue
                             replaceValue = replaceValue.replace("/", os.sep)
-                    _normedValue = os.path.normpath(replaceValue)
+                    _normedValue = cntlr.webCache.normalizeUrl(replaceValue)
                     if replaceValue.endswith(os.sep) and not _normedValue.endswith(os.sep):
                         _normedValue += os.sep
                     remappings[prefixValue] = _normedValue

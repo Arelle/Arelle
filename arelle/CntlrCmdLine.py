@@ -805,11 +805,20 @@ class CntlrCmdLine(Cntlr.Cntlr):
         _entrypointFiles = _entryPoints
         if filesource and not filesource.selection:
             if filesource.isArchive:
+                if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
+                    filesource.loadTaxonomyPackageMappings()
                 _entrypointFiles = []
+                # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
                 for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
-                    filesource.select(_archiveFile)
-                    if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
-                        _entrypointFiles.append({"file":filesource.url})
+                    if _archiveFile.endswith(".xhtml"):
+                        filesource.select(_archiveFile)
+                        if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
+                            _entrypointFiles.append({"file":filesource.url})
+                if not _entrypointFiles:
+                    for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
+                        filesource.select(_archiveFile)
+                        if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
+                            _entrypointFiles.append({"file":filesource.url})
             elif os.path.isdir(filesource.url):
                 _entrypointFiles = []
                 for _file in os.listdir(filesource.url):

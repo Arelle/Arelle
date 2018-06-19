@@ -31,11 +31,11 @@ due to a Java bug on Windows shell interface (without the newlines for pretty pr
 
 
 '''
-import os, json, zipfile, logging
+import os, io, json, zipfile, logging
 jsonIndent = 1  # None for most compact, 0 for left aligned
 from decimal import Decimal
 from lxml.etree import XML, XMLSyntaxError
-from arelle import ModelDocument, ModelValue, XmlUtil
+from arelle import ModelDocument, ModelValue, XmlUtil, FileSource
 from arelle.ModelValue import qname
 from arelle.PluginManager import pluginClassMethods  # , pluginMethodsForClasses, modulePluginInfos
 from arelle.UrlUtil import authority, relativeUri
@@ -173,6 +173,12 @@ def filingStart(cntlr, options, filesource, entrypointFiles, sourceZipStream=Non
         # this event is called for filings (of instances) as well as test cases, for test case it just keeps options accessible
         for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Filing.Start"):
             pluginXbrlMethod(cntlr, options, entrypointFiles, modelManager.efmFiling)
+    
+        # check if any entrypointFiles have an encryption is specified
+        if isinstance(entrypointFiles, list):
+            for pluginXbrlMethod in pluginClassMethods("Security.Crypt.Filing.Start"):
+                pluginXbrlMethod(modelManager.efmFiling, options, filesource, entrypointFiles, sourceZipStream)
+        
             
 def guiTestcasesStart(cntlr, modelXbrl, *args, **kwargs):
     modelManager = cntlr.modelManager
@@ -380,6 +386,24 @@ def testcaseVariationValidated(testcaseModelXbrl, instanceModelXbrl, errors=None
         filingEnd(modelManager.cntlr, efmFiling.options, modelManager.filesource, [])
         # flush logfile (assumed to be buffered, empty the buffer for next filing)
         testcaseModelXbrl.modelManager.cntlr.logHandler.flush()
+        
+def fileSourceFile(cntlr, filepath, binary, stripDeclaration):
+    modelManager = cntlr.modelManager
+    if hasattr(modelManager, "efmFiling"):
+        for pluginXbrlMethod in pluginClassMethods("Security.Crypt.FileSource.File"):
+            _file = pluginXbrlMethod(cntlr, modelManager.efmFiling, filepath, binary, stripDeclaration)
+            if _file is not None:
+                return _file
+    return None
+        
+def fileSourceExists(cntlr, filepath):
+    modelManager = cntlr.modelManager
+    if hasattr(modelManager, "efmFiling"):
+        for pluginXbrlMethod in pluginClassMethods("Security.Crypt.FileSource.Exists"):
+            _existence = pluginXbrlMethod(modelManager.efmFiling, filepath)
+            if _existence is not None:
+                return _existence
+    return None
     
 class Filing:
     def __init__(self, cntlr, options=None, filesource=None, entrypointfiles=None, sourceZipStream=None, responseZipStream=None, errorCaptureLevel=None):
@@ -409,6 +433,8 @@ class Filing:
         self.errorCaptureLevel = errorCaptureLevel or logging._checkLevel("INCONSISTENCY")
         self.errors = []
         self.arelleUnitTests = {} # copied from each instance loaded
+        for pluginXbrlMethod in pluginClassMethods("Security.Crypt.Init"):
+            pluginXbrlMethod(self, options, filesource, entrypointfiles, sourceZipStream)
                 
     def setReportZipStreamMode(self, mode): # mode is 'w', 'r', 'a'
         # required to switch in-memory zip stream between write, read, and append modes
@@ -474,6 +500,14 @@ class Filing:
     @property
     def hasInlineReport(self):
         return any(getattr(report, "isInline", False) for report in self.reports)
+    
+    def writeFile(self, filepath, data):
+        # write the data (string or binary)
+        for pluginXbrlMethod in pluginClassMethods("Security.Crypt.Write"):
+            if pluginXbrlMethod(self, filepath, data):
+                return
+        with io.open(filepath, "wt" if isinstance(data, str) else "wb") as fh:
+            fh.write(data)
         
 class Report:
     REPORT_ATTRS = {"DocumentType", "DocumentPeriodEndDate", "EntityRegistrantName",
@@ -553,5 +587,7 @@ __pluginInfo__ = {
     'Validate.RssItem': rssItemValidated,
     'TestcaseVariation.Xbrl.Loaded': testcaseVariationXbrlLoaded,
     'TestcaseVariation.Xbrl.Validated': testcaseVariationXbrlValidated,
-    'TestcaseVariation.Validated': testcaseVariationValidated
+    'TestcaseVariation.Validated': testcaseVariationValidated,
+    'FileSource.File': fileSourceFile,
+    'FileSource.Exists': fileSourceExists
 }
