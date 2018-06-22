@@ -824,8 +824,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                         "F-9EF",
                                         "K SDR",
                                         "L SDR",
-                                        "N-1A",
-                                        "N-1A/A",
                                         "N-CSR",
                                         "N-CSR/A",
                                         "N-CSRS",
@@ -835,8 +833,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                         "Other",
                                         "POS AM",
                                         "POS EX",
-                                        "POS462B",
-                                        "POS462C",
                                         "POSASR",
                                         "S-1",
                                         "S-1/A",
@@ -844,7 +840,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                         "S-11/A",
                                         "S-11MEF",
                                         "S-1MEF",
-                                        "S-20",
                                         "S-3",
                                         "S-3/A",
                                         "S-3ASR",
@@ -856,8 +851,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                         "S-4/A",
                                         "S-4EF",
                                         "S-4MEF",
-                                        "S-B",
-                                        "S-BMEF",
                                         "SD",
                                         "SD",
                                         "SD/A",
@@ -929,8 +922,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                         "F-9 POS": ("F-9", "F-9 POS"),
                                         "F-9/A": ("F-9", "F-9/A"),
                                         "F-9EF": ("F-9", "F-9EF"),
-                                        "N-1A": ("N-1A",),
-                                        "N-1A/A": ("N-1A/A", "Other"),
                                         "N-CSR": ("N-CSR",),
                                         "N-CSR/A": ("N-CSR/A",),
                                         "N-CSRS": ("N-CSRS",),
@@ -938,11 +929,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                         "N-Q": ("N-Q",),
                                         "N-Q/A": ("N-Q/A",),
                                         "POS AM": ("F-1", "F-3", "F-4", "F-6", "Other", 
-                                                   "POS AM", "S-1", "S-11", "S-20", "S-3", "S-4", "S-B"),
+                                                   "POS AM", "S-1", "S-11", "S-3", "S-4"),
                                         "POS EX": ("F-3", "F-4", "Other", 
                                                    "POS EX", "S-1", "S-3", "S-4"),
-                                        "POS462B": ("F-1MEF", "F-3MEF", "F-4MEF", "Other", 
-                                                    "POS462B", "POS462C", "S-11MEF", "S-1MEF", "S-3MEF", "S-BMEF"),
                                         "POSASR": ("F-3", "Other", "POSASR", "S-3"),
                                         "S-1": ("S-1",),
                                         "S-1/A": ("S-1", "S-1/A"),
@@ -969,8 +958,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                         "SDR/A": ("K SDR", "L SDR"),
                                         "SDR-A": ("K SDR", "L SDR"),
                                         "SDR/W ": ("K SDR", "L SDR")
-                        }.get(val.paramSubmissionType)
-                if expectedDocumentTypes and documentType not in expectedDocumentTypes:
+                        }.get(val.paramSubmissionType, ())
+                if documentType not in expectedDocumentTypes: #SPR22607 always check submission type
                     modelXbrl.error("EFM.6.05.20.submissionDocumentType" if val.paramExhibitType != "EX-2.01" else "EFM.6.23.03",
                         _("The value for dei:DocumentType, %(documentType)s, does not match the submission type, %(submissionType)s, in context %(contextID)s. "
                           "EDGAR Filer Manual section 6.5.20 lists allowed submission types."),
