@@ -54,7 +54,6 @@ def securityFilingStart(ownerObject, options, filesource, entrypointfiles, sourc
 
 def securityFileSourceExists(ownerObject, filepath):
     # handle FileSource existence requests which might involve encrypted files
-    if ownerObject.hasEncryption:
     if ownerObject.hasEncryption and os.path.exists(filepath + ENCRYPTED_FILE_SUFFIX):
         return True
     return None
