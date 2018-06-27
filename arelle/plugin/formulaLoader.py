@@ -1025,8 +1025,8 @@ def compileParameterReference( sourceStr, loc, toks ):
     arcAttrib={
             "xlink:type": "arc",
             "xlink:arcrole": "variable-set",
-            "xlink:to": lbGen.params[tok[1]],
-            "name": lbGen.checkedQName(tok[0])}
+            "xlink:to": lbGen.params[toks[1]],
+            "name": lbGen.checkedQName(toks[0])}
     
     if not omitSourceLineAttributes:
         arcAttrib["xfs:sourceline"] =  "{}".format(loc)
