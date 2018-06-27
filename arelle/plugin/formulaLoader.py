@@ -1359,8 +1359,8 @@ def compileXfsGrammar( cntlr, debugParsing ):
                          ).setParseAction(compileDefaults).ignore(xfsComment)
 
     parameterDeclaration = (Suppress(Keyword("parameter")) + qName  +  
-                            Optional(Keyword("required")) +
                             Suppress(Literal("{")) +
+                            Optional(Keyword("required")) +
                             Optional(Keyword("select") + xpathExpression) +
                             Optional(Keyword("as") + qName) + 
                             Suppress(Literal("}")) + separator
