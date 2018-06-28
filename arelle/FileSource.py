@@ -10,6 +10,7 @@ from arelle import XmlUtil
 from arelle import PackageManager
 from arelle.UrlUtil import isHttpUrl
 from operator import indexOf
+pluginClassMethods = None # dynamic import
 
 archivePathSeparators = (".zip" + os.sep, ".tar.gz" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, '.taxonomyPackage.xml' + os.sep) + \
                         ((".zip/", ".tar.gz/", ".eis/", ".xml/", ".xfd/", ".frm/", '.taxonomyPackage.xml/') if os.sep != "/" else ()) #acomodate windows and http styles
@@ -96,6 +97,9 @@ class ArchiveFileIOError(IOError):
             
 class FileSource:
     def __init__(self, url, cntlr=None, checkIfXmlIsEis=False):
+        global pluginClassMethods
+        if pluginClassMethods is None: # dynamic import
+            from arelle.PluginManager import pluginClassMethods
         self.url = str(url)  # allow either string or FileNamedStringIO
         self.baseIsHttp = isHttpUrl(self.url)
         self.cntlr = cntlr
@@ -772,7 +776,5 @@ def gaeSet(key, bytesValue): # stores bytes, not string valye
         chunkKeys.append(chunkKey)
     return gaeMemcache.set(key, chunkKeys, time=GAE_EXPIRE_WEEK)
 
-# must be last otherwise would be circular dependency from pluginClassMethods
-from arelle.PluginManager import pluginClassMethods
 
 
