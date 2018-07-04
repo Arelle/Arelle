@@ -277,7 +277,8 @@ class ModelTestcaseVariation(ModelObject):
                 # if @expected and @nonStandardErrorCodes then use expected instead of error codes
                 return expected
         errorElement = XmlUtil.descendant(self, None, "error")
-        if errorElement is not None:
+        resultElement = XmlUtil.descendant(self, None, "result")
+        if errorElement is not None and not resultElement.get("nonStandardErrorCodes"):
             _errorText = XmlUtil.text(errorElement)
             if ' ' in _errorText: # list of tokens
                 return _errorText
