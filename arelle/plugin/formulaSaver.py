@@ -253,11 +253,11 @@ class GenerateXbrlFormula:
                     if axis:
                         members.append("axis")
                         members.append(axis)
-                self.xf = "{}explicit-dimension {}{};".format(pIndent, 
+                self.xf = "{}explicit-dimension {} {};".format(pIndent, 
                                                               fObj.dimQname or ("{{{}}}".format(fObj.dimQnameExpression) if fObj.dimQnameExpression else ""),
                                                               " ".join(members))
             elif isinstance(fObj, ModelTypedDimension): # this is a ModelTestFilter not same as genera/unit/period
-                self.xf = "{}typed-dimension {}{};".format(pIndent, 
+                self.xf = "{}typed-dimension {} {};".format(pIndent, 
                                                            fObj.dimQname or ("{{{}}}".format(fObj.dimQnameExpression) if fObj.dimQnameExpression else ""),
                                                            " {{{}}}".format(fObj.test) if fObj.test else "")
             elif isinstance(fObj, ModelTestFilter):
