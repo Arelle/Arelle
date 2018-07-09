@@ -254,6 +254,8 @@ def parseAndRun(args):
     parser.add_option("--formulavarfiltersresult", action="store_true", dest="formulaVarFiltersResult", help=SUPPRESS_HELP)
     parser.add_option("--formulaRunIDs", action="store", dest="formulaRunIDs", help=_("Specify formula/assertion IDs to run, separated by a '|' character."))
     parser.add_option("--formularunids", action="store", dest="formulaRunIDs", help=SUPPRESS_HELP)
+    parser.add_option("--formulaCompileOnly", action="store_true", dest="formulaCompileOnly", help=_("Specify formula are to be compiled but not executed."))
+    parser.add_option("--formulacompileonly", action="store_true", dest="formulaCompileOnly", help=SUPPRESS_HELP)
     parser.add_option("--uiLang", action="store", dest="uiLang",
                       help=_("Language for user interface (override system settings, such as program messages).  Does not save setting."))
     parser.add_option("--uilang", action="store", dest="uiLang", help=SUPPRESS_HELP)
@@ -773,6 +775,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.traceVariableFiltersResult = True
         if options.formulaRunIDs:
             fo.runIDs = options.formulaRunIDs   
+        if options.formulaCompileOnly:
+            fo.compileOnly = True
         self.modelManager.formulaOptions = fo
 
         success = True
