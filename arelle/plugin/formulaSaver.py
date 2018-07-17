@@ -357,7 +357,7 @@ class GenerateXbrlFormula:
         elif isinstance(fObj, ModelAssertionSeverity):
             self.xf = "{}{} {};".format(
                 pIndent, 
-                "unsatisfied-severity",
+                "severity",
                 fObj.level)
         elif isinstance(fObj, ModelCustomFunctionSignature):
             hasImplememntation = False

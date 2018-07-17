@@ -1387,7 +1387,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
     
     packageDeclaration = (Suppress(Keyword("package")) + ncName + separator ).setParseAction(compilePackageDeclaration).ignore(xfsComment)
     
-    severity = ( Suppress(Keyword("unsatisfied-severity")) + ( ncName ) + separator ).setParseAction(compileSeverity).ignore(xfsComment) 
+    severity = ( Suppress(Keyword("severity")) + ( ncName ) + separator ).setParseAction(compileSeverity).ignore(xfsComment) 
     
     label = ( (Keyword("label") | Keyword("unsatisfied-message") | Keyword("satisfied-message")) +
               Optional( Combine(Literal("(") + Regex("[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*") + Literal(")")) ) + 
