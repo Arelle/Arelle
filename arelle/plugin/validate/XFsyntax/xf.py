@@ -137,7 +137,7 @@ class XFParser(Parser):
 
     @tatsumasu()
     def _severity_(self):  # noqa
-        self._token('unsatisfied-severity')
+        self._token('severity')
         self._message_severity_()
         self._separator_()
 
@@ -156,9 +156,9 @@ class XFParser(Parser):
     def _parameter_(self):  # noqa
         self._token('parameter')
         self._name_()
+        self._token('{')
         with self._optional():
             self._token('required')
-        self._token('{')
         with self._optional():
             self._token('select')
             self._enclosed_expression_()
@@ -173,51 +173,58 @@ class XFParser(Parser):
         self._token('filter')
         self._name_()
         self._token('{')
+        self._filter_()
 
         def block0():
+            self._separator_()
             self._filter_()
-        self._positive_closure(block0)
+        self._closure(block0)
+        with self._optional():
+            self._separator_()
         self._token('}')
         self._separator_()
 
     @tatsumasu()
     def _filter_(self):  # noqa
-        with self._group():
-            with self._choice():
-                with self._option():
-                    self._concept_filter_()
-                with self._option():
-                    self._general_filter_()
-                with self._option():
-                    self._period_filter_()
-                with self._option():
-                    self._dimension_filter_()
-                with self._option():
-                    self._unit_filter_()
-                with self._option():
-                    self._entity_filter_()
-                with self._option():
-                    self._match_filter_()
-                with self._option():
-                    self._relative_filter_()
-                with self._option():
-                    self._tuple_filter_()
-                with self._option():
-                    self._value_filter_()
-                with self._option():
-                    self._boolean_filter_()
-                with self._option():
-                    self._aspect_cover_filter_()
-                with self._option():
-                    self._concept_relation_filter_()
-                with self._option():
-                    self._declared_filter_reference_()
-                self._error('no available options')
+        with self._choice():
+            with self._option():
+                with self._optional():
+                    self._token('not')
+                with self._group():
+                    with self._choice():
+                        with self._option():
+                            self._concept_filter_()
+                        with self._option():
+                            self._general_filter_()
+                        with self._option():
+                            self._period_filter_()
+                        with self._option():
+                            self._dimension_filter_()
+                        with self._option():
+                            self._unit_filter_()
+                        with self._option():
+                            self._entity_filter_()
+                        with self._option():
+                            self._match_filter_()
+                        with self._option():
+                            self._relative_filter_()
+                        with self._option():
+                            self._tuple_filter_()
+                        with self._option():
+                            self._value_filter_()
+                        with self._option():
+                            self._boolean_filter_()
+                        with self._option():
+                            self._aspect_cover_filter_()
+                        with self._option():
+                            self._concept_relation_filter_()
+                        self._error('no available options')
+            with self._option():
+                self._declared_filter_reference_()
+            self._error('no available options')
 
     @tatsumasu()
     def _concept_filter_(self):  # noqa
-        with self._optional():
-            self._token('complemented')
         with self._group():
             with self._choice():
                 with self._option():
@@ -300,21 +307,15 @@ class XFParser(Parser):
                                 self._enclosed_expression_()
                             self._error('no available options')
                 self._error('no available options')
-        self._separator_()
 
     @tatsumasu()
     def _general_filter_(self):  # noqa
-        with self._optional():
-            self._token('complemented')
         self._token('general')
         self._cut()
         self._enclosed_expression_()
-        self._separator_()
 
     @tatsumasu()
     def _period_filter_(self):  # noqa
-        with self._optional():
-            self._token('complemented')
         with self._group():
             with self._choice():
                 with self._option():
@@ -384,12 +385,9 @@ class XFParser(Parser):
                             self._error('no available options')
                     self._variable_ref_()
                 self._error('no available options')
-        self._separator_()
 
     @tatsumasu()
     def _dimension_filter_(self):  # noqa
-        with self._optional():
-            self._token('complemented')
         with self._group():
             with self._choice():
                 with self._option():
@@ -429,8 +427,9 @@ class XFParser(Parser):
                                     with self._optional():
                                         self._token('linkrole')
                                         self._quoted_anyURI_()
-                                        self._token('arcrole')
-                                        self._quoted_anyURI_()
+                                        with self._optional():
+                                            self._token('arcrole')
+                                            self._quoted_anyURI_()
                                         self._token('axis')
                                         self._dimension_axis_()
                                 self._error('no available options')
@@ -454,7 +453,6 @@ class XFParser(Parser):
                             self._token('test')
                             self._enclosed_expression_()
                 self._error('no available options')
-        self._separator_()
 
     @tatsumasu()
     def _dimension_axis_(self):  # noqa
@@ -471,8 +469,6 @@ class XFParser(Parser):
 
     @tatsumasu()
     def _unit_filter_(self):  # noqa
-        with self._optional():
-            self._token('complemented')
         with self._group():
             with self._choice():
                 with self._option():
@@ -490,12 +486,9 @@ class XFParser(Parser):
                     self._cut()
                     self._enclosed_expression_()
                 self._error('no available options')
-        self._separator_()
 
     @tatsumasu()
     def _entity_filter_(self):  # noqa
-        with self._optional():
-            self._token('complemented')
         with self._group():
             with self._choice():
                 with self._option():
@@ -522,12 +515,9 @@ class XFParser(Parser):
                     self._token('value')
                     self._enclosed_expression_()
                 self._error('no available options')
-        self._separator_()
 
     @tatsumasu()
     def _match_filter_(self):  # noqa
-        with self._optional():
-            self._token('complemented')
         with self._group():
             with self._choice():
                 with self._option():
@@ -559,21 +549,15 @@ class XFParser(Parser):
                 self._error('no available options')
         with self._optional():
             self._token('match-any')
-        self._separator_()
 
     @tatsumasu()
     def _relative_filter_(self):  # noqa
-        with self._optional():
-            self._token('complemented')
         self._token('relative')
         self._cut()
         self._variable_ref_()
-        self._separator_()
 
     @tatsumasu()
     def _tuple_filter_(self):  # noqa
-        with self._optional():
-            self._token('complemented')
         with self._group():
             with self._choice():
                 with self._option():
@@ -601,19 +585,13 @@ class XFParser(Parser):
                     self._cut()
                     self._variable_ref_()
                 self._error('no available options')
-        self._separator_()
 
     @tatsumasu()
     def _value_filter_(self):  # noqa
-        with self._optional():
-            self._token('complemented')
         self._token('nilled')
-        self._separator_()
 
     @tatsumasu()
     def _boolean_filter_(self):  # noqa
-        with self._optional():
-            self._token('complemented')
         with self._group():
             with self._choice():
                 with self._option():
@@ -623,17 +601,18 @@ class XFParser(Parser):
                 self._error('no available options')
         self._cut()
         self._token('{')
+        self._filter_()
 
         def block1():
+            self._separator_()
             self._filter_()
-        self._positive_closure(block1)
+        self._closure(block1)
+        with self._optional():
+            self._separator_()
         self._token('}')
-        self._separator_()
 
     @tatsumasu()
     def _aspect_cover_filter_(self):  # noqa
-        with self._optional():
-            self._token('complemented')
         self._token('aspect-cover')
         self._cut()
 
@@ -677,12 +656,9 @@ class XFParser(Parser):
                             self._error('no available options')
                 self._error('no available options')
         self._positive_closure(block0)
-        self._separator_()
 
     @tatsumasu()
     def _concept_relation_filter_(self):  # noqa
-        with self._optional():
-            self._token('complemented')
         self._token('concept-relation')
         self._cut()
         with self._group():
@@ -723,7 +699,6 @@ class XFParser(Parser):
         with self._optional():
             self._token('test')
             self._enclosed_expression_()
-        self._separator_()
 
     @tatsumasu()
     def _relation_axis_(self):  # noqa
@@ -752,14 +727,12 @@ class XFParser(Parser):
                 with self._option():
                     self._token('sibling')
                 self._error('no available options')
-        self._separator_()
 
     @tatsumasu()
     def _declared_filter_reference_(self):  # noqa
         self._token('filter')
         self._cut()
         self._variable_ref_()
-        self._separator_()
 
     @tatsumasu()
     def _fact_variable_(self):  # noqa
@@ -776,10 +749,15 @@ class XFParser(Parser):
         with self._optional():
             self._token('fallback')
             self._enclosed_expression_()
-
-        def block0():
+        with self._optional():
             self._filter_()
-        self._closure(block0)
+
+            def block0():
+                self._separator_()
+                self._filter_()
+            self._closure(block0)
+            with self._optional():
+                self._separator_()
         self._token('}')
         self._separator_()
 
@@ -844,6 +822,7 @@ class XFParser(Parser):
 
         def block2():
             self._filter_()
+            self._separator_()
         self._closure(block2)
 
         def block3():
@@ -867,6 +846,8 @@ class XFParser(Parser):
                 with self._option():
                     self._existence_expression_()
                 self._error('no available options')
+        with self._optional():
+            self._separator_()
         self._token('}')
         self._separator_()
 
@@ -911,18 +892,17 @@ class XFParser(Parser):
     def _precondition_(self):  # noqa
         self._token('precondition')
         self._enclosed_expression_()
+        self._separator_()
 
     @tatsumasu()
     def _value_expression_(self):  # noqa
         self._token('test')
         self._enclosed_expression_()
-        self._separator_()
 
     @tatsumasu()
     def _existence_expression_(self):  # noqa
         self._token('evaluation-count')
         self._enclosed_expression_()
-        self._separator_()
 
     @tatsumasu()
     def _enclosed_expression_(self):  # noqa
@@ -965,7 +945,7 @@ class XFParser(Parser):
 
     @tatsumasu()
     def _date_time_constant_(self):  # noqa
-        self._pattern(r'\b(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?\b')
+        self._pattern(r'\b(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(24:00:00(\.0+)?|(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+))?(Z)?\b')
 
     @tatsumasu()
     def _date_constant_(self):  # noqa
