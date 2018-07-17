@@ -128,12 +128,18 @@ class XFParser(Parser):
     def _default_(self):  # noqa
         with self._choice():
             with self._option():
-                self._severity_()
+                self._default_severity_()
             with self._option():
                 self._token('default-language')
                 self._language_()
                 self._separator_()
             self._error('no available options')
+
+    @tatsumasu()
+    def _default_severity_(self):  # noqa
+        self._token('default-severity')
+        self._message_severity_()
+        self._separator_()
 
     @tatsumasu()
     def _severity_(self):  # noqa
@@ -1807,6 +1813,9 @@ class XFSemantics(object):
         return ast
 
     def default(self, ast):  # noqa
+        return ast
+
+    def default_severity(self, ast):  # noqa
         return ast
 
     def severity(self, ast):  # noqa
