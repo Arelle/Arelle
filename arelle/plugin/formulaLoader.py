@@ -557,7 +557,7 @@ def compileDefaults( sourceStr, loc, toks ):
     for tok in toks:
         if prevTok == "default-language":
             lbGen.defaultLanguage = tok
-        elif prevTok == "unsatisfied-severity":
+        elif prevTok == "default-severity":
             lbGen.defaultUnsatisfiedMessageSeverity = tok
         prevTok = tok
     return []
@@ -1355,7 +1355,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
     
     namespaceDeclaration = (Suppress(Keyword("namespace")) + ncName + Suppress(Literal("=")) + quotedString + separator
                             ).setParseAction(compileNamespaceDeclaration).ignore(xfsComment)
-    defaultDeclaration = (Suppress(Keyword("unsatisfied-severity") | Keyword("default-language")) + ncName + separator
+    defaultDeclaration = (Suppress(Keyword("default-severity") | Keyword("default-language")) + ncName + separator
                          ).setParseAction(compileDefaults).ignore(xfsComment)
 
     parameterDeclaration = (Suppress(Keyword("parameter")) + qName  +  
