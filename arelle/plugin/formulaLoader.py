@@ -1454,17 +1454,17 @@ def compileXfsGrammar( cntlr, debugParsing ):
                      
     conceptFilter = ( 
         ZeroOrMore( Keyword("not") | Keyword("covering") | Keyword("non-covering") ) + 
-        (Keyword("concept-name") + OneOrMore(qName | xpathExpression) + separator) |
-         Keyword("concept-period-type") + (Keyword("instant") | Keyword("duration")) + separator |
-         Keyword("concept-balance") + (Keyword("credit") | Keyword("debit") | Keyword("none")) + separator |
-         Keyword("concept-data-type") + (Keyword("strict") | Keyword("non-strict")) + (qName | xpathExpression) + separator |
-         Keyword("concept-substitution-group") + (Keyword("strict") | Keyword("non-strict")) + (qName | xpathExpression) + separator
-        ).setParseAction(compileConceptFilter).ignore(xfsComment).setName("concept-filter").setDebug(debugParsing)
+        (Keyword("concept-name") + OneOrMore(qName | xpathExpression)  |
+         Keyword("concept-period-type") + (Keyword("instant") | Keyword("duration")) |
+         Keyword("concept-balance") + (Keyword("credit") | Keyword("debit") | Keyword("none")) |
+         Keyword("concept-data-type") + (Keyword("strict") | Keyword("non-strict")) + (qName | xpathExpression) |
+         Keyword("concept-substitution-group") + (Keyword("strict") | Keyword("non-strict")) + (qName | xpathExpression) 
+        )).setParseAction(compileConceptFilter).ignore(xfsComment).setName("concept-filter").setDebug(debugParsing)
 
 
     generalFilter = ( 
         Optional( Keyword("not") ) + 
-        Keyword("general") + xpathExpression + separator
+        Keyword("general") + xpathExpression 
         ).setParseAction(compileGeneralFilter).ignore(xfsComment).setName("general-filter").setDebug(debugParsing)
 
 
@@ -1474,7 +1474,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
          (Keyword("period-start") | Keyword("period-end") | Keyword("period-instant")) + 
            (dateTime | Keyword("date") + xpathExpression + Optional(Keyword("time") + xpathExpression)) |
          Keyword("instant-duration") + (Keyword("start") | Keyword("end")) + variableRef
-         ) + separator
+         ) 
         ).setParseAction(compilePeriodFilter).ignore(xfsComment).setName("period-filter").setDebug(debugParsing)
 
     dimensionAxis = (Keyword("child-or-self") | Keyword("child") | Keyword("descendant") | Keyword("descendant-or-self"))
@@ -1486,15 +1486,15 @@ def compileXfsGrammar( cntlr, debugParsing ):
                (Keyword("member") + (variableRef | qName | xpathExpression) +
                 Optional(Keyword("linkrole") + quotedString) + 
                 Optional(Keyword("arcrole") + quotedString) +
-                Optional(Keyword("axis") + dimensionAxis))) + separator |
+                Optional(Keyword("axis") + dimensionAxis))) |
          Keyword("typed-dimension") + (variableRef | qName | xpathExpression) + 
-            Optional( Keyword("test") + xpathExpression )  + separator)
+            Optional( Keyword("test") + xpathExpression )  )
         ).setParseAction(compileDimensionFilter).ignore(xfsComment).setName("dimension-filter").setDebug(debugParsing)
 
     unitFilter = ( 
         ZeroOrMore( Keyword("not") | Keyword("covering") | Keyword("non-covering") ) + 
         (Keyword("unit-single-measure") + (qName | xpathExpression) |
-         Keyword("unit-general-measures") + xpathExpression) + separator
+         Keyword("unit-general-measures") + xpathExpression) 
         ).setParseAction(compileUnitFilter).ignore(xfsComment).setName("unit-filter").setDebug(debugParsing)
 
 
@@ -1503,7 +1503,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
         (Keyword("entity") + Keyword("scheme") + xpathExpression + Keyword("value") + xpathExpression |
          Keyword("entity-scheme") + xpathExpression |
          Keyword("entity-scheme-pattern") + quotedString |
-         Keyword("entity-identifier-pattern") + quotedString) + separator
+         Keyword("entity-identifier-pattern") + quotedString) 
         ).setParseAction(compileEntityFilter).ignore(xfsComment).setName("entity-filter").setDebug(debugParsing)
 
     matchFilter = ( 
@@ -1514,12 +1514,12 @@ def compileXfsGrammar( cntlr, debugParsing ):
          Keyword("match-period") + variableRef |
          Keyword("match-unit") + variableRef |
          Keyword("match-dimension") + variableRef + Keyword("dimension") + (qName | xpathExpression)
-        ) + Optional( Keyword("match-any") ) + separator
+        ) + Optional( Keyword("match-any") )
         ).setParseAction(compileMatchFilter).ignore(xfsComment).setName("match-filter").setDebug(debugParsing)
 
     relativeFilter = ( 
         Optional( Keyword("not") ) + 
-        Keyword("relative") + variableRef + separator
+        Keyword("relative") + variableRef 
         ).setParseAction(compileRelativeFilter).ignore(xfsComment).setName("relative-filter").setDebug(debugParsing)
 
 
@@ -1527,7 +1527,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
         ZeroOrMore( Keyword("not") | Keyword("covering") | Keyword("non-covering") ) + 
         (Keyword("parent") + (qName | xpathExpression) |
          Keyword("ancestor") + (qName | xpathExpression) |
-         Keyword("sibling") + variableRef) + separator
+         Keyword("sibling") + variableRef) 
         ).setParseAction(compileTupleFilter).ignore(xfsComment).setName("tuple-filter").setDebug(debugParsing)
 
 
@@ -1542,8 +1542,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
         OneOrMore( Keyword("all") | Keyword("concept") | Keyword("entity-identifier") | Keyword("location") | 
                    Keyword("period") | Keyword("unit") | Keyword("dimensions") |
                    Keyword("dimension") + (qName | xpathExpression) |
-                   Keyword("exclude-dimension")+ (qName | xpathExpression) ) +
-        separator
+                   Keyword("exclude-dimension")+ (qName | xpathExpression) ) 
         ).setParseAction(compileAspectCoverFilter).ignore(xfsComment).setName("aspect-cover-filter").setDebug(debugParsing)
 
 
@@ -1560,15 +1559,14 @@ def compileXfsGrammar( cntlr, debugParsing ):
             Optional(Keyword("axis") + relationAxis) +
             Optional(Keyword("generations") + nonNegativeInteger) +
             Optional(Keyword("test") + xpathExpression)
-        ) + separator
+        ) 
         ).setParseAction(compileConceptRelationFilter).ignore(xfsComment).setName("concept-relation-filter").setDebug(debugParsing)
 
     booleanFilter = ( 
         Optional( Keyword("not") ) + 
         (Keyword("and") | Keyword("or")) + Suppress(Literal("{")) +
-         OneOrMore(filter) +
-        Suppress(Literal("}")) +
-        separator
+         delimitedList(filter, delim=";") + Optional(separator) + 
+        Suppress(Literal("}")) 
         ).setParseAction(compileBooleanFilter).ignore(xfsComment).setName("boolean-filter").setDebug(debugParsing)
 
     declaredFilterReference = ( Keyword("filter") + variableRef ).setParseAction(compileFilterReference).ignore(xfsComment).setName("filter-reference").setDebug(debugParsing)
@@ -1592,13 +1590,13 @@ def compileXfsGrammar( cntlr, debugParsing ):
     filter.setName("filter").setDebug(debugParsing)
     
     filterDeclaration = (Suppress(Keyword("filter")) + qName + Suppress(Literal("{")) +
-                         OneOrMore(filter) +
-                         Suppress(Literal("}"))).setParseAction(compileFilterDeclaration).ignore(xfsComment).setName("fact-variable").setDebug(debugParsing)
+                         delimitedList(filter, delim=";") + Optional(separator) + 
+                         Suppress(Literal("}")) + separator).setParseAction(compileFilterDeclaration).ignore(xfsComment).setName("fact-variable").setDebug(debugParsing)
     
     factVariable = (Suppress(Keyword("variable")) + variableRef + Suppress(Literal("{")) +
                     ZeroOrMore( Keyword("bind-as-sequence") | Keyword("nils") | Keyword("matches") |
                                 ( Keyword("fallback") + xpathExpression ) ) +
-                    ZeroOrMore( filter ) +
+                     delimitedList(filter, delim=";") + Optional(separator) + 
                     Suppress(Literal("}")) + separator).setParseAction(compileFactVariable).ignore(xfsComment).setName("fact-variable").setDebug(debugParsing)
 
 
@@ -1622,7 +1620,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                               Keyword("value") + xpathExpression + separator |
                               Keyword("source") + qName + separator ) +
                   ZeroOrMore( aspectRules ) +
-                  ZeroOrMore( filter ) +
+                  ZeroOrMore( filter + separator ) +
                   ZeroOrMore( generalVariable | factVariable | referencedParameter) +
                   ZeroOrMore( precondition ) +
                   Suppress(Literal("}") + separator)
@@ -1632,7 +1630,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                   ZeroOrMore( label | severity | 
                               Keyword("aspect-model-non-dimensional") +separator | 
                               Keyword("no-implicit-filtering") + separator ) +
-                  ZeroOrMore( filter ) +
+                  ZeroOrMore( filter + separator ) +
                   ZeroOrMore( generalVariable | factVariable | referencedParameter) +
                   ZeroOrMore( precondition ) +
                   Optional( ( Keyword("test") | Keyword("evaluation-count") ) + xpathExpression + separator) + 
