@@ -201,7 +201,7 @@ class GenerateXbrlFormula:
                 self.xf = "{}}};".format(pIndent)
         elif isinstance(fObj, ModelFilter):
             if fromRel.isComplemented:
-                self.xf = "{}complemented".format(pIndent)
+                self.xf = "{}not".format(pIndent)
             if not fromRel.isCovered and fromRel.localName == "variableFilterArc":
                 self.xf = "{}non-covering".format(pIndent)
             if isinstance(fObj, ModelConceptName):

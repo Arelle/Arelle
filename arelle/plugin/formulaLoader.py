@@ -90,7 +90,7 @@ def compileAspectCoverFilter( sourceStr, loc, toks ):
                     "xlink:label": filterLabel}
     prevTok = None
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -344,7 +344,7 @@ def compileBooleanFilter( sourceStr, loc, toks ):
     prevTok = filterEltQname = None
     isMatchDimension = False
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -389,7 +389,7 @@ def compileConceptFilter( sourceStr, loc, toks ):
     isName = isPeriodType = isBalance = isDataType = isSubstitution = False
     hasLocalName = False
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -467,7 +467,7 @@ def compileConceptRelationFilter( sourceStr, loc, toks ):
                     "xlink:label": filterLabel}
     prevTok = None
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -579,7 +579,7 @@ def compileDimensionFilter( sourceStr, loc, toks ):
     prevTok = filterEltQname = None
     isTyped = False
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -649,7 +649,7 @@ def compileEntityFilter( sourceStr, loc, toks ):
                     "xlink:label": filterLabel}
     prevTok = filterEltQname = None
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -853,7 +853,7 @@ def compileGeneralFilter( sourceStr, loc, toks ):
                     "xlink:label": filterLabel}
     prevTok = filterEltQname = None
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif prevTok == "general" and isinstance(tok, XPathExpression):
             filterAttrib["test"] = str(tok)
@@ -960,7 +960,7 @@ def compileMatchFilter( sourceStr, loc, toks ):
     prevTok = filterEltQname = None
     isMatchDimension = False
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -1053,7 +1053,7 @@ def compilePeriodFilter( sourceStr, loc, toks ):
     prevTok = filterEltQname = None
     isPeriod = isPeriodDateTime = isInstantDuration = False
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -1132,7 +1132,7 @@ def compileRelativeFilter( sourceStr, loc, toks ):
                     "xlink:label": filterLabel}
     prevTok = None
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -1162,7 +1162,7 @@ def compileTupleFilter( sourceStr, loc, toks ):
                     "xlink:label": filterLabel}
     prevTok = None
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -1204,7 +1204,7 @@ def compileUnitFilter( sourceStr, loc, toks ):
                     "xlink:label": filterLabel}
     prevTok = None
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -1248,7 +1248,7 @@ def compileValueFilter( sourceStr, loc, toks ):
                     "xlink:label": filterLabel}
     prevTok = None
     for tok in toks:
-        if tok == "complemented":
+        if tok == "not":
             arcAttrib["complement"] = "true"
         elif tok == "covering":
             arcAttrib["cover"] = "true"
@@ -1453,7 +1453,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
     filter = Forward()
                      
     conceptFilter = ( 
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+        ZeroOrMore( Keyword("not") | Keyword("covering") | Keyword("non-covering") ) + 
         (Keyword("concept-name") + OneOrMore(qName | xpathExpression) + separator) |
          Keyword("concept-period-type") + (Keyword("instant") | Keyword("duration")) + separator |
          Keyword("concept-balance") + (Keyword("credit") | Keyword("debit") | Keyword("none")) + separator |
@@ -1463,13 +1463,13 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
 
     generalFilter = ( 
-        Optional( Keyword("complemented") ) + 
+        Optional( Keyword("not") ) + 
         Keyword("general") + xpathExpression + separator
         ).setParseAction(compileGeneralFilter).ignore(xfsComment).setName("general-filter").setDebug(debugParsing)
 
 
     periodFilter = ( 
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+        ZeroOrMore( Keyword("not") | Keyword("covering") | Keyword("non-covering") ) + 
         (Keyword("period") + xpathExpression |
          (Keyword("period-start") | Keyword("period-end") | Keyword("period-instant")) + 
            (dateTime | Keyword("date") + xpathExpression + Optional(Keyword("time") + xpathExpression)) |
@@ -1480,26 +1480,26 @@ def compileXfsGrammar( cntlr, debugParsing ):
     dimensionAxis = (Keyword("child-or-self") | Keyword("child") | Keyword("descendant") | Keyword("descendant-or-self"))
     
     dimensionFilter = ( 
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+        ZeroOrMore( Keyword("not") | Keyword("covering") | Keyword("non-covering") ) + 
          (Keyword("explicit-dimension") + (qName | xpathExpression) + 
             ZeroOrMore( Keyword("default-member") | 
                (Keyword("member") + (variableRef | qName | xpathExpression) +
                 Optional(Keyword("linkrole") + quotedString) + 
                 Optional(Keyword("arcrole") + quotedString) +
-                Optional(Keyword("axis") + dimensionAxis))) + separator) |
-         (Keyword("typed-dimension") + (variableRef | qName | xpathExpression) + 
+                Optional(Keyword("axis") + dimensionAxis))) + separator |
+         Keyword("typed-dimension") + (variableRef | qName | xpathExpression) + 
             Optional( Keyword("test") + xpathExpression )  + separator)
         ).setParseAction(compileDimensionFilter).ignore(xfsComment).setName("dimension-filter").setDebug(debugParsing)
 
     unitFilter = ( 
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+        ZeroOrMore( Keyword("not") | Keyword("covering") | Keyword("non-covering") ) + 
         (Keyword("unit-single-measure") + (qName | xpathExpression) |
          Keyword("unit-general-measures") + xpathExpression) + separator
         ).setParseAction(compileUnitFilter).ignore(xfsComment).setName("unit-filter").setDebug(debugParsing)
 
 
     entityFilter = ( 
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+        ZeroOrMore( Keyword("not") | Keyword("covering") | Keyword("non-covering") ) + 
         (Keyword("entity") + Keyword("scheme") + xpathExpression + Keyword("value") + xpathExpression |
          Keyword("entity-scheme") + xpathExpression |
          Keyword("entity-scheme-pattern") + quotedString |
@@ -1507,7 +1507,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
         ).setParseAction(compileEntityFilter).ignore(xfsComment).setName("entity-filter").setDebug(debugParsing)
 
     matchFilter = ( 
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+        ZeroOrMore( Keyword("not") | Keyword("covering") | Keyword("non-covering") ) + 
         (Keyword("match-concept") + variableRef |
          Keyword("match-location") + variableRef |
          Keyword("match-entity-identifier") + variableRef |
@@ -1518,13 +1518,13 @@ def compileXfsGrammar( cntlr, debugParsing ):
         ).setParseAction(compileMatchFilter).ignore(xfsComment).setName("match-filter").setDebug(debugParsing)
 
     relativeFilter = ( 
-        Optional( Keyword("complemented") ) + 
+        Optional( Keyword("not") ) + 
         Keyword("relative") + variableRef + separator
         ).setParseAction(compileRelativeFilter).ignore(xfsComment).setName("relative-filter").setDebug(debugParsing)
 
 
     tupleFilter = ( 
-        ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
+        ZeroOrMore( Keyword("not") | Keyword("covering") | Keyword("non-covering") ) + 
         (Keyword("parent") + (qName | xpathExpression) |
          Keyword("ancestor") + (qName | xpathExpression) |
          Keyword("sibling") + variableRef) + separator
@@ -1532,12 +1532,12 @@ def compileXfsGrammar( cntlr, debugParsing ):
 
 
     valueFilter = ( 
-        Optional( Keyword("complemented") ) + 
+        Optional( Keyword("not") ) + 
         Keyword("nilled")
         ).setParseAction(compileValueFilter).ignore(xfsComment).setName("value-filter").setDebug(debugParsing)
 
     aspectCoverFilter = ( 
-        Optional( Keyword("complemented") ) + 
+        Optional( Keyword("not") ) + 
         Keyword("aspect-cover") + 
         OneOrMore( Keyword("all") | Keyword("concept") | Keyword("entity-identifier") | Keyword("location") | 
                    Keyword("period") | Keyword("unit") | Keyword("dimensions") |
@@ -1552,7 +1552,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                     Keyword("sibling-or-self") | Keyword("sibling-or-descendant") | Keyword("sibling") )
 
     conceptRelationFilter = ( 
-        Optional( Keyword("complemented") ) + 
+        Optional( Keyword("not") ) + 
         Keyword("concept-relation") + (
             (variableRef | qName | xpathExpression) +
             Optional(Keyword("linkrole") + (quotedString | xpathExpression)) +
@@ -1564,7 +1564,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
         ).setParseAction(compileConceptRelationFilter).ignore(xfsComment).setName("concept-relation-filter").setDebug(debugParsing)
 
     booleanFilter = ( 
-        Optional( Keyword("complemented") ) + 
+        Optional( Keyword("not") ) + 
         (Keyword("and") | Keyword("or")) + Suppress(Literal("{")) +
          OneOrMore(filter) +
         Suppress(Literal("}")) +
