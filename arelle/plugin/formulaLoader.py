@@ -1633,7 +1633,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                   ZeroOrMore( filter + separator ) +
                   ZeroOrMore( generalVariable | factVariable | referencedParameter) +
                   ZeroOrMore( precondition ) +
-                  Optional( ( Keyword("test") | Keyword("evaluation-count") ) + xpathExpression + separator) + 
+                  Optional( ( Keyword("test") | Keyword("evaluation-count") ) + xpathExpression + Optional(separator)) + 
                   Suppress(Literal("}") + separator)).setParseAction(compileAssertion).ignore(xfsComment).setName("assertion").setDebug(debugParsing)
                   
     consistencyAssertion = ( Suppress(Keyword("consistency-assertion")) + ncName + Suppress(Literal("{")) +
