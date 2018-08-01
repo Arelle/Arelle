@@ -198,7 +198,7 @@ def xbrlDBCommandLineXbrlLoaded(cntlr, options, modelXbrl, entrypoint, *args, **
         # for semantic SQL database check for loaded filings
         if (len(modelXbrl.xbrlDBconnection) > 7 and
             modelXbrl.xbrlDBconnection[6] in ("mssqlSemantic","mysqlSemantic","orclSemantic",
-                                              "pgSemantic","sqliteSemantic") and
+                                              "pgSemantic","sqliteSemantic","pgOpenDB") and
             modelXbrl.xbrlDBconnection[7] == "skipLoadedFilings"):
             # specify reloading of cached source documents (may have been corrupted originally or refiled)
             modelXbrl.reloadCache = True
