@@ -269,13 +269,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 self.arcroleHasResource[arcrole] = hasResource
                 
     def initializeBatch(self, rssObject):
-        results = self.execute("SELECT filing_number, accepted_timestamp FROM filing")
-        existingFilings = dict((filingNumber, timestamp) 
-                               for filingNumber, timestamp in results) # timestamp is a string
-        for rssItem in rssObject.rssItems:
-            if (rssItem.accessionNumber in existingFilings and
-                rssItem.acceptanceDatetime == existingFilings[rssItem.accessionNumber]):
-                rssItem.skipRssItem = True
+        for pluginXbrlMethod in pluginClassMethods("xbrlDB.Open.Ext.InitializeBatch"):
+            pluginXbrlMethod(self, entrypoint, rssObject)
         
                                      
     def insertFiling(self):

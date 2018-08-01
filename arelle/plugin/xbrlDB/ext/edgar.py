@@ -81,6 +81,16 @@ def extEdgarMetadata(xbrlOpenDb, entrypoint, rssItem):
     md["formType"] = rssItemGet(rssItem, "formType") or md.get("document-type")
     md["reportId"] = "{}|{}|{}".format(md["cik"], md["formType"].replace("/A",""), md["fiscalYearFocus"], md["fiscalPeriodFocus"])
     
+def extEdgarInitializeBatch(self, rssObject):
+    results = self.execute("SELECT fe.accession_number, s.accepted_timestamp "
+                           "FROM report r, filing_edgar fe, submission s "
+                           "WHERE r.filing_fk = fe.filing_pk AND r.submission_fk = s.submission_pk")
+    existingFilings = dict((accessionNumber, timestamp) 
+                           for accessionNumber, timestamp in results) # timestamp is a string
+    for rssItem in rssObject.rssItems:
+        if (rssItem.accessionNumber in existingFilings and
+            rssItem.acceptanceDatetime == existingFilings[rssItem.accessionNumber]):
+            rssItem.skipRssItem = True
 
 def extEdgarExistingFilingPk(xbrlOpenDb):
     accessionNumber = xbrlOpenDb.metadata.get("accessionNumber")
@@ -217,6 +227,7 @@ __pluginInfo__ = {
     # classes of mount points (required)
     'xbrlDB.Open.Ext.TableDDLFiles': extEdgarTableDdlFiles,
     'xbrlDB.Open.Ext.Metadata': extEdgarMetadata,
+    'xbrlDB.Open.Ext.InitializeBatch': extEdgarInitializeBatch,
     'xbrlDB.Open.Ext.ExistingFilingPk': extEdgarExistingFilingPk,
     'xbrlDB.Open.Ext.ExtFiling': extEdgarFiling,
     'xbrlDB.Open.Ext.ExtReport': extEdgarReport,
