@@ -76,7 +76,7 @@ class View:
             self.xlsxWb = Workbook()
             # remove pre-existing worksheets
             while len(self.xlsxWb.worksheets)>0:
-                self.xlsxWb.remove_sheet(self.xlsxWb.worksheets[0])
+                self.xlsxWb.remove(self.xlsxWb.worksheets[0])
             self.xlsxWs = self.xlsxWb.create_sheet(title=rootElementName)
             self.xlsxRow = 0
             self.xlsxColWrapText = [] # bool true if col is always wrap text
