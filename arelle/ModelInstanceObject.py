@@ -34,7 +34,7 @@
 from collections import defaultdict
 from lxml import etree
 from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue
-from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue
+from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue, rangeValue
 from arelle.XmlValidate import UNVALIDATED, INVALID, VALID
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from math import isnan, isinf
@@ -166,7 +166,12 @@ class ModelFact(ModelObject):
     def unitID(self):
         """(str) -- unitRef attribute"""
         return self.getStripped("unitRef")
-    
+
+    @unitID.setter
+    def unitID(self, value):
+        """(str) -- unitRef attribute"""
+        self.set("unitRef", value)
+         
     @property
     def utrEntries(self):
         """(set(UtrEntry)) -- set of UtrEntry objects that match this fact and unit"""
@@ -400,7 +405,7 @@ class ModelFact(ModelObject):
             return float(self.value)
         return self.value
     
-    def isVEqualTo(self, other, deemP0Equal=False, deemP0inf=False, normalizeSpace=True):
+    def isVEqualTo(self, other, deemP0Equal=False, deemP0inf=False, normalizeSpace=True, numericIntervalConsistency=False):
         """(bool) -- v-equality of two facts
         
         Note that facts may be in different instances
@@ -419,6 +424,12 @@ class ModelFact(ModelObject):
             if other.concept.isNumeric:
                 if self.unit is None or not self.unit.isEqualTo(other.unit):
                     return False
+                
+                if numericIntervalConsistency: # values consistent with being rounded from same number
+                    (a1,b1) = rangeValue(self.value, inferredDecimals(self))
+                    (a2,b2) = rangeValue(other.value, inferredDecimals(other))
+                    return not (b1 < a2 or b2 < a1)
+            
                 if self.modelXbrl.modelManager.validateInferDecimals:
                     d = min((inferredDecimals(self), inferredDecimals(other))); p = None
                     if isnan(d):

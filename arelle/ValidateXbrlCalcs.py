@@ -19,6 +19,8 @@ from arelle.XmlValidate import UNVALIDATED, VALID
 numberPattern = re_compile("[-+]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-+]?[0-9]*)?")
 ZERO = decimal.Decimal(0)
 ONE = decimal.Decimal(1)
+TWO = decimal.Decimal(2)
+TEN = decimal.Decimal(10)
 NaN = decimal.Decimal("NaN")
 floatNaN = float("NaN")
 floatINF = float("INF")
@@ -463,6 +465,22 @@ def roundValue(value, precision=None, decimals=None, scale=None):
     else:
         vRounded = vDecimal
     return vRounded
+
+def rangeValue(value, decimals=None):
+    try:
+        vDecimal = decimal.Decimal(value)
+    except (decimal.InvalidOperation, ValueError): # would have been a schema error reported earlier
+        return (NaN, NaN)
+    if decimals is not None and decimals != "INF":
+        if not isinstance(decimals, (int,float)):
+            try:
+                decimals = int(decimals)
+            except ValueError: # would be a schema error
+                decimals = floatNaN
+        if not (isinf(decimals) or isnan(decimals)):
+            dd = (TEN**(decimal.Decimal(decimals).quantize(ONE,decimal.ROUND_DOWN)*-ONE)) / TWO
+            return (vDecimal - dd, vDecimal + dd)
+    return (vDecimal, vDecimal)
 
 def insignificantDigits(value, precision=None, decimals=None, scale=None):
     try:
