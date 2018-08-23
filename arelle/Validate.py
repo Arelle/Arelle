@@ -4,7 +4,7 @@ Created on Oct 17, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, sys, traceback, re
+import os, sys, traceback, re, logging
 from collections import defaultdict, OrderedDict
 from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlConst, 
                ValidateXbrl, ValidateFiling, ValidateHmrc, ValidateVersReport, ValidateFormula,
@@ -75,7 +75,7 @@ class Validate:
                 if self.modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.REGISTRY):
                     _name = self.modelXbrl.modelDocument.basename
                     for testcasesElement in self.modelXbrl.modelDocument.xmlRootElement.iter():
-                        if isinstance(testcasesElement,ModelObject) and testcasesElement.localName in ("testcases", "testSuite"):
+                        if isinstance(testcasesElement,ModelObject) and testcasesElement.localName in ("testcases", "registries", "testSuite"):
                             if testcasesElement.get("name"):
                                 _name = testcasesElement.get("name")
                             break
@@ -165,7 +165,7 @@ class Validate:
     def validateTestcase(self, testcase):
         self.modelXbrl.info("info", "Testcase", modelDocument=testcase)
         self.modelXbrl.viewModelObject(testcase.objectId())
-        if testcase.type == Type.TESTCASESINDEX:
+        if testcase.type in (Type.TESTCASESINDEX, Type.REGISTRY):
             for doc in sorted(testcase.referencesDocument.keys(), key=lambda doc: doc.uri):
                 self.validateTestcase(doc)  # testcases doc's are sorted by their uri (file names), e.g., for formula
         elif hasattr(testcase, "testcaseVariations"):
@@ -186,7 +186,10 @@ class Validate:
                                     name=modelTestcaseVariation.name, 
                                     expected=modelTestcaseVariation.expected, 
                                     description=modelTestcaseVariation.description)
-                errorCaptureLevel = modelTestcaseVariation.severityLevel # default is INCONSISTENCY
+                if self.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings:
+                    errorCaptureLevel = logging._checkLevel("WARNING")
+                else:
+                    errorCaptureLevel = modelTestcaseVariation.severityLevel # default is INCONSISTENCY
                 parameters = modelTestcaseVariation.parameters.copy()
                 for readMeFirstUri in modelTestcaseVariation.readMeFirstUris:
                     if isinstance(readMeFirstUri,tuple):

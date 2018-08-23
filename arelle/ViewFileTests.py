@@ -84,7 +84,7 @@ class ViewTests(ViewFile.View):
             testcases = []
             for referencedDocument, _ref in sorted(modelDocument.referencesDocument.items(),
                                              key=lambda i:i[1].referringModelObject.objectIndex if i[1] else 0):
-                if referencedDocument.type == ModelDocument.Type.TESTCASESINDEX:
+                if referencedDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
                     self.viewTestcaseIndexElement(referencedDocument, modelDocument, nestedDepth+1)
                 else:
                     testcases.append((referencedDocument.uri, referencedDocument.objectId()))
