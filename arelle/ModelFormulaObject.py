@@ -150,6 +150,7 @@ class FormulaOptions():
         self.traceVariableExpressionCode = False
         self.traceVariableExpressionEvaluation = False
         self.traceVariableExpressionResult = False
+        self.testcaseResultsCaptureWarnings = False
         if isinstance(savedValues, dict):
             self.__dict__.update(savedValues)
             

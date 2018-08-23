@@ -82,7 +82,7 @@ class ViewTests(ViewWinTree.ViewTree):
             testcases = []
             for referencedDocument, _ref in sorted(modelDocument.referencesDocument.items(),
                                                    key=lambda i:i[1].referringModelObject.objectIndex if i[1] else 0):
-                if referencedDocument.type == ModelDocument.Type.TESTCASESINDEX:
+                if referencedDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
                     self.viewTestcaseIndexElement(referencedDocument, node, nodeText)
                 else:
                     testcases.append((referencedDocument.uri, referencedDocument.objectId()))
