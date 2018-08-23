@@ -270,7 +270,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 
     def initializeBatch(self, rssObject):
         for pluginXbrlMethod in pluginClassMethods("xbrlDB.Open.Ext.InitializeBatch"):
-            pluginXbrlMethod(self, entrypoint, rssObject)
+            pluginXbrlMethod(self, rssObject)
         
                                      
     def insertFiling(self):
