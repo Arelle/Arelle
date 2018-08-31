@@ -312,7 +312,11 @@ def checkElements(val, modelDocument, parent):
         parentXlinkType = None
         isInstance = False
         parentIsLinkbase = False
-        childrenIter = (parent.getroot(),)
+        rootElement = parent.getroot()
+        if isinstance(rootElement, etree._Element) and rootElement.tag == 'nsmap':
+            childrenIter = rootElement # causes first for loop to iterate nsmap children
+        else:
+            childrenIter = (rootElement,) # causes first for loop to process the root element itself
         if isSchema:
             val.inSchemaTop = True
 
