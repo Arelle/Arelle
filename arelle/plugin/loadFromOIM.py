@@ -662,7 +662,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 _("The empty string must not be used as a prefix, uri %(uri)s"),
                                 modelObject=modelXbrl, uri=_uri)
             elif not NCNamePattern.match(_prefix):
-                error("oime:prefixPattern",
+                error("oime:invalidSQName",
                                 _("The prefix %(prefix)s must match the NCName lexical pattern, uri %(uri)s"),
                                 modelObject=modelXbrl, prefix=_prefix, uri=_uri)
             elif _prefix in prefixes:
@@ -754,9 +754,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
             conceptQn = qname(aspects[oimConcept], prefixes)
             concept = modelXbrl.qnameConcepts.get(conceptQn)
             if concept is None:
-                error("{}:conceptQName".format(errPrefix),
-                                _("The concept QName could not be resolved with available DTS: %(concept)s."),
-                                modelObject=modelXbrl, concept=conceptQn)
+                error("xbrl:schemaImportMissing",
+                      _("The concept QName could not be resolved with available DTS: %(concept)s."),
+                      modelObject=modelXbrl, concept=conceptQn)
                 return
             attrs = {}
             if concept.isItem:
@@ -803,9 +803,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                             dimQname = qname(dimName, prefixes)
                             dimConcept = modelXbrl.qnameConcepts.get(dimQname)
                             if dimConcept is None:
-                                error("{}:taxonomyDefinedAspectQName".format(errPrefix),
-                                                _("The taxonomy defined aspect concept QName %(qname)s could not be determined"),
-                                                modelObject=modelXbrl, qname=dimQname)
+                                error("xbrl:schemaDefinitionMissing",
+                                      _("The taxonomy defined aspect concept QName %(qname)s could not be determined"),
+                                      modelObject=modelXbrl, qname=dimQname)
                                 continue
                             if dimVal is None:
                                 memberAttrs = {"{http://www.w3.org/2001/XMLSchema-instance}nil": "true"}
