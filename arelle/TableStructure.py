@@ -259,7 +259,7 @@ def evaluateTableIndex(modelXbrl, lang=None):
                         break
         if "DocumentType" in deiFact:
             fact = deiFact["DocumentType"]
-            if fact.xValid >= VALID and "-Q" in fact.xValue or "": # fact may be invalid
+            if fact.xValid >= VALID and "-Q" in (fact.xValue or ""): # fact may be invalid
                 # need quarterly and yr to date durations
                 endDatetime = fact.context.endDatetime
                 # if within 2 days of end of month use last day of month
