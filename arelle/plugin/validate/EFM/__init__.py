@@ -7,14 +7,48 @@ Created on Dec 12, 2013
 Input file parameters may be in JSON (without newlines for pretty printing as below):
 
 
-[ {"file": "file path to instance or html",
+[ {# current fields in JSON structure from Arelle Wrapper, per instance
+   "file": "file path to instance or html",
    "cik": "1234567890",
    "cikNameList": { "cik1": "name1", "cik2":"name2", "cik3":"name3"...},
    "submissionType" : "SDR-A",
    "exhibitType": "EX-99.K", 
-   "accessionNumber":"0001125840-15-000159" },
+   "accessionNumber":"0001125840-15-000159" ,
+   # new fields
+   "periodOfReport": "mm-dd-yyyy",
+   "entity.fyEnd": "mm/dd",
+   "voluntaryFilerFlag": true/false, # JSON Boolean or absent
+   "wellKnownSeasonedIssuerFlag": true/false, # JSON Boolean or absent
+   "shellCompanyFlag": true/false, true/false, # JSON Boolean or absent
+   "acceleratedFilerStatus": true/false, # JSON Boolean or absent
+   "smallBusinessFlag": true/false, # JSON Boolean or absent
+   "emergingGrowthCompanyFlag": true/false, # JSON Boolean or absent
+   "exTransitionPeriodFlag": true/false, # JSON Boolean or absent
+   # filer - use "cik" above
+   "invCompanyType": "N-1A" # from table of investment company types
+   "rptIncludeAllSeriesFlag": true/false, # JSON Boolean or absent
+   "rptSeriesClassInfo.seriesIds": ["S0000990666", ...] # list of EDGAR seriesId values
+   "newClass2.seriesIds": [] # //seriesId xpath result on submission headers
+   },
  {"file": "file 2"...
 ]
+
+For test case operation, the above fields accepted from testcase variation:
+  <data>
+     <conf:parameter name="cikName" datatype="xs:string" value="cik1:name1" xmlns="" xmlns:conf="http://edgar/2009/conformance" />
+     <conf:parameter name="cikName" datatype="xs:string" value="cik2:name2" xmlns="" xmlns:conf="http://edgar/2009/conformance" />
+     <conf:parameter name="cikName" datatype="xs:string" value="cik3:name3" xmlns="" xmlns:conf="http://edgar/2009/conformance" />
+     <conf:parameter name="submissionType" datatype="xs:string" value="8-K" xmlns="" xmlns:conf="http://edgar/2009/conformance" />
+     <conf:parameter name="periodOfReport" datatype="xs:string" value="12-31-2017" xmlns="" xmlns:conf="http://edgar/2009/conformance" />
+     <conf:parameter name="voluntaryFilerFlag" datatype="xs:boolean" value="true" xmlns="" xmlns:conf="http://edgar/2009/conformance" />
+     <conf:parameter name="coregCikFileNumber" datatype="xs:string" value="cik1:fileNbr1" xmlns="" xmlns:conf="http://edgar/2009/conformance" />
+     <conf:parameter name="coregCikFileNumber" datatype="xs:string" value="cik2:fileNbr2" xmlns="" xmlns:conf="http://edgar/2009/conformance" />
+     <conf:parameter name="coregCikFileNumber" datatype="xs:string" value="cik3:fileNbr3" xmlns="" xmlns:conf="http://edgar/2009/conformance" />
+     <conf:parameter name="sroId" datatype="xs:string" value="NASD" xmlns="" xmlns:conf="http://edgar/2009/conformance" />
+     <conf:parameter name="sroId" datatype="xs:string" value="NYSE" xmlns="" xmlns:conf="http://edgar/2009/conformance" />
+     ...
+     <instance readMeFirst="true">e9999999ng-20081231.xml</instance>
+   <data>
 
 (Accession number is only needed for those EdgarRenderer output transformations of 
 FilingSummary.xml which require it as a parameter (such as EDGAR's internal workstations, 
@@ -29,7 +63,8 @@ due to a Java bug on Windows shell interface (without the newlines for pretty pr
     \"cikNameList\": {\"0000350001\":\"BIG FUND TRUST CO\"},
     \"submissionType\":\"SDR-A\", \"exhibitType\":\"EX-99.K SDR.INS\"}]" 
 
-
+To build cached deprecated concepts files (requires internet access):
+   --buildDeprecatedConceptsFiles 
 '''
 import os, io, json, zipfile, logging
 jsonIndent = 1  # None for most compact, 0 for left aligned
@@ -61,74 +96,64 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     if not (val.validateEFMplugin):
         return
 
-    val.paramExhibitType = None # e.g., EX-101, EX-201
-    val.paramFilerIdentifier = None
-    val.paramFilerIdentifierNames = None
-    val.paramSubmissionType = None
-    _cik = _cikList = _cikNameList = _exhibitType = _submissionType = None
-    if parameters:
-        # parameter-provided CIKs and registrant names
-        p = parameters.get(ModelValue.qname("CIK",noPrefixIsNoNamespace=True))
-        if p and len(p) == 2 and p[1] not in ("null", "None"):
-            _cik = p[1]
-        p = parameters.get(ModelValue.qname("cikList",noPrefixIsNoNamespace=True))
-        if p and len(p) == 2:
-            _cikList = p[1]
-        else:
-            _cikList = []
-        p = parameters.get(ModelValue.qname("cikNameList",noPrefixIsNoNamespace=True))
-        if p and len(p) == 2:
-            _cikNameList = p[1]
-        p = parameters.get(ModelValue.qname("submissionType",noPrefixIsNoNamespace=True))
-        if p and len(p) == 2:
-            _submissionType = p[1]
-        p = parameters.get(ModelValue.qname("exhibitType",noPrefixIsNoNamespace=True))
-        if p and len(p) == 2:
-            _exhibitType = p[1]
+    val.params = {}
+    parameterNames = ("CIK", "cik", "cikList", "cikNameList", "submissionType", "exhibitType", # CIK or cik both allowed
+                      "periodOfReport", "entity.fyEnd", "voluntaryFilerFlag", 
+                      "wellKnownSeasonedIssuerFlag", "shellCompanyFlag", "acceleratedFilerStatus", "smallBusinessFlag",
+                      "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "invCompanyType",
+                      "rptIncludeAllSeriesFlag", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds")
+    if parameters: # parameter-provided CIKs and registrant names
+        for paramName in parameterNames:
+            p = parameters.get(ModelValue.qname(paramName,noPrefixIsNoNamespace=True))
+            if p and len(p) == 2 and p[1] not in ("null", "None", None):
+                val.params[paramName] = p[1]
+        if "CIK" in val.params: # change to lower case key
+            val.params["cik"] = val.params["CIK"]
+            del val.params["CIK"]
+        p = parameters.get(ModelValue.qname("ELOparams",noPrefixIsNoNamespace=True))
+        if p and len(p) == 2 and p[1] not in ("null", "None", None):
+            try:
+                for key, value in json.loads(p[1]).items():
+                    val.params[key] = value
+            except (ValueError, AttributeError, TypeError):
+                val.modelXbrl.error("arelle.testcaseVariationParameters",
+                    _("parameter ELOparam has malformed JSON %(json)s object"),
+                    modelXbrl=val.modelXbrl, json=p[1][:100])
     # parameters may also come from report entryPoint (such as exhibitType for SDR)
     if hasattr(val.modelXbrl.modelManager, "efmFiling"):
         efmFiling = val.modelXbrl.modelManager.efmFiling
         if efmFiling.reports: # possible that there are no reports
             entryPoint = efmFiling.reports[-1].entryPoint
-            _cik = entryPoint.get("cik", None) or _cik
-            _cikList = entryPoint.get("cikList", None) or _cikList
-            _cikNameList = entryPoint.get("cikNameList",None) or _cikNameList
-            _exhibitType = entryPoint.get("exhibitType", None) or _exhibitType
-            # exhibitType may be an attachmentType, if so remove ".INS"
-            if _exhibitType and _exhibitType.endswith(".INS"):
-                _exhibitType = _exhibitType[:-4]
-            _submissionType = entryPoint.get("submissionType", None) or _submissionType
+            for paramName in parameterNames: # cik is lower case here
+                if paramName in entryPoint and entryPoint[paramName] not in (None, ""):
+                    val.params[paramName] = entryPoint[paramName] # if not set uses prior value
+
+    # exhibitType may be an attachmentType, if so remove ".INS"
+    if val.params.get("exhibitType", "").endswith(".INS"):
+        val.params["exhibitType"] = val.params["exhibitType"][:-4]
     
-    if _cik and _cik not in ("null", "None"):
-        val.paramFilerIdentifier = _cik
-    if isinstance(_cikNameList, dict):
-        # {cik1: name1, cik2:name2, ...} provided by json cikNameList dict parameter
-        val.paramFilerIdentifierNames = _cikNameList
-    else:
+    if isinstance(val.params.get("cikNameList", None), str):
         # cik1, cik2, cik3 in cikList and name1|Edgar|name2|Edgar|name3 in cikNameList strings
-        _filerIdentifiers = _cikList.split(",") if _cikList else []
-        _filerNames = _cikNameList.split("|Edgar|") if _cikNameList else []
+        _filerIdentifiers = val.params["cikList"].split(",") if "cikList" in val.params else []
+        _filerNames = val.params["cikNameList"].split("|Edgar|") if "cikNameList" in val.params else []
         if _filerIdentifiers:
             if len(_filerNames) not in (0, len(_filerIdentifiers)):
                 val.modelXbrl.error(("EFM.6.05.24.parameters", "GFM.3.02.02"),
                     _("parameters for cikList and cikNameList different list entry counts: %(cikList)s, %(cikNameList)s"),
                     modelXbrl=val.modelXbrl, cikList=_filerIdentifiers, cikNameList=_filerNames)
-            elif _filerNames:
-                val.paramFilerIdentifierNames=dict((_cik,_filerNames[i])
-                                                   for i, _cik in enumerate(_filerIdentifiers))
+            if _filerNames:
+                val.params["cikNameList"]=dict((_cik,_filerNames[i] if i < len(_filerNames) else None)
+                                                for i, _cik in enumerate(_filerIdentifiers))
             else:
-                val.paramFilerIdentifierNames=dict((_cik,None) for _cik in _filerIdentifiers)
+                val.params["cikNameList"]=dict((_cik,None) for _cik in _filerIdentifiers)
+            del val.params["cikList"]
         elif _filerNames:
             val.modelXbrl.error(("EFM.6.05.24.parameters", "GFM.3.02.02"),
                 _("parameters for cikNameList provided but missing corresponding cikList: %(cikNameList)s"),
                 modelXbrl=val.modelXbrl, cikNameList=_filerNames)
+            del val.params["cikNameList"] # can't process without cik's as keys
 
-    if _exhibitType:
-        val.paramExhibitType = _exhibitType
-    if _submissionType:
-        val.paramSubmissionType = _submissionType
-
-    if val.paramExhibitType == "EX-2.01": # only applicable for edgar production and parameterized testcases
+    if val.params.get("exhibitType", "") == "EX-2.01": # only applicable for edgar production and parameterized testcases
         val.EFM60303 = "EFM.6.23.01"
     else:
         val.EFM60303 = "EFM.6.03.03"
@@ -140,7 +165,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     modelManager = val.modelXbrl.modelManager
     if hasattr(modelManager, "efmFiling"):
         efmFiling = modelManager.efmFiling
-        efmFiling.submissionType = val.paramSubmissionType
+        efmFiling.submissionType = val.params.get("submissionType")
 
 
 def validateXbrlFinally(val, *args, **kwargs):
@@ -173,7 +198,6 @@ def filingStart(cntlr, options, filesource, entrypointFiles, sourceZipStream=Non
         # this event is called for filings (of instances) as well as test cases, for test case it just keeps options accessible
         for pluginXbrlMethod in pluginClassMethods("EdgarRenderer.Filing.Start"):
             pluginXbrlMethod(cntlr, options, entrypointFiles, modelManager.efmFiling)
-    
         # check if any entrypointFiles have an encryption is specified
         if isinstance(entrypointFiles, list):
             for pluginXbrlMethod in pluginClassMethods("Security.Crypt.Filing.Start"):
@@ -404,6 +428,18 @@ def fileSourceExists(cntlr, filepath):
             if _existence is not None:
                 return _existence
     return None
+
+def commandLineOptionExtender(parser, *args, **kwargs):
+    # extend command line options to store to database
+    parser.add_option("--build-deprecated-concepts-file", 
+                      action="store_true", 
+                      dest="buildDeprecatedConceptsFile", 
+                      help=_("Build EFM Validation deprecated concepts file (pre-cache before use)"))
+
+def utilityRun(self, options, *args, **kwargs):
+    if options.buildDeprecatedConceptsFile:
+        from .Util import buildDeprecatedConceptDatesFiles
+        buildDeprecatedConceptDatesFiles(self)
     
 class Filing:
     def __init__(self, cntlr, options=None, filesource=None, entrypointfiles=None, sourceZipStream=None, responseZipStream=None, errorCaptureLevel=None):
@@ -563,7 +599,7 @@ class Report:
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EFM',
-    'version': '1.18.2', # SEC EDGAR release 18.2
+    'version': '1.18.3', # SEC EDGAR release 18.3
     'description': '''EFM Validation.''',
     'license': 'Apache-2',
     'import': ('transforms/SEC',), # SEC inline can use SEC transformations
@@ -579,6 +615,8 @@ __pluginInfo__ = {
     'CntlrCmdLine.Filing.Start': filingStart,
     'CntlrWinMain.Xbrl.Loaded': guiTestcasesStart,
     'Testcases.Start': testcasesStart,
+    'CntlrCmdLine.Options': commandLineOptionExtender,
+    'CntlrCmdLine.Utility.Run': utilityRun,
     'CntlrCmdLine.Xbrl.Loaded': xbrlLoaded,
     'CntlrCmdLine.Xbrl.Run': xbrlRun,
     'CntlrCmdLine.Filing.Validate': filingValidate,

@@ -8,6 +8,7 @@ import os, datetime, re
 from arelle import (ModelDocument, XmlUtil, XbrlConst, UrlUtil)
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelConcept
+from .Consts import standardNamespacesPattern
 
 targetNamespaceDatePattern = None
 efmFilenamePattern = None
@@ -16,8 +17,6 @@ roleTypePattern = None
 arcroleTypePattern = None
 arcroleDefinitionPattern = None
 namePattern = None
-usNamespacesConflictPattern = re.compile(r"http://(xbrl\.us|fasb\.org|xbrl\.sec\.gov)/(dei|us-gaap|srt|us-types|us-roles|srt-types|srt-roles|rr)/([0-9]{4}-[0-9]{2}-[0-9]{2})$")
-ifrsNamespacesConflictPattern = re.compile(r"http://xbrl.ifrs.org/taxonomy/([0-9]{4}-[0-9]{2}-[0-9]{2})/(ifrs[\w-]*)$")
 linkroleDefinitionBalanceIncomeSheet = None
 extLinkEltFileNameEnding = {
     "calculationLink": "_cal",
@@ -64,16 +63,15 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
         if modelDocument.uri in val.disclosureSystem.standardTaxonomiesDict:
             if modelDocument.targetNamespace:
                 # check for duplicates of us-types, dei, and rr taxonomies
-                for pattern, indexGroup in ((usNamespacesConflictPattern,2),(ifrsNamespacesConflictPattern,2)):
-                    match = pattern.match(modelDocument.targetNamespace)
-                    if match is not None:
-                        conflictClass = match.group(indexGroup)
-                        if (conflictClass == 'us-gaap' and match.group(3) < '2018') or conflictClass == 'srt':
-                            val.standardNamespaceConflicts['srt+us-gaap'].add(modelDocument) # ignore non-srt multi-usgaap in Filing.py
-                        if conflictClass == 'us-gaap' or conflictClass == 'ifrs-full':
-                            val.standardNamespaceConflicts['ifrs+us-gaap'].add(modelDocument)
-                        if conflictClass not in ('us-gaap', 'srt'):
-                            val.standardNamespaceConflicts[conflictClass].add(modelDocument)
+                match = standardNamespacesPattern.match(modelDocument.targetNamespace)
+                if match is not None:
+                    conflictClass = match.group(2) or match.group(5)
+                    if (conflictClass == 'us-gaap' and match.group(3) < '2018') or conflictClass == 'srt':
+                        val.standardNamespaceConflicts['srt+us-gaap'].add(modelDocument) # ignore non-srt multi-usgaap in Filing.py
+                    if conflictClass == 'us-gaap' or conflictClass == 'ifrs-full':
+                        val.standardNamespaceConflicts['ifrs+us-gaap'].add(modelDocument)
+                    if conflictClass not in ('us-gaap', 'srt'):
+                        val.standardNamespaceConflicts[conflictClass].add(modelDocument)
                 
         else:
             if len(modelDocument.basename) > 32:

@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?><Erxl xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="erxl.xsd" version="45">
+<!-- 
+This file was created by staff of the U.S. Securities and Exchange Commission.
+Data and content created by government employees within the scope of their employment 
+are not subject to domestic copyright protection. 17 U.S.C. 105.
+-->
 <Loc><Family>IFRS</Family><Version>2018</Version><Href>http://xbrl.ifrs.org/taxonomy/2018-03-16/full_ifrs/full_ifrs-cor_2018-03-16.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full</Namespace><Prefix>ifrs-full</Prefix></Loc>
 <Loc><Family>IFRS</Family><Version>2018</Version><Href>http://xbrl.fasb.org/srt/2018/elts/srt-2018-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://fasb.org/srt/2018-01-31</Namespace><Prefix>srt</Prefix></Loc>
 <Loc><Family>IFRS</Family><Version>2018</Version><Href>https://xbrl.sec.gov/country/2017/country-2017-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://xbrl.sec.gov/country/2017-01-31</Namespace><Prefix>country</Prefix></Loc>
