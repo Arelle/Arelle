@@ -1,0 +1,27 @@
+{
+    "copyright": [
+        "This file was created by staff of the U.S. Securities and Exchange Commission.",
+        "Data and content created by government employees within the scope of their employment", 
+        "are not subject to domestic copyright protection. 17 U.S.C. 105."
+    ],
+    "description": [
+        "The format is as follows:",
+        "",
+        "A JSON object whose keys name the preferred axes prefixed name (e.g., 'srt:CurrencyAxis'), ",
+        "and values are a regular expression pattern. ",
+        "",
+        "Any custom axis provided by the filer which matches a pattern causes a warning suggesting ",
+        "the prefixed name of the key as the preferred axis.  For example custom axes named ",
+        "AllCurrenciesTypeAxis or CurrencyName3Axis would match the pattern suggesting ",
+        "srt:CurrencyAxis as preferred axis."
+    ],
+    "srt:CurrencyAxis": "(All|Foreign)?Currenc(y|ies)(Name|Type)?(\\d*)Axis",
+    "srt:ConsolidatedEntitiesAxis": "Consolidat(ed|ing)Entit(y|ies)(\\d*)Axis",
+    "srt:MajorCustomersAxis": "MajorCustomer(s)?(\\d*)Axis",
+    "srt:ConsolidationItemsAxis": "ConsolidationItem(s)?(\\d*)Axis",
+    "srt:OwnershipAxis": "Ownership(s)?(Name)?(\\d*)Axis",
+    "srt:RestatementAxis": "Restatement(\\d*)Axis",
+    "srt:StatementGeographicalAxis": "(Statement)?Geograph(y|ic|ical)(Area|Region|Location)?(\\d*)Axis",
+    "srt:ProductsOrServicesAxis": "Product(Category|Line|Type)?(s)?(\\d*)Axis",
+    "srt:CounterpartyNameAxis": "Counterpart(y|ies)(\\d*)Axis"
+}
