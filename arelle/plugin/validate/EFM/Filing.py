@@ -407,16 +407,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             if (val.requiredContext is None and context.isStartEndPeriod and
                                 context.startDatetime is not None and context.endDatetime is not None):
                                 val.requiredContext = context
-                    if (isEFM and f.qname in nonNegFacts.concepts and f.isNumeric and not f.isNil and f.xValue < 0 and (
-                        all(dim.dimensionQname not in nonNegFacts.excludedAxesMembers or
-                            ("*" not in nonNegFacts.excludedAxesMembers[dim.dimensionQname] and
-                             dim.memberQname not in nonNegFacts.excludedAxesMembers[dim.dimensionQname])
-                            for dim in context.qnameDims.values()))):
-                        modelXbrl.warning("EFM.6.05.43",
-                            _("Concept %(element)s in %(taxonomy)s has a negative value %(value)s in context %(context)s.  Correct the sign, use a more appropriate concept, or change the context."),
-                            edgarCode="dq-0543-Negative-Fact-Value",
-                            modelObject=f, element=f.qname.localName, taxonomy=abbreviatedNamespace(f.qname.namespaceURI),
-                            value=f.value, context=f.contextID)
                 else:
                     # segment present
                     isEntityCommonStockSharesOutstanding = factElementName == "EntityCommonStockSharesOutstanding"
@@ -449,7 +439,19 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 
                     if isEntityCommonStockSharesOutstanding and not hasClassOfStockMember:
                         hasCommonSharesOutstandingDimensionedFactWithDefaultStockClass = True   # absent dimension, may be no def LB
-                        
+                     
+                # 6.5.43 signs - applies to all facts having a context.
+                if (isEFM and f.qname in nonNegFacts.concepts and f.isNumeric and not f.isNil and f.xValid >= VALID and f.xValue < 0 and (
+                    all(dim.dimensionQname not in nonNegFacts.excludedAxesMembers or
+                        ("*" not in nonNegFacts.excludedAxesMembers[dim.dimensionQname] and
+                         dim.memberQname not in nonNegFacts.excludedAxesMembers[dim.dimensionQname])
+                        for dim in context.qnameDims.values()))):
+                    modelXbrl.warning("EFM.6.05.43",
+                        _("Concept %(element)s in %(taxonomy)s has a negative value %(value)s in context %(context)s.  Correct the sign, use a more appropriate concept, or change the context."),
+                        edgarCode="dq-0543-Negative-Fact-Value",
+                        modelObject=f, element=f.qname.localName, taxonomy=abbreviatedNamespace(f.qname.namespaceURI),
+                        value=f.value, context=f.contextID)   
+                    
                 if isEFM: # note that this is in the "if context is not None" region.  It does receive nil facts.
                     for pluginXbrlMethod in pluginClassMethods("Validate.EFM.Fact"):
                         pluginXbrlMethod(val, f)
@@ -992,12 +994,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 "EntityEmergingGrowthCompany", deiItems["EntityEmergingGrowthCompany"], val.params["emergingGrowthCompanyFlag"]):
                 modelXbrl.warning("EFM.6.05.40.entityEmergingGrowthCompanyValue",
                     _("dei:EntityEmergingGrowthCompany value  %(deiValue)s does not agree with the submission Emerging Growth company flag value %(submissionValue)s."),
-                    edgarCode="dq-0540-Entity-EmergingGrowth-Company-Value",
+                    edgarCode="dq-0540-Entity-Emerging-Growth-Company-Value",
                     modelObject=deiFacts["EntityEmergingGrowthCompany"], submissionValue=val.params["emergingGrowthCompanyFlag"], deiValue=deiItems["EntityEmergingGrowthCompany"])
             if isDei2018orLater and submissionType in submissionTypesAllowingEmergingGrowthCompanyFlag and not hasDeiFact("EntityEmergingGrowthCompany"):
                 modelXbrl.warning("EFM.6.05.40.entityEmergingGrowthCompanyMissing",
                     _("Submission type %(submissionType)s should have a value for dei:EntityEmergingGrowthCompany in the Required Context."),
-                    edgarCode="dq-0540-EmergingGrowth-Company-Missing",
+                    edgarCode="dq-0540-Emerging-Growth-Company-Missing",
                     modelObject=modelXbrl, submissionType=submissionType)
         # exTransitionPeriodFlag = (2018) EntityExTransitionPeriod
         if submissionType not in submissionTypesAllowingExTransitionPeriodFlag:
@@ -1903,7 +1905,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             _("%(documentType)s report is missing a extension schema file."),
                             modelObject=modelXbrl, documentType=documentType)
         
-        # 6.5.43: check link role orders
+        # 6.7.12: check link role orders
         if submissionType not in submissionTypesExemptFromRoleOrder and documentType not in docTypesExemptFromRoleOrder:    
             seqDefRoleTypes = []
             for roleURI in modelXbrl.relationshipSet(XbrlConst.parentChild).linkRoleUris:
@@ -2318,8 +2320,6 @@ def deiParamEqual(deiName, xbrlVal, secVal):
                      "EntitySmallBusiness", "EntityVoluntaryFilers", "EntityWellKnownSeasonedIssuer"}:
         return {"y": True, "yes": True, "true": True, "n": False, "no": False, "false": False
                 }.get(str(xbrlVal).lower()) == secVal
-    elif deiName in ("EntityEmergingGrowthCompany", "EntityExTransitionPeriod"):
-        return secVal == str(xbrlVal).lower()
     elif deiName == "EntityFileNumber":
         return secVal == xbrlVal
     elif deiName == "EntityInvCompanyType":
