@@ -284,6 +284,8 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
     
     val.modelXbrl.profileStat()
     formulaOptions = val.modelXbrl.modelManager.formulaOptions
+    if formulaOptions.compileOnly:
+        return
     if XPathParser.initializeParser(val.modelXbrl.modelManager):
         val.modelXbrl.profileStat(_("initializeXPath2Grammar")) # only provide stat when not yet initialized
     val.modelXbrl.modelManager.showStatus(statusMsg)
