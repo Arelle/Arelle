@@ -403,8 +403,6 @@ class XFParser(Parser):
                         with self._group():
                             with self._choice():
                                 with self._option():
-                                    self._variable_ref_()
-                                with self._option():
                                     self._qname_()
                                 with self._option():
                                     self._localname_()
@@ -446,8 +444,6 @@ class XFParser(Parser):
                         self._cut()
                         with self._group():
                             with self._choice():
-                                with self._option():
-                                    self._variable_ref_()
                                 with self._option():
                                     self._qname_()
                                 with self._option():
