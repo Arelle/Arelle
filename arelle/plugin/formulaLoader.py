@@ -1487,7 +1487,7 @@ def compileXfsGrammar( cntlr, debugParsing ):
                 Optional(Keyword("linkrole") + quotedString) + 
                 Optional(Keyword("arcrole") + quotedString) +
                 Optional(Keyword("axis") + dimensionAxis))) |
-         Keyword("typed-dimension") + (variableRef | qName | xpathExpression) + 
+         Keyword("typed-dimension") + (qName | xpathExpression) + 
             Optional( Keyword("test") + xpathExpression )  )
         ).setParseAction(compileDimensionFilter).ignore(xfsComment).setName("dimension-filter").setDebug(debugParsing)
 
