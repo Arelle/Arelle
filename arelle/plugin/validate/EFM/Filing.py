@@ -192,6 +192,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         #6.5.7 duplicated contexts
         contexts = modelXbrl.contexts.values()
         contextIDs = set()
+        contextsWithNonNilFacts = set()
         uniqueContextHashes = {}
         contextsWithDisallowedOCEs = []
         contextsWithDisallowedOCEcontent = []
@@ -450,7 +451,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         _("Concept %(element)s in %(taxonomy)s has a negative value %(value)s in context %(context)s.  Correct the sign, use a more appropriate concept, or change the context."),
                         edgarCode="dq-0543-Negative-Fact-Value",
                         modelObject=f, element=f.qname.localName, taxonomy=abbreviatedNamespace(f.qname.namespaceURI),
-                        value=f.value, context=f.contextID)   
+                        value=f.value, context=f.contextID)
+                    
+                if not f.isNil:
+                    contextsWithNonNilFacts.add(context)
                     
                 if isEFM: # note that this is in the "if context is not None" region.  It does receive nil facts.
                     for pluginXbrlMethod in pluginClassMethods("Validate.EFM.Fact"):
@@ -1060,7 +1064,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             edgarCode="dq-0541-Series-Id-Member-Not-Axis-Member",
                             modelObject=[seriesIdMember, defLBs], seriesIdMember=seriesIdMemberName, submissionType=submissionType)
                     elif not any(cntx.hasDimension(legalEntityAxisQname) and seriesIdMember == cntx.qnameDims[legalEntityAxisQname].member
-                                 for cntx in modelXbrl.contexts.values()):
+                                 for cntx in contextsWithNonNilFacts):
                         modelXbrl.warning("EFM.6.05.41.seriesIdMemberNotInContext",
                             _("Submission type %(submissionType)s should have a context with %(seriesIdMember)s as a member of the Legal Entity Axis."),
                             edgarCode="dq-0541-Series-Id-Member-Not-In-Context",
