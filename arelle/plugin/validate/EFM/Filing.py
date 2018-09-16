@@ -975,7 +975,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 modelXbrl.warning("EFM.6.05.40.entitySmallBusinessValue",
                     _("dei:EntitySmallBusiness value %(deiValue)s does not agree with the submission Small business flag value %(submissionValue)s."),
                     edgarCode="dq-0540-Entity-Small-Business-Value",
-                    modelObject=deiFacts["EntityFilerCategory"], submissionValue=val.params["smallBusinessFlag"], deiValue=deiItems["EntitySmallBusiness"])
+                    modelObject=deiFacts["EntitySmallBusiness"], submissionValue=val.params["smallBusinessFlag"], deiValue=deiItems["EntitySmallBusiness"])
             if isDei2018orLater and submissionType in submissionTypesAllowingEdgarSmallBusinessFlag and not hasDeiFact("EntitySmallBusiness"):
                 modelXbrl.warning("EFM.6.05.40.entitySmallBusinessMissing",
                     _("Submission type %(submissionType)should have a value for dei:EntitySmallBusiness in the Required Context."),
