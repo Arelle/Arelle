@@ -148,9 +148,9 @@ def xEqual(elt1, elt2, equalMode=S_EQUAL):
         xmlValidate(elt2.modelXbrl, elt2)
     if equalMode == VALIDATE_BY_STRING_VALUE:
         return elt1.stringValue == elt2.stringValue
-    elif equalMode == S_EQUAL or (equalMode == S_EQUAL2 and not isinstance(elt1.sValue, QName)):
+    elif equalMode == S_EQUAL: # formula WG e-mail 2018-09-06: or (equalMode == S_EQUAL2 and not isinstance(elt1.sValue, QName)):
         return elt1.sValue == elt2.sValue
-    else:
+    else: # includes dimension S-equal2, use xpath-2 equality.
         return elt1.xValue == elt2.xValue
     
 def vEqual(elt1, elt2):
