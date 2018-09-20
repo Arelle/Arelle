@@ -1460,7 +1460,7 @@ class WinMainLogHandler(logging.Handler):
     def flush(self):
         ''' Nothing to flush '''
     def emit(self, logRecord):
-        # add to logView        
+        # add to logView
         msg = self.format(logRecord)        
         try:            
             self.cntlr.addToLog(msg, level=logRecord.levelno)

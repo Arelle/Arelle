@@ -16,6 +16,7 @@ from arelle import PluginManager, PackageManager
 from collections import defaultdict
 osPrcs = None
 isPy3 = (sys.version[0] >= '3')
+LOG_TEXT_MAX_LENGTH = 32767
 
 def resourcesDir():
     if getattr(sys, 'frozen', False): # Check if frozen by cx_Freeze
@@ -267,7 +268,7 @@ class Cntlr:
                                 self.localeDir)
         
     def startLogging(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None, 
-                     logLevel=None, logHandler=None, logToBuffer=False):
+                     logLevel=None, logHandler=None, logToBuffer=False, logTextMaxLength=None):
         # add additional logging levels (for python 2.7, all of these are ints)
         logging.addLevelName(logging.INFO + 1, "INFO-SEMANTIC")
         logging.addLevelName(logging.WARNING + 1, "WARNING-SEMANTIC")
@@ -312,6 +313,7 @@ class Cntlr:
                               level=logging.ERROR, messageCode="arelle:logLevel")
             self.logger.messageCodeFilter = None
             self.logger.messageLevelFilter = None
+            self.logHandler.logTextMaxLength = (logTextMaxLength or LOG_TEXT_MAX_LENGTH)
                 
     def setLogLevelFilter(self, logLevelFilter):
         if self.logger:
@@ -587,7 +589,7 @@ class LogHandlerWithXml(logging.Handler):
         super(LogHandlerWithXml, self).__init__()
         
     def recordToXml(self, logRec):
-        def entityEncode(arg, truncateAt=32767):  # be sure it's a string, vs int, etc, and encode &, <, ".
+        def entityEncode(arg, truncateAt=self.logTextMaxLength):  # be sure it's a string, vs int, etc, and encode &, <, ".
             s = str(arg)
             s = s if len(s) <= truncateAt else s[:truncateAt] + '...'
             return s.replace("&","&amp;").replace("<","&lt;").replace('"','&quot;')
@@ -601,11 +603,11 @@ class LogHandlerWithXml(logging.Handler):
                     s.append('_') # change : into _ for xml correctness
             return "".join(s)
         
-        def propElts(properties, indent, truncatAt=128):
+        def propElts(properties, indent, truncateAt=128):
             nestedIndent = indent + ' '
             return indent.join('<property name="{0}" value="{1}"{2}>'.format(
                                     entityEncode(p[0]),
-                                    entityEncode(p[1], truncateAt=truncatAt),
+                                    entityEncode(p[1], truncateAt=truncateAt),
                                     '/' if len(p) == 2 
                                     else '>' + nestedIndent + propElts(p[2],nestedIndent) + indent + '</property')
                                 for p in properties 
@@ -623,7 +625,7 @@ class LogHandlerWithXml(logging.Handler):
                         ''.join(' {}="{}"'.format(ncNameEncode(k),entityEncode(v)) 
                                                   for k,v in ref["customAttributes"].items())
                              if 'customAttributes' in ref else '',
-                        (">\n  " + propElts(ref["properties"],"\n  ", 32767) + "\n </ref" ) if "properties" in ref else '/')
+                        (">\n  " + propElts(ref["properties"],"\n  ", truncateAt=self.logTextMaxLength) + "\n </ref" ) if "properties" in ref else '/')
                        for ref in logRec.refs)
         return ('<entry code="{0}" level="{1}">'
                 '\n <message{2}>{3}</message>{4}'
