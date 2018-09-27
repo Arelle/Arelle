@@ -1003,7 +1003,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             if isDei2018orLater and submissionType in submissionTypesAllowingEmergingGrowthCompanyFlag and not hasDeiFact("EntityEmergingGrowthCompany"):
                 modelXbrl.warning("EFM.6.05.40.entityEmergingGrowthCompanyMissing",
                     _("Submission type %(submissionType)s should have a value for dei:EntityEmergingGrowthCompany in the Required Context."),
-                    edgarCode="dq-0540-Emerging-Growth-Company-Missing",
+                    edgarCode="dq-0540-Entity-Emerging-Growth-Company-Missing",
                     modelObject=modelXbrl, submissionType=submissionType)
         # exTransitionPeriodFlag = (2018) EntityExTransitionPeriod
         if submissionType not in submissionTypesAllowingExTransitionPeriodFlag:

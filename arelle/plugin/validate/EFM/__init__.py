@@ -114,7 +114,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         if p and len(p) == 2 and p[1] not in ("null", "None", None):
             try:
                 for key, value in json.loads(p[1]).items():
-                    val.params[key] = value
+                    val.params[{"CIK":"cik"}.get(key,key)] = value # change upper case CIK to lower case
             except (ValueError, AttributeError, TypeError):
                 val.modelXbrl.error("arelle.testcaseVariationParameters",
                     _("parameter ELOparam has malformed JSON %(json)s object"),
