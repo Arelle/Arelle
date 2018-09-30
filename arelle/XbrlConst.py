@@ -127,8 +127,6 @@ hypercubeDimension = "http://xbrl.org/int/dim/arcrole/hypercube-dimension"
 dimensionDomain = "http://xbrl.org/int/dim/arcrole/dimension-domain"
 domainMember = "http://xbrl.org/int/dim/arcrole/domain-member"
 dimensionDefault = "http://xbrl.org/int/dim/arcrole/dimension-default"
-dtrTypesStartsWith = "http://www.xbrl.org/dtr/type/"
-dtrNumeric = "http://www.xbrl.org/dtr/type/numeric"
 defaultLinkRole = "http://www.xbrl.org/2003/role/link"
 defaultGenLinkRole = "http://www.xbrl.org/2008/role/link"
 iso4217 = "http://www.xbrl.org/2003/iso4217"
@@ -148,6 +146,15 @@ conceptNameLabelRole = "XBRL-concept-name" # fake label role to show concept QNa
 xlinkLinkbase = "http://www.w3.org/1999/xlink/properties/linkbase"
 
 utr = "http://www.xbrl.org/2009/utr"
+
+dtr = "http://www.xbrl.org/2009/dtr"
+dtrTypesStartsWith = "http://www.xbrl.org/dtr/type/"
+dtrNumeric = "http://www.xbrl.org/dtr/type/numeric"
+
+dtrNoDecimalsItemTypes = (qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}noDecimalsMonetaryItemType"), 
+                          qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}nonNegativeNoDecimalsMonetaryItemType"))
+dtrSQNameItemTypes = (qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNameItemType"), )
+dtrSQNameTypes = (qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNameType"), )
 
 ver10 = "http://xbrl.org/2010/versioning-base"
 # 2010 names
