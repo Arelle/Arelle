@@ -2336,4 +2336,4 @@ def deiParamEqual(deiName, xbrlVal, secVal):
                            "Not Applicable":("Non-accelerated Filer", "Smaller Reporting Company")}.get(secVal,())
     elif deiName == "2014EntityFilerCategory":
         return xbrlVal in {"true":("Smaller Reporting Company", "Smaller Reporting Accelerated Filer"),
-                           "false":("Non-accelerated Filer", "Accelerated Filer", "Large Accelerated Filer")}.get(secVal,())
+                           "false":("Non-accelerated Filer", "Accelerated Filer", "Large Accelerated Filer")}.get(secVal.lower(),())
