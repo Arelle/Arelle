@@ -745,7 +745,7 @@ class ModelInlineFact(ModelInlineValueObject, ModelFact):
     
     @property
     def footnoteRefs(self):
-        """([str]) -- list of footnoteRefs attribute contents of inline element"""
+        """([str]) -- list of footnoteRefs attribute contents of inline 1.0 element"""
         return self.get("footnoteRefs", "").split()
 
     def __iter__(self):

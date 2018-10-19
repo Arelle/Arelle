@@ -227,8 +227,7 @@ class ValidateXbrl:
                             
         # instance checks
         modelXbrl.modelManager.showStatus(_("validating instance"))
-        if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or \
-           modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
+        if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
             self.checkFacts(modelXbrl.facts)
             self.checkContexts(self.modelXbrl.contexts.values())
             self.checkUnits(self.modelXbrl.units.values())
@@ -723,7 +722,7 @@ class ValidateXbrl:
                                     _("Fact %(fact)s context %(contextID)s is a fraction with invalid denominator %(denominator)")).format(
                                     modelObject=f, fact=f.qname, contextID=f.contextID, denominator=denominator)
                     else:
-                        if self.modelXbrl.modelDocument.type != ModelDocument.Type.INLINEXBRL:
+                        if self.modelXbrl.modelDocument.type not in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
                             for child in f.iterchildren():
                                 if isinstance(child,ModelObject):
                                     self.modelXbrl.error("xbrl.5.1.1:itemMixedContent",

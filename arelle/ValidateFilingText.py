@@ -7,6 +7,7 @@ Created on Oct 17, 2010
 #import xml.sax, xml.sax.handler
 from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _ProcessingInstruction, XMLSyntaxError, XMLParser
 import os, re, io
+from arelle import ModelDocument
 from arelle.XbrlConst import ixbrlAll, xhtml
 from arelle.XmlUtil import setXmlns, xmlstring
 from arelle.ModelObject import ModelObject
@@ -904,6 +905,11 @@ def referencedFiles(modelXbrl, localFilesOnly=True):
                 except (XMLSyntaxError, UnicodeDecodeError):
                     pass  # TODO: Why ignore UnicodeDecodeError?
     # footnote or other elements
-    for elt in modelXbrl.modelDocument.xmlRootElement.iter("{http://www.w3.org/1999/xhtml}a", "{http://www.w3.org/1999/xhtml}img"):
-        addReferencedFile(elt, elt)
+    if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET:
+        xbrlInstRoots = modelXbrl.ixdsHtmlElements
+    else:
+        xbrlInstRoots = [modelXbrl.modelDocument.xmlRootElement]
+    for xbrlInstRoot in xbrlInstRoots:
+        for elt in xbrlInstRoot.iter("{http://www.w3.org/1999/xhtml}a", "{http://www.w3.org/1999/xhtml}img"):
+            addReferencedFile(elt, elt)
     return referencedFiles

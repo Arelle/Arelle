@@ -995,10 +995,10 @@ class ModelXbrl:
                             objectUrl = arg
                         else:
                             try:
-                                objectUrl = arg.modelDocument.uri
+                                objectUrl = arg.modelDocument.displayUri
                             except AttributeError:
                                 try:
-                                    objectUrl = self.modelDocument.uri
+                                    objectUrl = self.modelDocument.displayUri
                                 except AttributeError:
                                     objectUrl = self.entryLoadingUrl
                         try:
@@ -1067,7 +1067,7 @@ class ModelXbrl:
 
         if "refs" not in extras:
             try:
-                file = os.path.basename(self.modelDocument.uri)
+                file = os.path.basename(self.modelDocument.displayUri)
             except AttributeError:
                 try:
                     file = os.path.basename(self.entryLoadingUrl)

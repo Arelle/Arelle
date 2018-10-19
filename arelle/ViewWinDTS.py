@@ -10,7 +10,7 @@ try:
 except ImportError:
     from ttk import *
 import os
-from arelle import ViewWinTree
+from arelle import ModelDocument, ViewWinTree
 
 def viewDTS(modelXbrl, tabWin, altTabWin=None):
     view = ViewDTS(modelXbrl, tabWin)
@@ -32,14 +32,16 @@ class ViewDTS(ViewWinTree.ViewTree):
 
                 
     def viewDtsElement(self, modelDocument, parentNode, n, parents, siblings):
+        if modelDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET:
+            text = modelDocument.gettype() # no file name to display
+        else:
+            text = "{0} - {1}".format(os.path.basename(modelDocument.uri), modelDocument.gettype())
         node = self.treeView.insert(parentNode, "end", 
-                    text="{0} - {1}".format(
-                        os.path.basename(modelDocument.uri),
-                        modelDocument.gettype()), 
+                    text=text, 
                     tags=("odd" if n & 1 else "even",))
         children = modelDocument.referencesDocument.keys()
         childFamily = parents | siblings
-        for i, referencedDocument in enumerate(children):
+        for i, referencedDocument in enumerate(sorted(children, key=lambda d: d.objectIndex)): # provide consistent order
             if referencedDocument not in parents:
                 self.viewDtsElement(referencedDocument, node, n + i + 1, childFamily, children)
                 

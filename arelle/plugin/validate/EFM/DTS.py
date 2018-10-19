@@ -83,6 +83,8 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                     val.modelXbrl.error("EFM.5.01.01",
                         _("Document file name %(filename)s must start with a-z or 0-9, contain upper or lower case letters, ., -, _, and end with .htm."),
                         modelObject=modelDocument, filename=modelDocument.basename)
+            elif modelDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET:
+                pass # don't check surrogate for inline document set
             elif not efmFilenamePattern.match(modelDocument.basename):
                 val.modelXbrl.error("EFM.5.01.01",
                     _("Document file name %(filename)s must start with a-z or 0-9, contain upper or lower case letters, ., -, _, and end with .xsd or .xml."),

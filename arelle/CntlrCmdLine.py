@@ -854,7 +854,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             modelXbrl = None
             try:
                 if filesource:
-                    modelXbrl = self.modelManager.load(filesource, _("views loading"))
+                    modelXbrl = self.modelManager.load(filesource, _("views loading"), entrypoint=_entrypoint)
             except ModelDocument.LoadingException:
                 pass
             except Exception as err:
