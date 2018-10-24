@@ -863,7 +863,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         if hasDeiFact("EntityWellKnownSeasonedIssuer") and "wellKnownSeasonedIssuerFlag" in val.params and not deiParamEqual(
             "EntityWellKnownSeasonedIssuer", deiItems["EntityWellKnownSeasonedIssuer"], val.params["wellKnownSeasonedIssuerFlag"]):
             modelXbrl.warning("EFM.6.05.40.entityWellKnownSeasonedIssuerValue",
-                _("dei:EntityWellKnownSeasonedIssuer value %(deiValue)s in the Required Context does not agree with submission voluntary filer flag value %(submissionValue)s."),
+                _("dei:EntityWellKnownSeasonedIssuer value %(deiValue)s in the Required Context does not agree with submission well known seasoned issuer flag value %(submissionValue)s."),
                 edgarCode="dq-0540-Entity-Well-Known-Seasoned-Issuer-Value",
                 modelObject=deiFacts["EntityWellKnownSeasonedIssuer"], submissionValue=val.params["wellKnownSeasonedIssuerFlag"], deiValue=deiItems["EntityWellKnownSeasonedIssuer"])
         if submissionType not in docTypesRequiringEntityWellKnownSeasonedIssuer and "wellKnownSeasonedIssuerFlag" in val.params:
