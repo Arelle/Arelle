@@ -394,6 +394,10 @@ def commandLineFilingStart(cntlr, options, filesource, entrypointFiles, *args, *
                     
 
 def commandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
+    # skip if another class handles saving (e.g., EdgarRenderer)
+    for pluginXbrlMethod in pluginClassMethods('InlineDocumentSet.SavesTargetInstance'):
+        if pluginXbrlMethod():
+            return # saving of target instance is handled by another class
     # extend XBRL-loaded run processing for this option
     if getattr(options, "saveTargetInstance", False) or getattr(options, "saveTargetFiling", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None or (   
