@@ -1420,9 +1420,9 @@ class CntlrWinMain (Cntlr.Cntlr):
                                     filetypes=[] if self.isMac else filetypes,
                                     defaultextension=defaultextension,
                                     parent=parent)
-            if self.isMac:
+            if isinstance(multFileNames, (tuple,list)):
                 return multFileNames
-            return re.findall("[{]([^}]+)[}]",  # multiple returns "{file1} {file2}..."
+            return re.findall("[{]([^}]+)[}]",  # older multiple returns "{file1} {file2}..."
                               multFileNames)
         elif self.hasWin32gui:
             import win32gui

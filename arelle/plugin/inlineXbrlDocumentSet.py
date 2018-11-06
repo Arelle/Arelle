@@ -35,7 +35,7 @@ from optparse import SUPPRESS_HELP
 from lxml.etree import XML, XMLSyntaxError
 from collections import defaultdict
 
-IXDS_SURROGATE = os.sep + "_IXDS#?#" # surrogate (fake) file name for inline XBRL doc set (IXDS)
+IXDS_SURROGATE = "_IXDS#?#" # surrogate (fake) file name for inline XBRL doc set (IXDS)
 IXDS_DOC_SEPARATOR = "#?#" # the files of the document set follow the above "surrogate" with these separators
 
 MINIMUM_IXDS_DOC_COUNT = 1 # make this 2 to cause single-documents to be processed without a document set object
@@ -94,7 +94,7 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
         for elt in ixdocset.xmlRootElement.iter(tag="instance"):
             # load ix document
             ixdoc = load(modelXbrl, elt.text, referringElement=elt)
-            if ixdoc.type == Type.INLINEXBRL:
+            if ixdoc is not None and ixdoc.type == Type.INLINEXBRL:
                 # set reference to ix document in document set surrogate object
                 referencedDocument = ModelDocumentReference("inlineDocument", elt)
                 ixdocset.referencesDocument[ixdoc] = referencedDocument
@@ -296,7 +296,7 @@ def runOpenInlineDocumentSetMenuCommand(cntlr, runInBackground=False, saveTarget
     if not filenames:
         filename = ""
     elif len(filenames) >= MINIMUM_IXDS_DOC_COUNT:
-        docsetSurrogatePath = os.path.dirname(filenames[0]) + IXDS_SURROGATE
+        docsetSurrogatePath = os.path.join(os.path.dirname(filenames[0]), IXDS_SURROGATE)
         filename = docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(filenames)
     else:
         filename = filenames[0]
@@ -389,7 +389,7 @@ def commandLineFilingStart(cntlr, options, filesource, entrypointFiles, *args, *
                 # build file surrogate for inline document set
                 _files = [e["file"] for e in _ixds if isinstance(e, dict)]
                 if len(_files) >= MINIMUM_IXDS_DOC_COUNT:
-                    docsetSurrogatePath = os.path.dirname(_files[0]) + IXDS_SURROGATE
+                    docsetSurrogatePath = os.path.join(os.path.dirname(_files[0]), IXDS_SURROGATE)
                     entrypointFile["file"] = docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(_files)
                     
 
@@ -414,7 +414,7 @@ def testcaseVariationReadMeFirstUris(modelTestcaseVariation):
                         if isinstance(elt,ModelObject) and elt.get("readMeFirst") == "true"]
     if len(_readMeFirstUris) >= MINIMUM_IXDS_DOC_COUNT and all(
         Type.identify(modelTestcaseVariation.modelXbrl.fileSource, f) == Type.INLINEXBRL for f in _readMeFirstUris):
-        docsetSurrogatePath = os.path.dirname(_readMeFirstUris[0]) + IXDS_SURROGATE
+        docsetSurrogatePath = os.path.join(os.path.dirname(_readMeFirstUris[0]), IXDS_SURROGATE)
         modelTestcaseVariation._readMeFirstUris = [docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(_readMeFirstUris)]
         return True
 
