@@ -151,12 +151,17 @@ def freshenModuleInfos():
         moduleInfo = pluginConfig["modules"][moduleName]
         freshenedFilename = _cntlr.webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
         try: # check if moduleInfo cached may differ from referenced moduleInfo
+            if os.path.isdir(freshenedFilename): # if freshenedFilename is a directory containing an __ini__.py file, open that instead
+                if os.path.isfile(os.path.join(freshenedFilename, "__init__.py")):
+                    freshenedFilename = os.path.join(freshenedFilename, "__init__.py")
+            elif not freshenedFilename.endswith(".py") and not os.path.exists(freshenedFilename) and os.path.exists(freshenedFilename + ".py"):
+                freshenedFilename += ".py" # extension module without .py suffix
             if moduleInfo["fileDate"] != time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
                 freshenedModuleInfo = moduleModuleInfo(moduleInfo["moduleURL"], reload=True)
                 if freshenedModuleInfo is not None:
                     pluginConfig["modules"][moduleName] = freshenedModuleInfo
         except Exception as err:
-            _msg = _("Exception at plug-in method freshenModules: {error}").format(error=err)
+            _msg = _("Exception at plug-in method freshenModuleInfos: {error}").format(error=err)
             if PLUGIN_TRACE_FILE:
                 with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
                     fh.write(_msg + '\n')
