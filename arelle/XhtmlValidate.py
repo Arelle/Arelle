@@ -59,7 +59,7 @@ ixAttrType = {
         "escape": "boolean",
         "footnoteRole": "anyURI",
         "format": "QName",
-        "fromRefs": {"type": "IDREFS", "minLength": 1},
+        "fromRefs": "IDREFS",
         "id": "NCName",
         "linkRole": "anyURI",
         "name": "QName",
@@ -69,14 +69,42 @@ ixAttrType = {
         "sign": {"type": "string", "pattern": re.compile("-$")},
         "target": "NCName",
         "title": "string",
-        "toRefs": {"type": "IDREFS", "minLength": 1},
+        "toRefs": "IDREFS",
         "tupleID": "NCName",
         "tupleRef": "NCName",
         "unitRef": "NCName"}
     }
 htmlAttrType = {
     "id": "ID",
-    "class": "NMTOKENS"
+    "class": "NMTOKENS",
+    "colspan": "nonNegativeInteger",
+    "rowspan": "nonNegativeInteger",
+    "maxlength": "nonNegativeInteger",
+    "rbspan": "nonNegativeInteger",
+    "size": "nonNegativeInteger",
+    "tabindex": "nonNegativeInteger",
+    "hspace": "nonNegativeInteger",
+    "vspace": "nonNegativeInteger",
+    "border": "nonNegativeInteger",
+    "marginwidth": "nonNegativeInteger",
+    "marginheight": "nonNegativeInteger",
+    "alink": {"type": "token", "pattern": re.compile("#[0-9a-fA-F]{6}$")},
+    "bgcolor": {"type": "token", "pattern": re.compile("#[0-9a-fA-F]{6}$")},
+    "color": {"type": "token", "pattern": re.compile("#[0-9a-fA-F]{6}$")},
+    "link": {"type": "token", "pattern": re.compile("#[0-9a-fA-F]{6}$")},
+    "text": {"type": "token", "pattern": re.compile("#[0-9a-fA-F]{6}$")},
+    "vlinke": {"type": "token", "pattern": re.compile("#[0-9a-fA-F]{6}$")},
+    "accesskey": {"type": "string", "length": 1},
+    "char": {"type": "string", "length": 1},
+    "height": {"type": "token", "pattern": re.compile("\d+[%]?$|\d*\.\d+[%]?$")},
+    "width": {"type": "token", "pattern": re.compile("\d+[%]?$|\d*\.\d+[%]?$|\d*\*$")},
+    # these can be nonNegativeInteger or MultiLength in frameset
+    "cols": {"type": "token", "pattern": re.compile("(\d+[%]?|\d*\*)(,\d+[%]?|,\d*\*)*$")},
+    "rows": {"type": "token", "pattern": re.compile("(\d+[%]?|\d*\*)(,\d+[%]?|,\d*\*)*$")},
+    "rel": "NMTOKENS",
+    "rev": "NMTOKENS",
+    "datetime": "dateTime",
+    "hfreflang": "language"
     }
 ixAttrRequired = {
     XbrlConst.ixbrl: {
