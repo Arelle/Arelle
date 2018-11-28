@@ -325,6 +325,12 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
             isList = baseXsdType in {"IDREFS", "ENTITIES", "NMTOKENS"}
             if isList:
                 baseXsdType = baseXsdType[:-1] # remove plural
+                if facets:
+                    if "minLength" not in facets:
+                        facets = facets.copy()
+                        facets["minLength"] = 1
+                else:
+                    facets = {"minLength": 1}
             pattern = baseXsdTypePatterns.get(baseXsdType)
             if facets:
                 if "pattern" in facets:

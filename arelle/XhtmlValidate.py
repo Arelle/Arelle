@@ -74,6 +74,10 @@ ixAttrType = {
         "tupleRef": "NCName",
         "unitRef": "NCName"}
     }
+htmlAttrType = {
+    "id": "ID",
+    "class": "NMTOKENS"
+    }
 ixAttrRequired = {
     XbrlConst.ixbrl: {
         "footnote": ("footnoteID",),
@@ -271,6 +275,16 @@ def xhtmlValidate(modelXbrl, elt):
                 modelXbrl.error(ixMsgCode("attributeNotExpected",elt),
                     _("Attribute %(attribute)s is not expected on element ix:%(element)s"),
                     modelObject=elt, attribute=attrTag, element=elt.localName)
+        elif ns is None:
+            _xsdType = htmlAttrType.get(localName)
+            if _xsdType is not None:
+                if isinstance(_xsdType, dict):
+                    baseXsdType = _xsdType["type"]
+                    facets = _xsdType
+                else:
+                    baseXsdType = _xsdType
+                    facets = None
+                XmlValidate.validateValue(modelXbrl, elt, attrTag, baseXsdType, attrValue, facets=facets)
                 
     def checkHierarchyConstraints(elt):
         constraints = ixHierarchyConstraints.get(elt.localName)
