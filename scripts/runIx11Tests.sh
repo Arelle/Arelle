@@ -4,7 +4,7 @@
 
 LOGDIR=~/temp
 
-TESTSDIR=/export/home/arelle/XBRL.org/conformance-rendering/trunk/inlineXBRL/nopub/Conformance/inlineXBRL-1.1/WGWD-YYYY-MM-DD/inlineXBRL-1.1-conformanceSuite-WGWD-YYYY-MM-DD
+TESTSDIR=~/Documents/mvsl/projects/XBRL.org/conformance-rendering/trunk/inlineXBRL/nopub/Conformance/inlineXBRL-1.1/WGWD-YYYY-MM-DD/inlineXBRL-1.1-conformanceSuite-WGWD-YYYY-MM-DD
 #TESTSDIR=/export/home/arelle/XBRL.org/conformance-rendering/trunk/inlineXBRL/nopub/Conformance/inlineXBRL-1.1/DRAFT-2017-10-03/inlineXBRL-1.1-conformanceSuite-DRAFT-2017-10-03
 TESTCASESINDEXFILE=${TESTSDIR}/index.xml
 
@@ -16,5 +16,5 @@ OUTPUTLOGFILE=${LOGDIR}/Ix11-log.txt
 OUTPUTERRFILE=${LOGDIR}/Ix11-err.txt
 OUTPUTCSVFILE=${LOGDIR}/Ix11-report.xlsx
 
-#python3.5 ${ARELLEDIR}/arelleCmdLine.py --file "$TESTCASESINDEXFILE" --packages=$PACKAGES --validate --plugins inlineXbrlDocumentSet.py --csvTestReport "$OUTPUTCSVFILE" --logFile "$OUTPUTLOGFILE" 2>  "$OUTPUTERRFILE"
-./runArelle.sh --file "$TESTCASESINDEXFILE" --packages=$PACKAGES --validate --plugins inlineXbrlDocumentSet.py --skipExpectedInstanceComparison --csvTestReport "$OUTPUTCSVFILE" --logFile "$OUTPUTLOGFILE" 2>  "$OUTPUTERRFILE"
+python3.5 arelleCmdLine.py --file "$TESTCASESINDEXFILE" --packages=$PACKAGES --validate --plugins inlineXbrlDocumentSet.py --skipExpectedInstanceComparison --csvTestReport "$OUTPUTCSVFILE" --logFile "$OUTPUTLOGFILE" 2>  "$OUTPUTERRFILE"
+#./runArelle.sh --file "$TESTCASESINDEXFILE" --packages=$PACKAGES --validate --plugins inlineXbrlDocumentSet.py --skipExpectedInstanceComparison --csvTestReport "$OUTPUTCSVFILE" --logFile "$OUTPUTLOGFILE" 2>  "$OUTPUTERRFILE"

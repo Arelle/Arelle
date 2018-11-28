@@ -1352,6 +1352,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
     targetReferenceAttrs = defaultdict(dict) # target dict by attrname of elts
     targetReferencePrefixNs = defaultdict(dict) # target dict by prefix, namespace
     targetReferencesIDs = {} # target dict by id of reference elts
+    modelInlineFootnotesById = {} # inline 1.1 ixRelationships and ixFootnotes
     hasResources = False
     for htmlElement in modelXbrl.ixdsHtmlElements:  
         mdlDoc = htmlElement.modelDocument
@@ -1596,6 +1597,12 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                             numDenom[i] = modelInlineFractionTerm.xValue
                 rootModelFact._fractionValue = numDenom
             xmlValidate(modelXbrl, rootModelFact, ixFacts=True)
+
+        for modelInlineFootnote in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Footnote.clarkNotation):
+            if isinstance(modelInlineFootnote,ModelObject):
+                locateContinuation(modelInlineFootnote)
+                modelInlineFootnotesById[modelInlineFootnote.footnoteID] = modelInlineFootnote
+
             
     if len(targetReferenceAttrs) == 0:
         modelXbrl.error(ixMsgCode("missingReferences", None, name="references", sect="validation"),
@@ -1617,6 +1624,11 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
 
             
     footnoteLinkPrototypes = {}
+    # inline 1.1 link prototypes, one per link role (so only one extended link element is produced per link role)
+    linkPrototypes = {}
+    # inline 1.1 ixRelationships and ixFootnotes
+    linkModelInlineFootnoteIds = defaultdict(set)
+    linkModelLocIds = defaultdict(set)
     for htmlElement in modelXbrl.ixdsHtmlElements:  
         mdlDoc = htmlElement.modelDocument
         # inline 1.0 ixFootnotes, build resources (with ixContinuation)
@@ -1654,24 +1666,15 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                                                                 footnoteLocLabel, footnoteID,
                                                                 linkrole, arcrole, sourceElement=modelInlineFootnote))
                 
-        # inline 1.1 link prototypes, one per link role (so only one extended link element is produced per link role)
-        linkPrototypes = {}
         for modelInlineRel in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Relationship.clarkNotation):
             if isinstance(modelInlineRel,ModelObject):
                 linkrole = modelInlineRel.get("linkRole", XbrlConst.defaultLinkRole)
                 if linkrole not in linkPrototypes:
                     linkPrototypes[linkrole] = LinkPrototype(mdlDoc, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, linkrole, sourceElement=modelInlineRel) 
                     
-        # inline 1.1 ixRelationships and ixFootnotes
-        modelInlineFootnotesById = {}
-        linkModelInlineFootnoteIds = defaultdict(set)
-        linkModelLocIds = defaultdict(set)
         
-        for modelInlineFootnote in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Footnote.clarkNotation):
-            if isinstance(modelInlineFootnote,ModelObject):
-                locateContinuation(modelInlineFootnote)
-                modelInlineFootnotesById[modelInlineFootnote.footnoteID] = modelInlineFootnote
-
+    for htmlElement in modelXbrl.ixdsHtmlElements:  
+        mdlDoc = htmlElement.modelDocument
         for modelInlineRel in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Relationship.clarkNotation):
             if isinstance(modelInlineRel,ModelObject):
                 fromLabels = set()
@@ -1745,7 +1748,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                                     modelObject=modelInlineRel, toFootnoteIds=', '.join(sorted(toFootnoteIds)), 
                                     toFactQnames=', '.join(sorted(toFactQnames)))
 
-        del linkPrototypes, modelInlineFootnotesById, linkModelInlineFootnoteIds # dereference
+    del modelInlineFootnotesById, linkPrototypes, linkModelInlineFootnoteIds # dereference
         
     # check for multiple use of continuation reference (same continuationAt on different elements)
     for _contAt, _contReferences in continuationReferences.items():

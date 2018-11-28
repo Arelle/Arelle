@@ -15,6 +15,11 @@ import os, re
 
 EMPTYDICT = {}
 
+XHTML_DTD = { # modified to have ixNestedContent elements as placeholders for ix footnote and nonnumeric/continuation elements
+    XbrlConst.ixbrl: "xhtml1-strict-ix.dtd", 
+    XbrlConst.ixbrl11: "xhtml1_1-strict-ix.dtd"
+    }
+
 ixElements = {
      XbrlConst.ixbrl: {
         "denominator", "exclude", "footnote", "fraction", "header", "hidden",
@@ -206,6 +211,7 @@ def xhtmlValidate(modelXbrl, elt):
     isEFM = modelXbrl.modelManager.disclosureSystem.validationType == "EFM"
     # find ix version for messages
     _ixNS = elt.modelDocument.ixNS
+    _xhtmlDTD = XHTML_DTD[_ixNS]
     _customTransforms = modelXbrl.modelManager.customTransforms or {}
     
     def checkAttribute(elt, isIxElt, attrTag, attrValue):
@@ -478,7 +484,7 @@ def xhtmlValidate(modelXbrl, elt):
                             toChild.tail = fromChild.tail    
                             
     # copy xhtml elements to fresh tree
-    with open(os.path.join(modelXbrl.modelManager.cntlr.configDir, "xhtml1-strict-ix.dtd")) as fh:
+    with open(os.path.join(modelXbrl.modelManager.cntlr.configDir, _xhtmlDTD)) as fh:
         dtd = DTD(fh)
     try:
         #with open("/users/hermf/temp/testDtd.htm", "w") as fh:
