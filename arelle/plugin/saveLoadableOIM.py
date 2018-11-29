@@ -355,9 +355,10 @@ def saveLoadableOIM(modelXbrl, oimFile):
             else:
                 _sUnit = _sMul
             aspects[str(qnOimUnitAspect)] = _sUnit
-        if parent.qname != XbrlConst.qnXbrliXbrl:
-            aspects[str(qnOimTupleParentAspect)] = parent.id if parent.id else "f{}".format(parent.objectIndex)
-            aspects[str(qnOimTupleOrderAspect)] = elementIndex(fact)
+        # Tuples removed from xBRL-JSON
+        #if parent.qname != XbrlConst.qnXbrliXbrl:
+        #    aspects[str(qnOimTupleParentAspect)] = parent.id if parent.id else "f{}".format(parent.objectIndex)
+        #    aspects[str(qnOimTupleOrderAspect)] = elementIndex(fact)
             
         if isJSON:
             _footnotes = factFootnotes(fact)
