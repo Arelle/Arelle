@@ -49,6 +49,11 @@ class ViewFacts(ViewFile.View):
                 for rootConcept in linkRelationshipSet.rootConcepts:
                     self.treeDepth(rootConcept, rootConcept, 2, self.arcrole, linkRelationshipSet, set())
         
+        # allocate facts to table structure for US-GAAP-style filings
+        if not self.modelXbrl.hasTableIndexing:
+            from arelle import TableStructure
+            TableStructure.evaluateTableIndex(self.modelXbrl, lang=self.lang)
+            
         # set up facts
         self.conceptFacts = defaultdict(list)
         for fact in self.modelXbrl.facts:
@@ -135,6 +140,16 @@ class ViewFacts(ViewFile.View):
                 self.addRow([roledefinition], treeIndent=0, colSpan=len(heading), 
                             xmlRowElementName="linkRole", xmlRowEltAttr=attr, xmlCol0skipElt=True)
                 linkRelationshipSet = self.modelXbrl.relationshipSet(self.arcrole, linkroleUri, self.linkqname, self.arcqname)
+                # set up concepts which apply to linkrole for us-gaap style filings
+                self.conceptFacts.clear()
+                if linkroleUri and hasattr(self.modelXbrl.roleTypes[linkroleUri][0], "_tableFacts"):
+                    for fact in self.modelXbrl.roleTypes[linkroleUri][0]._tableFacts:
+                        self.conceptFacts[fact.qname].append(fact)
+                else:
+                    for fact in self.modelXbrl.facts:
+                        if linkRelationshipSet.fromModelObject(fact.concept) or linkRelationshipSet.toModelObject(fact.concept):
+                            self.conceptFacts[fact.qname].append(fact)
+                # view root and descendant
                 for rootConcept in linkRelationshipSet.rootConcepts:
                     self.viewConcept(rootConcept, rootConcept, "", self.labelrole, 1, linkRelationshipSet, set())
     
