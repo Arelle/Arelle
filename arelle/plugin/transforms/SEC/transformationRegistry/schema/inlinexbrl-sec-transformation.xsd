@@ -13,7 +13,7 @@
       <xs:documentation>
 Duration in decimal years converted to a durationItemType. 
 Number of months are computed as 30.4375 days.
-Transformed value is in integer years/months/days, days are truncated (no value smaller than a day).
+Transformed value is in integer years/months/days, days are rounded (no value smaller than a day).
       </xs:documentation>
     </xs:annotation>
     <xs:restriction base="xs:string">
@@ -21,6 +21,7 @@ Transformed value is in integer years/months/days, days are truncated (no value 
       <xs:pattern value="[+\-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)"></xs:pattern>
     </xs:restriction>
   </xs:simpleType>
+  
   
 <!--
      Duration month.
@@ -31,7 +32,7 @@ Transformed value is in integer years/months/days, days are truncated (no value 
       <xs:documentation>
 Duration in decimal months.
 Number of months are computed as 30.4375 days.
-Transformed value is in integer months/days, days are truncated (no value smaller than a day).
+Transformed value is in integer months/days, days are rounded (no value smaller than a day).
       </xs:documentation>
     </xs:annotation>
     <xs:restriction base="xs:string">
@@ -48,7 +49,7 @@ Transformed value is in integer months/days, days are truncated (no value smalle
     <xs:annotation>
       <xs:documentation>
 Duration in decimal weeks.
-Transformed value is in integer days, days are truncated (no value smaller than a day).
+Transformed value is in integer days, days are rounded (no value smaller than a day).
       </xs:documentation>
     </xs:annotation>
     <xs:restriction base="xs:string">
@@ -65,7 +66,7 @@ Transformed value is in integer days, days are truncated (no value smaller than 
     <xs:annotation>
       <xs:documentation>
 Duration days.
-Transformed value is in integer days/hours, hours are truncated (no value smaller than an hour). 
+Transformed value is in integer days/hours, hours are rounded (no value smaller than an hour). 
       </xs:documentation>
     </xs:annotation>
     <xs:restriction base="xs:string">
@@ -82,12 +83,32 @@ Transformed value is in integer days/hours, hours are truncated (no value smalle
     <xs:annotation>
       <xs:documentation>
 Duration hours.
-Transformed value is in integer hours, hours are truncated (no value smaller than an hour). 
+Transformed value is in integer hours, hours are rounded (no value smaller than an hour). 
       </xs:documentation>
     </xs:annotation>
     <xs:restriction base="xs:string">
       <xs:whiteSpace value="collapse" />
       <xs:pattern value="[+\-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)"></xs:pattern>
+    </xs:restriction>
+  </xs:simpleType>
+  
+<!--
+     Date of a calendar quarter end (e.g., last day of March, June, September and December).
+-->
+  
+  <xs:simpleType name="datequarterendType">
+    <xs:annotation>
+      <xs:documentation>
+Date of end of a calendar quarter.
+
+Transformed value is a date of an end of the first, second, third, or last quarter of the calendar year in the text.
+
+The order of appearance of a single-digit quarter (1, 2, 3, 4) or word (First, Second, Third, Fourth, Last) and the year (four digits) may be either way.  Upper/lower case, whitespace, punctuation and words in between are be ignored.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:whiteSpace value="collapse" />
+      <xs:pattern value="([^0-9]*(1|[Ff]irst|2|[Ss]econd|3|[Tt]hird|4|[Ff]ourth|[Ll]ast)[^0-9]*([0-9]{4})[^0-9]*)|([^0-9]*([0-9]{4})[^0-9]*(1|[Ff]irst|2|[Ss]econd|3|[Tt]hird|4|[Ff]ourth|[Ll]ast)[^0-9]*)"></xs:pattern>
     </xs:restriction>
   </xs:simpleType>
   

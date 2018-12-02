@@ -10,7 +10,8 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 Local copy of text2num.py was obtained from https://github.com/ghewgill/text2num
 
 '''
-from arelle.ModelValue import qname
+import datetime
+from arelle.ModelValue import qname, lastDayOfMonth
 from arelle.XPathContext import FunctionArgType
 
 #local copy of text2num.py from https://github.com/ghewgill/text2num
@@ -59,6 +60,19 @@ def durhour(arg):
     n, sign = getValue(arg)
     hours = int(n)
     return durationValue(None, None, None, hours, sign)
+
+dateQuarterEndPattern = re_compile(r"([^0-9]*(1|[Ff]irst|2|[Ss]econd|3|[Tt]hird|4|[Ff]ourth|[Ll]ast)[^0-9]*([0-9]{4})[^0-9]*)|([^0-9]*([0-9]{4})[^0-9]*(1|[Ff]irst|2|[Ss]econd|3|[Tt]hird|4|[Ff]ourth|[Ll]ast)[^0-9]*)") 
+
+# the output is a date value of a calendar quarter end
+def datequarterend(arg):
+    try:
+        m = dateQuarterEndPattern.match(arg)
+        year = int(m.group(3) or m.group(5)) # year pattern, raises AttributeError if no pattern match
+        month = {"first":3, "1":3, "second":6, "2":6, "third":9, "3":9, "fourth":12, "last":12, "4":12
+                 }[(m.group(2) or m.group(6)).lower()]
+        return str(datetime.date(year, month, lastDayOfMonth(year, month)))
+    except (AttributeError, ValueError, KeyError):
+        raise FunctionArgType(1, "xs:date")
 
 def getValue(arg):
     try:
@@ -158,6 +172,7 @@ def loadSECtransforms(customTransforms, *args, **kwargs):
         qname(ixtSEC, "ixt-sec:durweek"): durweek,
         qname(ixtSEC, "ixt-sec:durday"): durday,
         qname(ixtSEC, "ixt-sec:durhour"): durhour,
+        qname(ixtSEC, "ixt-sec:datequarterend"): datequarterend,
         qname(ixtSEC, "ixt-sec:numinf"): numinf,
         qname(ixtSEC, "ixt-sec:numneginf"): numneginf,
         qname(ixtSEC, "ixt-sec:numnan"): numnan,
