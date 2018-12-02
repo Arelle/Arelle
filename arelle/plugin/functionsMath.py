@@ -1,9 +1,7 @@
 '''
-Sample custom functions plugin for formula XML Element, Attribute creation functions
+Formula math functions plugin.
 
->>> note that this function has been renamed xfi:create-element and moved to FunctionXfi.py <<<
-
-(c) Copyright 2012 Mark V Systems Limited, All rights reserved.
+(c) Copyright 2018 Mark V Systems Limited, All rights reserved.
 '''
 import math
 from arelle.ModelValue import qname
