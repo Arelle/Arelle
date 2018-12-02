@@ -175,6 +175,8 @@ class XPathContext:
                         from arelle import (FunctionXs, FunctionFn, FunctionXfi, FunctionIxt, FunctionCustom)
                         if op in self.modelXbrl.modelCustomFunctionSignatures:
                             result = FunctionCustom.call(self, p, op, contextItem, args)
+                        elif op in self.customFunctions: # plug in method custom functions 
+                            result = self.customFunctions[op](self, p, contextItem, args) # use plug-in's method
                         elif op.unprefixed and localname in {'attribute', 'comment', 'document-node', 'element', 
                            'item', 'node', 'processing-instruction', 'schema-attribute', 'schema-element', 'text'}:
                             # step axis operation

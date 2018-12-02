@@ -22,8 +22,6 @@ def call(xc, p, qname, contextItem, args):
         cfSig = xc.modelXbrl.modelCustomFunctionSignatures[qname, len(args)]
         if cfSig is not None and cfSig.customFunctionImplementation is not None:
             return callCfi(xc, p, qname, cfSig, contextItem, args)
-        elif qname in xc.customFunctions: # plug in method custom functions 
-            return xc.customFunctions[qname](xc, p, contextItem, args) # use plug-in's method
         elif qname not in customFunctions: # compiled functions in this module
             raise fnFunctionNotAvailable
         return customFunctions[qname](xc, p, contextItem, args)
