@@ -15,17 +15,19 @@ from arelle.ModelValue import (qname, QName, DateTime, YearMonthDuration,
                                dayTimeDuration, DayTimeDuration, yearMonthDayTimeDuration, Time,
                                gYearMonth, gMonthDay, gYear, gMonth, gDay)
 from arelle.ModelRelationshipSet import ModelRelationshipSet
+from arelle.UrlUtil import relativeUri
 from arelle.ValidateXbrlCalcs import inferredDecimals
 from arelle.XmlUtil import dateunionValue, elementIndex, xmlstring
 from collections import defaultdict
 
-nsOim = "http://www.xbrl.org/WGWD/YYYY-MM-DD/oim"
-qnOimConceptAspect = qname(nsOim, "xbrl:concept")
-qnOimLangAspect = qname(nsOim, "xbrl:language")
-qnOimPeriodStartAspect = qname(nsOim, "xbrl:start")
-qnOimPeriodEndAspect = qname(nsOim, "xbrl:end")
-qnOimEntityAspect = qname(nsOim, "xbrl:entity")
-qnOimUnitAspect = qname(nsOim, "xbrl:unit")
+nsOim = "http://www.xbrl.org/WGWD/YYYY-MM-DD"
+qnOimConceptAspect = qname("concept", noPrefixIsNoNamespace=True)
+qnOimLangAspect = qname("language", noPrefixIsNoNamespace=True)
+qnOimPeriodAspect = qname("period", noPrefixIsNoNamespace=True)
+qnOimPeriodStartAspect = qname("start", noPrefixIsNoNamespace=True)
+qnOimPeriodEndAspect = qname("end", noPrefixIsNoNamespace=True)
+qnOimEntityAspect = qname("entity", noPrefixIsNoNamespace=True)
+qnOimUnitAspect = qname("unit", noPrefixIsNoNamespace=True)
 
 ONE = Decimal(1)
 TEN = Decimal(10)
@@ -121,12 +123,21 @@ def saveLoadableOIM(modelXbrl, oimFile):
     
     def oimPeriodValue(cntx):
         if cntx.isForeverPeriod:
-            return OrderedDict() # not supported
+            return OrderedDict() # defaulted
         elif cntx.isStartEndPeriod:
             s = cntx.startDatetime
             e = cntx.endDatetime
         else: # instant
             s = e = cntx.instantDatetime
+        if isJSON:
+            return({str(qnOimPeriodAspect):
+                    ("{0:04n}-{1:02n}-{2:02n}T{3:02n}:{4:02n}:{5:02n}/".format(
+                             s.year, s.month, s.day, s.hour, s.minute, s.second)
+                        if cntx.isStartEndPeriod else "") +
+                    "{0:04n}-{1:02n}-{2:02n}T{3:02n}:{4:02n}:{5:02n}".format(
+                             e.year, e.month, e.day, e.hour, e.minute, e.second)
+                    })
+        # CSV, XL
         return OrderedDict(((str(qnOimPeriodStartAspect), "{0:04n}-{1:02n}-{2:02n}T{3:02n}:{4:02n}:{5:02n}".format(
                              s.year, s.month, s.day, s.hour, s.minute, s.second)),
                             (str(qnOimPeriodEndAspect),   "{0:04n}-{1:02n}-{2:02n}T{3:02n}:{4:02n}:{5:02n}".format(
@@ -212,6 +223,17 @@ def saveLoadableOIM(modelXbrl, oimFile):
         aspectsDefined.add(qnOimTupleParentAspect)
         aspectsDefined.add(qnOimTupleOrderAspect)
     if hasUnits: aspectsDefined.add(qnOimUnitAspect)
+
+    for footnoteRel in footnotesRelationshipSet.modelRelationships:
+        typePrefix = "ftTyp_" + os.path.basename(footnoteRel.arcrole)
+        if footnoteRel.linkrole == XbrlConst.defaultLinkRole:
+            groupPrefix = "ftGrp_default"
+        else:
+            groupPrefix = "ftGrp_" + os.path.basename(footnoteRel.linkrole)
+        if typePrefix not in namespacePrefixes:
+            namespacePrefixes[footnoteRel.arcrole] = typePrefix
+        if groupPrefix not in namespacePrefixes:
+            namespacePrefixes[footnoteRel.linkrole] = groupPrefix
                     
     # compile footnotes and relationships
     '''
@@ -242,10 +264,11 @@ def saveLoadableOIM(modelXbrl, oimFile):
                 oimFootnote
     '''
     dtsReferences = set()
+    baseUrl = modelXbrl.modelDocument.uri.partition("#")[0]
     for doc,ref in sorted(modelXbrl.modelDocument.referencesDocument.items(),
                               key=lambda _item:_item[0].uri):
         if ref.referringModelObject.qname in SCHEMA_LB_REFS:
-            dtsReferences.add(doc.uri)
+            dtsReferences.add(relativeUri(baseUrl,doc.uri))
     for refType in ("role", "arcrole"):
         for refElt in sorted(modelXbrl.modelDocument.xmlRootElement.iterchildren(
                                 "{{http://www.xbrl.org/2003/linkbase}}{}Ref".format(refType)),
@@ -253,22 +276,40 @@ def saveLoadableOIM(modelXbrl, oimFile):
                               ):
             dtsReferences.add(refElt.get("{http://www.w3.org/1999/xlink}href").partition("#")[0])
     dtsReferences = sorted(dtsReferences) # turn into list
+    footnoteFacts = set()
             
-    def factFootnotes(fact):
+    def factFootnotes(fact, oimFact=None):
         footnotes = []
+        oimLinks = {}
         for footnoteRel in footnotesRelationshipSet.fromModelObject(fact):
+            toObj = footnoteRel.toModelObject
+            # json
+            typePrefix = namespacePrefixes[footnoteRel.arcrole]
+            groupPrefix = namespacePrefixes[footnoteRel.linkrole]
+            oimLinks.setdefault(typePrefix,{}).setdefault(groupPrefix,[]).append(
+                toObj.id if toObj.id else "f{}".format(toObj.objectIndex))
+            # csv/XL
             footnote = OrderedDict((("group", footnoteRel.linkrole),
                                     ("footnoteType", footnoteRel.arcrole)))
             footnotes.append(footnote)
             if isCSVorXL:
                 footnote["factId"] = fact.id if fact.id else "f{}".format(fact.objectIndex)
-            toObj = footnoteRel.toModelObject
             if isinstance(toObj, ModelFact):
                 footnote["factRef"] = toObj.id if toObj.id else "f{}".format(toObj.objectIndex)
             else:
                 footnote["footnote"] = toObj.viewText()
                 if toObj.xmlLang:
                     footnote["language"] = toObj.xmlLang
+                footnoteFacts.add(toObj)
+        if isJSON and oimLinks:
+            oimFact["links"] = OrderedDict((
+                (typePrefix, OrderedDict((
+                    (groupPrefix, idList)
+                    for groupPrefix, idList in sorted(groups.items())
+                    )))
+                for typePrefix, groups in sorted(oimLinks.items())
+                ))
+                
         footnotes.sort(key=lambda f:(f["group"],f.get("factId",f.get("factRef")),f.get("language")))
         return footnotes
 
@@ -361,9 +402,7 @@ def saveLoadableOIM(modelXbrl, oimFile):
         #    aspects[str(qnOimTupleOrderAspect)] = elementIndex(fact)
             
         if isJSON:
-            _footnotes = factFootnotes(fact)
-            if _footnotes:
-                oimFact["footnotes"] = _footnotes
+            factFootnotes(fact, oimFact)
         return oimFact
     
     prefixes = OrderedDict((p,ns) for ns, p in sorted(namespacePrefixes.items(), 
@@ -373,12 +412,13 @@ def saveLoadableOIM(modelXbrl, oimFile):
         # save JSON
         
         oimReport = OrderedDict() # top level of oim json output
-            
-        oimFacts = OrderedDict()
-        oimReport["documentType"] = nsOim.replace("/oim", "/xbrl-json")
-        oimReport["prefixes"] = prefixes
-        oimReport["dtsReferences"] = dtsReferences
-        oimReport["facts"] = oimFacts
+        oimReport["documentInfo"] = oimDocInfo = OrderedDict()
+        oimReport["facts"] = oimFacts = OrderedDict()
+        oimDocInfo["documentType"] = nsOim + "/xbrl-json"
+        oimDocInfo["features"] = oimFeatures = OrderedDict()
+        oimDocInfo["prefixes"] = prefixes
+        oimDocInfo["taxonomy"] = dtsReferences
+        oimFeatures["xbrl:canonicalValues"] = True
             
         def saveJsonFacts(facts, oimFacts, parentFact):
             for fact in facts:
@@ -389,6 +429,16 @@ def saveLoadableOIM(modelXbrl, oimFile):
                     saveJsonFacts(fact.modelTupleFacts, oimFacts, fact)
                 
         saveJsonFacts(modelXbrl.facts, oimFacts, None)
+        
+        # add footnotes as pseudo facts
+        for ftObj in footnoteFacts:
+            ftId = ftObj.id if ftObj.id else "f{}".format(ftObj.objectIndex)
+            oimFacts[ftId] = oimFact = OrderedDict()
+            oimFact["value"] = ftObj.viewText()
+            oimFact["aspects"] = OrderedDict((("concept", "xbrl:note"),
+                                              ("noteId", ftId)))
+            if ftObj.xmlLang:
+                oimFact["aspects"]["language"] = ftObj.xmlLang.lower()
             
         with open(oimFile, "w", encoding="utf-8") as fh:
             fh.write(json.dumps(oimReport, indent=1))

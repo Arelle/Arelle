@@ -20,7 +20,7 @@ from arelle.XbrlConst import (qnLinkLabel, standardLabelRoles, qnLinkReference, 
 from arelle.XmlUtil import addChild, addQnameValue
 from arelle.XmlValidate import NCNamePattern, validate as xmlValidate
 
-nsOim = {"http://www.xbrl.org/WGWD/YYYY-MM-DD/oim",
+nsOim = {"http://www.xbrl.org/WGWD/YYYY-MM-DD",
          "http://www.xbrl.org/PWD/2016-01-13/oim"
          }
          
@@ -42,14 +42,13 @@ CSVtupleReferenceId = "http://xbrl.org/YYYY/model#tupleReferenceId"
 CSVcolumnType = "http://xbrl.org/YYYY/model#columnType"
 CSVcolumnProperty = "http://xbrl.org/YYYY/model#columnProperty"
 
-oimConcept = "xbrl:concept"
-oimEntity = "xbrl:entity"
-oimPeriodStart = "xbrl:start"
-oimPeriodEnd = "xbrl:end"
-oimUnit = "xbrl:unit"
-oimLanguage = "xbrl:language"
+oimConcept = "concept"
+oimEntity = "entity"
+oimPeriod = "period"
+oimUnit = "unit"
+oimLanguage = "language"
 oimPrefix = "xbrl:"
-oimSimpleFactProperties = {oimEntity, oimPeriodStart, oimPeriodEnd, oimUnit, "accuracy"}
+oimSimpleFactProperties = {oimEntity, oimPeriod, oimUnit, "accuracy"}
 
 DUPJSONKEY = "!@%duplicates%@!"
 
@@ -171,17 +170,20 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                 isJSON = False
                 isCSV = True
             else:
-                missing = [t for t in ("documentType", "taxonomy", "prefixes", "facts") if t not in oimObject]
+                missing = [t for t in ("documentInfo", "facts") if t not in oimObject]
+                missing += [t for t in ("documentType", "taxonomy", "prefixes", "features") if t not in oimObject.get("documentInfo", {})]
                 if missing:
                     raise OIMException("xbrlje:missingJSONElements", 
                                        _("Required element(s) are missing from JSON input: %(missing)s"),
                                        missing = ", ".join(missing))
-                if oimObject["documentType"] != JSONdocumentType:
+                oimDocumentInfo = oimObject["documentInfo"]
+                if oimDocumentInfo["documentType"] != JSONdocumentType:
                     raise OIMException("xbrlje:unrecognizedJSONDocumentType", 
                                        _("Required documentType is missing from JSON input"))
                 currentAction = "identifying JSON objects"
-                dtsReferences = oimObject["taxonomy"]
-                prefixesList = oimObject["prefixes"].items()
+                dtsReferences = oimDocumentInfo["taxonomy"]
+                prefixesList = oimDocumentInfo["prefixes"].items()
+                featuresDict = oimDocumentInfo["prefixes"]
                 facts = oimObject["facts"]
                 footnotes = oimObject["facts"].values() # shares this object
                 # add IDs if needed for footnotes
@@ -221,7 +223,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
             topLevelProperties = oimObject.get(CSVproperties, {})
             
             currentAction = "loading CSV facts tables"
-            facts = []
+            facts = OrderedDict()
             footnotes = []
             footnoteRefFactIds = defaultdict(set)
             anonymousFootnoteId = 0 # integer always for anonymous (same row) footnotes
@@ -377,14 +379,14 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                                     footnoteRefs.update(propertyValue)
                                                 else:
                                                     fact[propertyName] = propertyValue
+                                if "id" not in fact:
+                                    anonymousFactId += 1
+                                    fact["id"] = "_f_{:02}".format(anonymousFactId)
                                 if footnoteRefs:
-                                    if "id" not in fact:
-                                        anonymousFactId += 1
-                                        fact["id"] = "_f_{:02}".format(anonymousFactId)
                                     factId = fact["id"]
                                     for footnoteRef in footnoteRefs:
                                         footnoteRefFactIds[footnoteRef].add(factId)
-                                facts.append(fact)
+                                facts[fact["id"]] = fact
                 del tupleIds
                 
         elif isXL:
@@ -466,7 +468,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                     raise OIMException("xbrlwe:missingTableNamedRanges", 
                                        _("Referenced named ranges tab(s): %(missing)s"),
                                        missing=", ".join(sorted(missingRanges)))
-                facts = []
+                facts = OrderedDict()
                 footnotes = []
                 footnoteRefFactIds = defaultdict(set)
                 anonymousFootnoteId = 0 # integer always for anonymous (same row) footnotes
@@ -638,14 +640,14 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                                     footnoteRefs.update(propertyValue)
                                                 elif propertyName not in ("datatype",):
                                                     fact[propertyName] = propertyValue
+                                if "id" not in fact:
+                                    anonymousFactId += 1
+                                    fact["id"] = "_f_{:02}".format(anonymousFactId)
+                                factId = fact["id"]
                                 if footnoteRefs:
-                                    if "id" not in fact:
-                                        anonymousFactId += 1
-                                        fact["id"] = "_f_{:02}".format(anonymousFactId)
-                                    factId = fact["id"]
                                     for footnoteRef in footnoteRefs:
                                         footnoteRefFactIds[footnoteRef].add(factId)
-                                facts.append(fact)
+                                facts[fact["id"]] = fact
                 del tupleIds
                             
     
@@ -763,10 +765,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                 missingAspects = []
                 if oimEntity not in aspects: 
                     missingAspects.append(oimEntity)
-                if oimPeriodStart in aspects and oimPeriodEnd not in aspects:
-                    missingAspects.append(oimPeriodEnd)
-                elif oimPeriodStart not in aspects and oimPeriodEnd  in aspects:
-                    missingAspects.append(oimPeriodStart)
+                if oimPeriod not in aspects:
+                    missingAspects.append(oimPeriod)
                 if missingAspects:
                     error("{}:missingAspects".format(errPrefix),
                                     _("The concept %(element)s is missing aspects %(missingAspects)s"),
@@ -775,21 +775,19 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                 if oimLanguage in aspects:
                     attrs["{http://www.w3.org/XML/1998/namespace}lang"] = aspects[oimLanguage]
                 entityAsQn = qname(aspects[oimEntity], prefixes) or qname("error",fact[oimEntity])
-                if oimPeriodStart in aspects and oimPeriodEnd in aspects:
-                    periodStart = aspects[oimPeriodStart]
-                    periodEnd = aspects[oimPeriodEnd]
-                    for periodDate in periodStart, periodEnd:
-                        if not re.match(r"\d{4,}-[0-1][0-9]-[0-3][0-9]T(24:00:00|[0-1][0-9]:[0-5][0-9]:[0-5][0-9])", periodDate):
-                            error("{}:periodDateTime".format(errPrefix),
-                                  _("The concept %(element)s has a lexically invalid period dateTime %(periodError)s"),
-                                  modelObject=modelXbrl, element=conceptQn, periodError=periodDate)
+                if oimPeriod in aspects:
+                    period = aspects[oimPeriod]
+                    if not re.match(r"\d{4,}-[0-1][0-9]-[0-3][0-9]T(24:00:00|[0-1][0-9]:[0-5][0-9]:[0-5][0-9])"
+                                    r"(/\d{4,}-[0-1][0-9]-[0-3][0-9]T(24:00:00|[0-1][0-9]:[0-5][0-9]:[0-5][0-9]))?", period):
+                        error("{}:periodDateTime".format(errPrefix),
+                              _("The concept %(element)s has a lexically invalid period dateTime %(periodError)s"),
+                              modelObject=modelXbrl, element=conceptQn, periodError=periodDate)
                 else:
-                    periodStart = periodEnd = "forever"
+                    period = "forever"
                 cntxKey = ( # hashable context key
                     ("periodType", concept.periodType),
                     ("entity", entityAsQn),
-                    ("periodStart", periodStart),
-                    ("periodEnd", periodEnd)) + tuple(sorted(
+                    ("period", period)) + tuple(sorted(
                         (dimName, dimVal["value"] if isinstance(dimVal,dict) else dimVal) 
                         for dimName, dimVal in aspects.items()
                         if ":" in dimName and not dimName.startswith(oimPrefix)))
@@ -827,11 +825,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                     _cntx = modelXbrl.createContext(
                                             entityAsQn.namespaceURI,
                                             entityAsQn.localName,
-                                            "forever" if periodEnd == "forever" else concept.periodType,
-                                            None if concept.periodType == "instant" or periodEnd == "forever" 
-                                                else dateTime(periodStart, type=DATETIME),
-                                            None if periodEnd == "forever"
-                                                else dateTime(periodEnd, type=DATETIME),
+                                            "forever" if period == "forever" else concept.periodType,
+                                            None if concept.periodType == "instant" or period == "forever" 
+                                                else dateTime(period.rpartition('/')[0], type=DATETIME),
+                                            None if period == "forever"
+                                                else dateTime(period.rpartition('/')[2], type=DATETIME),
                                             None, # no dimensional validity checking (like formula does)
                                             qnameDims, [], [],
                                             id=cntxId)
