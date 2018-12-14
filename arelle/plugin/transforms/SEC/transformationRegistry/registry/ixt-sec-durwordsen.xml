@@ -31,7 +31,7 @@ Transforms number word durations (English).
 Duration year/month/day parts are expressed only in short-form notation words or numerals.
 Years, months and days up to 1999 (nineteen-hundred ninety-nine).
 Examples:  three years four months no days, or three years, 11 months and four days
-Plural is optional.  Comma and "and" are optional.
+Plural is optional.  Comma and "and" are optional.  Dashes allowed.
     </xhtml:p>
   </documentation>
   <reference xlink:type="simple" xlink:href="inlineXBRL-part1/REC-2010-04-20/inlineXBRL-part1-REC-2010-04-20.html#sec-transformationrules">Inline XBRL Part 1: Specification 1.0 Section 14</reference>
@@ -39,7 +39,7 @@ Plural is optional.  Comma and "and" are optional.
   <signature name="ixt-sec:durwordsen">
     <input name="input" type="ixt-sec:durwordsenType">
       <xhtml:p>
-Words expressing a duration in short-form notation, such as "seven days" or "twelve years".
+Words expressing a duration in short-form notation, such as "seven days", "twelve years" or "twelve-years".
       </xhtml:p>
     </input>
       <output type="xs:duration">
