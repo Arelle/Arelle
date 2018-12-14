@@ -11,7 +11,7 @@ Customize for an integrated security environment
 Input file parameters may be in JSON (without newlines for pretty printing as below):
 
 
-[ {"file": "file path to instance or inline xhtml",
+[ {"file": "file path to instance or inline xhtml", or "ixds":{"file": filepath, ...}
    "key": "base 64 encoded key",
    "iv": "base 64 encoded iv",
     ... (any other custom entrypoint parameters)
@@ -62,7 +62,9 @@ def securityFileSourceFile(cntlr, ownerObject, filepath, binary, stripDeclaratio
     # handle FileSource file requests which can return encrypted contents
     if ownerObject.hasEncryption:
         for entrypointfile in ownerObject.entrypointfiles:
-            if filepath == entrypointfile["file"] and "key" in entrypointfile and "iv" in entrypointfile:
+            if (filepath == entrypointfile.get("file") or 
+                any(filepath == ixfile.get("file") for ixfile in entrypointfile.get("ixds",()))
+                ) and "key" in entrypointfile and "iv" in entrypointfile:
                 ownerObject.cipherIv = base64.decodebytes(entrypointfile["iv"].encode())
                 ownerObject.cipherKey = base64.decodebytes(entrypointfile["key"].encode())
                 break # set new iv, key based on entrypointfiles
