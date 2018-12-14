@@ -28,6 +28,7 @@ if __name__ == "__main__":
                  "'''\n"
                  "__version__ = '{1}.{2}'  # number version of code base and date compiled\n"
                  "version = '{3}'  # string version of date compiled\n"
+                 "copyrightLatestYear = '{0}'  # string version of year compiled\n"
                  ).format(dateYr, arelleMajorVersion, dateDotYmd, dateDashYmdHmUtc)
 
     with open("arelle/Version.py", "w") as fh:
