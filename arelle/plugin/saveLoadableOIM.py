@@ -13,7 +13,7 @@ from arelle import ModelDocument, XbrlConst
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelValue import (qname, QName, DateTime, YearMonthDuration, 
                                dayTimeDuration, DayTimeDuration, yearMonthDayTimeDuration, Time,
-                               gYearMonth, gMonthDay, gYear, gMonth, gDay)
+                               gYearMonth, gMonthDay, gYear, gMonth, gDay, IsoDuration)
 from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.UrlUtil import relativeUri
 from arelle.ValidateXbrlCalcs import inferredDecimals
@@ -117,7 +117,8 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
         if isinstance(object, bool):
             return "true" if object else "false"
         if isinstance(object, (DateTime, YearMonthDuration, DayTimeDuration, Time,
-                               gYearMonth, gMonthDay, gYear, gMonth, gDay)):
+                               gYearMonth, gMonthDay, gYear, gMonth, gDay,
+                               IsoDuration)):
             return str(object)
         return object
     
