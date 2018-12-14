@@ -5,7 +5,7 @@ saveLoadableOIM.py is an example of a plug-in that will save a re-loadable JSON 
 
 (c) Copyright 2015 Mark V Systems Limited, All rights reserved.
 '''
-import sys, os, io, time, regex as re, json, csv
+import sys, os, io, time, regex as re, json, csv, zipfile
 from decimal import Decimal
 from math import isinf, isnan
 from collections import defaultdict, OrderedDict
@@ -72,7 +72,7 @@ else:
     csvOpenMode = 'wb' # for 2.7
     csvOpenNewline = None
     
-def saveLoadableOIM(modelXbrl, oimFile):
+def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
     
     isJSON = oimFile.endswith(".json")
     isCSV = oimFile.endswith(".csv")
@@ -440,8 +440,15 @@ def saveLoadableOIM(modelXbrl, oimFile):
             if ftObj.xmlLang:
                 oimFact["aspects"]["language"] = ftObj.xmlLang.lower()
             
-        with open(oimFile, "w", encoding="utf-8") as fh:
-            fh.write(json.dumps(oimReport, indent=1))
+        if outputZip:
+            fh = io.StringIO()
+        else:
+            fh = open(oimFile, "w", encoding="utf-8")
+        fh.write(json.dumps(oimReport, indent=1))
+        if outputZip:
+            fh.seek(0)
+            outputZip.writestr(os.path.basename(oimFile),fh.read())
+        fh.close()
 
     elif isCSVorXL:
         # save CSV
@@ -700,7 +707,7 @@ def saveLoadableOIMMenuCommand(cntlr):
     thread = threading.Thread(target=lambda 
                                   _modelXbrl=cntlr.modelManager.modelXbrl,
                                   _oimFile=oimFile: 
-                                        saveLoadableOIM(_modelXbrl, _oimFile))
+                                        saveLoadableOIM(_modelXbrl, _oimFile, None))
     thread.daemon = True
     thread.start()
     
@@ -720,7 +727,15 @@ def saveLoadableOIMCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs
             cntlr.addToLog("No XBRL instance has been loaded.")
             return
         try:
-            saveLoadableOIM(modelXbrl, oimFile)
+            responseZipStream = kwargs.get("responseZipStream")
+            if responseZipStream is not None:
+                _zip = zipfile.ZipFile(responseZipStream, "a", zipfile.ZIP_DEFLATED, True)
+            else:
+                _zip = None
+            saveLoadableOIM(modelXbrl, oimFile, _zip)
+            if responseZipStream is not None:
+                _zip.close()
+                responseZipStream.seek(0)
         except Exception as ex:
             cntlr.addToLog("Exception saving OIM {}".format(ex))
 

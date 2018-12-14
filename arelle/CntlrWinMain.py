@@ -1264,7 +1264,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                           os.path.join(self.imagesDir, "arelle32.gif"),
                           _("arelle\u00ae {0} ({1}bit)\n"
                               "An open source XBRL platform\n"
-                              "\u00a9 2010-2017 Mark V Systems Limited\n"
+                              "\u00a9 2010-{2} Mark V Systems Limited\n"
                               "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
                               "Licensed under the Apache License, Version 2.0 (the \"License\"); "
                               "you may not use this file except in compliance with the License.  "
@@ -1283,7 +1283,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                               "{3}"
                               "\n   May include installable plug-in modules with author-specific license terms"
                               )
-                            .format(Version.__version__, self.systemWordSize, Version.version,
+                            .format(Version.__version__, self.systemWordSize, Version.copyrightLatestYear,
                                     _("\n   Bottle \u00a9 2011-2013 Marcel Hellkamp"
                                       "\n   CherryPy \u00a9 2002-2013 CherryPy Team") if self.hasWebServer else "",
                                     sys.version_info, etree.LXML_VERSION, Tcl().eval('info patchlevel')

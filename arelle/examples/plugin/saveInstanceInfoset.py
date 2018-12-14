@@ -81,13 +81,13 @@ def saveInstanceInfosetCommandLineOptionExtender(parser):
                       dest="instanceInfosetFile", 
                       help=_("Save instance infoset in specified file, or to send testcase infoset out files to out directory specify 'generateOutFiles'."))
 
-def saveInstanceInfosetCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args):
+def saveInstanceInfosetCommandLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
     from arelle.ModelDocument import Type
     if getattr(options, "instanceInfosetFile", None) and options.infosetFile == "generateOutFiles" and modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.TESTCASE):
         cntlr.modelManager.generateInfosetOutFiles = True
 
-def saveInstanceInfosetCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
+def saveInstanceInfosetCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "instanceInfosetFile", None) and options.instanceInfosetFile != "generateOutFiles":
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:

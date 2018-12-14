@@ -61,7 +61,7 @@ def parseAndRun(args):
     usage = "usage: %prog [options]"
     
     parser = OptionParser(usage, 
-                          version="Arelle(r) {0}bit {1}".format(cntlr.systemWordSize, Version.version),
+                          version="Arelle(r) {0} ({1}bit)".format(Version.__version__, cntlr.systemWordSize),
                           conflict_handler="resolve") # allow reloading plug-in options without errors
     parser.add_option("-f", "--file", dest="entrypointFile",
                       help=_("FILENAME is an entry point, which may be "
@@ -379,7 +379,7 @@ def parseAndRun(args):
     if options.about:
         print(_("\narelle(r) {0} ({1}bit)\n\n"
                 "An open source XBRL platform\n"
-                "(c) 2010-2017 Mark V Systems Limited\n"
+                "(c) 2010-{2} Mark V Systems Limited\n"
                 "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
                 "Licensed under the Apache License, Version 2.0 (the \"License\"); "
                 "you may not \nuse this file except in compliance with the License.  "
@@ -396,7 +396,7 @@ def parseAndRun(args):
                 "\n   lxml {5[0]}.{5[1]}.{5[2]} (c) 2004 Infrae, ElementTree (c) 1999-2004 by Fredrik Lundh"
                 "{3}"
                 "\n   May include installable plug-in modules with author-specific license terms"
-                ).format(Version.__version__, cntlr.systemWordSize, Version.version,
+                ).format(Version.__version__, cntlr.systemWordSize, Version.copyrightLatestYear,
                          _("\n   Bottle (c) 2011-2013 Marcel Hellkamp") if hasWebServer else "",
                          sys.version_info, etree.LXML_VERSION))
     elif options.disclosureSystemName in ("help", "help-verbose"):
@@ -890,7 +890,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         pluginXbrlMethod(self, options, modelXbrl)
                 else: # not a test case, probably instance or DTS
                     for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Loaded"):
-                        pluginXbrlMethod(self, options, modelXbrl, _entrypoint)
+                        pluginXbrlMethod(self, options, modelXbrl, _entrypoint, responseZipStream=responseZipStream)
             else:
                 success = False
             if success and options.diffFile and options.versReportFile:
@@ -989,7 +989,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     if options.arcroleTypesFile:
                         ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.arcroleTypesFile, "Arcrole Types", isArcrole=True, lang=options.labelLang)
                     for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Xbrl.Run"):
-                        pluginXbrlMethod(self, options, modelXbrl, _entrypoint)
+                        pluginXbrlMethod(self, options, modelXbrl, _entrypoint, responseZipStream=responseZipStream)
                                             
                 except (IOError, EnvironmentError) as err:
                     self.addToLog(_("[IOError] Failed to save output:\n {0}").format(err),

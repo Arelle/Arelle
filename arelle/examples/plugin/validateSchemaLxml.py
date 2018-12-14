@@ -123,7 +123,7 @@ def validateSchemaWithLxmlCommandLineOptionExtender(parser):
                       dest="validateSchemaLxml", 
                       help=_("Validate the schema with lxml (experimental)"))
 
-def validateSchemaWithLxmlCommandLineXbrlRun(cntlr, options, modelXbrl, *args):
+def validateSchemaWithLxmlCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
     if getattr(options, "validateSchemaLxml", False):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:

@@ -8,7 +8,7 @@ Use this module to start Arelle in web server mode
 '''
 from arelle.webserver.bottle import Bottle, request, response, static_file
 from arelle.Cntlr import LogFormatter
-import os, io, sys, time, threading, uuid
+import os, io, sys, time, threading, uuid, zipfile
 from arelle import Version
 from arelle.FileSource import FileNamedStringIO
 _os_pid = os.getpid()
@@ -73,6 +73,7 @@ def startWebserver(_cntlr, options):
     app.route('/quickbooks/server.html', GET, quickbooksWebPage)
     app.route('/quickbooks/localhost.crt', GET, localhostCertificate)
     app.route('/localhost.crt', GET, localhostCertificate)
+    app.route('/rest/test/test', GETorPOST, testTest)
     app.route('/help', GET, helpREST)
     app.route('/about', GET, about)
     app.route('/', GET, indexPageREST)
@@ -291,8 +292,22 @@ def runOptionsAndGetResult(options, media, viewFile, sourceZipStream=None):
     
     :returns: html, xml, csv, text -- Return per media type argument and request arguments
     """
+    addLogToZip = False
     if media == "zip" and not viewFile:
         responseZipStream = io.BytesIO()
+        # add any needded plugins to load from OiM or save into OIM
+        if (hasattr(options, "saveOIMinstance") or 
+            (getattr(options, "entrypointFile", "") or "").rpartition(".")[2] in ("json", "csv", "xlsx")):
+            plugins = (getattr(options, "plugins", "") or "").split("|")
+            if getattr(options, "entrypointFile", "").rpartition(".")[2] in ("json", "csv", "xlsx") and "loadFromOIM" not in plugins:
+                plugins.append("loadFromOIM")
+                addLogToZip = True
+            if getattr(options, "saveOIMinstance", "").rpartition(".")[2] in ("json", "csv", "xlsx") and "saveLoadableOIM" not in plugins:
+                plugins.append("saveLoadableOIM")
+                addLogToZip = True
+                setattr(options, "saveLoadableOIM", getattr(options, "saveOIMinstance"))
+                setattr(options, "saveOIMinstance", None) # this parameter is for saving xBRL-XML when loaded from JSON/CSV
+            setattr(options, "plugins", "|".join(p for p in plugins if p) or None) # ignore empty string plugin names
     else:
         responseZipStream = None
     successful = cntlr.run(options, sourceZipStream, responseZipStream)
@@ -314,6 +329,11 @@ def runOptionsAndGetResult(options, media, viewFile, sourceZipStream=None):
         viewFile.close()
     elif media == "zip":
         responseZipStream.seek(0)
+        if addLogToZip:
+            _zip = zipfile.ZipFile(responseZipStream, "a", zipfile.ZIP_DEFLATED, True)
+            _zip.writestr("log.txt", cntlr.logHandler.getText())
+            _zip.close()
+            responseZipStream.seek(0)
         result = responseZipStream.read()
         responseZipStream.close()
         cntlr.logHandler.clearLogBuffer() # zip response file may contain non-cleared log entries
@@ -386,6 +406,12 @@ def stopWebServer():
                                "Good bye...",), 
                               header=_("Stop Request")))
     
+def testTest():
+    return "Results attached:\n" + multipartResponse((
+        ("file1", "text/plain", "test text 1"),
+        ("file2", "text/plain", "test text 2"),
+        ("file3", "text/plain", "test text 3"),
+        ))
     
 def quickbooksServer():
     """Interface to QuickBooks server responding to  *post* requests to */quickbooks/server.asmx*.
@@ -553,7 +579,7 @@ as follows:</td></tr>
 <br/><code>xml</code>: XML structured results.
 <br/><code>json</code>: JSON results.
 <br/><code>text</code>: Plain text results (no markup).</td></tr> 
-<tr><td style="text-indent: 1em;">file</td><td>Alternate way to specify file name or url by a parameter.</td></tr> 
+<tr><td style="text-indent: 1em;">file</td><td>Alternate way to specify file name or url by a parameter.  Files ending in .json will be loaded as xBRL-JSON.</td></tr> 
 <tr><td style="text-indent: 1em;">import</td><td>A list of files to import to the DTS, such as additional formula 
 or label linkbases.  Multiple file names are separated by a '|' character.</td></tr> 
 <tr><td style="text-indent: 1em;">labelLang</td><td>Label language to override system settings, e.g., <code>&labelLang=ja</code>.</td></tr> 
@@ -582,6 +608,7 @@ formulaCallExprResult, formulaVarSetExprEval, formulaFormulaRules, formulaVarsOr
 formulaVarExpressionSource, formulaVarExpressionCode, formulaVarExpressionEvaluation, formulaVarExpressionResult, formulaVarFiltersResult, and formulaRunIDs.
 </td></tr>
 <tr><td style="text-indent: 1em;">abortOnMajorError</td><td>Abort process on major error, such as when load is unable to find an entry or discovered file.</td></tr> 
+<tr><td style="text-indent: 1em;">saveOIMinstance</td><td>Specify output instance filename to save (name.json, name.xml), for example if loading from xBRL-JSON.one would save to .xml otherwise to .json.  Media must be zip.  Returns a zip of instance and logFile.</td></tr> 
 <tr><td style="text-indent: 1em;">collectProfileStats</td><td>Collect profile statistics, such as timing of validation activities and formulae.</td></tr> 
 <tr><td style="text-indent: 1em;">plugins</td><td>Activate plug-ins, specify  '|' separated .py modules (relative to plug-in directory).</td></tr>
 <tr><td style="text-indent: 1em;">packages</td><td>Activate taxonomy packages, specify  '|' separated .zip packages (absolute URLs or file paths).</td></tr>
@@ -707,8 +734,8 @@ def about(arelleImgFile=None):
     """
     return htmlBody(_('''<table width="700p">
 <tr><th colspan="2">About arelle</th></tr>
-<tr><td rowspan="12" style="vertical-align:top;"><img src="%s"/></td><td>arelle&reg; version: %s %sbit %s. An open source XBRL platform</td></tr>
-<tr><td>&copy; 2010-2015 Mark V Systems Limited.  All rights reserved.</td></tr>
+<tr><td rowspan="12" style="vertical-align:top;"><img src="%s"/></td><td>arelle&reg; %s (%sbit). An open source XBRL platform</td></tr>
+<tr><td>&copy; 2010-%s Mark V Systems Limited.  All rights reserved.</td></tr>
 <tr><td>Web site: <a href="http://www.arelle.org">http://www.arelle.org</a>.  
 E-mail support: <a href="mailto:support@arelle.org">support@arelle.org</a>.</td></tr>
 <tr><td>Licensed under the Apache License, Version 2.0 (the \"License\"); you may not use this file 
@@ -723,9 +750,7 @@ See the License for the specific language governing permissions and limitations 
 <tr><td style="text-indent: 2.0em;">lxml %s.%s.%s &copy; 2004 Infrae, ElementTree &copy; 1999-2004 by Fredrik Lundh</td></tr>
 <tr><td style="text-indent: 2.0em;">Bottle &copy; 2011 Marcel Hellkamp</td></tr>
 </table>''') % (arelleImgFile or '/images/arelle32.gif',
-                cntlr.__version__, 
-                cntlr.systemWordSize, 
-                Version.version,
+                Version.__version__, cntlr.systemWordSize, Version.copyrightLatestYear,
                 sys.version_info[0],sys.version_info[1],sys.version_info[2], 
                 etree.LXML_VERSION[0],etree.LXML_VERSION[1],etree.LXML_VERSION[2]) )
 

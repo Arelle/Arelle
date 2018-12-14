@@ -106,7 +106,7 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
                     _firstdoc = False
                     ixdocset.targetDocumentPreferredFilename = os.path.splitext(ixdoc.uri)[0] + ".xbrl"
                 ixdoc.inDTS = True # behaves like an entry
-        if getattr(modelXbrl, "ixdsHtmlElements"): # has any inline root elements
+        if hasattr(modelXbrl, "ixdsHtmlElements"): # has any inline root elements
             inlineIxdsDiscover(modelXbrl, ixdocset) # compile cross-document IXDS references
             return ixdocset
     return None

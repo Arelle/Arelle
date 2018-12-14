@@ -4,7 +4,7 @@ input and optionally save an (extension) DTS.
 
 (c) Copyright 2016 Mark V Systems Limited, All rights reserved.
 '''
-import os, sys, io, time, re, traceback, json, csv, logging, math
+import os, sys, io, time, re, traceback, json, csv, logging, math, zipfile
 from collections import defaultdict, OrderedDict
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle import XbrlConst, ModelDocument, ModelXbrl, ValidateXbrlDimensions
@@ -15,13 +15,15 @@ from arelle.PythonUtil import attrdict
 from arelle.UrlUtil import isHttpUrl
 from arelle.XbrlConst import (qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
                               qnLinkPart, gen, link, defaultLinkRole,
-                              conceptLabel, elementLabel, conceptReference,
+                              conceptLabel, elementLabel, conceptReference, reservedPrefixes
                               )
 from arelle.XmlUtil import addChild, addQnameValue
 from arelle.XmlValidate import NCNamePattern, validate as xmlValidate
 
-nsOim = {"http://www.xbrl.org/WGWD/YYYY-MM-DD",
-         "http://www.xbrl.org/PWD/2016-01-13/oim"
+nsOim = "http://www.xbrl.org/WGWD/YYYY-MM-DD"
+nsOims = {nsOim,
+         "http://www.xbrl.org/PWD/2016-01-13/oim",
+         "http://www.xbrl.org/WGWD/YYYY-MM-DD/oim"
          }
          
 
@@ -50,7 +52,10 @@ oimLanguage = "language"
 oimPrefix = "xbrl:"
 oimSimpleFactProperties = {oimEntity, oimPeriod, oimUnit, "accuracy"}
 
-DUPJSONKEY = "!@%duplicates%@!"
+qnXbrlNote = qname(nsOim, "note")
+
+DUPJSONKEY = "!@%duplicateKeys%@!"
+DUPJSONVALUE = "!@%duplicateValues%@!"
 
 EMPTYDICT = {}
 
@@ -141,21 +146,49 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
             currentAction = "loading and parsing JSON OIM file"
             def loadDict(keyValuePairs):
                 _dict = OrderedDict() # preserve fact order in resulting instance
+                _valueKeyDict = {}
                 for key, value in keyValuePairs:
                     if isinstance(value, dict):
                         if DUPJSONKEY in value:
                             for _errKey, _errValue, _otherValue in value[DUPJSONKEY]:
                                 if key == "prefixes":
-                                    error("xbrlje:duplicatedPrefix",
+                                    error("xbrlje:invalidPrefixMap",
                                                     _("The prefix %(prefix)s is used on uri %(uri1)s and uri %(uri2)s"),
                                                     modelObject=modelXbrl, prefix=_errKey, uri1=_errValue, uri2=_otherValue)
                             del value[DUPJSONKEY]
-                    if key in _dict:
+                        if DUPJSONVALUE in value:
+                            for _errValue, _errKey, _otherKey in value[DUPJSONVALUE]:
+                                if key == "prefixes":
+                                    error("xbrlje:invalidPrefixMap",
+                                                    _("The value %(uri)s is used on prefix %(prefix1)s and uri %(prefix2)s"),
+                                                    modelObject=modelXbrl, prefix=_errValue, key1=_errKey, uri2=_otherKey)
+                            del value[DUPJSONVALUE]
+                        if key == "prefixes":
+                            for _key, _value in value.items():
+                                if _key in reservedPrefixes and reservedPrefixes[_key] != _value:
+                                    error("xbrlje:invalidPrefixMap",
+                                                    _("The value %(uri)s is used on standard prefix %(prefix)s which requires uri %(standardUri)s"),
+                                                    modelObject=modelXbrl, prefix=_key, uri=_value, standardUri=reservedPrefixes[_key])
+                                elif _key.startswith("xbrl") and not _value.startswith("http://www.xbrl.org/"):
+                                    error("xbrlje:invalidPrefixMap",
+                                                    _("The key %(key)s must be bound to an xbrl URI instead of %(uri)s"),
+                                                    modelObject=modelXbrl, prefix=_key, uri=_value)
+                    if key == "":
+                        error("xbrlje:invalidPrefixMap",
+                                        _("The empty string prefix is used on uri %(uri)s"),
+                                        modelObject=modelXbrl, prefix="", uri=_errValue)
+                    elif key in _dict:
                         if DUPJSONKEY not in _dict:
                             _dict[DUPJSONKEY] = []
                         _dict[DUPJSONKEY].append((key, value, _dict[key]))
+                    elif isinstance(value, str) and value in _valueKeyDict:
+                        if DUPJSONVALUE not in _dict:
+                            _dict[DUPJSONVALUE] = []
+                        _dict[DUPJSONVALUE].append((value, key, _valueKeyDict[value]))
                     else:
                         _dict[key] = value
+                        if isinstance(value, str):
+                            _valueKeyDict[value] = key
                 return _dict
             if oimObject is None:
                 with io.open(oimFile, 'rt', encoding='utf-8') as f:
@@ -182,8 +215,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                        _("Required documentType is missing from JSON input"))
                 currentAction = "identifying JSON objects"
                 dtsReferences = oimDocumentInfo["taxonomy"]
-                prefixesList = oimDocumentInfo["prefixes"].items()
-                featuresDict = oimDocumentInfo["prefixes"]
+                prefixesDict = oimDocumentInfo["prefixes"]
+                prefixesList = prefixesDict.items()
+                featuresDict = oimDocumentInfo["features"]
                 facts = oimObject["facts"]
                 footnotes = oimObject["facts"].values() # shares this object
                 # add IDs if needed for footnotes
@@ -193,6 +227,15 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                         anonymousFactId += 1
                         fact["id"] = "_f_{:02}".format(anonymousFactId)
                 '''
+
+        # pre-PWD names
+        global oimConcept, oimEntity, oimPeriodStart, oimPeriodEnd, oimLanguage
+        if isCSV or isXL:
+            oimConcept = "xbrl:concept"
+            oimEntity = "xbrl:entity"
+            oimPeriod = "xbrl:period"
+            oimUnit = "xbrl:unit"
+            oimLanguage = "xbrl:language"
 
         if isCSV:
             errPrefix = "xbrlce"
@@ -682,7 +725,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
         if "xbrl" not in prefixes:
             raise OIMException("oime:noXbrlPrefix",
                                _("The xbrl namespace must have a declared prefix"))
-        elif prefixes["xbrl"] not in nsOim:
+        elif prefixes["xbrl"] not in nsOims:
             raise OIMException("oime:unrecognizedXbrlPrefix",
                                _("The xbrl prefix must have the standard namespace value"))
         if "xbrli" in prefixes and prefixes["xbrli"] != XbrlConst.xbrli:
@@ -741,6 +784,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
             
         cntxTbl = {}
         unitTbl = {}
+        xbrlNoteTbl = {} # fact ID: note fact
             
         currentAction = "creating facts"
         factNum = 0 # for synthetic fact number
@@ -753,7 +797,17 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 _("The concept QName could not be determined, property xbrl:concept missing."),
                                 modelObject=modelXbrl)
                 return
-            conceptQn = qname(aspects[oimConcept], prefixes)
+            conceptSQName = aspects[oimConcept]
+            conceptPrefix = conceptSQName.rpartition(":")[0]
+            if conceptPrefix not in prefixes:
+                error("xbrlje:unknownPrefix",
+                      _("The concept QName prefix was not defined: %(concept)s."),
+                      modelObject=modelXbrl, concept=conceptSQName)
+                continue
+            conceptQn = qname(conceptSQName, prefixes)
+            if conceptQn == qnXbrlNote:
+                xbrlNoteTbl[id] = fact
+                continue
             concept = modelXbrl.qnameConcepts.get(conceptQn)
             if concept is None:
                 error("xbrl:schemaImportMissing",
@@ -765,7 +819,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                 missingAspects = []
                 if oimEntity not in aspects: 
                     missingAspects.append(oimEntity)
-                if oimPeriod not in aspects:
+                if "xbrl:start" in aspects and "xbrl:end" in aspects:
+                    pass
+                elif oimPeriod not in aspects:
                     missingAspects.append(oimPeriod)
                 if missingAspects:
                     error("{}:missingAspects".format(errPrefix),
@@ -775,7 +831,12 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                 if oimLanguage in aspects:
                     attrs["{http://www.w3.org/XML/1998/namespace}lang"] = aspects[oimLanguage]
                 entityAsQn = qname(aspects[oimEntity], prefixes) or qname("error",fact[oimEntity])
-                if oimPeriod in aspects:
+                if "xbrl:start" in aspects and "xbrl:end" in aspects:
+                    # CSV/XL format
+                    period = aspects["xbrl:start"]
+                    if period != aspects["xbrl:end"]:
+                        period += "/" + aspects["xbrl:end"]
+                elif oimPeriod in aspects:
                     period = aspects[oimPeriod]
                     if not re.match(r"\d{4,}-[0-1][0-9]-[0-3][0-9]T(24:00:00|[0-1][0-9]:[0-5][0-9]:[0-5][0-9])"
                                     r"(/\d{4,}-[0-1][0-9]-[0-3][0-9]T(24:00:00|[0-1][0-9]:[0-5][0-9]:[0-5][0-9]))?", period):
@@ -845,7 +906,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                         # validate unit
                         unitKeySub = PrefixedQName.sub(UnitPrefixedQNameSubstitutionChar, unitKey)
                         if not UnitPattern.match(unitKeySub):
-                            error("oime:unitStringRepresentation",
+                            error("{}:invalidUnitString".format(errPrefix),
                                             _("Unit string representation is lexically invalid, %(unit)s"),
                                             modelObject=modelXbrl, unit=unitKey)
                         else:
@@ -857,7 +918,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 _div = _div[1:-1]
                             _divs = [u for u in _div.split('*') if u]
                             if _muls != sorted(_muls) or _divs != sorted(_divs):
-                                error("oime:unitStringRepresentation",
+                                error("{}:invalidUnitString".format(errPrefix),
                                                 _("Unit string representation measures are not in alphabetical order, %(unit)s"),
                                                 modelObject=modelXbrl, unit=unitKey)
                             try:
@@ -931,14 +992,29 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                         modelObject=modelXbrl, footnoteIds=", ".join(sorted(missingFootnotes)))
         definedInstanceRoles = set()
         footnoteIdsNotReferenced = set()
+        undefinedFootnoteTypes = set()
+        undefinedFootnoteGroups = set()
         for factOrFootnote in footnotes:
             if isJSON:
-                factFootnotes = factOrFootnote.get("footnotes", ()) # footnotes is facts, contains fact objects
-                if factFootnotes:
-                    if "id" in factOrFootnote:
-                        factIDs = (factOrFootnote["id"],)
+                factFootnotes = []
+                for ftType, ftGroups in factOrFootnote.get("links", {}).items():
+                    factIDs = (factOrFootnote["id"],)
+                    if ftType not in prefixesDict:
+                        undefinedFootnoteTypes.add(ftType)
                     else:
-                        factIDs = ()
+                        for ftGroup, ftTgtIds in ftGroups.items():
+                            if ftGroup not in prefixesDict:
+                                undefinedFootnoteGroups.add(ftGroup)
+                            else:
+                                footnote = {"group": prefixesDict[ftGroup],
+                                            "footnoteType": prefixesDict[ftType]}
+                                if all(tgtId in xbrlNoteTbl for tgtId in ftTgtIds):
+                                    # text footnote
+                                    footnote["noteRefs"] = ftTgtIds
+                                else:
+                                    # fact referencing footnote
+                                    footnote["factRef"] = ftTgtIds
+                                factFootnotes.append(footnote)
             elif isCSV or isXL: # footnotes contains footnote objects
                 factFootnotes = (factOrFootnote,)
                 factIDs = tuple(sorted(footnoteRefFactIds[factOrFootnote.get("footnoteId")]))
@@ -948,7 +1024,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                 linkrole = footnote.get("group")
                 arcrole = footnote.get("footnoteType")
                 if not factIDs or not linkrole or not arcrole or not (
-                    footnote.get("factRef") or footnote.get("footnote") is not None):
+                    footnote.get("factRef") or footnote.get("footnote") is not None or footnote.get("noteRefs") is not None):
                     if not linkrole:
                         warning("oime:footnoteMissingLinkrole",
                                         _("FootnoteId has no linkrole %(footnoteId)s."),
@@ -1004,12 +1080,25 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                         attrs[XMLLANG] = footnote["language"]
                     # note, for HTML will need to build an element structure
                     addChild(footnoteLink, XbrlConst.qnLinkFootnote, attributes=attrs, text=footnote["footnote"])
+                elif footnote.get("noteRefs"):
+                    footnoteNbr += 1
+                    footnoteToLabel = "f_{:02}".format(footnoteNbr)
+                    for noteId in footnote.get("noteRefs"):
+                        xbrlNote = xbrlNoteTbl[noteId]
+                        attrs = {XLINKTYPE: "resource",
+                                 XLINKLABEL: footnoteToLabel}
+                        try:
+                            attrs[XMLLANG] = xbrlNote["aspects"]["language"]
+                        except KeyError:
+                            pass
+                        # note, for HTML will need to build an element structure
+                        addChild(footnoteLink, XbrlConst.qnLinkFootnote, attributes=attrs, text=xbrlNote["value"])
                 elif footnote.get("factRef"):
                     factRef = footnote.get("factRef")
                     if (isCSV or isXL) and factRef in footnoteRefFactIds:
                         fact2IDs = tuple(sorted(footnoteRefFactIds[factRef]))
                     else:
-                        fact2IDs = (factRef,)
+                        fact2IDs = tuple(sorted(factRef))
                     if (linkrole, fact2IDs) not in factLocs:
                         locNbr += 1
                         locLabel = "l_{:02}".format(locNbr)
@@ -1032,6 +1121,15 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                     modelObject=modelXbrl, footnoteIds=", ".join(sorted(footnoteIdsNotReferenced)))
         if footnoteLinks:
             modelXbrl.modelDocument.linkbaseDiscover(footnoteLinks.values(), inInstance=True)
+
+        if undefinedFootnoteTypes:
+            error("xbrlje:unknownPrefix",
+                  _("These footnote types are not defined in prefixes: %(ftTypes)s."),
+                  modelObject=modelXbrl, ftTypes=", ".join(sorted(undefinedFootnoteTypes)))
+        if undefinedFootnoteGroups:
+            error("xbrlje:unknownPrefix",
+                  _("These footnote groups are not defined in prefixes: %(ftGroups)s."),
+                  modelObject=modelXbrl, ftGroups=", ".join(sorted(undefinedFootnoteGroups)))
                     
         currentAction = "done loading facts and footnotes"
         
@@ -1111,8 +1209,16 @@ def guiXbrlLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
 def cmdLineXbrlLoaded(cntlr, options, modelXbrl, *args, **kwargs):
     if options.saveOIMinstance and getattr(modelXbrl, "loadedFromOIM", False):
         doc = modelXbrl.modelDocument
-        doc.save(options.saveOIMinstance)
         cntlr.showStatus(_("Saving XBRL instance: {0}").format(doc.basename))
+        responseZipStream = kwargs.get("responseZipStream")
+        if responseZipStream is not None:
+            _zip = zipfile.ZipFile(responseZipStream, "a", zipfile.ZIP_DEFLATED, True)
+        else:
+            _zip = None
+        doc.save(options.saveOIMinstance, _zip)
+        if responseZipStream is not None:
+            _zip.close()
+            responseZipStream.seek(0)
 
 def excelLoaderOptionExtender(parser, *args, **kwargs):
     parser.add_option("--saveOIMinstance", 
