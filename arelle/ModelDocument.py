@@ -70,6 +70,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             # HMRC note, HMRC.blockedFile should be in this list if hmrc-taxonomies.xml is maintained an dup to date
             modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06" if normalizedUri.startswith("http") else "SBR.NL.2.2.0.17"),
                     _("Prohibited file for filings %(blockedIndicator)s: %(url)s"),
+                    edgarCode="cp-2202-Prohibited-Href-Or-Schema-Location",
                     modelObject=referringElement, url=normalizedUri,
                     blockedIndicator=_(" blocked") if blocked else "",
                     messageCodes=("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06", "SBR.NL.2.2.0.17"))
@@ -905,6 +906,7 @@ class ModelDocument:
                 if self.modelXbrl.modelManager.validateDisclosureSystem:
                     self.modelXbrl.error(("EFM.6.03.11", "GFM.1.1.7", "EBA.2.1", "EIOPA.2.1"),
                         _("Prohibited base attribute: %(attribute)s"),
+                        edgarCode="du-0311-Xml-Base-Used",
                         modelObject=element, attribute=baseAttr, element=element.qname)
                 else:
                     if baseAttr.startswith("/"):
@@ -1193,6 +1195,7 @@ class ModelDocument:
                 
     def inlineXbrlDiscover(self, htmlElement):
         ixNS = None
+        htmlBase = None
         conflictingNSelts = []
         # find namespace, only 1 namespace
         for inlineElement in htmlElement.iterdescendants():
@@ -1201,17 +1204,22 @@ class ModelDocument:
                     ixNS = inlineElement.namespaceURI
                 elif ixNS != inlineElement.namespaceURI:
                     conflictingNSelts.append(inlineElement)
+            elif inlineElement.tag == "{http://www.w3.org/1999/xhtml}base":
+                htmlBase = inlineElement.get("href")
         if ixNS is None: # no inline element, look for xmlns namespaces on htmlElement:
             for _ns in htmlElement.nsmap.values():
                 if _ns in XbrlConst.ixbrlAll:
                     ixNS = _ns
                     break
+        if htmlBase is None:
+            htmlBase = os.path.dirname(self.uri) + "/"
         if conflictingNSelts:
             self.modelXbrl.error("ix:multipleIxNamespaces",
                     _("Multiple ix namespaces were found"),
                     modelObject=conflictingNSelts)
         self.ixNS = ixNS
         self.ixNStag = ixNStag = "{" + ixNS + "}" if ixNS else ""
+        self.htmlBase = htmlBase
         ixdsTarget = getattr(self.modelXbrl, "ixdsTarget", None)
         # load referenced schemas and linkbases (before validating inline HTML
         for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "references"):

@@ -7,3 +7,4 @@ This module represents the time stamp when Arelle was last built
 '''
 __version__ = '1.2018.01.06'  # number version of code base and date compiled
 version = '2018-01-06 20:15 UTC'  # string version of date compiled
+copyrightLatestYear = '2018'  # string version of year compiled

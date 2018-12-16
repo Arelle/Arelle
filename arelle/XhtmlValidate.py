@@ -6,7 +6,7 @@ Created on Sept 1, 2013
 
 (originally part of XmlValidate, moved to separate module)
 '''
-from arelle import XbrlConst, XmlUtil, XmlValidate, ValidateFilingText
+from arelle import XbrlConst, XmlUtil, XmlValidate, ValidateFilingText, UrlUtil
 from arelle.ModelValue import qname
 from arelle.ModelObject import ModelObject
 from arelle.PythonUtil import normalizeSpace
@@ -105,6 +105,18 @@ htmlAttrType = {
     "rev": "NMTOKENS",
     "datetime": "dateTime",
     "hfreflang": "language"
+    }
+htmlEltUriAttrs = { # attributes with URI content (for relative correction and %20 canonicalization
+    "a": {"href"},
+    "area": {"href"},
+    "blockquote": {"cite"},
+    "del": {"cite"},
+    "form": {"action"},
+    "input": {"src", "usemap"},
+    "ins": {"cite"},
+    "img": {"src", "longdesc", "usemap"},
+    "object": {"classid", "codebase", "data", "archive", "usemap"},
+    "q": {"cite"},
     }
 ixAttrRequired = {
     XbrlConst.ixbrl: {
@@ -345,7 +357,7 @@ def xhtmlValidate(modelXbrl, elt):
                     if relations is None: relations = []
                     else: relations = [relations]
                 if rel == "child-or-text":
-                    relations += XmlUtil.innerTextNodes(elt, ixExclude=True, ixEscape=False, ixContinuation=False)
+                    relations += XmlUtil.innerTextNodes(elt, ixExclude=True, ixEscape=False, ixContinuation=False, ixResolveUris=False)
                 issue = ''
                 if reqt in ('^',):
                     if not any(r.localName in names and r.namespaceURI == elt.namespaceURI
@@ -543,3 +555,20 @@ def xhtmlValidate(modelXbrl, elt):
             _("%(element)s error %(error)s"),
             modelObject=elt, element=elt.localName.title(), error=dtd.error_log.filter_from_errors())
 
+def resolveHtmlUri(elt, name, value):
+    if name == "archive": # URILIST
+        return " ".join(resolveHtmlUri(elt, None, v) for v in value.split(" "))
+    if not UrlUtil.isAbsolute(value) and not value.startswith("/"):
+        if elt.modelDocument.htmlBase is not None:
+            value = elt.modelDocument.htmlBase + value
+    # canonicalize ../ and ./
+    authority, sep, path = value.rpartition("://")
+    inpaths = path.split("/")
+    outpaths = []
+    for path in inpaths:
+        if path == "..":
+            if len(outpaths) > 1:
+                outpaths.pop()
+        elif path != "." and (path != "" or len(outpaths) == 0):
+            outpaths.append(path.replace(" ", "%20"))
+    return authority + sep + "/".join(outpaths)

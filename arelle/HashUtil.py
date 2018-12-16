@@ -71,7 +71,7 @@ def md5hash(argList):
             elif isinstance(_arg, ModelObject):
                 # use inner text list
                 _md5.update('\x1F'.join(text.strip() 
-                                        for text in XmlUtil.innerTextNodes(_arg, True, False, True))
+                                        for text in XmlUtil.innerTextNodes(_arg, True, False, True, False))
                             .encode('utf-8','replace'))
     if firstMd5arg:
         md5sum = MD5SUM0

@@ -13,6 +13,7 @@ from lxml import etree
 from arelle.XbrlConst import ixbrlAll, qnLinkFootnote, xhtml, xml, xsd, xhtml
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname, QName
+htmlEltUriAttrs = resolveHtmlUri = None
 
 datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})\s*|"
                              r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*")
@@ -150,22 +151,25 @@ def textNotStripped(element):
     return element.textValue  # allows embedded comment nodes, returns '' if None
 
 # ixEscape can be None, "html" (xhtml namespace becomes default), "xhtml", or "xml"
-def innerText(element, ixExclude=False, ixEscape=None, ixContinuation=False, strip=True):   
+def innerText(element, ixExclude=False, ixEscape=None, ixContinuation=False, ixResolveUris=False, strip=True):   
     try:
-        text = "".join(text for text in innerTextNodes(element, ixExclude, ixEscape, ixContinuation))
+        text = "".join(text for text in innerTextNodes(element, ixExclude, ixEscape, ixContinuation, ixResolveUris))
         if strip:
             return text.strip()
         return text
     except (AttributeError, TypeError):
         return ""
 
-def innerTextList(element, ixExclude=False, ixEscape=None, ixContinuation=False):   
+def innerTextList(element, ixExclude=False, ixEscape=None, ixContinuation=False, ixResolveUris=False):   
     try:
-        return ", ".join(text.strip() for text in innerTextNodes(element, ixExclude, ixEscape, ixContinuation) if len(text.strip()) > 0)
+        return ", ".join(text.strip() for text in innerTextNodes(element, ixExclude, ixEscape, ixContinuation, ixResolveUris) if len(text.strip()) > 0)
     except (AttributeError, TypeError):
         return ""
 
-def innerTextNodes(element, ixExclude, ixEscape, ixContinuation):
+def innerTextNodes(element, ixExclude, ixEscape, ixContinuation, ixResolveUris):
+    global htmlEltUriAttrs, resolveHtmlUri
+    if htmlEltUriAttrs is None:
+        from arelle.XhtmlValidate import htmlEltUriAttrs, resolveHtmlUri
     if element.text:
         yield escapedText(element.text) if ixEscape else element.text
     for child in element.iterchildren():
@@ -173,24 +177,28 @@ def innerTextNodes(element, ixExclude, ixEscape, ixContinuation):
            not ixExclude or 
            not ((child.localName == "exclude" or ixExclude == "tuple") and child.namespaceURI in ixbrlAll)):
             firstChild = True
-            for nestedText in innerTextNodes(child, ixExclude, ixEscape, False): # nested elements don't participate in continuation chain
+            for nestedText in innerTextNodes(child, ixExclude, ixEscape, False, ixResolveUris): # nested elements don't participate in continuation chain
                 if firstChild and ixEscape:
-                    yield escapedNode(child, True, False, ixEscape)
+                    yield escapedNode(child, True, False, ixEscape, ixResolveUris)
                     firstChild = False
                 yield nestedText
             if ixEscape:
-                yield escapedNode(child, False, firstChild, ixEscape)
+                yield escapedNode(child, False, firstChild, ixEscape, ixResolveUris)
         if child.tail:
             yield escapedText(child.tail) if ixEscape else child.tail
     if ixContinuation:
         contAt = getattr(element, "_continuationElement", None)
         if contAt is not None:
-            for contText in innerTextNodes(contAt, ixExclude, ixEscape, ixContinuation):
+            for contText in innerTextNodes(contAt, ixExclude, ixEscape, ixContinuation, ixResolveUris):
                 yield contText
             
-def escapedNode(elt, start, empty, ixEscape):
+def escapedNode(elt, start, empty, ixEscape, ixResolveUris):
     if elt.namespaceURI in ixbrlAll:
         return ''  # do not yield XML for nested facts
+    if ixResolveUris:
+        uriAttrs = htmlEltUriAttrs.get(elt.qname.localName, ())
+    else:
+        uriAttrs = ()
     s = ['<']
     if not start and not empty:
         s.append('/')
@@ -200,6 +208,8 @@ def escapedNode(elt, start, empty, ixEscape):
         s.append(str(elt.qname))
     if start or empty:
         for n,v in sorted(elt.items(), key=lambda item: item[0]):
+            if n in uriAttrs:
+                v = resolveHtmlUri(elt, n, v)
             s.append(' {0}="{1}"'.format(qname(elt,n),
                                          v.replace("&","&amp;").replace('"','&quot;')))
     if not start and empty:
