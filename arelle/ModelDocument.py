@@ -1211,8 +1211,10 @@ class ModelDocument:
                 if _ns in XbrlConst.ixbrlAll:
                     ixNS = _ns
                     break
+        # required by 12.4.1 of [HTML] bullet 3
+        # use of document base is commented out because it discloses/uses absolute server directory and defeats URI redirection
         if htmlBase is None:
-            htmlBase = os.path.dirname(self.uri) + "/"
+            htmlBase = "" # os.path.dirname(self.uri) + "/"
         if conflictingNSelts:
             self.modelXbrl.error("ix:multipleIxNamespaces",
                     _("Multiple ix namespaces were found"),

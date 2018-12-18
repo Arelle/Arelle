@@ -11,7 +11,7 @@ from arelle.ModelValue import qname
 from arelle.ModelObject import ModelObject
 from arelle.PythonUtil import normalizeSpace
 from lxml import etree
-import os, re
+import os, re, posixpath
 
 EMPTYDICT = {}
 
@@ -562,13 +562,11 @@ def resolveHtmlUri(elt, name, value):
         if elt.modelDocument.htmlBase is not None:
             value = elt.modelDocument.htmlBase + value
     # canonicalize ../ and ./
-    authority, sep, path = value.rpartition("://")
-    inpaths = path.split("/")
-    outpaths = []
-    for path in inpaths:
-        if path == "..":
-            if len(outpaths) > 1:
-                outpaths.pop()
-        elif path != "." and (path != "" or len(outpaths) == 0):
-            outpaths.append(path.replace(" ", "%20"))
-    return authority + sep + "/".join(outpaths)
+    scheme, sep, pathpart = value.rpartition("://")
+    if sep:
+        pathpart = pathpart.replace('\\','/')
+        endingSep = '/' if pathpart[-1] == '/' else ''  # normpath drops ending directory separator
+        _uri = scheme + "://" + posixpath.normpath(pathpart) + endingSep
+    else:
+        _uri = os.path.normpath(value)
+    return _uri.replace(" ", "%20")

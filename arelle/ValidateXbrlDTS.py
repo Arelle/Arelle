@@ -372,6 +372,7 @@ def checkElements(val, modelDocument, parent):
                                 if l > 255:
                                     val.modelXbrl.error("EFM.6.07.30",
                                         _("Schema targetNamespace length (%(length)s) is over 255 bytes long in utf-8 %(targetNamespace)s"),
+                                        edgarCode="du-0730-Uri-Length-Limit",
                                         modelObject=elt, length=l, targetNamespace=targetNamespace, value=targetNamespace)
                         if val.validateSBRNL:
                             if elt.get("targetNamespace") is None:
@@ -533,6 +534,7 @@ def checkElements(val, modelDocument, parent):
                             if l > 200:
                                 val.modelXbrl.error("EFM.6.07.29",
                                     _("Schema %(element)s has a name length (%(length)s) over 200 bytes long in utf-8, %(name)s."),
+                                    edgarCode="du-0729-Name-Length-Limit",
                                     modelObject=elt, element=localName, name=name, length=l)
     
                     if val.validateSBRNL and localName in {"all", "documentation", "any", "anyAttribute", "attributeGroup",

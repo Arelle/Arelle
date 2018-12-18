@@ -61,6 +61,7 @@ class DisclosureSystem:
                 setattr(self, typeTestVariable, False)
                 self.pluginTypes.add(typeName)
         self.validateFileText = False
+        self.allowedExternalHrefPattern = None
         self.schemaValidateSchema = None
         self.blockDisallowedReferences = False
         self.maxSubmissionSubdirectoryEntryNesting = 0
@@ -172,6 +173,8 @@ class DisclosureSystem:
                                     for typeName, typeTestVariable in pluginXbrlMethod(self):
                                         setattr(self, typeTestVariable, self.validationType == typeName)
                                 self.validateFileText = dsElt.get("validateFileText") == "true"
+                                if dsElt.get("allowedExternalHrefPattern"):
+                                    self.allowedExternalHrefPattern = re.compile(dsElt.get("allowedExternalHrefPattern"))
                                 self.blockDisallowedReferences = dsElt.get("blockDisallowedReferences") == "true"
                                 try:
                                     self.maxSubmissionSubdirectoryEntryNesting = int(dsElt.get("maxSubmissionSubdirectoryEntryNesting"))
