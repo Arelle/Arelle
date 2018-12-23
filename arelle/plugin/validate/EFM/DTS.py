@@ -53,8 +53,11 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                 modelObject=modelDocumentReference.referringModelObject,
                     schema=modelDocument.basename, 
                     include=referencedDocument.basename)
-        if referencedDocument not in visited and referencedDocument.inDTS: # ignore EdgarRenderer added non-DTS documents
+        if referencedDocument not in visited and (referencedDocument.inDTS or referencedDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET): # ignore EdgarRenderer added non-DTS documents
             checkFilingDTS(val, referencedDocument, isEFM, isGFM, visited)
+            
+    if modelDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET:
+        return # nothing to check in inline document set surrogate parent 
             
     if val.disclosureSystem.standardTaxonomiesDict is None:
         pass

@@ -2,7 +2,12 @@
 Created on Oct 17, 2010
 
 @author: Mark V Systems Limited
-(c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+
+This is a collective work.
+Original work (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+Subsequent validations and enhancements created by staff of the U.S. Securities and Exchange Commission.
+Data and content created by government employees within the scope of their employment are not subject 
+to domestic copyright protection. 17 U.S.C. 105.
 '''
 import re, datetime, decimal
 from collections import defaultdict
@@ -29,7 +34,9 @@ from .Consts import edgarDocumentTypes, edgarSubmissionTypeAllowedDocumentTypes,
                     submissionTypesExemptFromRoleOrder, docTypesExemptFromRoleOrder, \
                     submissionTypesAllowingPeriodOfReport, docTypesRequiringPeriodOfReport, \
                     docTypesRequiringEntityWellKnownSeasonedIssuer, \
-                    submissionTypesAllowingVoluntaryFilerFlag
+                    submissionTypesAllowingVoluntaryFilerFlag, docTypesNotAllowingInlineXBRL, \
+                    docTypesRequiringRrSchema, docTypesNotAllowingIfrs, \
+                    untransformableTypes, rrUntransformableEltsPattern
                                         
 from .Dimensions import checkFilingDimensions
 from .PreCalAlignment import checkCalcsTreeWalk
@@ -58,7 +65,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     modelXbrl.modelManager.disclosureSystem.loadStandardTaxonomiesDict()
     
     # note that some XFM tests are done by ValidateXbrl to prevent mulstiple node walks
-    xbrlInstDoc = modelXbrl.modelDocument.xmlDocument.getroot()
     disclosureSystem = val.disclosureSystem
     disclosureSystemVersion = disclosureSystem.version
     
@@ -95,9 +101,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     documentType = None # needed for non-instance validation too
     submissionType = val.params.get("submissionType")
     hasSubmissionType = bool(submissionType)
-    isInlineXbrl = modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL
+    isInlineXbrl = modelXbrl.modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET)
     if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or isInlineXbrl:
-        instanceName = modelXbrl.modelDocument.basename
         deprecatedConceptDates = {}
         deprecatedConceptFacts = defaultdict(list) # index by concept Qname, value is list of facts
         deprecatedConceptContexts = defaultdict(list) # index by contextID, value is list of concept QNames of deprecated dimensions, members
@@ -107,86 +112,97 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             nonNegFacts = loadNonNegativeFacts(modelXbrl)
             customAxesReplacements = loadCustomAxesReplacements(modelXbrl)
         
+        # inline doc set has multiple instance names to check
+        if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET:
+            instanceNames = [ixDoc.basename
+                             for ixDoc in modelXbrl.modelDocument.referencesDocument.keys()
+                             if ixDoc.type == ModelDocument.Type.INLINEXBRL]
+            xbrlInstRoots = modelXbrl.ixdsHtmlElements
+        else: # single instance document to check is the entry point document
+            instanceNames = [modelXbrl.modelDocument.basename]
+            xbrlInstRoots = [modelXbrl.modelDocument.xmlDocument.getroot()]
         #6.3.3 filename check
-        m = instanceFileNamePattern.match(instanceName)
-        if isInlineXbrl:
-            m = htmlFileNamePattern.match(instanceName)
-            if m:
-                val.fileNameBasePart = None # html file name not necessarily parseable.
-                val.fileNameDatePart = None
-            else:
-                modelXbrl.error(val.EFM60303,
-                                _('Invalid inline xbrl document in {base}.htm": %(filename)s'),
-                                modelObject=modelXbrl.modelDocument, filename=instanceName,
-                                messageCodes=("EFM.6.03.03",))
-        elif m:
-            val.fileNameBasePart = m.group(1)
-            val.fileNameDatePart = m.group(2)
-            if not val.fileNameBasePart:
-                modelXbrl.error((val.EFM60303, "GFM.1.01.01"),
-                    _('Invalid instance document base name part (ticker or mnemonic name) in "{base}-{yyyymmdd}.xml": %(filename)s'),
-                    modelObject=modelXbrl.modelDocument, filename=modelXbrl.modelDocument.basename,
-                    messageCodes=("EFM.6.03.03", "EFM.6.23.01", "GFM.1.01.01"))
-            else:
-                try:
-                    val.fileNameDate = datetime.datetime.strptime(val.fileNameDatePart,"%Y%m%d").date()
-                except ValueError:
+        for instanceName in instanceNames:
+            m = instanceFileNamePattern.match(instanceName)
+            if isInlineXbrl:
+                m = htmlFileNamePattern.match(instanceName)
+                if m:
+                    val.fileNameBasePart = None # html file name not necessarily parseable.
+                    val.fileNameDatePart = None
+                else:
+                    modelXbrl.error(val.EFM60303,
+                                    _('Invalid inline xbrl document in {base}.htm": %(filename)s'),
+                                    modelObject=modelXbrl.modelDocument, filename=instanceName,
+                                    messageCodes=("EFM.6.03.03",))
+            elif m:
+                val.fileNameBasePart = m.group(1)
+                val.fileNameDatePart = m.group(2)
+                if not val.fileNameBasePart:
                     modelXbrl.error((val.EFM60303, "GFM.1.01.01"),
-                        _('Invalid instance document base name part (date) in "{base}-{yyyymmdd}.xml": %(filename)s'),
+                        _('Invalid instance document base name part (ticker or mnemonic name) in "{base}-{yyyymmdd}.xml": %(filename)s'),
                         modelObject=modelXbrl.modelDocument, filename=modelXbrl.modelDocument.basename,
                         messageCodes=("EFM.6.03.03", "EFM.6.23.01", "GFM.1.01.01"))
-        else:
-            modelXbrl.error((val.EFM60303, "GFM.1.01.01"),
-                _('Invalid instance document name, must match "{base}-{yyyymmdd}.xml": %(filename)s'),
-                modelObject=modelXbrl.modelDocument, filename=modelXbrl.modelDocument.basename,
-                messageCodes=("EFM.6.03.03", "EFM.6.23.01", "GFM.1.01.01"))
+                else:
+                    try:
+                        val.fileNameDate = datetime.datetime.strptime(val.fileNameDatePart,"%Y%m%d").date()
+                    except ValueError:
+                        modelXbrl.error((val.EFM60303, "GFM.1.01.01"),
+                            _('Invalid instance document base name part (date) in "{base}-{yyyymmdd}.xml": %(filename)s'),
+                            modelObject=modelXbrl.modelDocument, filename=modelXbrl.modelDocument.basename,
+                            messageCodes=("EFM.6.03.03", "EFM.6.23.01", "GFM.1.01.01"))
+            else:
+                modelXbrl.error((val.EFM60303, "GFM.1.01.01"),
+                    _('Invalid instance document name, must match "{base}-{yyyymmdd}.xml": %(filename)s'),
+                    modelObject=modelXbrl.modelDocument, filename=modelXbrl.modelDocument.basename,
+                    messageCodes=("EFM.6.03.03", "EFM.6.23.01", "GFM.1.01.01"))
         
         #6.5.1 scheme, 6.5.2, 6.5.3 identifier
         entityIdentifierValue = None
         entityIdentifierValueElt = None
         if disclosureSystem.identifierValueName:   # omit if no checks
-            for entityIdentifierElt in xbrlInstDoc.iterdescendants("{http://www.xbrl.org/2003/instance}identifier"):
-                if isinstance(entityIdentifierElt,ModelObject):
-                    schemeAttr = entityIdentifierElt.get("scheme")
-                    entityIdentifier = XmlUtil.text(entityIdentifierElt)
-                    if not disclosureSystem.identifierSchemePattern.match(schemeAttr):
-                        try:
-                            contextId = entityIdentifierElt.getparent().getparent().id
-                        except AttributeError:
-                            contextId = "not available"
-                        modelXbrl.error(("EFM.6.05.01", "GFM.1.02.01"),
-                            _("Your identifier for the CIK code, %(identifier)s, or scheme %(scheme)s, in context %(context)s, did not adhere "
-                              "to the standard naming convention of <identifier scheme='http://www.sec.gov/CIK'>xxxxxxxxxx</identifier>'.  "
-                              "Please recheck your submission and comply with the standard naming convention."),
-                            edgarCode="cp-0501-Entity-Identifier-Scheme",
-                            modelObject=entityIdentifierElt, scheme=schemeAttr,
-                            context=contextId, identifier=entityIdentifier)
-                    if not disclosureSystem.identifierValuePattern.match(entityIdentifier):
-                        modelXbrl.error(("EFM.6.05.02", "GFM.1.02.02"),
-                            _("Invalid entity identifier %(entityIdentifierName)s: %(entityIdentifer)s"),
-                            modelObject=entityIdentifierElt,  
-                            entityIdentifierName=disclosureSystem.identifierValueName,
-                            entityIdentifer=entityIdentifier)
-                    if not entityIdentifierValue:
-                        entityIdentifierValue = entityIdentifier
-                        entityIdentifierValueElt = entityIdentifierElt
-                        if isEFM and not efmCIKpattern.match(entityIdentifierValue):
-                            val.modelXbrl.error("EFM.6.05.23.cikValue",
-                                _("The context identifier CIK %(entityIdentifier)s is not 10 digits, for required context(s).  "
-                                  "Please include a correct context identifier CIK in the filing."),
+            for xbrlInstRoot in xbrlInstRoots: # check all inline docs in ix doc set
+                for entityIdentifierElt in xbrlInstRoot.iterdescendants("{http://www.xbrl.org/2003/instance}identifier"):
+                    if isinstance(entityIdentifierElt,ModelObject):
+                        schemeAttr = entityIdentifierElt.get("scheme")
+                        entityIdentifier = XmlUtil.text(entityIdentifierElt)
+                        if not disclosureSystem.identifierSchemePattern.match(schemeAttr):
+                            try:
+                                contextId = entityIdentifierElt.getparent().getparent().id
+                            except AttributeError:
+                                contextId = "not available"
+                            modelXbrl.error(("EFM.6.05.01", "GFM.1.02.01"),
+                                _("Your identifier for the CIK code, %(identifier)s, or scheme %(scheme)s, in context %(context)s, did not adhere "
+                                  "to the standard naming convention of <identifier scheme='http://www.sec.gov/CIK'>xxxxxxxxxx</identifier>'.  "
+                                  "Please recheck your submission and comply with the standard naming convention."),
+                                edgarCode="cp-0501-Entity-Identifier-Scheme",
+                                modelObject=entityIdentifierElt, scheme=schemeAttr,
+                                context=contextId, identifier=entityIdentifier)
+                        if not disclosureSystem.identifierValuePattern.match(entityIdentifier):
+                            modelXbrl.error(("EFM.6.05.02", "GFM.1.02.02"),
+                                _("Invalid entity identifier %(entityIdentifierName)s: %(entityIdentifer)s"),
+                                modelObject=entityIdentifierElt,  
+                                entityIdentifierName=disclosureSystem.identifierValueName,
+                                entityIdentifer=entityIdentifier)
+                        if not entityIdentifierValue:
+                            entityIdentifierValue = entityIdentifier
+                            entityIdentifierValueElt = entityIdentifierElt
+                            if isEFM and not efmCIKpattern.match(entityIdentifierValue):
+                                val.modelXbrl.error("EFM.6.05.23.cikValue",
+                                    _("The context identifier CIK %(entityIdentifier)s is not 10 digits, for required context(s).  "
+                                      "Please include a correct context identifier CIK in the filing."),
+                                    edgarCode="cp-0523-Non-Matching-Cik",
+                                    modelObject=entityIdentifierElt, entityIdentifier=entityIdentifierValue)
+                        elif entityIdentifier != entityIdentifierValue:
+                            modelXbrl.error(("EFM.6.05.03", "GFM.1.02.03"),
+                                _("The submission CIK, %(filerIdentifier)s does not match either the EntityCentralIndexKey, %(entityIdentifer)s, "
+                                  "or context identifier CIK(s) %(entityIdentifer)s, %(entityIdentifer2)s, or is not 10 digits, for required context(s).  "
+                                  "Please include a correct matching EntityCentralIndexKey and context identifier CIK(s) in the filing."),
                                 edgarCode="cp-0523-Non-Matching-Cik",
-                                modelObject=entityIdentifierElt, entityIdentifier=entityIdentifierValue)
-                    elif entityIdentifier != entityIdentifierValue:
-                        modelXbrl.error(("EFM.6.05.03", "GFM.1.02.03"),
-                            _("The submission CIK, %(filerIdentifier)s does not match either the EntityCentralIndexKey, %(entityIdentifer)s, "
-                              "or context identifier CIK(s) %(entityIdentifer)s, %(entityIdentifer2)s, or is not 10 digits, for required context(s).  "
-                              "Please include a correct matching EntityCentralIndexKey and context identifier CIK(s) in the filing."),
-                            edgarCode="cp-0523-Non-Matching-Cik",
-                            modelObject=(entityIdentifierElt, entityIdentifierValueElt),  
-                            entityIdentifierName=disclosureSystem.identifierValueName,
-                            entityIdentifer=entityIdentifierValue,
-                            entityIdentifer2=entityIdentifier,
-                            filerIdentifier=",".join(sorted(val.params["cikNameList"].keys()) if "cikNameList" in val.params else []))
+                                modelObject=(entityIdentifierElt, entityIdentifierValueElt),  
+                                entityIdentifierName=disclosureSystem.identifierValueName,
+                                entityIdentifer=entityIdentifierValue,
+                                entityIdentifer2=entityIdentifier,
+                                filerIdentifier=",".join(sorted(val.params["cikNameList"].keys()) if "cikNameList" in val.params else []))
             val.modelXbrl.profileActivity("... filer identifier checks", minTimeToShow=1.0)
 
         #6.5.7 duplicated contexts
@@ -296,7 +312,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         if nonStandardTypedDimensions:
             val.modelXbrl.error("EFM.6.05.39",
                 _("Typed dimensions must be defined in standard taxonomy schemas, contexts: %(contextIDs)s dimensions: %(dimensions)s."),
-                modelObject=set.union(*nonStandardTypedDimensions.values()), 
+                modelObject=set.union(*nonStandardTypedDimensions.values()),
+                edgarCode="cp-0539-Typed-Dimension-Not-Standard",
                 contextIDs=", ".join(sorted(cntx.id for cntx in set.union(*nonStandardTypedDimensions.values()))),
                 dimensions=", ".join(sorted(str(qn) for qn in nonStandardTypedDimensions.keys())))
         for qn, contexts in sorted(nonStandardReplacableDimensions.items(), key=lambda i:str(i[0])):
@@ -687,7 +704,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         if l > 200:
                             modelXbrl.error("EFM.6.05.36",
                                 _("Unit %(unitID)s contains a measure element whose local-name in UTF-8, length %(length)s, has more than 200 bytes:  %(measure)s.  Shorten the measure name."),
-                                edgarCode="du-0536-name-length-limit",
+                                edgarCode="du-0536-Name-Length-Limit",
                                 modelObject=measureElt, unitID=unit.id, measure=measureElt.xValue.localName, length=l)
         del uniqueUnitHashes
         
@@ -809,6 +826,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         
         isDei2018orLater = any(doc.targetNamespace.startswith("http://xbrl.sec.gov/dei") and doc.targetNamespace >= "http://xbrl.sec.gov/dei/2018"
                                for doc in modelXbrl.urlDocs.values() if doc.targetNamespace)
+        
+        isRR = any(doc.targetNamespace.startswith("http://xbrl.sec.gov/rr/")
+                   for doc in modelXbrl.urlDocs.values() if doc.targetNamespace)
     
         if amendmentFlag is None:
             modelXbrl.log("WARNING" if validateEFMpragmatic else "ERROR",
@@ -863,9 +883,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         if hasDeiFact("EntityWellKnownSeasonedIssuer") and "wellKnownSeasonedIssuerFlag" in val.params and not deiParamEqual(
             "EntityWellKnownSeasonedIssuer", deiItems["EntityWellKnownSeasonedIssuer"], val.params["wellKnownSeasonedIssuerFlag"]):
             modelXbrl.warning("EFM.6.05.40.entityWellKnownSeasonedIssuerValue",
-                _("dei:EntityWellKnownSeasonedIssuer value %(deiValue)s in the Required Context does not agree with submission voluntary filer flag value %(submissionValue)s."),
+                _("dei:EntityWellKnownSeasonedIssuer value %(deiValue)s in the Required Context does not agree with well known seasoned issuer flag value %(wellKnownSeasonedIssuerValue)s."),
                 edgarCode="dq-0540-Entity-Well-Known-Seasoned-Issuer-Value",
-                modelObject=deiFacts["EntityWellKnownSeasonedIssuer"], submissionValue=val.params["wellKnownSeasonedIssuerFlag"], deiValue=deiItems["EntityWellKnownSeasonedIssuer"])
+                modelObject=deiFacts["EntityWellKnownSeasonedIssuer"], wellKnownSeasonedIssuerValue=val.params["wellKnownSeasonedIssuerFlag"], deiValue=deiItems["EntityWellKnownSeasonedIssuer"])
         if submissionType not in docTypesRequiringEntityWellKnownSeasonedIssuer and "wellKnownSeasonedIssuerFlag" in val.params:
             modelXbrl.warning("EFM.6.05.40.submissionUnexpectedWellKnownSeasonedIssuerFlag",
                 _("Submission has unexpected \"wellKnownSeasonedIssuerFlag\" element in submission type %(submissionType)s."),
@@ -1526,7 +1546,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             and linkKey[1] and linkKey[2] and linkKey[3]  # fully specified roles
                             and linkKey[0] != "XBRL-footnotes")
         else: 
-            _linkEltIter = xbrlInstDoc.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}footnoteLink")
+            _linkEltIter = xbrlInstRoots[0].iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}footnoteLink")
         for footnoteLinkElt in _linkEltIter:
             if isinstance(footnoteLinkElt, (ModelObject,LinkPrototype)):
                 footnoteLinkNbr += 1
@@ -1592,7 +1612,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             if footnoterole == "":
                                 modelXbrl.error(("EFM.6.05.28.missingRole", "GFM.1.2.20"),
                                     _("Footnote %(xlinkLabel)s is missing a role. Please provide the default footnote role."),
-                                    edgarCode="du-0528-Footnote-Custom-Footnote-Role",
+                                    edgarCode="du-0528-Footnote-Role-Missing",
                                     modelObject=child, xlinkLabel=getattr(child, "xlinkLabel", None))
                             elif (isEFM and not disclosureSystem.uriAuthorityValid(footnoterole)) or \
                                  (disclosureSystem.GFM  and footnoterole != XbrlConst.footnote): 
@@ -1627,70 +1647,71 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         pass
     
     # inline-only checks
-    if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL and isEFM:
-        elt = modelXbrl.modelDocument.xmlRootElement
-        if elt.tag in ("html", "xhtml") or (isinstance(elt, ModelObject) and not elt.namespaceURI):
-            modelXbrl.error("EFM.5.02.05.xhtmlNamespaceMissing",
-                _("InlineXBRL root element <%(element)s> MUST be html and have the xhtml namespace."),
-                modelObject=elt, element=elt.tag)
-        nsRequiredPrefixes = {"http://www.w3.org/1999/xhtml": "xhtml",
-                              "http://www.xbrl.org/2013/inlineXBRL": "ix",
-                              "http://www.xbrl.org/inlineXBRL/transformation/2015-02-26": "ixt",
-                              "http://www.sec.gov/inlineXBRL/transformation/2015-08-31": "ixt-sec"}
-        for prefix, ns in ((None, "http://www.w3.org/1999/xhtml"),
-                           ("ix", "http://www.xbrl.org/2013/inlineXBRL"),
-                           ("ixt", "http://www.xbrl.org/inlineXBRL/transformation/2015-02-26"),
-                           ("ixt-sec", "http://www.sec.gov/inlineXBRL/transformation/2015-08-31")):
-            for _prefix, _ns in elt.nsmap.items():
-                if _ns == ns and _prefix != prefix:
-                    modelXbrl.error("EFM.5.02.05.standardNamespacePrefix",
-                        _("The prefix %(submittedPrefix)s must be replaced by %(recommendedPrefix)s for standard namespace %(namespace)s."),
-                        edgarCode="ix-0502-Standard-Namespace-Prefix",
-                        modelObject=elt, submittedPrefix=_prefix, recommendedPrefix=prefix, namespace=ns)
-        ixNStag = modelXbrl.modelDocument.ixNStag
-        ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
-        for tag in ixTags:
-            for ixElt in modelXbrl.modelDocument.xmlRootElement.iterdescendants(tag=tag):
-                if isinstance(ixElt,ModelObject):
-                    if ixElt.get("target"):
-                        modelXbrl.error("EFM.5.02.05.targetDisallowed",
-                            _("Inline element %(localName)s has disallowed target attribute %(target)s."),
-                            modelObject=ixElt, localName=ixElt.elementQname, target=ixElt.get("target"))
-        for ixElt in modelXbrl.modelDocument.xmlRootElement.iterdescendants(tag=ixNStag+"tuple"):
-            if isinstance(ixElt,ModelObject):
-                modelXbrl.error("EFM.5.02.05.tupleDisallowed",
-                    _("Inline tuple %(qname)s is disallowed."),
-                    modelObject=ixElt, qname=ixElt.qname)
-        for ixElt in modelXbrl.modelDocument.xmlRootElement.iterdescendants(tag=ixNStag+"fraction"):
-            if isinstance(ixElt,ModelObject):
-                modelXbrl.error("EFM.5.02.05.fractionDisallowed",
-                    _("Inline fraction %(qname)s is disallowed."),
-                    modelObject=ixElt, qname=ixElt.qname)
-        if modelXbrl.modelDocument.xmlDocument.docinfo.doctype:
-            modelXbrl.error("EFM.5.02.05.doctypeDisallowed",
-                _("Inline HTML %(doctype)s is disallowed."),
-                modelObject=ixElt, doctype=modelXbrl.modelDocument.xmlDocument.docinfo.doctype)
-
-        # hidden references
-        untransformableTypes = {"anyURI", "base64Binary", "hexBinary", "NOTATION", "QName", "time",
-                                "token", "language"}
+    if isInlineXbrl and isEFM:
         hiddenEltIds = {}
         presentedHiddenEltIds = defaultdict(list)
         eligibleForTransformHiddenFacts = []
         requiredToDisplayFacts = []
         requiredToDisplayFactIds = {}
-        for ixHiddenElt in modelXbrl.modelDocument.xmlRootElement.iterdescendants(tag=ixNStag + "hidden"):
-            for tag in (ixNStag + "nonNumeric", ixNStag+"nonFraction"):
-                for ixElt in ixHiddenElt.iterdescendants(tag=tag):
-                    if (getattr(ixElt, "xValid", 0) >= VALID and # may not be validated
-                        not ixElt.qname.namespaceURI.startswith("http://xbrl.sec.gov/dei/")):
-                        if (ixElt.concept.baseXsdType not in untransformableTypes and
-                            not ixElt.isNil):
-                            eligibleForTransformHiddenFacts.append(ixElt)
-                        elif ixElt.id is None:
-                            requiredToDisplayFacts.append(ixElt)
-                    if ixElt.id:
-                        hiddenEltIds[ixElt.id] = ixElt
+        for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements: # ix root elements
+            ixdsHtmlTree = ixdsHtmlRootElt.getroottree()
+            if ixdsHtmlRootElt.tag in ("html", "xhtml") or (
+                    isinstance(ixdsHtmlRootElt, ModelObject) and not ixdsHtmlRootElt.namespaceURI):
+                modelXbrl.error("EFM.5.02.05.xhtmlNamespaceMissing",
+                    _("InlineXBRL root element <%(element)s> MUST be html and have the xhtml namespace."),
+                    modelObject=ixdsHtmlRootElt, element=ixdsHtmlRootElt.tag)
+            nsRequiredPrefixes = {"http://www.w3.org/1999/xhtml": "xhtml",
+                                  "http://www.xbrl.org/2013/inlineXBRL": "ix",
+                                  "http://www.xbrl.org/inlineXBRL/transformation/2015-02-26": "ixt",
+                                  "http://www.sec.gov/inlineXBRL/transformation/2015-08-31": "ixt-sec"}
+            for prefix, ns in ((None, "http://www.w3.org/1999/xhtml"),
+                               ("ix", "http://www.xbrl.org/2013/inlineXBRL"),
+                               ("ixt", "http://www.xbrl.org/inlineXBRL/transformation/2015-02-26"),
+                               ("ixt-sec", "http://www.sec.gov/inlineXBRL/transformation/2015-08-31")):
+                for _prefix, _ns in ixdsHtmlRootElt.nsmap.items():
+                    if _ns == ns and _prefix != prefix:
+                        modelXbrl.error("EFM.5.02.05.standardNamespacePrefix",
+                            _("The prefix %(submittedPrefix)s must be replaced by %(recommendedPrefix)s for standard namespace %(namespace)s."),
+                            edgarCode="ix-0502-Standard-Namespace-Prefix",
+                            modelObject=ixdsHtmlRootElt, submittedPrefix=_prefix, recommendedPrefix=prefix, namespace=ns)
+            ixNStag = ixdsHtmlRootElt.modelDocument.ixNStag
+            ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
+            for tag in ixTags:
+                for ixElt in ixdsHtmlRootElt.iterdescendants(tag=tag):
+                    if isinstance(ixElt,ModelObject):
+                        if ixElt.get("target"):
+                            modelXbrl.error("EFM.5.02.05.targetDisallowed",
+                                _("Inline element %(localName)s has disallowed target attribute %(target)s."),
+                                modelObject=ixElt, localName=ixElt.elementQname, target=ixElt.get("target"))
+            for ixElt in ixdsHtmlRootElt.iterdescendants(tag=ixNStag+"tuple"):
+                if isinstance(ixElt,ModelObject):
+                    modelXbrl.error("EFM.5.02.05.tupleDisallowed",
+                        _("Inline tuple %(qname)s is disallowed."),
+                        modelObject=ixElt, qname=ixElt.qname)
+            for ixElt in ixdsHtmlRootElt.iterdescendants(tag=ixNStag+"fraction"):
+                if isinstance(ixElt,ModelObject):
+                    modelXbrl.error("EFM.5.02.05.fractionDisallowed",
+                        _("Inline fraction %(qname)s is disallowed."),
+                        modelObject=ixElt, qname=ixElt.qname)
+            if ixdsHtmlRootElt.getroottree().docinfo.doctype:
+                modelXbrl.error("EFM.5.02.05.doctypeDisallowed",
+                    _("Inline HTML %(doctype)s is disallowed."),
+                    modelObject=ixdsHtmlRootElt, doctype=modelXbrl.modelDocument.xmlDocument.docinfo.doctype)
+    
+            for ixHiddenElt in ixdsHtmlRootElt.iterdescendants(tag=ixNStag + "hidden"):
+                for tag in (ixNStag + "nonNumeric", ixNStag+"nonFraction"):
+                    for ixElt in ixHiddenElt.iterdescendants(tag=tag):
+                        if (getattr(ixElt, "xValid", 0) >= VALID and # may not be validated
+                            not ixElt.qname.namespaceURI.startswith("http://xbrl.sec.gov/dei/") and
+                            (not isRR or not rrUntransformableEltsPattern.match(ixElt.qname.localName)
+                                      or abbreviatedWildNamespace(ixElt.qname.namespaceURI) != "rr/*")):
+                            if (ixElt.concept.baseXsdType not in untransformableTypes and
+                                not ixElt.isNil):
+                                eligibleForTransformHiddenFacts.append(ixElt)
+                            elif ixElt.id is None:
+                                requiredToDisplayFacts.append(ixElt)
+                        if ixElt.id:
+                            hiddenEltIds[ixElt.id] = ixElt
         if eligibleForTransformHiddenFacts:
             modelXbrl.warning("EFM.5.02.05.14.hidden-fact-eligible-for-transform",
                 _("%(countEligible)s fact(s) appearing in ix:hidden were eligible for transformation: %(elements)s"),
@@ -1698,17 +1719,18 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 modelObject=eligibleForTransformHiddenFacts, 
                 countEligible=len(eligibleForTransformHiddenFacts),
                 elements=", ".join(sorted(set(str(f.qname) for f in eligibleForTransformHiddenFacts))))
-        for ixElt in modelXbrl.modelDocument.xmlDocument.iterfind("//{http://www.w3.org/1999/xhtml}*[@style]"):
-            hiddenFactRefMatch = styleIxHiddenPattern.match(ixElt.get("style",""))
-            if hiddenFactRefMatch:
-                hiddenFactRef = hiddenFactRefMatch.group(2)
-                if hiddenFactRef not in hiddenEltIds:
-                    modelXbrl.error("EFM.5.02.05.14.hidden-fact-not-found",
-                        _("The value of the -sec-ix-hidden style property, %(id)s, does not correspond to the id of any hidden fact."),
-                        edgarCode="ix-0514-Hidden-Fact-Not-Found",
-                        modelObject=ixElt, id=hiddenFactRef)
-                else:
-                    presentedHiddenEltIds[hiddenFactRef].append(ixElt)
+        for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
+            for ixElt in ixdsHtmlRootElt.getroottree().iterfind("//{http://www.w3.org/1999/xhtml}*[@style]"):
+                hiddenFactRefMatch = styleIxHiddenPattern.match(ixElt.get("style",""))
+                if hiddenFactRefMatch:
+                    hiddenFactRef = hiddenFactRefMatch.group(2)
+                    if hiddenFactRef not in hiddenEltIds:
+                        modelXbrl.error("EFM.5.02.05.14.hidden-fact-not-found",
+                            _("The value of the -sec-ix-hidden style property, %(id)s, does not correspond to the id of any hidden fact."),
+                            edgarCode="ix-0514-Hidden-Fact-Not-Found",
+                            modelObject=ixElt, id=hiddenFactRef)
+                    else:
+                        presentedHiddenEltIds[hiddenFactRef].append(ixElt)
         for hiddenFactRef, ixElts in presentedHiddenEltIds.items():
             if len(ixElts) > 1 and hiddenFactRef in hiddenEltIds:
                 fact = hiddenEltIds[hiddenFactRef]
@@ -1850,12 +1872,11 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     edgarCode="cp-2203-Incompatible-Taxonomy-Versions",
                     modelObject=modelXbrl, conflictClass=conflictClass,
                     namespaceConflicts=", ".join(sorted([conflictClassFromNamespace(d.targetNamespace) for d in modelDocuments])))
-        if 'rr' in val.standardNamespaceConflicts and documentType not in {"485BPOS", "497"}:
+        if 'rr' in val.standardNamespaceConflicts and documentType not in docTypesRequiringRrSchema:
             modelXbrl.error("EFM.6.22.03.incompatibleTaxonomyDocumentType",
                 _("Taxonomy class %(conflictClass)s may not be used with document type %(documentType)s"),
                 modelObject=modelXbrl, conflictClass="RR", documentType=documentType)
-        if 'ifrs-full' in val.standardNamespaceConflicts and documentType in {"485BPOS", "497", "K SDR", "L SDR",
-                                                                              "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A", "N-Q", "N-Q/A"}:
+        if 'ifrs-full' in val.standardNamespaceConflicts and documentType in docTypesNotAllowingIfrs:
             modelXbrl.error("EFM.6.22.03.incompatibleTaxonomyDocumentType",
                 _("Taxonomy class %(conflictClass)s may not be used with document type %(documentType)s"),
                 modelObject=modelXbrl, conflictClass="IFRS", documentType=documentType)
@@ -1895,12 +1916,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         edgarCode="cp-0540-SRT-Members-For-SRT-Axes",
                         modelObject=ifrsSrtObjs, ifrsSrtConceptsUsed=", ".join(str(qn) for qn in sorted(ifrsSrtMembersUsed)))
             """
-        if isInlineXbrl and documentType in {
-            "485BPOS", "497", "K SDR", "L SDR",
-            "S-1", "S-1/A", "S-1MEF", "S-3", "S-3/A", "S-3ASR", "S-3D", "S-3DPOS", "S-3MEF", "S-4", "S-4/A", "S-4EF", 
-            "S-4MEF", "S-4 POS", "S-11", "S-11/A", "S-11MEF", "F-1", "F-1/A", "F-1MEF", "F-3", "F-3/A", "F-3ASR", 
-            "F-3D", "F-3DPOS", "F-3MEF", "F-4", "F-4/A", "F-4EF", "F-4MEF", "F-4 POS", "F-10", "F-10/A", "F-10EF", 
-            "F-10POS", "N-Q", "N-Q/A", "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A"}:
+        if isInlineXbrl and documentType in docTypesNotAllowingInlineXBRL:
             modelXbrl.error("EFM.6.22.03.incompatibleInlineDocumentType",
                 _("Inline XBRL may not be used with document type %(documentType)s"),
                 modelObject=modelXbrl, conflictClass="inline XBRL", documentType=documentType)
@@ -2272,6 +2288,7 @@ def checkConceptLabels(val, modelXbrl, labelsRelationshipSet, disclosureSystem, 
             if dupDetectKey in dupLabels:
                 modelXbrl.error(("EFM.6.10.02", "GFM.1.5.2"),
                     _("Concept %(concept)s has duplicated labels for role %(role)s lang %(lang)s."),
+                    edgarCode="cp-1002-Element-Used-Has-Duplicate-Label",
                     modelObject=(modelLabel, dupLabels[dupDetectKey]), # removed concept from modelObjects
                     concept=concept.qname, role=dupDetectKey[0], lang=dupDetectKey[1])
             else:
@@ -2335,5 +2352,6 @@ def deiParamEqual(deiName, xbrlVal, secVal):
                            "Large Accelerated Filer":("Large Accelerated Filer",),
                            "Not Applicable":("Non-accelerated Filer", "Smaller Reporting Company")}.get(secVal,())
     elif deiName == "2014EntityFilerCategory":
-        return xbrlVal in {"true":("Smaller Reporting Company", "Smaller Reporting Accelerated Filer"),
-                           "false":("Non-accelerated Filer", "Accelerated Filer", "Large Accelerated Filer")}.get(secVal,())
+        return xbrlVal in {True:("Smaller Reporting Company", "Smaller Reporting Accelerated Filer"),
+                           False:("Non-accelerated Filer", "Accelerated Filer", "Large Accelerated Filer")}.get(secVal,())
+    return False # unhandled deiName

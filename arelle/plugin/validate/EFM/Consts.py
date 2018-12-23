@@ -48,8 +48,11 @@ edgarDocumentTypes = {
     "40FR12B/A",
     "40FR12G",
     "40FR12G/A",
+    "485APOS",
     "485BPOS",
     "497",
+    "N-1A",
+    "N-1A/A",
     "6-K",
     "6-K/A",
     "8-K",
@@ -145,8 +148,11 @@ edgarSubmissionTypeAllowedDocumentTypes = {
 	"40FR12B/A": ("40FR12B/A", "Other"),
 	"40FR12G": ("40FR12G", "Other"),
 	"40FR12G/A": ("40FR12G/A", "Other"),
+    "485APOS": ("485APOS",),
 	"485BPOS": ("485BPOS",),
 	"497": ("497", "Other"),
+    "N-1A": ("N-1A",),
+    "N-1A/A": ("N-1A/A"),
 	"6-K": ("6-K",),
 	"6-K/A": ("6-K", "6-K/A"),
 	"8-K": ("8-K",),
@@ -232,13 +238,13 @@ submissionTypesAllowingAcceleratedFilerStatus = {"10-K", "10-K/A", "10-KT", "10-
 submissionTypesAllowingEdgarSmallBusinessFlag = {"10-K", "10-K/A", "10-KT", "10-KT/A", "10-Q", "10-Q/A", "10-QT", "10-QT/A", "S-1", "S-1/A", "S-3", "S-3/A", "S-4", 
                                                  "S-4/A", "S-11", "S-11/A", "10-12B", "10-12B/A", "10-12G", "10-12G/A", "S-11MEF", "S-1MEF", "S-3D", "S-3DPOS", "S-3MEF", 
                                                  "S-4 POS", "S-4EF", "S-4MEF"}
-submissionTypesAllowingEntityInvCompanyType = {"485BPOS", "497"}
-submissionTypesAllowingSeriesClasses = {"485BPOS", "497", "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A"}
+submissionTypesAllowingEntityInvCompanyType = {"485APOS", "485BPOS", "497", "N-1A", "N-1A/A"}
+submissionTypesAllowingSeriesClasses = {"485APOS", "485BPOS", "497", "N-1A", "N-1A/A", "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A"}
 # doc type requirements are for EFM 6.5.20 and are in some cases a superset of what the submission allows.
 docTypesRequiringPeriodOfReport = {"10", "10-K", "10-Q", "20-F", "40-F", "6-K", "8-K", 
     "F-1", "F-10", "F-3", "F-4", "F-9", "S-1", "S-11", "S-3", "S-4", "POS AM", "10-KT", "10-QT", "POS EX", 
     "10/A", "10-K/A", "10-Q/A", "20-F/A", "40-F/A", "6-K/A", "8-K/A", "F-1/A", "F-10/A", "F-3/A", "F-4/A", 
-    "F-9/A", "S-1/A", "S-11/A", "S-3/A", "S-4/A", "10-KT/A", "10-QT/A", "485BPOS", "497", 
+    "F-9/A", "S-1/A", "S-11/A", "S-3/A", "S-4/A", "10-KT/A", "10-QT/A", "485APOS", "485BPOS", "497", 
     "N-CSR", "N-CSRS", "N-Q", "N-CSR/A", "N-CSRS/A", "N-Q/A", "K SDR", "L SDR" }
 docTypesRequiringEntityWellKnownSeasonedIssuer = {"10-K", "10-K/A", "10-KT", "10-KT/A", "20-F", "20-F/A"}
 docTypesRequiringEntityVolFilersAndPubFloat = {"10-K", "10-KT", "10-K/A", "10-KT/A" }
@@ -252,7 +258,7 @@ docTypeDeiItems = ( # ({set of doc types}, (list of dei Names required - list is
         "6-K/A", "NCSR/A", "N-CSR/A", "N-CSRS/A", "N-Q/A",
         "10", "S-1", "S-3", "S-4", "S-11", "POS AM",
         "10/A", "S-1/A", "S-3/A", "S-4/A", "S-11/A", 
-        "8-K", "F-1", "F-3", "F-10", "497", "485BPOS",
+        "8-K", "F-1", "F-3", "F-10", "497", "485APOS", "485BPOS", "N-1A", "N-1A/A",
         "8-K/A", "F-1/A", "F-3/A", "F-10/A", "K SDR", "L SDR",
         "Other"},
         ("EntityRegistrantName", "EntityCentralIndexKey")),
@@ -274,8 +280,16 @@ docTypeDeiItems = ( # ({set of doc types}, (list of dei Names required - list is
          ("EntityReportingCurrencyISOCode", ))
     )
 
+docTypesRequiringRrSchema = \
 docTypesExemptFromRoleOrder = \
-submissionTypesExemptFromRoleOrder = ('485BPOS','497')
+submissionTypesExemptFromRoleOrder = ('485APOS', '485BPOS','497', 'N-1A', 'N-1A/A')
+
+docTypesNotAllowingIfrs = ('485APOS', '485BPOS','497', 'N-1A', 'N-1A/A',
+                           'N-CSR', 'N-CSR/A', 'N-CSRS', 'N-CSRS/A', 'N-Q', 'N-Q/A',
+                           'K SDR', 'L SDR')
+
+docTypesNotAllowingInlineXBRL = {
+    "K SDR", "L SDR"}
 
 standardNamespacesPattern = re.compile(
     # non-IFRS groups 1 - authority, 2 - taxonomy (e.g. us-gaap, us-types), 3 - year
@@ -284,6 +298,12 @@ standardNamespacesPattern = re.compile(
             r")/([0-9]{4})-[0-9]{2}-[0-9]{2}$"
     # ifrs groups 4 - year, 5 - taxonomy (e.g. ifrs-full)
     r"|http://xbrl.ifrs.org/taxonomy/([0-9]{4})-[0-9]{2}-[0-9]{2}/(ifrs[\w-]*)$")
+
+# hidden references
+untransformableTypes = {"anyURI", "base64Binary", "hexBinary", "NOTATION", "QName", "time",
+                        "token", "language"}
+# RR untransformable facts
+rrUntransformableEltsPattern = re.compile(r"(\w*TableTextBlock|BarChart\w+|AnnualReturn(19|20)[0-9][0-9])")
 
 usDeprecatedLabelPattern = re.compile(r"^.* \(Deprecated (....-..-..)\)$")
 usDeprecatedLabelRole = "http://www.xbrl.org/2003/role/label"

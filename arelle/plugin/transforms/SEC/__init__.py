@@ -182,7 +182,7 @@ def loadSECtransforms(customTransforms, *args, **kwargs):
     
 __pluginInfo__ = {
     'name': 'SEC Inline Transforms',
-    'version': '1.0.0.1902', # SEC version
+    'version': '18.4 Phase 2', # SEC version
     'description': "This plug-in adds custom transforms SEC inline filing with durations.  ",
     'license': 'Apache-2',
     'author': 'SEC employees (integrated by Mark V Systems Limited)',
