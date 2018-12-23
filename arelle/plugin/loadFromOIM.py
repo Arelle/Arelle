@@ -15,16 +15,17 @@ from arelle.PythonUtil import attrdict
 from arelle.UrlUtil import isHttpUrl
 from arelle.XbrlConst import (qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
                               qnLinkPart, gen, link, defaultLinkRole,
-                              conceptLabel, elementLabel, conceptReference, reservedPrefixes
+                              conceptLabel, elementLabel, conceptReference
                               )
 from arelle.XmlUtil import addChild, addQnameValue
 from arelle.XmlValidate import NCNamePattern, validate as xmlValidate
 
-nsOim = "http://www.xbrl.org/WGWD/YYYY-MM-DD"
-nsOims = {nsOim,
-         "http://www.xbrl.org/PWD/2016-01-13/oim",
-         "http://www.xbrl.org/WGWD/YYYY-MM-DD/oim"
-         }
+nsOim = "http://www.xbrl.org/CR/2018-12-12"
+nsOims = (nsOim,
+          "http://www.xbrl.org/WGWD/YYYY-MM-DD",
+          "http://www.xbrl.org/PWD/2016-01-13/oim",
+          "http://www.xbrl.org/WGWD/YYYY-MM-DD/oim"
+         )
          
 
 
@@ -43,6 +44,16 @@ CSVdocumentType = "http://xbrl.org/YYYY/xbrl-csv"
 CSVtupleReferenceId = "http://xbrl.org/YYYY/model#tupleReferenceId"
 CSVcolumnType = "http://xbrl.org/YYYY/model#columnType"
 CSVcolumnProperty = "http://xbrl.org/YYYY/model#columnProperty"
+
+JSONReservedPrefixes = {
+    "xbrl": nsOims,
+    "xbrli": (XbrlConst.xbrli,),
+    "footnotes": (XbrlConst.factFootnote,),
+    "explanatoryFact": (XbrlConst.factExplanatoryFact,),
+    "defaultGroup": (XbrlConst.defaultLinkRole,),
+    "xsd": (XbrlConst.xsd,),
+    "xbrlje": [ns + "/xbrl-json/error" for ns in nsOims]
+    }
 
 oimConcept = "concept"
 oimEntity = "entity"
@@ -165,10 +176,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                             del value[DUPJSONVALUE]
                         if key == "prefixes":
                             for _key, _value in value.items():
-                                if _key in reservedPrefixes and reservedPrefixes[_key] != _value:
+                                if _key in JSONReservedPrefixes and _value not in JSONReservedPrefixes[_key]:
                                     error("xbrlje:invalidPrefixMap",
                                                     _("The value %(uri)s is used on standard prefix %(prefix)s which requires uri %(standardUri)s"),
-                                                    modelObject=modelXbrl, prefix=_key, uri=_value, standardUri=reservedPrefixes[_key])
+                                                    modelObject=modelXbrl, prefix=_key, uri=_value, standardUri=JSONReservedPrefixes[_key][0])
                                 elif _key.startswith("xbrl") and not _value.startswith("http://www.xbrl.org/"):
                                     error("xbrlje:invalidPrefixMap",
                                                     _("The key %(key)s must be bound to an xbrl URI instead of %(uri)s"),
@@ -229,7 +240,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                 '''
 
         # pre-PWD names
-        global oimConcept, oimEntity, oimPeriodStart, oimPeriodEnd, oimLanguage
+        global oimConcept, oimEntity, oimPeriod, oimUnit, oimLanguage
         if isCSV or isXL:
             oimConcept = "xbrl:concept"
             oimEntity = "xbrl:entity"
@@ -725,12 +736,6 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
         if "xbrl" not in prefixes:
             raise OIMException("oime:noXbrlPrefix",
                                _("The xbrl namespace must have a declared prefix"))
-        elif prefixes["xbrl"] not in nsOims:
-            raise OIMException("oime:unrecognizedXbrlPrefix",
-                               _("The xbrl prefix must have the standard namespace value"))
-        if "xbrli" in prefixes and prefixes["xbrli"] != XbrlConst.xbrli:
-            raise OIMException("oime:unrecognizedXbrliPrefix",
-                               _("The xbrli prefix must have the standard namespace value"))
             
         # create the instance document
         currentAction = "creating instance document"

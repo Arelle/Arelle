@@ -272,8 +272,8 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         'rdflib.plugins.sparql',
         'rdflib.plugins.stores',
         'isodate', 'regex', 'gzip', 'zlib', 'aniso8601', 'graphviz',
-        'openpyxl', # openpyxl's __init__.py must be hand edited, see https://bitbucket.org/openpyxl/openpyxl/pull-requests/80/__about__py/diff
-        'google_api_python_client', 'oauth2client', 'six', 'httplib2', 'uritemplate', 'pyasn1', 'rsa', 'pyasn1_modules' # google-api-python-client
+        'openpyxl', 'PIL', # openpyxl's __init__.py must be hand edited, see https://bitbucket.org/openpyxl/openpyxl/pull-requests/80/__about__py/diff
+        #'google_api_python_client', 'oauth2client', 'six', 'httplib2', 'uritemplate', 'pyasn1', 'rsa', 'pyasn1_modules' # google-api-python-client
     ]
 
     excludeLibs = []
@@ -368,7 +368,7 @@ elif sys.platform == 'win32':
         'rdflib.plugins.sparql',
         'rdflib.plugins.stores',
         'isodate', 'regex', 'gzip', 'zlib', 'aniso8601', 'graphviz',
-        'openpyxl' # openpyxl's __init__.py must be hand edited, see https://bitbucket.org/openpyxl/openpyxl/pull-requests/80/__about__py/diff
+        'openpyxl', 'PIL' # openpyxl's __init__.py must be hand edited, see https://bitbucket.org/openpyxl/openpyxl/pull-requests/80/__about__py/diff
 
     ]
     # uncomment the next line if cx_Freezing with EdgarRenderer

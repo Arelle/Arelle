@@ -568,5 +568,5 @@ def resolveHtmlUri(elt, name, value):
         endingSep = '/' if pathpart[-1] == '/' else ''  # normpath drops ending directory separator
         _uri = scheme + "://" + posixpath.normpath(pathpart) + endingSep
     else:
-        _uri = os.path.normpath(value)
-    return _uri.replace(" ", "%20")
+        _uri = posixpath.normpath(value)
+    return _uri # .replace(" ", "%20")  requirement for this is not yet clear

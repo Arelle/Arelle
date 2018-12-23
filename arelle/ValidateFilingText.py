@@ -492,6 +492,7 @@ def validateTextBlockFacts(modelXbrl):
     #handler = TextBlockHandler(modelXbrl)
     loadDTD(modelXbrl)
     checkedGraphicsFiles = set() #  only check any graphics file reference once per fact
+    allowedExternalHrefPattern = modelXbrl.modelManager.disclosureSystem.allowedExternalHrefPattern
     
     if isInlineDTD:
         htmlBodyTemplate = "<body><div>\n{0}\n</div></body>\n"
@@ -572,7 +573,7 @@ def validateTextBlockFacts(modelXbrl):
                                         _("Fact %(fact)s of context %(contextID)s has javascript in '%(attribute)s' for <%(element)s>"),
                                         modelObject=f1, fact=f1.qname, contextID=f1.contextID,
                                         attribute=attrTag, element=eltTag)
-                                elif attrValue.startswith("http://www.sec.gov/Archives/edgar/data/") and eltTag == "a":
+                                elif eltTag == "a" and (not allowedExternalHrefPattern or allowedExternalHrefPattern.match(attrValue)):
                                     pass
                                 elif scheme(attrValue) in ("http", "https", "ftp"):
                                     modelXbrl.error("EFM.6.05.16.externalReference",
@@ -655,6 +656,7 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
     _xhtmlNsLen = len(_xhtmlNs)
     _tableTags = ("table", _xhtmlNs + "table")
     _anchorAncestorTags = set(_xhtmlNs + tag for tag in ("html", "body", "div"))
+    allowedExternalHrefPattern = modelXbrl.modelManager.disclosureSystem.allowedExternalHrefPattern
     for elt in htmlEltTree.iter():
         if isinstance(elt, ModelObject) and elt.namespaceURI == xhtml:
             eltTag = elt.localName
@@ -699,7 +701,7 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                         modelObject=elt, validatedObjectLabel=validatedObjectLabel,
                         attribute=attrTag, element=eltTag,
                         messageCodes=("EFM.6.05.34.activeContent", "EFM.5.02.05.activeContent"))
-                elif attrValue.startswith("http://www.sec.gov/Archives/edgar/data/") and eltTag == "a":
+                elif eltTag == "a" and (not allowedExternalHrefPattern or allowedExternalHrefPattern.match(attrValue)):
                     pass
                 elif scheme(attrValue) in ("http", "https", "ftp"):
                     modelXbrl.error(messageCodePrefix + "externalReference",
