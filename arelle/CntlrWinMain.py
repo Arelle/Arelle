@@ -1457,9 +1457,16 @@ class WinMainLogHandler(logging.Handler):
         #formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(file)s %(sourceLine)s")
         formatter = Cntlr.LogFormatter("[%(messageCode)s] %(message)s - %(file)s")
         self.setFormatter(formatter)
+        self.logRecordBuffer = None
+    def startLogBuffering(self):
+        self.logRecordBuffer = []
+    def endLogBuffering(self):
+        self.logRecordBuffer = None
     def flush(self):
         ''' Nothing to flush '''
     def emit(self, logRecord):
+        if self.logRecordBuffer is not None:
+            self.logRecordBuffer.append(logRecord)
         # add to logView
         msg = self.format(logRecord)        
         try:            
