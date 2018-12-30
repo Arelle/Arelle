@@ -321,12 +321,12 @@ class Validate:
                                             docUrl = docUrl.replace("-formula.xml", ".xf")
                                     foundDataFiles.add(docUrl)
                     if expectedDataFiles - foundDataFiles:
-                        modelXbrl.error("arelle:testcaseDataNotUsed",
+                        modelXbrl.info("arelle:testcaseDataNotUsed",
                             _("Variation %(id)s %(name)s data files not used: %(missingDataFiles)s"),
                             modelObject=modelTestcaseVariation, name=modelTestcaseVariation.name, id=modelTestcaseVariation.id, 
                             missingDataFiles=", ".join(sorted(os.path.basename(f) for f in expectedDataFiles - foundDataFiles)))
                     if foundDataFiles - expectedDataFiles:
-                        modelXbrl.warning("arelle:testcaseDataUnexpected",
+                        modelXbrl.info("arelle:testcaseDataUnexpected",
                             _("Variation %(id)s %(name)s files not in variation data: %(unexpectedDataFiles)s"),
                             modelObject=modelTestcaseVariation, name=modelTestcaseVariation.name, id=modelTestcaseVariation.id,
                             unexpectedDataFiles=", ".join(sorted(os.path.basename(f) for f in foundDataFiles - expectedDataFiles)))
