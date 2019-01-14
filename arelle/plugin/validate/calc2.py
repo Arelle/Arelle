@@ -12,7 +12,7 @@ from decimal import Decimal
 from arelle import Locale
 from arelle.PythonUtil import OrderedDefaultDict
 from arelle.ValidateXbrlCalcs import ZERO, inferredDecimals, rangeValue
-from arelle.XbrlConst import link, xbrli, xl, xlink
+from arelle.XbrlConst import link, xbrli, xl, xlink, domainMember
 
 calc2YYYY = "http://xbrl.org/WGWD/YYYY-MM-DD/calculation-2.0"
 calc2 = {calc2YYYY}
@@ -51,9 +51,10 @@ class ValidateXbrlCalc2:
         self.perConceptBindKeys = defaultdict(set)
         self.perBoundFacts = defaultdict(list)
         self.durationPeriodStarts = defaultdict(set)
-        self.aggBindKeys = set()
-        self.aggBoundFacts = {}
-
+        self.aggConceptBindKeys = defaultdict(set)
+        self.aggBoundFacts = defaultdict(list)
+        self.aggBoundConceptFacts = defaultdict(list)
+        self.aggDimInit = set()
     
     def validate(self):
         modelXbrl = self.modelXbrl
@@ -208,17 +209,17 @@ class ValidateXbrlCalc2:
             self.perConceptBindKeys.clear()
             self.perBoundFacts.clear()
             self.durationPeriodStarts.clear()
-            self.aggInit = False
-            self.aggBindKeys.clear()
+            self.aggDimInit = set()
+            self.aggConceptBindKeys.clear()
             self.aggBoundFacts.clear()
-            
+            self.aggBoundConceptFacts.clear()
+            self.aggDimInit.clear()
 
             for rootConcept in sectCalc2RelSet.rootConcepts:
                 self.sectTreeRel(rootConcept, 1, sectCalc2RelSet, None, {rootConcept, None})
 
     # recursive depth-first tree descender, returns sum
-    def sectTreeRel(self, parentConcept, n, sectCalc2RelSet, inferredParentValues, visited,
-                    dimension=None):
+    def sectTreeRel(self, parentConcept, n, sectCalc2RelSet, inferredParentValues, visited, dimQN=None):
         childRels = sectCalc2RelSet.fromModelObject(parentConcept)
         if childRels:
             visited.add(parentConcept)
@@ -232,6 +233,10 @@ class ValidateXbrlCalc2:
             boundPerKeys = set() 
             boundPers = defaultdict(intervalZero)
             boundDurationItems = defaultdict(list)
+            boundAggKeys = set()
+            boundAggs = defaultdict(intervalZero)
+            boundAggItems = defaultdict(list)
+            boundAggConcepts = defaultdict(set)
             for rel in childRels:
                 childConcept = rel.toModelObject
                 if childConcept not in visited:
@@ -243,24 +248,20 @@ class ValidateXbrlCalc2:
                         if not self.perInit:
                             self.perBindFacts()
                         boundPerKeys |= self.perConceptBindKeys[childConcept] # these are only duration items
-                    elif rel.arcrole == aggregationDomain:
-                        dimension = rel.arcElement.prefixedNameQname(rel.get("dimension"))
-                        if not self.aggInit: 
-                            for dim in set(rel.dimension for rel in sectCalc2RelSet.modelRelationships if rel.arcrole == aggregationDomain):
-                                self.aggBindFacts(dim) # bind each referenced dimension's contexts
-                            self.aggInit = True
+                    elif rel.arcrole == domainMember:
+                        boundAggKeys |= self.aggConceptBindKeys[dimQN]
+                        domQN = parentConcept.qname
+                elif rel.arcrole == aggregationDomain: # this is in visited
+                    dimQN = rel.arcElement.prefixedNameQname(rel.get("dimension"))
+                    if dimQN not in self.aggDimInit:
+                        self.aggBindFacts(dimQN) # bind each referenced dimension's contexts
                     
             # depth-first descent calc tree and process item after descent        
             for rel in childRels:
                 childConcept = rel.toModelObject
                 if childConcept not in visited:
                     # depth-first descent
-                    if rel.arcrole == aggregationDomain:
-                        dimObj = self.modelXbrl.qnameConcepts[rel.dimension]
-                        childRelSet = modelXbrl.relationshipSet(dimensionDomain,rel.get("targetRole")).fromModelObject(dimObj)
-                    else:
-                        childRelSet = sectCalc2RelSet
-                    self.sectTreeRel(childConcept, n+1, childRelSet, inferredChildValues,  visited, dimension)
+                    self.sectTreeRel(childConcept, n+1, sectCalc2RelSet, inferredChildValues,  visited, dimQN)
                     # post-descent summation (allows use of inferred value)
                     if rel.arcrole == summationItem: 
                         weight = rel.weightDecimal
@@ -292,8 +293,22 @@ class ValidateXbrlCalc2:
                                 a, b = inferredChildValues[factKey]
                                 r = boundPers[perKey]
                                 boundPers[perKey] = (r[0] + weight * a, r[1] + weight * b)
-                    elif rel.arcrole == aggregationDomain:
-                        pass
+                    elif rel.arcrole == domainMember:
+                        memQN = childConcept.qname
+                        for aggKey in boundAggKeys:
+                            hCntx, unit = aggKey
+                            dimMemKey = (hCntx, unit, dimQN, memQN)
+                            if dimMemKey in self.aggBoundFacts:
+                                for f in self.aggBoundFacts[dimMemKey]:
+                                    a, b = intervalValue(f)
+                                    factDomKey = (f.concept, hCntx, unit, dimQN, domQN)
+                                    r = boundAggs[factDomKey]
+                                    boundAggs[factDomKey] = (r[0] + a, r[1] + b)
+                                    boundAggItems[aggKey].append(f)
+                                    boundAggConcepts[aggKey].add(f.concept)
+                elif rel.arcrole == aggregationDomain: # this is in visited
+                    childRelSet = self.modelXbrl.relationshipSet(domainMember,rel.get("targetRole"))
+                    self.sectTreeRel(childConcept, n+1, childRelSet, inferredChildValues, {None}, dimQN)
                         
             # process child items bound to this calc subtree
             for sumKey in boundSumKeys:
@@ -306,7 +321,7 @@ class ValidateXbrlCalc2:
                         sa, sb = intervalValue(f, d)
                         if sb < ia or sa > ib:
                             self.modelXbrl.log('INCONSISTENCY', "calc2e:summationInconsistency",
-                                _("Summation inconsistent from %(concept)s in section %(section)s reported sum %(reportedSum)s, computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreportedContributingItems %(unreportedContributors)s"),
+                                _("Summation inconsistent from %(concept)s in section %(section)s reported sum %(reportedSum)s, computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreported contributing items %(unreportedContributors)s"),
                                 modelObject=boundSummationItems[sumKey],
                                 concept=parentConcept.qname, section=self.section, 
                                 reportedSum=self.formatInterval(sa, sb, d),
@@ -314,7 +329,7 @@ class ValidateXbrlCalc2:
                                 contextID=f.context.id, unitID=f.unit.id,
                                 unreportedContributors=", ".join(str(c.qname) # list the missing/unreported contributors in relationship order
                                                                  for r in childRels
-                                                                 for c in (rel.toModelObject,)
+                                                                 for c in (r.toModelObject,)
                                                                  if r.arcrole == summationItem and c is not None and
                                                                  (c, cntx, unit) not in self.sumBoundFacts)
                                                          or "none")
@@ -361,7 +376,7 @@ class ValidateXbrlCalc2:
 
                     if endBalB < ia or endBalA > ib:
                         self.modelXbrl.log('INCONSISTENCY', "calc2e:balanceInconsistency",
-                            _("Balance inconsistent from %(concept)s in section %(section)s reported sum %(reportedSum)s, computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreportedContributingItems %(unreportedContributors)s"),
+                            _("Balance inconsistent from %(concept)s in section %(section)s reported sum %(reportedSum)s, computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreported contributing items %(unreportedContributors)s"),
                             modelObject=boundDurationItems[perKey],
                             concept=parentConcept.qname, section=self.section, 
                             reportedSum=self.formatInterval(endBalA, endBalB, d),
@@ -369,10 +384,36 @@ class ValidateXbrlCalc2:
                             contextID=f.context.id, unitID=f.unit.id,
                             unreportedContributors=", ".join(str(c.qname) # list the missing/unreported contributors in relationship order
                                                              for r in childRels
-                                                             for c in (rel.toModelObject,)
+                                                             for c in (r.toModelObject,)
                                                              if r.arcrole == balanceChanges and c is not None and
                                                              (c, hCntx, unit, start, end) not in self.perBoundFacts)
                                                      or "none")
+            for aggKey in boundAggKeys:
+                hCntx, unit = aggKey
+                for concept in sorted(boundAggConcepts[aggKey], key=lambda c:c.objectIndex): # repeatable errors
+                    factDomKey = (concept, hCntx, unit, dimQN, domQN)
+                    ia, ib = boundAggs[factDomKey]
+                    if factDomKey in self.aggBoundConceptFacts:
+                        for f in self.aggBoundConceptFacts[factDomKey]:
+                            d = inferredDecimals(f)
+                            sa, sb = intervalValue(f, d)
+                            if sb < ia or sa > ib:
+                                self.modelXbrl.log('INCONSISTENCY', "calc2e:aggregationInconsistency",
+                                    _("Aggregation inconsistent for %(concept)s, domain %(domain)s in section %(section)s reported sum %(reportedSum)s, computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreported contributing members %(unreportedContributors)s"),
+                                    modelObject=boundAggItems[factDomKey],
+                                    concept=concept.qname,
+                                    domain=parentConcept.qname, section=self.section, 
+                                    reportedSum=self.formatInterval(sa, sb, d),
+                                    computedSum=self.formatInterval(ia, ib, d), 
+                                    contextID=f.context.id, unitID=f.unit.id,
+                                    unreportedContributors=", ".join(str(c.qname) # list the missing/unreported contributors in relationship order
+                                                                     for r in childRels
+                                                                     for c in (r.toModelObject,)
+                                                                     if r.arcrole == domainMember and c is not None and
+                                                                     (concept, hCntx, unit, dimQN, c.qname) not in self.aggBoundConceptFacts)
+                                                             or "none")
+                    elif inferredParentValues is not None: # value was inferred, return to parent level
+                        inferredParentValues[factKey] = (ia, ib)
             visited.remove(parentConcept)
             
     def sumBindFacts(self):
@@ -407,15 +448,17 @@ class ValidateXbrlCalc2:
             concept = f.concept
             if concept.isNumeric and not f.isNil:
                 cntx = self.eqCntx.get(f.context,f.context)
-                hCntx = dhash( (cntx.periodHash, cntx.entityIdentifierHash, 
-                                frozenset(dimObj
-                                          for _dimQN, dimObj in cntx.qnameDims.items()
-                                          if _dimQN != dimQN)) )
+                hCntx = hash( (cntx.periodHash, cntx.entityIdentifierHash, 
+                               hash(frozenset(dimObj
+                                              for _dimQN, dimObj in cntx.qnameDims.items()
+                                            if _dimQN != dimQN))) )
                 unit = self.eqUnit.get(f.unit,f.unit)
-                memQN = cntx.dimMemberQname(dimension, includeDefaults=True)
+                memQN = cntx.dimMemberQname(dimQN, includeDefaults=True)
                 if memQN is not None:
-                    self.aggConceptBindKeys[concept, dimQN].add( (hCntx,unit) )
-                    self.aggBoundFacts[concept, hCntx, unit, dimQN, memQN].append(f)
+                    self.aggConceptBindKeys[dimQN].add( (hCntx,unit) )
+                    self.aggBoundFacts[hCntx, unit, dimQN, memQN].append(f)
+                    self.aggBoundConceptFacts[f.concept, hCntx, unit, dimQN, memQN].append(f)
+        self.aggDimInit.add(dimQN)
 
     def formatInterval(self, a, b, dec):
         if isnan(dec) or isinf(dec): dec = 4

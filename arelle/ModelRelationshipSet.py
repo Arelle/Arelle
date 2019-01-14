@@ -261,8 +261,11 @@ class ModelRelationshipSet:
             self.loadModelRelationshipsFrom()
             self.loadModelRelationshipsTo()
             self.modelConceptRoots = [modelRelFrom
-                                      for modelRelFrom in self.modelRelationshipsFrom.keys()
-                                      if modelRelFrom not in self.modelRelationshipsTo]
+                                      for modelRelFrom, relFrom in self.modelRelationshipsFrom.items()
+                                      if modelRelFrom not in self.modelRelationshipsTo or
+                                      (len(relFrom) == 1 and # root-level self-looping arc
+                                       len(self.modelRelationshipsTo[modelRelFrom]) == 1 and
+                                       relFrom[0].fromModelObject == relFrom[0].toModelObject)]
         return self.modelConceptRoots
     
     # if modelFrom and modelTo are provided determine that they have specified relationship
