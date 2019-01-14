@@ -65,6 +65,13 @@ due to a Java bug on Windows shell interface (without the newlines for pretty pr
 
 To build cached deprecated concepts files (requires internet access):
    --buildDeprecatedConceptsFiles 
+   
+In GUI mode please use formula parameters dialog to emulate the above.  The parameters are named as above (with no prefix), and 
+an additional EdgarRenderer parameters:
+   noLogsInSummary or includeLogsInSummary (default) (this parameter does not need a value, just presence)
+   summaryXslt (use EdgarWorkstationSummarize.xslt to emulate EDGAR workstation)
+   reportXslt (use EdgarWorkstationInstanceReport.xslt to emulate EDGAR workstation)
+   
 '''
 import os, io, json, zipfile, logging
 jsonIndent = 1  # None for most compact, 0 for left aligned
