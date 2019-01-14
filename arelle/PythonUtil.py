@@ -128,7 +128,7 @@ def normalizeSpace(s):
         return " ".join(s.split())
     return s
     
-SEQUENCE_TYPES = (tuple,list,set)
+SEQUENCE_TYPES = (tuple,list,set,frozenset)
 def flattenSequence(x, sequence=None):
     if sequence is None: 
         if not isinstance(x, SEQUENCE_TYPES):

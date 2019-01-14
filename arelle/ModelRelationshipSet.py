@@ -15,6 +15,7 @@ from arelle.XbrlConst import consecutiveArcrole
 import os, sys
 
 USING_EQUIVALENCE_KEY = sys.intern(_STR_8BIT("using_equivalence_key")) # indicates hash entry replaced with keyed entry
+NoneType = type(None)
 
 def create(modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
     return ModelRelationshipSet(modelXbrl, arcrole, linkrole, linkqname, arcqname, includeProhibits)
@@ -107,20 +108,21 @@ class ModelRelationshipSet:
     def __init__(self, modelXbrl, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
         self.isChanged = False
         self.modelXbrl = modelXbrl
-        self.arcrole = arcrole
-        self.linkrole = linkrole
+        self.arcrole = arcrole # may be str, tuple or frozenset
+        self.linkrole = linkrole # may be str, tuple or frozenset
         self.linkqname = linkqname
         self.arcqname = arcqname
 
         relationshipSetKey = (arcrole, linkrole, linkqname, arcqname, includeProhibits) 
             
         # base sets does not care about the #includeProhibits
-        if not isinstance(arcrole,(tuple,frozenset)):
+        if isinstance(arcrole, (str, NoneType)) and isinstance(linkrole, (str, NoneType)):
             modelLinks = self.modelXbrl.baseSets.get((arcrole, linkrole, linkqname, arcqname), [])
         else: # arcrole is a set of arcroles
             modelLinks = []
-            for ar in arcrole:
-                modelLinks.extend(self.modelXbrl.baseSets.get((ar, linkrole, linkqname, arcqname), []))
+            for ar in (arcrole,) if isinstance(arcrole, (str, NoneType)) else arcrole:
+                for lr in (linkrole,) if isinstance(linkrole, (str, NoneType)) else linkrole:
+                    modelLinks.extend(self.modelXbrl.baseSets.get((ar, lr, linkqname, arcqname), []))
             
         # gather arcs
         relationships = {}
