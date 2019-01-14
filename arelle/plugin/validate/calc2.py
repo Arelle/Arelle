@@ -155,7 +155,7 @@ class ValidateXbrlCalc2:
         factByConceptCntxUnit = OrderedDefaultDict(list)  # sort into document order for consistent error messages
         self.sectionFacts = []
         for sectObj in sectObjs:
-            print ("section {}".format(sectObj.concept.label())) 
+            #print ("section {}".format(sectObj.concept.label())) 
             self.section = sectObj.concept.label()
             sectLinkRoles = tuple(sectObj.concept.get(calc2linkroles,"").split())
             factByConceptCntxUnit.clear()
@@ -196,7 +196,7 @@ class ValidateXbrlCalc2:
                             modelObject=fList, section=sectObj.concept.label(), fact=f0.qname, contextID=f0.contextID, values=", ".join(strTruncate(f.value, 128) for f in fList))
                     self.sectionFacts.append(f0)
             # sectionFacts now in document order and deduplicated
-            print("section {} facts {}".format(sectObj.concept.label(), ", ".join(str(f.qname)+"="+f.value for f in self.sectionFacts)))
+            #print("section {} facts {}".format(sectObj.concept.label(), ", ".join(str(f.qname)+"="+f.value for f in self.sectionFacts)))
             
             # depth-first calc tree
             sectCalc2RelSet = modelXbrl.relationshipSet(calc2Arcroles, sectLinkRoles)
@@ -215,8 +215,10 @@ class ValidateXbrlCalc2:
             self.aggBoundConceptFacts.clear()
             self.aggDimInit.clear()
 
-            for rootConcept in sectCalc2RelSet.rootConcepts:
-                self.sectTreeRel(rootConcept, 1, sectCalc2RelSet, None, {rootConcept, None})
+            inferredValues = {}
+            for rootConcept in sorted(sectCalc2RelSet.rootConcepts,
+                                      key=lambda r: sectCalc2RelSet.fromModelObject(r)[0].order):
+                self.sectTreeRel(rootConcept, 1, sectCalc2RelSet, inferredValues, {rootConcept, None})
 
     # recursive depth-first tree descender, returns sum
     def sectTreeRel(self, parentConcept, n, sectCalc2RelSet, inferredParentValues, visited, dimQN=None):
@@ -278,6 +280,10 @@ class ValidateXbrlCalc2:
                                 a, b = inferredChildValues[factKey]
                                 r = boundSums[sumKey]
                                 boundSums[sumKey] = (r[0] + weight * a, r[1] + weight * b)
+                            elif factKey in inferredParentValues:
+                                a, b = inferredParentValues[factKey]
+                                r = boundSums[sumKey]
+                                boundSums[sumKey] = (r[0] + weight * a, r[1] + weight * b)
                     elif rel.arcrole == balanceChanges: 
                         weight = rel.weightDecimal
                         for perKey in boundPerKeys:
@@ -291,6 +297,10 @@ class ValidateXbrlCalc2:
                                     boundDurationItems[perKey].append(f)
                             elif factKey in inferredChildValues:
                                 a, b = inferredChildValues[factKey]
+                                r = boundPers[perKey]
+                                boundPers[perKey] = (r[0] + weight * a, r[1] + weight * b)
+                            elif factKey in inferredParentValues:
+                                a, b = inferredParentValues[factKey]
                                 r = boundPers[perKey]
                                 boundPers[perKey] = (r[0] + weight * a, r[1] + weight * b)
                     elif rel.arcrole == domainMember:
@@ -308,7 +318,7 @@ class ValidateXbrlCalc2:
                                     boundAggConcepts[aggKey].add(f.concept)
                 elif rel.arcrole == aggregationDomain: # this is in visited
                     childRelSet = self.modelXbrl.relationshipSet(domainMember,rel.get("targetRole"))
-                    self.sectTreeRel(childConcept, n+1, childRelSet, inferredChildValues, {None}, dimQN)
+                    self.sectTreeRel(childConcept, n+1, childRelSet, inferredParentValues, {None}, dimQN) # infer global to section
                         
             # process child items bound to this calc subtree
             for sumKey in boundSumKeys:
@@ -413,7 +423,19 @@ class ValidateXbrlCalc2:
                                                                      (concept, hCntx, unit, dimQN, c.qname) not in self.aggBoundConceptFacts)
                                                              or "none")
                     elif inferredParentValues is not None: # value was inferred, return to parent level
-                        inferredParentValues[factKey] = (ia, ib)
+                        # allow to be retrieved by factDomKey
+                        inferredParentValues[factDomKey] = (ia, ib)
+                        if self.modelXbrl.qnameDimensionDefaults.get(dimQN) == domQN:
+                            cntxKey = (hCntx, dimQN, domQN)
+                            if cntxKey in self.eqCntx:
+                                cntx = self.eqCntx[cntxKey]
+                            else:
+                                cntx = self.aggTotalContext(hCntx, dimQN, domQN)
+                                self.eqCntx[cntxKey] = cntx
+                            if cntx is not None:
+                                # allow to be retrieved by fact line item context key
+                                self.eqCntx[(hCntx, dimQN, domQN)] = cntx
+                                inferredParentValues[(concept, cntx, unit)] = (ia, ib)
             visited.remove(parentConcept)
             
     def sumBindFacts(self):
@@ -459,6 +481,17 @@ class ValidateXbrlCalc2:
                     self.aggBoundFacts[hCntx, unit, dimQN, memQN].append(f)
                     self.aggBoundConceptFacts[f.concept, hCntx, unit, dimQN, memQN].append(f)
         self.aggDimInit.add(dimQN)
+        
+    def aggTotalContext(self, hCntx, dimQN, domQN):
+        # find a context for aggregation total usable in line item and balance roll ups
+        for cntx in self.modelXbrl.contexts.values():
+            hCntx2 = hash( (cntx.periodHash, cntx.entityIdentifierHash, 
+                            hash(frozenset(dimObj
+                                           for _dimQN, dimObj in cntx.qnameDims.items()
+                                           if _dimQN != dimQN))) )
+            if hCntx == hCntx2 and cntx.dimMemberQname(dimQN, True) == domQN:
+                return cntx
+        return None
 
     def formatInterval(self, a, b, dec):
         if isnan(dec) or isinf(dec): dec = 4
