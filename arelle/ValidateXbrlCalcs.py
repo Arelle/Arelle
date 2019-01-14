@@ -68,7 +68,7 @@ class ValidateXbrlCalcs:
         del uniqueContextHashes
         self.modelXbrl.profileActivity("... identify equal contexts", minTimeToShow=1.0)
 
-        # identify equal contexts
+        # identify equal units
         uniqueUnitHashes = {}
         for unit in self.modelXbrl.units.values():
             h = unit.hash
@@ -77,6 +77,7 @@ class ValidateXbrlCalcs:
                     self.mapUnit[unit] = uniqueUnitHashes[h]
             else:
                 uniqueUnitHashes[h] = unit
+        del uniqueUnitHashes
         self.modelXbrl.profileActivity("... identify equal units", minTimeToShow=1.0)
                     
         # identify concepts participating in essence-alias relationships
