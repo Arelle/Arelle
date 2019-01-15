@@ -32,10 +32,30 @@ def nominalPeriod(duration): # account for month and year lengths
 def intervalZero():
     return (Decimal(0), Decimal(0))
 
+NIL = "(nil)" # singleton object, use "is" to compare, not the value
+NILinterval = (NIL,NIL)
+
 def intervalValue(fact, dec=None): # value in decimals
+    if fact.isNil:
+        return NILinterval
     if dec is None:
         dec = inferredDecimals(fact)
     return rangeValue(fact.value, dec)
+
+def addInterval(boundValues, key, intervalValue, weight=None):
+    a, b = intervalValue
+    if a is NIL:
+        result = NILinterval
+    else:
+        r = boundValues[key]
+        if r is NILinterval:
+            return
+        elif weight is not None:
+            result = (r[0] + weight * a, r[1] + weight * b)
+        else:
+            result = (r[0] + a, r[1] + b)
+    boundValues[key] = result
+        
 
 class ValidateXbrlCalc2:
     def __init__(self, val):
@@ -175,6 +195,11 @@ class ValidateXbrlCalc2:
                 else:
                     if any(f.isNil for f in fList):
                         _inConsistent = not all(f.isNil for f in fList)
+                        if _inConsistent: # pick a nil fact for f0 for calc validation
+                            for f in fList:
+                                if f.isNil:
+                                    f0 = f
+                                    break
                     elif all(inferredDecimals(f) == inferredDecimals(f0) for f in fList[1:]): # same decimals
                         v0 = intervalValue(f0)
                         _inConsistent = not all(intervalValue(f) == v0 for f in fList[1:])
@@ -272,18 +297,12 @@ class ValidateXbrlCalc2:
                             factKey = (childConcept, cntx, unit)
                             if factKey in self.sumBoundFacts:
                                 for f in self.sumBoundFacts[factKey]:
-                                    a, b = intervalValue(f)
-                                    r = boundSums[sumKey]
-                                    boundSums[sumKey] = (r[0] + weight * a, r[1] + weight * b)
+                                    addInterval(boundSums, sumKey, intervalValue(f), weight)
                                     boundSummationItems[sumKey].append(f)
                             elif factKey in inferredChildValues:
-                                a, b = inferredChildValues[factKey]
-                                r = boundSums[sumKey]
-                                boundSums[sumKey] = (r[0] + weight * a, r[1] + weight * b)
+                                addInterval(boundSums, sumKey, inferredChildValues[factKey], weight)
                             elif factKey in inferredParentValues:
-                                a, b = inferredParentValues[factKey]
-                                r = boundSums[sumKey]
-                                boundSums[sumKey] = (r[0] + weight * a, r[1] + weight * b)
+                                addInterval(boundSums, sumKey, inferredParentValues[factKey], weight)
                     elif rel.arcrole == balanceChanges: 
                         weight = rel.weightDecimal
                         for perKey in boundPerKeys:
@@ -291,18 +310,12 @@ class ValidateXbrlCalc2:
                             factKey = (childConcept, hCntx, unit, start, end)
                             if factKey in self.perBoundFacts:
                                 for f in self.perBoundFacts[factKey]:
-                                    a, b = intervalValue(f)
-                                    r = boundPers[perKey]
-                                    boundPers[perKey] = (r[0] + weight * a, r[1] + weight * b)
+                                    addInterval(boundPers, perKey, intervalValue(f), weight)
                                     boundDurationItems[perKey].append(f)
                             elif factKey in inferredChildValues:
-                                a, b = inferredChildValues[factKey]
-                                r = boundPers[perKey]
-                                boundPers[perKey] = (r[0] + weight * a, r[1] + weight * b)
+                                addInterval(boundPers, perKey, inferredChildValues[factKey], weight)
                             elif factKey in inferredParentValues:
-                                a, b = inferredParentValues[factKey]
-                                r = boundPers[perKey]
-                                boundPers[perKey] = (r[0] + weight * a, r[1] + weight * b)
+                                addInterval(boundPers, perKey, inferredParentValues[factKey], weight)
                     elif rel.arcrole == domainMember:
                         memQN = childConcept.qname
                         for aggKey in boundAggKeys:
@@ -312,8 +325,7 @@ class ValidateXbrlCalc2:
                                 for f in self.aggBoundFacts[dimMemKey]:
                                     a, b = intervalValue(f)
                                     factDomKey = (f.concept, hCntx, unit, dimQN, domQN)
-                                    r = boundAggs[factDomKey]
-                                    boundAggs[factDomKey] = (r[0] + a, r[1] + b)
+                                    addInterval(boundAggs, factDomKey, intervalValue(f))
                                     boundAggItems[aggKey].append(f)
                                     boundAggConcepts[aggKey].add(f.concept)
                 elif rel.arcrole == aggregationDomain: # this is in visited
@@ -329,7 +341,7 @@ class ValidateXbrlCalc2:
                     for f in self.sumBoundFacts[factKey]:
                         d = inferredDecimals(f)
                         sa, sb = intervalValue(f, d)
-                        if sb < ia or sa > ib:
+                        if ((ia is NIL) ^ (sa is NIL)) or ((ia is not NIL) and (sb < ia or sa > ib)):
                             self.modelXbrl.log('INCONSISTENCY', "calc2e:summationInconsistency",
                                 _("Summation inconsistent from %(concept)s in section %(section)s reported sum %(reportedSum)s, computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreported contributing items %(unreportedContributors)s"),
                                 modelObject=boundSummationItems[sumKey],
@@ -352,15 +364,23 @@ class ValidateXbrlCalc2:
                 endFactKey = (parentConcept, hCntx, unit, None, end)
                 if endFactKey in self.perBoundFacts:
                     for f in self.perBoundFacts[endFactKey]:
+                        if f.isNil:
+                            endBalA = endBalB = NIL
+                            d = 0
+                            break
                         d = inferredDecimals(f)
                         a, b = intervalValue(f,d)
                         endBalA += a
                         endBalB += b
-                    foundStartingFact = False
+                    foundStartingFact = (endBalA is NIL)
                     while not foundStartingFact:
                         startFactKey = (parentConcept, hCntx, unit, None, start)
                         if startFactKey in self.perBoundFacts:
                             for f in self.perBoundFacts[startFactKey]:
+                                if f.isNil:
+                                    endBalA = endBalB = NIL
+                                    foundStartingFact = True
+                                    break
                                 a, b = intervalValue(f)
                                 endBalA -= a
                                 endBalB -= b
@@ -384,7 +404,7 @@ class ValidateXbrlCalc2:
                             if not foundEarlierAdjacentPeriodStart:
                                 break
 
-                    if endBalB < ia or endBalA > ib:
+                    if ((ia is NIL) ^ (endBalA is NIL)) or ((ia is not NIL) and (endBalB < ia or endBalA > ib)):
                         self.modelXbrl.log('INCONSISTENCY', "calc2e:balanceInconsistency",
                             _("Balance inconsistent from %(concept)s in section %(section)s reported sum %(reportedSum)s, computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreported contributing items %(unreportedContributors)s"),
                             modelObject=boundDurationItems[perKey],
@@ -407,7 +427,7 @@ class ValidateXbrlCalc2:
                         for f in self.aggBoundConceptFacts[factDomKey]:
                             d = inferredDecimals(f)
                             sa, sb = intervalValue(f, d)
-                            if sb < ia or sa > ib:
+                            if ((ia is NIL) ^ (sa is NIL)) or ((ia is not NIL) and (sb < ia or sa > ib)):
                                 self.modelXbrl.log('INCONSISTENCY', "calc2e:aggregationInconsistency",
                                     _("Aggregation inconsistent for %(concept)s, domain %(domain)s in section %(section)s reported sum %(reportedSum)s, computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreported contributing members %(unreportedContributors)s"),
                                     modelObject=boundAggItems[factDomKey],
@@ -442,7 +462,7 @@ class ValidateXbrlCalc2:
         # bind facts in section for summation-item
         for f in self.sectionFacts:
             concept = f.concept
-            if concept.isNumeric and not f.isNil:
+            if concept.isNumeric:
                 cntx = self.eqCntx.get(f.context,f.context)
                 unit = self.eqUnit.get(f.unit,f.unit)
                 self.sumConceptBindKeys[concept].add( (cntx,unit) )
@@ -453,7 +473,7 @@ class ValidateXbrlCalc2:
         # bind facts in section for domain aggreggation
         for f in self.sectionFacts:
             concept = f.concept
-            if concept.isNumeric and not f.isNil:
+            if concept.isNumeric:
                 cntx = self.eqCntx.get(f.context,f.context)
                 if not cntx.isForeverPeriod:
                     hCntx = hash( (cntx.entityIdentifierHash, cntx.dimsHash) )
@@ -468,7 +488,7 @@ class ValidateXbrlCalc2:
         # bind facts in section for domain aggreggation
         for f in self.sectionFacts:
             concept = f.concept
-            if concept.isNumeric and not f.isNil:
+            if concept.isNumeric:
                 cntx = self.eqCntx.get(f.context,f.context)
                 hCntx = hash( (cntx.periodHash, cntx.entityIdentifierHash, 
                                hash(frozenset(dimObj
@@ -494,6 +514,8 @@ class ValidateXbrlCalc2:
         return None
 
     def formatInterval(self, a, b, dec):
+        if a is NIL:
+            return "(nil)"
         if isnan(dec) or isinf(dec): dec = 4
         if a == b: # not an interval
             return Locale.format_decimal(self.modelXbrl.locale, a, 1, max(dec,0))
