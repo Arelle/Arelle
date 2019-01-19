@@ -7,7 +7,6 @@ Created on Oct 17, 2010
 #import xml.sax, xml.sax.handler
 from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _ProcessingInstruction, XMLSyntaxError, XMLParser
 import os, re, io
-from arelle import ModelDocument
 from arelle.XbrlConst import ixbrlAll, xhtml
 from arelle.XmlUtil import setXmlns, xmlstring
 from arelle.ModelObject import ModelObject
@@ -398,6 +397,15 @@ efmBlockedInlineHtmlElementAttributes = {
     'link': ('rel', 'rev')
 }
 
+ModelDocumentTypeINLINEXBRL = None
+ModelDocumentTypeINLINEXBRLDOCUMENTSET = None
+def initModelDocumentTypeReferences():
+    global ModelDocumentTypeINLINEXBRL, ModelDocumentTypeINLINEXBRLDOCUMENTSET
+    if ModelDocumentTypeINLINEXBRL is None:
+        from arelle.ModelDocument import Type
+        ModelDocumentTypeINLINEXBRL = Type.INLINEXBRL
+        ModelDocumentTypeINLINEXBRLDOCUMENTSET = Type.INLINEXBRLDOCUMENTSET
+
 def checkfile(modelXbrl, filepath):
     result = []
     lineNum = 1
@@ -459,12 +467,9 @@ def checkfile(modelXbrl, filepath):
             foundXmlDeclaration = True
     return (io.StringIO(initial_value=result), encoding)
 
-ModelDocumentTypeINLINEXBRL = None
 def loadDTD(modelXbrl):
-    global edbodyDTD, isInlineDTD, ModelDocumentTypeINLINEXBRL
-    if ModelDocumentTypeINLINEXBRL is None:
-        from arelle.ModelDocument import Type
-        ModelDocumentTypeINLINEXBRL = Type.INLINEXBRL
+    global edbodyDTD, isInlineDTD
+    initModelDocumentTypeReferences()
     _isInline = modelXbrl.modelDocument.type == ModelDocumentTypeINLINEXBRL
     if isInlineDTD is None or isInlineDTD != _isInline:
         isInlineDTD = _isInline
@@ -878,6 +883,7 @@ def validateGraphicFile(elt, graphicFile):
     return None
 
 def referencedFiles(modelXbrl, localFilesOnly=True):
+    initModelDocumentTypeReferences()
     _parser = XMLParser(resolve_entities=False, remove_comments=True, remove_pis=True, recover=True)
     referencedFiles = set()
     # add referenced files that are html-referenced image and other files
@@ -907,7 +913,7 @@ def referencedFiles(modelXbrl, localFilesOnly=True):
                 except (XMLSyntaxError, UnicodeDecodeError):
                     pass  # TODO: Why ignore UnicodeDecodeError?
     # footnote or other elements
-    if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET:
+    if modelXbrl.modelDocument.type == ModelDocumentTypeINLINEXBRLDOCUMENTSET:
         xbrlInstRoots = modelXbrl.ixdsHtmlElements
     else:
         xbrlInstRoots = [modelXbrl.modelDocument.xmlRootElement]
