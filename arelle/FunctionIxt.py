@@ -67,7 +67,7 @@ daymonthEnPattern = RePattern(r"^\s*([0-9]{1,2})[^0-9]+(January|February|March|A
 monthdayEnPattern = RePattern(r"^\s*(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[^0-9]+([0-9]{1,2})[A-Za-z]{0,2}\s*$")
 daymonthEsPattern = RePattern(r"^\s*([0-9]{1,2})[^0-9]+(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic|ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|OCT|NOV|DIC|Ene|Feb|Mar|Abr|May|Jun|Jul|Ago|Sep|Oct|Nov|Dic)[^0-9]{0,7}\s*$")
 daymonthEtPattern = RePattern(r"^\s*([0-9]{1,2})[^0-9]+(jaan|veebr|märts|marts|apr|mai|juuni|juuli|aug|sept|okt|nov|dets|JAAN|VEEBR|MÄRTS|MARTS|APR|MAI|JUUNI|JUULI|AUG|SEPT|OKT|NOV|DETS|Jaan|Veebr|Märts|Marts|Apr|Mai|Juuni|Juuli|Aug|Sept|Okt|Nov|Dets)[^0-9]{0,5}\s*$")
-daymonthFiPattern = RePattern(r"^\s*([0-9]{1,2})([^0-9]*[^ehjlmkstEHJLMKST])+(tam|hel|maa|huh|tou|kes|hei|elo|syy|lok|mar|jou|TAM|HEL|MAA|HUH|TOU|KES|HEI|ELO|SYY|LOK|MAR|JOU|Tam|Hel|Maa|Huh|Tou|Kes|Hei|Elo|Syy|Lok|Mar|Jou)[^0-9]{0,8}\s*$")
+daymonthFiPattern = RePattern(r"^\s*([0-9]{1,2})[^0-9]*[^0-9a-zA-Z]+(tam|hel|maa|huh|tou|kes|hei|elo|syy|lok|mar|jou|TAM|HEL|MAA|HUH|TOU|KES|HEI|ELO|SYY|LOK|MAR|JOU|Tam|Hel|Maa|Huh|Tou|Kes|Hei|Elo|Syy|Lok|Mar|Jou)[^0-9]{0,8}\s*$")
 daymonthFrPattern = RePattern(r"^\s*([0-9]{1,2})[^0-9]+(janv|févr|fevr|mars|avr|mai|juin|juil|août|aout|sept|oct|nov|déc|dec|JANV|FÉVR|FEVR|MARS|AVR|MAI|JUIN|JUIL|AOÛT|AOUT|SEPT|OCT|NOV|DÉC|DEC|Janv|Févr|Fevr|Mars|Avr|Mai|Juin|Juil|Août|Aout|Sept|Oct|Nov|Déc|Dec)[^0-9]{0,5}\s*$")
 daymonthHrPattern = RePattern(r"^\s*([0-9]{1,2})[^0-9]+(sij|velj|ožu|ozu|tra|svi|lip|srp|kol|ruj|lis|stu|pro|SIJ|VELJ|OŽU|OZU|TRA|SVI|LIP|SRP|KOL|RUJ|LIS|STU|PRO|Sij|Velj|Ožu|Ozu|Tra|Svi|Lip|Srp|Kol|Ruj|Lis|Stu|Pro)[^0-9]{0,6}\s*$")
 monthdayHuPattern = RePattern(r"^\s*(jan|feb|márc|marc|ápr|apr|máj|maj|jún|jun|júl|jul|aug|szept|okt|nov|dec|JAN|FEB|MÁRC|MARC|ÁPR|APR|MÁJ|MAJ|JÚN|JUN|JÚL|JUL|AUG|SZEPT|OKT|NOV|DEC|Jan|Feb|Márc|Marc|Ápr|Apr|Máj|Maj|Jún|Jun|Júl|Jul|Aug|Szept|Okt|Nov|Dec)[^0-9]{0,7}[^0-9]+([0-9]{1,2})\s*$")
@@ -91,7 +91,7 @@ daymonthyearEnPattern = RePattern(r"^\s*([0-9]{1,2})[^0-9]+(January|February|Mar
 monthdayyearEnPattern = RePattern(r"^\s*(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[^0-9]+([0-9]+)[^0-9]+([0-9]{4}|[0-9]{1,2})\s*$")
 daymonthyearEsPattern = RePattern(r"^\s*([0-9]{1,2})[^0-9]+(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic|ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|OCT|NOV|DIC|Ene|Feb|Mar|Abr|May|Jun|Jul|Ago|Sep|Oct|Nov|Dic)[^0-9]+([0-9]{1,2}|[0-9]{4})\s*$")
 daymonthyearEtPattern = RePattern(r"^\s*([0-9]{1,2})[^0-9]+(jaan|veebr|märts|marts|apr|mai|juuni|juuli|aug|sept|okt|nov|dets|JAAN|VEEBR|MÄRTS|MARTS|APR|MAI|JUUNI|JUULI|AUG|SEPT|OKT|NOV|DETS|Jaan|Veebr|Märts|Marts|Apr|Mai|Juuni|Juuli|Aug|Sept|Okt|Nov|Dets)[^0-9]+([0-9]{1,2}|[0-9]{4})\s*$")
-daymonthyearFiPattern = RePattern(r"^\s*([0-9]{1,2})([^0-9]*[^ehjlmkstEHJLMKST])+(tam|hel|maa|huh|tou|kes|hei|elo|syy|lok|mar|jou|TAM|HEL|MAA|HUH|TOU|KES|HEI|ELO|SYY|LOK|MAR|JOU|Tam|Hel|Maa|Huh|Tou|Kes|Hei|Elo|Syy|Lok|Mar|Jou)[^0-9]+([0-9]{1,2}|[0-9]{4})\s*$")
+daymonthyearFiPattern = RePattern(r"^\s*([0-9]{1,2})[^0-9]*[^0-9a-zA-Z]+(tam|hel|maa|huh|tou|kes|hei|elo|syy|lok|mar|jou|TAM|HEL|MAA|HUH|TOU|KES|HEI|ELO|SYY|LOK|MAR|JOU|Tam|Hel|Maa|Huh|Tou|Kes|Hei|Elo|Syy|Lok|Mar|Jou)[^0-9]+([0-9]{1,2}|[0-9]{4})\s*$")
 daymonthyearFrPattern = RePattern(r"^\s*([0-9]{1,2})[^0-9]+(janv|févr|fevr|mars|avr|mai|juin|juil|août|aout|sept|oct|nov|déc|dec|JANV|FÉVR|FEVR|MARS|AVR|MAI|JUIN|JUIL|AOÛT|AOUT|SEPT|OCT|NOV|DÉC|DEC|Janv|Févr|Fevr|Mars|Avr|Mai|Juin|Juil|Août|Aout|Sept|Oct|Nov|Déc|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})\s*$")
 daymonthyearHrPattern = RePattern(r"^\s*([0-9]{1,2})[^0-9]+(sij|velj|ožu|ozu|tra|svi|lip|srp|kol|ruj|lis|stu|pro|SIJ|VELJ|OŽU|OZU|TRA|SVI|LIP|SRP|KOL|RUJ|LIS|STU|PRO|Sij|Velj|Ožu|Ozu|Tra|Svi|Lip|Srp|Kol|Ruj|Lis|Stu|Pro)[^0-9]+([0-9]{1,2}|[0-9]{4})\s*$")
 yearmonthdayHuPattern = RePattern(r"^\s*([0-9]{1,2}|[0-9]{4})[^0-9]+(jan|feb|márc|marc|ápr|apr|máj|maj|jún|jun|júl|jul|aug|szept|okt|nov|dec|JAN|FEB|MÁRC|MARC|ÁPR|APR|MÁJ|MAJ|JÚN|JUN|JÚL|JUL|AUG|SZEPT|OKT|NOV|DEC|Jan|Feb|Márc|Marc|Ápr|Apr|Máj|Maj|Jún|Jun|Júl|Jul|Aug|Szept|Okt|Nov|Dec)[^0-9]+([0-9]{1,2})\s*$")
@@ -157,6 +157,7 @@ yearmonthdayPattern = RePattern("^[\\s\u00A0]*([0-9]{4}|[0-9]{1,2})[^0-9]+([0-9]
 
 zeroDashPattern = RePattern(r"^\s*([-]|\u002D|\u002D|\u058A|\u05BE|\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\uFE58|\uFE63|\uFF0D)\s*$")
 numDotDecimalPattern = RePattern(r"^\s*[0-9]{1,3}([, \xA0]?[0-9]{3})*(\.[0-9]+)?\s*$")
+numDotDecimalTR4Pattern = RePattern(r"^\s*([0-9]{1,3}([, \xA0]?[0-9]{3})*(\.[0-9]+)?|\.[0-9]+)\s*$")
 numDotDecimalInPattern = RePattern(r"^(([0-9]{1,2}[, \xA0])?([0-9]{2}[, \xA0])*[0-9]{3})([.][0-9]+)?$|^([0-9]+)([.][0-9]+)?$")
 numCommaDecimalPattern = RePattern(r"^\s*[0-9]{1,3}([. \xA0]?[0-9]{3})*(,[0-9]+)?\s*$")
 numUnitDecimalPattern = RePattern(r"^([0]|([1-9][0-9]{0,2}([.,\uFF0C\uFF0E]?[0-9]{3})*))[^0-9,.\uFF0C\uFF0E]+([0-9]{1,2})[^0-9,.\uFF0C\uFF0E]*$")
@@ -527,7 +528,7 @@ def datedaymonthet(arg):
     return datedaymonth(arg, daymonthEtPattern)
 
 def datedaymonthfi(arg):
-    return datedaymonth(arg, daymonthFiPattern, monthnumberfi, dy=1, mo=3, lastindex=3)
+    return datedaymonth(arg, daymonthFiPattern, monthnumberfi)
 
 def datedaymonthfr(arg):
     return datedaymonth(arg, daymonthFrPattern)
@@ -764,7 +765,7 @@ def datedaymonthyearet(arg):
     return datedaymonthyear(arg, daymonthyearEtPattern)
 
 def datedaymonthyearfi(arg):
-    return datedaymonthyear(arg, daymonthyearFiPattern, monthnumberfi, dy=1, mo=3, yr=4, lastindex=4)
+    return datedaymonthyear(arg, daymonthyearFiPattern, monthnumberfi)
 
 def datedaymonthyearfr(arg):
     return datedaymonthyear(arg, daymonthyearFrPattern)
@@ -932,6 +933,11 @@ def zerodash(arg):
 
 def numdotdecimal(arg):
     if numDotDecimalPattern.match(arg):
+        return arg.replace(',', '').replace(' ', '').replace('\u00A0', '')
+    raise XPathContext.FunctionArgType(1,"ixt:numdotdecimalType")
+
+def numdotdecimalTR4(arg):
+    if numDotDecimalTR4Pattern.match(arg):
         return arg.replace(',', '').replace(' ', '').replace('\u00A0', '')
     raise XPathContext.FunctionArgType(1,"ixt:numdotdecimalType")
 
@@ -1157,7 +1163,7 @@ tr4Functions.update ({
     # same as v2: 'dateyearmonthen': dateyearmonthen,
     # same as v2: 'nocontent': nocontent,
     # same as v2: 'numcommadecimal': numcommadecimal,
-    # same as v2: 'numdotdecimal': numdotdecimal,
+    'numdotdecimal': numdotdecimalTR4, # relax requirement for 0 before decimal
     # same as v3: 'numdotdecimalin': numdotdecimalin,
     # same as v2: 'numunitdecimal': numunitdecimal,
     # same as v3: 'numunitdecimalin': numunitdecimalin,
