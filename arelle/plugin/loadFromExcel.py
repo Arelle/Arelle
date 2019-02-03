@@ -796,12 +796,13 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                             calRels.add(calRel)
                                         else:
                                             pass
+                    hasRelationshipToCol = any(h[0] == "relationship to" for h in headerCols if isinstance(h, tuple))
                                         
                 # accumulate extension labels and any reference parts
                 if useLabels or hasRelationshipToCol:
                     prefix, name = rowPrefixNameValues(row)
-                    if name is not None and (prefix in genDocs or extensionPrefixForCoreLabels):
-                        thisDoc = genDocs[extensionPrefixForCoreLabels or prefix]
+                    if name is not None and (prefix in genDocs or extensionPrefixForCoreLabels or hasRelationshipToCol):
+                        thisDoc = genDocs.get(extensionPrefixForCoreLabels or prefix) # None for relationshipTo a imported concept
                         preferredLabel = cellValue(row, 'preferredLabel')
                         for colItem, iCol in headerCols.items():
                             if isinstance(colItem, tuple):
@@ -822,7 +823,29 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                 if preferredLabel and "indented" in colItem and not hasPreferredLabelTextColumn:  # indented column sets preferredLabel if any
                                     role = preferredLabel
                                 for i, value in enumerate(values):
-                                    if colItemType in ("label", "labels"):
+                                    if colItemType == "relationship to": # doesn't require thisDoc
+                                        entryList = lbDepthList(genLB, topDepth)
+                                        if entryList is not None:
+                                            toName = value
+                                            if ":" in toName:
+                                                toPrefix, _sep, toName = value.partition(":")
+                                            else:
+                                                toPrefix = prefix
+                                            if hasRelationshipAttributeColumn:
+                                                # custom attributes (attribute, prefix:localName in header)
+                                                relAttrs = None
+                                                for header in headerCols:
+                                                    if isinstance(header, str) and header.startswith("relationship attribute, "):
+                                                        attrValue = cellValue(row, header)
+                                                        if attrValue not in (None, ""):
+                                                            if relAttrs is None: relAttrs = {}
+                                                            relAttrs[header[24:]] = attrValue # fix QName later after schemaElt exists
+                                            entryList.append( LBentry(prefix=prefix, name=name, isRoot=True, childStruct=
+                                                                      [LBentry(prefix=toPrefix, name=toName, arcrole=role, relAttrs=relAttrs)]) )
+                                    elif thisDoc is None:
+                                        pass 
+                                    # following options only apply to linkbases of generated taxonomies
+                                    elif colItemType in ("label", "labels"):
                                         if isConcept:
                                             if hasPreferredLabelTextColumn and role == "/preferredLabel":
                                                 role = preferredLabel
@@ -852,26 +875,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                                 _part = part
                                             # keep parts in order and not duplicated
                                             thisDoc.extensionReferences[prefix, name, _role].add((_part, _value))
-                                    elif colItemType == "relationship to":
-                                        entryList = lbDepthList(genLB, topDepth)
-                                        if entryList is not None:
-                                            toName = value
-                                            if ":" in toName:
-                                                toPrefix, _sep, toName = value.partition(":")
-                                            else:
-                                                toPrefix = prefix
-                                            if hasRelationshipAttributeColumn:
-                                                # custom attributes (attribute, prefix:localName in header)
-                                                relAttrs = None
-                                                for header in headerCols:
-                                                    if isinstance(header, str) and header.startswith("relationship attribute, "):
-                                                        attrValue = cellValue(row, header)
-                                                        if attrValue not in (None, ""):
-                                                            if relAttrs is None: relAttrs = {}
-                                                            relAttrs[header[24:]] = attrValue # fix QName later after schemaElt exists
-                                            entryList.append( LBentry(prefix=prefix, name=name, isRoot=True, childStruct=
-                                                                      [LBentry(prefix=toPrefix, name=toName, arcrole=role, relAttrs=relAttrs)]) )
-                        if isConcept and eltEnumRefsParts:
+                        if isConcept and eltEnumRefsParts and thisDoc is not None:
                             for i, _enumRefParts in enumerate(eltEnumRefsParts):
                                 for (colItemType, role, part), value in _enumRefParts:
                                     if colItemType == "reference":
