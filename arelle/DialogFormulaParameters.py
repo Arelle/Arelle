@@ -60,7 +60,7 @@ class DialogFormulaParameters(Toplevel):
         
         self.gridCells = []
         y = 2
-        dataTypes = ("xs:string", "xs:integer", "xs:decimal", "xs:date", "xs:datetime", "xs:QName")
+        dataTypes = ("xs:string", "xs:integer", "xs:decimal", "xs:boolean", "xs:date", "xs:datetime", "xs:QName")
         for parameter in options["parameterValues"].items():
             paramQname, paramTypeValue = parameter
             if isinstance(paramTypeValue, (tuple,list)):
