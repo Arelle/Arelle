@@ -127,7 +127,7 @@ class ValidateXbrlCalc2:
                             modelObject=rel, weight=weight,
                             source=fromConcept.qname, target=toConcept.qname, linkrole=rel.linkrole, 
                             sourceBalance=fromBalance, targetBalance=toBalance,
-                            messageCodes=("calc2e:    ", "calc2:balanceCalcWeightIllegalPositive"))
+                            messageCodes=("calc2e:balanceCalcWeightIllegalNegative", "calc2:balanceCalcWeightIllegalPositive"))
                 if not fromConcept.isNumeric or not toConcept.isNumeric:
                     modelXbrl.error("calc2e:nonNumericCalc",
                         _("Calculation relationship has illegal concept from %(source)s%(sourceNumericDecorator)s to %(target)s%(targetNumericDecorator)s in link role %(linkrole)s"),
