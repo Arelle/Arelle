@@ -439,6 +439,8 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
         for elt in xmlDocument.iter():
             if isinstance(elt, ModelObject):
                 elt.init(modelDocument)
+    else:
+        xmlDocument = None
     if type == Type.INSTANCE and discover:
         modelDocument.instanceDiscover(modelDocument.xmlRootElement)
     elif type == Type.RSSFEED and discover:
