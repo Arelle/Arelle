@@ -98,7 +98,7 @@ def deprecatedConceptDatesFile(modelManager, abbrNs, latestTaxonomyDoc):
     if os.path.exists(_fileName):
         return _fileName
     # load labels and store file name
-    modelManager.addToLog(_("loading {} deprecated concepts into {}").format(abbrNs, _target), messageCode="info")
+    modelManager.addToLog(_("loading {} deprecated concepts into {}").format(abbrNs, _fileName), messageCode="info")
     deprecatedConceptDates = {}
     # load without SEC/EFM validation (doc file would not be acceptable)
     priorValidateDisclosureSystem = modelManager.validateDisclosureSystem

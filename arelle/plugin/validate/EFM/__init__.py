@@ -64,7 +64,8 @@ due to a Java bug on Windows shell interface (without the newlines for pretty pr
     \"submissionType\":\"SDR-A\", \"exhibitType\":\"EX-99.K SDR.INS\"}]" 
 
 To build cached deprecated concepts files (requires internet access):
-   --buildDeprecatedConceptsFiles 
+   First delete any resources/*deprecated-concept.json which you want to rebuild
+   arelleCmdLine --plugin validate/EFM --build-deprecated-concepts-file 
    
 In GUI mode please use formula parameters dialog to emulate the above.  The parameters are named as above (with no prefix), and 
 an additional EdgarRenderer parameters:
@@ -114,19 +115,27 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         for paramName in parameterNames:
             p = parameters.get(ModelValue.qname(paramName,noPrefixIsNoNamespace=True))
             if p and len(p) == 2 and p[1] not in ("null", "None", None):
-                val.params[paramName] = p[1]
+                v = p[1] # formula dialog and cmd line formula parameters may need type conversion
+                if isinstance(v, str):
+                    if paramName in {"voluntaryFilerFlag", "wellKnownSeasonedIssuerFlag", "shellCompanyFlag", "acceleratedFilerStatus",
+                                     "smallBusinessFlag", "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "rptIncludeAllSeriesFlag"}:
+                        v = {"true":True, "false":False}.get(v)
+                    elif paramName in {"rptSeriesClassInfo.seriesIds", "newClass2.seriesIds"}:
+                        v = v.split()
+                val.params[paramName] = v
         if "CIK" in val.params: # change to lower case key
             val.params["cik"] = val.params["CIK"]
             del val.params["CIK"]
-        p = parameters.get(ModelValue.qname("ELOparams",noPrefixIsNoNamespace=True))
-        if p and len(p) == 2 and p[1] not in ("null", "None", None):
-            try:
-                for key, value in json.loads(p[1]).items():
-                    val.params[{"CIK":"cik"}.get(key,key)] = value # change upper case CIK to lower case
-            except (ValueError, AttributeError, TypeError):
-                val.modelXbrl.error("arelle.testcaseVariationParameters",
-                    _("parameter ELOparam has malformed JSON %(json)s object"),
-                    modelXbrl=val.modelXbrl, json=p[1][:100])
+        for paramName, p in parameters.items(): # allow ELOparams to be in any namespace (no xmlns="" required)
+            if paramName.localName == "ELOparams" and len(p) == 2 and p[1] not in ("null", "None", None):
+                try:
+                    for key, value in json.loads(p[1]).items():
+                        val.params[{"CIK":"cik"}.get(key,key)] = value # change upper case CIK to lower case
+                except (ValueError, AttributeError, TypeError):
+                    val.modelXbrl.error("arelle.testcaseVariationParameters",
+                        _("parameter ELOparams has malformed JSON %(json)s object"),
+                        modelXbrl=val.modelXbrl, json=p[1][:100])
+                break
     # parameters may also come from report entryPoint (such as exhibitType for SDR)
     if hasattr(val.modelXbrl.modelManager, "efmFiling"):
         efmFiling = val.modelXbrl.modelManager.efmFiling

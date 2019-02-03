@@ -49,6 +49,12 @@ def askSmtp(parent, priorSmtpSettings):
         return (dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password)
     return None
 
+def askParams(parent, title, prompt1, prompt2):
+    dialog = DialogUserPassword(parent, title, showHost=False, showRealm=False,
+                                userLabel=prompt1, passwordLabel=prompt2, hidePassword=False)
+    if dialog.accepted:
+        return (dialog.user, dialog.password)
+ 
 DBTypes = ("postgres", "mssqlSemantic", "mysqlSemantic", "orclSemantic",
            "pgSemantic", "sqliteSemantic", "pgOpenDB", "sqliteDpmDB", "rexster", "rdfDB", "json")
 DBDescriptions = ("XBRL-US Postgres SQL",
@@ -92,7 +98,10 @@ def askInternetLogon(parent, url, quotedUrl, dialogCaption, dialogText, untilDon
     untilDoneEvent.set()
 
 class DialogUserPassword(Toplevel):
-    def __init__(self, parent, title, host=None, realm=None, useOsProxy=None, urlAddr=None, urlPort=None, user=None, password=None, database=None, timeout=None, dbType=None, showUrl=False, showUser=False, showHost=True, showRealm=True, showDatabase=False):
+    def __init__(self, parent, title, host=None, realm=None, useOsProxy=None, urlAddr=None, urlPort=None, 
+                 user=None, password=None, database=None, timeout=None, dbType=None, 
+                 showUrl=False, showUser=False, showHost=True, showRealm=True, showDatabase=False,
+                 userLabel=None, passwordLabel=None, hidePassword=True):
         super(DialogUserPassword, self).__init__(parent)
         self.parent = parent
         parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
@@ -170,7 +179,7 @@ class DialogUserPassword(Toplevel):
             self.enabledWidgets.append(urlAddrEntry)
             self.enabledWidgets.append(urlPortEntry)
             y += 1
-        userLabel = Label(frame, text=_("User:"), underline=0)
+        userLabel = Label(frame, text=userLabel or _("User:"), underline=0)
         userEntry = Entry(frame, textvariable=self.userVar, width=25)
         userLabel.grid(row=y, column=0, sticky=W, pady=3, padx=3)
         userEntry.grid(row=y, column=1, columnspan=4, sticky=EW, pady=3, padx=3)
@@ -178,8 +187,8 @@ class DialogUserPassword(Toplevel):
         y += 1
         if not showUrl:
             userEntry.focus_set()
-        passwordLabel = Label(frame, text=_("Password:"), underline=0)
-        passwordEntry = Entry(frame, textvariable=self.passwordVar, width=25, show="*")
+        passwordLabel = Label(frame, text=passwordLabel or _("Password:"), underline=0)
+        passwordEntry = Entry(frame, textvariable=self.passwordVar, width=25, show=("*" if hidePassword else None))
         passwordLabel.grid(row=y, column=0, sticky=W, pady=3, padx=3)
         passwordEntry.grid(row=y, column=1, columnspan=4, sticky=EW, pady=3, padx=3)
         self.enabledWidgets.append(passwordEntry)

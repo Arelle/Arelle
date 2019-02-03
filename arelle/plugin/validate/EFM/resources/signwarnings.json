@@ -1,85 +1,91 @@
 {
-    "copyright": [
-        "This file was created by staff of the U.S. Securities and Exchange Commission.",
-        "Data and content created by government employees within the scope of their employment", 
-        "are not subject to domestic copyright protection. 17 U.S.C. 105."
+  "copyright": [
+    "This file was created by staff of the U.S. Securities and Exchange Commission.",
+    "Data and content created by government employees within the scope of their employment",
+    "are not subject to domestic copyright protection. 17 U.S.C. 105."
+  ],
+  "description": [
+    "The format is as follows:",
+    "",
+    "A JSON object with two nested JSON objects, 'conceptNames' and 'excludedAxesMembers'.",
+    "",
+    "The conceptNames object contains an object whose keys are the taxonomy abbreviation ",
+    "and values are a JSON list of fact concept names.",
+    "",
+    "The excludedAxesMembers contains an object whose keys are the taxonomy abbreviation ",
+    "and a JSON object of axis members (not issuing a warning).",
+    "",
+    "The axis members object contains keys of axis names and a JSON list of member names ",
+    "or '*' to indicate all non-default members.",
+    "",
+    "The taxonomy abbreviation has the taxonomy prefix, '/', and '*' for all years, or a ",
+    "specific year, e.g., 'us-gaap/*' or 'ifrs-full/2020'."
+  ],
+  "conceptNames": {
+    "us-gaap/*": [
+      "OtherExpenses",
+      "AccumulatedDepreciationDepletionAndAmortizationPropertyPlantAndEquipment",
+      "DeferredTaxAssetsLiabilitiesNet"
     ],
-    "description": [
-        "The format is as follows:",
-        "",
-        "A JSON object with two nested JSON objects, 'conceptNames' and 'excludedAxesMembers'.",
-        "",
-        "The conceptNames object contains an object whose keys are the taxonomy abbreviation ",
-        "and values are a JSON list of fact concept names.",
-        "",
-        "The excludedAxesMembers contains an object whose keys are the taxonomy abbreviation ",
-        "and a JSON object of axis members (not issuing a warning).",
-        "",
-        "The axis members object contains keys of axis names and a JSON list of member names ",
-        "or '*' to indicate all non-default members.",
-        "",
-        "The taxonomy abbreviation has the taxonomy prefix, '/', and '*' for all years, or a ",
-        "specific year, e.g., 'us-gaap/*' or 'ifrs-full/2020'."       
-    ],
-    "conceptNames": {
-        "us-gaap/*": [
-            "OtherExpenses", 
-            "AccumulatedDepreciationDepletionAndAmortizationPropertyPlantAndEquipment",
-            "DeferredTaxAssetsLiabilitiesNet"
-        ],
-        "ifrs-full/*": [
-            "OtherExpenseByFunction",
-            "OtherExpenseByNature",
-            "DepreciationPropertyPlantAndEquipment",
-            "DeferredTaxAssets",
-            "DeferredTaxLiabilities"
-        ]
-     },
-     "excludedAxesMembers": {
-		"us-gaap/*": {
-			"AdjustmentsForNewAccountingPronouncementsAxis": ["*"],
-			"EquityComponentsAxis": [
-				"AccumulatedDefinedBenefitPlansAdjustmentMember",
-				"AccumulatedTransitionAdjustmentMember"],
-			"ConsolidationItemsAxis": [
-				"ConsolidationEliminationsMember",
-				"GeographyEliminationsMember"],
-			"SubsegmentsConsolidationItemsAxis": ["IntersubsegmentEliminationsMember"],
-			"MeasurementInputTypeAxis": ["MeasurementInputComparabilityAdjustmentMember"],
-			"ScenarioAxis": [
-				"RestatementAdjustmentMember",
-				"ScenarioAdjustmentMember"],
-			"EffectOfFourthQuarterEventsByTypeAxis": ["YearEndAdjustmentMember"]
-		},
-		"srt/*": {
-			"AdjustmentsForNewAccountingPronouncementsAxis": ["*"],
-			"EquityComponentsAxis": [
-				"AccumulatedDefinedBenefitPlansAdjustmentMember",
-				"AccumulatedTransitionAdjustmentMember"],
-			"ConsolidationItemsAxis": [
-				"ConsolidationEliminationsMember",
-				"GeographyEliminationsMember"],
-			"SubsegmentsConsolidationItemsAxis": ["IntersubsegmentEliminationsMember"],
-			"MeasurementInputTypeAxis": ["MeasurementInputComparabilityAdjustmentMember"],
-			"ScenarioAxis": [
-				"RestatementAdjustmentMember",
-				"ScenarioAdjustmentMember"],
-			"EffectOfFourthQuarterEventsByTypeAxis": ["YearEndAdjustmentMember"]
-		},
-		"ifrs-full/*": {
-			"RetrospectiveApplicationAndRetrospectiveRestatementAxis": ["*"],
-			"DepartureFromRequirementOfIFRSAxis": [
-				"IncreaseDecreaseDueToDepartureFromRequirementOfIFRSMember"
-			],
-			"SegmentConsolidationItemsAxis": [
-				"EliminationOfIntersegmentAmountsMember"
-			],
-			"FairValueAsDeemedCostAxis": [
-				"AggregateAdjustmentToCarryingValueReportedUnderPreviousGAAPMember"
-			],
-			"EffectOfAdjustmentsMadeWhenEntityChangedBasisOfDisaggregationOfInsuranceFinanceIncomeExpensesBetweenProfitOrLossAndOtherComprehensiveIncomeForContractsWithDirectParticipationFeaturesAxis": [
-				"EffectOfAdjustmentsMadeWhenEntityChangedBasisOfDisaggregationOfInsuranceFinanceIncomeExpensesBetweenProfitOrLossAndOtherComprehensiveIncomeForContractsWithDirectParticipationFeaturesMember"
-			]
-		}
-     }
+    "ifrs-full/*": [
+      "OtherExpenseByFunction",
+      "OtherExpenseByNature",
+      "DepreciationPropertyPlantAndEquipment",
+      "DeferredTaxAssets",
+      "DeferredTaxLiabilities"
+    ]
+  },
+  "excludedAxesMembers": {
+    "us-gaap/*": {
+      "AdjustmentsForNewAccountingPronouncementsAxis": ["*"],
+      "AdjustmentsForChangeInAccountingPrincipleAxis": ["*"],
+      "ErrorCorrectionsAndPriorPeriodAdjustmentsRestatementByRestatementPeriodAndAmountAxis": ["*"],
+      "FreshStartAdjustmentsTypeOfFreshStartAdjustmentAxis": ["*"],
+      "InitialApplicationPeriodCumulativeEffectTransitionAxis": ["*"],
+      "ReclassificationOutOfAccumulatedOtherComprehensiveIncomeAxis": ["*"],
+      "StatementEquityComponentsAxis": [
+        "AccumulatedDefinedBenefitPlansAdjustmentMember",
+        "AccumulatedTranslationAdjustmentMember"
+      ],
+      "ConsolidationItemsAxis": [
+        "ConsolidationEliminationsMember",
+        "IntersegmentEliminationMember",
+        "MaterialReconcilingItemsMember",
+        "GeographyEliminationsMember"
+      ],
+      "SubsegmentsConsolidationItemsAxis": ["IntersubsegmentEliminationsMember"],
+      "MeasurementInputTypeAxis": ["MeasurementInputComparabilityAdjustmentMember"],
+      "StatementScenarioAxis": [
+        "RestatementAdjustmentMember",
+        "ScenarioAdjustmentMember"
+      ],
+      "EffectOfFourthQuarterEventsByTypeAxis": ["YearEndAdjustmentMember"]
+    },
+    "srt/*": {
+      "AdjustmentsForNewAccountingPronouncementsAxis": ["*"],
+      "StatementEquityComponentsAxis": [
+        "AccumulatedDefinedBenefitPlansAdjustmentMember",
+        "AccumulatedTranslationAdjustmentMember"
+      ],
+      "ConsolidationItemsAxis": [
+        "ConsolidationEliminationsMember",
+        "GeographyEliminationsMember"
+      ],
+      "SubsegmentsConsolidationItemsAxis": ["IntersubsegmentEliminationsMember"],
+      "MeasurementInputTypeAxis": ["MeasurementInputComparabilityAdjustmentMember"],
+      "StatementScenarioAxis": [
+        "RestatementAdjustmentMember",
+        "ScenarioAdjustmentMember"
+      ],
+      "EffectOfFourthQuarterEventsByTypeAxis": ["YearEndAdjustmentMember"],
+      "RestatementAxis": "RestatementAdjustmentMember"
+    },
+    "ifrs-full/*": {
+      "RetrospectiveApplicationAndRetrospectiveRestatementAxis": ["*"],
+      "DepartureFromRequirementOfIFRSAxis": ["IncreaseDecreaseDueToDepartureFromRequirementOfIFRSMember"],
+      "SegmentConsolidationItemsAxis": ["EliminationOfIntersegmentAmountsMember"],
+      "FairValueAsDeemedCostAxis": ["AggregateAdjustmentToCarryingValueReportedUnderPreviousGAAPMember"],
+      "EffectOfAdjustmentsMadeWhenEntityChangedBasisOfDisaggregationOfInsuranceFinanceIncomeExpensesBetweenProfitOrLossAndOtherComprehensiveIncomeForContractsWithDirectParticipationFeaturesAxis": ["EffectOfAdjustmentsMadeWhenEntityChangedBasisOfDisaggregationOfInsuranceFinanceIncomeExpensesBetweenProfitOrLossAndOtherComprehensiveIncomeForContractsWithDirectParticipationFeaturesMember"]
+    }
+  }
 }

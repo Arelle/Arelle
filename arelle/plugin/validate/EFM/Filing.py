@@ -537,7 +537,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         # 6.05..23,24 check (after dei facts read)
         if not (isEFM and documentType == "L SDR"): # allow entityIdentifierValue == "0000000000" or any other CIK value
             if disclosureSystem.deiFilerIdentifierElement in deiItems:
-                value = deiItems[disclosureSystem.deiFilerIdentifierElement]
+                value = deiItems.get(disclosureSystem.deiFilerIdentifierElement)
                 if entityIdentifierValue != value:
                     val.modelXbrl.error(("EFM.6.05.23", "GFM.3.02.02"),
                         _("The EntityCentralIndexKey, %(value)s, does not match the context identifier CIK %(entityIdentifier)s.  "
@@ -861,7 +861,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 edgarCode="dq-0540-Current-Fiscal-Year-End-Date-Value",
                 modelObject=deiFacts["CurrentFiscalYearEndDate"], submissionValue=val.params["entity.fyEnd"], 
                 deiValue=deiItems["CurrentFiscalYearEndDate"], 
-                cik=deiItems[disclosureSystem.deiFilerIdentifierElement])
+                cik=deiItems.get(disclosureSystem.deiFilerIdentifierElement))
         # voluntaryFilerFlag = EntityVoluntaryFilers
         if hasDeiFact("EntityVoluntaryFilers") and "voluntaryFilerFlag" in val.params and not deiParamEqual(
             "EntityVoluntaryFilers", deiItems["EntityVoluntaryFilers"], val.params["voluntaryFilerFlag"]):
