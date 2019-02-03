@@ -95,8 +95,9 @@ class DialogTransformTester(Toplevel):
         
         mainWin.showStatus(None)
 
-        okButton = Button(frame, text=_("Transform"), width=8, command=self.ok)
-        cancelButton = Button(frame, text=_("Done"), width=4, command=self.close)
+        btnPad = 2 if mainWin.isMSW else 0 # buttons too narrow on windows
+        okButton = Button(frame, text=_("Transform"), width=8 + btnPad, command=self.ok)
+        cancelButton = Button(frame, text=_("Done"), width=4 + btnPad, command=self.close)
         cancelButton.grid(row=4, column=0, sticky=E, columnspan=2, pady=3, padx=3)
         okButton.grid(row=4, column=0, sticky=E, columnspan=2, pady=3, padx=64)
         ToolTip(okButton, text=_("Transform the source entered. "), wraplength=240)
