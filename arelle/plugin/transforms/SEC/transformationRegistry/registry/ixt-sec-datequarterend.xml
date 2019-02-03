@@ -39,7 +39,7 @@ Transforms date in quarter - year expression representing the last day of a cale
   <reference xlink:type="simple" 
              xlink:href="inlineXBRL-part1/REC-2010-04-20/inlineXBRL-part1-REC-2010-04-20.html#sec-transformationrules"
              >Inline XBRL Part 1: Specification 1.0 Section 14</reference>
-  <signature name="ixt-sec:datequarterene">
+  <signature name="ixt-sec:datequarterend">
     <input name="input" type="ixt-sec:datequarterendType">
       <xhtml:p>
 		Date from a calendar quarter expression, such as the following:

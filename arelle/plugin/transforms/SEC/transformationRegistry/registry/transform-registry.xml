@@ -62,6 +62,13 @@
     <status>REC</status>
     <url xlink:type="simple" xlink:href="ixt-sec-numwordsen.xml"/>
   </entry>
+
+  <entry>
+    <added moment="2018-10-12T12:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-sec-datequarterend.xml"/>
+  </entry>
+  
  
   <!--  Below are the xii-transformationRegistry-v3 files
         Please obtain the latest of the xii files from xbrl.org
