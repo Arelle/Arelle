@@ -1,8 +1,15 @@
 '''
-Created on Feb 2, 2019
+Created on Feb 1, 2019
 
 @author: Mark V Systems Limited
 (c) Copyright 2019 Mark V Systems Limited, All rights reserved.
+
+This plugin allows GUI users to test transforms,
+
+Custom extensions are also made available when their plugin has been loaded
+(e.g., for SEC custom transforms use plugin transforms/SEC, validate/EFM or EdgarRenderer)
+
+Errors are shown both in results field as well as reported in the message pane.
 '''
 from tkinter import Toplevel, StringVar, N, S, E, EW, W, PhotoImage
 try:
