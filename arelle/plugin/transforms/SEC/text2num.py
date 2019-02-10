@@ -22,6 +22,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
+#
+# HF: 2019-02-07 modified word split pattern for transformation dash pattern
 
 import re
 
@@ -74,7 +76,7 @@ class NumberException(Exception):
     def __init__(self, msg):
         Exception.__init__(self, msg)
         
-wordSplitPattern = re.compile(r"[\s-]+")
+wordSplitPattern = re.compile(r"[\s\u058A\u05BE\u2010\u2011\u2012\u2013\u2014\u2015\uFE58\uFE63\uFF0D-]+")
 
 def text2num(s):
     a = wordSplitPattern.split(s)
