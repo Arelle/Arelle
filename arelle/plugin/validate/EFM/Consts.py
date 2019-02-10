@@ -343,6 +343,12 @@ latestTaxonomyDocs = { # note that these URLs are blocked by EFM validation mode
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
+    "invest/*": {
+        "namespace": "http://xbrl.sec.gov/invest/2013-01-31",
+        "deprecatedLabels": "https://xbrl.sec.gov/exch/2013/invest-lab-2013-01-31.xml",
+        "deprecatedLabelRole": usDeprecatedLabelRole,
+        "deprecationDatePattern": usDeprecatedLabelPattern
+        },
     "rr/*": {
         "namespace": "http://xbrl.sec.gov/rr/2018-01-31",
         "deprecatedLabels": "https://xbrl.sec.gov/rr/2018/rr-lab-2018-01-31.xml",
