@@ -199,6 +199,12 @@ def parseAndRun(args):
     parser.add_option("--logTextMaxLength", action="store", dest="logTextMaxLength", type="int",
                       help=_("Log file text field max length override."))
     parser.add_option("--logtextmaxlength", action="store", dest="logTextMaxLength", type="int", help=SUPPRESS_HELP)
+    parser.add_option("--logRefProperties", action="store_true", dest="logRefProperties", 
+                      help=_("Log reference properties (default)."), default=True)
+    parser.add_option("--logrefproperties", action="store_true", dest="logRefProperties", help=SUPPRESS_HELP)
+    parser.add_option("--logNoRefProperties", action="store_false", dest="logRefProperties", 
+                      help=_("Do not log reference properties."))
+    parser.add_option("--lognorefproperties", action="store_false", dest="logRefProperties", help=SUPPRESS_HELP)
     parser.add_option("--statusPipe", action="store", dest="statusPipe", help=SUPPRESS_HELP)
     parser.add_option("--monitorParentProcess", action="store", dest="monitorParentProcess", help=SUPPRESS_HELP)
     parser.add_option("--outputAttribution", action="store", dest="outputAttribution", help=SUPPRESS_HELP)
@@ -423,7 +429,8 @@ def parseAndRun(args):
         else:
             # note that web server logging does not strip time stamp, use logFormat if that is desired
             cntlr.startLogging(logFileName='logToBuffer',
-                               logTextMaxLength=options.logTextMaxLength)
+                               logTextMaxLength=options.logTextMaxLength,
+                               logRefProperties=options.logRefProperties)
             from arelle import CntlrWebMain
             app = CntlrWebMain.startWebserver(cntlr, options)
             if options.webserver == '::wsgi':
@@ -434,7 +441,8 @@ def parseAndRun(args):
                            logFormat=(options.logFormat or "[%(messageCode)s] %(message)s - %(file)s"),
                            logLevel=(options.logLevel or "DEBUG"),
                            logToBuffer=getattr(options, "logToBuffer", False),
-                           logTextMaxLength=options.logTextMaxLength) # e.g., used by EdgarRenderer to require buffered logging
+                           logTextMaxLength=options.logTextMaxLength, # e.g., used by EdgarRenderer to require buffered logging
+                           logRefProperties=options.logRefProperties)
         cntlr.run(options)
         
         return cntlr

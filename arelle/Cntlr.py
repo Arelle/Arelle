@@ -268,7 +268,7 @@ class Cntlr:
                                 self.localeDir)
         
     def startLogging(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None, 
-                     logLevel=None, logHandler=None, logToBuffer=False, logTextMaxLength=None):
+                     logLevel=None, logHandler=None, logToBuffer=False, logTextMaxLength=None, logRefProperties=True):
         # add additional logging levels (for python 2.7, all of these are ints)
         logging.addLevelName(logging.INFO + 1, "INFO-SEMANTIC")
         logging.addLevelName(logging.WARNING + 1, "WARNING-SEMANTIC")
@@ -314,6 +314,7 @@ class Cntlr:
             self.logger.messageCodeFilter = None
             self.logger.messageLevelFilter = None
             self.logHandler.logTextMaxLength = (logTextMaxLength or LOG_TEXT_MAX_LENGTH)
+            self.logHandler.logRefProperties = logRefProperties
                 
     def setLogLevelFilter(self, logLevelFilter):
         if self.logger:
@@ -625,7 +626,8 @@ class LogHandlerWithXml(logging.Handler):
                         ''.join(' {}="{}"'.format(ncNameEncode(k),entityEncode(v)) 
                                                   for k,v in ref["customAttributes"].items())
                              if 'customAttributes' in ref else '',
-                        (">\n  " + propElts(ref["properties"],"\n  ", truncateAt=self.logTextMaxLength) + "\n </ref" ) if "properties" in ref else '/')
+                        (">\n  " + propElts(ref["properties"],"\n  ", truncateAt=self.logTextMaxLength) + "\n </ref" ) 
+                                   if (self.logRefProperties and "properties" in ref) else '/')
                        for ref in logRec.refs)
         return ('<entry code="{0}" level="{1}">'
                 '\n <message{2}>{3}</message>{4}'
@@ -634,6 +636,22 @@ class LogHandlerWithXml(logging.Handler):
                                     args, 
                                     entityEncode(msg), 
                                     refs))
+    def recordToJson(self, logRec):
+        message = { "text": self.format(logRec) }
+        if logRec.args:
+            for n, v in logRec.args.items():
+                message[n] = v
+        if self.logRefProperties:
+            refs = logRec.refs
+        else: # strip properties
+            refs = [[ref[refAttr]
+                     for refAttr in ref
+                     if refAttr != "properties"]
+                    for ref in refs]
+        return {"code": logRec.messageCode,
+                "level": logRec.levelname.lower(),
+                "refs": refs,
+                "message": message}
     
 class LogToXmlHandler(LogHandlerWithXml):
     """
@@ -717,15 +735,7 @@ class LogToXmlHandler(LogHandlerWithXml):
         """
         entries = []
         for logRec in self.logRecordBuffer:
-            message = { "text": self.format(logRec) }
-            if logRec.args:
-                for n, v in logRec.args.items():
-                    message[n] = v
-            entry = {"code": logRec.messageCode,
-                     "level": logRec.levelname.lower(),
-                     "refs": logRec.refs,
-                     "message": message}
-            entries.append(entry)
+            entries.append(self.recordToJson(logRec))
         if clearLogBuffer:
             self.clearLogBuffer()
         return json.dumps( {"log": entries}, ensure_ascii=False, indent=1, default=str )
