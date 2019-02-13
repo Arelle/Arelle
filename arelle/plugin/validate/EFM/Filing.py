@@ -282,7 +282,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                                 modelObject=context, context=contextID, content=childTags, count=len(_childTagNames),
                                                 elementName=contextName.partition("}")[2].title())
             for dim in context.qnameDims.values():
-                if dim.dimensionQname.namespaceURI not in disclosureSystem.standardTaxonomiesDict and isEFM:
+                if isEFM and dim.dimension is not None and dim.dimensionQname.namespaceURI not in disclosureSystem.standardTaxonomiesDict:
                     if dim.isTyped:
                         nonStandardTypedDimensions[dim.dimensionQname].add(context)
                     if customAxesReplacements.customNamePatterns.match(dim.dimensionQname.localName):
@@ -1052,43 +1052,44 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         # seriesId 6.5.41
         if submissionType in submissionTypesAllowingSeriesClasses:
             legalEntityAxis = modelXbrl.nameConcepts.get("LegalEntityAxis",())
-            legalEntityAxisQname = legalEntityAxis[0].qname
-            if len(legalEntityAxis) > 0 and legalEntityAxisQname.namespaceURI.startswith("http://xbrl.sec.gov/dei"):
-                legalEntityAxisRelationshipSet = modelXbrl.modelXbrl.relationshipSet("XBRL-dimensions")
-                if val.params.get("rptIncludeAllSeriesFlag"):
-                    seriesIds = val.params.get("newClass2.seriesIds", ())
-                else:
-                    seriesIds = val.params.get("rptSeriesClassInfo.seriesIds", ())
-                for seriesId in seriesIds:
-                    seriesIdMemberName = seriesId + "Member"
-                    seriesIdMember = None
-                    for c in modelXbrl.nameConcepts.get(seriesIdMemberName, ()):
-                        if c.type.isDomainItemType:
-                            seriesIdMember = c
-                            break
-                    if seriesIdMember is None:
-                        xsds = [doc for url, doc in modelXbrl.urlDocs.items()  # all filer schemas
-                                if doc.type == ModelDocument.Type.SCHEMA and 
-                                url not in disclosureSystem.standardTaxonomiesDict]
-                        modelXbrl.warning("EFM.6.05.41.seriesIdMemberNotDeclared",
-                            _("Submission type %(submissionType)s should have %(seriesIdMember)s declared as a domainItemType element."),
-                            edgarCode="dq-0541-Series-Id-Member-Not-Declared",
-                            modelObject=xsds, seriesIdMember=seriesIdMemberName, submissionType=submissionType)
-                    elif not legalEntityAxisRelationshipSet.isRelated(legalEntityAxis[0],"descendant", seriesIdMember):
-                        defLBs = [doc for url, doc in modelXbrl.urlDocs.items()  # all filer def LBs
-                                  if doc.type == ModelDocument.Type.LINKBASE and 
-                                  url not in disclosureSystem.standardTaxonomiesDict and
-                                  url.endswith("_def.xml")]
-                        modelXbrl.warning("EFM.6.05.41.seriesIdMemberNotAxisMember",
-                            _("Submission type %(submissionType)s should have %(seriesIdMember)s as a member of the Legal Entity Axis."),
-                            edgarCode="dq-0541-Series-Id-Member-Not-Axis-Member",
-                            modelObject=[seriesIdMember, defLBs], seriesIdMember=seriesIdMemberName, submissionType=submissionType)
-                    elif not any(cntx.hasDimension(legalEntityAxisQname) and seriesIdMember == cntx.qnameDims[legalEntityAxisQname].member
-                                 for cntx in contextsWithNonNilFacts):
-                        modelXbrl.warning("EFM.6.05.41.seriesIdMemberNotInContext",
-                            _("Submission type %(submissionType)s should have a context with %(seriesIdMember)s as a member of the Legal Entity Axis."),
-                            edgarCode="dq-0541-Series-Id-Member-Not-In-Context",
-                            modelObject=(modelXbrl,seriesIdMember), seriesIdMember=seriesIdMemberName, submissionType=submissionType)                            
+            if len(legalEntityAxis) > 0:
+                legalEntityAxisQname = legalEntityAxis[0].qname
+                if legalEntityAxisQname.namespaceURI.startswith("http://xbrl.sec.gov/dei"):
+                    legalEntityAxisRelationshipSet = modelXbrl.modelXbrl.relationshipSet("XBRL-dimensions")
+                    if val.params.get("rptIncludeAllSeriesFlag"):
+                        seriesIds = val.params.get("newClass2.seriesIds", ())
+                    else:
+                        seriesIds = val.params.get("rptSeriesClassInfo.seriesIds", ())
+                    for seriesId in seriesIds:
+                        seriesIdMemberName = seriesId + "Member"
+                        seriesIdMember = None
+                        for c in modelXbrl.nameConcepts.get(seriesIdMemberName, ()):
+                            if c.type.isDomainItemType:
+                                seriesIdMember = c
+                                break
+                        if seriesIdMember is None:
+                            xsds = [doc for url, doc in modelXbrl.urlDocs.items()  # all filer schemas
+                                    if doc.type == ModelDocument.Type.SCHEMA and 
+                                    url not in disclosureSystem.standardTaxonomiesDict]
+                            modelXbrl.warning("EFM.6.05.41.seriesIdMemberNotDeclared",
+                                _("Submission type %(submissionType)s should have %(seriesIdMember)s declared as a domainItemType element."),
+                                edgarCode="dq-0541-Series-Id-Member-Not-Declared",
+                                modelObject=xsds, seriesIdMember=seriesIdMemberName, submissionType=submissionType)
+                        elif not legalEntityAxisRelationshipSet.isRelated(legalEntityAxis[0],"descendant", seriesIdMember):
+                            defLBs = [doc for url, doc in modelXbrl.urlDocs.items()  # all filer def LBs
+                                      if doc.type == ModelDocument.Type.LINKBASE and 
+                                      url not in disclosureSystem.standardTaxonomiesDict and
+                                      url.endswith("_def.xml")]
+                            modelXbrl.warning("EFM.6.05.41.seriesIdMemberNotAxisMember",
+                                _("Submission type %(submissionType)s should have %(seriesIdMember)s as a member of the Legal Entity Axis."),
+                                edgarCode="dq-0541-Series-Id-Member-Not-Axis-Member",
+                                modelObject=[seriesIdMember, defLBs], seriesIdMember=seriesIdMemberName, submissionType=submissionType)
+                        elif not any(cntx.hasDimension(legalEntityAxisQname) and seriesIdMember == cntx.qnameDims[legalEntityAxisQname].member
+                                     for cntx in contextsWithNonNilFacts):
+                            modelXbrl.warning("EFM.6.05.41.seriesIdMemberNotInContext",
+                                _("Submission type %(submissionType)s should have a context with %(seriesIdMember)s as a member of the Legal Entity Axis."),
+                                edgarCode="dq-0541-Series-Id-Member-Not-In-Context",
+                                modelObject=(modelXbrl,seriesIdMember), seriesIdMember=seriesIdMemberName, submissionType=submissionType)                            
         """ not required, now handled by schema validation
         else:
             dateMatch = datePattern.match(documentPeriodEndDate)

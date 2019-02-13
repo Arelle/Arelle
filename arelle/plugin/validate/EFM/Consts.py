@@ -245,7 +245,7 @@ submissionTypesAllowingAcceleratedFilerStatus = {"10-K", "10-K/A", "10-KT", "10-
 submissionTypesAllowingEdgarSmallBusinessFlag = {"10-K", "10-K/A", "10-KT", "10-KT/A", "10-Q", "10-Q/A", "10-QT", "10-QT/A", "S-1", "S-1/A", "S-3", "S-3/A", "S-4", 
                                                  "S-4/A", "S-11", "S-11/A", "10-12B", "10-12B/A", "10-12G", "10-12G/A", "S-11MEF", "S-1MEF", "S-3D", "S-3DPOS", "S-3MEF", 
                                                  "S-4 POS", "S-4EF", "S-4MEF"}
-submissionTypesAllowingEntityInvCompanyType = {"485APOS", "485BPOS", "485BXT", "497", "N-1A", "N-1A/A"}
+submissionTypesAllowingEntityInvCompanyType = {'497', '485APOS', '485BPOS', '485BXT', 'N-1A', 'N-1A/A', 'N-Q', 'N-Q/A', 'N-CSR', 'N-CSR/A', 'N-CSRS', 'N-CSRS/A'}
 submissionTypesAllowingSeriesClasses = {"485APOS", "485BPOS", "485BXT", "497", "N-1A", "N-1A/A", "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A"}
 # doc type requirements are for EFM 6.5.20 and are in some cases a superset of what the submission allows.
 docTypesRequiringPeriodOfReport = {"10", "10-K", "10-Q", "20-F", "40-F", "6-K", "8-K", 
@@ -343,12 +343,13 @@ latestTaxonomyDocs = { # note that these URLs are blocked by EFM validation mode
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
-    "invest/*": {
-        "namespace": "http://xbrl.sec.gov/invest/2013-01-31",
-        "deprecatedLabels": "https://xbrl.sec.gov/exch/2013/invest-lab-2013-01-31.xml",
-        "deprecatedLabelRole": usDeprecatedLabelRole,
-        "deprecationDatePattern": usDeprecatedLabelPattern
-        },
+    # under consideration for a future release
+    #"invest/*": {
+    #    "namespace": "http://xbrl.sec.gov/invest/2013-01-31",
+    #    "deprecatedLabels": "https://xbrl.sec.gov/exch/2013/invest-lab-2013-01-31.xml",
+    #    "deprecatedLabelRole": usDeprecatedLabelRole,
+    #    "deprecationDatePattern": usDeprecatedLabelPattern
+    #    },
     "rr/*": {
         "namespace": "http://xbrl.sec.gov/rr/2018-01-31",
         "deprecatedLabels": "https://xbrl.sec.gov/rr/2018/rr-lab-2018-01-31.xml",
