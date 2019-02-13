@@ -268,7 +268,7 @@ class Cntlr:
                                 self.localeDir)
         
     def startLogging(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None, 
-                     logLevel=None, logHandler=None, logToBuffer=False, logTextMaxLength=None, logRefProperties=True):
+                     logLevel=None, logHandler=None, logToBuffer=False, logTextMaxLength=None, logRefObjectProperties=True):
         # add additional logging levels (for python 2.7, all of these are ints)
         logging.addLevelName(logging.INFO + 1, "INFO-SEMANTIC")
         logging.addLevelName(logging.WARNING + 1, "WARNING-SEMANTIC")
@@ -287,10 +287,10 @@ class Cntlr:
                 self.logHandler = LogToPrintHandler(logFileName)
             elif logFileName == "logToBuffer":
                 self.logHandler = LogToBufferHandler()
-                self.logger.logRefObjectProperties = True
+                self.logger.logRefObjectProperties = logRefObjectProperties
             elif logFileName.endswith(".xml") or logFileName.endswith(".json") or logToBuffer:
                 self.logHandler = LogToXmlHandler(filename=logFileName, mode=logFileMode or "a")  # should this be "w" mode??
-                self.logger.logRefObjectProperties = True
+                self.logger.logRefObjectProperties = logRefObjectProperties
                 if not logFormat:
                     logFormat = "%(message)s"
             else:
@@ -314,7 +314,6 @@ class Cntlr:
             self.logger.messageCodeFilter = None
             self.logger.messageLevelFilter = None
             self.logHandler.logTextMaxLength = (logTextMaxLength or LOG_TEXT_MAX_LENGTH)
-            self.logHandler.logRefProperties = logRefProperties
                 
     def setLogLevelFilter(self, logLevelFilter):
         if self.logger:
@@ -627,7 +626,7 @@ class LogHandlerWithXml(logging.Handler):
                                                   for k,v in ref["customAttributes"].items())
                              if 'customAttributes' in ref else '',
                         (">\n  " + propElts(ref["properties"],"\n  ", truncateAt=self.logTextMaxLength) + "\n </ref" ) 
-                                   if (self.logRefProperties and "properties" in ref) else '/')
+                                   if ("properties" in ref) else '/')
                        for ref in logRec.refs)
         return ('<entry code="{0}" level="{1}">'
                 '\n <message{2}>{3}</message>{4}'
@@ -641,16 +640,9 @@ class LogHandlerWithXml(logging.Handler):
         if logRec.args:
             for n, v in logRec.args.items():
                 message[n] = v
-        if self.logRefProperties:
-            refs = logRec.refs
-        else: # strip properties
-            refs = [[ref[refAttr]
-                     for refAttr in ref
-                     if refAttr != "properties"]
-                    for ref in refs]
         return {"code": logRec.messageCode,
                 "level": logRec.levelname.lower(),
-                "refs": refs,
+                "refs": logRec.refs,
                 "message": message}
     
 class LogToXmlHandler(LogHandlerWithXml):

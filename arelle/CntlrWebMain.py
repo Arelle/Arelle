@@ -5,6 +5,7 @@ Use this module to start Arelle in web server mode
 
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+
 '''
 from arelle.webserver.bottle import Bottle, request, response, static_file
 from arelle.Cntlr import LogFormatter
@@ -299,11 +300,13 @@ def runOptionsAndGetResult(options, media, viewFile, sourceZipStream=None):
         if (hasattr(options, "saveOIMinstance") or 
             (getattr(options, "entrypointFile", "") or "").rpartition(".")[2] in ("json", "csv", "xlsx")):
             plugins = (getattr(options, "plugins", "") or "").split("|")
-            if getattr(options, "entrypointFile", "").rpartition(".")[2] in ("json", "csv", "xlsx") and "loadFromOIM" not in plugins:
-                plugins.append("loadFromOIM")
+            if getattr(options, "entrypointFile", "").rpartition(".")[2] in ("json", "csv", "xlsx"):
+                if "loadFromOIM" not in plugins:
+                    plugins.append("loadFromOIM")
                 addLogToZip = True
-            if getattr(options, "saveOIMinstance", "").rpartition(".")[2] in ("json", "csv", "xlsx") and "saveLoadableOIM" not in plugins:
-                plugins.append("saveLoadableOIM")
+            if getattr(options, "saveOIMinstance", "").rpartition(".")[2] in ("json", "csv", "xlsx"):
+                if "saveLoadableOIM" not in plugins:
+                    plugins.append("saveLoadableOIM")
                 addLogToZip = True
                 setattr(options, "saveLoadableOIM", getattr(options, "saveOIMinstance"))
                 setattr(options, "saveOIMinstance", None) # this parameter is for saving xBRL-XML when loaded from JSON/CSV

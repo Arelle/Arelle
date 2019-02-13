@@ -199,12 +199,12 @@ def parseAndRun(args):
     parser.add_option("--logTextMaxLength", action="store", dest="logTextMaxLength", type="int",
                       help=_("Log file text field max length override."))
     parser.add_option("--logtextmaxlength", action="store", dest="logTextMaxLength", type="int", help=SUPPRESS_HELP)
-    parser.add_option("--logRefProperties", action="store_true", dest="logRefProperties", 
-                      help=_("Log reference properties (default)."), default=True)
-    parser.add_option("--logrefproperties", action="store_true", dest="logRefProperties", help=SUPPRESS_HELP)
-    parser.add_option("--logNoRefProperties", action="store_false", dest="logRefProperties", 
-                      help=_("Do not log reference properties."))
-    parser.add_option("--lognorefproperties", action="store_false", dest="logRefProperties", help=SUPPRESS_HELP)
+    parser.add_option("--logRefObjectProperties", action="store_true", dest="logRefObjectProperties", 
+                      help=_("Log reference object properties (default)."), default=True)
+    parser.add_option("--logrefobjectproperties", action="store_true", dest="logRefObjectProperties", help=SUPPRESS_HELP)
+    parser.add_option("--logNoRefObjectProperties", action="store_false", dest="logRefObjectProperties", 
+                      help=_("Do not log reference object properties."))
+    parser.add_option("--lognorefobjectproperties", action="store_false", dest="logRefObjectProperties", help=SUPPRESS_HELP)
     parser.add_option("--statusPipe", action="store", dest="statusPipe", help=SUPPRESS_HELP)
     parser.add_option("--monitorParentProcess", action="store", dest="monitorParentProcess", help=SUPPRESS_HELP)
     parser.add_option("--outputAttribution", action="store", dest="outputAttribution", help=SUPPRESS_HELP)
@@ -430,7 +430,7 @@ def parseAndRun(args):
             # note that web server logging does not strip time stamp, use logFormat if that is desired
             cntlr.startLogging(logFileName='logToBuffer',
                                logTextMaxLength=options.logTextMaxLength,
-                               logRefProperties=options.logRefProperties)
+                               logRefObjectProperties=options.logRefObjectProperties)
             from arelle import CntlrWebMain
             app = CntlrWebMain.startWebserver(cntlr, options)
             if options.webserver == '::wsgi':
@@ -442,7 +442,7 @@ def parseAndRun(args):
                            logLevel=(options.logLevel or "DEBUG"),
                            logToBuffer=getattr(options, "logToBuffer", False),
                            logTextMaxLength=options.logTextMaxLength, # e.g., used by EdgarRenderer to require buffered logging
-                           logRefProperties=options.logRefProperties)
+                           logRefObjectProperties=options.logRefObjectProperties)
         cntlr.run(options)
         
         return cntlr
@@ -829,18 +829,18 @@ class CntlrCmdLine(Cntlr.Cntlr):
             if filesource.isArchive:
                 if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
                     filesource.loadTaxonomyPackageMappings()
-                _entrypointFiles = []
-                # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
-                for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
-                    if _archiveFile.endswith(".xhtml"):
-                        filesource.select(_archiveFile)
-                        if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
-                            _entrypointFiles.append({"file":filesource.url})
-                if not _entrypointFiles:
+                if not (sourceZipStream and len(_entrypointFiles) > 0): # web loaded files specify archive files to load
+                    # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
                     for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
-                        filesource.select(_archiveFile)
-                        if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
-                            _entrypointFiles.append({"file":filesource.url})
+                        if _archiveFile.endswith(".xhtml"):
+                            filesource.select(_archiveFile)
+                            if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
+                                _entrypointFiles.append({"file":filesource.url})
+                    if not _entrypointFiles:
+                        for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
+                            filesource.select(_archiveFile)
+                            if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
+                                _entrypointFiles.append({"file":filesource.url})
             elif os.path.isdir(filesource.url):
                 _entrypointFiles = []
                 for _file in os.listdir(filesource.url):

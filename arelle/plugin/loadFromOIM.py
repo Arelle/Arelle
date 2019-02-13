@@ -3,6 +3,18 @@ loadFromExcel.py is an example of a plug-in that will load an extension taxonomy
 input and optionally save an (extension) DTS.
 
 (c) Copyright 2016 Mark V Systems Limited, All rights reserved.
+
+Example to run from web server:
+
+1) POSTing excel in a zip, getting instance and log back in zip:
+
+   curl -k -v -X POST "-HContent-type: application/zip" -T /Users/hermf/Documents/blahblah.xlsx.zip "localhost:8080/rest/xbrl/open?media=zip&file=WIP_DETAILED_3.xlsx&plugins=loadFromOIM&saveOIMinstance=myinstance.xbrl" -o out.zip
+   
+2) POSTing json within an archive of XII test cases and log and instance back in zip
+
+   curl -k -v -X POST "-HContent-type: application/zip" -T test.zip  "localhost:8080/rest/xbrl/open?media=zip&file=100-json/helloWorld.json&plugins=loadFromOIM&saveOIMinstance=myinstance.xbrl" -o out.zip
+
+
 '''
 import os, sys, io, time, re, traceback, json, csv, logging, math, zipfile
 from collections import defaultdict, OrderedDict
@@ -136,7 +148,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
         startingErrorCount = len(modelXbrl.errors) if modelXbrl else 0
         startedAt = time.time()
         
-        if os.path.isabs(oimFile):
+        if not modelXbrl.fileSource.isArchive and os.path.isabs(oimFile):
             # allow relative filenames to loading directory
             priorCWD = os.getcwd()
             os.chdir(os.path.dirname(oimFile))
@@ -202,7 +214,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                             _valueKeyDict[value] = key
                 return _dict
             if oimObject is None:
-                with io.open(oimFile, 'rt', encoding='utf-8') as f:
+                _file, encoding = modelXbrl.fileSource.file(oimFile, encoding='utf-8')
+                with _file as f:
                     oimObject = json.load(f, object_pairs_hook=loadDict)
             isJSON = True # would raise exception before here if not json
             # check if it's a CSVW metadata
@@ -318,7 +331,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                         tableProperties[propertyName] = propertyValue
                 filepath = os.path.join(_dir, tableUrl)
                 tupleIds = set()
-                with io.open(filepath, 'rt', encoding='utf-8-sig') as f:
+                _file, encoding = modelXbrl.fileSource.file(oimFile, encoding='utf-8-sig')
+                with _file as f:
                     csvReader = csv.reader(f)
                     for i, row in enumerate(csvReader):
                         if i == 0:
@@ -388,7 +402,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                                   specificColProperties.get("*", EMPTYDICT),
                                                   specificColProperties.get(colDef.get("name"), EMPTYDICT),
                                                   tableColumns[iCol].get(CSVproperties, EMPTYDICT))
-                                fact = {"aspects": {}}
+                                fact = {"dimensions": {}}
                                 inapplicableProperties = set()
                                 if colType == "tupleFact":
                                     if cellValue:
@@ -418,7 +432,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                             if propertyName == "deleteInheritedProperties":
                                                 for prop in propertyValue:
                                                     if ":" in prop:
-                                                        fact["aspects"].pop(prop, None)
+                                                        fact["dimensions"].pop(prop, None)
                                                     elif prop == "footnoteRefs":
                                                         footnoteRefs.clear()
                                                     elif prop not in ("datatype",):
@@ -426,7 +440,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                         for propertyName, propertyValue in _properties.items():
                                             if propertyName != "deleteInheritedProperties" and propertyName not in inapplicableProperties and propertyValue  != "":
                                                 if ":" in propertyName:
-                                                    fact["aspects"][propertyName] = csvCellValue(propertyValue)
+                                                    fact["dimensions"][propertyName] = csvCellValue(propertyValue)
                                                 elif propertyName == "footnoteRefs":
                                                     if isinstance(propertyValue, str): # obtained from column of blank-separated refs
                                                         propertyValue = propertyValue.split()
@@ -446,7 +460,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
         elif isXL:
             errPrefix = "xbrlce" # use same prefix as CSV since workbook is a use of xBRL-CSV specification
             currentAction = "identifying workbook input worksheets"
-            oimWb = load_workbook(oimFile, data_only=True)
+            _file, = modelXbrl.fileSource.file(oimFile, binary=True)
+            with _file as f:
+                oimWb = load_workbook(f, data_only=True)
             sheetNames = oimWb.get_sheet_names()
             if (not any(sheetName == "prefixes" for sheetName in sheetNames) or
                 not any(sheetName == "dtsReferences" for sheetName in sheetNames) or
@@ -651,7 +667,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                                   specificColProperties.get("*", EMPTYDICT),
                                                   specificColProperties.get(colDef.colName, EMPTYDICT),
                                                   colDef.colProperty)
-                                fact = {"aspects": {}}
+                                fact = {"dimensions": {}}
                                 inapplicableProperties = set()
                                 if colDef.colType == "tupleFact":
                                     if cellValue:
@@ -679,7 +695,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                             if propertyName == "deleteInheritedProperties":
                                                 for prop in propertyValue:
                                                     if ":" in prop:
-                                                        fact["aspects"].pop(prop, None)
+                                                        fact["dimensions"].pop(prop, None)
                                                     elif prop == "footnoteRefs":
                                                         footnoteRefs.clear()
                                                     elif prop not in ("datatype",):
@@ -687,7 +703,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                         for propertyName, propertyValue in _properties.items():
                                             if propertyName != "deleteInheritedProperties" and propertyName not in inapplicableProperties and propertyValue  != "":
                                                 if ":" in propertyName:
-                                                    fact["aspects"][propertyName] = csvCellValue(propertyValue)
+                                                    fact["dimensions"][propertyName] = csvCellValue(propertyValue)
                                                 elif propertyName == "footnoteRefs":
                                                     if isinstance(propertyValue, str): # obtained from column of blank-separated refs
                                                         propertyValue = propertyValue.split()
@@ -796,13 +812,16 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
         syntheticFactFormat = "_f{{:0{}}}".format(int(math.log10(len(facts)))) #want 
         
         for id, fact in facts.items():
-            aspects = fact.get("aspects", EMPTYDICT)
-            if oimConcept not in aspects:
+            
+            dimensions = fact.get("dimensions")
+            if dimensions is None:
+                dimensions = fact.get("dimensions", EMPTYDICT)
+            if oimConcept not in dimensions:
                 error("{}:conceptQName".format(errPrefix),
                                 _("The concept QName could not be determined, property xbrl:concept missing."),
                                 modelObject=modelXbrl)
                 return
-            conceptSQName = aspects[oimConcept]
+            conceptSQName = dimensions[oimConcept]
             conceptPrefix = conceptSQName.rpartition(":")[0]
             if conceptPrefix not in prefixes:
                 error("xbrlje:unknownPrefix",
@@ -821,28 +840,28 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                 return
             attrs = {}
             if concept.isItem:
-                missingAspects = []
-                if oimEntity not in aspects: 
-                    missingAspects.append(oimEntity)
-                if "xbrl:start" in aspects and "xbrl:end" in aspects:
+                missingDimensions = []
+                if oimEntity not in dimensions: 
+                    missingDimensions.append(oimEntity)
+                if "xbrl:start" in dimensions and "xbrl:end" in dimensions:
                     pass
-                elif oimPeriod not in aspects:
-                    missingAspects.append(oimPeriod)
-                if missingAspects:
-                    error("{}:missingAspects".format(errPrefix),
-                                    _("The concept %(element)s is missing aspects %(missingAspects)s"),
-                                    modelObject=modelXbrl, element=conceptQn, missingAspects=", ".join(missingAspects))
+                elif oimPeriod not in dimensions:
+                    missingDimensions.append(oimPeriod)
+                if missingDimensions:
+                    error("{}:missingDimensions".format(errPrefix),
+                                    _("The concept %(element)s is missing dimensions %(missingDimensions)s"),
+                                    modelObject=modelXbrl, element=conceptQn, missingDimensions=", ".join(missingDimensions))
                     return
-                if oimLanguage in aspects:
-                    attrs["{http://www.w3.org/XML/1998/namespace}lang"] = aspects[oimLanguage]
-                entityAsQn = qname(aspects[oimEntity], prefixes) or qname("error",fact[oimEntity])
-                if "xbrl:start" in aspects and "xbrl:end" in aspects:
+                if oimLanguage in dimensions:
+                    attrs["{http://www.w3.org/XML/1998/namespace}lang"] = dimensions[oimLanguage]
+                entityAsQn = qname(dimensions[oimEntity], prefixes) or qname("error",fact[oimEntity])
+                if "xbrl:start" in dimensions and "xbrl:end" in dimensions:
                     # CSV/XL format
-                    period = aspects["xbrl:start"]
-                    if period != aspects["xbrl:end"]:
-                        period += "/" + aspects["xbrl:end"]
-                elif oimPeriod in aspects:
-                    period = aspects[oimPeriod]
+                    period = dimensions["xbrl:start"]
+                    if period != dimensions["xbrl:end"]:
+                        period += "/" + dimensions["xbrl:end"]
+                elif oimPeriod in dimensions:
+                    period = dimensions[oimPeriod]
                     if not re.match(r"\d{4,}-[0-1][0-9]-[0-3][0-9]T(24:00:00|[0-1][0-9]:[0-5][0-9]:[0-5][0-9])"
                                     r"(/\d{4,}-[0-1][0-9]-[0-3][0-9]T(24:00:00|[0-1][0-9]:[0-5][0-9]:[0-5][0-9]))?", period):
                         error("{}:periodDateTime".format(errPrefix),
@@ -855,14 +874,14 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                     ("entity", entityAsQn),
                     ("period", period)) + tuple(sorted(
                         (dimName, dimVal["value"] if isinstance(dimVal,dict) else dimVal) 
-                        for dimName, dimVal in aspects.items()
+                        for dimName, dimVal in dimensions.items()
                         if ":" in dimName and not dimName.startswith(oimPrefix)))
                 if cntxKey in cntxTbl:
                     _cntx = cntxTbl[cntxKey]
                 else:
                     cntxId = 'c-{:02}'.format(len(cntxTbl) + 1)
                     qnameDims = {}
-                    for dimName, dimVal in aspects.items():
+                    for dimName, dimVal in dimensions.items():
                         if ":" in dimName and not dimName.startswith(oimPrefix):
                             dimQname = qname(dimName, prefixes)
                             dimConcept = modelXbrl.qnameConcepts.get(dimQname)
@@ -902,8 +921,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                     cntxTbl[cntxKey] = _cntx
                     if firstCntxUnitFactElt is None:
                         firstCntxUnitFactElt = _cntx
-                if oimUnit in aspects and concept.isNumeric:
-                    unitKey = aspects[oimUnit]
+                if oimUnit in dimensions and concept.isNumeric:
+                    unitKey = dimensions[oimUnit]
                     if unitKey in unitTbl:
                         _unit = unitTbl[unitKey]
                     else:
@@ -1093,7 +1112,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                         attrs = {XLINKTYPE: "resource",
                                  XLINKLABEL: footnoteToLabel}
                         try:
-                            attrs[XMLLANG] = xbrlNote["aspects"]["language"]
+                            if "dimensions" in xbrlNote:
+                                attrs[XMLLANG] = xbrlNote["dimensions"]["language"]
+                            elif "aspects" in xbrlNote:
+                                attrs[XMLLANG] = xbrlNote["aspects"]["language"]
                         except KeyError:
                             pass
                         # note, for HTML will need to build an element structure
