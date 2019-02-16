@@ -789,7 +789,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         # find default and other labels
         _lang = self.modelXbrl.modelManager.defaultLang
         _labelDefault = self.label(lang=_lang)
-        _labels = tuple(("{} ({})".format(os.path.basename(label.role), label.xmlLang), label.stringValue)
+        _labels = tuple(("{} ({})".format(os.path.basename(label.role or ""), label.xmlLang), label.stringValue)
                         for labelRel in self.modelXbrl.relationshipSet(XbrlConst.conceptLabel).fromModelObject(self)
                         for label in (labelRel.toModelObject,))
         if _labels:

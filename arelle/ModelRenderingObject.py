@@ -422,7 +422,7 @@ class StructuralNode:
 def definitionModelLabelsView(mdlObj):
     return tuple(sorted([("{} {} {} {}".format(label.localName,
                                             str(rel.order).rstrip("0").rstrip("."),
-                                            os.path.basename(label.role),
+                                            os.path.basename(label.role or ""),
                                             label.xmlLang), 
                           label.stringValue)
                          for rel in mdlObj.modelXbrl.relationshipSet((XbrlConst.elementLabel,XbrlConst.elementReference)).fromModelObject(mdlObj)
