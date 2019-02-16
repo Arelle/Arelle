@@ -356,13 +356,9 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
                     else:
                         _numValue = float(_numValue)
                 if not fact.isNil:
-                    if isinf(_inferredDecimals):
-                        if isJSON: _accuracy = "infinity"
-                        elif isCSVorXL: _accuracy = "INF"
-                    else:
-                        _accuracy = _inferredDecimals
-                    oimFact["accuracy"] = _accuracy
-        oimFact["aspects"] = aspects
+                    if not isinf(_inferredDecimals): # accuracy omitted if infinite
+                        oimFact["decimals"] = _inferredDecimals
+        oimFact["dimensions"] = aspects
         cntx = fact.context
         if cntx is not None:
             if cntx.entityIdentifierElement is not None:
@@ -436,10 +432,10 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
             ftId = ftObj.id if ftObj.id else "f{}".format(ftObj.objectIndex)
             oimFacts[ftId] = oimFact = OrderedDict()
             oimFact["value"] = ftObj.viewText()
-            oimFact["aspects"] = OrderedDict((("concept", "xbrl:note"),
+            oimFact["dimensions"] = OrderedDict((("concept", "xbrl:note"),
                                               ("noteId", ftId)))
             if ftObj.xmlLang:
-                oimFact["aspects"]["language"] = ftObj.xmlLang.lower()
+                oimFact["dimensions"]["language"] = ftObj.xmlLang.lower()
             
         if outputZip:
             fh = io.StringIO()
@@ -466,7 +462,7 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
             _colDataType = {"id": "Name",
                             "concept": "QName",
                             "value": "string",
-                            "accuracy": "decimal",
+                            "decimals": "decimal",
                             "entity": "QName",
                             "periodStart": "dateTime",
                             "periodEnd": "dateTime",
@@ -492,7 +488,7 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
         addAspectQnCol(qnOimConceptAspect)
         addAspectQnCol("value")
         if hasNumeric:
-            addAspectQnCol("accuracy")
+            addAspectQnCol("decimals")
         if hasTuple:
             addAspectQnCol("tupleId")
             addAspectQnCol(qnOimTupleParentAspect)
@@ -556,7 +552,7 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
                 _csvinfo["file"].close()
                 _csvinfo.clear()
         elif isXL:
-            headerWidths = {"href": 100, "xbrl:concept": 70, "accuracy": 8, "language": 9, "URI": 80,
+            headerWidths = {"href": 100, "xbrl:concept": 70, "decimals": 8, "language": 9, "URI": 80,
                             "value": 60, 
                             "group": 60, "footnoteType": 40, "footnote": 70, "column": 20,
                             'conceptAspect': 40, 'tuple': 20, 'simpleFact': 20}

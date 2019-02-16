@@ -73,7 +73,7 @@ oimPeriod = "period"
 oimUnit = "unit"
 oimLanguage = "language"
 oimPrefix = "xbrl:"
-oimSimpleFactProperties = {oimEntity, oimPeriod, oimUnit, "accuracy"}
+oimSimpleFactProperties = {oimEntity, oimPeriod, oimUnit, "decimals"}
 
 qnXbrlNote = qname(nsOim, "note")
 
@@ -979,7 +979,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                     if _unit is None:
                         return # skip creating fact because unit was invalid
                     attrs["unitRef"] = _unit.id
-                    if "accuracy" in attrs or attrs.get(XbrlConst.qnXsiNil, "false") != "true":
+                    if "decimals" in attrs or attrs.get(XbrlConst.qnXsiNil, "false") != "true":
+                        attrs["decimals"] = fact.get("decimals", "INF")
+                    elif "accuracy" in attrs or attrs.get(XbrlConst.qnXsiNil, "false") != "true":
                         attrs["decimals"] = fact.get("accuracy", "INF")
             else:
                 text = None #tuple
