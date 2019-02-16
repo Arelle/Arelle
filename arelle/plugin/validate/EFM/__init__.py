@@ -127,7 +127,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
             val.params["cik"] = val.params["CIK"]
             del val.params["CIK"]
         for paramName, p in parameters.items(): # allow ELOparams to be in any namespace (no xmlns="" required)
-            if paramName.localName == "ELOparams" and len(p) == 2 and p[1] not in ("null", "None", None):
+            if paramName and paramName.localName == "ELOparams" and len(p) == 2 and p[1] not in ("null", "None", None):
                 try:
                     for key, value in json.loads(p[1]).items():
                         val.params[{"CIK":"cik"}.get(key,key)] = value # change upper case CIK to lower case
