@@ -142,6 +142,8 @@ def parseAndRun(args):
                       help=_("Write concepts into FILE"))
     parser.add_option("--pre", "--csvPre", action="store", dest="preFile",
                       help=_("Write presentation linkbase into FILE"))
+    parser.add_option("--table", "--csvTable", action="store", dest="tableFile",
++                     help=_("Write table linkbase into FILE"))
     parser.add_option("--cal", "--csvCal", action="store", dest="calFile",
                       help=_("Write calculation linkbase into FILE"))
     parser.add_option("--dim", "--csvDim", action="store", dest="dimFile",
@@ -422,7 +424,7 @@ def parseAndRun(args):
         # webserver incompatible with file operations
         if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
                 options.factsFile, options.factListCols, options.factTableFile,
-                options.conceptsFile, options.preFile, options.calFile, options.dimFile, options.formulaeFile, options.viewArcrole, options.viewFile,
+                options.conceptsFile, options.preFile, options.tableFile, options.calFile, options.dimFile, options.formulaeFile, options.viewArcrole, options.viewFile,
                 options.roleTypesFile, options.arcroleTypesFile
                 )):
             parser.error(_("incorrect arguments with --webserver, please try\n  python CntlrCmdLine.py --help"))
@@ -988,6 +990,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, labelrole=options.labelRole, lang=options.labelLang)
                     if options.preFile:
                         ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", "http://www.xbrl.org/2003/arcrole/parent-child", labelrole=options.labelRole, lang=options.labelLang)
+                    if options.tableFile:
++                       ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.tableFile, "Table Linkbase","Table-rendering", labelrole=options.labelRole,lang=options.labelLang)
                     if options.calFile:
                         ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", "http://www.xbrl.org/2003/arcrole/summation-item", labelrole=options.labelRole, lang=options.labelLang)
                     if options.dimFile:
