@@ -12,7 +12,7 @@ from arelle import PythonUtil # define 2.x or 3.x string types
 import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json, logging
 from optparse import OptionParser, SUPPRESS_HELP
 import re
-from arelle import (Cntlr, FileSource, ModelDocument, XmlUtil, Version, 
+from arelle import (Cntlr, FileSource, ModelDocument, RenderingEvaluator, XmlUtil, Version, 
                     ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts, 
                     ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests, ViewFileRssFeed,
                     ViewFileRoleTypes,
@@ -879,6 +879,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                             _("loaded in %.2f secs at %s"), 
                                             (loadTime, timeNow)), 
                                             messageCode="info", file=self.entrypointFile)
+                
+                if modelXbrl.hasTableRendering:
++                    RenderingEvaluator.init(modelXbrl)
+                
                 if options.importFiles:
                     for importFile in options.importFiles.split("|"):
                         fileName = importFile.strip()
