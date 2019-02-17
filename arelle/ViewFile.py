@@ -167,7 +167,7 @@ class View:
         if self.type == XLSX:
             self.xlsxColWrapText = colColWrapText
         
-    def addRow(self, cols, asHeader=False, treeIndent=0, colSpan=1, xmlRowElementName=None, xmlRowEltAttr=None, xmlRowText=None, xmlCol0skipElt=False, xmlColElementNames=None, lastColSpan=None):
+    def addRow(self, cols, asHeader=False, treeIndent=0, colSpan=1, xmlRowElementName=None, xmlRowEltAttr=None, xmlRowText=None, xmlCol0skipElt=False, xmlColElementNames=None, lastColSpan=None, arcRole=None):
         if asHeader and len(cols) > self.numHdrCols:
             self.numHdrCols = len(cols)
         if self.type == CSV:
@@ -255,6 +255,9 @@ class View:
                                 isDimensionValue = True
                                 isDimensionName = False
                                 dimensionName = str(col)
+                                if arcRole == "Table-rendering":
++                                    elt = etree.SubElement(rowElt, "dimensions")
++                                    elt.text = str(col).replace("&", "&amp;").replace("<", "&lt;")
                             else:
                                 elt = etree.SubElement(rowElt, elementName)
                                 elt.text = str(col).replace("&","&amp;").replace("<","&lt;")
