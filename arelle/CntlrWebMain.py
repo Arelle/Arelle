@@ -51,6 +51,7 @@ def startWebserver(_cntlr, options):
     app.route('/rest/xbrl/<file:path>/DTS', GETorPOST, validation)
     app.route('/rest/xbrl/<file:path>/concepts', GETorPOST, validation)
     app.route('/rest/xbrl/<file:path>/pre', GETorPOST, validation)
+    app.route('/rest/xbrl/<file:path>/table', GETorPOST, validation)
     app.route('/rest/xbrl/<file:path>/cal', GETorPOST, validation)
     app.route('/rest/xbrl/<file:path>/dim', GETorPOST, validation)
     app.route('/rest/xbrl/<file:path>/facts', GETorPOST, validation)
@@ -194,7 +195,7 @@ class Options():
         for option, defaultValue in optionsPrototype.items():
             setattr(self, option, defaultValue)
             
-supportedViews = {'DTS', 'concepts', 'pre', 'cal', 'dim', 'facts', 'factTable', 'formulae', 'roleTypes', 'arcroleTypes'}
+supportedViews = {'DTS', 'concepts', 'pre', 'table', 'cal', 'dim', 'facts', 'factTable', 'formulae', 'roleTypes', 'arcroleTypes'}
 
 def validation(file=None):
     """REST request to validate, by *get* or *post*, to URL patterns including */rest/xbrl/<file:path>/{open|close|validation|DTS...}*,
