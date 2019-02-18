@@ -51,6 +51,7 @@ def startWebserver(_cntlr, options):
     app.route('/rest/xbrl/<file:path>/DTS', GETorPOST, validation)
     app.route('/rest/xbrl/<file:path>/concepts', GETorPOST, validation)
     app.route('/rest/xbrl/<file:path>/pre', GETorPOST, validation)
+    app.route('/rest/xbrl/<file:path>/table', GETorPOST, validation)
     app.route('/rest/xbrl/<file:path>/cal', GETorPOST, validation)
     app.route('/rest/xbrl/<file:path>/dim', GETorPOST, validation)
     app.route('/rest/xbrl/<file:path>/facts', GETorPOST, validation)
@@ -194,7 +195,7 @@ class Options():
         for option, defaultValue in optionsPrototype.items():
             setattr(self, option, defaultValue)
             
-supportedViews = {'DTS', 'concepts', 'pre', 'cal', 'dim', 'facts', 'factTable', 'formulae', 'roleTypes', 'arcroleTypes'}
+supportedViews = {'DTS', 'concepts', 'pre', 'table', 'cal', 'dim', 'facts', 'factTable', 'formulae', 'roleTypes', 'arcroleTypes'}
 
 def validation(file=None):
     """REST request to validate, by *get* or *post*, to URL patterns including */rest/xbrl/<file:path>/{open|close|validation|DTS...}*,
@@ -233,8 +234,8 @@ def validation(file=None):
         if media not in ('xml', 'xhtml', 'html', 'json', 'text') and not (sourceZipStream and media == 'zip'):
             errors.append(_("Media '{0}' is not supported for validation (please select xhtml, html, xml, json or text)").format(media))
     elif view or viewArcrole:
-        if media not in ('xml', 'xhtml', 'html', 'csv', 'json'):
-            errors.append(_("Media '{0}' is not supported for view (please select xhtml, html, xml, csv, or json)").format(media))
+        if media not in ('xml', 'xhtml', 'html', 'csv', 'xlsx', 'json'):
+            errors.append(_("Media '{0}' is not supported for view (please select xhtml, html, xml, csv, xlsx or json)").format(media))
     elif requestPathParts[-1] not in ("open", "close"):                
         errors.append(_("Neither validation nor view requested, nothing to do."))
     if (flavor not in ('standard', 'standard-except-formula', 'formula-compile-only', 'formula-compile-and-run')
@@ -628,7 +629,7 @@ as follows:</td></tr>
 <tr><th colspan="2">Views</th></tr>
 <tr><td>/rest/xbrl/{file}/{view}</td><td>View document at {file}.</td></tr>
 <tr><td>\u00A0</td><td>{file} may be local or web url, and may have "/" characters replaced by ";" characters (but that is not necessary).</td></tr>
-<tr><td>\u00A0</td><td>{view} may be <code>DTS</code>, <code>concepts</code>, <code>pre</code>, <code>cal</code>, <code>dim</code>, <code>facts</code>, <code>factTable</code>, <code>formulae</code>, <code>roleTypes</code>, or <code>arcroleTypes</code>.</td></tr>
+<tr><td>\u00A0</td><td>{view} may be <code>DTS</code>, <code>concepts</code>, <code>pre</code>, <code>table</code>, <code>cal</code>, <code>dim</code>, <code>facts</code>, <code>factTable</code>, <code>formulae</code>, <code>roleTypes</code>, or <code>arcroleTypes</code>.</td></tr>
 <tr><td style="text-align=right;">Example:</td><td><code>/rest/xbrl/c:/a/b/c.xbrl/dim?media=html</code>: View dimensions of 
 document at c:/a/b/c.xbrl (on local drive) and return html result.</td></tr>
 <tr><td>/rest/xbrl/view</td><td>(Alternative syntax) View document, file and view are provided as parameters (see below).</td></tr>
@@ -639,6 +640,7 @@ as follows:</td></tr>
 <tr><td style="text-indent: 1em;">media</td><td><code>html</code> or <code>xhtml</code>: Html text results. (default)
 <br/><code>xml</code>: XML structured results.
 <br/><code>csv</code>: CSV text results (no markup).
+<br/><code>xslx</code>: Excel results.
 <br/><code>json</code>: JSON text results.</td></tr> 
 <tr><td style="text-indent: 1em;">file</td><td>Alternate way to specify file name or url by a parameter.</td></tr> 
 <tr><td style="text-indent: 1em;">view</td><td>Alternate way to specify view by a parameter.</td></tr> 

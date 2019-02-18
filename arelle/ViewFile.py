@@ -14,7 +14,7 @@ if sys.version[0] >= '3':
 else:
     csvOpenMode = 'wb' # for 2.7
     csvOpenNewline = None
-from openpyxl import Workbook, cell
+from openpyxl import Workbook, cell, utils
 from openpyxl.styles import Font, PatternFill, Border, Alignment, Color, fills, Side
 
 NOOUT = 0
@@ -167,7 +167,7 @@ class View:
         if self.type == XLSX:
             self.xlsxColWrapText = colColWrapText
         
-    def addRow(self, cols, asHeader=False, treeIndent=0, colSpan=1, xmlRowElementName=None, xmlRowEltAttr=None, xmlRowText=None, xmlCol0skipElt=False, xmlColElementNames=None, lastColSpan=None):
+    def addRow(self, cols, asHeader=False, treeIndent=0, colSpan=1, xmlRowElementName=None, xmlRowEltAttr=None, xmlRowText=None, xmlCol0skipElt=False, xmlColElementNames=None, lastColSpan=None, arcRole=None):
         if asHeader and len(cols) > self.numHdrCols:
             self.numHdrCols = len(cols)
         if self.type == CSV:
@@ -177,6 +177,7 @@ class View:
                                      [None for i in range(treeIndent, self.treeCols - 1)] +
                                      cols[1:]))
         elif self.type == XLSX:
+            cell = None
             for iCol, col in enumerate(cols):
                 cell = self.xlsxWs.cell(row=self.xlsxRow+1, column=iCol+1)
                 if asHeader:
@@ -189,6 +190,11 @@ class View:
                         cell.alignment = Alignment(indent=treeIndent)
                 if self.xlsxColWrapText and iCol < len(self.xlsxColWrapText) and self.xlsxColWrapText[iCol]:
                     cell.alignment = Alignment(wrap_text=True)
+            if lastColSpan and cell is not None:
+                self.xlsxWs.merge_cells(range_string='%s%s:%s%s' % (utils.get_column_letter(iCol+1),
+                                                                    self.xlsxRow+1,
+                                                                    utils.get_column_letter(iCol+lastColSpan),
+                                                                    self.xlsxRow+1))
             if asHeader and self.xlsxRow == 0:
                 self.xlsxWs.freeze_panes = self.xlsxWs["A2"] # freezes row 1 and no columns
             self.xlsxRow += 1

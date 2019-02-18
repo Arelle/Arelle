@@ -591,8 +591,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                 filename = self.uiFileDialog("save",
                         title=_("arelle - Save {0}").format(view.tabTitle),
                         initialdir=os.path.dirname(self.modelManager.modelXbrl.modelDocument.uri),
-                        filetypes=[(_("CSV file"), "*.csv"),(_("HTML file"), "*.html"),(_("XML file"), "*.xml"),(_("JSON file"), "*.json")],
-                        defaultextension=".csv")
+                        filetypes=[(_("XLSX file"), "*.xlsx"),(_("CSV file"), "*.csv"),(_("HTML file"), "*.html"),(_("XML file"), "*.xml"),(_("JSON file"), "*.json")],
+                        defaultextension=".xlsx")
                 if not filename:
                     return False
                 try:
