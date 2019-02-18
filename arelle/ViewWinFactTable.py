@@ -64,7 +64,7 @@ class ViewFactTable(ViewWinTree.ViewTree):
         # consider facts in the relationshipSet (only)
         contexts = set()
         self.conceptFacts = defaultdict(list)
-        if self.linkrole and hasattr(self.modelXbrl.roleTypes[self.linkrole][0], "_tableFacts"):
+        if self.linkrole and self.modelXbrl.roleTypes[self.linkrole] and hasattr(self.modelXbrl.roleTypes[self.linkrole][0], "_tableFacts"):
             for fact in self.modelXbrl.roleTypes[self.linkrole][0]._tableFacts:
                 self.conceptFacts[fact.qname].append(fact)
                 if fact.context is not None:

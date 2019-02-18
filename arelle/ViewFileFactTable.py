@@ -142,7 +142,7 @@ class ViewFacts(ViewFile.View):
                 linkRelationshipSet = self.modelXbrl.relationshipSet(self.arcrole, linkroleUri, self.linkqname, self.arcqname)
                 # set up concepts which apply to linkrole for us-gaap style filings
                 self.conceptFacts.clear()
-                if linkroleUri and hasattr(self.modelXbrl.roleTypes[linkroleUri][0], "_tableFacts"):
+                if linkroleUri and self.modelXbrl.roleTypes[linkroleUri] and hasattr(self.modelXbrl.roleTypes[linkroleUri][0], "_tableFacts"):
                     for fact in self.modelXbrl.roleTypes[linkroleUri][0]._tableFacts:
                         self.conceptFacts[fact.qname].append(fact)
                 else:
