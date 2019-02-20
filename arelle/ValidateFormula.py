@@ -20,6 +20,7 @@ from arelle.ModelObject import (ModelObject)
 from arelle.ModelValue import (qname,QName)
 from arelle import (XbrlConst, XmlUtil, ModelXbrl, ModelDocument, XPathParser, XPathContext, FunctionXs,
                     ValidateXbrlDimensions) 
+from arelle.XmlValidate import validate as xml_validate
 
 class FormulaValidationException(Exception):
     def __init__(self):
@@ -1162,6 +1163,11 @@ def checkDefinitionNodeRules(val, table, parent, arcrole, xpathContext):
                     rulesByAspect = defaultdict(set)
                     for elt in XmlUtil.descendants(axis, XbrlConst.formula, "*"):
                         try:
+                            try:
+                                # make sure xAttributes is initialized
+                                elt.xAttributes
+                            except AttributeError:
+                                xml_validate(val.modelXbrl, elt)
                             if elt.localName in ("concept", "entityIdentifier", "period", "unit"):
                                 rulesByAspect[elt.localName].add(elt)
                             elif elt.localName in ("explicitDimension", "typedDimension"):
