@@ -1682,7 +1682,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     if isinstance(ixElt,ModelObject):
                         if ixElt.get("target"):
                             modelXbrl.error("EFM.5.02.05.targetDisallowed",
-                                _("Inline element %(localName)s has disallowed target attribute %(target)s."),
+                                _("Inline element %(localName)s has disallowed target attribute '%(target)s'."),
                                 modelObject=ixElt, localName=ixElt.elementQname, target=ixElt.get("target"))
             for ixElt in ixdsHtmlRootElt.iterdescendants(tag=ixNStag+"tuple"):
                 if isinstance(ixElt,ModelObject):
