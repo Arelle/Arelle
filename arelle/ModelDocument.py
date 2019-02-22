@@ -1620,12 +1620,13 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
         modelXbrl.error(ixMsgCode("missingReferences", None, name="references", sect="validation"),
                         _("There must be at least one reference"),
                         modelObject=modelXbrl)
-    if factTargetIDs - set(targetReferenceAttrs.keys()):
+    _missingReferenceTargets = factTargetIDs - set(targetReferenceAttrs.keys())
+    if _missingReferenceTargets:
         modelXbrl.error(ixMsgCode("missingReferenceTargets", None, name="references", sect="validation"),
-                        _("Instance fact targets without reference: %(missingReferenceTargets)s"),
-                        modelObject=modelXbrl, missingReferenceTargets=",".join(sorted(
-                            "(default)" if t is None else t
-                            for t in factTargetIDs - set(targetReferenceAttrs.keys()))))
+                        _("Found no ix:references element%(plural)s having target%(plural)s '%(missingReferenceTargets)s' in IXDS."),
+                        modelObject=modelXbrl, plural=("s" if len(_missingReferenceTargets) > 1 else ""),
+                        missingReferenceTargets=", ".join(sorted("(default)" if t is None else t
+                                                                 for t in _missingReferenceTargets)))
         
     if ixdsTarget not in factTargetIDs and ixdsTarget not in targetReferenceAttrs.keys():
         modelXbrl.warning("arelle:ixdsTargetNotDefined",
