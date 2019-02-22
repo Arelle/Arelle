@@ -668,19 +668,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
         self.modelManager.customTransforms = None # clear out prior custom transforms
         self.modelManager.loadCustomTransforms()
         
-        # run utility command line options that don't depend on entrypoint Files
-        hasUtilityPlugin = False
-        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Utility.Run"):
-            hasUtilityPlugin = True
-            try:
-                pluginXbrlMethod(self, options, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
-            except SystemExit: # terminate operation, plug in has terminated all processing
-                return True # success
-            
-        # if no entrypointFile is applicable, quit now
-        if options.proxy or options.plugins or hasUtilityPlugin:
-            if not (options.entrypointFile or sourceZipStream):
-                return True # success
         self.username = options.username
         self.password = options.password
         if options.disclosureSystemName:
@@ -798,6 +785,20 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if options.formulaCompileOnly:
             fo.compileOnly = True
         self.modelManager.formulaOptions = fo
+        
+        # run utility command line options that don't depend on entrypoint Files
+        hasUtilityPlugin = False
+        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Utility.Run"):
+            hasUtilityPlugin = True
+            try:
+                pluginXbrlMethod(self, options, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
+            except SystemExit: # terminate operation, plug in has terminated all processing
+                return True # success
+            
+        # if no entrypointFile is applicable, quit now
+        if options.proxy or options.plugins or hasUtilityPlugin:
+            if not (options.entrypointFile or sourceZipStream):
+                return True # success
 
         success = True
         # entrypointFile may be absent (if input is a POSTED zip or file name ending in .zip)
