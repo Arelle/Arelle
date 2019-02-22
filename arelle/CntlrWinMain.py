@@ -1459,7 +1459,8 @@ class WinMainLogHandler(logging.Handler):
         self.setFormatter(formatter)
         self.logRecordBuffer = None
     def startLogBuffering(self):
-        self.logRecordBuffer = []
+        if self.logRecordBuffer is None:
+            self.logRecordBuffer = []
     def endLogBuffering(self):
         self.logRecordBuffer = None
     def flush(self):
