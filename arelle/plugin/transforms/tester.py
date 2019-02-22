@@ -16,12 +16,12 @@ For GUI operation tools -> transformation tester:
     Select registry (ixt v1-4, ixt-sec)
     Select or enter transform
     Enter source text
-    Press “transform”
+    Press "transform"
     Result (or error code)
 
 For command line operation:
 
-    arelleCmdLine --plugins transforms/tester --testTransform 'registry name transformation name pattern' (space separatedd)
+    arelleCmdLine --plugins transforms/tester --testTransform 'registry name transformation name pattern' (space separated)
     note: the transform name may be optionally prefixed
     results or errors are in the log
     
