@@ -38,15 +38,8 @@ For command line operation:
     arelleCmdLine --plugins 'transforms/tester|transforms/SEC' --testTransform 'help'
 
 '''
-from tkinter import Toplevel, StringVar, N, S, E, EW, W, PhotoImage
-try:
-    from tkinter.ttk import Frame, Button, Entry
-except ImportError:
-    from ttk import Frame, Button
 import os, re, logging
 from arelle.FunctionIxt import ixtNamespaces, ixtNamespaceFunctions
-from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox
-from arelle.CntlrWinTooltip import ToolTip
 from arelle.ModelFormulaObject import Trace
 from arelle.XmlUtil import setXmlns
 from arelle import ModelDocument, ModelXbrl, ValidateXbrl, XbrlConst, XPathParser, XPathContext
@@ -105,107 +98,7 @@ class TransformTester:
             self.modelXbrl.error(err.code, err.message)
             return err
         
-class DialogTransformTester(Toplevel):
-    def __init__(self, tester):
-        self.tester = tester
-        self.mainWin = tester.cntlr
 
-        parent = self.mainWin.parent
-        super(DialogTransformTester, self).__init__(parent)
-        self.parent = parent
-        parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
-        dialogX = int(parentGeometry.group(3))
-        dialogY = int(parentGeometry.group(4))
-        self.selectedGroup = None
-
-        self.transient(self.parent)
-        self.title(_("Transformation Tester"))
-        
-        frame = Frame(self)
-        
-        # load grid
-        trRegLabel = label(frame, 0, 0, _("Registry:"))
-        trReg = self.tester.trRegs[-1] # default is latest
-        self.trRegName = gridCombobox(frame, 1, 0, 
-                                      value=trReg,
-                                      values=self.tester.trRegs, 
-                                      comboboxselected=self.dialogTrRegComboBoxSelected)
-        trRegToolTipMessage = _("Select Transformation Registry")
-        ToolTip(self.trRegName, text=trRegToolTipMessage, wraplength=360)
-        ToolTip(trRegLabel, text=trRegToolTipMessage, wraplength=360)
-        
-        trNameLabel = label(frame, 0, 1, _("Transform:"))
-        self.trNameName = gridCombobox(frame, 1, 1, 
-                                      value="",
-                                      values=self.tester.getTrNames(trReg), 
-                                      comboboxselected=self.dialogTrNameComboBoxSelected)
-        trRegToolTipMessage = _("Select or enter transform")
-        ToolTip(self.trRegName, text=trRegToolTipMessage, wraplength=360)
-        ToolTip(trRegLabel, text=trRegToolTipMessage, wraplength=360)
-
-        sourceLabel = label(frame, 0, 2, _("Source text:"))
-        ToolTip(sourceLabel, text=_("Enter the source text which is to be transformed. "), wraplength=240)
-        self.sourceVar = StringVar()
-        self.sourceVar.set("")
-        sourceEntry = Entry(frame, textvariable=self.sourceVar, width=50)
-        sourceLabel.grid(row=2, column=0, sticky=W)
-        sourceEntry.grid(row=2, column=1, sticky=EW, pady=3, padx=3)
-
-        resultLabel = label(frame, 1, 3, _("Result:"))
-        ToolTip(sourceLabel, text=_("Transformation result. "), wraplength=240)
-        self.resultVar = StringVar()
-        self.resultVar.set("")
-        resultEntry = Entry(frame, textvariable=self.resultVar, width=50)
-        resultLabel.grid(row=3, column=0, sticky=W)
-        resultEntry.grid(row=3, column=1, sticky=EW, pady=3, padx=3)
-
-        
-        self.mainWin.showStatus(None)
-
-        btnPad = 2 if self.mainWin.isMSW else 0 # buttons too narrow on windows
-        okButton = Button(frame, text=_("Transform"), width=8 + btnPad, command=self.dialogOk)
-        cancelButton = Button(frame, text=_("Done"), width=4 + btnPad, command=self.dialogClose)
-        cancelButton.grid(row=4, column=0, sticky=E, columnspan=2, pady=3, padx=3)
-        okButton.grid(row=4, column=0, sticky=E, columnspan=2, pady=3, padx=64)
-        ToolTip(okButton, text=_("Transform the source entered. "), wraplength=240)
-        ToolTip(cancelButton, text=_("Close this dialog. "), wraplength=240)
-        
-        frame.grid(row=0, column=0, sticky=(N,S,E,W))
-        frame.columnconfigure(1, weight=3)
-        frame.columnconfigure(2, weight=1)
-        window = self.winfo_toplevel()
-        window.columnconfigure(0, weight=1)
-        self.geometry("+{0}+{1}".format(dialogX+150,dialogY+100))
-        
-        #self.bind("<Return>", self.ok)
-        #self.bind("<Escape>", self.close)
-        
-        self.protocol("WM_DELETE_WINDOW", self.dialogClose)
-        self.grab_set()
-        
-        self.wait_window(self)
-        
-    def dialogOk(self, event=None):
-        result = self.tester.transform(
-            self.trRegName.get(),
-            self.trNameName.value,
-            self.sourceVar.get())
-        if isinstance(result, XPathContext.XPathException):
-            self.resultVar.set(str(result))
-        else:
-            self.resultVar.set(str(result))
-            
-    def dialogClose(self, event=None):
-        self.tester.modelXbrl.close()
-        self.parent.focus_set()
-        self.destroy()
-
-    def dialogTrRegComboBoxSelected(self, *args):
-        self.trNameName["values"] = self.tester.getTrNames( self.trRegName.get() )
-        
-    def dialogTrNameComboBoxSelected(self, *args):
-        pass
-        
  
 def cmdLineOptionExtender(parser, *args, **kwargs):
     parser.add_option("--testTransform", 
@@ -239,6 +132,115 @@ def cmdLineRun(cntlr, options, *args, **kwargs):
         tester.modelXbrl.close()
 
 def transformationTesterMenuExtender(cntlr, menu, *args, **kwargs):
+    # define tkinger only when running in GUI mode, not available in cmd line or web server modes
+    from tkinter import Toplevel, StringVar, N, S, E, EW, W
+    try:
+        from tkinter.ttk import Frame, Button, Entry
+    except ImportError:
+        from ttk import Frame, Button
+    from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox
+    from arelle.CntlrWinTooltip import ToolTip
+    class DialogTransformTester(Toplevel):
+        def __init__(self, tester):
+            self.tester = tester
+            self.mainWin = tester.cntlr
+    
+            parent = self.mainWin.parent
+            super(DialogTransformTester, self).__init__(parent)
+            self.parent = parent
+            parentGeometry = re.match("(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
+            dialogX = int(parentGeometry.group(3))
+            dialogY = int(parentGeometry.group(4))
+            self.selectedGroup = None
+    
+            self.transient(self.parent)
+            self.title(_("Transformation Tester"))
+            
+            frame = Frame(self)
+            
+            # load grid
+            trRegLabel = label(frame, 0, 0, _("Registry:"))
+            trReg = self.tester.trRegs[-1] # default is latest
+            self.trRegName = gridCombobox(frame, 1, 0, 
+                                          value=trReg,
+                                          values=self.tester.trRegs, 
+                                          comboboxselected=self.dialogTrRegComboBoxSelected)
+            trRegToolTipMessage = _("Select Transformation Registry")
+            ToolTip(self.trRegName, text=trRegToolTipMessage, wraplength=360)
+            ToolTip(trRegLabel, text=trRegToolTipMessage, wraplength=360)
+            
+            trNameLabel = label(frame, 0, 1, _("Transform:"))
+            self.trNameName = gridCombobox(frame, 1, 1, 
+                                          value="",
+                                          values=self.tester.getTrNames(trReg), 
+                                          comboboxselected=self.dialogTrNameComboBoxSelected)
+            trRegToolTipMessage = _("Select or enter transform")
+            ToolTip(self.trRegName, text=trRegToolTipMessage, wraplength=360)
+            ToolTip(trRegLabel, text=trRegToolTipMessage, wraplength=360)
+    
+            sourceLabel = label(frame, 0, 2, _("Source text:"))
+            ToolTip(sourceLabel, text=_("Enter the source text which is to be transformed. "), wraplength=240)
+            self.sourceVar = StringVar()
+            self.sourceVar.set("")
+            sourceEntry = Entry(frame, textvariable=self.sourceVar, width=50)
+            sourceLabel.grid(row=2, column=0, sticky=W)
+            sourceEntry.grid(row=2, column=1, sticky=EW, pady=3, padx=3)
+    
+            resultLabel = label(frame, 1, 3, _("Result:"))
+            ToolTip(sourceLabel, text=_("Transformation result. "), wraplength=240)
+            self.resultVar = StringVar()
+            self.resultVar.set("")
+            resultEntry = Entry(frame, textvariable=self.resultVar, width=50)
+            resultLabel.grid(row=3, column=0, sticky=W)
+            resultEntry.grid(row=3, column=1, sticky=EW, pady=3, padx=3)
+    
+            
+            self.mainWin.showStatus(None)
+    
+            btnPad = 2 if self.mainWin.isMSW else 0 # buttons too narrow on windows
+            okButton = Button(frame, text=_("Transform"), width=8 + btnPad, command=self.dialogOk)
+            cancelButton = Button(frame, text=_("Done"), width=4 + btnPad, command=self.dialogClose)
+            cancelButton.grid(row=4, column=0, sticky=E, columnspan=2, pady=3, padx=3)
+            okButton.grid(row=4, column=0, sticky=E, columnspan=2, pady=3, padx=64)
+            ToolTip(okButton, text=_("Transform the source entered. "), wraplength=240)
+            ToolTip(cancelButton, text=_("Close this dialog. "), wraplength=240)
+            
+            frame.grid(row=0, column=0, sticky=(N,S,E,W))
+            frame.columnconfigure(1, weight=3)
+            frame.columnconfigure(2, weight=1)
+            window = self.winfo_toplevel()
+            window.columnconfigure(0, weight=1)
+            self.geometry("+{0}+{1}".format(dialogX+150,dialogY+100))
+            
+            #self.bind("<Return>", self.ok)
+            #self.bind("<Escape>", self.close)
+            
+            self.protocol("WM_DELETE_WINDOW", self.dialogClose)
+            self.grab_set()
+            
+            self.wait_window(self)
+            
+        def dialogOk(self, event=None):
+            result = self.tester.transform(
+                self.trRegName.get(),
+                self.trNameName.value,
+                self.sourceVar.get())
+            if isinstance(result, XPathContext.XPathException):
+                self.resultVar.set(str(result))
+            else:
+                self.resultVar.set(str(result))
+                
+        def dialogClose(self, event=None):
+            self.tester.modelXbrl.close()
+            self.parent.focus_set()
+            self.destroy()
+    
+        def dialogTrRegComboBoxSelected(self, *args):
+            self.trNameName["values"] = self.tester.getTrNames( self.trRegName.get() )
+            
+        def dialogTrNameComboBoxSelected(self, *args):
+            pass
+            
     def guiTransformationTester():
         tester = TransformTester(cntlr, isCmdLine=True)
         DialogTransformTester( tester )
