@@ -467,6 +467,15 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
             return self._isNumeric
     
     @property
+    def isInteger(self):
+        """(bool) -- True for elements of, or derived from, integer base type (not including fractionItemType)"""
+        try:
+            return self._isInteger
+        except AttributeError:
+            self._isInteger = XbrlConst.isIntegerXsdType(self.baseXsdType)
+            return self._isInteger
+    
+    @property
     def isFraction(self):
         """(bool) -- True if the baseXbrliType is fractionItemType"""
         try:

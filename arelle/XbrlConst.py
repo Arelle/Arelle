@@ -534,6 +534,11 @@ def isNumericXsdType(xsdType):
                        "long", "unsignedLong", "int", "unsignedInt", "short", "unsignedShort",
                        "byte", "unsignedByte", "decimal", "float", "double"}
     
+def isIntegerXsdType(xsdType):
+    return xsdType in {"integer", "positiveInteger", "negativeInteger", "nonNegativeInteger", "nonPositiveInteger",
+                       "long", "unsignedLong", "int", "unsignedInt", "short", "unsignedShort",
+                       "byte", "unsignedByte"}
+    
 standardLabelRoles = {
                     "http://www.xbrl.org/2003/role/label",
                     "http://www.xbrl.org/2003/role/terseLabel",

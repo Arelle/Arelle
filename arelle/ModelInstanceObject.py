@@ -232,6 +232,16 @@ class ModelFact(ModelObject):
             return self._isNumeric
 
     @property
+    def isInteger(self):
+        """(bool) -- concept.isInteger (note this is false for fractions)"""
+        try:
+            return self._isInteger
+        except AttributeError:
+            concept = self.concept
+            self._isInteger = (concept is not None) and concept.isInteger
+            return self._isInteger
+
+    @property
     def isMultiLanguage(self):
         """(bool) -- concept.type.isMultiLanguage (string or normalized string)"""
         concept = self.concept
@@ -658,7 +668,7 @@ class ModelInlineValueObject:
                         elif isnan(num):
                             self._ixValue = "NaN"
                         else:
-                            if num == num.to_integral() and ".0" not in v:
+                            if num == num.to_integral() and (".0" not in v or self.isInteger):
                                 num = num.quantize(DECIMALONE) # drop any .0
                             self._ixValue = "{}".format(num)
                     except (ValueError, InvalidOperation):
