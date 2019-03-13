@@ -270,6 +270,7 @@ class Cntlr:
     def startLogging(self, logFileName=None, logFileMode=None, logFileEncoding=None, logFormat=None, 
                      logLevel=None, logHandler=None, logToBuffer=False, logTextMaxLength=None, logRefObjectProperties=True):
         # add additional logging levels (for python 2.7, all of these are ints)
+        logging.addLevelName(logging.INFO - 1, "INFO-RESULT") # result data, has @name, @value, optional href to source and readable message
         logging.addLevelName(logging.INFO + 1, "INFO-SEMANTIC")
         logging.addLevelName(logging.WARNING + 1, "WARNING-SEMANTIC")
         logging.addLevelName(logging.WARNING + 2, "ASSERTION-SATISFIED")
