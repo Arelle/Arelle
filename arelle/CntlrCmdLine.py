@@ -833,6 +833,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
                     filesource.loadTaxonomyPackageMappings()
                 if not (sourceZipStream and len(_entrypointFiles) > 0): # web loaded files specify archive files to load
+                    _entrypointFiles = [] # clear out archive from entrypointFiles
                     # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
                     for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
                         if _archiveFile.endswith(".xhtml"):
