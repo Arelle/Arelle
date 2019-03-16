@@ -80,18 +80,20 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
             if len(modelDocument.basename) > 32:
                 val.modelXbrl.error("EFM.5.01.01.tooManyCharacters",
                     _("Document file name %(filename)s must not exceed 32 characters."),
+                    edgarCode=="cp-0501-File-Name-Length",
                     modelObject=modelDocument, filename=modelDocument.basename)
-            if modelDocument.type == ModelDocument.Type.INLINEXBRL:
-                if not htmlFileNamePattern.match(modelDocument.basename):
+            if modelDocument.type != ModelDocument.Type.INLINEXBRLDOCUMENTSET:
+                if modelDocument.type == ModelDocument.Type.INLINEXBRL:
+                    _pattern = htmlFileNamePattern
+                    _suffix = ".htm"
+                else:
+                    _pattern = efmFilenamePattern
+                    _suffix = ".xsd or .xml"
+                if not _pattern.match(modelDocument.basename):
                     val.modelXbrl.error("EFM.5.01.01",
-                        _("Document file name %(filename)s must start with a-z or 0-9, contain upper or lower case letters, ., -, _, and end with .htm."),
-                        modelObject=modelDocument, filename=modelDocument.basename)
-            elif modelDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET:
-                pass # don't check surrogate for inline document set
-            elif not efmFilenamePattern.match(modelDocument.basename):
-                val.modelXbrl.error("EFM.5.01.01",
-                    _("Document file name %(filename)s must start with a-z or 0-9, contain upper or lower case letters, ., -, _, and end with .xsd or .xml."),
-                    modelObject=modelDocument, filename=modelDocument.basename)
+                        _("Document file name %(filename)s must start with a-z or 0-9, contain upper or lower case letters, ., -, _, and end with %(suffix)s."),
+                        edgarCode=="cp-0501-File-Name",
+                        modelObject=modelDocument, filename=modelDocument.basename, suffix=_suffix)
     
     if (modelDocument.type == ModelDocument.Type.SCHEMA and 
         modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and
@@ -143,6 +145,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
             if not re.match(r"(http://|https://|ftp://|urn:)\w+",authority):
                 val.modelXbrl.error(("EFM.6.07.05", "GFM.1.03.05"),
                     _("Taxonomy schema %(schema)s namespace %(targetNamespace)s must be a valid URI with a valid authority for the namespace."),
+                    edgarCode="du-0705-Namespace-Authority",
                     modelObject=modelDocument, schema=modelDocument.basename, targetNamespace=modelDocument.targetNamespace)
             # may be multiple prefixes for namespace
             prefixes = [(prefix if prefix is not None else "")

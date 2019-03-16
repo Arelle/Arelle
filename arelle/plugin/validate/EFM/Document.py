@@ -19,6 +19,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                 if scheme == "element" and val.validateDisclosureSystem:
                     val.modelXbrl.error(("EFM.6.03.06", "GFM.1.01.03"),
                         _("Href %(elementHref)s may only have shorthand xpointers"),
+                        edgarCode="cp-0306-Href-Xpointers",
                         modelObject=hrefElt, 
                         elementHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
     

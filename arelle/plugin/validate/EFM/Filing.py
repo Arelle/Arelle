@@ -481,6 +481,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             if concept is None:
                 modelXbrl.error(("EFM.6.04.03", "GFM.2.01.01"),
                     _("Fact %(fact)s of context %(contextID)s has an XBRL error"),
+                    edgarCode="fs-0403-Fact-Xbrl-Error",
                     modelObject=f, fact=f.qname, contextID=factContextID)
             else:
                 # note fact concpts used
@@ -1924,6 +1925,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         if documentType is not None and not val.hasExtensionSchema and documentType != "L SDR":
             modelXbrl.error("EFM.6.03.10",
                             _("%(documentType)s report is missing a extension schema file."),
+                            edgarCode="cp-0310-Missing-Schema",
                             modelObject=modelXbrl, documentType=documentType)
         
         # 6.7.12: check link role orders
