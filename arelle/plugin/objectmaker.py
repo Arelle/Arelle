@@ -263,7 +263,7 @@ def objectmakerCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
 
 __pluginInfo__ = {
     'name': 'ObjectMaker',
-    'version': '0.9',
+    'version': '1.0',
     'description': "ObjectMaker(r) diagrams XBRL relationship graphs.",
     'license': 'Apache-2 (ObjectMaker), Eclipse (Graphviz)',
     'author': 'Mark V Systems Limited',
