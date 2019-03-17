@@ -133,6 +133,11 @@ def modulesWithNewerFileDates():
     for moduleInfo in pluginConfig["modules"].values():
         freshenedFilename = _cntlr.webCache.getfilename(moduleInfo["moduleURL"], checkModifiedTime=True, normalize=True, base=_pluginBase)
         try:
+            if os.path.isdir(freshenedFilename): # if freshenedFilename is a directory containing an __ini__.py file, open that instead
+                if os.path.isfile(os.path.join(freshenedFilename, "__init__.py")):
+                    freshenedFilename = os.path.join(freshenedFilename, "__init__.py")
+            elif not freshenedFilename.endswith(".py") and not os.path.exists(freshenedFilename) and os.path.exists(freshenedFilename + ".py"):
+                freshenedFilename += ".py" # extension module without .py suffix
             if moduleInfo["fileDate"] < time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(freshenedFilename))):
                 names.add(moduleInfo["name"])
         except Exception as err:
