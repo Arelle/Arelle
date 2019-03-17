@@ -80,7 +80,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
             if len(modelDocument.basename) > 32:
                 val.modelXbrl.error("EFM.5.01.01.tooManyCharacters",
                     _("Document file name %(filename)s must not exceed 32 characters."),
-                    edgarCode=="cp-0501-File-Name-Length",
+                    edgarCode="cp-0501-File-Name-Length",
                     modelObject=modelDocument, filename=modelDocument.basename)
             if modelDocument.type != ModelDocument.Type.INLINEXBRLDOCUMENTSET:
                 if modelDocument.type == ModelDocument.Type.INLINEXBRL:
@@ -92,7 +92,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                 if not _pattern.match(modelDocument.basename):
                     val.modelXbrl.error("EFM.5.01.01",
                         _("Document file name %(filename)s must start with a-z or 0-9, contain upper or lower case letters, ., -, _, and end with %(suffix)s."),
-                        edgarCode=="cp-0501-File-Name",
+                        edgarCode="cp-0501-File-Name",
                         modelObject=modelDocument, filename=modelDocument.basename, suffix=_suffix)
     
     if (modelDocument.type == ModelDocument.Type.SCHEMA and 
