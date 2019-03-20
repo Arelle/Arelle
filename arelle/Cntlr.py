@@ -161,7 +161,7 @@ class Cntlr:
             # note that cache is in ~/Library/Caches/Arelle
             self.contextMenuClick = "<Button-2>"
             self.hasClipboard = hasGui  # clipboard always only if Gui (not command line mode)
-            self.updateURL = "http://arelle.org/downloads/8"
+            self.updateURL = "http://arelle.org/download/1005"
         elif sys.platform.startswith("win"):
             self.isMac = False
             self.isMSW = True
@@ -187,9 +187,9 @@ class Cntlr:
                 self.hasClipboard = False
             self.contextMenuClick = "<Button-3>"
             if "64 bit" in sys.version:
-                self.updateURL = "http://arelle.org/downloads/9"
+                self.updateURL = "http://arelle.org/download/1008"
             else: # 32 bit
-                self.updateURL = "http://arelle.org/downloads/10"
+                self.updateURL = "http://arelle.org/download/1011"
         else: # Unix/Linux
             self.isMac = False
             self.isMSW = False

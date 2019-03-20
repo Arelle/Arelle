@@ -4,7 +4,7 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, posixpath, sys, re, shutil, time, calendar, io, json, logging, shutil
+import os, posixpath, sys, re, shutil, time, calendar, io, json, logging, shutil, cgi
 if sys.version[0] >= '3':
     from urllib.parse import quote, unquote
     from urllib.error import URLError, HTTPError, ContentTooShortError
@@ -571,6 +571,15 @@ class WebCache:
                 actualurl = fp.geturl()
                 fp.close()
                 return actualurl
+            except Exception:
+                pass
+        return None
+        
+    def getAttachmentFilename(self, url):  # get the filename attachment from the header
+        if url and isHttpUrl(url):
+            try:
+                fp = self.opener.open(url, timeout=self.timeout)
+                return cgi.parse_header(fp.headers.get("Content-Disposition"))[1]["filename"]
             except Exception:
                 pass
         return None

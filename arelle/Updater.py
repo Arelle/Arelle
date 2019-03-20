@@ -18,18 +18,19 @@ def backgroundCheckForUpdates(cntlr):
     actualUrl = None
     cntlr.showStatus(_("Checking for updates to Arelle")) 
     try:
-        actualUrl = cntlr.webCache.geturl(cntlr.updateURL)
-        if actualUrl:
+        attachmentFileName = cntlr.webCache.getAttachmentFilename(cntlr.updateURL)
+        if attachmentFileName:
             cntlr.showStatus("") # clear web loading status entry 
-            cntlr.uiThreadQueue.put((checkUpdateUrl, [cntlr, actualUrl]))
+            cntlr.uiThreadQueue.put((checkUpdateUrl, [cntlr, attachmentFileName]))
     except:
-        cntlr.showStatus("") # clear web loading status entry 
+        pass
+    cntlr.showStatus("") # clear web loading status entry 
 
-def checkUpdateUrl(cntlr, actualUrl):    
+def checkUpdateUrl(cntlr, attachmentFileName):    
     # get latest header file
     try:
         from arelle import WebCache, Version
-        filename = os.path.basename(actualUrl)
+        filename = os.path.basename(attachmentFileName)
         if filename and "-20" in filename:
             i = filename.index("-20") + 1
             filenameDate = filename[i:i+10]
