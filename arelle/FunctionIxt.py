@@ -147,8 +147,8 @@ monthyearLongEnTR1Pattern = RePattern(r"^\s*(January|February|March|April|May|Ju
 yearmonthShortEnTR1Pattern = RePattern(r"^\s*([0-9]{2}|[0-9]{4})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*$")
 yearmonthLongEnTR1Pattern = RePattern(r"^\s*([0-9]{2}|[0-9]{4})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s*$")
 
-erayearmonthjpPattern = RePattern(r"^[\s ]*(明治|明|大正|大|昭和|昭|平成|平|新号|新)[\s ]*([0-9０-９]{1,2}|元)[\s ]*(年)[\s ]*([0-9０-９]{1,2})[\s ]*(月)[\s ]*$")
-erayearmonthdayjpPattern = RePattern(r"^[\s ]*(明治|明|大正|大|昭和|昭|平成|平|新号|新)[\s ]*([0-9０-９]{1,2}|元)[\s ]*(年)[\s ]*([0-9０-９]{1,2})[\s ]*(月)[\s ]*([0-9０-９]{1,2})[\s ]*(日)[\s ]*$")
+erayearmonthjpPattern = RePattern(r"^[\s ]*(明治|明|大正|大|昭和|昭|平成|平|令和|令)[\s ]*([0-9０-９]{1,2}|元)[\s ]*(年)[\s ]*([0-9０-９]{1,2})[\s ]*(月)[\s ]*$")
+erayearmonthdayjpPattern = RePattern(r"^[\s ]*(明治|明|大正|大|昭和|昭|平成|平|令和|令)[\s ]*([0-9０-９]{1,2}|元)[\s ]*(年)[\s ]*([0-9０-９]{1,2})[\s ]*(月)[\s ]*([0-9０-９]{1,2})[\s ]*(日)[\s ]*$")
 yearmonthcjkPattern = RePattern(r"^[\s ]*([0-9０-９]{1,2}|[0-9０-９]{4})[\s ]*(年)[\s ]*([0-9０-９]{1,2})[\s ]*(月)[\s ]*$")
 yearmonthdaycjkPattern = RePattern(r"^[\s ]*([0-9０-９]{1,2}|[0-9０-９]{4})[\s ]*(年)[\s ]*([0-9０-９]{1,2})[\s ]*(月)[\s ]*([0-9０-９]{1,2})[\s ]*(日)[\s ]*$")
 
@@ -362,8 +362,8 @@ def sakaToGregorian(sYr, sMo, sDay): # replacement of plug-in sakaCalendar.py wh
     return (gYr, gMo, gDay)
 
 # see: http://www.i18nguy.com/l10n/emperor-date.html        
-eraStart = {'新号': 2018,
-            '新': 2018,
+eraStart = {'令和': 2018,
+            '令': 2018,
             '\u5E73\u6210': 1988, 
             '\u5E73': 1988,
             '\u660E\u6CBB': 1867,
