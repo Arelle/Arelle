@@ -686,13 +686,15 @@ def filter_member_network_selection(xc, p, args):
     relationshipSet = xc.modelXbrl.relationshipSet(arcroleURI, linkroleURI)
     if relationshipSet is not None:
         members = set()
+        ''' removed 2011-03-10:
         linkQnames = set()
         arcQnames = set()
+        '''
         if axis.endswith("-or-self"):
             members.add(qnMem)
         fromRels = relationshipSet.fromModelObject(memConcept)
         if fromRels is not None:
-            filter_member_network_members(relationshipSet, fromRels, axis.startswith("descendant"), members, linkQnames, arcQnames)
+            filter_member_network_members(relationshipSet, fromRels, axis.startswith("descendant"), members=members)
             ''' removed 2011-03-10:
             if len(linkQnames) > 1 or len(arcQnames) > 1:
                 raise XPathContext.XPathException(p, 'xfie:ambiguousFilterMemberNetwork', 
@@ -706,16 +708,22 @@ def filter_member_network_selection(xc, p, args):
     # removed error 2011-03-10: raise XPathContext.XPathException(p, 'xfie:unrecognisedExplicitDimensionValueQName', _('Argument 1 {0} member is not in the network.').format(qnMem))
     return ()
 
-def filter_member_network_members(relationshipSet, fromRels, recurse, members, linkQnames, arcQnames):
+def filter_member_network_members(relationshipSet, fromRels, recurse, members=None, relationships=None, linkQnames=None, arcQnames=None):
+    if members is None:
+        members = set()
     for modelRel in fromRels:
         toConcept = modelRel.toModelObject
         toConceptQname = toConcept.qname
-        linkQnames.add(modelRel.linkQname)
-        arcQnames.add(modelRel.qname)
+        if linkQnames is not None:
+            linkQnames.add(modelRel.linkQname)
+        if arcQnames is not None:
+            arcQnames.add(modelRel.qname)
         if toConceptQname not in members:
             members.add(toConceptQname)
+            if relationships is not None:
+                relationships.add(modelRel)
             if recurse:
-                filter_member_network_members(relationshipSet, relationshipSet.fromModelObject(toConcept), recurse, members, linkQnames, arcQnames)                
+                filter_member_network_members(relationshipSet, relationshipSet.fromModelObject(toConcept), recurse, members, relationships, linkQnames, arcQnames)                
 
 def filter_member_DRS_selection(xc, p, args):
     if len(args) != 5: raise XPathContext.FunctionNumArgs()

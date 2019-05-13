@@ -2127,7 +2127,7 @@ class ModelExplicitDimension(ModelFilter):
                                         fromRels = relSet.fromModelObject(memConcept)
                                         if fromRels:
                                             from arelle.FunctionXfi import filter_member_network_members
-                                            filter_member_network_members(relSet, fromRels, memberModel.axis.startswith("descendant"), set(), linkQnames, arcQnames)
+                                            filter_member_network_members(relSet, fromRels, memberModel.axis.startswith("descendant"), set(), None, linkQnames, arcQnames)
                                             if len(linkQnames) > 1 or len(arcQnames) > 1:
                                                 self.modelXbrl.error(_('Network of linkrole {0} and arcrole {1} dimension {2} contains ambiguous links {3} or arcs {4}').format(
                                                                      memberModel.linkrole, memberModel.arcrole, self.dimQname, linkQnames, arcQnames) ,

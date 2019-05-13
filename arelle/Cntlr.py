@@ -616,7 +616,8 @@ class LogHandlerWithXml(logging.Handler):
         
         msg = self.format(logRec)
         if logRec.args:
-            args = "".join([' {0}="{1}"'.format(ncNameEncode(n), entityEncode(v, truncateAt=128)) 
+            args = "".join([' {0}="{1}"'.format(ncNameEncode(n), entityEncode(v, 
+                                                truncateAt=(65535 if n in ("json",) else 128))) 
                             for n, v in logRec.args.items()])
         else:
             args = ""

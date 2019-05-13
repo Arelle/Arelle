@@ -546,7 +546,7 @@ class Filing:
             relFiles = [relativeUri(_baseFile, f) for f in file]
         else:
             relFiles = None
-        self.cntlr.addToLog(message, messageCode=messageCode, messageArgs=messageArgs, file=relFiles, level="ERROR")
+        self.cntlr.addToLog(message, messageCode=messageCode, messageArgs=messageArgs, file=relFiles, level=logging.ERROR)
         self.errors.append(messageCode)
         
     @property
@@ -631,7 +631,7 @@ class Report:
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EFM',
-    'version': '1.19.1', # SEC EDGAR release 19.1
+    'version': '1.19.2', # SEC EDGAR release 19.2
     'description': '''EFM Validation.''',
     'license': 'Apache-2',
     'import': ('transforms/SEC',), # SEC inline can use SEC transformations

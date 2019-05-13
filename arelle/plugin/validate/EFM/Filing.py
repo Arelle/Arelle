@@ -9,7 +9,7 @@ Subsequent validations and enhancements created by staff of the U.S. Securities 
 Data and content created by government employees within the scope of their employment are not subject 
 to domestic copyright protection. 17 U.S.C. 105.
 '''
-import re, datetime, decimal
+import re, datetime, decimal, json
 from collections import defaultdict
 from arelle import (ModelDocument, ModelValue, ModelRelationshipSet, 
                     XmlUtil, XbrlConst, ValidateFilingText)
@@ -25,8 +25,8 @@ from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.XmlValidate import VALID
 from .DTS import checkFilingDTS
-from .Consts import edgarDocumentTypes, edgarSubmissionTypeAllowedDocumentTypes, docTypeDeiItems, \
-                    docTypesRequiringEntityVolFilersAndPubFloat, submissionTypesAllowingWellKnownSeasonedIssuer, \
+from .Consts import submissionTypesAllowingWellKnownSeasonedIssuer, \
+                    submissionTypesNotRequiringPeriodEndDate, \
                     submissionTypesAllowingEntityInvCompanyType, docTypesRequiringEntityFilerCategory, \
                     submissionTypesAllowingAcceleratedFilerStatus, submissionTypesAllowingShellCompanyFlag, \
                     submissionTypesAllowingEdgarSmallBusinessFlag, submissionTypesAllowingEmergingGrowthCompanyFlag, \
@@ -36,12 +36,13 @@ from .Consts import edgarDocumentTypes, edgarSubmissionTypeAllowedDocumentTypes,
                     docTypesRequiringEntityWellKnownSeasonedIssuer, \
                     submissionTypesAllowingVoluntaryFilerFlag, docTypesNotAllowingInlineXBRL, \
                     docTypesRequiringRrSchema, docTypesNotAllowingIfrs, \
-                    untransformableTypes, rrUntransformableEltsPattern
+                    untransformableTypes, rrUntransformableEltsPattern, \
+                    docTypes20F
                                         
 from .Dimensions import checkFilingDimensions
 from .PreCalAlignment import checkCalcsTreeWalk
 from .Util import conflictClassFromNamespace, abbreviatedNamespace, abbreviatedWildNamespace, loadDeprecatedConceptDates, \
-                    loadCustomAxesReplacements, loadNonNegativeFacts
+                    loadCustomAxesReplacements, loadNonNegativeFacts, loadDeiValidations
 
 def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     if not hasattr(modelXbrl.modelDocument, "xmlDocument"): # not parsed
@@ -60,6 +61,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     embeddingCommandPattern = re.compile(r"[^~]*~\s*()[^~]*~")
     styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-sec-ix-hidden\s*:\s*([\w.-]+).*")
     efmRoleDefinitionPattern = re.compile(r"([0-9]+) - (Statement|Disclosure|Schedule|Document) - (.+)")
+    messageKeySectionPattern = re.compile(r"(.*[{]efmSection[}]|[a-z]{2}-[0-9]{4})(.*)")
     
     val._isStandardUri = {}
     modelXbrl.modelManager.disclosureSystem.loadStandardTaxonomiesDict()
@@ -111,6 +113,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             loadDeprecatedConceptDates(val, deprecatedConceptDates)
             nonNegFacts = loadNonNegativeFacts(modelXbrl)
             customAxesReplacements = loadCustomAxesReplacements(modelXbrl)
+            deiValidations = loadDeiValidations(modelXbrl, isInlineXbrl)
         
         # inline doc set has multiple instance names to check
         if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET:
@@ -341,18 +344,25 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         documentPeriodEndDate = None # date or None
         documentPeriodEndDateFact = None
         documentTypeFact = None
+        documentTypeFactContextID = None
         deiItems = {}
         deiFacts = {}
         def hasDeiFact(deiName):
             return deiName in deiFacts and not deiFacts[deiName].isNil
         
+        extractedCoverFacts = defaultdict(list) # key concept localname
+        
         commonSharesItemsByStockClass = defaultdict(list)
         commonSharesClassMembers = None
+        commonSharesClassAxisQName = None
+        deiSharesClassMembers = set()
+        
         # hasDefinedStockAxis = False
         hasCommonSharesOutstandingDimensionedFactWithDefaultStockClass = False
         # commonSharesClassUndefinedMembers = None
         # commonStockMeasurementDatetime = None
 
+        deiNamespaceURI = None
         deiCheckLocalNames = {
             disclosureSystem.deiCurrentFiscalYearEndDateElement, 
             disclosureSystem.deiDocumentFiscalYearFocusElement, 
@@ -383,11 +393,14 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             factElementName = factQname.localName
             if disclosureSystem.deiNamespacePattern is not None:
                 factInDeiNamespace = disclosureSystem.deiNamespacePattern.match(factQname.namespaceURI)
+                if factInDeiNamespace and deiNamespaceURI is None:
+                    deiNamespaceURI = factQname.namespaceURI
+                    deiADRmember = qname(deiNamespaceURI, "AdrMember")
             else:
                 factInDeiNamespace = None
             # standard dei items from required context
-            if context is not None: # tests do not apply to tuples
-                if not context.hasSegment and not context.hasScenario and f.xValid >= VALID: 
+            if context is not None and f.xValid >= VALID: # tests do not apply to tuples
+                if not context.hasSegment and not context.hasScenario: 
                     #required context
                     if factInDeiNamespace:
                         value = f.xValue
@@ -410,6 +423,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         elif factElementName == "DocumentType":
                             documentType = value
                             documentTypeFact = f
+                            documentTypeFactContextID = factContextID
                             if not hasSubmissionType: # wch 18/aug/18
                                 modelXbrl.info("info",_("Setting submissionType %(documentType)s"),documentType=documentType)
                                 submissionType = documentType #wch 18/aug/18
@@ -442,6 +456,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 dimConcept is not None and
                                 dimConcept.name in ("StatementClassOfStockAxis", "ClassesOfShareCapitalAxis") and
                                 dimConcept.modelDocument.targetNamespace in disclosureSystem.standardTaxonomiesDict):
+                                commonSharesClassAxisQName = dimConcept.qname
                                 commonSharesItemsByStockClass[memConcept.qname].append(f)
                                 ''' per discussion with Dean R, remove use of LB defined members from this test
                                 if commonSharesClassMembers is None:
@@ -454,6 +469,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 commonSharesClassMembers.add(memConcept.qname) # only note the actually used members, not any defined members
                                 #end of replacement 
                                 hasClassOfStockMember = True
+                            if factInDeiNamespace and dimConcept.name in ("StatementClassOfStockAxis", "ClassesOfShareCapitalAxis") and memConcept is not None:
+                                deiSharesClassMembers.add(memConcept.qname)
                                 
                     if isEntityCommonStockSharesOutstanding and not hasClassOfStockMember:
                         hasCommonSharesOutstandingDimensionedFactWithDefaultStockClass = True   # absent dimension, may be no def LB
@@ -472,6 +489,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     
                 if not f.isNil:
                     contextsWithNonNilFacts.add(context)
+                    if f.qname.localName in deiValidations["extraction-cover-tags"]:
+                        extractedCoverFacts[f.qname.localName].append(f)
                     
                 if isEFM: # note that this is in the "if context is not None" region.  It does receive nil facts.
                     for pluginXbrlMethod in pluginClassMethods("Validate.EFM.Fact"):
@@ -825,243 +844,24 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         #6.5.15 facts with xml in text blocks
         ValidateFilingText.validateTextBlockFacts(modelXbrl)
         
-        isDei2018orLater = any(doc.targetNamespace.startswith("http://xbrl.sec.gov/dei") and doc.targetNamespace >= "http://xbrl.sec.gov/dei/2018"
+        isDei2018orLater = any(doc.targetNamespace.startswith("http://xbrl.sec.gov/dei/") and doc.targetNamespace >= "http://xbrl.sec.gov/dei/2018"
                                for doc in modelXbrl.urlDocs.values() if doc.targetNamespace)
         
         isRR = any(doc.targetNamespace.startswith("http://xbrl.sec.gov/rr/")
                    for doc in modelXbrl.urlDocs.values() if doc.targetNamespace)
     
-        if amendmentFlag is None:
-            modelXbrl.log("WARNING" if validateEFMpragmatic else "ERROR",
-                          ("EFM.6.05.20.missingAmendmentFlag", "GFM.3.02.01"),
-                _("You did not include the following data: %(elementName)s.  Please include %(elementName)s."),
-                edgarCode="cp-0521-Amendment-Flag-Existence",
-                modelObject=modelXbrl, elementName=disclosureSystem.deiAmendmentFlagElement)
-        # periodOfReport = DocumentPeriodEndDate
-        if not documentPeriodEndDate:
-            modelXbrl.error(("EFM.6.05.20.missingDocumentPeriodEndDate", "GFM.3.02.01"),
-                _("You did not include the following data: %(elementName)s.  Please include %(elementName)s."),
-                edgarCode="cp-0520-Document-Period-End-Date-Existence",
-                modelObject=modelXbrl, elementName=disclosureSystem.deiDocumentPeriodEndDateElement)
-        elif "periodOfReport" in val.params and submissionType not in submissionTypesAllowingPeriodOfReport:
-            modelXbrl.warning("EFM.6.05.40.submissionUnexpectedPeriodOfReport",
-                _("Submission has unexpected periodOfReport element in submission type %(submissionType)s."),
-                edgarCode="dq-0540-Submission-Unexpected-Period",
-                modelObject=modelXbrl, submissionType=submissionType)
-        elif "periodOfReport" in val.params and not deiParamEqual(
-            "DocumentPeriodEndDate", documentPeriodEndDate, val.params["periodOfReport"]):
-            modelXbrl.warning("EFM.6.05.40.documentPeriodEndDateValue",
-                _("dei:DocumentPeriodEndDate value %(deiValue)s does not agree with periodOfReport value %(submissionValue)s."),
-                edgarCode="dq-0540-Document-Period-End-Date-Value",
-                modelObject=documentPeriodEndDateFact, submissionValue=val.params["periodOfReport"], deiValue=documentPeriodEndDate)
-        # entity.fy_end = CurrentFiscalYearEndDate
-        if (hasDeiFact("CurrentFiscalYearEndDate") and "entity.fyEnd" in val.params and not deiParamEqual(
-            "CurrentFiscalYearEndDate", deiItems["CurrentFiscalYearEndDate"], val.params["entity.fyEnd"])):
-            modelXbrl.warning("EFM.6.05.40.currentFiscalYearEndDateValue",
-                _("The official fiscal year end date %(submissionValue)s for CIK %(cik)s, is not the same month and day as the value %(deiValue)s in the Required Context.  Please correct dei:CurrentFiscalYearEndDate."),
-                edgarCode="dq-0540-Current-Fiscal-Year-End-Date-Value",
-                modelObject=deiFacts["CurrentFiscalYearEndDate"], submissionValue=val.params["entity.fyEnd"], 
-                deiValue=deiItems["CurrentFiscalYearEndDate"], 
-                cik=deiItems.get(disclosureSystem.deiFilerIdentifierElement))
-        # voluntaryFilerFlag = EntityVoluntaryFilers
-        if hasDeiFact("EntityVoluntaryFilers") and "voluntaryFilerFlag" in val.params and not deiParamEqual(
-            "EntityVoluntaryFilers", deiItems["EntityVoluntaryFilers"], val.params["voluntaryFilerFlag"]):
-            modelXbrl.warning("EFM.6.05.40.entityVoluntaryFilersValue",
-                _("dei:EntityVoluntaryFilers value %(deiValue)s does not agree with submission voluntary filer flag value %(submissionValue)s."),
-                edgarCode="dq-0540-Entity-Voluntary-Filers-Value",
-                modelObject=deiFacts["EntityVoluntaryFilers"], submissionValue=val.params["voluntaryFilerFlag"], deiValue=deiItems["EntityVoluntaryFilers"])
-        if submissionType not in submissionTypesAllowingVoluntaryFilerFlag and "voluntaryFilerFlag" in val.params:
-            modelXbrl.warning("EFM.6.05.40.submissionUnexpectedVoluntaryFilerFlag",
-                _("Submission has unexpected \"voluntaryFilerFlag\" element in submission type %(submissionType)s."),
-                edgarCode="dq-0540-Submission-Unexpected-Voluntary-Filer-Flag",
-                modelObject=modelXbrl, submissionType=submissionType)
-        if submissionType not in submissionTypesAllowingVoluntaryFilerFlag and hasDeiFact("EntityVoluntaryFilers"):
-            modelXbrl.warning("EFM.6.05.40.entityVoluntaryFilersUnexpected",
-                _("Submission type %(submissionType)s should not have dei:EntityVoluntaryFilers."),
-                edgarCode="dq-0540-Entity-Voluntary-Filers-Unexpected",
-                modelObject=deiFacts["EntityVoluntaryFilers"], submissionType=submissionType)
-        # wellKnownSeasonedIssuerFlag = EntityWellKnownSeasonedIsseur
-        if hasDeiFact("EntityWellKnownSeasonedIssuer") and "wellKnownSeasonedIssuerFlag" in val.params and not deiParamEqual(
-            "EntityWellKnownSeasonedIssuer", deiItems["EntityWellKnownSeasonedIssuer"], val.params["wellKnownSeasonedIssuerFlag"]):
-            modelXbrl.warning("EFM.6.05.40.entityWellKnownSeasonedIssuerValue",
-                _("dei:EntityWellKnownSeasonedIssuer value %(deiValue)s in the Required Context does not agree with well known seasoned issuer flag value %(wellKnownSeasonedIssuerValue)s."),
-                edgarCode="dq-0540-Entity-Well-Known-Seasoned-Issuer-Value",
-                modelObject=deiFacts["EntityWellKnownSeasonedIssuer"], wellKnownSeasonedIssuerValue=val.params["wellKnownSeasonedIssuerFlag"], deiValue=deiItems["EntityWellKnownSeasonedIssuer"])
-        if submissionType not in docTypesRequiringEntityWellKnownSeasonedIssuer and "wellKnownSeasonedIssuerFlag" in val.params:
-            modelXbrl.warning("EFM.6.05.40.submissionUnexpectedWellKnownSeasonedIssuerFlag",
-                _("Submission has unexpected \"wellKnownSeasonedIssuerFlag\" element in submission type %(submissionType)s."),
-                edgarCode="dq-0540-Submission-Unexpected-Well-Known-Seasoned-Issuer-Flag",
-                modelObject=modelXbrl, submissionType=submissionType)
-        if submissionType not in submissionTypesAllowingWellKnownSeasonedIssuer and hasDeiFact("EntityWellKnownSeasonedIssuer"):
-            modelXbrl.warning("EFM.6.05.40.entityWellKnownSeasonedIssuerUnexpected",
-                _("Submission type %(submissionType)s should not have dei:EntityWellKnownSeasonedIssuer in the Required Context."),
-                edgarCode="dq-0540-Entity-Well-Known-Seasoned-Issuer-Unexpected",
-                modelObject=deiFacts["EntityWellKnownSeasonedIssuer"], submissionType=submissionType)
-        # shellCompanyFlag = (2018)EntityShellCompany
-        if "shellCompanyFlag" in val.params and hasDeiFact("EntityShellCompany") and not deiParamEqual(
-            "EntityShellCompany", deiItems["EntityShellCompany"], val.params["shellCompanyFlag"]):
-            modelXbrl.warning("EFM.6.05.40.entityShellCompanyValue",
-                _("dei:EntityShellCompany value %(deiValue)s does not agree with submission shell company flag value %(submissionValue)s."),
-                edgarCode="dq-0540-Entity-Shell-Company-Value",
-                modelXbrl=deiFacts["EntityShellCompany"], submissionValue=val.params["shellCompanyFlag"], deiValue=deiItems["EntityShellCompany"])
-        if submissionType in submissionTypesAllowingShellCompanyFlag: 
-            if isDei2018orLater and "shellCompanyFlag" in val.params and not hasDeiFact("EntityShellCompany"):
-                modelXbrl.warning("EFM.6.05.40.entityShellCompanyMissing",
-                    _("Submission type %(submissionType)s should have a value for dei:EntityShellCompany in the Required Context."),
-                    edgarCode="dq-0540-Entity-Shell-Company-Missing",
-                    modelObject=modelXbrl, submissionType=submissionType)
-        elif "shellCompanyFlag" in val.params:
-            modelXbrl.warning("EFM.6.05.40.submissionUnexpectedShellCompanyFlag",
-                _("Submission has unexpected \"shellCompanyFlag\" element in submission type %(submissionType)s."),
-                edgarCode="dq-0540-Submission-Unexpected-Shell-Company-Flag",
-                modelObject=modelXbrl, submissionType=submissionType)
-        if submissionType not in submissionTypesAllowingShellCompanyFlag and hasDeiFact("EntityShellCompany"):
-            modelXbrl.warning("EFM.6.05.40.entityShellCompanyUnexpected",
-                _("Submission type %(submissionType)s should not have dei:EntityShellCompany in the Required Context."),
-                edgarCode="dq-0540-Entity-Shell-Company-Unexpected",
-                modelObject=deiFacts["EntityShellCompany"], submissionType=submissionType)
-        # invCompanyType = (2018)EntityInvCompanyType
-        if "invCompanyType" in val.params and hasDeiFact("EntityInvCompanyType") and not deiParamEqual(
-            "EntityInvCompanyType", deiItems["EntityInvCompanyType"], val.params["invCompanyType"]):
-            modelXbrl.warning("EFM.6.05.40.entityInvCompanyTypeValue",
-                _("dei:EntityInvCompanyType value %(deiValue)s in the Required Context is incompatible with the submission Investment Company Type value %(submissionValue)s."),
-                edgarCode="dq-0540-Entity-Inv-Company-Type-Value",
-                modelObject=deiFacts["EntityInvCompanyType"], submissionValue=val.params["invCompanyType"], deiValue=deiItems["EntityInvCompanyType"])
-        if isDei2018orLater and submissionType in submissionTypesAllowingEntityInvCompanyType and not hasDeiFact("EntityInvCompanyType"):
-            modelXbrl.warning("EFM.6.05.40.entityInvCompanyTypeMissing",
-                _("Submission type %(submissionType)s requires a value for dei:EntityInvCompanyType in the Required Context."),
-                edgarCode="dq-0540-Entity-Inv-Company-Type-Missing",
-                modelObject=modelXbrl, submissionType=submissionType)
-        if submissionType not in submissionTypesAllowingEntityInvCompanyType and hasDeiFact("EntityInvCompanyType"):
-            modelXbrl.warning("EFM.6.05.40.entityInvCompanyTypeUnexpected",
-                _("Submission type %(submissionType)s should not have dei:EntityInvCompanyType in the Required Context."),
-                edgarCode="dq-0540-Entity-Inv-Company-Type-Unexpected",
-                modelObject=deiFacts["EntityInvCompanyType"], submissionType=submissionType )
-        if "invCompanyType" in val.params and submissionType not in submissionTypesAllowingEntityInvCompanyType:
-            modelXbrl.warning("EFM.6.05.40.submissionUnexpectedInvCompanyType",
-                _("Submission has unexpected \"invCompanyType\" element in submission type %(submissionType)s."),
-                edgarCode="dq-0540-Submission-Unexpected-Inv-Company-Type",
-                modelObject=modelXbrl, submissionType=submissionType)
-        # acceleratedFilerStatus - 6.5.21 requires entityFilerCategory on some submission types not having acceleratedFilerStatus in the header
-        if "acceleratedFilerStatus" in val.params and submissionType in submissionTypesAllowingAcceleratedFilerStatus and hasDeiFact("EntityFilerCategory") and not deiParamEqual(
-            "EntityFilerCategory", deiItems["EntityFilerCategory"], val.params["acceleratedFilerStatus"]):
-            modelXbrl.warning("EFM.6.05.40.entityFilerCategoryValue",
-                _("dei:EntityFilerCategory value %(deiValue)s in the Required Context is inconsistent with the submission Accelerated Filer Status value %(submissionValue)s."),
-                edgarCode="dq-0540-Entity-Filer-Category-Value",
-                modelObject=deiFacts["EntityFilerCategory"], submissionValue=val.params["acceleratedFilerStatus"], deiValue=deiItems["EntityFilerCategory"])
-        if "acceleratedFilerStatus" in val.params and submissionType not in submissionTypesAllowingAcceleratedFilerStatus:
-            modelXbrl.warning("EFM.6.05.40.submissionUnexpectedAcceleratedFilerStatus",
-                _("Submission has unexpected \"acceleratedFilerStatus\" element in submission type %(submissionType)s."),
-                edgarCode="dq-0540-Submission-Unexpected-Accelerated-Filer-Status",
-                modelObject=modelXbrl, submissionType=submissionType)
-        if submissionType not in submissionTypesAllowingAcceleratedFilerStatus and not (submissionType in docTypesRequiringEntityFilerCategory or documentType in docTypesRequiringEntityFilerCategory):
-            if hasDeiFact("EntityFilerCategory") and submissionType:
-                modelXbrl.warning("EFM.6.05.40.entityFilerCategoryUnexpected",
-                    _("Submission type %(submissionType)s should not have dei:EntityFilerCategory in the Required Context."),
-                    edgarCode="dq-0540-Entity-Filer-Category-Unexpected",
-                    modelObject=deiFacts["EntityFilerCategory"], submissionType=submissionType)
-        # smallBusinessFlag = (2018)EntitySmallBusiness
-        if not isDei2018orLater:
-            if "smallBusinessFlag" in val.params and hasDeiFact("EntityFilerCategory") and not deiParamEqual(
-                "2014EntityFilerCategory", deiItems["EntityFilerCategory"], val.params["smallBusinessFlag"]):
-                modelXbrl.warning("EFM.6.05.40.entitySmallBusinessFilerCategoryConsistency",
-                    _("dei:EntityFilerCategory value %(deiValue)s in the Required Context is inconsistent with the %(submissionValue)s of smallBusinessFlag in the Submission."),
-                    edgarCode="dq-0540-Entity-Small-Business-Filer-Category-Consistency",
-                    modelObject=deiFacts["EntityFilerCategory"], submissionValue=val.params["smallBusinessFlag"], deiValue=deiItems["EntityFilerCategory"])
-        elif hasDeiFact("EntityFilerCategory"):
-            if deiItems["EntityFilerCategory"] == "Smaller Reporting Company":
-                modelXbrl.warning("EFM.6.05.40.entityFilerCategorySmall",
-                    _("dei:EntityFilerCategory in the Required Context is 'Smaller Reporting Company', use 'Non-Accelerated Filer' instead and set dei:EntitySmallBusinessFlag equal to true."),
-                    edgarCode="dq-0540-Entity-Filer-Category-Small",
-                    modelObject=deiFacts["EntityFilerCategory"])
-            elif deiItems["EntityFilerCategory"] == "Smaller Reporting Accelerated Filer":
-                modelXbrl.warning("EFM.6.05.40.entityFilerCategorySmallAccelerated",
-                    _("dei:EntityFilerCategory in the Required Context is 'Smaller Reporting Accelerated Filer', use 'Accelerated Filer' instead and set dei:EntitySmallBusinessFlag equal to true."),
-                    edgarCode="dq-0540-Entity-Filer-Category-Small-Accelerated",
-                    modelObject=deiFacts["EntityFilerCategory"])
-        if hasSubmissionType and submissionType not in submissionTypesAllowingEdgarSmallBusinessFlag:
-            if "smallBusinessFlag" in val.params:
-                modelXbrl.warning("EFM.6.05.40.submissionUnexpectedSmallBusinessFlag",
-                    _("Submission has unexpected \"smallBusinessFlag\" element in submission type %(submissionType)s"),
-                    edgarCode="dq-0540-Submission-Unexpected-Small-Business-Flag",
-                    modelObject=modelXbrl, submissionType=submissionType)
-            if hasDeiFact("EntitySmallBusiness") and submissionType not in submissionTypesAllowingEdgarSmallBusinessFlag : 
-                modelXbrl.warning("EFM.6.05.40.entitySmallBusinessUnexpected",
-                    _("Submission type %(submissionType)s should not have dei:EntitySmallBusiness."),
-                    edgarCode="dq-0540-Entity-Small-Business-Unexpected",
-                    modelObject=deiFacts["EntitySmallBusiness"], submissionType=submissionType)
-        else:
-            if "smallBusinessFlag" in val.params and hasDeiFact("EntitySmallBusiness") and not deiParamEqual(
-                "EntitySmallBusiness", deiItems["EntitySmallBusiness"], val.params["smallBusinessFlag"]):
-                modelXbrl.warning("EFM.6.05.40.entitySmallBusinessValue",
-                    _("dei:EntitySmallBusiness value %(deiValue)s does not agree with the submission Small business flag value %(submissionValue)s."),
-                    edgarCode="dq-0540-Entity-Small-Business-Value",
-                    modelObject=deiFacts["EntitySmallBusiness"], submissionValue=val.params["smallBusinessFlag"], deiValue=deiItems["EntitySmallBusiness"])
-            if isDei2018orLater and submissionType in submissionTypesAllowingEdgarSmallBusinessFlag and not hasDeiFact("EntitySmallBusiness"):
-                modelXbrl.warning("EFM.6.05.40.entitySmallBusinessMissing",
-                    _("Submission type %(submissionType)should have a value for dei:EntitySmallBusiness in the Required Context."),
-                    edgarCode="dq-0540-Entity-Small-Business-Missing",
-                    modelObject=modelXbrl, submissionType=submissionType)
-        # emergingGrowthCompanyFlag = (2018) EntityEmergingGrowthCompany
-        if hasSubmissionType and submissionType not in submissionTypesAllowingEmergingGrowthCompanyFlag:
-            if "emergingGrowthCompanyFlag" in val.params:
-                modelXbrl.warning("EFM.6.05.40.submissionUnexpectedEmergingGrowthCompanyFlag",
-                    _("Submission has unexpected \"emergingGrowthCompanyFlag\" element in submission type %(submissionType)s"),
-                    edgarCode="dq-0540-Submission-Unexpected-Emerging-Growth-Company-Flag",
-                    modelObject=modelXbrl, submissionType=submissionType)
-            if hasDeiFact("EntityEmergingGrowthCompany"):
-                modelXbrl.warning("EFM.6.05.40.entityEmergingGrowthCompanyUnexpected",
-                    _("Submission type %(submissionType)s should not have dei:EntityEmergingGrowthCompany."),
-                    edgarCode="dq-0540-Entity-Emerging-Growth-Company-Unexpected",
-                    modelObject=deiFacts["EntityEmergingGrowthCompany"], submissionType=submissionType)
-        else:
-            if "emergingGrowthCompanyFlag" in val.params and hasDeiFact("EntityEmergingGrowthCompany") and not deiParamEqual(
-                "EntityEmergingGrowthCompany", deiItems["EntityEmergingGrowthCompany"], val.params["emergingGrowthCompanyFlag"]):
-                modelXbrl.warning("EFM.6.05.40.entityEmergingGrowthCompanyValue",
-                    _("dei:EntityEmergingGrowthCompany value  %(deiValue)s does not agree with the submission Emerging Growth company flag value %(submissionValue)s."),
-                    edgarCode="dq-0540-Entity-Emerging-Growth-Company-Value",
-                    modelObject=deiFacts["EntityEmergingGrowthCompany"], submissionValue=val.params["emergingGrowthCompanyFlag"], deiValue=deiItems["EntityEmergingGrowthCompany"])
-            if isDei2018orLater and submissionType in submissionTypesAllowingEmergingGrowthCompanyFlag and not hasDeiFact("EntityEmergingGrowthCompany"):
-                modelXbrl.warning("EFM.6.05.40.entityEmergingGrowthCompanyMissing",
-                    _("Submission type %(submissionType)s should have a value for dei:EntityEmergingGrowthCompany in the Required Context."),
-                    edgarCode="dq-0540-Entity-Emerging-Growth-Company-Missing",
-                    modelObject=modelXbrl, submissionType=submissionType)
-        # exTransitionPeriodFlag = (2018) EntityExTransitionPeriod
-        if submissionType not in submissionTypesAllowingExTransitionPeriodFlag:
-            if "exTransitionPeriodFlag" in val.params:
-                modelXbrl.warning("EFM.6.05.40.submissionUnexpectedExTransitionPeriodFlag",
-                                  _("Submission has unexpected \"exTransitionPeriodFlag\" element in submission type %(submissionType)s"),
-                                  edgarCode="dq-0540-Submission-Unexpected-Ex-Transition-Period-Flag",
-                                  modelObject=modelXbrl, submissionType=submissionType)
-            if hasDeiFact("EntityExTransitionPeriod"):
-                modelXbrl.warning("EFM.6.05.40.entityExTransitionPeriodUnexpected",
-                    _("Submission type %(submissionType)s should not have dei:EntityExTransitionPeriod."),
-                    edgarCode="dq-0540-Entity-Ex-Transition-Period-Unexpected",
-                    modelObject=deiFacts["EntityExTransitionPeriod"], submissionType=submissionType)
-        else:
-            if "exTransitionPeriodFlag" in val.params and hasDeiFact("EntityExTransitionPeriod") and not deiParamEqual(
-                "EntityExTransitionPeriod", deiItems["EntityExTransitionPeriod"], val.params["exTransitionPeriodFlag"]):
-                modelXbrl.warning("EFM.6.05.40.entityExTransitionPeriodValue",
-                    _("dei:EntityExTransitionPeriod value %(deiValue)s in the Required Context is incompatible with the submission exTransitionPeriodFlag value %(submissionValue)s."),
-                    edgarCode="dq-0540-Entity-Ex-Transition-Period-Value",
-                    modelObject=deiFacts["EntityExTransitionPeriod"], submissionValue=val.params["exTransitionPeriodFlag"], deiValue=deiItems["EntityExTransitionPeriod"])
-            if isDei2018orLater and hasDeiFact("EntityEmergingGrowthCompany") and deiItems["EntityEmergingGrowthCompany"] in (True,"true","1") and not hasDeiFact("EntityExTransitionPeriod"):
-                modelXbrl.warning("EFM.6.05.40.entityExTransitionPeriodMissing",
-                    _("Submission type %(submissionType)s should have a value for dei:EntityExTransitionPeriod in the Required Context."),
-                    edgarCode="dq-0540-Entity-Ex-Transition-Period-Missing",
-                    modelObject=modelXbrl, submissionType=submissionType)
-        # seriesId 6.5.41
+         # seriesId 6.5.41
         if submissionType in submissionTypesAllowingSeriesClasses:
             legalEntityAxis = modelXbrl.nameConcepts.get("LegalEntityAxis",())
             if len(legalEntityAxis) > 0:
                 legalEntityAxisQname = legalEntityAxis[0].qname
-                if legalEntityAxisQname.namespaceURI.startswith("http://xbrl.sec.gov/dei"):
+                if legalEntityAxisQname.namespaceURI.startswith("http://xbrl.sec.gov/dei/"):
                     legalEntityAxisRelationshipSet = modelXbrl.modelXbrl.relationshipSet("XBRL-dimensions")
                     if val.params.get("rptIncludeAllSeriesFlag"):
                         seriesIds = val.params.get("newClass2.seriesIds", ())
                     else:
                         seriesIds = val.params.get("rptSeriesClassInfo.seriesIds", ())
-                    for seriesId in seriesIds:
+                    for seriesId in sorted(set(seriesIds)): # series Ids are a hierarchy and need to be de-duplicated and ordered
                         seriesIdMemberName = seriesId + "Member"
                         seriesIdMember = None
                         for c in modelXbrl.nameConcepts.get(seriesIdMemberName, ()):
@@ -1090,52 +890,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             modelXbrl.warning("EFM.6.05.41.seriesIdMemberNotInContext",
                                 _("Submission type %(submissionType)s should have a context with %(seriesIdMember)s as a member of the Legal Entity Axis."),
                                 edgarCode="dq-0541-Series-Id-Member-Not-In-Context",
-                                modelObject=(modelXbrl,seriesIdMember), seriesIdMember=seriesIdMemberName, submissionType=submissionType)                            
-        """ not required, now handled by schema validation
-        else:
-            dateMatch = datePattern.match(documentPeriodEndDate)
-            if not dateMatch or dateMatch.lastindex != 3:
-                modelXbrl.error(("EFM.6.05.20", "GFM.3.02.01"),
-                    _("%(elementName)s is in the required context is incorrect '%(date)s'"),
-                    modelXbrl=modelXbrl, elementName=disclosureSystem.deiDocumentPeriodEndDateElement,
-                    date=documentPeriodEndDate)
-        """
+                                modelObject=(modelXbrl,seriesIdMember), seriesIdMember=seriesIdMemberName, submissionType=submissionType)                    
         val.modelXbrl.profileActivity("... filer label and text checks", minTimeToShow=1.0)
 
         if isEFM:
-            if amendmentFlag == True and amendmentDescription is None:
-                modelXbrl.log("WARNING" if validateEFMpragmatic else "ERROR",
-                              "EFM.6.05.20.missingAmendmentDescription",
-                    _("AmendmentFlag is true in context %(contextID)s, so you must also provide an AmendmentDescription in that context."),
-                    edgarCode="fs-0520-Amendment-Flag-Without-Amendment-Description",
-                    modelObject=amendmentFlagFact, contextID=amendmentFlagFact.contextID if amendmentFlagFact is not None else "unknown")
-    
-            if amendmentDescription is not None and amendmentFlag != True:
-                modelXbrl.log("WARNING" if validateEFMpragmatic else "ERROR",
-                              "EFM.6.05.20.extraneous",
-                    _("AmendmentFlag is not true in context %(contextID)s, so do not provide an AmendmentDescription in that context."),
-                    edgarCode="fs-0520-Amendment-Description-Without-Amendment-Flag",
-                    modelObject=amendmentDescriptionFact, contextID=amendmentDescriptionFact.contextID)
-                
-            if documentType is None:
-                modelXbrl.error("EFM.6.05.20.missingDocumentType",
-                    _("You did not include the following data: DocumentType  Please include DocumentType."), 
-                    edgarCode="cp-0520-Document-Type-Existence",
-                    modelXbrl=modelXbrl)
-            elif documentType not in edgarDocumentTypes:
-                modelXbrl.error("EFM.6.05.20.documentTypeValue",
-                    _("Your dei:DocumentType has an illegal value, %(documentType)s, in context %(contextID)s.  Please correct it."),
-                    edgarCode="cp-0520-Document-Type-Value",
-                    modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType)
-            elif hasSubmissionType:
-                expectedDocumentTypes = edgarSubmissionTypeAllowedDocumentTypes.get(submissionType, ())
-                if documentType not in expectedDocumentTypes: #SPR22607 always check submission type
-                    modelXbrl.error("EFM.6.05.20.submissionDocumentType" if val.params.get("exhibitType") != "EX-2.01" else "EFM.6.23.03",
-                        _("The value for dei:DocumentType, %(documentType)s, does not match the submission type, %(submissionType)s, in context %(contextID)s. "
-                          "EDGAR Filer Manual section 6.5.20 lists allowed submission types."),
-                        #edgarCode="cp-0520-Document-Type-Not-Matched-To-Submission-Type",
-                        modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, submissionType=val.params["submissionType"],
-                        messageCodes=("EFM.6.05.20.submissionDocumentType", "EFM.6.23.03"))
             if val.params.get("exhibitType") and documentType is not None:
                 _exhibitType = val.params["exhibitType"]
                 if (documentType in ("SD", "SD/A")) != (_exhibitType == "EX-2.01"):
@@ -1146,83 +904,329 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                      "EX-2.01":"EFM.6.23.05"}.get(_exhibitType,"EX-101"),
                         #edgarCode
                         _("The value for dei:DocumentType, %(documentType)s, is not allowed for %(exhibitType)s attachments."),
-                        modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, exhibitType=_exhibitType,
+                        modelObject=documentTypeFact, contextID=documentTypeFactContextID, documentType=documentType, exhibitType=_exhibitType,
                         messageCodes=("EFM.6.23.04", "EFM.6.23.04", "EFM.6.23.05"))
                 elif (((documentType == "K SDR") != (_exhibitType in ("EX-99.K SDR", "EX-99.K SDR.INS"))) or
                       ((documentType == "L SDR") != (_exhibitType in ("EX-99.L SDR", "EX-99.L SDR.INS")))):
                     modelXbrl.error("EFM.6.05.20.exhibitDocumentType",
                         _("The value for dei:DocumentType, '%(documentType)s' is not allowed for %(exhibitType)s attachments."),
-                        modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType, exhibitType=_exhibitType)
+                        modelObject=documentTypeFact, contextID=documentTypeFactContextID, documentType=documentType, exhibitType=_exhibitType)
                 
-            # 6.5.21
-            for doctypesRequired, deiItemsRequired in docTypeDeiItems:
-                if documentType in doctypesRequired:
-                    for deiItem in deiItemsRequired:
-                        if deiItem not in deiItems or deiItems[deiItem] is None: #must exist and value must be non-empty (incl not nil)
-                            modelXbrl.log(("WARNING" if validateEFMpragmatic and deiItem in {
-                                             "CurrentFiscalYearEndDate", "DocumentFiscalPeriodFocus", "DocumentFiscalYearFocus",
-                                             "EntityCurrentReportingStatus", "EntityFilerCategory", "EntityPublicFloat", 
-                                             "EntityVoluntaryFilers", "EntityWellKnownSeasonedIssuer" 
-                                            } else "ERROR"), 
-                                          ("EFM.6.05.21.{0}".format(deiItem) if validateEFMpragmatic and deiItem in {
-                                             "CurrentFiscalYearEndDate", "DocumentFiscalPeriodFocus", "DocumentFiscalYearFocus",
-                                             "EntityRegistrantName", "EntityCentralIndexKey",
-                                             "EntityCurrentReportingStatus", "EntityFilerCategory", "EntityPublicFloat", 
-                                             "EntityVoluntaryFilers", "EntityWellKnownSeasonedIssuer"
-                                            } else "EFM.6.23.36" if deiItem == "EntityReportingCurrencyISOCode"
-                                              else "EFM.6.05.21"),
-                                            _("Element dei:%(elementName)s is required for DocumentType '%(documentType)s' of context %(contextID)s.  Please include it."),
-                    #edgarCode
-                    modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType,
-                    elementName=deiItem,
-                    messageCodes=("EFM.6.05.21.CurrentFiscalYearEndDate", "EFM.6.05.21.DocumentFiscalPeriodFocus", "EFM.6.05.21.DocumentFiscalYearFocus",
-                                  "EFM.6.05.21.EntityRegistrantName", "EFM.6.05.21.EntityCentralIndexKey",
-                                  "EFM.6.05.21.EntityCurrentReportingStatus", "EFM.6.05.21.EntityFilerCategory", "EFM.6.05.21.EntityPublicFloat", 
-                                  "EFM.6.05.21.EntityVoluntaryFilers", "EFM.6.05.21.EntityWellKnownSeasonedIssuer",
-                                  "EFM.6.23.36", "EFM.6.05.21"))
+            # Table driven validations
+            def fevMessage(fev, messageKey=None, **kwargs):
+                logArgs = kwargs.copy()
+                validation = deiValidations["validations"][fev["validation"]]
+                severity = validation["severity"].upper()
+                if severity == "WARNINGIFPRAGMATICELSEERROR":
+                    severity = "WARNING" if validateEFMpragmatic else "ERROR"
+                if messageKey is None:
+                    if "validationMessage" in kwargs:
+                        messageKey = validation[kwargs["validationMessage"]]
+                    else:
+                        messageKey = validation["message"]
+                logArgs["severityVerb"] = {"WARNING":"should","ERROR":"must"}[severity]
+                if "efmSection" not in logArgs:
+                    logArgs["efmSection"] = fev.get("efm")
+                efm = logArgs["efmSection"].split(".")
+                logArgs["efmSection"] = "{}{}".format(efm[1].zfill(2), efm[2].zfill(2))
+                logArgs["edgarCode"] = messageKey # edgar code is the un-expanded key for message with {...}'s
+                logArgs["arelleCode"] = "EFM.{}.{}.{}".format(efm[0], efm[1].zfill(2), efm[2].zfill(2))
+                try:
+                    keyAfterSection = messageKeySectionPattern.match(messageKey).group(2)
+                    arelleCode = "{arelleCode}.".format(**logArgs) + keyAfterSection.format(**logArgs) \
+                                  .replace(",", "").replace(".","").replace(" ","") # replace commas in names embedded in message code portion
+                except KeyError as err:
+                    modelXbrl.error("arelle:loadDeiValidations", 
+                                    _("Missing field [\"%(err)s\"] from %(validation)s."), 
+                                    field=err, validation=fev)
+                arelleCodeSections = arelleCode.split("-")
+                if len(arelleCodeSections) > 1 and arelleCodeSections[1]:
+                    arelleCodeSections[1] = arelleCodeSections[1][0].lower() + arelleCodeSections[1][1:] # start with lowercase
+                arelleCode = "".join(arelleCodeSections)
+                axisKey = fev.get("axis","")
+                axesValidations = deiValidations["axis-validations"][axisKey]
+                logArgs["axis"] = " or ".join(axesValidations["axes"])
+                logArgs["member"] = " or ".join(axesValidations["members"])
+                if "context" in logArgs:
+                    pass # custom content for context argument 
+                elif not axisKey:
+                    logArgs["context"] = "Required Context"
+                elif axisKey == "c":
+                    if not commonSharesClassMembers or len(commonSharesClassMembers) == 1:
+                        logArgs["context"] = "Required Context (one class of stock axis)"
+                    else:
+                        logArgs["context"] = "context corresponding to the Required Context with at least one of {}".format(
+                            logArgs["axis"])
+                else:
+                    logArgs["context"] = "context with {} and {}".format(
+                            logArgs["axis"], logArgs["member"])
+                if "modelObject" in logArgs and "contextID" not in logArgs:
+                    modelObjects = logArgs["modelObject"]
+                    for f in modelObjects if isinstance(modelObjects, (tuple, set, list)) else (modelObjects,):
+                        if isinstance(f, ModelFact):
+                            logArgs["contextID"] = f.contextID
+                            break
+                message = deiValidations["messages"][messageKey]
+                message = re.sub(r"\s*{refSources}\s*", r"", message) # added in arelle logging or arelle wrapper
+                message = re.sub(r"{(\w+)}", r"%(\1)s", message)
+                modelXbrl.log(severity, arelleCode, message, **logArgs)
+                
+            fevs = deiValidations["form-element-validations"]
+            deiCAxes = deiValidations["axis-validations"]["c"]["axes"]
+            # called with fev, returns iterator of fev facts for names and axes matching
+            # called with fev and name, returns single fact for name matching axesMembers (if any)
+            def fevFacts(fev=None, name=None, otherFact=None, axisKey=None, deduplicate=False):
+                if deduplicate:
+                    previouslyYieldedFacts = set() 
+                    def notdup(f):
+                        dedupKey = (f.qname, f.context.contextDimAwareHash, f.xmlLang if f.isMultiLanguage else None)
+                        if dedupKey not in previouslyYieldedFacts:
+                            previouslyYieldedFacts.add(dedupKey)
+                            return True
+                        return False
+                if isinstance(fev, int):
+                    fev = fevs[fev] # convert index to fev object
+                if name:
+                    names = (name,)
+                else:
+                    names = fev.get("xbrl-names", ())
+                langPattern = fev.get("langPattern")
+                if axisKey is None:
+                    axisKey = fev.get("axis","")
+                axesValidations = deiValidations["axis-validations"][axisKey]
+                axes = axesValidations["axes"]
+                members = axesValidations["members"]
+
+                for name in names:
+                    for f in modelXbrl.factsByQname[qname(deiNamespaceURI, name)]:
+                        if langPattern is not None and not langPattern.match(f.xmlLang):
+                            continue
+                        context = f.context
+                        if context is not None and f.xValid >= VALID and not f.isNil:
+                            if otherFact is not None:
+                                if context.isEqualTo(otherFact.context):
+                                    if not deduplicate or notdup(f):
+                                        yield f
+                            elif not context.qnameDims and (not axes or axisKey == "c"):
+                                if not deduplicate or notdup(f):
+                                    yield f
+                            else: # has dimensions
+                                for dim in context.qnameDims.values():
+                                    if dim.dimensionQname.localName in axes:
+                                        if (not members or 
+                                            dim.memberQname.localName in members):
+                                            if not deduplicate or notdup(f):
+                                                yield f
+                                            break
+                                    
+            # return first of matching facts or None
+            def fevFact(fev=None, name=None, otherFact=None):
+                for f in fevFacts(fev, name, otherFact):
+                    return f
+                return None
+            
+            def isADR(f):
+                return f is not None and f.context is not None and (
+                    any(d.dimensionQname.localName in deiValidations["axis-validations"]["c"]["axes"]
+                        and d.memberQname == deiADRmember
+                        for d in f.context.qnameDims.values()))
+            
+            unexpectedDeiNameEfmSects = defaultdict(set) # name and fev(s)
+            expectedDeiNames = defaultdict(set)
+            coverVisibleDeiNames = set()
+            unexpectedEloParams = set()
+            expectedEloParams = set()
+            for fevIndex, fev in enumerate(fevs):
+                forms = fev.get("formSet", ()) # compiled set of forms
+                names = fev.get("xbrl-names", ())
+                eloName = fev.get("elo-name")
+                efmSection = fev["efm"]
+                validation = fev["validation"]
+                axisKey = fev.get("axis","")
+                value = fev.get("value")
+                isCoverVisible = fev.get("dei/cover") == "cover"
+                referenceTag = fev.get("references")
+                referenceValue = fev.get("reference-value")
+                if forms != "all" and submissionType not in forms:
+                    for name in names:
+                        if fevFact(fev, name) is not None:
+                            unexpectedDeiNameEfmSects[name,axisKey].add(fevIndex)
+                    if eloName:
+                        unexpectedEloParams.add(eloName)
+                    continue
+                # name is expected for this form
+                for name in names:
+                    expectedDeiNames[name,axisKey].add(fevIndex)
+                    if isCoverVisible:
+                        coverVisibleDeiNames.add(name)
+                # last validation for unexpected items which were not bound to a validation for submission form type
+                if validation == "(blank)": 
+                    for nameAxisKey, fevIndices in unexpectedDeiNameEfmSects.items():
+                        efmSection = fevs[sorted(fevIndices)[0]].get("efm") # use first section
+                        if nameAxisKey not in expectedDeiNames:
+                            name, axisKey = nameAxisKey
+                            fevMessage(fev, submissionType=submissionType, efmSection=efmSection, nameOfTag=name,
+                                            modelObject=[f for i in fevIndices for f in fevFacts(i, name)],
+                                            typeOfContext="Required Context")
+                    for eloName in sorted(unexpectedEloParams - expectedEloParams):
+                        if eloName in val.params:
+                            fevMessage(fev, messageKey="dq-0540-{nameOfEloElement}-Unexpected", efmSection="6.5.40",
+                                       modelObject=modelXbrl, submissionType=submissionType,
+                                       nameOfEloElement=eloName, valueOfEloElement=val.params[eloName])
+                # type-specific validations
+                elif len(names) == 0:
+                    pass # no name entries if all dei names of this validation weren't in the loaded dei taxonomy (i.e., pre 2019) 
+                elif validation == "tf3": # exactly one of names should have value
+                    numFacts = 0
+                    for name in names:
+                        f = fevFact(fev, name) # these all are required context
+                        if f is not None and f.xValue == value:
+                            numFacts += 1
+                    if numFacts != 1:
+                        fevMessage(fev, submissionType=submissionType, 
+                                        modelObject=fevFacts(fev), nameOfTags=", ".join(names), value=value)
+                elif validation in ("o2", "o3"): # at least one present 
+                    f2 = None
+                    numFacts = 0
+                    if referenceTag:
+                        f2 = fevFact(fev, referenceTag) # f and dependent fact are in same context
+                        if f2 is None:
+                            numFacts = 999 # block following message because no dependent (e.g., addressLine1)
+                    for name in names:
+                        f = fevFact(fev, name, f2)
+                        if f is not None:
+                            f2 = f # align next fact to this context
+                            numFacts += 1
+                    if numFacts == 0:
+                        fevMessage(fev, submissionType=submissionType, modelObject=fevFacts(fev), nameOfTags=", ".join(names))
+                elif validation == "op": # all or neither must have a value
+                    if 0 < sum(fevFact(fev, name) is not None for name in names) < len(names): # default context for all
+                        fevMessage(fev, submissionType=submissionType, modelObject=fevFacts(fev), nameOfTags=", ".join(names))
+                elif validation == "og":
+                    fr = fevFact(fev, referenceTag)
+                    if fr is not None and fr.xValue == referenceValue:
+                        f = fevFact(fev, names[0], fr) # required context, no axes
+                        if f is None:
+                            fevMessage(fev, submissionType=submissionType, modelObject=fr, nameOfTag=referenceTag, value=referenceValue, nameOfOtherTag=names[0], contextID=fr.contextID)
+                elif validation == "f2":
+                    f = fevFact(fev, referenceTag) # f and dependent fact are in same context
+                    if f is not None and not any(fevFact(fev, name, f) is not None for name in names):
+                        fevMessage(fev, submissionType=submissionType, modelObject=f, nameOfTag=referenceTag, nameOfOtherTags=", ".join(names))
+                elif validation in ("ol1", "ol2"):
+                    for name in names:
+                        f = fevFact(fev, name) # referenced fact must be same context as this fact
+                        if f is not None and fevFact(fev, referenceTag, f) is None:
+                            fevMessage(fev, submissionType=submissionType, modelObject=fevFacts(fev), nameOfTag=name, nameOfOtherTag=referenceTag, contextID=f.contextID)
+                elif validation == "oph":
+                    f = fevFact(fev, referenceTag)
+                    for name in names:
+                        if f is None: 
+                            f2 = fevFact(fev, name)
+                        if ((f is not None and fevFact(fev, name, f) is None) or
+                            (f is None and f2 is not None and fevFact(fev, referenceTag, f2) is None)):
+                            fevMessage(fev, submissionType=submissionType, modelObject=f, nameOfTag=name, nameOfOtherTag=referenceTag,
+                                       contextID=f.contextID if f is not None else f2.contextID)
+                elif validation in ("a", "sr", "oth", "tb"):
+                    for name in names:
+                        f = fevFact(fev, name)
+                        fr = fevFact(fev, referenceTag, f) # dependent fact is of context of f or for "c" inherited context (less disaggregatedd)
+                        if ((fr is not None and ((f is not None and fr.xValue != referenceValue) or
+                                                 (f is None and fr.xValue == referenceValue))) or
+                            (fr is None and f is not None)):
+                            fevMessage(fev, submissionType=submissionType, modelObject=fevFacts(fev), nameOfTag=name, nameOfOtherTag=referenceTag, value=referenceValue,
+                                       contextID=f.contextID if f is not None else fr.contextID if fr is not None else "N/A")
+                elif validation == "t":
+                    frs = [*fevFacts(fev, referenceTag)] # all reference facts
+                    for name in names:
+                        for f in fevFacts(fev, name):
+                            fr = fevFact(fev, referenceTag, f) # dependent fact is of context of f or for "c" inherited context (less disaggregated)
+                            if fr is not None:
+                                frs.remove(fr) # this referenced object has been covered by a referencing fact
+                            if ((fr is not None and f is None) or
+                                (fr is None and f is not None)):
+                                fevMessage(fev, submissionType=submissionType, modelObject=(f,fr), nameOfTag=name, nameOfOtherTag=referenceTag)
+                    for fr in frs:
+                        for name in names:
+                            if fevFact(fev, name, fr) is None: # no corresponding fact to an unreferenced reference fact
+                                fevMessage(fev, submissionType=submissionType, modelObject=fr, nameOfTag=referenceTag, nameOfOtherTag=name)
+                elif validation == "te":
+                    for name in names:
+                        for f in fevFacts(fev, name, deduplicate=True):
+                            fr = fevFact(fev, referenceTag, f) # dependent fact is of context of f or for "c" inherited context (less disaggregatedd)
+                            if ((fr is not None and f is None) or
+                                (fr is None and f is not None)):
+                                fevMessage(fev, submissionType=submissionType, modelObject=(f,fr), nameOfTag=name, nameOfOtherTag=referenceTag,
+                                           contextID=fr.contextID if fr is not None else f.contextID)
+                            if (isADR(f) and fevFact(fev, "TradingSymbol", fr) is None):
+                                fevMessage(fev, submissionType=submissionType, modelObject=fr, nameOfTag="TradingSymbol", 
+                                           validationMessage="message-ADR-no-symbol", 
+                                           context="the ADR context, {}, which has an applicable Exchange fact"
+                                                    .format(f.contextID))
+                elif validation == "ot1":
+                    for i, name1 in enumerate(names):
+                        for fr in fevFacts(fev, name1, deduplicate=True):
+                            flist = [fevFact(fev, name2, fr) for name2 in names[i+1:]]
+                            if sum(f is not None for f in flist) > 0:
+                                fevMessage(fev, submissionType=submissionType, modelObject=[fr]+flist, nameOfTags=", ".join(names))
+                elif validation == "t1":
+                    t1facts = set()
+                    for fr in fevFacts(fev, referenceTag, deduplicate=True):
+                        flist = [f for name in names for f in fevFacts(fev, name, fr, deduplicate=True)]
+                        t1facts.update(flist)
+                        if ((fr is not None and sum(f is not None for f in flist) != 1) or
+                            (fr is None and any(f is not None for f in flist))):
+                            fevMessage(fev, submissionType=submissionType, modelObject=[fr]+flist, nameOfTags=", ".join(names), nameOfOtherTag=referenceTag)
+                        if isADR(fr):
+                            f = fevFact(fev, "TradingSymbol", fr)
+                            if f is not None and fevFact(fev, "SecurityExchangeName", fr) is None:
+                                fevMessage(fev, submissionType=submissionType, modelObject=f, 
+                                           nameOfTag="TradingSymbol", nameOfOtherTag="SecurityExchangeName", contextID=f.contextID,
+                                           validationMessage="message-ADR-no-exchange")
+                    # find any facts without a securities12b
+                    for name in names:
+                        for f in fevFacts(fev, name, fr, deduplicate=True):
+                            if f not in t1facts:
+                                if fevFact(fev, referenceTag, f) is None:
+                                    fevMessage(fev, submissionType=submissionType, modelObject=f, nameOfTags=[name], nameOfOtherTag=referenceTag)
+
+                elif validation in ("x", "xv", "r", "y", "n"):
+                    for name in names:
+                        f = fevFact(fev, name)
+                        if f is None or ((f.xValue not in value) if isinstance(value, (set,list)) else (value is not None and f.xValue != value)):
+                            fevMessage(fev, submissionType=submissionType, modelObject=f, efmSection=efmSection, nameOfTag=name, value=value)
+                elif validation in ("ru", "ou"):
+                    foundNonUS = None # false means found a us state, true means found a non-us state
+                    for name in names:
+                        f = fevFact(fev, name)
+                        if f is not None:
+                            foundNonUS = f.xValue not in value # value is set
+                    if foundNonUS == True or (validation == "ru" and foundNonUS is None):
+                        fevMessage(fev, submissionType=submissionType, modelObject=f, efmSection=efmSection, nameOfTag=name, value="U.S. state codes")                        
+                elif validation in ("o", "ov"):
+                    for name in names:
+                        f = fevFact(fev, name)
+                        if f is not None and ((f.xValue not in value) if isinstance(value, (set,list)) else (value is not None and f.xValue != value)):
+                            fevMessage(fev, submissionType=submissionType, modelObject=f, efmSection=efmSection, nameOfTag=name, value=value)
+                elif validation == "security-axis":
+                    for name in names:
+                        facts = tuple(f for f in fevFacts(fev, name, deduplicate=True))
+                        hasNonDimContext = any((not f.context.qnameDims) for f in facts)
+                        hasADRmember = any(isADR(f) for f in facts)
+                        if (len(facts) == 1 and not hasNonDimContext and not hasADRmember) or (len(facts) > 1 and hasNonDimContext):
+                            fevMessage(fev, submissionType=submissionType, modelObject=facts, nameOfTag=name, 
+                                       contextIDs=", ".join(sorted(f.contextID for f in facts)))
+                if eloName:
+                    expectedEloParams.add(eloName)
+                    for name in names:
+                        f = fevFact(fev, name)
+                        if f is not None and eloName in val.params and not deiParamEqual(name, f.xValue, val.params[eloName]):
+                            fevMessage(fev, messageKey="dq-0540-{nameOfTag}-Value",
+                                       submissionType=submissionType, modelObject=f, efmSection="6.5.40", 
+                                       nameOfTag=name, value=str(f.xValue), nameOfEloElement=eloName, valueOfEloElement=val.params[eloName])
+
+                        
+            del unexpectedDeiNameEfmSects, expectedDeiNames # dereference
                             
-            if documentType in {"10-K", "10-KT", "10-Q", "10-QT", "20-F", "40-F",
-                                "10-K/A", "10-KT/A", "10-Q/A", "10-QT/A", "20-F/A", "40-F/A"}:
-                defaultContextSharesOutstandingValue = deiItems.get("EntityCommonStockSharesOutstanding")
-                errLevel = "WARNING" if validateEFMpragmatic else "ERROR"
-                if commonSharesClassMembers:
-                    if defaultContextSharesOutstandingValue is not None: # checks that it exists and is not empty or nil
-                        modelXbrl.log(errLevel, "EFM.6.05.26",
-                            _("An instance with dei:DocumentType of %(documentType)s must have one dei:EntityCommonStockSharesOutstanding fact for each class of stock or units outstanding."),
-                            edgarCode="im-0526-Entity-Common-Shares-Outstanding",
-                            modelObject=documentTypeFact, contextID=documentTypeFact.contextID, documentType=documentType)
-                    elif len(commonSharesClassMembers) == 1: # and not hasDefinedStockAxis:
-                        modelXbrl.log(errLevel, "EFM.6.05.26",
-                            _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but but a required-context because only one class of stock"),
-                            #edgarCode
-                            modelObject=documentTypeFact, documentType=documentType)
-                    ''' per Dean R, this test no longer makes sense because we don't check against def LB defined members
-                    missingClasses = commonSharesClassMembers - _DICT_SET(commonSharesItemsByStockClass.keys())
-                    if missingClasses:
-                        modelXbrl.log(errLevel, "EFM.6.05.26",
-                            _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but missing in these stock classes: %(stockClasses)s"),
-                            modelObject=documentTypeFact, documentType=documentType, stockClasses=", ".join([str(c) for c in missingClasses]))
-                    '''
-                    for mem, facts in commonSharesItemsByStockClass.items():
-                        if len(facts) != 1:
-                            modelXbrl.log(errLevel, "EFM.6.05.26",
-                                _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but only one per stock class %(stockClass)s"),
-                                #edgarCode
-                                modelObject=documentTypeFact, documentType=documentType, stockClass=mem)
-                        ''' removed per ARELLE-124 (should check measurement date vs report date)
-                        elif facts[0].context.instantDatetime != commonStockMeasurementDatetime:
-                            modelXbrl.log(errLevel, "EFM.6.05.26",
-                                _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' in stock class %(stockClass)s with measurement date %(date)s"),
-                                modelObject=documentTypeFact, documentType=documentType, stockClass=mem, date=commonStockMeasurementDatetime)
-                        '''
-                elif hasCommonSharesOutstandingDimensionedFactWithDefaultStockClass and defaultContextSharesOutstandingValue is None:
-                        modelXbrl.log(errLevel, "EFM.6.05.26",
-                            _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' but missing for a non-required-context fact"),
-                            modelObject=documentTypeFact, documentType=documentType)
-                elif defaultContextSharesOutstandingValue is None: # missing, empty, or nil
-                    modelXbrl.log(errLevel, "EFM.6.05.26",
-                        _("dei:EntityCommonStockSharesOutstanding is required for DocumentType '%(documentType)s' in the required context because there are not multiple classes of common shares"),
-                        modelObject=documentTypeFact, documentType=documentType)
             if documentType in ("SD", "SD/A"): # SD documentType
                 val.modelXbrl.profileActivity("... filer required facts checks (other than SD)", minTimeToShow=1.0)
                 rxdNs = None # find RXD schema
@@ -1537,6 +1541,82 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         modelXbrl=modelXbrl, elementName=deiItem)
         if documentType not in ("SD", "SD/A"):
             val.modelXbrl.profileActivity("... filer required facts checks", minTimeToShow=1.0)
+            
+        # log extracted facts
+        if extractedCoverFacts and isInlineXbrl:
+            contextualFactNameSets = (("Security12bTitle", "TradingSymbol"), ("Security12gTitle", "TradingSymbol"))
+            exchangeFactName = "SecurityExchangeName"
+            exchangeAxisQN = qname(deiNamespaceURI, "EntityListingsExchangeAxis")
+            hasADR = False
+            cEqualCoverFacts = defaultdict(dict)
+            # find c-equivalent Title, Registration and Symbols
+            for name, facts in extractedCoverFacts.items():
+                for f in facts:
+                    cEqualCoverFacts[f.context.contextDimAwareHash][name] = f
+                    if not hasADR and any(d.dimensionQname.localName in deiCAxes
+                                          and d.memberQname == deiADRmember
+                                          for d in f.context.qnameDims.values()):
+                        hasADR = True
+            hasOTC = not hasADR and not extractedCoverFacts.get(exchangeFactName, ())
+            # organize by "record" of in hierarchical order of extractionCoverTagNames
+            coverFactRecords = set()
+            def addCoverFactRecord(facts):
+                nameValuePairs = []
+                for f in facts:
+                    if isinstance(f, tuple):
+                        nameValuePairs.append(f)
+                    elif f is not None:
+                        nameValuePairs.append( (f.qname.localName, f.xValue) )
+                coverFactRecords.add(tuple(sorted(nameValuePairs)))
+            
+            if hasOTC:
+                for contextualFactNames in contextualFactNameSets:
+                    for cEqualFacts in cEqualCoverFacts.values():
+                        if contextualFactNames == cEqualFacts.keys(): # context has all OTC facts
+                            addCoverFactRecord(list(cEqualFacts.values()) + [(exchangeFactName,None)])
+            else:
+                for contextualFactNames in contextualFactNameSets:
+                    for cEqualFacts in cEqualCoverFacts.values():
+                        if set(contextualFactNames) <= cEqualFacts.keys(): # context has all OTC facts
+                            cntx = cEqualFacts[contextualFactNames[0]].context # can be any fact's context as they're all same context
+                            classOfStockDim = None
+                            for d in cntx.qnameDims.values():
+                                if d.dimensionQname.localName in deiCAxes:
+                                    classOfStockDim = d
+                                    break
+                            if hasADR and (d is None or d.memberQname != deiADRmember):
+                                continue
+                            rec = [cEqualFacts[name] for name in contextualFactNames]
+                            if exchangeFactName in cEqualFacts:
+                                rec.append(cEqualFacts[exchangeFactName])
+                                addCoverFactRecord(rec)
+                            else:
+                                for f in extractedCoverFacts[exchangeFactName]:
+                                    fdims = f.context.qnameDims
+                                    addThisExchFact = False
+                                    if exchangeAxisQN in cntx.qnameDims:
+                                        if cntx.qnameDims[exchangeAxisQN].isEqualTo(fdims.get(exchangeAxisQN)):
+                                            addThisExchFact = True
+                                    elif classOfStockDim is not None and classOfStockDim.dimensionQname in fdims:
+                                        if classOfStockDim.isEqualTo(fdims[classOfStockDim.dimensionQname]):
+                                            addThisExchFact = True
+                                    # may need better disaggregation control
+                                    else:
+                                        addThisExchFact = True
+                                    if addThisExchFact:
+                                        rec.append(f)
+                                        # override any inherited facts with exch c-equal facts
+                                        exchCEqualFacts = cEqualCoverFacts[f.context.contextDimAwareHash]
+                                        for name in contextualFactNames:
+                                            if name in exchCEqualFacts:
+                                                rec.append(f)
+                                        addCoverFactRecord(rec)
+                
+            modelXbrl.log("INFO-RESULT",
+                          "EFM.coverFacts",
+                          "Extracted cover facts returned as json parameter",
+                          modelXbrl=modelXbrl,  
+                          json=json.dumps({"coverFacts":[dict(keyval for keyval in rec) for rec in sorted(coverFactRecords)]}))
 
         #6.5.27 footnote elements, etc
         footnoteLinkNbr = 0
@@ -1544,7 +1624,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             _linkEltIter = (linkPrototype
                             for linkKey, links in modelXbrl.baseSets.items()
                             for linkPrototype in links
-                            if linkPrototype.modelDocument.type == ModelDocument.Type.INLINEXBRL
+                            if linkPrototype.modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET)
                             and linkKey[1] and linkKey[2] and linkKey[3]  # fully specified roles
                             and linkKey[0] != "XBRL-footnotes")
         else: 
@@ -1704,7 +1784,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 for tag in (ixNStag + "nonNumeric", ixNStag+"nonFraction"):
                     for ixElt in ixHiddenElt.iterdescendants(tag=tag):
                         if (getattr(ixElt, "xValid", 0) >= VALID and # may not be validated
-                            not ixElt.qname.namespaceURI.startswith("http://xbrl.sec.gov/dei/") and
+                            (not ixElt.qname.namespaceURI.startswith("http://xbrl.sec.gov/dei/") 
+                             or ixElt.qname.localName in coverVisibleDeiNames) and
                             (not isRR or not rrUntransformableEltsPattern.match(ixElt.qname.localName)
                                       or abbreviatedWildNamespace(ixElt.qname.namespaceURI) != "rr/*")):
                             if (ixElt.concept.baseXsdType not in untransformableTypes and
@@ -1746,6 +1827,11 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 not ixElt.qname.namespaceURI.startswith("http://xbrl.sec.gov/dei/") and
                 (ixElt.concept.baseXsdType in untransformableTypes or ixElt.isNil)):
                 requiredToDisplayFacts.append(ixElt)
+        undisplayedCoverFacts = [f
+                                 for f in requiredToDisplayFacts
+                                 if f.qname.namespaceURI == deiNamespaceURI and f.qname.localName in coverVisibleDeiNames]
+        for f in undisplayedCoverFacts:
+            requiredToDisplayFacts.remove(f)
         if requiredToDisplayFacts:
             modelXbrl.warning("EFM.5.02.05.14.hidden-fact-not-referenced",
                 _("%(countUnreferenced)s fact(s) appearing in ix:hidden were not referenced by any -sec-ix-hidden style property: %(elements)s"),
@@ -1753,7 +1839,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 modelObject=requiredToDisplayFacts, 
                 countUnreferenced=len(requiredToDisplayFacts),
                 elements=", ".join(sorted(set(str(f.qname) for f in requiredToDisplayFacts))))
-        del eligibleForTransformHiddenFacts, hiddenEltIds, presentedHiddenEltIds, requiredToDisplayFacts
+        if undisplayedCoverFacts:
+            modelXbrl.warning("EFM.6.05.14.hidden-cover-page-fact-not-referenced",
+                _("Submission type %(submissionType)s has %(countUnreferenced)s cover page fact(s) in ix:hidden that were not referenced by any -sec-ix-hidden style property: %(elements)s"),
+                edgarCode="dq-0514-Hidden-Cover-Page-Fact-Not-Referenced",
+                modelObject=requiredToDisplayFacts, submissionType=submissionType, countUnreferenced=len(undisplayedCoverFacts),
+                elements=", ".join(sorted(set(f.qname.localName for f in undisplayedCoverFacts))))
+        del eligibleForTransformHiddenFacts, hiddenEltIds, presentedHiddenEltIds, requiredToDisplayFacts, undisplayedCoverFacts
     # all-labels and references checks
     defaultLangStandardLabels = {}
     for concept in modelXbrl.qnameConcepts.values():
@@ -1867,6 +1959,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     if set(d.targetNamespace for d in val.standardNamespaceConflicts['ifrs+us-gaap']) >= {
                         "http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full", "http://fasb.org/us-gaap/2017-01-31"}:
                         conflictClass = 'ifrs-2018+us-gaap-2017'
+                    elif set(d.targetNamespace for d in val.standardNamespaceConflicts['ifrs+us-gaap']) >= {
+                        "http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full", "http://fasb.org/us-gaap/2018-01-31"}:
+                        conflictClass = 'ifrs-2019+us-gaap-2018'
                     else:
                         continue
                 modelXbrl.error("EFM.6.22.03.incompatibleSchemas",

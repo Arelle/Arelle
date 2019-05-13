@@ -68,6 +68,42 @@
     <status>REC</status>
     <url xlink:type="simple" xlink:href="ixt-sec-datequarterend.xml"/>
   </entry>
+
+  <entry>
+    <added moment="2019-03-26T12:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-sec-boolballotbox.xml"/>
+  </entry>
+
+  <entry>
+    <added moment="2019-03-26T12:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-sec-countrynameen.xml"/>
+  </entry>
+
+  <entry>
+    <added moment="2019-03-26T12:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-sec-stateprovnameen.xml"/>
+  </entry>
+
+  <entry>
+    <added moment="2019-04-13T12:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-sec-edgarprovcountryen.xml"/>
+  </entry>
+
+  <entry>
+    <added moment="2019-03-26T12:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-sec-exchnameen.xml"/>
+  </entry>
+
+  <entry>
+    <added moment="2019-03-26T12:00:00"/>
+    <status>REC</status>
+    <url xlink:type="simple" xlink:href="ixt-sec-entityfilercategoryen.xml"/>
+  </entry>
   
  
   <!--  Below are the xii-transformationRegistry-v3 files

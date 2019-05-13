@@ -1082,12 +1082,14 @@ class ModelXbrl:
                 extras)
         
     def loggableValue(self, argValue): # must be dereferenced and not related to object lifetimes
-        if isinstance(argValue, (ModelValue.QName, ModelObject, bool, FileNamedStringIO,
+        if isinstance(argValue, (ModelValue.QName, ModelObject, FileNamedStringIO,
                                  # might be a set of lxml objects not dereferencable at shutdown 
                                  tuple, list, set)):
             return str(argValue)
         elif argValue is None:
             return "(none)"
+        elif isinstance(argValue, bool):
+            return str(argValue).lower() # show lower case true/false xml values
         elif isinstance(argValue, _INT_TYPES):
             # need locale-dependent formatting
             return format_string(self.modelManager.locale, '%i', argValue)
