@@ -63,7 +63,8 @@
 		"F": ["F-1", "F-1/A", "F-3", "F-3/A", "F-4", "F-4/A"],
 		"N": ["N-Q", "N-Q/A", "N-CSRS", "N-CSRS/A", "NCSR", "NCSR/A", "N-CSR", "N-CSR/A"],
 		"RR": ["485APOS", "485BPOS", "485BXT", "497", "N-1A", "N-1A/A"],
-		"SDR": ["K SDR", "L SDR"],
+		"comment3": "for SDR include both submission types (SDR, SDR/A, ...) and form types (K SDR, L SDR) because in previewing desktop mode only form type is provided",
+		"SDR": ["SDR", "SDR/A", "SDR-A", "SDR/W", "K SDR", "L SDR"],
 		"S+POS": ["S-1", "S-1/A", "S-3", "S-3/A", "S-4", "S-4/A", "S-11", "S-11/A", "POS EX", "POS AM"],
 		"others": ["F-1MEF", "F-3ASR", "F-3D", "F-3DPOS", "F-3MEF", "F-4", "F-4 POS", "F-4/A", "F-4EF", "F-4MEF",
 				   "F-9", "F-9 POS", "F-9/A", "F-9EF", "F-10", "F-10/A", "F-10EF", "F-10POS", 
@@ -166,10 +167,7 @@
 	{"forms": ["SD/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["SD/A"], "source": "both", "dei/cover": "dei"},
 	{"forms": ["SP 15D2"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["SP 15D2"], "source": "both", "dei/cover": "dei"},
 	{"forms": ["SP 15D2/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["SP 15D2/A"], "source": "both", "dei/cover": "dei"},
-	{"forms": ["SDR"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["K SDR", "L SDR"], "source": "both", "dei/cover": "dei"},
-	{"forms": ["SDR/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["K SDR", "L SDR"], "source": "both", "dei/cover": "dei"},
-	{"forms": ["SDR-A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["K SDR", "L SDR"], "source": "both", "dei/cover": "dei"},
-	{"forms": ["SDR/W "], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["K SDR", "L SDR"], "source": "both", "dei/cover": "dei"},
+	{"forms": ["@SDR"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["K SDR", "L SDR"], "source": "both", "dei/cover": "dei"},
     {
         "forms": ["@all-FAST"],
         "xbrl-names": "AmendmentFlag",
@@ -247,7 +245,7 @@
         "dei/cover": "dei"
     },
     {
-        "forms": ["@8-K", "@10-12", "@20+40FR", "@S+POS", "@F", "@SDR", "@N"],
+        "forms": ["@8-K", "@6-K", "@10-12", "@20+40FR", "@S+POS", "@F", "@SDR", "@N"],
         "xbrl-names": [
             "DocumentFiscalYearFocus",
             "DocumentFiscalPeriodFocus"
@@ -498,7 +496,7 @@
         "dei/cover": "dei"
     },
     {
-        "forms": ["@8-K", "@10-K+Q"],
+        "forms": ["@10-K+Q"],
         "xbrl-names": "EntitySmallBusiness",
         "elo-name": "smallBusinessFlag",
         "efm": "6.5.40",
@@ -567,7 +565,7 @@
     {
         "forms": ["@RR", "@N"],
         "xbrl-names": "EntityInvCompanyType",
-        "elo-name": "emergingGrowthCompanyFlag",
+        "elo-name": "invCompanyType",
         "efm": "6.5.40",
         "validation": "r",
         "source": "both",
@@ -1345,8 +1343,20 @@
 		"AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", 
 		"MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "X1", "UT", "VT", "VA", "WA", "WV", "WI", "WY"],
         "axis": "a",
-        "source": "both",
+        "source": "inline",
         "dei/cover": "cover"
+    },
+    {
+        "forms": ["@40-F"],
+        "xbrl-names": "EntityAddressStateOrProvince",
+        "efm": "6.5.51",
+        "validation": "ov",
+        "value": [
+		"AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", 
+		"MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "X1", "UT", "VT", "VA", "WA", "WV", "WI", "WY"],
+        "axis": "a",
+        "source": "non-inline",
+        "dei/cover": "dei"
     },
     {
         "forms": ["@40-F"],
@@ -1545,13 +1555,6 @@
         "dei/cover": "cover"
     },
     {
-        "forms": ["@SDR"],
-        "xbrl-names": "EntityReportingCurrencyISOCode",
-        "efm": "6.23.36",
-        "validation": "r",
-        "source": "both"
-    },
-    {
         "forms": ["@all"],
         "xbrl-names": [],
         "efm": "(obtained from blank cell's row)",
@@ -1587,12 +1590,12 @@
 			"validation": "N – A fact should be present with value \"false\"."
 		},
 		"o": {
-			"message": "dq-{efmSection}-{nameOfTag}-{nameOfOtherTag}",
+			"message": null,
 			"severity": "warning",
 			"validation": "O – A non-null fact may or may not appear."
 		},
 		"ov": {
-			"message": "dq-{efmSection}-{nameOfTag}-Value",
+			"message": "dq-{efmSection}-{nameOfTag}-{value}",
 			"severity": "warning",
 			"validation": "X - A non-null fact may or may not appear but if it does, with specified vcalue"
 		},
@@ -1747,7 +1750,6 @@
 		"dq-{efmSection}-{nameOfTag}-{nameOfOtherTag}-Inclusive": "In submission type {submissionType}, either {nameOfTag} or {nameOfOtherTag} should have a value, or both. {refSources}",
 		"dq-{efmSection}-{nameOfTags}-{nameOfOtherTag}-Exclusive-Dependency": "In submission type {submissionType}, one of {nameOfTags} {severityVerb} have a value if and only if {nameOfOtherTag} has a value in context {contextID}. {refSources}",
 		"dq-{efmSection}-{nameOfTag}-Security-Axes": "In submission type {submissionType}, {nameOfTag} {severityVerb} have values without axes if a single non-ADR member, otherwise in separate contexts by axis member, but not both, in contexts {contextIDs}. {refSources}",
-		"dq-{efmSection}-20F-ReportType": "In submission type {submissionType}, exactly one of Annual, Transition, or Shell Company Report {severityVerb} have value \"true\" in the Required Context and the others must have \"false\". {refSources}",
 		"dq-0514-Hidden-Cover-Page-Fact-Not-Referenced": "Submission type {submissionType} has {n} cover page fact(s) in ix:hidden that were not referenced by any -sec-ix-hidden style property: (namesOfTags) {refSources}",
 		"dq-0540-{nameOfTag}-Value": "In submission type {submissionType}, {nameOfTag} value \"{value}\", is not equivalent to header element {nameOfEloElement} value \"{valueOfEloElement}\" in the {context}.  {refSources}",
 		"dq-0540-{nameOfEloElement}-Unexpected": "In submission type {submissionType}, header element {nameOfEloElement} value \"{valueOfEloElement}\" is not expected.  {refSources}"

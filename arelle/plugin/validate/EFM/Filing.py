@@ -966,6 +966,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         if isinstance(f, ModelFact):
                             logArgs["contextID"] = f.contextID
                             break
+                if "value" in logArgs:
+                    v = logArgs["value"]
+                    if isinstance(v, list):
+                        if len(v) == 1:
+                            logArgs["value"] = v[0]
+                        else:
+                            logArgs["value"] = "one of {}".format(", ".join(v))
                 message = deiValidations["messages"][messageKey]
                 message = re.sub(r"\s*{refSources}\s*", r"", message) # added in arelle logging or arelle wrapper
                 message = re.sub(r"{(\w+)}", r"%(\1)s", message)
