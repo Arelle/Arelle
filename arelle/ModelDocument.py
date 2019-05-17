@@ -68,12 +68,12 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         blocked = modelXbrl.modelManager.disclosureSystem.blockDisallowedReferences
         if normalizedUri not in modelXbrl.urlUnloadableDocs:
             # HMRC note, HMRC.blockedFile should be in this list if hmrc-taxonomies.xml is maintained an dup to date
-            modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06" if normalizedUri.startswith("http") else "SBR.NL.2.2.0.17"),
+            modelXbrl.error(("EFM.6.22.00", "GFM.1.1.3", "SBR.NL.2.1.0.06" if normalizedUri.startswith("http") else "SBR.NL.2.2.0.17"),
                     _("Prohibited file for filings %(blockedIndicator)s: %(url)s"),
-                    edgarCode="cp-2202-Prohibited-Href-Or-Schema-Location",
+                    edgarCode="cp-2200-Prohibited-Href-Or-Schema-Location",
                     modelObject=referringElement, url=normalizedUri,
                     blockedIndicator=_(" blocked") if blocked else "",
-                    messageCodes=("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06", "SBR.NL.2.2.0.17"))
+                    messageCodes=("EFM.6.22.00", "GFM.1.1.3", "SBR.NL.2.1.0.06", "SBR.NL.2.2.0.17"))
             #modelXbrl.debug("EFM.6.22.02", "traceback %(traceback)s",
             #                modeObject=referringElement, traceback=traceback.format_stack())
             modelXbrl.urlUnloadableDocs[normalizedUri] = blocked
