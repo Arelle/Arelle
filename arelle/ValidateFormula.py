@@ -1162,6 +1162,10 @@ def checkDefinitionNodeRules(val, table, parent, arcrole, xpathContext):
                     rulesByAspect = defaultdict(set)
                     for elt in XmlUtil.descendants(axis, XbrlConst.formula, "*"):
                         try:
+                            try: # make sure xAttributes is initialized (pull request #94)
+                                elt.xAttributes
+                            except AttributeError:
+                                xml_validate(val.modelXbrl, elt)
                             if elt.localName in ("concept", "entityIdentifier", "period", "unit"):
                                 rulesByAspect[elt.localName].add(elt)
                             elif elt.localName in ("explicitDimension", "typedDimension"):
