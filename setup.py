@@ -29,13 +29,13 @@ def get_version():
     return mod.version
 
 
-setup_requires = ['lxml']
+setup_requires = ['lxml'] # ,'Crypto.Cipher']
 # install_requires specifies a list of package dependencies that are 
 # installed when 'python setup.py install' is run. On Linux/Mac systems 
 # this also allows installation directly from the github repository 
 # (using 'pip install -e git+git://github.com/rheimbuchArelle.git#egg=Arelle') 
 # and the install_requires packages are auto-installed as well.
-install_requires = ['lxml']
+install_requires = ['lxml', 'isodate', 'openpyxl']
 options = {}
 scripts = []
 cxFreezeExecutables = []
@@ -272,7 +272,8 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         'rdflib.plugins.sparql',
         'rdflib.plugins.stores',
         'isodate', 'regex', 'gzip', 'zlib', 'aniso8601', 'graphviz',
-        'openpyxl', 'PIL', # openpyxl's __init__.py must be hand edited, see https://bitbucket.org/openpyxl/openpyxl/pull-requests/80/__about__py/diff
+        'openpyxl', 'PIL', 'pycountry',
+        'Crypto', 'Crypto.Cipher', 'Crypto.Cipher.AES'
         #'google_api_python_client', 'oauth2client', 'six', 'httplib2', 'uritemplate', 'pyasn1', 'rsa', 'pyasn1_modules' # google-api-python-client
     ]
 
@@ -368,8 +369,8 @@ elif sys.platform == 'win32':
         'rdflib.plugins.sparql',
         'rdflib.plugins.stores',
         'isodate', 'regex', 'gzip', 'zlib', 'aniso8601', 'graphviz',
-        'openpyxl', 'PIL' # openpyxl's __init__.py must be hand edited, see https://bitbucket.org/openpyxl/openpyxl/pull-requests/80/__about__py/diff
-
+        'openpyxl', 'PIL', 'pycountry', 
+        'Crypto', 'Crypto.Cipher', 'Crypto.Cipher.AES'
     ]
     # uncomment the next line if cx_Freezing with EdgarRenderer
     # note that openpyxl must be 2.1.4 at this time
