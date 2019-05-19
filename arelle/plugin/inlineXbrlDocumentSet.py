@@ -114,6 +114,16 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
 # baseXmlLang: set on root xbrli:xbrl element
 # defaultXmlLang: if a fact/footnote has a different lang, provide xml:lang on it.
 def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingFiles, baseXmlLang=None, defaultXmlLang=None):
+    def addLocallyReferencedFile(elt,filingFiles):
+        if elt.tag in ("a", "img"):
+            for attrTag, attrValue in elt.items():
+                if attrTag in ("href", "src") and not isHttpUrl(attrValue) and not os.path.isabs(attrValue):
+                    attrValue = attrValue.partition('#')[0] # remove anchor
+                    if attrValue: # ignore anchor references to base document
+                        attrValue = os.path.normpath(attrValue) # change url path separators to host separators
+                        file = os.path.join(sourceDir,attrValue)
+                        if modelXbrl.fileSource.isInArchive(file, checkExistence=True) or os.path.exists(file):
+                            filingFiles.add(file)
     targetInstance = ModelXbrl.create(modelXbrl.modelManager,
                                       newDocumentType=Type.INSTANCE,
                                       url=targetUrl,
@@ -236,16 +246,6 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
 
 def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRefs, outputZip=None, filingFiles=None, *args, **kwargs):
     targetUrl = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(targetDocumentFilename, modelXbrl.modelDocument.filepath)
-    def addLocallyReferencedFile(elt,filingFiles):
-        if elt.tag in ("a", "img"):
-            for attrTag, attrValue in elt.items():
-                if attrTag in ("href", "src") and not isHttpUrl(attrValue) and not os.path.isabs(attrValue):
-                    attrValue = attrValue.partition('#')[0] # remove anchor
-                    if attrValue: # ignore anchor references to base document
-                        attrValue = os.path.normpath(attrValue) # change url path separators to host separators
-                        file = os.path.join(sourceDir,attrValue)
-                        if modelXbrl.fileSource.isInArchive(file, checkExistence=True) or os.path.exists(file):
-                            filingFiles.add(file)
     targetUrlParts = targetUrl.rpartition(".")
     targetUrl = targetUrlParts[0] + "_extracted." + targetUrlParts[2]
     modelXbrl.modelManager.showStatus(_("Extracting instance ") + os.path.basename(targetUrl))
