@@ -117,7 +117,7 @@ class Validate:
                     modelXbrl=self.modelXbrl,
                     instance=self.modelXbrl.modelDocument.basename, error=err,
                     # traceback=traceback.format_tb(sys.exc_info()[2]),
-                    exc_info=True)
+                    exc_info=(type(err) is not AssertionError))
         self.close()
         
     def validateRssFeed(self):
@@ -274,7 +274,7 @@ class Validate:
                         except Exception as err:
                             modelXbrl.error("exception:" + type(err).__name__,
                                 _("Testcase variation validation exception: %(error)s, instance: %(instance)s"),
-                                modelXbrl=modelXbrl, instance=modelXbrl.modelDocument.basename, error=err, exc_info=True)
+                                modelXbrl=modelXbrl, instance=modelXbrl.modelDocument.basename, error=err, exc_info=(type(err) is not AssertionError))
                         modelXbrl.hasFormulae = _hasFormulae
                 if resultIsVersioningReport and modelXbrl.modelDocument:
                     versReportFile = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(
@@ -346,7 +346,7 @@ class Validate:
                         except Exception as err:
                             modelXbrl.error("exception:" + type(err).__name__,
                                 _("Testcase formula variation validation exception: %(error)s, instance: %(instance)s"),
-                                modelXbrl=modelXbrl, instance=modelXbrl.modelDocument.basename, error=err, exc_info=True)
+                                modelXbrl=modelXbrl, instance=modelXbrl.modelDocument.basename, error=err, exc_info=(type(err) is not AssertionError))
                     if modelTestcaseVariation.resultIsInfoset and self.modelXbrl.modelManager.validateInfoset:
                         for pluginXbrlMethod in pluginClassMethods("Validate.Infoset"):
                             pluginXbrlMethod(modelXbrl, modelTestcaseVariation.resultInfosetUri)

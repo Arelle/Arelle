@@ -106,14 +106,15 @@ def pyTypeName(object):
     except:
         return str(type(object))
     
-def pyNamedObject(name):
+def pyNamedObject(name, *args, **kwargs):
     try:
         if sys.version[0] >= '3':
             import builtins
-            return builtins.__dict__[name]
+            objectConstructor = builtins.__dict__[name]
         else:
             import __builtin__
-            return __builtin__.__dict__[name]
+            objectConstructor =  __builtin__.__dict__[name]
+        return objectConstructor(*args, **kwargs)
     except:
         return None
     

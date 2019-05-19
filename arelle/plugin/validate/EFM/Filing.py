@@ -92,7 +92,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             pluginXbrlMethod(val)
             
     if "EFM/Filing.py#validateFiling_start" in val.modelXbrl.arelleUnitTests:
-        raise pyNamedObject(val.modelXbrl.arelleUnitTests["EFM/Filing.py#validateFiling_start"])
+        raise pyNamedObject(val.modelXbrl.arelleUnitTests["EFM/Filing.py#validateFiling_start"], "EFM/Filing.py#validateFiling_start")
 
     # instance checks
     val.fileNameBasePart = None # prevent testing on fileNameParts if not instance or invalid
@@ -2343,7 +2343,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     val.modelXbrl.profileActivity("... filer preferred label checks", minTimeToShow=1.0)
     
     if "EFM/Filing.py#validateFiling_end" in val.modelXbrl.arelleUnitTests:
-        raise pyNamedObject(val.modelXbrl.arelleUnitTests["EFM/Filing.py#validateFiling_end"])
+        raise pyNamedObject(val.modelXbrl.arelleUnitTests["EFM/Filing.py#validateFiling_end"], "EFM/Filing.py#validateFiling_end")
 
     if isEFM:
         for pluginXbrlMethod in pluginClassMethods("Validate.EFM.Finally"):
