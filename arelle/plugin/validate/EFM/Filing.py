@@ -1054,7 +1054,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 isCoverVisible = fev.get("dei/cover") == "cover"
                 referenceTag = fev.get("references")
                 referenceValue = fev.get("reference-value")
-                if forms != "all" and submissionType not in forms:
+                if forms != "all" and ((submissionType not in forms) ^ ("!not!" in forms)):
                     for name in names:
                         if fevFact(fev, name) is not None:
                             unexpectedDeiNameEfmSects[name,axisKey].add(fevIndex)
@@ -1199,7 +1199,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 elif validation in ("x", "xv", "r", "y", "n"):
                     for name in names:
                         f = fevFact(fev, name)
-                        if f is None or ((f.xValue not in value) if isinstance(value, (set,list)) else (value is not None and f.xValue != value)):
+                        if f is None or (((f.xValue not in value) ^ ("!not!" in value)) if isinstance(value, (set,list)) 
+                                         else (value is not None and f.xValue != value)):
                             fevMessage(fev, submissionType=submissionType, modelObject=f, efmSection=efmSection, nameOfTag=name, value=value)
                 elif validation in ("ru", "ou"):
                     foundNonUS = None # false means found a us state, true means found a non-us state
@@ -1212,7 +1213,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 elif validation in ("o", "ov"):
                     for name in names:
                         f = fevFact(fev, name)
-                        if f is not None and ((f.xValue not in value) if isinstance(value, (set,list)) else (value is not None and f.xValue != value)):
+                        if f is not None and (((f.xValue not in value) ^ ("!not!" in value)) if isinstance(value, (set,list)) 
+                                              else (value is not None and f.xValue != value)):
                             fevMessage(fev, submissionType=submissionType, modelObject=f, efmSection=efmSection, nameOfTag=name, value=value)
                 elif validation == "security-axis":
                     for name in names:
