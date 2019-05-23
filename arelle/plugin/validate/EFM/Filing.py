@@ -873,24 +873,24 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     if doc.type == ModelDocument.Type.SCHEMA and 
                                     url not in disclosureSystem.standardTaxonomiesDict]
                             modelXbrl.warning("EFM.6.05.41.seriesIdMemberNotDeclared",
-                                _("Submission type %(submissionType)s should have %(seriesIdMember)s declared as a domainItemType element."),
+                                _("Submission type %(subType)s should have %(seriesIdMember)s declared as a domainItemType element."),
                                 edgarCode="dq-0541-Series-Id-Member-Not-Declared",
-                                modelObject=xsds, seriesIdMember=seriesIdMemberName, submissionType=submissionType)
+                                modelObject=xsds, seriesIdMember=seriesIdMemberName, subType=submissionType)
                         elif not legalEntityAxisRelationshipSet.isRelated(legalEntityAxis[0],"descendant", seriesIdMember):
                             defLBs = [doc for url, doc in modelXbrl.urlDocs.items()  # all filer def LBs
                                       if doc.type == ModelDocument.Type.LINKBASE and 
                                       url not in disclosureSystem.standardTaxonomiesDict and
                                       url.endswith("_def.xml")]
                             modelXbrl.warning("EFM.6.05.41.seriesIdMemberNotAxisMember",
-                                _("Submission type %(submissionType)s should have %(seriesIdMember)s as a member of the Legal Entity Axis."),
+                                _("Submission type %(subType)s should have %(seriesIdMember)s as a member of the Legal Entity Axis."),
                                 edgarCode="dq-0541-Series-Id-Member-Not-Axis-Member",
-                                modelObject=[seriesIdMember, defLBs], seriesIdMember=seriesIdMemberName, submissionType=submissionType)
+                                modelObject=[seriesIdMember, defLBs], seriesIdMember=seriesIdMemberName, subType=submissionType)
                         elif not any(cntx.hasDimension(legalEntityAxisQname) and seriesIdMember == cntx.qnameDims[legalEntityAxisQname].member
                                      for cntx in contextsWithNonNilFacts):
                             modelXbrl.warning("EFM.6.05.41.seriesIdMemberNotInContext",
-                                _("Submission type %(submissionType)s should have a context with %(seriesIdMember)s as a member of the Legal Entity Axis."),
+                                _("Submission type %(subType)s should have a context with %(seriesIdMember)s as a member of the Legal Entity Axis."),
                                 edgarCode="dq-0541-Series-Id-Member-Not-In-Context",
-                                modelObject=(modelXbrl,seriesIdMember), seriesIdMember=seriesIdMemberName, submissionType=submissionType)                    
+                                modelObject=(modelXbrl,seriesIdMember), seriesIdMember=seriesIdMemberName, subType=submissionType)                    
         val.modelXbrl.profileActivity("... filer label and text checks", minTimeToShow=1.0)
 
         if isEFM:
@@ -924,7 +924,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         messageKey = validation[kwargs["validationMessage"]]
                     else:
                         messageKey = validation["message"]
-                logArgs["severityVerb"] = {"WARNING":"should","ERROR":"must"}[severity]
+                if "severityVerb" not in logArgs:
+                    logArgs["severityVerb"] = {"WARNING":"should","ERROR":"must"}[severity]
                 if "efmSection" not in logArgs:
                     logArgs["efmSection"] = fev.get("efm")
                 efm = logArgs["efmSection"].split(".")
@@ -937,8 +938,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                   .replace(",", "").replace(".","").replace(" ","") # replace commas in names embedded in message code portion
                 except KeyError as err:
                     modelXbrl.error("arelle:loadDeiValidations", 
-                                    _("Missing field [\"%(err)s\"] from %(validation)s."), 
-                                    field=err, validation=fev)
+                                    _("Missing field %(field)s from messageKey %(messageKey)s, validation %(validation)s."), 
+                                    field=err, messageKey=messageKey, validation=fev)
+                    return
                 arelleCodeSections = arelleCode.split("-")
                 if len(arelleCodeSections) > 1 and arelleCodeSections[1]:
                     arelleCodeSections[1] = arelleCodeSections[1][0].lower() + arelleCodeSections[1][1:] # start with lowercase
@@ -974,7 +976,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         else:
                             logArgs["value"] = "one of {}".format(", ".join(v))
                 message = deiValidations["messages"][messageKey]
-                message = re.sub(r"\s*{refSources}\s*", r"", message) # added in arelle logging or arelle wrapper
                 message = re.sub(r"{(\w+)}", r"%(\1)s", message)
                 modelXbrl.log(severity, arelleCode, message, **logArgs)
                 
@@ -993,7 +994,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         return False
                 if isinstance(fev, int):
                     fev = fevs[fev] # convert index to fev object
-                if name:
+                if isinstance(name, list):
+                    names = name
+                elif name:
                     names = (name,)
                 else:
                     names = fev.get("xbrl-names", ())
@@ -1028,8 +1031,14 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     
             # return first of matching facts or None
             def fevFact(fev=None, name=None, otherFact=None):
-                for f in fevFacts(fev, name, otherFact):
-                    return f
+                if isinstance(name, list):
+                    for _name in name:
+                        f = fevFact(fev, _name, otherFact)
+                        if f is not None:
+                            return f
+                else:
+                    for f in fevFacts(fev, name, otherFact):
+                        return f
                 return None
             
             def isADR(f):
@@ -1072,14 +1081,14 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         efmSection = fevs[sorted(fevIndices)[0]].get("efm") # use first section
                         if nameAxisKey not in expectedDeiNames:
                             name, axisKey = nameAxisKey
-                            fevMessage(fev, submissionType=submissionType, efmSection=efmSection, nameOfTag=name,
+                            fevMessage(fev, subType=submissionType, efmSection=efmSection, tag=name,
                                             modelObject=[f for i in fevIndices for f in fevFacts(i, name)],
                                             typeOfContext="Required Context")
                     for eloName in sorted(unexpectedEloParams - expectedEloParams):
                         if eloName in val.params:
-                            fevMessage(fev, messageKey="dq-0540-{nameOfEloElement}-Unexpected", efmSection="6.5.40",
-                                       modelObject=modelXbrl, submissionType=submissionType,
-                                       nameOfEloElement=eloName, valueOfEloElement=val.params[eloName])
+                            fevMessage(fev, messageKey="dq-0540-{headerTag}-Unexpected", efmSection="6.5.40",
+                                       modelObject=modelXbrl, subType=submissionType,
+                                       headerTag=eloName, valueOfHeaderTag=val.params[eloName])
                 # type-specific validations
                 elif len(names) == 0:
                     pass # no name entries if all dei names of this validation weren't in the loaded dei taxonomy (i.e., pre 2019) 
@@ -1090,8 +1099,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         if f is not None and f.xValue == value:
                             numFacts += 1
                     if numFacts != 1:
-                        fevMessage(fev, submissionType=submissionType, 
-                                        modelObject=fevFacts(fev), nameOfTags=", ".join(names), value=value)
+                        fevMessage(fev, subType=submissionType, 
+                                        modelObject=fevFacts(fev), tags=", ".join(names), value=value)
                 elif validation in ("o2", "o3"): # at least one present 
                     f2 = None
                     numFacts = 0
@@ -1105,25 +1114,25 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             f2 = f # align next fact to this context
                             numFacts += 1
                     if numFacts == 0:
-                        fevMessage(fev, submissionType=submissionType, modelObject=fevFacts(fev), nameOfTags=", ".join(names))
+                        fevMessage(fev, subType=submissionType, modelObject=fevFacts(fev), tags=", ".join(names))
                 elif validation == "op": # all or neither must have a value
                     if 0 < sum(fevFact(fev, name) is not None for name in names) < len(names): # default context for all
-                        fevMessage(fev, submissionType=submissionType, modelObject=fevFacts(fev), nameOfTags=", ".join(names))
-                elif validation == "og":
+                        fevMessage(fev, subType=submissionType, modelObject=fevFacts(fev), tags=", ".join(names))
+                elif validation in "og":
                     fr = fevFact(fev, referenceTag)
                     if fr is not None and fr.xValue == referenceValue:
                         f = fevFact(fev, names[0], fr) # required context, no axes
                         if f is None:
-                            fevMessage(fev, submissionType=submissionType, modelObject=fr, nameOfTag=referenceTag, value=referenceValue, nameOfOtherTag=names[0], contextID=fr.contextID)
+                            fevMessage(fev, subType=submissionType, modelObject=fr, tag=referenceTag, value=referenceValue, otherTag=names[0], contextID=fr.contextID)
                 elif validation == "f2":
                     f = fevFact(fev, referenceTag) # f and dependent fact are in same context
                     if f is not None and not any(fevFact(fev, name, f) is not None for name in names):
-                        fevMessage(fev, submissionType=submissionType, modelObject=f, nameOfTag=referenceTag, nameOfOtherTags=", ".join(names))
+                        fevMessage(fev, subType=submissionType, modelObject=f, tag=referenceTag, otherTags=", ".join(names))
                 elif validation in ("ol1", "ol2"):
                     for name in names:
                         f = fevFact(fev, name) # referenced fact must be same context as this fact
                         if f is not None and fevFact(fev, referenceTag, f) is None:
-                            fevMessage(fev, submissionType=submissionType, modelObject=fevFacts(fev), nameOfTag=name, nameOfOtherTag=referenceTag, contextID=f.contextID)
+                            fevMessage(fev, subType=submissionType, modelObject=fevFacts(fev), tag=name, otherTag=referenceTag, contextID=f.contextID)
                 elif validation == "oph":
                     f = fevFact(fev, referenceTag)
                     for name in names:
@@ -1131,7 +1140,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             f2 = fevFact(fev, name)
                         if ((f is not None and fevFact(fev, name, f) is None) or
                             (f is None and f2 is not None and fevFact(fev, referenceTag, f2) is None)):
-                            fevMessage(fev, submissionType=submissionType, modelObject=f, nameOfTag=name, nameOfOtherTag=referenceTag,
+                            fevMessage(fev, subType=submissionType, modelObject=f, tag=name, otherTag=referenceTag,
                                        contextID=f.contextID if f is not None else f2.contextID)
                 elif validation in ("a", "sr", "oth", "tb"):
                     for name in names:
@@ -1140,10 +1149,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         if ((fr is not None and ((f is not None and fr.xValue != referenceValue) or
                                                  (f is None and fr.xValue == referenceValue))) or
                             (fr is None and f is not None)):
-                            fevMessage(fev, submissionType=submissionType, modelObject=fevFacts(fev), nameOfTag=name, nameOfOtherTag=referenceTag, value=referenceValue,
+                            fevMessage(fev, subType=submissionType, modelObject=fevFacts(fev), tag=name, otherTag=referenceTag, value=referenceValue,
                                        contextID=f.contextID if f is not None else fr.contextID if fr is not None else "N/A")
                 elif validation == "t":
-                    frs = [*fevFacts(fev, referenceTag)] # all reference facts
+                    frs = [f for f in fevFacts(fev, referenceTag)] # all reference facts from generator
                     for name in names:
                         for f in fevFacts(fev, name):
                             fr = fevFact(fev, referenceTag, f) # dependent fact is of context of f or for "c" inherited context (less disaggregated)
@@ -1151,57 +1160,58 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 frs.remove(fr) # this referenced object has been covered by a referencing fact
                             if ((fr is not None and f is None) or
                                 (fr is None and f is not None)):
-                                fevMessage(fev, submissionType=submissionType, modelObject=(f,fr), nameOfTag=name, nameOfOtherTag=referenceTag)
+                                fevMessage(fev, subType=submissionType, modelObject=(f,fr), tag=name, otherTag=referenceTag)
                     for fr in frs:
                         for name in names:
                             if fevFact(fev, name, fr) is None: # no corresponding fact to an unreferenced reference fact
-                                fevMessage(fev, submissionType=submissionType, modelObject=fr, nameOfTag=referenceTag, nameOfOtherTag=name)
+                                fevMessage(fev, subType=submissionType, modelObject=fr, tag=referenceTag, otherTag=name)
                 elif validation == "te":
-                    for name in names:
-                        for f in fevFacts(fev, name, deduplicate=True):
-                            fr = fevFact(fev, referenceTag, f) # dependent fact is of context of f or for "c" inherited context (less disaggregatedd)
-                            if ((fr is not None and f is None) or
-                                (fr is None and f is not None)):
-                                fevMessage(fev, submissionType=submissionType, modelObject=(f,fr), nameOfTag=name, nameOfOtherTag=referenceTag,
-                                           contextID=fr.contextID if fr is not None else f.contextID)
-                            if (isADR(f) and fevFact(fev, "TradingSymbol", fr) is None):
-                                fevMessage(fev, submissionType=submissionType, modelObject=fr, nameOfTag="TradingSymbol", 
-                                           validationMessage="message-ADR-no-symbol", 
-                                           context="the ADR context, {}, which has an applicable Exchange fact"
-                                                    .format(f.contextID))
+                    tefacts = set()
+                    for fr in fevFacts(fev, referenceTag, deduplicate=True):
+                        flist = [f for f in fevFacts(fev, names, fr, deduplicate=True)] # just 1 name for te
+                        tefacts.update(flist)
+                        if len(flist) != 1:
+                            fevMessage(fev, subType=submissionType, modelObject=[fr]+flist, tag=names[0], otherTag=referenceTag)
+                    # find any facts without a securities12b
+                    for f in fevFacts(fev, names, fr, deduplicate=True): # just 1 name for te
+                        if f not in tefacts:
+                            if fevFact(fev, referenceTag, f) is None:
+                                fevMessage(fev, subType=submissionType, modelObject=f, tag=names[0], otherTag=referenceTag)
+                    del tefacts # dereference
                 elif validation == "ot1":
                     for i, name1 in enumerate(names):
                         for fr in fevFacts(fev, name1, deduplicate=True):
                             flist = [fevFact(fev, name2, fr) for name2 in names[i+1:]]
                             if sum(f is not None for f in flist) > 0:
-                                fevMessage(fev, submissionType=submissionType, modelObject=[fr]+flist, nameOfTags=", ".join(names))
+                                fevMessage(fev, subType=submissionType, modelObject=[fr]+flist, tags=", ".join(names))
                 elif validation == "t1":
                     t1facts = set()
                     for fr in fevFacts(fev, referenceTag, deduplicate=True):
-                        flist = [f for name in names for f in fevFacts(fev, name, fr, deduplicate=True)]
+                        flist = [f for f in fevFacts(fev, names, fr, deduplicate=True)]
                         t1facts.update(flist)
-                        if ((fr is not None and sum(f is not None for f in flist) != 1) or
-                            (fr is None and any(f is not None for f in flist))):
-                            fevMessage(fev, submissionType=submissionType, modelObject=[fr]+flist, nameOfTags=", ".join(names), nameOfOtherTag=referenceTag)
+                        if len(flist) > 1: # note that reference tag is a list here
+                            fevMessage(fev, subType=submissionType, modelObject=[fr]+flist, tags=", ".join(names), otherTags=", ".join(referenceTag),
+                                       severityVerb="may")
+                        """
                         if isADR(fr):
                             f = fevFact(fev, "TradingSymbol", fr)
                             if f is not None and fevFact(fev, "SecurityExchangeName", fr) is None:
-                                fevMessage(fev, submissionType=submissionType, modelObject=f, 
-                                           nameOfTag="TradingSymbol", nameOfOtherTag="SecurityExchangeName", contextID=f.contextID,
+                                fevMessage(fev, subType=submissionType, modelObject=f, 
+                                           tag="TradingSymbol", otherTag="SecurityExchangeName", contextID=f.contextID,
                                            validationMessage="message-ADR-no-exchange")
+                        """
                     # find any facts without a securities12b
-                    for name in names:
-                        for f in fevFacts(fev, name, fr, deduplicate=True):
-                            if f not in t1facts:
-                                if fevFact(fev, referenceTag, f) is None:
-                                    fevMessage(fev, submissionType=submissionType, modelObject=f, nameOfTags=[name], nameOfOtherTag=referenceTag)
-
+                    for f in fevFacts(fev, names, fr, deduplicate=True):
+                        if f not in t1facts:
+                            if fevFact(fev, referenceTag, f) is None: # note that reference tag is a list here
+                                fevMessage(fev, subType=submissionType, modelObject=f, tags=", ".join(names), otherTags=", ".join(referenceTag))
+                    del t1facts # dereference
                 elif validation in ("x", "xv", "r", "y", "n"):
                     for name in names:
                         f = fevFact(fev, name)
                         if f is None or (((f.xValue not in value) ^ ("!not!" in value)) if isinstance(value, (set,list)) 
                                          else (value is not None and f.xValue != value)):
-                            fevMessage(fev, submissionType=submissionType, modelObject=f, efmSection=efmSection, nameOfTag=name, value=value)
+                            fevMessage(fev, subType=submissionType, modelObject=f, efmSection=efmSection, tag=name, value=value)
                 elif validation in ("ru", "ou"):
                     foundNonUS = None # false means found a us state, true means found a non-us state
                     for name in names:
@@ -1209,29 +1219,29 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         if f is not None:
                             foundNonUS = f.xValue not in value # value is set
                     if foundNonUS == True or (validation == "ru" and foundNonUS is None):
-                        fevMessage(fev, submissionType=submissionType, modelObject=f, efmSection=efmSection, nameOfTag=name, value="U.S. state codes")                        
+                        fevMessage(fev, subType=submissionType, modelObject=f, efmSection=efmSection, tag=name, value="U.S. state codes")                        
                 elif validation in ("o", "ov"):
                     for name in names:
                         f = fevFact(fev, name)
                         if f is not None and (((f.xValue not in value) ^ ("!not!" in value)) if isinstance(value, (set,list)) 
                                               else (value is not None and f.xValue != value)):
-                            fevMessage(fev, submissionType=submissionType, modelObject=f, efmSection=efmSection, nameOfTag=name, value=value)
+                            fevMessage(fev, subType=submissionType, modelObject=f, efmSection=efmSection, tag=name, value=value)
                 elif validation == "security-axis":
                     for name in names:
                         facts = tuple(f for f in fevFacts(fev, name, deduplicate=True))
                         hasNonDimContext = any((not f.context.qnameDims) for f in facts)
                         hasADRmember = any(isADR(f) for f in facts)
                         if (len(facts) == 1 and not hasNonDimContext and not hasADRmember) or (len(facts) > 1 and hasNonDimContext):
-                            fevMessage(fev, submissionType=submissionType, modelObject=facts, nameOfTag=name, 
+                            fevMessage(fev, subType=submissionType, modelObject=facts, tag=name, 
                                        contextIDs=", ".join(sorted(f.contextID for f in facts)))
                 if eloName:
                     expectedEloParams.add(eloName)
                     for name in names:
                         f = fevFact(fev, name)
                         if f is not None and eloName in val.params and not deiParamEqual(name, f.xValue, val.params[eloName]):
-                            fevMessage(fev, messageKey="dq-0540-{nameOfTag}-Value",
-                                       submissionType=submissionType, modelObject=f, efmSection="6.5.40", 
-                                       nameOfTag=name, value=str(f.xValue), nameOfEloElement=eloName, valueOfEloElement=val.params[eloName])
+                            fevMessage(fev, messageKey="dq-0540-{tag}-Value",
+                                       subType=submissionType, modelObject=f, efmSection="6.5.40", 
+                                       tag=name, value=str(f.xValue), headerTag=eloName, valueOfHeaderTag=val.params[eloName])
 
                         
             del unexpectedDeiNameEfmSects, expectedDeiNames # dereference
@@ -1850,9 +1860,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 elements=", ".join(sorted(set(str(f.qname) for f in requiredToDisplayFacts))))
         if undisplayedCoverFacts:
             modelXbrl.warning("EFM.6.05.14.hidden-cover-page-fact-not-referenced",
-                _("Submission type %(submissionType)s has %(countUnreferenced)s cover page fact(s) in ix:hidden that were not referenced by any -sec-ix-hidden style property: %(elements)s"),
+                _("Submission type %(subType)s has %(countUnreferenced)s cover page fact(s) in ix:hidden that were not referenced by any -sec-ix-hidden style property: %(elements)s"),
                 edgarCode="dq-0514-Hidden-Cover-Page-Fact-Not-Referenced",
-                modelObject=requiredToDisplayFacts, submissionType=submissionType, countUnreferenced=len(undisplayedCoverFacts),
+                modelObject=requiredToDisplayFacts, subType=submissionType, countUnreferenced=len(undisplayedCoverFacts),
                 elements=", ".join(sorted(set(f.qname.localName for f in undisplayedCoverFacts))))
         del eligibleForTransformHiddenFacts, hiddenEltIds, presentedHiddenEltIds, requiredToDisplayFacts, undisplayedCoverFacts
     # all-labels and references checks

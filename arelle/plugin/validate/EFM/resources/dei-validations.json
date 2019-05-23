@@ -229,15 +229,6 @@
         "dei/cover": "cover"
     },
     {
-        "forms": ["@all-FAST"],
-        "xbrl-names": "DocumentPeriodEndDate",
-        "elo-name": "periodOfReport",
-        "efm": "6.5.20",
-        "validation": "r",
-        "source": "both",
-        "dei/cover": "cover"
-    },
-    {
         "forms": ["@F", "@S+POS"],
         "xbrl-names": "DocumentPeriodEndDate",
         "elo-name": "periodOfReport",
@@ -251,7 +242,7 @@
         "xbrl-names": "DocumentPeriodEndDate",
         "elo-name": "periodOfReport",
         "efm": "6.5.20",
-        "validation": "o",
+        "validation": "r",
         "source": "both",
         "dei/cover": "dei"
     },
@@ -527,7 +518,7 @@
         "dei/cover": "cover"
     },
     {
-        "forms": ["@10-12"],
+        "forms": ["@10-12", "@S+POS"],
         "xbrl-names": "EntitySmallBusiness",
         "elo-name": "smallBusinessFlag",
         "efm": "6.5.40",
@@ -599,23 +590,14 @@
         "efm": "6.5.46",
         "validation": "ot1",
         "axis": "c",
-        "source": "inline",
+        "source": "both",
         "dei/cover": "cover"
-    },
-    {
-        "forms": ["@8-K", "@10-K+Q", "@20+40-F"],
-        "xbrl-names": ["Security12bTitle", "Security12gTitle"], 
-        "efm": "6.5.46",
-        "validation": "o",
-        "axis": "c",
-        "source": "non-inline",
-        "dei/cover": "dei"
     },
     {
         "forms": ["@10-12", "@20+40FR"],
         "xbrl-names": ["Security12bTitle", "Security12gTitle"], 
         "efm": "6.5.46",
-        "validation": "o",
+        "validation": "ot1",
         "axis": "c",
         "source": "both",
         "dei/cover": "dei"
@@ -627,24 +609,15 @@
         "validation": "te",
         "references": "Security12bTitle",
         "axis": "c",
-        "source": "inline",
+        "source": "both",
         "dei/cover": "cover"
-    },
-    {
-        "forms": ["@8-K", "@10-K+Q", "@20+40-F"],
-        "xbrl-names": "SecurityExchangeName",
-        "efm": "6.5.46",
-        "validation": "o",
-        "references": "Security12bTitle",
-        "axis": "c",
-        "source": "non-inline",
-        "dei/cover": "dei"
     },
     {
         "forms": ["@10-12", "@20+40FR"],
         "xbrl-names": "SecurityExchangeName",
         "efm": "6.5.46",
-        "validation": "o",
+        "validation": "te",
+        "references": "Security12bTitle",
         "axis": "c",
         "source": "both",
         "dei/cover": "dei"
@@ -658,8 +631,8 @@
         "efm": "6.5.46",
         "validation": "t1",
         "axis": "c",
-        "references": "Security12bTitle",
-        "source": "inline",
+        "references": ["Security12bTitle", "Security12gTitle"],
+        "source": "both",
         "dei/cover": "dei",
         "comment": "dei here because cover checked in following only for trading sym, not no-sym"
     },
@@ -674,28 +647,27 @@
         "comment": "cover here only checks trading symbol, if OTC may have no exchange"
     },
     {
-        "forms": ["@8-K", "@10-K+Q", "@20+40-F"],
-        "xbrl-names": [
-            "TradingSymbol",
-            "NoTradingSymbolFlag"
-        ],
-        "efm": "6.5.46",
-        "validation": "o",
-        "axis": "c",
-        "source": "non-inline",
-        "dei/cover": "dei"
-    },
-    {
         "forms": ["@10-12", "@20+40FR"],
         "xbrl-names": [
             "TradingSymbol",
             "NoTradingSymbolFlag"
         ],
         "efm": "6.5.46",
-        "validation": "ot1",
+        "validation": "t1",
         "axis": "c",
+        "references": ["Security12bTitle", "Security12gTitle"],
         "source": "both",
         "dei/cover": "dei"
+    },
+    {
+        "forms": ["@10-12", "@20+40FR"],
+        "xbrl-names": "TradingSymbol",
+        "efm": "6.5.46",
+        "validation": "o",
+        "axis": "c",
+        "source": "inline",
+        "dei/cover": "cover",
+        "comment": "cover here only checks trading symbol, if OTC may have no exchange"
     },
     {
         "forms": ["@RR"],
@@ -726,7 +698,7 @@
         "dei/cover": "dei"
     },
     {
-        "forms": ["@20+40FR", "@10-12"],
+        "forms": ["@20+40FR"],
         "xbrl-names": "SecurityReportingObligation",
         "efm": "6.5.46",
         "validation": "o",
@@ -1016,8 +988,17 @@
         "efm": "6.5.49",
         "validation": "y",
         "value": true,
-        "source": "both",
+        "source": "inline",
         "dei/cover": "cover"
+    },
+    {
+        "forms": ["@10-K", "@40-F"],
+        "xbrl-names": "DocumentAnnualReport",
+        "efm": "6.5.49",
+        "validation": "ov",
+        "value": true,
+        "source": "non-inline",
+        "dei/cover": "dei"
     },
     {
         "forms": ["@10-KT"],
@@ -1025,8 +1006,17 @@
         "efm": "6.5.49",
         "validation": "n",
         "value": false,
-        "source": "both",
+        "source": "inline",
         "dei/cover": "cover"
+    },
+    {
+        "forms": ["@10-KT"],
+        "xbrl-names": "DocumentAnnualReport",
+        "efm": "6.5.49",
+        "validation": "ov",
+        "value": false,
+        "source": "non-inline",
+        "dei/cover": "dei"
     },
     {
         "forms": ["@20+40FR"],
@@ -1056,8 +1046,17 @@
         "efm": "6.5.49",
         "validation": "y",
         "value": true,
-        "source": "both",
+        "source": "inline",
         "dei/cover": "cover"
+    },
+    {
+        "forms": ["@10-Q"],
+        "xbrl-names": "DocumentQuarterlyReport",
+        "efm": "6.5.49",
+        "validation": "ov",
+        "value": true,
+        "source": "non-inline",
+        "dei/cover": "dei"
     },
     {
         "forms": ["@10-QT"],
@@ -1065,8 +1064,17 @@
         "efm": "6.5.49",
         "validation": "n",
         "value": false,
-        "source": "both",
+        "source": "inline",
         "dei/cover": "cover"
+    },
+    {
+        "forms": ["@10-QT"],
+        "xbrl-names": "DocumentQuarterlyReport",
+        "efm": "6.5.49",
+        "validation": "ov",
+        "value": false,
+        "source": "non-inline",
+        "dei/cover": "dei"
     },
     {
         "forms": ["@10-K", "@10-Q"],
@@ -1074,8 +1082,17 @@
         "efm": "6.5.49",
         "validation": "n",
         "value": false,
-        "source": "both",
+        "source": "inline",
         "dei/cover": "cover"
+    },
+    {
+        "forms": ["@10-K", "@10-Q"],
+        "xbrl-names": "DocumentTransitionReport",
+        "efm": "6.5.49",
+        "validation": "ov",
+        "value": false,
+        "source": "non-inline",
+        "dei/cover": "dei"
     },
     {
         "forms": ["@10-KT", "@10-QT"],
@@ -1083,8 +1100,17 @@
         "efm": "6.5.49",
         "validation": "y",
         "value": true,
-        "source": "both",
+        "source": "inline",
         "dei/cover": "cover"
+    },
+    {
+        "forms": ["@10-KT", "@10-QT"],
+        "xbrl-names": "DocumentTransitionReport",
+        "efm": "6.5.49",
+        "validation": "ov",
+        "value": true,
+        "source": "non-inline",
+        "dei/cover": "dei"
     },
     {
         "forms": ["@20FR"],
@@ -1140,8 +1166,17 @@
         "efm": "6.5.49",
         "validation": "n",
         "value": false,
-        "source": "both",
+        "source": "inline",
         "dei/cover": "cover"
+    },
+    {
+        "forms": ["@20+40-F"],
+        "xbrl-names": "DocumentRegistrationStatement",
+        "efm": "6.5.49",
+        "validation": "ov",
+        "value": false,
+        "source": "non-inline",
+        "dei/cover": "dei"
     },
     {
         "forms": ["@20+40FR"],
@@ -1326,17 +1361,8 @@
         "validation": "oph",
         "axis": "a",
         "references": "LocalPhoneNumber",
-        "source": "inline",
+        "source": "both",
         "dei/cover": "cover"
-    },
-    {
-        "forms": ["@20-F"],
-        "xbrl-names": "CityAreaCode",
-        "efm": "6.5.51",
-        "validation": "o",
-        "axis": "a",
-        "source": "non-inline",
-        "dei/cover": "dei"
     },
     {
         "forms": ["@40-F"],
@@ -1587,27 +1613,27 @@
     ],
     "validations": {
 		"(blank)": {
-			"message": "dq-{efmSection}-{nameOfTag}-Unexpected",
+			"message": "dq-{efmSection}-{tag}-Unexpected",
 			"severity": "warning",
 			"validation": "Blank – a non-null fact should not appear."
 		},
 		"x": {
-			"message": "dq-{efmSection}-{nameOfTag}-Missing",
+			"message": "dq-{efmSection}-{tag}-Missing",
 			"severity": "error",
 			"validation": "X - A non-null fact must appear, otherwise it is an XBRL ERROR"
 		},
 		"xv": {
-			"message": "dq-{efmSection}-{nameOfTag}-Value",
+			"message": "dq-{efmSection}-{tag}-Value",
 			"severity": "error",
 			"validation": "X - A non-null fact must appear with specified vcalue"
 		},
 		"f2": {
-			"message": "dq-{efmSection}-{nameOfTag}-{nameOfOtherTags}-Missing",
+			"message": "dq-{efmSection}-{tag}-{otherTags}-Missing",
 			"severity": "warning",
 			"validation": "F2 – One or both non-null facts should be present if EntityAddressAddressLine1 is present."
 		},
 		"n": {
-			"message": "dq-{efmSection}-{nameOfTag}-{value}",
+			"message": "dq-{efmSection}-{tag}-{value}",
 			"severity": "warning",
 			"validation": "N – A fact should be present with value \"false\"."
 		},
@@ -1617,114 +1643,114 @@
 			"validation": "O – A non-null fact may or may not appear."
 		},
 		"ov": {
-			"message": "dq-{efmSection}-{nameOfTag}-{value}",
+			"message": "dq-{efmSection}-{tag}-{value}",
 			"severity": "warning",
 			"validation": "X - A non-null fact may or may not appear but if it does, with specified vcalue"
 		},
 		"o2": {
-			"message": "dq-{efmSection}-{nameOfTags}-Inclusive",
+			"message": "dq-{efmSection}-{tags}-Inclusive",
 			"severity": "warning",
 			"validation": "O2 – One or both non-null facts should be present"
 		},
 		"o3": {
-			"message": "dq-{efmSection}-{nameOfTags}-Inclusive",
+			"message": "dq-{efmSection}-{tags}-Inclusive",
 			"severity": "warning",
 			"validation": "O3 – One, two, or all three non-null facts should be present (they should not all be absent)."
 		},
 		"og": {
-			"message": "dq-{efmSection}-{nameOfTag}-Value-{nameOfOtherTag}-Missing",
+			"message": "dq-{efmSection}-{tag}-Value-{otherTag}-Missing",
 			"severity": "warning",
 			"validation": "OG - If EntityEmergingGrowthCompany is \"true\", then a non-null fact should appear, else a non-null fact may appear with value “false” or it may be absent."
 		},
 		"ol1": {
-			"message": "dq-{efmSection}-{nameOfTag}-{nameOfOtherTag}-Missing",
+			"message": "dq-{efmSection}-{tag}-{otherTag}-Missing",
 			"severity": "warning",
 			"validation": "OL1 – A non-null fact may be present only if EntityAddressAddressLine1 is present."
 		},
 		"ol2": {
-			"message": "dq-{efmSection}-{nameOfTag}-{nameOfOtherTag}-Missing",
+			"message": "dq-{efmSection}-{tag}-{otherTag}-Missing",
 			"severity": "warning",
 			"validation": "OL2 – A non-null fact may be present only if EntityAddressAddressLine2 is present."
 		},
 		"oph": {
-			"message": "dq-{efmSection}-{nameOfTag}-{nameOfOtherTag}-Dependency",
+			"message": "dq-{efmSection}-{tag}-{otherTag}-Dependency",
 			"severity": "warning",
 			"validation": "Oph – A non-null fact should be present if and only if a non-null LocalPhoneNumber is present."
 		},
 		"oth": {
-			"message": "dq-{efmSection}-{nameOfTag}-{nameOfOtherTag}-Dependent-Value",
+			"message": "dq-{efmSection}-{tag}-{otherTag}-Dependent-Value",
 			"severity": "warning",
 			"validation": "Oth – A non-null fact should be present if and only if DocumentAccountingStandard value is \"Other\"."
 		},
 		"r": {
-			"message": "dq-{efmSection}-{nameOfTag}-Missing",
+			"message": "dq-{efmSection}-{tag}-Missing",
 			"severity": "warning",
 			"validation": "R – A non-null fact should be present."
 		},
 		"a": {
-			"message": "dq-{efmSection}-{nameOfTag}-{nameOfOtherTag}-Dependent-Value",
+			"message": "dq-{efmSection}-{tag}-{otherTag}-Dependent-Value",
 			"severity": "warning",
 			"validation": "When this fact is non-empty, referenced fact must have reference-value (AmendmentFlag, true)."
 		},
 		"ru": {
-			"message": "dq-{efmSection}-{nameOfTag}-{value}",
+			"message": "dq-{efmSection}-{tag}-{value}",
 			"severity": "warning",
 			"validation": "Ru – A fact should be present with a US state as a value."
 		},
 		"ou": {
-			"message": "dq-{efmSection}-{nameOfTag}-{value}",
+			"message": "dq-{efmSection}-{tag}-{value}",
 			"severity": "warning",
 			"validation": "Ou – A fact may be present with a US state as a value."
 		},
 		"op": {
-			"message": "dq-{efmSection}-{nameOfTags}-Both",
+			"message": "dq-{efmSection}-{tags}-Both",
 			"severity": "warning",
 			"validation": "Op – Non-null facts may exist (and if 'cover', be visible) for both the fiscal year and fiscal focus, or nether."
 		},
 		"sr": {
-			"message": "dq-{efmSection}-{nameOfTag}-{nameOfOtherTag}-Dependent-Value",
+			"message": "dq-{efmSection}-{tag}-{otherTag}-Dependent-Value",
 			"severity": "warning",
-			"validation": "SR – A non-null fact should be present if and only if DocumentShellCompanyReport is true."
+			"validation": "SR – For inline, a non-null fact should be present if and only if DocumentShellCompanyReport is true."
 		},
 		"t": {
-			"message": "dq-{efmSection}-{nameOfTag}-{nameOfOtherTag}-Missing",
+			"message": "dq-{efmSection}-{tag}-{otherTag}-Missing",
 			"severity": "warning",
 			"validation": "T – A non-null fact should be present if and only if a SecurityTitle is present."
 		},
 		"ot1": {
-			"message": "dq-{efmSection}-{nameOfTags}-Exclusive",
+			"message": "dq-{efmSection}-{tags}-Exclusive",
 			"severity": "warning",
 			"validation": "OT1 – One non-null fact, but not both, may be present."
 		},
 		"t1": {
-			"message": "dq-{efmSection}-{nameOfTags}-{nameOfOtherTag}-Exclusive-Dependency",
-			"message-ADR-no-exchange": "dq-{efmSection}-{nameOfTag}-{nameOfOtherTag}-Dependency",
+			"message": "dq-{efmSection}-{tags}-{otherTags}-Exclusive-Dependency",
+			"message-ADR-no-exchange": "dq-{efmSection}-{tag}-{otherTags}-Dependency",
 			"severity": "warning",
 			"validation": "T1 – One non-null fact, but not both, should be present if and only if Security12bTitle is present."
 		},
 		"tf3": {
-			"message": "dq-{efmSection}-{nameOfTags}-Exclusive-Value",
+			"message": "dq-{efmSection}-{tags}-Exclusive-Value",
 			"severity": "warning",
 			"validation": "TF3 – Exactly one of the facts should be \"true\" and the other two \"false\"."
 		},
 		"tr": {
-			"message": "dq-{efmSection}-{nameOfTag}-{nameOfOtherTag}",
+			"message": "dq-{efmSection}-{tag}-{otherTag}-Dependent-Value",
 			"severity": "warning",
-			"validation": "TR – A non-null fact should be present if and only if DocumentTransitionReport is true."
+			"validation": "TR – For inline, a non-null fact should be present if and only if DocumentTransitionReport is true."
 		},
 		"te": {
-			"message": "dq-{efmSection}-{nameOfTag}-{nameOfOtherTag}-Dependency",
-			"message-ADR-no-symbol": "dq-{efmSection}-{nameOfTag}-Missing",
+			"message": "dq-{efmSection}-{tag}-{otherTag}-Dependency",
+			"message-ADR-no-symbol": "dq-{efmSection}-{tag}-Missing",
 			"severity": "warning",
 			"validation": "Tb – A non-null fact is required only if the Security12bTitle exists.  If ADR a non-null trading symbol is required."
 		},
 		"y": {
-			"message": "dq-{efmSection}-{nameOfTag}-{value}",
+			"message": "dq-{efmSection}-{tag}-{value}",
 			"severity": "warning",
 			"validation": "Y – A fact should be present with value \"true\"."
 		},
 		"security-axis": {
-			"message": "dq-{efmSection}-{nameOfTag}-Security-Axes",
+			"message": "dq-{efmSection}-{tag}-Security-Axes",
 			"severity": "warning",
 			"validation": "Security fact can only have single non-ADR entry in default context otherwise all in specific axis contexxts, not both."
 		}
@@ -1734,47 +1760,48 @@
 		"c": {
 			"axes": ["StatementClassOfStockAxis", "ClassesOfShareCapitalAxis"],
 			"members": [],
-			"message": "dq-{efmSection}-{nameOfTag}-Missing"
+			"message": "dq-{efmSection}-{tag}-Missing"
 		},
 		"a": {
 			"axes": ["EntityAddressesAddressTypeAxis"],
 			"members": ["BusinessContactMember", "UsAgentContactMember"],
-			"message": "dq-{efmSection}-{nameOfTag}-Missing"
+			"message": "dq-{efmSection}-{tag}-Missing"
 		},
 		"f": {
 			"axes": ["EntityAddressesAddressTypeAxis"],
 			"members": ["FormerAddressMember"],
-			"message": "dq-{efmSection}-{nameOfTag}-Missing"
+			"message": "dq-{efmSection}-{tag}-Missing"
 		},
 		"": {
 			"axes": [],
 			"members": [],
-			"message": "dq-{efmSection}-{nameOfTag}-Missing"
+			"message": "dq-{efmSection}-{tag}-Missing"
 		}
 	},
 	"messages": {
-		"dq-{efmSection}-{nameOfTag}-Missing": "Submission type {submissionType} {severityVerb} have a non-empty value for {nameOfTag} in {context} {refSources}",
-		"dq-{efmSection}-{nameOfTags}-Missing": "Submission type {submissionType} {severityVerb} have a non-empty value for at least one of {nameOfTags} in {context} {refSources}",
-		"dq-{efmSection}-{nameOfTag}-Unexpected": "Submission type {submissionType} {severityVerb} not have a value for {nameOfTag} in the {context}. {refSources}",
-		"dq-{efmSection}-{nameOfTag}-{value}": "In submission type {submissionType}, {nameOfTag} value {severityVerb} have {value} in the {context}. {refSources}",
-		"dq-{efmSection}-{nameOfTag}-Value": "In submission type {submissionType}, {nameOfTag} value {severityVerb} have {value} in the {context}. {refSources}",
-		"dq-{efmSection}-{nameOfTag}-{nameOfOtherTag}": "In submission type {submissionType}, {nameOfTag} value {severityVerb} have value \"{value}\" in the same context as {nameOfOtherTag}, {contextID}. {refSources}",
-		"dq-{efmSection}-{nameOfTag}-{nameOfOtherTag}-Missing": "In submission type {submissionType}, {nameOfTag} requires {nameOfOtherTag} in the same context, {contextID}. {refSources}",
-		"dq-{efmSection}-{nameOfTag}-Value-{nameOfOtherTag}-Missing": "In submission type {submissionType}, {nameOfTag} value \"{value}\" requires {nameOfOtherTag} in the same context, {contextID}. {refSources}",
-		"dq-{efmSection}-{nameOfTag}-{nameOfOtherTags}-Missing": "In submission type {submissionType}, {nameOfTag} requires a non-empty value for at least one of {nameOfOtherTags} in the same context, {contextID}. {refSources}",
-		"dq-{efmSection}-{nameOfTag}-{nameOfOtherTag}-Exclusive": "In submission type {submissionType}, either {nameOfTag} or {nameOfOtherTag} {severityVerb} have a value, but not both. {refSources}",
-		"dq-{efmSection}-{nameOfTags}-Exclusive": "In submission type {submissionType}, only one of {nameOfTags} {severityVerb} have a value, but not both. {refSources}",
-		"dq-{efmSection}-{nameOfTags}-Exclusive-Value": "In submission type {submissionType}, exactly one of {nameOfTags} {severityVerb} have value \"{value}\". {refSources}",
-		"dq-{efmSection}-{nameOfTags}-Inclusive": "In submission type {submissionType}, at least one of {nameOfTags} {severityVerb} have a value. {refSources}",
-		"dq-{efmSection}-{nameOfTags}-Both": "In submission type {submissionType}, both or neither of {nameOfTags} {severityVerb} have a value. {refSources}",
-		"dq-{efmSection}-{nameOfTag}-{nameOfOtherTag}-Dependency": "In submission type {submissionType}, {nameOfTag} {severityVerb} have a value if and only if {nameOfOtherTag} has a value in context {contextID}. {refSources}",
-		"dq-{efmSection}-{nameOfTag}-{nameOfOtherTag}-Dependent-Value": "In submission type {submissionType}, {nameOfTag} {severityVerb} be provided if and only if {nameOfOtherTag} has value \"{value}\" in context {contextID}. {refSources}",
-		"dq-{efmSection}-{nameOfTag}-{nameOfOtherTag}-Inclusive": "In submission type {submissionType}, either {nameOfTag} or {nameOfOtherTag} should have a value, or both. {refSources}",
-		"dq-{efmSection}-{nameOfTags}-{nameOfOtherTag}-Exclusive-Dependency": "In submission type {submissionType}, one of {nameOfTags} {severityVerb} have a value if and only if {nameOfOtherTag} has a value in context {contextID}. {refSources}",
-		"dq-{efmSection}-{nameOfTag}-Security-Axes": "In submission type {submissionType}, {nameOfTag} {severityVerb} have values without axes if a single non-ADR member, otherwise in separate contexts by axis member, but not both, in contexts {contextIDs}. {refSources}",
-		"dq-0514-Hidden-Cover-Page-Fact-Not-Referenced": "Submission type {submissionType} has {n} cover page fact(s) in ix:hidden that were not referenced by any -sec-ix-hidden style property: (namesOfTags) {refSources}",
-		"dq-0540-{nameOfTag}-Value": "In submission type {submissionType}, {nameOfTag} value \"{value}\", is not equivalent to header element {nameOfEloElement} value \"{valueOfEloElement}\" in the {context}.  {refSources}",
-		"dq-0540-{nameOfEloElement}-Unexpected": "In submission type {submissionType}, header element {nameOfEloElement} value \"{valueOfEloElement}\" is not expected.  {refSources}"
+		"dq-{efmSection}-{tag}-Missing": "Submission type {subType} {severityVerb} have a non-empty value for {tag} in {context}.",
+		"dq-{efmSection}-{tags}-Missing": "Submission type {subType} {severityVerb} have a non-empty value for at least one of {tags} in {context}.",
+		"dq-{efmSection}-{tag}-Unexpected": "Submission type {subType} {severityVerb} not have a value for {tag} in the {context}.",
+		"dq-{efmSection}-{tag}-{value}": "In submission type {subType}, {tag} value {severityVerb} have {value} in the {context}.",
+		"dq-{efmSection}-{tag}-Value": "In submission type {subType}, {tag} value {severityVerb} have {value} in the {context}.",
+		"dq-{efmSection}-{tag}-{otherTag}": "In submission type {subType}, {tag} value {severityVerb} have value \"{value}\" in the same context as {otherTag}, {contextID}.",
+		"dq-{efmSection}-{tag}-{otherTag}-Missing": "In submission type {subType}, {tag} requires {otherTag} in the same context, {contextID}.",
+		"dq-{efmSection}-{tag}-Value-{otherTag}-Missing": "In submission type {subType}, {tag} value \"{value}\" requires {otherTag} in the same context, {contextID}.",
+		"dq-{efmSection}-{tag}-{otherTags}-Missing": "In submission type {subType}, {tag} requires a non-empty value for at least one of {otherTags} in the same context, {contextID}.",
+		"dq-{efmSection}-{tag}-{otherTag}-Exclusive": "In submission type {subType}, either {tag} or {otherTag} {severityVerb} have a value, but not both, in context, {contextID}.",
+		"dq-{efmSection}-{tags}-Exclusive": "In submission type {subType}, only one of {tags} {severityVerb} have a value, but not both, in context, {contextID}.",
+		"dq-{efmSection}-{tags}-Exclusive-Value": "In submission type {subType}, exactly one of {tags} {severityVerb} have value \"{value}\".",
+		"dq-{efmSection}-{tags}-Inclusive": "In submission type {subType}, at least one of {tags} {severityVerb} have a value.",
+		"dq-{efmSection}-{tags}-Both": "In submission type {subType}, both or neither of {tags} {severityVerb} have a value.",
+		"dq-{efmSection}-{tag}-{otherTag}-Dependency": "In submission type {subType}, {tag} {severityVerb} have a value if and only if {otherTag} has a value in context {contextID}.",
+		"dq-{efmSection}-{tag}-{otherTag}-Dependent-Value": "In submission type {subType}, {tag} {severityVerb} be provided if and only if {otherTag} has value \"{value}\" in context {contextID}.",
+		"dq-{efmSection}-{tag}-{otherTag}-Inclusive": "In submission type {subType}, either {tag} or {otherTag} should have a value, or both.",
+		"dq-{efmSection}-{tags}-{otherTag}-Exclusive-Dependency": "In submission type {subType}, one of {tags} {severityVerb} have a value if and only if {otherTag} has a value in context {contextID}.",
+		"dq-{efmSection}-{tags}-{otherTags}-Exclusive-Dependency": "In submission type {subType}, one of {tags} {severityVerb} have a value if and only if one of {otherTags} has a value in context {contextID}.",
+		"dq-{efmSection}-{tag}-Security-Axes": "In submission type {subType}, {tag} {severityVerb} have values without axes if a single non-ADR member, otherwise in separate contexts by axis member, but not both, in contexts {contextIDs}.",
+		"dq-0514-Hidden-Cover-Page-Fact-Not-Referenced": "Submission type {subType} has {n} cover page fact(s) in ix:hidden that were not referenced by any -sec-ix-hidden style property: (namesOfTags).",
+		"dq-0540-{tag}-Value": "In submission type {subType}, {tag} value \"{value}\", is not equivalent to header element {headerTag} value \"{valueOfHeaderTag}\" in the {context}.",
+		"dq-0540-{headerTag}-Unexpected": "In submission type {subType}, header element {headerTag} value \"{valueOfHeaderTag}\" is not expected."
     },
 	"extraction-cover-tags": [
 		"TradingSymbol",

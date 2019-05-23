@@ -104,7 +104,7 @@ def loadDeiValidations(modelXbrl, isInlineXbrl):
                             _("Missing form-element-validation[\"%(field)s\"] from %(validation)s."), 
                             field="message*", validation=fev)
         validationCode = fev.get("validation")
-        if validationCode in ("f2", "og", "ol1", "ol2", "oph", "ar", "sr", "oth", "t", "tb", "t1") and "references" not in fev:
+        if validationCode in ("f2", "og", "ol1", "ol2", "oph", "ar", "sr", "oth", "t", "tb", "t1", "te") and "references" not in fev:
             modelXbrl.error("arelle:loadDeiValidations", 
                             _("Missing form-element-validation[\"references\"] from %(validation)s."), 
                             field=field, validation=fev)
