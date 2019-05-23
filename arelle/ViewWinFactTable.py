@@ -81,7 +81,9 @@ class ViewFactTable(ViewWinTree.ViewTree):
         ignoreDims = self.ignoreDims.get()
         showDimDefaults = self.showDimDefaults.get()
         for context in contexts:
-            if ignoreDims:
+            if context is None or context.endDatetime is None:
+                contextkey = "missing period"
+            elif ignoreDims:
                 if context.isForeverPeriod:
                     contextkey = datetime.datetime(datetime.MINYEAR,1,1)
                 else:

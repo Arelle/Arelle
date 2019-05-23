@@ -251,7 +251,7 @@ def evaluateTableIndex(modelXbrl, lang=None):
             for concept in modelXbrl.nameConcepts[conceptName]:
                 for fact in factsByQname[concept.qname]:
                     deiFact[conceptName] = fact
-                    if fact.context is not None:
+                    if fact.context is not None and fact.context.endDatetime is not None:
                         reportingPeriods.add((None, fact.context.endDatetime)) # for instant
                         reportingPeriods.add((fact.context.startDatetime, fact.context.endDatetime)) # for startEnd
                         nextEnd = fact.context.startDatetime

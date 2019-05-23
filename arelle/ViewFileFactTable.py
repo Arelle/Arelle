@@ -63,14 +63,16 @@ class ViewFacts(ViewFile.View):
         contextStartDatetimes = {}
         for context in self.modelXbrl.contexts.values():
             if self.type in (CSV, XLSX, HTML):
-                if self.ignoreDims:
+                if context is None or context.endDatetime is None:
+                    contextkey = "missing period"
+                elif self.ignoreDims:
                     if context.isForeverPeriod:
                         contextkey = datetime.datetime(datetime.MINYEAR,1,1)
                     else:
                         contextkey = context.endDatetime
                 else:
                     if context.isForeverPeriod:
-                        contextkey = "forever"
+                        contextkey = "forever"  
                     else:
                         contextkey = (context.endDatetime - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
                     
