@@ -1036,9 +1036,10 @@
         ],
         "efm": "6.5.49",
         "validation": "tf3",
-        "value": true,
+        "value": [true, false],
         "source": "both",
-        "dei/cover": "cover"
+        "dei/cover": "cover",
+        "comment": "exclusive fact has first value, others have second (to n'th) value"
     },
     {
         "forms": ["@10-Q"],
@@ -1138,7 +1139,7 @@
         "efm": "6.5.49",
         "validation": "o",
         "source": "non-inline",
-        "dei/cover": "cover"
+        "dei/cover": "dei"
     },
     {
         "forms": ["@20-F"],
@@ -1147,8 +1148,18 @@
         "validation": "tr",
         "references": "DocumentTransitionReport",
         "reference-value": true,
-        "source": "both",
+        "source": "inline",
         "dei/cover": "cover"
+    },
+    {
+        "forms": ["@20-F"],
+        "xbrl-names": "DocumentPeriodStartDate",
+        "efm": "6.5.49",
+        "validation": "o",
+        "references": "DocumentTransitionReport",
+        "reference-value": true,
+        "source": "non-inline",
+        "dei/cover": "dei"
     },
     {
         "forms": ["@20-F"],
@@ -1157,8 +1168,18 @@
         "validation": "sr",
         "references": "DocumentShellCompanyReport",
         "reference-value": true,
-        "source": "both",
+        "source": "inline",
         "dei/cover": "cover"
+    },
+    {
+        "forms": ["@20-F"],
+        "xbrl-names": "DocumentShellCompanyEventDate",
+        "efm": "6.5.49",
+        "validation": "o",
+        "references": "DocumentShellCompanyReport",
+        "reference-value": true,
+        "source": "non-inline",
+        "dei/cover": "dei"
     },
     {
         "forms": ["@20+40-F"],
@@ -1281,7 +1302,7 @@
         "validation": "o",
         "axis": "a",
         "source": "non-inline",
-        "dei/cover": "cover"
+        "dei/cover": "dei"
     },
     {
         "forms": ["@20+40-F"],
@@ -1380,7 +1401,7 @@
         "validation": "o",
         "axis": "a",
         "source": "non-inline",
-        "dei/cover": "cover"
+        "dei/cover": "dei"
     },
     {
         "forms": ["@40-F"],
@@ -1428,7 +1449,7 @@
         "validation": "o",
         "axis": "a",
         "source": "non-inline",
-        "dei/cover": "cover"
+        "dei/cover": "dei"
     },
     {
         "forms": ["@20+40FR", "@F", "@N", "@S+POS"],
@@ -1658,7 +1679,7 @@
 			"validation": "O3 – One, two, or all three non-null facts should be present (they should not all be absent)."
 		},
 		"og": {
-			"message": "dq-{efmSection}-{tag}-Value-{otherTag}-Missing",
+			"message": "dq-{efmSection}-{tag}-{otherTag}-Dependent-Value",
 			"severity": "warning",
 			"validation": "OG - If EntityEmergingGrowthCompany is \"true\", then a non-null fact should appear, else a non-null fact may appear with value “false” or it may be absent."
 		},
@@ -1790,7 +1811,7 @@
 		"dq-{efmSection}-{tag}-{otherTags}-Missing": "In submission type {subType}, {tag} requires a non-empty value for at least one of {otherTags} in the same context, {contextID}.",
 		"dq-{efmSection}-{tag}-{otherTag}-Exclusive": "In submission type {subType}, either {tag} or {otherTag} {severityVerb} have a value, but not both, in context, {contextID}.",
 		"dq-{efmSection}-{tags}-Exclusive": "In submission type {subType}, only one of {tags} {severityVerb} have a value, but not both, in context, {contextID}.",
-		"dq-{efmSection}-{tags}-Exclusive-Value": "In submission type {subType}, exactly one of {tags} {severityVerb} have value \"{value}\".",
+		"dq-{efmSection}-{tags}-Exclusive-Value": "In submission type {subType}, exactly one of {tags} {severityVerb} have the value \"{value}\" and the others {severityVerb} have the value \"{otherValue}\".",
 		"dq-{efmSection}-{tags}-Inclusive": "In submission type {subType}, at least one of {tags} {severityVerb} have a value.",
 		"dq-{efmSection}-{tags}-Both": "In submission type {subType}, both or neither of {tags} {severityVerb} have a value.",
 		"dq-{efmSection}-{tag}-{otherTag}-Dependency": "In submission type {subType}, {tag} {severityVerb} have a value if and only if {otherTag} has a value in context {contextID}.",

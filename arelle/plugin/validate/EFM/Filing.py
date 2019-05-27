@@ -1093,14 +1093,17 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 elif len(names) == 0:
                     pass # no name entries if all dei names of this validation weren't in the loaded dei taxonomy (i.e., pre 2019) 
                 elif validation == "tf3": # exactly one of names should have value
-                    numFacts = 0
+                    numFactWithValue = numFactsNotValue = 0
                     for name in names:
                         f = fevFact(fev, name) # these all are required context
-                        if f is not None and f.xValue == value:
-                            numFacts += 1
-                    if numFacts != 1:
+                        if f is not None:
+                            if f.xValue == value[0]: # first value is exclusive fact, second is other facts
+                                numFactWithValue += 1
+                            elif f.xValue == value[1]:
+                                numFactsNotValue += 1
+                    if numFactWithValue != 1 or numFactsNotValue != 2:
                         fevMessage(fev, subType=submissionType, 
-                                        modelObject=fevFacts(fev), tags=", ".join(names), value=value)
+                                        modelObject=fevFacts(fev), tags=", ".join(names), value=value[0], otherValue=value[1])
                 elif validation in ("o2", "o3"): # at least one present 
                     f2 = None
                     numFacts = 0
@@ -1118,12 +1121,23 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 elif validation == "op": # all or neither must have a value
                     if 0 < sum(fevFact(fev, name) is not None for name in names) < len(names): # default context for all
                         fevMessage(fev, subType=submissionType, modelObject=fevFacts(fev), tags=", ".join(names))
-                elif validation in "og":
-                    fr = fevFact(fev, referenceTag)
-                    if fr is not None and fr.xValue == referenceValue:
-                        f = fevFact(fev, names[0], fr) # required context, no axes
-                        if f is None:
-                            fevMessage(fev, subType=submissionType, modelObject=fr, tag=referenceTag, value=referenceValue, otherTag=names[0], contextID=fr.contextID)
+                elif validation == "og":
+                    ogfacts = set()
+                    for fr in fevFacts(fev, referenceTag, deduplicate=True):
+                        if fr.xValue == referenceValue:
+                            numOgFacts = 0
+                            for f in fevFacts(fev, names, fr):
+                                ogfacts.add(f)
+                                numOgFacts += 1
+                            if numOgFacts == 0:
+                                fevMessage(fev, subType=submissionType, modelObject=fr, tag=names[0], value=referenceValue, otherTag=referenceTag, contextID=fr.contextID)
+                    # find any facts without a referenceTag fact = value
+                    for f in fevFacts(fev, names, deduplicate=True):
+                        if f not in ogfacts:
+                            fr = fevFact(fev, referenceTag, f)
+                            if fr is None or fr.xValue != referenceValue:
+                                fevMessage(fev, subType=submissionType, modelObject=f, tag=names[0], value=referenceValue, otherTag=referenceTag, contextID=f.contextID)
+                    del ogfacts # dereference
                 elif validation == "f2":
                     f = fevFact(fev, referenceTag) # f and dependent fact are in same context
                     if f is not None and not any(fevFact(fev, name, f) is not None for name in names):
@@ -1173,7 +1187,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         if len(flist) != 1:
                             fevMessage(fev, subType=submissionType, modelObject=[fr]+flist, tag=names[0], otherTag=referenceTag)
                     # find any facts without a securities12b
-                    for f in fevFacts(fev, names, fr, deduplicate=True): # just 1 name for te
+                    for f in fevFacts(fev, names, deduplicate=True): # just 1 name for te
                         if f not in tefacts:
                             if fevFact(fev, referenceTag, f) is None:
                                 fevMessage(fev, subType=submissionType, modelObject=f, tag=names[0], otherTag=referenceTag)
@@ -1201,7 +1215,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                            validationMessage="message-ADR-no-exchange")
                         """
                     # find any facts without a securities12b
-                    for f in fevFacts(fev, names, fr, deduplicate=True):
+                    for f in fevFacts(fev, names, deduplicate=True):
                         if f not in t1facts:
                             if fevFact(fev, referenceTag, f) is None: # note that reference tag is a list here
                                 fevMessage(fev, subType=submissionType, modelObject=f, tags=", ".join(names), otherTags=", ".join(referenceTag))
