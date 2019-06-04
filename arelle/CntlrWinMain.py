@@ -730,7 +730,8 @@ class CntlrWinMain (Cntlr.Cntlr):
             if filesource.isArchive and not filesource.selection: # or filesource.isRss:
                 from arelle import DialogOpenArchive
                 filename = DialogOpenArchive.askArchiveFile(self, filesource)
-                
+                if filesource.basefile and not isHttpUrl(filesource.basefile):
+                    self.config["fileOpenDir"] = os.path.dirname(filesource.baseurl)
         if filename:
             if not isinstance(filename, (dict, list)): # json objects
                 if importToDTS:

@@ -17,6 +17,8 @@ try:
     import regex as re
 except ImportError:
     import re
+    
+STANDARD_PACKAGES_URL = "https://taxonomies.xbrl.org/api/v0/taxonomy"
 
 def dialogPackageManager(mainWin):
     # check for updates in background
@@ -355,25 +357,31 @@ class DialogPackageManager(Toplevel):
             for label in labels:
                  return label["Label"]
             return ""
-            
-        with open(self.webCache.getfilename("https://taxonomies.xbrl.org/api/v0/taxonomy", reload=True), 'r', errors='replace') as fh:
-            regPkgs = json.load(fh) # always reload
-        for pkgTxmy in regPkgs.get("taxonomies", []):
-            _name = langLabel(pkgTxmy["Name"])
-            _description = langLabel(pkgTxmy.get("Description"))
-            _version = pkgTxmy.get("Version")
-            _license = pkgTxmy.get("License",{}).get("Name")
-            _url = pkgTxmy.get("Links",{}).get("AuthoritativeURL")
-            choices.append((_name,
-                            "name: {}\ndescription: {}\nversion: {}\nlicense: {}".format(
-                                    _name, _description, _version, _license),
-                            _url,  _version, _description, _license))
-        self.loadPackageUrl(DialogOpenArchive.selectPackage(self, choices))                                    
+        try:   
+            with open(self.webCache.getfilename(STANDARD_PACKAGES_URL, reload=True), 'r', errors='replace') as fh:
+                regPkgs = json.load(fh) # always reload
+            for pkgTxmy in regPkgs.get("taxonomies", []):
+                _name = langLabel(pkgTxmy["Name"])
+                _description = langLabel(pkgTxmy.get("Description"))
+                _version = pkgTxmy.get("Version")
+                _license = pkgTxmy.get("License",{}).get("Name")
+                _url = pkgTxmy.get("Links",{}).get("AuthoritativeURL")
+                choices.append((_name,
+                                "name: {}\ndescription: {}\nversion: {}\nlicense: {}".format(
+                                        _name, _description, _version, _license),
+                                _url,  _version, _description, _license))
+            self.loadPackageUrl(DialogOpenArchive.selectPackage(self, choices))
+        except (TypeError):
+            messagebox.showwarning(_("Unable to retrieve standard packages.  "),
+                                   _("Standard packages URL is not accessible, please check if online:\n\n{0}.")
+                                   .format(STANDARD_PACKAGES_URL),
+                                   parent=self)
+               
         
     def findLocally(self):
         initialdir = self.cntlr.pluginDir # default plugin directory
-        if not self.cntlr.isMac: # can't navigate within app easily, always start in default directory
-            initialdir = self.cntlr.config.setdefault("packageOpenDir", initialdir)
+        #if not self.cntlr.isMac: # can't navigate within app easily, always start in default directory
+        initialdir = self.cntlr.config.setdefault("packageOpenDir", initialdir)
         filename = self.cntlr.uiFileDialog("open",
                                            parent=self,
                                            title=_("Choose taxonomy package file"),
