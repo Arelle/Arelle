@@ -1135,7 +1135,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     for f in fevFacts(fev, names, deduplicate=True):
                         if f not in ogfacts:
                             fr = fevFact(fev, referenceTag, f)
-                            if fr is None or fr.xValue != referenceValue:
+                            if (fr is None or fr.xValue != referenceValue) and f.xValue == referenceValue: # ok if it's false
                                 fevMessage(fev, subType=submissionType, modelObject=f, tag=names[0], value=referenceValue, otherTag=referenceTag, contextID=f.contextID)
                     del ogfacts # dereference
                 elif validation == "f2":
@@ -1857,7 +1857,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         for hiddenEltId, ixElt in hiddenEltIds.items():
             if (hiddenEltId not in presentedHiddenEltIds and
                 getattr(ixElt, "xValid", 0) >= VALID and # may not be validated
-                not ixElt.qname.namespaceURI.startswith("http://xbrl.sec.gov/dei/") and
+                (not ixElt.qname.namespaceURI.startswith("http://xbrl.sec.gov/dei/") 
+                 or ixElt.qname.localName in coverVisibleDeiNames) and
                 (ixElt.concept.baseXsdType in untransformableTypes or ixElt.isNil)):
                 requiredToDisplayFacts.append(ixElt)
         undisplayedCoverFacts = [f

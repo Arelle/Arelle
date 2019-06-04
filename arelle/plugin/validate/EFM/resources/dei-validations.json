@@ -314,7 +314,7 @@
         "efm": "6.5.21",
         "validation": "x",
         "source": "both",
-        "dei/cover": "cover"
+        "dei/cover": "dei"
     },
     {
         "forms": ["@all-non-FAST"],
@@ -607,7 +607,7 @@
         "xbrl-names": "SecurityExchangeName",
         "efm": "6.5.46",
         "validation": "te",
-        "references": "Security12bTitle",
+        "references": "TradingSymbol",
         "axis": "c",
         "source": "both",
         "dei/cover": "cover"
@@ -617,7 +617,7 @@
         "xbrl-names": "SecurityExchangeName",
         "efm": "6.5.46",
         "validation": "te",
-        "references": "Security12bTitle",
+        "references": "TradingSymbol",
         "axis": "c",
         "source": "both",
         "dei/cover": "dei"
