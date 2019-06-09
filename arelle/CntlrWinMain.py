@@ -454,9 +454,12 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.packagesMenu = Menu(self.menubar, tearoff=0)
         hasPackages = False
         for i, packageInfo in enumerate(sorted(PackageManager.packagesConfig.get("packages", []),
-                                               key=lambda packageInfo: packageInfo.get("name")),
+                                               key=lambda packageInfo: (packageInfo.get("name",""),packageInfo.get("version",""))),
                                         start=1):
             name = packageInfo.get("name", "package{}".format(i))
+            version = packageInfo.get("version")
+            if version:
+                name = "{} ({})".format(name, version)
             URL = packageInfo.get("URL")
             if name and URL and packageInfo.get("status") == "enabled":
                 self.packagesMenu.add_command(

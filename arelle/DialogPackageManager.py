@@ -12,7 +12,7 @@ except ImportError:
     from ttk import Treeview, Scrollbar, Frame, Label, Button
 from arelle import PackageManager, DialogURL, DialogOpenArchive
 from arelle.CntlrWinTooltip import ToolTip
-import os, time, json
+import os, time, json, sys, traceback
 try:
     import regex as re
 except ImportError:
@@ -350,6 +350,8 @@ class DialogPackageManager(Toplevel):
         choices = [] # list of tuple of (file name, description)
         uiLang = (self.cntlr.config.get("userInterfaceLangOverride") or self.cntlr.modelManager.defaultLang or "en")[:2]
         def langLabel(labels):
+            if not labels:
+                return ""
             for _lang in uiLang, "en":
                 for label in labels:
                     if label["Language"].startswith(_lang):
@@ -371,7 +373,7 @@ class DialogPackageManager(Toplevel):
                                         _name, _description, _version, _license),
                                 _url,  _version, _description, _license))
             self.loadPackageUrl(DialogOpenArchive.selectPackage(self, choices))
-        except (TypeError):
+        except (TypeError) as err:
             messagebox.showwarning(_("Unable to retrieve standard packages.  "),
                                    _("Standard packages URL is not accessible, please check if online:\n\n{0}.")
                                    .format(STANDARD_PACKAGES_URL),
