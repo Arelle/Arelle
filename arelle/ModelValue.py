@@ -29,8 +29,6 @@ def qname(value, name=None, noPrefixIsNoNamespace=False, castException=None, pre
     elif isinstance(name, ModelObject):
         element = name
         name = None
-        element = None
-        value = name
     else:
         element = None
     if isinstance(value,QName):
