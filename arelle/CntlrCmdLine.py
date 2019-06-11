@@ -841,10 +841,22 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
                                 _entrypointFiles.append({"file":filesource.url})
                     if not _entrypointFiles:
+                        urlsByType = {}
                         for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
                             filesource.select(_archiveFile)
-                            if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
-                                _entrypointFiles.append({"file":filesource.url})
+                            identifiedType = ModelDocument.Type.identify(filesource, filesource.url)
+                            if identifiedType in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
+                                urlsByType.setdefault(identifiedType, []).append(filesource.url)
+                    # use inline instances, if any, else non-inline instances
+                    for identifiedType in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE):
+                        for url in urlsByType.get(identifiedType, []):
+                            _entrypointFiles.append({"file":url})
+                        if _entrypointFiles:
+                            if identifiedType == ModelDocument.Type.INLINEXBRL:
+                                for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
+                                    _entrypointFiles = pluginXbrlMethod(_entrypointFiles) # group into IXDS if plugin feature is available
+                            break # found inline (or non-inline) entrypoint files, don't look for any other type
+                    
             elif os.path.isdir(filesource.url):
                 _entrypointFiles = []
                 for _file in os.listdir(filesource.url):
