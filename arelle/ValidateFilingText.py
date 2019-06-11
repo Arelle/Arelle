@@ -925,8 +925,8 @@ def referencedFiles(modelXbrl, localFilesOnly=True):
                     scheme(attrValue) not in ("data", "javascript") and (
                         not localFilesOnly or 
                         (not isHttpUrl(attrValue) and not os.path.isabs(attrValue)))):
-                    attrValue = attrValue.partition('#')[0] # remove anchor
-                    if attrValue: # ignore anchor references to base document
+                    attrValue = attrValue.partition('#')[0].strip() # remove anchor
+                    if attrValue not in ("", "."): # ignore anchor references to base document
                         base = docElt.modelDocument.baseForElement(docElt)
                         normalizedUri = docElt.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(attrValue, base)
                         if not docElt.modelXbrl.fileSource.isInArchive(normalizedUri):
