@@ -424,6 +424,11 @@ def testcaseVariationResultInstanceUri(modelTestcaseObject):
         return "" # block any testcase URIs
     return None # default behavior
 
+def inlineDocsetDiscovery(entrypointFiles): # [{"file":"url1"}, ...]
+    if len(entrypointFiles): # return [{"ixds":[{"file":"url1"}, ...]}]
+        return [{"ixds": entrypointFiles}]
+    return entrypointFiles
+
 def inlineDocsetUrlSeparator():
     return IXDS_DOC_SEPARATOR
 
@@ -437,6 +442,7 @@ __pluginInfo__ = {
     'author': 'Mark V Systems Limited',
     'copyright': '(c) Copyright 2013 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
+    'InlineDocumentSet.Discovery': inlineDocsetDiscovery,
     'InlineDocumentSet.Url.Separator': inlineDocsetUrlSeparator,
     'InlineDocumentSet.CreateTargetInstance': createTargetInstance,
     'CntlrWinMain.Menu.File.Open': fileOpenMenuEntender,
