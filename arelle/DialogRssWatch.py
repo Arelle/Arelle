@@ -33,6 +33,7 @@ def getOptions(mainWin):
 
 rssFeeds = {
     "US SEC US-GAAP Filings": "http://www.sec.gov/Archives/edgar/usgaap.rss.xml",
+    "US SEC Inline Filings": "https://www.sec.gov/Archives/edgar/xbrl-inline.rss.xml",
     # obsolete: "US SEC Voluntary Filings": "http://www.sec.gov/Archives/edgar/xbrlrss.xml",
     # obsolete: "US SEC Voluntary Risk/Return Filings": "http://www.sec.gov/Archives/edgar/xbrl-rr-vfp.rss.xml",
     "US SEC Mutual Fund Risk/Return Filings": "http://www.sec.gov/Archives/edgar/xbrl-rr.rss.xml",
