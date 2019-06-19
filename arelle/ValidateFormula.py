@@ -18,6 +18,7 @@ from arelle.ModelFormulaObject import (ModelParameter, ModelInstance, ModelVaria
 from arelle.ModelRenderingObject import (ModelRuleDefinitionNode, ModelRelationshipDefinitionNode, ModelFilterDefinitionNode)
 from arelle.ModelObject import (ModelObject)
 from arelle.ModelValue import (qname,QName)
+from arelle.XmlValidate import validate as xml_validate
 from arelle import (XbrlConst, XmlUtil, ModelXbrl, ModelDocument, XPathParser, XPathContext, FunctionXs,
                     ValidateXbrlDimensions) 
 
