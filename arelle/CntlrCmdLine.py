@@ -840,8 +840,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             filesource.select(_archiveFile)
                             if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
                                 _entrypointFiles.append({"file":filesource.url})
+                    urlsByType = {}
                     if not _entrypointFiles:
-                        urlsByType = {}
                         for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
                             filesource.select(_archiveFile)
                             identifiedType = ModelDocument.Type.identify(filesource, filesource.url)

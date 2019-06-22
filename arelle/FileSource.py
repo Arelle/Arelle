@@ -278,8 +278,8 @@ class FileSource:
                 self.loadTaxonomyPackageMappings()
                 
     def loadTaxonomyPackageMappings(self):
-        if self.taxonomyPackageMetadataFiles:
-            metadata = self.url + os.sep + self.taxonomyPackageMetadataFiles[0]
+        if not self.mappedPaths and self.taxonomyPackageMetadataFiles:
+            metadata = self.baseurl + os.sep + self.taxonomyPackageMetadataFiles[0]
             taxonomyPackage = PackageManager.parsePackage(self.cntlr, self, metadata,
                                                           os.sep.join(os.path.split(metadata)[:-1]) + os.sep)
             self.mappedPaths = taxonomyPackage["remappings"]

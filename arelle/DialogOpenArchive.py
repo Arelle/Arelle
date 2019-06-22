@@ -31,7 +31,7 @@ DISCLOSURE_SYSTEM = 3
 PLUGIN = 4
 PACKAGE = 5
 
-def askArchiveFile(parent, filesource):
+def askArchiveFile(parent, filesource, multiselect=False):
     filenames = filesource.dir
     if filenames is not None:   # an IO or other error can return None
         
@@ -49,7 +49,8 @@ def askArchiveFile(parent, filesource):
                                        filesource, 
                                        filenames,
                                        _("Select Archive File"), 
-                                       _("File"))
+                                       _("File"),
+                                       multiselect=multiselect)
         if dialog.accepted:
             return filesource.url
     return None
@@ -105,7 +106,7 @@ def selectPackage(parent, packageChoices):
 
 
 class DialogOpenArchive(Toplevel):
-    def __init__(self, parent, openType, filesource, filenames, title, colHeader, showAltViewButton=False):
+    def __init__(self, parent, openType, filesource, filenames, title, colHeader, showAltViewButton=False, multiselect=False):
         if isinstance(parent, Cntlr):
             cntlr = parent
             parent = parent.parent # parent is cntlrWinMain
@@ -128,6 +129,7 @@ class DialogOpenArchive(Toplevel):
         hScrollbar = Scrollbar(treeFrame, orient=HORIZONTAL)
         self.treeView = Treeview(treeFrame, xscrollcommand=hScrollbar.set, yscrollcommand=vScrollbar.set)
         self.treeView.grid(row=0, column=0, sticky=(N, S, E, W))
+        self.treeView.config(selectmode="extended" if multiselect else "browse")
         hScrollbar["command"] = self.treeView.xview
         hScrollbar.grid(row=1, column=0, sticky=(E,W))
         vScrollbar["command"] = self.treeView.yview
@@ -143,6 +145,7 @@ class DialogOpenArchive(Toplevel):
         self.filenames = filenames
         self.selection = filesource.selection
         self.hasToolTip = False
+        self.multiselect = multiselect
         selectedNode = None
 
         if openType == ENTRY_POINTS:
@@ -363,17 +366,25 @@ class DialogOpenArchive(Toplevel):
     def ok(self, event=None):
         selection = self.treeView.selection()
         if len(selection) > 0:
-            if hasattr(self, "taxonomyPackage"):
-                # load file source remappings
-                self.filesource.mappedPaths = self.taxonomyPackage["remappings"]
             filename = None
             if self.openType in (ARCHIVE, DISCLOSURE_SYSTEM):
-                filename = self.filenames[int(selection[0][4:])]
-                if isinstance(filename,tuple):
-                    if self.isRss:
-                        filename = filename[4]
+                if self.multiselect:
+                    filenames = []
+                for _selection in selection:
+                    filename = self.filenames[int(_selection[4:])]
+                    if isinstance(filename,tuple):
+                        if self.isRss:
+                            filename = filename[4]
+                        else:
+                            filename = filename[0]
+                    if self.multiselect:
+                        filenames.append(filename)
                     else:
-                        filename = filename[0]
+                        break
+                if self.multiselect and filenames:
+                    self.filesource.select(filenames) # array of file names
+                    self.accepted = True
+                    self.close()
             elif self.openType == ENTRY_POINTS:
                 epName = selection[0]
                 #index 0 is the remapped Url, as opposed to the canonical one used for display
@@ -398,7 +409,7 @@ class DialogOpenArchive(Toplevel):
                 return
             elif self.openType in (PLUGIN, PACKAGE):
                 filename = self.filenames[int(selection[0][4:])][2]
-            if filename is not None and not filename.endswith("/"):
+            if filename is not None and not self.multiselect and not filename.endswith("/"):
                 if hasattr(self, "taxonomyPackage"):
                     # attempt to unmap the filename to original file
                     # will be mapped again in loading, but this allows schemaLocation to be unmapped

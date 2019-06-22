@@ -23,6 +23,7 @@ ix facts and resources with no @target attribute.
 '''
 from arelle import ModelXbrl, ValidateXbrlDimensions, XbrlConst
 from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
+from arelle.FileSource import archiveFilenameParts
 from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelObject import ModelObject
 from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, load, create, inlineIxdsDiscover
@@ -295,12 +296,38 @@ def runOpenInlineDocumentSetMenuCommand(cntlr, runInBackground=False, saveTarget
 
     if not filenames:
         filename = ""
+    elif len(filenames) == 1 and (filenames[0].endswith(".zip") or filenames[0].endswith(".tar.gz")):
+        # get archive file names
+        from arelle.FileSource import openFileSource
+        filesource = openFileSource(filenames[0], cntlr)
+        if filesource.isArchive:
+            from arelle import DialogOpenArchive
+            archiveEntries = DialogOpenArchive.askArchiveFile(cntlr, filesource, multiselect=True)
+            if archiveEntries:
+                ixdsFirstFile = archiveEntries[0]
+                _archiveFilenameParts = archiveFilenameParts(ixdsFirstFile)
+                if _archiveFilenameParts is not None:
+                    ixdsDir = _archiveFilenameParts[0] # it's a zip or package, use zip file name as head of ixds
+                else: 
+                    ixdsDir = os.path.dirname(ixdsFirstFile)
+                docsetSurrogatePath = os.path.join(ixdsDir, IXDS_SURROGATE)
+                filename = docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(archiveEntries)
+            else:
+                filename = None
+        filesource.close()
     elif len(filenames) >= MINIMUM_IXDS_DOC_COUNT:
-        docsetSurrogatePath = os.path.join(os.path.dirname(filenames[0]), IXDS_SURROGATE)
+        ixdsFirstFile = filenames[0]
+        _archiveFilenameParts = archiveFilenameParts(ixdsFirstFile)
+        if _archiveFilenameParts is not None:
+            ixdsDir = _archiveFilenameParts[0] # it's a zip or package, use zip file name as head of ixds
+        else: 
+            ixdsDir = os.path.dirname(ixdsFirstFile)
+        docsetSurrogatePath = os.path.join(ixdsDir, IXDS_SURROGATE)
         filename = docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(filenames)
     else:
         filename = filenames[0]
-    cntlr.fileOpenFile(filename)
+    if filename is not None:
+        cntlr.fileOpenFile(filename)
 
 
 def runSaveTargetDocumentMenuCommand(cntlr, runInBackground=False, saveTargetFiling=False):
