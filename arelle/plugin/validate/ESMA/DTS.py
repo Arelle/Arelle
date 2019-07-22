@@ -30,6 +30,7 @@ def checkFilingDTS(val, modelDocument, visited):
         val.hasExtensionSchema = True
         
         tuplesInExtTxmy = []
+        fractionsInExtTxmy = []
         typedDimsInExtTxmy = []
         domainMembersWrongType = []
         extLineItemsWithoutHypercube = []
@@ -44,6 +45,8 @@ def checkFilingDTS(val, modelDocument, visited):
                             continue    # don't validate ref's here
                     if modelConcept.isTuple:
                         tuplesInExtTxmy.append(modelConcept)
+                    if modelConcept.isFraction:
+                        fractionsInExtTxmy.append(modelConcept)
                     if modelConcept.isTypedDimension:
                         typedDimsInExtTxmy.append(modelConcept)
                     if modelConcept.isDomainMember and modelConcept in val.domainMembers and modelConcept.typeQname != qnDomainItemType:
@@ -52,24 +55,37 @@ def checkFilingDTS(val, modelDocument, visited):
                         extLineItemsWithoutHypercube.append(modelConcept)
                     if modelConcept.isAbstract and modelConcept not in val.domainMembers:
                         extAbstractConcepts.append(modelConcept)
-                    # what is language of standard label?
-                    label = modelConcept.label(lang="en", fallbackToQname=False)
-                    if label:
-                        # allow Joe's Bar, N.A.  to be JoesBarNA -- remove ', allow A. as not article "a"
-                        lc3name = ''.join(re.sub(r"['.-]", "", (w[0] or w[2] or w[3] or w[4])).title()
-                                          for w in re.findall(r"((\w+')+\w+)|(A[.-])|([.-]A(?=\W|$))|(\w+)", label)
-                                          # if w[4].lower() not in ("the", "a", "an")
-                                          )
-                        if not(name == lc3name or 
-                               (name and lc3name and lc3name[0].isdigit() and name[1:] == lc3name and (name[0].isalpha() or name[0] == '_'))):
-                            val.modelXbrl.warning("esma.3.2.1.extensionTaxonomyElementNameDoesNotFollowLc3Convention",
-                                _("Extension taxonomy element name SHOULD follow the LC3 convention: %(concept)s should match expected LC3 composition %(lc3name)s"),
-                                modelObject=modelConcept, concept=modelConcept.qname, lc3name=lc3name)
+                    # check all lang's of standard label
+                    labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
+                    hasLc3Match = False
+                    lc3names = []
+                    if labelsRelationshipSet:
+                        for labelRel in labelsRelationshipSet.fromModelObject(modelConcept):
+                            label = labelRel.toModelObject
+                            if label is not None and label.role == XbrlConst.standardLabel:
+                                # allow Joe's Bar, N.A.  to be JoesBarNA -- remove ', allow A. as not article "a"
+                                lc3name = ''.join(re.sub(r"['.-]", "", (w[0] or w[2] or w[3] or w[4])).title()
+                                                  for w in re.findall(r"((\w+')+\w+)|(A[.-])|([.-]A(?=\W|$))|(\w+)", label.textValue)
+                                                  # if w[4].lower() not in ("the", "a", "an")
+                                                  )
+                                lc3names.append(lc3name)
+                                if (name == lc3name or 
+                                    (name and lc3name and lc3name[0].isdigit() and name[1:] == lc3name and (name[0].isalpha() or name[0] == '_'))):
+                                    hasLc3Match = True
+                                    break
+                    if not hasLc3Match:
+                        val.modelXbrl.warning("esma.3.2.1.extensionTaxonomyElementNameDoesNotFollowLc3Convention",
+                            _("Extension taxonomy element name SHOULD follow the LC3 convention: %(concept)s should match an expected LC3 composition %(lc3names)s"),
+                            modelObject=modelConcept, concept=modelConcept.qname, lc3names=", ".join(lc3names))
                             
         if tuplesInExtTxmy:
-            val.modelXbrl.error("esma.2.1.3.tupleDefinedInExtensionTaxonomy",
+            val.modelXbrl.error("esma.2.4.1.tupleDefinedInExtensionTaxonomy",
                 _("Tuples MUST NOT be defined in extension taxonomy: %(concepts)s"),
                 modelObject=tuplesInExtTxmy, concepts=", ".join(str(c.qname) for c in tuplesInExtTxmy))
+        if fractionsInExtTxmy:
+            val.modelXbrl.error("esma.2.4.1.fractionDefinedInExtensionTaxonomy",
+                _("Fractions MUST NOT be defined in extension taxonomy: %(concepts)s"),
+                modelObject=fractionsInExtTxmy, concepts=", ".join(str(c.qname) for c in fractionsInExtTxmy))
         if typedDimsInExtTxmy:
             val.modelXbrl.warning("esma.3.2.3.typedDimensionDefinitionInExtensionTaxonomy",
                 _("Extension taxonomy SHOULD NOT define typed dimensions: %(concepts)s."),

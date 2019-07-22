@@ -160,6 +160,9 @@ dtrSQNameTypes = (qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNameTyp
 dtrSQNamesItemTypes = (qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNamesItemType"), )
 dtrSQNamesTypes = (qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNamesType"), )
 
+dtrNoLangItemTypeNames = ("domainItemType", "noLangTokenItem", "noLangStringItemType")
+oimLangItemTypeNames = ("stringItemType", "normalizedStringItemType")
+
 ver10 = "http://xbrl.org/2010/versioning-base"
 # 2010 names
 vercb = "http://xbrl.org/2010/versioning-concept-basic"

@@ -32,6 +32,10 @@ DefaultDimensionLinkrole = "http://www.esma.europa.eu/xbrl/esef/role/ifrs-dim_ro
 qnDomainItemType = qname("{http://www.xbrl.org/dtr/type/non-numeric}nonnum:domainItemType")
 
 mandatory = set() # mandatory element qnames
-    
+
+# hidden references
+untransformableTypes = {"anyURI", "base64Binary", "hexBinary", "NOTATION", "QName", "time",
+                        "token", "language"}
+
 
                   

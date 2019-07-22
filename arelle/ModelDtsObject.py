@@ -1186,6 +1186,19 @@ class ModelType(ModelNamableTerm):
             return False
         typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
         return typeDerivedFrom.isTextBlock if typeDerivedFrom is not None else False
+    
+    @property
+    def isOimTextFactType(self):
+        """(str) -- True if type meets OIM requirements to be a text fact"""
+        if self.modelDocument.targetNamespace.startswith(XbrlConst.dtrTypesStartsWith):
+            return self.name in XbrlConst.dtrNoLangItemTypeNames
+        if self.modelDocument.targetNamespace == XbrlConst.xbrli:
+            return self.name in XbrlConst.oimLangItemTypeNames
+        qnameDerivedFrom = self.qnameDerivedFrom
+        if not isinstance(qnameDerivedFrom, ModelValue.QName): # textblock not a union type
+            return False
+        typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
+        return typeDerivedFrom.isOimTextFactType if typeDerivedFrom is not None else False
 
     @property
     def isDomainItemType(self):
