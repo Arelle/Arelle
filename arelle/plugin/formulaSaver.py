@@ -43,13 +43,17 @@ def strQuote(s):
     return '"' + s.replace('"', '""') + '"'
         
 class GenerateXbrlFormula:
-    def __init__(self, modelXbrl, xfFile):
-        self.modelXbrl = modelXbrl
+    def __init__(self, cntlr, xfFile):
+        self.modelXbrl = cntlr.modelManager.modelXbrl
         self.xfFile = xfFile
         self.xfLines = []
         self.xmlns = {}
         self.eltTypeCount = {}
         self.nextIdDupNbr = {}
+
+        cntlr.showStatus(_("Initializing Formula Grammar"))
+        XPathParser.initializeParser(cntlr.modelManager)
+        cntlr.showStatus(None)
         
         for cfQnameArity in sorted(qnameArity
                                    for qnameArity in self.modelXbrl.modelCustomFunctionSignatures.keys()
@@ -72,12 +76,12 @@ class GenerateXbrlFormula:
                 self.xfLines.insert(0, "namespace {} = \"{}\";".format(prefix, ns))
             
         self.xfLines.insert(0, "")
-        self.xfLines.insert(0, "(: Generated from {} by Arelle on {} :)".format(modelXbrl.modelDocument.basename, XmlUtil.dateunionValue(datetime.datetime.now())))
+        self.xfLines.insert(0, "(: Generated from {} by Arelle on {} :)".format(self.modelXbrl.modelDocument.basename, XmlUtil.dateunionValue(datetime.datetime.now())))
         
         with open(xfFile, "w", encoding="utf-8") as fh:
             fh.write("\n".join(self.xfLines))
             
-        modelXbrl.info("info", "saved formula file %(file)s", file=xfFile)
+        self.modelXbrl.info("info", "saved formula file %(file)s", file=xfFile)
         
     @property
     def xf(self):
@@ -481,7 +485,7 @@ def saveXfMenuCommand(cntlr):
     cntlr.saveConfig()
 
     try: 
-        GenerateXbrlFormula(cntlr.modelManager.modelXbrl, xbrlFormulaFile)
+        GenerateXbrlFormula(cntlr, xbrlFormulaFile)
     except Exception as ex:
         dts = cntlr.modelManager.modelXbrl
         dts.error("exception",
@@ -502,7 +506,7 @@ def saveXfCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
             cntlr.addToLog("No taxonomy loaded.")
             return
-        GenerateXbrlFormula(cntlr.modelManager.modelXbrl, options.xbrlFormulaFile)
+        GenerateXbrlFormula(cntlr, options.xbrlFormulaFile)
 
 
 __pluginInfo__ = {
