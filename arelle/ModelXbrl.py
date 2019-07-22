@@ -734,6 +734,21 @@ class ModelXbrl:
                     fbqn[f.qname].add(f)
             return fbqn
         
+    @property
+    def factsByLocalName(self): # indexed by fact (concept) localName
+        """Facts in the instance indexed by their LocalName, cached
+        
+        :returns: dict -- indexes are LocalNames, values are ModelFacts
+        """
+        try:
+            return self._factsByLocalName
+        except AttributeError:
+            self._factsByLocalName = fbln = defaultdict(set)
+            for f in self.factsInInstance: 
+                if f.qname is not None:
+                    fbqn[f.qname.localName].add(f)
+            return fbln
+        
     def factsByDatatype(self, notStrict, typeQname): # indexed by fact (concept) qname
         """Facts in the instance indexed by data type QName, cached as types are requested
 
