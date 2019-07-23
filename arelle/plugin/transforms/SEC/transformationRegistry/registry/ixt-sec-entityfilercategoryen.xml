@@ -40,7 +40,7 @@ Transforms EDGAR Entity Filer Category into their enumeration codes (per SEC as 
   <signature name="ixt-sec:entityfilercategoryen">
     <input name="input" type="ixt-sec:entityfilercategoryenType">
       <xhtml:p>
-		Country code from a country name expression, such as the following:
+		Filer expression, such as the following:
 		<xhtml:table>
 		<xhtml:tr><xhtml:th>Source Expression</xhtml:th><xhtml:th>Transformed Value</xhtml:th></xhtml:tr>
 		<xhtml:tr><xhtml:td>Large accelerated Filer</xhtml:td><xhtml:td>Large Accelerated Filer</xhtml:td></xhtml:tr>

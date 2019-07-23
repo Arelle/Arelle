@@ -72,10 +72,10 @@ The Nasdaq Stock Market LLC &#x2192; NASDAQ<br/>
 		</xhtml:table>
       </xhtml:p>
     </input>
-      <output type="xs:normalizedString">
+      <output type="xs:token">
       <xhtml:p>
 
-The value in xs:normalizedString.
+The value in xs:token.
 
       </xhtml:p>
     </output>
