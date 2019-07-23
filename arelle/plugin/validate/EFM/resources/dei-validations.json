@@ -329,8 +329,16 @@
         "xbrl-names": "EntityCurrentReportingStatus",
         "efm": "6.5.21",
         "validation": "r",
-        "source": "both",
+        "source": "inline",
         "dei/cover": "cover"
+    },
+    {
+        "forms": ["@10-K+Q", "@20+40-F"],
+        "xbrl-names": "EntityCurrentReportingStatus",
+        "efm": "6.5.21",
+        "validation": "o",
+        "source": "non-inline",
+        "dei/cover": "dei"
     },
     {
         "forms": ["@20+40FR"],
@@ -346,8 +354,17 @@
         "elo-name": "voluntaryFilerFlag",
         "efm": "6.5.21",
         "validation": "r",
-        "source": "both",
+        "source": "inline",
         "dei/cover": "cover"
+    },
+    {
+        "forms": ["@10-K+KT", "@20-F"],
+        "xbrl-names": "EntityVoluntaryFilers",
+        "elo-name": "voluntaryFilerFlag",
+        "efm": "6.5.21",
+        "validation": "o",
+        "source": "non-inline",
+        "dei/cover": "dei"
     },
     {
         "forms": ["@20FR"],
@@ -363,8 +380,16 @@
         "xbrl-names": "EntityInteractiveDataCurrent",
         "efm": "6.5.21",
         "validation": "r",
-        "source": "both",
+        "source": "inline",
         "dei/cover": "cover"
+    },
+    {
+        "forms": ["@10-K+Q", "@20+40-F"],
+        "xbrl-names": "EntityInteractiveDataCurrent",
+        "efm": "6.5.21",
+        "validation": "o",
+        "source": "non-inline",
+        "dei/cover": "dei"
     },
     {
         "forms": ["@20+40FR"],
@@ -373,6 +398,16 @@
         "validation": "o",
         "source": "both",
         "dei/cover": "dei"
+    },
+    {
+        "forms": ["@all"],
+        "xbrl-names": [],
+        "elo-name": "entity.fyEnd",
+        "efm": "6.5.21",
+        "validation": "o",
+        "source": "both",
+        "dei/cover": "dei",
+        "comment": "cik registration entity.fyEnd never raises dq-0540-{headerTag}-Unexpected, but is compared for submissions where CurrentFiscalYearEndDate is reported"
     },
     {
         "forms": ["@10-K+Q", "@20+40-F"],
@@ -491,13 +526,31 @@
         "dei/cover": "dei"
     },
     {
-        "forms": ["@10-K+Q", "@20-F"],
+        "forms": ["@10-K+KT", "@20-F"],
         "xbrl-names": "EntityShellCompany",
         "elo-name": "shellCompanyFlag",
         "efm": "6.5.40",
         "validation": "r",
         "source": "both",
         "dei/cover": "cover"
+    },
+    {
+        "forms": ["@10-Q+QT"],
+        "xbrl-names": "EntityShellCompany",
+        "elo-name": "shellCompanyFlag",
+        "efm": "6.5.40",
+        "validation": "r",
+        "source": "inline",
+        "dei/cover": "cover"
+    },
+    {
+        "forms": ["@10-Q+QT"],
+        "xbrl-names": "EntityShellCompany",
+        "elo-name": "shellCompanyFlag",
+        "efm": "6.5.40",
+        "validation": "o",
+        "source": "non-inline",
+        "dei/cover": "dei"
     },
     {
         "forms": ["@20FR"],
@@ -607,17 +660,27 @@
         "xbrl-names": "SecurityExchangeName",
         "efm": "6.5.46",
         "validation": "te",
-        "references": "TradingSymbol",
+        "references": ["TradingSymbol", "NoTradingSymbolFlag"],
         "axis": "c",
-        "source": "both",
+        "source": "inline",
         "dei/cover": "cover"
+    },
+    {
+        "forms": ["@8-K", "@10-K+Q", "@20+40-F"],
+        "xbrl-names": "SecurityExchangeName",
+        "efm": "6.5.46",
+        "validation": "te",
+        "references": ["TradingSymbol", "NoTradingSymbolFlag"],
+        "axis": "c",
+        "source": "non-inline",
+        "dei/cover": "dei"
     },
     {
         "forms": ["@10-12", "@20+40FR"],
         "xbrl-names": "SecurityExchangeName",
         "efm": "6.5.46",
         "validation": "te",
-        "references": "TradingSymbol",
+        "references": ["TradingSymbol", "NoTradingSymbolFlag"],
         "axis": "c",
         "source": "both",
         "dei/cover": "dei"
@@ -1624,10 +1687,18 @@
         "dei/cover": "cover"
     },
     {
-        "forms": ["@all"],
+        "forms": ["!not!", "POS AM", "POS EX"],
         "xbrl-names": [],
         "efm": "(obtained from blank cell's row)",
         "validation": "(blank)",
+        "source": "both",
+        "comment": "This validation, (blank), must be last, efm is dynamically provided based on efm for a non-(blank) of actual element"
+    },
+    {
+        "forms": ["@all"],
+        "xbrl-names": [],
+        "efm": "(obtained from blank cell's row)",
+        "validation": "(elo-unexpected)",
         "source": "both",
         "comment": "This validation, (blank), must be last, efm is dynamically provided based on efm for a non-(blank) of actual element"
     }
@@ -1637,6 +1708,11 @@
 			"message": "dq-{efmSection}-{tag}-Unexpected",
 			"severity": "warning",
 			"validation": "Blank – a non-null fact should not appear."
+		},
+		"(elo-unexpected)": {
+			"message": "dq-0540-{headerTag}-Unexpected",
+			"severity": "warning",
+			"validation": "Unexpected ELO header tag."
 		},
 		"x": {
 			"message": "dq-{efmSection}-{tag}-Missing",
@@ -1760,7 +1836,8 @@
 			"validation": "TR – For inline, a non-null fact should be present if and only if DocumentTransitionReport is true."
 		},
 		"te": {
-			"message": "dq-{efmSection}-{tag}-{otherTag}-Dependency",
+			"message": "dq-{efmSection}-{tag}-{otherTags}-Dependency",
+			"message-missing-exchange": "dq-{efmSection}-{tag}-{otherTag}-Dependency",
 			"message-ADR-no-symbol": "dq-{efmSection}-{tag}-Missing",
 			"severity": "warning",
 			"validation": "Tb – A non-null fact is required only if the Security12bTitle exists.  If ADR a non-null trading symbol is required."
@@ -1815,10 +1892,11 @@
 		"dq-{efmSection}-{tags}-Inclusive": "In submission type {subType}, at least one of {tags} {severityVerb} have a value.",
 		"dq-{efmSection}-{tags}-Both": "In submission type {subType}, both or neither of {tags} {severityVerb} have a value.",
 		"dq-{efmSection}-{tag}-{otherTag}-Dependency": "In submission type {subType}, {tag} {severityVerb} have a value if and only if {otherTag} has a value in context {contextID}.",
+		"dq-{efmSection}-{tag}-{otherTags}-Dependency": "In submission type {subType}, {tag} {severityVerb} have a value if one of {otherTags} has a value in context {contextID}.",
 		"dq-{efmSection}-{tag}-{otherTag}-Dependent-Value": "In submission type {subType}, {tag} {severityVerb} be provided if and only if {otherTag} has value \"{value}\" in context {contextID}.",
 		"dq-{efmSection}-{tag}-{otherTag}-Inclusive": "In submission type {subType}, either {tag} or {otherTag} should have a value, or both.",
 		"dq-{efmSection}-{tags}-{otherTag}-Exclusive-Dependency": "In submission type {subType}, one of {tags} {severityVerb} have a value if and only if {otherTag} has a value in context {contextID}.",
-		"dq-{efmSection}-{tags}-{otherTags}-Exclusive-Dependency": "In submission type {subType}, one of {tags} {severityVerb} have a value if and only if one of {otherTags} has a value in context {contextID}.",
+		"dq-{efmSection}-{tags}-{otherTags}-Exclusive-Dependency": "In submission type {subType}, one of {tags} {severityVerb} have a value if one of {otherTags} has a value in context {contextID}.",
 		"dq-{efmSection}-{tag}-Security-Axes": "In submission type {subType}, {tag} {severityVerb} have values without axes if a single non-ADR member, otherwise in separate contexts by axis member, but not both, in contexts {contextIDs}.",
 		"dq-0514-Hidden-Cover-Page-Fact-Not-Referenced": "Submission type {subType} has {n} cover page fact(s) in ix:hidden that were not referenced by any -sec-ix-hidden style property: (namesOfTags).",
 		"dq-0540-{tag}-Value": "In submission type {subType}, {tag} value \"{value}\", is not equivalent to header element {headerTag} value \"{valueOfHeaderTag}\" in the {context}.",

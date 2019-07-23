@@ -9,7 +9,7 @@ Subsequent validations and enhancements created by staff of the U.S. Securities 
 Data and content created by government employees within the scope of their employment are not subject 
 to domestic copyright protection. 17 U.S.C. 105.
 '''
-import re, datetime, decimal, json
+import re, datetime, decimal, json, unicodedata
 from collections import defaultdict
 from arelle import (ModelDocument, ModelValue, ModelRelationshipSet, 
                     XmlUtil, XbrlConst, ValidateFilingText)
@@ -507,7 +507,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 conceptsUsed[concept] = False
                 
                 if concept.isNumeric:
-                    if f.precision:
+                    if f.precision is not None:
                         modelXbrl.error(("EFM.6.05.17", "GFM.1.02.16"),
                             _("Your filing contained elements using the precision attribute.  Please recheck your submission and replace "
                               "the precision attribute with the decimals attribute."),
@@ -563,7 +563,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         _("The EntityCentralIndexKey, %(value)s, does not match the context identifier CIK %(entityIdentifier)s.  "
                           "Please include a correct matching EntityCentralIndexKey and context identifier CIK(s) in the filing."),
                         edgarCode="cp-0523-Non-Matching-Cik",
-                        modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
+                        modelObject=deiFilerIdentifierFact, elementName=disclosureSystem.deiFilerIdentifierElement,
                         value=value, entityIdentifier=entityIdentifierValue)
                 if "cikNameList" in val.params:
                     if value not in val.params["cikNameList"]:
@@ -571,26 +571,29 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             _("The submission CIK, %(filerIdentifier)s does not match the EntityCentralIndexKey.  "
                               "Please include a correct matching EntityCentralIndexKey in the filing."),
                             edgarCode="cp-0523-Non-Matching-Cik",
-                            modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
+                            modelObject=deiFilerIdentifierFact, elementName=disclosureSystem.deiFilerIdentifierElement,
                             value=value, filerIdentifier=",".join(sorted(val.params["cikNameList"].keys())))
                 elif val.params.get("cik") and value != val.params["cik"]:
                     val.modelXbrl.error(("EFM.6.05.23.submissionIdentifier", "GFM.3.02.02"),
                         _("The submission CIK, %(filerIdentifier)s does not match the %(elementName)s.  "
                           "Please include a correct matching %(elementName)s in the filing."),
                         edgarCode="cp-0523-Non-Matching-Cik",
-                        modelObject=f, elementName=disclosureSystem.deiFilerIdentifierElement,
+                        modelObject=deiFilerIdentifierFact, elementName=disclosureSystem.deiFilerIdentifierElement,
                         value=value, filerIdentifier=val.params["cik"])
             if disclosureSystem.deiFilerNameElement in deiItems:
                 value = deiItems[disclosureSystem.deiFilerNameElement]
                 if "cikNameList" in val.params and entityIdentifierValue in val.params["cikNameList"]:
                     prefix = val.params["cikNameList"][entityIdentifierValue]
-                    if prefix is not None and not value.lower().startswith(prefix.lower()):
-                        val.modelXbrl.error(("EFM.6.05.24", "GFM.3.02.02"),
-                            _("The Official Registrant name, %(prefix)s, does not match the value %(value)s in the Required Context.  "
-                              "Please correct dei:%(elementName)s."),
-                            edgarCode="cp-0524-Registrant-Name-Mismatch",
-                            modelObject=f, elementName=disclosureSystem.deiFilerNameElement,
-                            prefix=prefix, value=value)
+                    if prefix is not None:
+                        if ((isInlineXbrl and not re.match(cleanedCompanyName(prefix).replace("-", r"[\s-]?"),
+                                                          cleanedCompanyName(value), flags=re.IGNORECASE)) or
+                            (not isInlineXbrl and not value.lower().startswith(prefix.lower()))):
+                            val.modelXbrl.error(("EFM.6.05.24", "GFM.3.02.02"),
+                                _("The Official Registrant name, %(prefix)s, does not match the value %(value)s in the Required Context.  "
+                                  "Please correct dei:%(elementName)s."),
+                                edgarCode="cp-0524-Registrant-Name-Mismatch",
+                                modelObject=deiFilerNameFact, elementName=disclosureSystem.deiFilerNameElement,
+                                prefix=prefix, value=value)
                         
         val.modelXbrl.profileActivity("... filer fact checks", minTimeToShow=1.0)
 
@@ -1084,11 +1087,11 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             fevMessage(fev, subType=submissionType, efmSection=efmSection, tag=name,
                                             modelObject=[f for i in fevIndices for f in fevFacts(i, name)],
                                             typeOfContext="Required Context")
+                if validation == "(elo-unexpected)": 
                     for eloName in sorted(unexpectedEloParams - expectedEloParams):
                         if eloName in val.params:
-                            fevMessage(fev, messageKey="dq-0540-{headerTag}-Unexpected", efmSection="6.5.40",
-                                       modelObject=modelXbrl, subType=submissionType,
-                                       headerTag=eloName, valueOfHeaderTag=val.params[eloName])
+                            fevMessage(fev, subType=submissionType, efmSection="6.5.40",
+                                       modelObject=modelXbrl, headerTag=eloName, valueOfHeaderTag=val.params[eloName])
                 # type-specific validations
                 elif len(names) == 0:
                     pass # no name entries if all dei names of this validation weren't in the loaded dei taxonomy (i.e., pre 2019) 
@@ -1184,13 +1187,15 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     for fr in fevFacts(fev, referenceTag, deduplicate=True):
                         flist = [f for f in fevFacts(fev, names, fr, deduplicate=True)] # just 1 name for te
                         tefacts.update(flist)
-                        if len(flist) != 1:
-                            fevMessage(fev, subType=submissionType, modelObject=[fr]+flist, tag=names[0], otherTag=referenceTag)
+                        #revision of 2019-07-16, no warning if no trading symbol (it's now "may" exist)
+                        #if len(flist) < 1 and (fr.qname.localName == "TradingSymbol"):
+                        #    fevMessage(fev, subType=submissionType, modelObject=[fr]+flist, tag=fr.qname.localName, otherTag=names[0],
+                        #               validationMessage="message-missing-exchange")
                     # find any facts without a securities12b
                     for f in fevFacts(fev, names, deduplicate=True): # just 1 name for te
                         if f not in tefacts:
                             if fevFact(fev, referenceTag, f) is None:
-                                fevMessage(fev, subType=submissionType, modelObject=f, tag=names[0], otherTag=referenceTag)
+                                fevMessage(fev, subType=submissionType, modelObject=f, tag=names[0], otherTags=", ".join(referenceTag), severityVerb="may")
                     del tefacts # dereference
                 elif validation == "ot1":
                     for i, name1 in enumerate(names):
@@ -1218,7 +1223,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     for f in fevFacts(fev, names, deduplicate=True):
                         if f not in t1facts:
                             if fevFact(fev, referenceTag, f) is None: # note that reference tag is a list here
-                                fevMessage(fev, subType=submissionType, modelObject=f, tags=", ".join(names), otherTags=", ".join(referenceTag))
+                                fevMessage(fev, subType=submissionType, modelObject=f, tags=", ".join(names), otherTags=", ".join(referenceTag), severityVerb="may")
                     del t1facts # dereference
                 elif validation in ("x", "xv", "r", "y", "n"):
                     for name in names:
@@ -2487,3 +2492,29 @@ def deiParamEqual(deiName, xbrlVal, secVal):
         return xbrlVal in {True:("Smaller Reporting Company", "Smaller Reporting Accelerated Filer"),
                            False:("Non-accelerated Filer", "Accelerated Filer", "Large Accelerated Filer")}.get(secVal,())
     return False # unhandled deiName
+
+
+def cleanedCompanyName(name):
+    for pattern, replacement in (
+                                 (r"\s&(?=\s)", " and "),  # Replace & with and # added by govind
+                                 (r"/.+/|\\.+\\", " "),  # Remove any "/../" , "\...\" or "/../../" expression.
+                                 (r"\s*[(].+[)]$", " "),  # Remove any parenthetical expression if it occurs at the END of the string.
+                                 (r"[\u058A\u05BE\u2010\u2011\u2012\u2013\u2014\u2015\uFE58\uFE63\uFF0D]", "-"),  # Normalize fancy dashes.
+                                 (r"-", ""),  #dash to space  # added by govind
+                                 (r"[\u2019']", ""),  #Apostrophe to space  # added by govind
+                                 (r"^\s*the(?=\s)", ""),  # Remove the word "THE" (i.e., followed by space) from the beginning.
+                                 (r"[^\w-]", " "),  # Remove any punctuation.
+                                 (r"^\w(?=\s)|\s\w(?=\s)|\s\w$", " "),  # Remove single letter words
+                                 (r"\sINCORPORATED(?=\s)|\sINCORPORATED$", " INC"),  # Truncate the word INCORPORATED (case insensitive) to INC
+                                 (r"\sCORPORATION(?=\s)|\sCORPORATION$", " CORP"),  # Truncate the word CORPORATION (case insensitive) to CORP
+                                 (r"\sCOMPANY(?=\s)|\sCOMPANY$", " CO"),  # Truncate the word CORPORATION (case insensitive) to CORP
+                                 (r"\sLIMITED(?=\s)|\sLIMITED$", " LTD"),  # Truncate the word LIMITED (case insensitive) to LTD
+                                 (r"\sAND(?=\s)|\sAND$", " &"),  # Replace the word AND with an ampersand (&)
+                                 (r"\s+", " "),  # Normalize all spaces (i.e., trim, collapse, map &#xA0; to &#xA; and so forth)
+                                 (r"\s", "")  # remove space to nothing for comparison # added by govind
+                                 ):
+        name = re.sub(pattern, replacement, name, flags=re.IGNORECASE)
+    return unicodedata.normalize('NFKD', name.strip().lower()).encode('ASCII', 'ignore').decode()  # remove diacritics 
+
+
+
