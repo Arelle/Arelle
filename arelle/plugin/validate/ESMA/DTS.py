@@ -11,7 +11,7 @@ Taxonomy package expected to be installed:
 (c) Copyright 2018 Mark V Systems Limited, All rights reserved.
 '''
 
-import re
+import re, unicodedata
 from arelle import ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelObject import ModelObject
@@ -65,7 +65,10 @@ def checkFilingDTS(val, modelDocument, visited):
                             if label is not None and label.role == XbrlConst.standardLabel:
                                 # allow Joe's Bar, N.A.  to be JoesBarNA -- remove ', allow A. as not article "a"
                                 lc3name = ''.join(re.sub(r"['.-]", "", (w[0] or w[2] or w[3] or w[4])).title()
-                                                  for w in re.findall(r"((\w+')+\w+)|(A[.-])|([.-]A(?=\W|$))|(\w+)", label.textValue)
+                                                  for w in re.findall(r"((\w+')+\w+)|(A[.-])|([.-]A(?=\W|$))|(\w+)", 
+                                                                      unicodedata.normalize('NFKD', label.textValue)
+                                                                      .encode('ASCII', 'ignore').decode()  # remove diacritics 
+                                                                      )
                                                   # if w[4].lower() not in ("the", "a", "an")
                                                   )
                                 lc3names.append(lc3name)
