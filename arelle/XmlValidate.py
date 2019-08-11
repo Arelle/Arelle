@@ -31,8 +31,8 @@ VALID = 4 # values >= VALID are valid
 VALID_ID = 5
 VALID_NO_CONTENT = 6 # may be a complex type with children, must be last (after VALID with content enums)
 
-normalizeWhitespacePattern = re_compile(r"\s")
-collapseWhitespacePattern = re_compile(r"\s+")
+normalizeWhitespacePattern = re_compile(r"[\t\n\r]") # replace tab, line feed, return with space (XML Schema Rules, note: does not include NBSP)
+collapseWhitespacePattern = re_compile(r"[ \t\n\r]+") # collapse multiple spaces, tabs, line feeds and returns to single space
 languagePattern = re_compile("[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$")
 NCNamePattern = re_compile("^[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
                             r"[_\-\." 
@@ -339,9 +339,9 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                 if "whiteSpace" in facets:
                     whitespaceReplace, whitespaceCollapse = {"preserve":(False,False), "replace":(True,False), "collapse":(False,True)}[facets["whiteSpace"]]
             if whitespaceReplace:
-                value = normalizeWhitespacePattern.sub(' ', value)
+                value = normalizeWhitespacePattern.sub(' ', value) # replace tab, line feed, return with space
             elif whitespaceCollapse:
-                value = collapseWhitespacePattern.sub(' ', value.strip())
+                value = collapseWhitespacePattern.sub(' ', value).strip(' ') # collapse multiple spaces, tabs, line feeds and returns to single space
             if baseXsdType == "noContent":
                 if len(value) > 0 and not value.isspace():
                     raise ValueError("value content not permitted")
