@@ -294,7 +294,7 @@ def xsString(xc, p, source):
             return "NaN" # note that -NaN is reported as NaN in XML
         elif isinf(source):
             return "-INF" if source < 0 else "INF"
-        return str(source)
+        return "{:f}".format(source) # str(source) causes unwanted scientific notation for values like 0.00000001
     elif isinstance(source,ModelValue.DateTime):
         return ('{0:%Y-%m-%d}' if source.dateOnly else '{0:%Y-%m-%dT%H:%M:%S}').format(source)
     return str(source)

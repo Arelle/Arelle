@@ -670,7 +670,7 @@ class ModelInlineValueObject:
                         else:
                             if num == num.to_integral() and (".0" not in v or self.isInteger):
                                 num = num.quantize(DECIMALONE) # drop any .0
-                            self._ixValue = "{}".format(num)
+                            self._ixValue = "{:f}".format(num)
                     except (ValueError, InvalidOperation):
                         self.setInvalid()
                         raise ValueError("Invalid value for {} scale {} for number {}".format(self.localName, scale, v))
