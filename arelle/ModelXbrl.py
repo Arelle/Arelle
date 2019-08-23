@@ -746,7 +746,7 @@ class ModelXbrl:
             self._factsByLocalName = fbln = defaultdict(set)
             for f in self.factsInInstance: 
                 if f.qname is not None:
-                    fbqn[f.qname.localName].add(f)
+                    fbln[f.qname.localName].add(f)
             return fbln
         
     def factsByDatatype(self, notStrict, typeQname): # indexed by fact (concept) qname
