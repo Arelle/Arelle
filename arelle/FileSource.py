@@ -667,7 +667,7 @@ def openXmlFileStream(cntlr, filepath, stripDeclaration=False):
         # allow filepath to close
     # this may not be needed for Mac or Linux, needs confirmation!!!
     if text is None:  # ok to read as utf-8
-        return io.open(filepath, 'rt', encoding='utf-8'), encoding
+        return io.open(filepath, 'rt', encoding=encoding or 'utf-8'), encoding
     else:
         if stripDeclaration:
             # strip XML declaration

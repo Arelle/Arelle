@@ -182,9 +182,10 @@ verPrefixNS = {"ver":ver,
                }
 
 # extended enumeration spec
+enum2s = {"http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0"}
 enums = {"http://xbrl.org/2014/extensible-enumerations", "http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1",
-         "http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1",
-         "http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0"}
+         "http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1"
+         } | enum2s
 qnEnumerationItemType2014 = qname("{http://xbrl.org/2014/extensible-enumerations}enum:enumerationItemType")
 qnEnumerationItemTypeYYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}enum2:enumerationItemType")
 qnEnumerationSetItemTypeYYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}enum2:enumerationSetItemType")
