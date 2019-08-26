@@ -110,6 +110,11 @@ def generateSampleInstance(dts, instanceFilename,
                  entryFile=dts.uri, instanceFile=instanceFilename)
         
     del dts.conceptSampleValue, conceptSampleUnit, conceptSampleScheme
+    
+sampleDomainValues = {
+    "number": {1:"1", 2:"2", 3:"3"},
+    "str": {1:"a1", 2:"b2", 3:"c3"}
+    }
 
 sampleDataValues = {
     1: {"periodStart": XmlUtil.datetimeValue("2016-01-01"),
@@ -260,8 +265,11 @@ def genFact(dts, concept, preferredLabel, arcrole, relationshipSet, level, visit
                 elrInfo["currentDim"] = concept
                 if concept.isTypedDimension:
                     elrInfo["dims"][concept.qname] = (concept, concept.typedDomainElement)
+                    elrInfo["domainIter"] = 1
                     if concept.typedDomainElement.isNumeric:
-                        elrInfo["domainIter"] = 1
+                        elrInfo["domainType"] = "numeric"
+                    else:
+                        elrInfo["domainType"] = "str" # may need to add more types such as dates
             elif concept.name.endswith("Member") or concept.name.endswith("_member"): # don't generate entries for default dim (Domain) (for now)
                 dimConcept = elrInfo["currentDim"]
                 if dimConcept.qname not in elrInfo["dims"]:
@@ -289,7 +297,7 @@ def genFact(dts, concept, preferredLabel, arcrole, relationshipSet, level, visit
                                 if _domConcept.type is not None and not _domConcept.isNumeric:
                                     _memEltVal = genSampleValue(sampVals, _domConcept)
                                 else:
-                                    _memEltVal = str(elrInfo["domainIter"])
+                                    _memEltVal = sampleDomainValues[elrInfo["domainType"]][elrInfo["domainIter"]]
                                 _memVal = XmlUtil.addChild(dts.modelDocument.xmlRootElement, 
                                                          _domConcept.qname, 
                                                          text=_memEltVal, 
