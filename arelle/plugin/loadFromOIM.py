@@ -48,7 +48,7 @@ jsonDocumentTypes = (
     )
 csvDocumentTypes = (
         "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-csv",
-        "http://www.xbrl.org/PWD/2019-08-07/xbrl-csv",
+        "http://www.xbrl.org/PWD/2019-08-07/xbrl-csv"
     )
          
 
@@ -348,7 +348,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
             reportDimensions = documentInfo.get("reportDimensions", {})
             reportDecimals = documentInfo.get("decimals", None)
             tables = oimObject["tables"]
-            footnotes = oimObject.get("links", {}).items()
+            footnotes = (oimObject.get("links", {}), )
             if sys.version[0] >= '3':
                 csvOpenMode = 'w'
                 csvOpenNewline = ''
@@ -744,7 +744,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
             if isJSON:
                 factFootnotes = []
                 for ftType, ftGroups in factOrFootnote.get("links", {}).items():
-                    factIDs = (factOrFootnote["id"],)
+                    ftSrcId = factOrFootnote["id"]
                     if ftType not in linkTypes:
                         undefinedFootnoteTypes.add(ftType)
                     else:
@@ -752,30 +752,33 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                             if ftGroup not in groups:
                                 undefinedFootnoteGroups.add(ftGroup)
                             else:
-                                footnote = {"group": groups[ftGroup],
+                                footnote = {"id": ftSrcId,
+                                            "group": groups[ftGroup],
                                             "footnoteType": linkTypes[ftType]}
                                 for tgtId in ftTgtIds:
                                     footnote.setdefault("noteRefs" if tgtId in xbrlNoteTbl else "factRefs", []).append(tgtId)
                                 factFootnotes.append(footnote)
             elif isCSVorXL: # footnotes contains footnote objects
-                factIDs = (factOrFootnote[0],)
                 factFootnotes = []
-                for ftType, ftGroups in factOrFootnote[1].items():
+                for ftType, ftGroups in factOrFootnote.items():
                     if ftType not in linkTypes:
                         undefinedFootnoteTypes.add(ftType)
                     else:
-                        for ftGroup, ftTgtIds in ftGroups.items():
+                        for ftGroup, ftSrcIdTgtIds in ftGroups.items():
                             if ftGroup not in groups:
                                 undefinedFootnoteGroups.add(ftGroup)
                             else:
-                                footnote = {"group": groups[ftGroup],
-                                            "footnoteType": linkTypes[ftType]}
-                                for tgtId in ftTgtIds:
-                                    footnote.setdefault("noteRefs" if tgtId in xbrlNoteTbl else "factRefs", []).append(tgtId)
-                                factFootnotes.append(footnote)
+                                for ftSrcId, ftTgtIds in ftSrcIdTgtIds.items():
+                                    footnote = {"id": ftSrcId,
+                                                "group": groups[ftGroup],
+                                                "footnoteType": linkTypes[ftType]}
+                                    for tgtId in ftTgtIds:
+                                        footnote.setdefault("noteRefs" if tgtId in xbrlNoteTbl else "factRefs", []).append(tgtId)
+                                    factFootnotes.append(footnote)
             for footnote in factFootnotes:
-                linkrole = footnote.get("group")
-                arcrole = footnote.get("footnoteType")
+                factIDs = (footnote["id"], )
+                linkrole = footnote["group"]
+                arcrole = footnote["footnoteType"]
                 if not factIDs or not linkrole or not arcrole or not (
                     footnote.get("factRefs") or footnote.get("footnote") is not None or footnote.get("noteRefs") is not None):
                     if not linkrole:

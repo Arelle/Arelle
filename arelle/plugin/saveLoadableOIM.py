@@ -209,17 +209,30 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
             
     def factFootnotes(fact, oimFact=None, csvLinks=None):
         footnotes = []
-        oimLinks = {}
+        if isJSON:
+            oimLinks = {}
+        elif isCSVorXL:
+            oimLinks = csvLinks
         for footnoteRel in footnotesRelationshipSet.fromModelObject(fact):
+            srcId = fact.id if fact.id else "f{}".format(fact.objectIndex)
             toObj = footnoteRel.toModelObject
             # json
             typePrefix = linkTypeAliases[footnoteRel.arcrole]
             groupPrefix = groupAliases[footnoteRel.linkrole]
-            srcId = fact.id if fact.id else "f{}".format(fact.objectIndex)
+            if typePrefix not in oimLinks:
+                oimLinks[typePrefix] = OrderedDict()
+            _link = oimLinks[typePrefix]
+            if groupPrefix not in _link:
+                if isJSON:
+                    _link[groupPrefix] = []
+                elif isCSVorXL:
+                    _link[groupPrefix] = OrderedDict()
+            if isJSON:
+                tgtIdList = _link[groupPrefix]
+            elif isCSVorXL:
+                tgtIdList = _link[groupPrefix].setdefault(srcId, [])
             tgtId = toObj.id if toObj.id else "f{}".format(toObj.objectIndex)
-
-            oimLinks.setdefault(typePrefix,{}).setdefault(groupPrefix,[]).append(tgtId)
-            # csv/XL
+            tgtIdList.append(tgtId)
             footnote = OrderedDict((("group", footnoteRel.linkrole),
                                     ("footnoteType", footnoteRel.arcrole)))
             if isinstance(toObj, ModelFact):
@@ -241,8 +254,6 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
                 ))
             if isJSON:
                 oimFact["links"] = _links
-            else: # CSV, XL
-                csvLinks[srcId] = _links
                 
         return footnotes
 
@@ -381,7 +392,7 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
         csvTable["tableDimensions"] = csvTableDimensions = OrderedDict()
         csvTable["factColumns"] = csvFactColumns = OrderedDict()
         if footnotesRelationshipSet.modelRelationships:
-            csvLinks = {}
+            csvLinks = OrderedDict()
             oimDocInfo["links"] = csvLinks
         aspectQnCol = {}
         aspectsHeader = []
