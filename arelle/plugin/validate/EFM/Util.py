@@ -94,7 +94,9 @@ def loadDeiValidations(modelXbrl, isInlineXbrl):
                 formSet.add(form)
         return formSet
     for fev in validations["form-element-validations"]:
-        for field in ("xbrl-names", "validation", "efm", "source") :
+        for field in (
+            ("xbrl-names",) if "store-db-name" in fev else
+            ("xbrl-names", "validation", "efm", "source")):
             if field not in fev:
                 modelXbrl.error("arelle:loadDeiValidations", 
                                 _("Missing form-element-validation[\"%(field)s\"] from %(validation)s."), 
@@ -122,7 +124,9 @@ def loadDeiValidations(modelXbrl, isInlineXbrl):
                 modelXbrl.error("arelle:loadDeiValidations", 
                                 _("Missing form-element-validation[\"value\"] from %(validation)s, must be a list."), 
                                 field=field, validation=fev)
-        if validationCode not in validations["validations"]:
+        if not validationCode and "store-db-name" in fev:
+            fev["validation"] = None # only storing, no validation
+        elif validationCode not in validations["validations"]:
             modelXbrl.error("arelle:loadDeiValidations", _("Missing validation[\"%(validationCode)s\"]."), validationCode=validationCode)
         axisCode = fev.get("axis")
         if axisCode and axisCode not in validations["axis-validations"]:
@@ -130,7 +134,9 @@ def loadDeiValidations(modelXbrl, isInlineXbrl):
         if "lang" in fev:
             fev["langPattern"] = re.compile(fev["lang"])
         s = fev.get("source")
-        if s not in ("inline", "non-inline", "both"):
+        if s is None and not validationCode and "store-db-name" in fev:
+            pass # not a validation entry
+        elif s not in ("inline", "non-inline", "both"):
             modelXbrl.error("arelle:loadDeiValidations", _("Invalid source [\"%(source)s\"]."), source=s)
         elif (isInlineXbrl and s in ("inline", "both")) or (not isInlineXbrl and s in ("non-inline", "both")):
             messageKey = fev.get("message")

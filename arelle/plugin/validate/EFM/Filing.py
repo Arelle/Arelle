@@ -11,6 +11,7 @@ to domestic copyright protection. 17 U.S.C. 105.
 '''
 import re, datetime, decimal, json, unicodedata
 from collections import defaultdict
+from pytz import timezone
 from arelle import (ModelDocument, ModelValue, ModelRelationshipSet, 
                     XmlUtil, XbrlConst, ValidateFilingText)
 from arelle.ModelValue import qname
@@ -43,6 +44,14 @@ from .Dimensions import checkFilingDimensions
 from .PreCalAlignment import checkCalcsTreeWalk
 from .Util import conflictClassFromNamespace, abbreviatedNamespace, abbreviatedWildNamespace, loadDeprecatedConceptDates, \
                     loadCustomAxesReplacements, loadNonNegativeFacts, loadDeiValidations
+                    
+MIN_DOC_PER_END_DATE = ModelValue.dateTime("1980-01-01", type=ModelValue.DATE)
+MAX_DOC_PER_END_DATE = ModelValue.dateTime("2050-12-31", type=ModelValue.DATE)
+
+def fevMessageArgValue(x):
+    if isinstance(x, bool):
+        return ("false", "true")[x]
+    return str(x)
 
 def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     if not hasattr(modelXbrl.modelDocument, "xmlDocument"): # not parsed
@@ -65,6 +74,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     
     val._isStandardUri = {}
     modelXbrl.modelManager.disclosureSystem.loadStandardTaxonomiesDict()
+    
+    datetimeNowAtSEC = ModelValue.dateTime(datetime.datetime.now(tz=timezone("US/Eastern")).isoformat()[:19]) # re-strip time zone
     
     # note that some XFM tests are done by ValidateXbrl to prevent mulstiple node walks
     disclosureSystem = val.disclosureSystem
@@ -101,7 +112,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     val.requiredContext = None
     val.standardNamespaceConflicts = defaultdict(set)
     documentType = None # needed for non-instance validation too
-    submissionType = val.params.get("submissionType")
+    submissionType = val.params.get("submissionType", "")
     hasSubmissionType = bool(submissionType)
     isInlineXbrl = modelXbrl.modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET)
     if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or isInlineXbrl:
@@ -860,7 +871,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 legalEntityAxisQname = legalEntityAxis[0].qname
                 if legalEntityAxisQname.namespaceURI.startswith("http://xbrl.sec.gov/dei/"):
                     legalEntityAxisRelationshipSet = modelXbrl.modelXbrl.relationshipSet("XBRL-dimensions")
-                    if val.params.get("rptIncludeAllSeriesFlag"):
+                    if val.params.get("rptIncludeAllSeriesFlag") in (True, "Yes", "yes", "Y", "y"):
                         seriesIds = val.params.get("newClass2.seriesIds", ())
                     else:
                         seriesIds = val.params.get("rptSeriesClassInfo.seriesIds", ())
@@ -975,9 +986,11 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     v = logArgs["value"]
                     if isinstance(v, list):
                         if len(v) == 1:
-                            logArgs["value"] = v[0]
+                            logArgs["value"] = fevMessageArgValue(v[0])
                         else:
-                            logArgs["value"] = "one of {}".format(", ".join(v))
+                            logArgs["value"] = "one of {}".format(", ".join(fevMessageArgValue(_v) for _v in v))
+                if "subType" in logArgs: # provide item 5.03 friendly format for submission type
+                    logArgs["subType"] = logArgs["subType"].replace("+5.03", " (with item 5.03)")
                 message = deiValidations["messages"][messageKey]
                 message = re.sub(r"{(\w+)}", r"%(\1)s", message)
                 modelXbrl.log(severity, arelleCode, message, **logArgs)
@@ -1055,43 +1068,50 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             coverVisibleDeiNames = set()
             unexpectedEloParams = set()
             expectedEloParams = set()
+            eloValuesFromFacts = {}
             for fevIndex, fev in enumerate(fevs):
                 forms = fev.get("formSet", ()) # compiled set of forms
                 names = fev.get("xbrl-names", ())
                 eloName = fev.get("elo-name")
-                efmSection = fev["efm"]
-                validation = fev["validation"]
+                storeDbName = fev.get("store-db-name")
+                efmSection = fev.get("efm")
+                validation = fev.get("validation")
                 axisKey = fev.get("axis","")
                 value = fev.get("value")
                 isCoverVisible = fev.get("dei/cover") == "cover"
                 referenceTag = fev.get("references")
                 referenceValue = fev.get("reference-value")
                 if forms != "all" and ((submissionType not in forms) ^ ("!not!" in forms)):
-                    for name in names:
-                        if fevFact(fev, name) is not None:
-                            unexpectedDeiNameEfmSects[name,axisKey].add(fevIndex)
-                    if eloName:
-                        unexpectedEloParams.add(eloName)
+                    if validation is not None: # don't process name for fev's which only store-db-field
+                        for name in names:
+                            if fevFact(fev, name) is not None:
+                                unexpectedDeiNameEfmSects[name,axisKey].add(fevIndex)
+                        if eloName:
+                            unexpectedEloParams.add(eloName)
                     continue
                 # name is expected for this form
-                for name in names:
-                    expectedDeiNames[name,axisKey].add(fevIndex)
-                    if isCoverVisible:
-                        coverVisibleDeiNames.add(name)
+                if validation is not None: # don't process name for fev's which only store-db-field
+                    for name in names:
+                        expectedDeiNames[name,axisKey].add(fevIndex)
+                        if isCoverVisible:
+                            coverVisibleDeiNames.add(name)
                 # last validation for unexpected items which were not bound to a validation for submission form type
-                if validation == "(blank)": 
+                if validation in ("(blank)", "(blank-error)"): 
+                    includeNames = fev.get("include-xbrl-names")
+                    excludeNames = fev.get("exclude-xbrl-names")
                     for nameAxisKey, fevIndices in unexpectedDeiNameEfmSects.items():
                         efmSection = fevs[sorted(fevIndices)[0]].get("efm") # use first section
                         if nameAxisKey not in expectedDeiNames:
                             name, axisKey = nameAxisKey
-                            fevMessage(fev, subType=submissionType, efmSection=efmSection, tag=name,
-                                            modelObject=[f for i in fevIndices for f in fevFacts(i, name)],
-                                            typeOfContext="Required Context")
+                            if (includeNames is None or name in includeNames) and   (excludeNames is None or name not in excludeNames):
+                                fevMessage(fev, subType=submissionType, efmSection=efmSection, tag=name,
+                                                modelObject=[f for i in fevIndices for f in fevFacts(i, name)],
+                                                typeOfContext="Required Context")
                 if validation == "(elo-unexpected)": 
                     for eloName in sorted(unexpectedEloParams - expectedEloParams):
                         if eloName in val.params:
                             fevMessage(fev, subType=submissionType, efmSection="6.5.40",
-                                       modelObject=modelXbrl, headerTag=eloName, valueOfHeaderTag=val.params[eloName])
+                                       modelObject=modelXbrl, headerTag=eloName, value=val.params[eloName])
                 # type-specific validations
                 elif len(names) == 0:
                     pass # no name entries if all dei names of this validation weren't in the loaded dei taxonomy (i.e., pre 2019) 
@@ -1107,6 +1127,16 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     if numFactWithValue != 1 or numFactsNotValue != 2:
                         fevMessage(fev, subType=submissionType, 
                                         modelObject=fevFacts(fev), tags=", ".join(names), value=value[0], otherValue=value[1])
+                elif validation in ("ws", "wv"): # only one of names should have value
+                    numFactWithValue = 0
+                    for name in names:
+                        f = fevFact(fev, name) # these all are required context
+                        if f is not None:
+                            if f.xValue in value: # List of values which may be Yes, true, etc...
+                                numFactWithValue += 1
+                    if numFactWithValue > 1:
+                        fevMessage(fev, subType=submissionType, 
+                                        modelObject=fevFacts(fev), tags=", ".join(names), value=value)
                 elif validation in ("o2", "o3"): # at least one present 
                     f2 = None
                     numFacts = 0
@@ -1159,7 +1189,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             (f is None and f2 is not None and fevFact(fev, referenceTag, f2) is None)):
                             fevMessage(fev, subType=submissionType, modelObject=f, tag=name, otherTag=referenceTag,
                                        contextID=f.contextID if f is not None else f2.contextID)
-                elif validation in ("a", "sr", "oth", "tb"):
+                elif validation in ("a", "sr", "oth", "tb", "et1"):
                     for name in names:
                         f = fevFact(fev, name)
                         fr = fevFact(fev, referenceTag, f) # dependent fact is of context of f or for "c" inherited context (less disaggregatedd)
@@ -1225,6 +1255,19 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             if fevFact(fev, referenceTag, f) is None: # note that reference tag is a list here
                                 fevMessage(fev, subType=submissionType, modelObject=f, tags=", ".join(names), otherTags=", ".join(referenceTag), severityVerb="may")
                     del t1facts # dereference
+                elif validation == "de":
+                    for f in fevFacts(fev, names, deduplicate=True):
+                        if not (MIN_DOC_PER_END_DATE <= f.xValue <= datetimeNowAtSEC): # need 5pm check for 8-K?
+                            fevMessage(fev, subType=submissionType, modelObject=f, tag=name, 
+                                       value="between 1980-01-01 and {}".format(datetime.date.today().isoformat()))
+                elif validation == "e503" and "itemsList" in val.params: # don't validate if no itemList (e.g. stand alone)
+                    e503facts = set()
+                    for f in fevFacts(fev, names, deduplicate=True):
+                        e503facts.add(f)
+                        if "5.03" not in val.params["itemsList"]:
+                            fevMessage(fev, subType=submissionType, modelObject=f, tag=name, headerTag="5.03")
+                    if "5.03" in val.params["itemsList"] and not e503facts: # missing a required fact
+                        fevMessage(fev, subType=submissionType, modelObject=modelXbrl, tag=names[0], headerTag="5.03")
                 elif validation in ("x", "xv", "r", "y", "n"):
                     for name in names:
                         f = fevFact(fev, name)
@@ -1261,6 +1304,11 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             fevMessage(fev, messageKey="dq-0540-{tag}-Value",
                                        subType=submissionType, modelObject=f, efmSection="6.5.40", 
                                        tag=name, value=str(f.xValue), headerTag=eloName, valueOfHeaderTag=val.params[eloName])
+                            
+                if storeDbName:
+                    f = fevFact(fev, names)
+                    if f is not None:
+                        eloValuesFromFacts[storeDbName] = eloValueOfFact(names[0], f.xValue)
 
                         
             del unexpectedDeiNameEfmSects, expectedDeiNames # dereference
@@ -1581,7 +1629,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             val.modelXbrl.profileActivity("... filer required facts checks", minTimeToShow=1.0)
             
         # log extracted facts
-        if extractedCoverFacts and isInlineXbrl:
+        if isInlineXbrl and (extractedCoverFacts or eloValuesFromFacts):
             contextualFactNameSets = (("Security12bTitle", "TradingSymbol"), ("Security12gTitle", "TradingSymbol"))
             exchangeFactName = "SecurityExchangeName"
             exchangeAxisQN = qname(deiNamespaceURI, "EntityListingsExchangeAxis")
@@ -1649,12 +1697,14 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                             if name in exchCEqualFacts:
                                                 rec.append(f)
                                         addCoverFactRecord(rec)
-                
+                                                        
             modelXbrl.log("INFO-RESULT",
                           "EFM.coverFacts",
                           "Extracted cover facts returned as json parameter",
                           modelXbrl=modelXbrl,  
-                          json=json.dumps({"coverFacts":[dict(keyval for keyval in rec) for rec in sorted(coverFactRecords)]}))
+                          json=json.dumps({"coverFacts":[dict(keyval for keyval in rec) for rec in sorted(coverFactRecords)],
+                                           "eloValuesFromFacts": eloValuesFromFacts
+                                           }))
 
         #6.5.27 footnote elements, etc
         footnoteLinkNbr = 0
@@ -2477,7 +2527,9 @@ def deiParamEqual(deiName, xbrlVal, secVal):
     elif deiName in {"EntityEmergingGrowthCompany", "EntityExTransitionPeriod", "EntityShellCompany", 
                      "EntitySmallBusiness", "EntityVoluntaryFilers", "EntityWellKnownSeasonedIssuer"}:
         return {"y": True, "yes": True, "true": True, "n": False, "no": False, "false": False
-                }.get(str(xbrlVal).lower()) == secVal
+                }.get(str(xbrlVal).lower()) == {
+                "yes":True, "Yes":True, "y":True, "Y":True, "no":False, "No":False, "N":False, "n":False
+                }.get(secVal,secVal)
     elif deiName == "EntityFileNumber":
         return secVal == xbrlVal
     elif deiName == "EntityInvCompanyType":
@@ -2493,25 +2545,44 @@ def deiParamEqual(deiName, xbrlVal, secVal):
                            False:("Non-accelerated Filer", "Accelerated Filer", "Large Accelerated Filer")}.get(secVal,())
     return False # unhandled deiName
 
+def eloValueOfFact(deiName, xbrlVal):
+    if xbrlVal is None: # nil fact
+        return None
+    if deiName == "DocumentPeriodEndDate":
+        return ("{1}-{2}-{0}".format(*str(xbrlVal).split('-')))
+    elif deiName == "CurrentFiscalYearEndDate":
+        return ("{0}/{1}".format(*str(xbrlVal).lstrip('-').split('-')))
+    elif deiName in {"EntityEmergingGrowthCompany", "EntityExTransitionPeriod", "EntityShellCompany", 
+                     "EntitySmallBusiness", "EntityVoluntaryFilers", "EntityWellKnownSeasonedIssuer"}:
+        return {"y": "yes", "yes": "yes", "true": "yes", "n": "no", "no": "no", "false": "no"
+                }.get(str(xbrlVal).lower())
+    elif deiName == "EntityFileNumber":
+        return xbrlVal
+    elif deiName == "EntityInvCompanyType":
+        return xbrlVal
+    elif deiName == "EntityFilerCategory":
+        return xbrlVal
+    return null # unhandled deiName
+
 
 def cleanedCompanyName(name):
     for pattern, replacement in (
-                                 (r"\s&(?=\s)", " and "),  # Replace & with and # added by govind
+                                 (r"\s&(?=\s)", " and "),  # Replace & with and
                                  (r"/.+/|\\.+\\", " "),  # Remove any "/../" , "\...\" or "/../../" expression.
                                  (r"\s*[(].+[)]$", " "),  # Remove any parenthetical expression if it occurs at the END of the string.
                                  (r"[\u058A\u05BE\u2010\u2011\u2012\u2013\u2014\u2015\uFE58\uFE63\uFF0D]", "-"),  # Normalize fancy dashes.
-                                 (r"-", ""),  #dash to space  # added by govind
-                                 (r"[\u2019']", ""),  #Apostrophe to space  # added by govind
+                                 (r"-", ""),  #dash to space
+                                 (r"[\u2019']", ""),  #Apostrophe to space
                                  (r"^\s*the(?=\s)", ""),  # Remove the word "THE" (i.e., followed by space) from the beginning.
                                  (r"[^\w-]", " "),  # Remove any punctuation.
                                  (r"^\w(?=\s)|\s\w(?=\s)|\s\w$", " "),  # Remove single letter words
-                                 (r"\sINCORPORATED(?=\s)|\sINCORPORATED$", " INC"),  # Truncate the word INCORPORATED (case insensitive) to INC
-                                 (r"\sCORPORATION(?=\s)|\sCORPORATION$", " CORP"),  # Truncate the word CORPORATION (case insensitive) to CORP
-                                 (r"\sCOMPANY(?=\s)|\sCOMPANY$", " CO"),  # Truncate the word CORPORATION (case insensitive) to CORP
-                                 (r"\sLIMITED(?=\s)|\sLIMITED$", " LTD"),  # Truncate the word LIMITED (case insensitive) to LTD
-                                 (r"\sAND(?=\s)|\sAND$", " &"),  # Replace the word AND with an ampersand (&)
+                                 (r"^INCORPORATED(?=\s|$)|(?<=\s)INCORPORATED(?=\s|$)", "INC"),  # Truncate the word INCORPORATED (case insensitive) to INC
+                                 (r"^CORPORATION(?=\s|$)|(?<=\s)CORPORATION(?=\s|$)", "CORP"),  # Truncate the word CORPORATION (case insensitive) to CORP
+                                 (r"^COMPANY(?=\s|$)|(?<=\s)COMPANY(?=\s|$)", "CO"),  # Truncate the word CORPORATION (case insensitive) to CORP
+                                 (r"^LIMITED(?=\s|$)|(?<=\s)LIMITED(?=\s|$)", "LTD"),  # Truncate the word LIMITED (case insensitive) to LTD
+                                 (r"^AND(?=\s|$)|(?<=\s)AND(?=\s|$)", "&"),  # Replace the word AND with an ampersand (&)
                                  (r"\s+", " "),  # Normalize all spaces (i.e., trim, collapse, map &#xA0; to &#xA; and so forth)
-                                 (r"\s", "")  # remove space to nothing for comparison # added by govind
+                                 (r"\s", "")  # remove space to nothing for comparison
                                  ):
         name = re.sub(pattern, replacement, name, flags=re.IGNORECASE)
     return unicodedata.normalize('NFKD', name.strip().lower()).encode('ASCII', 'ignore').decode()  # remove diacritics 

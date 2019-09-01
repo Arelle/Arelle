@@ -13,20 +13,23 @@ Input file parameters may be in JSON (without newlines for pretty printing as be
    "cikNameList": { "cik1": "name1", "cik2":"name2", "cik3":"name3"...},
    "submissionType" : "SDR-A",
    "exhibitType": "EX-99.K", 
+   "itemsList": [] # array of items, e.g. ["5.03"] (either array of strings blank-separated items in string)
    "accessionNumber":"0001125840-15-000159" ,
    # new fields
    "periodOfReport": "mm-dd-yyyy",
-   "entity.fyEnd": "mm/dd",
-   "voluntaryFilerFlag": true/false, # JSON Boolean or absent
-   "wellKnownSeasonedIssuerFlag": true/false, # JSON Boolean or absent
-   "shellCompanyFlag": true/false, true/false, # JSON Boolean or absent
-   "acceleratedFilerStatus": true/false, # JSON Boolean or absent
-   "smallBusinessFlag": true/false, # JSON Boolean or absent
-   "emergingGrowthCompanyFlag": true/false, # JSON Boolean or absent
-   "exTransitionPeriodFlag": true/false, # JSON Boolean or absent
+   "entity.fyEnd": "mm/dd", # the FY End value from entity (CIK) registration
+   "entity.repFileNum": file number from entity (CIK) registration
+   "headerFyEnd": "mm/dd", # the FY End value from submission header
+   "voluntaryFilerFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
+   "wellKnownSeasonedIssuerFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
+   "shellCompanyFlag": true/false, true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
+   "acceleratedFilerStatus": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
+   "smallBusinessFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
+   "emergingGrowthCompanyFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
+   "exTransitionPeriodFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    # filer - use "cik" above
    "invCompanyType": "N-1A" # from table of investment company types
-   "rptIncludeAllSeriesFlag": true/false, # JSON Boolean or absent
+   "rptIncludeAllSeriesFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    "rptSeriesClassInfo.seriesIds": ["S0000990666", ...] # list of EDGAR seriesId values
    "newClass2.seriesIds": [] # //seriesId xpath result on submission headers
    },
@@ -72,6 +75,9 @@ an additional EdgarRenderer parameters:
    noLogsInSummary or includeLogsInSummary (default) (this parameter does not need a value, just presence)
    summaryXslt (use EdgarWorkstationSummarize.xslt to emulate EDGAR workstation)
    reportXslt (use EdgarWorkstationInstanceReport.xslt to emulate EDGAR workstation)
+The parameters with array values are entered to the GUI as blank-separated strings (no quotes):
+   itemsList could be 5.03 6.99
+   rptSeriesClassInfo.seriesIds could be S0000990666 S0000990777 S0000990888
    
 '''
 import os, io, json, zipfile, logging
@@ -107,7 +113,8 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
 
     val.params = {}
     parameterNames = ("CIK", "cik", "cikList", "cikNameList", "submissionType", "exhibitType", # CIK or cik both allowed
-                      "periodOfReport", "entity.fyEnd", "voluntaryFilerFlag", 
+                      "itemsList", "accessionNumber", "entity.repFileNum",
+                      "periodOfReport", "entity.fyEnd", "headerFyEnd", "voluntaryFilerFlag", 
                       "wellKnownSeasonedIssuerFlag", "shellCompanyFlag", "acceleratedFilerStatus", "smallBusinessFlag",
                       "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "invCompanyType",
                       "rptIncludeAllSeriesFlag", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds")
@@ -120,7 +127,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
                     if paramName in {"voluntaryFilerFlag", "wellKnownSeasonedIssuerFlag", "shellCompanyFlag", "acceleratedFilerStatus",
                                      "smallBusinessFlag", "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "rptIncludeAllSeriesFlag"}:
                         v = {"true":True, "false":False}.get(v)
-                    elif paramName in {"rptSeriesClassInfo.seriesIds", "newClass2.seriesIds"}:
+                    elif paramName in {"itemsList", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds"}:
                         v = v.split()
                 val.params[paramName] = v
         if "CIK" in val.params: # change to lower case key
@@ -631,7 +638,7 @@ class Report:
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EFM',
-    'version': '1.19.2', # SEC EDGAR release 19.2
+    'version': '1.19.3', # SEC EDGAR release 19.3
     'description': '''EFM Validation.''',
     'license': 'Apache-2',
     'import': ('transforms/SEC',), # SEC inline can use SEC transformations

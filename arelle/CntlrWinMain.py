@@ -1314,7 +1314,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             try:
                 message = message % messageArgs
             except (KeyError, TypeError, ValueError) as ex:
-                message += " \nMessage log error: " + str(ex)
+                message += " \nMessage log error: " + str(ex) + " \nMessage arguments: " + str(messageArgs)
         self.uiThreadQueue.put((self.uiAddToLog, [message]))
         
     # ui thread addToLog
