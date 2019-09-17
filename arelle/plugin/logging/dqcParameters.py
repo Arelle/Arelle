@@ -110,12 +110,9 @@ def loggingMessageParameters(messageCode, msgIn, modelObjectArgs, fmtArgs, *args
                                                                 d.memberQname if d.isExplicit else
                                                                 XmlUtil.xmlstring( XmlUtil.child(d), stripXmlns=True, prettyPrint=True ))
                                                 for d in cntx.qnameDims.values())
-                        else:
-                            propVal = "none"
+
                 if property == "unit":
-                    if unit is None:
-                        propVal = "none"
-                    else:
+                    if unit is not None:
                         measures = unit.measures
                         if measures[1]:
                             propVal = 'mul {}\ndiv {} '.format(
@@ -123,8 +120,8 @@ def loggingMessageParameters(messageCode, msgIn, modelObjectArgs, fmtArgs, *args
                                     ', '.join(measureFormat(m) for m in measures[1]))
                         else:
                             propVal = ', '.join(measureFormat(m) for m in measures[0])
-            if propVal is not None:
-                fmtArgs[param] = propVal
+
+            fmtArgs[param] = propVal
                 
         def setArgForConceptProperty(param, modelConceptOrQname, propertyNameParts):
             propVal = None
