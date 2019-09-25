@@ -68,6 +68,7 @@
 		"comment3": "for SDR include both submission types (SDR, SDR/A, ...) and form types (K SDR, L SDR) because in previewing desktop mode only form type is provided",
 		"SDR": ["SDR", "SDR/A", "SDR-A", "SDR/W", "K SDR", "L SDR"],
 		"S+POS": ["S-1", "S-1/A", "S-3", "S-3/A", "S-4", "S-4/A", "S-11", "S-11/A", "POS EX", "POS AM"],
+		"S-3-4POS": ["S-3DPOS", "S-4 POS"],
 		"all-FAST": ["@8-K", "@10-K+Q", "@20+40-F"],
 		"all-non-FAST": ["!not!", "@all-FAST"],
 		"all": ["*"]
@@ -478,10 +479,11 @@
         "comment": "compare CurrentFiscalYearEndDate to headerFyEnd (as second ELO parameter to entity.fyEnd)"
     },
     {
-        "forms": ["@8-K", "@20+40FR"],
+    	"forms": ["@all"],
         "xbrl-names": "CurrentFiscalYearEndDate",
         "source": "inline",
-        "store-db-name": "fiscalYear"
+        "store-db-name": "fiscalYear",
+        "comment": "all forms store to DB when present in inline XBRL"
     },
     {
         "forms": ["@10-K+Q", "@20-F"],
@@ -668,6 +670,15 @@
         "elo-name": "smallBusinessFlag",
         "efm": "6.5.40",
         "validation": "r",
+        "source": "both",
+        "dei/cover": "dei"
+    },
+    {
+        "forms": ["@S-3-4POS"],
+        "xbrl-names": "EntitySmallBusiness",
+        "elo-name": "smallBusinessFlag",
+        "efm": "6.5.40",
+        "validation": "o",
         "source": "both",
         "dei/cover": "dei"
     },
@@ -2004,7 +2015,7 @@
 		},
 		"e503": {
 			"message": "dq-{efmSection}-{tag}-{headerTag}-Dependency",
-			"severity": "warning",
+			"severity": "error",
 			"validation": "Exclusive dependency between fact and item 5.03"
 		},
 		"ws": {

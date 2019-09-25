@@ -480,7 +480,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 commonSharesClassMembers.add(memConcept.qname) # only note the actually used members, not any defined members
                                 #end of replacement 
                                 hasClassOfStockMember = True
-                            if factInDeiNamespace and dimConcept.name in ("StatementClassOfStockAxis", "ClassesOfShareCapitalAxis") and memConcept is not None:
+                            if factInDeiNamespace and dimConcept is not None and dimConcept.name in ("StatementClassOfStockAxis", "ClassesOfShareCapitalAxis") and memConcept is not None:
                                 deiSharesClassMembers.add(memConcept.qname)
                                 
                     if isEntityCommonStockSharesOutstanding and not hasClassOfStockMember:
