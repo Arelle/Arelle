@@ -16,7 +16,7 @@ def checkForBOMs(modelXbrl, file, mappedUri, filepath, *args, **kwargs):
             startingBytes = fb.read(8)
             if re.match(b"\\x00\\x00\\xFE\\xFF|\\xFF\\xFE\\x00\\x00|\\x2B\\x2F\\x76\\x38|\\x2B\\x2F\\x76\\x39|\\x2B\\x2F\\x76\\x2B|\\x2B\\x2F\\x76\\x2F|\\xDD\\x73\\x66\\x73|\\xEF\\xBB\\xBF|\\x0E\\xFE\\xFF|\\xFB\\xEE\\x28|\\xFE\\xFF|\\xFF\\xFE",
                         startingBytes):
-                modelXbrl.error("SBR.NL.2.1.0.09",
+                modelXbrl.error("SBR.NL.2.01.00.09",
                     _("File MUST not start with a Byte Order Mark (BOM): %(filename)s"),
                     modelObject=modelXbrl, filename=mappedUri)
     return None # must return None for regular document loading to continue    

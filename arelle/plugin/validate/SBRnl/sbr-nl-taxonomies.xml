@@ -102,11 +102,31 @@
 <Loc>
 	<Family>BASE</Family>
 	<Version>2008</Version>
+	<Href>http://xbrl.org/2008/formula.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://xbrl.org/2008/formula</Namespace>
+	<Prefix>formula</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2008</Version>
 	<Href>http://www.xbrl.org/2008/generic-label.xsd</Href>
 	<AttType>SCH</AttType>
 	<FileTypeName>Schema</FileTypeName>
 	<Elements>1</Elements>
 	<Namespace>http://xbrl.org/2008/label</Namespace>
+	<Prefix>label</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2008</Version>
+	<Href>http://www.xbrl.org/2008/generic-label.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://xbrl.org/2008/role/label</Namespace>
 	<Prefix>label</Prefix>
 </Loc>
 <Loc>
@@ -118,6 +138,86 @@
 	<Elements>1</Elements>
 	<Namespace>http://xbrl.org/2008/reference</Namespace>
 	<Prefix>reference</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2008</Version>
+	<Href>http://www.xbrl.org/2008/dimension-filter.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://xbrl.org/2008/filter/dimension</Namespace>
+	<Prefix>df</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2008</Version>
+	<Href>http://www.xbrl.org/2008/period-filter.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://xbrl.org/2008/filter/period</Namespace>
+	<Prefix>pf</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/2010/concept-relation-filter.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://xbrl.org/2010/filter/concept-relation</Namespace>
+	<Prefix>cfr</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>https://www.xbrl.org/2010/generic-message.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://xbrl.org/2010/message</Namespace>
+	<Prefix>msg</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/2010/aspect-cover-filter.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://xbrl.org/2010/filter/aspect-cover</Namespace>
+	<Prefix>acf</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2008</Version>
+	<Href>http://www.xbrl.org/2008/value-assertion.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://xbrl.org/2008/assertion/value</Namespace>
+	<Prefix>va</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2008</Version>
+	<Href>https://www.xbrl.org/2008/existence-assertion.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://xbrl.org/2008/assertion/existence</Namespace>
+	<Prefix>ea</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2008</Version>
+	<Href>http://www.xbrl.org/2008/concept-filter.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://xbrl.org/2008/filter/concept</Namespace>
+	<Prefix>cf</Prefix>
 </Loc>
 <Loc>
 	<Family>BASE</Family>
@@ -157,6 +257,61 @@
 	<Elements>0</Elements>
 	<Namespace>http://www.xbrl.org/2006/ref</Namespace>
 </Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2014</Version>
+	<Href>http://www.xbrl.org/2014/table.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://www.xbrl.org/2014/table</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2014</Version>
+	<Href>http://xbrl.org/2008/variable.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://xbrl.org/2008/variable</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2008</Version>
+	<Href>http://xbrl.org/2008/formula.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://www.xbrl.org/2008/formula.xsd</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2014</Version>
+	<Href>http://www.xbrl.org/2010/generic-message.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://www.xbrl.org/2010/generic-message</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2014</Version>
+	<Href>http://www.xbrl.org/2014/table.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://xbrl.org/2014/table</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2013</Version>
+	<Href>http://www.xbrl.org/2013/preferred-label.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>0</Elements>
+	<Namespace>http://xbrl.org/2013/preferred-label</Namespace>
+</Loc>
+
 <Loc>
 	<Family>BASE</Family>
 	<Version>2010</Version>
@@ -223,6 +378,14 @@
 	<Elements>1</Elements>
 	<Namespace>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-common-data</Namespace>
 	<Prefix>nl-cd</Prefix>
+</Loc>
+<Loc>
+	<Family>SBR-NL-ITEMS</Family>
+	<Version>5.0</Version>
+	<Href>http://www.nltaxonomie.nl/5.0/basis/sbr/items/nl-common-data-documentation-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Documentation, en</FileTypeName>
+	<Elements>0</Elements>
 </Loc>
 <Loc>
 	<Family>SBR-NL-ITEMS</Family>
@@ -673,6 +836,55 @@
 	<Elements>0</Elements>
 </Loc>
 
+<!-- added in 2019-->
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>2017</Version>
+	<Href>http://www.nltaxonomie.nl/2017/xbrl/sbr-arcroles-generic-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Generic, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>2017</Version>
+	<Href>http://www.nltaxonomie.nl/2017/xbrl/sbr-arcroles-generic-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Generic, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>2013</Version>
+	<Href>http://www.nltaxonomie.nl/2013/xbrl/sbr-dimensional-concepts-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Dimensional concepts, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-ITEMS</Family>
+	<Version>2013</Version>
+	<Href>http://www.nltaxonomie.nl/2013/xbrl/sbr-dimensional-concepts-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Dimensional concepts, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-LINKROLES</Family>
+	<Version>2016</Version>
+	<Href>http://www.nltaxonomie.nl/2016/xbrl/sbr-labelroles-generic-lab-en.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Labelroles concepts, en</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
+<Loc>
+	<Family>SBR-GEN-LINKROLES</Family>
+	<Version>2016</Version>
+	<Href>http://www.nltaxonomie.nl/2016/xbrl/sbr-labelroles-generic-lab-nl.xml</Href>
+	<AttType>LAB</AttType>
+	<FileTypeName>Labels, Labelroles concepts, nl</FileTypeName>
+	<Elements>0</Elements>
+</Loc>
 <!-- NT 2011 targetNamespaces -->
 <Loc>
 	<Family>SBR-NL-ITEMS</Family>
@@ -749,6 +961,133 @@
 	<Elements>1</Elements>
 	<Namespace>http://www.nltaxonomie.nl/2011/xbrl/xbrl-syntax-arcroles</Namespace>
 	<Prefix>sbr-a</Prefix>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2013</Version>
+	<Href>http://www.nltaxonomie.nl/2013/xbrl/sbr-dimensional-concepts.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/2013/xbrl/sbr-dimensional-concepts</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2017</Version>
+	<Href>http://www.nltaxonomie.nl/2017/xbrl/sbr-arcroles.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/2017/xbrl/sbr-arcroles</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2019</Version>
+	<Href>http://www.nltaxonomie.nl/2019/xbrl/sbr-arcroles-2019.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/2017/xbrl/sbr-arcroles</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2016</Version>
+	<Href>http://www.nltaxonomie.nl/2016/xbrl/sbr-labelroles.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.nltaxonomie.nl/2016/xbrl/xbrl-syntax-labelroles</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2013</Version>
+	<Href>http://www.xbrl.org/2013/preferred-label.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.xbrl.org/2013/preferred-label</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2016</Version>
+	<Href>http://www.xbrl.org/2016/assertion-severity.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.xbrl.org/2016/assertion-severity</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/2010/aspect-cover-filter.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.xbrl.org/2010/aspect-cover-filter</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2010</Version>
+	<Href>http://www.xbrl.org/2010/concept-relation-filter.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.xbrl.org/2010/concept-relation-filter</Namespace>
+</Loc>
+
+<Loc>
+	<Family>BASE</Family>
+	<Version>2016</Version>
+	<Href>http://www.xbrl.org/2016/assertion-severity.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.xbrl.org/2016/assertion-severity</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2008</Version>
+	<Href>http://www.xbrl.org/2008/concept-filter.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.xbrl.org/2008/concept-filter</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2008</Version>
+	<Href>http://www.xbrl.org/2008/dimension-filter.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.xbrl.org/2008/dimension-filter</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2008</Version>
+	<Href>http://www.xbrl.org/2008/value-assertion.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.xbrl.org/2008/value-assertion</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2008</Version>
+	<Href>http://www.xbrl.org/2008/existence-assertion.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.xbrl.org/2008/existence-assertion</Namespace>
+</Loc>
+<Loc>
+	<Family>BASE</Family>
+	<Version>2008</Version>
+	<Href>http://www.xbrl.org/2008/concept-relation-filter.xsd</Href>
+	<AttType>SCH</AttType>
+	<FileTypeName>Schema</FileTypeName>
+	<Elements>1</Elements>
+	<Namespace>http://www.xbrl.org/2008/concept-reatlion-filter</Namespace>
 </Loc>
 
 </Erxl>

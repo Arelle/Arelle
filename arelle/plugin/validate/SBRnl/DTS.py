@@ -23,6 +23,7 @@ extLinkEltFileNameEnding = {
     "labelLink": "_lab",
     "presentationLink": "_pre",
     "referenceLink": "_ref"}
+visitedSchemas = []
 
 def checkFilingDTS(val, modelDocument, visited):
     global targetNamespaceDatePattern, efmFilenamePattern, roleTypePattern, arcroleTypePattern, \
@@ -44,21 +45,29 @@ def checkFilingDTS(val, modelDocument, visited):
     for referencedDocument, modelDocumentReference in modelDocument.referencesDocument.items():
         #6.07.01 no includes
         if modelDocumentReference.referenceType == "include":
-            val.modelXbrl.error("SBR.NL.2.2.0.18",
+            val.modelXbrl.error("SBR.NL.2.02.00.18",
                 _("Taxonomy schema %(schema)s includes %(include)s, only import is allowed"),
                 modelObject=modelDocumentReference.referringModelObject,
                     schema=os.path.basename(modelDocument.uri), 
                     include=os.path.basename(referencedDocument.uri))
+
         if referencedDocument not in visited:
+            # TODO: Nested loop, rules such as 2.02.01.01 are reported multiple times. Schema rules should only be assessed once
             checkFilingDTS(val, referencedDocument, visited)
             
     if val.disclosureSystem.standardTaxonomiesDict is None:
         pass
 
-    if (modelDocument.type == ModelDocument.Type.SCHEMA and 
-        modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and
-        modelDocument.uri.startswith(val.modelXbrl.uriDir)):
-        
+    if (modelDocument.type == ModelDocument.Type.SCHEMA and
+            modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and
+            modelDocument.uri.startswith(val.modelXbrl.uriDir)):
+        if modelDocument not in visitedSchemas:
+            checkSchema(val, modelDocument)
+            visitedSchemas.append(modelDocument)
+
+
+def checkSchema(val, modelDocument):
+
         # check schema contents types
         definesLinkroles = False
         definesArcroles = False
@@ -87,7 +96,7 @@ def checkFilingDTS(val, modelDocument, visited):
                 for c in val.modelXbrl.nameConcepts.get(name, []):
                     if c.modelDocument != modelDocument:
                         if not (genrlSpeclRelSet.isRelated(modelConcept, "child", c) or genrlSpeclRelSet.isRelated(c, "child", modelConcept)):
-                            val.modelXbrl.error("SBR.NL.2.2.2.02",
+                            val.modelXbrl.error("SBR.NL.2.02.02.02",
                                 _("Concept %(concept)s is also defined in standard taxonomy schema %(standardSchema)s without a general-special relationship"),
                                 modelObject=c, concept=modelConcept.qname, standardSchema=os.path.basename(c.modelDocument.uri))
                 ''' removed RH 2011-12-23 corresponding set up of table in ValidateFiling
@@ -109,15 +118,15 @@ def checkFilingDTS(val, modelDocument, visited):
                         definesTuples = True
                     definesConcepts = True
                     if modelConcept.isAbstract:
-                        val.modelXbrl.error("SBR.NL.2.2.2.03",
+                        val.modelXbrl.error("SBR.NL.2.02.02.03",
                             _("Concept %(concept)s is an abstract tuple"),
                             modelObject=modelConcept, concept=modelConcept.qname)
                     if tupleCycle(val,modelConcept):
-                        val.modelXbrl.error("SBR.NL.2.2.2.07",
+                        val.modelXbrl.error("SBR.NL.2.02.02.07",
                             _("Tuple %(concept)s has a tuple cycle"),
                             modelObject=modelConcept, concept=modelConcept.qname)
                     if modelConcept.get("nillable") != "false" and modelConcept.isRoot:
-                        val.modelXbrl.error("SBR.NL.2.2.2.17", #don't want default, just what was really there
+                        val.modelXbrl.error("SBR.NL.2.02.02.17", #don't want default, just what was really there
                             _("Tuple %(concept)s must have nillable='false'"),
                             modelObject=modelConcept, concept=modelConcept.qname)
                 elif modelConcept.isItem:
@@ -125,17 +134,18 @@ def checkFilingDTS(val, modelDocument, visited):
                 if modelConcept.abstract == "true":
                     if modelConcept.isRoot:
                         if modelConcept.get("nillable") != "false": #don't want default, just what was really there
-                            val.modelXbrl.error("SBR.NL.2.2.2.16",
+                            val.modelXbrl.error("SBR.NL.2.02.02.16",
                                 _("Abstract root concept %(concept)s must have nillable='false'"),
                             modelObject=modelConcept, concept=modelConcept.qname)
                         if modelConcept.typeQname != XbrlConst.qnXbrliStringItemType:
-                            val.modelXbrl.error("SBR.NL.2.2.2.21",
+                            val.modelXbrl.error("SBR.NL.2.02.02.21",
                                 _("Abstract root concept %(concept)s must have type='xbrli:stringItemType'"),
                             modelObject=modelConcept, concept=modelConcept.qname)
-                    if modelConcept.balance:
-                        val.modelXbrl.error("SBR.NL.2.2.2.22",
-                            _("Abstract concept %(concept)s must not have a balance attribute"),
-                            modelObject=modelConcept, concept=modelConcept.qname)
+                    # 20190902 EK: removed
+                    # if modelConcept.balance:
+                    #     val.modelXbrl.error("SBR.NL.2.2.2.22",
+                    #         _("Abstract concept %(concept)s must not have a balance attribute"),
+                    #         modelObject=modelConcept, concept=modelConcept.qname)
                     if modelConcept.isHypercubeItem:
                         definesHypercubes = True
                     elif modelConcept.isDimensionItem:
@@ -147,24 +157,25 @@ def checkFilingDTS(val, modelDocument, visited):
                 else:   # not abstract
                     if modelConcept.isItem:
                         definesNonabstractItems = True
-                        if not (modelConcept.label(preferredLabel=XbrlConst.documentationLabel,fallbackToQname=False,lang="nl") or
-                                val.modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(c) or
-                                modelConcept.genLabel(role=XbrlConst.genDocumentationLabel,lang="nl") or
-                                val.modelXbrl.relationshipSet(XbrlConst.elementReference).fromModelObject(c)):
-                            val.modelXbrl.error("SBR.NL.2.2.2.28",
-                                _("Concept %(concept)s must have a documentation label or reference"),
-                                modelObject=modelConcept, concept=modelConcept.qname)
-                if modelConcept.balance and not modelConcept.instanceOfType(XbrlConst.qnXbrliMonetaryItemType):
-                    val.modelXbrl.error("SBR.NL.2.2.2.24",
-                        _("Non-monetary concept %(concept)s must not have a balance attribute"),
-                        modelObject=modelConcept, concept=modelConcept.qname)
+                        # if not (modelConcept.label(preferredLabel=XbrlConst.documentationLabel,fallbackToQname=False,lang="nl") or
+                        #         val.modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(c) or
+                        #         modelConcept.genLabel(role=XbrlConst.genDocumentationLabel,lang="nl") or
+                        #         val.modelXbrl.relationshipSet(XbrlConst.elementReference).fromModelObject(c)):
+                        #     val.modelXbrl.error("SBR.NL.2.2.2.28",
+                        #         _("Concept %(concept)s must have a documentation label or reference"),
+                        #         modelObject=modelConcept, concept=modelConcept.qname)
+                # 20190902 EK: removed
+                # if modelConcept.balance and not modelConcept.instanceOfType(XbrlConst.qnXbrliMonetaryItemType):
+                #     val.modelXbrl.error("SBR.NL.2.2.2.24",
+                #         _("Non-monetary concept %(concept)s must not have a balance attribute"),
+                #         modelObject=modelConcept, concept=modelConcept.qname)
                 if modelConcept.isLinkPart:
                     definesLinkParts = True
-                    val.modelXbrl.error("SBR.NL.2.2.5.01",
+                    val.modelXbrl.error("SBR.NL.2.02.05.01",
                         _("Link:part concept %(concept)s is not allowed"),
                         modelObject=modelConcept, concept=modelConcept.qname)
                     if not modelConcept.genLabel(fallbackToQname=False,lang="nl"):
-                        val.modelXbrl.error("SBR.NL.2.2.5.02",
+                        val.modelXbrl.error("SBR.NL.2.02.05.02",
                             _("Link part definition %(concept)s must have a generic label in language 'nl'"),
                             modelObject=modelConcept, concept=modelConcept.qname)
 
@@ -181,16 +192,16 @@ def checkFilingDTS(val, modelDocument, visited):
                     if usedOns & XbrlConst.standardExtLinkQnames or XbrlConst.qnGenLink in usedOns:
                         definesLinkroles = True
                         if not e.genLabel():
-                            val.modelXbrl.error("SBR.NL.2.2.3.03",
+                            val.modelXbrl.error("SBR.NL.2.02.03.03",
                                 _("Link RoleType %(roleType)s missing a generic standard label"),
                                 modelObject=e, roleType=roleURI)
                         nlLabel = e.genLabel(lang="nl")
                         if definition != nlLabel:
-                            val.modelXbrl.error("SBR.NL.2.2.3.04",
+                            val.modelXbrl.error("SBR.NL.2.02.03.04",
                                 _("Link RoleType %(roleType)s definition does not match NL standard generic label, \ndefinition: %(definition)s \nNL label: %(label)s"),
                                 modelObject=e, roleType=roleURI, definition=definition, label=nlLabel)
                     if definition and (definition[0].isspace() or definition[-1].isspace()):
-                        val.modelXbrl.error("SBR.NL.2.2.3.07",
+                        val.modelXbrl.error("SBR.NL.2.02.03.07",
                             _('Link RoleType %(roleType)s definition has leading or trailing spaces: "%(definition)s"'),
                             modelObject=e, roleType=roleURI, definition=definition)
 
@@ -199,27 +210,27 @@ def checkFilingDTS(val, modelDocument, visited):
             if isinstance(e,ModelObject):
                 arcroleURI = e.get("arcroleURI")
                 definesArcroles = True
-                val.modelXbrl.error("SBR.NL.2.2.4.01",
+                val.modelXbrl.error("SBR.NL.2.02.04.01",
                     _("Arcrole type definition is not allowed: %(arcroleURI)s"),
                     modelObject=e, arcroleURI=arcroleURI)
                     
         for appinfoElt in modelDocument.xmlRootElement.iter(tag="{http://www.w3.org/2001/XMLSchema}appinfo"):
             for nonLinkElt in appinfoElt.iterdescendants():
                 if isinstance(nonLinkElt, ModelObject) and nonLinkElt.namespaceURI != XbrlConst.link:
-                    val.modelXbrl.error("SBR.NL.2.2.11.05",
+                    val.modelXbrl.error("SBR.NL.2.02.11.05",
                         _("Appinfo contains disallowed non-link element %(element)s"),
                         modelObject=nonLinkElt, element=nonLinkElt.qname)
 
         for cplxTypeElt in modelDocument.xmlRootElement.iter(tag="{http://www.w3.org/2001/XMLSchema}complexType"):
             choiceElt = cplxTypeElt.find("{http://www.w3.org/2001/XMLSchema}choice")
             if choiceElt is not None:
-                val.modelXbrl.error("SBR.NL.2.2.11.09",
+                val.modelXbrl.error("SBR.NL.2.02.11.09",
                     _("ComplexType contains disallowed xs:choice element"),
                     modelObject=choiceElt)
                 
         for cplxContentElt in modelDocument.xmlRootElement.iter(tag="{http://www.w3.org/2001/XMLSchema}complexContent"):
             if XmlUtil.descendantAttr(cplxContentElt, "http://www.w3.org/2001/XMLSchema", ("extension","restriction"), "base") != "sbr:placeholder":
-                val.modelXbrl.error("SBR.NL.2.2.11.10",
+                val.modelXbrl.error("SBR.NL.2.02.11.10",
                     _("ComplexContent is disallowed"),
                     modelObject=cplxContentElt)
 
@@ -230,7 +241,7 @@ def checkFilingDTS(val, modelDocument, visited):
                 name = typeElt.get("name")
                 if name:
                     if not name[0].islower() or not name.isalnum():
-                        val.modelXbrl.error("SBR.NL.3.2.8.09",
+                        val.modelXbrl.error("SBR.NL.3.02.08.09",
                             _("Type name attribute must be lower camelcase: %(name)s."),
                             modelObject=typeElt, name=name)
         
@@ -238,7 +249,7 @@ def checkFilingDTS(val, modelDocument, visited):
             definesEnumerations = True
             if any(not valueElt.genLabel(lang="nl")
                    for valueElt in enumElt.iter(tag="{http://www.w3.org/2001/XMLSchema}value")):
-                val.modelXbrl.error("SBR.NL.2.2.7.05",
+                val.modelXbrl.error("SBR.NL.2.02.07.05",
                     _("Enumeration element has value(s) without generic label."),
                     modelObject=enumElt)
 
@@ -265,19 +276,19 @@ def checkFilingDTS(val, modelDocument, visited):
                 if not ((definesTuples or definesPresentationTuples or definesSpecificationTuples) and
                         not (definesLinkroles or definesArcroles or definesLinkParts or definesAbstractItems or
                              definesTypes or definesDimensions or definesDomains or definesHypercubes)):
-                    val.modelXbrl.error("SBR.NL.2.2.1.01",
+                    val.modelXbrl.error("SBR.NL.2.02.01.01",
                         _("Taxonomy schema may only define one of these: %(contents)s"),
                         modelObject=modelDocument, contents=', '.join(schemaContents))
             elif not any(refDoc.inDTS and refDoc.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces
                          for refDoc in modelDocument.referencesDocument.keys()): # no linkbase ref or includes
-                val.modelXbrl.error("SBR.NL.2.2.1.01",
+                val.modelXbrl.error("SBR.NL.2.02.01.01",
                     _("Taxonomy schema must be a DTS entrypoint OR define linkroles OR arcroles OR link:parts OR context fragments OR abstract items OR tuples OR non-abstract elements OR types OR enumerations OR dimensions OR domains OR hypercubes"),
                     modelObject=modelDocument)
         if definesConcepts ^ any(  # xor so either concepts and no label LB or no concepts and has label LB
                    (refDoc.type == ModelDocument.Type.LINKBASE and
                     XmlUtil.descendant(refDoc.xmlRootElement, XbrlConst.link, "labelLink") is not None)
                    for refDoc in modelDocument.referencesDocument.keys()): # no label linkbase
-            val.modelXbrl.error("SBR.NL.2.2.1.02",
+            val.modelXbrl.error("SBR.NL.2.02.01.02",
                 _("A schema that defines concepts MUST have a linked 2.1 label linkbase"),
                 modelObject=modelDocument)
         if (definesNonabstractItems or definesTuples) and not any(  # was xor but changed to and not per RH 1/11/12
@@ -285,13 +296,13 @@ def checkFilingDTS(val, modelDocument, visited):
                    (XmlUtil.descendant(refDoc.xmlRootElement, XbrlConst.link, "referenceLink") is not None or
                     XmlUtil.descendant(refDoc.xmlRootElement, XbrlConst.link, "label", "{http://www.w3.org/1999/xlink}role", "http://www.xbrl.org/2003/role/documentation" ) is not None))
                     for refDoc in modelDocument.referencesDocument.keys()):
-            val.modelXbrl.error("SBR.NL.2.2.1.03",
+            val.modelXbrl.error("SBR.NL.2.02.01.03",
                 _("A schema that defines non-abstract items MUST have a linked (2.1) reference linkbase AND/OR a label linkbase with @xlink:role=documentation"),
                 modelObject=modelDocument)
 
-    elif modelDocument.type == ModelDocument.Type.LINKBASE:
-        pass
-    visited.remove(modelDocument)
+    # elif modelDocument.type == ModelDocument.Type.LINKBASE:
+    #     pass
+    # visited.remove(modelDocument)
     
 def tupleCycle(val, concept, ancestorTuples=None):
     if ancestorTuples is None: ancestorTuples = set()

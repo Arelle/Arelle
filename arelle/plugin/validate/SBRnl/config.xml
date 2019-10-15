@@ -9,9 +9,9 @@
      Default language Dutch\n
      EDInet identifier patterns\n
      Allowed references TBD"
-     defaultXmlLang="nl" 
-     xmlLangPattern="(^nl$|^en$)"
-     defaultLanguage="Nederlands" 
+     defaultXmlLang="nl"
+     xmlLangPattern="(^nl$|^en$|^de$|^fr$)"
+     defaultLanguage="Nederlands"
      validationType="SBR.NL"
      exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
      validateFileText="false"
