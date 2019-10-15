@@ -806,22 +806,23 @@ class CntlrCmdLine(Cntlr.Cntlr):
         _entryPoints = []
         _checkIfXmlIsEis = self.modelManager.disclosureSystem and self.modelManager.disclosureSystem.validationType == "EFM"
         if options.entrypointFile:
-            _f = options.entrypointFile
-            try: # may be a json list
-                _entryPoints = json.loads(_f)
-                _checkIfXmlIsEis = False # json entry objects never specify an xml EIS archive
-            except ValueError:
-                # is it malformed json?
-                if _f.startswith("[{") or _f.endswith("]}") or '"file:"' in _f:
-                    self.addToLog(_("File name parameter appears to be malformed JSON: {0}").format(_f),
-                                  messageCode="FileNameFormatError",
-                                  level=logging.ERROR)
-                    success = False
-                else: # try as file names separated by '|'                    
-                    for f in (_f or '').split('|'):
-                        if not sourceZipStream and not isHttpUrl(f) and not os.path.isabs(f):
-                            f = os.path.normpath(os.path.join(os.getcwd(), f)) # make absolute normed path
-                        _entryPoints.append({"file":f})
+            with open(options.entrypointFile, 'r') as _f:
+
+                try: # may be a json list
+                    _entryPoints = json.load(_f)
+                    _checkIfXmlIsEis = False # json entry objects never specify an xml EIS archive
+                except ValueError:
+                    # is it malformed json?
+                    if _f.startswith("[{") or _f.endswith("]}") or '"file:"' in _f:
+                        self.addToLog(_("File name parameter appears to be malformed JSON: {0}").format(_f),
+                                      messageCode="FileNameFormatError",
+                                      level=logging.ERROR)
+                        success = False
+                    else: # try as file names separated by '|'
+                        for f in (_f or '').split('|'):
+                            if not sourceZipStream and not isHttpUrl(f) and not os.path.isabs(f):
+                                f = os.path.normpath(os.path.join(os.getcwd(), f)) # make absolute normed path
+                            _entryPoints.append({"file":f})
         filesource = None # file source for all instances if not None
         if sourceZipStream:
             filesource = FileSource.openFileSource(None, self, sourceZipStream)
