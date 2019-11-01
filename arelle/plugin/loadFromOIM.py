@@ -20,7 +20,7 @@ import os, sys, io, time, re, traceback, json, csv, logging, math, zipfile, date
 from lxml import etree
 from collections import defaultdict, OrderedDict
 from arelle.ModelDocument import Type, create as createModelDocument
-from arelle import XbrlConst, ModelDocument, ModelXbrl, ValidateXbrlDimensions
+from arelle import XbrlConst, ModelDocument, ModelXbrl, PackageManager, ValidateXbrlDimensions
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelValue import qname, dateTime, DATETIME, yearMonthDuration, dayTimeDuration
 from arelle.PrototypeInstanceObject import DimValuePrototype
@@ -37,7 +37,8 @@ nsOim = "http://www.xbrl.org/CR/2018-12-12"
 nsOims = (nsOim,
           "http://www.xbrl.org/WGWD/YYYY-MM-DD",
           "http://www.xbrl.org/PWD/2016-01-13/oim",
-          "http://www.xbrl.org/WGWD/YYYY-MM-DD/oim"
+          "http://www.xbrl.org/WGWD/YYYY-MM-DD/oim",
+          "http://www.xbrl.org/CR/2019-06-12"
          )
 nsOimCes = (
         "http://www.xbrl.org/WGWD/YYYY-MM-DD/oim-common/error",
@@ -48,9 +49,21 @@ jsonDocumentTypes = (
     )
 csvDocumentTypes = (
         "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-csv",
-        "http://www.xbrl.org/PWD/2019-08-07/xbrl-csv"
+        "http://xbrl.org/YYYY/xbrl-csv",
+        "http://www.xbrl.org/{{status_date_uri}}/xbrl-csv", # allows loading of XII "template" test cases without CI production
+        "http://www.xbrl.org/CR/2019-10-19/xbrl-csv"
     )
+csvDocinfoObjects = {"documentType", "reportDimensions", "namespaces", "taxonomy", "decimals", "extends", "final"}
+csvExtensibleObjects = {"namespaces", "linkTypes", "linkGroups", "tableTemplates", "tables", "reportDimensions", "final"}
+
          
+reservedLinkTypes = {
+        "footnote":         "http://www.xbrl.org/2003/arcrole/fact-footnote",
+        "explanatoryFact":  "http://www.xbrl.org/2009/arcrole/fact-explanatoryFact"
+    }
+reservedLinkGroups = {
+        "defaultGroup":     "http://www.xbrl.org/2003/role/link"
+    }
 
 
 XLINKTYPE = "{http://www.w3.org/1999/xlink}type"
@@ -79,13 +92,17 @@ OIMReservedURIAlias = dict(
 
 ENTITY_NA_QNAME = qname("https://xbrl.org/entities", "NA")
 EMPTY_DICT = {}
+EMPTY_LIST = []
 
 DUPJSONKEY = "!@%duplicateKeys%@!"
 DUPJSONVALUE = "!@%duplicateValues%@!"
 
-EMPTYDICT = {}
-
 JSONmetadataPattern = re.compile(r"\s*\{.*\"documentInfo\"\s*:.*\}", re.DOTALL)
+IdentifierPattern = re.compile(
+                 "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
+                  r"[_\-" 
+                  "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*")
+
 PrefixedQName = re.compile(
                  "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
                   r"[_\-\." 
@@ -104,6 +121,33 @@ UnitPattern = re.compile(
 
 xlUnicodePattern = re.compile("_x([0-9A-F]{4})_")
 
+JsonTypes = {
+    "columns": dict,
+    "columnDimensions": dict,
+    "decimals": (int,str), # can be a number of string column/parameter ref
+    "documentInfo": dict,
+    "documentType": str,
+    "facts": dict, 
+    "links": dict, 
+    "optional": bool,
+    "reportParameters": dict,
+    "rowIdColumn": str,
+    "tables": dict, 
+    "tableDimensions": dict,
+    "tableParameters": dict,
+    "tableTemplates": dict,
+    "taxonomy": list,
+    "template": str,
+    "transposed": bool,
+    "url": str
+    }
+
+def jsonGet(tbl, key, default=None):
+    if isinstance(tbl, dict):
+        v = tbl.get(key)
+        if isinstance(v, JsonTypes.get(key,())):
+            return v
+    return default
 
 def csvCellValue(cellValue):
     if cellValue == "#nil":
@@ -200,8 +244,7 @@ def csvPeriod(cellValue, startOrEnd):
             return isoDuration
     return None
     
-
-def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=None):
+def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
     from openpyxl import load_workbook
     from openpyxl.cell import Cell
     from arelle import ModelDocument, ModelXbrl, XmlUtil
@@ -215,24 +258,13 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
         startingErrorCount = len(modelXbrl.errors) if modelXbrl else 0
         startedAt = time.time()
         
-        if not modelXbrl.fileSource.isArchive and os.path.isabs(oimFile):
-            # allow relative filenames to loading directory
-            priorCWD = os.getcwd()
-            os.chdir(os.path.dirname(oimFile))
-        else:
-            priorCWD = None
-            
         currentAction = "determining file type"
         isJSON = False
-        # isXL means metadata loaded from Excel (but instance data can be in excel or CSV)
-        isXL = oimFile.endswith(".xlsx") or oimFile.endswith(".xls")
         # isCSV means metadata loaded from separate JSON file (but instance data can be in excel or CSV)
         isCSV = False # oimFile.endswith(".csv") # this option is not currently supported
         instanceFileName = os.path.splitext(oimFile)[0] + ".xbrl"
-        _csvwContext = None
-        anonymousFactId = 0 
         
-        currentAction = "loading and parsing {} OIM file".format("JSON" if isJSON else "CSV" if isCSV else "workbook")
+        currentAction = "loading and parsing OIM file"
         def loadDict(keyValuePairs):
             _dict = OrderedDict() # preserve fact order in resulting instance
             _valueKeyDict = {}
@@ -240,23 +272,23 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                 if isinstance(value, dict):
                     if DUPJSONKEY in value:
                         for _errKey, _errValue, _otherValue in value[DUPJSONKEY]:
-                            if key in ("namespaces", "linkTypes", "groups"):
+                            if key in ("namespaces", "linkTypes", "linkGroups"):
                                 error("oimce:multipleURIsForAlias",
                                                 _("The %(map)s alias %(prefix)s is used on uri %(uri1)s and uri %(uri2)s"),
                                                 modelObject=modelXbrl, map=key, prefix=_errKey, uri1=_errValue, uri2=_otherValue)
                             else:
-                                error("oim:duplicateKeys",
+                                error("xbrlje:invalidJSONStructure",
                                                 _("The %(obj)s key %(key)s is used on multiple objects"),
                                                 modelObject=modelXbrl, obj=key, key=_errKey)
                         del value[DUPJSONKEY]
                     if DUPJSONVALUE in value:
                         for _errValue, _errKey, _otherKey in value[DUPJSONVALUE]:
-                            if key in ("namespaces", "linkTypes", "groups"):
+                            if key in ("namespaces", "linkTypes", "linkGroups"):
                                 error("oimce:multipleAliasesForURI",
                                                 _("The %(map)s value %(uri)s is used on alias %(alias1)s and alias %(alias2)s"),
                                                 modelObject=modelXbrl, map=key, uri=_errValue, alias1=_errKey, alias2=_otherKey)
                         del value[DUPJSONVALUE]
-                    if key in ("namespaces", "linkTypes", "groups"):
+                    if key in ("namespaces", "linkTypes", "linkGroups"):
                         for _key, _value in value.items():
                             if _key == "":
                                 error("oimce:invalidEmptyURIAlias",
@@ -283,78 +315,212 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                     if isinstance(value, str):
                         _valueKeyDict[value] = key
             return _dict
-        if oimObject is None and not isXL:
-            _file, encoding = modelXbrl.fileSource.file(oimFile, encoding='utf-8')
-            with _file as f:
-                oimObject = json.load(f, object_pairs_hook=loadDict)
-        elif isXL:
-            _file, = modelXbrl.fileSource.file(oimFile, binary=True)
-            with _file as f:
-                oimWb = load_workbook(f, data_only=True)
-            if "metadata" not in oimWb:
-                raise OIMException("xbrlwe:missingWorkbookWorksheets", 
-                                   _("Unable to identify worksheet tabs for metadata"))
-            _foundMatch = False
-            for row in range(1,10): # allow metadata to be indented or surrounded by column and row title columns
-                for col in range(1,10):
-                    _metadata = xlValue(oimWb["metadata"].cell(row=row,column=col))
-                    if _metadata and JSONmetadataPattern.match(_metadata): # find JSON metadata cell
-                        _foundMatch = True
-                        break
-                if _foundMatch:
-                    break
-            oimObject = json.loads(_metadata, encoding='utf-8', object_pairs_hook=loadDict)
-        documentInfo = oimObject.get("documentInfo", {})
-        documentType = documentInfo.get("documentType")
-        if documentType in jsonDocumentTypes:
-            isJSON = True
-            errPrefix = "xbrlje"
-        elif documentType in csvDocumentTypes:
-            if not isXL:
-                isCSV = True
-            errPrefix = "xbrlce"
-        else:
-            raise OIMException("arelle:unrecognizedDocumentType", 
-                               _("OIM document type is not recognized: %(documentType)s"),
-                               documentType=documentType)
-        isCSVorXL = isCSV or isXL
         
-        missing = [t 
-                   for t in (("documentInfo", "facts") if isJSON else ("documentInfo", "tables") )
-                   if t not in oimObject]
-        missing += [t 
-                    for t in (("documentType", "namespaces", "features") if isJSON else ("documentType", "namespaces", "taxonomy")) 
-                    if t not in documentInfo]
-        if isCSVorXL:
-            missing += ["{}:{}".format(n,t) 
-                        for n,tbl in oimObject.get("tables",{}).items()
-                        for t in ("url", "factColumns", "tableDimensions") 
-                        if t not in tbl]
-        if missing:
-            raise OIMException("{}:invalidMeadataStructure".format(errPrefix), 
-                               _("Required element(s) are missing from metadata: %(missing)s"),
-                               missing = ", ".join(missing))
-        oimDocumentInfo = oimObject["documentInfo"]
+        def loadOimObject(oimFile, extendingFile): # returns oimObject, oimWb
+            # isXL means metadata loaded from Excel (but instance data can be in excel or CSV)
+            isXL = oimFile.endswith(".xlsx") or oimFile.endswith(".xls")
+            # same logic as modelDocument.load
+            normalizedUrl = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(oimFile, extendingFile)
+            if modelXbrl.fileSource.isMappedUrl(normalizedUrl):
+                mappedUrl = modelXbrl.fileSource.mappedUrl(normalizedUrl)
+            elif PackageManager.isMappedUrl(normalizedUrl):
+                mappedUrl = PackageManager.mappedUrl(normalizedUrl)
+            else:
+                mappedUrl = modelXbrl.modelManager.disclosureSystem.mappedUrl(normalizedUrl)
+            if modelXbrl.fileSource.isInArchive(mappedUrl):
+                filepath = mappedUrl
+            else:
+                filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(mappedUrl) # , reload=reloadCache, checkModifiedTime=kwargs.get("checkModifiedTime",False))
+                if filepath:
+                    url = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(filepath)
+            if not isXL:
+                _file, encoding = modelXbrl.fileSource.file(filepath, encoding='utf-8')
+                with _file as f:
+                    oimObject = json.load(f, object_pairs_hook=loadDict)
+                # check for top-level key duplicates
+                if isinstance(oimObject, dict) and DUPJSONKEY in oimObject:
+                    for _errKey, _errValue, _otherValue in oimObject[DUPJSONKEY]:
+                        error("xbrlje:invalidJSONStructure",
+                              _("The key %(key)s is used on multiple objects"),
+                              modelObject=modelXbrl, key=_errKey)
+                    del oimObject[DUPJSONKEY]
+                oimWb = None
+            elif isXL:
+                _file, = modelXbrl.fileSource.file(filepath, binary=True)
+                with _file as f:
+                    oimWb = load_workbook(f, data_only=True)
+                if "metadata" not in oimWb:
+                    raise OIMException("xbrlwe:missingWorkbookWorksheets", 
+                                       _("Unable to identify worksheet tabs for metadata"))
+                _foundMatch = False
+                for row in range(1,10): # allow metadata to be indented or surrounded by column and row title columns
+                    for col in range(1,10):
+                        _metadata = xlValue(oimWb["metadata"].cell(row=row,column=col))
+                        if _metadata and JSONmetadataPattern.match(_metadata): # find JSON metadata cell
+                            _foundMatch = True
+                            break
+                    if _foundMatch:
+                        break
+                oimObject = json.loads(_metadata, encoding='utf-8', object_pairs_hook=loadDict)
+            documentInfo = jsonGet(oimObject, "documentInfo", {})
+            documentType = jsonGet(documentInfo, "documentType")
+            if documentType in jsonDocumentTypes:
+                isCSV = False
+                isJSON = True
+                errPrefix = "xbrlje"
+            elif documentType in csvDocumentTypes:
+                isJSON = False
+                if not isXL:
+                    isCSV = True
+                errPrefix = "xbrlce"
+            else:
+                raise OIMException("xbrlje:invalidJSONStructure", 
+                                   _("documentInfo documentType is not recognized: %(documentType)s"),
+                                   documentType=documentType)
+            isCSVorXL = isCSV or isXL
+            
+            missing = [t 
+                       for t in (("documentInfo", "facts") if isJSON else ("documentInfo", ) )
+                       if t not in oimObject]
+            missing += [t 
+                        for t in (("documentType", "namespaces", "features", "taxonomy") if isJSON else ("documentType", ))
+                        if t not in documentInfo]
+            unexpected = [t
+                          for t,v in oimObject.items()
+                          if t not in {True:{"documentInfo", "facts", "links"},
+                                       False:{"documentInfo", "tableTemplates", "tables", "reportParameters", "links"}
+                                       }[isJSON]
+                             or not isinstance(v, JsonTypes.get(t,()))
+                         ]
+            unexpected += [t
+                           for t,v in documentInfo.items()
+                           if t not in {True:{"documentType", "features", "namespaces", "taxonomy", "linkTypes", "linkTypes"},
+                                       False:{"documentType", "reportDimensions", "namespaces", "taxonomy", "decimals", "extends", "final"}
+                                       }[isJSON]
+                           and (":" not in t or t.partition(":")[0] not in documentInfo.get("namespaces"),EMPTY_DICT)]
+            unexpected += ["documentInfo final {}".format(t)
+                           for t,v in documentInfo.get("final",EMPTY_DICT).items()
+                           if t not in {"namespaces", "linkTypes", "linkGroups", "tableTemplates", "tables", "reportDimensions"}
+                           or not isinstance(v, bool)]
+            if isCSVorXL:
+                for n,tbl in jsonGet(oimObject, "tableTemplates", {}).items():
+                    for t in ("columns", "tableDimensions"): 
+                        if t not in tbl:
+                            missing.append("tableTemplates:{}:{}".format(n,t))
+                    for t,tv in tbl.items():
+                        if (t not in {"rowIdColumn", "columns", "decimals", "tableDimensions", "transposed"} or 
+                            not isinstance(tv, JsonTypes.get(t,())) or
+                            (t == "rowIdColumn" and not IdentifierPattern.match(tv))):
+                            unexpected.append("tableTemplates:{}:{}".format(n,t))
+                        elif t == "columns":
+                            for nc, col in tv.items():
+                                if not IdentifierPattern.match(nc) or not isinstance(col,dict):
+                                    unexpected.append("tableTemplates:columns:{}".format(nc))
+                                elif isinstance(col, dict):
+                                    for t,cv in col.items():
+                                        if t not in {"decimals", "columnDimensions"} or (
+                                            t == "decimals" and ("columnDimensions" not in col)) or (
+                                            not isinstance(cv, JsonTypes.get(t,()))):
+                                            unexpected.append("tableTemplates:columns:{}:{}".format(nc,t))
+                for n,tbl in oimObject.get("tables",{}).items():
+                    for t in ("url", ):
+                        if t not in tbl:
+                            missing.append("tables:{}:{}".format(n,t))
+                    for t,v in tbl.items():
+                        if (t not in {"url", "template", "optional", "tableParameters"} or
+                            not isinstance(v, JsonTypes.get(t,()))):
+                            unexpected.append("tables:{}:{}".format(n,t))
+            if missing or unexpected:
+                msg = []
+                if missing:
+                    msg.append(_("Required element(s) are missing from metadata: %(missing)s"))
+                if unexpected:
+                    msg.append(_("Unexpected element(s) in metadata: %(unexpected)s"))
+                raise OIMException("xbrlje:invalidJSONStructure", 
+                                   "\n ".join(msg),
+                                   missing=", ".join(missing), unexpected=", ".join(unexpected))
+                
+            if isCSVorXL and "extends" in documentInfo:
+                # process extension
+                extendedFile = documentInfo["extends"]
+                extendedOimObject = loadOimObject(extendedFile, mappedUrl)
+                # extended must be CSV
+                extendedDocumentInfo = extendedOimObject.get("documentInfo", EMPTY_DICT)
+                extendedDocumentType = extendedDocumentInfo.get("documentType")
+                extendedFinal = extendedDocumentInfo.get("final", EMPTY_DICT)
+                if extendedDocumentType != documentType:
+                    error("{}:invalidExtendedDocumentType".format(errPrefix), 
+                          _("Extended documentType %(extendedDocumentType)s must same as extending documentType %(documentType)s in file %(extendedFile)"),
+                          extendedFile=extendedFile, extendedDocumentType=extendedDocumentType, documentType=documentType)
+                    return EMPTY_DICT, None
+                for parent, extendedParent, excludedObjectNames in (
+                    (documentInfo, extendedDocumentInfo, {"documentType", "extends"}),
+                    (oimObject, extendedOimObject, {"documentInfo"})):
+                    for objectName in extendedParent.keys() - excludedObjectNames:
+                        if extendedFinal.get(objectName, False) and objectName in parent:
+                            error("{}:extendedFinalObject".format(errPrefix), 
+                                  _("Extended file %(extendedFile)s redefines final object %(finalObjectName)s"),
+                                  extendedFile=extendedFile, finalObjectName=objectName)
+                            if objectName in extendedParent:
+                                parent[objectName] = extendedParent[objectName] # ignore post-final extensions
+                        elif objectName in csvExtensibleObjects:
+                            for extProp, extPropValue in extendedParent.get(objectName,EMPTY_DICT).items():
+                                if extProp in parent.get(objectName,EMPTY_DICT):
+                                    error("{}:extendedObjectDuplicate".format(errPrefix), 
+                                          _("Extended file %(extendedFile)s redefines object %(objectName)s property %(property)s"),
+                                          extendedFile=extendedFile, objectName=objectName, property=extProp)
+                                else:
+                                    if objectName not in parent:
+                                        parent[objectName] = {}
+                                    parent[objectName][extProp] = extPropValue
+                        elif objectName in parent:
+                            error("{}:extendedObjectDuplicate".format(errPrefix), 
+                                  _("Extended file %(extendedFile)s redefines object %(objectName)s"),
+                                  extendedFile=extendedFile, objectName=objectName)
+                        else:
+                            parent[objectName] = extendedParent[objectName]
+                                
+            if extendingFile is None: # entry oimFile
+                oimObject["=entryParameters"] = (isJSON, isCSV, isXL, isCSVorXL, oimWb, documentInfo, documentType)
+                
+            return oimObject
+        
+        oimObject = loadOimObject(oimFile, None)
+        isJSON, isCSV, isXL, isCSVorXL, oimWb, oimDocumentInfo, documentType = oimObject["=entryParameters"]
+        del oimObject["=entryParameters"]
         currentAction = "identifying Metadata objects"
-        taxonomyRefs = oimDocumentInfo["taxonomy"]
-        namespaces = oimDocumentInfo["namespaces"]
+        taxonomyRefs = oimDocumentInfo.get("taxonomy", EMPTY_LIST)
+        namespaces = oimDocumentInfo.get("namespaces", EMPTY_DICT)
         linkTypes = oimDocumentInfo.get("linkTypes", EMPTY_DICT)
-        groups = oimDocumentInfo.get("groups",EMPTY_DICT)
+        linkGroups = oimDocumentInfo.get("linkGroups",EMPTY_DICT)
         if isJSON:
+            errPrefix = "xbrlje"
             featuresDict = oimDocumentInfo["features"]
             factItems = oimObject["facts"].items()
             footnotes = oimObject["facts"].values() # shares this object
         else: # isCSVorXL
-            reportDimensions = documentInfo.get("reportDimensions", {})
-            reportDecimals = documentInfo.get("decimals", None)
-            tables = oimObject["tables"]
+            errPrefix = "xbrlce"
+            reportDimensions = oimDocumentInfo.get("reportDimensions", EMPTY_DICT)
+            reportDecimals = oimDocumentInfo.get("decimals", None)
+            reportParameters = oimObject.get("reportParameters", EMPTY_DICT)
+            tableTemplates = oimObject.get("tableTemplates", EMPTY_DICT)
+            tables = oimObject.get("tables", EMPTY_DICT)
             footnotes = (oimObject.get("links", {}), )
+            final = oimObject.get("final", EMPTY_DICT)
             if sys.version[0] >= '3':
                 csvOpenMode = 'w'
                 csvOpenNewline = ''
             else:
                 csvOpenMode = 'wb' # for 2.7
                 csvOpenNewline = None
+                
+            # read reportParameters if in a CSV file relative to this file
+            if isinstance(reportParameters, str):
+                _file, encoding = modelXbrl.fileSource.file(os.path.join(os.path.dirname(oimFile),reportParameters), encoding='utf-8-sig')
+                reportParameters = {}
+                for row in csv.reader(_file):
+                    if len(row) >= 2 and row[0]:
+                        reportParameters[row[0]] = row[1]
 
         if isCSVorXL:
             currentAction = "loading CSV facts tables"
@@ -363,15 +529,25 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
 
             def csvFacts():
                 for tableId, table in tables.items():
-                    tableDimensions = table.get("tableDimensions", {})
-                    tableDecimals = table.get("decimals", None)
+                    tableTemplateId = table.get("template", tableId)
+                    if tableTemplateId not in tableTemplates:
+                        raise OIMException("xbrlce:missingTableTemplate", 
+                                           _("Referenced template missing: %(missing)s"),
+                                           missing=tableTemplateId)
+                    tableTemplate = tableTemplates[tableTemplateId]
+                    tableDecimals = tableTemplate.get("decimals", None)
+                    tableDimensions = tableTemplate.get("tableDimensions", EMPTY_DICT)
+                    tableIsOptional = tableTemplate.get("optional", False)
+                    tableParameters = reportParameters.copy()
+                    tableParameters.update( table.get("tableParameters", EMPTY_DICT) )
                     tableUrl = table["url"]
                     # compile column dependencies
                     factDimensions = {}
                     factDecimals = {}
-                    for colId, colProperties in table["factColumns"].items():
+                    for colId, colProperties in tableTemplate["columns"].items():
                         factDimensions[colId] = colProperties.get("columnDimensions", {})
-                        factDecimals[colId] = colProperties.get("decimals", None)
+                        if "decimals" in colProperties:
+                            factDecimals[colId] = colProperties["decimals"]
                         
                     # determine whether table is a CSV file or an Excel range.  
                     # Local range can be sheetname! or !rangename
@@ -390,23 +566,30 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                         if "#" in tableUrl:
                             tableUrl, _sep, sheetAndRange = tableUrl.partition("#")
                             xlSheetName, _sep, xlNamedRange = sheetAndRange.partition('!')
+                        tablePath = os.path.join(_dir, tableUrl)
+                        if tableIsOptional and not modelXbrl.fileSource.exists(tablePath):
+                            continue
                         if tableUrl.endswith(".xlsx"):
-                            _file, = modelXbrl.fileSource.file(os.path.join(_dir, tableUrl), binary=True)
+                            _file, = modelXbrl.fileSource.file(tablePath, binary=True)
                             tableWb = load_workbook(_file, data_only=True)
                             _cellValue = xlValue
                         else:
                             # must be CSV
-                            _file, encoding = modelXbrl.fileSource.file(os.path.join(_dir, tableUrl), encoding='utf-8-sig')
+                            _file, encoding = modelXbrl.fileSource.file(tablePath, encoding='utf-8-sig')
                             _rowIterator = csv.reader(_file)
                             _cellValue = csvCellValue
                     if tableWb is not None:
                         hasSheetname = xlSheetName and xlSheetName in tableWb
                         hasNamedRange = xlNamedRange and xlNamedRange in tableWb.defined_names
                         if tableWb and not hasSheetname:
+                            if tableIsOptional:
+                                continue
                             raise OIMException("xbrlwe:missingTable", 
                                                _("Referenced table tab(s): %(missing)s"),
                                                missing=tableUrl)
                         if xlNamedRange and not hasNamedRange:
+                            if tableIsOptional:
+                                continue
                             raise OIMException("xbrlwe:missingTableNamedRange", 
                                                _("Referenced named ranges tab(s): %(missing)s"),
                                                missing=tableRangeName)
@@ -446,7 +629,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 if cellValue not in (None, ""):
                                     fact["value"] = cellValue
                                     fact["dimensions"] = colFactDims = factDimensions[colName].copy()
-                                    for inheritedDims in tableDimensions, reportDimensions:
+                                    for inheritedDims in (tableDimensions, reportDimensions):
                                         for dimName, dimValue in inheritedDims.items():
                                             if dimName not in colFactDims:
                                                 colFactDims[dimName] = inheritedDims[dimName]
@@ -459,6 +642,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                                 dimValue, _sep, dimAttr = dimValue.partition("@")
                                                 if dimValue in colNameIndex:
                                                     dimValue = _cellValue(row[colNameIndex[dimValue]])
+                                                elif dimValue in tableDimensions:
+                                                    dimValue = tableDimensions[dimValue]
+                                                elif dimValue in reportDimensions:
+                                                    dimValue = reportDimensions[dimValue]
                                                 if dimName == "period":
                                                     dimValue = csvPeriod(dimValue, dimAttr)
                                             if dimValue in ("", "#none"):
@@ -470,11 +657,22 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                     for dimName in dimsNamesToRemove:
                                         del colFactDims[dimName]
                                     if colName in factDecimals:
-                                        fact["decimals"] = factDecimals[colName]
+                                        dimValue = factDecimals[colName]
                                     elif tableDecimals is not None:
-                                        fact["decimals"] = tableDecimals
+                                        dimValue = tableDecimals
+                                    elif reportDecimals is not None:
+                                        dimValue = reportDecimals
                                     else:
-                                        fact["decimals"] = reportDecimals
+                                        dimValue = None
+                                    if dimValue is not None:
+                                        if isinstance(dimValue, str) and dimValue.startswith("$"):
+                                            dimValue = dimValue[1:]
+                                            if dimValue in colNameIndex:
+                                                dimValue = _cellValue(row[colNameIndex[dimValue]])
+                                            elif dimValue in tableParameters:
+                                                dimValue = tableParameters[dimValue]
+                                        if dimValue not in ("", "#none"):
+                                            fact["decimals"] = dimValue
                                     id = "{}.{}.{}".format(
                                         tableId, 
                                         _cellValue(row[idColIndex]) if idColIndex is not None and idColIndex < len(row) else rowIndex, 
@@ -531,7 +729,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
         
         for id, fact in factItems:
             
-            dimensions = fact.get("dimensions", EMPTYDICT)
+            dimensions = fact.get("dimensions", EMPTY_DICT)
             if "concept" not in dimensions:
                 error("{}:conceptQName".format(errPrefix),
                                 _("The concept QName could not be determined, dimension \"concept\" is missing."),
@@ -566,7 +764,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
             if concept.isItem:
                 missingDimensions = []
                 if "entity" not in dimensions: 
-                    missingDimensions.append(oimEntity)
+                    missingDimensions.append("entity")
                 if "xbrl:start" in dimensions and "xbrl:end" in dimensions:
                     pass
                 if missingDimensions:
@@ -662,9 +860,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                         # validate unit
                         unitKeySub = PrefixedQName.sub(UnitPrefixedQNameSubstitutionChar, unitKey)
                         if not UnitPattern.match(unitKeySub):
-                            error("{}:invalidUnitString".format(errPrefix),
-                                            _("Unit string representation is lexically invalid, %(unit)s"),
-                                            modelObject=modelXbrl, unit=unitKey)
+                            error("xbrlje:invalidUnitString",
+                                  _("Unit string representation is lexically invalid, %(unit)s"),
+                                  modelObject=modelXbrl, unit=unitKey)
                         else:
                             _mul, _sep, _div = unitKey.partition('/')
                             if _mul.startswith('('):
@@ -674,15 +872,15 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 _div = _div[1:-1]
                             _divs = [u for u in _div.split('*') if u]
                             if _muls != sorted(_muls) or _divs != sorted(_divs):
-                                error("{}:invalidUnitString".format(errPrefix),
-                                                _("Unit string representation measures are not in alphabetical order, %(unit)s"),
-                                                modelObject=modelXbrl, unit=unitKey)
+                                error("xbrlje:invalidUnitString",
+                                      _("Unit string representation measures are not in alphabetical order, %(unit)s"),
+                                      modelObject=modelXbrl, unit=unitKey)
                             try:
-                                mulQns = [qname(u, namespaces, prefixException=OIMException("oime:unitPrefix",
+                                mulQns = [qname(u, namespaces, prefixException=OIMException("xbrlje:unboundPrefix",
                                                                                           _("Unit prefix is not declared: %(unit)s"),
                                                                                           unit=u)) 
                                           for u in _muls]
-                                divQns = [qname(u, namespaces, prefixException=OIMException("oime:unitPrefix",
+                                divQns = [qname(u, namespaces, prefixException=OIMException("xbrlje:unboundPrefix",
                                                                                           _("Unit prefix is not declared: %(unit)s"),
                                                                                           unit=u))
                                           for u in _divs]
@@ -749,11 +947,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                         undefinedFootnoteTypes.add(ftType)
                     else:
                         for ftGroup, ftTgtIds in ftGroups.items():
-                            if ftGroup not in groups:
+                            if ftGroup not in linkGroups:
                                 undefinedFootnoteGroups.add(ftGroup)
                             else:
                                 footnote = {"id": ftSrcId,
-                                            "group": groups[ftGroup],
+                                            "footnoteGroup": linkGroups[ftGroup],
                                             "footnoteType": linkTypes[ftType]}
                                 for tgtId in ftTgtIds:
                                     footnote.setdefault("noteRefs" if tgtId in xbrlNoteTbl else "factRefs", []).append(tgtId)
@@ -765,28 +963,28 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                         undefinedFootnoteTypes.add(ftType)
                     else:
                         for ftGroup, ftSrcIdTgtIds in ftGroups.items():
-                            if ftGroup not in groups:
+                            if ftGroup not in linkGroups:
                                 undefinedFootnoteGroups.add(ftGroup)
                             else:
                                 for ftSrcId, ftTgtIds in ftSrcIdTgtIds.items():
                                     footnote = {"id": ftSrcId,
-                                                "group": groups[ftGroup],
+                                                "footnoteGroup": linkGroups[ftGroup],
                                                 "footnoteType": linkTypes[ftType]}
                                     for tgtId in ftTgtIds:
                                         footnote.setdefault("noteRefs" if tgtId in xbrlNoteTbl else "factRefs", []).append(tgtId)
                                     factFootnotes.append(footnote)
             for footnote in factFootnotes:
                 factIDs = (footnote["id"], )
-                linkrole = footnote["group"]
+                linkrole = footnote["footnoteGroup"]
                 arcrole = footnote["footnoteType"]
                 if not factIDs or not linkrole or not arcrole or not (
                     footnote.get("factRefs") or footnote.get("footnote") is not None or footnote.get("noteRefs") is not None):
                     if not linkrole:
-                        warning("oime:footnoteMissingLinkrole",
+                        warning("xbrlje:unknownLinkGroup",
                                         _("FootnoteId has no linkrole %(footnoteId)s."),
                                         modelObject=modelXbrl, footnoteId=footnote.get("footnoteId"))
                     if not arcrole:
-                        warning("oime:footnoteMissingArcrole",
+                        warning("xbrlje:unknownLinkType",
                                         _("FootnoteId has no arcrole %(footnoteId)s."),
                                         modelObject=modelXbrl, footnoteId=footnote.get("footnoteId"))
                     continue
@@ -885,7 +1083,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                   modelObject=modelXbrl, ftTypes=", ".join(sorted(undefinedFootnoteTypes)))
         if undefinedFootnoteGroups:
             error("xbrlje:unknownPrefix",
-                  _("These footnote groups are not defined in groups: %(ftGroups)s."),
+                  _("These footnote groups are not defined in footnoteGroups: %(ftGroups)s."),
                   modelObject=modelXbrl, ftGroups=", ".join(sorted(undefinedFootnoteGroups)))
                     
         currentAction = "done loading facts and footnotes"
@@ -894,23 +1092,21 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
         #               messageCode="loadFromExcel:info")
     except NotOIMException as ex:
         _return = ex # not an OIM document
+    except json.JSONDecodeError as ex:
+        _return = ex # not an OIM document
+        error("arelleOIMloader:jsonFileError",
+                "JSON error while %(action)s, error %(error)s",
+                modelObject=modelXbrl, action=currentAction, error=ex)
     except Exception as ex:
         _return = ex
         if isinstance(ex, OIMException):
             error(ex.code, ex.message, modelObject=modelXbrl, **ex.msgArgs)
         else:
             error("arelleOIMloader:error",
-                    "Error while %(action)s, error %(error)s\ntraceback %(traceback)s",
+                    "Error while %(action)s, error %(error)s\n traceback %(traceback)s",
                     modelObject=modelXbrl, action=currentAction, error=ex,
                     traceback=traceback.format_tb(sys.exc_info()[2]))
     
-    if priorCWD:
-        os.chdir(priorCWD) # restore prior current working directory            startingErrorCount = len(modelXbrl.errors)
-        
-    #if startingErrorCount < len(modelXbrl.errors):
-    #    # had errors, don't allow ModelDocument.load to continue
-    #    return OIMException("arelleOIMloader:unableToLoad", "Unable to load due to reported errors")
-
     global lastFilePath, lastFilePath
     lastFilePath = None
     lastFilePathIsOIM = False
@@ -983,17 +1179,6 @@ def excelLoaderOptionExtender(parser, *args, **kwargs):
                       dest="saveOIMinstance", 
                       help=_("Save a instance loaded from OIM into this file name."))
     
-def oimJsonSaveXml(cntlr, oimJsonObject, jsonFileName, xbrlFileName):
-    def _error(code, message, **kwargs):
-        cntlr.addToLog(message, code, kwargs, level=logging.ERROR)
-    def _warning(code, message, **kwargs):
-        cntlr.addToLog(message, code, kwargs, level=logging.WARNING)
-        
-    doc = loadFromOIM(cntlr, _error, _warning, None, jsonFileName, "OIM", oimJsonObject)
-    if xbrlFileName:
-        doc.save(xbrlFileName)
-    doc.modelXbrl.close()
-    
 __pluginInfo__ = {
     'name': 'Load From OIM',
     'version': '1.2',
@@ -1006,6 +1191,5 @@ __pluginInfo__ = {
     'ModelDocument.PullLoader': oimLoader,
     'CntlrWinMain.Xbrl.Loaded': guiXbrlLoaded,
     'CntlrCmdLine.Options': excelLoaderOptionExtender,
-    'CntlrCmdLine.Xbrl.Loaded': cmdLineXbrlLoaded,
-    'OimJson.SaveXml': oimJsonSaveXml
+    'CntlrCmdLine.Xbrl.Loaded': cmdLineXbrlLoaded
 }
