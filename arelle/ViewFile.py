@@ -316,6 +316,8 @@ class View:
             if not isinstance(self.outfile, FileNamedStringIO):
                 self.csvFile.close()
         elif self.type == XLSX:
+            # add filtering
+            self.xlsxWs.auto_filter.ref = 'A1:{}{}'.format(utils.get_column_letter(self.xlsxWs.max_column), len(self.xlsxWs['A']))
             self.xlsxWb.save(self.outfile)
         elif self.type != NOOUT and not noWrite:
             fileType = TYPENAMES[self.type]
