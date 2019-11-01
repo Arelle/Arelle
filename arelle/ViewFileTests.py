@@ -14,8 +14,12 @@ def viewTests(modelXbrl, outfile, cols=None):
     view.close()
     
 COL_WIDTHS = {
-    "Index": 8, 
-    "Testcase": 8, 
+    "Index": 12, 
+    "Index.1": 12, 
+    "Index.2": 12, 
+    "Index.3": 12, 
+    "Index.4": 12, 
+    "Testcase": 20, 
     "Id": 10, 
     "Name": 50, 
     "Reference": 20, 
@@ -32,6 +36,8 @@ class ViewTests(ViewFile.View):
     def viewTestcaseIndexElement(self, modelDocument, parentDocument=None, nestedDepth=0):
         if parentDocument is None: # not a nested testacases index
             self.nestedIndexDepth = 0
+            self.xlsxDocNames = []
+            self.xlsxTestcase = ""
             if self.cols:
                 if isinstance(self.cols,str): self.cols = self.cols.replace(',',' ').split()
                 unrecognizedCols = []
@@ -51,6 +57,7 @@ class ViewTests(ViewFile.View):
                     if nestedDepth > self.nestedIndexDepth:
                         self.nestedIndexDepth = nestedDepth
                         self.cols.append("Index.{}".format(nestedDepth))
+                        self.xlsxDocNames.append("")
                     for referencedDocument in doc.referencesDocument.keys():
                         if referencedDocument.type == ModelDocument.Type.TESTCASESINDEX:
                             determineNestedIndexDepth(referencedDocument, nestedDepth + 1)
@@ -58,6 +65,7 @@ class ViewTests(ViewFile.View):
                 self.cols += ["Testcase", "Id"]
                 if self.type != ViewFile.XML:
                     self.cols.append("Name")
+                    self.xlsxDocNames.append("")
                 self.cols += ["ReadMeFirst", "Status", "Expected", "Actual"]
             
             self.setColWidths([COL_WIDTHS.get(col, 8) for col in self.cols])
@@ -66,6 +74,8 @@ class ViewTests(ViewFile.View):
         if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
             cols = []
             attr = {}
+            if self.type == ViewFile.XLSX:
+                self.xlsxDocName = None
             indexColName = "Index.{}".format(nestedDepth) if nestedDepth else "Index"
             for col in self.cols:
                 if col == indexColName:
@@ -74,12 +84,15 @@ class ViewTests(ViewFile.View):
                         docName = os.path.basename(os.path.dirname(modelDocument.uri))
                     if self.type == ViewFile.CSV:
                         cols.append(docName)
+                    elif self.type == ViewFile.XLSX:
+                        self.xlsxDocNames[nestedDepth] = docName
                     else:
                         attr["name"] = docName
                     break
                 else:
                     cols.append("")
-            self.addRow(cols, treeIndent=0, xmlRowElementName="testcaseIndex", xmlRowEltAttr=attr, xmlCol0skipElt=True)
+            if self.type != ViewFile.XLSX:
+                self.addRow(cols, treeIndent=0, xmlRowElementName="testcaseIndex", xmlRowEltAttr=attr, xmlCol0skipElt=True)
             # sort test cases by uri
             testcases = []
             for referencedDocument, _ref in sorted(modelDocument.referencesDocument.items(),
@@ -99,6 +112,8 @@ class ViewTests(ViewFile.View):
     def viewTestcase(self, modelDocument, indent):
         cols = []
         attr = {}
+        if self.type == ViewFile.XLSX:
+            self.xlsxTestcase = os.path.basename(modelDocument.uri)
         for col in self.cols:
             if col == "Testcase":
                 if self.type != ViewFile.XML:
@@ -108,7 +123,8 @@ class ViewTests(ViewFile.View):
                 break
             else:
                 cols.append("")
-        self.addRow(cols, treeIndent=indent, xmlRowElementName="testcase", xmlRowEltAttr=attr, xmlCol0skipElt=True)
+        if self.type != ViewFile.XLSX:
+            self.addRow(cols, treeIndent=indent, xmlRowElementName="testcase", xmlRowEltAttr=attr, xmlCol0skipElt=True)
         for modelTestcaseVariation in getattr(modelDocument, "testcaseVariations", ()):
             self.viewTestcaseVariation(modelTestcaseVariation, indent+1)
                 
@@ -118,8 +134,14 @@ class ViewTests(ViewFile.View):
             id = ""
         cols = []
         attr = {}
+        if self.type == ViewFile.XLSX:
+            cols.extend(self.xlsxDocNames)
+            cols.append(self.xlsxTestcase)
+            indent = 0 # excel shows all columns to allow filtering
         for col in self.cols:
-            if col == "Id":
+            if self.type == ViewFile.XLSX and (col.startswith("Index") or col == "Testcase"):
+                pass # these columns added above
+            elif col == "Id":
                 cols.append(id or modelTestcaseVariation.name)
             elif col == "Name":
                 if self.type != ViewFile.XML:
