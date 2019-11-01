@@ -6,6 +6,8 @@ Created on June 7, 2018
 
 Template crypt module using AES EAX (authenticated) mode.
 
+Requires installing pycrypto (not any other crypto module)
+
 Customize for an integrated security environment
 
 Input file parameters may be in JSON (without newlines for pretty printing as below):
