@@ -159,10 +159,10 @@ yearmonthdayPattern = RePattern(r"^[ \t\n\r]*([0-9]{4}|[0-9]{1,2})[^0-9]+([0-9]{
 
 zeroDashPattern = RePattern(r"^[ \t\n\r]*([-]|\u002D|\u002D|\u058A|\u05BE|\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\uFE58|\uFE63|\uFF0D)[ \t\n\r]*$")
 numDotDecimalPattern = RePattern(r"^[ \t\n\r]*[0-9]{1,3}([, \xA0]?[0-9]{3})*(\.[0-9]+)?[ \t\n\r]*$")
-numDotDecimalTR4Pattern = RePattern(r"^[ \t\n\r]*[, \xA00-9]*(\.[ 0-9]+)?[ \t\n\r]*$")
+numDotDecimalTR4Pattern = RePattern(r"^[ \t\n\r]*[, \xA00-9]*(\.[ \xA00-9]+)?[ \t\n\r]*$")
 numDotDecimalInPattern = RePattern(r"^(([0-9]{1,2}[, \xA0])?([0-9]{2}[, \xA0])*[0-9]{3})([.][0-9]+)?$|^([0-9]+)([.][0-9]+)?$")
 numCommaDecimalPattern = RePattern(r"^[ \t\n\r]*[0-9]{1,3}([. \xA0]?[0-9]{3})*(,[0-9]+)?[ \t\n\r]*$")
-numCommaDecimalTR4Pattern = RePattern(r"^[ \t\n\r]*[\. \xA00-9]*(,[ 0-9]+)?[ \t\n\r]*$")
+numCommaDecimalTR4Pattern = RePattern(r"^[ \t\n\r]*[\. \xA00-9]*(,[ \xA00-9]+)?[ \t\n\r]*$")
 numUnitDecimalPattern = RePattern(r"^([0]|([1-9][0-9]{0,2}([.,\uFF0C\uFF0E]?[0-9]{3})*))[^0-9,.\uFF0C\uFF0E]+([0-9]{1,2})[^0-9,.\uFF0C\uFF0E]*$")
 numUnitDecimalInPattern = RePattern(r"^(([0-9]{1,2}[, \xA0])?([0-9]{2}[, \xA0])*[0-9]{3})([^0-9]+)([0-9]{1,2})([^0-9]*)$|^([0-9]+)([^0-9]+)([0-9]{1,2})([^0-9]*)$")
 numUnitDecimalTR4Pattern = RePattern(r"^([0-9０-９\.,，]+)([^0-9０-９\.,，][^0-9０-９]*)([0-9０-９]{1,2})[^0-9０-９]*$")
