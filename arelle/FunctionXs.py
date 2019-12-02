@@ -7,6 +7,7 @@ Created on Dec 20, 2010
 import datetime, re
 from arelle import (XPathContext, ModelValue)
 from arelle.FunctionUtil import (anytypeArg, atomicArg, stringArg, numericArg, qnameArg, nodeArg)
+from arelle.XmlValidate import lexicalPatterns
 from arelle.XPathParser import ProgHeader
 from math import isnan, fabs, isinf
 from decimal import Decimal, InvalidOperation
@@ -257,19 +258,55 @@ def positiveInteger(xc, p, source):
     raise FORG0001
   
 def gYearMonth(xc, p, source):
-    raise xsFunctionNotAvailable()
+    try:
+        match = lexicalPatterns['gYearMonth'].match(source)
+        if match:
+            year, month, zSign, zHrMin, zHr, zMin = match.groups()
+            return ModelValue.gYearMonth(year, month)
+    except (ValueError, TypeError):
+        pass
+    raise FORG0001
   
 def gYear(xc, p, source):
-    raise xsFunctionNotAvailable()
+    try:
+        match = lexicalPatterns['gYear'].match(source)
+        if match:
+            year, zSign, zHrMin, zHr, zMin = match.groups()
+            return ModelValue.gYear(year)
+    except (ValueError, TypeError):
+        pass
+    raise FORG0001
   
 def gMonthDay(xc, p, source):
-    raise xsFunctionNotAvailable()
+    try:
+        match = lexicalPatterns['gMonthDay'].match(source)
+        if match:
+            month, day, zSign, zHrMin, zHr, zMin = match.groups()
+            if not int(day) > {2:29, 4:30, 6:30, 9:30, 11:30, 1:31, 3:31, 5:31, 7:31, 8:31, 10:31, 12:31}[int(month)]:
+                return ModelValue.gMonthDay(month, day)
+    except (ValueError, TypeError):
+        pass
+    raise FORG0001
   
 def gDay(xc, p, source):
-    raise xsFunctionNotAvailable()
+    try:
+        match = lexicalPatterns['gDay'].match(source)
+        if match:
+            day, zSign, zHrMin, zHr, zMin = match.groups()
+            return ModelValue.gDay(day)
+    except (ValueError, TypeError):
+        pass
+    raise FORG0001
   
 def gMonth(xc, p, source):
-    raise xsFunctionNotAvailable()
+    try:
+        match = lexicalPatterns['gMonth'].match(source)
+        if match:
+            month, zSign, zHrMin, zHr, zMin = match.groups()
+            return ModelValue.gMonth(month)
+    except (ValueError, TypeError):
+        pass
+    raise FORG0001
   
 def xsString(xc, p, source):
     if isinstance(source,bool):

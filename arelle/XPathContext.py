@@ -10,7 +10,7 @@ from arelle.XPathParser import (VariableRef, QNameDef, OperationDef, RangeDecl, 
 from arelle import (ModelXbrl, XbrlConst, XmlUtil)
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
-from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI)
+from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI, gYearMonth, gYear, gMonthDay, gDay, gMonth)
 from arelle.XmlValidate import UNKNOWN, VALID, VALID_NO_CONTENT, validate as xmlValidate
 from arelle.PluginManager import pluginClassMethods
 from decimal import Decimal, InvalidOperation
@@ -100,6 +100,7 @@ UNARY_OPS = {'u+', 'u-'}
 FORSOMEEVERY_OPS = {'for','some','every'}
 PATH_OPS = {'/', '//', 'rootChild', 'rootDescendant'}
 SEQUENCE_TYPES = (tuple,list,set)
+GREGORIAN_TYPES = (gYearMonth, gYear, gMonthDay, gDay, gMonth)
 
 class XPathContext:
     def __init__(self, modelXbrl, inputXbrlInstance, sourceElement, inScopeVars=None):
@@ -706,6 +707,8 @@ class XPathContext:
             x = dateTime(v, type=DATE)
         elif baseXsdType == "dateTime":
             x = dateTime(v, type=DATETIME)
+        elif baseXsdType in GREGORIAN_TYPES and isinstance(v, GREGORIAN_TYPES):
+            x = v
         elif baseXsdType == "noContent":
             x = None # can't be atomized
         elif baseXsdType:

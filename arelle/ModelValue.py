@@ -483,49 +483,114 @@ class gYearMonth():
     def __init__(self, year, month):
         self.year = int(year) # may be negative
         self.month = int(month)
-
     def __repr__(self):
         return self.__str__() 
     def __str__(self):
         return "{0:0{2}}-{1:02}".format(self.year, self.month, 5 if self.year < 0 else 4) # may be negative
+    def __eq__(self,other):
+        return type(other) == gYearMonth and self.year == other.year and self.month == other.month
+    def __ne__(self,other):
+        return not self.__eq__(other)
+    def __lt__(self,other):
+        return type(other) == gYearMonth and ((self.year < other.year) or (self.year == other.year and self.month < other.month))
+    def __le__(self,other):
+        return type(other) == gYearMonth and ((self.year <= other.year) or (self.year == other.year and self.month <= other.month))
+    def __gt__(self,other):
+        return type(other) == gYearMonth and ((self.year > other.year) or (self.year == other.year and self.month > other.month))
+    def __ge__(self,other):
+        return type(other) == gYearMonth and ((self.year >= other.year) or (self.year == other.year and self.month >= other.month))
+    def __bool__(self):
+        return self.year != 0 or self.month != 0
     
     
 class gMonthDay():
     def __init__(self, month, day):
         self.month = int(month)
         self.day = int(day)
-
     def __repr__(self):
         return self.__str__() 
     def __str__(self):
         return "--{0:02}-{1:02}".format(self.month, self.day)
+    def __eq__(self,other):
+        return type(other) == gMonthDay and self.month == other.month and self.day == other.day
+    def __ne__(self,other):
+        return not self.__eq__(other)
+    def __lt__(self,other):
+        return type(other) == gMonthDay and ((self.month < other.month) or (self.month == other.month and self.day < other.day))
+    def __le__(self,other):
+        return type(other) == gMonthDay and ((self.month <= other.month) or (self.month == other.month and self.day <= other.day))
+    def __gt__(self,other):
+        return type(other) == gMonthDay and ((self.month > other.month) or (self.month == other.month and self.day > other.day))
+    def __ge__(self,other):
+        return type(other) == gMonthDay and ((self.month >= other.month) or (self.month == other.month and self.day >= other.day))
+    def __bool__(self):
+        return self.month != 0 or self.day != 0
     
 class gYear():
     def __init__(self, year):
         self.year = int(year) # may be negative
-
     def __repr__(self):
         return self.__str__() 
     def __str__(self):
         return "{0:0{1}}".format(self.year, 5 if self.year < 0 else 4) # may be negative
+    def __eq__(self,other):
+        return type(other) == gYear and self.year == other.year
+    def __ne__(self,other):
+        return not self.__eq__(other)
+    def __lt__(self,other):
+        return type(other) == gYear and self.year < other.year
+    def __le__(self,other):
+        return type(other) == gYear and self.year <= other.year
+    def __gt__(self,other):
+        return type(other) == gYear and self.year > other.year
+    def __ge__(self,other):
+        return type(other) == gYear and self.year >= other.year
+    def __bool__(self):
+        return self.year != 0 != 0
     
 class gMonth():
     def __init__(self, month):
         self.month = int(month)
-
     def __repr__(self):
         return self.__str__() 
     def __str__(self):
         return "--{0:02}".format(self.month)
+    def __eq__(self,other):
+        return type(other) == gMonth and self.month == other.month
+    def __ne__(self,other):
+        return not self.__eq__(other)
+    def __lt__(self,other):
+        return type(other) == gMonth and self.month < other.month
+    def __le__(self,other):
+        return type(other) == gMonth and self.month <= other.month
+    def __gt__(self,other):
+        return type(other) == gMonth and self.month > other.month
+    def __ge__(self,other):
+        return type(other) == gMonth and self.month >= other.month
+    def __bool__(self):
+        return self.month != 0
     
 class gDay():
     def __init__(self, day):
         self.day = int(day)
-
     def __repr__(self):
         return self.__str__() 
     def __str__(self):
         return "---{0:02}".format(self.day)
+    def __eq__(self,other):
+        return type(other) == gDay and self.day == other.day
+    def __ne__(self,other):
+        return not self.__eq__(other)
+    def __lt__(self,other):
+        return type(other) == gDay and self.day < other.day
+    def __le__(self,other):
+        return type(other) == gDay and self.day <= other.day
+    def __gt__(self,other):
+        return type(other) == gDay and self.day > other.day
+    def __ge__(self,other):
+        return type(other) == gDay and self.day >= other.day
+    def __bool__(self):
+        return self.day != 0
     
 isoDurationPattern = re.compile(
     r"^(?P<sign>[+-])?"
