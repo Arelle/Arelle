@@ -911,10 +911,15 @@ class ModelDocument:
                         edgarCode="du-0311-Xml-Base-Used",
                         modelObject=element, attribute=baseAttr, element=element.qname)
                 else:
+                    ''' HF 2019-09-29: believe this is wrong
                     if baseAttr.startswith("/"):
                         base = baseAttr
                     else:
                         base = baseAttr + base
+                    '''
+                    base = baseAttr + base
+                    if base.startswith("/"):
+                        break # break because it is now absolute
             baseElt = baseElt.getparent()
         if base: # neither None nor ''
             if base.startswith('http://') or os.path.isabs(base):
