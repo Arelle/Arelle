@@ -86,7 +86,7 @@ def checkFilingDimensions(val):
     if invalidDefaultELRs:
         for invalidDefaultELR, rels in invalidDefaultELRs.items():
             val.modelXbrl.error("esma.3.4.3.extensionTaxonomyDimensionNotAssigedDefaultMemberInDedicatedPlaceholder",
-                _("Each dimension in an issuer specific extension taxonomy MUST be assigned to a default member in the ELR with role URI http://www.esma.europa.eu/xbrl/esef/role/ifrs-dim_role-990000 defined in esef_cor.xsd schema file. %(invalidDefaultELR)s"),
+                _("Each dimension in an issuer specific extension taxonomy MUST be assigned to a default member in the ELR with role URI http://www.esma.europa.eu/xbrl/role/ifrs-dim_role-990000 defined in esef_cor.xsd schema file. %(invalidDefaultELR)s"),
                 modelObject=rels, invalidDefaultELR=invalidDefaultELR)
         
     # check base set dimension default overrides in extension taxonomies

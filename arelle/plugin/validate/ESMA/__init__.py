@@ -21,6 +21,7 @@ from arelle.ModelValue import qname
 from arelle.PythonUtil import strTruncate
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.XbrlConst import ixbrlAll, xhtml, link, parentChild, summationItem, dimensionDomain, domainMember
+from arelle.XmlValidate import VALID
 from .Const import allowedImgMimeTypes, browserMaxBase64ImageLength, mandatory, untransformableTypes
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
@@ -489,7 +490,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                             lbElts.add(to)
             unreportedLbElts = lbElts - conceptsUsed
             if unreportedLbElts:
-                modelXbrl.error("esma.3.2.6." + err,
+                modelXbrl.error("esma.3.4.6." + err,
                     _("All usable concepts in extension taxonomy relationships MUST be applied by tagged facts: %(elements)s."),
                     modelObject=unreportedLbElts, elements=", ".join(sorted((str(c.qname) for c in unreportedLbElts))))
 
