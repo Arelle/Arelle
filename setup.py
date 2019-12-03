@@ -239,13 +239,13 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         includeFiles.append(('arelle/scripts-unix','scripts'))
         if os.path.exists("/etc/redhat-release"):
             # extra libraries needed for red hat
-            includeFiles.append(('/usr/local/lib/libexslt.so', 'libexslt.so'))
-            includeFiles.append(('/usr/local/lib/libxml2.so', 'libxml2.so'))
+            includeFiles.append(('/usr/lib64/libexslt.so.0', 'libexslt.so'))
+            includeFiles.append(('/usr/lib64/libxml2.so', 'libxml2.so'))
             # for some reason redhat needs libxml2.so.2 as well
-            includeFiles.append(('/usr/local/lib/libxml2.so.2', 'libxml2.so.2'))
-            includeFiles.append(('/usr/local/lib/libxslt.so', 'libxslt.so'))
+            includeFiles.append(('/usr/lib64/libxml2.so.2', 'libxml2.so.2'))
+            includeFiles.append(('/usr/lib64/libxslt.so.1', 'libxslt.so'))
             includeFiles.append(('/lib64/libz.so.1', 'libz.so.1')) # not standard in RHEL6
-            includeFiles.append(('/usr/lib64/liblzma.so.0', 'liblzma.so.0')) # not standard in RHEL6
+            includeFiles.append(('/usr/lib64/liblzma.so.5', 'liblzma.so.5')) # not standard in RHEL6
             includeFiles.append(('/usr/local/lib/tcl8.6', 'tcl8.6')) 
             includeFiles.append(('/usr/local/lib/tk8.6', 'tk8.6')) 
                 
@@ -271,9 +271,9 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         'rdflib.plugins.serializers.xmlwriter',
         'rdflib.plugins.sparql',
         'rdflib.plugins.stores',
-        'isodate', 'regex', 'gzip', 'zlib', 'aniso8601', 'graphviz',
-        'openpyxl', 'PIL', 'pycountry',
-        'Crypto', 'Crypto.Cipher', 'Crypto.Cipher.AES'
+        'isodate', 'regex', 'gzip', 'zlib', 'aniso8601', 'graphviz', 'holidays',
+        'openpyxl', 'PIL', 'pycountry',  # to install PIL it's named Pillow
+        'Crypto', 'Crypto.Cipher', 'Crypto.Cipher.AES' # install pycrypto not another crypto module
         #'google_api_python_client', 'oauth2client', 'six', 'httplib2', 'uritemplate', 'pyasn1', 'rsa', 'pyasn1_modules' # google-api-python-client
     ]
 
@@ -287,7 +287,7 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
     if os.path.exists("arelle/plugin/EdgarRenderer"):
         includeLibs += [
             'cherrypy', # 'cherrypy.wsgiserver.wsgiserver3',
-            'dateutil',
+            'dateutil', 'pytz', # pytz installed by dateutil
             'dateutil.relativedelta',
             
             'tornado',
@@ -368,7 +368,7 @@ elif sys.platform == 'win32':
         'rdflib.plugins.serializers.xmlwriter',
         'rdflib.plugins.sparql',
         'rdflib.plugins.stores',
-        'isodate', 'regex', 'gzip', 'zlib', 'aniso8601', 'graphviz',
+        'isodate', 'regex', 'gzip', 'zlib', 'aniso8601', 'graphviz', 'holidays',
         'openpyxl', 'PIL', 'pycountry', 
         'Crypto', 'Crypto.Cipher', 'Crypto.Cipher.AES'
     ]

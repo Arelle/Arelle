@@ -7,6 +7,7 @@
 PYTHON=python3.5
 # specify locally build python prefixed lib
 LD_LIBRARY_PATH=/usr/local/lib/sparcv9
+OPT_CSW_LIB=/opt/csw/lib/sparcv9
 # specify latest gcc tools
 PATH=/usr/local/bin:/opt/csw/bin:/usr/bin:/bin:/usr/xpg4/bin:/usr/ccs/bin:/usr/sfw/bin
 
@@ -30,16 +31,19 @@ if [ ! -d dist ]
 fi
 
 # run cx_Freeze setup
+# must use /opt/csw over older libraries for libc++ etc
 ${PYTHON} setup.py build_exe
 # builds into sparcv9 but ziploader expects lib
-cd build/${BUILT64}
-mv sparcv9 lib
-mkdir sparcv9
-cd sparcv9
-ln -s ../lib/*.zip .
-cd ../../..
+# HF - think this is no longer needed
+#cd build/${BUILT64}
+#mv sparcv9 lib
+#mkdir sparcv9
+#cd sparcv9
+#ln -s ../lib/*.zip .
+#cd ../../..
 
 # add utility scripts for Arelle
+find . -name libstdc++.so.6 -exec rm {} \;
 cp arelle/scripts-unix/* build/${BUILT64}
 
 ls build/${BUILT64}
@@ -51,6 +55,9 @@ cd build/${BUILT64}
 
 # for now there's no tkinter on solaris sun4 (intended for server only)
 rm arelle
+
+# libraries not taken from right source lib:
+cp -p ${OPT_CSW_LIB}/libstdc++.so.6 ./lib
 
 # add missing libraries
 # no longer needed when specifying LD_LIBRARY_PATH
@@ -67,7 +74,11 @@ rm arelle
 # cp /usr/local/lib/sparcv9/libz.so* .
 
 rm -f ../../dist/${BUILT64}.tgz 
+# remove cryptEDGAR from public distribution
+rm plugin/security/cryptEDGAR.py
 gtar -czf ../../dist/${BUILT64}.tgz .
+# add back plugin
+cp -p ../../arelle/plugin/security/cryptEDGAR.py plugin/security/cryptEDGAR.py
 cd ../..
 
 # add arelle into SEC XBRL.JAR
@@ -75,6 +86,7 @@ cd build
 rm -fR arelle
 mv ${BUILT64} arelle
 rm -fr arelle/examples
+rm -fr arelle/lib/arelle/examples
 cp /export/home/edgar/xbrl.jar ../dist
 echo updating xbrl.jar
 rm ../dist/xbrl.jar

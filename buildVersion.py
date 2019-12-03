@@ -39,7 +39,7 @@ if __name__ == "__main__":
         
 
     # add name suffix, like ER3 or TKTABLE
-    if len(sys.argv) > 1 and sys.argv[1]:
+    if len(sys.argv) > 1 and sys.argv[1] and sys.platform not in ("linux",):
         dateDashYmd += "-" + sys.argv[1]
         
     if sys.platform == "darwin":
@@ -69,7 +69,9 @@ if __name__ == "__main__":
         with open("buildRenameX86.bat", "w") as fh:
             fh.write("rename dist\\arelle-win-x86.exe arelle-win-x86-{}.exe\n".format(dateDashYmd))
         with open("buildRenameX64.bat", "w") as fh:
-            fh.write("rename dist\\arelle-win-x64.exe arelle-win-x64-{}.exe\n".format(dateDashYmd))
+            fh.write("rename dist\\arelle-win-x64.exe arelle-win-x64-{0}.exe\n"
+                     "rename dist\\arelle-win-x64.zip arelle-win-x64-{0}.zip\n"
+                     .format(dateDashYmd))
         with open("buildRenameSvr27.bat", "w") as fh:
             fh.write("rename dist\\arelle-svr-2.7.zip arelle-svr-2.7-{}.zip\n".format(dateDashYmd))
         with open("buildRenameZip32.bat", "w") as fh:
