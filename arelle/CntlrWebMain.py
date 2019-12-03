@@ -12,7 +12,12 @@ from arelle.Cntlr import LogFormatter
 import os, io, sys, time, threading, uuid, zipfile
 from arelle import Version
 from arelle.FileSource import FileNamedStringIO
+from arelle.PluginManager import pluginClassMethods
 _os_pid = os.getpid()
+    
+GETorPOST = ('GET', 'POST')
+GET = 'GET'
+POST = 'POST'
 
 def startWebserver(_cntlr, options):
     """Called once from main program in CmtlrCmdLine to initiate web server on specified local port.
@@ -33,66 +38,71 @@ def startWebserver(_cntlr, options):
     port, sep, server = portServer.partition(":")
     # start a Bottle application
     app = Bottle()
-    
-    GETorPOST = ('GET', 'POST')
-    GET = 'GET'
-    POST = 'POST'
 
     # install REST API interfaces
     # if necessary to support CGI hosted servers below root, add <prefix:path> as first part of routes
     # and corresponding arguments to the handler methods
-    app.route('/rest/login', GET, login_form)
-    app.route('/rest/login', POST, login_submit)
-    app.route('/rest/logout', GET, logout)
-    app.route('/favicon.ico', GET, arelleIcon)
-    app.route('/rest/xbrl/<file:path>/open', GETorPOST, validation)
-    app.route('/rest/xbrl/<file:path>/close', GETorPOST, validation)
-    app.route('/rest/xbrl/<file:path>/validation/xbrl', GETorPOST, validation)
-    app.route('/rest/xbrl/<file:path>/DTS', GETorPOST, validation)
-    app.route('/rest/xbrl/<file:path>/concepts', GETorPOST, validation)
-    app.route('/rest/xbrl/<file:path>/pre', GETorPOST, validation)
-    app.route('/rest/xbrl/<file:path>/table', GETorPOST, validation)
-    app.route('/rest/xbrl/<file:path>/cal', GETorPOST, validation)
-    app.route('/rest/xbrl/<file:path>/dim', GETorPOST, validation)
-    app.route('/rest/xbrl/<file:path>/facts', GETorPOST, validation)
-    app.route('/rest/xbrl/<file:path>/factTable', GETorPOST, validation)
-    app.route('/rest/xbrl/<file:path>/roleTypes', GETorPOST, validation)
-    app.route('/rest/xbrl/<file:path>/arcroleTypes', GETorPOST, validation)
-    app.route('/rest/xbrl/<file:path>/formulae', GETorPOST, validation)
-    app.route('/rest/xbrl/validation', GETorPOST, validation)
-    app.route('/rest/xbrl/view', GETorPOST, validation)
-    app.route('/rest/xbrl/open', GETorPOST, validation)
-    app.route('/rest/xbrl/close', GETorPOST, validation)
-    app.route('/images/<imgFile>', GET, image)
-    app.route('/rest/xbrl/diff', GET, diff)
-    app.route('/rest/configure', GET, configure)
-    app.route('/rest/stopWebServer', GET, stopWebServer)
-    app.route('/quickbooks/server.asmx', POST, quickbooksServer)
-    app.route('/rest/quickbooks/<qbReport>/xbrl-gl/<file:path>', GET, quickbooksGLrequest)
-    app.route('/rest/quickbooks/<qbReport>/xbrl-gl/<file:path>/view', GET, quickbooksGLrequest)
-    app.route('/rest/quickbooks/<qbReport>/xbrl-gl/view', GET, quickbooksGLrequest)
-    app.route('/rest/quickbooks/response', GET, quickbooksGLresponse)
-    app.route('/quickbooks/server.html', GET, quickbooksWebPage)
-    app.route('/quickbooks/localhost.crt', GET, localhostCertificate)
-    app.route('/localhost.crt', GET, localhostCertificate)
-    app.route('/rest/test/test', GETorPOST, testTest)
-    app.route('/help', GET, helpREST)
-    app.route('/about', GET, about)
-    app.route('/', GET, indexPageREST)
-    if server == "cgi":
-        # catch a non-REST interface by cgi Interface (may be a cgi app exe module, etc)
-        app.route('<cgiAppPath:path>', GETorPOST, cgiInterface)
-    if server == "wsgi":
-        return app
-    elif server == "cgi":
-        if sys.stdin is None:
-            sys.stdin = open(os.devnull, 'r')
-        app.run(server=server)
-        sys.exit(0)
-    elif server:
-        app.run(host=host, port=port or 80, server=server)
-    else:
-        app.run(host=host, port=port or 80)
+    
+    # allow plugins to replace or add to default REST API "routes"
+    pluginResult = None
+    for pluginMethod in pluginClassMethods("CntlrWebMain.StartWebServer"):
+        # returns a string containing "skip-routes" to block default routes and/or "skip-run" to block default app startup
+        pluginResult = pluginMethod(app, cntlr, host, port, server)
+        break # only provide for a single plugin of this class
+    if not (isinstance(pluginResult, str) and "skip-routes" in pluginResult):
+        app.route('/rest/login', GET, login_form)
+        app.route('/rest/login', POST, login_submit)
+        app.route('/rest/logout', GET, logout)
+        app.route('/favicon.ico', GET, arelleIcon)
+        app.route('/rest/xbrl/<file:path>/open', GETorPOST, validation)
+        app.route('/rest/xbrl/<file:path>/close', GETorPOST, validation)
+        app.route('/rest/xbrl/<file:path>/validation/xbrl', GETorPOST, validation)
+        app.route('/rest/xbrl/<file:path>/DTS', GETorPOST, validation)
+        app.route('/rest/xbrl/<file:path>/concepts', GETorPOST, validation)
+        app.route('/rest/xbrl/<file:path>/pre', GETorPOST, validation)
+        app.route('/rest/xbrl/<file:path>/table', GETorPOST, validation)
+        app.route('/rest/xbrl/<file:path>/cal', GETorPOST, validation)
+        app.route('/rest/xbrl/<file:path>/dim', GETorPOST, validation)
+        app.route('/rest/xbrl/<file:path>/facts', GETorPOST, validation)
+        app.route('/rest/xbrl/<file:path>/factTable', GETorPOST, validation)
+        app.route('/rest/xbrl/<file:path>/roleTypes', GETorPOST, validation)
+        app.route('/rest/xbrl/<file:path>/arcroleTypes', GETorPOST, validation)
+        app.route('/rest/xbrl/<file:path>/formulae', GETorPOST, validation)
+        app.route('/rest/xbrl/validation', GETorPOST, validation)
+        app.route('/rest/xbrl/view', GETorPOST, validation)
+        app.route('/rest/xbrl/open', GETorPOST, validation)
+        app.route('/rest/xbrl/close', GETorPOST, validation)
+        app.route('/images/<imgFile>', GET, image)
+        app.route('/rest/xbrl/diff', GET, diff)
+        app.route('/rest/configure', GET, configure)
+        app.route('/rest/stopWebServer', GET, stopWebServer)
+        app.route('/quickbooks/server.asmx', POST, quickbooksServer)
+        app.route('/rest/quickbooks/<qbReport>/xbrl-gl/<file:path>', GET, quickbooksGLrequest)
+        app.route('/rest/quickbooks/<qbReport>/xbrl-gl/<file:path>/view', GET, quickbooksGLrequest)
+        app.route('/rest/quickbooks/<qbReport>/xbrl-gl/view', GET, quickbooksGLrequest)
+        app.route('/rest/quickbooks/response', GET, quickbooksGLresponse)
+        app.route('/quickbooks/server.html', GET, quickbooksWebPage)
+        app.route('/quickbooks/localhost.crt', GET, localhostCertificate)
+        app.route('/localhost.crt', GET, localhostCertificate)
+        app.route('/rest/test/test', GETorPOST, testTest)
+        app.route('/help', GET, helpREST)
+        app.route('/about', GET, about)
+        app.route('/', GET, indexPageREST)
+        if server == "cgi":
+            # catch a non-REST interface by cgi Interface (may be a cgi app exe module, etc)
+            app.route('<cgiAppPath:path>', GETorPOST, cgiInterface)
+    if not (isinstance(pluginResult, str) and "skip-run" in pluginResult):
+        if server == "wsgi":
+            return app
+        elif server == "cgi":
+            if sys.stdin is None:
+                sys.stdin = open(os.devnull, 'r')
+            app.run(server=server)
+            sys.exit(0)
+        elif server:
+            app.run(host=host, port=port or 80, server=server)
+        else:
+            app.run(host=host, port=port or 80)
         
 def cgiInterface(cgiAppPath):
     # route request according to content
@@ -297,7 +307,7 @@ def runOptionsAndGetResult(options, media, viewFile, sourceZipStream=None):
     addLogToZip = False
     if media == "zip" and not viewFile:
         responseZipStream = io.BytesIO()
-        # add any needded plugins to load from OiM or save into OIM
+        # add any needed plugins to load from OIM or save into OIM
         if (hasattr(options, "saveOIMinstance") or 
             (getattr(options, "entrypointFile", "") or "").rpartition(".")[2] in ("json", "csv", "xlsx")):
             plugins = (getattr(options, "plugins", "") or "").split("|")
