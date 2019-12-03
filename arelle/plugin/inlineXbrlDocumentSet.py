@@ -13,6 +13,12 @@ CmdLine allows --file '[{"ixds":[{"file":file1},{"file":file2}...]}]'
 If there are non-default target documents, the target document identifier can be specified by ixdsTarget
 
     --file '[{"ixds":[{"file":file1},{"file":file2}...],"ixdsTarget":"xyz"}]' 
+    
+If the file source is a zip, CmdLine will discover the inline files in the zip as thus:
+    --file '[{"ixds":[{"file":file1.zip}]}]'
+      
+If the file source is a local directory, CmdLine will discover the inline files in the directory as thus:
+    --file '[{"ixds":[{"file":dir1}]}]'
       
 For GUI operation specify a formula parameter named ixdsTarget of type xs:string (in formula tools->formula parameters).
 
@@ -21,7 +27,7 @@ ix facts and resources with no @target attribute.
 
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import ModelXbrl, ValidateXbrlDimensions, XbrlConst
+from arelle import FileSource, ModelXbrl, ValidateXbrlDimensions, XbrlConst
 from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
 from arelle.FileSource import archiveFilenameParts
 from arelle.ModelInstanceObject import ModelInlineFootnote
@@ -415,6 +421,35 @@ def commandLineFilingStart(cntlr, options, filesource, entrypointFiles, *args, *
             if isinstance(_ixds, list):
                 # build file surrogate for inline document set
                 _files = [e["file"] for e in _ixds if isinstance(e, dict)]
+                if len(_files) == 1:
+                    urlsByType = {}
+                    if os.path.isfile(_files[0]) and any(_files[0].endswith(e) for e in (".zip", ".ZIP", ".tar.gz" )): # check if an archive file
+                        filesource = FileSource.openFileSource(_files[0], cntlr)
+                        if filesource.isArchive:
+                            for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
+                                filesource.select(_archiveFile)
+                                identifiedType = Type.identify(filesource, filesource.url)
+                                if identifiedType in (Type.INSTANCE, Type.INLINEXBRL):
+                                    urlsByType.setdefault(identifiedType, []).append(filesource.url)
+                        filesource.close()
+                    elif os.path.isdir(_files[0]):
+                        _fileDir = _files[0]
+                        for _localName in os.listdir(_fileDir):
+                            _file = os.path.join(_fileDir, _localName)
+                            if os.path.isfile(_file):
+                                filesource = FileSource.openFileSource(_file, cntlr)
+                                identifiedType = Type.identify(filesource, filesource.url)
+                                if identifiedType in (Type.INSTANCE, Type.INLINEXBRL):
+                                    urlsByType.setdefault(identifiedType, []).append(filesource.url)
+                                filesource.close()
+                    if urlsByType:
+                        _files = []
+                        # use inline instances, if any, else non-inline instances
+                        for identifiedType in (Type.INLINEXBRL, Type.INSTANCE):
+                            for url in urlsByType.get(identifiedType, []):
+                                _files.append(url)
+                            if _files:
+                                break # found inline (or non-inline) entrypoint files, don't look for any other type
                 if len(_files) > 0:
                     docsetSurrogatePath = os.path.join(os.path.dirname(_files[0]), IXDS_SURROGATE)
                     entrypointFile["file"] = docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(_files)
