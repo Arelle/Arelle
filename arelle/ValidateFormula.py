@@ -1256,11 +1256,11 @@ def checkMessageExpressions(val, message):
                     skipTo = None
             if expression is not None and c in ('\'', '"'):
                 skipTo = c
-            elif lastC == c and c in ('{','}'):
-                lastC = None
             elif lastC == '{': 
                 bracketNesting += 1
                 expression = []
+                lastC = None
+            elif lastC == c and c in ('{','}'):
                 lastC = None
             elif c == '}' and expression is not None: 
                 expressions.append( ''.join(expression).strip() )
@@ -1270,7 +1270,7 @@ def checkMessageExpressions(val, message):
                 lastC = c
             elif lastC == '}':
                 bracketNesting -= 1
-                lastC = None
+                lastC = c
             else:
                 lastC = c
                 
@@ -1279,7 +1279,7 @@ def checkMessageExpressions(val, message):
             
         if lastC == '}':
             bracketNesting -= 1
-        if bracketNesting:
+        if bracketNesting != 0:
             val.modelXbrl.error("xbrlmsge:missingLeftCurlyBracketInMessage" if bracketNesting < 0 else "xbrlmsge:missingRightCurlyBracketInMessage",
                 _("Message %(xlinkLabel)s: unbalanced %(character)s character(s) in: %(text)s"),
                 modelObject=message, xlinkLabel=message.xlinkLabel, 
