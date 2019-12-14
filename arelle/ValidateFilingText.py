@@ -422,6 +422,10 @@ def checkfile(modelXbrl, filepath):
     foundXmlDeclaration = False
     isEFM = modelXbrl.modelManager.disclosureSystem.validationType == "EFM"
     file, encoding = modelXbrl.fileSource.file(filepath)
+    if isEFM and encoding == "utf-8-sig":
+        modelXbrl.error("EFM.5.02.01.01",
+            _("Disallowed byte-order mark in file %(file)s."),
+            modelDocument=filepath, text="byte-order mark", unicodeIndex="U+FEFF", file=os.path.basename(filepath), line=1, column=1)
     parserResults = {}
     class checkFileType(object):
         def start(self, tag, attr, nsmap=None): # check root XML element type
