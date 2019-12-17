@@ -811,7 +811,11 @@ class ModelInlineFractionTerm(ModelInlineValueObject, ModelObject):
     @property
     def concept(self):
         return self.modelXbrl.qnameConcepts.get(self.qname) # for fraction term type determination
-
+    
+    @property
+    def isInteger(self):
+        return False # fraction terms are xs:decimal
+    
     def __iter__(self):
         if False: yield None # generator with nothing to generate
     
