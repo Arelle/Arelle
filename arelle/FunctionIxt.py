@@ -440,7 +440,6 @@ def datemonthday(arg):
     raise XPathContext.FunctionArgType(0,"xs:gMonthDay")
     
 def datedaymonthSlashTR1(arg):
-    return datedaymonth(arg, daymonthslashPattern)
     m = daymonthslashPattern.match(arg)
     if m and m.lastindex == 2:
         mo = z2(m.group(2))
