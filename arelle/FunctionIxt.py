@@ -96,7 +96,9 @@ daymonthyearFiPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]*[^0-9a-zA-Z]+(
 daymonthyearFrPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]+(janv|févr|fevr|mars|avr|mai|juin|juil|août|aout|sept|oct|nov|déc|dec|JANV|FÉVR|FEVR|MARS|AVR|MAI|JUIN|JUIL|AOÛT|AOUT|SEPT|OCT|NOV|DÉC|DEC|Janv|Févr|Fevr|Mars|Avr|Mai|Juin|Juil|Août|Aout|Sept|Oct|Nov|Déc|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$")
 daymonthyearHrPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]+(sij|velj|ožu|ozu|tra|svi|lip|srp|kol|ruj|lis|stu|pro|SIJ|VELJ|OŽU|OZU|TRA|SVI|LIP|SRP|KOL|RUJ|LIS|STU|PRO|Sij|Velj|Ožu|Ozu|Tra|Svi|Lip|Srp|Kol|Ruj|Lis|Stu|Pro)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$")
 yearmonthdayHuPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2}|[0-9]{4})[^0-9]+(jan|feb|márc|marc|ápr|apr|máj|maj|jún|jun|júl|jul|aug|szept|okt|nov|dec|JAN|FEB|MÁRC|MARC|ÁPR|APR|MÁJ|MAJ|JÚN|JUN|JÚL|JUL|AUG|SZEPT|OKT|NOV|DEC|Jan|Feb|Márc|Marc|Ápr|Apr|Máj|Maj|Jún|Jun|Júl|Jul|Aug|Szept|Okt|Nov|Dec)[^0-9]+([0-9]{1,2})[ \t\n\r]*$")
-daymonthyearInPattern = RePattern(r"^[ \t\n\r]*([0-9\u0966-\u096F]{1,2})\s([\u0966-\u096F]{2}|[^\s0-9\u0966-\u096F]+)\s([0-9\u0966-\u096F]{2}|[0-9\u0966-\u096F]{4})[ \t\n\r]*$")
+daymonthyearInPatternTR4 = RePattern(r"^[ \t\n\r]*([0-9]{1,2}|[०-९]{1,2})[^0-9०-९]+(जनवरी|फरवरी|मार्च|अप्रैल|मई|जून|जुलाई|अगस्त|सितंबर|अक्टूबर|नवंबर|दिसंबर)[^0-9०-९]+([0-9]{2}|[0-9]{4}|[०-९]{2}|[०-९]{4})[ \t\n\r]*$")
+daymonthyearInPatternTR3 = RePattern(r"^[ \t\n\r]*([0-9]{1,2}|[०-९]{1,2})[^0-9०-९]+(जनवरी|फरवरी|मार्च|अप्रैल|मई|जून|जुलाई|अगस्त|सितंबर|अक्टूबर|नवंबर|दिसंबर|[०-९]{1,2})[^0-9०-९]+([0-9]{2}|[0-9]{4}|[०-९]{2}|[०-९]{4})[ \t\n\r]*$")
+daymonthyearInIndPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2}|[०-९]{1,2})[^0-9०-९]+((C\S*ait|चैत्र)|(Vai|वैशाख|बैसाख)|(Jy|ज्येष्ठ)|(dha|ḍha|आषाढ|आषाढ़)|(vana|Śrāvaṇa|श्रावण|सावन)|(Bh\S+dra|Proṣṭhapada|भाद्रपद|भादो)|(in|आश्विन)|(K\S+rti|कार्तिक)|(M\S+rga|Agra|मार्गशीर्ष|अगहन)|(Pau|पौष)|(M\S+gh|माघ)|(Ph\S+lg|फाल्गुन))[^0-9०-९]+([0-9]{2}|[0-9]{4}|[०-९]{2}|[०-९]{4})[ \t\n\r]*$")
 daymonthyearItPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]+(gen|feb|mar|apr|mag|giu|lug|ago|set|ott|nov|dic|GEN|FEB|MAR|APR|MAG|GIU|LUG|AGO|SET|OTT|NOV|DIC|Gen|Feb|Mar|Apr|Mag|Giu|Lug|Ago|Set|Ott|Nov|Dic)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$")
 yearmonthdayLtPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2}|[0-9]{4})[^0-9]*[^0-9a-zA-Z]+(sau|vas|kov|bal|geg|bir|lie|rugp|rgp|rugs|rgs|spa|spl|lap|gru|grd|SAU|VAS|KOV|BAL|GEG|BIR|LIE|RUGP|RGP|RUGS|RGS|SPA|SPL|LAP|GRU|GRD|Sau|Vas|Kov|Bal|Geg|Bir|Lie|Rugp|Rgp|Rugs|Rgs|Spa|Spl|Lap|Gru|Grd)[^0-9]+([0-9]{1,2})[^0-9]*[ \t\n\r]*$")
 yeardaymonthLvPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2}|[0-9]{4})[^0-9]+([0-9]{1,2})[^0-9]+(janv|febr|marts|apr|maijs|jūn|jun|jūl|jul|aug|sept|okt|nov|dec|JANV|FEBR|MARTS|APR|MAIJS|JŪN|JUN|JŪL|JUL|AUG|SEPT|OKT|NOV|DEC|Janv|Febr|Marts|Apr|Maijs|Jūn|Jun|Jūl|Jul|Aug|Sept|Okt|Nov|Dec)[^0-9]*[ \t\n\r]*$")
@@ -122,7 +124,7 @@ monthyearFrPattern = RePattern(r"^[ \t\n\r]*(janv|févr|fevr|mars|avr|mai|juin|j
 monthyearHrPattern = RePattern(r"^[ \t\n\r]*(sij|velj|ožu|ozu|tra|svi|lip|srp|kol|ruj|lis|stu|pro|SIJ|VELJ|OŽU|OZU|TRA|SVI|LIP|SRP|KOL|RUJ|LIS|STU|PRO|Sij|Velj|Ožu|Ozu|Tra|Svi|Lip|Srp|Kol|Ruj|Lis|Stu|Pro)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$")
 yearmonthHuPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2}|[0-9]{4})[^0-9]+(jan|feb|márc|marc|ápr|apr|máj|maj|jún|jun|júl|jul|aug|szept|okt|nov|dec|JAN|FEB|MÁRC|MARC|ÁPR|APR|MÁJ|MAJ|JÚN|JUN|JÚL|JUL|AUG|SZEPT|OKT|NOV|DEC|Jan|Feb|Márc|Marc|Ápr|Apr|Máj|Maj|Jún|Jun|Júl|Jul|Aug|Szept|Okt|Nov|Dec)[^0-9]{0,7}[ \t\n\r]*$")
 monthyearItPattern = RePattern(r"^[ \t\n\r]*(gen|feb|mar|apr|mag|giu|lug|ago|set|ott|nov|dic|GEN|FEB|MAR|APR|MAG|GIU|LUG|AGO|SET|OTT|NOV|DIC|Gen|Feb|Mar|Apr|Mag|Giu|Lug|Ago|Set|Ott|Nov|Dic)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$")
-monthyearInPattern = RePattern(r"^[ \t\n\r]*([^\s0-9\u0966-\u096F]+)\s([0-9\u0966-\u096F]{4})[ \t\n\r]*$")
+monthyearInPattern = RePattern(r"^[ \t\n\r]*(जनवरी|फरवरी|मार्च|अप्रैल|मई|जून|जुलाई|अगस्त|सितंबर|अक्टूबर|नवंबर|दिसंबर)[^0-9०-९]+([0-9]{2}|[0-9]{4}|[०-९]{2}|[०-९]{4})[ \t\n\r]*$")
 yearmonthLtPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2}|[0-9]{4})[^0-9]*[^0-9a-zA-Z]+(sau|vas|kov|bal|geg|bir|lie|rugp|rgp|rugs|rgs|spa|spl|lap|gru|grd|SAU|VAS|KOV|BAL|GEG|BIR|LIE|RUGP|RGP|RUGS|RGS|SPA|SPL|LAP|GRU|GRD|Sau|Vas|Kov|Bal|Geg|Bir|Lie|Rugp|Rgp|Rugs|Rgs|Spa|Spl|Lap|Gru|Grd)[^0-9]*[ \t\n\r]*$")
 yearmonthLvPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2}|[0-9]{4})[^0-9]+(janv|febr|marts|apr|maijs|jūn|jun|jūl|jul|aug|sept|okt|nov|dec|JANV|FEBR|MARTS|APR|MAIJS|JŪN|JUN|JŪL|JUL|AUG|SEPT|OKT|NOV|DEC|Janv|Febr|Marts|Apr|Maijs|Jūn|Jun|Jūl|Jul|Aug|Sept|Okt|Nov|Dec)[^0-9]{0,7}[ \t\n\r]*$")
 monthyearNlPattern = RePattern(r"^[ \t\n\r]*(jan|feb|maa|mrt|apr|mei|jun|jul|aug|sep|okt|nov|dec|JAN|FEB|MAA|MRT|APR|MEI|JUN|JUL|AUG|SEP|OKT|NOV|DEC|Jan|Feb|Maa|Mrt|Apr|Mei|Jun|Jul|Aug|Sep|Okt|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$")
@@ -172,6 +174,8 @@ numDashPattern = RePattern(r"^[ \t\n\r]*-[ \t\n\r]*$")
 numDotCommaPattern = RePattern(r"^[ \t\n\r]*[0-9]{1,3}([.][0-9]{3,3})*(,[0-9]+)?[ \t\n\r]*$")
 numSpaceDotPattern = RePattern(r"^[ \t\n\r]*[0-9]{1,3}([ \xA0][0-9]{3,3})*([.][0-9]+)?[ \t\n\r]*$")
 numSpaceCommaPattern = RePattern(r"^[ \t\n\r]*[0-9]{1,3}([ \xA0][0-9]{3,3})*(,[0-9]+)?[ \t\n\r]*$")
+
+numCanonicalizationPattern = RePattern(r"^[ \t\n\r]*0*([1-9][0-9]*)?(([.]0*)[ \t\n\r]*$|([.][0-9]*[1-9])0*[ \t\n\r]*$|[ \t\n\r]*$)")
 
 monthnumber = {# english
                "january":1, "february":2, "march":3, "april":4, "may":5, "june":6, 
@@ -303,19 +307,20 @@ def checkDate(y,m,d):
         return False
 
 def z2(arg):   # zero pad to 2 digits
-    if len(arg) == 1:
+    if arg is not None and len(arg) == 1:
         return '0' + arg
     return arg
 
 def yr4(arg):   # zero pad to 4 digits
-    if len(arg) == 1:
-        return '200' + arg
-    elif len(arg) == 2:
-        return '20' + arg
+    if arg is not None:
+        if len(arg) == 1:
+            return '200' + arg
+        elif len(arg) == 2:
+            return '20' + arg
     return arg
 
 def yrin(arg, _mo, _day):   # zero pad to 4 digits
-    if len(arg) == 2:
+    if arg is not None and len(arg) == 2:
         if arg > '21' or (arg == '21' and _mo >= 10 and _day >= 11):
             return '19' + arg
         else:
@@ -373,6 +378,12 @@ eraStart = {'令和': 2018,
 
 def eraYear(era,yr):
     return eraStart[era] + (1 if yr == '元' else _INT(yr))
+
+def canonicalNumber(n):
+    m = numCanonicalizationPattern.match(n)
+    if m:
+        return (m.group(1) or "0") + (m.group(4) or "")
+    return m
 
 # transforms    
 
@@ -650,15 +661,6 @@ def datemonthyearLongEnTR1(arg):
 def datemonthyeares(arg):
     return datemonthyear(arg, monthyearEsPattern)
     
-def datemonthyearin(arg):
-    m = monthyearInPattern.match(arg)
-    try:
-        return "{0}-{1}".format(yr4(devanagariDigitsToNormal(m.group(2))), 
-                                   gregorianHindiMonthNumber[m.group(1)])
-    except (AttributeError, IndexError, KeyError):
-        pass
-    raise XPathContext.FunctionArgType(0,"xs:gYearMonth")
-    
 def dateyearmonthen(arg):
     return datemonthyear(arg, yearmonthEnPattern, mo=2, yr=1)
 
@@ -794,7 +796,7 @@ def datedaymonthyearhr(arg):
 def dateyearmonthdayhu(arg):
     return datedaymonthyear(arg, yearmonthdayHuPattern, dy=3, mo=2, yr=1)
 
-def datedaymonthyearin(arg):
+def datedaymonthyearin(arg, daymonthyearInPattern):
     m = daymonthyearInPattern.match(arg)
     try:
         _yr = yr4(devanagariDigitsToNormal(m.group(3)))
@@ -805,6 +807,12 @@ def datedaymonthyearin(arg):
     except (AttributeError, IndexError, KeyError):
         pass
     raise XPathContext.FunctionArgType(0,"xs:date")
+
+def datedaymonthyearinTR3(arg):
+    return datedaymonthyearin(arg, daymonthyearInPatternTR3)
+
+def datedaymonthyearinTR4(arg):
+    return datedaymonthyearin(arg, daymonthyearInPatternTR4)
 
 def datedaymonthyearit(arg):
     return datedaymonthyear(arg, daymonthyearItPattern)
@@ -840,14 +848,14 @@ def datedaymonthyearsl(arg):
     return datedaymonthyear(arg, daymonthyearSlPattern)
 
 def calindaymonthyear(arg):
-    m = daymonthyearInPattern.match(arg)
+    m = daymonthyearInIndPattern.match(arg)
     try:
         # Transformation registry 3 requires use of pattern comparisons instead of exact transliterations
         #_mo = _INT(sakaMonthNumber[m.group(2)])
         # pattern approach
         _mo = sakaMonthPattern.search(m.group(2)).lastindex
         _day = _INT(devanagariDigitsToNormal(m.group(1)))
-        _yr = _INT(devanagariDigitsToNormal(yrin(m.group(3), _mo, _day)))
+        _yr = _INT(devanagariDigitsToNormal(yrin(m.group(15), _mo, _day)))
         #sakaDate = [_yr, _mo, _day]
         #for pluginMethod in pluginClassMethods("SakaCalendar.ToGregorian"):  # LGPLv3 plugin (moved to examples/plugin)
         #    gregorianDate = pluginMethod(sakaDate)
@@ -918,7 +926,7 @@ def numcommadecimalTR4(arg):
     if numCommaDecimalTR4Pattern.match(arg):
         result = arg.replace('.', '').replace(',', '.').replace(' ', '').replace('\u00A0', '')
         if decimalPattern.match(result):
-            return result
+            return canonicalNumber(result)
     raise XPathContext.FunctionArgType(0,"ixt:nonNegativeDecimalType")
 
 def numcommadot(arg):
@@ -968,7 +976,7 @@ def numdotdecimalTR4(arg):
     if numDotDecimalTR4Pattern.match(arg):
         result = arg.replace(',', '').replace(' ', '').replace('\u00A0', '')
         if decimalPattern.match(result):
-            return result
+            return canonicalNumber(result)
     raise XPathContext.FunctionArgType(0,"ixt:numdotdecimalType")
 
 def numdotdecimalin(arg):
@@ -981,6 +989,9 @@ def numdotdecimalin(arg):
             fract = ""
         return m2[0].replace(',','').replace(' ','').replace('\xa0','') + fract
     raise XPathContext.FunctionArgType(1,"ixt:numdotdecimalinType")
+
+def numdotdecimalinTR4(arg):
+    return canonicalNumber(numdotdecimalin(arg))
 
 def numunitdecimal(arg):
     # remove comma (normal), full-width comma, and stops (periods)
@@ -996,7 +1007,7 @@ def numunitdecimalTR4(arg):
         majorValue = m.group(1).replace('.','').replace(',','').replace('\uFF0C','').replace('\uFF0E','')
         fractValue = z2(m.group(m.lastindex))
         if len(majorValue) > 0 and len(fractValue) > 0:
-            return majorValue + '.' + fractValue
+            return canonicalNumber(majorValue + '.' + fractValue)
     raise XPathContext.FunctionArgType(1,"ixt:nonNegativeDecimalType")
 
 def numunitdecimalin(arg):
@@ -1005,6 +1016,9 @@ def numunitdecimalin(arg):
         m2 = [g for g in m.groups() if g is not None]
         return m2[0].replace(',','').replace(' ','').replace('\xa0','') + '.' + z2(m2[-2])
     raise XPathContext.FunctionArgType(1,"ixt:numunitdecimalinType")
+
+def numunitdecimalinTR4(arg):
+        return canonicalNumber(numunitdecimalin(arg))
     
 tr1Functions = {
     # 2010-04-20 functions
@@ -1073,7 +1087,7 @@ tr3Functions.update ({
     # same as v2: 'datedaymonthyear': datedaymonthyearTR2,
     'datedaymonthyeardk': datedaymonthyeardk,
     # same as v2: 'datedaymonthyearen': datedaymonthyearen,
-    'datedaymonthyearin': datedaymonthyearin,
+    'datedaymonthyearin': datedaymonthyearinTR3,
     # same as v2: 'dateerayearmonthdayjp': dateerayearmonthdayjp,
     # same as v2: 'dateerayearmonthjp': dateerayearmonthjp,
     # same as v2: 'datemonthday': datemonthday,
@@ -1133,7 +1147,7 @@ tr4Functions = {
     'date-day-monthname-year-et': datedaymonthyearet,
     'date-day-monthname-year-fi': datedaymonthyearfi,
     'date-day-monthname-year-fr': datedaymonthyearfr,
-    'date-day-monthname-year-hi': datedaymonthyearin,
+    'date-day-monthname-year-hi': datedaymonthyearinTR4,
     'date-day-monthname-year-hr': datedaymonthyearhr,
     'date-day-monthname-year-it': datedaymonthyearit,
     'date-day-monthname-year-nl': datedaymonthyearnl,
@@ -1192,9 +1206,9 @@ tr4Functions = {
     'fixed-zero': fixedzero,
     'num-comma-decimal': numcommadecimalTR4,
     'num-dot-decimal': numdotdecimalTR4, # relax requirement for 0 before decimal
-    'numdotdecimalin': numdotdecimalin,
+    'numdotdecimalin': numdotdecimalinTR4,
     'num-unit-decimal': numunitdecimalTR4,
-    'numunitdecimalin': numunitdecimalin,
+    'numunitdecimalin': numunitdecimalinTR4,
 }
 deprecatedNamespaceURI = 'http://www.xbrl.org/2008/inlineXBRL/transformation' # the CR/PR pre-REC namespace
 
