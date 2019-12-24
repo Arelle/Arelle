@@ -115,7 +115,7 @@ htmlEltUriAttrs = { # attributes with URI content (for relative correction and %
     "input": {"src", "usemap"},
     "ins": {"cite"},
     "img": {"src", "longdesc", "usemap"},
-    "object": {"classid", "codebase", "data", "archive", "usemap"},
+    "object": ("codebase", "classid", "data", "archive", "usemap"), # codebase must be first to reolve others
     "q": {"cite"},
     }
 ixAttrRequired = {
@@ -557,10 +557,19 @@ def xhtmlValidate(modelXbrl, elt):
 
 def resolveHtmlUri(elt, name, value):
     if name == "archive": # URILIST
-        return " ".join(resolveHtmlUri(elt, None, v) for v in value.split(" "))
-    if not UrlUtil.isAbsolute(value) and not value.startswith("/"):
-        if elt.modelDocument.htmlBase is not None:
-            value = elt.modelDocument.htmlBase + value
+        return " ".join(resolveHtmlUri(elt, "archiveListElement", v) for v in value.split(" "))
+    if not UrlUtil.isAbsolute(value):
+        if elt.localName == "object" and name in ("classid", "data", "archiveListElement") and elt.get("codebase"):
+            base = elt.get("codebase") + "/"
+        else:
+            base = getattr(elt.modelDocument, "htmlBase") # None if no htmlBase, empty string if it's not set
+        if base:
+            if value.startswith("/"): # add to authority
+                value = UrlUtil.authority(base) + value
+            elif value.startswith("#"): # add anchor to base document
+                value = base + value
+            else: 
+                value = os.path.dirname(base) + "/" + value
     # canonicalize ../ and ./
     scheme, sep, pathpart = value.rpartition("://")
     if sep:

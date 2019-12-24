@@ -80,6 +80,8 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
         try:
             if "entrypoint" in kwargs:
                 _target = kwargs["entrypoint"]["ixdsTarget"]
+            elif "ixdsTarget" in kwargs: # passed from validate (multio test cases)
+                _target = kwargs["ixdsTarget"]
             else:
                 _target = modelXbrl.modelManager.formulaOptions.parameterValues.get("ixdsTarget")[1]
         except (KeyError, AttributeError, IndexError, TypeError):

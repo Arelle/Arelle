@@ -14,6 +14,7 @@ from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObject import ModelObject
 from arelle.ModelRelationshipSet import ModelRelationshipSet
+from arelle.ModelTestcaseObject import testcaseVariationsByTarget
 from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods
 from arelle.XmlUtil import collapseWhitespace, xmlstring
@@ -169,7 +170,7 @@ class Validate:
             for doc in sorted(testcase.referencesDocument.keys(), key=lambda doc: doc.uri):
                 self.validateTestcase(doc)  # testcases doc's are sorted by their uri (file names), e.g., for formula
         elif hasattr(testcase, "testcaseVariations"):
-            for modelTestcaseVariation in testcase.testcaseVariations:
+            for modelTestcaseVariation in testcaseVariationsByTarget(testcase.testcaseVariations):
                 # update ui thread via modelManager (running in background here)
                 self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, modelTestcaseVariation.objectId())
                 # is this a versioning report?
@@ -180,10 +181,11 @@ class Validate:
                 inputDTSes = defaultdict(list)
                 baseForElement = testcase.baseForElement(modelTestcaseVariation)
                 # try to load instance document
-                self.modelXbrl.info("info", _("Variation %(id)s %(name)s: %(expected)s - %(description)s"),
+                self.modelXbrl.info("info", _("Variation %(id)s%(name)s%(target)s: %(expected)s - %(description)s"),
                                     modelObject=modelTestcaseVariation, 
                                     id=modelTestcaseVariation.id, 
-                                    name=modelTestcaseVariation.name, 
+                                    name=(" {}".format(modelTestcaseVariation.name) if modelTestcaseVariation.name else ""), 
+                                    target=(" target {}".format(modelTestcaseVariation.ixdsTarget) if modelTestcaseVariation.ixdsTarget else ""),
                                     expected=modelTestcaseVariation.expected, 
                                     description=modelTestcaseVariation.description)
                 if self.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings:
@@ -227,7 +229,8 @@ class Validate:
                                                        _("validating"), 
                                                        base=baseForElement,
                                                        useFileSource=self.useFileSource,
-                                                       errorCaptureLevel=errorCaptureLevel)
+                                                       errorCaptureLevel=errorCaptureLevel,
+                                                       ixdsTarget=modelTestcaseVariation.ixdsTarget)
                         else: # need own file source, may need instance discovery
                             filesource = FileSource.FileSource(readMeFirstUri, self.modelXbrl.modelManager.cntlr)
                             if filesource and not filesource.selection and filesource.isArchive:
@@ -239,7 +242,8 @@ class Validate:
                                                        filesource,
                                                        _("validating"), 
                                                        base=baseForElement,
-                                                       errorCaptureLevel=errorCaptureLevel)
+                                                       errorCaptureLevel=errorCaptureLevel,
+                                                       ixdsTarget=modelTestcaseVariation.ixdsTarget)
                         modelXbrl.isTestcaseVariation = True
                     if modelXbrl.modelDocument is None:
                         modelXbrl.error("arelle:notLoaded",
@@ -417,6 +421,8 @@ class Validate:
                                 messageCodes=("formula:expectedResultNotLoaded","ix:expectedResultNotLoaded"))
                             modelTestcaseVariation.status = "result not loadable"
                         else:   # compare facts
+                            for pluginXbrlMethod in pluginClassMethods("TestcaseVariation.ExpectedInstance.Loaded"):
+                                pluginXbrlMethod(expectedInstance, formulaOutputInstance)
                             if len(expectedInstance.facts) != len(formulaOutputInstance.facts):
                                 formulaOutputInstance.error("{}:resultFactCounts".format(errMsgPrefix),
                                     _("Formula output %(countFacts)s facts, expected %(expectedFacts)s facts"),
@@ -435,7 +441,7 @@ class Validate:
                                                                                key=lambda r: (r.fromLabel,r.toLabel))):
                                             modelObject = footnoteRel.toModelObject
                                             if isinstance(modelObject, ModelResource):
-                                                xml = modelObject.viewText().strip()
+                                                xml = collapseWhitespace(modelObject.viewText().strip())
                                                 footnotes["Footnote {}".format(i+1)] = xml #re.sub(r'\s+', ' ', collapseWhitespace(modelObject.stringValue))
                                             elif isinstance(modelObject, ModelFact):
                                                 footnotes["Footnoted fact {}".format(i+1)] = \
@@ -489,8 +495,8 @@ class Validate:
             
             self.modelXbrl.modelManager.showStatus(_("ready"), 2000)
             
-    def noErrorCodes(self, modelTestcaseVariation):
-        return not any(not isinstance(actual,dict) for actual in modelTestcaseVariation)
+    def noErrorCodes(self, modelTestcaseVariationActual):
+        return not any(not isinstance(actual,dict) for actual in modelTestcaseVariationActual)
                 
     def determineTestStatus(self, modelTestcaseVariation, errors):
         _blockedMessageCodes = modelTestcaseVariation.blockedMessageCodes # restricts codes examined when provided

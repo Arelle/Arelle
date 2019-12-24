@@ -207,11 +207,13 @@ def escapedNode(elt, start, empty, ixEscape, ixResolveUris):
     else:
         s.append(str(elt.qname))
     if start or empty:
+        if elt.localName == "object" and elt.get("codebase"): # resolve codebase before other element names
+            elt.set("codebase", resolveHtmlUri(elt, "codebase"), elt.get("codebase"))
         for n,v in sorted(elt.items(), key=lambda item: item[0]):
             if n in uriAttrs:
-                v = resolveHtmlUri(elt, n, v)
+                v = resolveHtmlUri(elt, n, v).replace(" ", "%20") # %20 replacement needed for conformance test passing
             s.append(' {0}="{1}"'.format(qname(elt,n),
-                                         v.replace("&","&amp;").replace('"','&quot;')))
+                v.replace("&","&amp;").replace('"','&quot;')))
     if not start and empty:
         s.append('/')
     s.append('>')

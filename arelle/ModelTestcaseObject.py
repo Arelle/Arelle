@@ -13,12 +13,36 @@ from arelle.PluginManager import pluginClassMethods
 
 TXMY_PKG_SRC_ELTS = ("metadata", "catalog", "taxonomy")
 
+
+def testcaseVariationsByTarget(testcaseVariations):
+    for modelTestcaseVariation in testcaseVariations:
+        modelTestcaseVariation.errors = None # Errors accumulate over multiple ixdsTargets for same variation
+        ixdsTargets = [instElt.get("target")
+                      for resultElt in modelTestcaseVariation.iterdescendants("{*}result")       
+                      for instElt in resultElt.iterdescendants("{*}instance")]
+        if ixdsTargets:
+            # track status and actual (error codes, counts) across all targets
+            allTargetsActual = []
+            allTargetsStatus = ""
+            for ixdsTarget in ixdsTargets:
+                modelTestcaseVariation.ixdsTarget = ixdsTarget
+                yield modelTestcaseVariation
+                allTargetsActual.extend(modelTestcaseVariation.actual)
+                if allTargetsStatus not in ("fail", "fail (count)"):
+                    # update status unless fail were noted by a prior target of this variation
+                    allTargetsStatus = modelTestcaseVariation.status
+            modelTestcaseVariation.status = allTargetsStatus
+        else: # probably an expected error situation
+            modelTestcaseVariation.ixdsTarget = None
+            yield modelTestcaseVariation
+
 class ModelTestcaseVariation(ModelObject):
     def init(self, modelDocument):
         super(ModelTestcaseVariation, self).init(modelDocument)
         self.status = ""
         self.actual = []
         self.assertions = None
+        self.ixdsTarget = None
         
     @property
     def id(self):
@@ -159,9 +183,10 @@ class ModelTestcaseVariation(ModelObject):
             if resultInstanceUri is not None:
                 return resultInstanceUri or None # (empty string returns None)
             
-        resultInstance = XmlUtil.descendant(XmlUtil.descendant(self, None, "result"), None, "instance")
-        if resultInstance is not None:
-            return XmlUtil.text(resultInstance)
+        for resultElt in self.iterdescendants("{*}result"):
+            for instElt in resultElt.iterdescendants("{*}instance"):
+                if (instElt.get("target") or "") == (self.ixdsTarget or ""): # match null and emptyString
+                    return XmlUtil.text(instElt)
         return None
     
     @property

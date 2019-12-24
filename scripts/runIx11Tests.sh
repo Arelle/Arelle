@@ -16,5 +16,5 @@ OUTPUTLOGFILE=${LOGDIR}/Ix11-log.txt
 OUTPUTERRFILE=${LOGDIR}/Ix11-err.txt
 OUTPUTCSVFILE=${LOGDIR}/Ix11-report.xlsx
 
-python3.5 arelleCmdLine.py --file "$TESTCASESINDEXFILE" --packages=$PACKAGES --validate --plugins inlineXbrlDocumentSet.py --csvTestReport "$OUTPUTCSVFILE" --logFile "$OUTPUTLOGFILE" 2>  "$OUTPUTERRFILE"
+python3.5 arelleCmdLine.py --file "$TESTCASESINDEXFILE" --packages=$PACKAGES --validate --plugins 'inlineXbrlDocumentSet.py|../examples/plugin/testcaseIxExpectedHtmlFixup.py' --csvTestReport "$OUTPUTCSVFILE" --logFile "$OUTPUTLOGFILE" 2>  "$OUTPUTERRFILE"
 #./runArelle.sh --file "$TESTCASESINDEXFILE" --packages=$PACKAGES --validate --plugins inlineXbrlDocumentSet.py --skipExpectedInstanceComparison --csvTestReport "$OUTPUTCSVFILE" --logFile "$OUTPUTLOGFILE" 2>  "$OUTPUTERRFILE"
