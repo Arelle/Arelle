@@ -17,9 +17,9 @@ Input file parameters may be in JSON (without newlines for pretty printing as be
    "accessionNumber":"0001125840-15-000159" ,
    # new fields
    "periodOfReport": "mm-dd-yyyy",
-   "entity.fyEnd": "mm/dd", # the FY End value from entity (CIK) registration
+   "entityRegistration.fyEnd": "mm/dd", # the FY End value from entity (CIK) registration
    "entity.repFileNum": file number from entity (CIK) registration
-   "headerFyEnd": "mm/dd", # the FY End value from submission header
+   "submissionHeader.fyEnd": "mm/dd", # the FY End value from submission header
    "voluntaryFilerFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    "wellKnownSeasonedIssuerFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    "shellCompanyFlag": true/false, true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
@@ -88,6 +88,7 @@ from arelle import ModelDocument, ModelValue, XmlUtil, FileSource
 from arelle.ModelDocument import Type
 from arelle.ModelValue import qname
 from arelle.PluginManager import pluginClassMethods  # , pluginMethodsForClasses, modulePluginInfos
+from arelle.PythonUtil import flattenSequence
 from arelle.UrlUtil import authority, relativeUri
 from arelle.ValidateFilingText import referencedFiles
 from .Document import checkDTSdocument
@@ -114,10 +115,38 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.params = {}
     parameterNames = ("CIK", "cik", "cikList", "cikNameList", "submissionType", "exhibitType", # CIK or cik both allowed
                       "itemsList", "accessionNumber", "entity.repFileNum",
-                      "periodOfReport", "entity.fyEnd", "headerFyEnd", "voluntaryFilerFlag", 
+                      "periodOfReport", "entityRegistration.fyEnd", "submissionHeader.fyEnd", "voluntaryFilerFlag", 
                       "wellKnownSeasonedIssuerFlag", "shellCompanyFlag", "acceleratedFilerStatus", "smallBusinessFlag",
                       "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "invCompanyType",
                       "rptIncludeAllSeriesFlag", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds")
+    parameterEisFileTags = {
+        "cik":["depositorId", "cik", "filerId"],
+        "submissionType": "submissionType",
+        "itemsList": "item",
+        "periodOfReport": "periodOfReport",
+        #"headerFyEnd": ?, 
+        #"voluntaryFilerFlag": ?, 
+        "wellKnownSeasonedIssuerFlag": "wellKnownSeasonedIssuerFlag", 
+        #"shellCompanyFlag": ?, 
+        "acceleratedFilerStatus": "acceleratedFilerStatus", 
+        "smallBusinessFlag": "smallBusinessFlag",
+        "emergingGrowthCompanyFlag": "emergingGrowthCompanyFlag", 
+        "exTransitionPeriodFlag": "exTransitionPeriodFlag",
+        "invCompanyType": "invCompany",
+        #"rptIncludeAllSeriesFlag": ?, 
+        #"rptSeriesClassInfo.seriesIds": ?, 
+        #"newClass2.seriesIds": ?
+    }
+    # retrieve any EIS file parameters first
+    if val.modelXbrl.fileSource and val.modelXbrl.fileSource.isEis and hasattr(val.modelXbrl.fileSource, "eisDocument"):
+        eisDoc = val.modelXbrl.fileSource.eisDocument
+        for paramName, eisEltNames in parameterEisFileTags.items():
+            paramQName = ModelValue.qname(paramName,noPrefixIsNoNamespace=True)
+            for eisElt in eisDoc.iter(*("{*}"+e for e in flattenSequence(eisEltNames))):
+                if paramName in ("itemsList",):
+                    parameters.setdefault(paramQName, []).append(eisElt.text)
+                else:
+                    parameters[paramQName] = eisElt.text
     if parameters: # parameter-provided CIKs and registrant names
         for paramName in parameterNames:
             p = parameters.get(ModelValue.qname(paramName,noPrefixIsNoNamespace=True))
@@ -233,7 +262,6 @@ def guiTestcasesStart(cntlr, modelXbrl, *args, **kwargs):
     if (cntlr.hasGui and modelXbrl.modelDocument.type in Type.TESTCASETYPES and
          modelManager.validateDisclosureSystem and getattr(modelManager.disclosureSystem, "EFMplugin", False)):
         modelManager.efmFiling = Filing(cntlr)
-            
 def testcasesStart(cntlr, options, modelXbrl, *args, **kwargs):
     # a test or RSS cases run is starting, in which case testcaseVariation... events have unique efmFilings
     modelManager = cntlr.modelManager
@@ -638,7 +666,7 @@ class Report:
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EFM',
-    'version': '1.19.3', # SEC EDGAR release 19.3
+    'version': '1.20.1', # SEC EDGAR release 19.3
     'description': '''EFM Validation.''',
     'license': 'Apache-2',
     'import': ('transforms/SEC',), # SEC inline can use SEC transformations

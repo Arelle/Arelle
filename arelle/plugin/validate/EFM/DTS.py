@@ -45,6 +45,8 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
     
         
     visited.append(modelDocument)
+    # check if an extension-filed standard taxonomy
+    extensionFiledStandardTaxonomy = isEFM and modelDocument.targetNamespace in val.otherStandardTaxonomies
     for referencedDocument, modelDocumentReference in modelDocument.referencesDocument.items():
         #6.07.01 no includes
         if modelDocumentReference.referenceType == "include":
@@ -53,7 +55,9 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                 modelObject=modelDocumentReference.referringModelObject,
                     schema=modelDocument.basename, 
                     include=referencedDocument.basename)
-        if referencedDocument not in visited and (referencedDocument.inDTS or referencedDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET): # ignore EdgarRenderer added non-DTS documents
+        if referencedDocument not in visited and (
+            referencedDocument.inDTS or referencedDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET) and ( # ignore EdgarRenderer added non-DTS documents
+            not extensionFiledStandardTaxonomy):
             checkFilingDTS(val, referencedDocument, isEFM, isGFM, visited)
             
     if modelDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET:
@@ -89,7 +93,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                 else:
                     _pattern = efmFilenamePattern
                     _suffix = ".xsd or .xml"
-                if not _pattern.match(modelDocument.basename):
+                if not _pattern.match(modelDocument.basename) and not extensionFiledStandardTaxonomy:
                     val.modelXbrl.error("EFM.5.01.01",
                         _("Document file name %(filename)s must start with a-z or 0-9, contain upper or lower case letters, ., -, _, and end with %(suffix)s."),
                         edgarCode="cp-0501-File-Name",
@@ -97,7 +101,9 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
     
     if (modelDocument.type == ModelDocument.Type.SCHEMA and 
         modelDocument.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces and
-        modelDocument.uri.startswith(val.modelXbrl.uriDir)):
+        modelDocument.uri.startswith(val.modelXbrl.uriDir) 
+        and not extensionFiledStandardTaxonomy
+        ):
         
         val.hasExtensionSchema = True
         # check schema contents types

@@ -237,3 +237,14 @@ def buildDeprecatedConceptDatesFiles(cntlr):
     # will build in subdirectory "resources" if exists, otherwise in cache/resources
     for abbrNs, latestTaxonomyDoc in latestTaxonomyDocs.items():
         deprecatedConceptDatesFile(cntlr.modelManager, abbrNs, latestTaxonomyDoc)
+        
+def loadOtherStandardTaxonomies(modelXbrl, val):
+    _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "other-standard-taxonomies.json"), 'rt', encoding='utf-8')
+    otherStandardTaxonomies = json.load(_file) # {localName: date, ...}
+    _file.close()
+    otherStandardNsPrefixes = otherStandardTaxonomies.get("taxonomyPrefixes",{})
+    return set(doc.targetNamespace
+               for doc in modelXbrl.urlDocs.values()
+               if doc.targetNamespace and 
+               doc.targetNamespace not in val.disclosureSystem.standardTaxonomiesDict
+               and any(doc.targetNamespace.startswith(nsPrefix) for nsPrefix in otherStandardNsPrefixes))

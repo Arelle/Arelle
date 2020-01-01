@@ -1,0 +1,12 @@
+{
+	"copyright": "(c) Copyright 2018 Mark V Systems Limited, All rights reserved.",
+	"description": [
+		"This file identifies prefixes of standard taxonomy namespaces that are excluded from ",
+		"extension taxonomy checks per EFM 6.7.5 when provided as extension to a filing.",
+		"For example the requirements of 6.7.4 and 6.7.6 are not checked in this case.",
+		"Entries to taxonomyPrefixes are like:",
+		" \"http://www.xyz.org/abc/def\": \"ABC DEF taxonomy\" "
+		],
+	"taxonomyPrefixes": {
+	    }
+}
