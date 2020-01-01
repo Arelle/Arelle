@@ -43,18 +43,18 @@ def checkFilingDimensions(val):
                         val.modelXbrl.error("esma.3.4.2.openPositiveHypercubeInDefinitionLinkbase",
                             _("Hypercubes appearing as target of definition arc with http://xbrl.org/int/dim/arcrole/all arcrole MUST have xbrldt:closed attribute set to \"true\""
                               ": hypercube %(hypercube)s, linkrole %(linkrole)s, primary item %(primaryItem)s"),
-                            modelObject=hasHcRel, hypercube=hc.qname, linkrole=ELR, primaryItem=sourceConcept.qname)
+                            modelObject=hasHcRel, hypercube=hc.qname, linkrole=hasHcRel.linkrole, primaryItem=sourceConcept.qname)
                 elif hasHypercubeArcrole == XbrlConst.notAll:
                     if hasHcRel.isClosed:
                         val.modelXbrl.error("esma.3.4.2.closedNegativeHypercubeInDefinitionLinkbase",
                             _("Hypercubes appearing as target of definition arc with http://xbrl.org/int/dim/arcrole/notAll arcrole MUST have xbrldt:closed attribute set to \"false\""
                               ": hypercube %(hypercube)s, linkrole %(linkrole)s, primary item %(primaryItem)s"),
-                            modelObject=hasHcRel, hypercube=hc.qname, linkrole=ELR, primaryItem=sourceConcept.qname)
+                            modelObject=hasHcRel, hypercube=hc.qname, linkrole=hasHcRel.linkrole, primaryItem=sourceConcept.qname)
                     if hasHcRel.modelDocument.uri.startswith(val.modelXbrl.uriDir):
                         val.modelXbrl.warning("esma.3.4.2.notAllArcroleUsedInDefinitionLinkbase",
                             _("Extension taxonomies SHOULD NOT define definition arcs with http://xbrl.org/int/dim/arcrole/notAll arcrole"
                               ": hypercube %(hypercube)s, linkrole %(linkrole)s, primary item %(primaryItem)s"),
-                            modelObject=hasHcRel, hypercube=hc.qname, linkrole=ELR, primaryItem=sourceConcept.qname)
+                            modelObject=hasHcRel, hypercube=hc.qname, linkrole=hasHcRel.linkrole, primaryItem=sourceConcept.qname)
                 for hcDimRel in val.modelXbrl.relationshipSet(XbrlConst.hypercubeDimension, hasHcRel.targetRole).fromModelObject(hc):
                     dim = hcDimRel.toModelObject
                     if isinstance(dim, ModelConcept):
