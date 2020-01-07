@@ -2593,7 +2593,7 @@ def eloValueOfFact(deiName, xbrlVal):
         return xbrlVal
     elif deiName == "EntityFilerCategory":
         return xbrlVal
-    return null # unhandled deiName
+    return None # unhandled deiName
 
 
 def cleanedCompanyName(name):
