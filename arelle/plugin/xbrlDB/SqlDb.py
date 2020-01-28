@@ -4,12 +4,11 @@ This module provides database interfaces to postgres SQL
 (c) Copyright 2013 Mark V Systems Limited, California US, All rights reserved.  
 Mark V copyright applies to this software, which is licensed according to the terms of Arelle(r).
 '''
-import sys, os, io, glob, time, re, datetime
+import sys, os, io, glob, time, re, datetime, socket, string, random
 from math import isnan, isinf
 from decimal import Decimal
 from arelle.ModelValue import dateTime
 from arelle.PythonUtil import flattenSequence
-import socket
 
 TRACESQLFILE = None
 #TRACESQLFILE = r"z:\temp\sqltraceWin.log"  # uncomment to trace SQL on connection (very big file!!!)
@@ -140,7 +139,7 @@ class XPDBException(Exception):
         return _('[{0}] exception: {1}').format(self.code, self.message % self.kwargs)
             
 class SqlDbConnection():
-    def __init__(self, modelXbrl, user, password, host, port, database, timeout, product):
+    def __init__(self, modelXbrl, user, password, host, port, database, timeout, product, **kwargs):
         self.modelXbrl = modelXbrl
         self.disclosureSystem = modelXbrl.modelManager.disclosureSystem
         if product == "postgres":
@@ -215,7 +214,8 @@ class SqlDbConnection():
         return not bool(self.__dict__)  # closed when dict is empty
     
     def showStatus(self, msg, clearAfter=None):
-        self.modelXbrl.modelManager.showStatus(msg, clearAfter)
+        if self.modelXbrl is not None:
+            self.modelXbrl.modelManager.showStatus(msg, clearAfter)
         
     def pyStrFromDbStr(self, str):
         if self.product == "postgres":
@@ -240,6 +240,18 @@ class SqlDbConnection():
             return "'" + str(s).replace("'","''") + "'"
         elif self.product == "mysql":
             return "N" + self.conn.escape(str(s))
+        elif self.product == 'postgres':
+            dollarString = '$string$'
+            i = 0
+            cleanString = str(s).replace('%', '%%')
+            while dollarString in cleanString:
+                i += 1
+                if i > 100:
+                    raise XPDBException("xpgDB:StringHandlingError",
+                                _("Trying to generate random dollar quoted string tag, but cannot find one that is not in the string. Tried 100 times."),
+                                table=table) 
+                dollarString = '$' + ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(8)) + '$'
+            return dollarString + cleanString + dollarString
         elif self.product == "sqlite":
             return "'" + str(s).replace("'","''") + "'"
         else:
@@ -535,7 +547,7 @@ class SqlDbConnection():
                                                     {"integer", "smallint", "int", "bigint",
                                                      "real", "numeric",
                                                      "int2", "int4", "int8", "float4", "float8",
-                                                     "boolean", "date", "timestamp"}
+                                                     "boolean", "date", "timestamp", "bytea", "json", "jsonb"}
                                                else "::double precision" if fulltype.startswith("double precision") 
                                                else '',
                                               int if typename in ("integer", "smallint", "int", "bigint", "number") else
@@ -625,6 +637,17 @@ class SqlDbConnection():
                     else:
                         longColValues.append(col)
                         colValues.append("?")
+                elif isinstance(col, bytes) and isPostgres:
+                    hexvals = "".join([hex(x)[2:] for x in col])
+                    #get the hex values
+                    hexvals = [hex(x)[2:] for x in col]
+                    #fix up single digit values
+                    for i in range(len(hexvals)):
+                        if len(hexvals[i]) == 1:
+                            hexvals[i] = "0" + hexvals[i]
+
+                    colValues.append(r"E'\\x" + "".join(hexvals) + "'")
+                    #colValues.append(r"E'\\x" + col.decode() + "'" )
                 else:
                     colValues.append(self.dbStr(col))
             if not rowValues and isPostgres:  # first row
@@ -880,9 +903,21 @@ WITH row_values (%(newCols)s) AS (
         for sqlStmt, params, fetch in sql:
             if params and isOracle:
                 self.cursor.setinputsizes(**dict((name,oracleNCLOB) for name in params))
+            
+            #startTime = datetime.datetime.today()
             result = self.execute(sqlStmt,commit=commit, close=False, fetch=fetch, params=params)
+            #endTime = datetime.datetime.today()
+            
             if fetch and result:
                 tableRows.extend(result)
+                
+            #hours, remainder = divmod((endTime - startTime).total_seconds(), 3600)
+            #minutes, seconds = divmod(remainder, 60)
+            #self.modelXbrl.info("info",_("%(now)s - Table %(tableName)s loaded in %(timeTook)s"),
+            #                             now=str(datetime.datetime.today()),
+            #                             tableName=table,
+            #                             timeTook='%02.0f:%02.0f:%02.4f' % (hours, minutes, seconds))          
+
 
         if TRACESQLFILE:
             with io.open(TRACESQLFILE, "a", encoding='utf-8') as fh:
