@@ -7,10 +7,13 @@ Created on Jan 14, 2020
 Provides infrastructure for local viewers of GUI applications such as inline XBRL viewers
 
 '''
-from arelle.webserver.bottle import Bottle, static_file
-import threading, time, logging, sys
+from arelle.webserver.bottle import Bottle, request, static_file, HTTPResponse
+import threading, time, logging, sys, traceback
 
 class LocalViewer:
+    noCacheHeaders = {'Cache-Control': 'no-cache, no-store, must-revalidate',
+                      'Pragma': 'no-cache',
+                      'Expires': '0'}
     
     def __init__(self, title, staticReportsRoot):
         self.title = title
@@ -56,7 +59,9 @@ class LocalViewer:
     def get(self, file=None, relpath=None):
         self.cntlr.addToLog("http://localhost:{}/{}".format(self.port,file), messageCode="localViewer:get",level=logging.DEBUG)
         try:
-            return self.getLocalFile(file, relpath)
+            return self.getLocalFile(file, relpath, request)
+        except HTTPResponse: 
+            raise # re-raise, such as to support redirects
         except Exception as ex:
             self.cntlr.addToLog(_("{} exception: file: {} \nException: {} \nTraceback: {}").format(
                 self.title, file, ex, traceback.format_tb(sys.exc_info()[2])), messageCode="localViewer:exception",level=logging.DEBUG) 
