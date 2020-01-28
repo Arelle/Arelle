@@ -600,35 +600,34 @@
     {
         "forms": ["@10-K+Q", "@8-K", "@20+40-F"],
         "xbrl-names": "EntityExTransitionPeriod",
-        "elo-name": "exTransitionPeriodFlag",
         "efm": "6.5.40",
-        "validation": "og",
+        "validation": "et1",
         "references": "EntityEmergingGrowthCompany",
         "reference-value": true,
         "source": "both",
-        "dei/cover": "cover"
+        "dei/cover": "cover",
+        "comment": "don't do ELO match here because it would come out as error"
     },
     {
         "forms": ["@10-12", "@20+40FR", "@S-n", "@POS", "@F-n"],
         "xbrl-names": "EntityExTransitionPeriod",
-        "elo-name": "exTransitionPeriodFlag",
         "efm": "6.5.40",
-        "validation": "og",
-        "references": "EntityEmergingGrowthCompany",
-        "reference-value": true,
-        "source": "both",
-        "dei/cover": "dei"
-    },
-    {
-        "forms": ["@10-K+Q", "@10-12", "@8-K", "@20+40-F", "@20+40FR", "@S-n", "@POS", "@F-n"],
-        "xbrl-names": "EntityExTransitionPeriod",
-        "efm": "6.5.20",
         "validation": "et1",
         "references": "EntityEmergingGrowthCompany",
         "reference-value": true,
-        "source": "inline",
+        "source": "both",
         "dei/cover": "dei",
-        "comment": "if and only if non-empty, EntityEmergingGrowthCompany must be true"
+        "comment": "don't do ELO match here because it would come out as error"
+    },
+    {
+        "forms": ["@10-K+Q", "@8-K", "@20+40-F", "@10-12", "@20+40FR", "@S-n", "@POS", "@F-n"],
+        "xbrl-names": "EntityExTransitionPeriod",
+        "elo-name": "exTransitionPeriodFlag",
+        "efm": "6.5.40",
+        "validation": "o",
+        "source": "both",
+        "dei/cover": "dei",
+        "comment": "perform elo match separately as o so it's a warning"
     },
     {
     	"forms": ["@all"],
@@ -1765,27 +1764,11 @@
         "forms": ["@all"],
         "xbrl-names": [],
         "efm": "(obtained from blank cell's row)",
-        "validation": "(blank-error)",
-        "include-xbrl-names": [
-        	"EntityEmergingGrowthCompany",
-			"EntityExTransitionPeriod"
-		],
-        "source": "both",
-        "comment": "This validation, (blank), must be last, efm is dynamically provided based on efm for a non-(blank) of actual element",
-        "comment2": "In 19.3 release, POS AM and POS EX were excluded from the blank tests, as of 20.1 all forms run the blank tests"
-    },
-    {
-        "forms": ["@all"],
-        "xbrl-names": [],
-        "efm": "(obtained from blank cell's row)",
         "validation": "(blank)",
-        "exclude-xbrl-names": [
-        	"EntityEmergingGrowthCompany",
-			"EntityExTransitionPeriod"
-		],
         "source": "both",
         "comment": "This validation, (blank), must be last, efm is dynamically provided based on efm for a non-(blank) of actual element",
-        "comment2": "In 19.3 release, POS AM and POS EX were excluded from the blank tests, as of 20.1 all forms run the blank tests"
+        "comment2": "In 19.3 release, POS AM and POS EX were excluded from the blank tests, as of 20.1 all forms run the blank tests",
+        "comment3": "This used to have exclude-xbrl-names list EntityEmergingGrowthCompany and EntityExTransitionPeriod, but exclusion removed 2020-01-17"
     },
     {
         "forms": ["@all"],
@@ -1851,11 +1834,6 @@
 			"message": "dq-{efmSection}-{tags}-Inclusive",
 			"severity": "warning",
 			"validation": "O3 – One, two, or all three non-null facts should be present (they should not all be absent)."
-		},
-		"og": {
-			"message": "dq-{efmSection}-{tag}-{otherTag}-Dependent-Value",
-			"severity": "warning",
-			"validation": "OG - If EntityEmergingGrowthCompany is \"true\", then a non-null fact should appear, else a non-null fact may appear with value “false” or it may be absent."
 		},
 		"ol1": {
 			"message": "dq-{efmSection}-{tag}-{otherTag}-Missing",
@@ -1976,9 +1954,9 @@
 			"validation": "WV1 – Only one of the facts should be \"true\"."
 		},
 		"et1": {
-			"message": "dq-{efmSection}-{tag}-{otherTag}-Dependent-Value",
+			"message": "dq-0540-EntityExTransitionPeriod-EntityEmergingGrowthCompany-Dependency",
 			"severity": "error",
-			"validation": "ET1 – EntityEmergingGrowthCompany is \"false\", then no fact should exist for EntityExTransitionPeriod.  If \"true\" non-null fact should exist."
+			"validation": "error when EntityEmergingGrowthCompany=true otherwise warning, warning is set in code not here"
 		},
 		"sb": {
 			"message": "dq-{efmSection}-{tag}-{otherTag}-Dependent-Value",
@@ -2044,6 +2022,7 @@
 		"dq-0540-{tag}-Value": "In submission type {subType}, {tag} value \"{value}\", is not equivalent to header element {headerTag} value \"{valueOfHeaderTag}\" in the {context}.",
 		"dq-0540-CurrentFiscalYearEndDate-Registrant-Value": "In submission type {subType}, {tag} value \"{value}\", {severityVerb} match the Entity Registrant Fiscal Year End Date \"{valueOfHeaderTag}\" on record within EDGAR.",
 		"dq-0540-CurrentFiscalYearEndDate-Submission-Value": "In submission type {subType}, {tag} value \"{value}\", does not match the Submission Header Fiscal Year End Date \"{valueOfHeaderTag}\".",
+		"dq-0540-EntityExTransitionPeriod-EntityEmergingGrowthCompany-Dependency": "In submission type {subType}, EntityExTransitionPeriod must have a value if EntityEmergingGrowthCompany has value \"true\" in context {contextID}, else it should not be provided.",
 		"dq-0540-{headerTag}-Unexpected": "Header element {headerTag} value \"{value}\" is not applicable for {subType} submission type."
     },
 	"extraction-cover-tags": [

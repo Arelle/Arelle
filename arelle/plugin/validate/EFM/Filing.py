@@ -934,14 +934,11 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             def fevMessage(fev, messageKey=None, **kwargs):
                 logArgs = kwargs.copy()
                 validation = deiValidations["validations"][fev["validation"]]
-                severity = validation["severity"].upper()
+                severity = kwargs.get("severity", validation["severity"]).upper()
                 if severity == "WARNINGIFPRAGMATICELSEERROR":
                     severity = "WARNING" if validateEFMpragmatic else "ERROR"
                 if messageKey is None:
-                    if "validationMessage" in kwargs:
-                        messageKey = validation[kwargs["validationMessage"]]
-                    else:
-                        messageKey = validation["message"]
+                    messageKey = validation[kwargs.get("validationMessage", "message")]
                 if "severityVerb" not in logArgs:
                     logArgs["severityVerb"] = {"WARNING":"should","ERROR":"must"}[severity]
                 if "efmSection" not in logArgs:
@@ -1160,7 +1157,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 elif validation == "op": # all or neither must have a value
                     if 0 < sum(fevFact(fev, name) is not None for name in names) < len(names): # default context for all
                         fevMessage(fev, subType=submissionType, modelObject=fevFacts(fev), tags=", ".join(names))
-                elif validation == "og":
+                elif validation == "et1": # "og": 
                     ogfacts = set()
                     for fr in fevFacts(fev, referenceTag, deduplicate=True):
                         if fr.xValue == referenceValue:
@@ -1172,12 +1169,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 fevMessage(fev, subType=submissionType, modelObject=fr, tag=names[0], value=referenceValue, otherTag=referenceTag, contextID=fr.contextID)
                                 if any(name in eloValueFactNames for name in names):
                                     missingReqInlineTag = True
-                    # find any facts without a referenceTag fact = value
+                    # find any facts without a referenceTag fact = value, note these are warning severity
                     for f in fevFacts(fev, names, deduplicate=True):
                         if f not in ogfacts:
                             fr = fevFact(fev, referenceTag, f)
-                            if (fr is None or fr.xValue != referenceValue) and f.xValue == referenceValue: # ok if it's false
-                                fevMessage(fev, subType=submissionType, modelObject=f, tag=names[0], value=referenceValue, otherTag=referenceTag, contextID=f.contextID)
+                            if (fr is None or fr.xValue != referenceValue):
+                                fevMessage(fev, severity="warning", subType=submissionType, modelObject=f, tag=names[0], value=referenceValue, otherTag=referenceTag, contextID=f.contextID)
                     del ogfacts # dereference
                 elif validation == "f2":
                     f = fevFact(fev, referenceTag) # f and dependent fact are in same context
@@ -1197,7 +1194,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             (f is None and f2 is not None and fevFact(fev, referenceTag, f2) is None)):
                             fevMessage(fev, subType=submissionType, modelObject=f, tag=name, otherTag=referenceTag,
                                        contextID=f.contextID if f is not None else f2.contextID)
-                elif validation in ("a", "sr", "oth", "tb", "et1"):
+                elif validation in ("a", "sr", "oth", "tb"): #, "et1"):
                     for name in names:
                         f = fevFact(fev, name)
                         fr = fevFact(fev, referenceTag, f) # dependent fact is of context of f or for "c" inherited context (less disaggregatedd)
