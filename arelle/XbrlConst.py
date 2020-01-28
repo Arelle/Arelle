@@ -151,14 +151,22 @@ dtr = "http://www.xbrl.org/2009/dtr"
 dtrTypesStartsWith = "http://www.xbrl.org/dtr/type/"
 dtrNumeric = "http://www.xbrl.org/dtr/type/numeric"
 
-dtrNoDecimalsItemTypes = (qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}noDecimalsMonetaryItemType"), 
+dtrNoDecimalsItemTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}noDecimalsMonetaryItemType"), 
+                          qname("{http://www.xbrl.org/dtr/type/2020-01-21}nonNegativeNoDecimalsMonetaryItemType"),
+                          qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}noDecimalsMonetaryItemType"), 
                           qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}nonNegativeNoDecimalsMonetaryItemType"))
-dtrPrefixedContentItemTypes = (qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}prefixedContentItemType"), )
-dtrPrefixedContentTypes = (qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}prefixedContentType"), )
-dtrSQNameItemTypes = (qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNameItemType"), )
-dtrSQNameTypes = (qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNameType"), )
-dtrSQNamesItemTypes = (qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNamesItemType"), )
-dtrSQNamesTypes = (qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNamesType"), )
+dtrPrefixedContentItemTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}prefixedContentItemType"),
+                               qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}prefixedContentItemType"))
+dtrPrefixedContentTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}prefixedContentType"),
+                           qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}prefixedContentType"))
+dtrSQNameItemTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNameItemType"), 
+                      qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNameItemType"))
+dtrSQNameTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNameType"), 
+                  qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNameType"))
+dtrSQNamesItemTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNamesItemType"), 
+                       qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNamesItemType"))
+dtrSQNamesTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNamesType"), 
+                   qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNamesType"))
 
 dtrNoLangItemTypeNames = ("domainItemType", "noLangTokenItem", "noLangStringItemType")
 oimLangItemTypeNames = ("stringItemType", "normalizedStringItemType")
