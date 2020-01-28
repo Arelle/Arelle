@@ -14,7 +14,7 @@ References:
 import os
 from arelle import ModelDocument, XmlUtil
 from arelle.ModelValue import qname, dateTime, DATE
-from arelle.ValidateXbrlCalcs import insignificantDigits
+from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue, insignificantDigits
 from arelle.XbrlConst import xbrli
 try:
     import regex as re
@@ -248,7 +248,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             for f in facts:
                 cntx = f.context
                 unit = f.unit
-                if getattr(f,"xValid", 0) >= 4 and cntx is not None and f.concept is not None:
+                if (f.isNil or getattr(f,"xValid", 0) >= 4) and cntx is not None and f.concept is not None:
                     factNamespaceURI = f.qname.namespaceURI
                     factLocalName = f.qname.localName
                     if factLocalName in mandatoryItems[val.txmyType]:
@@ -262,8 +262,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                 modelXbrl.error("JFCVC.3316",
                                     _("Context entity identifier %(identifier)s does not match Company Reference Number (UKCompaniesHouseRegisteredNumber) Location: Accounts (context id %(id)s)"), 
                                     modelObject=(f, _cntx), identifier=_identifier, id=_cntx.id)
-                    if not f.isNil:
-                        factForConceptContextUnitLangHash[f.conceptContextUnitLangHash].append(f)
+                    factForConceptContextUnitLangHash[f.conceptContextUnitLangHash].append(f)
                             
                     if f.isNumeric:
                         if f.precision:
@@ -366,11 +365,27 @@ def validateXbrlFinally(val, *args, **kwargs):
                         cuDict[(f.context,f.unit)] = [f]
                 for cuDict in aspectEqualFacts.values(): # dups by qname, lang
                     for fList in cuDict.values():  # dups by equal-context equal-unit
-                        f0 = fList[0]
-                        if any(not f.isVEqualTo(f0, normalizeSpace=False) for f in fList[1:]):
-                            modelXbrl.error("JFCVC.3314",
-                                "Inconsistent duplicate fact values %(fact)s: %(values)s.",
-                                modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(f.value for f in fList))
+                        if len(fList) > 1:
+                            f0 = fList[0]
+                            if f0.concept.isNumeric:
+                                if any(f.isNil for f in fList):
+                                    _inConsistent = not all(f.isNil for f in fList)
+                                elif all(inferredDecimals(f) == inferredDecimals(f0) for f in fList[1:]): # same decimals
+                                    v0 = rangeValue(f0.value)
+                                    _inConsistent = not all(rangeValue(f.value) == v0 for f in fList[1:])
+                                else: # not all have same decimals
+                                    aMax, bMin = rangeValue(f0.value, inferredDecimals(f0))
+                                    for f in fList[1:]:
+                                        a, b = rangeValue(f.value, inferredDecimals(f))
+                                        if a > aMax: aMax = a
+                                        if b < bMin: bMin = b
+                                    _inConsistent = (bMin < aMax)
+                            else:
+                                _inConsistent = any(not f.isVEqualTo(f0) for f in fList[1:])
+                            if _inConsistent:
+                                modelXbrl.error("JFCVC.3314",
+                                    "Inconsistent duplicate fact values %(fact)s: %(values)s.",
+                                    modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(f.value for f in fList))
                 aspectEqualFacts.clear()
         del factForConceptContextUnitLangHash, aspectEqualFacts
  
