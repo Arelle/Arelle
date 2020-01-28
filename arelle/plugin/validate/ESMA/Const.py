@@ -21,9 +21,7 @@ browserMaxBase64ImageLength = 1000000
 standardTaxonomyURIs = {
     "http://www.esma.europa.eu/",
     "http://xbrl.ifrs.org/taxonomy/",
-    "http://www.xbrl.org/",
-    "http://www.w3c.org/",
-    "http://xbrl.fasb.org/us-gaap/"  # is this REALLY a standard taxonomy for ESMA?  what about srt?
+    "http://www.xbrl.org/taxonomy/int/lei/"
     }
 
 WiderNarrower = "http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower"

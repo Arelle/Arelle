@@ -25,6 +25,7 @@ from arelle.XmlValidate import VALID
 from .Const import allowedImgMimeTypes, browserMaxBase64ImageLength, mandatory, untransformableTypes
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
+from .Util import isExtension
 
 datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})([T ]([0-9]{2}):([0-9]{2}):([0-9]{2}))?\s*")
 styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-esef-ix-hidden\s*:\s*([\w.-]+).*")
@@ -470,25 +471,24 @@ def validateXbrlFinally(val, *args, **kwargs):
         for arcroles, err in (((parentChild,), "elementsNotUsedForTaggingAppliedInPresentationLinkbase"),
                               ((summationItem,), "elementsNotUsedForTaggingAppliedInCalculationLinkbase"),
                               ((dimensionDomain,domainMember), "elementsNotUsedForTaggingAppliedInDefinitionLinkbase")):
-            lbElts = set()
+            unreportedLbElts = set()
             for arcrole in arcroles:
                 for rel in modelXbrl.relationshipSet(arcrole).modelRelationships:
                     fr = rel.fromModelObject
                     to = rel.toModelObject
                     if arcrole in (parentChild, summationItem):
-                        if fr is not None and not fr.isAbstract:
-                            lbElts.add(fr)
-                        if to is not None and not to.isAbstract:
-                            lbElts.add(to)
-                    elif arcrole == dimensionDomain:
-                        if fr is not None: # dimension, always abstract
-                            lbElts.add(fr)
-                        if to is not None and rel.isUsable:
-                            lbElts.add(to)
+                        if fr is not None and not fr.isAbstract and fr not in conceptsUsed and isExtension(val, rel):
+                            unreportedLbElts.add(fr)
+                        if to is not None and not to.isAbstract and to not in conceptsUsed and isExtension(val, rel):
+                            unreportedLbElts.add(to)
+                    elif arcrole == dimensionDomain: # dimension, always abstract
+                        if fr is not None and fr not in conceptsUsed and isExtensionUri(val, rel):
+                            unreportedLbElts.add(fr)
+                        if to is not None and rel.isUsable and to not in conceptsUsed and isExtension(val, rel):
+                            unreportedLbElts.add(to)
                     elif arcrole == domainMember:
-                        if to is not None and rel.isUsable:
-                            lbElts.add(to)
-            unreportedLbElts = lbElts - conceptsUsed
+                        if to is not None and rel.isUsable and to not in conceptsUsed and isExtension(val, rel):
+                            unreportedLbElts.add(to)
             if unreportedLbElts:
                 modelXbrl.error("esma.3.4.6." + err,
                     _("All usable concepts in extension taxonomy relationships MUST be applied by tagged facts: %(elements)s."),

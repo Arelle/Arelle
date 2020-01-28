@@ -14,6 +14,7 @@ from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
 from arelle import XbrlConst
 from .Const import WiderNarrower, DefaultDimensionLinkrole
+from .Util import isExtension
 
 def checkFilingDimensions(val):
 
@@ -39,18 +40,18 @@ def checkFilingDimensions(val):
                         addDomMbrs(domMbrRelfromModelObject, domMbrRel.linkrole, val.primaryItems)
                 hc = hasHcRel.toModelObject
                 if hasHypercubeArcrole == XbrlConst.all:
-                    if not hasHcRel.isClosed:
+                    if not hasHcRel.isClosed and isExtension(val, hasHcRel):
                         val.modelXbrl.error("esma.3.4.2.openPositiveHypercubeInDefinitionLinkbase",
                             _("Hypercubes appearing as target of definition arc with http://xbrl.org/int/dim/arcrole/all arcrole MUST have xbrldt:closed attribute set to \"true\""
                               ": hypercube %(hypercube)s, linkrole %(linkrole)s, primary item %(primaryItem)s"),
                             modelObject=hasHcRel, hypercube=hc.qname, linkrole=hasHcRel.linkrole, primaryItem=sourceConcept.qname)
                 elif hasHypercubeArcrole == XbrlConst.notAll:
-                    if hasHcRel.isClosed:
+                    if hasHcRel.isClosed and isExtension(val, hasHcRel):
                         val.modelXbrl.error("esma.3.4.2.closedNegativeHypercubeInDefinitionLinkbase",
                             _("Hypercubes appearing as target of definition arc with http://xbrl.org/int/dim/arcrole/notAll arcrole MUST have xbrldt:closed attribute set to \"false\""
                               ": hypercube %(hypercube)s, linkrole %(linkrole)s, primary item %(primaryItem)s"),
                             modelObject=hasHcRel, hypercube=hc.qname, linkrole=hasHcRel.linkrole, primaryItem=sourceConcept.qname)
-                    if hasHcRel.modelDocument.uri.startswith(val.modelXbrl.uriDir):
+                    if isExtension(val, hasHcRel):
                         val.modelXbrl.warning("esma.3.4.2.notAllArcroleUsedInDefinitionLinkbase",
                             _("Extension taxonomies SHOULD NOT define definition arcs with http://xbrl.org/int/dim/arcrole/notAll arcrole"
                               ": hypercube %(hypercube)s, linkrole %(linkrole)s, primary item %(primaryItem)s"),
@@ -81,7 +82,7 @@ def checkFilingDimensions(val):
     # check dimension-defaults
     invalidDefaultELRs = defaultdict(list)
     for defaultMemberRel in val.modelXbrl.relationshipSet(XbrlConst.dimensionDefault).modelRelationships:
-        if defaultMemberRel.linkrole != DefaultDimensionLinkrole:
+        if defaultMemberRel.linkrole != DefaultDimensionLinkrole and isExtension(val, defaultMemberRel):
             invalidDefaultELRs[defaultMemberRel.linkrole].append(defaultMemberRel)
     if invalidDefaultELRs:
         for invalidDefaultELR, rels in invalidDefaultELRs.items():
@@ -91,14 +92,14 @@ def checkFilingDimensions(val):
         
     # check base set dimension default overrides in extension taxonomies
     for modelLink in val.modelXbrl.baseSets[XbrlConst.dimensionDefault, None, None, None]:
-        if modelLink.modelDocument.uri.startswith(val.modelXbrl.uriDir): # is extension
+        if isExtension(val, modelLink): 
             for linkChild in modelLink:
                 if (isinstance(linkChild,(ModelObject,PrototypeObject)) and 
                     linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and 
                     linkChild.get("{http://www.w3.org/1999/xlink}arcrole") == XbrlConst.dimensionDefault):
                     fromLabel = linkChild.get("{http://www.w3.org/1999/xlink}from")
                     for fromResource in modelLink.labeledResources[fromLabel]:
-                        if not fromResource.modelDocument.uri.startswith(val.modelXbrl.uriDir):
+                        if not isExtension(val, fromResource):
                             val.modelXbrl.error("esma.3.4.3.extensionTaxonomyOverridesDefaultMembers",
                                 _("The extension taxonomy MUST not modify (prohibit and/or override) default members assigned to dimensions by the ESEF taxonomy."),
                                 modelObject=linkChild)

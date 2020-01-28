@@ -15,7 +15,8 @@ import re, unicodedata
 from arelle import ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelObject import ModelObject
-from .Const import qnDomainItemType, standardTaxonomyURIs
+from .Const import qnDomainItemType
+from .Util import isExtension
 
 def checkFilingDTS(val, modelDocument, visited):
     visited.append(modelDocument)
@@ -23,9 +24,7 @@ def checkFilingDTS(val, modelDocument, visited):
         if referencedDocument not in visited and referencedDocument.inDTS: # ignore non-DTS documents
             checkFilingDTS(val, referencedDocument, visited)
             
-    if (modelDocument.type == ModelDocument.Type.SCHEMA and 
-        (modelDocument.uri.startswith(val.modelXbrl.uriDir) or
-         not any(modelDocument.uri.startswith(standardTaxonomyURI) for standardTaxonomyURI in standardTaxonomyURIs))):
+    if modelDocument.type == ModelDocument.Type.SCHEMA and isExtension(val, modelDocument):
         
         val.hasExtensionSchema = True
         
@@ -115,9 +114,7 @@ def checkFilingDTS(val, modelDocument, visited):
                     _("Each linkbase type SHOULD be provided in a separate linkbase file, but a linkbase was found in %(schema)s."),
                     modelObject=embeddedLinkbaseElements, schema=modelDocument.basename)
                             
-    if (modelDocument.type == ModelDocument.Type.LINKBASE and 
-        (modelDocument.uri.startswith(val.modelXbrl.uriDir) or
-         not any(modelDocument.uri.startswith(standardTaxonomyURI) for standardTaxonomyURI in standardTaxonomyURIs))):
+    if modelDocument.type == ModelDocument.Type.LINKBASE and isExtension(val, modelDocument):
         
         linkbasesFound = set()
         
