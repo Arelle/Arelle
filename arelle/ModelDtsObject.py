@@ -1225,14 +1225,14 @@ class ModelType(ModelNamableTerm):
         if qnamesDerivedFrom is None:    # not derived from anything
             return typeqname is None or not typeqname # may be none or empty list
         if isinstance(qnamesDerivedFrom, (tuple,list)): # union
-            if isinstance(typeqname, (tuple,list)):
+            if isinstance(typeqname, (tuple,list,set)):
                 if any(t in qnamesDerivedFrom for t in typeqname):
                     return True
             else:
                 if typeqname in qnamesDerivedFrom:
                     return True
         else: # not union, single type
-            if isinstance(typeqname, (tuple,list)):
+            if isinstance(typeqname, (tuple,list,set)):
                 if qnamesDerivedFrom in typeqname:
                     return True
             else:
