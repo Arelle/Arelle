@@ -123,8 +123,7 @@ def loggingMessageParameters(messageCode, msgIn, modelObjectArgs, fmtArgs, *args
                                     ', '.join(measureFormat(m) for m in measures[1]))
                         else:
                             propVal = ', '.join(measureFormat(m) for m in measures[0])
-            if propVal is not None:
-                fmtArgs[param] = propVal
+            fmtArgs[param] = propVal
                 
         def setArgForConceptProperty(param, modelConceptOrQname, propertyNameParts):
             propVal = None
