@@ -74,7 +74,7 @@ class ViewTests(ViewFile.View):
         if modelDocument.type in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.REGISTRY):
             cols = []
             attr = {}
-            if self.type == ViewFile.XLSX:
+            if self.type in (ViewFile.XLSX, ViewFile.CSV):
                 self.xlsxDocName = None
             indexColName = "Index.{}".format(nestedDepth) if nestedDepth else "Index"
             for col in self.cols:
@@ -82,16 +82,14 @@ class ViewTests(ViewFile.View):
                     docName = os.path.basename(modelDocument.uri)
                     if parentDocument and os.path.basename(parentDocument.uri) == docName:
                         docName = os.path.basename(os.path.dirname(modelDocument.uri))
-                    if self.type == ViewFile.CSV:
-                        cols.append(docName)
-                    elif self.type == ViewFile.XLSX:
+                    if self.type in (ViewFile.XLSX, ViewFile.CSV):
                         self.xlsxDocNames[nestedDepth] = docName
                     else:
                         attr["name"] = docName
                     break
                 else:
                     cols.append("")
-            if self.type != ViewFile.XLSX:
+            if self.type not in (ViewFile.XLSX, ViewFile.CSV):
                 self.addRow(cols, treeIndent=0, xmlRowElementName="testcaseIndex", xmlRowEltAttr=attr, xmlCol0skipElt=True)
             # sort test cases by uri
             testcases = []
@@ -112,18 +110,21 @@ class ViewTests(ViewFile.View):
     def viewTestcase(self, modelDocument, indent):
         cols = []
         attr = {}
-        if self.type == ViewFile.XLSX:
-            self.xlsxTestcase = os.path.basename(modelDocument.uri)
+        docName = os.path.basename(modelDocument.uri)
+        if docName == "index.xml":
+            docName = os.path.basename(os.path.dirname(modelDocument.uri))
+        if self.type in (ViewFile.XLSX, ViewFile.CSV):
+            self.xlsxTestcase = os.path.basename(docName)
         for col in self.cols:
             if col == "Testcase":
                 if self.type != ViewFile.XML:
-                    cols.append(os.path.basename(modelDocument.uri))
+                    cols.append(docName)
                 else:
                     attr["name"] = os.path.basename(modelDocument.uri)
                 break
             else:
                 cols.append("")
-        if self.type != ViewFile.XLSX:
+        if self.type not in (ViewFile.XLSX, ViewFile.CSV):
             self.addRow(cols, treeIndent=indent, xmlRowElementName="testcase", xmlRowEltAttr=attr, xmlCol0skipElt=True)
         for modelTestcaseVariation in getattr(modelDocument, "testcaseVariations", ()):
             self.viewTestcaseVariation(modelTestcaseVariation, indent+1)
@@ -134,12 +135,12 @@ class ViewTests(ViewFile.View):
             id = ""
         cols = []
         attr = {}
-        if self.type == ViewFile.XLSX:
+        if self.type in (ViewFile.XLSX, ViewFile.CSV):
             cols.extend(self.xlsxDocNames)
             cols.append(self.xlsxTestcase)
-            indent = 0 # excel shows all columns to allow filtering
+            indent = 0 # excel & CSV show all columns to allow filtering
         for col in self.cols:
-            if self.type == ViewFile.XLSX and (col.startswith("Index") or col == "Testcase"):
+            if self.type in (ViewFile.XLSX, ViewFile.CSV) and (col.startswith("Index") or col == "Testcase"):
                 pass # these columns added above
             elif col == "Id":
                 cols.append(id or modelTestcaseVariation.name)
