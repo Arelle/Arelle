@@ -161,7 +161,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                     modelObject=referringElement, fileName=os.path.basename(uri), 
                     error=error.message, line=error.line, column=error.column, sourceAction=("including" if isIncluded else "importing"))
         file.close()
-    except (EnvironmentError, KeyError) as err:  # missing zip file raises KeyError
+    except (EnvironmentError, KeyError, UnicodeDecodeError) as err:  # missing zip file raises KeyError
         if file:
             file.close()
         # retry in case of well known schema locations
@@ -906,7 +906,7 @@ class ModelDocument:
             baseAttr = baseElt.get("{http://www.w3.org/XML/1998/namespace}base")
             if baseAttr:
                 if self.modelXbrl.modelManager.validateDisclosureSystem:
-                    self.modelXbrl.error(("EFM.6.03.11", "GFM.1.1.7", "EBA.2.1", "EIOPA.2.1"),
+                    self.modelXbrl.error(("EFM.6.03.11", "GFM.1.1.7", "EBA.2.1", "EIOPA.2.1", "ESEF.2.4.2.htmlOrXmlBaseUsed"),
                         _("Prohibited base attribute: %(attribute)s"),
                         edgarCode="du-0311-Xml-Base-Used",
                         modelObject=element, attribute=baseAttr, element=element.qname)
@@ -1717,9 +1717,9 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                         if relHasFromFactsInTarget:
                             modelXbrl.baseSets[baseSetKey].append(linkPrototype)
                 for fromId in fromLabels:
-                    if fromId not in linkModelLocIds[linkrole] and relHasFromFactsInTarget:
+                    if fromId not in linkModelLocIds[linkrole] and relHasFromFactsInTarget and fromId in factsByFactID:
                         linkModelLocIds[linkrole].add(fromId)
-                        locPrototype = LocPrototype(mdlDoc, linkPrototype, fromId, fromId, sourceElement=modelInlineRel)
+                        locPrototype = LocPrototype(factsByFactID[fromId].modelDocument, linkPrototype, fromId, fromId, sourceElement=modelInlineRel)
                         linkPrototype.childElements.append(locPrototype)
                         linkPrototype.labeledResources[fromId].append(locPrototype)
                 toLabels = set()
@@ -1751,7 +1751,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                                 locateFactInTuple(modelInlineFact, tuplesByTupleID, modelInlineFact.modelDocument.ixNStag)
                             if modelInlineFact.get("target") == ixdsTarget:
                                 linkModelLocIds[linkrole].add(toId)
-                                locPrototype = LocPrototype(mdlDoc, linkPrototype, toId, toId, sourceElement=modelInlineRel)
+                                locPrototype = LocPrototype(factsByFactID[toID].modelDocument, linkPrototype, toId, toId, sourceElement=modelInlineRel)
                                 toFactQnames.add(str(locPrototype.dereference().qname))
                                 linkPrototype.childElements.append(locPrototype)
                                 linkPrototype.labeledResources[toId].append(locPrototype)
