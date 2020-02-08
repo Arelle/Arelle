@@ -21,7 +21,9 @@ browserMaxBase64ImageLength = 1000000
 standardTaxonomyURIs = {
     "http://www.esma.europa.eu/",
     "http://xbrl.ifrs.org/taxonomy/",
-    "http://www.xbrl.org/taxonomy/int/lei/"
+    "http://www.xbrl.org/taxonomy/int/lei/",
+    "http://www.xbrl.org/20",
+    "http://www.w3.org/1999/xlink/",
     }
 
 WiderNarrower = "http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower"

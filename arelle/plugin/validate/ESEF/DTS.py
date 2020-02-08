@@ -1,7 +1,7 @@
 '''
 Created on June 6, 2018
 
-Filer Guidelines: esma32-60-254_esef_reporting_manual.pdf
+Filer Guidelines: ESMA_ESEF Manula 2019.pdf
 
 Taxonomy Architecture: 
 
@@ -52,7 +52,8 @@ def checkFilingDTS(val, modelDocument, visited):
                         domainMembersWrongType.append(modelConcept)
                     if modelConcept.isPrimaryItem and not modelConcept.isAbstract and modelConcept not in val.primaryItems:
                         extLineItemsWithoutHypercube.append(modelConcept)
-                    if modelConcept.isAbstract and modelConcept not in val.domainMembers:
+                    if (modelConcept.isAbstract and modelConcept not in val.domainMembers and 
+                        modelConcept.type is not None and not modelConcept.type.isDomainItemType):
                         extAbstractConcepts.append(modelConcept)
                     # check all lang's of standard label
                     labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
@@ -76,32 +77,32 @@ def checkFilingDTS(val, modelDocument, visited):
                                     hasLc3Match = True
                                     break
                     if not hasLc3Match:
-                        val.modelXbrl.warning("esma.3.2.1.extensionTaxonomyElementNameDoesNotFollowLc3Convention",
+                        val.modelXbrl.warning("ESEF.3.2.1.extensionTaxonomyElementNameDoesNotFollowLc3Convention",
                             _("Extension taxonomy element name SHOULD follow the LC3 convention: %(concept)s should match an expected LC3 composition %(lc3names)s"),
                             modelObject=modelConcept, concept=modelConcept.qname, lc3names=", ".join(lc3names))
                             
         if tuplesInExtTxmy:
-            val.modelXbrl.error("esma.2.4.1.tupleDefinedInExtensionTaxonomy",
+            val.modelXbrl.error("ESEF.2.4.1.tupleDefinedInExtensionTaxonomy",
                 _("Tuples MUST NOT be defined in extension taxonomy: %(concepts)s"),
                 modelObject=tuplesInExtTxmy, concepts=", ".join(str(c.qname) for c in tuplesInExtTxmy))
         if fractionsInExtTxmy:
-            val.modelXbrl.error("esma.2.4.1.fractionDefinedInExtensionTaxonomy",
+            val.modelXbrl.error("ESEF.2.4.1.fractionDefinedInExtensionTaxonomy",
                 _("Fractions MUST NOT be defined in extension taxonomy: %(concepts)s"),
                 modelObject=fractionsInExtTxmy, concepts=", ".join(str(c.qname) for c in fractionsInExtTxmy))
         if typedDimsInExtTxmy:
-            val.modelXbrl.warning("esma.3.2.3.typedDimensionDefinitionInExtensionTaxonomy",
+            val.modelXbrl.warning("ESEF.3.2.3.typedDimensionDefinitionInExtensionTaxonomy",
                 _("Extension taxonomy SHOULD NOT define typed dimensions: %(concepts)s."),
                 modelObject=typedDimsInExtTxmy, concepts=", ".join(str(c.qname) for c in typedDimsInExtTxmy))
         if domainMembersWrongType:
-            val.modelXbrl.error("esma.3.2.2.domainMemberWrongDataType",
+            val.modelXbrl.error("ESEF.3.2.2.domainMemberWrongDataType",
                 _("Domain members MUST have domainItemType data type as defined in \"http://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd\": concept %(concepts)s."),
                 modelObject=domainMembersWrongType, concepts=", ".join(str(c.qname) for c in domainMembersWrongType))
         if extLineItemsWithoutHypercube:
-            val.modelXbrl.error("esma.3.4.1.extensionTaxonomyLineItemNotLinkedToAnyHypercube",
+            val.modelXbrl.error("ESEF.3.4.1.extensionTaxonomyLineItemNotLinkedToAnyHypercube",
                 _("Line items that do not require any dimensional information to tag data MUST be linked to \"Line items not dimensionally qualified\" hypercube in http://www.esma.europa.eu/xbrl/esef/role/esef_role-999999 declared in esef_cor.xsd: concept %(concepts)s."),
                 modelObject=extLineItemsWithoutHypercube, concepts=", ".join(str(c.qname) for c in extLineItemsWithoutHypercube))
         if extAbstractConcepts:
-            val.modelXbrl.warning("esma.3.2.5.abstractConceptDefinitionInExtensionTaxonomy",
+            val.modelXbrl.warning("ESEF.3.2.5.abstractConceptDefinitionInExtensionTaxonomy",
                 _("Extension taxonomy SHOULD NOT define abstract concepts: concept %(concepts)s."),
                 modelObject=extAbstractConcepts, concepts=", ".join(str(c.qname) for c in extAbstractConcepts))
             
@@ -110,7 +111,7 @@ def checkFilingDTS(val, modelDocument, visited):
                                     for e in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}linkbase")
                                     if isinstance(e,ModelObject)]
         if embeddedLinkbaseElements:
-                val.modelXbrl.error("esma.3.1.1.linkbasesNotSeparateFiles",
+                val.modelXbrl.error("ESEF.3.1.1.linkbasesNotSeparateFiles",
                     _("Each linkbase type SHOULD be provided in a separate linkbase file, but a linkbase was found in %(schema)s."),
                     modelObject=embeddedLinkbaseElements, schema=modelDocument.basename)
                             
@@ -133,7 +134,7 @@ def checkFilingDTS(val, modelDocument, visited):
                     val.hasExtensionDef = True
                     linkbasesFound.add(linkEltName)
         if len(linkbasesFound) > 1:
-            val.modelXbrl.error("esma.3.1.1.extensionTaxonomyWrongFilesStructure",
+            val.modelXbrl.error("ESEF.3.1.1.extensionTaxonomyWrongFilesStructure",
                 _("Each linkbase type SHOULD be provided in a separate linkbase file, found: %(linkbasesFound)s."),
                 modelObject=modelDocument.xmlRootElement, linkbasesFound=", ".join(sorted(linkbasesFound)))
             
@@ -141,7 +142,7 @@ def checkFilingDTS(val, modelDocument, visited):
         for prohibitingArcElt in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}definitionArc"):
             if (prohibitingArcElt.get("use") == "prohibited" and 
                 prohibitingArcElt.get("{http://www.w3.org/1999/xlink}arcrole")  == XbrlConst.dimensionDefault):
-                val.modelXbrl.error("esma.3.4.3.extensionTaxonomyOverridesDefaultMembers",
+                val.modelXbrl.error("ESEF.3.4.3.extensionTaxonomyOverridesDefaultMembers",
                     _("The extension taxonomy MUST not modify (prohibit and/or override) default members assigned to dimensions by the ESEF taxonomy."),
                     modelObject=modelDocument.xmlRootElement, linkbasesFound=", ".join(sorted(linkbasesFound)))
                 
