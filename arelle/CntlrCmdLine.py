@@ -784,6 +784,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.runIDs = options.formulaRunIDs   
         if options.formulaCompileOnly:
             fo.compileOnly = True
+        if options.formulaAction:
+            fo.formulaAction = options.formulaAction
         self.modelManager.formulaOptions = fo
         
         # run utility command line options that don't depend on entrypoint Files

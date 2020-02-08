@@ -232,12 +232,11 @@ class Validate:
                                                        errorCaptureLevel=errorCaptureLevel,
                                                        ixdsTarget=modelTestcaseVariation.ixdsTarget)
                         else: # need own file source, may need instance discovery
-                            filesource = FileSource.FileSource(readMeFirstUri, self.modelXbrl.modelManager.cntlr)
-                            if filesource and not filesource.selection and filesource.isArchive:
-                                for _archiveFile in filesource.dir or (): # find instance document in archive
-                                    filesource.select(_archiveFile)
-                                    if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
-                                        break # use this selection
+                            filesource = FileSource.openFileSource(readMeFirstUri, self.modelXbrl.modelManager.cntlr, base=baseForElement)
+                            if filesource and not filesource.selection and filesource.isArchive and filesource.isTaxonomyPackage:
+                                filesource.loadTaxonomyPackageMappings()
+                                for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxds"):
+                                    filesource.select(pluginXbrlMethod(filesource))
                             modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, 
                                                        filesource,
                                                        _("validating"), 
@@ -342,7 +341,7 @@ class Validate:
                                 _("Testcase RenderingEvaluator.init exception: %(error)s, instance: %(instance)s"),
                                 modelXbrl=modelXbrl, instance=modelXbrl.modelDocument.basename, error=err, exc_info=True)
                     modelXbrlHasFormulae = modelXbrl.hasFormulae
-                    if modelXbrlHasFormulae:
+                    if modelXbrlHasFormulae and self.modelXbrl.modelManager.formulaOptions.formulaAction != "none":
                         try:
                             # validate only formulae
                             self.instValidator.parameters = parameters
