@@ -90,7 +90,13 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
     if IXDS_SURROGATE in normalizedUri:
         # create surrogate entry object for inline document set which references ix documents
         xml = ["<instances>\n"]
+        schemeFixup = isHttpUrl(normalizedUri) # schemes after separator have // normalized to single /
+        if schemeFixup:
+            defectiveScheme = normalizedUri.partition("://")[0] + ":/"
+            fixupPosition = len(defectiveScheme)
         for i, url in enumerate(normalizedUri.split(IXDS_DOC_SEPARATOR)):
+            if schemeFixup and url.startswith(defectiveScheme) and url[len(defectiveScheme)] != "/":
+                url = url[:fixupPosition] + "/" + url[fixupPosition:]
             if i == 0:
                 docsetUrl = url
             else:
@@ -481,6 +487,40 @@ def testcaseVariationReadMeFirstUris(modelTestcaseVariation):
         docsetSurrogatePath = os.path.join(os.path.dirname(_readMeFirstUris[0]), IXDS_SURROGATE)
         modelTestcaseVariation._readMeFirstUris = [docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(_readMeFirstUris)]
         return True
+    
+def testcaseVariationReportPackageIxds(filesource):
+    # single report directory
+    reportFiles = []
+    ixdsDirFiles = defaultdict(list)
+    reportDir = "*uninitialized*"
+    reportDirLen = 0
+    for f in filesource.dir:
+        if f.endswith("/reports/") and reportDir == "*uninitialized*":
+            reportDir = f
+            reportDirLen = len(f)
+        elif f.startswith(reportDir):
+            if "/" not in f[reportDirLen:]:
+                reportFiles.append(f)
+            else:
+                ixdsDir, _sep, ixdsFile = f.rpartition["/"]
+                ixdsDirFiles[ixdsDir].append(f)
+    for ixdsDir, ixdsFiles in sorted(ixdsDirFiles.items()):
+        if any(Type.identify(modelTestcaseVariation.modelXbrl.fileSource, f) == Type.INLINEXBRL for f in ixdsFiles):
+            docsetSurrogatePath = os.path.join(filesource.baseurl, ixdsDir, IXDS_SURROGATE)
+            return docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(os.path.join(filesource.baseurl,f) for f in ixdsFiles)
+    ixdsFiles = []
+    for f in reportFiles:
+        filesource.select(f)
+        if Type.identify(filesource, filesource.url) in (Type.INSTANCE, Type.INLINEXBRL):
+            ixdsFiles.append(f)
+    if len(ixdsFiles) > 1: 
+        # remove for proper report pqckages
+        docsetSurrogatePath = os.path.join(filesource.baseurl, reportDir, IXDS_SURROGATE)
+        return docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(os.path.join(filesource.baseurl,f) for f in ixdsFiles)
+    if ixdsFiles:
+        return ixdsFiles[0]
+    return None
+
 
 def testcaseVariationResultInstanceUri(modelTestcaseObject):
     if skipExpectedInstanceComparison:
@@ -518,5 +558,6 @@ __pluginInfo__ = {
     'ModelDocument.IdentifyType': identifyInlineXbrlDocumentSet,
     'ModelDocument.Discover': discoverInlineXbrlDocumentSet,
     'ModelTestcaseVariation.ReadMeFirstUris': testcaseVariationReadMeFirstUris,
+    'ModelTestcaseVariation.ReportPackageIxds': testcaseVariationReportPackageIxds,
     'ModelTestcaseVariation.ResultXbrlInstanceUri': testcaseVariationResultInstanceUri,
 }

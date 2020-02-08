@@ -42,7 +42,8 @@ def askArchiveFile(parent, filesource, multiselect=False):
                                        filenames,
                                        _("Select Entry Point"), 
                                        _("File"),
-                                       showAltViewButton=True)
+                                       showAltViewButton=True,
+                                       multiselect=multiselect)
         else:
             dialog = DialogOpenArchive(parent, 
                                        ARCHIVE, 
@@ -172,13 +173,15 @@ class DialogOpenArchive(Toplevel):
                 if self.taxonomyPackage["entryPoints"]:
                     # may have instance documents too
                     self.packageContainedInstances = []
+                    packageContentInstanceCounts = {}
                     packageContentTypeCounts = {}
                     for suffix in (".xhtml", ".htm", ".html"):
                         for potentialInstance in filesource.dir:
                             if potentialInstance.endswith(".xhtml"):
                                 _type = "Inline Instance"
                                 self.packageContainedInstances.append([potentialInstance, _type])
-                                packageContentTypeCounts[potentialInstance] = packageContentTypeCounts.get(potentialInstance, 0) + 1
+                                packageContentInstanceCounts[potentialInstance] = packageContentInstanceCounts.get(potentialInstance, 0) + 1
+                                packageContentTypeCounts[_type] = packageContentTypeCounts.get(_type, 0) + 1
                         if self.packageContainedInstances:
                             break 
                     if self.packageContainedInstances: # add sequences to any duplicated entry types
@@ -186,9 +189,16 @@ class DialogOpenArchive(Toplevel):
                             if count > 1:
                                 _dupNo = 0
                                 for i in range(len(self.packageContainedInstances)):
-                                    if self.packageContainedInstances[i][0] == _type:
+                                    if self.packageContainedInstances[i][1] == _type:
                                         _dupNo += 1
-                                        self.packageContainedInstances[i][0] = "{} {}".format(_type, _dupNo)
+                                        self.packageContainedInstances[i][1] = "{} {}".format(_type, _dupNo)
+                        for _instance, count in packageContentInstanceCounts.items():
+                            if count > 1:
+                                _dupNo = 0
+                                for i in range(len(self.packageContainedInstances)):
+                                    if self.packageContainedInstances[i][0] == _instance:
+                                        _dupNo += 1
+                                        self.packageContainedInstances[i][0] = "{} {}".format(_instance, _dupNo)
                                     
                 else:
                     # may be a catalog file with no entry oint names
@@ -391,7 +401,7 @@ class DialogOpenArchive(Toplevel):
                 # Greg Acsone reports [0] does not work for Corep 1.6 pkgs, need [1], old style packages
                 filenames = []
                 for _url, _type in self.packageContainedInstances: # check if selection was an inline instance
-                    if _type == epName:
+                    if _type in selection:
                         filenames.append(_url)
                 if not filenames: # else if it's a named taxonomy entry point
                     for url in self.taxonomyPackage["entryPoints"][epName]:
