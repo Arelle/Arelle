@@ -1017,9 +1017,6 @@ def numunitdecimalin(arg):
         return m2[0].replace(',','').replace(' ','').replace('\xa0','') + '.' + z2(m2[-2])
     raise XPathContext.FunctionArgType(1,"ixt:numunitdecimalinType")
 
-def numunitdecimalinTR4(arg):
-        return canonicalNumber(numunitdecimalin(arg))
-    
 tr1Functions = {
     # 2010-04-20 functions
     'dateslashus': dateslashus,
@@ -1208,7 +1205,6 @@ tr4Functions = {
     'num-dot-decimal': numdotdecimalTR4, # relax requirement for 0 before decimal
     'numdotdecimalin': numdotdecimalinTR4,
     'num-unit-decimal': numunitdecimalTR4,
-    'numunitdecimalin': numunitdecimalinTR4,
 }
 deprecatedNamespaceURI = 'http://www.xbrl.org/2008/inlineXBRL/transformation' # the CR/PR pre-REC namespace
 
