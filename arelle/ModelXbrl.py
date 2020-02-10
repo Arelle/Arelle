@@ -68,7 +68,8 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None, erro
     if supplementalUrls:
         for url in supplementalUrls:
             ModelDocument.load(modelXbrl, url, base, isEntry=False, isDiscovered=True, **kwargs)
-    del modelXbrl.entryLoadingUrl
+    if hasattr(modelXbrl, "entryLoadingUrl"):
+        del modelXbrl.entryLoadingUrl
     loadSchemalocatedSchemas(modelXbrl)
     
     #from arelle import XmlValidate
@@ -1015,7 +1016,7 @@ class ModelXbrl:
                                 try:
                                     objectUrl = self.modelDocument.displayUri
                                 except AttributeError:
-                                    objectUrl = self.entryLoadingUrl
+                                    objectUrl = getattr(self, "entryLoadingUrl", "")
                         try:
                             file = UrlUtil.relativeUri(entryUrl, objectUrl)
                         except:
