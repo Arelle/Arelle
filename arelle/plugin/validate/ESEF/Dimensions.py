@@ -14,7 +14,7 @@ from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
 from arelle import XbrlConst
 from .Const import WiderNarrower, DefaultDimensionLinkrole
-from .Util import isExtension
+from .Util import isExtension, isInEsefTaxonomy
 
 def checkFilingDimensions(val):
 
@@ -71,9 +71,17 @@ def checkFilingDimensions(val):
         for arcrole, ELR, linkqname, arcqname in val.modelXbrl.baseSets.keys()
         if arcrole == "XBRL-dimensions" and ELR is not None)
     anchorsInDimensionalELRs = defaultdict(list)
-    for ELR in elrsContainingDimensionalRelationships:
-        for anchoringRel in val.modelXbrl.relationshipSet(WiderNarrower,ELR).modelRelationships:
+    for anchoringRel in val.modelXbrl.relationshipSet(WiderNarrower).modelRelationships:
+        ELR = anchoringRel.linkrole
+        if ELR in elrsContainingDimensionalRelationships:
             anchorsInDimensionalELRs[ELR].append(anchoringRel)
+        fromObj = anchoringRel.fromModelObject
+        toObj = anchoringRel.toModelObject
+        if fromObj is not None and toObj is not None and not (isInEsefTaxonomy(val, fromObj) ^ isInEsefTaxonomy(val, toObj)):
+            val.modelXbrl.error("ESEF.3.3.1.anchoringRelationshipBase",
+                _("Anchoring relationships MUST be from or to an ESEF element, from %(qname1)s to %(qname2)s"),
+                modelObject=(anchoringRel, fromObj, toObj), qname1=fromObj.qname, qname2=toObj.qname)
+            
     if anchorsInDimensionalELRs:
         for ELR, rels in anchorsInDimensionalELRs.items():
             val.modelXbrl.error("ESEF.3.3.2.anchoringRelationshipsDefinedInElrContainingDimensionalRelationships",

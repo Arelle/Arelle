@@ -10,6 +10,7 @@ Filer Guidelines: esma32-60-254_esef_reporting_manual.pdf
 '''
 
 from arelle.ModelValue import qname
+from arelle.XbrlConst import all, notAll, hypercubeDimension, dimensionDomain, domainMember, dimensionDefault
 
 allowedImgMimeTypes = (
         "data:image/gif;base64", 
@@ -23,7 +24,15 @@ standardTaxonomyURIs = {
     "http://xbrl.ifrs.org/taxonomy/",
     "http://www.xbrl.org/taxonomy/int/lei/",
     "http://www.xbrl.org/20",
+    "http://www.xbrl.org/dtr/",
+    "http://www.xbrl.org/lrr/",
+    "http://www.xbrl.org/utr/",
     "http://www.w3.org/1999/xlink/",
+    }
+
+esefTaxonomyNamespaceURIs = {
+    "http://xbrl.ifrs.org/taxonomy/20",
+    "http://xbrl.ifrs.org/taxonomy/20",
     }
 
 WiderNarrower = "http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower"
@@ -36,6 +45,12 @@ mandatory = set() # mandatory element qnames
 # hidden references
 untransformableTypes = {"anyURI", "base64Binary", "hexBinary", "NOTATION", "QName", "time",
                         "token", "language"}
+
+esefDefinitionArcroles = {
+    all, notAll, hypercubeDimension, dimensionDomain, domainMember, dimensionDefault,
+    WiderNarrower
+    }
+
 
 
                   

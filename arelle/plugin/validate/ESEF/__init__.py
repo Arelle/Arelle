@@ -20,11 +20,14 @@ from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFo
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
 from arelle.PythonUtil import strTruncate
-from arelle.UrlUtil import isHttpUrl
+from arelle.UrlUtil import isHttpUrl, scheme
+from arelle.XmlValidate import VALID
+
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.XbrlConst import (ixbrlAll, xhtml, link, parentChild, summationItem, dimensionDomain, domainMember,
                               qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote)
 from arelle.XmlValidate import VALID
+from arelle.ValidateUtr import ValidateUtr
 from .Const import allowedImgMimeTypes, browserMaxBase64ImageLength, mandatory, untransformableTypes
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
@@ -35,7 +38,8 @@ styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-esef-ix-hidden\s*:\s*([\w.-]+).*
 
 FOOTNOTE_LINK_CHILDREN = {qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote}
 PERCENT_TYPE = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
-IXT_NAMESPACES = {ixtNamespaces["ixt v3"], ixtNamespaces["ixt v4"]}
+IXT_NAMESPACES = {ixtNamespaces["ixt v3"], ixtNamespaces["ixt v4"],
+                  "http://www.xbrl.org/inlineXBRL/transformation/2019-04-19"} # temporary until XSB date obtained for v4
 
 def etreeIterWithDepth(node, depth=0):
     yield (node, depth)
@@ -130,7 +134,12 @@ def validateXbrlFinally(val, *args, **kwargs):
                 _baseName, _baseExt = os.path.splitext(doc.basename)
                 if _baseExt not in (".xhtml",".html"):
                     modelXbrl.warning("ESEF.RTS.Art.3.fileNameExtension",
-                        _("FileName should have the extension .xhtml or .html: %(fileName)s"),
+                        _("FileName SHOULD have the extension .xhtml or .html: %(fileName)s"),
+                        modelObject=doc, fileName=doc.basename)
+                docinfo = doc.xmlRootElement.getroottree().docinfo
+                if " html" in docinfo.doctype:
+                    modelXbrl.warning("ESEF.RTS.Art.3.htmlDoctype",
+                        _("Doctype SHOULD NOT be html: %(fileName)s"),
                         modelObject=doc, fileName=doc.basename)
                 
         if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
@@ -149,19 +158,17 @@ def validateXbrlFinally(val, *args, **kwargs):
                 ixFractionTag = ixNStag + "fraction"
                 for elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
                     eltTag = elt.tag
-                    if isinstance(elt, ModelObject) and elt.namespaceURI == xhtml:
-                        eltTag = elt.localName
-                        if firstIxdsDoc and (not reportXmlLang or depth < firstRootmostXmlLangDepth):
-                            xmlLang = elt.get("{http://www.w3.org/XML/1998/namespace}lang")
-                            if xmlLang:
-                                reportXmlLang = xmlLang
-                                firstRootmostXmlLangDepth = depth
-                    elif isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction)):
+                    if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction)):
                         continue # comment or other non-parsed element
                     else:
                         eltTag = elt.tag
                         if eltTag.startswith(_xhtmlNs):
                             eltTag = eltTag[_xhtmlNsLen:]
+                            if firstIxdsDoc and (not reportXmlLang or depth < firstRootmostXmlLangDepth):
+                                xmlLang = elt.get("{http://www.w3.org/XML/1998/namespace}lang")
+                                if xmlLang:
+                                    reportXmlLang = xmlLang
+                                    firstRootmostXmlLangDepth = depth
                         if ((eltTag in ("object", "script")) or
                             (eltTag == "a" and "javascript:" in elt.get("href","")) or
                             (eltTag == "img" and "javascript:" in elt.get("src",""))):
@@ -179,11 +186,11 @@ def validateXbrlFinally(val, *args, **kwargs):
                                     hasParentIxTextTag = True
                                     break
                                 _ancestorElt = _ancestorElt.getparent()                        
-                            if scheme(href) in ("http", "https", "ftp"):
+                            if scheme(src) in ("http", "https", "ftp"):
                                 modelXbrl.error("ESEF.3.5.1.inlinXbrlContainsExternalReferences",
                                     _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
                                     modelObject=elt, element=eltTag)
-                            if not src.startswith("data:image"):
+                            elif not src.startswith("data:image"):
                                 if hasParentIxTextTag:
                                     modelXbrl.error("ESEF.2.5.1.imageInIXbrlElementNotEmbedded",
                                         _("Images appearing within an inline XBRL element MUST be embedded regardless of their size."),
@@ -192,16 +199,16 @@ def validateXbrlFinally(val, *args, **kwargs):
                                     # presume it to be an image file, check image contents
                                     try:
                                         base = elt.modelDocument.baseForElement(elt)
-                                        normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(graphicFile, base)
+                                        normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(src, base)
                                         if not elt.modelXbrl.fileSource.isInArchive(normalizedUri):
                                             normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
                                             imglen = 0
                                             with elt.modelXbrl.fileSource.file(normalizedUri,binary=True)[0] as fh:
                                                 imglen += len(fh.read())
-                                        if imglen < browserMaxBase64ImageLength:
-                                            modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
-                                                _("Images MUST be included in the XHTML document as a base64 encoded string unless their size exceeds support of browsers."),
-                                                modelObject=elt)
+                                            if imglen < browserMaxBase64ImageLength:
+                                                modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
+                                                    _("Images MUST be included in the XHTML document as a base64 encoded string unless their size exceeds support of browsers."),
+                                                    modelObject=elt)
                                     except IOError as err:
                                         modelXbrl.error("ESEF.2.5.1.imageFileCannotBeLoaded",
                                             _("Image file which isn't openable '%(src)s', error: %(error)s"),
@@ -389,6 +396,10 @@ def validateXbrlFinally(val, *args, **kwargs):
                 uniqueContextHashes[h] = context
         del uniqueContextHashes
         uniqueUnitHashes = {}
+        utrValidator = ValidateUtr(modelXbrl)
+        utrUnitIds = set(u.unitId
+                         for unitItemType in utrValidator.utrItemTypeEntries.values()
+                         for u in unitItemType.values())
         for unit in modelXbrl.units.values():
             h = unit.hash
             if h in uniqueUnitHashes:
@@ -396,6 +407,15 @@ def validateXbrlFinally(val, *args, **kwargs):
                     mapUnit[unit] = uniqueUnitHashes[h]
             else:
                 uniqueUnitHashes[h] = unit
+            # check if any custom measure is in UTR
+            for measureTerm in unit.measures:
+                for measure in measureTerm:
+                    ns = measure.namespaceURI
+                    if ns != XbrlConst.iso4217 and not ns.startswith("http://www.xbrl.org/"):
+                        if measure.localName in utrUnitIds:
+                            modelXbrl.error("ESEF.RTS.III.1.G1-7-1.customUnitInUtr",
+                                _("Custom measure SHOULD NOT duplicate a UnitID of UTR: %(measure)s"),
+                                modelObject=unit, measure=measure)
         del uniqueUnitHashes
         
         reportedMandatory = set()
@@ -415,7 +435,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                     precisionFacts.add(f)
                 if f.isNumeric:
                     numFactsByConceptContextUnit[(f.qname, mapContext.get(f.context,f.context), mapUnit.get(f.unit, f.unit))].append(f)
-                    if f.concept is not None and f.xValid and f.xValue > 1 and f.concept.type is not None and (
+                    if f.concept is not None and not f.isNil and f.xValid >= VALID and f.xValue > 1 and f.concept.type is not None and (
                         f.concept.type.qname == PERCENT_TYPE or f.concept.type.isDerivedFrom(PERCENT_TYPE)):
                         modelXbrl.warning("ESEF.2.2.2.percentGreaterThan100",
                             _("A percent fact should have value <= 100: %(element)s in context %(context)s value %(value)s"),
@@ -492,17 +512,17 @@ def validateXbrlFinally(val, *args, **kwargs):
                 modelObject=orphanedFootnotes)
 
         if noLangFootnotes:
-            modelXbrl.error("ESEF.2.3.2.undefinedLanguageForFootnote",
+            modelXbrl.error("ESEF.2.3.1.undefinedLanguageForFootnote",
                 _("Each footnote MUST have the 'xml:lang' attribute whose value corresponds to the language of the text in the content of the respective footnote."),
                 modelObject=noLangFootnotes)
         nonDefLangFtFacts = set(f for f,langs in factLangFootnotes.items() if reportXmlLang not in langs)
         if nonDefLangFtFacts:
-            modelXbrl.error("ESEF.2.3.2.footnoteOnlyInLanguagesOtherThanLanguageOfAReport",
+            modelXbrl.error("ESEF.2.3.1.footnoteOnlyInLanguagesOtherThanLanguageOfAReport",
                 _("Each fact MUST have at least one footnote with 'xml:lang' attribute whose value corresponds to the language of the text in the content of the respective footnote."),
                 modelObject=nonDefLangFtFacts)
         del nonDefLangFtFacts
         if footnoteRoleErrors:
-            modelXbrl.error("ESEF.2.3.2.nonStandardRoleForFootnote",
+            modelXbrl.error("ESEF.2.3.1.nonStandardRoleForFootnote",
                 _("The xlink:role attribute of a link:footnote and link:footnoteLink element as well as xlink:arcrole attribute of a link:footnoteArc MUST be defined in the XBRL Specification 2.1."),
                 modelObject=footnoteRoleErrors)
             
@@ -548,6 +568,38 @@ def validateXbrlFinally(val, *args, **kwargs):
                 modelXbrl.error("ESEF.3.4.6." + err,
                     _("All usable concepts in extension taxonomy relationships MUST be applied by tagged facts: %(elements)s."),
                     modelObject=unreportedLbElts, elements=", ".join(sorted((str(c.qname) for c in unreportedLbElts))))
+                
+        # 3.4.4 check for presentation preferred labels
+        missingConceptLabels = defaultdict(set) # by role
+        def checkLabels(parent, relSet, labelrole, visited):
+            if not parent.label(labelrole,lang=reportXmlLang,fallbackToQname=False):
+                missingConceptLabels[labelrole].add(parent)
+            visited.add(parent)
+            conceptRels = defaultdict(list) # counts for concepts without preferred label role
+            for rel in relSet.fromModelObject(parent):
+                child = rel.toModelObject
+                if child is not None:
+                    labelrole = rel.preferredLabel
+                    if not labelrole:
+                        conceptRels[child].append(rel)
+                    if child not in visited:
+                        checkLabels(child, relSet, labelrole, visited)
+            for concept, rels in conceptRels.items():
+                if len(rels) > 1:
+                    modelXbrl.warning("ESEF.3.4.4.missingPreferredLabelRole",
+                        _("Preferred label role SHOULD be used when concept is duplicated in same presentation tree location: %(qname)s."),
+                        modelObject=rels+[concept], qname=concept.qname)
+            visited.remove(parent)
+        for ELR in modelXbrl.relationshipSet(parentChild).linkRoleUris:
+            relSet = modelXbrl.relationshipSet(parentChild, ELR)
+            for rootConcept in relSet.rootConcepts:
+                checkLabels(rootConcept, relSet, None, set())
+        for labelrole, concepts in missingConceptLabels.items():
+            modelXbrl.warning("ESEF.3.4.5.missingLabelForRoleInReportLanguage",
+                _("Label for %(role)s role SHOULD be available in report language for concepts: %(qnames)s."),
+                modelObject=concepts, qnames=", ".join(str(c.qname) for c in concepts), 
+                role=os.path.basename(labelrole) if labelrole else "standard")
+            
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)

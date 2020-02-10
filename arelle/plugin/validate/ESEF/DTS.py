@@ -12,10 +12,12 @@ Taxonomy package expected to be installed:
 '''
 
 import re, unicodedata
+from collections import defaultdict
 from arelle import ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelObject import ModelObject
-from .Const import qnDomainItemType
+from arelle.XbrlConst import standardLabelRoles
+from .Const import qnDomainItemType, esefDefinitionArcroles
 from .Util import isExtension
 
 def checkFilingDTS(val, modelDocument, visited):
@@ -34,6 +36,8 @@ def checkFilingDTS(val, modelDocument, visited):
         domainMembersWrongType = []
         extLineItemsWithoutHypercube = []
         extAbstractConcepts = []
+        extMonetaryConceptsWithoutBalance = []
+        langRoleLabels = defaultdict(list)
         if modelDocument.targetNamespace is not None:
             for modelConcept in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}element"):
                 if isinstance(modelConcept,ModelConcept):
@@ -55,14 +59,17 @@ def checkFilingDTS(val, modelDocument, visited):
                     if (modelConcept.isAbstract and modelConcept not in val.domainMembers and 
                         modelConcept.type is not None and not modelConcept.type.isDomainItemType):
                         extAbstractConcepts.append(modelConcept)
+                    if modelConcept.isMonetary and not modelConcept.balance:
+                        extMonetaryConceptsWithoutBalance.append(modelConcept)
                     # check all lang's of standard label
                     labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
                     hasLc3Match = False
                     lc3names = []
                     if labelsRelationshipSet:
                         for labelRel in labelsRelationshipSet.fromModelObject(modelConcept):
+                            concept = labelRel.fromModelObject
                             label = labelRel.toModelObject
-                            if label is not None and label.role == XbrlConst.standardLabel:
+                            if concept is not None and label is not None and label.role == XbrlConst.standardLabel:
                                 # allow Joe's Bar, N.A.  to be JoesBarNA -- remove ', allow A. as not article "a"
                                 lc3name = ''.join(re.sub(r"['.-]", "", (w[0] or w[2] or w[3] or w[4])).title()
                                                   for w in re.findall(r"((\w+')+\w+)|(A[.-])|([.-]A(?=\W|$))|(\w+)", 
@@ -75,12 +82,21 @@ def checkFilingDTS(val, modelDocument, visited):
                                 if (name == lc3name or 
                                     (name and lc3name and lc3name[0].isdigit() and name[1:] == lc3name and (name[0].isalpha() or name[0] == '_'))):
                                     hasLc3Match = True
-                                    break
+                            langRoleLabels[(label.xmlLang,label.role)].append(label)
+                            if label.role not in standardLabelRoles:
+                                val.modelXbrl.warning("ESEF.3.4.5.extensionTaxonomyElementLabelCustomRole",
+                                    _("Extension taxonomy element label SHOULD not be custom: %(concept)s role %(labelrole)s"),
+                                    modelObject=(modelConcept,label), concept=modelConcept.qname, labelrole=label.role)
                     if not hasLc3Match:
                         val.modelXbrl.warning("ESEF.3.2.1.extensionTaxonomyElementNameDoesNotFollowLc3Convention",
                             _("Extension taxonomy element name SHOULD follow the LC3 convention: %(concept)s should match an expected LC3 composition %(lc3names)s"),
                             modelObject=modelConcept, concept=modelConcept.qname, lc3names=", ".join(lc3names))
-                            
+                    for (lang,labelrole),labels in langRoleLabels.items():
+                        if len(labels) > 1:
+                            val.modelXbrl.warning("ESEF.3.4.5.extensionTaxonomyElementDuplicateLabels",
+                                _("Extension taxonomy element name SHOULD not have multiple labels for lang %(lang)s and role %(labelrole)s: %(concept)s"),
+                                modelObject=[modelConcept]+labels, concept=modelConcept.qname, lang=lang, labelrole=labelrole)
+                    langRoleLabels.clear()
         if tuplesInExtTxmy:
             val.modelXbrl.error("ESEF.2.4.1.tupleDefinedInExtensionTaxonomy",
                 _("Tuples MUST NOT be defined in extension taxonomy: %(concepts)s"),
@@ -105,7 +121,10 @@ def checkFilingDTS(val, modelDocument, visited):
             val.modelXbrl.warning("ESEF.3.2.5.abstractConceptDefinitionInExtensionTaxonomy",
                 _("Extension taxonomy SHOULD NOT define abstract concepts: concept %(concepts)s."),
                 modelObject=extAbstractConcepts, concepts=", ".join(str(c.qname) for c in extAbstractConcepts))
-            
+        if extMonetaryConceptsWithoutBalance:  
+            val.modelXbrl.error("ESEF.RTS.Annex.IV.Par.4.2.monetaryConceptWithoutBalance",
+                _("Extension monetary concepts MUST provide balance attribute: concept %(concepts)s."),
+                modelObject=extMonetaryConceptsWithoutBalance, concepts=", ".join(str(c.qname) for c in extMonetaryConceptsWithoutBalance))
 
         embeddedLinkbaseElements = [e
                                     for e in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}linkbase")
@@ -114,12 +133,17 @@ def checkFilingDTS(val, modelDocument, visited):
                 val.modelXbrl.error("ESEF.3.1.1.linkbasesNotSeparateFiles",
                     _("Each linkbase type SHOULD be provided in a separate linkbase file, but a linkbase was found in %(schema)s."),
                     modelObject=embeddedLinkbaseElements, schema=modelDocument.basename)
+
+        del tuplesInExtTxmy, fractionsInExtTxmy, typedDimsInExtTxmy, domainMembersWrongType, extLineItemsWithoutHypercube, extAbstractConcepts, extMonetaryConceptsWithoutBalance, langRoleLabels
                             
     if modelDocument.type == ModelDocument.Type.LINKBASE and isExtension(val, modelDocument):
         
         linkbasesFound = set()
+        disallowedArcroles = defaultdict(list)
+        prohibitedBaseConcepts = []
+        prohibitingLbElts = []
         
-        for linkEltName in ("labelLink", "presentationLink", "calculationLink", "definitionLink"):
+        for linkEltName in ("labelLink", "presentationLink", "calculationLink", "definitionLink", "referenceLink"):
             for linkElt in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}" + linkEltName):
                 if linkEltName == "labelLink":
                     val.hasExtensionLbl = True
@@ -133,6 +157,41 @@ def checkFilingDTS(val, modelDocument, visited):
                 if linkEltName == "definitionLink":
                     val.hasExtensionDef = True
                     linkbasesFound.add(linkEltName)
+                    # check for any unexpected definition arcrole which might be a custom wider-narrower arcrole
+                    for arcElt in linkElt.iterchildren(tag="{http://www.xbrl.org/2003/linkbase}definitionArc"):
+                        arcrole = arcElt.get("{http://www.w3.org/1999/xlink}arcrole") 
+                        if arcrole not in esefDefinitionArcroles:
+                            disallowedArcroles[arcrole].append(arcElt)
+                if linkEltName in ("labelLink", "referenceLink"):
+                    # check for prohibited esef taxnonomy target elements
+                    prohibitedArcFroms = defaultdict(list)
+                    prohibitedArcTos = defaultdict(list)
+                    for arcElt in linkElt.iterchildren("{http://www.xbrl.org/2003/linkbase}labelArc", "{http://www.xbrl.org/2003/linkbase}referenceArc"):
+                        if arcElt.get("use") == "prohibited":
+                             prohibitedArcFroms[arcElt.get("{http://www.w3.org/1999/xlink}from")].append(arcElt)
+                             prohibitedArcTos[arcElt.get("{http://www.w3.org/1999/xlink}to")].append(arcElt)
+                    for locElt in linkElt.iterchildren("{http://www.xbrl.org/2003/linkbase}loc"):
+                        prohibitingArcs = prohibitedArcTos.get(locElt.get("{http://www.w3.org/1999/xlink}label"))
+                        if prohibitingArcs and not isExtension(val, locElt.get("{http://www.w3.org/1999/xlink}href")):
+                            prohibitingLbElts.extend(prohibitingArcs)
+                        prohibitingArcs = prohibitedArcFroms.get(locElt.get("{http://www.w3.org/1999/xlink}label"))
+                        if prohibitingArcs and not isExtension(val, locElt.get("{http://www.w3.org/1999/xlink}href")):
+                            prohibitingLbElts.extend(prohibitingArcs)
+                            prohibitedBaseConcepts.append(locElt.dereference())
+                    del prohibitedArcFroms, prohibitedArcTos # dereference                   
+            for disallowedArcrole, arcs in disallowedArcroles.items():
+                val.modelXbrl.error("ESEF.RTS.Annex.IV.disallowedDefinitionArcrole",
+                    _("Disallowed arcrole in definition linkbase %(arcrole)s."),
+                    modelObject=arcs, arcrole=arcrole)
+            disallowedArcroles.clear()
+            if prohibitingLbElts and prohibitedBaseConcepts:
+                val.modelXbrl.error("ESEF.RTS.Annex.IV.Par.8.baseResourceProhibition",
+                    _("Disallowed prohibition of %(resource)s for %(qnames)s."),
+                    modelObject=prohibitingLbElts+prohibitedBaseConcepts, 
+                    resource=linkEltName[:-4],
+                    qnames=", ".join(str(c.qname) for c in prohibitedBaseConcepts))
+            del prohibitingLbElts[:]
+            del prohibitedBaseConcepts[:]
         if len(linkbasesFound) > 1:
             val.modelXbrl.error("ESEF.3.1.1.extensionTaxonomyWrongFilesStructure",
                 _("Each linkbase type SHOULD be provided in a separate linkbase file, found: %(linkbasesFound)s."),
