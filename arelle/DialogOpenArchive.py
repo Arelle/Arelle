@@ -175,9 +175,9 @@ class DialogOpenArchive(Toplevel):
                     self.packageContainedInstances = []
                     packageContentInstanceCounts = {}
                     packageContentTypeCounts = {}
-                    for suffix in (".xhtml", ".htm", ".html"):
+                    for suffix in (".xhtml", ".htm", ".html"): # try for suffixes in order of likelihood to have instance
                         for potentialInstance in filesource.dir:
-                            if potentialInstance.endswith(".xhtml"):
+                            if potentialInstance.endswith(suffix):
                                 _type = "Inline Instance"
                                 self.packageContainedInstances.append([potentialInstance, _type])
                                 packageContentInstanceCounts[potentialInstance] = packageContentInstanceCounts.get(potentialInstance, 0) + 1

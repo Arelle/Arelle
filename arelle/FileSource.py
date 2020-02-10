@@ -336,7 +336,7 @@ class FileSource:
     @property
     def taxonomyPackageMetadataFiles(self):
         for f in (self.dir or []):
-            if f.endswith("/META-INF/taxonomyPackage.xml"):
+            if f.endswith("/META-INF/taxonomyPackage.xml"): # must be in a sub directory in the zip
                 return [f]  # standard package
         return [f for f in (self.dir or []) if os.path.split(f)[-1] in TAXONOMY_PACKAGE_FILE_NAMES]
     
