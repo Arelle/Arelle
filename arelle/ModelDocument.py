@@ -1756,7 +1756,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                                 locateFactInTuple(modelInlineFact, tuplesByTupleID, modelInlineFact.modelDocument.ixNStag)
                             if modelInlineFact.get("target") == ixdsTarget:
                                 linkModelLocIds[linkrole].add(toId)
-                                locPrototype = LocPrototype(factsByFactID[toID].modelDocument, linkPrototype, toId, toId, sourceElement=modelInlineRel)
+                                locPrototype = LocPrototype(factsByFactID[toId].modelDocument, linkPrototype, toId, toId, sourceElement=modelInlineRel)
                                 toFactQnames.add(str(locPrototype.dereference().qname))
                                 linkPrototype.childElements.append(locPrototype)
                                 linkPrototype.labeledResources[toId].append(locPrototype)
