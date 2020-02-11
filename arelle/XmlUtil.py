@@ -155,7 +155,7 @@ def innerText(element, ixExclude=False, ixEscape=None, ixContinuation=False, ixR
     try:
         text = "".join(text for text in innerTextNodes(element, ixExclude, ixEscape, ixContinuation, ixResolveUris))
         if strip:
-            return text.strip()
+            return text.strip(" \t\r\n") # strip follows xml whitespace collapse, only blank, tab and newlines
         return text
     except (AttributeError, TypeError):
         return ""
