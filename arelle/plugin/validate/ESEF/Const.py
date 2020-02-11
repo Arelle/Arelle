@@ -51,6 +51,15 @@ esefDefinitionArcroles = {
     WiderNarrower
     }
 
-
+esefPrimaryStatementPlaceholders = {
+    # to be augmented with future IFRS releases as they come known, as well as further PFS placeholders
+    qname("{http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full}IncomeStatementAbstract"),
+    qname("{http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full}StatementOfComprehensiveIncomeAbstract"),
+    qname("{http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full}StatementOfCashFlowsAbstract"),
+    qname("{http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full}StatementOfChangesInEquityAbstract"),
+    qname("{http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full}StatementOfChangesInNetAssetsAvailableForBenefitsAbstract"),
+    qname("{http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full}StatementOfFinancialPositionAbstract"),
+    qname("{http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full}StatementOfProfitOrLossAndOtherComprehensiveIncomeAbstract"),
+    }
 
                   

@@ -502,23 +502,20 @@ def testcaseVariationReportPackageIxds(filesource):
             if "/" not in f[reportDirLen:]:
                 reportFiles.append(f)
             else:
-                ixdsDir, _sep, ixdsFile = f.rpartition["/"]
-                ixdsDirFiles[ixdsDir].append(f)
+                ixdsDir, _sep, ixdsFile = f.rpartition("/")
+                if ixdsFile:
+                    filesource.select(f)
+                    if Type.identify(filesource, filesource.url) == Type.INLINEXBRL:
+                        ixdsDirFiles[ixdsDir].append(f)
     for ixdsDir, ixdsFiles in sorted(ixdsDirFiles.items()):
-        if any(Type.identify(modelTestcaseVariation.modelXbrl.fileSource, f) == Type.INLINEXBRL for f in ixdsFiles):
-            docsetSurrogatePath = os.path.join(filesource.baseurl, ixdsDir, IXDS_SURROGATE)
-            return docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(os.path.join(filesource.baseurl,f) for f in ixdsFiles)
-    ixdsFiles = []
+        # use the first ixds in report package
+        docsetSurrogatePath = os.path.join(filesource.baseurl, ixdsDir, IXDS_SURROGATE)
+        return docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(os.path.join(filesource.baseurl,f) for f in ixdsFiles)
     for f in reportFiles:
         filesource.select(f)
         if Type.identify(filesource, filesource.url) in (Type.INSTANCE, Type.INLINEXBRL):
-            ixdsFiles.append(f)
-    if len(ixdsFiles) > 1: 
-        # remove for proper report pqckages
-        docsetSurrogatePath = os.path.join(filesource.baseurl, reportDir, IXDS_SURROGATE)
-        return docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(os.path.join(filesource.baseurl,f) for f in ixdsFiles)
-    if ixdsFiles:
-        return ixdsFiles[0]
+            # return the first inline doc
+            return f
     return None
 
 

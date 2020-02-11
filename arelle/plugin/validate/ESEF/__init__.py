@@ -28,7 +28,7 @@ from arelle.XbrlConst import (ixbrlAll, xhtml, link, parentChild, summationItem,
                               qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote)
 from arelle.XmlValidate import VALID
 from arelle.ValidateUtr import ValidateUtr
-from .Const import allowedImgMimeTypes, browserMaxBase64ImageLength, mandatory, untransformableTypes
+from .Const import allowedImgMimeTypes, browserMaxBase64ImageLength, mandatory, untransformableTypes, esefPrimaryStatementPlaceholders
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
 from .Util import isExtension
@@ -518,8 +518,8 @@ def validateXbrlFinally(val, *args, **kwargs):
         nonDefLangFtFacts = set(f for f,langs in factLangFootnotes.items() if reportXmlLang not in langs)
         if nonDefLangFtFacts:
             modelXbrl.error("ESEF.2.3.1.footnoteOnlyInLanguagesOtherThanLanguageOfAReport",
-                _("Each fact MUST have at least one footnote with 'xml:lang' attribute whose value corresponds to the language of the text in the content of the respective footnote."),
-                modelObject=nonDefLangFtFacts)
+                _("Each fact MUST have at least one footnote with 'xml:lang' attribute whose value corresponds to the language of the text in the content of the respective footnote: %(qnames)s."),
+                modelObject=nonDefLangFtFacts, qnames=", ".join(sorted(str(f.qname) for f in nonDefLangFtFacts)))
         del nonDefLangFtFacts
         if footnoteRoleErrors:
             modelXbrl.error("ESEF.2.3.1.nonStandardRoleForFootnote",
@@ -571,6 +571,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 
         # 3.4.4 check for presentation preferred labels
         missingConceptLabels = defaultdict(set) # by role
+        pfsConceptsRootInPreLB = set()
         def checkLabels(parent, relSet, labelrole, visited):
             if not parent.label(labelrole,lang=reportXmlLang,fallbackToQname=False):
                 missingConceptLabels[labelrole].add(parent)
@@ -594,11 +595,21 @@ def validateXbrlFinally(val, *args, **kwargs):
             relSet = modelXbrl.relationshipSet(parentChild, ELR)
             for rootConcept in relSet.rootConcepts:
                 checkLabels(rootConcept, relSet, None, set())
+                # check for PFS element which isn't an orphan
+                if rootConcept.qname in esefPrimaryStatementPlaceholders and relSet.fromModelObject(rootConcept):
+                    pfsConceptsRootInPreLB.add(rootConcept)
         for labelrole, concepts in missingConceptLabels.items():
             modelXbrl.warning("ESEF.3.4.5.missingLabelForRoleInReportLanguage",
                 _("Label for %(role)s role SHOULD be available in report language for concepts: %(qnames)s."),
                 modelObject=concepts, qnames=", ".join(str(c.qname) for c in concepts), 
                 role=os.path.basename(labelrole) if labelrole else "standard")
+        if not pfsConceptsRootInPreLB:
+            # no PFS statements were recognized
+            modelXbrl.error("ESEF.RTS.Annex.II.Par.1.Par.7.missingPrimaryFinancialStatement",
+                _("A primary financial statement placeholder element MUST be a root of a presentation linkbase tree."),
+                modelObject=modelXbrl)
+        # dereference
+        del missingConceptLabels, pfsConceptsRootInPreLB
             
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
