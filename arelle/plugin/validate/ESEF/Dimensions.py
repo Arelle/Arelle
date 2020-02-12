@@ -13,13 +13,16 @@ from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
 from arelle import XbrlConst
-from .Const import WiderNarrower, DefaultDimensionLinkrole
+from .Const import WiderNarrower, DefaultDimensionLinkrole, LineItemsNotQualifiedLinkrole
 from .Util import isExtension, isInEsefTaxonomy
 
 def checkFilingDimensions(val):
 
-    val.primaryItems = set() # concepts which are line items (should not also be dimension members)
+    val.primaryItems = set() # concepts which are line items (should not also be dimension members
     val.domainMembers = set() # concepts which are dimension domain members
+    elrPrimaryItems = defaultdict(set)
+    hcPrimaryItems = set()
+    hcMembers = set()
     
     def addDomMbrs(sourceDomMbr, ELR, membersSet):
         if isinstance(sourceDomMbr, ModelConcept) and sourceDomMbr not in membersSet:
@@ -34,11 +37,12 @@ def checkFilingDimensions(val):
         for hasHcRels in hasHypercubeRelationships.values():
             for hasHcRel in hasHcRels:
                 sourceConcept = hasHcRel.fromModelObject
-                val.primaryItems.add(sourceConcept)
+                hcPrimaryItems.add(sourceConcept)
                 # find associated primary items to source concept
                 for domMbrRel in val.modelXbrl.relationshipSet(XbrlConst.domainMember).fromModelObject(sourceConcept):
                     if domMbrRel.consecutiveLinkrole == hasHcRel.linkrole: # only those related to this hc
-                        addDomMbrs(domMbrRel.toModelObject, domMbrRel.consecutiveLinkrole, val.primaryItems)
+                        addDomMbrs(domMbrRel.toModelObject, domMbrRel.consecutiveLinkrole, hcPrimaryItems)
+                val.primaryItems.update(hcPrimaryItems)
                 hc = hasHcRel.toModelObject
                 if hasHypercubeArcrole == XbrlConst.all:
                     if not hasHcRel.isClosed and isExtension(val, hasHcRel):
@@ -63,7 +67,21 @@ def checkFilingDimensions(val):
                         for dimDomRel in val.modelXbrl.relationshipSet(XbrlConst.dimensionDomain, hcDimRel.consecutiveLinkrole).fromModelObject(dim):
                             dom = hcDimRel.toModelObject
                             if isinstance(dom, ModelConcept):
-                                 addDomMbrs(dom, dimDomRel.targetRole, val.domainMembers)
+                                 addDomMbrs(dom, dimDomRel.targetRole, hcMembers)
+                val.domainMembers.update(hcMembers)
+                if hasHcRel.linkrole == LineItemsNotQualifiedLinkrole or hcMembers:
+                    elrPrimaryItems[hasHcRel.linkrole].update(hcPrimaryItems)
+                hcPrimaryItems.clear()
+                hcMembers.clear()
+                                 
+    # find primary items with other dimensions in 
+    for ELR, priItems in elrPrimaryItems.items():
+        if ELR != LineItemsNotQualifiedLinkrole:
+            i = priItems & elrPrimaryItems.get(LineItemsNotQualifiedLinkrole, set())
+            if i:
+                val.modelXbrl.warning("ESEF.3.4.2.extensionTaxonomyLineItemIncorrectlyLinkedToNonDimensionallyQualifiedHypercube",
+                    _("Dimensional line item SHOULD NOT also be linked to \"not dimensionally qualified\" hypercube from %(linkrole)s, primary item %(qnames)s"),
+                    modelObject=i, linkrole=ELR, qnames=", ".join(str(c.qname) for c in i))
 
     # check ELRs with WiderNarrower relationships
     elrsContainingDimensionalRelationships = set(

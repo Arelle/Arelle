@@ -202,13 +202,13 @@ def validateXbrlFinally(val, *args, **kwargs):
                                         normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(src, base)
                                         if not elt.modelXbrl.fileSource.isInArchive(normalizedUri):
                                             normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
-                                            imglen = 0
-                                            with elt.modelXbrl.fileSource.file(normalizedUri,binary=True)[0] as fh:
-                                                imglen += len(fh.read())
-                                            if imglen < browserMaxBase64ImageLength:
-                                                modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
-                                                    _("Images MUST be included in the XHTML document as a base64 encoded string unless their size exceeds support of browsers."),
-                                                    modelObject=elt)
+                                        imglen = 0
+                                        with elt.modelXbrl.fileSource.file(normalizedUri,binary=True)[0] as fh:
+                                            imglen += len(fh.read())
+                                        if imglen < browserMaxBase64ImageLength:
+                                            modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
+                                                _("Images MUST be included in the XHTML document as a base64 encoded string unless their size exceeds support of browsers (%(maxImageSize)s): %(file)s."),
+                                                modelObject=elt, maxImageSize=browserMaxBase64ImageLength, file=os.path.basename(normalizedUri))
                                     except IOError as err:
                                         modelXbrl.error("ESEF.2.5.1.imageFileCannotBeLoaded",
                                             _("Image file which isn't openable '%(src)s', error: %(error)s"),
