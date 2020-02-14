@@ -1560,6 +1560,9 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
         for tupleFact in tupleElements:
             if tupleFact.modelDocument == mdlDoc:
                 locateFactInTuple(tupleFact, tuplesByTupleID, ixNStag)
+                if tupleFact.get("target") == ixdsTarget:
+                    addItemFactToTarget(tupleFact) # needs to be in factsInInstance
+                
 
         for modelInlineFact in htmlElement.iterdescendants(tag=ixNStag + '*'):
             if isinstance(modelInlineFact,ModelInlineFact) and modelInlineFact.localName in ("nonNumeric", "nonFraction", "fraction"):
