@@ -1,8 +1,10 @@
 '''
 Created on June 6, 2018
 
-Filer Guidelines: ESMA_ESEF Manula 2019.pdf
-
+Filer Guidelines: 
+  RTS: https://eur-lex.europa.eu/legal-content/EN/TXT/?qid=1563538104990&uri=CELEX:32019R0815
+  ESEF Filer Manual https://www.esma.europa.eu/sites/default/files/library/esma32-60-254_esef_reporting_manual.pdf
+  
 Taxonomy Architecture: 
 
 Taxonomy package expected to be installed: 
@@ -34,7 +36,7 @@ from arelle.XbrlConst import (ixbrlAll, xhtml, link, parentChild, summationItem,
 from arelle.XmlValidate import VALID
 from arelle.ValidateUtr import ValidateUtr
 from .Const import (allowedImgMimeTypes, browserMaxBase64ImageLength, mandatory, untransformableTypes, 
-                    esefPrimaryStatementPlaceholderNames, esefMandatoryElementNames2020)
+                    esefPrimaryStatementPlaceholderNames, esefStatementsOfMonetaryDeclarationNames, esefMandatoryElementNames2020)
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
 from .Util import isExtension
@@ -94,6 +96,7 @@ def validateXbrlFinally(val, *args, **kwargs):
         return
     
     esefPrimaryStatementPlaceholders = set(qname(_ifrsNs, n) for n in esefPrimaryStatementPlaceholderNames)
+    esefStatementsOfMonetaryDeclaration = set(qname(_ifrsNs, n) for n in esefStatementsOfMonetaryDeclarationNames)
     esefMandatoryElements2020 = set(qname(_ifrsNs, n) for n in esefMandatoryElementNames2020)
     
     if modelDocument.type == ModelDocument.Type.INSTANCE:
@@ -559,14 +562,16 @@ def validateXbrlFinally(val, *args, **kwargs):
                 _("A link:footnoteLink element MUST have no children other than link:loc, link:footnote, and link:footnoteArc."),
                 modelObject=nonStdFootnoteElts)
         
+        conceptsUsedByFacts = conceptsUsed.copy()
         for qn in modelXbrl.qnameDimensionDefaults.values():
             conceptsUsed.add(modelXbrl.qnameConcepts.get(qn))
             
         # unused elements in linkbases
-        for arcroles, err in (((parentChild,), "elementsNotUsedForTaggingAppliedInPresentationLinkbase"),
-                              ((summationItem,), "elementsNotUsedForTaggingAppliedInCalculationLinkbase"),
-                              ((dimensionDomain,domainMember), "elementsNotUsedForTaggingAppliedInDefinitionLinkbase")):
+        for arcroles, err in (((parentChild,), "elements{}UsedForTagging{}AppliedInPresentationLinkbase"),
+                              ((summationItem,), "elements{}UsedForTagging{}AppliedInCalculationLinkbase"),
+                              ((dimensionDomain,domainMember), "elements{}UsedForTagging{}AppliedInDefinitionLinkbase")):
             unreportedLbElts = set()
+            reportedEltsNotInLb = conceptsUsedByFacts.copy()
             for arcrole in arcroles:
                 for rel in modelXbrl.relationshipSet(arcrole).modelRelationships:
                     fr = rel.fromModelObject
@@ -584,14 +589,30 @@ def validateXbrlFinally(val, *args, **kwargs):
                     elif arcrole == domainMember:
                         if to is not None and not fr.isAbstract and rel.isUsable and to not in conceptsUsed and isExtension(val, rel):
                             unreportedLbElts.add(to)
+                    if arcrole in (parentChild, dimensionDomain, domainMember):
+                        reportedEltsNotInLb.discard(fr)
+                        reportedEltsNotInLb.discard(to)
             if unreportedLbElts:
-                modelXbrl.error("ESEF.3.4.6." + err,
+                modelXbrl.error("ESEF.3.4.6." + err.format("Not",""),
                     _("All usable concepts in extension taxonomy relationships MUST be applied by tagged facts: %(elements)s."),
-                    modelObject=unreportedLbElts, elements=", ".join(sorted((str(c.qname) for c in unreportedLbElts))))
+                    modelObject=unreportedLbElts, elements=", ".join(sorted((str(c.qname) for c in unreportedLbElts))),
+                    messageCodes=("ESEF.3.4.6.elementsNotUsedForTaggingAppliedInPresentationLinkbase",
+                                  "ESEF.3.4.6.elementsNotUsedForTaggingAppliedInCalculationLinkbase",
+                                  "ESEF.3.4.6.elementsNotUsedForTaggingAppliedInDefinitionLinkbase"))
+            if reportedEltsNotInLb and arcrole != summationItem:
+                modelXbrl.error("ESEF.3.4.6." + err.format("", "Not"),
+                    _("All concepts used by tagged facts MUST be in extension taxonomy relationships: %(elements)s."),
+                    modelObject=reportedEltsNotInLb, elements=", ".join(sorted((str(c.qname) for c in reportedEltsNotInLb))),
+                    messageCodes=("ESEF.3.4.6.elementsUsedForTaggingNotAppliedInPresentationLinkbase",
+                                  "ESEF.3.4.6.elementsUsedForTaggingNotAppliedInDefinitionLinkbase"))
                 
         # 3.4.4 check for presentation preferred labels
         missingConceptLabels = defaultdict(set) # by role
         pfsConceptsRootInPreLB = set()
+        # Annex II para 1 check of monetary declaration
+        statementMonetaryUnitReportedConcepts = defaultdict(set) # index is unit, set is concepts
+        statementMonetaryUnitFactCounts = {}
+        
         def checkLabels(parent, relSet, labelrole, visited):
             if not parent.label(labelrole,lang=reportXmlLang,fallbackToQname=False):
                 if parent.name != "NotesAccountingPoliciesAndMandatoryTags": # TEMPORARY TBD remove
@@ -612,6 +633,23 @@ def validateXbrlFinally(val, *args, **kwargs):
                         _("Preferred label role SHOULD be used when concept is duplicated in same presentation tree location: %(qname)s."),
                         modelObject=rels+[concept], qname=concept.qname)
             visited.remove(parent)
+            
+        def checkMonetaryUnits(parent, relSet, visited):
+            if parent.isMonetary:
+                for f in modelXbrl.factsByQname.get(parent.qname,()):
+                    u = f.unit
+                    if u is not None and u.isSingleMeasure:
+                        currency = u.measures[0][0].localName
+                        statementMonetaryUnitReportedConcepts[currency].add(parent)
+                        statementMonetaryUnitFactCounts[currency] = statementMonetaryUnitFactCounts.get(currency,0) + 1
+            visited.add(parent)
+            for rel in relSet.fromModelObject(parent):
+                child = rel.toModelObject
+                if child is not None:
+                    if child not in visited:
+                        checkMonetaryUnits(child, relSet, visited)
+            visited.remove(parent)
+
         for ELR in modelXbrl.relationshipSet(parentChild).linkRoleUris:
             relSet = modelXbrl.relationshipSet(parentChild, ELR)
             for rootConcept in relSet.rootConcepts:
@@ -619,6 +657,9 @@ def validateXbrlFinally(val, *args, **kwargs):
                 # check for PFS element which isn't an orphan
                 if rootConcept.qname in esefPrimaryStatementPlaceholders and relSet.fromModelObject(rootConcept):
                     pfsConceptsRootInPreLB.add(rootConcept)
+                # check for statement declaration of monetary concepts
+                if rootConcept.qname in esefPrimaryStatementPlaceholders:
+                    checkMonetaryUnits(rootConcept, relSet, set())
         for labelrole, concepts in missingConceptLabels.items():
             modelXbrl.warning("ESEF.3.4.5.missingLabelForRoleInReportLanguage",
                 _("Label for %(role)s role SHOULD be available in report language for concepts: %(qnames)s."),
@@ -632,7 +673,31 @@ def validateXbrlFinally(val, *args, **kwargs):
         # dereference
         del missingConceptLabels, pfsConceptsRootInPreLB
         
-        # mandatory factc RTS Annex II
+        # facts in declared units RTS Annex II para 1
+        # assume declared currency is one with majority of concepts
+        unitCounts = sorted(statementMonetaryUnitFactCounts.items(), key=lambda uc:uc[1], reverse=True)
+        _declaredCurrency = unitCounts[0][0]
+        monetaryItemsNotInDeclaredCurrency = []
+        for facts in modelXbrl.factsByQname.values():
+            for f0 in facts:
+                concept = f0.concept
+                if concept is not None and concept.isMonetary:
+                    hasDeclaredCurrency = False
+                    for f in facts:
+                        u = f.unit
+                        if u is not None and u.isSingleMeasure and u.measures[0][0].localName == _declaredCurrency:
+                            hasDeclaredCurrency = True
+                            break
+                    if not hasDeclaredCurrency:
+                        monetaryItemsNotInDeclaredCurrency.append(concept)
+                break
+        if monetaryItemsNotInDeclaredCurrency:
+            modelXbrl.error("ESEF.RTS.Annex.II.Par.1.missingMonetaryFactsInDeclaredCurrency",
+                _("Numbers SHALL be marked up in declared currency %(currency)s: %(qnames)s."),
+                modelObject=monetaryItemsNotInDeclaredCurrency, currency=_declaredCurrency,
+                qnames=", ".join(sorted(str(c.qname) for c in monetaryItemsNotInDeclaredCurrency)))
+        
+        # mandatory facts RTS Annex II
         missingMandatoryElements = esefMandatoryElements2020 - modelXbrl.factsByQname.keys()
         if missingMandatoryElements:
             modelXbrl.error("ESEF.RTS.Annex.II.Par.2.missingMandatoryMarkups",

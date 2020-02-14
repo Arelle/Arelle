@@ -72,6 +72,14 @@ esefPrimaryStatementPlaceholderNames = (
     "StatementOfProfitOrLossAndOtherComprehensiveIncomeAbstract"
     )
 
+esefStatementsOfMonetaryDeclarationNames = {
+    # from Annex II para 1
+    "StatementOfFinancialPositionAbstract",
+    "StatementOfProfitOrLossAndOtherComprehensiveIncomeAbstract"
+    "StatementOfChangesInEquityAbstract",
+    "StatementOfCashFlowsAbstract",
+    }
+
 esefMandatoryElementNames2020 = (
     "NameOfReportingEntityOrOtherMeansOfIdentification",
     "ExplanationOfChangeInNameOfReportingEntityOrOtherMeansOfIdentificationFromEndOfPrecedingReportingPeriod",
