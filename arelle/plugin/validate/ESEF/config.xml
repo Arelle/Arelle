@@ -9,8 +9,6 @@
      validationType="ESEF"
 	 exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|EBA|EIOPA|ESEF"
      blockDisallowedReferences="false" 
-     defaultXmlLang="en" 
-     defaultLanguage="English" 
      validateFileText="false"
      contextElement="scenario" 
      />

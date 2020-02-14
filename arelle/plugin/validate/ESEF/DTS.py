@@ -11,12 +11,16 @@ Taxonomy package expected to be installed:
 (c) Copyright 2018 Mark V Systems Limited, All rights reserved.
 '''
 
-import re, unicodedata
+import unicodedata
+try:
+    import regex as re
+except ImportError:
+    import re
 from collections import defaultdict
 from arelle import ModelDocument, XbrlConst
-from arelle.ModelDtsObject import ModelConcept
+from arelle.ModelDtsObject import ModelConcept, ModelType
 from arelle.ModelObject import ModelObject
-from arelle.XbrlConst import standardLabelRoles, dimensionDefault
+from arelle.XbrlConst import xbrli, standardLabelRoles, dimensionDefault
 from .Const import qnDomainItemType, esefDefinitionArcroles, WiderNarrower, disallowedURIsPattern
 from .Util import isExtension
 
@@ -126,6 +130,13 @@ def checkFilingDTS(val, modelDocument, visited):
                                 _("Extension taxonomy element name SHOULD not have multiple labels for lang %(lang)s and role %(labelrole)s: %(concept)s"),
                                 modelObject=[modelConcept]+labels, concept=modelConcept.qname, lang=lang, labelrole=labelrole)
                     langRoleLabels.clear()
+            for modelType in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}complexType"):
+                if (isinstance(modelType,ModelType) and isExtension(val, modelType) and 
+                    modelType.typeDerivedFrom is not None and modelType.typeDerivedFrom.qname.namespaceURI == xbrli and
+                    not modelType.particlesList):
+                    val.modelXbrl.warning("ESEF.RTS.Annex.IV.Par.11.customDataTypeDuplicatingXbrlOrDtrEntry",
+                        _("Extension taxonomy element must not define a type where one is already defined by the XBRL specifications or in the XBRL Data Types Registry: %(qname)s"),
+                        modelObject=modelType, qname=modelType.qname)
         if tuplesInExtTxmy:
             val.modelXbrl.error("ESEF.2.4.1.tupleDefinedInExtensionTaxonomy",
                 _("Tuples MUST NOT be defined in extension taxonomy: %(concepts)s"),
@@ -228,11 +239,13 @@ def checkFilingDTS(val, modelDocument, visited):
                     modelObject=arcs, arcrole=arcrole)
             disallowedArcroles.clear()
             if prohibitingLbElts and prohibitedBaseConcepts:
-                val.modelXbrl.error("ESEF.RTS.Annex.IV.Par.8.baseResourceProhibition",
-                    _("Disallowed prohibition of %(resource)s for %(qnames)s."),
+                val.modelXbrl.error("ESEF.RTS.Annex.IV.Par.8.coreTaxonomy{}Modification".format(linkEltName[:-4].title()),
+                    _("Disallowed modification of core taxonomy %(resource)s for %(qnames)s."),
                     modelObject=prohibitingLbElts+prohibitedBaseConcepts, 
                     resource=linkEltName[:-4],
-                    qnames=", ".join(str(c.qname) for c in prohibitedBaseConcepts))
+                    qnames=", ".join(str(c.qname) for c in prohibitedBaseConcepts),
+                    messageCodes=("ESEF.RTS.Annex.IV.Par.8.coreTaxonomyReferenceModification",
+                                  "ESEF.RTS.Annex.IV.Par.8.coreTaxonomyLabelModification"))
             del prohibitingLbElts[:]
             del prohibitedBaseConcepts[:]
         if len(linkbasesFound) > 1:

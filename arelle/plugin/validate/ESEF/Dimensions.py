@@ -70,7 +70,9 @@ def checkFilingDimensions(val):
                                  addDomMbrs(dom, dimDomRel.targetRole, hcMembers)
                 val.domainMembers.update(hcMembers)
                 if hasHcRel.linkrole == LineItemsNotQualifiedLinkrole or hcMembers:
-                    elrPrimaryItems[hasHcRel.linkrole].update(hcPrimaryItems)
+                    for hcPrimaryItem in hcPrimaryItems:
+                        if isExtension(val, hcPrimaryItem):
+                            elrPrimaryItems[hasHcRel.linkrole].add(hcPrimaryItem)
                 hcPrimaryItems.clear()
                 hcMembers.clear()
                                  

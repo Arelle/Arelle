@@ -9,7 +9,10 @@ Filer Guidelines: esma32-60-254_esef_reporting_manual.pdf
 (c) Copyright 2018 Mark V Systems Limited, All rights reserved.
 '''
 
-import re
+try:
+    import regex as re
+except ImportError:
+    import re
 from arelle.ModelValue import qname
 from arelle.XbrlConst import all, notAll, hypercubeDimension, dimensionDomain, domainMember, dimensionDefault
 
@@ -58,15 +61,27 @@ esefDefinitionArcroles = {
     WiderNarrower
     }
 
-esefPrimaryStatementPlaceholders = {
+esefPrimaryStatementPlaceholderNames = (
     # to be augmented with future IFRS releases as they come known, as well as further PFS placeholders
-    qname("{http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full}IncomeStatementAbstract"),
-    qname("{http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full}StatementOfComprehensiveIncomeAbstract"),
-    qname("{http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full}StatementOfCashFlowsAbstract"),
-    qname("{http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full}StatementOfChangesInEquityAbstract"),
-    qname("{http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full}StatementOfChangesInNetAssetsAvailableForBenefitsAbstract"),
-    qname("{http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full}StatementOfFinancialPositionAbstract"),
-    qname("{http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full}StatementOfProfitOrLossAndOtherComprehensiveIncomeAbstract"),
-    }
+    "StatementOfFinancialPositionAbstract",
+    "IncomeStatementAbstract",
+    "StatementOfComprehensiveIncomeAbstract",
+    "StatementOfCashFlowsAbstract",
+    "StatementOfChangesInEquityAbstract",
+    "StatementOfChangesInNetAssetsAvailableForBenefitsAbstract",
+    "StatementOfProfitOrLossAndOtherComprehensiveIncomeAbstract"
+    )
 
-                  
+esefMandatoryElementNames2020 = (
+    "NameOfReportingEntityOrOtherMeansOfIdentification",
+    "ExplanationOfChangeInNameOfReportingEntityOrOtherMeansOfIdentificationFromEndOfPrecedingReportingPeriod",
+    "DomicileOfEntity",
+    "LegalFormOfEntity",
+    "CountryOfIncorporation",
+    "AddressOfRegisteredOfficeOfEntity",
+    "PrincipalPlaceOfBusiness",
+    "DescriptionOfNatureOfEntitysOperationsAndPrincipalActivities",
+    "NameOfParentEntity",
+    "NameOfUltimateParentOfGroup",
+    "PrincipalPlaceOfBusiness"
+    )                 

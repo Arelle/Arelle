@@ -10,7 +10,11 @@ Taxonomy package expected to be installed:
 @author: Mark V Systems Limited
 (c) Copyright 2018 Mark V Systems Limited, All rights reserved.
 '''
-import os, re
+import os
+try:
+    import regex as re
+except ImportError:
+    import re
 from collections import defaultdict
 from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction
 from arelle import LeiUtil, ModelDocument, XbrlConst, XmlUtil
@@ -21,20 +25,23 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
 from arelle.PythonUtil import strTruncate
 from arelle.UrlUtil import isHttpUrl, scheme
+from arelle.XbrlConst import standardLabel
 from arelle.XmlValidate import VALID
 
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.XbrlConst import (ixbrlAll, xhtml, link, parentChild, summationItem, dimensionDomain, domainMember,
-                              qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote)
+                              qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote, iso17442)
 from arelle.XmlValidate import VALID
 from arelle.ValidateUtr import ValidateUtr
-from .Const import allowedImgMimeTypes, browserMaxBase64ImageLength, mandatory, untransformableTypes, esefPrimaryStatementPlaceholders
+from .Const import (allowedImgMimeTypes, browserMaxBase64ImageLength, mandatory, untransformableTypes, 
+                    esefPrimaryStatementPlaceholderNames, esefMandatoryElementNames2020)
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
 from .Util import isExtension
 
 datetimePattern = re.compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*")
 styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-esef-ix-hidden\s*:\s*([\w.-]+).*")
+ifrsNsPattern = re.compile(r"http://xbrl.ifrs.org/taxonomy/[0-9-]{10}/ifrs-full")
 
 FOOTNOTE_LINK_CHILDREN = {qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote}
 PERCENT_TYPE = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
@@ -76,6 +83,18 @@ def validateXbrlFinally(val, *args, **kwargs):
     reportXmlLang = None
     firstRootmostXmlLangDepth = 9999999
     
+    _ifrsNs = None
+    for targetNs in modelXbrl.namespaceDocs.keys():
+        if ifrsNsPattern.match(targetNs):
+            _ifrsNs = targetNs
+    if not _ifrsNs:
+        modelXbrl.error("ESEF.RTS.ifrsRequired",
+                        _("RTS on ESEF requires IFRS taxonomy."), 
+                        modelObject=modelXbrl)
+        return
+    
+    esefPrimaryStatementPlaceholders = set(qname(_ifrsNs, n) for n in esefPrimaryStatementPlaceholderNames)
+    esefMandatoryElements2020 = set(qname(_ifrsNs, n) for n in esefMandatoryElementNames2020)
     
     if modelDocument.type == ModelDocument.Type.INSTANCE:
         modelXbrl.error("ESEF.I.1.instanceShallBeInlineXBRL",
@@ -252,8 +271,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                             modelObject=elt, localName=elt.elementQname, target=elt.get("target"))
                     if eltTag == ixTupleTag:
                         modelXbrl.error("ESEF.2.4.1.tupleElementUsed",
-                            _("The ix:tuple element MUST not be used in the Inline XBRL document."),
-                            modelObject=elt)
+                            _("The ix:tuple element MUST not be used in the Inline XBRL document: %(qname)s."),
+                            modelObject=elt, qname=elt.qname)
                     if eltTag == ixFractionTag:
                         modelXbrl.error("ESEF.2.4.1.fractionElementUsed",
                             _("The ix:fraction element MUST not be used in the Inline XBRL document."),
@@ -360,19 +379,19 @@ def validateXbrlFinally(val, *args, **kwargs):
                 _("All entity identifiers in contexts MUST have identical content: %(contextIdentifiers)s"),
                 modelObject=modelXbrl, contextIds=", ".join(i[1] for i in contextIdentifiers))
         for (contextScheme, contextIdentifier), contextElts in contextIdentifiers.items():
-            if contextScheme != "http://standards.iso.org/iso/17442":
+            if contextScheme != iso17442:
                 modelXbrl.warning("ESEF.2.1.1.nonLEIContextScheme",
-                    _("The scheme attribute of the xbrli:identifier element should have \"http://standards.iso.org/iso/17442\" as its content: %(scheme)s"),
-                    modelObject=contextElts, scheme=contextScheme)
+                    _("The scheme attribute of the xbrli:identifier element should have \"%(leiScheme)s\" as its content: %(contextScheme)s"),
+                    modelObject=contextElts, contextScheme=contextScheme, leiScheme=iso17442)
             else:
                 leiValidity = LeiUtil.checkLei(contextIdentifier)
                 if leiValidity == LeiUtil.LEI_INVALID_LEXICAL:
                     modelXbrl.warning("ESEF.2.1.1.invalidIdentifierFormat",
-                        _("The LEI context idenntifier has an invalid format: %(identifier)s"),
+                        _("The LEI context identifier has an invalid format: %(identifier)s"),
                         modelObject=contextElts, identifier=contextIdentifier)
                 elif leiValidity == LeiUtil.LEI_INVALID_CHECKSUM:
                     modelXbrl.warning("ESEF.2.1.1.invalidIdentifier",
-                        _("The LEI context idenntifier has checksum error: %(identifier)s"),
+                        _("The LEI context identifier has checksum error: %(identifier)s"),
                         modelObject=contextElts, identifier=contextIdentifier)
         if contextsWithPeriodTime:
             modelXbrl.warning("ESEF.2.1.2.periodWithTimeContent",
@@ -461,11 +480,12 @@ def validateXbrlFinally(val, *args, **kwargs):
                 modelObject=noLangFacts)
             
         # missing report lang text facts
-        for fList in textFactsByConceptContext.values():
-            if not any(f.xmlLang == reportXmlLang for f in fList):
-                modelXbrl.error("ESEF.2.5.2.taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport",
-                    _("Each tagged text fact MUST have the 'xml:lang' provided in at least the language of the report: %(element)s"),
-                    modelObject=fList, element=fList[0].qname)
+        if reportXmlLang:
+            for fList in textFactsByConceptContext.values():
+                if not any(f.xmlLang == reportXmlLang for f in fList):
+                    modelXbrl.error("ESEF.2.5.2.taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport",
+                        _("Each tagged text fact MUST have the 'xml:lang' provided in at least the language of the report: %(element)s"),
+                        modelObject=fList, element=fList[0].qname)
         
             
         # 2.2.4 test
@@ -574,7 +594,8 @@ def validateXbrlFinally(val, *args, **kwargs):
         pfsConceptsRootInPreLB = set()
         def checkLabels(parent, relSet, labelrole, visited):
             if not parent.label(labelrole,lang=reportXmlLang,fallbackToQname=False):
-                missingConceptLabels[labelrole].add(parent)
+                if parent.name != "NotesAccountingPoliciesAndMandatoryTags": # TEMPORARY TBD remove
+                    missingConceptLabels[labelrole].add(parent)
             visited.add(parent)
             conceptRels = defaultdict(list) # counts for concepts without preferred label role
             for rel in relSet.fromModelObject(parent):
@@ -610,7 +631,28 @@ def validateXbrlFinally(val, *args, **kwargs):
                 modelObject=modelXbrl)
         # dereference
         del missingConceptLabels, pfsConceptsRootInPreLB
-            
+        
+        # mandatory factc RTS Annex II
+        missingMandatoryElements = esefMandatoryElements2020 - modelXbrl.factsByQname.keys()
+        if missingMandatoryElements:
+            modelXbrl.error("ESEF.RTS.Annex.II.Par.2.missingMandatoryMarkups",
+                _("Mandatory elements to be marked up are missing: %(qnames)s."),
+                modelObject=missingMandatoryElements, qnames=", ".join(sorted(str(qn) for qn in missingMandatoryElements)))
+        
+        # duplicated core taxonomy elements  
+        for name, concepts in modelXbrl.nameConcepts.items():
+            if len(concepts) > 1:
+                i = None # ifrs Concept
+                for c in concepts:
+                    if c.qname.namespaceURI == _ifrsNs:
+                        i = c
+                        break
+                if i is not None:
+                    for c in concepts:
+                        if c != i and c.balance == i.balance and c.periodType == i.periodType:
+                            modelXbrl.error("ESEF.RTS.Annex.IV.Par.4.2.extensionElementDuplicatesCoreElement",
+                        _("Extension elements must not duplicate the existing elements from the core taxonomy and be identifiable %(qname)s."), 
+                        modelObject=(c,i), qname=c.qname)
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
