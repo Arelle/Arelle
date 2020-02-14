@@ -66,6 +66,9 @@
 Section "Arelle" SecArelle
 
   SetOutPath "$INSTDIR"
+
+  ;REMOVE OBSOLETE PLUGINS
+  RMDir /r "$INSTDIR\plugin\validate\ESMA"
   
   ;ADD YOUR OWN FILES HERE...
   File /r build\exe.win32-3.5\*.*
