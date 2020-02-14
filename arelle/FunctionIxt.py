@@ -1212,13 +1212,14 @@ ixtNamespaces = {
     "ixt v1": 'http://www.xbrl.org/inlineXBRL/transformation/2010-04-20',
     "ixt v2": 'http://www.xbrl.org/inlineXBRL/transformation/2011-07-31',
     "ixt v3": 'http://www.xbrl.org/inlineXBRL/transformation/2015-02-26',
-    "ixt v4": 'http://www.xbrl.org/inlineXBRL/transformation/WGWD/YYYY-MM-DD'
+    "ixt v4": 'http://www.xbrl.org/inlineXBRL/transformation/2020-02-12',
     }
 
 ixtNamespaceFunctions = {
     ixtNamespaces["ixt v1"]: tr1Functions, # transformation registry v1
     ixtNamespaces["ixt v2"]: tr2Functions, # transformation registry v2
     ixtNamespaces["ixt v3"]: tr3Functions, # transformation registry v3
-    ixtNamespaces["ixt v4"]: tr4Functions, # transformation registry v3
+    ixtNamespaces["ixt v4"]: tr4Functions, # transformation registry v4
+    "http://www.xbrl.org/inlineXBRL/transformation/WGWD/YYYY-MM-DD": tr4Functions, # transformation registry v4 draft
     'http://www.xbrl.org/2008/inlineXBRL/transformation': tr1Functions # the CR/PR pre-REC namespace
 }
