@@ -18,9 +18,10 @@ if __name__ == "__main__":
     arelleSrcPath = (os.path.dirname(__file__) or os.curdir) + os.sep + "arelle"
     for arelleSrcDir in (arelleSrcPath, 
                          arelleSrcPath + os.sep + "plugin",
+                         arelleSrcPath + os.sep + "plugin" + os.sep + "validate",
                          arelleSrcPath + os.sep + "plugin" + os.sep + "validate" + os.sep + "EFM",
-                         arelleSrcPath + os.sep + "plugin" + os.sep + "EdgarRenderer"
-                         # arelleSrcPath + os.sep + "plugin" + os.sep + "validate" + os.sep + "GL"
+                         arelleSrcPath + os.sep + "plugin" + os.sep + "EdgarRenderer",
+                         arelleSrcPath + os.sep + "plugin" + os.sep + "validate" + os.sep + "ESEF",
                          ):
         for moduleFilename in os.listdir(arelleSrcDir):
             if moduleFilename.endswith(".py"):
