@@ -8,7 +8,7 @@ Created on Sept 1, 2013
 '''
 from arelle import XbrlConst, XmlUtil, XmlValidate, ValidateFilingText, UrlUtil
 from arelle.ModelValue import qname
-from arelle.ModelObject import ModelObject
+from arelle.ModelObject import ModelObject, ModelComment
 from arelle.PythonUtil import normalizeSpace
 from lxml import etree
 import os, re, posixpath
@@ -388,7 +388,7 @@ def xhtmlValidate(modelXbrl, elt):
                     issue = " must have at least 1 but none present "
                 disallowedChildText = bool(reqt == '&' and 
                                            rel in ("child-sequence", "child-choice") 
-                                           and elt.textValue.strip())
+                                           and elt.textValue.strip(" \t\r\n"))
                 if ((reqt == '+' and not relations) or
                     (reqt == '-' and relations) or
                     (issue) or disallowedChildText):
@@ -419,7 +419,7 @@ def xhtmlValidate(modelXbrl, elt):
                                 if names == ('*',) and relations else
                                 ", ".join("{}:{}".format(namespacePrefix, n) for n in names),
                                 issue,
-                                " and no child text (\"{}\")".format(elt.textValue.strip()[:32]) if disallowedChildText else "")
+                                " and no child text (\"{}\")".format(elt.textValue.strip(" \t\r\n")[:32]) if disallowedChildText else "")
                     modelXbrl.error(code, msg, 
                                     modelObject=[elt] + relations, requirement=reqt,
                                     messageCodes=("ix{ver.sect}:ancestorNode{Required|Disallowed}",
@@ -536,6 +536,16 @@ def xhtmlValidate(modelXbrl, elt):
                             toChild.text = fromChild.text
                         if fromChild.tail is not None:
                             toChild.tail = fromChild.tail    
+            elif isinstance(fromChild, ModelComment): # preserve non-xsd-whitespac after comments
+                if fromChild.tail and not XmlValidate.entirelyWhitespacePattern.match(fromChild.tail):
+                    toChild = toElt # append to parent or last child of parent
+                    for lastToElt in toElt.iterchildren(reversed=True):
+                        toChild = lastToElt
+                        break
+                    if not toChild.tail:
+                        toChild.tail = fromChild.tail
+                    else:
+                        toChild.tail += fromChild.tail
                             
     # copy xhtml elements to fresh tree
     with open(os.path.join(modelXbrl.modelManager.cntlr.configDir, _xhtmlDTD)) as fh:
