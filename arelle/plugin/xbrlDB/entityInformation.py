@@ -32,7 +32,8 @@ def loadEntityInformation(dts, entrypoint, rssItem):
             accession = rssItem.url.split('/')[-2]
             fileUrl = os.path.dirname(rssItem.url) + '/' + accession[0:10] + '-' + accession[10:12] + '-' + accession[12:] + ".hdr.sgml"
             reloadCache = getattr(rssItem.modelXbrl, "reloadCache", False)
-        elif dts.uri.startswith("http://www.sec.gov/Archives/edgar/data") and dts.uri.endswith(".xml"):
+        elif (dts.uri.startswith("http://www.sec.gov/Archives/edgar/data") or
+              dts.uri.startswith("https://www.sec.gov/Archives/edgar/data")) and dts.uri.endswith(".xml"):
             accession = dts.uri.split('/')[-2]
             dirPart = os.path.dirname(dts.uri)
             if accession.endswith("-xbrl.zip"):  # might be an instance document inside a xbrl.zip file
