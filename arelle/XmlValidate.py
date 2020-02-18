@@ -33,6 +33,7 @@ VALID_NO_CONTENT = 6 # may be a complex type with children, must be last (after 
 
 normalizeWhitespacePattern = re_compile(r"[\t\n\r]") # replace tab, line feed, return with space (XML Schema Rules, note: does not include NBSP)
 collapseWhitespacePattern = re_compile(r"[ \t\n\r]+") # collapse multiple spaces, tabs, line feeds and returns to single space
+entirelyWhitespacePattern = re_compile(r"^[ \t\n\r]+$") # collapse multiple spaces, tabs, line feeds and returns to single space
 languagePattern = re_compile("[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$")
 NCNamePattern = re_compile("^[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
                             r"[_\-\." 
@@ -343,7 +344,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
             elif whitespaceCollapse:
                 value = collapseWhitespacePattern.sub(' ', value).strip(' ') # collapse multiple spaces, tabs, line feeds and returns to single space
             if baseXsdType == "noContent":
-                if len(value) > 0 and not value.isspace():
+                if len(value) > 0 and not entirelyWhitespacePattern.match(value): # only xml schema pattern whitespaces removed
                     raise ValueError("value content not permitted")
                 # note that sValue and xValue are not innerText but only text elements on specific element (or attribute)
                 xValue = sValue = None
