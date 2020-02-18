@@ -1817,7 +1817,7 @@ class ModelMatchFilter(ModelFilter):
         return (("label", self.xlinkLabel),
                 ("aspect", self.aspectName),
                 ("dimension", self.dimension) if self.dimension else (),
-                ("matchAny", self.matchAny.lower())
+                ("matchAny", self.matchAny.lower()),
                 ("variable", self.variable),
                  )
         
