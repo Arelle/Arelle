@@ -1256,11 +1256,11 @@ def checkMessageExpressions(val, message):
                     skipTo = None
             if expression is not None and c in ('\'', '"'):
                 skipTo = c
+            elif lastC == c and c in ('{','}'):
+                lastC = None
             elif lastC == '{': 
                 bracketNesting += 1
                 expression = []
-                lastC = None
-            elif lastC == c and c in ('{','}'):
                 lastC = None
             elif c == '}' and expression is not None: 
                 expressions.append( ''.join(expression).strip() )
