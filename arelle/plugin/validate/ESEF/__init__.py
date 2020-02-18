@@ -31,7 +31,8 @@ from arelle.XbrlConst import standardLabel
 from arelle.XmlValidate import VALID
 
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
-from arelle.XbrlConst import (ixbrlAll, xhtml, link, parentChild, summationItem, dimensionDomain, domainMember,
+from arelle.XbrlConst import (ixbrlAll, xhtml, link, parentChild, summationItem, 
+                              all as hc_all, notAll as hc_notAll, hypercubeDimension, dimensionDomain, domainMember,
                               qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote, iso17442)
 from arelle.XmlValidate import VALID
 from arelle.ValidateUtr import ValidateUtr
@@ -348,8 +349,8 @@ def validateXbrlFinally(val, *args, **kwargs):
         nonStandardTypedDimensions = defaultdict(set)
         for context in modelXbrl.contexts.values():
             for elt in context.iterdescendants("{http://www.xbrl.org/2003/instance}startDate",
-                                                   "{http://www.xbrl.org/2003/instance}endDate",
-                                                   "{http://www.xbrl.org/2003/instance}instant"):
+                                               "{http://www.xbrl.org/2003/instance}endDate",
+                                               "{http://www.xbrl.org/2003/instance}instant"):
                 m = datetimePattern.match(elt.stringValue)
                 if m:
                     if m.group(1):
@@ -474,8 +475,9 @@ def validateXbrlFinally(val, *args, **kwargs):
                         conceptsUsed.add(dim.dimension)
                         if dim.isExplicit:
                             conceptsUsed.add(dim.member)
-                        elif dim.isTyped:
-                            conceptsUsed.add(dim.typedMember)
+                        #don't consider typed member as a used concept which needs to be in pre LB 
+                        #elif dim.isTyped:
+                        #    conceptsUsed.add(dim.typedMember)
                     
         if noLangFacts:
             modelXbrl.error("ESEF.2.5.2.undefinedLanguageForTextFact",
@@ -569,9 +571,14 @@ def validateXbrlFinally(val, *args, **kwargs):
         # unused elements in linkbases
         for arcroles, err in (((parentChild,), "elements{}UsedForTagging{}AppliedInPresentationLinkbase"),
                               ((summationItem,), "elements{}UsedForTagging{}AppliedInCalculationLinkbase"),
-                              ((dimensionDomain,domainMember), "elements{}UsedForTagging{}AppliedInDefinitionLinkbase")):
+                              ((hc_all, hc_notAll, hypercubeDimension, dimensionDomain,domainMember), "elements{}UsedForTagging{}AppliedInDefinitionLinkbase")):
             unreportedLbElts = set()
             reportedEltsNotInLb = conceptsUsedByFacts.copy()
+            # remove tuple elts when looking at calc or def linkbases
+            if summationItem in arcroles or hc_all in arcroles:
+                for reportedElt in conceptsUsedByFacts:
+                    if reportedElt.isTuple:
+                        reportedEltsNotInLb.discard(reportedElt)
             for arcrole in arcroles:
                 for rel in modelXbrl.relationshipSet(arcrole).modelRelationships:
                     fr = rel.fromModelObject
@@ -587,9 +594,9 @@ def validateXbrlFinally(val, *args, **kwargs):
                         if to is not None and rel.isUsable and to not in conceptsUsed and isExtension(val, rel):
                             unreportedLbElts.add(to)
                     elif arcrole == domainMember:
-                        if to is not None and not fr.isAbstract and rel.isUsable and to not in conceptsUsed and isExtension(val, rel):
+                        if to is not None and not to.isAbstract and rel.isUsable and to not in conceptsUsed and isExtension(val, rel):
                             unreportedLbElts.add(to)
-                    if arcrole in (parentChild, dimensionDomain, domainMember):
+                    if arcrole in (parentChild, hc_all, hc_notAll, hypercubeDimension, dimensionDomain, domainMember):
                         reportedEltsNotInLb.discard(fr)
                         reportedEltsNotInLb.discard(to)
             if unreportedLbElts:
@@ -675,22 +682,23 @@ def validateXbrlFinally(val, *args, **kwargs):
         
         # facts in declared units RTS Annex II para 1
         # assume declared currency is one with majority of concepts
-        unitCounts = sorted(statementMonetaryUnitFactCounts.items(), key=lambda uc:uc[1], reverse=True)
-        _declaredCurrency = unitCounts[0][0]
         monetaryItemsNotInDeclaredCurrency = []
-        for facts in modelXbrl.factsByQname.values():
-            for f0 in facts:
-                concept = f0.concept
-                if concept is not None and concept.isMonetary:
-                    hasDeclaredCurrency = False
-                    for f in facts:
-                        u = f.unit
-                        if u is not None and u.isSingleMeasure and u.measures[0][0].localName == _declaredCurrency:
-                            hasDeclaredCurrency = True
-                            break
-                    if not hasDeclaredCurrency:
-                        monetaryItemsNotInDeclaredCurrency.append(concept)
-                break
+        unitCounts = sorted(statementMonetaryUnitFactCounts.items(), key=lambda uc:uc[1], reverse=True)
+        if unitCounts: # must have a monetary statement fact for this check
+            _declaredCurrency = unitCounts[0][0]
+            for facts in modelXbrl.factsByQname.values():
+                for f0 in facts:
+                    concept = f0.concept
+                    if concept is not None and concept.isMonetary:
+                        hasDeclaredCurrency = False
+                        for f in facts:
+                            u = f.unit
+                            if u is not None and u.isSingleMeasure and u.measures[0][0].localName == _declaredCurrency:
+                                hasDeclaredCurrency = True
+                                break
+                        if not hasDeclaredCurrency:
+                            monetaryItemsNotInDeclaredCurrency.append(concept)
+                    break
         if monetaryItemsNotInDeclaredCurrency:
             modelXbrl.error("ESEF.RTS.Annex.II.Par.1.missingMonetaryFactsInDeclaredCurrency",
                 _("Numbers SHALL be marked up in declared currency %(currency)s: %(qnames)s."),
@@ -715,7 +723,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 if i is not None:
                     for c in concepts:
                         if c != i and c.balance == i.balance and c.periodType == i.periodType:
-                            modelXbrl.error("ESEF.RTS.Annex.IV.Par.4.2.extensionElementDuplicatesCoreElement",
+                            modelXbrl.error("ESEF.RTS.Annex.IV.Par.4.1.extensionElementDuplicatesCoreElement",
                         _("Extension elements must not duplicate the existing elements from the core taxonomy and be identifiable %(qname)s."), 
                         modelObject=(c,i), qname=c.qname)
 
@@ -726,8 +734,8 @@ def validateXbrlFinally(val, *args, **kwargs):
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate ESMA ESEF',
-    'version': '1.2019.07',
-    'description': '''ESMA ESEF Reporting Manual Validations.''',
+    'version': '1.2020.02',
+    'description': '''ESMA ESEF Filer Manual and RTS Validations.''',
     'license': 'Apache-2',
     'author': 'Mark V Systems',
     'copyright': '(c) Copyright 2018-20 Mark V Systems Limited, All rights reserved.',

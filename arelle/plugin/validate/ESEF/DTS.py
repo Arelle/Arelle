@@ -21,7 +21,7 @@ from arelle import ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelConcept, ModelType
 from arelle.ModelObject import ModelObject
 from arelle.XbrlConst import xbrli, standardLabelRoles, dimensionDefault
-from .Const import qnDomainItemType, esefDefinitionArcroles, WiderNarrower, disallowedURIsPattern
+from .Const import qnDomainItemType, esefDefinitionArcroles, WiderNarrower, disallowedURIsPattern, DefaultDimensionLinkrole
 from .Util import isExtension
 
 def checkFilingDTS(val, modelDocument, visited):
@@ -34,8 +34,8 @@ def checkFilingDTS(val, modelDocument, visited):
         
         val.hasExtensionSchema = True
 
-        for doc in modelDocument.referencesDocument.keys():
-            if disallowedURIsPattern.match(doc.uri):
+        for doc, docRef in modelDocument.referencesDocument.items():
+            if docRef.referenceType in ("import","include") and disallowedURIsPattern.match(doc.uri):
                 val.modelXbrl.error("ESEF.3.1.1.extensionImportNotAllowed",
                                     _("Taxonomy reference not allowed for extension schema: %(taxonomy)s"),
                                     modelObject=modelDocument, taxonomy=doc.uri)
@@ -52,7 +52,8 @@ def checkFilingDTS(val, modelDocument, visited):
         conceptsWithoutStandardLabel = []
         conceptsWithNoLabel = []
         widerNarrowerRelSet = val.modelXbrl.relationshipSet(WiderNarrower)
-        dimensionDefaults = val.modelXbrl.relationshipSet(dimensionDefault)
+        dimensionDefaults = val.modelXbrl.relationshipSet(dimensionDefault, DefaultDimensionLinkrole)
+        labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
         if modelDocument.targetNamespace is not None:
             for modelConcept in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}element"):
                 if isinstance(modelConcept,ModelConcept):
@@ -79,12 +80,12 @@ def checkFilingDTS(val, modelDocument, visited):
                         elif not widerNarrowerRelSet.fromModelObject(modelConcept) and not widerNarrowerRelSet.toModelObject(modelConcept):
                             extLineItemsNotAnchored.append(modelConcept)
                     if (modelConcept.isAbstract and modelConcept not in val.domainMembers and 
-                        modelConcept.type is not None and not modelConcept.type.isDomainItemType):
+                        modelConcept.type is not None and not modelConcept.type.isDomainItemType and
+                        not modelConcept.isHypercubeItem and not modelConcept.isDimensionItem):
                         extAbstractConcepts.append(modelConcept)
                     if modelConcept.isMonetary and not modelConcept.balance:
                         extMonetaryConceptsWithoutBalance.append(modelConcept)
                     # check all lang's of standard label
-                    labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
                     hasLc3Match = False
                     lc3names = []
                     hasStandardLabel = False
@@ -115,20 +116,21 @@ def checkFilingDTS(val, modelDocument, visited):
                                 val.modelXbrl.warning("ESEF.3.4.5.extensionTaxonomyElementLabelCustomRole",
                                     _("Extension taxonomy element label SHOULD not be custom: %(concept)s role %(labelrole)s"),
                                     modelObject=(modelConcept,label), concept=modelConcept.qname, labelrole=label.role)
-                    if not hasStandardLabel:
-                        if hasNonStandardLabel:
-                            conceptsWithoutStandardLabel.append(modelConcept)
-                        else:
-                            conceptsWithNoLabel.append(modelConcept)
-                    if not hasLc3Match:
-                        val.modelXbrl.warning("ESEF.3.2.1.extensionTaxonomyElementNameDoesNotFollowLc3Convention",
-                            _("Extension taxonomy element name SHOULD follow the LC3 convention: %(concept)s should match an expected LC3 composition %(lc3names)s"),
-                            modelObject=modelConcept, concept=modelConcept.qname, lc3names=", ".join(lc3names))
-                    for (lang,labelrole),labels in langRoleLabels.items():
-                        if len(labels) > 1:
-                            val.modelXbrl.warning("ESEF.3.4.5.extensionTaxonomyElementDuplicateLabels",
-                                _("Extension taxonomy element name SHOULD not have multiple labels for lang %(lang)s and role %(labelrole)s: %(concept)s"),
-                                modelObject=[modelConcept]+labels, concept=modelConcept.qname, lang=lang, labelrole=labelrole)
+                    if modelConcept.isItem or modelConcept.isTuple or modelConcept.isHypercubeItem or modelConcept.isDimensionItem:
+                        if not hasStandardLabel:
+                            if hasNonStandardLabel:
+                                conceptsWithoutStandardLabel.append(modelConcept)
+                            else:
+                                conceptsWithNoLabel.append(modelConcept)
+                        elif not hasLc3Match:
+                            val.modelXbrl.warning("ESEF.3.2.1.extensionTaxonomyElementNameDoesNotFollowLc3Convention",
+                                _("Extension taxonomy element name SHOULD follow the LC3 convention: %(concept)s should match an expected LC3 composition %(lc3names)s"),
+                                modelObject=modelConcept, concept=modelConcept.qname, lc3names=", ".join(lc3names))
+                        for (lang,labelrole),labels in langRoleLabels.items():
+                            if len(labels) > 1:
+                                val.modelXbrl.warning("ESEF.3.4.5.extensionTaxonomyElementDuplicateLabels",
+                                    _("Extension taxonomy element name SHOULD not have multiple labels for lang %(lang)s and role %(labelrole)s: %(concept)s"),
+                                    modelObject=[modelConcept]+labels, concept=modelConcept.qname, lang=lang, labelrole=labelrole)
                     langRoleLabels.clear()
             for modelType in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}complexType"):
                 if (isinstance(modelType,ModelType) and isExtension(val, modelType) and 
@@ -153,10 +155,11 @@ def checkFilingDTS(val, modelDocument, visited):
             val.modelXbrl.error("ESEF.3.2.2.domainMemberWrongDataType",
                 _("Domain members MUST have domainItemType data type as defined in \"http://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd\": concept %(concepts)s."),
                 modelObject=domainMembersWrongType, concepts=", ".join(str(c.qname) for c in domainMembersWrongType))
-        if extLineItemsWithoutHypercube:
-            val.modelXbrl.error("ESEF.3.4.1.extensionTaxonomyLineItemNotLinkedToAnyHypercube",
-                _("Line items that do not require any dimensional information to tag data MUST be linked to \"Line items not dimensionally qualified\" hypercube in http://www.esma.europa.eu/xbrl/esef/role/esef_role-999999 declared in esef_cor.xsd: concept %(concepts)s."),
-                modelObject=extLineItemsWithoutHypercube, concepts=", ".join(str(c.qname) for c in extLineItemsWithoutHypercube))
+        # HF - think this is only about reported line items, not ext line items (?)
+        #if extLineItemsWithoutHypercube:
+        #    val.modelXbrl.error("ESEF.3.4.2.extensionTaxonomyLineItemNotLinkedToAnyHypercube",
+        #        _("Line items that do not require any dimensional information to tag data MUST be linked to \"Line items not dimensionally qualified\" hypercube in http://www.esma.europa.eu/xbrl/esef/role/esef_role-999999 declared in esef_cor.xsd: concept %(concepts)s."),
+        #        modelObject=extLineItemsWithoutHypercube, concepts=", ".join(str(c.qname) for c in extLineItemsWithoutHypercube))
         if extLineItemsNotAnchored:
             val.modelXbrl.error("ESEF.3.3.1.extensionConceptsNotAnchored",
                 _("Extension concepts SHALL be anchored to concepts in the ESEF taxonomy:  %(concepts)s."),
