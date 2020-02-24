@@ -40,6 +40,7 @@ from arelle.PrototypeInstanceObject import DimValuePrototype
 from math import isnan, isinf
 from arelle.ModelObject import ModelObject
 from decimal import Decimal, InvalidOperation
+from fractions import Fraction
 from hashlib import md5
 from arelle.HashUtil import md5hash, Md5Sum
 
@@ -414,7 +415,7 @@ class ModelFact(ModelObject):
         if concept is None or concept.isTuple or fact.isNil:
             return None
         if concept.isFraction:
-            num, den = map(fractions.Fraction, fact.fractionValue)
+            num, den = map(Fraction, fact.fractionValue)
             return num / den
         val = fact.value.strip()
         if concept.isInteger:
