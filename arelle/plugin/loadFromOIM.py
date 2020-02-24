@@ -134,36 +134,145 @@ precisionZeroPattern = re.compile(r"^\s*0+\s*$")
 htmlBodyTemplate = "<body xmlns='http://www.w3.org/1999/xhtml'>\n{0}\n</body>\n"
 xhtmlTagPrefix = "{http://www.w3.org/1999/xhtml}"
 
-JsonTypes = {
-    "columns": dict,
-    "columnDimensions": dict,
-    "decimals": (int,str), # can be a number of string column/parameter ref
-    "documentInfo": dict,
-    "documentType": str,
-    "facts": dict, 
-    "features": dict,
-    "links": dict,
-    "linkGroups": dict, 
-    "linkTypes": dict, 
-    "optional": bool,
-    "namespaces": dict,
-    "reportParameters": dict,
-    "rowIdColumn": str,
-    "tables": dict, 
-    "tableDimensions": dict,
-    "tableParameters": dict,
-    "tableTemplates": dict,
-    "taxonomy": list,
-    "template": str,
-    "transposed": bool,
-    "url": str
+UnrecognizedDocMemberTypes = {
+    "/documentInfo": dict,
+    "/documentInfo/documentType": str,
     }
+UnrecognizedDocRequiredMembers = {
+    "/": {"documentInfo"},
+    "/documentInfo": {"documentType","taxonomy"},
+    }
+
+JsonMemberTypes = {
+    # keys are json pointer with * meaning any id,  and *:* meaning any SQName or QName, for array no index is used
+    # report
+    "/documentInfo": dict,
+    "/facts": dict,
+    # documentInfo
+    "/documentInfo/documentType": str,
+    "/documentInfo/features": dict,
+    "/documentInfo/features/*": (int,bool,str,type(None)),
+    "/documentInfo/namespaces": dict,
+    "/documentInfo/namespaces/*": str,
+    "/documentInfo/linkTypes": dict,
+    "/documentInfo/linkTypes/*": str,
+    "/documentInfo/linkGroups": dict,
+    "/documentInfo/linkGroups/*": str,
+    "/documentInfo/taxonomy": list,
+    "/documentInfo/taxonomy/": str,
+    # facts
+    "/facts/*": dict,
+    "/facts/*/value": (str,type(None)),
+    "/facts/*/decimals": int,
+    "/facts/*/dimensions": dict,
+    "/facts/*/links": dict,
+    "/facts/*/links/*": dict,
+    "/facts/*/links/*/*": list,
+    "/facts/*/links/*/*/": str,
+    # dimensions
+    "/facts/*/dimensions/concept": str,
+    "/facts/*/dimensions/entity": str,
+    "/facts/*/dimensions/period": str,
+    "/facts/*/dimensions/unit": str,
+    "/facts/*/dimensions/language": str,
+    "/facts/*/dimensions/noteId": str,
+    "/facts/*/dimensions/*:*": (str,type(None)),
+    }
+JsonRequiredMembers = {
+    "/": {"documentInfo"},
+    "/documentInfo/": {"documentType","taxonomy"},
+    "/facts/*/": {"value","dimensions"},
+    "/facts/*/dimensions/": {"concept"}
+    }
+
+CsvMemberTypes = {
+    # report
+    "/documentInfo": dict,
+    "/tableTemplates": dict,
+    "/tables": dict,
+    "/parameters": dict,
+    "/paraneters/*": str,
+    "/parameterURL": str,
+    "/dimensions": dict,
+    "/decimal": int,
+    "/links": dict,
+    # documentInfo
+    "/documentInfo/documentType": str,
+    "/documentInfo/namespaces": dict,
+    "/documentInfo/namespaces/*": str,
+    "/documentInfo/linkTypes": dict,
+    "/documentInfo/linkTypes/*": str,
+    "/documentInfo/linkGroups": dict,
+    "/documentInfo/linkGroups/*": str,
+    "/documentInfo/taxonomy": list,
+    "/documentInfo/taxonomy/": str,
+    "/documentInfo/extends": list,
+    "/documentInfo/extends/": str,
+    "/documentInfo/final": dict,
+    "/documentInfo/features": dict,
+    "/documentInfo/features/*": (int,bool,str,type(None)),
+    # documentInfo/final
+    "/documentInfo/final/namespaces": bool,
+    "/documentInfo/final/taxonomy": bool,
+    "/documentInfo/final/linkTypes": bool,
+    "/documentInfo/final/linkGroups": bool,
+    "/documentInfo/final/features": bool,
+    "/documentInfo/final/tableTemplates": bool,
+    "/documentInfo/final/tables": bool,
+    "/documentInfo/final/dimensions": bool,
+    "/documentInfo/final/parameters": bool,
+    # table templates
+    "/tableTemplates/*": dict,
+    "/tableTemplates/*/rowIdColumn": str,
+    "/tableTemplates/*/columns": dict,
+    "/tableTemplates/*/decimals": dict,
+    "/tableTemplates/*/dimensions": dict,
+    "/tableTemplates/*/transposed": bool,
+    # columns
+    "/tableTemplates/*/columns/*": dict,
+    "/tableTemplates/*/columns/*/decimals": (int,str),
+    "/tableTemplates/*/columns/*/dimensions": dict,
+    # dimensions (column)
+    "/tableTemplates/*/columns/*/dimensions/concept": str,
+    "/tableTemplates/*/columns/*/dimensions/entity": str,
+    "/tableTemplates/*/columns/*/dimensions/period": str,
+    "/tableTemplates/*/columns/*/dimensions/unit": str,
+    "/tableTemplates/*/columns/*/dimensions/language": str,
+    "/tableTemplates/*/columns/*/dimensions/noteId": str,
+    "/tableTemplates/*/columns/*/dimensions/*:*": str,
+    "/tableTemplates/*/columns/*/dimensions/$*": str,
+    # dimensions (top level)
+    "/dimensions/concept": str,
+    "/dimensions/entity": str,
+    "/dimensions/period": str,
+    "/dimensions/unit": str,
+    "/dimensions/language": str,
+    "/dimensions/noteId": str,
+    "/dimensions/*:*": str,
+    "/dimensions/$*": str,
+    # tables
+    "/tables/*": dict,
+    "/tables/*/url": str,
+    "/tables/*/template": str,
+    "/tables/*/optional": bool,
+    "/tables/*/parameters": dict,
+    "/tables/*/parameters/*": str,
+    # links
+    "/links/*": dict,
+    # link group
+    "/links/*/*": list,
+    }
+CsvRequiredMembers = {
+    "/": {"documentInfo"},
+    "/documentInfo/": {"documentType"},
+    "/tableTemplates/*/": {"columns"},
+    "/tables/*/": {"url"}
+    }
+EMPTY_SET = set()
 
 def jsonGet(tbl, key, default=None):
     if isinstance(tbl, dict):
-        v = tbl.get(key)
-        if isinstance(v, JsonTypes.get(key,())):
-            return v
+        return tbl.get(key)
     return default
 
 def csvCellValue(cellValue):
@@ -186,13 +295,16 @@ def xlValue(cell): # excel values may have encoded unicode, such as _0000D_
     return csvCellValue(v)
 
 class OIMException(Exception):
-    def __init__(self, code, message, **kwargs):
+    def __init__(self, code=None, message=None, **kwargs):
         self.code = code
         self.message = message
         self.msgArgs = kwargs
         self.args = ( self.__repr__(), )
     def __repr__(self):
-        return _('[{0}] exception {1}').format(self.code, self.message % self.msgArgs)
+        if self.code and self.message:
+            return _('[{0}] exception {1}').format(self.code, self.message % self.msgArgs)
+        else:
+            return "Errors noted in log"
 
 class NotOIMException(Exception):
     def __init__(self, **kwargs):
@@ -361,6 +473,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(mappedUrl) # , reload=reloadCache, checkModifiedTime=kwargs.get("checkModifiedTime",False))
                 if filepath:
                     url = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(filepath)
+            if filepath.endswith(".csv"):
+                errPrefix = "xbrlce"
+            else:
+                errPrefix = "xbrlje"
             if not isXL:
                 _file, encoding = modelXbrl.fileSource.file(filepath, encoding='utf-8')
                 with _file as f:
@@ -374,17 +490,17 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 f.seek(0)
                                 oimObject = json.load(f, object_pairs_hook=loadDict)
                         except UnicodeDecodeError as ex:
-                            raise OIMException("xbrlje:invalidCharacterEncoding",
+                            raise OIMException("{}:invalidCharacterEncoding".format(errPrefix),
                                   _("File MUST use utf-8 encoding: %(file)s, error %(error)s"),
                                   file=filepath, error=str(ex))
                         except json.JSONDecodeError as ex:
-                            raise OIMException("xbrlje:invalidJSONStructure",
+                            raise OIMException("{}:invalidJSONStructure".format(errPrefix),
                                     "JSON error while %(action)s, %(file)s, error %(error)s",
                                     file=filepath, action=currentAction, error=ex)
                 # check for top-level key duplicates
                 if isinstance(oimObject, dict) and DUPJSONKEY in oimObject:
                     for _errKey, _errValue, _otherValue in oimObject[DUPJSONKEY]:
-                        error("xbrlje:invalidJSONStructure",
+                        error("{}:invalidJSONStructure".format(errPrefix),
                               _("The key %(key)s is used on multiple objects"),
                               modelObject=modelXbrl, key=_errKey)
                     del oimObject[DUPJSONKEY]
@@ -408,106 +524,91 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 try:
                     oimObject = json.loads(_metadata, encoding='utf-8', object_pairs_hook=loadDict)
                 except UnicodeDecodeError as ex:
-                    raise OIMException("xbrlje:invalidCharacterEncoding",
+                    raise OIMException("{}:invalidCharacterEncoding".format(errPrefix),
                           _("File MUST use utf-8 encoding: %(file)s \"metadata\" worksheet, error %(error)s"),
                           file=filepath, error=str(ex))
                 except json.JSONDecodeError as ex:
-                    raise OIMException("xbrlje:invalidJSONStructure",
+                    raise OIMException("{}:invalidJSONStructure".format(errPrefix),
                             "JSON error while %(action)s, %(file)s \"metadata\" worksheet, error %(error)s",
                             file=filepath, action=currentAction, error=ex)
-                    
-            invalidMemberTypes = []            
-            def checkMemberTypes(obj, path):
-                if (isinstance(obj,dict)):
-                    for mbrName, mbrObj in obj.items():
-                        mbrPath = path + "/" + mbrName
-                        if mbrName in JsonTypes and not isinstance(mbrObj, JsonTypes[mbrName]):
-                            invalidMemberTypes.append(mbrPath)
-                        if isinstance(mbrObj, dict):
-                            checkMemberTypes(mbrObj, mbrPath)
-            checkMemberTypes(oimObject, "")
-            if invalidMemberTypes:
-                raise OIMException("xbrlje:invalidJSONMemberType", 
-                                   _("Invalid JSON structure member types in metadata: %(members)s"),
-                                   members=", ".join(invalidMemberTypes))
-
+            # identify document type (JSON or CSV)
             documentInfo = jsonGet(oimObject, "documentInfo", {})
             documentType = jsonGet(documentInfo, "documentType")
             if documentType in jsonDocumentTypes:
                 isCSV = False
                 isJSON = True
                 errPrefix = "xbrlje"
+                oimMemberTypes = JsonMemberTypes
+                oimRequiredMembers = JsonRequiredMembers
             elif documentType in csvDocumentTypes:
                 isJSON = False
                 if not isXL:
                     isCSV = True
                 errPrefix = "xbrlce"
+                oimMemberTypes = CsvMemberTypes
+                oimRequiredMembers = CsvRequiredMembers
             else: # if wrong type defer to type checking
-                raise OIMException("xbrlje:invalidJSONStructure", 
-                                   _("documentInfo documentType is not recognized: %(documentType)s"),
-                                   documentType=documentType)
+                isCSV = False
+                isJSON = False
+                errPrefix = "xbrlje"
+                oimMemberTypes = UnrecognizedDocMemberTypes
+                oimRequiredMembers = UnrecognizedDocRequiredMembers
             isCSVorXL = isCSV or isXL
 
-            missing = [t 
-                       for t in ( ("documentInfo", ) )
-                       if t not in oimObject]
-            missing += [t 
-                        for t in (("documentType", "taxonomy") if isJSON else ("documentType", ))
-                        if t not in documentInfo]
-            unexpected = [t
-                          for t,v in oimObject.items()
-                          if t not in {True:{"documentInfo", "facts"},
-                                       False:{"documentInfo", "tableTemplates", "tables", "reportParameters", "links"}
-                                       }[isJSON]
-                         ]
-            unexpected += [t
-                           for t,v in documentInfo.items()
-                           if t not in {True:{"documentType", "features", "namespaces", "linkTypes", "linkGroups", "taxonomy"},
-                                       False:{"documentType", "reportDimensions", "namespaces", "taxonomy", "decimals", "extends", "final"}
-                                       }[isJSON]
-                           and (":" not in t or t.partition(":")[0] not in documentInfo.get("namespaces"),EMPTY_DICT)]
-            unexpected += ["documentInfo final {}".format(t)
-                           for t,v in documentInfo.get("final",EMPTY_DICT).items()
-                           if t not in {"namespaces", "linkTypes", "linkGroups", "tableTemplates", "tables", "reportDimensions"}]
-            if isCSVorXL:
-                for n,tbl in jsonGet(oimObject, "tableTemplates", {}).items():
-                    for t in ("columns", "tableDimensions"): 
-                        if t not in tbl:
-                            missing.append("tableTemplates:{}:{}".format(n,t))
-                    for t,tv in tbl.items():
-                        if (t not in {"rowIdColumn", "columns", "decimals", "tableDimensions", "transposed"} or 
-                            not isinstance(tv, JsonTypes.get(t,())) or
-                            (t == "rowIdColumn" and not IdentifierPattern.match(tv))):
-                            unexpected.append("tableTemplates:{}:{}".format(n,t))
-                        elif t == "columns":
-                            for nc, col in tv.items():
-                                if not IdentifierPattern.match(nc) or not isinstance(col,dict):
-                                    unexpected.append("tableTemplates:columns:{}".format(nc))
-                                elif isinstance(col, dict):
-                                    for t,cv in col.items():
-                                        if t not in {"decimals", "columnDimensions"} or (
-                                            t == "decimals" and ("columnDimensions" not in col)):
-                                            unexpected.append("tableTemplates:columns:{}:{}".format(nc,t))
-                for n,tbl in oimObject.get("tables",{}).items():
-                    for t in ("url", ):
-                        if t not in tbl:
-                            missing.append("tables:{}:{}".format(n,t))
-                    for t,v in tbl.items():
-                        if (t not in {"url", "template", "optional", "tableParameters"} or
-                            not isinstance(v, JsonTypes.get(t,()))):
-                            unexpected.append("tables:{}:{}".format(n,t))
-            if missing or unexpected:
+            invalidMemberTypes = []
+            missingRequiredMembers = []
+            unexpectedMembers = []
+            def checkMemberTypes(obj, path):
+                if (isinstance(obj,dict)):
+                    for missingMbr in oimRequiredMembers.get(path,EMPTY_SET) - obj.keys():
+                        missingRequiredMembers.append(path + missingMbr)
+                    for mbrName, mbrObj in obj.items():
+                        mbrPath = path + mbrName
+                        if mbrPath in oimMemberTypes:
+                            if not isinstance(mbrObj, oimMemberTypes[mbrPath]):
+                                invalidMemberTypes.append(mbrPath)
+                        elif ":" in mbrName and path + "*:*" in oimMemberTypes:
+                            if not isinstance(mbrObj, oimMemberTypes[path + "*:*"]):
+                                invalidMemberTypes.append(mbrPath)
+                            mbrPath = path + "*.*" # for recursion
+                        elif path + "*" in oimMemberTypes:
+                            if not isinstance(mbrObj, oimMemberTypes[path + "*"]):
+                                invalidMemberTypes.append(mbrPath)
+                            mbrPath = path + "*" # for recursion
+                        else:
+                            unexpectedMembers.append(mbrPath)
+                        if isinstance(mbrObj, (dict,list)):
+                            checkMemberTypes(mbrObj, mbrPath + "/")
+                if (isinstance(obj,list)):
+                    for mbrObj in obj:
+                        mbrPath = path # list entry just uses path ending in /
+                        if mbrPath in oimMemberTypes:
+                            if not isinstance(mbrObj, oimMemberTypes[mbrPath]):
+                                invalidMemberTypes.append(mbrPath)
+                        if isinstance(mbrObj, (dict,list)):
+                            checkMemberTypes(mbrObj, mbrPath + "/")
+            checkMemberTypes(oimObject, "/")
+            numErrorsBeforeJsonCheck = len(modelXbrl.errors)
+            if missingRequiredMembers or unexpectedMembers or (not isJSON and not isCSV):
                 msg = []
-                if missing:
+                if not isJSON and not isCSV:
+                    msg.append(_("Unrecognized /documentInfo/docType: %(documentType)s"))
+                if missingRequiredMembers:
                     msg.append(_("Required element(s) are missing from metadata: %(missing)s"))
-                if unexpected:
+                if unexpectedMembers:
                     msg.append(_("Unexpected element(s) in metadata: %(unexpected)s"))
-                raise OIMException("xbrlje:invalidJSONStructure", 
-                                   "\n ".join(msg),
-                                   missing=", ".join(missing), unexpected=", ".join(unexpected))
-            if not documentInfo["taxonomy"]:
-                raise OIMException("xbrle:noTaxonomy", 
-                                   _("The list of taxonomies MUST NOT be empty."))    
+                error("xbrlje:invalidJSONStructure",
+                      "\n ".join(msg), documentType=documentType,
+                      missing=", ".join(missingRequiredMembers), unexpected=", ".join(unexpectedMembers))
+            if invalidMemberTypes:
+                error("{}:invalidJSONMemberType".format(errPrefix),
+                      _("Invalid JSON structure member types in metadata: %(members)s"),
+                      members=", ".join(invalidMemberTypes))
+            if ("taxonomy" in documentInfo or isCSV) and not documentInfo.get("taxonomy",()):
+                error("xbrle:noTaxonomy",
+                      _("The list of taxonomies MUST NOT be empty."))
+            if  len(modelXbrl.errors) > numErrorsBeforeJsonCheck:
+                raise OIMException()
             if isCSVorXL and "extends" in documentInfo:
                 # process extension
                 extendedFile = documentInfo["extends"]
@@ -558,12 +659,12 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         isJSON, isCSV, isXL, isCSVorXL, oimWb, oimDocumentInfo, documentType = oimObject["=entryParameters"]
         del oimObject["=entryParameters"]
         
-        n = sum(e == "oimce:multipleAliasesForURI" for e in modelXbrl.errors[errorIndexBeforeLoadOim:])
+        n = sum(e == "oimce:multipleURIsForAlias" for e in modelXbrl.errors[errorIndexBeforeLoadOim:])
         if n:
             error("xbrlje:invalidJSONStructure",
-                  _("%(count)s oimce:multipleAliasesForURI errors noted above."),
+                  _("%(count)s oimce:multipleURIsForAlias errors noted above."),
                   modelObject=modelXbrl, count=n)
-        n = sum(e in ("oimce:invalidEmptyURIAlias", "oimce:invalidURIForReservedAlias", "oimce:invalidPrefixForURIWithReservedAlias") 
+        n = sum(e in ("oimce:invalidEmptyURIAlias", "oimce:invalidURIForReservedAlias", "oimce:invalidPrefixForURIWithReservedAlias", "oimce:multipleAliasesForURI") 
                 for e in modelXbrl.errors[errorIndexBeforeLoadOim:])
         if n:
             error("xbrlje:invalidURIMap",
@@ -577,13 +678,13 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         if isJSON:
             errPrefix = "xbrlje"
             featuresDict = oimDocumentInfo["features"]
-            factItems = oimObject["facts"].items()
-            footnotes = oimObject["facts"].values() # shares this object
+            factItems = oimObject.get("facts",{}).items()
+            footnotes = oimObject.get("facts",{}).values() # shares this object
         else: # isCSVorXL
             errPrefix = "xbrlce"
-            reportDimensions = oimDocumentInfo.get("reportDimensions", EMPTY_DICT)
-            reportDecimals = oimDocumentInfo.get("decimals", None)
-            reportParameters = oimObject.get("reportParameters", EMPTY_DICT)
+            reportDimensions = oimObject.get("dimensions", EMPTY_DICT)
+            reportDecimals = oimObject.get("decimals", None)
+            reportParameters = oimObject.get("parameters", EMPTY_DICT)
             tableTemplates = oimObject.get("tableTemplates", EMPTY_DICT)
             tables = oimObject.get("tables", EMPTY_DICT)
             footnotes = (oimObject.get("links", {}), )
@@ -616,19 +717,23 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                            _("Referenced template missing: %(missing)s"),
                                            missing=tableTemplateId)
                     tableTemplate = tableTemplates[tableTemplateId]
-                    tableDecimals = tableTemplate.get("decimals", None)
-                    tableDimensions = tableTemplate.get("tableDimensions", EMPTY_DICT)
-                    tableIsOptional = tableTemplate.get("optional", False)
+                    tableDecimals = tableTemplate.get("decimals", oimObject.get("decimals") )
+                    tableDimensions = reportDimensions.copy()
+                    tableDimensions.update( tableTemplate.get("dimensions", EMPTY_DICT) )
+                    tableIsOptional = table.get("optional", False)
                     tableParameters = reportParameters.copy()
-                    tableParameters.update( table.get("tableParameters", EMPTY_DICT) )
+                    tableParameters.update( table.get("parameters", EMPTY_DICT) )
                     tableUrl = table["url"]
                     # compile column dependencies
                     factDimensions = {}
                     factDecimals = {}
                     for colId, colProperties in tableTemplate["columns"].items():
-                        factDimensions[colId] = colProperties.get("columnDimensions", {})
-                        if "decimals" in colProperties:
-                            factDecimals[colId] = colProperties["decimals"]
+                        colDims = tableDimensions.copy()
+                        colDims.update(colProperties.get("dimensions", {}))
+                        factDimensions[colId] = colDims
+                        decimals = colProperties.get("decimals", tableDecimals)
+                        if decimals is not None:
+                            factDecimals[colId] = decimals
                         
                     # determine whether table is a CSV file or an Excel range.  
                     # Local range can be sheetname! or !rangename
@@ -805,7 +910,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         currentAction = "creating facts"
         factNum = 0 # for synthetic fact number
         if isJSON:
-            syntheticFactFormat = "_f{{:0{}}}".format(int(math.log10(len(factItems)))) #want 
+            syntheticFactFormat = "_f{{:0{}}}".format(int(math.log10(len(factItems) or 1))) #want 
         else:
             syntheticFactFormat = "_f{}" #want 
         
@@ -867,8 +972,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 modelObject=modelXbrl, concept=conceptSQName)
                 continue
             elif conceptPrefix not in namespaces:
-                error("oimce:unboundSQNamePrefix",
-                      _("The concept SQName prefix was not defined in namespaces: %(concept)s."),
+                error("oimce:unboundPrefix",
+                      _("The concept QName prefix was not defined in namespaces: %(concept)s."),
                       modelObject=modelXbrl, concept=conceptSQName)
                 continue
             conceptQn = qname(conceptSQName, namespaces)
@@ -877,19 +982,17 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 error("xbrl:schemaImportMissing",
                       _("The concept QName could not be resolved with available DTS: %(concept)s."),
                       modelObject=modelXbrl, concept=conceptQn)
-                return
+                continue
             attrs = {}
             if concept.isItem:
                 missingDimensions = []
-                if "entity" not in dimensions: 
-                    missingDimensions.append("entity")
                 if "xbrl:start" in dimensions and "xbrl:end" in dimensions:
                     pass
                 if missingDimensions:
                     error("{}:missingDimensions".format(errPrefix),
                                     _("The concept %(element)s is missing dimensions %(missingDimensions)s"),
                                     modelObject=modelXbrl, element=conceptQn, missingDimensions=", ".join(missingDimensions))
-                    return
+                    continue
                 if "language" in dimensions:
                     attrs["{http://www.w3.org/XML/1998/namespace}lang"] = dimensions["language"]
                 if "entity" in dimensions:
@@ -967,6 +1070,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 if concept.isNumeric:
                     if "unit" in dimensions and dimensions["unit"] is not None:
                         unitKey = dimensions["unit"]
+                        if unitKey == "xbrli:pure":
+                            error("oimce:???",
+                                  _("Unit MUST NOT have single numerator measure xbrli:pure with no denominators."),
+                                  modelObject=modelXbrl, unit=unitKey)
                     else:
                         unitKey = "xbrli:pure" # default unit
                         if "xbrli" not in namespaces:
@@ -978,7 +1085,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         # validate unit
                         unitKeySub = PrefixedQName.sub(UnitPrefixedQNameSubstitutionChar, unitKey)
                         if not UnitPattern.match(unitKeySub):
-                            error("xbrlje:invalidUnitString",
+                            error("oimce:invalidUnitStringRepresentation",
                                   _("Unit string representation is lexically invalid, %(unit)s"),
                                   modelObject=modelXbrl, unit=unitKey)
                         else:
@@ -990,15 +1097,15 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 _div = _div[1:-1]
                             _divs = [u for u in _div.split('*') if u]
                             if _muls != sorted(_muls) or _divs != sorted(_divs):
-                                error("xbrlje:invalidUnitString",
+                                error("oimce:invalidUnitStringRepresentation",
                                       _("Unit string representation measures are not in alphabetical order, %(unit)s"),
                                       modelObject=modelXbrl, unit=unitKey)
                             try:
-                                mulQns = [qname(u, namespaces, prefixException=OIMException("xbrlje:unboundPrefix",
+                                mulQns = [qname(u, namespaces, prefixException=OIMException("oimce:unboundPrefix",
                                                                                           _("Unit prefix is not declared: %(unit)s"),
                                                                                           unit=u)) 
                                           for u in _muls]
-                                divQns = [qname(u, namespaces, prefixException=OIMException("xbrlje:unboundPrefix",
+                                divQns = [qname(u, namespaces, prefixException=OIMException("oimce:unboundPrefix",
                                                                                           _("Unit prefix is not declared: %(unit)s"),
                                                                                           unit=u))
                                           for u in _divs]
@@ -1025,7 +1132,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     
                 if concept.isNumeric:
                     if _unit is None:
-                        return # skip creating fact because unit was invalid
+                        continue # skip creating fact because unit was invalid
                     attrs["unitRef"] = _unit.id
                     if text is not None: # no decimals for nil value
                         decimals = fact.get("decimals")
@@ -1217,7 +1324,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
     except Exception as ex:
         _return = ex
         if isinstance(ex, OIMException):
-            error(ex.code, ex.message, modelObject=modelXbrl, **ex.msgArgs)
+            if ex.code and ex.message:
+                error(ex.code, ex.message, modelObject=modelXbrl, **ex.msgArgs)
         else:
             error("arelleOIMloader:error",
                     "Error while %(action)s, error %(error)s\n traceback %(traceback)s",
