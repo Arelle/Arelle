@@ -84,7 +84,7 @@ class WebCache:
         self._noCertificateCheck = False
         self.resetProxies(httpProxyTuple)
         
-        #self.opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+        self.opener.addheaders = [('User-agent', 'Mozilla/5.0')]
 
         #self.opener = WebCacheUrlOpener(cntlr, proxyDirFmt(httpProxyTuple)) # self.proxies)
         
