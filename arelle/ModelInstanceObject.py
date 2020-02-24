@@ -407,7 +407,32 @@ class ModelFact(ModelObject):
             return val
         except Exception as ex:
             return str(ex)  # could be transform value of inline fact
-
+    
+    @property
+    def parsedValue(self):
+        concept = fact.concept  # type: ModelConcept
+        if concept is None or concept.isTuple or fact.isNil:
+            return None
+        if concept.isFraction:
+            num, den = map(fractions.Fraction, fact.fractionValue)
+            return num / den
+        val = fact.value.strip()
+        if concept.isInteger:
+            return int(val)
+        elif concept.isNumeric:
+            dec = fact.decimals
+            if dec is None or dec == "INF":  # show using decimals or reported format
+                dec = len(val.partition(".")[2])
+            else:  # max decimals at 28
+                dec = max(min(int(dec), 28), -28)  # 2.7 wants short int, 3.2 takes regular int, don't use _INT here
+            num = roundValue(val, fact.precision, dec)  # round using reported decimals
+            return num
+        elif concept.baseXbrliType == 'dateItemType':
+            return ModelValue.dateTime(val)
+        elif concept.baseXbrliType == 'booleanItemType':
+            return val.lower() in ('1', 'true')
+        return val
+   
     @property
     def vEqValue(self):
         """(float or str) -- v-equal value, float if numeric, otherwise string value"""
