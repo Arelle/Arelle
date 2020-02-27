@@ -249,7 +249,8 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
     # used in linkbase children navigation but may be errant linkbase elements                            
     val.roleRefURIs = {}
     val.arcroleRefURIs = {}
-    val.elementIDs = set()
+    val.elementIDs = {}
+    val.conceptNames = {}
     val.annotationsCount = 0  
             
     # XML validation checks (remove if using validating XML)
@@ -287,6 +288,7 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
     val.roleRefURIs = None
     val.arcroleRefURIs = None
     val.elementIDs = None
+    val.conceptNames = None
 
 def checkElements(val, modelDocument, parent):
     isSchema = modelDocument.type == ModelDocument.Type.SCHEMA
@@ -332,13 +334,13 @@ def checkElements(val, modelDocument, parent):
 
     instanceOrder = 0
     if modelDocument.type == ModelDocument.Type.SCHEMA:
-        ncnameTests = (("id","xbrl:xmlElementId"), 
-                       ("name","xbrl.5.1.1:conceptName"))
+        ncnameTests = (("id","xml.3.3.1:idMustBeUnique", val.elementIDs), 
+                       ("name","xbrl.5.1.1:conceptName", val.conceptNames))
     else:
-        ncnameTests = (("id","xbrl:xmlElementId"),)
+        ncnameTests = (("id","xbrl:xmlElementId", val.elementIDs),)
     for elt in childrenIter:
         if isinstance(elt,ModelObject):
-            for name, errCode in ncnameTests:
+            for name, errCode, _valueItems in ncnameTests:
                 if elt.get(name) is not None:
                     attrValue = elt.get(name)
                     ''' done in XmlValidate now
@@ -347,13 +349,16 @@ def checkElements(val, modelDocument, parent):
                             _("Element %(element)s attribute %(attribute)s '%(value)s' is not an NCname"),
                             modelObject=elt, element=elt.prefixedName, attribute=name, value=attrValue)
                     '''
-                    if name == "id" and attrValue in val.elementIDs:
-                        # 2.1 spec @id validation refers to http://www.w3.org/TR/REC-xml#NT-TokenizedType
-                        # TODO: this check should not test inline elements, those should be in ModelDocument inlineIxdsDiscover using ixdsEltById
-                        val.modelXbrl.error("xml.3.3.1:idMustBeUnique", 
-                            _("Element %(element)s id %(value)s is duplicated"),
-                            modelObject=elt, element=elt.prefixedName, attribute=name, value=attrValue)
-                    val.elementIDs.add(attrValue)
+                    if name == "id" or (isinstance(elt, ModelDtsObject.ModelConcept) and (elt.isItem or elt.isTuple)):
+                        if attrValue in _valueItems:
+                            # 2.1 spec @id validation refers to http://www.w3.org/TR/REC-xml#NT-TokenizedType
+                            # TODO: this check should not test inline elements, those should be in ModelDocument inlineIxdsDiscover using ixdsEltById
+                            val.modelXbrl.error(errCode, 
+                                _("Element %(element)s %(attribute)s %(value)s is duplicated"),
+                                modelObject=(elt,_valueItems[attrValue]), element=elt.prefixedName, attribute=name, value=attrValue,
+                                messageCodes=("xml.3.3.1:idMustBeUnique", "xbrl.5.1.1:conceptName"))
+                        else:
+                            _valueItems[attrValue] = elt
                     
             # checks for elements in schemas only
             if isSchema:
