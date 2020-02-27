@@ -598,8 +598,10 @@ class ValidateXbrl:
                             _("Footnote arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s \"from\" is not a loc"),
                             modelObject=arcElt, 
                             linkrole=modelLink.role, xlinkLabelFrom=fromLabel, xlinkLabelTo=toLabel)
-                    if not((toLabel in resourceLabels and resourceLabels[toLabel].qname == XbrlConst.qnLinkFootnote) or
-                           (toLabel in locLabels and locLabels[toLabel].dereference().qname == XbrlConst.qnLinkFootnote)):
+                    if not((toLabel in resourceLabels and resourceLabels[toLabel] is not None 
+                              and resourceLabels[toLabel].qname == XbrlConst.qnLinkFootnote) or
+                           (toLabel in locLabels and locLabels[toLabel].dereference() is not None
+                              and locLabels[toLabel].dereference().qname == XbrlConst.qnLinkFootnote)):
                         self.modelXbrl.error("xbrl.4.11.1.3.1:factFootnoteArcTo",
                             _("Footnote arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s \"to\" is not a footnote resource"),
                             modelObject=arcElt, 
