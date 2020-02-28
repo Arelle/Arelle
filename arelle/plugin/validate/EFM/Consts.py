@@ -109,66 +109,76 @@ ifrsDeprecatedLabelPattern = re.compile(r"^\s*([0-9]{4}-[0-1][0-9]-[0-2][0-9])\s
 ifrsDeprecatedLabelRole = "http://www.xbrl.org/2009/role/deprecatedDateLabel"
 
 latestTaxonomyDocs = { # note that these URLs are blocked by EFM validation modes
+    # deprecatedLabels may be a single file name or list of file names
     # US FASB/SEC taxonomies
     "country/*": {
-        "namespace": "http://xbrl.sec.gov/country/2017-01-31",
-        "deprecatedLabels": "https://xbrl.sec.gov/country/2017/country-lab-2017-01-31.xml",
+        "deprecatedLabels": ["http://xbrl.sec.gov/country/2016/country-lab-2016-01-31.xml",
+                             "http://xbrl.sec.gov/country/2017/country-lab-2017-01-31.xml",
+                             "https://xbrl.sec.gov/country/2020/country-lab-2020-01-31.xml"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
     "currency/*": {
-        "namespace": "http://xbrl.sec.gov/currency/2019-01-31",
-        "deprecatedLabels": "https://xbrl.sec.gov/currency/2019/currency-lab-2019-01-31.xml",
+        "deprecatedLabels": ["https://xbrl.sec.gov/currency/2017/currency-lab-2017-01-31.xml",
+                             "https://xbrl.sec.gov/currency/2019/currency-lab-2019-01-31.xml",
+                             "https://xbrl.sec.gov/currency/2020/currency-lab-2020-01-31.xml"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
     "dei/*": {
-        "namespace": "http://xbrl.sec.gov/dei/2019-01-31",
-        "deprecatedLabels": "https://xbrl.sec.gov/dei/2019/dei-lab-2019-01-31.xml",
+        "deprecatedLabels": ["http://xbrl.sec.gov/dei/2012/dei-lab-2012-01-31.xml",
+                             "https://xbrl.sec.gov/dei/2018/dei-lab-2018-01-31.xml",
+                             "https://xbrl.sec.gov/dei/2019/dei-lab-2019-01-31.xml"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
     "exch/*": {
-        "namespace": "http://xbrl.sec.gov/exch/2019-01-31",
-        "deprecatedLabels": "https://xbrl.sec.gov/exch/2019/exch-lab-2019-01-31.xml",
+        "deprecatedLabels": ["https://xbrl.sec.gov/exch/2018/exch-lab-2018-01-31.xml",
+                             "https://xbrl.sec.gov/exch/2019/exch-lab-2019-01-31.xml",
+                             "https://xbrl.sec.gov/exch/2020/exch-lab-2020-01-31.xml"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
     "invest/*": {
-        "namespace": "http://xbrl.sec.gov/invest/2013-01-31",
-        "deprecatedLabels": "https://xbrl.sec.gov/exch/2013/invest-lab-2013-01-31.xml",
+        # do not rebuild, all labels are deprecated
+        "deprecatedLabels": "https://xbrl.sec.gov/invest/2013/invest-lab-2013-01-31.xml",
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
     "rr/*": {
-        "namespace": "http://xbrl.sec.gov/rr/2018-01-31",
-        "deprecatedLabels": "https://xbrl.sec.gov/rr/2018/rr-lab-2018-01-31.xml",
+        "deprecatedLabels": ["http://xbrl.sec.gov/rr/2012/rr-lab-2012-01-31.xml",
+                             "https://xbrl.sec.gov/rr/2018/rr-lab-2018-01-31.xml"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
     "srt/*": {
-        "namespace": "http://fasb.org/srt/2019-01-31",
-        "deprecatedLabels": "http://xbrl.fasb.org/srt/2019/elts/srt-lab-2019-01-31.xml",
+        "deprecatedLabels": ["http://xbrl.fasb.org/srt/2018/elts/srt-lab-2018-01-31.xml",
+                             "http://xbrl.fasb.org/srt/2019/elts/srt-lab-2019-01-31.xml",
+                             "http://xbrl.fasb.org/srt/2020/elts/srt-lab-2020-01-31.xml"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
     "stpr/*": {
-        "namespace": "http://xbrl.sec.gov/stpr/2018-01-31",
         "deprecatedLabels": "https://xbrl.sec.gov/stpr/2018/stpr-lab-2018-01-31.xml",
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
     "us-gaap/*": {
-        "namespace": "http://fasb.org/us-gaap/2019-01-31",
-        "deprecatedLabels": "http://xbrl.fasb.org/us-gaap/2019/elts/us-gaap-lab-2019-01-31.xml",
+        "deprecatedLabels": ["http://xbrl.fasb.org/us-gaap/2018/elts/us-gaap-lab-2018-01-31.xml",
+                             "http://xbrl.fasb.org/us-gaap/2019/elts/us-gaap-lab-2019-01-31.xml",
+                             "http://xbrl.fasb.org/us-gaap/2020/elts/us-gaap-lab-2020-01-31.xml"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
-        "deprecationDatePattern": usDeprecatedLabelPattern
+        "deprecationDatePattern": usDeprecatedLabelPattern,
+        "dqcRuleArcrole": "http://fasb.org/dqcRules/arcrole/concept-rule",
         },
     # International taxonomies
     "ifrs-full/*": {
-        "namespace": "http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full",
-        "deprecatedLabels": "http://xbrl.ifrs.org/taxonomy/2019-03-27/deprecated/depr-lab_full_ifrs-en_2019-03-27.xml",
+        "deprecatedLabels": ["http://xbrl.ifrs.org/taxonomy/2018-03-16/deprecated/depr-lab_full_ifrs-en_2018-03-16.xml",
+                             "http://xbrl.ifrs.org/taxonomy/2019-03-27/deprecated/depr-lab_full_ifrs-en_2019-03-27.xml"],
         "deprecatedLabelRole": ifrsDeprecatedLabelRole,
         "deprecationDatePattern": ifrsDeprecatedLabelPattern
         }
     }
+latestDqcrtDocs = {
+        "us-gaap/2020": "http://xbrl.fasb.org/us-gaap/2020/dqcrules/dqcrules-2020-01-31.xsd"
+        }

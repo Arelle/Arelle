@@ -492,9 +492,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                      
                 # 6.5.43 signs - applies to all facts having a context.
                 if (isEFM and f.qname in nonNegFacts.concepts and f.isNumeric and not f.isNil and f.xValid >= VALID and f.xValue < 0 and (
-                    all(dim.dimensionQname not in nonNegFacts.excludedAxesMembers or
-                        ("*" not in nonNegFacts.excludedAxesMembers[dim.dimensionQname] and
-                         dim.memberQname not in nonNegFacts.excludedAxesMembers[dim.dimensionQname])
+                    all((dim.dimensionQname not in nonNegFacts.excludedAxesMembers or
+                         ("*" not in nonNegFacts.excludedAxesMembers[dim.dimensionQname] and
+                          dim.memberQname not in nonNegFacts.excludedAxesMembers[dim.dimensionQname])) and
+                         dim.memberQname not in nonNegFacts.excludedMembers and
+                         (nonNegFacts.excludedMemberNamesPattern is None or 
+                          not nonNegFacts.excludedMemberNamesPattern.search(dim.memberQname.localName))
                         for dim in context.qnameDims.values()))):
                     modelXbrl.warning("EFM.6.05.43",
                         _("Concept %(element)s in %(taxonomy)s has a negative value %(value)s in context %(context)s.  Correct the sign, use a more appropriate concept, or change the context."),
@@ -2079,6 +2082,18 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     elif set(d.targetNamespace for d in val.standardNamespaceConflicts['ifrs+us-gaap']) >= {
                         "http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full", "http://fasb.org/us-gaap/2018-01-31"}:
                         conflictClass = 'ifrs-2019+us-gaap-2018'
+                    elif set(d.targetNamespace for d in val.standardNamespaceConflicts['ifrs+us-gaap']) >= {
+                        "http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full", "http://fasb.org/us-gaap/2020-01-31"}:
+                        conflictClass = 'ifrs-2018+us-gaap-2020'
+                    else:
+                        continue
+                if conflictClass == 'srt+ifrs':
+                    if set(d.targetNamespace for d in val.standardNamespaceConflicts['srt+ifrs']) >= {
+                        "http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full", "http://fasb.org/srt/2020-01-31"}:
+                        conflictClass = 'ifrs-2018+srt-2020'
+                    elif set(d.targetNamespace for d in val.standardNamespaceConflicts['srt+ifrs']) >= {
+                        "http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full", "http://fasb.org/srt/2018-01-31"}:
+                        conflictClass = 'ifrs-2019+srt-2018'
                     else:
                         continue
                 modelXbrl.error("EFM.6.22.03.incompatibleSchemas",
@@ -2590,7 +2605,7 @@ def eloValueOfFact(deiName, xbrlVal):
         return xbrlVal
     elif deiName == "EntityFilerCategory":
         return xbrlVal
-    return null # unhandled deiName
+    return None # unhandled deiName
 
 
 def cleanedCompanyName(name):

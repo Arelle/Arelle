@@ -4,6 +4,340 @@ This file was created by staff of the U.S. Securities and Exchange Commission.
 Data and content created by government employees within the scope of their employment 
 are not subject to domestic copyright protection. 17 U.S.C. 105.
 -->
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/stpr/2018/stpr-2018-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/stpr/2018-01-31</Namespace>
+		<Prefix>stpr</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/sic/2020/sic-2020-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/sic/2011-01-31</Namespace>
+		<Prefix>sic</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/sic/2011/sic-2011-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/sic/2011-01-31</Namespace>
+		<Prefix>sic</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/naics/2017/naics-2017-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/naics/2017-01-31</Namespace>
+		<Prefix>naics</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/exch/2020/exch-2020-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/exch/2020-01-31</Namespace>
+		<Prefix>exch</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/exch/2020/exch-2020-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/exch/2019-01-31</Namespace>
+		<Prefix>exch</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/exch/2019/exch-2019-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/exch/2019-01-31</Namespace>
+		<Prefix>exch</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/exch/2018/exch-2018-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/exch/2018-01-31</Namespace>
+		<Prefix>exch</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/dei/2019/dei-std-2019-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/dei-std/2019-01-31</Namespace>
+		<Prefix>dei-std</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/dei/2019/dei-ent-std-2019-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/dei-ent-std/2019-01-31</Namespace>
+		<Prefix>dei-ent-std</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/dei/2019/dei-2019-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/dei/2019-01-31</Namespace>
+		<Prefix>dei</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/dei/2018/dei-2018-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/dei/2018-01-31</Namespace>
+		<Prefix>dei</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/currency/2020/currency-2020-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/currency/2020-01-31</Namespace>
+		<Prefix>currency</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/currency/2019/currency-2019-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/currency/2019-01-31</Namespace>
+		<Prefix>currency</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/currency/2017/currency-2017-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/currency/2017-01-31</Namespace>
+		<Prefix>currency</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/country/2020/country-2020-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/country/2020-01-31</Namespace>
+		<Prefix>country</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/country/2017/country-2017-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/country/2017-01-31</Namespace>
+		<Prefix>country</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/country/2016/country-2016-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/country/2016-01-31</Namespace>
+		<Prefix>country</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>http://xbrl.fasb.org/us-gaap/2020/elts/us-types-2020-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://fasb.org/us-types/2019-01-31</Namespace>
+		<Prefix>us-types</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>http://xbrl.fasb.org/us-gaap/2020/elts/us-roles-2020-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Roles/Arcroles</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://fasb.org/us-roles/2020-01-31</Namespace>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>http://xbrl.fasb.org/us-gaap/2020/elts/us-gaap-2020-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://fasb.org/us-gaap/2020-01-31</Namespace>
+		<Prefix>us-gaap</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>http://xbrl.fasb.org/srt/2020/elts/srt-types-2020-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://fasb.org/srt-types/2020-01-31</Namespace>
+		<Prefix>srt-types</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>http://xbrl.fasb.org/srt/2020/elts/srt-roles-2020-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Roles/Arcroles</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://fasb.org/srt-roles/2020-01-31</Namespace>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>http://xbrl.fasb.org/srt/2020/elts/srt-2020-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://fasb.org/srt/2020-01-31</Namespace>
+		<Prefix>srt</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>http://www.xbrl.org/lrr/role/net-2009-12-16.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Roles/Arcroles</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://www.xbrl.org/2009/role/net</Namespace>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>http://www.xbrl.org/lrr/role/negated-2009-12-16.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Roles/Arcroles</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://www.xbrl.org/2009/role/negated</Namespace>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>http://www.xbrl.org/lrr/arcrole/factExplanatory-2009-12-16.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Roles/Arcroles</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://www.xbrl.org/2009/arcrole/fact-explanatoryFact</Namespace>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>http://www.xbrl.org/lrr/arcrole/esma-arcrole-2018-11-21.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Roles/Arcroles</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower</Namespace>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>http://www.xbrl.org/dtr/type/numeric-2009-12-16.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://www.xbrl.org/dtr/type/numeric</Namespace>
+		<Prefix>num</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>http://www.xbrl.org/dtr/type/nonNumeric-2009-12-20.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://www.xbrl.org/dtr/type/non-numeric</Namespace>
+		<Prefix>nonnum</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/dei/2019/dei-pre-2019-01-31.xml</Href>
+		<AttType>PRE</AttType>
+		<FileTypeName>Presentation</FileTypeName>
+		<Elements>0</Elements>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/dei/2019/dei-lab-2019-01-31.xml</Href>
+		<AttType>LAB</AttType>
+		<FileTypeName>Label</FileTypeName>
+		<Elements>0</Elements>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/dei/2019/dei-def-2019-01-31.xml</Href>
+		<AttType>DEF</AttType>
+		<FileTypeName>Definition, Dimensions</FileTypeName>
+		<Elements>0</Elements>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>http://xbrl.fasb.org/us-gaap/2020/elts/us-gaap-eedm-def-2020-01-31.xml</Href>
+		<AttType>DEF</AttType>
+		<FileTypeName>Definition, Dimensions</FileTypeName>
+		<Elements>0</Elements>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>http://xbrl.fasb.org/srt/2020/elts/srt-eedm1-def-2020-01-31.xml</Href>
+		<AttType>DEF</AttType>
+		<FileTypeName>Definition, Dimensions</FileTypeName>
+		<Elements>0</Elements>
+	</Loc>
 <Loc><Family>US GAAP</Family><Version>2019</Version><Href>http://xbrl.fasb.org/us-gaap/2019/elts/us-gaap-2019-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://fasb.org/us-gaap/2019-01-31</Namespace><Prefix>us-gaap</Prefix></Loc>
 <Loc><Family>US GAAP</Family><Version>2019</Version><Href>http://xbrl.fasb.org/srt/2019/elts/srt-2019-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://fasb.org/srt/2019-01-31</Namespace><Prefix>srt</Prefix></Loc>
 <Loc><Family>US GAAP</Family><Version>2019</Version><Href>https://xbrl.sec.gov/dei/2018/dei-2018-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://xbrl.sec.gov/dei/2018-01-31</Namespace><Prefix>dei</Prefix></Loc>

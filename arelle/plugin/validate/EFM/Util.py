@@ -5,12 +5,12 @@ Created on Jul 7, 2018
 (c) Copyright 2018 Mark V Systems Limited, All rights reserved.
 '''
 import os, json, re
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from arelle.FileSource import openFileStream, openFileSource, saveFile # only needed if building a cached file
 from arelle.ModelValue import qname
 from arelle import XbrlConst
 from arelle.PythonUtil import attrdict, flattenSequence, pyObjectSize
-from .Consts import standardNamespacesPattern, latestTaxonomyDocs
+from .Consts import standardNamespacesPattern, latestTaxonomyDocs, latestDqcrtDocs
 
 EMPTY_DICT = {}
 
@@ -31,22 +31,35 @@ def abbreviatedWildNamespace(namespaceURI):
     match = standardNamespacesPattern.match(namespaceURI or "")
     if match:
         return "{}/*".format(match.group(2) or match.group(5))
+    return None
     
 def loadNonNegativeFacts(modelXbrl):
-    _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "signwarnings.json"), 'rt', encoding='utf-8')
-    signwarnings = json.load(_file) # {localName: date, ...}
-    _file.close()
+    signwarnings = loadDqc0015signwarningRules(modelXbrl)
     concepts = set()
+    excludedMembers = set()
+    excludedMemberStrings = set()
     excludedAxesMembers = defaultdict(set)
     for modelDocument in modelXbrl.urlDocs.values():
         ns = modelDocument.targetNamespace # set up non neg lookup by full NS
         for abbrNs in (abbreviatedNamespace(ns), abbreviatedWildNamespace(ns)):
-            for localName in signwarnings["conceptNames"].get(abbrNs, ()):
-                concepts.add(qname(ns, localName))
+            nsMatch = False
+            for exName, exSet, isQName in (("conceptNames", concepts, True),
+                                           ("excludedMemberNames", excludedMembers, True),
+                                           ("excludedMemberStrings", excludedMemberStrings, False)):
+                for localName in signwarnings[exName].get(abbrNs, ()):
+                    exSet.add(qname(ns, localName) if isQName else localName)
+                    nsMatch = True
             for localDimName, localMemNames in signwarnings["excludedAxesMembers"].get(abbrNs, EMPTY_DICT).items():
                 for localMemName in localMemNames:
                     excludedAxesMembers[qname(ns, localDimName)].add(qname(ns, localMemName) if localMemName != "*" else "*")
-    return attrdict(concepts=concepts, excludedAxesMembers=excludedAxesMembers)
+                    nsMatch = True
+            if nsMatch:
+                break # use explicit year rules if available, else generic year rules
+    return attrdict(concepts=concepts, 
+                    excludedAxesMembers=excludedAxesMembers, 
+                    excludedMembers=excludedMembers, 
+                    excludedMemberNamesPattern=re.compile("|".join(excludedMemberStrings), re.IGNORECASE) 
+                                               if excludedMemberStrings else None)
     
 def loadCustomAxesReplacements(modelXbrl): # returns match expression, standard patterns
     _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "axiswarnings.json"), 'rt', encoding='utf-8')
@@ -169,14 +182,15 @@ def loadDeprecatedConceptDates(val, deprecatedConceptDates):
     for modelDocument in val.modelXbrl.urlDocs.values():
         ns = modelDocument.targetNamespace
         abbrNs = abbreviatedWildNamespace(ns)
-        latestTaxonomyDoc = latestTaxonomyDocs.get(abbrNs)
-        _fileName = deprecatedConceptDatesFile(val.modelXbrl.modelManager, abbrNs, latestTaxonomyDoc)
-        if _fileName:
-            _file = openFileStream(val.modelXbrl.modelManager.cntlr, _fileName, 'rt', encoding='utf-8')
-            _deprecatedConceptDates = json.load(_file) # {localName: date, ...}
-            _file.close()
-            for localName, date in _deprecatedConceptDates.items():
-                deprecatedConceptDates[qname(ns, localName)] = date
+        if abbrNs in latestTaxonomyDocs:
+            latestTaxonomyDoc = latestTaxonomyDocs[abbrNs]
+            _fileName = deprecatedConceptDatesFile(val.modelXbrl.modelManager, abbrNs, latestTaxonomyDoc)
+            if _fileName:
+                _file = openFileStream(val.modelXbrl.modelManager.cntlr, _fileName, 'rt', encoding='utf-8')
+                _deprecatedConceptDates = json.load(_file) # {localName: date, ...}
+                _file.close()
+                for localName, date in _deprecatedConceptDates.items():
+                    deprecatedConceptDates[qname(ns, localName)] = date
                 
 def resourcesFilePath(modelManager, fileName):
     # resourcesDir can be in cache dir (production) or in validate/EFM/resources (for development)
@@ -190,10 +204,6 @@ def resourcesFilePath(modelManager, fileName):
     return os.path.join(_resourcesDir, fileName)
                     
 def deprecatedConceptDatesFile(modelManager, abbrNs, latestTaxonomyDoc):
-    if latestTaxonomyDoc is None:
-        return None
-    if not abbrNs: # none for an unexpected namespace pattern
-        return None
     cntlr = modelManager.cntlr
     _fileName = resourcesFilePath(modelManager, abbrNs.partition("/")[0] + "-deprecated-concepts.json")
     _deprecatedLabelRole = latestTaxonomyDoc["deprecatedLabelRole"]
@@ -207,36 +217,109 @@ def deprecatedConceptDatesFile(modelManager, abbrNs, latestTaxonomyDoc):
     priorValidateDisclosureSystem = modelManager.validateDisclosureSystem
     modelManager.validateDisclosureSystem = False
     from arelle import ModelXbrl
-    deprecationsInstance = ModelXbrl.load(modelManager, 
-          # "http://xbrl.fasb.org/us-gaap/2012/elts/us-gaap-doc-2012-01-31.xml",
-          # load from zip (especially after caching) is incredibly faster
-          openFileSource(latestTaxonomyDoc["deprecatedLabels"], cntlr), 
-          _("built deprecations table in cache"))
-    modelManager.validateDisclosureSystem = priorValidateDisclosureSystem
-    if deprecationsInstance is None:
-        modelManager.addToLog(
-            _("%(name)s documentation not loaded"),
-            messageCode="arelle:notLoaded", messageArgs={"modelXbrl": val, "name":_abbrNs})
-    else:   
-        # load deprecations
-        for labelRel in deprecationsInstance.relationshipSet(XbrlConst.conceptLabel).modelRelationships:
-            modelLabel = labelRel.toModelObject
-            conceptName = labelRel.fromModelObject.name
-            if modelLabel.role == _deprecatedLabelRole:
-                match = _deprecatedDateMatchPattern.match(modelLabel.text)
-                if match is not None:
-                    date = match.group(1)
-                    if date:
-                        deprecatedConceptDates[conceptName] = date
-        jsonStr = _STR_UNICODE(json.dumps(deprecatedConceptDates, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
-        saveFile(cntlr, _fileName, jsonStr)  # 2.7 gets unicode this way
-        deprecationsInstance.close()
-        del deprecationsInstance # dereference closed modelXbrl
+    for latestTaxonomyLabelFile in flattenSequence(latestTaxonomyDoc["deprecatedLabels"]):
+        deprecationsInstance = ModelXbrl.load(modelManager, 
+              # "http://xbrl.fasb.org/us-gaap/2012/elts/us-gaap-doc-2012-01-31.xml",
+              # load from zip (especially after caching) is incredibly faster
+              openFileSource(latestTaxonomyLabelFile, cntlr), 
+              _("built deprecations table in cache"))
+        modelManager.validateDisclosureSystem = priorValidateDisclosureSystem
+        if deprecationsInstance is None:
+            modelManager.addToLog(
+                _("%(name)s documentation not loaded"),
+                messageCode="arelle:notLoaded", messageArgs={"modelXbrl": val, "name":_abbrNs})
+        else:   
+            # load deprecations
+            for labelRel in deprecationsInstance.relationshipSet(XbrlConst.conceptLabel).modelRelationships:
+                modelLabel = labelRel.toModelObject
+                conceptName = labelRel.fromModelObject.name
+                if modelLabel.role == _deprecatedLabelRole:
+                    match = _deprecatedDateMatchPattern.match(modelLabel.text)
+                    if match is not None:
+                        date = match.group(1)
+                        if date:
+                            deprecatedConceptDates[conceptName] = date
+            jsonStr = _STR_UNICODE(json.dumps(deprecatedConceptDates, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
+            saveFile(cntlr, _fileName, jsonStr)  # 2.7 gets unicode this way
+            deprecationsInstance.close()
+            del deprecationsInstance # dereference closed modelXbrl
+                    
+def loadDqc0015signwarningRules(modelXbrl):
+    conceptRule = "http://fasb.org/dqcrules/arcrole/concept-rule" # FASB arcrule
+    rule0015 = "http://fasb.org/us-gaap/role/dqc/0015"
+    modelManager = modelXbrl.modelManager
+    cntlr = modelXbrl.modelManager.cntlr
+    # check for cached completed signwarnings
+    _signwarningsFileName = resourcesFilePath(modelManager, "signwarnings.json")
+    if os.path.exists(_signwarningsFileName): 
+        _file = openFileStream(modelManager.cntlr, _signwarningsFileName, 'rt', encoding='utf-8')
+        signwarnings = json.load(_file) # {localName: date, ...}
+        _file.close()
+        return signwarnings
+    # load template rules
+    _fileName = resourcesFilePath(modelManager, "signwarnings-template.json")
+    if _fileName:
+        _file = openFileStream(modelXbrl.modelManager.cntlr, _fileName, 'rt', encoding='utf-8')
+        signwarnings = json.load(_file, object_pairs_hook=OrderedDict) # {localName: date, ...}
+        _file.close()
+
+    # load rules and add to signwarnings template
+    for dqcAbbr, dqcrtUrl in latestDqcrtDocs.items():
+        modelManager.addToLog(_("loading {} DQC Rules {}").format(dqcAbbr, dqcrtUrl), messageCode="info")
+        # load without SEC/EFM validation (doc file would not be acceptable)
+        priorValidateDisclosureSystem = modelManager.validateDisclosureSystem
+        modelManager.validateDisclosureSystem = False
+        from arelle import ModelXbrl
+        dqcrtInstance = ModelXbrl.load(modelManager, 
+              # "http://xbrl.fasb.org/us-gaap/2012/elts/us-gaap-doc-2012-01-31.xml",
+              # load from zip (especially after caching) is incredibly faster
+              openFileSource(dqcrtUrl, cntlr), 
+              _("built dqcrt table in cache"))
+        modelManager.validateDisclosureSystem = priorValidateDisclosureSystem
+        if dqcrtInstance is None:
+            modelManager.addToLog(
+                _("%(name)s documentation not loaded"),
+                messageCode="arelle:notLoaded", messageArgs={"modelXbrl": val, "name":dqcAbbr})
+        else:   
+            # load signwarnings from DQC 0015
+            dqcRelSet = dqcrtInstance.relationshipSet(conceptRule, rule0015)
+            for signWrnObj, headEltName in (("conceptNames", "Dqc_0015_ListOfElements"),
+                                            ("excludedMemberNames", "Dqc_0015_ExcludeNonNegMembersAbstract"),
+                                            ("excludedAxesMembers", "Dqc_0015_ExcludeNonNegAxisAbstract"),
+                                            ("excludedAxesMembers", "Dqc_0015_ExcludeNonNegAxisMembersAbstract"),
+                                            ("excludedMemberStrings", "Dqc_0015_ExcludeNonNegMemberStringsAbstract")):
+                headElts = dqcrtInstance.nameConcepts.get(headEltName,())
+                for headElt in headElts:
+                    if signWrnObj == "excludedMemberStrings":
+                        for refRel in dqcrtInstance.relationshipSet(XbrlConst.conceptReference).fromModelObject(headElt):
+                            for refPart in refRel.toModelObject.iterchildren("{*}allowableSubString"):
+                                for subStr in refPart.text.split():
+                                    signwarnings[signWrnObj].setdefault(nsAbbr, []).append(subStr)
+                    else:
+                        for ruleRel in dqcRelSet.fromModelObject(headElt):
+                            elt = ruleRel.toModelObject
+                            nsAbbr = abbreviatedNamespace(elt.qname.namespaceURI)
+                            if signWrnObj in ("conceptNames", "excludedMemberNames"):
+                                signwarnings[signWrnObj].setdefault(nsAbbr, []).append(elt.name)
+                            else:
+                                l = signwarnings[signWrnObj].setdefault(nsAbbr, {}).setdefault(elt.name, [])
+                                if headEltName == "Dqc_0015_ExcludeNonNegAxisAbstract":
+                                    l.append("*")
+                                else:
+                                    for memRel in dqcRelSet.fromModelObject(elt):
+                                        l.append(memRel.toModelObject.name)
+            jsonStr = _STR_UNICODE(json.dumps(signwarnings, ensure_ascii=False, indent=2)) # might not be unicode in 2.7
+            saveFile(cntlr, _signwarningsFileName, jsonStr)  # 2.7 gets unicode this way
+            dqcrtInstance.close()
+            del dqcrtInstance # dereference closed modelXbrl
+    return signwarnings
     
 def buildDeprecatedConceptDatesFiles(cntlr):
     # will build in subdirectory "resources" if exists, otherwise in cache/resources
     for abbrNs, latestTaxonomyDoc in latestTaxonomyDocs.items():
-        deprecatedConceptDatesFile(cntlr.modelManager, abbrNs, latestTaxonomyDoc)
+        if latestTaxonomyDoc is not None and abbrNs and abbrNs != "invest/*":
+            # don't rebuild invest, use static file of all entries
+            deprecatedConceptDatesFile(cntlr.modelManager, abbrNs, latestTaxonomyDoc)
         
 def loadOtherStandardTaxonomies(modelXbrl, val):
     _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "other-standard-taxonomies.json"), 'rt', encoding='utf-8')

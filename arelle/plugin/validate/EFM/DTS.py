@@ -75,6 +75,8 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                     conflictClass = match.group(2) or match.group(5)
                     if (conflictClass == 'us-gaap' and match.group(3) < '2018') or conflictClass == 'srt':
                         val.standardNamespaceConflicts['srt+us-gaap'].add(modelDocument) # ignore non-srt multi-usgaap in Filing.py
+                    if conflictClass == 'ifrs-full' or conflictClass == 'srt':
+                        val.standardNamespaceConflicts['srt+ifrs'].add(modelDocument)
                     if conflictClass == 'us-gaap' or conflictClass == 'ifrs-full':
                         val.standardNamespaceConflicts['ifrs+us-gaap'].add(modelDocument)
                     if conflictClass not in ('us-gaap', 'srt'):

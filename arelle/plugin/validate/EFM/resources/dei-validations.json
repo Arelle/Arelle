@@ -359,7 +359,7 @@
         "comment": "cik registration entityRegistration.fyEnd never raises dq-0540-{headerTag}-Unexpected, but is compared for submissions where CurrentFiscalYearEndDate is reported"
     },
     {
-        "forms": ["@10-K+Q", "@20+40-F"],
+        "forms": ["@10-K+KT", "@20+40-F"],
         "xbrl-names": "CurrentFiscalYearEndDate",
         "elo-name": "entityRegistration.fyEnd",
         "efm": "6.5.21",
@@ -369,7 +369,7 @@
         "elo-match-message" : "dq-0540-CurrentFiscalYearEndDate-Registrant-Value"
     },
     {
-        "forms": ["@6-K", "@SDR"],
+        "forms": ["@10-Q+QT", "@6-K", "@SDR"],
         "xbrl-names": "CurrentFiscalYearEndDate",
         "elo-name": "entityRegistration.fyEnd",
         "efm": "6.5.21",
