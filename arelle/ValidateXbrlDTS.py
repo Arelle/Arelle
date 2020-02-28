@@ -337,7 +337,7 @@ def checkElements(val, modelDocument, parent):
         ncnameTests = (("id","xml.3.3.1:idMustBeUnique", val.elementIDs), 
                        ("name","xbrl.5.1.1:conceptName", val.conceptNames))
     else:
-        ncnameTests = (("id","xbrl:xmlElementId", val.elementIDs),)
+        ncnameTests = (("id","xml.3.3.1:idMustBeUnique", val.elementIDs),)
     for elt in childrenIter:
         if isinstance(elt,ModelObject):
             for name, errCode, _valueItems in ncnameTests:
