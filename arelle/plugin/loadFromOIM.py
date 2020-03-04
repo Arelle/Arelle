@@ -47,6 +47,7 @@ nsOimCes = (
     )
 jsonDocumentTypes = (
         "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-json",
+        "http://www.xbrl.org/{{status_date_uri}}/xbrl-json", # allows loading of XII "template" test cases without CI production
         "http://www.xbrl.org/CR/2019-06-12/xbrl-json",
     )
 csvDocumentTypes = (
@@ -696,52 +697,53 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 error("{}:invalidJSONMemberType".format(errPrefix),
                       _("Invalid JSON structure member types in metadata: %(members)s"),
                       members=", ".join(invalidMemberTypes))
-            if ("taxonomy" in documentInfo or isCSV) and not documentInfo.get("taxonomy",()):
-                error("xbrle:noTaxonomy",
-                      _("The list of taxonomies MUST NOT be empty."))
-            if  len(modelXbrl.errors) > numErrorsBeforeJsonCheck:
-                raise OIMException()
             if isCSVorXL and "extends" in documentInfo:
                 # process extension
-                extendedFile = documentInfo["extends"]
-                extendedOimObject = loadOimObject(extendedFile, mappedUrl)
-                # extended must be CSV
-                extendedDocumentInfo = extendedOimObject.get("documentInfo", EMPTY_DICT)
-                extendedDocumentType = extendedDocumentInfo.get("documentType")
-                extendedFinal = extendedDocumentInfo.get("final", EMPTY_DICT)
-                if extendedDocumentType != documentType:
-                    error("{}:invalidExtendedDocumentType".format(errPrefix), 
-                          _("Extended documentType %(extendedDocumentType)s must same as extending documentType %(documentType)s in file %(extendedFile)"),
-                          extendedFile=extendedFile, extendedDocumentType=extendedDocumentType, documentType=documentType)
-                    return EMPTY_DICT, None
-                for parent, extendedParent, excludedObjectNames in (
-                    (documentInfo, extendedDocumentInfo, {"documentType", "extends"}),
-                    (oimObject, extendedOimObject, {"documentInfo"})):
-                    for objectName in extendedParent.keys() - excludedObjectNames:
-                        if extendedFinal.get(objectName, False) and objectName in parent:
-                            error("{}:extendedFinalObject".format(errPrefix), 
-                                  _("Extended file %(extendedFile)s redefines final object %(finalObjectName)s"),
-                                  extendedFile=extendedFile, finalObjectName=objectName)
-                            if objectName in extendedParent:
-                                parent[objectName] = extendedParent[objectName] # ignore post-final extensions
-                        elif objectName in csvExtensibleObjects:
-                            for extProp, extPropValue in extendedParent.get(objectName,EMPTY_DICT).items():
-                                if extProp in parent.get(objectName,EMPTY_DICT):
-                                    error("{}:extendedObjectDuplicate".format(errPrefix), 
-                                          _("Extended file %(extendedFile)s redefines object %(objectName)s property %(property)s"),
-                                          extendedFile=extendedFile, objectName=objectName, property=extProp)
-                                else:
-                                    if objectName not in parent:
-                                        parent[objectName] = {}
-                                    parent[objectName][extProp] = extPropValue
-                        elif objectName in parent:
-                            error("{}:extendedObjectDuplicate".format(errPrefix), 
-                                  _("Extended file %(extendedFile)s redefines object %(objectName)s"),
-                                  extendedFile=extendedFile, objectName=objectName)
-                        else:
-                            parent[objectName] = extendedParent[objectName]
+                for extendedFile in documentInfo["extends"]:
+                    extendedOimObject = loadOimObject(extendedFile, mappedUrl)
+                    # extended must be CSV
+                    extendedDocumentInfo = extendedOimObject.get("documentInfo", EMPTY_DICT)
+                    extendedDocumentType = extendedDocumentInfo.get("documentType")
+                    extendedFinal = extendedDocumentInfo.get("final", EMPTY_DICT)
+                    if extendedDocumentType != documentType:
+                        error("{}:invalidExtendedDocumentType".format(errPrefix), 
+                              _("Extended documentType %(extendedDocumentType)s must same as extending documentType %(documentType)s in file %(extendedFile)s"),
+                              extendedFile=extendedFile, extendedDocumentType=extendedDocumentType, documentType=documentType)
+                        raise OIMException()
+                    for parent, extendedParent, excludedObjectNames in (
+                        (documentInfo, extendedDocumentInfo, {"documentType", "extends"}),
+                        (oimObject, extendedOimObject, {"documentInfo"})):
+                        for objectName in extendedParent.keys() - excludedObjectNames:
+                            if extendedFinal.get(objectName, False) and objectName in parent:
+                                error("{}:extendedFinalObject".format(errPrefix), 
+                                      _("Extended file %(extendedFile)s redefines final object %(finalObjectName)s"),
+                                      extendedFile=extendedFile, finalObjectName=objectName)
+                                if objectName in extendedParent:
+                                    parent[objectName] = extendedParent[objectName] # ignore post-final extensions
+                            elif objectName in csvExtensibleObjects:
+                                for extProp, extPropValue in extendedParent.get(objectName,EMPTY_DICT).items():
+                                    if extProp in parent.get(objectName,EMPTY_DICT):
+                                        error("{}:extendedObjectDuplicate".format(errPrefix), 
+                                              _("Extended file %(extendedFile)s redefines object %(objectName)s property %(property)s"),
+                                              extendedFile=extendedFile, objectName=objectName, property=extProp)
+                                    else:
+                                        if objectName not in parent:
+                                            parent[objectName] = {}
+                                        parent[objectName][extProp] = extPropValue
+                            elif objectName in parent:
+                                error("{}:extendedObjectDuplicate".format(errPrefix), 
+                                      _("Extended file %(extendedFile)s redefines object %(objectName)s"),
+                                      extendedFile=extendedFile, objectName=objectName)
+                            else:
+                                parent[objectName] = extendedParent[objectName]
                                 
             if extendingFile is None: # entry oimFile
+                if ("taxonomy" in documentInfo or isCSV) and not documentInfo.get("taxonomy",()):
+                    error("xbrle:noTaxonomy",
+                          _("The list of taxonomies MUST NOT be empty."))
+                if  len(modelXbrl.errors) > numErrorsBeforeJsonCheck:
+                    raise OIMException()
+    
                 oimObject["=entryParameters"] = (isJSON, isCSV, isXL, isCSVorXL, oimWb, documentInfo, documentType)
                 
             return oimObject
