@@ -491,6 +491,8 @@ class FileSource:
                 return fileResult
         if binary:
             return (openFileStream(self.cntlr, filepath, 'rb'), )
+        elif encoding:
+            return (openFileStream(self.cntlr, filepath, 'rt', encoding=encoding), )
         else:
             return openXmlFileStream(self.cntlr, filepath, stripDeclaration)
 

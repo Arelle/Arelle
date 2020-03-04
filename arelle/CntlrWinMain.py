@@ -792,7 +792,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 modelXbrl = self.modelManager.load(filesource, _("views loading"),
                                                    checkModifiedTime=isHttpUrl(filesource.url)) # check modified time if GUI-loading from web
         except ModelDocument.LoadingException:
-            self.showStatus(_("Loading terminated, unrecoverable error"), 20000)
+            self.showStatus(_("Loading terminated, unrecoverable error"), 15000)
             return
         except Exception as err:
             msg = _("Exception loading {0}: {1}, at {2}").format(
@@ -802,7 +802,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             # not sure if message box can be shown from background thread
             # tkinter.messagebox.showwarning(_("Exception loading"),msg, parent=self.parent)
             self.addToLog(msg);
-            self.showStatus(_("Loading terminated, unrecoverable error"), 20000)
+            self.showStatus(_("Loading terminated, unrecoverable error"), 15000)
             return
         if modelXbrl and modelXbrl.modelDocument:
             statTime = time.time() - startedAt
@@ -820,6 +820,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.addToLog(format_string(self.modelManager.locale, 
                                         _("not successfully %s in %.2f secs"), 
                                         (action, time.time() - startedAt)))
+            self.showStatus(_("Loading terminated"), 15000)
 
     def showLoadedXbrl(self, modelXbrl, attach, selectTopView=False):
         startedAt = time.time()
