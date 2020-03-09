@@ -31,7 +31,8 @@ ONE = Decimal(1)
 TEN = Decimal(10)
 NILVALUE = "nil"
 SCHEMA_LB_REFS = {qname("{http://www.xbrl.org/2003/linkbase}schemaRef"), 
-                  qname("{http://www.xbrl.org/2003/linkbase}linkbaseRef")}
+                  # qname("{http://www.xbrl.org/2003/linkbase}linkbaseRef")
+                  }
 ROLE_REFS = {qname("{http://www.xbrl.org/2003/linkbase}roleRef"), 
              qname("{http://www.xbrl.org/2003/linkbase}arcroleRef")}
 ENTITY_NA_QNAME = ("https://xbrl.org/entities", "NA")
@@ -260,7 +261,8 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
     def factAspects(fact): 
         oimFact = OrderedDict()
         aspects = OrderedDict()
-        oimFact["id"] = fact.id or "f{}".format(fact.objectIndex)
+        if isCSVorXL:
+            oimFact["id"] = fact.id or "f{}".format(fact.objectIndex)
         parent = fact.getparent()
         concept = fact.concept
         aspects[str(qnOimConceptAspect)] = oimValue(concept.qname)
@@ -343,7 +345,7 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
         oimDocInfo["linkTypes"] = OrderedDict((a,u) for u,a in sorted(linkTypeAliases.items(),
                                                                       key=lambda item: item[1]))
     if linkTypeAliases:
-        oimDocInfo["groups"] = OrderedDict((a,u) for u,a in sorted(groupAliases.items(),
+        oimDocInfo["linkGroups"] = OrderedDict((a,u) for u,a in sorted(groupAliases.items(),
                                                                    key=lambda item: item[1]))
     oimDocInfo["taxonomy"] = dtsReferences
     if isJSON:
@@ -387,13 +389,17 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
     elif isCSVorXL:
         # save CSV
         oimReport["tables"] = oimTables = OrderedDict()
+        oimReport["tableTemplates"] = csvTableTemplates = OrderedDict()
         oimTables["facts"] = csvTable = OrderedDict()
+        csvTable["template"] = "facts"
         csvTable["url"] = "tbd"
-        csvTable["tableDimensions"] = csvTableDimensions = OrderedDict()
-        csvTable["factColumns"] = csvFactColumns = OrderedDict()
+        csvTableTemplates["facts"] = csvTableTemplate = OrderedDict()
+        csvTableTemplate["rowIdColumn"] = "id" 
+        csvTableTemplate["dimensions"] = csvTableDimensions = OrderedDict()
+        csvTableTemplate["columns"] = csvFactColumns = OrderedDict()
         if footnotesRelationshipSet.modelRelationships:
             csvLinks = OrderedDict()
-            oimDocInfo["links"] = csvLinks
+            oimReport["links"] = csvLinks
         aspectQnCol = {}
         aspectsHeader = []
         factsColumns = []
@@ -406,8 +412,14 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
                 aspectsHeader.append(colNCName)
                 if colNCName == "value":
                     csvFactColumns[colNCName] = col = OrderedDict()
-                    col["columnDimensions"] = OrderedDict()
+                    col["dimensions"] = OrderedDict()
+                elif colNCName == "id":
+                    csvFactColumns[colNCName] = {} # empty object
+                elif colNCName == "decimals":
+                    csvFactColumns[colNCName] = {} # empty object
+                    csvTableTemplate[colQName] = "$" + colNCName
                 else:
+                    csvFactColumns[colNCName] = {} # empty object
                     csvTableDimensions[colQName] = "$" + colNCName
                 
             
@@ -415,7 +427,6 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
         #if hasId:
         addAspectQnCol("id")
         addAspectQnCol(qnOimConceptAspect)
-        addAspectQnCol("value")
         if hasNumeric:
             addAspectQnCol("decimals")
         if qnOimEntityAspect in aspectsDefined:
@@ -427,6 +438,7 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
         for aspectQn in sorted(aspectsDefined, key=lambda qn: str(qn)):
             if aspectQn.namespaceURI != nsOim:
                 addAspectQnCol(aspectQn) 
+        addAspectQnCol("value")
         
         def aspectCols(fact):
             cols = [None for i in range(len(aspectsHeader))]
@@ -549,7 +561,7 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
         # save metadata
         if isCSV:
             with open(_baseURL + "-metadata.json", "w", encoding="utf-8") as fh:
-                fh.write(json.dumps(oimReport, ensure_ascii=False, indent=1, sort_keys=False))
+                fh.write(json.dumps(oimReport, ensure_ascii=False, indent=2, sort_keys=False))
         elif isXL:
             _open(None, "metadata")
             _writerow(["metadata"], header=True)

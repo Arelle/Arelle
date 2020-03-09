@@ -307,6 +307,10 @@ def xlValue(cell): # excel values may have encoded unicode, such as _0000D_
     v = cell.value
     if isinstance(v, str):
         v = xlUnicodePattern.sub(xlUnicodeChar, v).replace('\r\n','\n').replace('\r','\n')
+    elif v is None:
+        v = ""
+    else:
+        v = str(v)
     return csvCellValue(v)
 
 class OIMException(Exception):
@@ -404,6 +408,15 @@ def csvPeriod(cellValue, startOrEnd):
                 return isoDuration.partition("/")[2]
             return isoDuration
     return None
+
+def transposer(rowIterator, default=""):
+    cells = [row for row in rowIterator]
+    if cells:
+        colsCount = max(len(row) for row in cells)
+        rowsCount = len(cells)
+        for colIndex in range(colsCount):
+            yield [(cells[rowIndex][colIndex] if colIndex < len(cells[colIndex]) else default) 
+                   for rowIndex in range(rowsCount)]
     
 def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
     from openpyxl import load_workbook
@@ -432,7 +445,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             chars = _file.read(16) # test encoding
             m = UTF_7_16_Pattern.match(chars)
             if m:
-                raise OIMException("xbrlce:invalidCharacterEncoding",
+                raise OIMException("xbrlce:invalidJSON",
                       _("CSV file MUST use utf-8 encoding: %(file)s, appears to be %(encoding)s"),
                       file=csvFilePath, encoding=m.lastgroup)
             _file.seek(0)
@@ -486,7 +499,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     if DUPJSONKEY in value:
                         for _errKey, _errValue, _otherValue in value[DUPJSONKEY]:
                             if key in ("namespaces", "linkTypes", "linkGroups"):
-                                ldError("oimce:multipleURIsForAlias",
+                                ldError("{}:invalidJSONStructure", # "oimce:multipleURIsForAlias",
                                                 _("The %(map)s alias %(prefix)s is used on uri %(uri1)s and uri %(uri2)s."),
                                                 modelObject=modelXbrl, map=key, prefix=_errKey, uri1=_errValue, uri2=_otherValue)
                             else:
@@ -541,7 +554,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             _valueKeyDict[value] = key
             return _dict
         
-        def loadOimObject(oimFile, extendingFile): # returns oimObject, oimWb
+        primaryOimFile = oimFile
+        
+        def loadOimObject(oimFile, extendingFile, primaryReportParameters=None): # returns oimObject, oimWb
             # isXL means metadata loaded from Excel (but instance data can be in excel or CSV)
             isXL = oimFile.endswith(".xlsx") or oimFile.endswith(".xls")
             # same logic as modelDocument.load
@@ -569,14 +584,14 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         chars = f.read(16) # test encoding
                         m = UTF_7_16_Pattern.match(chars)
                         if m:
-                            raise OIMException("{}:invalidCharacterEncoding".format(errPrefix),
+                            raise OIMException("{}:invalidJSON".format(errPrefix),
                                   _("File MUST use utf-8 encoding: %(file)s, appears to be %(encoding)s"),
                                   file=filepath, encoding=m.lastgroup)
                         else:
                             f.seek(0)
                             oimObject = json.load(f, object_pairs_hook=loadDict)
                 except UnicodeDecodeError as ex:
-                    raise OIMException("{}:invalidCharacterEncoding".format(errPrefix),
+                    raise OIMException("{}:invalidJSON".format(errPrefix),
                           _("File MUST use utf-8 encoding: %(file)s, error %(error)s"),
                           file=filepath, error=str(ex))
                 except json.JSONDecodeError as ex:
@@ -610,7 +625,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 try:
                     oimObject = json.loads(_metadata, object_pairs_hook=loadDict)
                 except UnicodeDecodeError as ex:
-                    raise OIMException("{}:invalidCharacterEncoding".format(errPrefix),
+                    raise OIMException("{}:invalidJSON".format(errPrefix),
                           _("File MUST use utf-8 encoding: %(file)s \"metadata\" worksheet, error %(error)s"),
                           file=filepath, error=str(ex))
                 except json.JSONDecodeError as ex:
@@ -628,8 +643,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 oimRequiredMembers = JsonRequiredMembers
             elif documentType in csvDocumentTypes:
                 isJSON = False
-                if not isXL:
-                    isCSV = True
+                isCSV = not isXL
                 errPrefix = "xbrlce"
                 oimMemberTypes = CsvMemberTypes
                 oimRequiredMembers = CsvRequiredMembers
@@ -680,7 +694,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             checkMemberTypes(mbrObj, mbrPath + "/")
             checkMemberTypes(oimObject, "/")
             numErrorsBeforeJsonCheck = len(modelXbrl.errors)
-            if not isJSON and not isCSV:
+            if not isJSON and not isCSV and not isXL:
                 error("oimce:unsupportedDocumentType",
                       _("Unrecognized /documentInfo/docType: %(documentType)s"),
                       documentType=documentType)
@@ -694,9 +708,46 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                       "\n ".join(msg), documentType=documentType,
                       missing=", ".join(missingRequiredMembers), unexpected=", ".join(unexpectedMembers))
             if invalidMemberTypes:
-                error("{}:invalidJSONMemberType".format(errPrefix),
+                error("{}:invalidJSONStructure".format(errPrefix),
                       _("Invalid JSON structure member types in metadata: %(members)s"),
                       members=", ".join(invalidMemberTypes))
+                
+            if isCSV and not primaryReportParameters:
+                primaryReportParameters = oimObject.setdefault("parameters", {})
+                
+            # read reportParameters if in a CSV file relative to parent metadata file
+            if isinstance(oimObject.get("parameterURL"), str):
+                parameterURL = oimObject["parameterURL"]
+                parameterFilePath = os.path.join(os.path.dirname(primaryOimFile), parameterURL)
+                if modelXbrl.fileSource.exists(parameterFilePath):
+                    problems = []
+                    for i, row in enumerate(openCsvReader(parameterFilePath, hasHeaderRow=False)):
+                        if row[0]:
+                            if not IdentifierPattern.match(row[0]):
+                                problems.append(_("Row {} column 1 is not a valid identifier: {}").format(i+1, row[0]))
+                            elif len(row) < 2 or not row[1]:
+                                problems.append(_("Row {} value column 2 missing").format(i+1))
+                            elif any(cell for cell in row[2:]):
+                                problems.append(_("Row {} columns 3 - {} must be empty").format(i+1, len(row)))
+                            elif row[0] in primaryReportParameters:
+                                if primaryReportParameters[row[0]] != row[1]:
+                                    error("xbrlce:illegalReportParameterRedefinition", 
+                                          _("Report parameter %(name)s redefined in file %(file)s, report value %(value1)s, csv value %(value2)s"),
+                                          file=parameterURL, name=row[0], value1=primaryReportParameters[row[0]], value2=row[1])
+                            else:
+                                primaryReportParameters[row[0]] = row[1]
+                        elif any(cell for cell in row):
+                            problems.append(_("Row {} has no identifier, all columns must be empty").format(i+1))
+                    if problems:
+                        error("xbrlce:invalidParameterCSVFile", 
+                              _("Report parameter file %(file)s issues:\n %(issues)s"),
+                              file=parameterURL, issues=", \n".join(problems))
+                else:
+                    error("xbrlce:missingParametersFile", 
+                          _("Report parameter file is missing: %(file)s"),
+                          file=parameterURL)
+
+
             if isCSVorXL and "extends" in documentInfo:
                 # process extension
                 for extendedFile in documentInfo["extends"]:
@@ -710,9 +761,22 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                               _("Extended documentType %(extendedDocumentType)s must same as extending documentType %(documentType)s in file %(extendedFile)s"),
                               extendedFile=extendedFile, extendedDocumentType=extendedDocumentType, documentType=documentType)
                         raise OIMException()
+                    if extendedFinal.get("parameters") and "parameterURL" in oimObject:
+                        error("{}:unusableParameterURL".format(errPrefix),
+                              _("Extending file %(extendedFile)s final parameters conflicts with extended parameterURL %(parameterURL)s"),
+                              extendedFile=extendedFile, parameterURL=oimObject["parameterURL"])
+                    else:
+                        oimParameters = oimObject.setdefault("parameters", {})
+                        for paramName, paramValue in extendedOimObject.get("parameters",{}).items():
+                            if paramName in oimParameters and oimParameters[paramName] != paramValue:
+                                error("xbrlce:illegalReportParameterRedefinition", 
+                                      _("Report parameter %(name)s redefined in file %(file)s, extended value %(value1)s, extending value %(value2)s"),
+                                      file=extendedFile, name=paramName, value1=oimParameters[paramName], value2=paramValue)
+                            else:
+                                oimParameters[paramName] = paramValue
                     for parent, extendedParent, excludedObjectNames in (
                         (documentInfo, extendedDocumentInfo, {"documentType", "extends"}),
-                        (oimObject, extendedOimObject, {"documentInfo"})):
+                        (oimObject, extendedOimObject, {"documentInfo", "parameters", "parameterURL"})):
                         for objectName in extendedParent.keys() - excludedObjectNames:
                             if extendedFinal.get(objectName, False) and objectName in parent:
                                 error("{}:extendedFinalObject".format(errPrefix), 
@@ -731,9 +795,14 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                             parent[objectName] = {}
                                         parent[objectName][extProp] = extPropValue
                             elif objectName in parent:
-                                error("{}:extendedObjectDuplicate".format(errPrefix), 
-                                      _("Extended file %(extendedFile)s redefines object %(objectName)s"),
-                                      extendedFile=extendedFile, objectName=objectName)
+                                if objectName == "taxonomy":
+                                    for extPropValue in extendedParent["taxonomy"]:
+                                        if extPropValue not in parent["taxonomy"]:
+                                            parent["taxonomy"].append(extPropValue)
+                                else:
+                                    error("{}:extendedObjectDuplicate".format(errPrefix), 
+                                          _("Extended file %(extendedFile)s redefines object %(objectName)s"),
+                                          extendedFile=extendedFile, objectName=objectName)
                             else:
                                 parent[objectName] = extendedParent[objectName]
                                 
@@ -781,37 +850,6 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                           _("Report parameter name is not a valid identifier: %(identifier)s, in file %(file)s"),
                           identifier=reportParameterName, file=oimFile)
                 
-            # read reportParameters if in a CSV file relative to this file
-            if isinstance(oimObject.get("parameterURL"), str):
-                parameterURL = oimObject["parameterURL"]
-                parameterFilePath = os.path.join(os.path.dirname(oimFile), parameterURL)
-                if modelXbrl.fileSource.exists(parameterFilePath):
-                    problems = []
-                    for i, row in enumerate(openCsvReader(parameterFilePath, hasHeaderRow=False)):
-                        if row[0]:
-                            if not IdentifierPattern.match(row[0]):
-                                problems.append(_("Row {} column 1 is not a valid identifier: {}").format(i+1, row[0]))
-                            elif len(row) < 2 or not row[1]:
-                                problems.append(_("Row {} value column 2 missing").format(i+1))
-                            elif any(cell for cell in row[2:]):
-                                problems.append(_("Row {} columns 3 - {} must be empty").format(i+1, len(row)))
-                            elif row[0] in reportParameters:
-                                error("xbrlce:illegalReportParameterRedefinition", 
-                                      _("Report parameter %(name)s redefined in file %(file)s, report value %(value1)s, csv value %(value2)s"),
-                                      file=parameterURL, name=row[0], value1=reportParameters[row[0]], value2=row[1])
-                            else:
-                                reportParameters[row[0]] = row[1]
-                        elif any(cell for cell in row):
-                            problems.append(_("Row {} has no identifier, all columns must be empty").format(i+1))
-                    if problems:
-                        error("xbrlce:invalidParameterCSVFile", 
-                              _("Report parameter file %(file)s issues:\n %(issues)s"),
-                              file=parameterURL, issues=", \n".join(problems))
-                else:
-                    error("xbrlce:missingParametersFile", 
-                          _("Report parameter file is missing: %(file)s"),
-                          file=parameterURL)
-
         if isCSVorXL:
             currentAction = "loading CSV facts tables"
             _dir = os.path.dirname(oimFile)
@@ -826,6 +864,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                _("Referenced template missing: %(missing)s"),
                                                missing=tableTemplateId)
                         tableTemplate = tableTemplates[tableTemplateId]
+                        tableIsTransposed = tableTemplate.get("transposed", False)
                         tableDecimals = tableTemplate.get("decimals")
                         tableDimensions = tableTemplate.get("dimensions", EMPTY_DICT)
                         tableIsOptional = table.get("optional", False)
@@ -850,7 +889,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             if factDecimals[colId] is not None:
                                 if factDimensions[colId] is None:
                                     hasHeaderError = True
-                                    error("xbrlce:illegalDecimalsOnNonFactColumn", 
+                                    error("xbrlce:misplacedDecimalsOnNonFactColumn", 
                                           _("Table %(table)s column %(column)s has decimals but dimensions is absent"),
                                           table=tableId, column=colId)
                         if rowIdColName and rowIdColName not in factDecimals:
@@ -867,6 +906,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 tableParameterReferenceNames.add(paramName)
                                 if factColName:
                                     factColReferenceNames[factColName].add(paramName)
+                        hasNoteIdDimension = False
                         for factColName, colDims in factDimensions.items():
                             if colDims is not None:
                                 factDims = set()
@@ -875,10 +915,16 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                         if dimName not in factDims:
                                             checkParamRef(dimValue, factColName)
                                             factDims.add(dimName)
+                                        if dimName == "noteId":
+                                            hasNoteIdDimension = True
                                 for _factDecimals in (factDecimals.get(factColName), tableDecimals, reportDecimals):
                                     if "decimals" not in factDims:
                                         checkParamRef(_factDecimals, factColName)
-                        
+                        if hasNoteIdDimension:
+                            hasHeaderError = True
+                            error("xbrlce:invalidNoteIdDimension", 
+                                  _("Table %(table)s noteId dimension must not be explicitly defined, url: %(url)s"),
+                                  table=tableId, url=tableUrl)
                         for dimName, dimValue in tableParameters.items():
                             if not IdentifierPattern.match(dimName):
                                 error("xbrlce:invalidParameterName", 
@@ -917,6 +963,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 # must be CSV
                                 _rowIterator = openCsvReader(tablePath)
                                 _cellValue = csvCellValue
+                                if tableIsTransposed:
+                                    _rowIterator = transposer(_rowIterator)
                         if tableWb is not None:
                             hasSheetname = xlSheetName and xlSheetName in tableWb
                             hasNamedRange = xlNamedRange and xlNamedRange in tableWb.defined_names
@@ -948,6 +996,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                         _rowIterator.extend(rows)
                             else: # use whole table
                                 _rowIterator = tableWb[xlSheetName]
+                            if tableIsTransposed:
+                                _rowIterator = transposer(_rowIterator)
                         
                         rowIds = set()
                         paramRefColNames = set()
@@ -1104,7 +1154,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                               table=tableId, row=rowIndex+1, column=colName, date=dimValue, url=tableUrl, source=dimSource)
                                                         dimValue = "#none"
                                                     elif _dimValue == None: # bad format
-                                                        error("xbrlce:dateSyntax", 
+                                                        error("xbrlce:invalidJSONStructure", 
                                                               _("Table %(table)s row %(row)s column %(column)s has lexical syntax issue with date \"%(date)s\", from %(source)s, url: %(url)s"),
                                                               table=tableId, row=rowIndex+1, column=colName, date=dimValue, url=tableUrl, source=dimSource)
                                                         dimValue = "#none"
@@ -1134,7 +1184,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                 dimSource += " from CSV column " + dimValue
                                                 paramColsUsed.add(dimValue)
                                                 dimValue = _cellValue(row[colNameIndex[dimValue]])
-                                                validCsvCell = integerPattern.match(dimValue) is not None
+                                                validCsvCell = integerPattern.match(dimValue or "") is not None # is None if is_XL
                                             elif dimValue in tableParameters:
                                                 dimSource += " from table parameter " + dimValue
                                                 tableParametersUsed.add(dimValue)
@@ -1164,7 +1214,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                   _("Table %(table)s unmapped table parameters %(parameters)s, url: %(url)s"),
                                   table=tableId, row=rowIndex, parameters=", ".join(sorted(unmappedTableParams)), url=tableUrl)
                     except UnicodeDecodeError as ex:
-                        raise OIMException("{}:invalidCharacterEncoding".format(errPrefix),
+                        raise OIMException("{}:invalidJSON".format(errPrefix),
                               _("File MUST use utf-8 encoding: %(file)s, error %(error)s"),
                               file=tablePath, error=str(ex))
                     tableWb = None # dereference
@@ -1236,13 +1286,12 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     error("xbrle:missingLanguageForNoteFact",
                           _("Missing language dimension for footnote fact %(id)s"),
                           modelObject=modelXbrl, id=id)
-                if "noteId" not in dimensions:
-                    if isCSVorXL: 
-                        dimensions["noteId"] = id # infer this dimension
-                    else:
-                        error("xbrle:missingNoteIDDimension",
-                              _("Missing noteId dimension for footnote fact %(id)s"),
-                              modelObject=modelXbrl, id=id)                        
+                if isCSVorXL:
+                    dimensions["noteId"] = id # infer this dimension
+                elif "noteId" not in dimensions:
+                    error("xbrle:missingNoteIDDimension",
+                          _("Missing noteId dimension for footnote fact %(id)s"),
+                          modelObject=modelXbrl, id=id)                        
                 elif dimensions.get("noteId") != id:
                     error("xbrle:invalidNoteIDValue",
                           _("The noteId dimension value, %(noteId)s, must be the same as footnote fact id, %(id)s"),
@@ -1251,7 +1300,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     noteFactIDsNotReferenced.add(id)
                 unexpectedDimensions = [d for d in dimensions if d in ("entity", "period") or ":" in d]
                 if unexpectedDimensions:
-                    error("xbrle:illegalNoteFactDimension",
+                    error("xbrle:misplacedNoteFactDimension",
                           _("Unexpected dimension(s) for footnote fact %(id)s: %(dimensions)s"),
                           modelObject=modelXbrl, id=id, dimensions=", ".join(sorted(unexpectedDimensions)))
                 try:
@@ -1377,7 +1426,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 if concept.isNumeric:
                     if unitKey is not None:
                         if unitKey == "xbrli:pure":
-                            error("xbrle:illegalPureUnit",
+                            error("xbrle:misplacedPureUnit",
                                   _("Unit MUST NOT have single numerator measure xbrli:pure with no denominators."),
                                   modelObject=modelXbrl, unit=unitKey)
                     else:
@@ -1428,7 +1477,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 else:
                     _unit = None
                     if unitKey is not None and not isCSVorXL:
-                        error("xbrle:illegalUnitDimension",
+                        error("xbrle:misplacedUnitDimension",
                               _("The unit core dimension MUST NOT be present on non-numeric facts: %(concept)s, unit %(unit)s."),
                               modelObject=modelXbrl, concept=conceptSQName, unit=unitKey)
             
@@ -1448,7 +1497,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     if text is not None: # no decimals for nil value
                         attrs["decimals"] = decimals if decimals is not None else "INF"
                 elif decimals is not None and not isCSVorXL:
-                    error("xbrle:illegalDecimalsProperty",
+                    error("xbrle:misplacedDecimalsProperty",
                           _("The decimals property MUST NOT be present on non-numeric facts: %(concept)s, decimals %(decimals)s"),
                           modelObject=modelXbrl, concept=conceptSQName, decimals=decimals)
             else:
@@ -1618,7 +1667,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                        XLINKFROM: locFromLabel,
                                                        XLINKTO: footnoteToLabel})
                     if arcrole == factFootnote:
-                        error("xbrle:illegalStandardFootnoteTarget",
+                        error("xbrle:misplacedStandardFootnoteTarget",
                               _("Standard footnote %(sourceId)s targets must be an xbrl:note, targets %(targetIds)s."),
                               modelObject=modelXbrl, sourceId=", ".join(factIDs), targetIds=", ".join(fact2IDs))
         if noteFactIDsNotReferenced:
