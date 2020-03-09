@@ -9,6 +9,19 @@ import os
 import datetime
 from distutils.command.build_py import build_py as _build_py
 
+# building pycrypto on windows see https://www.dariawan.com/tutorials/python/python-3-install-pycrypto-windows/
+# 1. C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC>vcvarsall.bat
+# 2. set CL=-FI"%VCINSTALLDIR%\INCLUDE\stdint.h"
+# 3. pip install pycrypto
+
+# pip installation of needed libraries:
+# pip3 install lxml pg8000 pymysql numpy rdflib isodate
+# windows pip3 install cx-oracle
+# pip3 install regex aniso8601 graphviz holidays openpyxl pillow pycountry
+# pip3 install pycrypto
+# pip3 install cherrypy cheroot py-dateutil tornado pyparsing matplotlib
+# pip3 install cx-freeze
+
 
 def get_version():
     """
@@ -273,6 +286,10 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         'rdflib.plugins.stores',
         'isodate', 'regex', 'gzip', 'zlib', 'aniso8601', 'graphviz', 'holidays',
         'openpyxl', 'PIL', 'pycountry',  # to install PIL it's named Pillow
+        # building pycrypto on windows see https://www.dariawan.com/tutorials/python/python-3-install-pycrypto-windows/
+        # 1. C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC>vcvarsall.bat
+        # 2. set CL=-FI"%VCINSTALLDIR%\INCLUDE\stdint.h"
+        # 3. pip install pycrypto
         'Crypto', 'Crypto.Cipher', 'Crypto.Cipher.AES' # install pycrypto not another crypto module
         #'google_api_python_client', 'oauth2client', 'six', 'httplib2', 'uritemplate', 'pyasn1', 'rsa', 'pyasn1_modules' # google-api-python-client
     ]
@@ -370,6 +387,10 @@ elif sys.platform == 'win32':
         'rdflib.plugins.stores',
         'isodate', 'regex', 'gzip', 'zlib', 'aniso8601', 'graphviz', 'holidays',
         'openpyxl', 'PIL', 'pycountry', 
+        # building pycrypto on windows see https://www.dariawan.com/tutorials/python/python-3-install-pycrypto-windows/
+        # 1. C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC>vcvarsall.bat
+        # 2. set CL=-FI"%VCINSTALLDIR%\INCLUDE\stdint.h"
+        # 3. pip install pycrypto
         'Crypto', 'Crypto.Cipher', 'Crypto.Cipher.AES'
     ]
     # uncomment the next line if cx_Freezing with EdgarRenderer
@@ -446,7 +467,7 @@ setup(
         'License :: OSI Approved :: Apache-2 License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.7',
         'Operating System :: OS Independent',
         'Topic :: XBRL Validation and Versioning',
     ],
