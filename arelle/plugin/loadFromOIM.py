@@ -313,6 +313,17 @@ def xlValue(cell): # excel values may have encoded unicode, such as _0000D_
         v = str(v)
     return csvCellValue(v)
 
+def xlTrimHeaderRow(row):
+    numEmptyCellsAtEndOfRow = 0
+    for i in range(len(row)-1, -1, -1):
+        if row[i] in (None, ""):
+            numEmptyCellsAtEndOfRow += 1
+        else:
+            break
+    if numEmptyCellsAtEndOfRow:
+        return row[:-numEmptyCellsAtEndOfRow]
+    return row
+
 class OIMException(Exception):
     def __init__(self, code=None, message=None, **kwargs):
         self.code = code
@@ -1004,6 +1015,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         for rowIndex, row in enumerate(_rowIterator):
                             if rowIndex == 0:
                                 header = [_cellValue(cell) for cell in row]
+                                if isXL: # trim empty cells
+                                    header = xlTrimHeaderRow(header)
                                 colNameIndex = dict((name, colIndex) for colIndex, name in enumerate(header))
                                 idColIndex = colNameIndex.get(rowIdColName)
                                 for colIndex, colName in enumerate(header):
@@ -1081,6 +1094,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 rowId = None
                                 paramColsWithValue = set()
                                 paramColsUsed = set()
+                                if isXL and all(cell.value in (None, "") for cell in row): # skip empty excel rows
+                                    continue
                                 for colIndex, colValue in enumerate(row):
                                     if colIndex >= len(header):
                                         continue
@@ -1267,6 +1282,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         else:
             syntheticFactFormat = "_f{}" #want 
         
+        numFactCreationXbrlErrors = 0
+        
         for id, fact in factItems:
             
             dimensions = fact.get("dimensions", EMPTY_DICT)
@@ -1322,7 +1339,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                       _("Unexpected noteId dimension on non-footnote fact, id %(id)s"),
                       modelObject=modelXbrl, id=id, noteId=dimensions["noteId"])
             if not NCNamePattern.match(conceptPrefix):
-                error("oimce:invalidSQNamePrefix",
+                error("oimce:invalidURIAlias",
                                 _("The prefix of %(concept)s must match the NCName lexical pattern"),
                                 modelObject=modelXbrl, concept=conceptSQName)
                 continue
@@ -1334,20 +1351,12 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             conceptQn = qname(conceptSQName, namespaces)
             concept = modelXbrl.qnameConcepts.get(conceptQn)
             if concept is None:
-                error("xbrl:schemaImportMissing",
+                error("xbrle:invalidXBRL",
                       _("The concept QName could not be resolved with available DTS: %(concept)s."),
                       modelObject=modelXbrl, concept=conceptQn)
                 continue
             attrs = {}
             if concept.isItem:
-                missingDimensions = []
-                if "xbrl:start" in dimensions and "xbrl:end" in dimensions:
-                    pass
-                if missingDimensions:
-                    error("{}:missingDimensions".format(errPrefix),
-                                    _("The concept %(element)s is missing dimensions %(missingDimensions)s"),
-                                    modelObject=modelXbrl, element=conceptQn, missingDimensions=", ".join(missingDimensions))
-                    continue
                 if "language" in dimensions:
                     attrs["{http://www.w3.org/XML/1998/namespace}lang"] = dimensions["language"]
                 if "entity" in dimensions:
@@ -1365,9 +1374,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         period = "forever"
                     elif not re.match(r"\d{4,}-[0-1][0-9]-[0-3][0-9]T([0-1][0-9]:[0-5][0-9]:[0-5][0-9])"
                                       r"(/\d{4,}-[0-1][0-9]-[0-3][0-9]T([0-1][0-9]:[0-5][0-9]:[0-5][0-9]))?", period):
-                        error("{}:periodDateTime".format(errPrefix),
+                        error("xbrle:invalidXBRL",
                               _("The concept %(element)s has a lexically invalid period dateTime %(periodError)s"),
                               modelObject=modelXbrl, element=conceptQn, periodError=period)
+                        continue
                 else:
                     period = "forever"
                 cntxKey = ( # hashable context key
@@ -1387,8 +1397,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             dimQname = qname(dimName, namespaces)
                             dimConcept = modelXbrl.qnameConcepts.get(dimQname)
                             if dimConcept is None:
-                                error("xbrl:schemaDefinitionMissing",
-                                      _("The taxonomy defined aspect concept QName %(qname)s could not be determined"),
+                                error("xbrle:invalidXBRL",
+                                      _("The taxonomy-defined dimension QName not be resolved with available DTS: %(qname)s."),
                                       modelObject=modelXbrl, qname=dimQname)
                                 continue
                             if dimVal is None:
@@ -1408,17 +1418,35 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 mem = None # absent typed dimension
                             if mem is not None:
                                 qnameDims[dimQname] = DimValuePrototype(modelXbrl, None, dimQname, mem, "segment")
-                    _cntx = modelXbrl.createContext(
-                                            entityAsQn.namespaceURI,
-                                            entityAsQn.localName,
-                                            "forever" if period == "forever" else concept.periodType,
-                                            None if concept.periodType == "instant" or period == "forever" 
-                                                else dateTime(period.rpartition('/')[0], type=DATETIME),
-                                            None if period == "forever"
-                                                else dateTime(period.rpartition('/')[2], type=DATETIME),
-                                            None, # no dimensional validity checking (like formula does)
-                                            qnameDims, [], [],
-                                            id=cntxId)
+                    try:
+                        _start, _sep, _end = period.rpartition('/')
+                        if period == "forever":
+                            _periodType = "forever"
+                            startDateTime = endDateTime = None
+                        elif _start == _end or not _start:
+                            _periodType = "instant"
+                            startDateTime = None
+                            endDateTime = dateTime(_end, type=DATETIME)
+                        else:
+                            _periodType = "duration"
+                            startDateTime = dateTime(_start, type=DATETIME)
+                            endDateTime = dateTime(_end, type=DATETIME)
+                        numFactCreationXbrlErrors -= len(modelXbrl.errors) # track any xbrl validation errors
+                        _cntx = modelXbrl.createContext(
+                                                entityAsQn.namespaceURI,
+                                                entityAsQn.localName,
+                                                _periodType,
+                                                startDateTime,
+                                                endDateTime,
+                                                None, # no dimensional validity checking (like formula does)
+                                                qnameDims, [], [],
+                                                id=cntxId)
+                        numFactCreationXbrlErrors += len(modelXbrl.errors) # track any xbrl validation errors
+                    except ValueError as err:
+                        error("xbrle:invalidXBRL",
+                              _("Exception creating context for fact %(factId)s period %(period)s, %(error)s."),
+                              modelObject=modelXbrl, factId=id, period=period, error=err)
+                        continue
                     cntxTbl[cntxKey] = _cntx
                     if firstCntxUnitFactElt is None:
                         firstCntxUnitFactElt = _cntx
@@ -1426,7 +1454,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 if concept.isNumeric:
                     if unitKey is not None:
                         if unitKey == "xbrli:pure":
-                            error("xbrle:misplacedPureUnit",
+                            error("xbrle:illegalPureUnit",
                                   _("Unit MUST NOT have single numerator measure xbrli:pure with no denominators."),
                                   modelObject=modelXbrl, unit=unitKey)
                     else:
@@ -1511,11 +1539,13 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             if concept.baseXbrliType == "QNameItemType": # renormalize prefix of instance fact
                 text = addQnameValue(modelXbrl.modelDocument, qname(text.strip(), namespaces))
     
+            numFactCreationXbrlErrors -= len(modelXbrl.errors) # track any xbrl validation errors
             f = modelXbrl.createFact(conceptQn, attributes=attrs, text=text, validate=False)
             if firstCntxUnitFactElt is None:
                 firstCntxUnitFactElt = f
             
             xmlValidate(modelXbrl, f)
+            numFactCreationXbrlErrors += len(modelXbrl.errors) # track any xbrl validation errors
             
         if isCSVorXL: # check report parameters used
             unmappedReportParams = reportParameters.keys() - reportParametersUsed
@@ -1667,7 +1697,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                        XLINKFROM: locFromLabel,
                                                        XLINKTO: footnoteToLabel})
                     if arcrole == factFootnote:
-                        error("xbrle:misplacedStandardFootnoteTarget",
+                        error("xbrle:illegalStandardFootnoteTarget",
                               _("Standard footnote %(sourceId)s targets must be an xbrl:note, targets %(targetIds)s."),
                               modelObject=modelXbrl, sourceId=", ".join(factIDs), targetIds=", ".join(fact2IDs))
         if noteFactIDsNotReferenced:
@@ -1687,6 +1717,12 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                   modelObject=modelXbrl, ftGroups=", ".join(sorted(undefinedFootnoteGroups)))
                     
         currentAction = "done loading facts and footnotes"
+        
+        if numFactCreationXbrlErrors:
+            error("xbrle:invalidXBRL",
+                  _("%(count)s XBRL errors noted above."),
+                  modelObject=modelXbrl, count=numFactCreationXbrlErrors)
+            
         
         #cntlr.addToLog("Completed in {0:.2} secs".format(time.time() - startedAt),
         #               messageCode="loadFromExcel:info")
