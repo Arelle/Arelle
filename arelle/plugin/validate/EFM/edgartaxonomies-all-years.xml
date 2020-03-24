@@ -21,7 +21,7 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<AttType>SCH</AttType>
 		<FileTypeName>Schema</FileTypeName>
 		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/sic/2011-01-31</Namespace>
+		<Namespace>http://xbrl.sec.gov/sic/2020-01-31</Namespace>
 		<Prefix>sic</Prefix>
 	</Loc>
 	<Loc>
