@@ -727,7 +727,8 @@ class ViewRenderedGrid(ViewFile.View):
                                 if (all(aspectMatches(self.rendrCntx, fact, fp, aspect) 
                                         for aspect in matchableAspects) and
                                     all(fact.context.dimMemberQname(dim,includeDefaults=True) in (dimDefaults[dim], None)
-                                        for dim in cellDefaultedDims)):
+                                        for dim in cellDefaultedDims) and
+                                    len(fp.context.qnameDims) == len(fact.context.qnameDims)):
                                     if yStructuralNode.hasValueExpression(xStructuralNode):
                                         value = yStructuralNode.evalValueExpression(fact, xStructuralNode)
                                     else:
