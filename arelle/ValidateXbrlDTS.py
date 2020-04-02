@@ -1259,7 +1259,7 @@ def checkLinkRole(val, elt, linkEltQname, xlinkRole, xlinkType, roleRefURIs):
                 _("Generic resource role %(xlinkRole)s is not absolute"),
                 modelObject=elt, xlinkRole=xlinkRole)
     elif XbrlConst.isStandardRole(xlinkRole):
-        if elt.namespaceURI == XbrlConst.link:
+        if linkEltQname.namespaceURI == XbrlConst.link:
             errCode, definedRoles = standard_roles_definitions.get(elt.localName, standard_roles_other)
             if xlinkRole not in definedRoles:
                 val.modelXbrl.error(errCode,
@@ -1333,7 +1333,7 @@ def checkArcrole(val, elt, arcEltQname, arcrole, arcroleRefURIs):
     elif XbrlConst.isStandardArcElement(elt):
         if XbrlConst.standardArcroleArcElement(arcrole) != arcEltQname.localName:
             val.modelXbrl.error("xbrl.5.1.4.5:custArcroleUsedOn",
-                _("XBRL file {0} standard arcrole %(arcrole)s used on wrong arc %(element)s"),
+                _("Standard arcrole %(arcrole)s used on wrong arc %(element)s"),
                 modelObject=elt, element=arcEltQname, arcrole=arcrole)
 
 
