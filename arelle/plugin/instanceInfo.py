@@ -3,22 +3,27 @@ instanceInfo.py provides information about an XBRL instance
 
 (c) Copyright 2018 Mark V Systems Limited, All rights reserved.
 '''
-import sys, os, time, math, logging
+import sys, os, time, math, re, logging
 from collections import defaultdict
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle import ModelDocument
 
 memoryAtStartup = 0
 timeAtStart = 0
+styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-(sec|esef)-ix-hidden\s*:\s*([\w.-]+).*")
 
 def startup(cntlr, options, *args, **kwargs):
     global memoryAtStartup, timeAtStart
     memoryAtStartup = cntlr.memoryUsed
     timeAtStart = time.time()
     
+
+    
 def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
     for url, doc in sorted(modelXbrl.urlDocs.items(), key=lambda i: i[0]):
-        cntlr.addToLog("File {} size {:,}".format(doc.basename, os.path.getsize(doc.filepath)), messageCode="info", level=logging.DEBUG)
+        if not any(url.startswith(w) for w in ("https://xbrl.sec.gov/", "http://xbrl.sec.gov/", "http://xbrl.fasb.org/", "http://www.xbrl.org/",
+                                               "http://xbrl.ifrs.org/", "http://www.esma.europa.eu/")):
+            cntlr.addToLog("File {} size {:,}".format(doc.basename, os.path.getsize(doc.filepath)), messageCode="info", level=logging.DEBUG)
     cntlr.addToLog("Heap memory before loading {:,}".format(memoryAtStartup), messageCode="info", level=logging.DEBUG)
     cntlr.addToLog("Heap memory after loading {:,}".format(cntlr.memoryUsed), messageCode="info", level=logging.DEBUG)
     cntlr.addToLog("Time to load {:.2f} seconds".format(time.time() - timeAtStart), messageCode="info", level=logging.DEBUG)
@@ -56,8 +61,6 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
     numFacts = 0
     numTableTextBlockFacts = 0
     lenTableTextBlockFacts = 0
-    numContinuations = 0
-    maxLenContinuation = 0
     numTextBlockFacts = 0
     lenTextBlockFacts = 0
     distinctElementsInFacts = set()
@@ -74,9 +77,6 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
         elif f.qname.localName.endswith("TextBlock"):
             numTextBlockFacts += 1
             lenTextBlockFacts += len(f.xValue)
-        if f.get("continuedAt"):
-            numContinuations += 1
-            maxLenContinuation = max(maxLenContinuation, len(f.xValue))
         if context is not None and concept is not None:
             factsPerContext[context.id] = factsPerContext.get(context.id,0) + 1
             factForConceptContextUnitLangHash[f.conceptContextUnitLangHash].append(f)
@@ -86,7 +86,6 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
     cntlr.addToLog("Number of facts {:,}".format(numFacts), messageCode="info", level=logging.DEBUG)
     cntlr.addToLog("Number of TableTextBlock facts {:,} avg len {:,.0f}".format(numTableTextBlockFacts, lenTableTextBlockFacts/numTableTextBlockFacts), messageCode="info", level=logging.DEBUG)
     cntlr.addToLog("Number of TextBlock facts {:,} avg len {:,.0f}".format(numTextBlockFacts, lenTextBlockFacts/numTableTextBlockFacts), messageCode="info", level=logging.DEBUG)
-    cntlr.addToLog("Number of continuation facts {:,} max len {:,.0f}".format(numContinuations, maxLenContinuation), messageCode="info", level=logging.DEBUG)
     cntlr.addToLog("Max number facts per context {:,}".format(mostPopularContexts[0][1]), messageCode="info", level=logging.DEBUG)
     cntlr.addToLog("Avg number facts per context {:,.2f}".format(sum([v for v in factsPerContext.values()])/numContexts), messageCode="info", level=logging.DEBUG)
     cntlr.addToLog("Distinct elements in facts {:,}".format(len(distinctElementsInFacts)), messageCode="info", level=logging.DEBUG)
@@ -123,14 +122,55 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
     cntlr.addToLog("Number of duplicate facts consistent {:,} inconsistent {:,}".format(numConsistentDupFacts, numInConsistentDupFacts), messageCode="info", level=logging.DEBUG)
     
     styleAttrCounts = {}
+    totalStyleLen = 0
+    continuationElements = {}
     for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements: # ix root elements
         for ixElt in ixdsHtmlRootElt.iterdescendants():
             style = ixElt.get("style")
             if style:
                 styleAttrCounts[style] = styleAttrCounts.get(style,0) + 1
+                if styleIxHiddenPattern.match(style) is None:
+                    totalStyleLen += len(style)
+            if ixElt.tag == "{http://www.xbrl.org/2013/inlineXBRL}continuation" and ixElt.id:
+                continuationElements[ixElt.id] = ixElt
+
+    def locateContinuation(element, chain=None):
+        contAt = element.get("continuedAt")
+        if contAt:
+            if contAt in continuationElements:
+                if chain is None: chain = [element]
+                contElt = continuationElements[contAt]
+                if contElt not in chain:
+                    chain.append(contElt)
+                    element._continuationElement = contElt
+                    return locateContinuation(contElt, chain)
+        elif chain: # end of chain
+            return len(chain)
+
+    numContinuations = 0
+    maxLenLen = 0
+    maxLenHops = 0
+    maxHops = 0
+    maxHopsLen = 0
+    for f in modelXbrl.factsInInstance:
+        if f.get("continuedAt"):
+            numContinuations += 1
+            _len = len(f.xValue)
+            _hops = locateContinuation(f)
+            if _hops > maxHops:
+                maxHops = _hops
+                maxHopsLen = _len
+            if _len > maxLenLen:
+                maxLenLen = _len
+                maxLenHops = _hops
+
+    cntlr.addToLog("Number of continuation facts {:,}".format(numContinuations), messageCode="info", level=logging.DEBUG)
+    cntlr.addToLog("Longest continuation fact {:,} number of hops {:,}".format(maxLenLen, maxLenHops), messageCode="info", level=logging.DEBUG)
+    cntlr.addToLog("Most continuation hops {:,} fact len {:,}".format(maxHops, maxHopsLen), messageCode="info", level=logging.DEBUG)
+
     numDupStyles = sum(1 for n in styleAttrCounts.values() if n > 1)
     bytesSaveableByCss = sum(len(s)*(n-1) for s,n in styleAttrCounts.items() if n > 1)
-    cntlr.addToLog("Number of duplicate styles {:,} bytes saveable by CSS {:,}".format(numDupStyles, bytesSaveableByCss), messageCode="info", level=logging.DEBUG)
+    cntlr.addToLog("Number of duplicate styles {:,}, bytes saveable by CSS {:,}, len of all non-ix-hidden @styles {:,}".format(numDupStyles, bytesSaveableByCss, totalStyleLen), messageCode="info", level=logging.DEBUG)
     
     
 __pluginInfo__ = {
