@@ -35,7 +35,7 @@ from collections import defaultdict
 from lxml import etree
 from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue, rangeValue
-from arelle.XmlValidate import UNVALIDATED, INVALID, VALID
+from arelle.XmlValidate import UNVALIDATED, INVALID, VALID, validate as xmlValidate
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from math import isnan, isinf
 from arelle.ModelObject import ModelObject
@@ -863,6 +863,10 @@ class ModelContext(ModelObject):
         self.scenNonDimValues = []
         self._isEqualTo = {}
         
+    def clearCachedProperties(self):
+        for key in [k for k in vars(self).keys() if k.startswith("_")]:
+            delattr(self, key)
+                
     @property
     def isStartEndPeriod(self):
         """(bool) -- True for startDate/endDate period"""
@@ -898,6 +902,14 @@ class ModelContext(ModelObject):
         except AttributeError:
             self._startDatetime = XmlUtil.datetimeValue(XmlUtil.child(self.period, XbrlConst.xbrli, "startDate"))
             return self._startDatetime
+        
+    @startDatetime.setter
+    def startDatetime(self, value):
+        self.clearCachedProperties()
+        elt = XmlUtil.child(self.period, XbrlConst.xbrli, "startDate")
+        if elt is not None:
+            elt.text = XmlUtil.dateunionValue(value)
+            xmlValidate(self.modelXbrl, elt)
 
     @property
     def endDatetime(self):
@@ -908,6 +920,14 @@ class ModelContext(ModelObject):
             self._endDatetime = XmlUtil.datetimeValue(XmlUtil.child(self.period, XbrlConst.xbrli, ("endDate","instant")), addOneDay=True)
             return self._endDatetime
         
+    @endDatetime.setter
+    def endDatetime(self, value):
+        self.clearCachedProperties()
+        elt = XmlUtil.child(self.period, XbrlConst.xbrli, "endDate")
+        if elt is not None:
+            elt.text = XmlUtil.dateunionValue(value, subtractOneDay=True)
+            xmlValidate(self.modelXbrl, elt)
+        
     @property
     def instantDatetime(self):
         """(datetime) -- instant attribute, with adjustment to end-of-day midnight as needed"""
@@ -916,6 +936,14 @@ class ModelContext(ModelObject):
         except AttributeError:
             self._instantDatetime = XmlUtil.datetimeValue(XmlUtil.child(self.period, XbrlConst.xbrli, "instant"), addOneDay=True)
             return self._instantDatetime
+        
+    @instantDatetime.setter
+    def instantDatetime(self, value):
+        self.clearCachedProperties()
+        elt = XmlUtil.child(self.period, XbrlConst.xbrli, "instant")
+        if elt is not None:
+            elt.text = XmlUtil.dateunionValue(value, subtractOneDay=True)
+            xmlValidate(self.modelXbrl, elt)
     
     @property
     def period(self):
