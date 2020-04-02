@@ -12,7 +12,7 @@ from arelle import PythonUtil # define 2.x or 3.x string types
 import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json, logging
 from optparse import OptionParser, SUPPRESS_HELP
 import re
-from arelle import (Cntlr, FileSource, ModelDocument, RenderingEvaluator, XmlUtil, Version, 
+from arelle import (Cntlr, FileSource, ModelDocument, RenderingEvaluator, XmlUtil, XbrlConst, Version, 
                     ViewFileDTS, ViewFileFactList, ViewFileFactTable, ViewFileConcepts, 
                     ViewFileFormulae, ViewFileRelationshipSet, ViewFileTests, ViewFileRssFeed,
                     ViewFileRoleTypes,
@@ -148,6 +148,8 @@ def parseAndRun(args):
                       help=_("Write calculation linkbase into FILE"))
     parser.add_option("--dim", "--csvDim", action="store", dest="dimFile",
                       help=_("Write dimensions (of definition) linkbase into FILE"))
+    parser.add_option("--anch", action="store", dest="anchFile",
+                      help=_("Write anchoring relationships (of definition) linkbase into FILE"))
     parser.add_option("--formulae", "--htmlFormulae", action="store", dest="formulaeFile",
                       help=_("Write formulae linkbase into FILE"))
     parser.add_option("--viewArcrole", action="store", dest="viewArcrole",
@@ -424,7 +426,7 @@ def parseAndRun(args):
         # webserver incompatible with file operations
         if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
                 options.factsFile, options.factListCols, options.factTableFile,
-                options.conceptsFile, options.preFile, options.tableFile, options.calFile, options.dimFile, options.formulaeFile, options.viewArcrole, options.viewFile,
+                options.conceptsFile, options.preFile, options.tableFile, options.calFile, options.dimFile, options.anchFile, options.formulaeFile, options.viewArcrole, options.viewFile,
                 options.roleTypesFile, options.arcroleTypesFile
                 )):
             parser.error(_("incorrect arguments with --webserver, please try\n  python CntlrCmdLine.py --help"))
@@ -1003,13 +1005,15 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     if options.conceptsFile:
                         ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, labelrole=options.labelRole, lang=options.labelLang)
                     if options.preFile:
-                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", "http://www.xbrl.org/2003/arcrole/parent-child", labelrole=options.labelRole, lang=options.labelLang)
+                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", XbrlConst.parentChild, labelrole=options.labelRole, lang=options.labelLang)
                     if options.tableFile:
                         ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.tableFile, "Table Linkbase", "Table-rendering", labelrole=options.labelRole, lang=options.labelLang)
                     if options.calFile:
-                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", "http://www.xbrl.org/2003/arcrole/summation-item", labelrole=options.labelRole, lang=options.labelLang)
+                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", XbrlConst.summationItem, labelrole=options.labelRole, lang=options.labelLang)
                     if options.dimFile:
                         ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", labelrole=options.labelRole, lang=options.labelLang)
+                    if options.anchFile:
+                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.anchFile, "Anchoring", XbrlConst.widerNarrower, labelrole=options.labelRole, lang=options.labelLang)
                     if options.formulaeFile:
                         ViewFileFormulae.viewFormulae(modelXbrl, options.formulaeFile, "Formulae", lang=options.labelLang)
                     if options.viewArcrole and options.viewFile:

@@ -889,6 +889,9 @@ class CntlrWinMain (Cntlr.Cntlr):
                 currentAction = "dimensions relationships view"
                 hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "XBRL-dimensions", lang=self.labelLang)
                 if hasView and topView is None: topView = modelXbrl.views[-1]
+                currentAction = "anchoring relationships view"
+                hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, XbrlConst.widerNarrower, lang=self.labelLang)
+                if hasView and topView is None: topView = modelXbrl.views[-1]
                 if modelXbrl.hasTableRendering:
                     currentAction = "rendering view"
                     hasView = ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopRt, "Table-rendering", lang=self.labelLang)
