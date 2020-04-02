@@ -191,13 +191,17 @@ verPrefixNS = {"ver":ver,
                }
 
 # extended enumeration spec
-enum2s = {"http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0"}
+enum2s = {"http://xbrl.org/2020/extensible-enumerations-2.0",
+          "http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0"}
 enums = {"http://xbrl.org/2014/extensible-enumerations", "http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1",
          "http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1"
          } | enum2s
 qnEnumerationItemType2014 = qname("{http://xbrl.org/2014/extensible-enumerations}enum:enumerationItemType")
+qnEnumerationItemType2020 = qname("{http://xbrl.org/2020/extensible-enumerations-2.0}enum2:enumerationItemType")
 qnEnumerationItemTypeYYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}enum2:enumerationItemType")
+qnEnumerationSetItemType2020 = qname("{http://xbrl.org/2020/extensible-enumerations-2.0}enum2:enumerationSetItemType")
 qnEnumerationSetItemTypeYYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}enum2:enumerationSetItemType")
+qnEnumerationSetValDimType2020 = qname("{http://xbrl.org/2020/extensible-enumerations-2.0}enum2:setValueDimensionType")
 qnEnumerationSetValDimTypeYYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}enum2:setValueDimensionType")
 qnEnumerationItemType11YYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}enum:enumerationItemType")
 qnEnumerationSetItemType11YYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}enum:enumerationSetItemType")
@@ -205,22 +209,25 @@ qnEnumerationListItemType11YYYY = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/extens
 qnEnumerationItemType2016 = qname("{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}enum:enumerationItemType")
 qnEnumerationsItemType2016 = qname("{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}enum:enumerationsItemType")
 qnEnumerationListItemTypes = (qnEnumerationListItemType11YYYY, qnEnumerationSetItemType11YYYY, qnEnumerationsItemType2016)
-qnEnumerationSetItemTypes = (qnEnumerationSetItemType11YYYY, qnEnumerationSetItemTypeYYYY)
-qnEnumeration2ItemTypes = (qnEnumerationItemTypeYYYY, qnEnumerationSetItemTypeYYYY)
+qnEnumerationSetItemTypes = (qnEnumerationSetItemType11YYYY, qnEnumerationSetItemType2020, qnEnumerationSetItemTypeYYYY)
+qnEnumeration2ItemTypes = (qnEnumerationItemType2020, qnEnumerationItemTypeYYYY, qnEnumerationSetItemType2020, qnEnumerationSetItemTypeYYYY)
 qnEnumerationItemTypes = (qnEnumerationItemType2014, 
-                          qnEnumerationItemTypeYYYY, qnEnumerationSetItemTypeYYYY, 
+                          qnEnumerationItemType2020, qnEnumerationItemTypeYYYY, qnEnumerationSetItemType2020, qnEnumerationSetItemTypeYYYY, 
                           qnEnumerationItemType11YYYY, qnEnumerationSetItemType11YYYY, qnEnumerationListItemType11YYYY,
                           qnEnumerationItemType2016, qnEnumerationsItemType2016)
-qnEnumerationTypes = qnEnumerationItemTypes + (qnEnumerationSetValDimTypeYYYY,)
+qnEnumerationTypes = qnEnumerationItemTypes + (qnEnumerationSetValDimType2020,qnEnumerationSetValDimTypeYYYY)
 attrEnumerationDomain2014 = "{http://xbrl.org/2014/extensible-enumerations}domain"
+attrEnumerationDomain2020 = "{http://xbrl.org/2020/extensible-enumerations-2.0}domain"
 attrEnumerationDomainYYYY = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}domain"
 attrEnumerationDomain11YYYY = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}domain"
 attrEnumerationDomain2016 = "{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}domain"
 attrEnumerationLinkrole2014 = "{http://xbrl.org/2014/extensible-enumerations}linkrole"
+attrEnumerationLinkrole2020 = "{http://xbrl.org/2020/extensible-enumerations-2.0}linkrole"
 attrEnumerationLinkroleYYYY = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}linkrole"
 attrEnumerationLinkrole11YYYY = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}linkrole"
 attrEnumerationLinkrole2016 = "{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}linkrole"
 attrEnumerationUsable2014 = "{http://xbrl.org/2014/extensible-enumerations}headUsable"
+attrEnumerationUsable2020 = "{http://xbrl.org/2020/extensible-enumerations-2.0}headUsable"
 attrEnumerationUsableYYYY = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-2.0}headUsable"
 attrEnumerationUsable11YYYY = "{http://xbrl.org/WGWD/YYYY-MM-DD/extensible-enumerations-1.1}headUsable"
 attrEnumerationUsable2016 = "{http://xbrl.org/PWD/2016-10-12/extensible-enumerations-1.1}headUsable"
@@ -509,6 +516,9 @@ qnEuTable = qname("{http://www.eurofiling.info/2010/rendering}rendering:table")
 qnEuAxisCoord = qname("{http://www.eurofiling.info/2010/rendering}rendering:axisCoord")
 euGroupTable = "http://www.eurofiling.info/xbrl/arcrole/group-table"
 
+# Anchoring (ESEF and allowed by SEC)
+widerNarrower = "http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower"
+
 xdtSchemaErrorNS = "http://www.xbrl.org/2005/genericXmlSchemaError"
 errMsgPrefixNS = { # err prefixes which are not declared, such as XPath's "err" prefix
     "err": xpath2err,
@@ -524,6 +534,7 @@ def baseSetArcroleLabel(arcrole): # with sort char in first position
     if arcrole == "Table-rendering": return _("1Rendering")
     if arcrole == parentChild: return _("1Presentation")
     if arcrole == summationItem: return _("1Calculation")
+    if arcrole == widerNarrower: return ("1Anchoring")
     return "2" + os.path.basename(arcrole).title()
 
 def labelroleLabel(role): # with sort char in first position
