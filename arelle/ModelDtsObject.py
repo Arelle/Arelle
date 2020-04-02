@@ -734,7 +734,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     @property
     def enumDomainQname(self):
         """(QName) -- enumeration domain qname """
-        return self.schemaNameQname(self.get(XbrlConst.attrEnumerationDomain2014) or self.get(XbrlConst.attrEnumerationDomainYYYY) or self.get(XbrlConst.attrEnumerationDomain11YYYY) or self.get(XbrlConst.attrEnumerationDomain2016))
+        return self.schemaNameQname(self.get(XbrlConst.attrEnumerationDomain2014) or self.get(XbrlConst.attrEnumerationDomain2020) or self.get(XbrlConst.attrEnumerationDomainYYYY) or self.get(XbrlConst.attrEnumerationDomain11YYYY) or self.get(XbrlConst.attrEnumerationDomain2016))
 
     @property
     def enumDomain(self):
@@ -748,12 +748,12 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     @property
     def enumLinkrole(self):
         """(anyURI) -- enumeration linkrole """
-        return self.get(XbrlConst.attrEnumerationLinkrole2014) or self.get(XbrlConst.attrEnumerationLinkroleYYYY) or self.get(XbrlConst.attrEnumerationLinkrole11YYYY) or self.get(XbrlConst.attrEnumerationLinkrole2016)
+        return self.get(XbrlConst.attrEnumerationLinkrole2014) or self.get(XbrlConst.attrEnumerationLinkrole2020) or self.get(XbrlConst.attrEnumerationLinkroleYYYY) or self.get(XbrlConst.attrEnumerationLinkrole11YYYY) or self.get(XbrlConst.attrEnumerationLinkrole2016)
     
     @property
     def enumDomainUsable(self):
         """(string) -- enumeration usable attribute """
-        return self.get(XbrlConst.attrEnumerationUsable2014) or self.get(XbrlConst.attrEnumerationUsableYYYY) or self.get(XbrlConst.attrEnumerationUsable11YYYY) or self.get(XbrlConst.attrEnumerationUsable2016) or "false"
+        return self.get(XbrlConst.attrEnumerationUsable2014) or self.get(XbrlConst.attrEnumerationUsable2020) or self.get(XbrlConst.attrEnumerationUsableYYYY) or self.get(XbrlConst.attrEnumerationUsable11YYYY) or self.get(XbrlConst.attrEnumerationUsable2016) or "false"
 
     @property
     def isEnumDomainUsable(self):
