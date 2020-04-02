@@ -819,10 +819,11 @@ def evaluationIsUnnecessary(thisEval, xpCtx):
         vQnDependentOnOtherVarFallenBackButBoundInOtherEval = set(
             vQn
             for vQn, vBoundFact in thisEval.items()
-            if vBoundFact is not None and
+            if vBoundFact is not None and vQn in varBindings and
                any(varBindings[varRefQn].isFallback and 
                    any(m[varRefQn] is not None for m in matchingEvals)
-                   for varRefQn in varBindings[vQn].var.variableRefs()))
+                   for varRefQn in varBindings[vQn].var.variableRefs()
+                   if varRefQn in varBindings))
         # detects evaluations which are not different (duplicate) and extra fallback evaluations
         # vBoundFact may be single fact or tuple of facts
         return any(all([vBoundFact == matchingEval[vQn] 
