@@ -196,7 +196,9 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                 msg = varSet.message(result)
                 if msg is not None:
                     xpCtx.inScopeVars[XbrlConst.qnVaTestExpression] = varSet.test
-                    xpCtx.modelXbrl.info("message:" + (varSet.id or varSet.xlinkLabel or  _("unlabeled variableSet")),
+                    xpCtx.modelXbrl.log(
+                        "INFO" if result else {"OK":"INFO", "WARNING":"WARNING", "ERROR":"ERROR"}[varSet.unsatisfiedSeverity()],
+                        "message:" + (varSet.id or varSet.xlinkLabel or  _("unlabeled variableSet")),
                         msg.evaluate(xpCtx),
                         modelObject=varSet,
                         label=varSet.logLabel(),

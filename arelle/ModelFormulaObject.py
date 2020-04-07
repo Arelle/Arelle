@@ -546,6 +546,13 @@ class ModelVariableSetAssertion(ModelVariableSet):
             return msgsRelationshipSet.label(self, preferredMessage, lang, returnText=False)
         return None
     
+    def unsatisfiedSeverity(self):
+        msgsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.assertionUnsatisfiedSeverity)
+        if msgsRelationshipSet:
+            for rel in msgsRelationshipSet.fromModelObject(self):
+                return rel.toModelObject.id # OK, WARNING or ERROR
+        return "ERROR"
+    
     @property
     def propertyView(self):
         return super(ModelVariableSetAssertion, self).propertyView + (("test", self.test),)
