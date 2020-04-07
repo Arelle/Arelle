@@ -7,6 +7,7 @@ import sys, os, time, math, re, logging
 from collections import defaultdict
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle import ModelDocument
+from arelle.ModelInstanceObject import ModelFact
 
 memoryAtStartup = 0
 timeAtStart = 0
@@ -41,10 +42,15 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
     distinctDurations = set()
     distinctInstants = set()
     shortContextIdLen = int(math.log10(numContexts)) + 2
+    xbrlQnameCount = 0
+    xbrlQnameLengths = 0
     for c in modelXbrl.contexts.values():
         sumNumDims += len(c.qnameDims)
         for d in c.qnameDims.values():
-            frequencyOfDims[str(d.dimensionQname)] = frequencyOfDims.get(str(d.dimensionQname),0) + 1
+            dimQname = str(d.dimensionQname)
+            frequencyOfDims[dimQname] = frequencyOfDims.get(dimQname,0) + 1
+            xbrlQnameCount += 1
+            xbrlQnameLengths += len(d.dimensionQname.localName)
         if c.isInstantPeriod:
             distinctInstants.add(c.instantDatetime)
         elif c.isStartEndPeriod:
@@ -124,6 +130,7 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
     styleAttrCounts = {}
     totalStyleLen = 0
     continuationElements = {}
+    ixNsPrefix = "{http://www.xbrl.org/2013/inlineXBRL}"
     for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements: # ix root elements
         for ixElt in ixdsHtmlRootElt.iterdescendants():
             style = ixElt.get("style")
@@ -133,6 +140,16 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
                     totalStyleLen += len(style)
             if ixElt.tag == "{http://www.xbrl.org/2013/inlineXBRL}continuation" and ixElt.id:
                 continuationElements[ixElt.id] = ixElt
+            if ixElt.tag.startswith(ixNsPrefix):
+                localName = ixElt.tag[len(ixNsPrefix):]
+                if localName == "continuation" and ixElt.id:
+                    continuationElements[ixElt.id] = ixElt
+                elif localName in ("nonFraction", "nonNumeric", "fraction"):
+                    xbrlQnameCount += 1
+                    xbrlQnameLengths += len(ixElt.qname.localName)
+            elif isinstance(ixElt, ModelFact):
+                xbrlQnameCount += 2
+                xbrlQnameLengths += len(ixElt.qname.localName)
 
     def locateContinuation(element, chain=None):
         contAt = element.get("continuedAt")
@@ -171,6 +188,7 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
     numDupStyles = sum(1 for n in styleAttrCounts.values() if n > 1)
     bytesSaveableByCss = sum(len(s)*(n-1) for s,n in styleAttrCounts.items() if n > 1)
     cntlr.addToLog("Number of duplicate styles {:,}, bytes saveable by CSS {:,}, len of all non-ix-hidden @styles {:,}".format(numDupStyles, bytesSaveableByCss, totalStyleLen), messageCode="info", level=logging.DEBUG)
+    cntlr.addToLog("Number of XBRL QNames {:,}, bytes saveable by EBA-style element names {:,}".format(xbrlQnameCount, xbrlQnameLengths - (5*xbrlQnameCount)), messageCode="info", level=logging.DEBUG)
     
     
 __pluginInfo__ = {
