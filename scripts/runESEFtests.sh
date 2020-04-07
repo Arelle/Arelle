@@ -2,7 +2,7 @@
 
 # Run ESMA ESEF conformance tests
 
-TESTCASESROOT=/Users/hermf/Documents/mvsl/projects/ESMA/conf/esef_conformanceSuite_2020-02-18/index.xml
+TESTCASESROOT=/Users/hermf/Documents/mvsl/projects/ESMA/conf/esef_conformanceSuite_2020-03-06/index.xml
 
 rm -f /users/hermf/temp/ESEF-conf-*
 OUTPUTLOGFILE=/users/hermf/temp/ESEF-conf-log.txt

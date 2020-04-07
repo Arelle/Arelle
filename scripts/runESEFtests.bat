@@ -1,6 +1,6 @@
 rem Run ESMA ESEF conformance tests
 
-@set TESTCASESINDEX=Z:\Documents\mvsl\projects\ESMA\conf\esef_conformanceSuite_2020-02-09\index.xml
+@set TESTCASESINDEX=Z:\Documents\mvsl\projects\ESMA\conf\esef_conformanceSuite_2020-03-06\index.xml
 
 del/q Z:\temp\ESEF-conf-*
 
@@ -17,7 +17,7 @@ del/q Z:\temp\ESEF-conf-*
 
 @set PLUGINS='validate/ESEF'
 @set PACKAGES=/Users/hermf/Documents/mvsl/projects/ESMA/esef_taxonomy_2019.zip 
-@set FILTER='(?!ESEF.3.2.1.extensionTaxonomyElementNameDoesNotFollowLc3Convention|ESEF.3.4.5.missingLabelForRoleInReportLanguage|arelle:testcaseDataUnexpected)'
+@set FILTER='(?!arelle:testcaseDataUnexpected)'
 @set FORMULA=none
 
 
