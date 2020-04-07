@@ -14,7 +14,7 @@ try:
 except ImportError:
     import re
 from arelle.ModelValue import qname
-from arelle.XbrlConst import all, notAll, hypercubeDimension, dimensionDomain, domainMember, dimensionDefault
+from arelle.XbrlConst import all, notAll, hypercubeDimension, dimensionDomain, domainMember, dimensionDefault, widerNarrower
 
 allowedImgMimeTypes = (
         "data:image/gif;base64", 
@@ -44,7 +44,6 @@ disallowedURIsPattern = re.compile(
     "http://www.esma.europa.eu/taxonomy/[0-9-]{10}/esef_all.xsd"
     )
 
-WiderNarrower = "http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower"
 DefaultDimensionLinkrole = "http://www.esma.europa.eu/xbrl/esef/role/ifrs-dim_role-990000"
 LineItemsNotQualifiedLinkrole = "http://www.esma.europa.eu/xbrl/role/cor/esef_role-999999"
 
@@ -58,7 +57,7 @@ untransformableTypes = {"anyURI", "base64Binary", "hexBinary", "NOTATION", "QNam
 
 esefDefinitionArcroles = {
     all, notAll, hypercubeDimension, dimensionDomain, domainMember, dimensionDefault,
-    WiderNarrower
+    widerNarrower
     }
 
 esefPrimaryStatementPlaceholderNames = (

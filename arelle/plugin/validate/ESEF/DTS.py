@@ -21,7 +21,7 @@ from arelle import ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelConcept, ModelType
 from arelle.ModelObject import ModelObject
 from arelle.XbrlConst import xbrli, standardLabelRoles, dimensionDefault
-from .Const import qnDomainItemType, esefDefinitionArcroles, WiderNarrower, disallowedURIsPattern, DefaultDimensionLinkrole
+from .Const import qnDomainItemType, esefDefinitionArcroles, disallowedURIsPattern, DefaultDimensionLinkrole
 from .Util import isExtension
 
 def checkFilingDTS(val, modelDocument, visited):
@@ -51,7 +51,7 @@ def checkFilingDTS(val, modelDocument, visited):
         langRoleLabels = defaultdict(list)
         conceptsWithoutStandardLabel = []
         conceptsWithNoLabel = []
-        widerNarrowerRelSet = val.modelXbrl.relationshipSet(WiderNarrower)
+        widerNarrowerRelSet = val.modelXbrl.relationshipSet(XbrlConst.widerNarrower)
         dimensionDefaults = val.modelXbrl.relationshipSet(dimensionDefault, DefaultDimensionLinkrole)
         labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
         if modelDocument.targetNamespace is not None:

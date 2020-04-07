@@ -152,6 +152,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 footnoteRoleErrors.add(elt)
                 
         # check file name of each inline document (which might be below a top-level IXDS)
+        ixdsDocDirs = set()
         for doc in modelXbrl.urlDocs.values():
             if doc.type == ModelDocument.Type.INLINEXBRL:
                 _baseName, _baseExt = os.path.splitext(doc.basename)
@@ -164,7 +165,24 @@ def validateXbrlFinally(val, *args, **kwargs):
                     modelXbrl.warning("ESEF.RTS.Art.3.htmlDoctype",
                         _("Doctype SHOULD NOT be html: %(fileName)s"),
                         modelObject=doc, fileName=doc.basename)
-                
+                # check location in a taxonomy package
+                docDirPath = re.split(r"[/\\]", doc.uri)
+                reportCorrectlyPlacedInPackage = False
+                for i, dir in enumerate(docDirPath):
+                    if dir.lower().endswith(".zip"):
+                        packageName = dir[:-4]
+                        if len(dir) >= i + 2 and docDirPath[i+1] == packageName and docDirPath[i+2] == "reports":
+                            ixdsDocDirs.add("/".join(docDirPath[i+3:-1]))
+                            reportCorrectlyPlacedInPackage = True
+                        break
+                if not reportCorrectlyPlacedInPackage:
+                    modelXbrl.warning("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
+                        _("Document file not in correct place in report package: %(fileName)s"),
+                        modelObject=doc, fileName=doc.basename)
+        if len(ixdsDocDirs) > 1:
+            modelXbrl.warning("ESEF.2.6.2.reportIncorrectlyPlacedInPackage",
+                _("Document files appear to be in multiple document sets: %(documentSets)s"),
+                modelObject=doc, documentSets=", ".join(sorted(ixdsDocDirs)))
         if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
             hiddenEltIds = {}
             presentedHiddenEltIds = defaultdict(list)
@@ -210,7 +228,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                     break
                                 _ancestorElt = _ancestorElt.getparent()                        
                             if scheme(src) in ("http", "https", "ftp"):
-                                modelXbrl.error("ESEF.3.5.1.inlinXbrlContainsExternalReferences",
+                                modelXbrl.error("ESEF.3.5.1.inlineXbrlContainsExternalReferences",
                                     _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
                                     modelObject=elt, element=eltTag)
                             elif not src.startswith("data:image"):
@@ -244,7 +262,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                         elif eltTag == "a":
                             href = elt.get("href","").strip()
                             if scheme(href) in ("http", "https", "ftp"):
-                                modelXbrl.error("ESEF.3.5.1.inlinXbrlContainsExternalReferences",
+                                modelXbrl.error("ESEF.3.5.1.inlineXbrlContainsExternalReferences",
                                     _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
                                     modelObject=elt, element=eltTag)
                         elif eltTag == "base" or elt.tag == "{http://www.w3.org/XML/1998/namespace}base":
