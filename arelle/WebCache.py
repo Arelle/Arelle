@@ -84,7 +84,7 @@ class WebCache:
         self._noCertificateCheck = False
         self.resetProxies(httpProxyTuple)
         
-        #self.opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+        self.opener.addheaders = [('User-agent', 'Mozilla/5.0 (Arelle/1.0)')]
 
         #self.opener = WebCacheUrlOpener(cntlr, proxyDirFmt(httpProxyTuple)) # self.proxies)
         
@@ -207,6 +207,7 @@ class WebCache:
             context.verify_mode = ssl.CERT_NONE
             proxyHandlers.append(proxyhandlers.HTTPSHandler(context=context))
         self.opener = proxyhandlers.build_opener(*proxyHandlers)
+        self.opener.addheaders = [('User-agent', 'Mozilla/5.0 (Arelle/1.0)')]
 
         #self.opener.close()
         #self.opener = WebCacheUrlOpener(self.cntlr, proxyDirFmt(httpProxyTuple))
@@ -648,4 +649,3 @@ class WebCacheUrlOpener(request.FancyURLopener):
     def prompt_user_passwd(self, host, realm):
         return self.cntlr.internet_user_password(host, realm)
 '''
-    
