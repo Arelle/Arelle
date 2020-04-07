@@ -479,7 +479,8 @@ def commandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
                                          saveTargetFiling=getattr(options, "saveTargetFiling", False))
         
 def testcaseVariationReadMeFirstUris(modelTestcaseVariation):
-    _readMeFirstUris = [os.path.join(modelTestcaseVariation.modelDocument.filepathdir, elt.text.strip())
+    _readMeFirstUris = [os.path.join(modelTestcaseVariation.modelDocument.filepathdir, 
+                                     (elt.get("{http://www.w3.org/1999/xlink}href") or elt.text).strip())
                         for elt in modelTestcaseVariation.iterdescendants()
                         if isinstance(elt,ModelObject) and elt.get("readMeFirst") == "true"]
     if len(_readMeFirstUris) >= MINIMUM_IXDS_DOC_COUNT and all(
