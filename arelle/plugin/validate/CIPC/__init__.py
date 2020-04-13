@@ -18,7 +18,7 @@ from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFo
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
 from arelle.XbrlConst import ixbrlAll, xhtml
-from .Const import cpicModules, mandatoryElements
+from .Const import cpicModules # , mandatoryElements
 
 cipcBlockedInlineHtmlElements = {
     'object', 'script'}
@@ -79,7 +79,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             _baseName, _baseExt = os.path.splitext(modelDocument.basename)
             if _baseExt not in (".xhtml",) or not namePattern.match(_baseName):
                 modelXbrl.warning("cipc:fileNameMalformed",
-                    _("FileName should have the pattern \"Co. name - regYr-regNbr-coCode - finYr.xhtml: %(fileName)s"),
+                    _("FileName should have the pattern \"Co. name - regYr-regNbr-coCode - finYr.xhtml\": %(fileName)s"),
                     modelObject=modelXbrl, fileName=modelDocument.basename)
             rootElt = modelDocument.xmlRootElement
             if rootElt.tag not in ("{http://www.w3.org/1999/xhtml}html", "{http://www.w3.org/1999/xhtml}xhtml"):
@@ -102,7 +102,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                             modelObject=elt, element=eltTag)
                     if eltTag == "title" and not namePattern.match(elt.text):
                         modelXbrl.error("cipc:titleElementMalformed",
-                            _("Title element required to have the pattern \"Co. name - regYr-regNbr-coCode - finYr: %(title)s"),
+                            _("Title element required to have the pattern \"Co. name - regYr-regNbr-coCode - finYr\": %(title)s"),
                             modelObject=elt, title=elt.text)
                     for attrTag, attrValue in elt.items():
                         if ((attrTag == "href" and eltTag == "a") or 
@@ -150,11 +150,13 @@ def validateXbrlFinally(val, *args, **kwargs):
             elif ns.endswith("/ifrs-smes"):
                 nsMap["ifrs-smes"] = ns
                 
+        ''' checked by CIPC formula
         # build mandatory and footnoteIfNil tables by ns qname in use
         mandatory = set()
         for prefixedName in mandatoryElements[reportingModule]["mandatory"]:
             prefix, _sep, name = prefixedName.rpartition(":")
             mandatory.add(qname(nsMap.get(prefix),name))
+            
         footnoteIfNil = set()
         for prefixedName in mandatoryElements[reportingModule]["footnoteIfNil"]:
             prefix, _sep, name = prefixedName.rpartition(":")
@@ -178,7 +180,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                               for footnote in (footnoteRel.toModelObject,)):
                         factsMandatoryNilWithoutFootnote.add(fact)    
             
-        missingElements = (mandatory - reportedMandatory) | (reportedFootnoteIfNil - reportedFootnoteIfNil)
+        missingElements = (mandatory - reportedMandatory) # | (reportedFootnoteIfNil - reportedFootnoteIfNil)
         if missingElements:
             modelXbrl.error("cpic:missingRequiredElements",
                             _("Required elements missing from document: %(elements)s."), 
@@ -189,6 +191,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                             _("Required nil facts missing explanatory footnote: %(elements)s."), 
                             modelObject=factsMandatoryNilWithoutFootnote, 
                             elements=", ".join(sorted(str(fact.qname) for fact in factsMandatoryNilWithoutFootnote)))
+        '''
             
         if transformRegistryErrors:
             modelXbrl.warning("cpic:transformRegistry",

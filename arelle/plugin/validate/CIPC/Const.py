@@ -14,7 +14,8 @@ cpicModules = {
     "full_ifrs": "full-ifrs",
     "ifrs_for_smes": "ifrs-smes"
     }
-                    
+          
+''' these validations now done by CIPC formulas                  
 mandatoryElements = {
     "ca_fas": { 
         "mandatory": {
@@ -175,4 +176,4 @@ mandatoryElements = {
             },
         }
      }
-                  
+'''            
