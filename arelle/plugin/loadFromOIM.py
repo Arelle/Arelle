@@ -26,7 +26,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, dateTime, DATETIME, yearMonthDuration, dayTimeDuration
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict
-from arelle.UrlUtil import isHttpUrl
+from arelle.UrlUtil import isHttpUrl, isAbsolute as isAbsoluteUri
 from arelle.XbrlConst import (qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
                               qnLinkPart, gen, link, defaultLinkRole, footnote, factFootnote, isStandardRole,
                               conceptLabel, elementLabel, conceptReference, all as hc_all, notAll as hc_notAll
@@ -40,20 +40,21 @@ nsOims = (nsOim,
           "http://www.xbrl.org/PWD/2016-01-13/oim",
           "http://www.xbrl.org/WGWD/YYYY-MM-DD/oim",
           "http://www.xbrl.org/CR/2019-06-12",
-          "http://www.xbrl.org/{{status_date_uri}}"
+          "http://www.xbrl.org/((~status_date_uri~))"
          )
 nsOimCes = (
         "http://www.xbrl.org/WGWD/YYYY-MM-DD/oim-common/error",
     )
 jsonDocumentTypes = (
         "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-json",
-        "http://www.xbrl.org/{{status_date_uri}}/xbrl-json", # allows loading of XII "template" test cases without CI production
+        "http://www.xbrl.org/YYYY-MM-DD/xbrl-json",
+        "http://www.xbrl.org/((~status_date_uri~))/xbrl-json", # allows loading of XII "template" test cases without CI production
         "http://www.xbrl.org/CR/2019-06-12/xbrl-json",
     )
 csvDocumentTypes = (
         "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-csv",
         "http://xbrl.org/YYYY/xbrl-csv",
-        "http://www.xbrl.org/{{status_date_uri}}/xbrl-csv", # allows loading of XII "template" test cases without CI production
+        "http://www.xbrl.org/((~status_date_uri~))/xbrl-csv", # allows loading of XII "template" test cases without CI production
         "http://www.xbrl.org/CR/2019-10-19/xbrl-csv"
     )
 csvDocinfoObjects = {"documentType", "reportDimensions", "namespaces", "taxonomy", "decimals", "extends", "final"}
@@ -507,10 +508,60 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             _valueKeyDict = {}
             for key, value in keyValuePairs:
                 if isinstance(value, dict):
+                    if key in ("namespaces", "linkTypes", "linkGroups"):
+                        normalizedDict = OrderedDict()
+                        normalizedValueKeyDict = {}
+                        for _key, _value in value.items():
+                            if not isinstance(_value, str):
+                                continue
+                            _key = _key.strip()
+                            _value = _value.strip()
+                            if _key in normalizedDict: # don't put the duplicate in the dictionary but report it as error
+                                if DUPJSONKEY not in normalizedDict:
+                                    normalizedDict[DUPJSONKEY] = []
+                                normalizedDict[DUPJSONKEY].append((_key, _value, normalizedDict[_key]))
+                            else: # do put into dictionary, only report if it's a map object
+                                normalizedDict[_key] = _value
+                                if _value in normalizedValueKeyDict:
+                                    if DUPJSONVALUE not in normalizedDict:
+                                        normalizedDict[DUPJSONVALUE] = []
+                                    normalizedDict[DUPJSONVALUE].append((_value, _key, normalizedValueKeyDict[_value]))
+                                else:
+                                    normalizedValueKeyDict[_value] = _key
+                            if key == "namespaces":
+                                if _key in OIMReservedAliasURIs and _value not in OIMReservedAliasURIs[_key]:
+                                    ldError("oimce:invalidURIForReservedAlias",
+                                                    _("The namespaces URI %(uri)s is used on standard alias %(alias)s which requires URI %(standardUri)s."),
+                                                    modelObject=modelXbrl, alias=_key, uri=_value, standardUri=OIMReservedAliasURIs[_key][0])
+                                elif _key in OIMReservedAliasURIPrefixes and not _value.startswith(OIMReservedAliasURIPrefixes[_key]):
+                                    ldError("oimce:invalidURIForReservedAlias",
+                                                    _("The namespaces URI %(uri)s is used on standard alias %(alias)s which requires a URI starting with %(standardUri)s."),
+                                                    modelObject=modelXbrl, alias=_key, uri=_value, standardUri=OIMReservedAliasURIPrefixes[_key])
+                                elif _value in OIMReservedURIAlias and _key != OIMReservedURIAlias[_value]:
+                                    ldError("oimce:invalidAliasForReservedURI",
+                                                    _("The namespaces URI %(uri)s is bound to alias %(key)s instead of standard alias %(alias)s."),
+                                                    modelObject=modelXbrl, key=_key, uri=_value, alias=OIMReservedURIAlias[_value])
+                                else:
+                                    for k,p in OIMReservedAliasURIPrefixes.items():
+                                        if _value.startswith(p) and _key != k:
+                                            ldError("oimce:invalidAliasForReservedURI",
+                                                            _("The namespaces URI %(uri)s is bound to alias %(key)s instead of standard alias %(alias)s."),
+                                                            modelObject=modelXbrl, key=_key, uri=_value, alias=k)
+                            if not NCNamePattern.match(_key):
+                                error("oimce:invalidURIAlias",
+                                      _("The %(map)s alias %(alias)s must match the NCName lexical pattern"),
+                                      modelObject=modelXbrl, map=key, alias=_key)
+                            if not (_value and isAbsoluteUri(_value)):
+                                ldError("oimce:invalidURI",
+                                        _("The %(map)s %(alias)s URL is invalid: %(URL)s."),
+                                        modelObject=modelXbrl, map=key, alias=_key, URL=_value)
+                        value.clear() # replace with normalized values
+                        for _key, _value in normalizedDict.items():
+                            value[_key] = _value
                     if DUPJSONKEY in value:
                         for _errKey, _errValue, _otherValue in value[DUPJSONKEY]:
                             if key in ("namespaces", "linkTypes", "linkGroups"):
-                                ldError("{}:invalidJSONStructure", # "oimce:multipleURIsForAlias",
+                                ldError("{}:multipleURIsForAlias", 
                                                 _("The %(map)s alias %(prefix)s is used on uri %(uri1)s and uri %(uri2)s."),
                                                 modelObject=modelXbrl, map=key, prefix=_errKey, uri1=_errValue, uri2=_otherValue)
                             else:
@@ -525,31 +576,6 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                 _("The %(map)s value %(uri)s is used on alias %(alias1)s and alias %(alias2)s."),
                                                 modelObject=modelXbrl, map=key, uri=_errValue, alias1=_errKey, alias2=_otherKey)
                         del value[DUPJSONVALUE]
-                    if key in ("namespaces", "linkTypes", "linkGroups"):
-                        for _key, _value in value.items():
-                            if _value == "":
-                                ldError("oimce:invalidEmptyURIAlias",
-                                                _("The %(map)s empty string MUST NOT be used as a URI alias for %(alias)s."),
-                                                modelObject=modelXbrl, map=key, alias=_key)
-                            elif key == "namespaces":
-                                if _key in OIMReservedAliasURIs and _value not in OIMReservedAliasURIs[_key]:
-                                    ldError("oimce:invalidURIForReservedAlias",
-                                                    _("The namespaces URI %(uri)s is used on standard alias %(alias)s which requires URI %(standardUri)s."),
-                                                    modelObject=modelXbrl, alias=_key, uri=_value, standardUri=OIMReservedAliasURIs[_key][0])
-                                elif _key in OIMReservedAliasURIPrefixes and not _value.startswith(OIMReservedAliasURIPrefixes[_key]):
-                                    ldError("oimce:invalidURIForReservedAlias",
-                                                    _("The namespaces URI %(uri)s is used on standard alias %(alias)s which requires a URI starting with %(standardUri)s."),
-                                                    modelObject=modelXbrl, alias=_key, uri=_value, standardUri=OIMReservedAliasURIPrefixes[_key])
-                                elif _value in OIMReservedURIAlias and _key != OIMReservedURIAlias[_value]:
-                                    ldError("oimce:invalidPrefixForURIWithReservedAlias",
-                                                    _("The namespaces URI %(uri)s is bound to alias %(key)s instead of standard alias %(alias)s."),
-                                                    modelObject=modelXbrl, key=_key, uri=_value, alias=OIMReservedURIAlias[_value])
-                                else:
-                                    for k,p in OIMReservedAliasURIPrefixes.items():
-                                        if _value.startswith(p) and _key != k:
-                                            ldError("oimce:invalidPrefixForURIWithReservedAlias",
-                                                            _("The namespaces URI %(uri)s is bound to alias %(key)s instead of standard alias %(alias)s."),
-                                                            modelObject=modelXbrl, key=_key, uri=_value, alias=k)
                 if key in _dict: # don't put the duplicate in the dictionary but report it as error
                     if DUPJSONKEY not in _dict:
                         _dict[DUPJSONKEY] = []
@@ -838,9 +864,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         namespaces = oimDocumentInfo.get("namespaces", EMPTY_DICT)
         linkTypes = oimDocumentInfo.get("linkTypes", EMPTY_DICT)
         linkGroups = oimDocumentInfo.get("linkGroups",EMPTY_DICT)
+        featuresDict = oimDocumentInfo["features"]
         if isJSON:
             errPrefix = "xbrlje"
-            featuresDict = oimDocumentInfo["features"]
             factItems = oimObject.get("facts",{}).items()
             footnotes = oimObject.get("facts",{}).values() # shares this object
         else: # isCSVorXL
@@ -860,6 +886,22 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     error("xbrlce:invalidParameterName", 
                           _("Report parameter name is not a valid identifier: %(identifier)s, in file %(file)s"),
                           identifier=reportParameterName, file=oimFile)
+                    
+        # check features
+        for featureSQName, isActive in featuresDict.items():
+            featurePrefix = featureSQName.partition(":")[0]
+            if not NCNamePattern.match(featurePrefix):
+                error("oimce:invalidURIAlias",
+                                _("The prefix of feature %(feature)s must match the NCName lexical pattern"),
+                                modelObject=modelXbrl, feature=featureSQName)
+                continue
+            elif featurePrefix not in namespaces:
+                error("oimce:unboundPrefix",
+                      _("The feature QName prefix was not defined in namespaces: %(feature)s."),
+                      modelObject=modelXbrl, feature=featureSQName)
+                continue
+            
+
                 
         if isCSVorXL:
             currentAction = "loading CSV facts tables"
@@ -1296,7 +1338,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 id = syntheticFactFormat.format(factNum)
                 factNum += 1
             conceptSQName = dimensions["concept"]
-            conceptPrefix = conceptSQName.rpartition(":")[0]
+            conceptPrefix = conceptSQName.partition(":")[0]
             if conceptSQName == "xbrl:note":
                 xbrlNoteTbl[id] = fact
                 if "language" not in dimensions:
@@ -1340,7 +1382,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                       modelObject=modelXbrl, id=id, noteId=dimensions["noteId"])
             if not NCNamePattern.match(conceptPrefix):
                 error("oimce:invalidURIAlias",
-                                _("The prefix of %(concept)s must match the NCName lexical pattern"),
+                                _("The prefix of concept %(concept)s must match the NCName lexical pattern"),
                                 modelObject=modelXbrl, concept=conceptSQName)
                 continue
             elif conceptPrefix not in namespaces:
@@ -1351,18 +1393,38 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             conceptQn = qname(conceptSQName, namespaces)
             concept = modelXbrl.qnameConcepts.get(conceptQn)
             if concept is None:
-                error("xbrle:invalidXBRL",
+                error("xbrle:unknownConcept",
                       _("The concept QName could not be resolved with available DTS: %(concept)s."),
                       modelObject=modelXbrl, concept=conceptQn)
                 continue
             attrs = {}
             if concept.isItem:
+                if concept.isAbstract:
+                    error("xbrle:valueForAbstractConcept",
+                          _("Value provided for abstract concept by fact %(factId)s, concept %(concept)s."),
+                          modelObject=modelXbrl, factId=id, concept=conceptSQName)
+                    continue # skip creating fact because context would be bad
                 if "language" in dimensions:
+                    if not concept.type.isOimTextFactType:
+                        error("xbrle:misplacedLanguageDimension",
+                              _("Language \"%(lang)s\" provided for non-text concept by fact %(factId)s, concept %(concept)s."),
+                              modelObject=modelXbrl, factId=id, concept=conceptSQName, lang=dimensions["language"])
+                        continue # skip creating fact because language would be bad
                     attrs["{http://www.w3.org/XML/1998/namespace}lang"] = dimensions["language"]
-                if "entity" in dimensions:
-                    entityAsQn = qname(dimensions["entity"], namespaces) or ENTITY_NA_QNAME
-                else:
-                    entityAsQn = ENTITY_NA_QNAME
+                entityAsQn = ENTITY_NA_QNAME
+                entitySQName = dimensions.get("entity")
+                if entitySQName is not None:
+                    entityPrefix = entitySQName.partition(":")[0]
+                    if not NCNamePattern.match(entityPrefix):
+                        error("oimce:invalidURIAlias",
+                                        _("The prefix of entity %(entity)s must match the NCName lexical pattern"),
+                                        modelObject=modelXbrl, entity=entitySQName)
+                    elif entityPrefix not in namespaces:
+                        error("oimce:unboundPrefix",
+                              _("The entity QName prefix was not defined in namespaces: %(entity)s."),
+                              modelObject=modelXbrl, entity=entitySQName)
+                    else:
+                        entityAsQn = qname(entitySQName, namespaces)
                 if "xbrl:start" in dimensions and "xbrl:end" in dimensions:
                     # CSV/XL format
                     period = dimensions["xbrl:start"]
@@ -1374,7 +1436,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         period = "forever"
                     elif not re.match(r"\d{4,}-[0-1][0-9]-[0-3][0-9]T([0-1][0-9]:[0-5][0-9]:[0-5][0-9])"
                                       r"(/\d{4,}-[0-1][0-9]-[0-3][0-9]T([0-1][0-9]:[0-5][0-9]:[0-5][0-9]))?", period):
-                        error("xbrle:invalidXBRL",
+                        error("xbrle:invalidPeriodDimension",
                               _("The concept %(element)s has a lexically invalid period dateTime %(periodError)s"),
                               modelObject=modelXbrl, element=conceptQn, periodError=period)
                         continue
@@ -1387,7 +1449,25 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         (dimName, dimVal["value"] if isinstance(dimVal,dict) else dimVal) 
                         for dimName, dimVal in dimensions.items()
                         if ":" in dimName))
-                if cntxKey in cntxTbl:
+                _start, _sep, _end = period.rpartition('/')
+                if period == "forever":
+                    _periodType = "forever"
+                elif _start == _end or not _start:
+                    _periodType = "instant"
+                else:
+                    _periodType = "duration"
+                if concept.periodType == "instant" and _periodType == "forever":
+                    error("xbrle:missingPeriodDimension",
+                          _("Missing period for %(periodType)s fact %(factId)s."),
+                          modelObject=modelXbrl, factId=id, periodType=concept.periodType, period=period)
+                    continue # skip creating fact because context would be bad
+                elif ((concept.periodType == "duration" and (_periodType != "forever" or _start == _end)) or
+                      (concept.periodType == "instant" and _start and _start != _end)):
+                    error("xbrle:invalidPeriodDimension",
+                          _("Invalid period for %(periodType)s fact %(factId)s period %(period)s."),
+                          modelObject=modelXbrl, factId=id, periodType=concept.periodType, period=period)
+                    continue # skip creating fact because context would be bad
+                elif cntxKey in cntxTbl:
                     _cntx = cntxTbl[cntxKey]
                 else:
                     cntxId = 'c-{:02}'.format(len(cntxTbl) + 1)
@@ -1397,9 +1477,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             dimQname = qname(dimName, namespaces)
                             dimConcept = modelXbrl.qnameConcepts.get(dimQname)
                             if dimConcept is None:
-                                error("xbrle:invalidXBRL",
-                                      _("The taxonomy-defined dimension QName not be resolved with available DTS: %(qname)s."),
-                                      modelObject=modelXbrl, qname=dimQname)
+                                error("xbrle:unknownDimension",
+                                      _("Fact %(factId)s taxonomy-defined dimension QName not be resolved with available DTS: %(qname)s."),
+                                      modelObject=modelXbrl, factId=id, qname=dimQname)
                                 continue
                             if dimVal is None:
                                 memberAttrs = {"{http://www.w3.org/2001/XMLSchema-instance}nil": "true"}
@@ -1409,8 +1489,13 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 dimVal = dimVal["value"]
                             else:
                                 dimVal = str(dimVal) # may be int or boolean
-                            if isinstance(dimVal,str) and ":" in dimVal and dimVal.partition(':')[0] in namespaces:
-                                mem = qname(dimVal, namespaces) # explicit dim
+                            if dimConcept.isExplicitDimension:
+                                mem = qname(dimVal, namespaces)
+                                if mem is None:
+                                    error("xbrle:invalidDimensionValue",
+                                          _("Fact %(factId)s taxonomy-defined explicit dimension value is invalid: %(memberQName)s."),
+                                          modelObject=modelXbrl, factId=id, memberQName=dimVal)
+                                    continue
                             elif dimConcept.isTypedDimension:
                                 # a modelObject xml element is needed for all of the instance functions to manage the typed dim
                                 mem = addChild(modelXbrl.modelDocument, dimConcept.typedDomainElement.qname, text=dimVal, attributes=memberAttrs, appendChild=False)
@@ -1421,17 +1506,15 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     try:
                         _start, _sep, _end = period.rpartition('/')
                         if period == "forever":
-                            _periodType = "forever"
                             startDateTime = endDateTime = None
                         elif _start == _end or not _start:
-                            _periodType = "instant"
                             startDateTime = None
                             endDateTime = dateTime(_end, type=DATETIME)
                         else:
-                            _periodType = "duration"
                             startDateTime = dateTime(_start, type=DATETIME)
                             endDateTime = dateTime(_end, type=DATETIME)
                         numFactCreationXbrlErrors -= len(modelXbrl.errors) # track any xbrl validation errors
+                        prevErrLen = len(modelXbrl.errors)
                         _cntx = modelXbrl.createContext(
                                                 entityAsQn.namespaceURI,
                                                 entityAsQn.localName,
@@ -1441,10 +1524,16 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                 None, # no dimensional validity checking (like formula does)
                                                 qnameDims, [], [],
                                                 id=cntxId)
-                        numFactCreationXbrlErrors += len(modelXbrl.errors) # track any xbrl validation errors
+                        if len(modelXbrl.errors) > prevErrLen:
+                            numFactCreationXbrlErrors += sum(err != "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:])
+                            if any(err == "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:]):
+                                error("xbrle:invalidDimensionValue",
+                                      _("Fact %(factId)s taxonomy-defined dimension value errors noted above."),
+                                      modelObject=modelXbrl, factId=id)
+                                continue
                     except ValueError as err:
-                        error("xbrle:invalidXBRL",
-                              _("Exception creating context for fact %(factId)s period %(period)s, %(error)s."),
+                        error("xbrle:invalidPeriodDimension",
+                              _("Invalid period for fact %(factId)s period %(period)s, %(error)s."),
                               modelObject=modelXbrl, factId=id, period=period, error=err)
                         continue
                     cntxTbl[cntxKey] = _cntx
@@ -1512,6 +1601,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 attrs["contextRef"] = _cntx.id
         
                 if fact.get("value") is None:
+                    if not concept.isNillable:
+                        error("xbrle:invalidFactValue",
+                              _("Nil value applied to non-nillable concept: %(concept)s."),
+                              modelObject=modelXbrl, concept=conceptSQName)
+                        continue
                     attrs[XbrlConst.qnXsiNil] = "true"
                     text = None
                 else:
@@ -1539,13 +1633,18 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             if concept.baseXbrliType == "QNameItemType": # renormalize prefix of instance fact
                 text = addQnameValue(modelXbrl.modelDocument, qname(text.strip(), namespaces))
     
-            numFactCreationXbrlErrors -= len(modelXbrl.errors) # track any xbrl validation errors
+            prevErrLen = len(modelXbrl.errors) # track any xbrl validation errors
             f = modelXbrl.createFact(conceptQn, attributes=attrs, text=text, validate=False)
             if firstCntxUnitFactElt is None:
                 firstCntxUnitFactElt = f
             
             xmlValidate(modelXbrl, f)
-            numFactCreationXbrlErrors += len(modelXbrl.errors) # track any xbrl validation errors
+            if len(modelXbrl.errors) > prevErrLen:
+                numFactCreationXbrlErrors += sum(err != "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:])
+                if any(err == "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:]):
+                    error("xbrle:invalidFactValue",
+                          _("Fact %(factId)s value error noted above."),
+                          modelObject=modelXbrl, factId=id)
             
         if isCSVorXL: # check report parameters used
             unmappedReportParams = reportParameters.keys() - reportParametersUsed
@@ -1567,7 +1666,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             if isJSON:
                 factFootnotes = []
                 for ftType, ftGroups in factOrFootnote.get("links", {}).items():
-                    ftSrcId = factOrFootnote["id"]
+                    ftSrcId = factOrFootnote.get("id")
+                    if ftSrcId is None:
+                        ftSrcId = factOrFootnote.get("dimensions",EMPTY_DICT).get("noteId")
                     if ftType not in linkTypes:
                         undefinedFootnoteTypes.add(ftType)
                     else:
