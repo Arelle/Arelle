@@ -185,9 +185,10 @@ class DisclosureSystem:
                                     self.defaultXmlEncoding = dsElt.get("defaultXmlEncoding") # may be an empty string
                                 self.xmlLangPattern = compileAttrPattern(dsElt,"xmlLangPattern")
                                 self.defaultLanguage = dsElt.get("defaultLanguage")
-                                self.standardTaxonomiesUrl = self.modelManager.cntlr.webCache.normalizeUrl(
-                                                 dsElt.get("standardTaxonomiesUrl"),
-                                                 url)
+                                if dsElt.get("standardTaxonomiesUrl"):
+                                    self.standardTaxonomiesUrl = self.modelManager.cntlr.webCache.normalizeUrl(
+                                                     dsElt.get("standardTaxonomiesUrl"),
+                                                     url)
                                 if dsElt.get("mappingsUrl"):
                                     self.mappingsUrl = self.modelManager.cntlr.webCache.normalizeUrl(
                                                  dsElt.get("mappingsUrl"),
