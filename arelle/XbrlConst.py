@@ -170,7 +170,7 @@ dtrSQNamesTypes = (qname("{http://www.xbrl.org/dtr/type/2020-01-21}SQNamesType")
                    qname("{http://www.xbrl.org/dtr/type/WGWD/YYYY-MM-DD}SQNamesType"))
 
 dtrNoLangItemTypeNames = ("domainItemType", "noLangTokenItem", "noLangStringItemType")
-oimLangItemTypeNames = ("stringItemType", "normalizedStringItemType")
+oimLangItemTypeNames = ("stringItemType", "normalizedStringItemType", "tokenItemType")
 
 ver10 = "http://xbrl.org/2010/versioning-base"
 # 2010 names
