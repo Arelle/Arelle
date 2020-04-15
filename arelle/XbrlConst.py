@@ -42,6 +42,7 @@ qnXbrliPrecisionUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:precisio
 qnXbrliNonZeroDecimalUnion = qname("{http://www.xbrl.org/2003/instance}xbrli:nonZeroDecimal")
 link = "http://www.xbrl.org/2003/linkbase"
 qnLinkLinkbase = qname("{http://www.xbrl.org/2003/linkbase}link:linkbase")
+qnLinkLinkbaseRef = qname("{http://www.xbrl.org/2003/linkbase}link:linkbaseRef")
 qnLinkLoc = qname("{http://www.xbrl.org/2003/linkbase}link:loc")
 qnLinkLabelLink = qname("{http://www.xbrl.org/2003/linkbase}link:labelLink")
 qnLinkLabelArc = qname("{http://www.xbrl.org/2003/linkbase}link:labelArc")
