@@ -417,9 +417,9 @@ class DialogOpenArchive(Toplevel):
                             filenames.extend(self.packageContainedIXDSes[_url])
                         else: # single instance
                             filenames.append(_url)
-                if not filenames: # else if it's a named taxonomy entry point
+                if not filenames: # else if it's a named taxonomy entry point of an installed package
                     for url in self.taxonomyPackage["entryPoints"][epName]:
-                        filename = url[0]
+                        filename = url[1] # use unmapped file name 
                         if not filename.endswith("/"):
                             # check if it's an absolute URL rather than a path into the archive
                             if not isHttpUrl(filename) and self.metadataFilePrefix != self.taxonomyPkgMetaInf:
@@ -446,6 +446,11 @@ class DialogOpenArchive(Toplevel):
                             # set unmmapped file
                             filename = prefix + filename[len(remapStart):]
                             break
+                        if (self.metadataFilePrefix.endswith("/META-INF/") and isHttpUrl(prefix) and
+                            filename.startswith(self.metadataFilePrefix[:-10]) and
+                            filename.startswith(remapping[len(self.filesource.url)+1:])):
+                            # recover unmapped file name for chosen in-archive relative file
+                            filename = prefix + filename[len(remapping) - len(self.filesource.url) - 1:]
                 if self.openType in (PLUGIN, PACKAGE):
                     self.filesource.selection = filename
                 else:
