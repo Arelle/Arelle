@@ -890,12 +890,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         # check features
         for featureSQName, isActive in featuresDict.items():
             featurePrefix = featureSQName.partition(":")[0]
-            if not NCNamePattern.match(featurePrefix):
-                error("oimce:invalidURIAlias",
-                                _("The prefix of feature %(feature)s must match the NCName lexical pattern"),
-                                modelObject=modelXbrl, feature=featureSQName)
-                continue
-            elif featurePrefix not in namespaces:
+            if featurePrefix not in namespaces:
                 error("oimce:unboundPrefix",
                       _("The feature QName prefix was not defined in namespaces: %(feature)s."),
                       modelObject=modelXbrl, feature=featureSQName)
@@ -1415,11 +1410,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 entitySQName = dimensions.get("entity")
                 if entitySQName is not None:
                     entityPrefix = entitySQName.partition(":")[0]
-                    if not NCNamePattern.match(entityPrefix):
-                        error("oimce:invalidURIAlias",
-                                        _("The prefix of entity %(entity)s must match the NCName lexical pattern"),
-                                        modelObject=modelXbrl, entity=entitySQName)
-                    elif entityPrefix not in namespaces:
+                    if entityPrefix not in namespaces:
                         error("oimce:unboundPrefix",
                               _("The entity QName prefix was not defined in namespaces: %(entity)s."),
                               modelObject=modelXbrl, entity=entitySQName)
