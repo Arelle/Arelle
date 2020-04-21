@@ -38,7 +38,7 @@ from .Consts import submissionTypesAllowingWellKnownSeasonedIssuer, \
                     submissionTypesAllowingVoluntaryFilerFlag, docTypesNotAllowingInlineXBRL, \
                     docTypesRequiringRrSchema, docTypesNotAllowingIfrs, \
                     untransformableTypes, rrUntransformableEltsPattern, \
-                    docTypes20F
+                    docTypes20F, ifrsUsgaapConflictClasses, ifrsSrtConflictClasses
                                         
 from .Dimensions import checkFilingDimensions
 from .PreCalAlignment import checkCalcsTreeWalk
@@ -2076,31 +2076,23 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                                      'ifrs-full' in val.standardNamespaceConflicts)) # ignore multi us-gaap/ifrs conflicts without the other
                 ):
                 if conflictClass == 'ifrs+us-gaap':
-                    if set(d.targetNamespace for d in val.standardNamespaceConflicts['ifrs+us-gaap']) >= {
-                        "http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full", "http://fasb.org/us-gaap/2017-01-31"}:
-                        conflictClass = 'ifrs-2018+us-gaap-2017'
-                    elif set(d.targetNamespace for d in val.standardNamespaceConflicts['ifrs+us-gaap']) >= {
-                        "http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full", "http://fasb.org/us-gaap/2018-01-31"}:
-                        conflictClass = 'ifrs-2019+us-gaap-2018'
-                    elif set(d.targetNamespace for d in val.standardNamespaceConflicts['ifrs+us-gaap']) >= {
-                        "http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full", "http://fasb.org/us-gaap/2020-01-31"}:
-                        conflictClass = 'ifrs-2018+us-gaap-2020'
-                    else:
-                        continue
+                    conflictClass = None
+                    for _class, _conflicts in ifrsUsgaapConflictClasses.items():
+                        if set(d.targetNamespace for d in val.standardNamespaceConflicts['ifrs+us-gaap']) >= _conflicts:
+                            conflictClass = _class
+                            break
                 if conflictClass == 'srt+ifrs':
-                    if set(d.targetNamespace for d in val.standardNamespaceConflicts['srt+ifrs']) >= {
-                        "http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full", "http://fasb.org/srt/2020-01-31"}:
-                        conflictClass = 'ifrs-2018+srt-2020'
-                    elif set(d.targetNamespace for d in val.standardNamespaceConflicts['srt+ifrs']) >= {
-                        "http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full", "http://fasb.org/srt/2018-01-31"}:
-                        conflictClass = 'ifrs-2019+srt-2018'
-                    else:
-                        continue
-                modelXbrl.error("EFM.6.22.03.incompatibleSchemas",
-                    _("References for conflicting standard taxonomies %(conflictClass)s are not allowed in same DTS %(namespaceConflicts)s"),
-                    edgarCode="cp-2203-Incompatible-Taxonomy-Versions",
-                    modelObject=modelXbrl, conflictClass=conflictClass,
-                    namespaceConflicts=", ".join(sorted([conflictClassFromNamespace(d.targetNamespace) for d in modelDocuments])))
+                    conflictClass = None
+                    for _class, _conflicts in ifrsSrtConflictClasses.items():
+                        if set(d.targetNamespace for d in val.standardNamespaceConflicts['srt+ifrs']) >= _conflicts:
+                            conflictClass = _class
+                            break
+                if conflictClass:
+                    modelXbrl.error("EFM.6.22.03.incompatibleSchemas",
+                        _("References for conflicting standard taxonomies %(conflictClass)s are not allowed in same DTS %(namespaceConflicts)s"),
+                        edgarCode="cp-2203-Incompatible-Taxonomy-Versions",
+                        modelObject=modelXbrl, conflictClass=conflictClass,
+                        namespaceConflicts=", ".join(sorted([conflictClassFromNamespace(d.targetNamespace) for d in modelDocuments])))
         if 'rr' in val.standardNamespaceConflicts and documentType not in docTypesRequiringRrSchema:
             modelXbrl.error("EFM.6.22.03.incompatibleTaxonomyDocumentType",
                 _("Taxonomy class %(conflictClass)s may not be used with document type %(documentType)s"),

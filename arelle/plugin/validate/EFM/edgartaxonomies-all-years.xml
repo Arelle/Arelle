@@ -1005,6 +1005,16 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
   <Loc><Family>US GAAP</Family><Version>2011</Version><Href>http://www.xbrl.org/lrr/role/net-2009-12-16.xsd</Href><AttType>SCH</AttType><FileTypeName>Roles/Arcroles</FileTypeName><Elements>0</Elements><Namespace>http://www.xbrl.org/2009/role/net</Namespace></Loc>
   <Loc><Family>US GAAP</Family><Version>2011</Version><Href>http://www.xbrl.org/lrr/arcrole/factExplanatory-2009-12-16.xsd</Href><AttType>SCH</AttType><FileTypeName>Roles/Arcroles</FileTypeName><Elements>0</Elements><Namespace>http://www.xbrl.org/2009/arcrole/fact-explanatoryFact</Namespace></Loc>
 
+	<Loc>
+		<Family>IFRS</Family>
+		<Version>2020</Version>
+		<Href>http://xbrl.ifrs.org/taxonomy/2020-03-16/full_ifrs/full_ifrs-cor_2020-03-16.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.ifrs.org/taxonomy/2020-03-16/ifrs-full</Namespace>
+		<Prefix>ifrs-full</Prefix>
+	</Loc>
 <Loc><Family>IFRS</Family><Version>2019</Version><Href>http://xbrl.ifrs.org/taxonomy/2019-03-27/full_ifrs/full_ifrs-cor_2019-03-27.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full</Namespace><Prefix>ifrs-full</Prefix></Loc>
 <Loc><Family>IFRS</Family><Version>2019</Version><Href>http://xbrl.fasb.org/srt/2018/elts/srt-2018-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://fasb.org/srt/2018-01-31</Namespace><Prefix>srt</Prefix></Loc>
 <Loc><Family>IFRS</Family><Version>2019</Version><Href>https://xbrl.sec.gov/country/2017/country-2017-01-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://xbrl.sec.gov/country/2017-01-31</Namespace><Prefix>country</Prefix></Loc>
