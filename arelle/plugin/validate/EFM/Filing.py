@@ -773,10 +773,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
         #6.5.12 equivalent facts
         factsForLang = {}
-        factForConceptContextUnitLangHash = defaultdict(list)
+        factForConceptContextUnitHash = defaultdict(list)
         keysNotDefaultLang = {}
         for f1 in modelXbrl.facts:
-            if f1.context is not None and f1.concept is not None:
+            if f1.context is not None and f1.concept is not None and f1.concept.type is not None:
                 # build keys table for 6.5.14
                 if not f1.isNil:
                     langTestKey = "{0},{1},{2}".format(f1.qname, f1.contextID, f1.unitID)
@@ -803,13 +803,14 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 edgarCode="du-0537-Nonzero-Digits-Truncated",
                                 modelObject=f1, fact=f1.qname, contextID=f1.contextID, decimals=f1.decimals, value=f1.value)
                 # 6.5.12 test
-                factForConceptContextUnitLangHash[f1.conceptContextUnitLangHash].append(f1)
+                factForConceptContextUnitHash[f1.conceptContextUnitHash].append(f1)
         # 6.5.12 test
         aspectEqualFacts = defaultdict(list)
-        for hashEquivalentFacts in factForConceptContextUnitLangHash.values():
+        for hashEquivalentFacts in factForConceptContextUnitHash.values():
             if len(hashEquivalentFacts) > 1:
                 for f in hashEquivalentFacts:
-                    aspectEqualFacts[(f.qname,f.contextID,f.unitID,f.xmlLang)].append(f)
+                    aspectEqualFacts[(f.qname,f.contextID,f.unitID,
+                                      f.xmlLang if f.concept.type.isWgnStringFactType else None)].append(f)
                 for fList in aspectEqualFacts.values():
                     f0 = fList[0]
                     if f0.concept.isNumeric:
@@ -834,7 +835,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             edgarCode="du-0512-Duplicate-Facts",
                             modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(strTruncate(f.value, 128) for f in fList))
                 aspectEqualFacts.clear()
-        del factForConceptContextUnitLangHash, aspectEqualFacts
+        del factForConceptContextUnitHash, aspectEqualFacts
         val.modelXbrl.profileActivity("... filer fact checks", minTimeToShow=1.0)
 
         #6.5.14 facts without english text

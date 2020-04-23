@@ -204,7 +204,7 @@ def validateXbrlFinally(val, *args, **kwargs):
         uniqueFacts = {}  # key = (qname, context hash, unit hash, lang)
         mandatoryFacts = {}
         mandatoryGDV = defaultdict(set)
-        factForConceptContextUnitLangHash = defaultdict(list)
+        factForConceptContextUnitHash = defaultdict(list)
         hasCompaniesHouseContext = any(cntx.entityIdentifier[0] == "http://www.companieshouse.gov.uk/"
                                        for cntx in val.modelXbrl.contexts.values())
         
@@ -248,7 +248,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             for f in facts:
                 cntx = f.context
                 unit = f.unit
-                if (f.isNil or getattr(f,"xValid", 0) >= 4) and cntx is not None and f.concept is not None:
+                if (f.isNil or getattr(f,"xValid", 0) >= 4) and cntx is not None and f.concept is not None and f.concept.type is not None:
                     factNamespaceURI = f.qname.namespaceURI
                     factLocalName = f.qname.localName
                     if factLocalName in mandatoryItems[val.txmyType]:
@@ -262,7 +262,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                 modelXbrl.error("JFCVC.3316",
                                     _("Context entity identifier %(identifier)s does not match Company Reference Number (UKCompaniesHouseRegisteredNumber) Location: Accounts (context id %(id)s)"), 
                                     modelObject=(f, _cntx), identifier=_identifier, id=_cntx.id)
-                    factForConceptContextUnitLangHash[f.conceptContextUnitLangHash].append(f)
+                    factForConceptContextUnitHash[f.conceptContextUnitHash].append(f)
                             
                     if f.isNumeric:
                         if f.precision:
@@ -350,10 +350,11 @@ def validateXbrlFinally(val, *args, **kwargs):
 
 
         aspectEqualFacts = defaultdict(dict) # dict [(qname,lang)] of dict(cntx,unit) of [fact, fact] 
-        for hashEquivalentFacts in factForConceptContextUnitLangHash.values():
+        for hashEquivalentFacts in factForConceptContextUnitHash.values():
             if len(hashEquivalentFacts) > 1:
                 for f in hashEquivalentFacts: # check for hash collision by value checks on context and unit
-                    cuDict = aspectEqualFacts[(f.qname,f.xmlLang)]
+                    cuDict = aspectEqualFacts[(f.qname,
+                                               f.xmlLang if f.concept.type.isWgnStringFactType else None)]
                     _matched = False
                     for (_cntx,_unit),fList in cuDict.items():
                         if (((_cntx is None and f.context is None) or (f.context is not None and f.context.isEqualTo(_cntx))) and
@@ -387,7 +388,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                     "Inconsistent duplicate fact values %(fact)s: %(values)s.",
                                     modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(f.value for f in fList))
                 aspectEqualFacts.clear()
-        del factForConceptContextUnitLangHash, aspectEqualFacts
+        del factForConceptContextUnitHash, aspectEqualFacts
  
     if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRL:
         rootElt = modelXbrl.modelDocument.xmlRootElement

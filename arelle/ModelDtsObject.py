@@ -1201,6 +1201,17 @@ class ModelType(ModelNamableTerm):
         return typeDerivedFrom.isOimTextFactType if typeDerivedFrom is not None else False
 
     @property
+    def isWgnStringFactType(self):
+        """(str) -- True if type meets WGN String Fact Type requirements"""
+        if self.modelDocument.targetNamespace == XbrlConst.xbrli:
+            return self.name in XbrlConst.wgnStringItemTypeNames
+        qnameDerivedFrom = self.qnameDerivedFrom
+        if not isinstance(qnameDerivedFrom, ModelValue.QName): # textblock not a union type
+            return False
+        typeDerivedFrom = self.modelXbrl.qnameTypes.get(qnameDerivedFrom)
+        return typeDerivedFrom.isWgnStringFactType if typeDerivedFrom is not None else False
+
+    @property
     def isDomainItemType(self):
         """(bool) -- True if type is, or is derived from, domainItemType in either a us-types or a dtr-types namespace."""
         if self.name == "domainItemType" and \

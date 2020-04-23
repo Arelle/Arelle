@@ -186,20 +186,19 @@ class ModelFact(ModelObject):
         return ""
 
     @property
-    def conceptContextUnitLangHash(self):
+    def conceptContextUnitHash(self):
         """(int) -- Hash value of fact's concept QName, dimensions-aware 
-        context hash, unit hash, and xml:lang hash, useful for fast comparison of facts for EFM 6.5.12"""
+        context hash, unit hash, useful for fast comparison of facts for EFM 6.5.12"""
         try:
-            return self._conceptContextUnitLangHash
+            return self._conceptContextUnitHash
         except AttributeError:
             context = self.context
             unit = self.unit
-            self._conceptContextUnitLangHash = hash( 
+            self._conceptContextUnitHash = hash( 
                 (self.qname,
                  context.contextDimAwareHash if context is not None else None,
-                 unit.hash if unit is not None else None,
-                 self.xmlLang) )
-            return self._conceptContextUnitLangHash
+                 unit.hash if unit is not None else None) )
+            return self._conceptContextUnitHash
 
     @property
     def isItem(self):
