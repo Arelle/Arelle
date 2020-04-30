@@ -257,7 +257,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                             elif not any(src.startswith(m) for m in allowedImgMimeTypes):
                                     modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
                                         _("Images MUST be included in the XHTML document as a base64 encoded string, encoding disallowed: %(src)s."),
-                                        modelObject=elt, src=attrValue[:128])
+                                        modelObject=elt, src=src[:128])
                             
                         elif eltTag == "a":
                             href = elt.get("href","").strip()
