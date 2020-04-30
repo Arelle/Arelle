@@ -17,9 +17,10 @@ from collections import defaultdict
 osPrcs = None
 isPy3 = (sys.version[0] >= '3')
 LOG_TEXT_MAX_LENGTH = 32767
+cxFrozen = getattr(sys, 'frozen', False)
 
 def resourcesDir():
-    if getattr(sys, 'frozen', False): # Check if frozen by cx_Freeze
+    if cxFrozen: # Check if frozen by cx_Freeze
         _resourcesDir = os.path.dirname(sys.executable)
         if os.path.exists(os.path.join(_resourcesDir,"images")):
             return _resourcesDir
@@ -111,10 +112,13 @@ class Cntlr:
         self.imagesDir = os.path.join(_resourcesDir, "images")
         self.localeDir = os.path.join(_resourcesDir, "locale")
         self.pluginDir = os.path.join(_resourcesDir, "plugin")
-        _mplDir = os.path.join(_resourcesDir, "mpl-data")
-        if os.path.exists(_mplDir): # set matplotlibdata for cx_Freeze with local directory
-            os.environ["MATPLOTLIBDATA"] = _mplDir
-        
+        if cxFrozen:
+            if sys.platform == "darwin": # not needed on windows and other builds
+                _mplDir = os.path.join(_resourcesDir, "mpl-data")
+                if os.path.exists(_mplDir): # set matplotlibdata for cx_Freeze with local directory
+                    os.environ["MATPLOTLIBDATA"] = _mplDir        
+            else: # some cx_freeze versions set this variable, which is incompatible with matplotlib after v3.1
+                os.environ.pop("MATPLOTLIBDATA", None)
         serverSoftware = os.getenv("SERVER_SOFTWARE", "")
         if serverSoftware.startswith("Google App Engine/") or serverSoftware.startswith("Development/"):
             self.hasFileSystem = False # no file system, userAppDir does not exist
