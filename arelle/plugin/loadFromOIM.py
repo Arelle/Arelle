@@ -2097,7 +2097,7 @@ def validateFinally(val, *args, **kwargs):
         for doc in modelXbrl.modelDocument.referencesDocument.keys():
             if doc.type == Type.LINKBASE:
                 val.modelXbrl.error("xbrlxe:unsupportedLinkbaseReference",
-                                    _("Linkbase reference not allowed from instqnce document."),
+                                    _("Linkbase reference not allowed from instance document."),
                                     modelObject=(modelXbrl.modelDocument,doc))
 
 def excelLoaderOptionExtender(parser, *args, **kwargs):
