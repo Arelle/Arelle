@@ -81,8 +81,8 @@ class FormulaXPathChecker:
             if prog:
                 self.evalProg(prog)
         except XPathException as err:
-            self.modelXbrl.error("arelle:formulaRestrictedXPath",
-                _("%(object)s id %(id)s label %(label)s %(attrName)s \nException: \n%(error)s \nExpression: \n%(expression)s"), 
+            self.modelXbrl.warning("arelle:formulaRestrictedXPath",
+                _("%(object)s id %(id)s label %(label)s %(attrName)s \nWarning: %(error)s \nExpression: %(expression)s"), 
                 modelObject=fObj, object=fObj.qname, id=fObj.id, label=fObj.xlinkLabel, attrName=sourceAttr, error=err.message, expression=err.line)
     
     def stepAxis(self, op, p):
@@ -91,25 +91,21 @@ class FormulaXPathChecker:
                 if p.isAttribute:
                     if p.localName != "id":
                         raise XPathException(self.progHeader, 'navigateAttr', 'Axis step {} to {}'.format(op, p.localName))
-                elif op == '/' or op is None:
+                elif op in ('/', '//', '..') or op is None:
                     raise XPathException(self.progHeader, 'navigateStep', 'Operation {} Axis step {} to {}'.format(op or "", axis or "", p.localName))
+            elif isinstance(p, OperationDef) and isinstance(p.name,QNameDef):
+                raise XPathException(p, 'navigate', 'Operation {} Axis step {} to {}'.format(op, p, p.name.localName))
             else:
-                raise XPathException(p, 'navigate', 'Operation {} Axis step {} to {}'.format(op, axis, p.localName))
+                raise XPathException(p, 'navigate', 'Operation {} Axis step to {}'.format(op, p))
             
     def evaluateRangeVars(self, op, p, args):
         if isinstance(p, RangeDecl):
-            r = self.evalProg(p.bindingSeq)
-            if len(r) == 1: # should be an expr single
-                if isinstance(r, (tuple,list,set)):
-                    if len(r) == 1 and isinstance(r[0],_RANGE):
-                        r = r[0]
-                    for rv in r:
-                        self.evaluateRangeVars(op, args[0], args[1:])
-                        if op != 'for' and len(result) > 0:
-                            break    # short circuit evaluation
+            self.evalProg(p.bindingSeq)
+            if args and len(args) >= 1:
+                self.evaluateRangeVars(op, args[0], args[1:])
         elif isinstance(p, Expr):
             if p.name == 'return':
-                elf.evalProg(p.expr)
+                self.evalProg(p.expr)
             elif p.name == 'satisfies':
                 self.evalProg(p.expr)
             
@@ -154,7 +150,8 @@ class FormulaXPathChecker:
                     self.evaluateRangeVars(op, p.args[0], p.args[1:])
                 elif op == 'if':
                     self.evalProg(p.args[0].expr[0])
-                    self.evalProg(p.args[1 if test else 2].args)
+                    self.evalProg(p.args[1].args) # evaluate both arguments
+                    self.evalProg(p.args[2].args)
                 elif op in PATH_OPS:
                     self.evalProg(p.args, parentOp=op)
             elif isinstance(p,ProgHeader):
