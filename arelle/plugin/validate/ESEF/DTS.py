@@ -36,7 +36,7 @@ def checkFilingDTS(val, modelDocument, visited):
 
         for doc, docRef in modelDocument.referencesDocument.items():
             if docRef.referenceType in ("import","include") and disallowedURIsPattern.match(doc.uri):
-                val.modelXbrl.error("ESEF.3.1.1.extensionImportNotAllowed",
+                val.modelXbrl.warning("ESEF.3.1.1.extensionImportNotAllowed",
                                     _("Taxonomy reference not allowed for extension schema: %(taxonomy)s"),
                                     modelObject=modelDocument, taxonomy=doc.uri)
         
@@ -136,7 +136,7 @@ def checkFilingDTS(val, modelDocument, visited):
                 if (isinstance(modelType,ModelType) and isExtension(val, modelType) and 
                     modelType.typeDerivedFrom is not None and modelType.typeDerivedFrom.qname.namespaceURI == xbrli and
                     not modelType.particlesList):
-                    val.modelXbrl.warning("ESEF.RTS.Annex.IV.Par.11.customDataTypeDuplicatingXbrlOrDtrEntry",
+                    val.modelXbrl.error("ESEF.RTS.Annex.IV.Par.11.customDataTypeDuplicatingXbrlOrDtrEntry",
                         _("Extension taxonomy element must not define a type where one is already defined by the XBRL specifications or in the XBRL Data Types Registry: %(qname)s"),
                         modelObject=modelType, qname=modelType.qname)
         if tuplesInExtTxmy:
@@ -185,7 +185,7 @@ def checkFilingDTS(val, modelDocument, visited):
                                     for e in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}linkbase")
                                     if isinstance(e,ModelObject)]
         if embeddedLinkbaseElements:
-                val.modelXbrl.error("ESEF.3.1.1.linkbasesNotSeparateFiles",
+                val.modelXbrl.warning("ESEF.3.1.1.linkbasesNotSeparateFiles",
                     _("Each linkbase type SHOULD be provided in a separate linkbase file, but a linkbase was found in %(schema)s."),
                     modelObject=embeddedLinkbaseElements, schema=modelDocument.basename)
 
