@@ -92,7 +92,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             #label = Label(None, image=image)
             #parent.iconwindow(label)
         else:
-            self.iconImage = PhotoImage(file=imgpath + "arelle.gif") # must keep reference during life of window
+            self.iconImage = PhotoImage(file=imgpath + "arelle-mac-icon-4.gif") # must keep reference during life of window
             parent.tk.call('wm', 'iconphoto', parent._w, self.iconImage)
             #parent.iconbitmap("@" + imgpath + "arelle.xbm")
             # try with gif file
