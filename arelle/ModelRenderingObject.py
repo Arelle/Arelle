@@ -286,7 +286,6 @@ class StructuralNode:
         elif self.zInheritance is not None:
             result = self.zInheritance.evaluate(evalObject, evalMethod, None, evalArgs)
         else:
-            result = evalMethod(xc, *evalArgs)
             try:
                 result = evalMethod(xc, *evalArgs)
             except XPathContext.XPathException as err:
