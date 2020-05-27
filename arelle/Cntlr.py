@@ -119,6 +119,8 @@ class Cntlr:
                     os.environ["MATPLOTLIBDATA"] = _mplDir        
             else: # some cx_freeze versions set this variable, which is incompatible with matplotlib after v3.1
                 os.environ.pop("MATPLOTLIBDATA", None)
+            if sys.platform in ("linux", "darwin"): # frozen Ubuntu and RedHat (only)
+                os.environ["TKTABLE_LIBRARY"] = os.path.join(_resourcesDir, "lib") # TkTableWrapper needs to locate Tktable library
         serverSoftware = os.getenv("SERVER_SOFTWARE", "")
         if serverSoftware.startswith("Google App Engine/") or serverSoftware.startswith("Development/"):
             self.hasFileSystem = False # no file system, userAppDir does not exist
