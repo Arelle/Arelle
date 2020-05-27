@@ -878,7 +878,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
     runIDs = (formulaOptions.runIDs or '').replace('|',' ').split()
     if runIDs:
         val.modelXbrl.info("formula:trace",
-                           _("Formua/assertion IDs restriction: %(ids)s"), 
+                           _("Formula/assertion IDs restriction: %(ids)s"), 
                            modelXbrl=val.modelXbrl, ids=', '.join(runIDs))
         
     # evaluate consistency assertions
