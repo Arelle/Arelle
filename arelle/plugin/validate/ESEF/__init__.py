@@ -28,7 +28,7 @@ from arelle.ModelValue import qname
 from arelle.PythonUtil import strTruncate
 from arelle.UrlUtil import isHttpUrl, scheme
 from arelle.XbrlConst import standardLabel
-from arelle.XmlValidate import VALID
+from arelle.XmlValidate import VALID, lexicalPatterns
 
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.XbrlConst import (ixbrlAll, xhtml, link, parentChild, summationItem, 
@@ -42,9 +42,9 @@ from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
 from .Util import isExtension
 
-datetimePattern = re.compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*")
 styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-esef-ix-hidden\s*:\s*([\w.-]+).*")
 ifrsNsPattern = re.compile(r"http://xbrl.ifrs.org/taxonomy/[0-9-]{10}/ifrs-full")
+datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
 
 FOOTNOTE_LINK_CHILDREN = {qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote}
 PERCENT_TYPE = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")

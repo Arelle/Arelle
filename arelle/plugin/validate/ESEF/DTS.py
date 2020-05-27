@@ -261,7 +261,7 @@ def checkFilingDTS(val, modelDocument, visited):
             if (prohibitingArcElt.get("use") == "prohibited" and 
                 prohibitingArcElt.get("{http://www.w3.org/1999/xlink}arcrole")  == XbrlConst.dimensionDefault):
                 val.modelXbrl.error("ESEF.3.4.3.extensionTaxonomyOverridesDefaultMembers",
-                    _("The extension taxonomy MUST not modify (prohibit and/or override) default members assigned to dimensions by the ESEF taxonomy."),
+                    _("The extension taxonomy MUST not prohibit default members assigned to dimensions by the ESEF taxonomy."),
                     modelObject=modelDocument.xmlRootElement, linkbasesFound=", ".join(sorted(linkbasesFound)))
                 
         
