@@ -62,7 +62,10 @@ lexicalPatterns = {
     "gMonthDay": re_compile(r"--(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
     "gDay": re_compile(r"---(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
     "gMonth": re_compile(r"--(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"), 
-    "language": re_compile(r"[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$"),   
+    "language": re_compile(r"[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$"),
+    "XBRLI_DATEUNION": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*$"),
+    "dateTime": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*$"),
+    "date": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}(Z|[+-][0-9]{2}:[0-9]{2})?\s*$"),
     }
 
 # patterns difficult to compile into python
@@ -464,15 +467,6 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     xValue = sValue = _INT(value)
                     if xValue == 0:
                         raise ValueError("invalid value")
-                elif baseXsdType == "XBRLI_DATEUNION":
-                    xValue = dateTime(value, type=DATEUNION, castException=ValueError)
-                    sValue = value
-                elif baseXsdType == "dateTime":
-                    xValue = dateTime(value, type=DATETIME, castException=ValueError)
-                    sValue = value
-                elif baseXsdType == "date":
-                    xValue = dateTime(value, type=DATE, castException=ValueError)
-                    sValue = value
                 elif baseXsdType == "regex-pattern":
                     # for facet compiling
                     try:
@@ -504,7 +498,16 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                         match = lexicalPatterns[baseXsdType].match(value)
                         if match is None:
                             raise ValueError("lexical pattern mismatch")
-                        if baseXsdType == "gMonthDay":
+                        if baseXsdType == "XBRLI_DATEUNION":
+                            xValue = dateTime(value, type=DATEUNION, castException=ValueError)
+                            sValue = value
+                        elif baseXsdType == "dateTime":
+                            xValue = dateTime(value, type=DATETIME, castException=ValueError)
+                            sValue = value
+                        elif baseXsdType == "date":
+                            xValue = dateTime(value, type=DATE, castException=ValueError)
+                            sValue = value
+                        elif baseXsdType == "gMonthDay":
                             month, day, zSign, zHrMin, zHr, zMin = match.groups()
                             if int(day) > {2:29, 4:30, 6:30, 9:30, 11:30, 1:31, 3:31, 5:31, 7:31, 8:31, 10:31, 12:31}[int(month)]:
                                 raise ValueError("invalid day {0} for month {1}".format(day, month))
