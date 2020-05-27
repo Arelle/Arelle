@@ -22,6 +22,8 @@
    HF: revised for changes to xhtml 1.1 (without RUBY):
      On the a and map elements, the name attribute has been removed 
      in favor of the id attribute
+     
+   HF: revised to remove @style from br and bdo per xhtml schema
 
 -->
 
@@ -117,6 +119,12 @@
  "id          ID             #IMPLIED
   class       CDATA          #IMPLIED
   style       %StyleSheet;   #IMPLIED
+  title       %Text;         #IMPLIED"
+  >
+<!-- HF - remove style per xhtml -->
+<!ENTITY % xhtmlcoreattrs
+ "id          ID             #IMPLIED
+  class       CDATA          #IMPLIED
   title       %Text;         #IMPLIED"
   >
 
@@ -527,8 +535,9 @@
   >
 
 <!ELEMENT bdo %Inline;>  <!-- I18N BiDi over-ride -->
+<!-- HF - remove style per xhtml -->
 <!ATTLIST bdo
-  %coreattrs;
+  %xhtmlcoreattrs;
   %events;
   lang        %LanguageCode; #IMPLIED
   xml:lang    %LanguageCode; #IMPLIED
@@ -536,8 +545,9 @@
   >
 
 <!ELEMENT br EMPTY>   <!-- forced line break -->
+<!-- HF - remove style per xhtml -->
 <!ATTLIST br
-  %coreattrs;
+  %xhtmlcoreattrs;
   >
 
 <!ELEMENT em %Inline;>   <!-- emphasis -->
