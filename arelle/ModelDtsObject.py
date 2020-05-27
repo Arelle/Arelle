@@ -732,6 +732,15 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
             return self._isEnum
         
     @property
+    def isEnumeration2Item(self):
+        """(bool) -- True if derived from enum2 item types"""
+        try:
+            return self._isEnum
+        except AttributeError:
+            self._isEnum = self.instanceOfType(XbrlConst.qnEnumeration2ItemTypes)
+            return self._isEnum
+        
+    @property
     def enumDomainQname(self):
         """(QName) -- enumeration domain qname """
         return self.schemaNameQname(self.get(XbrlConst.attrEnumerationDomain2014) or self.get(XbrlConst.attrEnumerationDomain2020) or self.get(XbrlConst.attrEnumerationDomainYYYY) or self.get(XbrlConst.attrEnumerationDomain11YYYY) or self.get(XbrlConst.attrEnumerationDomain2016))
