@@ -137,6 +137,9 @@ class QName:
             return '{{{0}}}{1}'.format(self.namespaceURI, self.localName)
         else:
             return self.localName
+    @property
+    def expandedName(self):
+        return '{0}#{1}'.format(self.namespaceURI or "", self.localName)
     def __repr__(self):
         return self.__str__() 
     def __str__(self):
