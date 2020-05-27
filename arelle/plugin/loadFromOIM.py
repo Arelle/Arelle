@@ -26,13 +26,13 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, dateTime, DATETIME, yearMonthDuration, dayTimeDuration
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict
-from arelle.UrlUtil import isHttpUrl, isAbsolute as isAbsoluteUri
+from arelle.UrlUtil import isHttpUrl, isAbsolute as isAbsoluteUri, relativeUrlPattern
 from arelle.XbrlConst import (qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
                               qnLinkPart, gen, link, defaultLinkRole, footnote, factFootnote, isStandardRole,
                               conceptLabel, elementLabel, conceptReference, all as hc_all, notAll as hc_notAll
                               )
 from arelle.XmlUtil import addChild, addQnameValue, copyIxFootnoteHtml, setXmlns
-from arelle.XmlValidate import integerPattern, NCNamePattern, QNamePattern, validate as xmlValidate, VALID
+from arelle.XmlValidate import integerPattern, languagePattern, NCNamePattern, QNamePattern, validate as xmlValidate, VALID
 
 nsOims = ("http://www.xbrl.org/CR/2018-12-12",
           "http://www.xbrl.org/WGWD/YYYY-MM-DD",
@@ -172,6 +172,12 @@ class SQNameType:
 class QNameType:
     pass # fake class for detecting QName type in JSON structure check
 
+class LangType:
+    pass
+
+class URIType:
+    pass
+
 UnrecognizedDocMemberTypes = {
     "/documentInfo": dict,
     "/documentInfo/documentType": str,
@@ -187,6 +193,7 @@ JsonMemberTypes = {
     "/documentInfo": dict,
     "/facts": dict,
     # documentInfo
+    "/documentInfo/baseURL": URIType,
     "/documentInfo/documentType": str,
     "/documentInfo/features": dict,
     "/documentInfo/features/*:*": (int,bool,str,type(None)),
@@ -212,7 +219,7 @@ JsonMemberTypes = {
     "/facts/*/dimensions/entity": SQNameType,
     "/facts/*/dimensions/period": str,
     "/facts/*/dimensions/unit": str,
-    "/facts/*/dimensions/language": str,
+    "/facts/*/dimensions/language": LangType,
     "/facts/*/dimensions/noteId": str,
     "/facts/*/dimensions/*:*": (str,type(None)),
     }
@@ -695,6 +702,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             # identify document type (JSON or CSV)
             documentInfo = jsonGet(oimObject, "documentInfo", {})
             documentType = jsonGet(documentInfo, "documentType")
+            documentBase = jsonGet(documentInfo, "baseURL")
             if documentType in jsonDocumentTypes:
                 isCSV = False
                 isJSON = True
@@ -733,6 +741,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             mbrTypes = oimMemberTypes[mbrPath]
                             if (not ((mbrTypes is QNameType or (isinstance(mbrTypes,tuple) and QNameType in mbrTypes)) and QNamePattern.match(mbrObj)) and
                                 not ((mbrTypes is SQNameType or (isinstance(mbrTypes,tuple) and SQNameType in mbrTypes)) and SQNamePattern.match(mbrObj)) and
+                                not ((mbrTypes is LangType or (isinstance(mbrTypes,tuple) and LangType in mbrTypes)) and languagePattern.match(mbrObj)) and
+                                not ((mbrTypes is URIType or (isinstance(mbrTypes,tuple) and URIType in mbrTypes)) and relativeUrlPattern.match(mbrObj)) and
                                 not isinstance(mbrObj, mbrTypes)):
                                 invalidMemberTypes.append(mbrPath)
                         elif ":" in mbrName and path + "*:*" in oimMemberTypes:
@@ -877,13 +887,13 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 if  len(modelXbrl.errors) > numErrorsBeforeJsonCheck:
                     raise OIMException()
     
-                oimObject["=entryParameters"] = (isJSON, isCSV, isXL, isCSVorXL, oimWb, documentInfo, documentType)
+                oimObject["=entryParameters"] = (isJSON, isCSV, isXL, isCSVorXL, oimWb, documentInfo, documentType, documentBase)
                 
             return oimObject
         
         errorIndexBeforeLoadOim = len(modelXbrl.errors)
         oimObject = loadOimObject(oimFile, None)
-        isJSON, isCSV, isXL, isCSVorXL, oimWb, oimDocumentInfo, documentType = oimObject["=entryParameters"]
+        isJSON, isCSV, isXL, isCSVorXL, oimWb, oimDocumentInfo, documentType, documentBase = oimObject["=entryParameters"]
         del oimObject["=entryParameters"]
         
         currentAction = "identifying Metadata objects"
@@ -1336,7 +1346,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                   schemaRefs=taxonomyRefs,
                   isEntry=True,
                   initialComment="extracted from OIM {}".format(mappedUri),
-                  documentEncoding="utf-8")
+                  documentEncoding="utf-8",
+                  base=documentBase)
             modelXbrl.modelDocument.inDTS = True
         else: # API implementation
             modelXbrl = ModelXbrl.create(
@@ -1345,7 +1356,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 instanceFileName, 
                 schemaRefs=taxonomyRefs, 
                 isEntry=True, 
-                initialComment="extracted from OIM {}".format(mappedUri))
+                initialComment="extracted from OIM {}".format(mappedUri),
+                base=documentBase)
             _return = modelXbrl.modelDocument
         
         firstCntxUnitFactElt = None
@@ -1637,6 +1649,26 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         continue
                     attrs[XbrlConst.qnXsiNil] = "true"
                     text = None
+                elif concept.isEnumeration2Item:
+                    qnames = fact["value"].split(" ")
+                    expandedNames = set()
+                    isFactValid = True
+                    for qn in qnames:
+                        if not PrefixedQName.match(qn):
+                            isFactValid = False
+                        else:
+                            _qname = qname(qn, namespaces)
+                            if not _qname:
+                                isFactValid = False
+                            else:
+                                expandedNames.add(_qname.expandedName)
+                    if isFactValid:
+                        text = " ".join(sorted(expandedNames))
+                    else:
+                        error("xbrle:invalidFactValue",
+                              _("Enumeration item must be list of QNames: %(concept)s."),
+                              modelObject=modelXbrl, concept=conceptSQName)
+                        continue
                 else:
                     text = fact["value"]
                     
@@ -2093,12 +2125,13 @@ def validateFinally(val, *args, **kwargs):
                             _("Instance MUST NOT contain xml:base attributes: element %(qname)s, xml:base %(base)s"),
                             modelObject=elt, qname=elt.qname if isinstance(elt, ModelObject) else elt.tag, 
                             base=elt.get("{http://www.w3.org/XML/1998/namespace}base"))
-        # todo: multi-document inline instances   
-        for doc in modelXbrl.modelDocument.referencesDocument.keys():
-            if doc.type == Type.LINKBASE:
-                val.modelXbrl.error("xbrlxe:unsupportedLinkbaseReference",
-                                    _("Linkbase reference not allowed from instance document."),
-                                    modelObject=(modelXbrl.modelDocument,doc))
+        # todo: multi-document inline instances 
+        if modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
+            for doc in modelXbrl.modelDocument.referencesDocument.keys():
+                if doc.type == Type.LINKBASE:
+                    val.modelXbrl.error("xbrlxe:unsupportedLinkbaseReference",
+                                        _("Linkbase reference not allowed from instance document."),
+                                        modelObject=(modelXbrl.modelDocument,doc))
 
 def excelLoaderOptionExtender(parser, *args, **kwargs):
     parser.add_option("--saveOIMinstance", 
