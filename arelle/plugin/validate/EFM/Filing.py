@@ -2067,10 +2067,15 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     val.modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
 
     # checks for namespace clashes
+    def elementsReferencingDocs(docs):
+        return set(doc.referencesDocument[d].referringModelObject
+                   for doc in modelXbrl.urlDocs.values()
+                   for d in conflictDocuments
+                   if d in doc.referencesDocument)
     if isEFM:
         # check number of us-roles taxonomies referenced
-        for conflictClass, modelDocuments in val.standardNamespaceConflicts.items():                                                                
-            if (len(modelDocuments) > 1 and 
+        for conflictClass, conflictDocuments in val.standardNamespaceConflicts.items():                                                                
+            if (len(conflictDocuments) > 1 and 
                 (conflictClass != 'srt+us-gaap' or ('us-types' in val.standardNamespaceConflicts and
                                                     'srt-types' in val.standardNamespaceConflicts)) and # ignore multi us-gaap/srt conflicts without the other
                 (conflictClass != 'ifrs+us-gaap' or ('us-types' in val.standardNamespaceConflicts and
@@ -2092,16 +2097,18 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     modelXbrl.error("EFM.6.22.03.incompatibleSchemas",
                         _("References for conflicting standard taxonomies %(conflictClass)s are not allowed in same DTS %(namespaceConflicts)s"),
                         edgarCode="cp-2203-Incompatible-Taxonomy-Versions",
-                        modelObject=modelXbrl, conflictClass=conflictClass,
-                        namespaceConflicts=", ".join(sorted([conflictClassFromNamespace(d.targetNamespace) for d in modelDocuments])))
+                        modelObject=elementsReferencingDocs(conflictDocuments), conflictClass=conflictClass,
+                        namespaceConflicts=", ".join(sorted([conflictClassFromNamespace(d.targetNamespace) for d in conflictDocuments])))
         if 'rr' in val.standardNamespaceConflicts and documentType not in docTypesRequiringRrSchema:
             modelXbrl.error("EFM.6.22.03.incompatibleTaxonomyDocumentType",
                 _("Taxonomy class %(conflictClass)s may not be used with document type %(documentType)s"),
-                modelObject=modelXbrl, conflictClass="RR", documentType=documentType)
+                modelObject=elementsReferencingDocs(val.standardNamespaceConflicts['rr']), conflictClass="RR", documentType=documentType)
         if 'ifrs-full' in val.standardNamespaceConflicts and documentType in docTypesNotAllowingIfrs:
+            conflictDoc = val.standardNamespaceConflicts['ifrs-full']
             modelXbrl.error("EFM.6.22.03.incompatibleTaxonomyDocumentType",
                 _("Taxonomy class %(conflictClass)s may not be used with document type %(documentType)s"),
-                modelObject=modelXbrl, conflictClass="IFRS", documentType=documentType)
+                modelObject=elementsReferencingDocs(val.standardNamespaceConflicts['ifrs-full']), 
+                conflictClass="IFRS", documentType=documentType)
         if 'ifrs-full' in val.standardNamespaceConflicts:
             ifrsNS = next(iter(val.standardNamespaceConflicts['ifrs-full'])).targetNamespace
             srtNS = None
