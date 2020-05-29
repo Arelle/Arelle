@@ -14,8 +14,8 @@ if sys.version[0] >= '3':
 else:
     csvOpenMode = 'wb' # for 2.7
     csvOpenNewline = None
-from openpyxl import Workbook, cell, utils
-from openpyxl.styles import Font, PatternFill, Border, Alignment, Color, fills, Side
+# deferred opening of openpyxl so it's not needed in site-packages unless it is used
+Workbook = cell = utils = Font = PatternFill = Border = Alignment = Color = fills = Side = None
 
 NOOUT = 0
 CSV   = 1
@@ -29,6 +29,7 @@ nonNameCharPattern =  re.compile(r"[^\w\-\.:]")
 class View:
     # note that cssExtras override any css entries provided by this module if they have the same name
     def __init__(self, modelXbrl, outfile, rootElementName, lang=None, style="table", cssExtras=""):
+        global Workbook, cell, utils, Font, PatternFill, Border, Alignment, Color, fills, Side
         self.modelXbrl = modelXbrl
         self.lang = lang
         if outfile is None:
@@ -50,6 +51,9 @@ class View:
             self.type = JSON
         elif outfile.endswith(".xlsx"):
             self.type = XLSX
+            if Workbook is None:
+                from openpyxl import Workbook, cell, utils
+                from openpyxl.styles import Font, PatternFill, Border, Alignment, Color, fills, Side
         else:
             self.type = CSV
         self.outfile = outfile
