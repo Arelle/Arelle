@@ -17,6 +17,8 @@ not executed).
 When running a test suite in command line mode (such as formula suite), to run these checks add the parameters
          --plugin formulaXPathChecker --check-formula-restricted-XPath
 
+When loading a taxonomy package, to check all entries in the package, do not specify --file parameter, instead --check-package-entries
+         --package myTaxonomyPackage.zip --plugin formulaXPathChecker --check-formula-restricted-XPath --check-package-entries
 '''
 from arelle.ViewUtilFormulae import rootFormulaObjects, formulaObjSortKey
 from arelle.ModelFormulaObject import (aspectStr, ModelValueAssertion, ModelExistenceAssertion, ModelConsistencyAssertion,
@@ -38,8 +40,8 @@ from arelle.XPathParser import (VariableRef, QNameDef, OperationDef, RangeDecl, 
 from arelle.XPathContext import (XPathException, VALUE_OPS, GENERALCOMPARISON_OPS, NODECOMPARISON_OPS, 
                                  COMBINING_OPS, LOGICAL_OPS, UNARY_OPS, FORSOMEEVERY_OPS, PATH_OPS,
                                  SEQUENCE_TYPES, GREGORIAN_TYPES)
-from arelle import XbrlConst, XmlUtil, XPathParser
-import os, datetime
+from arelle import FileSource, PackageManager, XbrlConst, XmlUtil, XPathParser, ValidateXbrlDimensions, ValidateFormula
+import os, datetime, logging
 
 FNs_BLOCKED = ("doc", "doc-available", "collection", "element-with-id")
 
@@ -253,6 +255,10 @@ def checkFormulaXPathCommandLineOptionExtender(parser, *args, **kwargs):
                       action="store_true", 
                       dest="checkFormulaRestrictedXPath", 
                       help=_("Check formula for restricted XPath features."))
+    parser.add_option("--check-package-entries", 
+                      action="store_true", 
+                      dest="checkPackageEntries", 
+                      help=_("Check all package entries."))
 
 def checkFormulaXPathCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
@@ -261,6 +267,8 @@ def checkFormulaXPathCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwar
             cntlr.addToLog("No taxonomy loaded.")
             return
         cntlr.modelManager.modelXbrl.checkFormulaRestrictedXPath = True
+        
+
         
 def validateFormulaCompiled(modelXbrl):
     if getattr(modelXbrl, "checkFormulaRestrictedXPath", True): # true allows it to always work for GUI
@@ -271,6 +279,34 @@ def validateFormulaCompiled(modelXbrl):
                 _("Xbrl Formula file generation exception: %(error)s"), error=ex,
                 modelXbrl=modelXbrl,
                 exc_info=True)
+            
+def validateUtilityRun(cntlr, options, *args, **kwargs):
+    if getattr(options, "checkPackageEntries", False) and not options.entrypointFile:
+        setattr(options, 'entrypointFile', '[]') # set empty entrypoints list so CntlrCmdLine continues to CntlrCmdLine.Filing.Start pugin
+        setattr(options, 'formulaAction', 'validate')
+        setattr(options, 'validate', True)
+    
+def setupPackageEntrypoints(cntlr, options, filesource, entrypointFiles, *args, **kwargs):
+    # check package entries formula code
+    if getattr(options, "checkPackageEntries", False) and not entrypointFiles:
+        for packageInfo in sorted(PackageManager.packagesConfig.get("packages", []),
+                                  key=lambda packageInfo: (packageInfo.get("name",""),packageInfo.get("version",""))):
+            cntlr.addToLog(_("Package %(package)s Version %(version)s"),
+                           messageArgs={"package": packageInfo["name"], "version": packageInfo["version"]},
+                           messageCode="info",
+                           level=logging.INFO)
+            filesource = FileSource.openFileSource(packageInfo["URL"], cntlr)    
+            if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
+                filesource.loadTaxonomyPackageMappings()
+            for name, urls in packageInfo.get("entryPoints",{}).items():
+                for url in urls:
+                    if filesource and filesource.isArchive:
+                        cntlr.addToLog(_("   EntryPont %(entryPoint)s: %(url)s"),
+                                       messageArgs={"entryPoint": name or urls[0][2],
+                                                    "url": url[1]},
+                                       messageCode="info",
+                                       level=logging.INFO)
+                        entrypointFiles.append({"file":url[1]})
 
 __pluginInfo__ = {
     'name': 'Formula XPath Checker',
@@ -281,6 +317,8 @@ __pluginInfo__ = {
     'copyright': '(c) Copyright 2020 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
     'CntlrCmdLine.Options': checkFormulaXPathCommandLineOptionExtender,
+    'CntlrCmdLine.Utility.Run': validateUtilityRun,
+    'CntlrCmdLine.Filing.Start': setupPackageEntrypoints,
     'CntlrCmdLine.Xbrl.Run': checkFormulaXPathCommandLineXbrlRun,
     'ValidateFormula.Compiled': validateFormulaCompiled
 }
