@@ -16,11 +16,12 @@ from arelle.XbrlConst import conceptNameLabelRole
 def viewRelationshipSet(modelXbrl, tabWin, arcrole, 
                         linkrole=None, linkqname=None, arcqname=None, lang=None, 
                         treeColHdr=None, showLinkroles=True, showRelationships=True, showColumns=True,
-                        expandAll=False, hasTableIndex=False):
+                        expandAll=False, hasTableIndex=False, noRelationshipsMsg=True):
     arcroleName = groupRelationshipLabel(arcrole)
     relationshipSet = groupRelationshipSet(modelXbrl, arcrole, linkrole, linkqname, arcqname)
     if not relationshipSet:
-        modelXbrl.modelManager.addToLog(_("no relationships for {0}").format(arcroleName))
+        if noRelationshipsMsg:
+            modelXbrl.modelManager.addToLog(_("no relationships for {0}").format(arcroleName))
         return False
     modelXbrl.modelManager.showStatus(_("viewing relationships {0}").format(arcroleName))
     view = ViewRelationshipSet(modelXbrl, tabWin, arcrole, linkrole, linkqname, arcqname, lang, 

@@ -11,6 +11,15 @@ Taxonomy package expected to be installed:
 
 @author: Mark V Systems Limited
 (c) Copyright 2018 Mark V Systems Limited, All rights reserved.
+
+Using arelle as a web server:
+
+   arelleCmdLine.exe --webserver localhost:8080:cheroot --plugins validate/ESEF --packages {my-package-directory}/esef_taxonomy_2019.zip
+   
+Client with curl:
+
+   curl -X POST "-HContent-type: application/zip" -T TC1_valid.zip "http://localhost:8080/rest/xbrl/validation?disclosureSystem=esef&media=text"
+
 '''
 import os
 try:
@@ -170,8 +179,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                 reportCorrectlyPlacedInPackage = False
                 for i, dir in enumerate(docDirPath):
                     if dir.lower().endswith(".zip"):
-                        packageName = dir[:-4]
-                        if len(dir) >= i + 2 and docDirPath[i+1] == packageName and docDirPath[i+2] == "reports":
+                        packageName = dir[:-4] # web service posted zips are always named POSTupload.zip instead of the source file name
+                        if len(dir) >= i + 2 and packageName in (docDirPath[i+1],"POSTupload") and docDirPath[i+2] == "reports":
                             ixdsDocDirs.add("/".join(docDirPath[i+3:-1]))
                             reportCorrectlyPlacedInPackage = True
                         break

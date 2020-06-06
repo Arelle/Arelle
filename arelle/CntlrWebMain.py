@@ -182,6 +182,8 @@ validationOptions = {
     "efm": ("validateEFM", True),
     "efm-pragmatic": ("disclosureSystemName", "efm-pragmatic"),
     "efm-strict": ("disclosureSystemName", "efm-strict"),
+    "efm-all-years": ("disclosureSystemName", "efm-all-years"),
+    "esef": ("disclosureSystemName", "esef"),
     "disclosure-system": ("disclosureSystemName", None),
     "ifrs": ("gfmName", "ifrs"),
     "hmrc": ("gfmName", "hmrc"),

@@ -474,6 +474,7 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                        'license': parsedPackage.get('license'),
                        'fileDate': time.strftime('%Y-%m-%dT%H:%M:%S UTC', time.gmtime(os.path.getmtime(packageFilename))),
                        'URL': URL,
+                       'entryPoints': parsedPackage.get('entryPoints', {}),
                        'manifestName': packageManifestName,
                        'description': "; ".join(descriptions),
                        'publisher': parsedPackage.get('publisher'), 
