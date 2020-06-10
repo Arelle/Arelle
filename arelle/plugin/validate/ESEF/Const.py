@@ -44,7 +44,7 @@ disallowedURIsPattern = re.compile(
     "http://www.esma.europa.eu/taxonomy/[0-9-]{10}/esef_all.xsd"
     )
 
-DefaultDimensionLinkrole = "http://www.esma.europa.eu/xbrl/esef/role/ifrs-dim_role-990000"
+DefaultDimensionLinkrole = "http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000"
 LineItemsNotQualifiedLinkrole = "http://www.esma.europa.eu/xbrl/role/cor/esef_role-999999"
 
 qnDomainItemType = qname("{http://www.xbrl.org/dtr/type/non-numeric}nonnum:domainItemType")

@@ -70,7 +70,7 @@ def checkFilingDTS(val, modelDocument, visited):
                         typedDimsInExtTxmy.append(modelConcept)
                     if modelConcept.isExplicitDimension and not dimensionDefaults.fromModelObject(modelConcept):
                         val.modelXbrl.error("ESEF.3.4.3.extensionTaxonomyDimensionNotAssigedDefaultMemberInDedicatedPlaceholder",
-                            _("Each dimension in an issuer specific extension taxonomy MUST be assigned to a default member in the ELR with role URI http://www.esma.europa.eu/xbrl/role/ifrs-dim_role-990000 defined in esef_cor.xsd schema file. %(qname)s"),
+                            _("Each dimension in an issuer specific extension taxonomy MUST be assigned to a default member in the ELR with role URI http://www.esma.europa.eu/xbrl/role/core/ifrs-dim_role-990000 defined in esef_cor.xsd schema file. %(qname)s"),
                             modelObject=modelConcept, qname=modelConcept.qname)
                     if modelConcept.isDomainMember and modelConcept in val.domainMembers and modelConcept.typeQname != qnDomainItemType:
                         domainMembersWrongType.append(modelConcept)
