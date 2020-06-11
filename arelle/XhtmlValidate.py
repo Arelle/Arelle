@@ -486,6 +486,7 @@ def xhtmlValidate(modelXbrl, elt):
                     
     def ixToXhtml(fromRoot):
         toRoot = etree.Element(fromRoot.localName)
+        toRoot.sourceline = fromRoot.sourceline
         copyNonIxChildren(fromRoot, toRoot)
         for attrTag, attrValue in fromRoot.items():
             checkAttribute(fromRoot, False, attrTag, attrValue)
@@ -517,6 +518,7 @@ def xhtmlValidate(modelXbrl, elt):
                 else:
                     if fromChild.localName in {"footnote", "nonNumeric", "continuation"} and isIxNs:
                         toChild = etree.Element("ixNestedContent")
+                        toChild.sourceline = fromChild.sourceline
                         toElt.append(toChild)
                         copyNonIxChildren(fromChild, toChild)
                         if fromChild.text is not None:
@@ -527,43 +529,65 @@ def xhtmlValidate(modelXbrl, elt):
                         copyNonIxChildren(fromChild, toElt)
                     else:
                         toChild = etree.Element(fromChild.localName)
+                        toChild.sourceline = fromChild.sourceline
                         toElt.append(toChild)
-                        copyNonIxChildren(fromChild, toChild)
                         for attrTag, attrValue in fromChild.items():
                             checkAttribute(fromChild, False, attrTag, attrValue)
                             toChild.set(attrTag, attrValue)
                         if fromChild.text is not None:
-                            toChild.text = fromChild.text
+                            if toChild.text:
+                                toChild.text += fromChild.text
+                            else:
+                                toChild.text = fromChild.text
                         if fromChild.tail is not None:
-                            toChild.tail = fromChild.tail    
+                            if toChild.tail:
+                                toChild.tail += fromChild.tail
+                            else:  
+                                toChild.tail = fromChild.tail    
+                        copyNonIxChildren(fromChild, toChild)
             elif isinstance(fromChild, ModelComment): # preserve non-xsd-whitespac after comments
                 if fromChild.tail and not XmlValidate.entirelyWhitespacePattern.match(fromChild.tail):
-                    toChild = toElt # append to parent or last child of parent
+                    toChild = None # append to parent or last child of parent
                     for lastToElt in toElt.iterchildren(reversed=True):
                         toChild = lastToElt
                         break
-                    if not toChild.tail:
-                        toChild.tail = fromChild.tail
-                    else:
-                        toChild.tail += fromChild.tail
-                            
+                    if toChild is not None: # append onto tail of last child
+                        if not toChild.tail:
+                            toChild.tail = fromChild.tail
+                        else:
+                            toChild.tail += fromChild.tail
+                    else: # comment is child of toElt, append to text
+                        if toElt.text:
+                            toElt.text += fromChild.tail
+                        else:
+                            toElt.text = fromChild.tail
     # copy xhtml elements to fresh tree
     with open(os.path.join(modelXbrl.modelManager.cntlr.configDir, _xhtmlDTD)) as fh:
         dtd = DTD(fh)
+    htmlDtdTree = ixToXhtml(elt)
+    def dtdErrs():
+        errs = []
+        for e in dtd.error_log.filter_from_errors():
+            line = ""
+            if e.path and e.path.startswith("/html/"):
+                dtdElt = htmlDtdTree.find(e.path[6:])
+                if dtdElt is not None:
+                    line = " line {}".format(dtdElt.sourceline)
+            errs.append(e.message + line)
+        return errs
     try:
-        #with open("/users/hermf/temp/testDtd.htm", "w") as fh:
-        #    fh.write(etree.tostring(ixToXhtml(elt), encoding=_STR_UNICODE, pretty_print=True))
-        if not dtd.validate( ixToXhtml(elt) ):
+        # uncomment to debug:with open("/users/hermf/temp/testDtd.htm", "wb") as fh:
+        # uncomment to debug:    fh.write(etree.tostring(htmlDtdTree, encoding="UTF-8", xml_declaration=True, pretty_print=True))
+        if not dtd.validate( htmlDtdTree ):
             modelXbrl.error("html:syntaxError",
                 _("%(element)s error %(error)s"),
-                modelObject=elt, element=elt.localName.title(),
-                error=', '.join(e.message for e in dtd.error_log.filter_from_errors()))
+                modelObject=elt, element=elt.localName.title(), error=', '.join(dtdErrs()))            
         if isEFM:
             ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", "EFM.5.02.05.", isInline=True) 
     except XMLSyntaxError as err:
         modelXbrl.error("html:syntaxError",
             _("%(element)s error %(error)s"),
-            modelObject=elt, element=elt.localName.title(), error=dtd.error_log.filter_from_errors())
+            modelObject=elt, element=elt.localName.title(), error=', '.join(dtdErrs()))
 
 def resolveHtmlUri(elt, name, value):
     if name == "archive": # URILIST
