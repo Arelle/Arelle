@@ -162,6 +162,7 @@ UrlInvalidPattern = re.compile(
 xlUnicodePattern = re.compile("_x([0-9A-F]{4})_")
 
 precisionZeroPattern = re.compile(r"^\s*0+\s*$")
+decimalsSuffixPattern = re.compile(r"(0|-?[1-9][0-9]*|INF)$")
 
 htmlBodyTemplate = "<body xmlns='http://www.w3.org/1999/xhtml'>\n{0}\n</body>\n"
 xhtmlTagPrefix = "{http://www.w3.org/1999/xhtml}"
@@ -1305,7 +1306,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                 fact["decimals"] = dimValue
                                             else:
                                                 error("xbrlce:invalidDecimalsValue", 
-                                                      _("Table %(table)s row %(row)s column %(column)s has invalid decimals \"%(decimals)s\", from %(source)s, url: %(url)s"),
+                                                      _("Fact %(FactId)S has invalid decimals \"%(decimals)s\", from %(source)s, url: %(url)s"),
                                                       table=tableId, row=rowIndex+1, column=colName, decimals=dimValue, url=tableUrl, source=dimSource)
                                     yield (factId, fact)
                                 unmappedParamCols = paramColsWithValue - paramColsUsed
@@ -1674,6 +1675,15 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     
                 decimals = fact.get("decimals")
                 if concept.isNumeric:
+                    if isCSVorXL:
+                        text, _sep, _decimals = text.partition("d")
+                        if _sep:
+                            if decimalsSuffixPattern.match(_decimals):
+                                decimals = _decimals
+                            else:
+                                error("xbrlce:invalidDecimalsValue", 
+                                      _("Fact %(factId)s has invalid decimals \"%(decimals)s\""),
+                                      modelObject=modelXbrl, factId=id, decimals=_sep+_decimals)
                     if _unit is None:
                         continue # skip creating fact because unit was invalid
                     attrs["unitRef"] = _unit.id
