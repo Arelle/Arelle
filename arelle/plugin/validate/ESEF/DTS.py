@@ -52,6 +52,7 @@ def checkFilingDTS(val, modelDocument, visited):
         conceptsWithoutStandardLabel = []
         conceptsWithNoLabel = []
         widerNarrowerRelSet = val.modelXbrl.relationshipSet(XbrlConst.widerNarrower)
+        calcRelSet = val.modelXbrl.relationshipSet(XbrlConst.summationItem)
         dimensionDefaults = val.modelXbrl.relationshipSet(dimensionDefault, DefaultDimensionLinkrole)
         labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
         if modelDocument.targetNamespace is not None:
@@ -78,7 +79,8 @@ def checkFilingDTS(val, modelDocument, visited):
                         if modelConcept not in val.primaryItems:
                             extLineItemsWithoutHypercube.append(modelConcept)
                         elif not widerNarrowerRelSet.fromModelObject(modelConcept) and not widerNarrowerRelSet.toModelObject(modelConcept):
-                            extLineItemsNotAnchored.append(modelConcept)
+                            if not calcRelSet.fromModelObject(modelConcept) or not calcRelSet.toModelObject(modelConcept): # exclude subtotals
+                                extLineItemsNotAnchored.append(modelConcept)
                     if (modelConcept.isAbstract and modelConcept not in val.domainMembers and 
                         modelConcept.type is not None and not modelConcept.type.isDomainItemType and
                         not modelConcept.isHypercubeItem and not modelConcept.isDimensionItem):
