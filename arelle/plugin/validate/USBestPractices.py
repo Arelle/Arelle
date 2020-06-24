@@ -1,3 +1,5 @@
+# changed from reporting locs to reporting relationships: HF 2020-06-23 
+
 from arelle import PluginManager
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelValue import qname
@@ -55,6 +57,30 @@ ugtDocs = ({"year": 2012,
             "namespace": "http://fasb.org/srt/2018-01-31",
             "docLB": "http://xbrl.fasb.org/srt/2018/srt-2018-01-31.zip/srt-2018-01-31/elts/srt-doc-2018-01-31.xml",
             "entryXsd": "http://xbrl.fasb.org/srt/2018/srt-2018-01-31.zip/srt-2018-01-31/entire/srt-entryPoint-std-2018-01-31.xsd",
+            },
+           {"year": 2019, 
+            "name": "us-gaap",
+            "namespace": "http://fasb.org/us-gaap/2019-01-31",
+            "docLB": "http://xbrl.fasb.org/us-gaap/2019/us-gaap-2019-01-31.zip/us-gaap-2019-01-31/elts/us-gaap-doc-2019-01-31.xml",
+            "entryXsd": "http://xbrl.fasb.org/us-gaap/2019/us-gaap-2019-01-31.zip/us-gaap-2019-01-31/entire/us-gaap-entryPoint-std-2019-01-31.xsd",
+            },
+           {"year": 2019, 
+            "name": "srt",
+            "namespace": "http://fasb.org/srt/2019-01-31",
+            "docLB": "http://xbrl.fasb.org/srt/2019/srt-2019-01-31.zip/srt-2019-01-31/elts/srt-doc-2019-01-31.xml",
+            "entryXsd": "http://xbrl.fasb.org/srt/2019/srt-2019-01-31.zip/srt-2019-01-31/entire/srt-entryPoint-std-2019-01-31.xsd",
+            },
+           {"year": 2020, 
+            "name": "us-gaap",
+            "namespace": "http://fasb.org/us-gaap/2020-01-31",
+            "docLB": "http://xbrl.fasb.org/us-gaap/2020/us-gaap-2020-01-31.zip/us-gaap-2020-01-31/elts/us-gaap-doc-2020-01-31.xml",
+            "entryXsd": "http://xbrl.fasb.org/us-gaap/2020/us-gaap-2020-01-31.zip/us-gaap-2020-01-31/entire/us-gaap-entryPoint-std-2020-01-31.xsd",
+            },
+           {"year": 2020, 
+            "name": "srt",
+            "namespace": "http://fasb.org/srt/2020-01-31",
+            "docLB": "http://xbrl.fasb.org/srt/2020/srt-2020-01-31.zip/srt-2020-01-31/elts/srt-doc-2020-01-31.xml",
+            "entryXsd": "http://xbrl.fasb.org/srt/2020/srt-2020-01-31.zip/srt-2020-01-31/entire/srt-entryPoint-std-2020-01-31.xsd",
             },
            )
 
@@ -317,23 +343,23 @@ def final(val, conceptsUsed, *args, **kwargs):
                 if (not concept.isAbstract or 
                     concept.isDimensionItem or 
                     (concept.type is not None and concept.type.isDomainItemType)):
-                    standardConceptsUnused[concept].add(rel.locatorOf(concept))
+                    standardConceptsUnused[concept].add(rel)
                 elif ((concept.qname.namespaceURI == ugtNamespace and
                        concept.name in val.usgaapDeprecations) or
                       concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate")):
                     # catches abstract deprecated concepts in linkbases
-                    standardConceptsDeprecated[concept].add(rel.locatorOf(concept))
-    for concept, locs in standardConceptsUnused.items():
+                    standardConceptsDeprecated[concept].add(rel)
+    for concept, rels in standardConceptsUnused.items():
         if concept.qname.namespaceURI == ugtNamespace and concept.name in val.usgaapDeprecations:
             deprecation = val.usgaapDeprecations[concept.name]
             val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
                 _("Unused concept %(concept)s has extension relationships and was deprecated on %(date)s: %(documentation)s"),
-                modelObject=locs, concept=concept.qname,
+                modelObject=rels, concept=concept.qname,
                 date=deprecation[0], documentation=deprecation[1])
         elif concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
             val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
                 _("Unused concept %(concept)s has extension relationships was deprecated on %(date)s"),
-                modelObject=locs, concept=concept.qname,
+                modelObject=rels, concept=concept.qname,
                 date=concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"))
         elif (concept not in val.modelXbrl.dimensionDefaultConcepts and # don't report dimension that has a default member
               concept not in dimensionDefaults and # don't report default members
@@ -343,18 +369,18 @@ def final(val, conceptsUsed, *args, **kwargs):
               not concept.isAbstract)):
             val.modelXbrl.log('INFO-SEMANTIC', "US-BPG.1.7.1.unusedStandardConceptInExtensionRelationship",
                 _("Company extension relationships of unused standard concept: %(concept)s"),
-                modelObject=locs, concept=concept.qname) 
-    for concept, locs in standardConceptsDeprecated.items():
+                modelObject=rels, concept=concept.qname) 
+    for concept, rels in standardConceptsDeprecated.items():
         if concept.qname.namespaceURI == ugtNamespace and concept.name in val.usgaapDeprecations:
             deprecation = val.usgaapDeprecations[concept.name]
             val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
                 _("Concept %(concept)s has extension relationships and was deprecated on %(date)s: %(documentation)s"),
-                modelObject=locs, concept=concept.qname,
+                modelObject=rels, concept=concept.qname,
                 date=deprecation[0], documentation=deprecation[1])
         elif concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
             val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
                 _("Concept %(concept)s has extension relationships was deprecated on %(date)s"),
-                modelObject=locs, concept=concept.qname,
+                modelObject=rels, concept=concept.qname,
                 date=concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"))
     val.modelXbrl.profileStat(_("validate US-BGP unused concepts"), time.time() - startedAt)
 
