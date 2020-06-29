@@ -19,7 +19,8 @@ from arelle.XbrlConst import all, notAll, hypercubeDimension, dimensionDomain, d
 allowedImgMimeTypes = (
         "data:image/gif;base64", 
         "data:image/jpeg;base64", "data:image/jpg;base64", # note both jpg and jpeg are in use
-        "data:image/png;base64")
+        "data:image/png;base64",
+        "data:image/svg+xml;base64")
         
 browserMaxBase64ImageLength = 5242880 # 5MB
 

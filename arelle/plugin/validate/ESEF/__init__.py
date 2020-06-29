@@ -21,7 +21,7 @@ Client with curl:
    curl -X POST "-HContent-type: application/zip" -T TC1_valid.zip "http://localhost:8080/rest/xbrl/validation?disclosureSystem=esef&media=text"
 
 '''
-import os
+import os, base64
 try:
     import regex as re
 except ImportError:
@@ -49,7 +49,7 @@ from .Const import (allowedImgMimeTypes, browserMaxBase64ImageLength, mandatory,
                     esefPrimaryStatementPlaceholderNames, esefStatementsOfMonetaryDeclarationNames, esefMandatoryElementNames2020)
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
-from .Util import isExtension
+from .Util import isExtension, checkImageContents
 
 styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-esef-ix-hidden\s*:\s*([\w.-]+).*")
 ifrsNsPattern = re.compile(r"http://xbrl.ifrs.org/taxonomy/[0-9-]{10}/ifrs-full")
@@ -254,7 +254,10 @@ def validateXbrlFinally(val, *args, **kwargs):
                                             normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
                                         imglen = 0
                                         with elt.modelXbrl.fileSource.file(normalizedUri,binary=True)[0] as fh:
-                                            imglen += len(fh.read())
+                                            imgContents = fh.read()
+                                            imglen += len(imgContents)
+                                            checkImageContents(modelXbrl, elt, os.path.splitext(src)[1], imgContents)
+                                            imgContents = None # deref, may be very large
                                         if imglen < browserMaxBase64ImageLength:
                                             modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
                                                 _("Images MUST be included in the XHTML document as a base64 encoded string unless their size exceeds support of browsers (%(maxImageSize)s): %(file)s."),
@@ -267,6 +270,16 @@ def validateXbrlFinally(val, *args, **kwargs):
                                     modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
                                         _("Images MUST be included in the XHTML document as a base64 encoded string, encoding disallowed: %(src)s."),
                                         modelObject=elt, src=src[:128])
+                            else: # check for malicious image contents
+                                mime, _sep, b64ImgContents = src.partition(";base64,")
+                                try:
+                                    imgContents = base64.b64decode(b64ImgContents) # allow embedded newlines
+                                    checkImageContents(modelXbrl, elt, mime, imgContents)
+                                    imgContents = None # deref, may be very large
+                                except base64.binascii.Error as err:
+                                    modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
+                                        _("Base64 encoding error %(err)s in image source: %(src)s."),
+                                        modelObject=elt, err=str(err), src=src[:128])
                             
                         elif eltTag == "a":
                             href = elt.get("href","").strip()
@@ -407,7 +420,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 modelObject=contextsWithDisallowedOCEcontent, contextIds=", ".join(c.id for c in contextsWithDisallowedOCEcontent))
         if len(contextIdentifiers) > 1:
             modelXbrl.error("ESEF.2.1.4.multipleIdentifiers",
-                _("All entity identifiers in contexts MUST have identical content: %(contextIdentifiers)s"),
+                _("All entity identifiers in contexts MUST have identical content: %(contextIds)s"),
                 modelObject=modelXbrl, contextIds=", ".join(i[1] for i in contextIdentifiers))
         for (contextScheme, contextIdentifier), contextElts in contextIdentifiers.items():
             if contextScheme != iso17442:
