@@ -87,6 +87,26 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 	<Loc>
 		<Family>US GAAP</Family>
 		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/dei/2020/dei-std-2020-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/dei-std/2020-01-31</Namespace>
+		<Prefix>dei-std</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/dei/2020/dei-ent-std-2020-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/dei-ent-std/2020-01-31</Namespace>
+		<Prefix>dei-ent-std</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
 		<Href>https://xbrl.sec.gov/dei/2019/dei-std-2019-01-31.xsd</Href>
 		<AttType>SCH</AttType>
 		<FileTypeName>Entry Point</FileTypeName>
@@ -103,6 +123,36 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<Elements>0</Elements>
 		<Namespace>http://xbrl.sec.gov/dei-ent-std/2019-01-31</Namespace>
 		<Prefix>dei-ent-std</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/dei/2019/dei-std-2019-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/dei-std/2019-01-31</Namespace>
+		<Prefix>dei-std</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/dei/2019/dei-ent-std-2019-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/dei-ent-std/2019-01-31</Namespace>
+		<Prefix>dei-ent-std</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2020</Version>
+		<Href>https://xbrl.sec.gov/dei/2020/dei-2020-01-31.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/dei/2020-01-31</Namespace>
+		<Prefix>dei</Prefix>
 	</Loc>
 	<Loc>
 		<Family>US GAAP</Family>
