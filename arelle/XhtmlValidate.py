@@ -486,7 +486,8 @@ def xhtmlValidate(modelXbrl, elt):
                     
     def ixToXhtml(fromRoot):
         toRoot = etree.Element(fromRoot.localName)
-        toRoot.sourceline = fromRoot.sourceline
+        if fromRoot.sourceline < 65535: # lxml bug, stores in a short
+            toRoot.sourceline = fromRoot.sourceline
         copyNonIxChildren(fromRoot, toRoot)
         for attrTag, attrValue in fromRoot.items():
             checkAttribute(fromRoot, False, attrTag, attrValue)
@@ -518,7 +519,8 @@ def xhtmlValidate(modelXbrl, elt):
                 else:
                     if fromChild.localName in {"footnote", "nonNumeric", "continuation"} and isIxNs:
                         toChild = etree.Element("ixNestedContent")
-                        toChild.sourceline = fromChild.sourceline
+                        if fromChild.sourceline < 65535: # lxml bug, stores in a short
+                            toChild.sourceline = fromChild.sourceline
                         toElt.append(toChild)
                         copyNonIxChildren(fromChild, toChild)
                         if fromChild.text is not None:
@@ -529,7 +531,8 @@ def xhtmlValidate(modelXbrl, elt):
                         copyNonIxChildren(fromChild, toElt)
                     else:
                         toChild = etree.Element(fromChild.localName)
-                        toChild.sourceline = fromChild.sourceline
+                        if fromChild.sourceline < 65535: # lxml bug, stores in a short
+                            toChild.sourceline = fromChild.sourceline
                         toElt.append(toChild)
                         for attrTag, attrValue in fromChild.items():
                             checkAttribute(fromChild, False, attrTag, attrValue)
@@ -571,7 +574,7 @@ def xhtmlValidate(modelXbrl, elt):
             line = ""
             if e.path and e.path.startswith("/html/"):
                 dtdElt = htmlDtdTree.find(e.path[6:])
-                if dtdElt is not None:
+                if dtdElt is not None and dtdElt.sourceline:
                     line = " line {}".format(dtdElt.sourceline)
             errs.append(e.message + line)
         return errs
