@@ -518,8 +518,7 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                           sequence,
                           depth,
                           self.qnameId.get(rel.preferredLabel) if rel.preferredLabel else None)
-                         for rel, sequence, depth, networkId in dbRels
-                         if isinstance(rel.fromModelObject, ModelConcept) and isinstance(rel.toModelObject, ModelConcept))
+                         for rel, sequence, depth, networkId in dbRels)
         del dbRels[:]   # dererefence
         table = self.getTable('relationship', 'relationship_id', 
                               ('network_id', 'from_element_id', 'to_element_id', 'reln_order', 
