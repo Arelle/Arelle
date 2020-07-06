@@ -517,7 +517,7 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                           self.dbNum(rel.weight), # none if no weight
                           sequence,
                           depth,
-                          self.qnameId.get(rel.preferredLabel) if rel.preferredLabel else None)
+                          self.uriId.get(rel.preferredLabel) if rel.preferredLabel else None)
                          for rel, sequence, depth, networkId in dbRels)
         del dbRels[:]   # dererefence
         table = self.getTable('relationship', 'relationship_id', 
