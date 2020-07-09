@@ -281,7 +281,7 @@ CsvMemberTypes = {
     "/tableTemplates/*/dimensions/noteId": str,
     "/tableTemplates/*/dimensions/*:*": str,
     "/tableTemplates/*/dimensions/$*": str,
-    "/tableTemplates/*/transposed": bool,
+    #"/tableTemplates/*/transposed": bool,
     # columns
     "/tableTemplates/*/columns/*": dict,
     "/tableTemplates/*/columns/*/decimals": (int,str),
@@ -296,6 +296,20 @@ CsvMemberTypes = {
     "/tableTemplates/*/columns/*/dimensions/noteId": str,
     "/tableTemplates/*/columns/*/dimensions/*:*": str,
     "/tableTemplates/*/columns/*/dimensions/$*": str,
+    # property groups (column)
+    "/tableTemplates/*/columns/*/propertiesFrom": str,
+    "/tableTemplates/*/columns/*/propertyGroups": dict,
+    "/tableTemplates/*/columns/*/propertyGroups/*": dict,
+    "/tableTemplates/*/columns/*/propertyGroups/*/decimals": (int,str),
+    "/tableTemplates/*/columns/*/propertyGroups/*/dimensions": dict,
+    "/tableTemplates/*/columns/*/propertyGroups/*/dimensions/concept": str,
+    "/tableTemplates/*/columns/*/propertyGroups/*/dimensions/entity": str,
+    "/tableTemplates/*/columns/*/propertyGroups/*/dimensions/period": str,
+    "/tableTemplates/*/columns/*/propertyGroups/*/dimensions/unit": str,
+    "/tableTemplates/*/columns/*/propertyGroups/*/dimensions/language": str,
+    "/tableTemplates/*/columns/*/propertyGroups/*/dimensions/noteId": str,
+    "/tableTemplates/*/columns/*/propertyGroups/*/dimensions/*:*": str,
+    "/tableTemplates/*/columns/*/propertyGroups/*/dimensions/$*": str,
     # dimensions (top level)
     "/dimensions/concept": str,
     "/dimensions/entity": str,
@@ -464,6 +478,7 @@ def csvPeriod(cellValue, startOrEnd):
             return isoDuration
     return None
 
+# no longer used because transpose is not supported
 def transposer(rowIterator, default=""):
     cells = [row for row in rowIterator]
     if cells:
@@ -970,7 +985,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                _("Referenced template missing: %(missing)s"),
                                                missing=tableTemplateId)
                         tableTemplate = tableTemplates[tableTemplateId]
-                        tableIsTransposed = tableTemplate.get("transposed", False)
+                        # tableIsTransposed = tableTemplate.get("transposed", False)
                         tableDecimals = tableTemplate.get("decimals")
                         tableDimensions = tableTemplate.get("dimensions", EMPTY_DICT)
                         tableIsOptional = table.get("optional", False)
@@ -987,9 +1002,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                       table=tableId, identifier=tableParameterName, url=tableUrl)
                                 
                         # compile column dependencies
-                        factDimensions = {}
-                        factDecimals = {}
+                        factDimensions = {} # keys are column, values are dimensions object
+                        factDecimals = {} # keys are column
                         colDefaults = {}
+                        propertyGroups = {}
+                        propertiesFrom = {}
                         for colId, colProperties in tableTemplate["columns"].items():
                             factDimensions[colId] = colProperties.get("dimensions")
                             factDecimals[colId] = colProperties.get("decimals")
@@ -1001,11 +1018,24 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                           table=tableId, column=colId)
                             if "default" in colProperties:
                                 colDefaults[colId] = colProperties["default"]
+                            if "propertyGroups" in colProperties:
+                                propertyGroups[colId] = colProperties["propertyGroups"]
+                            if "propertiesFrom" in colProperties:
+                                propertiesFrom[colId] = colProperties["propertiesFrom"]
+                            if "decimals" in colProperties and ("dimensions" not in colProperties and "propertiesFrom" not in colProperties):
+                                error("xbrlce:misplacedDecimalsOnNonFactColumn", 
+                                      _("Table %(table)s has decimals on a non-fact column %(column)s"),
+                                      table=tableId, column=colId)
                         if rowIdColName and rowIdColName not in factDecimals:
-                            error("xbrlce:undefinedRowIdColumn", 
+                            raise OIMException("xbrlce:undefinedRowIdColumn", 
                                   _("Table %(table)s row id column %(column)s is not defined in columns"),
                                   table=tableId, column=rowIdColName)
-
+                        if propertiesFrom:
+                            for col, propertiesFromCol in propertiesFrom.items():
+                                if propertiesFromCol not in propertyGroups:
+                                    raise OIMException("xbrlce:invalidPropertyGroupColumnReference", 
+                                          _("Table %(table)s row id column %(column)s propertiesFrom reference %(propertiesFrom)s is not a property groups column."),
+                                          table=tableId, column=col, propertiesFrom=propertiesFromCol)
                         # check table parameters
                         tableParameterReferenceNames = set()
                         factColReferenceNames = defaultdict(set)
@@ -1072,8 +1102,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 # must be CSV
                                 _rowIterator = openCsvReader(tablePath)
                                 _cellValue = csvCellValue
-                                if tableIsTransposed:
-                                    _rowIterator = transposer(_rowIterator)
+                                # if tableIsTransposed:
+                                #    _rowIterator = transposer(_rowIterator)
                         if tableWb is not None:
                             hasSheetname = xlSheetName and xlSheetName in tableWb
                             hasNamedRange = xlNamedRange and xlNamedRange in tableWb.defined_names
@@ -1105,8 +1135,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                         _rowIterator.extend(rows)
                             else: # use whole table
                                 _rowIterator = tableWb[xlSheetName]
-                            if tableIsTransposed:
-                                _rowIterator = transposer(_rowIterator)
+                            # if tableIsTransposed:
+                            #     _rowIterator = transposer(_rowIterator)
                         
                         rowIds = set()
                         paramRefColNames = set()
@@ -1146,6 +1176,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                   table=tableId, column=colName, paramColumns=", ".join(sorted(followingParamColNames)), url=tableUrl)
                                     if colName in tableParameterReferenceNames:
                                         paramRefColNames.add(colName)
+                                missingPropFromCols = propertiesFrom.values() - colNameIndex.keys()
+                                if missingPropFromCols:
+                                    raise OIMException("xbrlce:unmappedCellValue", 
+                                                  _("Table %(table)s propertyFrom %(propFromColumns)s column missing, url: %(url)s"),
+                                                  table=tableId, propFromColumns=", ".join(sorted(missingPropFromCols)), url=tableUrl)
                                 # check parameter references
                                 checkedDims = set()
                                 checkedParams = set()
@@ -1153,6 +1188,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     for colName, colDims in factDimensions.items():
                                         if colDims:
                                             yield colDims, "column {} dimension".format(colName)
+                                    # no way to check parameterGroup dimensions at header-row processing time
                                     for dims, source in ((tableDimensions, "table dimension"), 
                                                          (reportDimensions, "report dimension"),
                                                          ):
@@ -1194,16 +1230,34 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 paramColsUsed = set()
                                 if isXL and all(cell.value in (None, "") for cell in row): # skip empty excel rows
                                     continue
+                                rowPropGroups = {} # colName, propGroupObject for property groups in this row
                                 for colIndex, colValue in enumerate(row):
                                     if colIndex >= len(header):
                                         continue
+                                    colPropGroup = EMPTY_DICT
                                     colName = header[colIndex]
+                                    propFromColName = propertiesFrom.get(colName)
+                                    if propFromColName:
+                                        if propFromColName not in rowPropGroups:
+                                            propFromColIndex = colNameIndex[propFromColName]
+                                            if propFromColIndex < len(row):
+                                                propFromColValue = _cellValue(row[propFromColIndex])
+                                                rowPropGroups[propFromColName] = propertyGroups.get(propFromColName, EMPTY_DICT)
+                                        if propFromColValue in rowPropGroups[propFromColName]:
+                                            cellPropGroup = rowPropGroups[propFromColName][propFromColValue]
+                                        else:
+                                            error("xbrlce:unmappedCellValue", 
+                                                  _("Table %(table)s missing row %(row)s column %(column)s property group identifier %(groupId)s, url: %(url)s"),
+                                                  table=tableId, row=rowIndex+1, column=rowIdColName, url=tableUrl, groupId=propFromColValue)
+                                    else:
+                                        cellPropGroup = EMPTY_DICT
                                     if factDimensions[colName] is None:
                                         if colName in paramRefColNames:
                                             value = _cellValue(row[colNameIndex[colName]])
                                             if value:
                                                 paramColsWithValue.add(colName)
-                                        continue # not a fact column
+                                        if not cellPropGroup:
+                                            continue # not a fact column
                                     # assemble row and fact Ids
                                     if idColIndex is not None and not rowId:
                                         if idColIndex < len(row):
@@ -1234,6 +1288,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     fact["dimensions"] = colFactDims = {}
                                     noValueDimNames = set()
                                     for inheritedDims, dimSource in ((factDimensions[colName], "column dimension"), 
+                                                                     (cellPropGroup.get("dimensions",EMPTY_DICT), "propertyGroup {}".format(propFromColName)),
                                                                      (tableDimensions, "table dimension"), 
                                                                      (reportDimensions, "report dimension")):
                                         for dimName, dimValue in inheritedDims.items():
@@ -1283,6 +1338,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     if factDecimals.get(colName) is not None:
                                         dimValue = factDecimals[colName]
                                         dimSource = "column decimals"
+                                    elif "decimals" in cellPropGroup:
+                                        dimValue = cellPropGroup["decimals"]
+                                        dimSource = "propertyGroup " + propFromColName
                                     elif tableDecimals is not None:
                                         dimValue = tableDecimals
                                         dimSource = "table decimals"
