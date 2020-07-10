@@ -20,7 +20,7 @@ from collections import defaultdict
 from arelle import ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelConcept, ModelType
 from arelle.ModelObject import ModelObject
-from arelle.XbrlConst import xbrli, standardLabelRoles, dimensionDefault
+from arelle.XbrlConst import xbrli, standardLabelRoles, dimensionDefault, standardLinkbaseRefRoles
 from .Const import qnDomainItemType, esefDefinitionArcroles, disallowedURIsPattern, DefaultDimensionLinkrole
 from .Util import isExtension
 
@@ -28,6 +28,17 @@ def checkFilingDTS(val, modelDocument, visited):
     visited.append(modelDocument)
     for referencedDocument, modelDocumentReference in modelDocument.referencesDocument.items():
         if referencedDocument not in visited and referencedDocument.inDTS: # ignore non-DTS documents
+            hrefRole = modelDocumentReference.referringXlinkRole
+            if hrefRole in standardLinkbaseRefRoles and isExtension(val, referencedDocument):
+                # account for empty linkbaseRefs (populated are identified by extended links below
+                if hrefRole == "http://www.xbrl.org/2003/role/calculationLinkbaseRef":
+                    val.hasExtensionCal = True
+                elif hrefRole == "http://www.xbrl.org/2003/role/definitionLinkbaseRef":
+                    val.hasExtensionDef = True
+                elif hrefRole == "http://www.xbrl.org/2003/role/labelLinkbaseRef":
+                    val.hasExtensionLbl = True
+                elif hrefRole == "http://www.xbrl.org/2003/role/presentationLinkbaseRef":
+                    val.hasExtensionPre = True
             checkFilingDTS(val, referencedDocument, visited)
             
     if modelDocument.type == ModelDocument.Type.SCHEMA and isExtension(val, modelDocument):
