@@ -1034,7 +1034,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             for col, propertiesFromCol in propertiesFrom.items():
                                 if propertiesFromCol not in propertyGroups:
                                     raise OIMException("xbrlce:invalidPropertyGroupColumnReference", 
-                                          _("Table %(table)s row id column %(column)s propertiesFrom reference %(propertiesFrom)s is not a property groups column."),
+                                          _("Table %(table)s row id column %(column)s propertiesFrom reference %(propertiesFrom)s does not define a property groups column."),
                                           table=tableId, column=col, propertiesFrom=propertiesFromCol)
                         # check table parameters
                         tableParameterReferenceNames = set()
@@ -1178,7 +1178,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                         paramRefColNames.add(colName)
                                 missingPropFromCols = propertiesFrom.values() - colNameIndex.keys()
                                 if missingPropFromCols:
-                                    raise OIMException("xbrlce:unmappedCellValue", 
+                                    raise OIMException("xbrlce:invalidPropertyGroupColumnReference", 
                                                   _("Table %(table)s propertyFrom %(propFromColumns)s column missing, url: %(url)s"),
                                                   table=tableId, propFromColumns=", ".join(sorted(missingPropFromCols)), url=tableUrl)
                                 # check parameter references
@@ -1231,26 +1231,25 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 if isXL and all(cell.value in (None, "") for cell in row): # skip empty excel rows
                                     continue
                                 rowPropGroups = {} # colName, propGroupObject for property groups in this row
+                                rowPropGroupsUsed = set() # colNames used by propertiesFrom of fact col producing a fact
+                                for propGrpName, propGrpObjects in propertyGroups.items():
+                                    propGrpColIndex = colNameIndex[propGrpName]
+                                    if propGrpColIndex < len(row):
+                                        propGrpColValue = _cellValue(row[propGrpColIndex])
+                                        if propGrpColValue in propGrpObjects:
+                                            rowPropGroups[propGrpName] = propGrpObjects[propGrpColValue]
+                                        else:
+                                            error("xbrlce:unknownPropertyGroup", 
+                                                  _("Table %(table)s unknown property group row %(row)s column %(column)s group %(propertyGroup)s, url: %(url)s"),
+                                                  table=tableId, row=rowIndex+1, column=rowIdColName, url=tableUrl, propertyGroup=propGrpName)
                                 for colIndex, colValue in enumerate(row):
                                     if colIndex >= len(header):
                                         continue
-                                    colPropGroup = EMPTY_DICT
+                                    cellPropGroup = EMPTY_DICT
                                     colName = header[colIndex]
                                     propFromColName = propertiesFrom.get(colName)
-                                    if propFromColName:
-                                        if propFromColName not in rowPropGroups:
-                                            propFromColIndex = colNameIndex[propFromColName]
-                                            if propFromColIndex < len(row):
-                                                propFromColValue = _cellValue(row[propFromColIndex])
-                                                rowPropGroups[propFromColName] = propertyGroups.get(propFromColName, EMPTY_DICT)
-                                        if propFromColValue in rowPropGroups[propFromColName]:
-                                            cellPropGroup = rowPropGroups[propFromColName][propFromColValue]
-                                        else:
-                                            error("xbrlce:unmappedCellValue", 
-                                                  _("Table %(table)s missing row %(row)s column %(column)s property group identifier %(groupId)s, url: %(url)s"),
-                                                  table=tableId, row=rowIndex+1, column=rowIdColName, url=tableUrl, groupId=propFromColValue)
-                                    else:
-                                        cellPropGroup = EMPTY_DICT
+                                    if propFromColName in rowPropGroups:
+                                        cellPropGroup = rowPropGroups[propFromColName]
                                     if factDimensions[colName] is None:
                                         if colName in paramRefColNames:
                                             value = _cellValue(row[colNameIndex[colName]])
@@ -1284,6 +1283,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     cellValue = _cellValue(colValue) # nil facts return None, #empty string is ""
                                     if cellValue == "": # no fact produced
                                         continue 
+                                    if propFromColName and cellPropGroup:
+                                        rowPropGroupsUsed.add(propFromColName)
                                     fact["value"] = cellValue
                                     fact["dimensions"] = colFactDims = {}
                                     noValueDimNames = set()
@@ -1384,6 +1385,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     error("xbrlce:unmappedCellValue", 
                                           _("Table %(table)s row %(row)s unmapped parameter columns %(columns)s, url: %(url)s"),
                                           table=tableId, row=rowIndex+1, columns=", ".join(sorted(unmappedParamCols)), url=tableUrl)
+                                unmappedPropGrps = rowPropGroups.keys() - rowPropGroupsUsed
+                                if unmappedPropGrps:
+                                    error("xbrlce:unmappedCellValue", 
+                                          _("Table %(table)s row %(row)s unmapped property group columns %(columns)s, url: %(url)s"),
+                                          table=tableId, row=rowIndex+1, columns=", ".join(sorted(unmappedPropGrps)), url=tableUrl)
                         unmappedTableParams = tableParameters.keys() - tableParametersUsed
                         if unmappedTableParams:
                             error("xbrlce:unmappedTableParameter", 
