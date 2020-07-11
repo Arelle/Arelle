@@ -486,8 +486,6 @@ def xhtmlValidate(modelXbrl, elt):
                     
     def ixToXhtml(fromRoot):
         toRoot = etree.Element(fromRoot.localName)
-        if fromRoot.sourceline < 65535: # lxml bug, stores in a short
-            toRoot.sourceline = fromRoot.sourceline
         copyNonIxChildren(fromRoot, toRoot)
         for attrTag, attrValue in fromRoot.items():
             checkAttribute(fromRoot, False, attrTag, attrValue)
@@ -519,8 +517,6 @@ def xhtmlValidate(modelXbrl, elt):
                 else:
                     if fromChild.localName in {"footnote", "nonNumeric", "continuation"} and isIxNs:
                         toChild = etree.Element("ixNestedContent")
-                        if fromChild.sourceline < 65535: # lxml bug, stores in a short
-                            toChild.sourceline = fromChild.sourceline
                         toElt.append(toChild)
                         copyNonIxChildren(fromChild, toChild)
                         if fromChild.text is not None:
@@ -531,8 +527,6 @@ def xhtmlValidate(modelXbrl, elt):
                         copyNonIxChildren(fromChild, toElt)
                     else:
                         toChild = etree.Element(fromChild.localName)
-                        if fromChild.sourceline < 65535: # lxml bug, stores in a short
-                            toChild.sourceline = fromChild.sourceline
                         toElt.append(toChild)
                         for attrTag, attrValue in fromChild.items():
                             checkAttribute(fromChild, False, attrTag, attrValue)
@@ -571,12 +565,17 @@ def xhtmlValidate(modelXbrl, elt):
     def dtdErrs():
         errs = []
         for e in dtd.error_log.filter_from_errors():
-            line = ""
+            msg = e.message
             if e.path and e.path.startswith("/html/"):
-                dtdElt = htmlDtdTree.find(e.path[6:])
-                if dtdElt is not None and dtdElt.sourceline:
-                    line = " line {}".format(dtdElt.sourceline)
-            errs.append(e.message + line)
+                errPath = "/".join("{{{}}}{}".format(_ixNS if p.startswith("ixN") else XbrlConst.xhtml,
+                                                     "*" if p.startswith("ixN") else p)
+                                    for p in e.path[6:].split("/"))
+                errElt = elt.find(errPath)
+                if errElt is not None:
+                    if "ixNestedContent" in msg and isinstance(errElt,ModelObject):
+                        msg = msg.replace("ixNestedContent", str(errElt.elementQname))
+                    msg += " line {}".format(errElt.sourceline)
+            errs.append(msg)
         return errs
     try:
         # uncomment to debug:with open("/users/hermf/temp/testDtd.htm", "wb") as fh:
