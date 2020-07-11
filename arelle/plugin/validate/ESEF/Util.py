@@ -29,7 +29,7 @@ def isInEsefTaxonomy(val, modelObject):
     return (any(ns.startswith(esefNsPrefix) for esefNsPrefix in esefTaxonomyNamespaceURIs))
     
 # check image contents against mime/file ext and for Steganography
-def checkImageContents(modelXbrl, imgElt, imgType, data):
+def checkImageContents(modelXbrl, imgElt, imgType, isFile, data):
     if "svg" in imgType:
         try:
             rootElement = True
@@ -52,8 +52,8 @@ def checkImageContents(modelXbrl, imgElt, imgType, data):
                 _("Image SVG has XML error %(error)s"),
                 modelObject=imgElt, error=err)
     elif not any(t in imgType for t in ("gif", "jpg", "jpeg", "png")):
-        modelXbrl.error("ESEF.2.5.1.imageFileCannotBeLoaded",
-            _("Image type %(imgType)s is not supported"),
+        modelXbrl.error("ESEF.2.5.1.imageFormatNotSupported",
+            _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPG/JPEG formats: %(imgType)s is not supported"),
             modelObject=imgElt, imgType=imgType)
     else:
         if data[:3] == b"GIF" and data[3:6] in (b'89a', b'89b', b'87a'):
@@ -78,7 +78,9 @@ def checkImageContents(modelXbrl, imgElt, imgType, data):
         if (("gif" in imgType and headerType != "gif") or
             (("jpg" in imgType or "jpeg" in imgType) and headerType != "jpg") or
             ("png" in imgType and headerType != "png")):
-            modelXbrl.error("ESEF.2.5.1.imageFileCannotBeLoaded",
+            modelXbrl.error("ESEF.2.5.1.imageDoesNotMatchItsFileExtension" if isFile
+                            else "ESEF.2.5.1.incorrectMIMETypeSpecified",
                 _("Image type %(imgType)s has wrong header type: %(headerType)s"),
-                modelObject=imgElt, imgType=imgType, headerType=headerType)
+                modelObject=imgElt, imgType=imgType, headerType=headerType,
+                messageCodes=("ESEF.2.5.1.imageDoesNotMatchItsFileExtension", "ESEF.2.5.1.incorrectMIMETypeSpecified"))
         
