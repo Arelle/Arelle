@@ -119,12 +119,12 @@ def checkFilingDimensions(val):
         ELR = anchoringRel.linkrole
         fromObj = anchoringRel.fromModelObject
         toObj = anchoringRel.toModelObject
-        if fromObj is not None and toObj is not None:
+        if fromObj is not None and toObj is not None and fromObj.type is not None and toObj.type is not None:
             if not (isInEsefTaxonomy(val, fromObj) ^ isInEsefTaxonomy(val, toObj)):
                 val.modelXbrl.error("ESEF.3.3.1.anchoringRelationshipBase",
                     _("Anchoring relationships MUST be from or to an ESEF element, from %(qname1)s to %(qname2)s"),
                     modelObject=(anchoringRel, fromObj, toObj), qname1=fromObj.qname, qname2=toObj.qname)
-            if fromObj.isDomainMember or toObj.isDomainMember:
+            if fromObj.type.isDomainItemType or toObj.type.isDomainItemType:
                 val.modelXbrl.error("ESEF.3.3.1.anchoringRelationshipsForDomainMembersDefinedUsingWiderNarrowerArcrole",
                     _("Anchoring relationships MUST be from and to concepts, from %(qname1)s to %(qname2)s"),
                     modelObject=(anchoringRel, fromObj, toObj), qname1=fromObj.qname, qname2=toObj.qname)
