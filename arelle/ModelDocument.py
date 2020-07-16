@@ -1371,7 +1371,8 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
     tuplesByTupleID = {}
     factsByFactID = {} # non-tuple facts
     factTargetIDs = set() # target IDs referenced on facts
-    targetReferenceAttrs = defaultdict(dict) # target dict by attrname of elts
+    targetReferenceAttrElts = defaultdict(dict) # target dict by attrname of elts
+    targetReferenceAttrVals = defaultdict(dict) # target dict by attrname of attr value
     targetReferencePrefixNs = defaultdict(dict) # target dict by prefix, namespace
     targetReferencesIDs = {} # target dict by id of reference elts
     modelInlineFootnotesById = {} # inline 1.1 ixRelationships and ixFootnotes
@@ -1403,7 +1404,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
         for elt in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "references"):
             if isinstance(elt,ModelObject):
                 target = elt.get("target")
-                targetReferenceAttrsDict = targetReferenceAttrs[target]
+                targetReferenceAttrsDict = targetReferenceAttrElts[target]
                 for attrName, attrValue in elt.items():
                     if attrName.startswith('{') and not attrName.startswith(mdlDoc.ixNStag) and attrName != "{http://www.w3.org/XML/1998/namespace}base":
                         if attrName in targetReferenceAttrsDict:
@@ -1412,6 +1413,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                                             modelObject=(elt, targetReferenceAttrsDict[attrName]), name=attrName, target=target)
                         else:
                             targetReferenceAttrsDict[attrName] = elt
+                            targetReferenceAttrVals[target][attrName] = attrValue
                 if elt.id:
                     if ixdsEltById[elt.id] != [elt]:
                         modelXbrl.error(ixMsgCode("referencesIdDuplication",ns=mdlDoc.ixNS,name="references",sect="validation"),
@@ -1450,8 +1452,9 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
     
     # root elements by target
     modelXbrl.ixTargetRootElements = {}
-    for target in targetReferenceAttrs.keys() | {None}: # need default target in case any facts have no or invalid target
-        modelXbrl.ixTargetRootElements[target] = XmlUtil.addChild(modelIxdsDocument, XbrlConst.qnXbrliXbrl, appendChild=False)
+    for target in targetReferenceAttrElts.keys() | {None}: # need default target in case any facts have no or invalid target
+        modelXbrl.ixTargetRootElements[target] = XmlUtil.addChild(modelIxdsDocument, XbrlConst.qnXbrliXbrl, appendChild=False,
+                                                                  attributes=targetReferenceAttrVals.get(target))
                     
     def locateFactInTuple(modelFact, tuplesByTupleID, ixNStag):
         tupleRef = modelFact.tupleRef
@@ -1633,11 +1636,11 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                 modelInlineFootnotesById[modelInlineFootnote.footnoteID] = modelInlineFootnote
 
             
-    if len(targetReferenceAttrs) == 0:
+    if len(targetReferenceAttrElts) == 0:
         modelXbrl.error(ixMsgCode("missingReferences", None, name="references", sect="validation"),
                         _("There must be at least one reference"),
                         modelObject=modelXbrl)
-    _missingReferenceTargets = factTargetIDs - set(targetReferenceAttrs.keys())
+    _missingReferenceTargets = factTargetIDs - set(targetReferenceAttrElts.keys())
     if _missingReferenceTargets:
         modelXbrl.error(ixMsgCode("missingReferenceTargets", None, name="references", sect="validation"),
                         _("Found no ix:references element%(plural)s having target%(plural)s '%(missingReferenceTargets)s' in IXDS."),
@@ -1645,12 +1648,12 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                         missingReferenceTargets=", ".join(sorted("(default)" if t is None else t
                                                                  for t in _missingReferenceTargets)))
         
-    if ixdsTarget not in factTargetIDs and ixdsTarget not in targetReferenceAttrs.keys():
+    if ixdsTarget not in factTargetIDs and ixdsTarget not in targetReferenceAttrElts.keys():
         modelXbrl.warning("arelle:ixdsTargetNotDefined",
                           _("Target parameter %(ixdsTarget)s is not a specified IXDS target property"),
                           modelObject=modelXbrl, ixdsTarget=ixdsTarget)
         
-    del targetReferenceAttrs, factTargetIDs
+    del targetReferenceAttrElts, targetReferenceAttrVals, factTargetIDs
 
             
     footnoteLinkPrototypes = {}

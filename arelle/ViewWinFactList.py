@@ -87,9 +87,12 @@ class ViewFactList(ViewWinTree.ViewTree):
         for modelFact in modelFacts:
             try:
                 concept = modelFact.concept
+                lang = ""
                 if concept is not None:
                     lbl = concept.label(self.labelrole, lang=self.lang, linkroleHint=XbrlConst.defaultLinkRole)
                     objectIds = (modelFact.objectId(),concept.objectId())
+                    if concept.baseXsdType in ("string", "normalizedString"):
+                        lang = modelFact.xmlLang
                 else:
                     lbl = (modelFact.qname or modelFact.prefixedName) # defective inline facts may have no qname
                     objectIds = (modelFact.objectId())
@@ -105,7 +108,7 @@ class ViewFactList(ViewWinTree.ViewTree):
                         self.treeView.set(node, "unitID", modelFact.unitID if self.unitDisplayID else modelFact.unit.value)
                     self.treeView.set(node, "decimals", modelFact.decimals)
                     self.treeView.set(node, "precision", modelFact.precision)
-                    self.treeView.set(node, "language", modelFact.xmlLang)
+                    self.treeView.set(node, "language", lang)
                     if self.footnotesRelationshipSet.fromModelObject(modelFact):
                         self.treeView.set(node, "footnoted", "*")
                     self.treeView.set(node, "value", modelFact.effectiveValue.strip())

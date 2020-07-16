@@ -68,6 +68,7 @@ class DisclosureSystem:
         self.defaultXmlLang = None
         self.defaultXmlEncoding = "utf-8"
         self.xmlLangPattern = None
+        self.xmlLangIsInheritable = True # for label and footnote, spec sections 4.11.1.2.1 and 5.2.2.2.1
         self.defaultLanguage = None
         self.language = None
         self.standardTaxonomiesUrl = None
@@ -184,6 +185,7 @@ class DisclosureSystem:
                                 if dsElt.get("defaultXmlEncoding", default=None) is not None: # don't reset from utf-8 unless supplied with a value
                                     self.defaultXmlEncoding = dsElt.get("defaultXmlEncoding") # may be an empty string
                                 self.xmlLangPattern = compileAttrPattern(dsElt,"xmlLangPattern")
+                                self.xmlLangIsInheritable = dsElt.get("xmlLangIsInheritable", "true") != "true"
                                 self.defaultLanguage = dsElt.get("defaultLanguage")
                                 if dsElt.get("standardTaxonomiesUrl"):
                                     self.standardTaxonomiesUrl = self.modelManager.cntlr.webCache.normalizeUrl(

@@ -145,7 +145,15 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                                       schemaRefs=targetDocumentSchemaRefs,
                                       isEntry=True,
                                       discover=False) # don't attempt to load DTS
-    if baseXmlLang:
+    ixTargetRootElt = modelXbrl.ixTargetRootElements[getattr(modelXbrl, "ixdsTarget", None)]
+    langIsSet = False
+    # copy ix resources target root attributes
+    for attrName, attrValue in ixTargetRootElt.items():
+        targetInstance.modelDocument.xmlRootElement.set(attrName, attrValue)
+        if attrName == "{http://www.w3.org/XML/1998/namespace}lang":
+            langIsSet = True
+            defaultXmlLang = attrValue
+    if not langIsSet and baseXmlLang:
         targetInstance.modelDocument.xmlRootElement.set("{http://www.w3.org/XML/1998/namespace}lang", baseXmlLang)
         if defaultXmlLang is None:
             defaultXmlLang = baseXmlLang # allows facts/footnotes to override baseXmlLang
@@ -264,11 +272,11 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
     targetUrlParts = targetUrl.rpartition(".")
     targetUrl = targetUrlParts[0] + "_extracted." + targetUrlParts[2]
     modelXbrl.modelManager.showStatus(_("Extracting instance ") + os.path.basename(targetUrl))
-    rootElt = modelXbrl.modelDocument.xmlRootElement
+    htmlRootElt = modelXbrl.modelDocument.xmlRootElement
     # take baseXmlLang from <html> or <base>
-    baseXmlLang = rootElt.get("{http://www.w3.org/XML/1998/namespace}lang") or rootElt.get("lang")
+    baseXmlLang = htmlRootElt.get("{http://www.w3.org/XML/1998/namespace}lang") or htmlRootElt.get("lang")
     for ixElt in modelXbrl.modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/1999/xhtml}body"):
-        baseXmlLang = ixElt.get("{http://www.w3.org/XML/1998/namespace}lang") or rootElt.get("lang") or baseXmlLang
+        baseXmlLang = ixElt.get("{http://www.w3.org/XML/1998/namespace}lang") or htmlRootElt.get("lang") or baseXmlLang
     targetInstance = createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingFiles, baseXmlLang) 
     targetInstance.saveInstance(overrideFilepath=targetUrl, outputZip=outputZip)
     if getattr(modelXbrl, "isTestcaseVariation", False):
