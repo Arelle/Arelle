@@ -36,7 +36,7 @@ from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, lo
 from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateFilingText import CDATApattern
-from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier, elementChildSequence
+from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier, elementChildSequence, xmlnsprefix, setXmlns
 import os, zipfile
 from optparse import SUPPRESS_HELP
 from lxml.etree import XML, XMLSyntaxError
@@ -153,6 +153,13 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
         if attrName == "{http://www.w3.org/XML/1998/namespace}lang":
             langIsSet = True
             defaultXmlLang = attrValue
+        if attrName.startswith("{"):
+            ns, _sep, ln = attrName[1:].rpartition("}")
+            if ns:
+                prefix = xmlnsprefix(ixTargetRootElt, ns)
+                if prefix not in (None, "xml"):
+                    setXmlns(targetInstance.modelDocument, prefix, ns)
+                
     if not langIsSet and baseXmlLang:
         targetInstance.modelDocument.xmlRootElement.set("{http://www.w3.org/XML/1998/namespace}lang", baseXmlLang)
         if defaultXmlLang is None:

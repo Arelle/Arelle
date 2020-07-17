@@ -1413,7 +1413,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                                             modelObject=(elt, targetReferenceAttrsDict[attrName]), name=attrName, target=target)
                         else:
                             targetReferenceAttrsDict[attrName] = elt
-                            targetReferenceAttrVals[target][attrName] = attrValue
+                            targetReferenceAttrVals[target][attrName] = attrValue # use qname to preserve prefix
                 if elt.id:
                     if ixdsEltById[elt.id] != [elt]:
                         modelXbrl.error(ixMsgCode("referencesIdDuplication",ns=mdlDoc.ixNS,name="references",sect="validation"),
@@ -1448,13 +1448,15 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                         _("Inline XBRL ix:resources element not found"),
                         modelObject=modelXbrl)
                         
-    del ixdsEltById, targetReferencePrefixNs, targetReferencesIDs
+    del ixdsEltById, targetReferencesIDs
     
     # root elements by target
     modelXbrl.ixTargetRootElements = {}
     for target in targetReferenceAttrElts.keys() | {None}: # need default target in case any facts have no or invalid target
-        modelXbrl.ixTargetRootElements[target] = XmlUtil.addChild(modelIxdsDocument, XbrlConst.qnXbrliXbrl, appendChild=False,
-                                                                  attributes=targetReferenceAttrVals.get(target))
+        modelXbrl.ixTargetRootElements[target] = modelIxdsDocument.parser.makeelement(
+            XbrlConst.qnXbrliXbrl.clarkNotation, attrib=targetReferenceAttrVals.get(target), 
+            nsmap=dict((p,n) for p,(n,e) in targetReferencePrefixNs.get(target,{}).items())) 
+
                     
     def locateFactInTuple(modelFact, tuplesByTupleID, ixNStag):
         tupleRef = modelFact.tupleRef
@@ -1653,7 +1655,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                           _("Target parameter %(ixdsTarget)s is not a specified IXDS target property"),
                           modelObject=modelXbrl, ixdsTarget=ixdsTarget)
         
-    del targetReferenceAttrElts, targetReferenceAttrVals, factTargetIDs
+    del targetReferenceAttrElts, targetReferencePrefixNs, targetReferenceAttrVals, factTargetIDs
 
             
     footnoteLinkPrototypes = {}
