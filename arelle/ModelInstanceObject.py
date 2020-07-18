@@ -321,7 +321,9 @@ class ModelFact(ModelObject):
         if isinstance(parentElt, ModelFact):
             return parentElt.xmlLang
         elif isinstance(parentElt, ModelObject): # top-level fact is parented by xbrli:xbrl which isn't a fact
-            return parentElt.get("{http://www.w3.org/XML/1998/namespace}lang")
+            lang = parentElt.get("{http://www.w3.org/XML/1998/namespace}lang")
+            if lang is not None:
+                return lang
         # if we got here there is no xml:lang on fact or ancestry
         if self.modelXbrl.modelManager.validateDisclosureSystem: # use disclosureSystem's defaultXmlLang (if any)
             concept = self.concept
