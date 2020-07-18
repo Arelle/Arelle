@@ -33,6 +33,7 @@ from arelle.FileSource import archiveFilenameParts
 from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelObject import ModelObject
 from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, load, create, inlineIxdsDiscover
+from arelle.ModelValue import qname
 from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateFilingText import CDATApattern
@@ -206,10 +207,9 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                     text = None
                 else:
                     text = fact.xValue if fact.xValid else fact.textValue
-                    if fact.concept is not None and fact.concept.baseXsdType in ("string", "normalizedString"): # default
-                        xmlLang = fact.xmlLang
-                        if xmlLang is not None and xmlLang != defaultXmlLang:
-                            attrs["{http://www.w3.org/XML/1998/namespace}lang"] = xmlLang
+                for attrName, attrValue in fact.items():
+                    if attrName.startswith("{"):
+                        attrs[qname(attrName,fact.nsmap)] = attrValue # using qname allows setting prefix in extracted instance
                 newFact = targetInstance.createFact(fact.qname, attributes=attrs, text=text, parent=parent)
                 # if fact.isFraction, create numerator and denominator
                 newFactForOldObjId[fact.objectIndex] = newFact
@@ -222,7 +222,15 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                         except (XMLSyntaxError, UnicodeDecodeError):
                             pass  # TODO: Why ignore UnicodeDecodeError?
             elif fact.isTuple:
-                newTuple = targetInstance.createFact(fact.qname, parent=parent)
+                attrs = {}
+                if fact.id:
+                    attrs["id"] = fact.id
+                if fact.isNil:
+                    attrs[XbrlConst.qnXsiNil] = "true"
+                for attrName, attrValue in fact.items():
+                    if attrName.startswith("{"):
+                        attrs[qname(attrName,fact.nsmap)] = attrValue
+                newTuple = targetInstance.createFact(fact.qname, attributes=attrs, parent=parent)
                 newFactForOldObjId[fact.objectIndex] = newTuple
                 createFacts(fact.modelTupleFacts, newTuple)
                 
