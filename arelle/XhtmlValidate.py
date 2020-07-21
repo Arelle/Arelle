@@ -564,6 +564,7 @@ def xhtmlValidate(modelXbrl, elt):
     htmlDtdTree = ixToXhtml(elt)
     def dtdErrs():
         errs = []
+        elts = [] # elements causing errors for element pointers in error message
         for e in dtd.error_log.filter_from_errors():
             msg = e.message
             if e.path and e.path.startswith("/html/"):
@@ -575,15 +576,17 @@ def xhtmlValidate(modelXbrl, elt):
                     if "ixNestedContent" in msg and isinstance(errElt,ModelObject):
                         msg = msg.replace("ixNestedContent", str(errElt.elementQname))
                     msg += " line {}".format(errElt.sourceline)
+                    elts.append(errElt)
             errs.append(msg)
-        return errs
+        return errs, elts
     try:
         # uncomment to debug:with open("/users/hermf/temp/testDtd.htm", "wb") as fh:
         # uncomment to debug:    fh.write(etree.tostring(htmlDtdTree, encoding="UTF-8", xml_declaration=True, pretty_print=True))
         if not dtd.validate( htmlDtdTree ):
+            dtdErrMsgs, dtdErrElts = dtdErrs()
             modelXbrl.error("html:syntaxError",
                 _("%(element)s error %(error)s"),
-                modelObject=elt, element=elt.localName.title(), error=', '.join(dtdErrs()))            
+                modelObject=dtdErrElts or elt, element=elt.localName.title(), error=', '.join(dtdErrMsgs))
         if isEFM:
             ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", "EFM.5.02.05.", isInline=True) 
     except XMLSyntaxError as err:
