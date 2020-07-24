@@ -41,7 +41,7 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
     sumNumDims = 0
     distinctDurations = set()
     distinctInstants = set()
-    shortContextIdLen = int(math.log10(numContexts)) + 2
+    shortContextIdLen = int(math.log10(numContexts or 1)) + 2 # if no contexts, use 1 for log function to work
     xbrlQnameCount = 0
     xbrlQnameLengths = 0
     for c in modelXbrl.contexts.values():
@@ -60,7 +60,7 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
     cntlr.addToLog("Number of contexts {:,}".format(numContexts), messageCode="info", level=logging.DEBUG)
     cntlr.addToLog("Number of distinct durations {:,}".format(len(distinctDurations)), messageCode="info", level=logging.DEBUG)
     cntlr.addToLog("Number of distinct instants {:,}".format(len(distinctInstants)), messageCode="info", level=logging.DEBUG)
-    cntlr.addToLog("Avg number dimensions per contexts {:,.2f}".format(sumNumDims/numContexts), messageCode="info", level=logging.DEBUG)
+    cntlr.addToLog("Avg number dimensions per contexts {:,.2f}".format(sumNumDims/numContexts if numContexts else 0), messageCode="info", level=logging.DEBUG)
     mostPopularDims = sorted(frequencyOfDims.items(), key=lambda i:"{:0>9},{}".format(999999999-i[1],i[0]))
     for dimName, count in mostPopularDims[0:3]:
         cntlr.addToLog("Dimension {} used in {:,} contexts".format(dimName, count), messageCode="info", level=logging.DEBUG)
@@ -71,7 +71,7 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
     lenTextBlockFacts = 0
     distinctElementsInFacts = set()
     factsPerContext = {}
-    factForConceptContextUnitLangHash = defaultdict(list)
+    factForConceptContextUnitHash = defaultdict(list)
     for f in modelXbrl.factsInInstance:
         context = f.context
         concept = f.concept
@@ -85,24 +85,25 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
             lenTextBlockFacts += len(f.xValue)
         if context is not None and concept is not None:
             factsPerContext[context.id] = factsPerContext.get(context.id,0) + 1
-            factForConceptContextUnitLangHash[f.conceptContextUnitLangHash].append(f)
+            factForConceptContextUnitHash[f.conceptContextUnitHash].append(f)
             bytesSaveable += len(context.id) - shortContextIdLen
         
     mostPopularContexts = sorted(factsPerContext.items(), key=lambda i:"{:0>9},{}".format(999999999-i[1],i[0]))
     cntlr.addToLog("Number of facts {:,}".format(numFacts), messageCode="info", level=logging.DEBUG)
-    cntlr.addToLog("Number of TableTextBlock facts {:,} avg len {:,.0f}".format(numTableTextBlockFacts, lenTableTextBlockFacts/numTableTextBlockFacts), messageCode="info", level=logging.DEBUG)
-    cntlr.addToLog("Number of TextBlock facts {:,} avg len {:,.0f}".format(numTextBlockFacts, lenTextBlockFacts/numTableTextBlockFacts), messageCode="info", level=logging.DEBUG)
-    cntlr.addToLog("Max number facts per context {:,}".format(mostPopularContexts[0][1]), messageCode="info", level=logging.DEBUG)
-    cntlr.addToLog("Avg number facts per context {:,.2f}".format(sum([v for v in factsPerContext.values()])/numContexts), messageCode="info", level=logging.DEBUG)
+    cntlr.addToLog("Number of TableTextBlock facts {:,} avg len {:,.0f}".format(numTableTextBlockFacts, lenTableTextBlockFacts/numTableTextBlockFacts if numTableTextBlockFacts else 0), messageCode="info", level=logging.DEBUG)
+    cntlr.addToLog("Number of TextBlock facts {:,} avg len {:,.0f}".format(numTextBlockFacts, lenTextBlockFacts/numTableTextBlockFacts if numTableTextBlockFacts else 0), messageCode="info", level=logging.DEBUG)
+    cntlr.addToLog("Max number facts per context {:,}".format(mostPopularContexts[0][1] if mostPopularContexts else 0), messageCode="info", level=logging.DEBUG)
+    cntlr.addToLog("Avg number facts per context {:,.2f}".format(sum([v for v in factsPerContext.values()])/numContexts if numContexts else 0), messageCode="info", level=logging.DEBUG)
     cntlr.addToLog("Distinct elements in facts {:,}".format(len(distinctElementsInFacts)), messageCode="info", level=logging.DEBUG)
     cntlr.addToLog("Number of bytes saveable context id of {} length is {:,}".format(shortContextIdLen, bytesSaveable), messageCode="info", level=logging.DEBUG)
 
     aspectEqualFacts = defaultdict(list)
     numConsistentDupFacts = numInConsistentDupFacts = 0
-    for hashEquivalentFacts in factForConceptContextUnitLangHash.values():
+    for hashEquivalentFacts in factForConceptContextUnitHash.values():
         if len(hashEquivalentFacts) > 1:
             for f in hashEquivalentFacts:
-                aspectEqualFacts[(f.qname,f.contextID,f.unitID,f.xmlLang)].append(f)
+                aspectEqualFacts[(f.qname,f.contextID,f.unitID,
+                                  f.xmlLang if f.concept.type.isWgnStringFactType else None)].append(f)
             for fList in aspectEqualFacts.values():
                 f0 = fList[0]
                 if f0.concept.isNumeric:
@@ -131,17 +132,18 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
     totalStyleLen = 0
     continuationElements = {}
     ixNsPrefix = "{http://www.xbrl.org/2013/inlineXBRL}"
-    for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements: # ix root elements
+    for ixdsHtmlRootElt in getattr(modelXbrl, "ixdsHtmlElements", ()): # ix root elements if inline
         for ixElt in ixdsHtmlRootElt.iterdescendants():
             style = ixElt.get("style")
+            ixEltTag = str(ixElt.tag)
             if style:
                 styleAttrCounts[style] = styleAttrCounts.get(style,0) + 1
                 if styleIxHiddenPattern.match(style) is None:
                     totalStyleLen += len(style)
-            if ixElt.tag == "{http://www.xbrl.org/2013/inlineXBRL}continuation" and ixElt.id:
+            if ixEltTag == "{http://www.xbrl.org/2013/inlineXBRL}continuation" and ixElt.id:
                 continuationElements[ixElt.id] = ixElt
-            if ixElt.tag.startswith(ixNsPrefix):
-                localName = ixElt.tag[len(ixNsPrefix):]
+            if ixEltTag.startswith(ixNsPrefix):
+                localName = ixEltTag[len(ixNsPrefix):]
                 if localName == "continuation" and ixElt.id:
                     continuationElements[ixElt.id] = ixElt
                 elif localName in ("nonFraction", "nonNumeric", "fraction"):
