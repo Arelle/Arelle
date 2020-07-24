@@ -29,25 +29,24 @@ from arelle.PythonUtil import attrdict
 from arelle.UrlUtil import isHttpUrl, isAbsolute as isAbsoluteUri, relativeUrlPattern
 from arelle.XbrlConst import (qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
                               qnLinkPart, gen, link, defaultLinkRole, footnote, factFootnote, isStandardRole,
-                              conceptLabel, elementLabel, conceptReference, all as hc_all, notAll as hc_notAll
-                              )
+                              conceptLabel, elementLabel, conceptReference, all as hc_all, notAll as hc_notAll,
+                              xhtml)
 from arelle.XmlUtil import addChild, addQnameValue, copyIxFootnoteHtml, setXmlns
 from arelle.XmlValidate import integerPattern, languagePattern, NCNamePattern, QNamePattern, validate as xmlValidate, VALID
 
-nsOims = ("http://www.xbrl.org/CR/2018-12-12",
-          "http://www.xbrl.org/WGWD/YYYY-MM-DD",
-          "http://www.xbrl.org/CR/2019-06-12",
+nsOims = ("http://www.xbrl.org/WGWD/YYYY-MM-DD",
+          "http://www.xbrl.org/CR/2020-05-06",
           "http://www.xbrl.org/((~status_date_uri~))"
          )
-nsOimCes = (
-        "http://www.xbrl.org/WGWD/YYYY-MM-DD/oim-common/error",
-          "http://www.xbrl.org/((~status_date_uri~))/oim-common/error"
+nsOimCes = ("http://www.xbrl.org/WGWD/YYYY-MM-DD/oim-common/error",
+            "http://www.xbrl.org/CR/2020-05-06/oim-common/error",
+            "http://www.xbrl.org/((~status_date_uri~))/oim-common/error"
     )
 jsonDocumentTypes = (
         "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-json",
         "http://www.xbrl.org/YYYY-MM-DD/xbrl-json",
         "http://www.xbrl.org/((~status_date_uri~))/xbrl-json", # allows loading of XII "template" test cases without CI production
-        "http://www.xbrl.org/CR/2019-06-12/xbrl-json",
+        "http://www.xbrl.org/CR/2020-05-06/xbrl-json",
     )
 csvDocumentTypes = (
         "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-csv",
@@ -158,6 +157,7 @@ UrlInvalidPattern = re.compile(
                 r".*[^ \t\n\r]([\t\n\r]+|[ \t\n\r]{2,})[^ \t\n\r]|" # embedded uncollapsed whitespace
                 r".*%[^0-9a-fA-F]|.*%[0-9a-fA-F][^0-9a-fA-F]|.*#.*#" # invalid %nn or two ##s
                 )
+WhitespacePattern = re.compile(r"[ \t\n\r]")
 
 xlUnicodePattern = re.compile("_x([0-9A-F]{4})_")
 
@@ -179,6 +179,9 @@ class LangType:
 class URIType:
     pass
 
+class NoRecursionCheck:
+    pass
+
 UnrecognizedDocMemberTypes = {
     "/documentInfo": dict,
     "/documentInfo/documentType": str,
@@ -193,19 +196,21 @@ JsonMemberTypes = {
     # report
     "/documentInfo": dict,
     "/facts": dict,
+    "/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck), # custom extensions
     # documentInfo
     "/documentInfo/baseURL": URIType,
     "/documentInfo/documentType": str,
     "/documentInfo/features": dict,
     "/documentInfo/features/*:*": (int,bool,str,type(None)),
     "/documentInfo/namespaces": dict,
-    "/documentInfo/namespaces/*": str,
+    "/documentInfo/namespaces/*": URIType,
     "/documentInfo/linkTypes": dict,
     "/documentInfo/linkTypes/*": str,
     "/documentInfo/linkGroups": dict,
     "/documentInfo/linkGroups/*": str,
     "/documentInfo/taxonomy": list,
     "/documentInfo/taxonomy/": str,
+    "/documentInfo/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck), # custom extensions
     # facts
     "/facts/*": dict,
     "/facts/*/value": (str,type(None)),
@@ -223,6 +228,8 @@ JsonMemberTypes = {
     "/facts/*/dimensions/language": LangType,
     "/facts/*/dimensions/noteId": str,
     "/facts/*/dimensions/*:*": (str,type(None)),
+    # custom properties on fact are unchecked
+    "/facts/*/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck), # custom extensions
     }
 JsonRequiredMembers = {
     "/": {"documentInfo"},
@@ -749,6 +756,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             missingRequiredMembers = []
             unexpectedMembers = []
             def checkMemberTypes(obj, path):
+                checkNestedMembers = True
                 if (isinstance(obj,dict)):
                     for missingMbr in oimRequiredMembers.get(path,EMPTY_SET) - obj.keys():
                         missingRequiredMembers.append(path + missingMbr)
@@ -756,24 +764,28 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         mbrPath = path + mbrName
                         if mbrPath in oimMemberTypes:
                             mbrTypes = oimMemberTypes[mbrPath]
-                            if (not ((mbrTypes is QNameType or (isinstance(mbrTypes,tuple) and QNameType in mbrTypes)) and QNamePattern.match(mbrObj)) and
-                                not ((mbrTypes is SQNameType or (isinstance(mbrTypes,tuple) and SQNameType in mbrTypes)) and SQNamePattern.match(mbrObj)) and
-                                not ((mbrTypes is LangType or (isinstance(mbrTypes,tuple) and LangType in mbrTypes)) and languagePattern.match(mbrObj)) and
-                                not ((mbrTypes is URIType or (isinstance(mbrTypes,tuple) and URIType in mbrTypes)) and relativeUrlPattern.match(mbrObj)) and
+                            if (not ((mbrTypes is QNameType or (isinstance(mbrTypes,tuple) and QNameType in mbrTypes)) and isinstance(mbrObj, str) and QNamePattern.match(mbrObj)) and
+                                not ((mbrTypes is SQNameType or (isinstance(mbrTypes,tuple) and SQNameType in mbrTypes)) and isinstance(mbrObj, str) and SQNamePattern.match(mbrObj)) and
+                                not ((mbrTypes is LangType or (isinstance(mbrTypes,tuple) and LangType in mbrTypes)) and isinstance(mbrObj, str) and languagePattern.match(mbrObj)) and
+                                not ((mbrTypes is URIType or (isinstance(mbrTypes,tuple) and URIType in mbrTypes)) and isinstance(mbrObj, str) and relativeUrlPattern.match(mbrObj)) and
                                 not isinstance(mbrObj, mbrTypes)):
                                 invalidMemberTypes.append(mbrPath)
                         elif ":" in mbrName and path + "*:*" in oimMemberTypes:
                             if not (QNamePattern.match(mbrName) and
                                     isinstance(mbrObj, oimMemberTypes[path + "*:*"])):
                                 invalidMemberTypes.append(mbrPath)
+                            elif NoRecursionCheck in oimMemberTypes[path + "*:*"]:
+                                checkNestedMembers = False # custom types, block recursive check
                             mbrPath = path + "*.*" # for recursion
                         elif path + "*" in oimMemberTypes:
-                            if not isinstance(mbrObj, oimMemberTypes[path + "*"]):
+                            mbrTypes = oimMemberTypes[path + "*"]
+                            if (not ((mbrTypes is URIType or (isinstance(mbrTypes,tuple) and isinstance(mbrObj, str) and URIType in mbrTypes)) and relativeUrlPattern.match(mbrObj)) and
+                                not isinstance(mbrObj, mbrTypes)):
                                 invalidMemberTypes.append(mbrPath)
                             mbrPath = path + "*" # for recursion
                         else:
                             unexpectedMembers.append(mbrPath)
-                        if isinstance(mbrObj, (dict,list)):
+                        if isinstance(mbrObj, (dict,list)) and checkNestedMembers:
                             checkMemberTypes(mbrObj, mbrPath + "/")
                 if (isinstance(obj,list)):
                     for mbrObj in obj:
@@ -922,11 +934,13 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         linkTypes = oimDocumentInfo.get("linkTypes", EMPTY_DICT)
         linkGroups = oimDocumentInfo.get("linkGroups", EMPTY_DICT)
         featuresDict = oimDocumentInfo.get("features", EMPTY_DICT)
+        canonicalValuesFeature = False
         if isJSON:
             errPrefix = "xbrlje"
             NSReservedAliasURIs.update(JSONNSReservedAliasURIs)
             factItems = oimObject.get("facts",{}).items()
             footnotes = oimObject.get("facts",{}).values() # shares this object
+            canonicalValuesFeature = featuresDict.get("xbrl:canonicalValues") in (True, "true")
         else: # isCSVorXL
             errPrefix = "xbrlce"
             NSReservedAliasURIs.update(CSVNSReservedAliasURIs)
@@ -1484,19 +1498,38 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                           modelObject=modelXbrl, id=id, noteId=dimensions["noteId"])
                 else:
                     noteFactIDsNotReferenced.add(id)
-                unexpectedDimensions = [d for d in dimensions if d in ("entity", "period") or ":" in d]
+                if dimensions.get("unit") and not isCSVorXL:
+                    error("xbrle:misplacedUnitDimension",
+                          _("The unit core dimension MUST NOT be present on footnote fact %(id)s: %(unit)s."),
+                          modelObject=modelXbrl, id=id, unit=dimensions.get("unit"))
+                if fact.get("decimals") and not isCSVorXL:
+                    error("xbrle:misplacedDecimalsProperty",
+                          _("The decimals property MUST NOT be present on footnote fact %(id)s: %(decimals)s"),
+                          modelObject=modelXbrl, id=id, decimals=decimals)
+                unexpectedDimensions = [d for d in dimensions if d in ("entity") or ":" in d]
                 if unexpectedDimensions:
                     error("xbrle:misplacedNoteFactDimension",
                           _("Unexpected dimension(s) for footnote fact %(id)s: %(dimensions)s"),
                           modelObject=modelXbrl, id=id, dimensions=", ".join(sorted(unexpectedDimensions)))
                 try:
-                    unacceptableElts = set(elt.tag
-                                           for elt in etree.XML(htmlBodyTemplate.format(fact.get("value",""))).iter()
-                                           if not elt.tag.startswith(xhtmlTagPrefix))
-                    if unacceptableElts:
+                    unacceptableTopElts = set()
+                    unacceptablePrefixes = set()
+                    valueXhtmlElts = etree.XML(htmlBodyTemplate.format(fact.get("value","")))
+                    for elt in valueXhtmlElts.iterchildren():
+                        if not elt.tag.startswith(xhtmlTagPrefix):
+                            unacceptableTopElts.add(elt.tag)
+                    for elt in valueXhtmlElts.iter():
+                        for prefix, ns in elt.nsmap.items():
+                            if prefix and ns == xhtml:
+                                unacceptablePrefixes.add(prefix)
+                    if unacceptableTopElts:
+                        error("xbrle:invalidXHTMLFragment",
+                              _("xbrl:note MUST have xhtml top level elements in the default xhtml namespace, fact %(id)s, elements %(elements)s"),
+                              modelObject=modelXbrl, id=id, elements=", ".join(sorted(unacceptableTopElts)))
+                    if unacceptablePrefixes:
                         error("xbrle:xhtmlElementInNonDefaultNamespace",
-                              _("xbrl:note MUST have xhtml elements in the default xhtml namespace, fact %(id)s, elements %(elements)s"),
-                              modelObject=modelXbrl, id=id, elements=", ".join(sorted(unacceptableElts)))
+                              _("xbrl:note MUST have xhtml elements in the default xhtml namespace, fact %(id)s, non-default prefixes: %(prefixes)s"),
+                              modelObject=modelXbrl, id=id, prefixes=", ".join(sorted(unacceptablePrefixes)))
                 except (etree.XMLSyntaxError,
                         UnicodeDecodeError) as err:
                     error("xbrle:invalidXHTMLFragment",
@@ -1552,11 +1585,16 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     period = dimensions["period"]
                     if period is None:
                         period = "forever"
-                    elif not re.match(r"\d{4,}-[0-1][0-9]-[0-3][0-9]T([0-1][0-9]:[0-5][0-9]:[0-5][0-9])"
-                                      r"(/\d{4,}-[0-1][0-9]-[0-3][0-9]T([0-1][0-9]:[0-5][0-9]:[0-5][0-9]))?", period):
-                        error("xbrle:invalidPeriodDimension",
+                    elif not re.match(r"[ \t\n\r]*\d{4,}-[0-1][0-9]-[0-3][0-9]T([0-1][0-9]:[0-5][0-9]:[0-5][0-9])"
+                                      r"(/\d{4,}-[0-1][0-9]-[0-3][0-9]T([0-1][0-9]:[0-5][0-9]:[0-5][0-9]))?[ \t\n\r]*", period):
+                        error("oimce:invalidPeriodRepresentation",
                               _("The concept %(element)s has a lexically invalid period dateTime %(periodError)s"),
                               modelObject=modelXbrl, element=conceptQn, periodError=period)
+                        continue
+                    elif canonicalValuesFeature and WhitespacePattern.search(period):
+                        error("oimce:invalidPeriodRepresentation",
+                          _("The concept %(element)s has a noncanonical period dateTime %(periodError)s"),
+                          modelObject=modelXbrl, element=conceptQn, periodError=period)
                         continue
                 else:
                     period = "forever"
@@ -1650,7 +1688,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                       modelObject=modelXbrl, factId=id)
                                 continue
                     except ValueError as err:
-                        error("xbrle:invalidPeriodDimension",
+                        error("oimce:invalidPeriodRepresentation",
                               _("Invalid period for fact %(factId)s period %(period)s, %(error)s."),
                               modelObject=modelXbrl, factId=id, period=period, error=err)
                         continue
@@ -1810,6 +1848,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         definedInstanceRoles = set()
         undefinedFootnoteTypes = set()
         undefinedFootnoteGroups = set()
+        undefinedLinkTargets = set()
         footnotesIdTargets = set()
         for factOrFootnote in footnotes:
             if isJSON:
@@ -1842,7 +1881,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                             "footnoteGroup": linkGroups[ftGroup],
                                             "footnoteType": linkTypes[ftType]}
                                 for tgtId in ftTgtIds:
-                                    footnote.setdefault("noteRefs" if tgtId in xbrlNoteTbl else "factRefs", []).append(tgtId)
+                                    if tgtId in factItems:
+                                        footnote.setdefault("noteRefs" if tgtId in xbrlNoteTbl else "factRefs", []).append(tgtId)
+                                    else:
+                                        undefinedLinkTargets.add(tgtId)
                                 factFootnotes.append(footnote)
             elif isCSVorXL: # footnotes contains footnote objects
                 factFootnotes = []
@@ -1859,7 +1901,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                 "footnoteGroup": linkGroups[ftGroup],
                                                 "footnoteType": linkTypes[ftType]}
                                     for tgtId in ftTgtIds:
-                                        footnote.setdefault("noteRefs" if tgtId in xbrlNoteTbl else "factRefs", []).append(tgtId)
+                                        if tgtId in factItems:
+                                            footnote.setdefault("noteRefs" if tgtId in xbrlNoteTbl else "factRefs", []).append(tgtId)
+                                        else:
+                                            undefinedLinkTargets.add(tgtId)
                                     factFootnotes.append(footnote)
             for footnote in factFootnotes:
                 factId = footnote["id"]
@@ -1979,7 +2024,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     modelObject=modelXbrl, noteFactIds=", ".join(sorted(noteFactIDsNotReferenced)))
         if footnoteLinks:
             modelXbrl.modelDocument.linkbaseDiscover(footnoteLinks.values(), inInstance=True)
-
+            
+        if undefinedLinkTargets:
+            error("xbrlje:unknownLinkTarget",
+                  _("These link targets are not defined in facts: %(ftTargets)s."),
+                  modelObject=modelXbrl, ftTargets=", ".join(sorted(undefinedLinkTargets)))
         if undefinedFootnoteTypes:
             error("xbrlje:unknownLinkType",
                   _("These footnote types are not defined in footnoteTypes: %(ftTypes)s."),
