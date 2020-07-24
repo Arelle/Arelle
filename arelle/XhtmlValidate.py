@@ -567,10 +567,11 @@ def xhtmlValidate(modelXbrl, elt):
         elts = [] # elements causing errors for element pointers in error message
         for e in dtd.error_log.filter_from_errors():
             msg = e.message
-            if e.path and e.path.startswith("/html/"):
+            path = getattr(e, "path", None)
+            if path and path.startswith("/html/"):
                 errPath = "/".join("{{{}}}{}".format(_ixNS if p.startswith("ixN") else XbrlConst.xhtml,
                                                      "*" if p.startswith("ixN") else p)
-                                    for p in e.path[6:].split("/"))
+                                    for p in path[6:].split("/"))
                 errElt = elt.find(errPath)
                 if errElt is not None:
                     if "ixNestedContent" in msg and isinstance(errElt,ModelObject):
