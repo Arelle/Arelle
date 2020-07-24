@@ -15,7 +15,7 @@ import os
 from arelle import ModelDocument, XmlUtil
 from arelle.ModelValue import qname, dateTime, DATE
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue, insignificantDigits
-from arelle.XbrlConst import xbrli
+from arelle.XbrlConst import xbrli, qnXbrliXbrl
 try:
     import regex as re
 except ImportError:
@@ -35,16 +35,18 @@ commonMandatoryItems = {
 mandatoryItems = {
     "ukGAAP": commonMandatoryItems | {
         "DateApprovalAccounts", "NameDirectorSigningAccounts", "EntityDormant", "EntityTrading",
-        "DateSigningDirectorsReport", "DirectorSigningReport"},
+        "DateSigningDirectorsReport", "DirectorSigningReport"
+        },
     "charities": commonMandatoryItems | {
-        "DateApprovalAccounts", "NameTrusteeSigningAccounts", "EntityDormant", "EntityTrading",
-        "DateSigningTrusteesReport", "TrusteeSigningReport"},
+        "DateAuthorisationFinancialStatementsForIssue", "DirectorSigningFinancialStatements", 
+        "EntityDormantTruefalse", "EntityTradingStatus",
+        "AccountingStandardsApplied", "AccountingStandardsApplied"},
     "ukIFRS": commonMandatoryItems | {
         "DateAuthorisationFinancialStatementsForIssue", "ExplanationOfBodyOfAuthorisation", 
         "EntityDormant", "EntityTrading", "DateSigningDirectorsReport", "DirectorSigningReport"},
     "FRS": commonMandatoryItems | {
-        "DateSigningDirectorsReport", "DateAuthorisationFinancialStatementsForIssue", "DirectorSigningFinancialStatements",
-        "EntityDormantTruefalse", "EntityTradingStatus", "EntityTradingStatus", "DirectorSigningDirectorsReport",
+        "DateAuthorisationFinancialStatementsForIssue", "DirectorSigningFinancialStatements",
+        "EntityDormantTruefalse", "EntityTradingStatus", "EntityTradingStatus", 
         "AccountingStandardsApplied", "AccountsStatusAuditedOrUnaudited", "AccountsTypeFullOrAbbreviated",
         "LegalFormEntity", "DescriptionPrincipalActivities"}
     }
@@ -262,7 +264,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                                 modelXbrl.error("JFCVC.3316",
                                     _("Context entity identifier %(identifier)s does not match Company Reference Number (UKCompaniesHouseRegisteredNumber) Location: Accounts (context id %(id)s)"), 
                                     modelObject=(f, _cntx), identifier=_identifier, id=_cntx.id)
-                    factForConceptContextUnitHash[f.conceptContextUnitHash].append(f)
+                    if f.parentElement.qname == qnXbrliXbrl: # JFCVC v4.0 - only check non-tuple facts
+                        factForConceptContextUnitHash[f.conceptContextUnitHash].append(f)
                             
                     if f.isNumeric:
                         if f.precision:
@@ -330,14 +333,16 @@ def validateXbrlFinally(val, *args, **kwargs):
                 _missingItems.add("UKCompaniesHouseRegisteredNumber")
             if _missingItems:
                 modelXbrl.error("JFCVC.3312",
-                    _("Mandatory facts missing: %(missingItems)s"),
+                    _("Facts are MANDATORY: %(missingItems)s"),
                     modelObject=modelXbrl, missingItems=", ".join(sorted(_missingItems)))
             
+            ''' removed with JFCVC v4.0 2020-06-09
             f = mandatoryFacts.get("StartDateForPeriodCoveredByReport")
             if f is not None and (f.isNil or f.xValue < _6_APR_2008):
                 modelXbrl.error("JFCVC.3313",
                     _("Period Start Date (StartDateForPeriodCoveredByReport) must be 6 April 2008 or later, but is %(value)s"),
                     modelObject=f, value=f.value)
+            '''
             
             memLocalNamesMissing = set("{}({})".format(_gdvRec.memLocalName, _gdvRec.factNames)
                                        for _gdv in mandatoryGDV.values()
@@ -451,8 +456,8 @@ class GDV:
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate HMRC',
-    'version': '1.0',
-    'description': '''HMRC Validation.''',
+    'version': '4.0',
+    'description': '''HMRC Validation. JFCVC v4.0 2020-06-09.  Style guide v2.2''',
     'license': 'Apache-2',
     'author': 'Mark V Systems',
     'copyright': '(c) Copyright 2013-15 Mark V Systems Limited, All rights reserved.',
