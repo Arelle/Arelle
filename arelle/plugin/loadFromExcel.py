@@ -101,6 +101,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
         "label, terse": ("label", XbrlConst.terseLabel, defaultLabelLang),
         "label, verbose": ("label", XbrlConst.verboseLabel, defaultLabelLang),
         "label, documentation": ("label", XbrlConst.documentationLabel, defaultLabelLang),
+        "label, periodStart": ("label", XbrlConst.periodStartLabel, defaultLabelLang),
+        "label, periodEnd": ("label", XbrlConst.periodEndLabel, defaultLabelLang),
         "group": "linkrole",
         "linkrole": "linkrole",
         "ELR": "linkrole",
