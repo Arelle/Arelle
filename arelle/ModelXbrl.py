@@ -95,7 +95,7 @@ def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, create
     
 def loadSchemalocatedSchemas(modelXbrl):
     from arelle import ModelDocument
-    if modelXbrl.modelDocument is not None and modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
+    if modelXbrl.modelDocument and modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
         # at this point DTS is fully discovered but schemaLocated xsd's are not yet loaded
         modelDocumentsSchemaLocated = set()
         while True: # need this logic because each new pass may add new urlDocs
@@ -442,7 +442,7 @@ class ModelXbrl:
         :type url: str
         """
         from arelle import (ModelDocument, FileSource)
-        if self.modelDocument.type == ModelDocument.Type.INSTANCE: 
+        if self.modelDocument and self.modelDocument.type == ModelDocument.Type.INSTANCE: 
             # entry already is an instance, delete facts etc.
             del self.facts[:]
             self.factsInInstance.clear()
@@ -1028,7 +1028,7 @@ class ModelXbrl:
                         ref = {}
                         if isinstance(arg,(ModelObject, ObjectPropertyViewWrapper)):
                             _arg = arg.modelObject if isinstance(arg, ObjectPropertyViewWrapper) else arg
-                            if getattr(arg,"tag",None) == "instance" and len(modelObjectArgs) > 1:
+                            if len(modelObjectArgs) > 1 and getattr(arg,"tag",None) == "instance":
                                 continue # skip IXDS top level element
                             ref["href"] = file + "#" + XmlUtil.elementFragmentIdentifier(_arg)
                             ref["sourceLine"] = _arg.sourceline

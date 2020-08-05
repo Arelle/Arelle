@@ -86,6 +86,8 @@ def validateXbrlFinally(val, *args, **kwargs):
     _xhtmlNsLen = len(_xhtmlNs)
     modelXbrl = val.modelXbrl
     modelDocument = modelXbrl.modelDocument
+    if not modelDocument:
+        return # never loaded properly
 
     _statusMsg = _("validating {0} filing rules").format(val.disclosureSystem.name)
     modelXbrl.profileActivity()

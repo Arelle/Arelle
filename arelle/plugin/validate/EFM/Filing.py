@@ -54,7 +54,7 @@ def fevMessageArgValue(x):
     return str(x)
 
 def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
-    if not hasattr(modelXbrl.modelDocument, "xmlDocument"): # not parsed
+    if not modelXbrl.modelDocument or not hasattr(modelXbrl.modelDocument, "xmlDocument"): # not parsed
         return
     
     datePattern = re.compile(r"([12][0-9]{3})-([01][0-9])-([0-3][0-9])")

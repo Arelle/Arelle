@@ -62,10 +62,10 @@ class Validate:
         self.__dict__.clear()   # dereference variables
         
     def validate(self):
-        if self.modelXbrl.modelDocument is None:
+        if not self.modelXbrl.modelDocument:
             self.modelXbrl.info("arelle:notValdated",
                 _("Validation skipped, document not successfully loaded: %(file)s"),
-                modelXbrl=self.modelXbrl, file=self.modelXbrl.modelDocument.basename)
+                modelXbrl=self.modelXbrl, file=self.modelXbrl.fileSource.url)
         elif self.modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.REGISTRY, Type.TESTCASE, Type.REGISTRYTESTCASE):
             try:
                 _disclosureSystem = self.modelXbrl.modelManager.disclosureSystem
