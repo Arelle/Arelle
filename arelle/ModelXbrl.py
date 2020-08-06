@@ -349,6 +349,15 @@ class ModelXbrl:
             for view in range(len(self.views)):
                 if len(self.views) > 0:
                     self.views[0].close()
+    
+    @property
+    def displayUri(self):
+        if hasattr(self, "ixdsDocUrls"):
+            return "IXDS {}".format(", ".join(os.path.basename(url) for url in self.ixdsDocUrls))
+        elif hasattr(self, "uri"):
+            return self.uri
+        else:
+            return self.fileSource.url
         
     def relationshipSet(self, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
         """Returns a relationship set matching specified parameters (only arcrole is required).
@@ -1012,10 +1021,10 @@ class ModelXbrl:
                             objectUrl = arg
                         else:
                             try:
-                                objectUrl = arg.modelDocument.displayUri
+                                objectUrl = self.modelDocument.displayUri
                             except AttributeError:
                                 try:
-                                    objectUrl = self.modelDocument.displayUri
+                                    objectUrl = arg.displayUri
                                 except AttributeError:
                                     objectUrl = getattr(self, "entryLoadingUrl", "")
                         try:

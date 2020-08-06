@@ -63,7 +63,7 @@ class Validate:
         
     def validate(self):
         if not self.modelXbrl.modelDocument:
-            self.modelXbrl.info("arelle:notValdated",
+            self.modelXbrl.info("arelle:notValidated",
                 _("Validation skipped, document not successfully loaded: %(file)s"),
                 modelXbrl=self.modelXbrl, file=self.modelXbrl.fileSource.url)
         elif self.modelXbrl.modelDocument.type in (Type.TESTCASESINDEX, Type.REGISTRY, Type.TESTCASE, Type.REGISTRYTESTCASE):

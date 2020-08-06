@@ -659,7 +659,7 @@ class ModelDocument:
                                 if ixDoc.type == Type.INLINEXBRL]
             if len(ixdsDocBaseNames) > 2: # linit to 3 basenames in IXDS
                 ixdsDocBaseNames = ixdsDocBaseNames[0:2] + ["..."]
-            return "{}{}IXDS {}".format(self.filepathdir, os.sep, ", ".join(ixdsDocBaseNames))
+            return "IXDS {}".format(", ".join(ixdsDocBaseNames))
         else:
             return self.uri
 
