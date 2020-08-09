@@ -20,19 +20,24 @@ from collections import defaultdict
 from arelle import ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelConcept, ModelType
 from arelle.ModelObject import ModelObject
-from arelle.XbrlConst import xbrli, standardLabelRoles, dimensionDefault
+from arelle.XbrlConst import xbrli, standardLabelRoles, dimensionDefault, standardLinkbaseRefRoles
 from .Const import qnDomainItemType, esefDefinitionArcroles, disallowedURIsPattern, DefaultDimensionLinkrole
 from .Util import isExtension
 
-def checkFilingDTS(val, modelDocument, visited):
+def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
     visited.append(modelDocument)
     for referencedDocument, modelDocumentReference in modelDocument.referencesDocument.items():
         if referencedDocument not in visited and referencedDocument.inDTS: # ignore non-DTS documents
-            checkFilingDTS(val, referencedDocument, visited)
+            checkFilingDTS(val, referencedDocument, visited, modelDocumentReference.referringXlinkRole)
             
-    if modelDocument.type == ModelDocument.Type.SCHEMA and isExtension(val, modelDocument):
+    isExtensionDoc = isExtension(val, modelDocument)
+    filenamePattern = None
+    
+    if modelDocument.type == ModelDocument.Type.SCHEMA and isExtensionDoc:
         
         val.hasExtensionSchema = True
+        
+        filenamePattern = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}[.]xsd$")
 
         for doc, docRef in modelDocument.referencesDocument.items():
             if docRef.referenceType in ("import","include") and disallowedURIsPattern.match(doc.uri):
@@ -195,13 +200,31 @@ def checkFilingDTS(val, modelDocument, visited):
              extLineItemsWithoutHypercube, extLineItemsNotAnchored, extAbstractConcepts, 
              extMonetaryConceptsWithoutBalance, langRoleLabels, conceptsWithNoLabel, conceptsWithoutStandardLabel)
                             
-    if modelDocument.type == ModelDocument.Type.LINKBASE and isExtension(val, modelDocument):
+    if modelDocument.type == ModelDocument.Type.LINKBASE and isExtensionDoc:
         
         linkbasesFound = set()
         disallowedArcroles = defaultdict(list)
         prohibitedBaseConcepts = []
         prohibitingLbElts = []
         
+        if hrefXlinkRole in standardLinkbaseRefRoles:
+            # account for empty linkbaseRefs (populated are identified by extended links below)
+            if hrefXlinkRole == "http://www.xbrl.org/2003/role/calculationLinkbaseRef":
+                val.hasExtensionCal = True
+                filenamePattern = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_cal[.]xml$")
+            elif hrefXlinkRole == "http://www.xbrl.org/2003/role/definitionLinkbaseRef":
+                filenamePattern = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_def[.]xml$")
+                val.hasExtensionDef = True
+            elif hrefXlinkRole == "http://www.xbrl.org/2003/role/labelLinkbaseRef":
+                filenamePattern = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_lbl-[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*[.]xml$")
+                val.hasExtensionLbl = True
+            elif hrefXlinkRole == "http://www.xbrl.org/2003/role/presentationLinkbaseRef":
+                filenamePattern = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_pre[.]xml$")
+                val.hasExtensionPre = True
+            elif hrefXlinkRole == "http://www.xbrl.org/2003/role/referenceLinkbaseRef":
+                filenamePattern = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_ref[.]xml$")
+
+
         for linkEltName in ("labelLink", "presentationLink", "calculationLink", "definitionLink", "referenceLink"):
             for linkElt in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}" + linkEltName):
                 if linkEltName == "labelLink":
@@ -265,5 +288,16 @@ def checkFilingDTS(val, modelDocument, visited):
                 val.modelXbrl.error("ESEF.3.4.3.extensionTaxonomyOverridesDefaultMembers",
                     _("The extension taxonomy MUST not prohibit default members assigned to dimensions by the ESEF taxonomy."),
                     modelObject=modelDocument.xmlRootElement, linkbasesFound=", ".join(sorted(linkbasesFound)))
-                
+    
+    if isExtensionDoc and filenamePattern is not None:
+        m = filenamePattern.match(modelDocument.basename)
+        if not m:
+            val.modelXbrl.warning("ESEF.3.1.5.extensionTaxonomyDocumentNameDoesNotFollowNamingConvention",
+                _("Extension taxonomy document file name SHOULD match the {base}-{date}_{suffix}.{extension} pattern."),
+                modelObject=modelDocument.xmlRootElement)
+        elif len(m.group(1)) > 20:
+            val.modelXbrl.warning("ESEF.3.1.5.baseComponentInNameOfTaxonomyFileExceedsTwentyCharacters",
+                _("Extension taxonomy document file name {base} component SHOULD be no longer than 20 characters, length is %(length)s."),
+                modelObject=modelDocument.xmlRootElement, length=len(m.group(1)))
+        
         

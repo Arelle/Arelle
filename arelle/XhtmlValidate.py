@@ -486,8 +486,6 @@ def xhtmlValidate(modelXbrl, elt):
                     
     def ixToXhtml(fromRoot):
         toRoot = etree.Element(fromRoot.localName)
-        if fromRoot.sourceline < 65535: # lxml bug, stores in a short
-            toRoot.sourceline = fromRoot.sourceline
         copyNonIxChildren(fromRoot, toRoot)
         for attrTag, attrValue in fromRoot.items():
             checkAttribute(fromRoot, False, attrTag, attrValue)
@@ -519,8 +517,6 @@ def xhtmlValidate(modelXbrl, elt):
                 else:
                     if fromChild.localName in {"footnote", "nonNumeric", "continuation"} and isIxNs:
                         toChild = etree.Element("ixNestedContent")
-                        if fromChild.sourceline < 65535: # lxml bug, stores in a short
-                            toChild.sourceline = fromChild.sourceline
                         toElt.append(toChild)
                         copyNonIxChildren(fromChild, toChild)
                         if fromChild.text is not None:
@@ -531,8 +527,6 @@ def xhtmlValidate(modelXbrl, elt):
                         copyNonIxChildren(fromChild, toElt)
                     else:
                         toChild = etree.Element(fromChild.localName)
-                        if fromChild.sourceline < 65535: # lxml bug, stores in a short
-                            toChild.sourceline = fromChild.sourceline
                         toElt.append(toChild)
                         for attrTag, attrValue in fromChild.items():
                             checkAttribute(fromChild, False, attrTag, attrValue)
@@ -570,21 +564,30 @@ def xhtmlValidate(modelXbrl, elt):
     htmlDtdTree = ixToXhtml(elt)
     def dtdErrs():
         errs = []
+        elts = [] # elements causing errors for element pointers in error message
         for e in dtd.error_log.filter_from_errors():
-            line = ""
-            if e.path and e.path.startswith("/html/"):
-                dtdElt = htmlDtdTree.find(e.path[6:])
-                if dtdElt is not None and dtdElt.sourceline:
-                    line = " line {}".format(dtdElt.sourceline)
-            errs.append(e.message + line)
-        return errs
+            msg = e.message
+            path = getattr(e, "path", None)
+            if path and path.startswith("/html/"):
+                errPath = "/".join("{{{}}}{}".format(_ixNS if p.startswith("ixN") else XbrlConst.xhtml,
+                                                     "*" if p.startswith("ixN") else p)
+                                    for p in path[6:].split("/"))
+                errElt = elt.find(errPath)
+                if errElt is not None:
+                    if "ixNestedContent" in msg and isinstance(errElt,ModelObject):
+                        msg = msg.replace("ixNestedContent", str(errElt.elementQname))
+                    msg += " line {}".format(errElt.sourceline)
+                    elts.append(errElt)
+            errs.append(msg)
+        return errs, elts
     try:
         # uncomment to debug:with open("/users/hermf/temp/testDtd.htm", "wb") as fh:
         # uncomment to debug:    fh.write(etree.tostring(htmlDtdTree, encoding="UTF-8", xml_declaration=True, pretty_print=True))
         if not dtd.validate( htmlDtdTree ):
+            dtdErrMsgs, dtdErrElts = dtdErrs()
             modelXbrl.error("html:syntaxError",
                 _("%(element)s error %(error)s"),
-                modelObject=elt, element=elt.localName.title(), error=', '.join(dtdErrs()))            
+                modelObject=dtdErrElts or elt, element=elt.localName.title(), error=', '.join(dtdErrMsgs))
         if isEFM:
             ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", "EFM.5.02.05.", isInline=True) 
     except XMLSyntaxError as err:

@@ -41,6 +41,8 @@
       <xs:attribute name="defaultXmlEncoding" use="optional" type="xs:string"/> 
       <!-- defaultXmlEncoding may be an empty string to detect when missing in an XML document -->
       <xs:attribute name="xmlLangPattern" />
+      <xs:attribute name="xmlLangIsInheritable" use="optional" type="xs:boolean" default="true"/>
+      <!-- xml:lang inheritance for label and footnote, spec sections 4.11.1.2.1 and 5.2.2.2.1 -->
       <xs:attribute name="deiAmendmentFlagElement" use="optional" type="xs:NCName"/>
       <xs:attribute name="deiCurrentFiscalYearEndDateElement" use="optional" type="xs:NCName"/>
       <xs:attribute name="deiDocumentFiscalYearFocusElement" use="optional" type="xs:NCName"/>

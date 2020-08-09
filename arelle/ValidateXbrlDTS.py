@@ -772,14 +772,24 @@ def checkElements(val, modelDocument, parent):
                                 modelObject=elt, element=elt.qname, attribute=name,
                                 messageCodes=("xbrl.3.5.3.7.2:linkLocHref","xbrl.3.5.3.7.3:linkLocLabel"))
                 elif xlinkType == "resource":
-                    if elt.localName == "footnote" and elt.get("{http://www.w3.org/XML/1998/namespace}lang") is None:
-                        val.modelXbrl.error("xbrl.4.11.1.2.1:footnoteLang",
-                            _("Footnote %(xlinkLabel)s element missing xml:lang attribute"),
-                            modelObject=elt, xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"))
-                    elif elt.localName == "label" and elt.get("{http://www.w3.org/XML/1998/namespace}lang") is None:
-                        val.modelXbrl.error("xbrl.5.2.2.2.1:labelLang",
-                            _("Label %(xlinkLabel)s element missing xml:lang attribute"),
-                            modelObject=elt, xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"))
+                    if val.disclosureSystem.xmlLangIsInheritable:
+                        if elt.localName == "footnote" and elt.xmlLang is None:
+                            val.modelXbrl.error("xbrl.4.11.1.2.1:footnoteLang",
+                                _("Footnote %(xlinkLabel)s element missing an in-scope xml:lang attribute"),
+                                modelObject=elt, xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"))
+                        elif elt.localName == "label" and elt.xmlLang is None:
+                            val.modelXbrl.error("xbrl.5.2.2.2.1:labelLang",
+                                _("Label %(xlinkLabel)s element missing an in-scope xml:lang attribute"),
+                                modelObject=elt, xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"))
+                    else:
+                        if elt.localName == "footnote" and elt.get("{http://www.w3.org/XML/1998/namespace}lang") is None:
+                            val.modelXbrl.error("xbrl.4.11.1.2.1:footnoteLang",
+                                _("Footnote %(xlinkLabel)s element missing xml:lang attribute"),
+                                modelObject=elt, xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"))
+                        elif elt.localName == "label" and elt.get("{http://www.w3.org/XML/1998/namespace}lang") is None:
+                            val.modelXbrl.error("xbrl.5.2.2.2.1:labelLang",
+                                _("Label %(xlinkLabel)s element missing xml:lang attribute"),
+                                modelObject=elt, xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"))
                     if val.validateSBRNL:
                         if elt.localName in ("label", "reference"):
                             if not XbrlConst.isStandardRole(xlinkRole):

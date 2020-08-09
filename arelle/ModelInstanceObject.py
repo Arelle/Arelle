@@ -314,8 +314,18 @@ class ModelFact(ModelObject):
     @property
     def xmlLang(self):
         """(str) -- xml:lang attribute, if none and non-numeric, disclosure-system specified default lang"""
-        lang = XmlUtil.ancestorOrSelfAttr(self, "{http://www.w3.org/XML/1998/namespace}lang")
-        if lang is None and self.modelXbrl.modelManager.validateDisclosureSystem:
+        lang = self.get("{http://www.w3.org/XML/1998/namespace}lang")
+        if lang is not None:
+            return lang
+        parentElt = self.parentElement
+        if isinstance(parentElt, ModelFact):
+            return parentElt.xmlLang
+        elif isinstance(parentElt, ModelObject): # top-level fact is parented by xbrli:xbrl which isn't a fact
+            lang = parentElt.get("{http://www.w3.org/XML/1998/namespace}lang")
+            if lang is not None:
+                return lang
+        # if we got here there is no xml:lang on fact or ancestry
+        if self.modelXbrl.modelManager.validateDisclosureSystem: # use disclosureSystem's defaultXmlLang (if any)
             concept = self.concept
             if concept is not None and not concept.isNumeric:
                 lang = self.modelXbrl.modelManager.disclosureSystem.defaultXmlLang

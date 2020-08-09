@@ -162,9 +162,10 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         xmlDocument = etree.parse(file,parser=_parser,base_url=filepath)
         for error in _parser.error_log:
             modelXbrl.error("xmlSchema:syntax",
-                    _("%(error)s, %(fileName)s, line %(line)s, column %(column)s, %(sourceAction)s source element"),
-                    modelObject=referringElement, fileName=os.path.basename(uri), 
-                    error=error.message, line=error.line, column=error.column, sourceAction=("including" if isIncluded else "importing"))
+                    _("%(error)s, %(fileName)s, line %(line)s, column %(column)s"),
+                    modelObject=(referringElement, os.path.basename(uri)),
+                    fileName=os.path.basename(uri), 
+                    error=error.message, line=error.line, column=error.column)
         file.close()
     except (EnvironmentError, KeyError, UnicodeDecodeError) as err:  # missing zip file raises KeyError
         if file:
@@ -194,16 +195,16 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             return ModelDocument(modelXbrl, Type.UnknownNonXML, normalizedUri, filepath, None)
         else:
             modelXbrl.error("xmlSchema:syntax",
-                    _("Unrecoverable error: %(error)s, %(fileName)s, %(sourceAction)s source element"),
-                    modelObject=referringElement, fileName=os.path.basename(uri), 
-                    error=str(err), sourceAction=("including" if isIncluded else "importing"), exc_info=True)
+                    _("Unrecoverable error: %(error)s, %(fileName)s"),
+                    modelObject=(referringElement, os.path.basename(uri)), fileName=os.path.basename(uri), 
+                    error=str(err), exc_info=True)
             modelXbrl.urlUnloadableDocs[normalizedUri] = True  # not loadable due to parser issues
             return None
     except Exception as err:
         modelXbrl.error(type(err).__name__,
-                _("Unrecoverable error: %(error)s, %(fileName)s, %(sourceAction)s source element"),
+                _("Unrecoverable error: %(error)s, %(fileName)s"),
                 modelObject=referringElement, fileName=os.path.basename(uri), 
-                error=str(err), sourceAction=("including" if isIncluded else "importing"), exc_info=True)
+                error=str(err), exc_info=True)
         modelXbrl.urlUnloadableDocs[normalizedUri] = True  # not loadable due to exception issue
         return None
     
@@ -1371,7 +1372,8 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
     tuplesByTupleID = {}
     factsByFactID = {} # non-tuple facts
     factTargetIDs = set() # target IDs referenced on facts
-    targetReferenceAttrs = defaultdict(dict) # target dict by attrname of elts
+    targetReferenceAttrElts = defaultdict(dict) # target dict by attrname of elts
+    targetReferenceAttrVals = defaultdict(dict) # target dict by attrname of attr value
     targetReferencePrefixNs = defaultdict(dict) # target dict by prefix, namespace
     targetReferencesIDs = {} # target dict by id of reference elts
     modelInlineFootnotesById = {} # inline 1.1 ixRelationships and ixFootnotes
@@ -1403,7 +1405,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
         for elt in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "references"):
             if isinstance(elt,ModelObject):
                 target = elt.get("target")
-                targetReferenceAttrsDict = targetReferenceAttrs[target]
+                targetReferenceAttrsDict = targetReferenceAttrElts[target]
                 for attrName, attrValue in elt.items():
                     if attrName.startswith('{') and not attrName.startswith(mdlDoc.ixNStag) and attrName != "{http://www.w3.org/XML/1998/namespace}base":
                         if attrName in targetReferenceAttrsDict:
@@ -1412,6 +1414,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                                             modelObject=(elt, targetReferenceAttrsDict[attrName]), name=attrName, target=target)
                         else:
                             targetReferenceAttrsDict[attrName] = elt
+                            targetReferenceAttrVals[target][attrName] = attrValue # use qname to preserve prefix
                 if elt.id:
                     if ixdsEltById[elt.id] != [elt]:
                         modelXbrl.error(ixMsgCode("referencesIdDuplication",ns=mdlDoc.ixNS,name="references",sect="validation"),
@@ -1446,12 +1449,15 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                         _("Inline XBRL ix:resources element not found"),
                         modelObject=modelXbrl)
                         
-    del ixdsEltById, targetReferencePrefixNs, targetReferencesIDs
+    del ixdsEltById, targetReferencesIDs
     
     # root elements by target
     modelXbrl.ixTargetRootElements = {}
-    for target in targetReferenceAttrs.keys() | {None}: # need default target in case any facts have no or invalid target
-        modelXbrl.ixTargetRootElements[target] = XmlUtil.addChild(modelIxdsDocument, XbrlConst.qnXbrliXbrl, appendChild=False)
+    for target in targetReferenceAttrElts.keys() | {None}: # need default target in case any facts have no or invalid target
+        modelXbrl.ixTargetRootElements[target] = modelIxdsDocument.parser.makeelement(
+            XbrlConst.qnXbrliXbrl.clarkNotation, attrib=targetReferenceAttrVals.get(target), 
+            nsmap=dict((p,n) for p,(n,e) in targetReferencePrefixNs.get(target,{}).items())) 
+
                     
     def locateFactInTuple(modelFact, tuplesByTupleID, ixNStag):
         tupleRef = modelFact.tupleRef
@@ -1633,11 +1639,11 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                 modelInlineFootnotesById[modelInlineFootnote.footnoteID] = modelInlineFootnote
 
             
-    if len(targetReferenceAttrs) == 0:
+    if len(targetReferenceAttrElts) == 0:
         modelXbrl.error(ixMsgCode("missingReferences", None, name="references", sect="validation"),
                         _("There must be at least one reference"),
                         modelObject=modelXbrl)
-    _missingReferenceTargets = factTargetIDs - set(targetReferenceAttrs.keys())
+    _missingReferenceTargets = factTargetIDs - set(targetReferenceAttrElts.keys())
     if _missingReferenceTargets:
         modelXbrl.error(ixMsgCode("missingReferenceTargets", None, name="references", sect="validation"),
                         _("Found no ix:references element%(plural)s having target%(plural)s '%(missingReferenceTargets)s' in IXDS."),
@@ -1645,12 +1651,12 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                         missingReferenceTargets=", ".join(sorted("(default)" if t is None else t
                                                                  for t in _missingReferenceTargets)))
         
-    if ixdsTarget not in factTargetIDs and ixdsTarget not in targetReferenceAttrs.keys():
+    if ixdsTarget not in factTargetIDs and ixdsTarget not in targetReferenceAttrElts.keys():
         modelXbrl.warning("arelle:ixdsTargetNotDefined",
                           _("Target parameter %(ixdsTarget)s is not a specified IXDS target property"),
                           modelObject=modelXbrl, ixdsTarget=ixdsTarget)
         
-    del targetReferenceAttrs, factTargetIDs
+    del targetReferenceAttrElts, targetReferencePrefixNs, targetReferenceAttrVals, factTargetIDs
 
             
     footnoteLinkPrototypes = {}
@@ -1812,4 +1818,10 @@ class ModelDocumentReference:
     def __init__(self, referenceType, referringModelObject=None):
         self.referenceType = referenceType
         self.referringModelObject = referringModelObject
+    
+    @property
+    def referringXlinkRole(self):
+        if self.referenceType == "href" and isinstance(self.referringModelObject, ModelObject):
+            return self.referringModelObject.get("{http://www.w3.org/1999/xlink}role")
+        return None
 

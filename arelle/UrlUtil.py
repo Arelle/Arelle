@@ -44,7 +44,7 @@ absoluteUrlPattern = None
 # this pattern doesn't allow some valid unicode characters
 #relativeUrlPattern = re.compile(r"(^[/:\.+-_@%;?&=!~\*'\(\)\w ]+(#[\w_%\-\.\(/\)]+)?$)|(^#[\w_%\-\.\(/\)]+$)")
 # try this instead from http://www.ietf.org/rfc/rfc2396.txt (B)
-relativeUrlPattern = re.compile(r"^(([^:/\?#]+):)?(//([^/\?#]*))?([^\?#]*)(\?([^#]*))?(#([^#]*))?$")
+relativeUrlPattern = re.compile(r"^(([a-zA-Z][a-zA-Z0-9.+-]+):)?(//([^/\?#]*))?([^\?#]*)(\?([^#]*))?(#([^#]*))?$")
 
 def splitDecodeFragment(url):
     if url is None: # urldefrag returns byte strings for none, instead of unicode strings
@@ -392,9 +392,13 @@ def parseRfcDatetime(rfc2822date):
             return datetime(d[0],d[1],d[2],d[3],d[4],d[5])
     return None
        
+zipRelativeFilePattern = re.compile(r".*[.]zip[/\\](.*)$")
 def relativeUri(baseUri, relativeUri): # return uri relative to this modelDocument uri
     if isHttpUrl(relativeUri):
         return relativeUri
-    else:
-        return os.path.relpath(relativeUri, os.path.dirname(baseUri)).replace('\\','/')
-
+    # check if base is zip-relative and relativeUri is not
+    mBaseUri = zipRelativeFilePattern.match(baseUri)
+    mRelUri = zipRelativeFilePattern.match(relativeUri)
+    if mBaseUri and not mRelUri:
+        baseUri = mBaseUri.group(1) # remove the zip part so relative URI is within zip
+    return os.path.relpath(relativeUri, os.path.dirname(baseUri)).replace('\\','/')

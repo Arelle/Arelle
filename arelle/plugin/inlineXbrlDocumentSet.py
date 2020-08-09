@@ -33,10 +33,11 @@ from arelle.FileSource import archiveFilenameParts
 from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelObject import ModelObject
 from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, load, create, inlineIxdsDiscover
+from arelle.ModelValue import qname
 from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateFilingText import CDATApattern
-from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier, elementChildSequence
+from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier, elementChildSequence, xmlnsprefix, setXmlns
 import os, zipfile
 from optparse import SUPPRESS_HELP
 from lxml.etree import XML, XMLSyntaxError
@@ -145,7 +146,22 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                                       schemaRefs=targetDocumentSchemaRefs,
                                       isEntry=True,
                                       discover=False) # don't attempt to load DTS
-    if baseXmlLang:
+    ixTargetRootElt = modelXbrl.ixTargetRootElements[getattr(modelXbrl, "ixdsTarget", None)]
+    langIsSet = False
+    # copy ix resources target root attributes
+    for attrName, attrValue in ixTargetRootElt.items():
+        targetInstance.modelDocument.xmlRootElement.set(attrName, attrValue)
+        if attrName == "{http://www.w3.org/XML/1998/namespace}lang":
+            langIsSet = True
+            defaultXmlLang = attrValue
+        if attrName.startswith("{"):
+            ns, _sep, ln = attrName[1:].rpartition("}")
+            if ns:
+                prefix = xmlnsprefix(ixTargetRootElt, ns)
+                if prefix not in (None, "xml"):
+                    setXmlns(targetInstance.modelDocument, prefix, ns)
+                
+    if not langIsSet and baseXmlLang:
         targetInstance.modelDocument.xmlRootElement.set("{http://www.w3.org/XML/1998/namespace}lang", baseXmlLang)
         if defaultXmlLang is None:
             defaultXmlLang = baseXmlLang # allows facts/footnotes to override baseXmlLang
@@ -191,10 +207,9 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                     text = None
                 else:
                     text = fact.xValue if fact.xValid else fact.textValue
-                    if fact.concept is not None and fact.concept.baseXsdType in ("string", "normalizedString"): # default
-                        xmlLang = fact.xmlLang
-                        if xmlLang is not None and xmlLang != defaultXmlLang:
-                            attrs["{http://www.w3.org/XML/1998/namespace}lang"] = xmlLang
+                for attrName, attrValue in fact.items():
+                    if attrName.startswith("{"):
+                        attrs[qname(attrName,fact.nsmap)] = attrValue # using qname allows setting prefix in extracted instance
                 newFact = targetInstance.createFact(fact.qname, attributes=attrs, text=text, parent=parent)
                 # if fact.isFraction, create numerator and denominator
                 newFactForOldObjId[fact.objectIndex] = newFact
@@ -207,7 +222,15 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                         except (XMLSyntaxError, UnicodeDecodeError):
                             pass  # TODO: Why ignore UnicodeDecodeError?
             elif fact.isTuple:
-                newTuple = targetInstance.createFact(fact.qname, parent=parent)
+                attrs = {}
+                if fact.id:
+                    attrs["id"] = fact.id
+                if fact.isNil:
+                    attrs[XbrlConst.qnXsiNil] = "true"
+                for attrName, attrValue in fact.items():
+                    if attrName.startswith("{"):
+                        attrs[qname(attrName,fact.nsmap)] = attrValue
+                newTuple = targetInstance.createFact(fact.qname, attributes=attrs, parent=parent)
                 newFactForOldObjId[fact.objectIndex] = newTuple
                 createFacts(fact.modelTupleFacts, newTuple)
                 
@@ -264,11 +287,11 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
     targetUrlParts = targetUrl.rpartition(".")
     targetUrl = targetUrlParts[0] + "_extracted." + targetUrlParts[2]
     modelXbrl.modelManager.showStatus(_("Extracting instance ") + os.path.basename(targetUrl))
-    rootElt = modelXbrl.modelDocument.xmlRootElement
+    htmlRootElt = modelXbrl.modelDocument.xmlRootElement
     # take baseXmlLang from <html> or <base>
-    baseXmlLang = rootElt.get("{http://www.w3.org/XML/1998/namespace}lang") or rootElt.get("lang")
+    baseXmlLang = htmlRootElt.get("{http://www.w3.org/XML/1998/namespace}lang") or htmlRootElt.get("lang")
     for ixElt in modelXbrl.modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/1999/xhtml}body"):
-        baseXmlLang = ixElt.get("{http://www.w3.org/XML/1998/namespace}lang") or rootElt.get("lang") or baseXmlLang
+        baseXmlLang = ixElt.get("{http://www.w3.org/XML/1998/namespace}lang") or htmlRootElt.get("lang") or baseXmlLang
     targetInstance = createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingFiles, baseXmlLang) 
     targetInstance.saveInstance(overrideFilepath=targetUrl, outputZip=outputZip)
     if getattr(modelXbrl, "isTestcaseVariation", False):

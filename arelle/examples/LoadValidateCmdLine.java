@@ -31,7 +31,7 @@ public class LoadValidateCmdLine {
 					"\"" + fileBase + fileName + "\"" +
 					" -v";
 				System.out.println("CmdLine: " + cmdLine);
-				String envp = new String[1];
+				String[] envp = new String[1];
 				// XDG_CONFIG_HOME is optional, defaults to "~/.config"
 				envp[0] = "XDG_CONFIG_HOME=" + arelleXdgConfigHome;
 				Process p = r.exec(cmdLine, envp);

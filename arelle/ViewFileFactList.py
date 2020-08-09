@@ -78,9 +78,12 @@ class ViewFacts(ViewFile.View):
             concept = modelFact.concept
             xmlRowElementName = 'item'
             attr = {"name": str(modelFact.qname)}
+            lang = ""
             if concept is not None and self.isCol0Label:
                 lbl = concept.label(preferredLabel=self.labelrole, lang=self.lang, linkroleHint=XbrlConst.defaultLinkRole)
                 xmlCol0skipElt = False # provide label as a row element
+                if concept.baseXsdType in ("string", "normalizedString"):
+                    lang = modelFact.xmlLang
             else:
                 lbl = (modelFact.qname or modelFact.prefixedName) # defective inline facts may have no qname
                 xmlCol0skipElt = True # name is an attribute, don't do it also as an element
@@ -101,7 +104,7 @@ class ViewFacts(ViewFile.View):
                         elif col == "Prec":
                             cols.append( modelFact.precision )
                         elif col == "Lang":
-                            cols.append( modelFact.xmlLang )
+                            cols.append( lang )
                         elif col == "Value":
                             cols.append( "(nil)" if modelFact.xsiNil == "true" else modelFact.effectiveValue.strip() )
                         elif col == "EntityScheme":

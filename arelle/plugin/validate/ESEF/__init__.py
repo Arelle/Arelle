@@ -57,8 +57,7 @@ datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
 
 FOOTNOTE_LINK_CHILDREN = {qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote}
 PERCENT_TYPE = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
-IXT_NAMESPACES = {ixtNamespaces["ixt v3"], ixtNamespaces["ixt v4"],
-                  "http://www.xbrl.org/inlineXBRL/transformation/2019-04-19"} # temporary until XSB date obtained for v4
+IXT_NAMESPACES = {ixtNamespaces["ixt v4"]} # only tr4 is currently recommended
 
 def etreeIterWithDepth(node, depth=0):
     yield (node, depth)
@@ -256,7 +255,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                         with elt.modelXbrl.fileSource.file(normalizedUri,binary=True)[0] as fh:
                                             imgContents = fh.read()
                                             imglen += len(imgContents)
-                                            checkImageContents(modelXbrl, elt, os.path.splitext(src)[1], imgContents)
+                                            checkImageContents(modelXbrl, elt, os.path.splitext(src)[1], True, imgContents)
                                             imgContents = None # deref, may be very large
                                         if imglen < browserMaxBase64ImageLength:
                                             modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
@@ -267,14 +266,14 @@ def validateXbrlFinally(val, *args, **kwargs):
                                             _("Image file which isn't openable '%(src)s', error: %(error)s"),
                                             modelObject=elt, src=src, error=err)
                             elif not any(src.startswith(m) for m in allowedImgMimeTypes):
-                                    modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
-                                        _("Images MUST be included in the XHTML document as a base64 encoded string, encoding disallowed: %(src)s."),
+                                    modelXbrl.error("ESEF.2.5.1.imageFormatNotSupported",
+                                        _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
                                         modelObject=elt, src=src[:128])
                             else: # check for malicious image contents
                                 mime, _sep, b64ImgContents = src.partition(";base64,")
                                 try:
                                     imgContents = base64.b64decode(b64ImgContents) # allow embedded newlines
-                                    checkImageContents(modelXbrl, elt, mime, imgContents)
+                                    checkImageContents(modelXbrl, elt, mime, False, imgContents)
                                     imgContents = None # deref, may be very large
                                 except base64.binascii.Error as err:
                                     modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
@@ -489,6 +488,7 @@ def validateXbrlFinally(val, *args, **kwargs):
         noLangFacts = []
         textFactsMissingReportLang = []
         conceptsUsed = set()
+        langsUsedByTextFacts = set()
                 
         for qn, facts in modelXbrl.factsByQname.items():
             if qn in mandatory:
@@ -505,10 +505,13 @@ def validateXbrlFinally(val, *args, **kwargs):
                             modelObject=f, element=f.qname, context=f.context.id, value=f.xValue)
                 elif f.concept is not None and f.concept.type is not None:
                     if f.concept.type.isOimTextFactType:
-                        if not f.xmlLang:
+                        lang = f.xmlLang
+                        if not lang:
                             noLangFacts.append(f)
-                        elif f.context is not None:
-                            textFactsByConceptContext[(f.qname, mapContext.get(f.context,f.context))].append(f)
+                        else:
+                            langsUsedByTextFacts.add(lang)
+                            if f.context is not None:
+                                textFactsByConceptContext[(f.qname, mapContext.get(f.context,f.context))].append(f)
                 conceptsUsed.add(f.concept)
                 if f.context is not None:
                     for dim in f.context.qnameDims.values():
@@ -576,10 +579,16 @@ def validateXbrlFinally(val, *args, **kwargs):
                 _("Non-empty footnotes must be connected to fact(s)."),
                 modelObject=orphanedFootnotes)
 
-        if noLangFootnotes:
-            modelXbrl.error("ESEF.2.3.1.undefinedLanguageForFootnote",
-                _("Each footnote MUST have the 'xml:lang' attribute whose value corresponds to the language of the text in the content of the respective footnote."),
-                modelObject=noLangFootnotes)
+        # this test removed from Filer Manual July 2020
+        #if noLangFootnotes:
+        #    modelXbrl.error("ESEF.2.3.1.undefinedLanguageForFootnote",
+        #        _("Each footnote MUST have the 'xml:lang' attribute whose value corresponds to the language of the text in the content of the respective footnote."),
+        #        modelObject=noLangFootnotes)
+        ftLangNotUsedByTextFacts = set(f for f,langs in factLangFootnotes.items() if not (langs & langsUsedByTextFacts))
+        if ftLangNotUsedByTextFacts:
+            modelXbrl.error("ESEF.2.3.1.footnoteInLanguagesOtherThanLanguageOfContentOfAnyTextualFact",
+                _("Each footnote MUST have or inherit an 'xml:lang' attribute whose value corresponds to the language of content of at least one textual fact present in the inline XBRL document: %(qnames)s."),
+                modelObject=ftLangNotUsedByTextFacts, qnames=", ".join(sorted(str(f.qname) for f in ftLangNotUsedByTextFacts)))
         nonDefLangFtFacts = set(f for f,langs in factLangFootnotes.items() if reportXmlLang not in langs)
         if nonDefLangFtFacts:
             modelXbrl.error("ESEF.2.3.1.footnoteOnlyInLanguagesOtherThanLanguageOfAReport",
@@ -609,10 +618,10 @@ def validateXbrlFinally(val, *args, **kwargs):
             conceptsUsed.add(modelXbrl.qnameConcepts.get(qn))
             
         # unused elements in linkbases
+        unreportedLbElts = set()
         for arcroles, err in (((parentChild,), "elements{}UsedForTagging{}AppliedInPresentationLinkbase"),
                               ((summationItem,), "elements{}UsedForTagging{}AppliedInCalculationLinkbase"),
                               ((hc_all, hc_notAll, hypercubeDimension, dimensionDomain,domainMember), "elements{}UsedForTagging{}AppliedInDefinitionLinkbase")):
-            unreportedLbElts = set()
             reportedEltsNotInLb = conceptsUsedByFacts.copy()
             # remove tuple elts when looking at calc or def linkbases
             if summationItem in arcroles or hc_all in arcroles:
@@ -639,19 +648,23 @@ def validateXbrlFinally(val, *args, **kwargs):
                     if arcrole in (parentChild, hc_all, hc_notAll, hypercubeDimension, dimensionDomain, domainMember):
                         reportedEltsNotInLb.discard(fr)
                         reportedEltsNotInLb.discard(to)
-            if unreportedLbElts:
-                modelXbrl.error("ESEF.3.4.6." + err.format("Not",""),
-                    _("All usable concepts in extension taxonomy relationships MUST be applied by tagged facts: %(elements)s."),
-                    modelObject=unreportedLbElts, elements=", ".join(sorted((str(c.qname) for c in unreportedLbElts))),
-                    messageCodes=("ESEF.3.4.6.elementsNotUsedForTaggingAppliedInPresentationLinkbase",
-                                  "ESEF.3.4.6.elementsNotUsedForTaggingAppliedInCalculationLinkbase",
-                                  "ESEF.3.4.6.elementsNotUsedForTaggingAppliedInDefinitionLinkbase"))
+            #if unreportedLbElts:
+            #    modelXbrl.error("ESEF.3.4.6." + err.format("Not",""),
+            #        _("All usable concepts in extension taxonomy relationships MUST be applied by tagged facts: %(elements)s."),
+            #        modelObject=unreportedLbElts, elements=", ".join(sorted((str(c.qname) for c in unreportedLbElts))),
+            #        messageCodes=("ESEF.3.4.6.elementsNotUsedForTaggingAppliedInPresentationLinkbase",
+            #                      "ESEF.3.4.6.elementsNotUsedForTaggingAppliedInCalculationLinkbase",
+            #                      "ESEF.3.4.6.elementsNotUsedForTaggingAppliedInDefinitionLinkbase"))
             if reportedEltsNotInLb and arcrole != summationItem:
                 modelXbrl.error("ESEF.3.4.6." + err.format("", "Not"),
                     _("All concepts used by tagged facts MUST be in extension taxonomy relationships: %(elements)s."),
                     modelObject=reportedEltsNotInLb, elements=", ".join(sorted((str(c.qname) for c in reportedEltsNotInLb))),
                     messageCodes=("ESEF.3.4.6.elementsUsedForTaggingNotAppliedInPresentationLinkbase",
                                   "ESEF.3.4.6.elementsUsedForTaggingNotAppliedInDefinitionLinkbase"))
+        if unreportedLbElts:
+            modelXbrl.error("ESEF.3.4.6.usableConceptsNotAppliedByTaggedFacts",
+                _("All usable concepts in extension taxonomy relationships MUST be applied by tagged facts: %(elements)s."),
+                modelObject=unreportedLbElts, elements=", ".join(sorted((str(c.qname) for c in unreportedLbElts))))
                 
         # 3.4.4 check for presentation preferred labels
         missingConceptLabels = defaultdict(set) # by role

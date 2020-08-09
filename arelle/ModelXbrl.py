@@ -1005,7 +1005,8 @@ class ModelXbrl:
                         entryUrl = self.fileSource.url
                 refs = []
                 modelObjectArgs = argValue if isinstance(argValue, (tuple,list,set)) else (argValue,)
-                for arg in flattenSequence(modelObjectArgs):
+                modelObjectArgs = flattenSequence(modelObjectArgs)
+                for arg in modelObjectArgs:
                     if arg is not None:
                         if isinstance(arg, _STR_BASE):
                             objectUrl = arg
@@ -1018,12 +1019,17 @@ class ModelXbrl:
                                 except AttributeError:
                                     objectUrl = getattr(self, "entryLoadingUrl", "")
                         try:
-                            file = UrlUtil.relativeUri(entryUrl, objectUrl)
+                            if objectUrl.endswith("/_IXDS"):
+                                file = objectUrl[:-6] # inline document set or report package
+                            else:
+                                file = UrlUtil.relativeUri(entryUrl, objectUrl)
                         except:
                             file = ""
                         ref = {}
                         if isinstance(arg,(ModelObject, ObjectPropertyViewWrapper)):
                             _arg = arg.modelObject if isinstance(arg, ObjectPropertyViewWrapper) else arg
+                            if getattr(arg,"tag",None) == "instance" and len(modelObjectArgs) > 1:
+                                continue # skip IXDS top level element
                             ref["href"] = file + "#" + XmlUtil.elementFragmentIdentifier(_arg)
                             ref["sourceLine"] = _arg.sourceline
                             ref["objectId"] = _arg.objectId()

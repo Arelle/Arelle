@@ -438,7 +438,7 @@ def checkfile(modelXbrl, filepath):
         def end(self, tag): pass
         def data(self, data): pass
         def close(self): pass
-    _parser = XMLParser(target=checkFileType())
+    _parser = XMLParser(huge_tree=True, target=checkFileType())
     _isTestcase = False
     mayBeInline = isInline = False
     
@@ -910,8 +910,8 @@ def validateGraphicFile(elt, graphicFile):
     with elt.modelXbrl.fileSource.file(normalizedUri,binary=True)[0] as fh:
         data = fh.read(11)
         # Support both JFIF APP0 (0xffe0 + 'JFIF') and APP1 Exif (0xffe1 + 'Exif') JPEG application segment types
-        if ((data[:4] == b'\xff\xd8\xff\xe0' and data[6:] == b'JFIF\0') or 
-            (data[:4] == b'\xff\xd8\xff\xe1' and data[6:] == b'Exif\0')):
+        if ((data[:4] == b'\xff\xd8\xff\xe0' and data[6:11] == b'JFIF\0') or 
+            (data[:4] == b'\xff\xd8\xff\xe1' and data[6:11] == b'Exif\0')):
             return "jpg"
         if data[:3] == b"GIF" and data[3:6] in (b'89a', b'89b', b'87a'):
             return "gif"
@@ -919,7 +919,7 @@ def validateGraphicFile(elt, graphicFile):
 
 def referencedFiles(modelXbrl, localFilesOnly=True):
     initModelDocumentTypeReferences()
-    _parser = XMLParser(resolve_entities=False, remove_comments=True, remove_pis=True, recover=True)
+    _parser = XMLParser(resolve_entities=False, remove_comments=True, remove_pis=True, huge_tree=True, recover=True)
     referencedFiles = set()
     # add referenced files that are html-referenced image and other files
     def addReferencedFile(docElt, elt):

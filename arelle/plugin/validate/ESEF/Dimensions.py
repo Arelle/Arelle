@@ -117,19 +117,28 @@ def checkFilingDimensions(val):
     anchorsInDimensionalELRs = defaultdict(list)
     for anchoringRel in val.modelXbrl.relationshipSet(XbrlConst.widerNarrower).modelRelationships:
         ELR = anchoringRel.linkrole
-        if ELR in elrsContainingDimensionalRelationships:
-            anchorsInDimensionalELRs[ELR].append(anchoringRel)
         fromObj = anchoringRel.fromModelObject
         toObj = anchoringRel.toModelObject
-        if fromObj is not None and toObj is not None and not (isInEsefTaxonomy(val, fromObj) ^ isInEsefTaxonomy(val, toObj)):
-            val.modelXbrl.error("ESEF.3.3.1.anchoringRelationshipBase",
-                _("Anchoring relationships MUST be from or to an ESEF element, from %(qname1)s to %(qname2)s"),
-                modelObject=(anchoringRel, fromObj, toObj), qname1=fromObj.qname, qname2=toObj.qname)
-            
+        if fromObj is not None and toObj is not None and fromObj.type is not None and toObj.type is not None:
+            if not (isInEsefTaxonomy(val, fromObj) ^ isInEsefTaxonomy(val, toObj)):
+                val.modelXbrl.error("ESEF.3.3.1.anchoringRelationshipBase",
+                    _("Anchoring relationships MUST be from or to an ESEF element, from %(qname1)s to %(qname2)s"),
+                    modelObject=(anchoringRel, fromObj, toObj), qname1=fromObj.qname, qname2=toObj.qname)
+            if fromObj.type.isDomainItemType or toObj.type.isDomainItemType:
+                val.modelXbrl.error("ESEF.3.3.1.anchoringRelationshipsForDomainMembersDefinedUsingWiderNarrowerArcrole",
+                    _("Anchoring relationships MUST be from and to concepts, from %(qname1)s to %(qname2)s"),
+                    modelObject=(anchoringRel, fromObj, toObj), qname1=fromObj.qname, qname2=toObj.qname)
+            elif fromObj.isDimensionItem or toObj.isDimensionItem:
+                val.modelXbrl.error("ESEF.3.3.1.anchoringRelationshipsForDimensionsDefinedUsingWiderNarrowerArcrole",
+                    _("Anchoring relationships MUST be from and to concepts, from %(qname1)s to %(qname2)s"),
+                    modelObject=(anchoringRel, fromObj, toObj), qname1=fromObj.qname, qname2=toObj.qname)
+            else: # neither from nor to are dimensions or domain members
+                if ELR in elrsContainingDimensionalRelationships:
+                    anchorsInDimensionalELRs[ELR].append(anchoringRel)
     if anchorsInDimensionalELRs:
         for ELR, rels in anchorsInDimensionalELRs.items():
-            val.modelXbrl.error("ESEF.3.3.2.anchoringRelationshipsDefinedInElrContainingDimensionalRelationships",
-                _("Anchoring relationships MUST NOT be defined in an extended link role applying XBRL Dimensions relationship. %(anchoringDimensionalELR)s"),
+            val.modelXbrl.error("ESEF.3.3.2.anchoringRelationshipsForConceptsDefinedInElrContainingDimensionalRelationships",
+                _("Anchoring relationships for concepts MUST be defined in a dedicated extended link role (or roles if needed to properly represent the relationships), e.g. http://{issuer default pattern for roles}/Anchoring. %(anchoringDimensionalELR)s"),
                 modelObject=rels, anchoringDimensionalELR=ELR)
         
     # check base set dimension default overrides in extension taxonomies

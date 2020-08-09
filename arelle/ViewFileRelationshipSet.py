@@ -86,7 +86,7 @@ class ViewRelationshipSet(ViewFile.View):
         if relationshipSet:
             # for each URI in definition order
             for roledefinition, linkroleUri in linkroleUris:
-                attr = {"role": linkroleUri}
+                attr = {"role": linkroleUri, "definition": roledefinition}
                 self.addRow([roledefinition], treeIndent=0, colSpan=len(heading), 
                             xmlRowElementName="linkRole", xmlRowEltAttr=attr, xmlCol0skipElt=True)
                 linkRelationshipSet = self.modelXbrl.relationshipSet(arcrole, linkroleUri, linkqname, arcqname)
