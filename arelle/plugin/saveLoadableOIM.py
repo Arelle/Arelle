@@ -53,8 +53,8 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
     if not isJSON and not isCSVorXL:
         return
 
-    namespacePrefixes = {"http://www.xbrl.org/CR/2020-05-06":"xbrl"}
-    prefixNamespaces = {"xbrl":"http://www.xbrl.org/CR/2020-05-06"}
+    namespacePrefixes = {nsOim: "xbrl"}
+    prefixNamespaces = {}
     linkTypeAliases = {}
     groupAliases = {}
     linkTypePrefixes = {}
