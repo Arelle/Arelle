@@ -188,7 +188,7 @@ UnrecognizedDocMemberTypes = {
     }
 UnrecognizedDocRequiredMembers = {
     "/": {"documentInfo"},
-    "/documentInfo": {"documentType","taxonomy"},
+    "/documentInfo/": {"documentType","taxonomy"},
     }
 
 JsonMemberTypes = {
@@ -1654,6 +1654,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     continue
                             elif dimConcept.isTypedDimension:
                                 # a modelObject xml element is needed for all of the instance functions to manage the typed dim
+                                if dimConcept.typedDomainElement.type.localName == "complexType":
+                                    error("oime:unsupportedDimensionDataType",
+                                          _("Fact %(factId)s taxonomy-defined typed dimension value is complex: %(memberQName)s."),
+                                          modelObject=modelXbrl, factId=id, memberQName=dimVal)
+                                    continue
                                 mem = addChild(modelXbrl.modelDocument, dimConcept.typedDomainElement.qname, text=dimVal, attributes=memberAttrs, appendChild=False)
                             else:
                                 mem = None # absent typed dimension
@@ -1767,7 +1772,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 elif concept.isEnumeration2Item:
                     qnames = fact["value"].split(" ")
                     expandedNames = set()
-                    isFactValid = True
+                    isFactValid = not canonicalValuesFeature or all(qnames[i] < qnames[i+1] for i in range(len(qnames)-1))
                     for qn in qnames:
                         if not PrefixedQName.match(qn):
                             isFactValid = False
@@ -1781,8 +1786,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         text = " ".join(sorted(expandedNames))
                     else:
                         error("xbrle:invalidFactValue",
-                              _("Enumeration item must be list of QNames: %(concept)s."),
-                              modelObject=modelXbrl, concept=conceptSQName)
+                              _("Enumeration item must be %(canonicalOrdered)slist of QNames: %(concept)s."),
+                              modelObject=modelXbrl, concept=conceptSQName, canonicalOrdered="a canonical ordered " if canonicalValuesFeature else "")
                         continue
                 else:
                     text = fact["value"]
@@ -2178,7 +2183,7 @@ def validateFinally(val, *args, **kwargs):
                             containers=" or ".join(sorted(containersNotUsedForDimensions)),
                             contexts=", ".join(sorted(c.id for c in contextsWithNonDimContainer)))
         if contextsWithComplexTypedDimensions:
-            modelXbrl.error("xbrlxe:unsupportedComplexTypedDimension",
+            modelXbrl.error("oime:unsupportedDimensionDataType", # was: "xbrlxe:unsupportedComplexTypedDimension",
                             _("Instance has contexts with complex typed dimensions: %(contexts)s"),
                             modelObject=contextsWithNonDimContainer, 
                             contexts=", ".join(sorted(c.id for c in contextsWithComplexTypedDimensions)))

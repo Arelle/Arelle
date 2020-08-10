@@ -91,6 +91,7 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
     if IXDS_SURROGATE in normalizedUri:
         # create surrogate entry object for inline document set which references ix documents
         xml = ["<instances>\n"]
+        modelXbrl.ixdsDocUrls = []
         schemeFixup = isHttpUrl(normalizedUri) # schemes after separator have // normalized to single /
         if schemeFixup:
             defectiveScheme = normalizedUri.partition("://")[0] + ":/"
@@ -102,6 +103,7 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
                 docsetUrl = url
             else:
                 xml.append("<instance>{}</instance>\n".format(url))
+                modelXbrl.ixdsDocUrls.append(url)
         xml.append("</instances>\n")
         ixdocset = create(modelXbrl, Type.INLINEXBRLDOCUMENTSET, docsetUrl, isEntry=True, initialXml="".join(xml))
         ixdocset.type = Type.INLINEXBRLDOCUMENTSET
