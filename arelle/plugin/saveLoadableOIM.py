@@ -53,8 +53,8 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
     if not isJSON and not isCSVorXL:
         return
 
-    namespacePrefixes = {}
-    prefixNamespaces = {}
+    namespacePrefixes = {"http://www.xbrl.org/CR/2020-05-06":"xbrl"}
+    prefixNamespaces = {"xbrl":"http://www.xbrl.org/CR/2020-05-06"}
     linkTypeAliases = {}
     groupAliases = {}
     linkTypePrefixes = {}
@@ -83,7 +83,7 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
             try:
                 if isinf(object):
                     return "-INF" if object < 0 else "INF"
-                elif isnan(num):
+                elif isnan(object):
                     return "NaN"
                 else:
                     if object == object.to_integral():
@@ -93,7 +93,7 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
                 return str(object)
         if isinstance(object, bool):
             return "true" if object else "false"
-        if isinstance(object, (DateTime, YearMonthDuration, DayTimeDuration, Time,
+        if isinstance(object, (int, float, DateTime, YearMonthDuration, DayTimeDuration, Time,
                                gYearMonth, gMonthDay, gYear, gMonth, gDay,
                                IsoDuration)):
             return str(object)
