@@ -38,7 +38,7 @@ def validateXbrlFinally(val, *args, **kwargs):
     modelXbrl.modelManager.showStatus(None)
 
 def validateXbrlDtsDocument(val, modelDocument, isFilingDocument, *args, **kwargs):
-    if not (val.validateGFMplugin):
+    if not (val.validateGFMplugin) or not modelDocument:
         return
 
     checkDTSdocument(val, modelDocument, isFilingDocument)

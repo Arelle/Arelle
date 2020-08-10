@@ -659,7 +659,7 @@ class ModelDocument:
                                 if ixDoc.type == Type.INLINEXBRL]
             if len(ixdsDocBaseNames) > 2: # linit to 3 basenames in IXDS
                 ixdsDocBaseNames = ixdsDocBaseNames[0:2] + ["..."]
-            return "{}{}IXDS {}".format(self.filepathdir, os.sep, ", ".join(ixdsDocBaseNames))
+            return "IXDS {}".format(", ".join(ixdsDocBaseNames))
         else:
             return self.uri
 
@@ -1454,10 +1454,14 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
     # root elements by target
     modelXbrl.ixTargetRootElements = {}
     for target in targetReferenceAttrElts.keys() | {None}: # need default target in case any facts have no or invalid target
-        modelXbrl.ixTargetRootElements[target] = modelIxdsDocument.parser.makeelement(
-            XbrlConst.qnXbrliXbrl.clarkNotation, attrib=targetReferenceAttrVals.get(target), 
-            nsmap=dict((p,n) for p,(n,e) in targetReferencePrefixNs.get(target,{}).items())) 
-
+        try:
+            modelXbrl.ixTargetRootElements[target] = modelIxdsDocument.parser.makeelement(
+                XbrlConst.qnXbrliXbrl.clarkNotation, attrib=targetReferenceAttrVals.get(target), 
+                nsmap=dict((p,n) for p,(n,e) in targetReferencePrefixNs.get(target,{}).items())) 
+        except Exception as err:
+            modelXbrl.error(type(err).__name__,
+                    _("Unrecoverable error creating target instance: %(error)s"),
+                    modelObject=modelXbrl, error=err)
                     
     def locateFactInTuple(modelFact, tuplesByTupleID, ixNStag):
         tupleRef = modelFact.tupleRef

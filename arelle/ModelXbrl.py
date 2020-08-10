@@ -95,7 +95,7 @@ def create(modelManager, newDocumentType=None, url=None, schemaRefs=None, create
     
 def loadSchemalocatedSchemas(modelXbrl):
     from arelle import ModelDocument
-    if modelXbrl.modelDocument is not None and modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
+    if modelXbrl.modelDocument and modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
         # at this point DTS is fully discovered but schemaLocated xsd's are not yet loaded
         modelDocumentsSchemaLocated = set()
         while True: # need this logic because each new pass may add new urlDocs
@@ -349,6 +349,15 @@ class ModelXbrl:
             for view in range(len(self.views)):
                 if len(self.views) > 0:
                     self.views[0].close()
+    
+    @property
+    def displayUri(self):
+        if hasattr(self, "ixdsDocUrls"):
+            return "IXDS {}".format(", ".join(os.path.basename(url) for url in self.ixdsDocUrls))
+        elif hasattr(self, "uri"):
+            return self.uri
+        else:
+            return self.fileSource.url
         
     def relationshipSet(self, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
         """Returns a relationship set matching specified parameters (only arcrole is required).
@@ -442,7 +451,7 @@ class ModelXbrl:
         :type url: str
         """
         from arelle import (ModelDocument, FileSource)
-        if self.modelDocument.type == ModelDocument.Type.INSTANCE: 
+        if self.modelDocument and self.modelDocument.type == ModelDocument.Type.INSTANCE: 
             # entry already is an instance, delete facts etc.
             del self.facts[:]
             self.factsInInstance.clear()
@@ -1012,10 +1021,10 @@ class ModelXbrl:
                             objectUrl = arg
                         else:
                             try:
-                                objectUrl = arg.modelDocument.displayUri
+                                objectUrl = self.modelDocument.displayUri
                             except AttributeError:
                                 try:
-                                    objectUrl = self.modelDocument.displayUri
+                                    objectUrl = arg.displayUri
                                 except AttributeError:
                                     objectUrl = getattr(self, "entryLoadingUrl", "")
                         try:
@@ -1028,7 +1037,7 @@ class ModelXbrl:
                         ref = {}
                         if isinstance(arg,(ModelObject, ObjectPropertyViewWrapper)):
                             _arg = arg.modelObject if isinstance(arg, ObjectPropertyViewWrapper) else arg
-                            if getattr(arg,"tag",None) == "instance" and len(modelObjectArgs) > 1:
+                            if len(modelObjectArgs) > 1 and getattr(arg,"tag",None) == "instance":
                                 continue # skip IXDS top level element
                             ref["href"] = file + "#" + XmlUtil.elementFragmentIdentifier(_arg)
                             ref["sourceLine"] = _arg.sourceline

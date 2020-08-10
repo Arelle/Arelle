@@ -148,7 +148,7 @@ def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
 
 def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateHMRCplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "HMRCplugin", False)
-    if not (val.validateHMRCplugin):
+    if not (val.validateHMRCplugin) or not val.modelXbrl.modelDocument:
         return
     
     if parameters:

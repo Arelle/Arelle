@@ -260,14 +260,14 @@ def filingStart(cntlr, options, filesource, entrypointFiles, sourceZipStream=Non
             
 def guiTestcasesStart(cntlr, modelXbrl, *args, **kwargs):
     modelManager = cntlr.modelManager
-    if (cntlr.hasGui and modelXbrl.modelDocument.type in Type.TESTCASETYPES and
+    if (cntlr.hasGui and modelXbrl.modelDocument and modelXbrl.modelDocument.type in Type.TESTCASETYPES and
          modelManager.validateDisclosureSystem and getattr(modelManager.disclosureSystem, "EFMplugin", False)):
         modelManager.efmFiling = Filing(cntlr)
 def testcasesStart(cntlr, options, modelXbrl, *args, **kwargs):
     # a test or RSS cases run is starting, in which case testcaseVariation... events have unique efmFilings
     modelManager = cntlr.modelManager
-    if (hasattr(modelManager, "efmFiling") and
-        modelXbrl.modelDocument.type in Type.TESTCASETYPES):
+    if (hasattr(modelManager, "efmFiling") and 
+        modelXbrl.modelDocument and modelXbrl.modelDocument.type in Type.TESTCASETYPES):
         efmFiling = modelManager.efmFiling
         efmFiling.close() # not needed, dereference
         del modelManager.efmFiling
@@ -277,7 +277,7 @@ def testcasesStart(cntlr, options, modelXbrl, *args, **kwargs):
 def xbrlLoaded(cntlr, options, modelXbrl, entryPoint, *args, **kwargs):
     # cntlr.addToLog("TRACE EFM xbrl loaded")
     modelManager = cntlr.modelManager
-    if hasattr(modelManager, "efmFiling"):
+    if hasattr(modelManager, "efmFiling") and modelXbrl.modelDocument:
         if modelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET):
             efmFiling = modelManager.efmFiling
             efmFiling.addReport(modelXbrl)
@@ -294,7 +294,7 @@ def xbrlLoaded(cntlr, options, modelXbrl, entryPoint, *args, **kwargs):
 def xbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # cntlr.addToLog("TRACE EFM xbrl run")
     modelManager = cntlr.modelManager
-    if (hasattr(modelManager, "efmFiling") and
+    if (hasattr(modelManager, "efmFiling") and modelXbrl.modelDocument and
         modelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET)):
         efmFiling = modelManager.efmFiling
         _report = efmFiling.reports[-1]
@@ -567,8 +567,9 @@ class Filing:
         self.__dict__.clear() # dereference all contents
         
     def addReport(self, modelXbrl):
-        _report = Report(modelXbrl)
-        self.reports.append(_report)
+        if modelXbrl.modelDocument:
+            _report = Report(modelXbrl)
+            self.reports.append(_report)
         
     def error(self, messageCode, message, messageArgs=None, file=None):
         if file and len(self.entrypointfiles) > 0:

@@ -1048,11 +1048,12 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         self.modelManager.close(modelDiffReport)
                     elif modelXbrl:
                         self.modelManager.close(modelXbrl)
-        if options.validate:
-            for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.Validate"):
+        if success:
+            if options.validate:
+                for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.Validate"):
+                    pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
+            for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.End"):
                 pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
-        for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.End"):
-            pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
         self.username = self.password = None #dereference password
 
         if options.statusPipe and getattr(self, "statusPipe", None) is not None:
