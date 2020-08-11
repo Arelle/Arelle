@@ -79,14 +79,14 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
                     _prefix = "_{}".format(sum(1 for p in namespacePrefixes if p.startswith("_")))
                     namespacePrefixes[object.namespaceURI] = _prefix
             return "{}:{}".format(namespacePrefixes[object.namespaceURI], object.localName)
-        if isinstance(object, Decimal):
+        if isinstance(object, (float, Decimal)):
             try:
                 if isinf(object):
                     return "-INF" if object < 0 else "INF"
-                elif isnan(num):
+                elif isnan(object):
                     return "NaN"
                 else:
-                    if object == object.to_integral():
+                    if isinstance(object, Decimal) and object == object.to_integral():
                         object = object.quantize(ONE) # drop any .0
                     return "{}".format(object)
             except:
@@ -95,7 +95,7 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
             return "true" if object else "false"
         if isinstance(object, (DateTime, YearMonthDuration, DayTimeDuration, Time,
                                gYearMonth, gMonthDay, gYear, gMonth, gDay,
-                               IsoDuration)):
+                               IsoDuration, int)):
             return str(object)
         return object
     
