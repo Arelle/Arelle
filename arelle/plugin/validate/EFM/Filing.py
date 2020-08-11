@@ -812,13 +812,23 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     aspectEqualFacts[(f.qname,f.contextID,f.unitID,
                                       f.xmlLang if f.concept.type.isWgnStringFactType else None)].append(f)
                 for fList in aspectEqualFacts.values():
+                    duplicate_numeric_fact_group = None
+                    first_decimal_equivalent_fact = None
                     f0 = fList[0]
                     if f0.concept.isNumeric:
+                        facts_by_decimals = defaultdict(list)
+                        for f in fList:
+                            facts_by_decimals[inferredDecimals(f)].append(f)
                         if any(f.isNil for f in fList):
                             _inConsistent = not all(f.isNil for f in fList)
-                        elif all(inferredDecimals(f) == inferredDecimals(f0) for f in fList[1:]): # same decimals
-                            v0 = rangeValue(f0.value)
-                            _inConsistent = not all(rangeValue(f.value) == v0 for f in fList[1:])
+                        elif any(len(decimal_equivalent_facts) > 1 for decimal_equivalent_facts in facts_by_decimals.values()): # same decimals
+                            for decimal_equivalent_facts in facts_by_decimals.values():
+                                if len(decimal_equivalent_facts) > 1:
+                                    first_decimal_equivalent_fact = decimal_equivalent_facts[0]
+                                    v0 = rangeValue(first_decimal_equivalent_fact.value)
+                                    _inConsistent = not all(rangeValue(f.value) == v0 for f in decimal_equivalent_facts[1:])
+                                    if _inConsistent:
+                                        duplicate_numeric_fact_group = decimal_equivalent_facts
                         else: # not all have same decimals
                             aMax, bMin = rangeValue(f0.value, inferredDecimals(f0))
                             for f in fList[1:]:
@@ -829,11 +839,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     else:
                         _inConsistent = any(not f.isVEqualTo(f0) for f in fList[1:])
                     if _inConsistent:
+                        fact_list = fList if duplicate_numeric_fact_group is None else duplicate_numeric_fact_group
+                        fact = f0 if first_decimal_equivalent_fact is None else first_decimal_equivalent_fact
                         modelXbrl.error(("EFM.6.05.12", "GFM.1.02.11"),
                             "The instance document contained an element, %(fact)s that was used more than once in contexts equivalent to %(contextID)s: values %(values)s.  "
                             "Please ensure there are no duplicate combinations of concept and context in the instance.",
                             edgarCode="du-0512-Duplicate-Facts",
-                            modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(strTruncate(f.value, 128) for f in fList))
+                            modelObject=fact_list, fact=fact.qname, contextID=fact.contextID, values=", ".join(strTruncate(f.value, 128) for f in fact_list))
                 aspectEqualFacts.clear()
         del factForConceptContextUnitHash, aspectEqualFacts
         val.modelXbrl.profileActivity("... filer fact checks", minTimeToShow=1.0)
