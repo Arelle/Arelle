@@ -755,13 +755,22 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             invalidMemberTypes = []
             missingRequiredMembers = []
             unexpectedMembers = []
-            def checkMemberTypes(obj, path):
+            def showPathObj(parts, obj): # this can be replaced with jsonPath syntax if appropriate
+                try:
+                    shortObjStr = json.dumps(obj)
+                except TypeError:
+                    shortObjStr = str(obj)
+                if len(shortObjStr) > 34:
+                    shortObjStr = "{:.32}...".format(shortObjStr)
+                return "/{}={}".format("/".join(str(p) for p in parts), shortObjStr) 
+            def checkMemberTypes(obj, path, pathParts):
                 checkNestedMembers = True
                 if (isinstance(obj,dict)):
                     for missingMbr in oimRequiredMembers.get(path,EMPTY_SET) - obj.keys():
                         missingRequiredMembers.append(path + missingMbr)
                     for mbrName, mbrObj in obj.items():
                         mbrPath = path + mbrName
+                        pathParts.append(mbrName)
                         if mbrPath in oimMemberTypes:
                             mbrTypes = oimMemberTypes[mbrPath]
                             if (not ((mbrTypes is QNameType or (isinstance(mbrTypes,tuple) and QNameType in mbrTypes)) and isinstance(mbrObj, str) and QNamePattern.match(mbrObj)) and
@@ -769,11 +778,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 not ((mbrTypes is LangType or (isinstance(mbrTypes,tuple) and LangType in mbrTypes)) and isinstance(mbrObj, str) and languagePattern.match(mbrObj)) and
                                 not ((mbrTypes is URIType or (isinstance(mbrTypes,tuple) and URIType in mbrTypes)) and isinstance(mbrObj, str) and relativeUrlPattern.match(mbrObj)) and
                                 not isinstance(mbrObj, mbrTypes)):
-                                invalidMemberTypes.append(mbrPath)
+                                invalidMemberTypes.append(showPathObj(pathParts, mbrObj))
                         elif ":" in mbrName and path + "*:*" in oimMemberTypes:
                             if not (QNamePattern.match(mbrName) and
                                     isinstance(mbrObj, oimMemberTypes[path + "*:*"])):
-                                invalidMemberTypes.append(mbrPath)
+                                invalidMemberTypes.append(showPathObj(pathParts, mbrObj))
                             elif NoRecursionCheck in oimMemberTypes[path + "*:*"]:
                                 checkNestedMembers = False # custom types, block recursive check
                             mbrPath = path + "*.*" # for recursion
@@ -781,21 +790,26 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             mbrTypes = oimMemberTypes[path + "*"]
                             if (not ((mbrTypes is URIType or (isinstance(mbrTypes,tuple) and isinstance(mbrObj, str) and URIType in mbrTypes)) and relativeUrlPattern.match(mbrObj)) and
                                 not isinstance(mbrObj, mbrTypes)):
-                                invalidMemberTypes.append(mbrPath)
+                                invalidMemberTypes.append(showPathObj(pathParts, mbrObj))
                             mbrPath = path + "*" # for recursion
                         else:
-                            unexpectedMembers.append(mbrPath)
+                            unexpectedMembers.append(showPathObj(pathParts, mbrObj))
                         if isinstance(mbrObj, (dict,list)) and checkNestedMembers:
-                            checkMemberTypes(mbrObj, mbrPath + "/")
+                            checkMemberTypes(mbrObj, mbrPath + "/", pathParts)
+                        pathParts.pop() # remove mbrName
                 if (isinstance(obj,list)):
+                    mbrNdx = 1
                     for mbrObj in obj:
                         mbrPath = path # list entry just uses path ending in /
+                        pathParts.append(mbrNdx)
                         if mbrPath in oimMemberTypes:
                             if not isinstance(mbrObj, oimMemberTypes[mbrPath]):
-                                invalidMemberTypes.append(mbrPath)
+                                invalidMemberTypes.append(showPathObj(pathParts, mbrObj))
                         if isinstance(mbrObj, (dict,list)):
-                            checkMemberTypes(mbrObj, mbrPath + "/")
-            checkMemberTypes(oimObject, "/")
+                            checkMemberTypes(mbrObj, mbrPath + "/", pathParts)
+                        pathParts.pop() # remove mbrNdx
+                        mbrNdx += 1
+            checkMemberTypes(oimObject, "/", [])
             numErrorsBeforeJsonCheck = len(modelXbrl.errors)
             if not isJSON and not isCSV and not isXL:
                 error("oimce:unsupportedDocumentType",
@@ -1654,7 +1668,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     continue
                             elif dimConcept.isTypedDimension:
                                 # a modelObject xml element is needed for all of the instance functions to manage the typed dim
-                                if dimConcept.typedDomainElement.type.localName == "complexType":
+                                if dimConcept.typedDomainElement.type is not None and dimConcept.typedDomainElement.type.localName == "complexType":
                                     error("oime:unsupportedDimensionDataType",
                                           _("Fact %(factId)s taxonomy-defined typed dimension value is complex: %(memberQName)s."),
                                           modelObject=modelXbrl, factId=id, memberQName=dimVal)
