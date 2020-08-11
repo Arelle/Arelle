@@ -216,7 +216,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                 filenamePattern = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_def[.]xml$")
                 val.hasExtensionDef = True
             elif hrefXlinkRole == "http://www.xbrl.org/2003/role/labelLinkbaseRef":
-                filenamePattern = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_lbl-[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*[.]xml$")
+                filenamePattern = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_lab-[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*[.]xml$")
                 val.hasExtensionLbl = True
             elif hrefXlinkRole == "http://www.xbrl.org/2003/role/presentationLinkbaseRef":
                 filenamePattern = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_pre[.]xml$")
