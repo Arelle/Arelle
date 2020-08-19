@@ -5,6 +5,8 @@ Supports opening manifest file that identifies inline documents of a document se
 Inline XBRL Document Set ("IXDS") identified by multiple files.
 
 Saves extracted instance document for the ixdsTarget (if specified) or default target (if no ixdsTarget).
+(For SEC-compatible inline extractions from command line please specify --encodeSavedXmlChars or use 
+EdgarRenderer plugin features to save extracted instance with characters &#x80; and above encoded.)
 
 (Does not simultaneously load/extract multiple target instance documents in a document set.)
 
@@ -295,7 +297,7 @@ def saveTargetDocument(modelXbrl, targetDocumentFilename, targetDocumentSchemaRe
     for ixElt in modelXbrl.modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/1999/xhtml}body"):
         baseXmlLang = ixElt.get("{http://www.w3.org/XML/1998/namespace}lang") or htmlRootElt.get("lang") or baseXmlLang
     targetInstance = createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingFiles, baseXmlLang) 
-    targetInstance.saveInstance(overrideFilepath=targetUrl, outputZip=outputZip)
+    targetInstance.saveInstance(overrideFilepath=targetUrl, outputZip=outputZip, xmlcharrefreplace=kwargs.get("encodeSavedXmlChars", False))
     if getattr(modelXbrl, "isTestcaseVariation", False):
         modelXbrl.extractedInlineInstance = True # for validation comparison
     modelXbrl.modelManager.showStatus(_("Saved extracted instance"), 5000)
@@ -369,7 +371,7 @@ def runOpenInlineDocumentSetMenuCommand(cntlr, runInBackground=False, saveTarget
         cntlr.fileOpenFile(filename)
 
 
-def runSaveTargetDocumentMenuCommand(cntlr, runInBackground=False, saveTargetFiling=False):
+def runSaveTargetDocumentMenuCommand(cntlr, runInBackground=False, saveTargetFiling=False, encodeSavedXmlChars=False):
     # skip if another class handles saving (e.g., EdgarRenderer)
     for pluginXbrlMethod in pluginClassMethods('InlineDocumentSet.SavesTargetInstance'):
         if pluginXbrlMethod():
@@ -413,7 +415,7 @@ def runSaveTargetDocumentMenuCommand(cntlr, runInBackground=False, saveTargetFil
         else:
             filingZip = None
             filingFiles = None
-        saveTargetDocument(modelDocument.modelXbrl, targetFilename, targetSchemaRefs, filingZip, filingFiles)
+        saveTargetDocument(modelDocument.modelXbrl, targetFilename, targetSchemaRefs, filingZip, filingFiles, encodeSavedXmlChars=encodeSavedXmlChars)
         if saveTargetFiling:
             instDir = os.path.dirname(modelDocument.uri.split(IXDS_DOC_SEPARATOR)[0])
             for refFile in filingFiles:
@@ -443,6 +445,14 @@ def commandLineOptionExtender(parser, *args, **kwargs):
                       action="store_true", 
                       dest="skipExpectedInstanceComparison", 
                       help=_("Skip inline XBRL testcases from comparing expected result instances"))
+    parser.add_option("--encodeSavedXmlChars", 
+                      action="store_true", 
+                      dest="encodeSavedXmlChars", 
+                      help=_("Encode saved xml characters (&#x80; and above)"))
+    parser.add_option("--encodesavedxmlchars",  # for WEB SERVICE use
+                      action="store_true", 
+                      dest="encodeSavedXmlChars", 
+                      help=SUPPRESS_HELP)
        
 def commandLineFilingStart(cntlr, options, filesource, entrypointFiles, *args, **kwargs):
     global skipExpectedInstanceComparison
@@ -501,7 +511,8 @@ def commandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
             return
         runSaveTargetDocumentMenuCommand(cntlr, 
                                          runInBackground=False,
-                                         saveTargetFiling=getattr(options, "saveTargetFiling", False))
+                                         saveTargetFiling=getattr(options, "saveTargetFiling", False),
+                                         encodeSavedXmlChars=getattr(options, "encodeSavedXmlChars", False))
         
 def testcaseVariationReadMeFirstUris(modelTestcaseVariation):
     _readMeFirstUris = [os.path.join(modelTestcaseVariation.modelDocument.filepathdir, 
