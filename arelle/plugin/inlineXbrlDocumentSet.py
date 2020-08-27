@@ -95,6 +95,7 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
         xml = ["<instances>\n"]
         modelXbrl.ixdsDocUrls = []
         schemeFixup = isHttpUrl(normalizedUri) # schemes after separator have // normalized to single /
+        msUNCfixup = modelXbrl.modelManager.cntlr.isMSW and normalizedUri.startswith("\\\\") # path starts with double backslash \\
         if schemeFixup:
             defectiveScheme = normalizedUri.partition("://")[0] + ":/"
             fixupPosition = len(defectiveScheme)
@@ -104,6 +105,8 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
             if i == 0:
                 docsetUrl = url
             else:
+                if msUNCfixup and not url.startswith("\\\\") and url.startswith("\\"):
+                    url = "\\" + url
                 xml.append("<instance>{}</instance>\n".format(url))
                 modelXbrl.ixdsDocUrls.append(url)
         xml.append("</instances>\n")
