@@ -26,13 +26,21 @@ browserMaxBase64ImageLength = 5242880 # 5MB
 
 standardTaxonomyURIs = {
     "http://www.esma.europa.eu/",
+    "https://www.esma.europa.eu/",
     "http://xbrl.ifrs.org/taxonomy/",
+    "https://xbrl.ifrs.org/taxonomy/",
     "http://www.xbrl.org/taxonomy/int/lei/",
+    "https://www.xbrl.org/taxonomy/int/lei/",
     "http://www.xbrl.org/20",
+    "https://www.xbrl.org/20",
     "http://www.xbrl.org/dtr/",
+    "https://www.xbrl.org/dtr/",
     "http://www.xbrl.org/lrr/",
+    "https://www.xbrl.org/lrr/",
     "http://www.xbrl.org/utr/",
+    "https://www.xbrl.org/utr/",
     "http://www.w3.org/1999/xlink/",
+    "https://www.w3.org/1999/xlink/",
     }
 
 esefTaxonomyNamespaceURIs = {
