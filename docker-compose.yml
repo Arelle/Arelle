@@ -1,0 +1,9 @@
+version: '3'
+services:
+  arelle:
+    build: .
+    volumes:
+      - .:/opt/arelle
+      - ${HOST_PATH}:/index/data
+    environment:
+      HOST_PATH:
