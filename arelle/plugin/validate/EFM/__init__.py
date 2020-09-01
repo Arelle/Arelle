@@ -73,12 +73,18 @@ To build cached deprecated concepts files (requires internet access):
 In GUI mode please use formula parameters dialog to emulate the above.  The parameters are named as above (with no prefix), and 
 an additional EdgarRenderer parameters:
    noLogsInSummary or includeLogsInSummary (default) (this parameter does not need a value, just presence)
-   summaryXslt (use EdgarWorkstationSummarize.xslt to emulate EDGAR workstation)
-   reportXslt (use EdgarWorkstationInstanceReport.xslt to emulate EDGAR workstation)
 The parameters with array values are entered to the GUI as blank-separated strings (no quotes):
    itemsList could be 5.03 6.99
    rptSeriesClassInfo.seriesIds could be S0000990666 S0000990777 S0000990888
-   
+
+For GUI mode there are two ways to set rendering output, (1) by formula parameter and (2) by GUI view menu.
+  If both formula parameters summaryXslt and reportXslt are provided they override use of the GUI menu setting 
+  ("view/Workstation Redline Mode"):
+     summaryXslt (use EdgarWorkstationSummarize.xslt to emulate EDGAR workstation)
+     reportXslt (use EdgarWorkstationInstanceReport.xslt to emulate EDGAR workstation)
+     ixRedline (when emulating EDGAR workstation, true specifies showing workstation inline XBRL redlines)
+  Otherwise menu entry view/Workstation Redline Mode, when checked, selects Edgar Workstation xslt's and ixRedline as above.
+
 '''
 import os, io, json, zipfile, logging
 jsonIndent = 1  # None for most compact, 0 for left aligned
@@ -668,7 +674,7 @@ class Report:
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EFM',
-    'version': '1.20.2', # SEC EDGAR release 20.2
+    'version': '1.20.3', # SEC EDGAR release 20.3
     'description': '''EFM Validation.''',
     'license': 'Apache-2',
     'import': ('transforms/SEC',), # SEC inline can use SEC transformations
