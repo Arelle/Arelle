@@ -185,7 +185,7 @@ class DisclosureSystem:
                                 if dsElt.get("defaultXmlEncoding", default=None) is not None: # don't reset from utf-8 unless supplied with a value
                                     self.defaultXmlEncoding = dsElt.get("defaultXmlEncoding") # may be an empty string
                                 self.xmlLangPattern = compileAttrPattern(dsElt,"xmlLangPattern")
-                                self.xmlLangIsInheritable = dsElt.get("xmlLangIsInheritable", "true") != "true"
+                                self.xmlLangIsInheritable = dsElt.get("xmlLangIsInheritable", "true") == "true"
                                 self.defaultLanguage = dsElt.get("defaultLanguage")
                                 if dsElt.get("standardTaxonomiesUrl"):
                                     self.standardTaxonomiesUrl = self.modelManager.cntlr.webCache.normalizeUrl(
