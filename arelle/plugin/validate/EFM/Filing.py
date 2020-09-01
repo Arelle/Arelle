@@ -1122,7 +1122,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 # type-specific validations
                 elif len(names) == 0:
                     pass # no name entries if all dei names of this validation weren't in the loaded dei taxonomy (i.e., pre 2019) 
-                elif validation == "tf3": # exactly one of names should have value
+                elif validation == "tf3": # exactly one of names should have value if inline or if noninline and any present
                     numFactWithValue = numFactsNotValue = 0
                     for name in names:
                         f = fevFact(fev, name) # these all are required context
@@ -1131,7 +1131,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 numFactWithValue += 1
                             elif f.xValue == value[1]:
                                 numFactsNotValue += 1
-                    if numFactWithValue != 1 or numFactsNotValue != 2:
+                    if (isInlineXbrl or numFactWithValue or numFactsNotValue) and (numFactWithValue != 1 or numFactsNotValue != 2):
                         fevMessage(fev, subType=submissionType, 
                                         modelObject=fevFacts(fev), tags=", ".join(names), value=value[0], otherValue=value[1])
                 elif validation in ("ws", "wv"): # only one of names should have value
@@ -2252,7 +2252,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     conceptsPresented.add(relFrom.objectIndex)
                                     conceptsPresented.add(relTo.objectIndex)
                             order = rel.order
-                            if order in orderRels:
+                            if order in orderRels and relTo is not None:
                                 modelXbrl.error(("EFM.6.12.02", "GFM.1.06.02"),
                                     _("More than one presentation relationship in role %(linkroleDefinition)s has order value %(order)s, from concept %(conceptFrom)s.  "
                                       "Change all but one so they are distinct."),
