@@ -7,7 +7,7 @@
    
   <DisclosureSystem 
      names="US SEC (Edgar Filing Manual, 20.3 Preview)|efm-preview"
-     description="US SEC Edgar Filing Manual v53.3 Release 20.3\n
+     description="US SEC Edgar Filing Manual v54 Release 20.3\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
@@ -15,7 +15,7 @@
      Includes content (semantic) tests"
      validationType="EFM"
      exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
-     blockDisallowedReferences="false" 
+     blockDisallowedReferences="true" 
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
      standardTaxonomiesUrl="edgartaxonomies-20-3.xml"
@@ -36,6 +36,8 @@
      deiDocumentPeriodEndDateElement="DocumentPeriodEndDate"
      deiFilerIdentifierElement="EntityCentralIndexKey" 
      deiFilerNameElement="EntityRegistrantName"
+     logLevelFilter="(?!.*-semantic$)"
+     logCodeFilter="(?!EFM.6.05.28.linkrole|EFM.6.07.06|EFM.6.07.09.roleEnding|EFM.6.07.13.arcroleEnding|EFM.6.10.01.missingLabelLinkbase)"
      />
   <DisclosureSystem 
      names="US SEC (Edgar Filing Manual, Strict)|efm|efm-strict"

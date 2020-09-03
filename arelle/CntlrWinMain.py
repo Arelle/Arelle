@@ -970,7 +970,7 @@ class CntlrWinMain (Cntlr.Cntlr):
 
     def validate(self):
         modelXbrl = self.modelManager.modelXbrl
-        if modelXbrl:
+        if modelXbrl and modelXbrl.modelDocument:
             if (modelXbrl.modelManager.validateDisclosureSystem and 
                 not modelXbrl.modelManager.disclosureSystem.selection):
                 tkinter.messagebox.showwarning(_("arelle - Warning"),

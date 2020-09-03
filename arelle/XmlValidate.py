@@ -83,6 +83,7 @@ cMinusCNameChar = r"[_\-\."   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u
 baseXsdTypePatterns = {
                 "Name": namePattern,
                 "language": languagePattern,
+                "languageOrEmpty": re_compile(r"[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$|$"),
                 "NMTOKEN": NMTOKENPattern,
                 "NCName": NCNamePattern,
                 "ID": NCNamePattern,
@@ -91,7 +92,7 @@ baseXsdTypePatterns = {
                 "QName": QNamePattern,             
             }
 predefinedAttributeTypes = {
-    qname("{http://www.w3.org/XML/1998/namespace}xml:lang"):("language",None),
+    qname("{http://www.w3.org/XML/1998/namespace}xml:lang"):("languageOrEmpty",None),
     qname("{http://www.w3.org/XML/1998/namespace}xml:space"):("NCName",{"enumeration":{"default","preserve"}})}
 
 xAttributesSharedEmptyDict = {}
@@ -368,7 +369,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                         raise ValueError("length {0}, minLength {1}".format(len(value), facets["minLength"]))
                     if "maxLength" in facets and len(value) > facets["maxLength"]:
                         raise ValueError("length {0}, maxLength {1}".format(len(value), facets["maxLength"]))
-                if baseXsdType in {"string", "normalizedString", "language", "token", "NMTOKEN","Name","NCName","IDREF","ENTITY"}:
+                if baseXsdType in {"string", "normalizedString", "language", "languageOrEmpty", "token", "NMTOKEN","Name","NCName","IDREF","ENTITY"}:
                     xValue = sValue = value
                 elif baseXsdType == "ID":
                     xValue = sValue = value

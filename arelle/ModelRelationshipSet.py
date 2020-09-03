@@ -345,24 +345,25 @@ class ModelRelationshipSet:
         for modelLabelRel in labels:
             label = modelLabelRel.toModelObject
             if wildRole or role == label.role:
-                labelLang = label.xmlLang
+                labelLang = label.xmlLang # None if absent or un-declared by empty string (see xml schema)
                 text = label.textValue if returnText else label
                 if lang is None or len(lang) == 0 or lang == labelLang:
                     langLabels.append(text)
                     if not returnMultiple:
                         break
-                elif labelLang.startswith(lang):
-                    if not longerLangInLabel or len(longerLangInLabel) > len(labelLang):
-                        longerLangInLabel = labelLang
-                        longerLangLabels = [text,]
-                    else:
-                        longerLangLabels.append(text)
-                elif lang.startswith(labelLang):
-                    if not shorterLangInLabel or len(shorterLangInLabel) < len(labelLang):
-                        shorterLangInLabel = labelLang
-                        shorterLangLabels = [text,]
-                    else:
-                        shorterLangLabels.append(text)
+                elif labelLang is not None:
+                    if labelLang.startswith(lang):
+                        if not longerLangInLabel or len(longerLangInLabel) > len(labelLang):
+                            longerLangInLabel = labelLang
+                            longerLangLabels = [text,]
+                        else:
+                            longerLangLabels.append(text)
+                    elif lang.startswith(labelLang):
+                        if not shorterLangInLabel or len(shorterLangInLabel) < len(labelLang):
+                            shorterLangInLabel = labelLang
+                            shorterLangLabels = [text,]
+                        else:
+                            shorterLangLabels.append(text)
         if langLabels:
             if returnMultiple: return langLabels
             else: return langLabels[0]
