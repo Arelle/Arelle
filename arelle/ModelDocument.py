@@ -892,7 +892,7 @@ class ModelDocument:
                 ns = modelObject.namespaceURI
                 if modelObject.namespaceURI == XbrlConst.xsd and ln in {"import", "include", "redefine"}:
                     self.importDiscover(modelObject)
-                elif self.inDTS and ns == XbrlConst.link:
+                elif ns == XbrlConst.link:
                     if ln == "roleType":
                         self.modelXbrl.roleTypes[modelObject.roleURI].append(modelObject)
                     elif ln == "arcroleType":
@@ -901,8 +901,8 @@ class ModelDocument:
                         self.schemaLinkbaseRefDiscover(modelObject)
                     elif ln == "linkbase":
                         self.linkbaseDiscover(modelObject)
-                # recurse to children
-                self.schemaDiscoverChildElements(modelObject)
+                else: # recurse to children
+                    self.schemaDiscoverChildElements(modelObject)
 
                         
     def baseForElement(self, element):
