@@ -36,16 +36,15 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
 from arelle.PythonUtil import strTruncate
 from arelle.UrlUtil import isHttpUrl, scheme
-from arelle.XbrlConst import standardLabel
 from arelle.XmlValidate import VALID, lexicalPatterns
 
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
-from arelle.XbrlConst import (ixbrlAll, xhtml, link, parentChild, summationItem, 
+from arelle.XbrlConst import (ixbrl11, xhtml, link, parentChild, summationItem, standardLabel,
                               all as hc_all, notAll as hc_notAll, hypercubeDimension, dimensionDomain, domainMember,
                               qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote, iso17442)
 from arelle.XmlValidate import VALID
 from arelle.ValidateUtr import ValidateUtr
-from .Const import (allowedImgMimeTypes, browserMaxBase64ImageLength, mandatory, untransformableTypes, 
+from .Const import (browserMaxBase64ImageLength, mandatory, untransformableTypes, outdatedTaxonomyURLs, esefTaxonomyURLs,
                     esefPrimaryStatementPlaceholderNames, esefStatementsOfMonetaryDeclarationNames, esefMandatoryElementNames2020)
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
@@ -54,6 +53,7 @@ from .Util import isExtension, checkImageContents
 styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-esef-ix-hidden\s*:\s*([\w.-]+).*")
 ifrsNsPattern = re.compile(r"http://xbrl.ifrs.org/taxonomy/[0-9-]{10}/ifrs-full")
 datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
+imgDataMediaBase64Pattern = re.compile(r"data:image([^,]*);base64,")
 
 FOOTNOTE_LINK_CHILDREN = {qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote}
 PERCENT_TYPE = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
@@ -76,6 +76,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateESEFplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "ESEFplugin", False)
     if not (val.validateESEFplugin):
         return
+    val.extensionImportedUrls = set()
     
 
 def validateXbrlFinally(val, *args, **kwargs):
@@ -175,13 +176,17 @@ def validateXbrlFinally(val, *args, **kwargs):
                     modelXbrl.error("ESEF.RTS.Art.3.htmlDoctype",
                         _("Doctype SHALL NOT be html: %(fileName)s"),
                         modelObject=doc, fileName=doc.basename)
+                if doc.ixNS != ixbrl11:
+                    modelXbrl.error("ESEF.RTS.Annex.III.Par.1.invalidInlineXBRL",
+                        _("Invalid inline XBRL namespace: %(namespace)s"),
+                        modelObject=doc, namespace=doc.ixNS)
                 # check location in a taxonomy package
                 docDirPath = re.split(r"[/\\]", doc.uri)
                 reportCorrectlyPlacedInPackage = False
                 for i, dir in enumerate(docDirPath):
                     if dir.lower().endswith(".zip"):
                         packageName = dir[:-4] # web service posted zips are always named POSTupload.zip instead of the source file name
-                        if len(dir) >= i + 2 and packageName in (docDirPath[i+1],"POSTupload") and docDirPath[i+2] == "reports":
+                        if len(docDirPath) >= i + 2 and packageName in (docDirPath[i+1],"POSTupload") and docDirPath[i+2] == "reports":
                             ixdsDocDirs.add("/".join(docDirPath[i+3:-1]))
                             reportCorrectlyPlacedInPackage = True
                         break
@@ -236,7 +241,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                 if _ancestorElt.tag in ixTextTags:
                                     hasParentIxTextTag = True
                                     break
-                                _ancestorElt = _ancestorElt.getparent()                        
+                                _ancestorElt = _ancestorElt.getparent()                     
                             if scheme(src) in ("http", "https", "ftp"):
                                 modelXbrl.error("ESEF.3.5.1.inlineXbrlContainsExternalReferences",
                                     _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
@@ -260,18 +265,28 @@ def validateXbrlFinally(val, *args, **kwargs):
                                             checkImageContents(modelXbrl, elt, os.path.splitext(src)[1], True, imgContents)
                                             imgContents = None # deref, may be very large
                                         if imglen < browserMaxBase64ImageLength:
-                                            modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
+                                            modelXbrl.error("ESEF.2.5.1.imageIncludedAndNotEmbededAsBase64EncodedString",
                                                 _("Images MUST be included in the XHTML document as a base64 encoded string unless their size exceeds support of browsers (%(maxImageSize)s): %(file)s."),
                                                 modelObject=elt, maxImageSize=browserMaxBase64ImageLength, file=os.path.basename(normalizedUri))
                                     except IOError as err:
                                         modelXbrl.error("ESEF.2.5.1.imageFileCannotBeLoaded",
                                             _("Image file which isn't openable '%(src)s', error: %(error)s"),
                                             modelObject=elt, src=src, error=err)
-                            elif not any(src.startswith(m) for m in allowedImgMimeTypes):
+                            else:
+                                m = imgDataMediaBase64Pattern.match(src)
+                                if not m:
+                                    modelXbrl.warning("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
+                                        _("Images included in the XHTML document SHOULD be base64 encoded: %(src)s."),
+                                        modelObject=elt, src=src[:128])
+                                elif not m.group(1):
+                                    modelXbrl.error("ESEF.2.5.1.MIMETypeNotSpecified",
+                                        _("Images included in the XHTML document MUST be saved with MIME type specifying PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
+                                        modelObject=elt, src=src[:128])
+                                elif m.group(1) not in ("/gif", "/jpeg", "/jpg", "/png", "/svg+xml"):
                                     modelXbrl.error("ESEF.2.5.1.imageFormatNotSupported",
                                         _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
                                         modelObject=elt, src=src[:128])
-                            else: # check for malicious image contents
+                                # check for malicious image contents
                                 mime, _sep, b64ImgContents = src.partition(";base64,")
                                 try:
                                     imgContents = base64.b64decode(b64ImgContents) # allow embedded newlines
@@ -288,9 +303,9 @@ def validateXbrlFinally(val, *args, **kwargs):
                                 modelXbrl.error("ESEF.3.5.1.inlineXbrlContainsExternalReferences",
                                     _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
                                     modelObject=elt, element=eltTag)
-                        elif eltTag == "base" or elt.tag == "{http://www.w3.org/XML/1998/namespace}base":
-                            modelXbrl.error("ESEF.2.4.2.htmlOrXmlBaseUsed",
-                                _("The HTML <base> elements and xml:base attributes MUST NOT be used in the Inline XBRL document."),
+                        elif eltTag == "base":
+                            modelXbrl.error("ESEF.2.4.2.htmlBaseUsed",
+                                _("The HTML <base> elements MUST NOT be used in the Inline XBRL document."),
                                 modelObject=elt, element=eltTag)
                         elif eltTag == "link" and elt.get("type") == "text/css":
                             if len(modelXbrl.ixdsHtmlElements) > 1:
@@ -323,7 +338,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                             _("The ix:fraction element MUST not be used in the Inline XBRL document."),
                             modelObject=elt)
                     if elt.get("{http://www.w3.org/XML/1998/namespace}base") is not None:
-                        modelXbrl.error("ESEF.2.4.1.xmlBaseUsed",
+                        modelXbrl.error("ESEF.2.4.2.xmlBaseUsed",
                             _("xml:base attributes MUST NOT be used in the Inline XBRL document: element %(localName)s, base attribute %(base)s."),
                             modelObject=elt, localName=elt.elementQname, base=elt.get("{http://www.w3.org/XML/1998/namespace}base"))
                     if isinstance(elt, ModelInlineFootnote):
@@ -515,6 +530,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                             if f.context is not None:
                                 textFactsByConceptContext[(f.qname, mapContext.get(f.context,f.context))].append(f)
                 conceptsUsed.add(f.concept)
+                ''' only check line item concepts in 2020
                 if f.context is not None:
                     for dim in f.context.qnameDims.values():
                         conceptsUsed.add(dim.dimension)
@@ -523,6 +539,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                         #don't consider typed member as a used concept which needs to be in pre LB 
                         #elif dim.isTyped:
                         #    conceptsUsed.add(dim.typedMember)
+                '''
                     
         if noLangFacts:
             modelXbrl.error("ESEF.2.5.2.undefinedLanguageForTextFact",
@@ -616,20 +633,34 @@ def validateXbrlFinally(val, *args, **kwargs):
                 modelObject=nonStdFootnoteElts)
         
         conceptsUsedByFacts = conceptsUsed.copy()
-        for qn in modelXbrl.qnameDimensionDefaults.values():
-            conceptsUsed.add(modelXbrl.qnameConcepts.get(qn))
+        #for qn in modelXbrl.qnameDimensionDefaults.values():
+        #    conceptsUsed.add(modelXbrl.qnameConcepts.get(qn))
+            
+        # 3.1.1 test
+        hasOutdatedUrl = False
+        for e in outdatedTaxonomyURLs:
+            if e in val.extensionImportedUrls:
+                val.modelXbrl.warning("ESEF.3.1.1.incorrectEsefTaxonomyVersionUsed",
+                    _("The issuer's extension taxonomies SHOULD import the entry point of the taxonomy files prepared by ESMA.  Outdated entry point: %(url)s"),
+                    modelObject=modelDocument, url=e)
+                hasOutdatedUrl = True
+                
+        if not hasOutdatedUrl and not any(e in val.extensionImportedUrls for e in esefTaxonomyURLs):
+            val.modelXbrl.warning("ESEF.3.1.1.requiredEntryPointNotImported",
+                _("The issuer's extension taxonomies SHOULD import the entry point of the taxonomy files prepared by ESMA."),
+                modelObject=modelDocument)
+
             
         # unused elements in linkbases
         unreportedLbElts = set()
-        for arcroles, err in (((parentChild,), "elements{}UsedForTagging{}AppliedInPresentationLinkbase"),
-                              ((summationItem,), "elements{}UsedForTagging{}AppliedInCalculationLinkbase"),
-                              ((hc_all, hc_notAll, hypercubeDimension, dimensionDomain,domainMember), "elements{}UsedForTagging{}AppliedInDefinitionLinkbase")):
-            reportedEltsNotInLb = conceptsUsedByFacts.copy()
-            # remove tuple elts when looking at calc or def linkbases
-            if summationItem in arcroles or hc_all in arcroles:
-                for reportedElt in conceptsUsedByFacts:
-                    if reportedElt.isTuple:
-                        reportedEltsNotInLb.discard(reportedElt)
+        for arcroles, err, checkRoots, lbType in (
+                    ((parentChild,), "elements{}UsedForTagging{}AppliedInPresentationLinkbase", True, "presentation"),
+                    ((summationItem,), "elements{}UsedForTagging{}AppliedInCalculationLinkbase", False, "calculation"),
+                    ((hc_all, hc_notAll, dimensionDomain,domainMember), "elements{}UsedForTagging{}AppliedInDefinitionLinkbase", False, "definition")):
+            if lbType == "calculation":
+                reportedEltsNotInLb = set(c for c in conceptsUsedByFacts if c.isNumeric)
+            else:
+                reportedEltsNotInLb = conceptsUsedByFacts.copy()
             for arcrole in arcroles:
                 for rel in modelXbrl.relationshipSet(arcrole).modelRelationships:
                     fr = rel.fromModelObject
@@ -639,32 +670,21 @@ def validateXbrlFinally(val, *args, **kwargs):
                             unreportedLbElts.add(fr)
                         if to is not None and not to.isAbstract and to not in conceptsUsed and isExtension(val, rel):
                             unreportedLbElts.add(to)
-                    elif arcrole == dimensionDomain: # dimension, always abstract
-                        if fr is not None and fr not in conceptsUsed and isExtension(val, rel):
-                            unreportedLbElts.add(fr)
-                        if to is not None and rel.isUsable and to not in conceptsUsed and isExtension(val, rel):
+                    elif arcrole in (hc_all, domainMember, dimensionDomain):
+                        # all primary items
+                        if fr is not None and not fr.isAbstract and rel.isUsable and fr not in conceptsUsed and isExtension(val, rel) and not fr.type.isDomainItemType:
                             unreportedLbElts.add(to)
-                    elif arcrole == domainMember:
-                        if to is not None and not to.isAbstract and rel.isUsable and to not in conceptsUsed and isExtension(val, rel):
+                        if to is not None and not to.isAbstract and rel.isUsable and to not in conceptsUsed and isExtension(val, rel) and not to.type.isDomainItemType:
                             unreportedLbElts.add(to)
-                    if arcrole in (parentChild, hc_all, hc_notAll, hypercubeDimension, dimensionDomain, domainMember):
-                        reportedEltsNotInLb.discard(fr)
-                        reportedEltsNotInLb.discard(to)
-            #if unreportedLbElts:
-            #    modelXbrl.error("ESEF.3.4.6." + err.format("Not",""),
-            #        _("All usable concepts in extension taxonomy relationships MUST be applied by tagged facts: %(elements)s."),
-            #        modelObject=unreportedLbElts, elements=", ".join(sorted((str(c.qname) for c in unreportedLbElts))),
-            #        messageCodes=("ESEF.3.4.6.elementsNotUsedForTaggingAppliedInPresentationLinkbase",
-            #                      "ESEF.3.4.6.elementsNotUsedForTaggingAppliedInCalculationLinkbase",
-            #                      "ESEF.3.4.6.elementsNotUsedForTaggingAppliedInDefinitionLinkbase"))
-            if reportedEltsNotInLb and arcrole != summationItem:
-                modelXbrl.error("ESEF.3.4.6." + err.format("", "Not"),
-                    _("All concepts used by tagged facts MUST be in extension taxonomy relationships: %(elements)s."),
-                    modelObject=reportedEltsNotInLb, elements=", ".join(sorted((str(c.qname) for c in reportedEltsNotInLb))),
-                    messageCodes=("ESEF.3.4.6.elementsUsedForTaggingNotAppliedInPresentationLinkbase",
-                                  "ESEF.3.4.6.elementsUsedForTaggingNotAppliedInDefinitionLinkbase"))
+                    reportedEltsNotInLb.discard(fr)
+                    reportedEltsNotInLb.discard(to)
+                    
+            if reportedEltsNotInLb and lbType != "calculation":
+                modelXbrl.error("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
+                    _("All concepts used by tagged facts MUST be in extension taxonomy %(linkbaseType)s relationships: %(elements)s."),
+                    modelObject=reportedEltsNotInLb, elements=", ".join(sorted((str(c.qname) for c in reportedEltsNotInLb))), linkbaseType=lbType)
         if unreportedLbElts:
-            modelXbrl.error("ESEF.3.4.6.usableConceptsNotAppliedByTaggedFacts",
+            modelXbrl.error("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
                 _("All usable concepts in extension taxonomy relationships MUST be applied by tagged facts: %(elements)s."),
                 modelObject=unreportedLbElts, elements=", ".join(sorted((str(c.qname) for c in unreportedLbElts))))
                 
@@ -714,14 +734,26 @@ def validateXbrlFinally(val, *args, **kwargs):
 
         for ELR in modelXbrl.relationshipSet(parentChild).linkRoleUris:
             relSet = modelXbrl.relationshipSet(parentChild, ELR)
+            pfsConceptsRootInELR = set()
+            nonPfsConceptsRootInELR = set()
+
             for rootConcept in relSet.rootConcepts:
                 checkLabels(rootConcept, relSet, None, set())
                 # check for PFS element which isn't an orphan
-                if rootConcept.qname in esefPrimaryStatementPlaceholders and relSet.fromModelObject(rootConcept):
-                    pfsConceptsRootInPreLB.add(rootConcept)
+                if relSet.fromModelObject(rootConcept):
+                    if rootConcept.qname in esefPrimaryStatementPlaceholders:
+                        pfsConceptsRootInPreLB.add(rootConcept)
+                        pfsConceptsRootInELR.add(rootConcept)
+                    else:
+                        nonPfsConceptsRootInELR.add(rootConcept)
                 # check for statement declaration of monetary concepts
                 if rootConcept.qname in esefPrimaryStatementPlaceholders:
                     checkMonetaryUnits(rootConcept, relSet, set())
+            if pfsConceptsRootInELR and (len(pfsConceptsRootInELR) + len(nonPfsConceptsRootInELR) ) > 1:
+                roots = pfsConceptsRootInELR | nonPfsConceptsRootInELR
+                modelXbrl.warning("ESEF.3.4.7.singleExtendedLinkRoleUsedForAllPFSs",
+                    _("Separate Extended Link Roles are required by %(elr)s for hierarchies: %(roots)s."),
+                    modelObject=roots, elr=modelXbrl.roleTypeDefinition(ELR), roots=", ".join(sorted((str(c.qname) for c in roots))))
         for labelrole, concepts in missingConceptLabels.items():
             modelXbrl.warning("ESEF.3.4.5.missingLabelForRoleInReportLanguage",
                 _("Label for %(role)s role SHOULD be available in report language for concepts: %(qnames)s."),
@@ -755,7 +787,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                             monetaryItemsNotInDeclaredCurrency.append(concept)
                     break
         if monetaryItemsNotInDeclaredCurrency:
-            modelXbrl.error("ESEF.RTS.Annex.II.Par.1.missingMonetaryFactsInDeclaredCurrency",
+            modelXbrl.error("ESEF.RTS.Annex.II.Par.1.factsWithOtherThanDeclaredCurrencyOnly",
                 _("Numbers SHALL be marked up in declared currency %(currency)s: %(qnames)s."),
                 modelObject=monetaryItemsNotInDeclaredCurrency, currency=_declaredCurrency,
                 qnames=", ".join(sorted(str(c.qname) for c in monetaryItemsNotInDeclaredCurrency)))
@@ -784,7 +816,9 @@ def validateXbrlFinally(val, *args, **kwargs):
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
-    
+
+def testcaseVariationReportPackageLookOutsideReportsDirectory(validate):
+    return "ESEF" in validate.modelXbrl.modelManager.disclosureSystem.names
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
@@ -800,4 +834,5 @@ __pluginInfo__ = {
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,
     'Validate.XBRL.Start': validateXbrlStart,
     'Validate.XBRL.Finally': validateXbrlFinally,
+    'ModelTestcaseVariation.ReportPackageLookOutsideReportsDirectory': testcaseVariationReportPackageLookOutsideReportsDirectory,
 }

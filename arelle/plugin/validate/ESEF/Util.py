@@ -8,6 +8,7 @@ Filer Guidelines: ESMA_ESEF Manula 2019.pdf
 '''
 from .Const import standardTaxonomyURIs, esefTaxonomyNamespaceURIs
 from lxml.etree import XML, XMLSyntaxError
+from arelle.UrlUtil import scheme
 
 # check if a modelDocument URI is an extension URI (document URI)
 # also works on a uri passed in as well as modelObject
@@ -42,11 +43,16 @@ def checkImageContents(modelXbrl, imgElt, imgType, isFile, data):
                     rootElement = False
                 eltTag = elt.tag.rpartition("}")[2] # strip namespace
                 if ((eltTag in ("object", "script")) or
-                    (eltTag in ("audio", "foreignObject", "iframe", "image", "script", "use", "video")
-                     and "javascript:" in elt.get("href",""))):
-                    modelXbrl.error("ESEF.2.5.1.executableCodePresent",
-                        _("Inline XBRL images MUST NOT contain executable code: %(element)s"),
-                        modelObject=imgElt, element=eltTag)
+                    (eltTag in ("audio", "foreignObject", "iframe", "image", "use", "video"))):
+                    href = elt.get("href","")
+                    if eltTag in ("object", "script") or "javascript:" in href:
+                        modelXbrl.error("ESEF.2.5.1.executableCodePresent",
+                            _("Inline XBRL images MUST NOT contain executable code: %(element)s"),
+                            modelObject=imgElt, element=eltTag)
+                    elif scheme(href) in ("http", "https", "ftp"):
+                        modelXbrl.error("ESEF.2.5.1.referencesPointingOutsideOfTheReportingPackagePresent",
+                            _("Inline XBRL instance document [image] MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
+                            modelObject=imgElt, element=eltTag)
         except (XMLSyntaxError, UnicodeDecodeError) as err:
             modelXbrl.error("ESEF.2.5.1.imageFileCannotBeLoaded",
                 _("Image SVG has XML error %(error)s"),

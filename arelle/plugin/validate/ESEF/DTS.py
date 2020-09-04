@@ -21,7 +21,8 @@ from arelle import ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelConcept, ModelType
 from arelle.ModelObject import ModelObject
 from arelle.XbrlConst import xbrli, standardLabelRoles, dimensionDefault, standardLinkbaseRefRoles
-from .Const import qnDomainItemType, esefDefinitionArcroles, disallowedURIsPattern, DefaultDimensionLinkrole
+from .Const import (qnDomainItemTypes, esefDefinitionArcroles, disallowedURIsPattern, DefaultDimensionLinkroles, 
+                    filenamePatterns, linkbaseRefFilenamePatterns)
 from .Util import isExtension
 
 def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
@@ -40,10 +41,13 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
         filenamePattern = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}[.]xsd$")
 
         for doc, docRef in modelDocument.referencesDocument.items():
-            if docRef.referenceType in ("import","include") and disallowedURIsPattern.match(doc.uri):
-                val.modelXbrl.warning("ESEF.3.1.1.extensionImportNotAllowed",
-                                    _("Taxonomy reference not allowed for extension schema: %(taxonomy)s"),
-                                    modelObject=modelDocument, taxonomy=doc.uri)
+            if docRef.referenceType == "import":
+                val.extensionImportedUrls.add(doc.uri)
+            #if docRef.referenceType in ("import","include"):
+            #    if disallowedURIsPattern.match(doc.uri):
+            #        val.modelXbrl.warning("ESEF.3.1.1.extensionImportNotAllowed",
+            #                            _("Taxonomy reference not allowed for extension schema: %(taxonomy)s"),
+            #                            modelObject=modelDocument, taxonomy=doc.uri)
         
         tuplesInExtTxmy = []
         fractionsInExtTxmy = []
@@ -58,7 +62,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
         conceptsWithNoLabel = []
         widerNarrowerRelSet = val.modelXbrl.relationshipSet(XbrlConst.widerNarrower)
         calcRelSet = val.modelXbrl.relationshipSet(XbrlConst.summationItem)
-        dimensionDefaults = val.modelXbrl.relationshipSet(dimensionDefault, DefaultDimensionLinkrole)
+        dimensionDefaults = val.modelXbrl.relationshipSet(dimensionDefault, DefaultDimensionLinkroles)
         labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
         if modelDocument.targetNamespace is not None:
             for modelConcept in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}element"):
@@ -75,10 +79,10 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                     if modelConcept.isTypedDimension:
                         typedDimsInExtTxmy.append(modelConcept)
                     if modelConcept.isExplicitDimension and not dimensionDefaults.fromModelObject(modelConcept):
-                        val.modelXbrl.error("ESEF.3.4.3.extensionTaxonomyDimensionNotAssigedDefaultMemberInDedicatedPlaceholder",
+                        val.modelXbrl.error("ESEF.3.4.3.extensionTaxonomyDimensionNotAssignedDefaultMemberInDedicatedPlaceholder",
                             _("Each dimension in an issuer specific extension taxonomy MUST be assigned to a default member in the ELR with role URI http://www.esma.europa.eu/xbrl/role/core/ifrs-dim_role-990000 defined in esef_cor.xsd schema file. %(qname)s"),
                             modelObject=modelConcept, qname=modelConcept.qname)
-                    if modelConcept.isDomainMember and modelConcept in val.domainMembers and modelConcept.typeQname != qnDomainItemType:
+                    if modelConcept.isDomainMember and modelConcept in val.domainMembers and modelConcept.typeQname not in qnDomainItemTypes:
                         domainMembersWrongType.append(modelConcept)
                     if modelConcept.isPrimaryItem and not modelConcept.isAbstract:
                         if modelConcept not in val.primaryItems:
@@ -207,26 +211,13 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
         prohibitedBaseConcepts = []
         prohibitingLbElts = []
         
-        if hrefXlinkRole in standardLinkbaseRefRoles:
-            # account for empty linkbaseRefs (populated are identified by extended links below)
-            if hrefXlinkRole == "http://www.xbrl.org/2003/role/calculationLinkbaseRef":
-                val.hasExtensionCal = True
-                filenamePattern = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_cal[.]xml$")
-            elif hrefXlinkRole == "http://www.xbrl.org/2003/role/definitionLinkbaseRef":
-                filenamePattern = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_def[.]xml$")
-                val.hasExtensionDef = True
-            elif hrefXlinkRole == "http://www.xbrl.org/2003/role/labelLinkbaseRef":
-                filenamePattern = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_lab-[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*[.]xml$")
-                val.hasExtensionLbl = True
-            elif hrefXlinkRole == "http://www.xbrl.org/2003/role/presentationLinkbaseRef":
-                filenamePattern = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_pre[.]xml$")
-                val.hasExtensionPre = True
-            elif hrefXlinkRole == "http://www.xbrl.org/2003/role/referenceLinkbaseRef":
-                filenamePattern = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_ref[.]xml$")
-
+        if hrefXlinkRole in linkbaseRefFilenamePatterns:
+            filenamePattern = filenamePatterns[linkbaseRefFilenamePatterns[hrefXlinkRole]]
 
         for linkEltName in ("labelLink", "presentationLink", "calculationLink", "definitionLink", "referenceLink"):
             for linkElt in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}" + linkEltName):
+                if not filenamePattern:
+                    filenamePattern = filenamePatterns.get(linkEltName[:3])
                 if linkEltName == "labelLink":
                     val.hasExtensionLbl = True
                     linkbasesFound.add(linkEltName)
@@ -239,6 +230,8 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                 if linkEltName == "definitionLink":
                     val.hasExtensionDef = True
                     linkbasesFound.add(linkEltName)
+                    if not filenamePattern:
+                        filenamePattern = filenamePatterns["lab"]
                     # check for any unexpected definition arcrole which might be a custom wider-narrower arcrole
                     for arcElt in linkElt.iterchildren(tag="{http://www.xbrl.org/2003/linkbase}definitionArc"):
                         arcrole = arcElt.get("{http://www.w3.org/1999/xlink}arcrole") 
