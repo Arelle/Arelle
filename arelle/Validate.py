@@ -31,6 +31,8 @@ class ValidationException(Exception):
     def __repr__(self):
         return "{0}({1})={2}".format(self.code,self.severity,self.message)
     
+commaSpaceSplitPattern = re.compile(r",\s*")
+    
 class Validate:
     """Validation operations are separated from the objects that are validated, because the operations are 
     complex, interwoven, and factored quite differently than the objects being validated. 
@@ -234,9 +236,12 @@ class Validate:
                         else: # need own file source, may need instance discovery
                             filesource = FileSource.openFileSource(readMeFirstUri, self.modelXbrl.modelManager.cntlr, base=baseForElement)
                             if filesource and not filesource.selection and filesource.isArchive and filesource.isTaxonomyPackage:
+                                _rptPkgIxdsOptions = {}
+                                for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxdsOptions"):
+                                    pluginXbrlMethod(self, _rptPkgIxdsOptions)
                                 filesource.loadTaxonomyPackageMappings()
                                 for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxds"):
-                                    filesource.select(pluginXbrlMethod(filesource))
+                                    filesource.select(pluginXbrlMethod(filesource, **_rptPkgIxdsOptions))
                             modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, 
                                                        filesource,
                                                        _("validating"), 
@@ -531,9 +536,11 @@ class Validate:
             status = "fail"
             _passCount = 0
             for testErr in _errors:
+                if isinstance(testErr,_STR_BASE) and testErr.startswith("ESEF."): # compared as list of strings to QName localname
+                    testErr = testErr.rpartition(".")[2]
                 if isinstance(expected,QName) and isinstance(testErr,_STR_BASE):
                     errPrefix, sep, errLocalName = testErr.rpartition(":")
-                    if ((not sep and errLocalName == expected.localName) or
+                    if ((not sep and errLocalName in commaSpaceSplitPattern.split(expected.localName.strip())) or # ESEF has comma separated list of localnames of errors
                         (expected == qname(XbrlConst.errMsgPrefixNS.get(errPrefix) or 
                                            (errPrefix == expected.prefix and expected.namespaceURI), 
                                            errLocalName)) or
@@ -548,7 +555,8 @@ class Validate:
                          (expected == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or
                          (expected == "EFM.6.05.35" and testErr.startswith("utre:")) or
                          (expected.startswith("EFM.") and testErr.startswith(expected)) or
-                         (expected == "vere:invalidDTSIdentifier" and testErr.startswith("xbrl"))))):
+                         (expected == "vere:invalidDTSIdentifier" and testErr.startswith("xbrl"))
+                         ))):
                         _passCount += 1
             if _passCount > 0:
                 if expectedCount is not None and expectedCount != _passCount:

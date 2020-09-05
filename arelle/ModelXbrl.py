@@ -76,6 +76,8 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None, erro
     #uncomment for trial use of lxml xml schema validation of entry document
     #XmlValidate.xmlValidate(modelXbrl.modelDocument)
     modelManager.cntlr.webCache.saveUrlCheckTimes()
+    for pluginXbrlMethod in pluginClassMethods("ModelXbrl.LoadComplete"):
+        pluginXbrlMethod(modelXbrl)
     modelManager.showStatus(_("xbrl loading finished, {0}...").format(nextaction))
     return modelXbrl
 

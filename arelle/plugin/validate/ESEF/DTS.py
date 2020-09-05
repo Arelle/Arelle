@@ -188,7 +188,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                 _("Extension concepts MUST provide labels: %(concepts)s."),
                 modelObject=conceptsWithNoLabel, concepts=", ".join(str(c.qname) for c in conceptsWithNoLabel))
         if conceptsWithoutStandardLabel:
-            val.modelXbrl.error("ESEF.RTS.Annex.IV.Par.4_G3.4.5.extensionConceptStandardLabel",
+            val.modelXbrl.error("ESEF.RTS.Annex.IV.Par.4_G3.4.5.extensionConceptNoStandardLabel",
                 _("Extension concepts MUST provide a standard label: %(concepts)s."),
                 modelObject=conceptsWithoutStandardLabel, concepts=", ".join(str(c.qname) for c in conceptsWithoutStandardLabel))
 

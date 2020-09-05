@@ -912,7 +912,7 @@ class ModelDocument:
             baseAttr = baseElt.get("{http://www.w3.org/XML/1998/namespace}base")
             if baseAttr:
                 if self.modelXbrl.modelManager.validateDisclosureSystem:
-                    self.modelXbrl.error(("EFM.6.03.11", "GFM.1.1.7", "EBA.2.1", "EIOPA.2.1", "ESEF.2.4.2.htmlOrXmlBaseUsed"),
+                    self.modelXbrl.error(("EFM.6.03.11", "GFM.1.1.7", "EBA.2.1", "EIOPA.2.1"),
                         _("Prohibited base attribute: %(attribute)s"),
                         edgarCode="du-0311-Xml-Base-Used",
                         modelObject=element, attribute=baseAttr, element=element.qname)

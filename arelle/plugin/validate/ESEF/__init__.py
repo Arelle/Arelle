@@ -54,6 +54,7 @@ styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-esef-ix-hidden\s*:\s*([\w.-]+).*
 ifrsNsPattern = re.compile(r"http://xbrl.ifrs.org/taxonomy/[0-9-]{10}/ifrs-full")
 datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
 imgDataMediaBase64Pattern = re.compile(r"data:image([^,]*);base64,")
+ixErrorPattern = re.compile(r"ix11[.]|xmlSchema[:]|xbrl[.]|xbrld[ti]e[:]|utre[:]")
 
 FOOTNOTE_LINK_CHILDREN = {qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote}
 PERCENT_TYPE = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
@@ -71,6 +72,13 @@ def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
 
 def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
     return os.path.join(os.path.dirname(__file__), "config.xml")
+
+def modelXbrlLoadComplete(modelXbrl):
+    if getattr(modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
+        if modelXbrl.modelDocument is None:
+            modelXbrl.error("ESEF.3.1.3.missingOrInvalidTaxonomyPackage",
+                            _("RTS Annex III Par 3 and ESEF 3.1.3 requires an XBRL Report Package but one could not be loaded."), 
+                            modelObject=modelXbrl)
 
 def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateESEFplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "ESEFplugin", False)
@@ -90,6 +98,11 @@ def validateXbrlFinally(val, *args, **kwargs):
     if not modelDocument:
         return # never loaded properly
 
+    numXbrlErrors = sum(ixErrorPattern.match(e) is not None for e in modelXbrl.errors)
+    if numXbrlErrors:
+        modelXbrl.error("ESEF.RTS.Annex.III.Par.1.invalidInlineXBRL",
+                        _("RTS on ESEF requires valid XBRL instances, %(numXbrlErrors)s errors were reported."), 
+                        modelObject=modelXbrl, numXbrlErrors=numXbrlErrors)
     _statusMsg = _("validating {0} filing rules").format(val.disclosureSystem.name)
     modelXbrl.profileActivity()
     modelXbrl.modelManager.showStatus(_statusMsg)
@@ -181,6 +194,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                         _("Invalid inline XBRL namespace: %(namespace)s"),
                         modelObject=doc, namespace=doc.ixNS)
                 # check location in a taxonomy package
+                # ixds loading for ESEF expects all xhtml instances to be combined into single IXDS regardless of directory in report zip
                 docDirPath = re.split(r"[/\\]", doc.uri)
                 reportCorrectlyPlacedInPackage = False
                 for i, dir in enumerate(docDirPath):
@@ -189,13 +203,15 @@ def validateXbrlFinally(val, *args, **kwargs):
                         if len(docDirPath) >= i + 2 and packageName in (docDirPath[i+1],"POSTupload") and docDirPath[i+2] == "reports":
                             ixdsDocDirs.add("/".join(docDirPath[i+3:-1]))
                             reportCorrectlyPlacedInPackage = True
+                        else:
+                            ixdsDocDirs.add("/".join(docDirPath[i+1:len(docDirPath)-1])) # needed for error msg on orphaned instance docs
                         break
                 if not reportCorrectlyPlacedInPackage:
                     modelXbrl.warning("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
                         _("Document file not in correct place in report package: %(fileName)s"),
                         modelObject=doc, fileName=doc.basename)
         if len(ixdsDocDirs) > 1:
-            modelXbrl.warning("ESEF.2.6.2.reportIncorrectlyPlacedInPackage",
+            modelXbrl.warning("ESEF.2.6.2.reportSetIncorrectlyPlacedInPackage",
                 _("Document files appear to be in multiple document sets: %(documentSets)s"),
                 modelObject=doc, documentSets=", ".join(sorted(ixdsDocDirs)))
         if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
@@ -243,7 +259,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                     break
                                 _ancestorElt = _ancestorElt.getparent()                     
                             if scheme(src) in ("http", "https", "ftp"):
-                                modelXbrl.error("ESEF.3.5.1.inlineXbrlContainsExternalReferences",
+                                modelXbrl.error("ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
                                     _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
                                     modelObject=elt, element=eltTag)
                             elif not src.startswith("data:image"):
@@ -304,7 +320,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                     _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
                                     modelObject=elt, element=eltTag)
                         elif eltTag == "base":
-                            modelXbrl.error("ESEF.2.4.2.htmlBaseUsed",
+                            modelXbrl.error("ESEF.2.4.2.htmlOrXmlBaseUsed",
                                 _("The HTML <base> elements MUST NOT be used in the Inline XBRL document."),
                                 modelObject=elt, element=eltTag)
                         elif eltTag == "link" and elt.get("type") == "text/css":
@@ -338,7 +354,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                             _("The ix:fraction element MUST not be used in the Inline XBRL document."),
                             modelObject=elt)
                     if elt.get("{http://www.w3.org/XML/1998/namespace}base") is not None:
-                        modelXbrl.error("ESEF.2.4.2.xmlBaseUsed",
+                        modelXbrl.error("ESEF.2.4.2.htmlOrXmlBaseUsed",
                             _("xml:base attributes MUST NOT be used in the Inline XBRL document: element %(localName)s, base attribute %(base)s."),
                             modelObject=elt, localName=elt.elementQname, base=elt.get("{http://www.w3.org/XML/1998/namespace}base"))
                     if isinstance(elt, ModelInlineFootnote):
@@ -507,7 +523,9 @@ def validateXbrlFinally(val, *args, **kwargs):
         conceptsUsed = set()
         langsUsedByTextFacts = set()
                 
+        hasNoFacts = True
         for qn, facts in modelXbrl.factsByQname.items():
+            hasNoFacts = False
             if qn in mandatory:
                 reportedMandatory.add(qn)
             for f in facts:
@@ -540,7 +558,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                         #elif dim.isTyped:
                         #    conceptsUsed.add(dim.typedMember)
                 '''
-                    
+            
         if noLangFacts:
             modelXbrl.error("ESEF.2.5.2.undefinedLanguageForTextFact",
                 _("Each tagged text fact MUST have the 'xml:lang' attribute assigned or inherited."),
@@ -817,9 +835,11 @@ def validateXbrlFinally(val, *args, **kwargs):
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
 
-def testcaseVariationReportPackageLookOutsideReportsDirectory(validate):
-    return "ESEF" in validate.modelXbrl.modelManager.disclosureSystem.names
-
+def testcaseVariationReportPackageIxdsOptions(validate, rptPkgIxdsOptions):
+    if getattr(validate.modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
+        rptPkgIxdsOptions["lookOutsideReportsDirectory"] = True
+        rptPkgIxdsOptions["combineIntoSingleIxds"] = True
+        
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate ESMA ESEF',
@@ -832,7 +852,8 @@ __pluginInfo__ = {
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,
+    'ModelXbrl.LoadComplete': modelXbrlLoadComplete,
     'Validate.XBRL.Start': validateXbrlStart,
     'Validate.XBRL.Finally': validateXbrlFinally,
-    'ModelTestcaseVariation.ReportPackageLookOutsideReportsDirectory': testcaseVariationReportPackageLookOutsideReportsDirectory,
+    'ModelTestcaseVariation.ReportPackageIxdsOptions': testcaseVariationReportPackageIxdsOptions,
 }
