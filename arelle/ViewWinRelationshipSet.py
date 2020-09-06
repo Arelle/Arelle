@@ -11,7 +11,7 @@ from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ModelFormulaObject import ModelFilter
 from arelle.ViewUtil import viewReferences, groupRelationshipSet, groupRelationshipLabel
-from arelle.XbrlConst import conceptNameLabelRole
+from arelle.XbrlConst import conceptNameLabelRole, documentationLabel, widerNarrower
 
 def viewRelationshipSet(modelXbrl, tabWin, arcrole, 
                         linkrole=None, linkqname=None, arcqname=None, lang=None, 
@@ -124,6 +124,15 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     self.treeView.heading("priItem", text="Primary Item")
                     self.treeView.column("dims", width=150, anchor="w", stretch=False)
                     self.treeView.heading("dims", text=_("Dimensions"))
+                elif self.arcrole == widerNarrower:
+                    self.treeView.column("#0", width=300, anchor="w")
+                    self.treeView["columns"] = ("wider", "documentation", "references")
+                    self.treeView.column("wider", width=100, anchor="w", stretch=False)
+                    self.treeView.heading("wider", text=_("Wider"))
+                    self.treeView.column("documentation", width=200, anchor="w", stretch=False)
+                    self.treeView.heading("documentation", text=_("Documentation"))
+                    self.treeView.column("references", width=200, anchor="w", stretch=False)
+                    self.treeView.heading("references", text=_("References"))
                 elif isinstance(self.arcrole, (list,tuple)) or XbrlConst.isResourceArcrole(self.arcrole):
                     self.isResourceArcrole = True
                     self.showReferences = isinstance(self.arcrole, _STR_BASE) and self.arcrole.endswith("-reference")
@@ -278,6 +287,14 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                         self.treeView.set(childnode, "priItem", concept.aspectValue(None, Aspect.CONCEPT))
                         self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim, concept.aspectValue(None, dim)) 
                                                                        for dim in (concept.aspectValue(None, Aspect.DIMENSIONS, inherit=False) or []))))
+            elif self.arcrole == widerNarrower:
+                if isRelation:
+                    otherWider = [modelRel.fromModelObject
+                                  for modelRel in childRelationshipSet.toModelObject(concept)
+                                  if modelRel.fromModelObject != modelObject.fromModelObject]
+                    self.treeView.set(childnode, "wider", ", ".join(w.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole) for w in otherWider))
+                self.treeView.set(childnode, "documentation", concept.label(documentationLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole,fallbackToQname=False))
+                self.treeView.set(childnode, "references", viewReferences(concept))
             elif self.isResourceArcrole: # resource columns
                 if isRelation:
                     self.treeView.set(childnode, "arcrole", os.path.basename(modelObject.arcrole))

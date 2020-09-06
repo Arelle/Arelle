@@ -8,7 +8,7 @@ from arelle import ModelObject, ModelDtsObject, XbrlConst, XmlUtil, ViewFile
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ViewFile import NOOUT, CSV, XLSX, HTML, XML, JSON 
 from arelle.ViewUtil import viewReferences
-from arelle.XbrlConst import conceptNameLabelRole
+from arelle.XbrlConst import conceptNameLabelRole, documentationLabel, widerNarrower
 from arelle.ModelRenderingObject import ModelEuAxisCoord, ModelRuleDefinitionNode
 from arelle.ModelFormulaObject import Aspect
 
@@ -26,7 +26,7 @@ COL_WIDTHS = {
     "Dimensions Relationships": 80, "Arcrole": 32,"CntxElt": 12,"Closed": 8,"Usable": 8,
     "Resource Relationships": 80, "Arcrole": 32,"Resource": 50,"ResourceRole": 32,"Language": 20,
     "Table Relationships": 80, "Axis": 28, "Abs": 16, "Mrg": 16, "Header": 50, "Primary Item": 30, "Dimensions": 50,
-    "Wider-Narrower": 80, "Label": 80, "Name": 40
+    "Wider-Narrower": 80, "Wider": 32, "Name": 40, "Documentation": 80
     }
 
 class ViewRelationshipSet(ViewFile.View):
@@ -48,7 +48,7 @@ class ViewRelationshipSet(ViewFile.View):
         elif arcrole == "Table-rendering":
             heading = ["Table Relationships", "Axis", "Abs", "Mrg", "Header", "Primary Item", "Dimensions"]
         elif arcrole == XbrlConst.widerNarrower:
-            heading = ["Wider-Narrower"]
+            heading = ["Wider-Narrower", "Wider"]
         elif isinstance(arcrole, (list,tuple)) or XbrlConst.isResourceArcrole(arcrole):
             self.isResourceArcrole = True
             self.showReferences = isinstance(arcrole, _STR_BASE) and arcrole.endswith("-reference")
@@ -60,21 +60,15 @@ class ViewRelationshipSet(ViewFile.View):
             if isinstance(self.cols,str): self.cols = self.cols.replace(',',' ').split()
             unrecognizedCols = []
             for col in self.cols:
-                if col not in COL_WIDTHS:
+                if col not in ("Name","Documentation","References"):
                     unrecognizedCols.append(col)
             if unrecognizedCols:
                 self.modelXbrl.error("arelle:unrecognizedRelationshipSetColumn",
                                      _("Unrecognized columns: %(cols)s"),
                                      modelXbrl=self.modelXbrl, cols=','.join(unrecognizedCols))
-            col0 = self.cols[0]
-            if col0 not in ("Label", "Name"):
-                self.modelXbrl.error("arelle:firstFactListColumn",
-                                     _("First column must be Label or Name: %(col1)s"),
-                                     modelXbrl=self.modelXbrl, col1=col0)
-            self.isCol0Label = col0 == "Label"
-            heading += self.cols[1:]
-        else:
-            self.isCol0Label = True
+                for col in unrecognizedCols:
+                    self.cols.remove(col)
+            heading += self.cols
         # relationship set based on linkrole parameter, to determine applicable linkroles
         relationshipSet = self.modelXbrl.relationshipSet(arcrole, linkrole, linkqname, arcqname)
 
@@ -148,17 +142,14 @@ class ViewRelationshipSet(ViewFile.View):
             isRelation = isinstance(modelObject, ModelRelationship)
             childRelationshipSet = relationshipSet
             if isinstance(concept, ModelDtsObject.ModelConcept):
-                if self.isCol0Label:
-                    text = labelPrefix + concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole)
-                else:
-                    text = labelPrefix + (concept.qname or concept.prefixedName) # defective inline facts may have no qname
+                text = labelPrefix + concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole)
                 if (self.arcrole in ("XBRL-dimensions", XbrlConst.hypercubeDimension) and
                     concept.isTypedDimension and 
                     concept.typedDomainElement is not None):
                     text += " (typedDomain={0})".format(concept.typedDomainElement.qname)  
                 xmlRowElementName = "concept"
                 attr = {"name": str(concept.qname)}
-                if preferredLabel != XbrlConst.conceptNameLabelRole and self.isCol0Label:
+                if preferredLabel != XbrlConst.conceptNameLabelRole:
                     attr["label"] = text
             elif self.arcrole == "Table-rendering":
                 text = concept.localName
@@ -246,12 +237,22 @@ class ViewRelationshipSet(ViewFile.View):
                                               for dim in (concept.aspectValue(None, Aspect.DIMENSIONS, inherit=False) or ()))))
                 else:
                     cols.append('')
+            elif self.arcrole == widerNarrower:
+                if isRelation:
+                    otherWider = [modelRel.fromModelObject
+                                  for modelRel in childRelationshipSet.toModelObject(concept)
+                                  if modelRel.fromModelObject != modelObject.fromModelObject]
+                    cols.append(", ".join(w.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole,fallbackToQname=False) for w in otherWider))
+                else:
+                    cols.append("")
             if self.cols and len(self.cols) > 1:
-                for col in self.cols[1:]:
+                for col in self.cols:
                     if col == "Name":
                         cols.append( (concept.qname or concept.prefixedName) )
-                    elif col == "Label" and isinstance(concept, ModelDtsObject.ModelConcept):
-                        cols.append(concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole))
+                    elif col == "Documentation":
+                        cols.append(concept.label(documentationLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole))
+                    elif col == "References":
+                        cols.append(viewReferences(concept))
             self.addRow(cols, treeIndent=indent, xmlRowElementName=xmlRowElementName, xmlRowEltAttr=attr, xmlCol0skipElt=True, arcRole=self.arcrole)
             if concept not in visited:
                 visited.add(concept)
