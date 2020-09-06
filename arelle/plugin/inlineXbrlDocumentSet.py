@@ -528,7 +528,7 @@ def testcaseVariationReadMeFirstUris(modelTestcaseVariation):
         modelTestcaseVariation._readMeFirstUris = [docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(_readMeFirstUris)]
         return True
     
-def testcaseVariationReportPackageIxds(filesource):
+def testcaseVariationReportPackageIxds(filesource, lookOutsideReportsDirectory=False, combineIntoSingleIxds=False):
     # single report directory
     reportFiles = []
     ixdsDirFiles = defaultdict(list)
@@ -547,6 +547,16 @@ def testcaseVariationReportPackageIxds(filesource):
                     filesource.select(f)
                     if Type.identify(filesource, filesource.url) == Type.INLINEXBRL:
                         ixdsDirFiles[ixdsDir].append(f)
+    if lookOutsideReportsDirectory:
+        for f in filesource.dir:
+            filesource.select(f)
+            if Type.identify(filesource, filesource.url) in (Type.INSTANCE, Type.INLINEXBRL):
+                reportFiles.append(f)
+    if combineIntoSingleIxds and (reportFiles or len(ixdsDirFiles) > 1):
+        docsetSurrogatePath = os.path.join(filesource.baseurl, IXDS_SURROGATE)
+        for ixdsFiles in ixdsDirFiles.values():
+            reportFiles.extend(ixdsFiles)
+        return docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(os.path.join(filesource.baseurl,f) for f in reportFiles)
     for ixdsDir, ixdsFiles in sorted(ixdsDirFiles.items()):
         # use the first ixds in report package
         docsetSurrogatePath = os.path.join(filesource.baseurl, ixdsDir, IXDS_SURROGATE)

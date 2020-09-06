@@ -286,11 +286,11 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
         m = filenamePattern.match(modelDocument.basename)
         if not m:
             val.modelXbrl.warning("ESEF.3.1.5.extensionTaxonomyDocumentNameDoesNotFollowNamingConvention",
-                _("Extension taxonomy document file name SHOULD match the {base}-{date}_{suffix}.{extension} pattern."),
-                modelObject=modelDocument.xmlRootElement)
+                _("Extension taxonomy document file name SHOULD match the {base}-{date}_{suffix}.{extension} pattern: %(documentName)s."),
+                modelObject=modelDocument.xmlRootElement, documentName=modelDocument.basename)
         elif len(m.group(1)) > 20:
             val.modelXbrl.warning("ESEF.3.1.5.baseComponentInNameOfTaxonomyFileExceedsTwentyCharacters",
-                _("Extension taxonomy document file name {base} component SHOULD be no longer than 20 characters, length is %(length)s."),
-                modelObject=modelDocument.xmlRootElement, length=len(m.group(1)))
+                _("Extension taxonomy document file name {base} component SHOULD be no longer than 20 characters, length is %(length)s:  %(documentName)s."),
+                modelObject=modelDocument.xmlRootElement, length=len(m.group(1)), documentName=modelDocument.basename)
         
         
