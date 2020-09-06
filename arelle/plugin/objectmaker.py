@@ -20,7 +20,8 @@ diagramNetworks = {
     "cal": (XbrlConst.summationItem,),
     "def": (XbrlConst.essenceAlias, XbrlConst.similarTuples, XbrlConst.requiresElement, XbrlConst.generalSpecial,
             XbrlConst.all, XbrlConst.notAll, XbrlConst.hypercubeDimension, XbrlConst.dimensionDomain,
-            XbrlConst.domainMember, XbrlConst.dimensionDefault)
+            XbrlConst.domainMember, XbrlConst.dimensionDefault),
+    "anc": (XbrlConst.widerNarrower,)
     }
 
 # graphviz attributes: http://www.graphviz.org/doc/info/attrs.html
@@ -46,12 +47,15 @@ networkEdgeTypes = {
         "requires-element": {"dir": "forward", "arrowhead": "normal"},
         "general-special": {"dir": "forward", "arrowhead": "normal"},
         "all": {"dir": "forward", "arrowhead": "normal"},
-        "notAll": {"dir": "forward", "arrowhead": "normal"},
+        "notall": {"dir": "forward", "arrowhead": "normal"}, # arc roles are lower-cased here
         "hypercube-dimension": {"dir": "forward", "arrowhead": "normal"},
         "dimension-domain": {"dir": "forward", "arrowhead": "normal"},
         "domain-member": {"dir": "forward", "arrowhead": "normal"},
         "dimension-default": {"dir": "forward", "arrowhead": "normal"}
-        }
+        },
+    "anc": {
+        "wider-narrower": {"dir": "forward", "arrowhead": "normal"}
+        },
     }
 
 def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
@@ -70,7 +74,7 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
         return
     
     isUML = diagramNetwork == "uml"
-    isBaseSpec = diagramNetwork in ("pre", "cal", "def")
+    isBaseSpec = diagramNetwork in ("pre", "cal", "def", "anch")
     graphName = os.path.splitext(modelXbrl.modelDocument.basename)[0]
     mdl = Digraph(comment=graphName)
     mdl.attr("graph")
@@ -139,7 +143,12 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
     for roledefinition, linkroleUri in sorted(linkroleUris):
         for arcrole in arcroles:
             relationshipType = arcrole.rpartition("/")[2].lower()
-            edgeType = networkEdgeTypes[diagramNetwork][relationshipType]
+            edgeType = networkEdgeTypes[diagramNetwork].get(relationshipType)
+            if edgeType is None:
+                modelXbrl.warning("objectmaker:unrecognizedArcrole",
+                                  "Arcrole missing from networkEdgeTypes: %(arcrole)s:",
+                                  modelXbrl=modelXbrl, arcrole=arcrole)
+                continue
             graphRelationshipSet = modelXbrl.relationshipSet(arcrole, linkroleUri)    
             roleprefix = (linkroleUri.replace("/","_").replace(":","_") + "_") if linkroleUri else ""
             if not graphRelationshipSet:
@@ -154,10 +163,10 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
                              dir=edgeType.get("dir"), arrowhead=edgeType.get("arrowhead"), arrowtail=edgeType.get("arrowtail"))
             for rel in graphRelationshipSet.modelRelationships:
                 parent = rel.fromModelObject
-                parentName = roleprefix + parent.qname.localName
                 child = rel.toModelObject
-                if child is None:
+                if parent is None or child is None:
                     continue
+                parentName = roleprefix + parent.qname.localName
                 childName = roleprefix + child.qname.localName
                 if parentName not in nodes:
                     node(mdl, parentName, parent)
