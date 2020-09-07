@@ -24,7 +24,7 @@ from arelle.XmlValidate import VALID, validate as xmlValidate
 
 creationSoftwareNames = None
 
-def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDiscovered=False, isIncluded=None, namespace=None, reloadCache=False, **kwargs):
+def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDiscovered=False, isIncluded=None, isSupplemental=False, namespace=None, reloadCache=False, **kwargs):
     """Returns a new modelDocument, performing DTS discovery for instance, inline XBRL, schema, 
     linkbase, and versioning report entry urls.
     
@@ -37,6 +37,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     :param isDiscovered: True if this document is discovered by XBRL rules, otherwise False (such as when schemaLocation and xmlns were the cause of loading the schema)
     :type isDiscovered: bool
     :param isIncluded: True if this document is the target of an xs:include
+    :type isIncluded: bool
+    :param isSupplemental: True if this is processed for link relationships even if neither isEntry or isDiscovered, such as when adding additional language or documentation linkbases
     :type isIncluded: bool
     :param namespace: The schema namespace of this document, if known and applicable
     :type isSupplemental: True if this document is supplemental (not discovered or in DTS but adds labels or instance facts)
@@ -236,7 +238,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                                     _("Schema file with same targetNamespace %(targetNamespace)s loaded from %(fileName)s and %(otherFileName)s"),
                                     modelObject=referringElement, targetNamespace=targetNamespace, fileName=uri, otherFileName=otherModelDoc.uri)
                         return otherModelDoc 
-        elif (isEntry or isDiscovered or kwargs.get("isSupplemental", False)) and ns == XbrlConst.link:
+        elif (isEntry or isDiscovered or isSupplemental) and ns == XbrlConst.link:
             if ln == "linkbase":
                 _type = Type.LINKBASE
             elif ln == "xbrl":
@@ -315,7 +317,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                for pluginMethod in pluginClassMethods("ModelDocument.Discover")):
             pass # discovery was performed by plug-in, we're done
         elif _type == Type.SCHEMA:
-            modelDocument.schemaDiscover(rootNode, isIncluded, namespace)
+            modelDocument.schemaDiscover(rootNode, isIncluded, isSupplemental, namespace)
         elif _type == Type.LINKBASE:
             modelDocument.linkbaseDiscover(rootNode)
         elif _type == Type.INSTANCE:
@@ -348,7 +350,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             if hasattr(modelXbrl, "ixdsHtmlElements"):
                 inlineIxdsDiscover(modelXbrl, modelDocument) # compile cross-document IXDS references
                 
-        if isEntry or kwargs.get("isSupplemental", False):  
+        if isEntry or isSupplemental:  
             # re-order base set keys for entry point or supplemental linkbase addition
             modelXbrl.baseSets = OrderedDefaultDict( # order by linkRole, arcRole of key
                 modelXbrl.baseSets.default_factory,
@@ -838,7 +840,7 @@ class ModelDocument:
                     self._processingInstructions.append(node)
             return self._processingInstructions
     
-    def schemaDiscover(self, rootElement, isIncluded, namespace):
+    def schemaDiscover(self, rootElement, isIncluded, isSupplemental, namespace):
         targetNamespace = rootElement.get("targetNamespace")
         if targetNamespace:
             self.targetNamespace = targetNamespace
@@ -868,7 +870,7 @@ class ModelDocument:
         self.isQualifiedAttributeFormDefault = rootElement.get("attributeFormDefault") == "qualified"
         # self.definesUTR = any(ns == XbrlConst.utr for ns in rootElement.nsmap.values())
         try:
-            self.schemaDiscoverChildElements(rootElement)
+            self.schemaDiscoverChildElements(rootElement, isSupplemental)
         except (ValueError, LookupError) as err:
             self.modelXbrl.modelManager.addToLog("discovery: {0} error {1}".format(
                         self.basename,
@@ -883,16 +885,16 @@ class ModelDocument:
                 self.modelXbrl.schemaDocsToValidate.add(self) # validate schema elements
 
             
-    def schemaDiscoverChildElements(self, parentModelObject):
+    def schemaDiscoverChildElements(self, parentModelObject, isSupplemental=False, depth=1):
         # find roleTypes, elements, and linkbases
         # must find import/include before processing linkbases or elements
         for modelObject in parentModelObject.iterchildren():
             if isinstance(modelObject,ModelObject):
                 ln = modelObject.localName
                 ns = modelObject.namespaceURI
-                if modelObject.namespaceURI == XbrlConst.xsd and ln in {"import", "include", "redefine"}:
+                if depth == 1 and modelObject.namespaceURI == XbrlConst.xsd and ln in {"import", "include", "redefine"}:
                     self.importDiscover(modelObject)
-                elif self.inDTS and ns == XbrlConst.link:
+                elif depth == 3 and ns == XbrlConst.link and (self.inDTS or isSupplemental):
                     if ln == "roleType":
                         self.modelXbrl.roleTypes[modelObject.roleURI].append(modelObject)
                     elif ln == "arcroleType":
@@ -901,8 +903,8 @@ class ModelDocument:
                         self.schemaLinkbaseRefDiscover(modelObject)
                     elif ln == "linkbase":
                         self.linkbaseDiscover(modelObject)
-                # recurse to children
-                self.schemaDiscoverChildElements(modelObject)
+                else: # recurse to children
+                    self.schemaDiscoverChildElements(modelObject, isSupplemental, depth+1)
 
                         
     def baseForElement(self, element):
