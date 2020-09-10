@@ -6,7 +6,7 @@
   xmlns:xlink="http://www.w3.org/1999/xlink"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
   xsi:schemaLocation="
-  http://xbrl.org/2008/registry schemas/registry.xsd
+  http://xbrl.org/2008/registry http://www.xbrl.org/2008/registry.xsd
   ">
 
   <!-- Herm: added ixt-sec transforms 2015-08-23 -->
