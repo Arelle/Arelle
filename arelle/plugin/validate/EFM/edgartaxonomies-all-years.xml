@@ -4,6 +4,68 @@ This file was created by staff of the U.S. Securities and Exchange Commission.
 Data and content created by government employees within the scope of their employment 
 are not subject to domestic copyright protection. 17 U.S.C. 105.
 -->
+	<!--  2021 drafts -->
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2021</Version>
+		<Href>https://xbrl.sec.gov/dei/2021/dei-2021.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/dei/2021</Namespace>
+		<Prefix>dei</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2021</Version>
+		<Href>https://xbrl.sec.gov/country/2021/country-2021.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/country/2021</Namespace>
+		<Prefix>country</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2021</Version>
+		<Href>https://xbrl.sec.gov/sic/2021/sic-2021.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/sic/2021</Namespace>
+		<Prefix>sic</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2021</Version>
+		<Href>https://xbrl.sec.gov/currency/2021/currency-2021.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/currency/2021</Namespace>
+		<Prefix>currency</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2021</Version>
+		<Href>https://xbrl.sec.gov/exch/2021/exch-2021.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/exch/2021</Namespace>
+		<Prefix>exch</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2021</Version>
+		<Href>https://xbrl.sec.gov/stpr/2021/stpr-2021.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Entry Point</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://xbrl.sec.gov/stpr/2021</Namespace>
+		<Prefix>stpr</Prefix>
+	</Loc>
+	<!--  end of drafts -->
 	<Loc>
 		<Family>US GAAP</Family>
 		<Version>2020</Version>
