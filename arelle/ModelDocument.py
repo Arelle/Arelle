@@ -253,7 +253,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         elif ns == XbrlConst.xhtml and \
              (ln == "html" or ln == "xhtml"):
             _type = Type.UnknownXML
-            if XbrlConst.ixbrlAll.intersection(rootNode.nsmap.values()):
+            if (XbrlConst.ixbrl in rootNode.nsmap.values() or
+                any(e is not None for e in rootNode.iter("{http://www.xbrl.org/2013/inlineXBRL}*"))):
                 _type = Type.INLINEXBRL
         elif ln == "report" and ns == XbrlConst.ver:
             _type = Type.VERSIONINGREPORT
@@ -275,7 +276,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             _type = Type.ARCSINFOSET
         elif ln == "facts":
             _type = Type.FACTDIMSINFOSET
-        elif XbrlConst.ixbrlAll.intersection(rootNode.nsmap.values()):
+        elif (XbrlConst.ixbrl in rootNode.nsmap.values() or
+              any(e is not None for e in rootNode.iter("{http://www.xbrl.org/2013/inlineXBRL}*"))):
             # any xml document can be an inline document, only html and xhtml are found above
             _type = Type.INLINEXBRL
         else:
@@ -296,7 +298,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                         nestedInline = htmlElt
                         break
                 if nestedInline is not None:
-                    if XbrlConst.ixbrlAll.intersection(nestedInline.nsmap.values()):
+                    if (XbrlConst.ixbrl in nestedInline.nsmap.values() or
+                        any(e is not None for e in rootNode.iter("{http://www.xbrl.org/2013/inlineXBRL}*"))):
                         _type = Type.INLINEXBRL
                         rootNode = nestedInline
 
@@ -510,13 +513,23 @@ class Type:
     def identify(filesource, filepath):
         file, = filesource.file(filepath, stripDeclaration=True, binary=True)
         try:
+            _rootElt = True
             for _event, elt in etree.iterparse(file, events=("start",)):
-                _type = {"{http://www.xbrl.org/2003/instance}xbrl": Type.INSTANCE,
-                         "{http://www.xbrl.org/2003/linkbase}linkbase": Type.LINKBASE,
-                         "{http://www.w3.org/2001/XMLSchema}schema": Type.SCHEMA}.get(elt.tag, Type.UnknownXML)
-                if _type == Type.UnknownXML and elt.tag.endswith("html") and XbrlConst.ixbrlAll.intersection(elt.nsmap.values()):
+                if _rootElt:
+                    _rootElt = False
+                    _type = {"{http://www.xbrl.org/2003/instance}xbrl": Type.INSTANCE,
+                             "{http://www.xbrl.org/2003/linkbase}linkbase": Type.LINKBASE,
+                             "{http://www.w3.org/2001/XMLSchema}schema": Type.SCHEMA}.get(elt.tag, Type.UnknownXML)
+                    if _type == Type.UnknownXML and elt.tag.endswith("html"):
+                        if XbrlConst.ixbrl in elt.nsmap.values():
+                            _type = Type.INLINEXBRL
+                            break # stop parsing
+                        # else fall through to element scan for ix11 element
+                    else:
+                        break # stop parsing
+                if elt.tag.startswith("{http://www.xbrl.org/2013/inlineXBRL}"):
                     _type = Type.INLINEXBRL
-                break
+                    break
         except Exception:
             _type = Type.UnknownXML
         file.close()

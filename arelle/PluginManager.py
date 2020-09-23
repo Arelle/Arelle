@@ -372,7 +372,7 @@ def loadModule(moduleInfo, packagePrefix=""):
                                 print(_msg, file=sys.stderr)
                     for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
                         loadModule(importModuleInfo, packageImportPrefix)
-                except (ImportError, AttributeError, SystemError) as err:
+                except (ImportError, AttributeError, TypeError, SystemError) as err:
                     _msg = _("Exception loading plug-in {name}: {error}\n{traceback}").format(
                             name=name, error=err, traceback=traceback.format_tb(sys.exc_info()[2]))
                     if PLUGIN_TRACE_FILE:

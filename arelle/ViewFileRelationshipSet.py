@@ -242,7 +242,7 @@ class ViewRelationshipSet(ViewFile.View):
                     otherWider = [modelRel.fromModelObject
                                   for modelRel in childRelationshipSet.toModelObject(concept)
                                   if modelRel.fromModelObject != modelObject.fromModelObject]
-                    cols.append(", ".join(w.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole,fallbackToQname=False) for w in otherWider))
+                    cols.append(", ".join(w.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole) for w in otherWider))
                 else:
                     cols.append("")
             if self.cols and len(self.cols) > 1:
