@@ -36,9 +36,14 @@ For command line operation:
     
     arelleCmdLine --plugins transforms/tester --testTransform 'help'  (or '?') or
     arelleCmdLine --plugins 'transforms/tester|transforms/SEC' --testTransform 'help'
+    
+For REST API operation:
+    web browser: http://localhost:8080/rest/xbrl/validation?plugins=transforms/tester&testTransform=ixt v3 datedaymonthen 29th February
+    cmd line: curl 'http://localhost:8080/rest/xbrl/validation?plugins=transforms/tester&testTransform=ixt%20v3%20datedaymonthen%2029th%20February'
 
 '''
 import os, re, logging
+from optparse import SUPPRESS_HELP
 from arelle.FunctionIxt import ixtNamespaces, ixtNamespaceFunctions
 from arelle.ModelFormulaObject import Trace
 from arelle.XmlUtil import setXmlns
@@ -103,16 +108,17 @@ class TransformTester:
 def cmdLineOptionExtender(parser, *args, **kwargs):
     parser.add_option("--testTransform", 
                       action="store", 
-                      dest="testTransformCmdLineArg", 
+                      dest="testTransform", 
                       help=_("Test a transformation registry transform. "
                              "Enter 'help' or '?' for a list of transformation registries available.  "
                              "Enter registry name, space, transformation name, space and pattern.  "
                              "E.g., 'ixt v3 datedaymonthen 29th February' or ixt v3 ixt:datedaymonthen 29th February'. "))
+
     
 def cmdLineRun(cntlr, options, *args, **kwargs):
-    if options.testTransformCmdLineArg:
+    if options.testTransform:
         tester = TransformTester(cntlr)
-        arg = options.testTransformCmdLineArg 
+        arg = options.testTransform 
         argWord, _sep, rest = arg.partition(" ")
         trReg = None
         for _regName in tester.trPrefixNSs.keys():
