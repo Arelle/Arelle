@@ -98,7 +98,7 @@ def validateXbrlFinally(val, *args, **kwargs):
     if not modelDocument:
         return # never loaded properly
 
-    numXbrlErrors = sum(ixErrorPattern.match(e) is not None for e in modelXbrl.errors)
+    numXbrlErrors = sum(ixErrorPattern.match(e) is not None for e in modelXbrl.errors if isinstance(e,str))
     if numXbrlErrors:
         modelXbrl.error("ESEF.RTS.Annex.III.Par.1.invalidInlineXBRL",
                         _("RTS on ESEF requires valid XBRL instances, %(numXbrlErrors)s errors were reported."), 
@@ -342,7 +342,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                 
                             
                     if eltTag in ixTags and elt.get("target"):
-                        modelXbrl.error("ESEF.2.5.3.targetAttributeUsed",
+                        modelXbrl.warning("ESEF.2.5.3.targetAttributeUsed",
                             _("Target attribute MUST not be used: element %(localName)s, target attribute %(target)s."),
                             modelObject=elt, localName=elt.elementQname, target=elt.get("target"))
                     if eltTag == ixTupleTag:
@@ -621,11 +621,17 @@ def validateXbrlFinally(val, *args, **kwargs):
         #    modelXbrl.error("ESEF.2.3.1.undefinedLanguageForFootnote",
         #        _("Each footnote MUST have the 'xml:lang' attribute whose value corresponds to the language of the text in the content of the respective footnote."),
         #        modelObject=noLangFootnotes)
-        ftLangNotUsedByTextFacts = set(f for f,langs in factLangFootnotes.items() if not (langs & langsUsedByTextFacts))
+        ftLangNotUsedByTextFacts = set()
+        ftLangNotUsedByTextLangs = set()
+        for f,langs in factLangFootnotes.items():
+            langsNotUsedByTextFacts = langs - langsUsedByTextFacts
+            if langsNotUsedByTextFacts:
+                ftLangNotUsedByTextFacts.add(f)
+                ftLangNotUsedByTextLangs.update(langsNotUsedByTextFacts)
         if ftLangNotUsedByTextFacts:
             modelXbrl.error("ESEF.2.3.1.footnoteInLanguagesOtherThanLanguageOfContentOfAnyTextualFact",
-                _("Each footnote MUST have or inherit an 'xml:lang' attribute whose value corresponds to the language of content of at least one textual fact present in the inline XBRL document: %(qnames)s."),
-                modelObject=ftLangNotUsedByTextFacts, qnames=", ".join(sorted(str(f.qname) for f in ftLangNotUsedByTextFacts)))
+                _("Each footnote MUST have or inherit an 'xml:lang' attribute whose value corresponds to the language of content of at least one textual fact present in the inline XBRL document, langs: %(langs)s; facts: %(qnames)s."),
+                modelObject=ftLangNotUsedByTextFacts, qnames=", ".join(sorted(str(f.qname) for f in ftLangNotUsedByTextFacts)), langs=", ".join(sorted(ftLangNotUsedByTextLangs)))
         nonDefLangFtFacts = set(f for f,langs in factLangFootnotes.items() if reportXmlLang not in langs)
         if nonDefLangFtFacts:
             modelXbrl.error("ESEF.2.3.1.footnoteOnlyInLanguagesOtherThanLanguageOfAReport",
@@ -843,7 +849,7 @@ def testcaseVariationReportPackageIxdsOptions(validate, rptPkgIxdsOptions):
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate ESMA ESEF',
-    'version': '1.2020.02',
+    'version': '1.2020.03',
     'description': '''ESMA ESEF Filer Manual and RTS Validations.''',
     'license': 'Apache-2',
     'author': 'Mark V Systems',

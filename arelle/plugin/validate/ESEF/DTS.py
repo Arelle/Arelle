@@ -88,7 +88,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                         if modelConcept not in val.primaryItems:
                             extLineItemsWithoutHypercube.append(modelConcept)
                         elif not widerNarrowerRelSet.fromModelObject(modelConcept) and not widerNarrowerRelSet.toModelObject(modelConcept):
-                            if not calcRelSet.fromModelObject(modelConcept) or not calcRelSet.toModelObject(modelConcept): # exclude subtotals
+                            if not calcRelSet.fromModelObject(modelConcept): # exclude subtotals
                                 extLineItemsNotAnchored.append(modelConcept)
                     if (modelConcept.isAbstract and modelConcept not in val.domainMembers and 
                         modelConcept.type is not None and not modelConcept.type.isDomainItemType and
