@@ -540,7 +540,9 @@ def testcaseVariationReportPackageIxds(filesource, lookOutsideReportsDirectory=F
             reportDirLen = len(f)
         elif f.startswith(reportDir):
             if "/" not in f[reportDirLen:]:
-                reportFiles.append(f)
+                filesource.select(f)
+                if Type.identify(filesource, filesource.url) in (Type.INSTANCE, Type.INLINEXBRL):
+                    reportFiles.append(f)
             else:
                 ixdsDir, _sep, ixdsFile = f.rpartition("/")
                 if ixdsFile:
