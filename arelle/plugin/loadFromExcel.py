@@ -1200,7 +1200,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                         generateDoc(otherGenDoc, doc, visitedDocNames) # generate document
                 addLinkbaseRef(lbRefType, filename, None)
         
-        doc.schemaDiscover(schemaElt, False, thisDoc.extensionSchemaNamespaceURI)
+        doc.schemaDiscover(schemaElt, False, False, thisDoc.extensionSchemaNamespaceURI)
 
         # add types after include and import are discovered
         # block creating any type which was previously provided by an include of the same namespace
