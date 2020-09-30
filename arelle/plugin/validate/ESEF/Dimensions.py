@@ -13,7 +13,7 @@ from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
 from arelle import XbrlConst
-from .Const import DefaultDimensionLinkrole, LineItemsNotQualifiedLinkrole
+from .Const import LineItemsNotQualifiedLinkrole
 from .Util import isExtension, isInEsefTaxonomy
 
 def checkFilingDimensions(val):
@@ -73,6 +73,7 @@ def checkFilingDimensions(val):
                     for hcPrimaryItem in hcPrimaryItems:
                         if not hcPrimaryItem.isAbstract:
                             elrPrimaryItems[hasHcRel.linkrole].add(hcPrimaryItem)
+                            elrPrimaryItems["*"].add(hcPrimaryItem) # members of any ELR
                 hcPrimaryItems.clear()
                 hcMembers.clear()
                                  
@@ -93,9 +94,11 @@ def checkFilingDimensions(val):
             for qn, facts in val.modelXbrl.factsByQname.items()
             if any(not f.context.qnameDims for f in facts if f.context is not None)
             for concept in (val.modelXbrl.qnameConcepts.get(qn),)
-            if concept is not None and concept not in elrPrimaryItems.get(LineItemsNotQualifiedLinkrole, set()))
+            if concept is not None and 
+               concept not in elrPrimaryItems.get(LineItemsNotQualifiedLinkrole, set()) and
+               concept not in elrPrimaryItems.get("*", set()))
     if i:
-        val.modelXbrl.warning("ESEF.3.4.2.lineItemNotLinkedToNonDimensionallyQualifiedHypercube",
+        val.modelXbrl.warning("ESEF.3.4.2.extensionTaxonomyLineItemNotLinkedToAnyHypercube",
             _("Dimensional line item reported non-dimensionally SHOULD be linked to \"not dimensionally qualified\" hypercube %(linkrole)s, primary item %(qnames)s"),
             modelObject=i, linkrole=LineItemsNotQualifiedLinkrole, qnames=", ".join(sorted(str(c.qname) for c in i)))
     # pri items in LineItemsNotQualifiedLinkrole which are not used in report non-dimensionally
@@ -105,7 +108,7 @@ def checkFilingDimensions(val):
                        for f in val.modelXbrl.factsByQname.get(hcPrimaryItem.qname,())
                        if f.context is not None))
     if i:
-        val.modelXbrl.warning("ESEF.3.4.2.lineItemUnnecessarilyLinkedToNonDimensionallyQualifiedHypercube",
+        val.modelXbrl.warning("ESEF.3.4.2.extensionTaxonomyLineItemIncorrectlyLinkedToNonDimensionallyQualifiedHypercube",
             _("Dimensional line item not reported non-dimensionally has no need to be linked to \"not dimensionally qualified\" hypercube %(linkrole)s, primary item %(qnames)s"),
             modelObject=i, linkrole=LineItemsNotQualifiedLinkrole, qnames=", ".join(sorted(str(c.qname) for c in i)))
 

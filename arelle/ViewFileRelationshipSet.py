@@ -8,15 +8,15 @@ from arelle import ModelObject, ModelDtsObject, XbrlConst, XmlUtil, ViewFile
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ViewFile import NOOUT, CSV, XLSX, HTML, XML, JSON 
 from arelle.ViewUtil import viewReferences
-from arelle.XbrlConst import conceptNameLabelRole
+from arelle.XbrlConst import conceptNameLabelRole, documentationLabel, widerNarrower
 from arelle.ModelRenderingObject import ModelEuAxisCoord, ModelRuleDefinitionNode
 from arelle.ModelFormulaObject import Aspect
 
 import os
 
-def viewRelationshipSet(modelXbrl, outfile, header, arcrole, linkrole=None, linkqname=None, arcqname=None, labelrole=None, lang=None):
+def viewRelationshipSet(modelXbrl, outfile, header, arcrole, linkrole=None, linkqname=None, arcqname=None, labelrole=None, lang=None, cols=None):
     modelXbrl.modelManager.showStatus(_("viewing relationships {0}").format(os.path.basename(arcrole)))
-    view = ViewRelationshipSet(modelXbrl, outfile, header, labelrole, lang)
+    view = ViewRelationshipSet(modelXbrl, outfile, header, labelrole, lang, cols)
     view.view(arcrole, linkrole, linkqname, arcqname)
     view.close()
     
@@ -25,14 +25,16 @@ COL_WIDTHS = {
     "Calculation Relationships": 80, "Weight": 16, "Balance": 16,
     "Dimensions Relationships": 80, "Arcrole": 32,"CntxElt": 12,"Closed": 8,"Usable": 8,
     "Resource Relationships": 80, "Arcrole": 32,"Resource": 50,"ResourceRole": 32,"Language": 20,
-    "Table Relationships": 80, "Axis": 28, "Abs": 16, "Mrg": 16, "Header": 50, "Primary Item": 30, "Dimensions": 50
+    "Table Relationships": 80, "Axis": 28, "Abs": 16, "Mrg": 16, "Header": 50, "Primary Item": 30, "Dimensions": 50,
+    "Wider-Narrower": 80, "Wider": 32, "Name": 40, "Documentation": 80
     }
 
 class ViewRelationshipSet(ViewFile.View):
-    def __init__(self, modelXbrl, outfile, header, labelrole, lang):
+    def __init__(self, modelXbrl, outfile, header, labelrole, lang, cols):
         super(ViewRelationshipSet, self).__init__(modelXbrl, outfile, header, lang)
         self.labelrole = labelrole
         self.isResourceArcrole = False
+        self.cols = cols
         
     def view(self, arcrole, linkrole=None, linkqname=None, arcqname=None):
         # determine relationships indent depth for dimensions linkbases
@@ -45,12 +47,28 @@ class ViewRelationshipSet(ViewFile.View):
             heading = ["Dimensions Relationships", "Arcrole","CntxElt","Closed","Usable"]
         elif arcrole == "Table-rendering":
             heading = ["Table Relationships", "Axis", "Abs", "Mrg", "Header", "Primary Item", "Dimensions"]
+        elif arcrole == XbrlConst.widerNarrower:
+            heading = ["Wider-Narrower", "Wider"]
         elif isinstance(arcrole, (list,tuple)) or XbrlConst.isResourceArcrole(arcrole):
             self.isResourceArcrole = True
             self.showReferences = isinstance(arcrole, _STR_BASE) and arcrole.endswith("-reference")
             heading = ["Resource Relationships", "Arcrole","Resource","ResourceRole","Language"]
         else:
             heading = [os.path.basename(arcrole).title() + " Relationships"]
+            
+        if self.cols:
+            if isinstance(self.cols,str): self.cols = self.cols.replace(',',' ').split()
+            unrecognizedCols = []
+            for col in self.cols:
+                if col not in ("Name","Documentation","References"):
+                    unrecognizedCols.append(col)
+            if unrecognizedCols:
+                self.modelXbrl.error("arelle:unrecognizedRelationshipSetColumn",
+                                     _("Unrecognized columns: %(cols)s"),
+                                     modelXbrl=self.modelXbrl, cols=','.join(unrecognizedCols))
+                for col in unrecognizedCols:
+                    self.cols.remove(col)
+            heading += self.cols
         # relationship set based on linkrole parameter, to determine applicable linkroles
         relationshipSet = self.modelXbrl.relationshipSet(arcrole, linkrole, linkqname, arcqname)
 
@@ -219,6 +237,22 @@ class ViewRelationshipSet(ViewFile.View):
                                               for dim in (concept.aspectValue(None, Aspect.DIMENSIONS, inherit=False) or ()))))
                 else:
                     cols.append('')
+            elif self.arcrole == widerNarrower:
+                if isRelation:
+                    otherWider = [modelRel.fromModelObject
+                                  for modelRel in childRelationshipSet.toModelObject(concept)
+                                  if modelRel.fromModelObject != modelObject.fromModelObject]
+                    cols.append(", ".join(w.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole) for w in otherWider))
+                else:
+                    cols.append("")
+            if self.cols and len(self.cols) > 1:
+                for col in self.cols:
+                    if col == "Name":
+                        cols.append( (concept.qname or concept.prefixedName) )
+                    elif col == "Documentation":
+                        cols.append(concept.label(documentationLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole))
+                    elif col == "References":
+                        cols.append(viewReferences(concept))
             self.addRow(cols, treeIndent=indent, xmlRowElementName=xmlRowElementName, xmlRowEltAttr=attr, xmlCol0skipElt=True, arcRole=self.arcrole)
             if concept not in visited:
                 visited.add(concept)

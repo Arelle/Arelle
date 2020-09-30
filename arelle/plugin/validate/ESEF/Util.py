@@ -8,6 +8,7 @@ Filer Guidelines: ESMA_ESEF Manula 2019.pdf
 '''
 from .Const import standardTaxonomyURIs, esefTaxonomyNamespaceURIs
 from lxml.etree import XML, XMLSyntaxError
+from arelle.UrlUtil import scheme
 
 # check if a modelDocument URI is an extension URI (document URI)
 # also works on a uri passed in as well as modelObject
@@ -28,6 +29,10 @@ def isInEsefTaxonomy(val, modelObject):
     ns = modelObject.qname.namespaceURI
     return (any(ns.startswith(esefNsPrefix) for esefNsPrefix in esefTaxonomyNamespaceURIs))
     
+supportedImgTypes = {
+    True: ("gif", "jpg", "jpeg", "png"), # file extensions
+    False: ("gif", "jpeg", "png") # mime types: jpg is not a valid mime type
+    }
 # check image contents against mime/file ext and for Steganography
 def checkImageContents(modelXbrl, imgElt, imgType, isFile, data):
     if "svg" in imgType:
@@ -42,18 +47,23 @@ def checkImageContents(modelXbrl, imgElt, imgType, isFile, data):
                     rootElement = False
                 eltTag = elt.tag.rpartition("}")[2] # strip namespace
                 if ((eltTag in ("object", "script")) or
-                    (eltTag in ("audio", "foreignObject", "iframe", "image", "script", "use", "video")
-                     and "javascript:" in elt.get("href",""))):
-                    modelXbrl.error("ESEF.2.5.1.executableCodePresent",
-                        _("Inline XBRL images MUST NOT contain executable code: %(element)s"),
-                        modelObject=imgElt, element=eltTag)
+                    (eltTag in ("audio", "foreignObject", "iframe", "image", "use", "video"))):
+                    href = elt.get("href","")
+                    if eltTag in ("object", "script") or "javascript:" in href:
+                        modelXbrl.error("ESEF.2.5.1.executableCodePresent",
+                            _("Inline XBRL images MUST NOT contain executable code: %(element)s"),
+                            modelObject=imgElt, element=eltTag)
+                    elif scheme(href) in ("http", "https", "ftp"):
+                        modelXbrl.error("ESEF.2.5.1.referencesPointingOutsideOfTheReportingPackagePresent",
+                            _("Inline XBRL instance document [image] MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
+                            modelObject=imgElt, element=eltTag)
         except (XMLSyntaxError, UnicodeDecodeError) as err:
             modelXbrl.error("ESEF.2.5.1.imageFileCannotBeLoaded",
                 _("Image SVG has XML error %(error)s"),
                 modelObject=imgElt, error=err)
-    elif not any(t in imgType for t in ("gif", "jpg", "jpeg", "png")):
+    elif not any(it in imgType for it in supportedImgTypes[isFile]):
         modelXbrl.error("ESEF.2.5.1.imageFormatNotSupported",
-            _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPG/JPEG formats: %(imgType)s is not supported"),
+            _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPEG formats: %(imgType)s is not supported"),
             modelObject=imgElt, imgType=imgType)
     else:
         if data[:3] == b"GIF" and data[3:6] in (b'89a', b'89b', b'87a'):

@@ -157,6 +157,8 @@ def parseAndRun(args):
     parser.add_option("--viewarcrole", action="store", dest="viewArcrole", help=SUPPRESS_HELP)
     parser.add_option("--viewFile", action="store", dest="viewFile",
                       help=_("Write linkbase relationships for viewArcrole into viewFile"))
+    parser.add_option("--relationshipCols", action="store", dest="relationshipCols",
+                      help=_("Columns for relationship file"))
     parser.add_option("--viewfile", action="store", dest="viewFile", help=SUPPRESS_HELP)
     parser.add_option("--roleTypes", action="store", dest="roleTypesFile",
                       help=_("Write defined role types into FILE"))
@@ -425,7 +427,7 @@ def parseAndRun(args):
     elif hasWebServer and options.webserver:
         # webserver incompatible with file operations
         if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
-                options.factsFile, options.factListCols, options.factTableFile,
+                options.factsFile, options.factListCols, options.factTableFile, options.relationshipCols,
                 options.conceptsFile, options.preFile, options.tableFile, options.calFile, options.dimFile, options.anchFile, options.formulaeFile, options.viewArcrole, options.viewFile,
                 options.roleTypesFile, options.arcroleTypesFile
                 )):
@@ -778,8 +780,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.traceVariableFilterWinnowing = True
         if options.formulaVarFiltersResult:
             fo.traceVariableFiltersResult = True
-        if options.formulaVarFiltersResult:
-            fo.traceVariableFiltersResult = True
         if options.testcaseResultsCaptureWarnings:
             fo.testcaseResultsCaptureWarnings = True
         if options.formulaRunIDs:
@@ -1013,7 +1013,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     if options.dimFile:
                         ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", labelrole=options.labelRole, lang=options.labelLang)
                     if options.anchFile:
-                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.anchFile, "Anchoring", XbrlConst.widerNarrower, labelrole=options.labelRole, lang=options.labelLang)
+                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.anchFile, "Anchoring", XbrlConst.widerNarrower, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
                     if options.formulaeFile:
                         ViewFileFormulae.viewFormulae(modelXbrl, options.formulaeFile, "Formulae", lang=options.labelLang)
                     if options.viewArcrole and options.viewFile:

@@ -387,13 +387,13 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                          modelObject=var, variable=varQname, result=str(vb.values))
         elif vb.isGeneralVar: # general variable
             if var.fromInstanceQnames:
-                contextItem = [inst.modelDocument.xmlRootElement 
+                contextItem = [inst.modelDocument.targetXbrlRootElement 
                                for qn in var.fromInstanceQnames 
                                for instSeq in (xpCtx.inScopeVars[qn],)
                                for inst in (instSeq if isinstance(instSeq,(list,tuple)) else (instSeq,)) 
                                ] 
             else:
-                contextItem = xpCtx.modelXbrl.modelDocument.xmlRootElement  # default is standard input instance
+                contextItem = xpCtx.modelXbrl.modelDocument.targetXbrlRootElement  # default is standard input instance
             vb.values = xpCtx.flattenSequence( xpCtx.evaluate(var.selectProg, contextItem=contextItem) )
             if xpCtx.formulaOptions.traceVariableExpressionResult:
                 xpCtx.modelXbrl.info("formula:trace",
@@ -988,7 +988,7 @@ def produceOutputFact(xpCtx, formula, result):
     # does context exist in out instance document
     outputInstanceQname = formula.outputInstanceQname
     outputXbrlInstance = xpCtx.inScopeVars[outputInstanceQname]
-    xbrlElt = outputXbrlInstance.modelDocument.xmlRootElement
+    xbrlElt = outputXbrlInstance.modelDocument.targetXbrlRootElement
     
     # in source instance document
     newFact = None
@@ -1111,7 +1111,7 @@ def formulaAspectValue(xpCtx, formula, aspect, srcMissingErr):
     sourceQname = formula.source(aspect)
     formulaUncovered = sourceQname == XbrlConst.qnFormulaUncovered
     if aspect == Aspect.LOCATION_RULE and sourceQname is None:
-        return xpCtx.inScopeVars[formula.outputInstanceQname].modelDocument.xmlRootElement
+        return xpCtx.inScopeVars[formula.outputInstanceQname].modelDocument.targetXbrlRootElement
     elif aspect == Aspect.DIMENSIONS and formulaUncovered:
         aspectSourceValue = set()   # union of uncovered dimensions, all variables
     elif srcMissingErr is None:

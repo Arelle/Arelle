@@ -16,7 +16,7 @@ from arelle.ModelValue import qname
 from arelle.ModelDtsObject import ModelLink, ModelResource, ModelRelationship
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelObjectFactory import parser
-from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype, DocumentPrototype
+from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype, DocumentPrototype, PrototypeElementTree
 from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import OrderedDefaultDict, Fraction, normalizeSpace
 from arelle.XhtmlValidate import ixMsgCode
@@ -24,7 +24,7 @@ from arelle.XmlValidate import VALID, validate as xmlValidate
 
 creationSoftwareNames = None
 
-def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDiscovered=False, isIncluded=None, namespace=None, reloadCache=False, **kwargs):
+def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDiscovered=False, isIncluded=None, isSupplemental=False, namespace=None, reloadCache=False, **kwargs):
     """Returns a new modelDocument, performing DTS discovery for instance, inline XBRL, schema, 
     linkbase, and versioning report entry urls.
     
@@ -37,6 +37,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
     :param isDiscovered: True if this document is discovered by XBRL rules, otherwise False (such as when schemaLocation and xmlns were the cause of loading the schema)
     :type isDiscovered: bool
     :param isIncluded: True if this document is the target of an xs:include
+    :type isIncluded: bool
+    :param isSupplemental: True if this is processed for link relationships even if neither isEntry or isDiscovered, such as when adding additional language or documentation linkbases
     :type isIncluded: bool
     :param namespace: The schema namespace of this document, if known and applicable
     :type isSupplemental: True if this document is supplemental (not discovered or in DTS but adds labels or instance facts)
@@ -236,7 +238,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                                     _("Schema file with same targetNamespace %(targetNamespace)s loaded from %(fileName)s and %(otherFileName)s"),
                                     modelObject=referringElement, targetNamespace=targetNamespace, fileName=uri, otherFileName=otherModelDoc.uri)
                         return otherModelDoc 
-        elif (isEntry or isDiscovered or kwargs.get("isSupplemental", False)) and ns == XbrlConst.link:
+        elif (isEntry or isDiscovered or isSupplemental) and ns == XbrlConst.link:
             if ln == "linkbase":
                 _type = Type.LINKBASE
             elif ln == "xbrl":
@@ -251,7 +253,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         elif ns == XbrlConst.xhtml and \
              (ln == "html" or ln == "xhtml"):
             _type = Type.UnknownXML
-            if XbrlConst.ixbrlAll.intersection(rootNode.nsmap.values()):
+            if (XbrlConst.ixbrlAll & set(rootNode.nsmap.values()) or
+                any(e is not None for e in rootNode.iter("{http://www.xbrl.org/2013/inlineXBRL}*"))):
                 _type = Type.INLINEXBRL
         elif ln == "report" and ns == XbrlConst.ver:
             _type = Type.VERSIONINGREPORT
@@ -273,7 +276,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             _type = Type.ARCSINFOSET
         elif ln == "facts":
             _type = Type.FACTDIMSINFOSET
-        elif XbrlConst.ixbrlAll.intersection(rootNode.nsmap.values()):
+        elif (XbrlConst.ixbrlAll & set(rootNode.nsmap.values()) or
+              any(e is not None for e in rootNode.iter("{http://www.xbrl.org/2013/inlineXBRL}*"))):
             # any xml document can be an inline document, only html and xhtml are found above
             _type = Type.INLINEXBRL
         else:
@@ -294,7 +298,8 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                         nestedInline = htmlElt
                         break
                 if nestedInline is not None:
-                    if XbrlConst.ixbrlAll.intersection(nestedInline.nsmap.values()):
+                    if (XbrlConst.ixbrl in nestedInline.nsmap.values() or
+                        any(e is not None for e in rootNode.iter("{http://www.xbrl.org/2013/inlineXBRL}*"))):
                         _type = Type.INLINEXBRL
                         rootNode = nestedInline
 
@@ -303,7 +308,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         modelDocument.parser = _parser # needed for XmlUtil addChild's makeelement 
         modelDocument.parserLookupName = _parserLookupName
         modelDocument.parserLookupClass = _parserLookupClass
-        modelDocument.xmlRootElement = rootNode
+        modelDocument.xmlRootElement = modelDocument.targetXbrlRootElement = rootNode
         modelDocument.schemaLocationElements.add(rootNode)
         modelDocument.documentEncoding = _encoding
 
@@ -315,7 +320,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                for pluginMethod in pluginClassMethods("ModelDocument.Discover")):
             pass # discovery was performed by plug-in, we're done
         elif _type == Type.SCHEMA:
-            modelDocument.schemaDiscover(rootNode, isIncluded, namespace)
+            modelDocument.schemaDiscover(rootNode, isIncluded, isSupplemental, namespace)
         elif _type == Type.LINKBASE:
             modelDocument.linkbaseDiscover(rootNode)
         elif _type == Type.INSTANCE:
@@ -348,7 +353,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             if hasattr(modelXbrl, "ixdsHtmlElements"):
                 inlineIxdsDiscover(modelXbrl, modelDocument) # compile cross-document IXDS references
                 
-        if isEntry or kwargs.get("isSupplemental", False):  
+        if isEntry or isSupplemental:  
             # re-order base set keys for entry point or supplemental linkbase addition
             modelXbrl.baseSets = OrderedDefaultDict( # order by linkRole, arcRole of key
                 modelXbrl.baseSets.default_factory,
@@ -439,7 +444,7 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
         if xmlDocument:
             for semanticRoot in rootNode.iterchildren():
                 if isinstance(semanticRoot, ModelObject):
-                    modelDocument.xmlRootElement = semanticRoot
+                    modelDocument.xmlRootElement = modelDocument.targetXbrlRootElement = semanticRoot
                     break
         # init subtree
         for elt in xmlDocument.iter():
@@ -508,13 +513,23 @@ class Type:
     def identify(filesource, filepath):
         file, = filesource.file(filepath, stripDeclaration=True, binary=True)
         try:
+            _rootElt = True
             for _event, elt in etree.iterparse(file, events=("start",)):
-                _type = {"{http://www.xbrl.org/2003/instance}xbrl": Type.INSTANCE,
-                         "{http://www.xbrl.org/2003/linkbase}linkbase": Type.LINKBASE,
-                         "{http://www.w3.org/2001/XMLSchema}schema": Type.SCHEMA}.get(elt.tag, Type.UnknownXML)
-                if _type == Type.UnknownXML and elt.tag.endswith("html") and XbrlConst.ixbrlAll.intersection(elt.nsmap.values()):
+                if _rootElt:
+                    _rootElt = False
+                    _type = {"{http://www.xbrl.org/2003/instance}xbrl": Type.INSTANCE,
+                             "{http://www.xbrl.org/2003/linkbase}linkbase": Type.LINKBASE,
+                             "{http://www.w3.org/2001/XMLSchema}schema": Type.SCHEMA}.get(elt.tag, Type.UnknownXML)
+                    if _type == Type.UnknownXML and elt.tag.endswith("html"):
+                        if XbrlConst.ixbrl in elt.nsmap.values():
+                            _type = Type.INLINEXBRL
+                            break # stop parsing
+                        # else fall through to element scan for ix11 element
+                    else:
+                        break # stop parsing
+                if elt.tag.startswith("{http://www.xbrl.org/2013/inlineXBRL}"):
                     _type = Type.INLINEXBRL
-                break
+                    break
         except Exception:
             _type = Type.UnknownXML
         file.close()
@@ -617,7 +632,7 @@ class ModelDocument:
         self.type = type
         self.uri = uri
         self.filepath = filepath
-        self.xmlDocument = xmlDocument
+        self.xmlDocument = self.targetXbrlElementTree = xmlDocument
         self.targetNamespace = None
         modelXbrl.urlDocs[uri] = self
         self.objectIndex = len(modelXbrl.modelObjects)
@@ -838,7 +853,7 @@ class ModelDocument:
                     self._processingInstructions.append(node)
             return self._processingInstructions
     
-    def schemaDiscover(self, rootElement, isIncluded, namespace):
+    def schemaDiscover(self, rootElement, isIncluded, isSupplemental, namespace):
         targetNamespace = rootElement.get("targetNamespace")
         if targetNamespace:
             self.targetNamespace = targetNamespace
@@ -868,7 +883,7 @@ class ModelDocument:
         self.isQualifiedAttributeFormDefault = rootElement.get("attributeFormDefault") == "qualified"
         # self.definesUTR = any(ns == XbrlConst.utr for ns in rootElement.nsmap.values())
         try:
-            self.schemaDiscoverChildElements(rootElement)
+            self.schemaDiscoverChildElements(rootElement, isSupplemental)
         except (ValueError, LookupError) as err:
             self.modelXbrl.modelManager.addToLog("discovery: {0} error {1}".format(
                         self.basename,
@@ -883,14 +898,14 @@ class ModelDocument:
                 self.modelXbrl.schemaDocsToValidate.add(self) # validate schema elements
 
             
-    def schemaDiscoverChildElements(self, parentModelObject):
+    def schemaDiscoverChildElements(self, parentModelObject, isSupplemental=False, depth=1):
         # find roleTypes, elements, and linkbases
         # must find import/include before processing linkbases or elements
         for modelObject in parentModelObject.iterchildren():
             if isinstance(modelObject,ModelObject):
                 ln = modelObject.localName
                 ns = modelObject.namespaceURI
-                if modelObject.namespaceURI == XbrlConst.xsd and ln in {"import", "include", "redefine"}:
+                if depth == 1 and modelObject.namespaceURI == XbrlConst.xsd and ln in {"import", "include", "redefine"}:
                     self.importDiscover(modelObject)
                 elif ns == XbrlConst.link:
                     if ln == "roleType":
@@ -912,7 +927,7 @@ class ModelDocument:
             baseAttr = baseElt.get("{http://www.w3.org/XML/1998/namespace}base")
             if baseAttr:
                 if self.modelXbrl.modelManager.validateDisclosureSystem:
-                    self.modelXbrl.error(("EFM.6.03.11", "GFM.1.1.7", "EBA.2.1", "EIOPA.2.1", "ESEF.2.4.2.htmlOrXmlBaseUsed"),
+                    self.modelXbrl.error(("EFM.6.03.11", "GFM.1.1.7", "EBA.2.1", "EIOPA.2.1"),
                         _("Prohibited base attribute: %(attribute)s"),
                         edgarCode="du-0311-Xml-Base-Used",
                         modelObject=element, attribute=baseAttr, element=element.qname)
@@ -1377,7 +1392,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
     targetReferencePrefixNs = defaultdict(dict) # target dict by prefix, namespace
     targetReferencesIDs = {} # target dict by id of reference elts
     modelInlineFootnotesById = {} # inline 1.1 ixRelationships and ixFootnotes
-    hasResources = False
+    hasResources = hasHeader = False
     for htmlElement in modelXbrl.ixdsHtmlElements:  
         mdlDoc = htmlElement.modelDocument
         for modelInlineTuple in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "tuple"):
@@ -1435,15 +1450,21 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                     else:
                         targetReferencePrefixNsDict[_prefix] = (_ns, elt)
 
-        for elt in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "resources"):
-            hasResources = True
-            for subEltTag in ("{http://www.xbrl.org/2003/instance}context","{http://www.xbrl.org/2003/instance}unit"):
-                for resElt in elt.iterdescendants(tag=subEltTag):
-                    if resElt.id:
-                        if ixdsEltById[resElt.id] != [resElt]:
-                            modelXbrl.error(ixMsgCode("resourceIdDuplication",ns=mdlDoc.ixNS,name="resources",sect="validation"),
-                                            _("Inline XBRL ix:resources descendant id %(id)s duplicated in inline document set"),
-                                            modelObject=ixdsEltById[resElt.id], id=resElt.id)
+        for hdrElt in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "header"):
+            hasHeader = True    
+            for elt in hdrElt.iterchildren(tag=mdlDoc.ixNStag + "resources"):
+                hasResources = True
+                for subEltTag in ("{http://www.xbrl.org/2003/instance}context","{http://www.xbrl.org/2003/instance}unit"):
+                    for resElt in elt.iterdescendants(tag=subEltTag):
+                        if resElt.id:
+                            if ixdsEltById[resElt.id] != [resElt]:
+                                modelXbrl.error(ixMsgCode("resourceIdDuplication",ns=mdlDoc.ixNS,name="resources",sect="validation"),
+                                                _("Inline XBRL ix:resources descendant id %(id)s duplicated in inline document set"),
+                                                modelObject=ixdsEltById[resElt.id], id=resElt.id)
+    if not hasHeader:
+        modelXbrl.error(ixMsgCode("missingHeader", ns=mdlDoc.ixNS, name="header", sect="validation"),
+                        _("Inline XBRL ix:header element not found"),
+                        modelObject=modelXbrl)
     if not hasResources:
         modelXbrl.error(ixMsgCode("missingResources", ns=mdlDoc.ixNS, name="resources", sect="validation"),
                         _("Inline XBRL ix:resources element not found"),
@@ -1455,9 +1476,10 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
     modelXbrl.ixTargetRootElements = {}
     for target in targetReferenceAttrElts.keys() | {None}: # need default target in case any facts have no or invalid target
         try:
-            modelXbrl.ixTargetRootElements[target] = modelIxdsDocument.parser.makeelement(
-                XbrlConst.qnXbrliXbrl.clarkNotation, attrib=targetReferenceAttrVals.get(target), 
-                nsmap=dict((p,n) for p,(n,e) in targetReferencePrefixNs.get(target,{}).items())) 
+            modelXbrl.ixTargetRootElements[target] = elt = modelIxdsDocument.parser.makeelement(
+                XbrlConst.qnPrototypeXbrliXbrl.clarkNotation, attrib=targetReferenceAttrVals.get(target), 
+                nsmap=dict((p,n) for p,(n,e) in targetReferencePrefixNs.get(target,{}).items()))
+            elt.init(modelIxdsDocument) 
         except Exception as err:
             modelXbrl.error(type(err).__name__,
                     _("Unrecoverable error creating target instance: %(error)s"),
@@ -1814,6 +1836,9 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
             modelXbrl.error(ixMsgCode("continuationNotReferenced", ns=XbrlConst.ixbrl11, name="continuation", sect="validation"),
                             _("ix:continuation %(continuedAt)s is not referenced by a, ix:footnote, ix:nonNumeric or other ix:continuation element."),
                             modelObject=_contElt, continuedAt=_contAt)
+
+    modelIxdsDocument.targetXbrlRootElement = modelXbrl.ixTargetRootElements[ixdsTarget]
+    modelIxdsDocument.targetXbrlElementTree = PrototypeElementTree(modelIxdsDocument.targetXbrlRootElement)
     
 class LoadingException(Exception):
     pass

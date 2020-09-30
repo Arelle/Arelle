@@ -157,7 +157,8 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
     langIsSet = False
     # copy ix resources target root attributes
     for attrName, attrValue in ixTargetRootElt.items():
-        targetInstance.modelDocument.xmlRootElement.set(attrName, attrValue)
+        if attrName != "target": # ix:references target is not mapped to xbrli:xbrl
+            targetInstance.modelDocument.xmlRootElement.set(attrName, attrValue)
         if attrName == "{http://www.w3.org/XML/1998/namespace}lang":
             langIsSet = True
             defaultXmlLang = attrValue
@@ -528,7 +529,7 @@ def testcaseVariationReadMeFirstUris(modelTestcaseVariation):
         modelTestcaseVariation._readMeFirstUris = [docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(_readMeFirstUris)]
         return True
     
-def testcaseVariationReportPackageIxds(filesource):
+def testcaseVariationReportPackageIxds(filesource, lookOutsideReportsDirectory=False, combineIntoSingleIxds=False):
     # single report directory
     reportFiles = []
     ixdsDirFiles = defaultdict(list)
@@ -540,13 +541,25 @@ def testcaseVariationReportPackageIxds(filesource):
             reportDirLen = len(f)
         elif f.startswith(reportDir):
             if "/" not in f[reportDirLen:]:
-                reportFiles.append(f)
+                filesource.select(f)
+                if Type.identify(filesource, filesource.url) in (Type.INSTANCE, Type.INLINEXBRL):
+                    reportFiles.append(f)
             else:
                 ixdsDir, _sep, ixdsFile = f.rpartition("/")
                 if ixdsFile:
                     filesource.select(f)
                     if Type.identify(filesource, filesource.url) == Type.INLINEXBRL:
                         ixdsDirFiles[ixdsDir].append(f)
+    if lookOutsideReportsDirectory:
+        for f in filesource.dir:
+            filesource.select(f)
+            if Type.identify(filesource, filesource.url) in (Type.INSTANCE, Type.INLINEXBRL):
+                reportFiles.append(f)
+    if combineIntoSingleIxds and (reportFiles or len(ixdsDirFiles) > 1):
+        docsetSurrogatePath = os.path.join(filesource.baseurl, IXDS_SURROGATE)
+        for ixdsFiles in ixdsDirFiles.values():
+            reportFiles.extend(ixdsFiles)
+        return docsetSurrogatePath + IXDS_DOC_SEPARATOR.join(os.path.join(filesource.baseurl,f) for f in reportFiles)
     for ixdsDir, ixdsFiles in sorted(ixdsDirFiles.items()):
         # use the first ixds in report package
         docsetSurrogatePath = os.path.join(filesource.baseurl, ixdsDir, IXDS_SURROGATE)

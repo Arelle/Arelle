@@ -25,7 +25,16 @@ class PrototypeObject():
     def getparent(self):
         """(_ElementBase) -- Method proxy for getparent() of lxml arc element"""
         return self.sourceElement.getparent() if self.sourceElement is not None else None
-        
+    
+    def iterchildren(self):
+        yield from () # no children
+
+    def iterdescendants(self):
+        for elt in self.iterchildren():
+            yield elt
+            for e in elt.iterdescendants():
+                yield e
+                
 class LinkPrototype(PrototypeObject):      # behaves like a ModelLink for relationship prototyping
     def __init__(self, modelDocument, parent, qname, role, sourceElement=None):
         super(LinkPrototype, self).__init__(modelDocument, sourceElement)
@@ -54,7 +63,7 @@ class LinkPrototype(PrototypeObject):      # behaves like a ModelLink for relati
     
     def iterchildren(self):
         return iter(self.childElements)
-        
+            
     def __getitem(self, key):
         return self.attributes[key]
     
@@ -177,3 +186,20 @@ class DocumentPrototype():
     def clear(self):
         self.__dict__.clear() # dereference here, not an lxml object, don't use superclass clear()
         
+class PrototypeElementTree(): # equivalent to _ElementTree for parenting root element in non-lxml situations
+    def __init__(self, rootElement):
+        self.rootElement = rootElement
+        
+    def getroot(self):
+        return self.rootElement
+    
+    def iter(self):
+        yield self.rootElement
+        for e in self.rootElement.iterdescendants():
+            yield e
+    
+    def ixIter(self, childOnly=False):
+        yield self.rootElement
+        if not childOnly:
+            for e in self.rootElement.ixIter(childOnly):
+                yield e
