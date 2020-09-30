@@ -342,8 +342,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                                 
                             
                     if eltTag in ixTags and elt.get("target"):
-                        modelXbrl.warning("ESEF.2.5.3.targetAttributeUsed",
-                            _("Target attribute MUST not be used: element %(localName)s, target attribute %(target)s."),
+                        modelXbrl.warning("ESEF.2.5.3.targetAttributeUsedForESEFContents",
+                            _("Target attribute SHOULD not be used unless explicitly required by local jurisdictions: element %(localName)s, target attribute %(target)s."),
                             modelObject=elt, localName=elt.elementQname, target=elt.get("target"))
                     if eltTag == ixTupleTag:
                         modelXbrl.error("ESEF.2.4.1.tupleElementUsed",
@@ -470,12 +470,12 @@ def validateXbrlFinally(val, *args, **kwargs):
                         _("The LEI context identifier has checksum error: %(identifier)s"),
                         modelObject=contextElts, identifier=contextIdentifier)
         if contextsWithPeriodTime:
-            modelXbrl.warning("ESEF.2.1.2.periodWithTimeContent",
-                _("Context period startDate, endDate and instant elements should be in whole days without time: %(contextIds)s"),
+            modelXbrl.error("ESEF.2.1.2.periodWithTimeContent",
+                _("The xbrli:startDate, xbrli:endDate and xbrli:instant elements MUST identify periods using whole days (i.e. specified without a time content): %(contextIds)s"),
                 modelObject=contextsWithPeriodTime, contextIds=", ".join(c.id for c in contextsWithPeriodTime))
         if contextsWithPeriodTimeZone:
-            modelXbrl.warning("ESEF.2.1.2.periodWithTimeZone",
-                _("Context period startDate, endDate and instant elements should be in whole days without a timezone: %(contextIds)s"),
+            modelXbrl.error("ESEF.2.1.2.periodWithTimeZone",
+                _("The xbrli:startDate, xbrli:endDate and xbrli:instant elements MUST identify periods using whole days (i.e. specified without a time zone): %(contextIds)s"),
                 modelObject=contextsWithPeriodTimeZone, contextIds=", ".join(c.id for c in contextsWithPeriodTimeZone))
         
         # identify unique contexts and units

@@ -139,8 +139,8 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                                 modelObject=modelConcept, concept=modelConcept.qname, lc3names=", ".join(lc3names))
                         for (lang,labelrole),labels in langRoleLabels.items():
                             if len(labels) > 1:
-                                val.modelXbrl.warning("ESEF.3.4.5.extensionTaxonomyElementDuplicateLabels",
-                                    _("Extension taxonomy element name SHOULD not have multiple labels for lang %(lang)s and role %(labelrole)s: %(concept)s"),
+                                val.modelXbrl.error("ESEF.3.4.5.extensionTaxonomyElementDuplicateLabels",
+                                    _("Extension taxonomy element name SHALL not have multiple labels for lang %(lang)s and role %(labelrole)s: %(concept)s"),
                                     modelObject=[modelConcept]+labels, concept=modelConcept.qname, lang=lang, labelrole=labelrole)
                     langRoleLabels.clear()
             for modelType in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}complexType"):
@@ -270,7 +270,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
             del prohibitingLbElts[:]
             del prohibitedBaseConcepts[:]
         if len(linkbasesFound) > 1:
-            val.modelXbrl.error("ESEF.3.1.1.extensionTaxonomyWrongFilesStructure",
+            val.modelXbrl.warning("ESEF.3.1.1.linkbasesNotSeparateFiles",
                 _("Each linkbase type SHOULD be provided in a separate linkbase file, found: %(linkbasesFound)s."),
                 modelObject=modelDocument.xmlRootElement, linkbasesFound=", ".join(sorted(linkbasesFound)))
             
