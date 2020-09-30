@@ -780,8 +780,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.traceVariableFilterWinnowing = True
         if options.formulaVarFiltersResult:
             fo.traceVariableFiltersResult = True
-        if options.formulaVarFiltersResult:
-            fo.traceVariableFiltersResult = True
         if options.testcaseResultsCaptureWarnings:
             fo.testcaseResultsCaptureWarnings = True
         if options.formulaRunIDs:
