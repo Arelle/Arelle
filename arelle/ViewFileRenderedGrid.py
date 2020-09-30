@@ -444,7 +444,7 @@ class ViewRenderedGrid(ViewFile.View):
             for yStructuralNode in yParentStructuralNode.childStructuralNodes:
                 nestRow, nextRow = self.yAxisByRow(leftCol + 1, row, yStructuralNode,  # nested items before totals
                                         childrenFirst, childrenFirst, False)
-                isAbstract = (yStructuralNode.isAbstract or 
+                isAbstract = (yStructuralNode.isAbstract or
                               (yStructuralNode.childStructuralNodes and
                                not isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord))))
                 isNonAbstract = not isAbstract
@@ -471,7 +471,7 @@ class ViewRenderedGrid(ViewFile.View):
                         hdrRow = row
                     # provide top or bottom borders
                     edgeBorder = ""
-                    
+
                     if childrenFirst:
                         if hdrRow == self.dataFirstRow:
                             edgeBorder = "border-top:.5pt solid windowtext;"
@@ -504,7 +504,7 @@ class ViewRenderedGrid(ViewFile.View):
                     if isNonAbstract:
                         self.rowElts[hdrRow-1].append(elt)
                         if not childrenFirst and nestRow > hdrRow:   # add spanned left leg portion one row down
-                            etree.SubElement(self.rowElts[hdrRow], 
+                            etree.SubElement(self.rowElts[hdrRow],
                                              "{http://www.w3.org/1999/xhtml}th",
                                              attrib={"class":"yAxisSpanLeg",
                                                      "style":"text-align:center;max-width:{0}pt;{1}".format(RENDER_UNITS_PER_CHAR, edgeBorder),
@@ -513,7 +513,7 @@ class ViewRenderedGrid(ViewFile.View):
                         hdrClass = "yAxisHdr" if not childrenFirst else "yAxisHdrWithChildrenFirst"
                         for i, role in enumerate(self.rowHdrNonStdRoles):
                             hdr = yStructuralNode.header(role=role, lang=self.lang)
-                            etree.SubElement(self.rowElts[hdrRow - 1], 
+                            etree.SubElement(self.rowElts[hdrRow - 1],
                                              "{http://www.w3.org/1999/xhtml}th",
                                              attrib={"class":hdrClass,
                                                      "style":"text-align:left;max-width:100pt;{0}".format(edgeBorder)}
@@ -537,7 +537,7 @@ class ViewRenderedGrid(ViewFile.View):
                                              ).text = code or "\u00A0"
                         # gridBorder(self.gridRowHdr, leftCol, self.dataFirstRow - 1, BOTTOMBORDER)
                         '''
-                    else:
+                    elif nestRow > hdrRow:
                         self.rowElts[hdrRow-1].insert(leftCol - 1, elt)
                 if isNonAbstract:
                     row += 1
@@ -548,7 +548,7 @@ class ViewRenderedGrid(ViewFile.View):
                 if row > nestedBottomRow:
                     nestedBottomRow = row
                 #if renderNow and not childrenFirst:
-                #    dummy, row = self.yAxis(leftCol + 1, row, yAxisHdrObj, childrenFirst, True, False) # render on this pass            
+                #    dummy, row = self.yAxis(leftCol + 1, row, yAxisHdrObj, childrenFirst, True, False) # render on this pass
                 if not childrenFirst:
                     dummy, row = self.yAxisByRow(leftCol + 1, row, yStructuralNode, childrenFirst, renderNow, False) # render on this pass
             return (nestedBottomRow, row)
@@ -805,4 +805,3 @@ class ViewRenderedGrid(ViewFile.View):
                 if not yChildrenFirst:
                     row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspectStructuralNodes, yChildrenFirst)
         return row
-            
