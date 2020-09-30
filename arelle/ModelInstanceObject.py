@@ -44,6 +44,7 @@ from hashlib import md5
 from arelle.HashUtil import md5hash, Md5Sum
 
 Aspect = None
+Type = None
 utrEntries = None
 utrSymbol = None
 POSINF = float("inf")
@@ -757,6 +758,13 @@ class ModelInlineFact(ModelInlineValueObject, ModelFact):
         """(ModelObject) -- parent element (tuple or xbrli:xbrl) of the inline target instance document
             for inline root element, the xbrli:xbrl element is substituted for by the inline root element"""
         return getattr(self, "_ixFactParent") # set by ModelDocument locateFactInTuple for the inline target's root element
+    
+    def ixIter(self, childOnly=False):
+        """(ModelObject) -- child elements (tuple facts) of the inline target instance document"""
+        for fact in self.modelTupleFacts:
+            yield fact
+            if not childOnly:
+                fact.ixIter(childOnly)
 
     @property
     def fractionValue(self):
@@ -1622,7 +1630,76 @@ class ModelInlineFootnote(ModelResource):
         
     def __repr__(self):
         return ("modelInlineFootnote[{0}]{1})".format(self.objectId(),self.propertyView))
-               
+
+class ModelInlineXbrliXbrl(ModelObject):
+    """
+    .. class:: ModelInlineXbrliXbrl(modelDocument)
+    
+    Model inline xbrli:xbrl element for root of derived/extracted instance
+    
+    :param modelDocument: owner document
+    :type modelDocument: ModelDocument
+    """
+    def init(self, modelDocument):
+        super(ModelInlineXbrliXbrl, self).init(modelDocument)
+        
+    @property
+    def qname(self):
+        """(QName) -- QName of generated object"""
+        return XbrlConst.qnXbrliXbrl
+    
+    @property
+    def parentElement(self):
+        """(ModelObject) -- inline root element has no parent element"""
+        return None
+    
+    def ixIter(self, childOnly=False):
+        """(ModelObject) -- generator of child elements of the inline target instance document"""
+        global Type
+        if Type is None:
+            from arelle.ModelDocument import Type
+        modelXbrl = self.modelXbrl
+        # roleRef and arcroleRef (of each inline document)
+        for sourceRefs in (modelXbrl.targetRoleRefs, modelXbrl.targetArcroleRefs):
+            for roleRefElt in sourceRefs.values():
+                yield roleRefElt        
+        # contexts
+        if not hasattr(self, "_orderedContenxts"): # contexts may come from multiple IXDS files
+            self._orderedContenxts = sorted(modelXbrl.contexts.values(), key=lambda c: c.objectIndex)
+        for context in self._orderedContenxts:
+            yield context
+            if not childOnly:
+                for e in context.iterdescendants():
+                    yield e
+        if not hasattr(self, "_orderedUnits"): # units may come from multiple IXDS files
+            self._orderedUnits = sorted(modelXbrl.units.values(), key=lambda u: u.objectIndex)
+        for unit in self._orderedUnits:
+            yield unit
+            if not childOnly:
+                for e in unit.iterdescendants():
+                    yield e
+        for fact in modelXbrl.facts:
+            yield fact
+            if not childOnly:
+                for e in fact.ixIter(childOnly):
+                    yield e
+        if not hasattr(self, "_orderedFootnoteLinks"):
+            self._footnoteLinks = defaultdict(list)
+            for linkKey, linkPrototypes in modelXbrl.baseSets.items():
+                arcrole, linkrole, linkqname, arcqname = linkKey
+                if (linkrole and linkqname and arcqname and  # fully specified roles
+                    arcrole != "XBRL-footnotes" and
+                    any(lP.modelDocument.type == Type.INLINEXBRL for lP in linkPrototypes)):
+                    for linkPrototype in linkPrototypes:
+                        if linkPrototype not in self._footnoteLinks[linkrole]:
+                            self._footnoteLinks[linkrole].append(linkPrototype)
+            self._orderedFootnoteLinks = sorted(self._footnoteLinks.keys())
+        for linkrole in self._orderedFootnoteLinks:
+            for linkPrototype in self._footnoteLinks[linkrole]:
+                yield linkPrototype
+                if not childOnly:
+                    for e in linkPrototype.iterdescendants():
+                        yield e
         
 from arelle.ModelFormulaObject import Aspect
 from arelle import FunctionIxt
@@ -1645,6 +1722,7 @@ elementSubstitutionModelClass.update((
      (XbrlConst.qnIXbrl11Denominator, ModelInlineFractionTerm),
      (XbrlConst.qnIXbrlFootnote, ModelInlineFootnote),
      (XbrlConst.qnIXbrl11Footnote, ModelInlineFootnote),
+     (XbrlConst.qnPrototypeXbrliXbrl, ModelInlineXbrliXbrl),
      (XbrlConst.qnXbrliContext, ModelContext),
      (XbrlConst.qnXbrldiExplicitMember, ModelDimensionValue),
      (XbrlConst.qnXbrldiTypedMember, ModelDimensionValue),

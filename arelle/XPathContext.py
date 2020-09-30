@@ -13,6 +13,7 @@ from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI, gYearMonth, gYear, gMonthDay, gDay, gMonth)
 from arelle.XmlValidate import UNKNOWN, VALID, VALID_NO_CONTENT, validate as xmlValidate
 from arelle.PluginManager import pluginClassMethods
+from arelle.PrototypeDtsObject import PrototypeElementTree
 from decimal import Decimal, InvalidOperation
 from lxml import etree
 from types import LambdaType
@@ -112,7 +113,7 @@ class XPathContext:
         self.outputLastFact = {}
         self.outputFirstFact = {}
         self.sourceElement = sourceElement
-        self.contextItem = self.inputXbrlInstance.xmlRootElement
+        self.contextItem = self.inputXbrlInstance.targetXbrlRootElement
         self.progHeader = None
         self.traceType = None
         self.variableSet = None
@@ -414,7 +415,7 @@ class XPathContext:
                 elif op in PATH_OPS:
                     if op in ('rootChild', 'rootDescendant'):
                         # fix up for multi-instance
-                        resultStack.append( [self.inputXbrlInstance.xmlDocument,] )
+                        resultStack.append( [self.inputXbrlInstance.targetXbrlElementTree,] )
                         op = '/' if op == 'rootChild' else '//'
                     # contains QNameDefs and predicates
                     if len(resultStack) > 0:
@@ -505,7 +506,7 @@ class XPathContext:
     def stepAxis(self, op, p, sourceSequence):
         targetSequence = []
         for node in sourceSequence:
-            if not isinstance(node,(ModelObject, etree._ElementTree, ModelAttribute)):
+            if not isinstance(node,(ModelObject, etree._ElementTree, PrototypeElementTree, ModelAttribute)):
                 raise XPathException(self.progHeader, 'err:XPTY0020', _('Axis step {0} context item is not a node: {1}').format(op, node))
             targetNodes = []
             if isinstance(p,QNameDef):
@@ -531,8 +532,8 @@ class XPathContext:
                                 targetNodes.append(modelAttribute)
                 elif op == '/' or op is None:
                     if axis is None or axis == "child":
-                        if isinstance(node,(ModelObject, etree._ElementTree)):
-                            targetNodes = XmlUtil.children(node, ns, localname)
+                        if isinstance(node,(ModelObject, etree._ElementTree, PrototypeElementTree)):
+                            targetNodes = XmlUtil.children(node, ns, localname, ixTarget=True)
                     elif axis == "parent":
                         if isinstance(node,ModelAttribute):
                             parentNode = [ node.modelElement ]
@@ -548,7 +549,7 @@ class XPathContext:
                             (localname == node.localName or localname == "*")):
                             targetNodes = [ node ]
                     elif axis.startswith("descendant"):
-                        if isinstance(node,(ModelObject, etree._ElementTree)):
+                        if isinstance(node,(ModelObject, etree._ElementTree, PrototypeElementTree)):
                             targetNodes = XmlUtil.descendants(node, ns, localname)
                             if (axis.endswith("-or-self") and
                                 isinstance(node,ModelObject) and
@@ -591,13 +592,13 @@ class XPathContext:
                                       (localname == following.localName or localname == "*")):
                                     targetNodes.append(following)
                 elif op == '//':
-                    if isinstance(node,(ModelObject, etree. _ElementTree)):
-                        targetNodes = XmlUtil.descendants(node, ns, localname)
+                    if isinstance(node,(ModelObject, etree._ElementTree, PrototypeElementTree)):
+                        targetNodes = XmlUtil.descendants(node, ns, localname, ixTarget=True)
                 elif op == '..':
                     if isinstance(node,ModelAttribute):
                         targetNodes = [ node.modelElement ]
                     else:
-                        targetNodes = [ XmlUtil.parent(node) ]
+                        targetNodes = [ XmlUtil.parent(node, ixTarget=True) ]
             elif isinstance(p, OperationDef) and isinstance(p.name,QNameDef):
                 if isinstance(node,ModelObject):
                     if p.name.localName == "text": # note this is not string value, just child text
@@ -605,11 +606,11 @@ class XPathContext:
                     # todo: add element, attribute, node, etc...
             elif p == '*':  # wildcard
                 if op == '/' or op is None:
-                    if isinstance(node,(ModelObject, etree._ElementTree)):
-                        targetNodes = XmlUtil.children(node, '*', '*')
+                    if isinstance(node,(ModelObject, etree._ElementTree, PrototypeElementTree)):
+                        targetNodes = XmlUtil.children(node, '*', '*', ixTarget=True)
                 elif op == '//':
-                    if isinstance(node,(ModelObject, etree._ElementTree)):
-                        targetNodes = XmlUtil.descendants(node, '*', '*')
+                    if isinstance(node,(ModelObject, etree._ElementTree, PrototypeElementTree)):
+                        targetNodes = XmlUtil.descendants(node, '*', '*', ixTarget=True)
             targetSequence.extend(targetNodes)
         return targetSequence
         

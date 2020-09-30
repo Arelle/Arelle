@@ -18,6 +18,7 @@ eurofilingModelNamespace = "http://www.eurofiling.info/xbrl/ext/model"
 eurofilingModelPrefix = "model"
 qnNsmap = qname("nsmap") # artificial parent for insertion of xmlns in saving xml documents
 qnXbrliXbrl = qname("{http://www.xbrl.org/2003/instance}xbrli:xbrl")
+qnPrototypeXbrliXbrl = qname("{http://arelle.org/prototype/xbrli}xbrl") # prototype for inline derived xbrl instance
 qnXbrliItem = qname("{http://www.xbrl.org/2003/instance}xbrli:item")
 qnXbrliNumerator = qname("{http://www.xbrl.org/2003/instance}xbrli:numerator")
 qnXbrliDenominator = qname("{http://www.xbrl.org/2003/instance}xbrli:denominator")

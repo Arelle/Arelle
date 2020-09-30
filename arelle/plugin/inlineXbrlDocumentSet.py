@@ -157,7 +157,8 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
     langIsSet = False
     # copy ix resources target root attributes
     for attrName, attrValue in ixTargetRootElt.items():
-        targetInstance.modelDocument.xmlRootElement.set(attrName, attrValue)
+        if attrName != "target": # ix:references target is not mapped to xbrli:xbrl
+            targetInstance.modelDocument.xmlRootElement.set(attrName, attrValue)
         if attrName == "{http://www.w3.org/XML/1998/namespace}lang":
             langIsSet = True
             defaultXmlLang = attrValue
