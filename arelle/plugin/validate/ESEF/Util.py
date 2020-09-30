@@ -29,6 +29,10 @@ def isInEsefTaxonomy(val, modelObject):
     ns = modelObject.qname.namespaceURI
     return (any(ns.startswith(esefNsPrefix) for esefNsPrefix in esefTaxonomyNamespaceURIs))
     
+supportedImgTypes = {
+    True: ("gif", "jpg", "jpeg", "png"), # file extensions
+    False: ("gif", "jpeg", "png") # mime types: jpg is not a valid mime type
+    }
 # check image contents against mime/file ext and for Steganography
 def checkImageContents(modelXbrl, imgElt, imgType, isFile, data):
     if "svg" in imgType:
@@ -57,9 +61,9 @@ def checkImageContents(modelXbrl, imgElt, imgType, isFile, data):
             modelXbrl.error("ESEF.2.5.1.imageFileCannotBeLoaded",
                 _("Image SVG has XML error %(error)s"),
                 modelObject=imgElt, error=err)
-    elif not any(t in imgType for t in ("gif", "jpg", "jpeg", "png")):
+    elif not any(it in imgType for it in supportedImgTypes[isFile]):
         modelXbrl.error("ESEF.2.5.1.imageFormatNotSupported",
-            _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPG/JPEG formats: %(imgType)s is not supported"),
+            _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPEG formats: %(imgType)s is not supported"),
             modelObject=imgElt, imgType=imgType)
     else:
         if data[:3] == b"GIF" and data[3:6] in (b'89a', b'89b', b'87a'):

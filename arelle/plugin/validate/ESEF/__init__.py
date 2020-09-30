@@ -819,7 +819,7 @@ def validateXbrlFinally(val, *args, **kwargs):
         # mandatory facts RTS Annex II
         missingMandatoryElements = esefMandatoryElements2020 - modelXbrl.factsByQname.keys()
         if missingMandatoryElements:
-            modelXbrl.error("ESEF.RTS.Annex.II.Par.2.missingMandatoryMarkups",
+            modelXbrl.warning("ESEF.RTS.Annex.II.Par.2.missingMandatoryMarkups",
                 _("Mandatory elements to be marked up are missing: %(qnames)s."),
                 modelObject=missingMandatoryElements, qnames=", ".join(sorted(str(qn) for qn in missingMandatoryElements)))
         
