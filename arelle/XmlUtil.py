@@ -13,7 +13,7 @@ from lxml import etree
 from arelle.XbrlConst import ixbrlAll, qnLinkFootnote, xhtml, xml, xsd, xhtml
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname, QName
-from arelle.PrototypeDtsObject import PrototypeElementTree
+from arelle.PrototypeDtsObject import PrototypeElementTree, PrototypeObject
 htmlEltUriAttrs = resolveHtmlUri = None
 
 datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})\s*|"
@@ -328,9 +328,9 @@ def children(element, childNamespaceURIs, childLocalNames, ixTarget=False):
     if isinstance(element,ModelObject):
         for child in (element.ixIter() if ixTarget and hasattr(element, "ixIter") else
                       element.iterchildren()):
-            if isinstance(child,ModelObject) and \
-                (wildNamespaceURI or child.elementNamespaceURI in childNamespaceURIs) and \
-                (wildLocalName or child.localName in childLocalNames):
+            if (isinstance(child,ModelObject) and 
+                (wildNamespaceURI or (child.qname.namespaceURI if ixTarget else child.elementNamespaceURI) in childNamespaceURIs) and 
+                (wildLocalName or (child.qname.localName if ixTarget else child.localName) in childLocalNames)):
                 children.append(child)
     elif isinstance(element, (etree._ElementTree,PrototypeElementTree)): # document root
         child = element.getroot()
@@ -383,13 +383,13 @@ def descendants(element, descendantNamespaceURI, descendantLocalNames, attrName=
     if not isinstance(descendantLocalNames,tuple): descendantLocalNames = (descendantLocalNames ,)
     wildLocalName = descendantLocalNames == ('*',)
     wildNamespaceURI = not descendantNamespaceURI or descendantNamespaceURI == '*'
-    if isinstance(element,(ModelObject,etree._ElementTree,PrototypeElementTree)):
+    if isinstance(element,(ModelObject,etree._ElementTree,PrototypeElementTree,PrototypeObject)):
         for child in (element.ixIter() if ixTarget and hasattr(element, "ixIter") else
                       element.iterdescendants() if isinstance(element,ModelObject) else 
                       element.iter()):
-            if isinstance(child,ModelObject) and \
-                (wildNamespaceURI or child.elementNamespaceURI == descendantNamespaceURI) and \
-                (wildLocalName or child.localName in descendantLocalNames):
+            if (isinstance(child,(ModelObject,PrototypeObject)) and 
+                (wildNamespaceURI or (child.qname.namespaceURI if ixTarget else child.elementNamespaceURI) == descendantNamespaceURI) and 
+                (wildLocalName or (child.qname.localName if ixTarget else child.localName) in descendantLocalNames)):
                 if attrName:
                     if child.get(attrName) == attrValue or (attrValue == "*" and child.get(attrName) is not None):
                         descendants.append(child)

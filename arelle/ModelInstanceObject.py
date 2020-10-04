@@ -1684,22 +1684,21 @@ class ModelInlineXbrliXbrl(ModelObject):
                 for e in fact.ixIter(childOnly):
                     yield e
         if not hasattr(self, "_orderedFootnoteLinks"):
-            self._footnoteLinks = defaultdict(list)
+            _ftLinks = defaultdict(list)
             for linkKey, linkPrototypes in modelXbrl.baseSets.items():
                 arcrole, linkrole, linkqname, arcqname = linkKey
                 if (linkrole and linkqname and arcqname and  # fully specified roles
                     arcrole != "XBRL-footnotes" and
                     any(lP.modelDocument.type == Type.INLINEXBRL for lP in linkPrototypes)):
                     for linkPrototype in linkPrototypes:
-                        if linkPrototype not in self._footnoteLinks[linkrole]:
-                            self._footnoteLinks[linkrole].append(linkPrototype)
-            self._orderedFootnoteLinks = sorted(self._footnoteLinks.keys())
-        for linkrole in self._orderedFootnoteLinks:
-            for linkPrototype in self._footnoteLinks[linkrole]:
-                yield linkPrototype
-                if not childOnly:
-                    for e in linkPrototype.iterdescendants():
-                        yield e
+                        if linkPrototype not in _ftLinks[linkrole]:
+                            _ftLinks[linkrole].append(linkPrototype)
+            self._orderedFootnoteLinks = [l for r in sorted(_ftLinks.keys()) for l in _ftLinks[r]]
+        for linkPrototype in self._orderedFootnoteLinks:
+            yield linkPrototype
+            if not childOnly:
+                for e in linkPrototype.iterdescendants():
+                    yield e
         
 from arelle.ModelFormulaObject import Aspect
 from arelle import FunctionIxt

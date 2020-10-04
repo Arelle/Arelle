@@ -13,7 +13,7 @@ from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
 from arelle.ModelValue import (qname,QName,dateTime, DateTime, DATEUNION, DATE, DATETIME, anyURI, AnyURI, gYearMonth, gYear, gMonthDay, gDay, gMonth)
 from arelle.XmlValidate import UNKNOWN, VALID, VALID_NO_CONTENT, validate as xmlValidate
 from arelle.PluginManager import pluginClassMethods
-from arelle.PrototypeDtsObject import PrototypeElementTree
+from arelle.PrototypeDtsObject import PrototypeObject, PrototypeElementTree
 from decimal import Decimal, InvalidOperation
 from lxml import etree
 from types import LambdaType
@@ -22,6 +22,7 @@ from types import LambdaType
 boolean = None
 testTypeCompatiblity = None
 Trace = None
+qnWild = qname("*") # "*"
 
 class XPathException(Exception):
     def __init__(self, progStep, code, message):
@@ -386,13 +387,15 @@ class XPathContext:
                                     if isinstance(x,ModelObject):
                                         if len(t.args) >= 1:
                                             qn = t.args[0]
-                                            if qn== '*' or (isinstance(qn,QNameDef) and qn == x):
+                                            if qn== '*' or ((isinstance(qn,QNameDef) and (qn == x.qname or qn == qnWild))):
                                                 result = True
                                                 if len(t.args) >= 2 and isinstance(t.args[1],QNameDef):
                                                     modelXbrl = x.modelDocument.modelXbrl
-                                                    modelConcept = modelXbrl.qnameConcepts.get(qname(x))
+                                                    modelConcept = modelXbrl.qnameConcepts.get(x.qname)
                                                     if not modelConcept.instanceOfType(t.args[1]):
                                                         result = False
+                                            else:
+                                                result = False
                                     else:
                                         result = False
                                 # elif t.name == "item" comes here and result stays True
@@ -506,7 +509,7 @@ class XPathContext:
     def stepAxis(self, op, p, sourceSequence):
         targetSequence = []
         for node in sourceSequence:
-            if not isinstance(node,(ModelObject, etree._ElementTree, PrototypeElementTree, ModelAttribute)):
+            if not isinstance(node,(ModelObject, etree._ElementTree, PrototypeElementTree, PrototypeObject, ModelAttribute)):
                 raise XPathException(self.progHeader, 'err:XPTY0020', _('Axis step {0} context item is not a node: {1}').format(op, node))
             targetNodes = []
             if isinstance(p,QNameDef):
@@ -528,11 +531,11 @@ class XPathContext:
                             value = node.get(attrTag)
                             if value is not None:
                                 targetNodes.append(ModelAttribute(node,p.clarkNotation,UNKNOWN,value,value,value))
-                        elif modelAttribute.xValid >= VALID:
+                        elif modelAttribute.xValid >= VALID or modelAttribute.xValid == UNKNOWN: # may be undeclared attribute
                                 targetNodes.append(modelAttribute)
                 elif op == '/' or op is None:
                     if axis is None or axis == "child":
-                        if isinstance(node,(ModelObject, etree._ElementTree, PrototypeElementTree)):
+                        if isinstance(node,(ModelObject, etree._ElementTree, PrototypeElementTree, PrototypeObject)):
                             targetNodes = XmlUtil.children(node, ns, localname, ixTarget=True)
                     elif axis == "parent":
                         if isinstance(node,ModelAttribute):
@@ -544,12 +547,12 @@ class XPathContext:
                             (localname == parentNode.localName or localname == "*")):
                             targetNodes = [ parentNode ]
                     elif axis == "self":
-                        if (isinstance(node,ModelObject) and
+                        if (isinstance(node,(ModelObject,PrototypeObject)) and
                                 (not ns or ns == node.namespaceURI or ns == "*") and
                             (localname == node.localName or localname == "*")):
                             targetNodes = [ node ]
                     elif axis.startswith("descendant"):
-                        if isinstance(node,(ModelObject, etree._ElementTree, PrototypeElementTree)):
+                        if isinstance(node,(ModelObject, etree._ElementTree, PrototypeElementTree, PrototypeObject)):
                             targetNodes = XmlUtil.descendants(node, ns, localname)
                             if (axis.endswith("-or-self") and
                                 isinstance(node,ModelObject) and
@@ -557,7 +560,7 @@ class XPathContext:
                                 (localname == node.localName or localname == "*")):
                                 targetNodes.append(node) 
                     elif axis.startswith("ancestor"):
-                        if isinstance(node,ModelObject):
+                        if isinstance(node,(ModelObject,PrototypeObject)):
                             targetNodes = [ancestor
                                            for ancestor in XmlUtil.ancestors(node)
                                            if ((not ns or ns == ancestor.namespaceURI or ns == "*") and
@@ -592,7 +595,7 @@ class XPathContext:
                                       (localname == following.localName or localname == "*")):
                                     targetNodes.append(following)
                 elif op == '//':
-                    if isinstance(node,(ModelObject, etree._ElementTree, PrototypeElementTree)):
+                    if isinstance(node,(ModelObject, etree._ElementTree, PrototypeElementTree, PrototypeObject)):
                         targetNodes = XmlUtil.descendants(node, ns, localname, ixTarget=True)
                 elif op == '..':
                     if isinstance(node,ModelAttribute):
@@ -655,7 +658,9 @@ class XPathContext:
             v = x.value # resolves default value
             e = x
         elif isinstance(x, ModelAttribute): # ModelAttribute is a tuple (below), check this first!
-            return x.xValue
+            if x.xValid >= VALID:
+                return x.xValue
+            return x.text
         else:
             if isinstance(x, ModelObject):
                 e = x
@@ -670,9 +675,11 @@ class XPathContext:
                 except AttributeError:
                     pass
                 modelXbrl = x.modelXbrl
-                modelConcept = modelXbrl.qnameConcepts.get(qname(x))
+                modelConcept = modelXbrl.qnameConcepts.get(x.qname)
                 if modelConcept is not None:
                     baseXsdType = modelConcept.baseXsdType
+                else:
+                    baseXsdType = "string"
                 v = x.stringValue
         if baseXsdType in ("float", "double"):
             try:
