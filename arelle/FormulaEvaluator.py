@@ -64,8 +64,6 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
                     xpCtx.inScopeVars.pop(varQname)
             else:
                 result = varSet.evaluationsCount > 0
-            if result: varSet.countSatisfied += 1
-            else: varSet.countNotSatisfied += 1
             if ((xpCtx.formulaOptions.traceSatisfiedAssertions and result) or
                 ((xpCtx.formulaOptions.traceUnsatisfiedAssertions or
                   xpCtx.formulaOptions.errorUnsatisfiedAssertions ) and not result)):
@@ -82,11 +80,23 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
             msg = varSet.message(result)
             if msg is not None:
                 xpCtx.inScopeVars[XbrlConst.qnEaTestExpression] = varSet.test
-                xpCtx.modelXbrl.info("message:" + (varSet.id or varSet.xlinkLabel or _("unlabeled variableSet")),
+                unsatSeverity = varSet.unsatisfiedSeverity()
+                xpCtx.modelXbrl.log(
+                    "INFO" if result else {"OK":"INFO", "WARNING":"WARNING", "ERROR":"ERROR"}[unsatSeverity],
+                    "message:" + (varSet.id or varSet.xlinkLabel or  _("unlabeled variableSet")),
                     msg.evaluate(xpCtx),
                     modelObject=varSet,
+                    label=varSet.logLabel(),
                     messageCodes=("message:{variableSetID|xlinkLabel}",))
                 xpCtx.inScopeVars.pop(XbrlConst.qnEaTestExpression)
+            if result: 
+                varSet.countSatisfied += 1
+            else: 
+                varSet.countNotSatisfied += 1
+                if msg is not None:
+                    if unsatSeverity == "OK": varSet.countOkMessages += 1
+                    elif unsatSeverity == "WARNING": varSet.countWarningMessages += 1
+                    elif unsatSeverity == "ERROR": varSet.countErrorMessages += 1
         if xpCtx.formulaOptions.traceVariableSetExpressionResult and initialTraceCount == xpCtx.modelXbrl.logCount.get(logging._checkLevel('INFO'), 0):
             xpCtx.modelXbrl.info("formula:trace",
                  _("Variable set %(xlinkLabel)s had no xpCtx.evaluations"),
@@ -191,19 +201,27 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                 traceOf = "Formula"
             elif isinstance(varSet, ModelValueAssertion):
                 result = xpCtx.evaluateBooleanValue(varSet.testProg)
-                if result: varSet.countSatisfied += 1
-                else: varSet.countNotSatisfied += 1
                 msg = varSet.message(result)
                 if msg is not None:
                     xpCtx.inScopeVars[XbrlConst.qnVaTestExpression] = varSet.test
+                    unsatSeverity = varSet.unsatisfiedSeverity()
                     xpCtx.modelXbrl.log(
-                        "INFO" if result else {"OK":"INFO", "WARNING":"WARNING", "ERROR":"ERROR"}[varSet.unsatisfiedSeverity()],
+                        "INFO" if result else {"OK":"INFO", "WARNING":"WARNING", "ERROR":"ERROR"}[unsatSeverity],
                         "message:" + (varSet.id or varSet.xlinkLabel or  _("unlabeled variableSet")),
                         msg.evaluate(xpCtx),
                         modelObject=varSet,
                         label=varSet.logLabel(),
                         messageCodes=("message:{variableSetID|xlinkLabel}",))
                     xpCtx.inScopeVars.pop(XbrlConst.qnVaTestExpression)
+                if result: 
+                    varSet.countSatisfied += 1
+                else: 
+                    varSet.countNotSatisfied += 1
+                    if msg is not None:
+                        if unsatSeverity == "OK": varSet.countOkMessages += 1
+                        elif unsatSeverity == "WARNING": varSet.countWarningMessages += 1
+                        elif unsatSeverity == "ERROR": varSet.countErrorMessages += 1
+                            
                 if ((xpCtx.formulaOptions.traceSatisfiedAssertions and result) or
                     ((xpCtx.formulaOptions.traceUnsatisfiedAssertions or
                       xpCtx.formulaOptions.errorUnsatisfiedAssertions ) and not result)):

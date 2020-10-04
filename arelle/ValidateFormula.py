@@ -506,6 +506,9 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
             instanceQname = None
             modelVariableSet.countSatisfied = 0
             modelVariableSet.countNotSatisfied = 0
+            modelVariableSet.countOkMessages = 0
+            modelVariableSet.countWarningMessages = 0
+            modelVariableSet.countErrorMessages = 0
             checkValidationMessages(val, modelVariableSet)
         instanceProducingVariableSets[instanceQname].append(modelVariableSet)
         modelVariableSet.outputInstanceQname = instanceQname
@@ -766,6 +769,9 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
             consisAsser = modelRel.fromModelObject
             consisAsser.countSatisfied = 0
             consisAsser.countNotSatisfied = 0
+            consisAsser.countOkMessages = 0
+            consisAsser.countWarningMessages = 0
+            consisAsser.countErrorMessages = 0
             if consisAsser.hasProportionalAcceptanceRadius and consisAsser.hasAbsoluteAcceptanceRadius:
                 val.modelXbrl.error("xbrlcae:acceptanceRadiusConflict",
                     _("Consistency assertion %(xlinkLabel)s has both absolute and proportional acceptance radii"), 
@@ -925,7 +931,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
     for exisValAsser in val.modelXbrl.modelVariableSets:
         if isinstance(exisValAsser, ModelVariableSetAssertion) and \
            (not runIDs or exisValAsser.id in runIDs):
-            asserTests[exisValAsser.id] = (exisValAsser.countSatisfied, exisValAsser.countNotSatisfied)
+            asserTests[exisValAsser.id] = (exisValAsser.countSatisfied, exisValAsser.countNotSatisfied, exisValAsser.countOkMessages, exisValAsser.countWarningMessages, exisValAsser.countErrorMessages)
             if formulaOptions.traceAssertionResultCounts:
                 val.modelXbrl.info("formula:trace",
                     _("%(assertionType)s Assertion %(id)s evaluations : %(satisfiedCount)s satisfied, %(notSatisfiedCount)s not satisfied"),
@@ -938,7 +944,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
            isinstance(modelRel.toModelObject, ModelFormula) and \
            (not runIDs or modelRel.fromModelObject.id in runIDs):
             consisAsser = modelRel.fromModelObject
-            asserTests[consisAsser.id] = (consisAsser.countSatisfied, consisAsser.countNotSatisfied)
+            asserTests[consisAsser.id] = (consisAsser.countSatisfied, consisAsser.countNotSatisfied, consisAsser.countOkMessages, consisAsser.countWarningMessages, consisAsser.countErrorMessages)
             if formulaOptions.traceAssertionResultCounts:
                 val.modelXbrl.info("formula:trace",
                    _("Consistency Assertion %(id)s evaluations : %(satisfiedCount)s satisfied, %(notSatisfiedCount)s not satisfied"),
@@ -956,6 +962,8 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
         val.modelXbrl.formulaOutputInstance = outputXbrlInstance
         
     val.modelXbrl.modelManager.showStatus(_("formulae finished"), 2000)
+    for pluginXbrlMethod in pluginClassMethods("ValidateFormula.Finished"):
+        pluginXbrlMethod(val)
         
     instanceProducingVariableSets.clear() # dereference
     parameterQnames.clear()

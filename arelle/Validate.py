@@ -514,10 +514,11 @@ class Validate:
         _blockedMessageCodes = modelTestcaseVariation.blockedMessageCodes # restricts codes examined when provided
         if _blockedMessageCodes:
             _blockPattern = re.compile(_blockedMessageCodes)
-            _errors = [e for e in errors if not _blockPattern.match(e)]
+            _errors = [e for e in errors if isinstance(e,str) and not _blockPattern.match(e)]
         else:
             _errors = errors
-        numErrors = len(_errors)
+        numErrors = sum(isinstance(e,(QName,_STR_BASE)) for e in _errors) # does not include asserton dict results
+        hasAssertionResult = any(isinstance(e,dict) for e in _errors)
         expected = modelTestcaseVariation.expected
         expectedCount = modelTestcaseVariation.expectedCount
         if expected == "valid":
@@ -548,7 +549,12 @@ class Validate:
                         (expected.namespaceURI == XbrlConst.xdtSchemaErrorNS and errPrefix == "xmlSchema")):
                         _passCount += 1
                 elif type(testErr) == type(expected):
-                    if (testErr == expected or
+                    if isinstance(testErr,dict):
+                        if len(testErr) == len(expected) and all(
+                            k in testErr and counts == testErr[k][:len(counts)]
+                            for k, counts in expected.items()):
+                            _passCount += 1
+                    elif (testErr == expected or
                         (isinstance(expected, _STR_BASE) and (
                          (expected == "EFM.6.03.04" and testErr.startswith("xmlSchema:")) or
                          (expected == "EFM.6.03.05" and (testErr.startswith("xmlSchema:") or testErr == "EFM.5.02.01.01")) or
@@ -572,7 +578,10 @@ class Validate:
                         status = "pass"
             if not _errors and status == "fail":
                 if modelTestcaseVariation.assertions:
-                    if modelTestcaseVariation.assertions == expected:
+                    priorAsserResults = modelTestcaseVariation.assertions
+                    if len(priorAsserResults) == len(expected) and all(
+                            k in priorAsserResults and counts == priorAsserResults[k][:len(counts)]
+                            for k, counts in expected.items()):
                         status = "pass" # passing was previously successful and no further errors
                 elif (isinstance(expected,dict) and # no assertions fired, are all the expected zero counts?
                       all(countSatisfied == 0 and countNotSatisfied == 0 for countSatisfied, countNotSatisfied in expected.values())):
@@ -582,7 +591,7 @@ class Validate:
             status = "fail"
         modelTestcaseVariation.status = status
         _actual = {} # code and quantity
-        if numErrors > 0: # either coded errors or assertions (in errors list)
+        if numErrors > 0 or hasAssertionResult: # either coded errors or assertions (in errors list)
             # put error codes first, sorted, then assertion result (dict's)
             for error in _errors:
                 if isinstance(error,dict):  # asserion results
