@@ -79,6 +79,12 @@ def modelXbrlLoadComplete(modelXbrl):
             modelXbrl.error("ESEF.3.1.3.missingOrInvalidTaxonomyPackage",
                             _("RTS Annex III Par 3 and ESEF 3.1.3 requires an XBRL Report Package but one could not be loaded."), 
                             modelObject=modelXbrl)
+        if (modelXbrl.modelDocument is None or 
+            (modelXbrl.modelDocument.type not in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRY, ModelDocument.Type.RSSFEED)
+            and not modelXbrl.facts and "ESEF.RTS.Art.6.a.noInlineXbrlTags" not in modelXbrl.errors)):
+            modelXbrl.error("ESEF.RTS.Art.6.a.noInlineXbrlTags",
+                            _("RTS on ESEF requires inline XBRL, no facts were reported."),
+                            modelObject=modelXbrl)
 
 def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateESEFplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "ESEFplugin", False)
@@ -98,11 +104,6 @@ def validateXbrlFinally(val, *args, **kwargs):
     if not modelDocument:
         return # never loaded properly
 
-    numXbrlErrors = sum(ixErrorPattern.match(e) is not None for e in modelXbrl.errors if isinstance(e,str))
-    if numXbrlErrors:
-        modelXbrl.error("ESEF.RTS.Annex.III.Par.1.invalidInlineXBRL",
-                        _("RTS on ESEF requires valid XBRL instances, %(numXbrlErrors)s errors were reported."), 
-                        modelObject=modelXbrl, numXbrlErrors=numXbrlErrors)
     _statusMsg = _("validating {0} filing rules").format(val.disclosureSystem.name)
     modelXbrl.profileActivity()
     modelXbrl.modelManager.showStatus(_statusMsg)
@@ -114,6 +115,7 @@ def validateXbrlFinally(val, *args, **kwargs):
     for targetNs in modelXbrl.namespaceDocs.keys():
         if ifrsNsPattern.match(targetNs):
             _ifrsNs = targetNs
+            break
     if not _ifrsNs:
         modelXbrl.warning("ESEF.RTS.ifrsRequired",
                         _("RTS on ESEF requires IFRS taxonomy."), 
@@ -281,7 +283,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                             checkImageContents(modelXbrl, elt, os.path.splitext(src)[1], True, imgContents)
                                             imgContents = None # deref, may be very large
                                         if imglen < browserMaxBase64ImageLength:
-                                            modelXbrl.error("ESEF.2.5.1.imageIncludedAndNotEmbededAsBase64EncodedString",
+                                            modelXbrl.error("ESEF.2.5.1.imageIncludedAndNotEmbeddedAsBase64EncodedString",
                                                 _("Images MUST be included in the XHTML document as a base64 encoded string unless their size exceeds support of browsers (%(maxImageSize)s): %(file)s."),
                                                 modelObject=elt, maxImageSize=browserMaxBase64ImageLength, file=os.path.basename(normalizedUri))
                                     except IOError as err:
@@ -841,6 +843,45 @@ def validateXbrlFinally(val, *args, **kwargs):
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
 
+def validateFinally(val, *args, **kwargs): # runs all inline checks
+    if not (val.validateESEFplugin):
+        return
+
+    modelXbrl = val.modelXbrl
+    modelDocument = getattr(modelXbrl, "modelDocument")
+    if (modelDocument is None or not modelXbrl.facts) and "ESEF.RTS.Art.6.a.noInlineXbrlTags" not in modelXbrl.errors:
+        modelXbrl.error("ESEF.RTS.Art.6.a.noInlineXbrlTags",
+                        _("RTS on ESEF requires inline XBRL, no facts were reported."),
+                        modelObject=modelXbrl)
+        return # never loaded properly
+
+    numXbrlErrors = sum(ixErrorPattern.match(e) is not None for e in modelXbrl.errors if isinstance(e,str))
+    if numXbrlErrors:
+        modelXbrl.error("ESEF.RTS.Annex.III.Par.1.invalidInlineXBRL",
+                        _("RTS on ESEF requires valid XBRL instances, %(numXbrlErrors)s errors were reported."), 
+                        modelObject=modelXbrl, numXbrlErrors=numXbrlErrors)
+        
+def validateFormulaFinished(val, *args, **kwargs): # runs *after* formula (which is different for test suite from other operation
+    if not getattr(val.modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
+        return
+
+    modelXbrl = val.modelXbrl
+    sumWrnMsgs = sumErrMsgs = 0
+    for e in modelXbrl.errors:
+        if isinstance(e,dict):
+            for id, (numSat, numUnsat, numOkMsgs, numWrnMsgs, numErrMsgs) in e.items():
+                sumWrnMsgs += numWrnMsgs
+                sumErrMsgs += numErrMsgs
+    if sumErrMsgs:
+        modelXbrl.error("ESEF.2.7.1.targetXBRLDocumentWithFormulaErrors",
+                        _("Target XBRL document MUST be valid against the assertions specified in ESEF taxonomy, %(numUnsatisfied)s with errors."), 
+                        modelObject=modelXbrl, numUnsatisfied=sumErrMsgs)
+    if sumWrnMsgs:
+        modelXbrl.warning("ESEF.2.7.1.targetXBRLDocumentWithFormulaWarnings",
+                        _("Target XBRL document SHOULD be valid against the assertions specified in ESEF taxonomy, %(numUnsatisfied)s with warnings."), 
+                        modelObject=modelXbrl, numUnsatisfied=sumWrnMsgs)
+
+
 def testcaseVariationReportPackageIxdsOptions(validate, rptPkgIxdsOptions):
     if getattr(validate.modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
         rptPkgIxdsOptions["lookOutsideReportsDirectory"] = True
@@ -860,6 +901,8 @@ __pluginInfo__ = {
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,
     'ModelXbrl.LoadComplete': modelXbrlLoadComplete,
     'Validate.XBRL.Start': validateXbrlStart,
-    'Validate.XBRL.Finally': validateXbrlFinally,
+    'Validate.XBRL.Finally': validateXbrlFinally, # before formula processing
+    'ValidateFormula.Finished': validateFormulaFinished, # after formula processing
+    'Validate.Finally': validateFinally, # run *after* formula processing
     'ModelTestcaseVariation.ReportPackageIxdsOptions': testcaseVariationReportPackageIxdsOptions,
 }
