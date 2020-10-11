@@ -7,6 +7,7 @@ import sys
 from decimal import Decimal
 from fractions import Fraction
 from collections import OrderedDict, MutableSet
+from collections.abc import MappingView
 
 if sys.version[0] >= '3':
     import builtins
@@ -129,7 +130,7 @@ def normalizeSpace(s):
         return " ".join(s.split())
     return s
     
-SEQUENCE_TYPES = (tuple,list,set,frozenset)
+SEQUENCE_TYPES = (tuple,list,set,frozenset,MappingView)
 def flattenSequence(x, sequence=None):
     if sequence is None: 
         if not isinstance(x, SEQUENCE_TYPES):
@@ -143,6 +144,20 @@ def flattenSequence(x, sequence=None):
         else:
             sequence.append(el)
     return sequence
+
+def flattenToSet(x, _set=None):
+    if _set is None: 
+        if not isinstance(x, SEQUENCE_TYPES):
+            if x is None:
+                return set() # none as atomic value is an empty sequence in xPath semantics
+            return {x}
+        _set = set()
+    for el in x:
+        if isinstance(el, SEQUENCE_TYPES):
+            flattenToSet(el, _set)
+        else:
+            _set.add(el)
+    return _set
 
 class attrdict(dict):
     """ utility to simulate an object with named fields from a dict """

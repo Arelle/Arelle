@@ -29,7 +29,7 @@ from arelle import XbrlConst, ModelDocument, ModelXbrl, PackageManager, Validate
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, dateTime, DATETIME, yearMonthDuration, dayTimeDuration
 from arelle.PrototypeInstanceObject import DimValuePrototype
-from arelle.PythonUtil import attrdict
+from arelle.PythonUtil import attrdict, flattenToSet
 from arelle.UrlUtil import isHttpUrl, isAbsolute as isAbsoluteUri, relativeUrlPattern
 from arelle.XbrlConst import (qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
                               qnLinkPart, gen, link, defaultLinkRole, footnote, factFootnote, isStandardRole,
@@ -131,6 +131,9 @@ DUPJSONKEY = "!@%duplicateKeys%@!"
 DUPJSONVALUE = "!@%duplicateValues%@!"
     
 UTF_7_16_Pattern = re_compile(r"(?P<utf16>(^([\x00][^\x00])+$)|(^([^\x00][\x00])+$))|(?P<utf7>^\s*\+AHs-)")
+UTF_7_16_Bytes_Pattern = re_compile(br"(?P<utf16>(^([\x00][^\x00])+$)|(^([^\x00][\x00])+$))|(?P<utf7>^\s*\+AHs-)")
+EBCDIC_Bytes_Pattern = re_compile(b"^[\x40\x4a-\x4f\x50\x5a-\x5f\x60-\x61\x6a-\x6f\x79-\x7f\x81-\x89\x8f\x91-\x99\xa1-\xa9\xb0\xba-\xbb\xc1-\xc9\xd1-\xd9\xe0\xe2-\xe9\xf0-\xf9\xff\x0a\x0d]+$")
+NEVER_EBCDIC_Bytes_Pattern = re_compile(b"[\x30-\x31\x3e\x41-\x49\x51-\x59\x62-\x69\x70-\x78\x80\x8a-\x8e\x90\x9a-\x9f\xa0\xaa-\xaf\xb1-\xb9\xbc-\xbf\xca-\xcf\xda-\xdf\xe1\xea-\xef\xfa-\xfe]")
 JSONmetadataPattern = re_compile(r"\s*\{.*\"documentInfo\"\s*:.*\}", re_DOTALL)
 NoCanonicalPattern = attrdict(match=lambda s: True)
 CanonicalFloatPattern = re_compile(r"^-?[0-9]\.[0-9]([0-9]*[1-9])?E-?([1-9][0-9]*|0)$|^-?INF$|^NaN$")
@@ -208,7 +211,7 @@ COMPLETE = 2
 CONSISTENT = 3
 ALL = 4
 AllowedDuplicatesFeatureValues = {"none": NONE, "complete": COMPLETE, "consistent": CONSISTENT, "all": ALL}
-DisallowedDescription = {NONE: "Disallowed", COMPLETE: "Inequivalent", CONSISTENT: "Inconsistent", ALL: "Allowed"}
+DisallowedDescription = {NONE: "Disallowed", COMPLETE: "Incomplete", CONSISTENT: "Inconsistent", ALL: "Allowed"}
 
 class SQNameType:
     pass # fake class for detecting SQName type in JSON structure check
@@ -220,6 +223,9 @@ class LangType:
     pass
 
 class URIType:
+    pass
+
+class IdentifierType:
     pass
 
 class NoRecursionCheck:
@@ -293,9 +299,13 @@ CsvMemberTypes = {
     "/decimals": (int,str),
     "/links": dict,
     # documentInfo
+    "/documentInfo/baseURL": URIType,
     "/documentInfo/documentType": str,
+    "/documentInfo/features": dict,
+    "/documentInfo/features/*:*": (int,bool,str,type(None)),
+    "/documentInfo/final": dict,
     "/documentInfo/namespaces": dict,
-    "/documentInfo/namespaces/*": str,
+    "/documentInfo/namespaces/*": URIType,
     "/documentInfo/linkTypes": dict,
     "/documentInfo/linkTypes/*": str,
     "/documentInfo/linkGroups": dict,
@@ -303,10 +313,7 @@ CsvMemberTypes = {
     "/documentInfo/taxonomy": list,
     "/documentInfo/taxonomy/": str,
     "/documentInfo/extends": list,
-    "/documentInfo/extends/": str,
-    "/documentInfo/final": dict,
-    "/documentInfo/features": dict,
-    "/documentInfo/features/*": (int,bool,str,type(None)),
+    "/documentInfo/extends/": URIType,
     # documentInfo/final
     "/documentInfo/final/namespaces": bool,
     "/documentInfo/final/taxonomy": bool,
@@ -316,10 +323,11 @@ CsvMemberTypes = {
     "/documentInfo/final/tableTemplates": bool,
     "/documentInfo/final/tables": bool,
     "/documentInfo/final/dimensions": bool,
+    "/documentInfo/final/final": bool,
     "/documentInfo/final/parameters": bool,
     # table templates
     "/tableTemplates/*": dict,
-    "/tableTemplates/*/rowIdColumn": str,
+    "/tableTemplates/*/rowIdColumn": IdentifierType,
     "/tableTemplates/*/columns": dict,
     "/tableTemplates/*/decimals": (int,str),
     "/tableTemplates/*/dimensions": dict,
@@ -328,7 +336,6 @@ CsvMemberTypes = {
     "/tableTemplates/*/dimensions/period": str,
     "/tableTemplates/*/dimensions/unit": str,
     "/tableTemplates/*/dimensions/language": str,
-    "/tableTemplates/*/dimensions/noteId": str,
     "/tableTemplates/*/dimensions/*:*": str,
     "/tableTemplates/*/dimensions/$*": str,
     #"/tableTemplates/*/transposed": bool,
@@ -343,11 +350,11 @@ CsvMemberTypes = {
     "/tableTemplates/*/columns/*/dimensions/period": str,
     "/tableTemplates/*/columns/*/dimensions/unit": str,
     "/tableTemplates/*/columns/*/dimensions/language": str,
-    "/tableTemplates/*/columns/*/dimensions/noteId": str,
     "/tableTemplates/*/columns/*/dimensions/*:*": str,
     "/tableTemplates/*/columns/*/dimensions/$*": str,
     # property groups (column)
-    "/tableTemplates/*/columns/*/propertiesFrom": str,
+    "/tableTemplates/*/columns/*/propertiesFrom": list,
+    "/tableTemplates/*/columns/*/propertiesFrom/": IdentifierType,
     "/tableTemplates/*/columns/*/propertyGroups": dict,
     "/tableTemplates/*/columns/*/propertyGroups/*": dict,
     "/tableTemplates/*/columns/*/propertyGroups/*/decimals": (int,str),
@@ -357,7 +364,6 @@ CsvMemberTypes = {
     "/tableTemplates/*/columns/*/propertyGroups/*/dimensions/period": str,
     "/tableTemplates/*/columns/*/propertyGroups/*/dimensions/unit": str,
     "/tableTemplates/*/columns/*/propertyGroups/*/dimensions/language": str,
-    "/tableTemplates/*/columns/*/propertyGroups/*/dimensions/noteId": str,
     "/tableTemplates/*/columns/*/propertyGroups/*/dimensions/*:*": str,
     "/tableTemplates/*/columns/*/propertyGroups/*/dimensions/$*": str,
     # dimensions (top level)
@@ -372,11 +378,11 @@ CsvMemberTypes = {
     # tables
     "/tables/*": dict,
     "/tables/*/url": str,
-    "/tables/*/template": str,
+    "/tables/*/template": IdentifierType,
     "/tables/*/optional": bool,
     "/tables/*/parameters": dict,
     "/tables/*/parameters/*": (str, int),
-    # links
+    # links 
     "/links/*": dict,
     # link group
     "/links/*/*": dict,
@@ -390,6 +396,10 @@ CsvRequiredMembers = {
     "/documentInfo/": {"documentType"},
     "/tableTemplates/*/": {"columns"},
     "/tables/*/": {"url"}
+    }
+IdentifierChecks = {
+    "/tableTemplates/*",
+    "/tables/*"
     }
 EMPTY_SET = set()
 
@@ -473,7 +483,6 @@ periodForms = ((PER_ISO, re_compile("([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{
                (PER_HALF, re_compile("([0-9]{4})H([1-2])(@(start|end))?$")),
                (PER_WEEK, re_compile("([0-9]{4}W[1-5]?[0-9])(@(start|end))?$")))
 
-    
 def csvPeriod(cellValue, startOrEnd):
     if cellValue in ("", "#none"):
         return None
@@ -488,26 +497,26 @@ def csvPeriod(cellValue, startOrEnd):
                     isoDuration = cellValue
                     startendSuffixGroup = 0
                 elif perType == PER_INCLUSIVE_DATES:
-                    isoDuration = "{}T00:00:00/{}T00:00:00".format(dateTime(m.group(1)), dateTime(m.group(2)) + ONE_DAY)
+                    isoDuration = "{}/{}".format(dateTime(m.group(1)), dateTime(m.group(2)) + ONE_DAY)
                     startendSuffixGroup = 0
                 elif perType == PER_SINGLE_DAY:
-                    isoDuration = "{}T00:00:00/{}T00:00:00".format(dateTime(m.group(1)), dateTime(m.group(1)) + ONE_DAY)
+                    isoDuration = "{}/{}".format(dateTime(m.group(1)), dateTime(m.group(1)) + ONE_DAY)
                     startendSuffixGroup = 3
                 elif perType == PER_MONTH:
                     moStart = dateTime(m.group(1) + "-01")
-                    isoDuration = "{}T00:00:00/{}T00:00:00".format(moStart, moStart + ONE_MONTH)
+                    isoDuration = "{}/{}".format(moStart, moStart + ONE_MONTH)
                     startendSuffixGroup = 3
                 elif perType == PER_YEAR:
                     yrStart = dateTime(m.group(1) + "-01-01")
-                    isoDuration = "{}T00:00:00/{}T00:00:00".format(yrStart, yrStart + ONE_YEAR)
+                    isoDuration = "{}/{}".format(yrStart, yrStart + ONE_YEAR)
                     startendSuffixGroup = 3
                 elif perType == PER_QTR:
                     qtrStart = dateTime(m.group(1) + "-{:02}-01".format(int(m.group(2))*3 - 2))
-                    isoDuration = "{}T00:00:00/{}T00:00:00".format(qtrStart, qtrStart + ONE_QTR)
+                    isoDuration = "{}/{}".format(qtrStart, qtrStart + ONE_QTR)
                     startendSuffixGroup = 4
                 elif perType == PER_HALF:
                     qtrStart = dateTime(m.group(1) + "-{:02}-01".format(int(m.group(2))*6 - 5))
-                    isoDuration = "{}T00:00:00/{}T00:00:00".format(qtrStart, qtrStart + ONE_HALF)
+                    isoDuration = "{}/{}".format(qtrStart, qtrStart + ONE_HALF)
                     startendSuffixGroup = 4
                 elif perType == PER_WEEK:
                     weekStart = dateTime(isodate.parse_date(m.group(1)))
@@ -527,7 +536,7 @@ def csvPeriod(cellValue, startOrEnd):
                 return isoDuration.partition("/")[2]
             return isoDuration
     return None
-
+    
 # no longer used because transpose is not supported
 def transposer(rowIterator, default=""):
     cells = [row for row in rowIterator]
@@ -661,14 +670,25 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         currentAction = "loading and parsing OIM file"
         loadDictErrors = []
         def openCsvReader(csvFilePath, hasHeaderRow=True):
-            _file, = modelXbrl.fileSource.file(csvFilePath, encoding='utf-8-sig')
-            chars = _file.read(16) # test encoding
-            m = UTF_7_16_Pattern.match(chars)
-            if m:
-                raise OIMException("xbrlce:invalidJSON",
+            _file, = modelXbrl.fileSource.file(csvFilePath, binary=True)
+            bytes = _file.read(16) # test encoding
+            try:
+                m = EBCDIC_Bytes_Pattern.match(bytes)
+                if m and not NEVER_EBCDIC_Bytes_Pattern.findall(bytes):
+                    raise OIMException("xbrlce:invalidCSVFileFormat",
+                          _("CSV file MUST use utf-8 encoding: %(file)s, appears to be EBCDIC"),
+                          file=csvFilePath)
+                m = UTF_7_16_Bytes_Pattern.match(bytes)
+                if m:
+                    raise OIMException("xbrlce:invalidCSVFileFormat",
+                          _("CSV file MUST use utf-8 encoding: %(file)s, appears to be %(encoding)s"),
+                          file=csvFilePath, encoding=m.lastgroup)
+                _file.close()
+            except UnicodeDecodeError as ex:
+                raise OIMException("xbrlce:invalidCSVFileFormat",
                       _("CSV file MUST use utf-8 encoding: %(file)s, appears to be %(encoding)s"),
                       file=csvFilePath, encoding=m.lastgroup)
-            _file.seek(0)
+            _file, = modelXbrl.fileSource.file(csvFilePath, encoding='utf-8-sig')
             if hasHeaderRow:
                 try:
                     chars = _file.read(1024)
@@ -695,6 +715,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         raise OIMException("xbrlce:invalidCSVFileFormat",
                                            _("CSV file %(file)s: %(error)s"),
                                           file=csvFilePath, error=str(ex))
+                except UnicodeDecodeError as ex:
+                    raise OIMException("xbrlce:invalidCSVFileFormat",
+                                       _("CSV file must use utf-8 encoding %(file)s: %(error)s"),
+                                      file=csvFilePath, error=str(ex))
                 _file.seek(0)
             else:
                 # check for comma or tab in first line
@@ -818,14 +842,14 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         chars = f.read(16) # test encoding
                         m = UTF_7_16_Pattern.match(chars)
                         if m:
-                            raise OIMException("{}:invalidJSON".format(errPrefix),
+                            raise OIMException("{}:invalidCSVFileFormat".format(errPrefix),
                                   _("File MUST use utf-8 encoding: %(file)s, appears to be %(encoding)s"),
                                   file=filepath, encoding=m.lastgroup)
                         else:
                             f.seek(0)
                             oimObject = json.load(f, object_pairs_hook=loadDict)
                 except UnicodeDecodeError as ex:
-                    raise OIMException("{}:invalidJSON".format(errPrefix),
+                    raise OIMException("{}:invalidCSVFileFormat".format(errPrefix),
                           _("File MUST use utf-8 encoding: %(file)s, error %(error)s"),
                           file=filepath, error=str(ex))
                 except json.JSONDecodeError as ex:
@@ -911,23 +935,29 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 if (isinstance(obj,dict)):
                     for missingMbr in oimRequiredMembers.get(path,EMPTY_SET) - obj.keys():
                         missingRequiredMembers.append(path + missingMbr)
+                    checkNameIdPattern = (path + "*") in IdentifierChecks
                     for mbrName, mbrObj in obj.items():
                         mbrPath = path + mbrName
                         pathParts.append(mbrName)
+                        # print("mbrName {} mbrObj {}".format(mbrName, mbrObj))
+                        if checkNameIdPattern:
+                            if not IdentifierPattern.match(mbrName):
+                                invalidMemberTypes.append(showPathObj(pathParts, mbrObj))
                         if mbrPath in oimMemberTypes:
                             mbrTypes = oimMemberTypes[mbrPath]
                             if (not ((mbrTypes is QNameType or (isinstance(mbrTypes,tuple) and QNameType in mbrTypes)) and isinstance(mbrObj, str) and QNamePattern.match(mbrObj)) and
                                 not ((mbrTypes is SQNameType or (isinstance(mbrTypes,tuple) and SQNameType in mbrTypes)) and isinstance(mbrObj, str) and SQNamePattern.match(mbrObj)) and
                                 not ((mbrTypes is LangType or (isinstance(mbrTypes,tuple) and LangType in mbrTypes)) and isinstance(mbrObj, str) and languagePattern.match(mbrObj)) and
                                 not ((mbrTypes is URIType or (isinstance(mbrTypes,tuple) and URIType in mbrTypes)) and isinstance(mbrObj, str) and relativeUrlPattern.match(mbrObj) and not WhitespaceUntrimmedPattern.match(mbrObj)) and
+                                not (mbrTypes is IdentifierType and isinstance(mbrObj, str) and isinstance(mbrObj, str) and IdentifierPattern.match(mbrObj)) and
                                 not ((mbrTypes is int or (isinstance(mbrTypes,tuple) and int in mbrTypes)) and isinstance(mbrObj, str) and CanonicalIntegerPattern.match(mbrObj)) and
                                 not isinstance(mbrObj, mbrTypes)):
                                 invalidMemberTypes.append(showPathObj(pathParts, mbrObj))
                         elif ":" in mbrName and path + "*:*" in oimMemberTypes:
-                            if not (QNamePattern.match(mbrName) and
-                                    isinstance(mbrObj, oimMemberTypes[path + "*:*"])):
+                            _mbrTypes = oimMemberTypes[path + "*:*"]
+                            if not (QNamePattern.match(mbrName) and isinstance(mbrObj, _mbrTypes)):
                                 invalidMemberTypes.append(showPathObj(pathParts, mbrObj))
-                            elif NoRecursionCheck in oimMemberTypes[path + "*:*"]:
+                            elif isinstance(_mbrTypes,tuple) and NoRecursionCheck in _mbrTypes:
                                 checkNestedMembers = False # custom types, block recursive check
                             mbrPath = path + "*.*" # for recursion
                         elif path + "*" in oimMemberTypes:
@@ -947,7 +977,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         mbrPath = path # list entry just uses path ending in /
                         pathParts.append(mbrNdx)
                         if mbrPath in oimMemberTypes:
-                            if not isinstance(mbrObj, oimMemberTypes[mbrPath]):
+                            mbrTypes = oimMemberTypes[mbrPath]
+                            if (not (mbrTypes is IdentifierType and isinstance(mbrObj, str) and isinstance(mbrObj, str) and IdentifierPattern.match(mbrObj)) and
+                                not ((mbrTypes is URIType or (isinstance(mbrTypes,tuple) and URIType in mbrTypes)) and isinstance(mbrObj, str) and relativeUrlPattern.match(mbrObj) and not WhitespaceUntrimmedPattern.match(mbrObj)) and
+                                not isinstance(mbrObj, mbrTypes)):
                                 invalidMemberTypes.append(showPathObj(pathParts, mbrObj))
                         if isinstance(mbrObj, (dict,list)):
                             checkMemberTypes(mbrObj, mbrPath + "/", pathParts)
@@ -967,11 +1000,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     msg.append(_("Unexpected element(s) in metadata: %(unexpected)s"))
                 error("{}:invalidJSONStructure".format(errPrefix),
                       "\n ".join(msg), documentType=documentType,
-                      missing=", ".join(missingRequiredMembers), unexpected=", ".join(unexpectedMembers))
+                      sourceFileLine=oimFile, missing=", ".join(missingRequiredMembers), unexpected=", ".join(unexpectedMembers))
             if invalidMemberTypes:
                 error("{}:invalidJSONStructure".format(errPrefix),
                       _("Invalid JSON structure member types in metadata: %(members)s"),
-                      members=", ".join(invalidMemberTypes))
+                      sourceFileLine=oimFile, members=", ".join(invalidMemberTypes))
                 
             if isCSV and not primaryReportParameters:
                 primaryReportParameters = oimObject.setdefault("parameters", {})
@@ -982,13 +1015,14 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 parameterFilePath = os.path.join(os.path.dirname(primaryOimFile), parameterURL)
                 if modelXbrl.fileSource.exists(parameterFilePath):
                     problems = []
-                    for i, row in enumerate(openCsvReader(parameterFilePath, hasHeaderRow=False)):
+                    badIdentifiers = []
+                    for i, row in enumerate(openCsvReader(parameterFilePath)):
                         if i == 0:
                             if row != ["name", "value"]:
                                 problems.append(_("The first row must only consist of \"name\" and \"value\" but contains: {}").format(",".join(row)))
                         elif row[0]:
                             if not IdentifierPattern.match(row[0]):
-                                problems.append(_("Row {} column 1 is not a valid identifier: {}").format(i+1, row[0]))
+                                badIdentifiers.append(_("Row {} column 1 is not a valid identifier: {}").format(i+1, row[0]))
                             elif len(row) < 2 or not row[1]:
                                 problems.append(_("Row {} value column 2 missing").format(i+1))
                             elif any(cell for cell in row[2:]):
@@ -1002,6 +1036,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 primaryReportParameters[row[0]] = row[1]
                         elif any(cell for cell in row):
                             problems.append(_("Row {} has no identifier, all columns must be empty").format(i+1))
+                    if badIdentifiers:
+                        error("xbrlce:invalidIdentifier", 
+                              _("Report parameter file %(file)s:\n %(issues)s"),
+                              file=parameterURL, issues=", \n".join(badIdentifiers))
                     if problems:
                         error("xbrlce:invalidParameterCSVFile", 
                               _("Report parameter file %(file)s issues:\n %(issues)s"),
@@ -1114,7 +1152,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             # check reportParameterNames
             for reportParameterName in reportParameters.keys():
                 if not IdentifierPattern.match(reportParameterName):
-                    error("xbrlce:invalidParameterName", 
+                    error("xbrlce:invalidIdentifier", 
                           _("Report parameter name is not a valid identifier: %(identifier)s, in file %(file)s"),
                           identifier=reportParameterName, file=oimFile)
             
@@ -1163,8 +1201,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     try: # note that decoder errors may occur late during streaming of rows
                         tableTemplateId = table.get("template", tableId)
                         if tableTemplateId not in tableTemplates:
-                            raise OIMException("xbrlce:missingTableTemplate", 
-                                               _("Referenced template missing: %(missing)s"),
+                            raise OIMException("xbrlce:unknownTableTemplate", 
+                                               _("Referenced template is missing: %(missing)s"),
                                                missing=tableTemplateId)
                         tableTemplate = tableTemplates[tableTemplateId]
                         # tableIsTransposed = tableTemplate.get("transposed", False)
@@ -1190,34 +1228,66 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         propertyGroups = {}
                         propertiesFrom = {}
                         for colId, colProperties in tableTemplate["columns"].items():
+                            if not IdentifierPattern.match(colId):
+                                error("xbrlce:invalidIdentifier", 
+                                      _("Table %(table)s column name is not a valid identifier: %(identifier)s."),
+                                      table=tableId, identifier=colId)
                             factDimensions[colId] = colProperties.get("dimensions")
                             factDecimals[colId] = colProperties.get("decimals")
-                            if factDecimals[colId] is not None:
-                                if factDimensions[colId] is None:
-                                    hasHeaderError = True
-                                    error("xbrlce:misplacedDecimalsOnNonFactColumn", 
-                                          _("Table %(table)s column %(column)s has decimals but dimensions is absent"),
-                                          table=tableId, column=colId)
                             if "default" in colProperties:
                                 colDefaults[colId] = colProperties["default"]
-                            if "propertyGroups" in colProperties:
-                                propertyGroups[colId] = colProperties["propertyGroups"]
+                            isFactColumn = "dimensions" in colProperties
                             if "propertiesFrom" in colProperties:
+                                isFactColumn = True
                                 propertiesFrom[colId] = colProperties["propertiesFrom"]
-                            if "decimals" in colProperties and ("dimensions" not in colProperties and "propertiesFrom" not in colProperties):
+                            isPropertyGroupColumn = "propertyGroups" in colProperties
+                            if isPropertyGroupColumn:
+                                propertyGroups[colId] = _propGrp = colProperties["propertyGroups"]
+                                if isFactColumn:
+                                    hasHeaderError = True
+                                    error("xbrlce:conflictingColumnType", 
+                                          _("Table %(table)s fact column also has conflicting propertyGroups: %(column)s"),
+                                          table=tableId, column=colId)
+                            if "decimals" in colProperties and not isFactColumn:
+                                hasHeaderError = True
                                 error("xbrlce:misplacedDecimalsOnNonFactColumn", 
                                       _("Table %(table)s has decimals on a non-fact column %(column)s"),
                                       table=tableId, column=colId)
                         if rowIdColName and rowIdColName not in factDecimals:
-                            raise OIMException("xbrlce:undefinedRowIdColumn", 
+                            hasHeaderError = True
+                            error("xbrlce:undefinedRowIdColumn", 
                                   _("Table %(table)s row id column %(column)s is not defined in columns"),
                                   table=tableId, column=rowIdColName)
                         if propertiesFrom:
-                            for col, propertiesFromCol in propertiesFrom.items():
-                                if propertiesFromCol not in propertyGroups:
-                                    raise OIMException("xbrlce:invalidPropertyGroupColumnReference", 
+                            for col, propertiesFromCols in propertiesFrom.items():
+                                missingPropFromCols = set(propertiesFromCols) - propertyGroups.keys()
+                                if missingPropFromCols:
+                                    hasHeaderError = True
+                                    error("xbrlce:invalidPropertyGroupColumnReference", 
                                           _("Table %(table)s row id column %(column)s propertiesFrom reference %(propertiesFrom)s does not define a property groups column."),
-                                          table=tableId, column=col, propertiesFrom=propertiesFromCol)
+                                          table=tableId, column=col, propertiesFrom=", ".join(missingPropFromCols))
+                                else:
+                                    decPgs = set()
+                                    dimPgs = defaultdict(set)
+                                    for pgFromCol in propertiesFromCols:
+                                        pgs = propertyGroups[pgFromCol].values()
+                                        for pg in pgs:
+                                            if "decimals" in pg:
+                                                decPgs.add(pgFromCol)
+                                            for dim in pg.get("dimensions",EMPTY_DICT).keys():
+                                                dimPgs[dim].add(pgFromCol)
+                                    if len(decPgs) > 1:
+                                        hasHeaderError = True
+                                        error("xbrlce:repeatedPropertyGroupDecimalsProperty", 
+                                              _("Table %(table)s column %(column)s propertiesFrom references repeat decimals property: %(propFroms)s."),
+                                              table=tableId, column=col, propFroms=", ".join(decPgs))
+                                    if any(len(dimCols) > 1 for dimCols in dimPgs.values()):
+                                        hasHeaderError = True
+                                        error("xbrlce:repeatedPropertyGroupDimension", 
+                                              _("Table %(table)s column %(column)s propertiesFrom references repeat dimensions from: %(propFroms)s, dimension: %(dimensions)s."),
+                                              table=tableId, column=col, 
+                                              propFroms=", ".join(sorted(set(c for d,cs in dimPgs.items() if len(cs) > 1 for c in cs))),
+                                              dimensions=", ".join(sorted(d for d,cs in dimPgs.items() if len(cs) > 1)))                                      
                         # check table parameters
                         tableParameterReferenceNames = set()
                         factColReferenceNames = defaultdict(set)
@@ -1236,7 +1306,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                         if dimName not in factDims:
                                             checkParamRef(dimValue, factColName)
                                             factDims.add(dimName)
-                                        if dimName == "noteId":
+                                        if dimName == "xbrl:noteId":
                                             hasNoteIdDimension = True
                                 for _factDecimals in (factDecimals.get(factColName), tableDecimals, reportDecimals):
                                     if "decimals" not in factDims:
@@ -1251,7 +1321,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 error("xbrlce:invalidParameterName", 
                                       _("Table %(table)s parameter name is not a valid identifier: %(identifier)s, url: %(url)s"),
                                       table=tableId, identifier=dimName, url=tableUrl)
-              
+                        
+                        if hasHeaderError:
+                            return
                         # determine whether table is a CSV file or an Excel range.  
                         # Local range can be sheetname! or !rangename
                         # url to workbook with range must be url#sheet! or url#!range or url!range (unencoded !)
@@ -1344,21 +1416,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                         error("xbrlce:repeatedColumnIdentifier", 
                                               _("Table %(table)s CSV file header columns %(column)s and %(column2)s repeat identifier: %(identifier)s, url: %(url)s"),
                                               table=tableId, column=colIndex+1, column2=colNameIndex[colName]+1, identifier=colName, url=tableUrl)
-                                    elif factDimensions[colName] is not None:
-                                        if idColIndex is not None and colIndex < idColIndex:
-                                            error("xbrlce:invalidColumnOrder", 
-                                                  _("Table %(table)s CSV fact column %(column)s, appears before row ID column %(rowIdColumn)s, url: %(url)s"),
-                                                  table=tableId, column=colName, rowIdColumn=rowIdColName, url=tableUrl)
-                                        followingParamColNames = [paramName
-                                                                  for paramName in factColReferenceNames[colName]
-                                                                  if colNameIndex.get(paramName,-1) > colIndex]
-                                        if followingParamColNames:
-                                            error("xbrlce:invalidColumnOrder", 
-                                                  _("Table %(table)s CSV fact column %(column)s, appears before parameter columns %(paramColumns)s, url: %(url)s"),
-                                                  table=tableId, column=colName, paramColumns=", ".join(sorted(followingParamColNames)), url=tableUrl)
                                     if colName in tableParameterReferenceNames:
                                         paramRefColNames.add(colName)
-                                missingPropFromCols = propertiesFrom.values() - colNameIndex.keys()
+                                missingPropFromCols = flattenToSet(propertiesFrom.values()) - colNameIndex.keys()
                                 if missingPropFromCols:
                                     raise OIMException("xbrlce:invalidPropertyGroupColumnReference", 
                                                   _("Table %(table)s propertyFrom %(propFromColumns)s column missing, url: %(url)s"),
@@ -1427,11 +1487,18 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 for colIndex, colValue in enumerate(row):
                                     if colIndex >= len(header):
                                         continue
-                                    cellPropGroup = EMPTY_DICT
+                                    cellPropGroup = {}
                                     colName = header[colIndex]
-                                    propFromColName = propertiesFrom.get(colName)
-                                    if propFromColName in rowPropGroups:
-                                        cellPropGroup = rowPropGroups[propFromColName]
+                                    propFromColNames = propertiesFrom.get(colName,EMPTY_LIST)
+                                    for propFromColName in propFromColNames:
+                                        if propFromColName in rowPropGroups:
+                                            for prop, val in rowPropGroups[propFromColName].items():
+                                                if isinstance(val, dict):
+                                                    _valDict = cellPropGroup.setdefault(prop, {})
+                                                    for dim, _val in val.items():
+                                                        _valDict[dim] = _val
+                                                else:
+                                                    cellPropGroup[prop] = val
                                     if factDimensions[colName] is None:
                                         if colName in paramRefColNames:
                                             value = _cellValue(row[colNameIndex[colName]])
@@ -1465,13 +1532,14 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     cellValue = _cellValue(colValue) # nil facts return None, #empty string is ""
                                     if cellValue == "": # no fact produced
                                         continue 
-                                    if propFromColName and cellPropGroup:
-                                        rowPropGroupsUsed.add(propFromColName)
+                                    if cellPropGroup:
+                                        for propFromColName in propFromColNames:
+                                            rowPropGroupsUsed.add(propFromColName)
                                     fact["value"] = cellValue
                                     fact["dimensions"] = colFactDims = {}
                                     noValueDimNames = set()
                                     for inheritedDims, dimSource in ((factDimensions[colName], "column dimension"), 
-                                                                     (cellPropGroup.get("dimensions",EMPTY_DICT), "propertyGroup {}".format(propFromColName)),
+                                                                     (cellPropGroup.get("dimensions",EMPTY_DICT), "propertyGroup {}".format(propFromColNames)),
                                                                      (tableDimensions, "table dimension"), 
                                                                      (reportDimensions, "report dimension")):
                                         for dimName, dimValue in inheritedDims.items():
@@ -1507,7 +1575,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                               _("Table %(table)s row %(row)s column %(column)s has instant date with period reference \"%(date)s\", from %(source)s, url: %(url)s"),
                                                               table=tableId, row=rowIndex+1, column=colName, date=dimValue, url=tableUrl, source=dimSource)
                                                         dimValue = "#none"
-                                                    elif _dimValue == None: # bad format
+                                                    elif _dimValue == None: # bad format, raised value error
                                                         error("xbrlce:invalidJSONStructure", 
                                                               _("Table %(table)s row %(row)s column %(column)s has lexical syntax issue with date \"%(date)s\", from %(source)s, url: %(url)s"),
                                                               table=tableId, row=rowIndex+1, column=colName, date=dimValue, url=tableUrl, source=dimSource)
@@ -2055,7 +2123,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 for ftType, ftGroups in factOrFootnote.get("links", {}).items():
                     ftSrcId = factOrFootnote.get("id")
                     if ftSrcId is None:
-                        ftSrcId = factOrFootnote.get("dimensions",EMPTY_DICT).get("noteId")
+                        ftSrcId = factOrFootnote.get("dimensions",EMPTY_DICT).get("xbrl:noteId")
                     if ftType not in linkTypes:
                         undefinedFootnoteTypes.add(ftType)
                     else:
@@ -2089,8 +2157,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                 "footnoteGroup": linkGroups[ftGroup],
                                                 "footnoteType": linkTypes[ftType]}
                                     for tgtId in ftTgtIds:
-                                        if tgtId in factItems:
-                                            footnote.setdefault("noteRefs" if tgtId in xbrlNoteTbl else "factRefs", []).append(tgtId)
+                                        if tgtId in xbrlNoteTbl:
+                                            footnote.setdefault("noteRefs", []).append(tgtId)
+                                        elif tgtId in modelXbrl.modelDocument.idObjects:
+                                            footnote.setdefault("factRefs", []).append(tgtId)
                                         else:
                                             undefinedLinkTargets.add(tgtId)
                                     factFootnotes.append(footnote)
@@ -2170,7 +2240,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             attrs = {XLINKTYPE: "resource",
                                      XLINKLABEL: footnoteToLabel,
                                      "id": idDeduped(modelXbrl, noteId),
-                                     "oimNoteId": noteId
+                                     # "oimNoteId": noteId
                                      }
                             #if noteId in footnotesIdTargets: # footnote resource is target of another footnote loc
                             #    attrs["id"] = noteId
@@ -2337,7 +2407,37 @@ def validateFinally(val, *args, **kwargs):
                                 modelObject=modelXbrl)
     else:
         # validate xBRL-XML instances
-        dimContainers = set(rel.contextElement for rel in modelXbrl.relationshipSet((hc_all, hc_notAll)).modelRelationships)
+        unsupportedDataTypeFacts = []
+        tupleFacts = [] 
+        precisionZeroFacts = []
+        contextsInUse = set()   
+        for f in modelXbrl.factsInInstance: # facts in document order (no sorting required for messages)
+            concept = f.concept
+            if concept is not None:
+                if concept.isFraction:
+                    unsupportedDataTypeFacts.append(f)
+                if concept.isTuple:
+                    tupleFacts.append(f)
+                if concept.isNumeric and f.precision is not None and precisionZeroPattern.match(f.precision):
+                    precisionZeroFacts.append(f)
+            context = f.context
+            if context is not None:
+                contextsInUse.add(context)
+        if unsupportedDataTypeFacts:
+            modelXbrl.error("xbrlxe:unsupportedConceptDataType",
+                            _("Instance has %(count)s fraction facts"),
+                            modelObject=unsupportedDataTypeFacts, count=len(unsupportedDataTypeFacts))
+        if tupleFacts:
+            modelXbrl.error("xbrlxe:unsupportedTuple",
+                            _("Instance has %(count)s tuple facts"),
+                            modelObject=tupleFacts, count=len(tupleFacts))
+        if precisionZeroFacts:
+            modelXbrl.error("xbrlxe:unsupportedZeroPrecisionFact",
+                            _("Instance has %(count)s precision zero facts"),
+                            modelObject=precisionZeroFacts, count=len(precisionZeroFacts))
+        
+        containers = {"segment", "scenario"}  
+        dimContainers = set(t for c in contextsInUse for t in containers if c.dimValues(t))
         if len(dimContainers) > 1:
             modelXbrl.error("xbrlxe:inconsistentDimensionsContainer",
                             _("All hypercubes within the DTS of a report MUST be defined for use on the same container (either \"segment\" or \"scenario\")"),
@@ -2345,8 +2445,8 @@ def validateFinally(val, *args, **kwargs):
         contextsWithNonDimContent = set()
         contextsWithNonDimContainer = set()
         contextsWithComplexTypedDimensions = set()
-        containersNotUsedForDimensions = {"segment", "scenario"} - dimContainers
-        for context in modelXbrl.contexts.values():
+        containersNotUsedForDimensions = containers - dimContainers
+        for context in contextsInUse:
             if context.nonDimValues("segment"):
                 contextsWithNonDimContent.add(context)
                 if "segment" in containersNotUsedForDimensions:
@@ -2382,31 +2482,6 @@ def validateFinally(val, *args, **kwargs):
                             _("Instance has contexts with complex typed dimensions: %(contexts)s"),
                             modelObject=contextsWithNonDimContainer, 
                             contexts=", ".join(sorted(c.id for c in contextsWithComplexTypedDimensions)))
-          
-        unsupportedDataTypeFacts = []
-        tupleFacts = [] 
-        precisionZeroFacts = []     
-        for f in modelXbrl.factsInInstance: # facts in document order (no sorting required for messages)
-            concept = f.concept
-            if concept is not None:
-                if concept.isFraction:
-                    unsupportedDataTypeFacts.append(f)
-                if concept.isTuple:
-                    tupleFacts.append(f)
-                if concept.isNumeric and f.precision is not None and precisionZeroPattern.match(f.precision):
-                    precisionZeroFacts.append(f)
-        if unsupportedDataTypeFacts:
-            modelXbrl.error("xbrlxe:unsupportedConceptDataType",
-                            _("Instance has %(count)s fraction facts"),
-                            modelObject=unsupportedDataTypeFacts, count=len(unsupportedDataTypeFacts))
-        if tupleFacts:
-            modelXbrl.error("xbrlxe:unsupportedTuple",
-                            _("Instance has %(count)s tuple facts"),
-                            modelObject=tupleFacts, count=len(tupleFacts))
-        if precisionZeroFacts:
-            modelXbrl.error("xbrlxe:unsupportedZeroPrecisionFact",
-                            _("Instance has %(count)s precision zero facts"),
-                            modelObject=precisionZeroFacts, count=len(precisionZeroFacts))
  
         footnoteRels = modelXbrl.relationshipSet("XBRL-footnotes")
         # ext group and link roles
