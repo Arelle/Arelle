@@ -408,10 +408,24 @@ def jsonGet(tbl, key, default=None):
         return tbl.get(key, default)
     return default
 
+# singleton special values
+class Singleton(str):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return self.value
+    
+EMPTY_CELL = Singleton("")
+NONE_CELL = Singleton("")
+
 def csvCellValue(cellValue):
-    if cellValue == "#nil":
+    if cellValue == "#nil": # nil value
         return None
-    elif cellValue == "#empty":
+    elif cellValue == "": # empty cell
+        return EMPTY_CELL
+    elif cellValue == "#none":
+        return NONE_CELL
+    elif cellValue == "#empty": # empty string
         return ""
     elif isinstance(cellValue, str) and cellValue.startswith("##"):
         return cellValue[1:]
@@ -484,7 +498,7 @@ periodForms = ((PER_ISO, re_compile("([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{
                (PER_WEEK, re_compile("([0-9]{4}W[1-5]?[0-9])(@(start|end))?$")))
 
 def csvPeriod(cellValue, startOrEnd):
-    if cellValue in ("", "#none"):
+    if cellValue is EMPTY_CELL or cellValue is NONE_CELL:
         return None
     isoDuration = None
     for perType, perFormMatch in periodForms:
@@ -1059,7 +1073,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     extendedDocumentType = extendedDocumentInfo.get("documentType")
                     extendedFinal = extendedDocumentInfo.get("final", EMPTY_DICT)
                     if extendedDocumentType != documentType:
-                        error("{}:invalidExtendedDocumentType".format(errPrefix), 
+                        error("{}:multipleDocumentTypesInExtensionChain".format(errPrefix), 
                               _("Extended documentType %(extendedDocumentType)s must same as extending documentType %(documentType)s in file %(extendedFile)s"),
                               extendedFile=extendedFile, extendedDocumentType=extendedDocumentType, documentType=documentType)
                         raise OIMException()
@@ -1081,7 +1095,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         (oimObject, extendedOimObject, {"documentInfo", "parameters", "parameterURL"})):
                         for objectName in extendedParent.keys() - excludedObjectNames:
                             if extendedFinal.get(objectName, False) and objectName in parent:
-                                error("{}:extendedFinalObject".format(errPrefix), 
+                                error("{}:illegalExtensionOfFinalProperty    ".format(errPrefix), 
                                       _("Extended file %(extendedFile)s redefines final object %(finalObjectName)s"),
                                       extendedFile=extendedFile, finalObjectName=objectName)
                                 if objectName in extendedParent:
@@ -1089,9 +1103,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             elif objectName in csvExtensibleObjects:
                                 for extProp, extPropValue in extendedParent.get(objectName,EMPTY_DICT).items():
                                     if extProp in parent.get(objectName,EMPTY_DICT):
-                                        error("{}:extendedObjectDuplicate".format(errPrefix), 
-                                              _("Extended file %(extendedFile)s redefines object %(objectName)s property %(property)s"),
-                                              extendedFile=extendedFile, objectName=objectName, property=extProp)
+                                        if extPropValue != parent[objectName][extProp]:
+                                            error("{}:conflictingMetadataValue".format(errPrefix), 
+                                                  _("Extended file %(extendedFile)s redefines object %(objectName)s property %(property)s"),
+                                                  extendedFile=extendedFile, objectName=objectName, property=extProp)
                                     else:
                                         if objectName not in parent:
                                             parent[objectName] = {}
@@ -1102,7 +1117,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                         if extPropValue not in parent["taxonomy"]:
                                             parent["taxonomy"].append(extPropValue)
                                 else:
-                                    error("{}:extendedObjectDuplicate".format(errPrefix), 
+                                    error("{}:illegalRedefinitionOfNonExtensibleProperty".format(errPrefix), 
                                           _("Extended file %(extendedFile)s redefines object %(objectName)s"),
                                           extendedFile=extendedFile, objectName=objectName)
                             else:
@@ -1530,8 +1545,13 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     fact = {}
                                     # if this is an id column
                                     cellValue = _cellValue(colValue) # nil facts return None, #empty string is ""
-                                    if cellValue == "": # no fact produced
+                                    if cellValue is EMPTY_CELL: # no fact produced
                                         continue 
+                                    if cellValue is NONE_CELL:
+                                        error("xbrlce:illegalUseOfNone", 
+                                              _("Table %(table)s row %(row)s column %(column)s must not have #none, from %(source)s, url: %(url)s"),
+                                              table=tableId, row=rowIndex+1, column=colName, url=tableUrl, source=dimSource)
+                                        continue
                                     if cellPropGroup:
                                         for propFromColName in propFromColNames:
                                             rowPropGroupsUsed.add(propFromColName)
@@ -1556,11 +1576,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                         elif paramName in colNameIndex:
                                                             paramColsUsed.add(paramName)
                                                             dimValue = _cellValue(row[colNameIndex[paramName]])
-                                                            if dimValue == "": # csv file empty string is #none
+                                                            if dimValue is EMPTY_CELL or dimValue is NONE_CELL: # csv file empty cell or  none
                                                                 if paramName in colDefaults:
                                                                     dimValue = colDefaults[paramName]
                                                                 else:
-                                                                    dimValue = "#none"
+                                                                    dimValue = NONE_CELL
                                                         elif paramName in tableParameters:
                                                             tableParametersUsed.add(paramName)
                                                             dimValue = tableParameters[paramName]
@@ -1574,15 +1594,15 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                         error("xbrlce:referenceTargetNotDuration", 
                                                               _("Table %(table)s row %(row)s column %(column)s has instant date with period reference \"%(date)s\", from %(source)s, url: %(url)s"),
                                                               table=tableId, row=rowIndex+1, column=colName, date=dimValue, url=tableUrl, source=dimSource)
-                                                        dimValue = "#none"
+                                                        dimValue = NONE_CELL
                                                     elif _dimValue == None: # bad format, raised value error
-                                                        error("xbrlce:invalidJSONStructure", 
+                                                        error("xbrlce:invalidPeriodRepresentation", 
                                                               _("Table %(table)s row %(row)s column %(column)s has lexical syntax issue with date \"%(date)s\", from %(source)s, url: %(url)s"),
                                                               table=tableId, row=rowIndex+1, column=colName, date=dimValue, url=tableUrl, source=dimSource)
-                                                        dimValue = "#none"
+                                                        dimValue = NONE_CELL
                                                     else:
                                                         dimValue = _dimValue
-                                                if dimValue == "#none":
+                                                if dimValue is NONE_CELL:
                                                     noValueDimNames.add(dimName)
                                                 else:
                                                     colFactDims[dimName] = dimValue
@@ -1622,7 +1642,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                 dimValue = reportParameters[paramName]
                                             else:
                                                 dimValue = "$" + paramName # for error reporting
-                                        if dimValue not in ("", "#none"):
+                                        if dimValue is not NONE_CELL and dimValue != "":
                                             if isinstance(dimValue, int) or validCsvCell:                                          
                                                 fact["decimals"] = dimValue
                                             else:
