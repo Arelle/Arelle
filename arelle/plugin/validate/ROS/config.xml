@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<DisclosureSystems  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+      xsi:noNamespaceSchemaLocation="../../../config/disclosuresystems.xsd" >
+  <!-- see ../config/disclosuresystem.xml for full comments -->
+
+  <DisclosureSystem 
+     names="ROS (Ireland)|ROS|ros"
+     description="ROS (Ireland) Validation Checks\n
+     Default language en\n
+     Disallowed references are processed"
+     validationType="ROS"
+     blockDisallowedReferences="false" 
+     defaultXmlLang="en" 
+     defaultLanguage="English" 
+     validateFileText="false"
+     contextElement="scenario" 
+     />
+
+
+</DisclosureSystems>
