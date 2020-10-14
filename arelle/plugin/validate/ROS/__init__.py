@@ -16,6 +16,7 @@ from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelValue import qname
 from arelle.PythonUtil import strTruncate
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
+from arelle.XbrlConst import qnXbrliXbrl
 
 taxonomyReferences = {
     "https://xbrl.frc.org.uk/ireland/FRS-101/2019-01-01/ie-FRS-101-2019-01-01.xsd": "FRS 101 Irish Extension",
@@ -186,7 +187,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             if qn in mandatory:
                 reportedMandatory.add(qn)
             for f in facts:
-                if f.isNumeric:
+                if f.isNumeric and f.parentElement.qname == qnXbrliXbrl:
                     numFactsByConceptContextUnit[(f.qname, mapContext.get(f.context,f.context), mapUnit.get(f.unit, f.unit))].append(f)
             
         missingElements = (mandatory - reportedMandatory) # | (reportedFootnoteIfNil - reportedFootnoteIfNil)
