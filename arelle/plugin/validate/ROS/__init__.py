@@ -46,7 +46,6 @@ mandatoryElements = {
         "EntityCurrentLegalOrRegisteredName",
         "StartDateForPeriodCoveredByReport",
         "EndDateForPeriodCoveredByReport",
-        "ProfitLossOnOrdinaryActivitiesBeforeTax"
         },
     "ie-dpl": { 
         "DPLTurnoverRevenue",
@@ -59,15 +58,11 @@ mandatoryElements = {
         },
     "core": { 
         "Equity",
-        "ProfitLossBeforeTax"
         }
     }
 
 # lists of mandatory elements which can be satisfied by other taxonomies
 equivalentMandatoryElements = [
-        ["uk-bus:ProfitLossOnOrdinaryActivitiesBeforeTax", # rule #6
-         "core:ProfitLossBeforeTax",
-         "core:ProfitLossOnOrdinaryActivitiesBeforeTax"]
     ]
                 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
@@ -271,7 +266,7 @@ def validateXbrlFinally(val, *args, **kwargs):
 
 
         if hasCRO and "ie-common" in nsMap:
-            mandatory.add(qname(nsMap["ie-common"], "CompaniesRegistrationOfficeNumber"))
+            mandatory.add(qname("ie-common:CompaniesRegistrationOfficeNumber", nsMap))
         
         reportedMandatory = set()
         numFactsByConceptContextUnit = defaultdict(list) 
