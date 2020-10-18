@@ -52,14 +52,17 @@ jsonDocumentTypes = (
         "http://www.xbrl.org/YYYY-MM-DD/xbrl-json",
         "http://www.xbrl.org/((~status_date_uri~))/xbrl-json", # allows loading of XII "template" test cases without CI production
         "http://www.xbrl.org/CR/2020-05-06/xbrl-json",
+        "http://www.xbrl.org/CR/2020-10-14/xbrl-json"
     )
 csvDocumentTypes = (
         "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-csv",
         "http://xbrl.org/YYYY/xbrl-csv",
         "http://www.xbrl.org/((~status_date_uri~))/xbrl-csv", # allows loading of XII "template" test cases without CI production
-        "http://www.xbrl.org/CR/2019-10-19/xbrl-csv"
+        "http://www.xbrl.org/CR/2019-10-19/xbrl-csv",
+        "http://xbrl.org/CR/2020-10-14/xbrl-csv",
+        "http://www.xbrl.org/CR/2020-10-14/xbrl-csv"
     )
-csvDocinfoObjects = {"documentType", "reportDimensions", "namespaces", "taxonomy", "decimals", "extends", "final"}
+csvDocinfoObjects = {"documentType", "namespaces", "taxonomy", "extends", "final"}
 csvExtensibleObjects = {"namespaces", "linkTypes", "linkGroups", "tableTemplates", "tables", "reportDimensions", "final"}
 
          
@@ -419,6 +422,7 @@ EMPTY_CELL = Singleton("")
 NONE_CELL = Singleton("")
 
 def csvCellValue(cellValue):
+    # CSV table in Appendix A
     if cellValue == "#nil": # nil value
         return None
     elif cellValue == "": # empty cell
@@ -444,6 +448,19 @@ def xlValue(cell): # excel values may have encoded unicode, such as _0000D_
     else:
         v = str(v)
     return csvCellValue(v)
+
+def parseMetadataCellValues(metadataTable):
+    for dimName in metadataTable.keys():
+        dimValue = metadataTable[dimName]
+        # CSV table in Appendix A (similar to "cellValue"
+        if dimValue is None or dimValue == "#nil":
+            metadataTable[dimName] = None
+        elif dimValue == "": # empty cell
+            metadataTable[dimName] = EMPTY_CELL
+        elif dimValue == "#none":
+            metadataTable[dimName] = NONE_CELL
+        elif isinstance(dimValue, str) and dimValue.startswith("##"):
+            metadataTable[dimName] = dimValue[1:]
 
 def xlTrimHeaderRow(row):
     numEmptyCellsAtEndOfRow = 0
@@ -499,7 +516,7 @@ periodForms = ((PER_ISO, re_compile("([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{
 
 def csvPeriod(cellValue, startOrEnd):
     if cellValue is EMPTY_CELL or cellValue is NONE_CELL:
-        return None
+        return NONE_CELL # Forever period (null in xBRL-JSON
     isoDuration = None
     for perType, perFormMatch in periodForms:
         m = perFormMatch.match(cellValue)
@@ -1211,6 +1228,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             _dir = os.path.dirname(oimFile)
 
             def csvFacts():
+                parseMetadataCellValues(reportDimensions)
                 for tableId, table in tables.items():
                     _file = tablePath = None
                     try: # note that decoder errors may occur late during streaming of rows
@@ -1223,6 +1241,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         # tableIsTransposed = tableTemplate.get("transposed", False)
                         tableDecimals = tableTemplate.get("decimals")
                         tableDimensions = tableTemplate.get("dimensions", EMPTY_DICT)
+                        parseMetadataCellValues(tableDimensions)
                         tableIsOptional = table.get("optional", False)
                         tableParameters = table.get("parameters", EMPTY_DICT)
                         tableParametersUsed = set()
@@ -1316,13 +1335,14 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         for factColName, colDims in factDimensions.items():
                             if colDims is not None:
                                 factDims = set()
-                                for inheritedDims in (colDims.items(), tableDimensions.items(), reportDimensions.items()):
-                                    for dimName, dimValue in inheritedDims:
+                                for inheritedDims in (colDims, tableDimensions, reportDimensions):
+                                    for dimName, dimValue in inheritedDims.items():
                                         if dimName not in factDims:
                                             checkParamRef(dimValue, factColName)
                                             factDims.add(dimName)
                                         if dimName == "xbrl:noteId":
                                             hasNoteIdDimension = True
+                                parseMetadataCellValues(colDims)
                                 for _factDecimals in (factDecimals.get(factColName), tableDecimals, reportDecimals):
                                     if "decimals" not in factDims:
                                         checkParamRef(_factDecimals, factColName)
@@ -1489,16 +1509,25 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     continue
                                 rowPropGroups = {} # colName, propGroupObject for property groups in this row
                                 rowPropGroupsUsed = set() # colNames used by propertiesFrom of fact col producing a fact
+                                hasRowError = False
                                 for propGrpName, propGrpObjects in propertyGroups.items():
                                     propGrpColIndex = colNameIndex[propGrpName]
                                     if propGrpColIndex < len(row):
                                         propGrpColValue = _cellValue(row[propGrpColIndex])
-                                        if propGrpColValue in propGrpObjects:
+                                        if propGrpColValue is NONE_CELL:
+                                            error("xbrlce:illegalUseOfNone", 
+                                                  _("Table %(table)s row %(row)s column %(column)s must not have #none, from %(source)s, url: %(url)s"),
+                                                  table=tableId, row=rowIndex+1, column=colName, url=tableUrl, source=dimSource)
+                                            hasRowError = True
+                                        elif propGrpColValue in propGrpObjects:
                                             rowPropGroups[propGrpName] = propGrpObjects[propGrpColValue]
                                         else:
                                             error("xbrlce:unknownPropertyGroup", 
                                                   _("Table %(table)s unknown property group row %(row)s column %(column)s group %(propertyGroup)s, url: %(url)s"),
                                                   table=tableId, row=rowIndex+1, column=rowIdColName, url=tableUrl, propertyGroup=propGrpName)
+                                            hasRowError = True
+                                if hasRowError:
+                                    continue
                                 for colIndex, colValue in enumerate(row):
                                     if colIndex >= len(header):
                                         continue
@@ -1642,12 +1671,12 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                 dimValue = reportParameters[paramName]
                                             else:
                                                 dimValue = "$" + paramName # for error reporting
-                                        if dimValue is not NONE_CELL and dimValue != "":
+                                        if dimValue is not NONE_CELL and dimValue != "" and dimValue != "#none":
                                             if isinstance(dimValue, int) or validCsvCell:                                          
                                                 fact["decimals"] = dimValue
                                             else:
                                                 error("xbrlce:invalidDecimalsValue", 
-                                                      _("Fact %(FactId)S has invalid decimals \"%(decimals)s\", from %(source)s, url: %(url)s"),
+                                                      _("Fact %(FactId)s has invalid decimals \"%(decimals)s\", from %(source)s, url: %(url)s"),
                                                       table=tableId, row=rowIndex+1, column=colName, decimals=dimValue, url=tableUrl, source=dimSource)
                                     yield (factId, fact)
                                 unmappedParamCols = paramColsWithValue - paramColsUsed
@@ -1844,10 +1873,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         period += "/" + dimensions["xbrl:end"]
                 elif "period" in dimensions:
                     period = dimensions["period"]
-                    if period is None:
+                    if period is None or period is NONE_CELL:
                         period = "forever"
                     elif not PeriodPattern.match(period):
-                        error("oimce:invalidPeriodRepresentation",
+                        error("xbrlce:invalidPeriodRepresentation" if isCSVorXL else "oimce:invalidPeriodRepresentation",
                               _("The fact %(factId)s, concept %(element)s has a lexically invalid period dateTime %(periodError)s"),
                               modelObject=modelXbrl, factId=id, element=conceptQn, periodError=period)
                         continue
@@ -1903,7 +1932,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             if dimConcept.isExplicitDimension:
                                 mem = qname(dimVal, namespaces)
                                 if mem is None:
-                                    error("oime:invalidDimensionValue",
+                                    error("xbrlce:invalidDimensionValue" if isCSVorXL else "oime:invalidDimensionValue",
                                           _("Fact %(factId)s taxonomy-defined explicit dimension value is invalid: %(memberQName)s."),
                                           modelObject=modelXbrl, factId=id, memberQName=dimVal)
                                     continue
@@ -1948,12 +1977,12 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         if len(modelXbrl.errors) > prevErrLen:
                             numFactCreationXbrlErrors += sum(err != "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:])
                             if any(err == "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:]):
-                                error("oime:invalidDimensionValue",
+                                error("xbrlce:invalidDimensionValue" if isCSVorXL else "oime:invalidDimensionValue",
                                       _("Fact %(factId)s taxonomy-defined dimension value errors noted above."),
                                       modelObject=modelXbrl, factId=id)
                                 continue
                     except ValueError as err:
-                        error("oimce:invalidPeriodRepresentation",
+                        error("xbrlce:invalidPeriodRepresentation" if isCSVorXL else "oimce:invalidPeriodRepresentation",
                               _("Invalid period for fact %(factId)s period %(period)s, %(error)s."),
                               modelObject=modelXbrl, factId=id, period=period, error=err)
                         continue
@@ -2023,7 +2052,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         
                 if fact.get("value") is None:
                     if not concept.isNillable:
-                        error("oime:invalidFactValue",
+                        error("xbrlce:invalidFactValue" if isCSVorXL else "oime:invalidFactValue",
                               _("Nil value applied to non-nillable concept: %(concept)s."),
                               modelObject=modelXbrl, concept=conceptSQName)
                         continue
@@ -2049,7 +2078,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     if isFactValid:
                         text = " ".join(sorted(expandedNames))
                     else:
-                        error("oime:invalidFactValue",
+                        error("xbrlce:invalidFactValue" if isCSVorXL else "oime:invalidFactValue",
                               _("Enumeration item must be %(canonicalOrdered)slist of QNames: %(concept)s."),
                               modelObject=modelXbrl, concept=conceptSQName, canonicalOrdered="a canonical ordered " if canonicalValuesFeature else "")
                         continue
@@ -2101,7 +2130,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             if len(modelXbrl.errors) > prevErrLen:
                 numFactCreationXbrlErrors += sum(err != "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:])
                 if any(err == "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:]):
-                    error("oime:invalidFactValue",
+                    error("xbrlce:invalidFactValue" if isCSVorXL else "oime:invalidFactValue",
                           _("Fact %(factId)s value error noted above."),
                           modelObject=modelXbrl, factId=id)
             
