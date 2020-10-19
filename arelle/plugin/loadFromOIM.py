@@ -873,14 +873,14 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         chars = f.read(16) # test encoding
                         m = UTF_7_16_Pattern.match(chars)
                         if m:
-                            raise OIMException("{}:invalidCSVFileFormat".format(errPrefix),
+                            raise OIMException("{}:invalidJSON".format(errPrefix),
                                   _("File MUST use utf-8 encoding: %(file)s, appears to be %(encoding)s"),
                                   file=filepath, encoding=m.lastgroup)
                         else:
                             f.seek(0)
                             oimObject = json.load(f, object_pairs_hook=loadDict)
                 except UnicodeDecodeError as ex:
-                    raise OIMException("{}:invalidCSVFileFormat".format(errPrefix),
+                    raise OIMException("{}:invalidJSON".format(errPrefix),
                           _("File MUST use utf-8 encoding: %(file)s, error %(error)s"),
                           file=filepath, error=str(ex))
                 except json.JSONDecodeError as ex:
@@ -1858,7 +1858,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     attrs["{http://www.w3.org/XML/1998/namespace}lang"] = lang
                 entityAsQn = ENTITY_NA_QNAME
                 entitySQName = dimensions.get("entity")
-                if entitySQName is not None:
+                if entitySQName is not None and entitySQName is not NONE_CELL:
                     entityPrefix = entitySQName.partition(":")[0]
                     if entityPrefix not in namespaces:
                         error("oimce:unboundPrefix",
@@ -1866,12 +1866,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                               modelObject=modelXbrl, entity=entitySQName)
                     else:
                         entityAsQn = qname(entitySQName, namespaces)
-                if "xbrl:start" in dimensions and "xbrl:end" in dimensions:
-                    # CSV/XL format
-                    period = dimensions["xbrl:start"]
-                    if period != dimensions["xbrl:end"]:
-                        period += "/" + dimensions["xbrl:end"]
-                elif "period" in dimensions:
+                if "period" in dimensions:
                     period = dimensions["period"]
                     if period is None or period is NONE_CELL:
                         period = "forever"
@@ -1991,7 +1986,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         firstCntxUnitFactElt = _cntx
                 unitKey = dimensions.get("unit")
                 if concept.isNumeric:
-                    if unitKey is not None:
+                    if unitKey is not None and unitKey is not NONE_CELL:
                         if unitKey == "xbrli:pure":
                             error("oime:illegalPureUnit",
                                   _("Unit MUST NOT have single numerator measure xbrli:pure with no denominators."),
@@ -2186,6 +2181,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 for tgtId in ftTgtIds:
                                     if tgtId in xbrlNoteTbl:
                                         footnote.setdefault("noteRefs", []).append(tgtId)
+                                        noteFactIDsNotReferenced.discard(tgtId)
                                     elif tgtId in modelXbrl.modelDocument.idObjects:
                                         footnote.setdefault("factRefs", []).append(tgtId)
                                     else:
@@ -2208,6 +2204,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     for tgtId in ftTgtIds:
                                         if tgtId in xbrlNoteTbl:
                                             footnote.setdefault("noteRefs", []).append(tgtId)
+                                            noteFactIDsNotReferenced.discard(tgtId)
                                         elif tgtId in modelXbrl.modelDocument.idObjects:
                                             footnote.setdefault("factRefs", []).append(tgtId)
                                         else:
@@ -2268,6 +2265,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 if factId in xbrlNoteTbl: # factId is a note, not a fact
                     fromLabel = "f_{}".format(factId)
                     factLocs[(linkrole, factIDs)] = fromLabel
+                    noteFactIDsNotReferenced.discard(factId)
                 elif (linkrole, factIDs) not in factLocs:
                     locNbr += 1
                     locLabel = "l_{:02}".format(locNbr)
