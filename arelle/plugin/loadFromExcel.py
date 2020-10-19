@@ -1139,6 +1139,11 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     XmlUtil.addChild(roleElt, XbrlConst.link, "usedOn", text="link:calculationLink")
                 if hasGenLB and any(e.childStruct and e.isELR and (e.role == roleURI or e.name == roleDefinition) for e in genLB):
                     XmlUtil.addChild(roleElt, XbrlConst.link, "usedOn", text=qname("{http://xbrl.org/2008/generic}genlink:link"))
+                    
+            if not any(True for e in roleElt.iterchildren("{http://www.xbrl.org/2003/linkbase}usedOn")):
+                modelXbrl.error("loadFromExcel:roleUsedOn",
+                    "Role does not appear to be used in any relationships and has no usedOn elements: %(roleURI)s",
+                    modelXbrl=modelXbrl, roleURI=roleURI, filename=thisDoc.extensionSchemaNamespaceURI)
                         
         # add role definitions (for discovery) and generic labels
         if any(roleURI in thisDoc.extensionRoleLabels for roleURI in thisDoc.extensionRoles.keys()):
