@@ -150,11 +150,11 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
     
     def lbDepthList(lbStruct, depth, parentList=None):
         if len(lbStruct) > 0:
-            if depth == topDepth or not hasDepthColumn:
+            if depth == topDepth or not (hasDepthColumn or hasPresentationIndentColumnIndentations):
                 return lbStruct[-1].childStruct
             return lbDepthList(lbStruct[-1].childStruct, depth-1, list)
         else:
-            if hasDepthColumn:
+            if (hasDepthColumn or hasPresentationIndentColumnIndentations):
                 cntlr.addToLog("Depth error, Excel sheet: {excelSheet} row: {excelRow}"
                                .format(excelSheet=importSheetName, excelRow=iRow),
                                 messageCode="importExcel:depth")
@@ -417,6 +417,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
         hasConceptAttributeColumn = False
         hasDepthColumn = False
         hasPresentationParentColumn = False
+        presentationIndentColumn = None
+        hasPresentationIndentColumnIndentations = False
         hasRelationshipToCol = False
         hasrelationshipAttributeColumn = False
         conceptsWs = importExcelBook[importSheetName]
@@ -458,6 +460,10 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 sum(1 for h in headerCols if h == "name" or (isinstance(h, tuple) and h[0] == "relationship to")) >= 2):
                 # it's a header col
                 headerRows.add(iRow+1)
+                presentationIndentColumn = None
+                for h,i in headerCols.items():
+                    if isinstance(h, tuple) and "indented" in h:
+                       presentationIndentColumn = i
             if 'linkrole' in headerCols:
                 hasLinkroleSeparateRow = False
             if 'preferredLabel' in headerCols and any(isinstance(h, tuple) and h[0] == 'label' and h[1] == '/preferredLabel' 
@@ -469,6 +475,13 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 hasPresentationParentColumn = True
             if not hasDepthColumn and hasPresentationParentColumn:
                 topDepth = 0
+            if not hasPresentationParentColumn and not hasDepthColumn and presentationIndentColumn is not None:
+                if row[presentationIndentColumn].value:
+                    depth = int(row[presentationIndentColumn].alignment.indent)
+                    if depth < topDepth:
+                        hasPresentationIndentColumnIndentations = True
+                        if depth < topDepth:
+                            topDepth = depth
             hasRelationshipToCol = any(h[0] == "relationship to" for h in headerCols if isinstance(h, tuple))
             headerCols.clear()
     
@@ -601,6 +614,11 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     prefix, name = rowPrefixNameValues(row)
                     if cellHasValue(row, 'depth', int):
                         depth = cellValue(row, 'depth')
+                    elif hasPresentationIndentColumnIndentations:
+                        if row[presentationIndentColumn].value is not None:
+                            depth = int(row[presentationIndentColumn].alignment.indent)
+                        else:
+                            depth = None
                     elif hasDepthColumn:
                         depth = None # non-ELR section, no depth
                     else: # depth provided by parent reference
@@ -721,7 +739,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                             print ("Sheet {} row {} has relationships and no \"name\" field, label: {}".format(importSheetName, iRow+1, _label))
                         if hasPreLB:
                             preferredLabel = cellValue(row, 'preferredLabel')
-                            if hasDepthColumn:
+                            if hasDepthColumn or hasPresentationIndentColumnIndentations:
                                 entryList = lbDepthList(preLB, depth)
                                 if entryList is not None and isConcept:
                                     if not name or not prefix:
