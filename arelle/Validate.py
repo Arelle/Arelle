@@ -7,7 +7,7 @@ Created on Oct 17, 2010
 import os, sys, traceback, re, logging
 from collections import defaultdict, OrderedDict
 from arelle import (FileSource, ModelXbrl, ModelDocument, ModelVersReport, XbrlConst, 
-               ValidateXbrl, ValidateFiling, ValidateHmrc, ValidateVersReport, ValidateFormula,
+               ValidateXbrl, ValidateVersReport, ValidateFormula,
                ValidateInfoset, RenderingEvaluator, ViewFileRenderedGrid, UrlUtil)
 from arelle.ModelDocument import Type, ModelDocumentReference, load as modelDocumentLoad
 from arelle.ModelDtsObject import ModelResource
@@ -43,12 +43,7 @@ class Validate:
     def __init__(self, modelXbrl):
         self.modelXbrl = modelXbrl
         if modelXbrl.modelManager.validateDisclosureSystem:
-            if modelXbrl.modelManager.disclosureSystem.HMRC: # deprecated non-plugin validator
-                self.instValidator = ValidateHmrc.ValidateHmrc(modelXbrl)
-            elif modelXbrl.modelManager.disclosureSystem.EFMorGFM or modelXbrl.modelManager.disclosureSystem.SBRNL: # deprecated non-plugin validator
-                self.instValidator = ValidateFiling.ValidateFiling(modelXbrl)
-            else: # custom validator, probably a plug-in
-                self.instValidator = ValidateXbrl.ValidateXbrl(modelXbrl)
+            self.instValidator = ValidateXbrl.ValidateXbrl(modelXbrl)
             self.formulaValidator = ValidateXbrl.ValidateXbrl(modelXbrl)
         else:
             self.instValidator = ValidateXbrl.ValidateXbrl(modelXbrl)
