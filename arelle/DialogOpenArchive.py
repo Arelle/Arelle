@@ -179,7 +179,7 @@ class DialogOpenArchive(Toplevel):
                     self.packageContainedIXDSes = defaultdict(list)
                     packageContentInstanceCounts = {}
                     packageContentTypeCounts = {}
-                    for suffix in (".xhtml", ".htm", ".html"): # try for suffixes in order of likelihood to have instance
+                    for suffix in (".xhtml", ".htm", ".html", ".xbrl"): # try for suffixes in order of likelihood to have instance
                         for potentialInstance in filesource.dir:
                             if potentialInstance.endswith(suffix):
                                 m = reportIxdsPattern.match(potentialInstance) # IXDS
@@ -187,6 +187,8 @@ class DialogOpenArchive(Toplevel):
                                     _type = "Inline Doc Set"
                                     self.packageContainedIXDSes[m.group(1)].append(potentialInstance)
                                     potentialInstance = m.group(1) # use package name only
+                                elif suffix == ".xbrl":
+                                    _type = "xBRL-XML Instance"
                                 else:
                                     _type = "Inline Instance"
                                 if not self.packageContainedInstances or self.packageContainedInstances[-1][0] != potentialInstance:
