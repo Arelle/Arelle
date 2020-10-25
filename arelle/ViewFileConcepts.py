@@ -17,6 +17,7 @@ COL_WIDTHS = {
     "Label": 60,
     "Name": 60,
     "ID": 40,
+    "Namespace": 60,
     "Abstract": 8,
     "Substitution Group": 12,
     "Type": 32,
@@ -54,7 +55,7 @@ class ViewConcepts(ViewFile.View):
                 elif not hasDifferentNillables and concept.nillable != priorNillable:
                     hasDifferentNillables = True
         # header
-        headings = ["Label","Name","ID","Abs\u00ADtract","Substi\u00ADtu\u00ADtion Group","Type","Per\u00ADiod Type", "Bal\u00ADance"]
+        headings = ["Label","Name","ID","Namespace","Abs\u00ADtract","Substi\u00ADtu\u00ADtion Group","Type","Per\u00ADiod Type", "Bal\u00ADance"]
         if hasDifferentNillables:
             headings.append("Nillable")
         if hasTypedDomainRef:
@@ -73,6 +74,7 @@ class ViewConcepts(ViewFile.View):
                     cols = [concept.label(preferredLabel=self.labelrole, lang=self.lang, strip=True, linkroleHint=XbrlConst.defaultLinkRole),
                             concept.name,
                             concept.id,
+                            concept.qname.namespaceURI,
                             concept.abstract,
                             concept.substitutionGroupQname,
                             concept.typeQname,
