@@ -690,7 +690,7 @@ class XPathContext:
             try:
                 x = Decimal(v)
             except InvalidOperation:
-                raise XPathException(p, 'err:FORG0001', _('Atomizing {0} to decimal does not have a proper value'))
+                raise XPathException(p, 'err:FORG0001', _('Atomizing {0} to decimal does not have a proper value').format(x))
         elif baseXsdType in ("integer",
                              "nonPositiveInteger","negativeInteger","nonNegativeInteger","positiveInteger",
                              "long","unsignedLong",
