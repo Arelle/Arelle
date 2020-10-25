@@ -701,7 +701,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         currentAction = "loading and parsing OIM file"
         loadDictErrors = []
         def openCsvReader(csvFilePath, hasHeaderRow=True):
-            _file, = modelXbrl.fileSource.file(csvFilePath, binary=True)
+            _file = modelXbrl.fileSource.file(csvFilePath, binary=True)[0]
             bytes = _file.read(16) # test encoding
             try:
                 m = EBCDIC_Bytes_Pattern.match(bytes)
@@ -719,7 +719,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 raise OIMException("xbrlce:invalidCSVFileFormat",
                       _("CSV file MUST use utf-8 encoding: %(file)s, appears to be %(encoding)s"),
                       file=csvFilePath, encoding=m.lastgroup)
-            _file, = modelXbrl.fileSource.file(csvFilePath, encoding='utf-8-sig')
+            _file = modelXbrl.fileSource.file(csvFilePath, encoding='utf-8-sig')[0]
             if hasHeaderRow:
                 try:
                     chars = _file.read(1024)
@@ -862,13 +862,13 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(mappedUrl) # , reload=reloadCache, checkModifiedTime=kwargs.get("checkModifiedTime",False))
                 if filepath:
                     url = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(filepath)
-            if filepath.endswith(".csv") or ("metadata" in filepath and filepath.endswith(".json")):
+            if filepath and filepath.endswith(".csv") or ("metadata" in filepath and filepath.endswith(".json")):
                 errPrefix = "xbrlce"
             else:
                 errPrefix = "xbrlje"
             if not isXL:
                 try:
-                    _file, = modelXbrl.fileSource.file(filepath, encoding="utf-8-sig")
+                    _file = modelXbrl.fileSource.file(filepath, encoding="utf-8-sig")[0]
                     with _file as f:
                         chars = f.read(16) # test encoding
                         m = UTF_7_16_Pattern.match(chars)
@@ -896,7 +896,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     del oimObject[DUPJSONKEY]
                 oimWb = None
             elif isXL:
-                _file, = modelXbrl.fileSource.file(filepath, binary=True)
+                _file = modelXbrl.fileSource.file(filepath, binary=True)[0]
                 with _file as f:
                     oimWb = load_workbook(f, data_only=True)
                 if "metadata" not in oimWb:
@@ -1384,7 +1384,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                           table=tableId, url=tableUrl)
                                 continue
                             if tableUrl.endswith(".xlsx"):
-                                _file, = modelXbrl.fileSource.file(tablePath, binary=True)
+                                _file = modelXbrl.fileSource.file(tablePath, binary=True)[0]
                                 tableWb = load_workbook(_file, data_only=True)
                                 _cellValue = xlValue
                             else:
