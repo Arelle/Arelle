@@ -1023,12 +1023,15 @@ class ModelXbrl:
                             objectUrl = arg
                         else:
                             try:
-                                objectUrl = self.modelDocument.displayUri
+                                objectUrl = arg.modelDocument.displayUri
                             except AttributeError:
                                 try:
                                     objectUrl = arg.displayUri
                                 except AttributeError:
-                                    objectUrl = getattr(self, "entryLoadingUrl", "")
+                                    try:
+                                        objectUrl = self.modelDocument.displayUri
+                                    except AttributeError:
+                                        objectUrl = getattr(self, "entryLoadingUrl", "")
                         try:
                             if objectUrl.endswith("/_IXDS"):
                                 file = objectUrl[:-6] # inline document set or report package
