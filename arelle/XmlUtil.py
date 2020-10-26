@@ -855,6 +855,13 @@ def elementChildSequence(element):
             childSequence.insert(1, str(siblingPosition))
         element = element.getparent()
     return "/".join(childSequence)
+
+def elementTagnamesPath(element): # returns clark notation absolute path without element sequences
+    tagnamesPath = []
+    while (element is not None):
+        tagnamesPath.insert(0, element.tag)
+        element = element.getparent()
+    return "/".join(tagnamesPath)
                         
 def xmlstring(elt, stripXmlns=False, prettyPrint=False, contentsOnly=False, includeText=False):
     if elt is None:

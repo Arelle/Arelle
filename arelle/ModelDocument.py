@@ -898,26 +898,48 @@ class ModelDocument:
                 self.modelXbrl.schemaDocsToValidate.add(self) # validate schema elements
 
             
-    def schemaDiscoverChildElements(self, parentModelObject, isSupplemental=False, depth=1):
+    def schemaDiscoverChildElements(self, parentModelObject, isSupplemental=False):
         # find roleTypes, elements, and linkbases
         # must find import/include before processing linkbases or elements
         for modelObject in parentModelObject.iterchildren():
             if isinstance(modelObject,ModelObject):
                 ln = modelObject.localName
                 ns = modelObject.namespaceURI
-                if depth == 1 and modelObject.namespaceURI == XbrlConst.xsd and ln in {"import", "include", "redefine"}:
-                    self.importDiscover(modelObject)
-                elif depth == 3 and ns == XbrlConst.link and (self.inDTS or isSupplemental):
+                if modelObject.namespaceURI == XbrlConst.xsd and ln in {"import", "include", "redefine"}:
+                    if parentModelObject.qname == XbrlConst.qnXsdSchema:
+                        self.importDiscover(modelObject)
+                    else:
+                        self.modelXbrl.error("schema.compositionElement",
+                            _("Schema element %(element)s must be parented by xs:schema."),
+                            modelObject=modelObject, element=ln)
+                elif ns == XbrlConst.link and (self.inDTS or isSupplemental):
+                    _mislocated = not XmlUtil.elementTagnamesPath(parentModelObject).endswith("{http://www.w3.org/2001/XMLSchema}schema/{http://www.w3.org/2001/XMLSchema}annotation/{http://www.w3.org/2001/XMLSchema}appinfo")
                     if ln == "roleType":
+                        if _mislocated:
+                            self.modelXbrl.error("xbrl.5.1.3.roleTypeLocation",
+                                _("Schema file link:roleType may only be located at path //xs:schema/xs:annotation/xs:appinfo but was found at %(elementPath)s"),
+                                modelObject=modelObject, elementPath=self.xmlDocument.getpath(parentModelObject))
                         self.modelXbrl.roleTypes[modelObject.roleURI].append(modelObject)
                     elif ln == "arcroleType":
+                        if _mislocated:
+                            self.modelXbrl.error("xbrl.5.1.4.arcroleTypeLocation",
+                                _("Schema file link:arcroleType may only be located at path //xs:schema/xs:annotation/xs:appinfo but was found at %(elementPath)s"),
+                                modelObject=modelObject, elementPath=self.xmlDocument.getpath(parentModelObject))
                         self.modelXbrl.arcroleTypes[modelObject.arcroleURI].append(modelObject)
                     elif ln == "linkbaseRef":
+                        if _mislocated:
+                            self.modelXbrl.error("xbrl.5.1.2.LinkbaseRefLocation",
+                                _("Schema file link:linkbaseRef may only be located at path //xs:schema/xs:annotation/xs:appinfo but was found at %(elementPath)s"),
+                                modelObject=modelObject, elementPath=self.xmlDocument.getpath(parentModelObject))
                         self.schemaLinkbaseRefDiscover(modelObject)
                     elif ln == "linkbase":
+                        if _mislocated:
+                            self.modelXbrl.error("xbrl.5.2.linkbaseLocation",
+                                _("Schema file link:linkbase may only be located at path //xs:schema/xs:annotation/xs:appinfo but was found at %(elementPath)s"),
+                                modelObject=modelObject, elementPath=self.xmlDocument.getpath(parentModelObject))
                         self.linkbaseDiscover(modelObject)
                 else: # recurse to children
-                    self.schemaDiscoverChildElements(modelObject, isSupplemental, depth+1)
+                    self.schemaDiscoverChildElements(modelObject, isSupplemental)
 
                         
     def baseForElement(self, element):

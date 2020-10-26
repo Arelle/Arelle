@@ -737,10 +737,6 @@ def checkElements(val, modelDocument, parent):
                             val.modelXbrl.error("SBR.NL.2.3.0.01",
                                 _("Xlink 1.1 simple type is not allowed (xlink:type is missing)"),
                                 modelObject=elt)
-                elif isSchema and elt.localName == "linkbaseRef" and elt.parentQname != XbrlConst.qnXsdAppinfo:
-                    val.modelXbrl.error("xbrl.5.1.2.LinkbaseRefLocation",
-                        _("Schema file link:linkbaseRef may only be a child of xs:appinfo"),
-                        modelObject=elt)
             # checks for elements in linkbases
             if elt.namespaceURI == XbrlConst.link:
                 if elt.localName in ("schemaRef", "linkbaseRef", "roleRef", "arcroleRef"):
