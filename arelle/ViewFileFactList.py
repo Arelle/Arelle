@@ -16,6 +16,8 @@ def viewFacts(modelXbrl, outfile, lang=None, labelrole=None, cols=None):
 COL_WIDTHS = {
     "Label": 80,
     "Name":  40,
+    "LocalName":  40,
+    "Namespace":  40,
     "contextRef": 40,
     "unitRef": 40,
     "Dec": 5,
@@ -50,7 +52,7 @@ class ViewFacts(ViewFile.View):
         else:
             self.cols = ["Label","contextRef","unitRef","Dec","Prec","Lang","Value"]
         col0 = self.cols[0]
-        if col0 not in ("Label", "Name"):
+        if col0 not in ("Label", "Name", "LocalName"):
             self.modelXbrl.error("arelle:firstFactListColumn",
                                  _("First column must be Label or Name: %(col1)s"),
                                  modelXbrl=self.modelXbrl, col1=col0)
@@ -95,6 +97,10 @@ class ViewFacts(ViewFile.View):
                             cols.append( concept.label(preferredLabel=self.labelrole, lang=self.lang) )
                         elif col == "Name":
                             cols.append( modelFact.qname )
+                        elif col == "LocalName":
+                            cols.append( modelFact.qname.localName )
+                        elif col == "Namespace":
+                            cols.append( modelFact.qname.namespaceURI )
                         elif col == "contextRef":
                             cols.append( modelFact.contextID )
                         elif col == "unitRef":

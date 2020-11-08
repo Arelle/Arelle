@@ -599,8 +599,8 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         :type preferredLabel: str
         :param fallbackToQname: if True and no matching label, then element qname is returned
         :type fallbackToQname: bool
-        :param lang: language code requested (otherwise configuration specified language is returned)
-        :type lang: str
+        :param lang: language code(s) requested (otherwise configuration specified language is returned).  If multiple the order represents priority of label lang.
+        :type lang: str, tuple or list
         :param strip: specifies removal of leading/trailing whitespace from returned label
         :type strip: bool
         :param linkrole: specifies linkrole desired (wild card if not specified)
@@ -611,10 +611,11 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         if preferredLabel == XbrlConst.conceptNameLabelRole: return str(self.qname)
         labelsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.conceptLabel,linkrole)
         if labelsRelationshipSet:
-            label = labelsRelationshipSet.label(self, preferredLabel, lang, linkroleHint=linkroleHint)
-            if label is not None:
-                if strip: return label.strip()
-                return Locale.rtlString(label, lang=lang)
+            for _lang in (lang if isinstance(lang, (tuple,list)) else (lang,)):
+                label = labelsRelationshipSet.label(self, preferredLabel, _lang, linkroleHint=linkroleHint)
+                if label is not None:
+                    if strip: return label.strip()
+                    return Locale.rtlString(label, lang=_lang)
         return str(self.qname) if fallbackToQname else None
     
     def relationshipToResource(self, resourceObject, arcrole):    

@@ -26,7 +26,8 @@ COL_WIDTHS = {
     "Dimensions Relationships": 80, "Arcrole": 32,"CntxElt": 12,"Closed": 8,"Usable": 8,
     "Resource Relationships": 80, "Arcrole": 32,"Resource": 50,"ResourceRole": 32,"Language": 20,
     "Table Relationships": 80, "Axis": 28, "Abs": 16, "Mrg": 16, "Header": 50, "Primary Item": 30, "Dimensions": 50,
-    "Wider-Narrower": 80, "Wider": 32, "Name": 40, "Documentation": 80
+    "Wider-Narrower": 80, "Wider": 32, 
+    "Name": 40, "Namespace": 60, "LocalName": 40, "Documentation": 80
     }
 
 class ViewRelationshipSet(ViewFile.View):
@@ -60,7 +61,7 @@ class ViewRelationshipSet(ViewFile.View):
             if isinstance(self.cols,str): self.cols = self.cols.replace(',',' ').split()
             unrecognizedCols = []
             for col in self.cols:
-                if col not in ("Name","Documentation","References"):
+                if col not in ("Name", "LocalName", "Namespace", "Documentation","References"):
                     unrecognizedCols.append(col)
             if unrecognizedCols:
                 self.modelXbrl.error("arelle:unrecognizedRelationshipSetColumn",
@@ -249,8 +250,12 @@ class ViewRelationshipSet(ViewFile.View):
                 for col in self.cols:
                     if col == "Name":
                         cols.append( (concept.qname or concept.prefixedName) )
+                    elif col == "LocalName":
+                        cols.append(concept.qname.localName)
+                    elif col == "Namespace":
+                        cols.append(concept.qname.namespaceURI)
                     elif col == "Documentation":
-                        cols.append(concept.label(documentationLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole))
+                        cols.append(concept.label(documentationLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole,fallbackToQname=False))
                     elif col == "References":
                         cols.append(viewReferences(concept))
             self.addRow(cols, treeIndent=indent, xmlRowElementName=xmlRowElementName, xmlRowEltAttr=attr, xmlCol0skipElt=True, arcRole=self.arcrole)

@@ -158,7 +158,8 @@ def parseAndRun(args):
     parser.add_option("--viewFile", action="store", dest="viewFile",
                       help=_("Write linkbase relationships for viewArcrole into viewFile"))
     parser.add_option("--relationshipCols", action="store", dest="relationshipCols",
-                      help=_("Columns for relationship file"))
+                      help=_("Extra columns for relationship file (comma or space separated: Name, Namespace, LocalName, Documentation and References)"))
+    parser.add_option("--relationshipcols", action="store", dest="relationshipCols", help=SUPPRESS_HELP)
     parser.add_option("--viewfile", action="store", dest="viewFile", help=SUPPRESS_HELP)
     parser.add_option("--roleTypes", action="store", dest="roleTypesFile",
                       help=_("Write defined role types into FILE"))
@@ -1005,19 +1006,19 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     if options.conceptsFile:
                         ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, labelrole=options.labelRole, lang=options.labelLang)
                     if options.preFile:
-                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", XbrlConst.parentChild, labelrole=options.labelRole, lang=options.labelLang)
+                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", XbrlConst.parentChild, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
                     if options.tableFile:
                         ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.tableFile, "Table Linkbase", "Table-rendering", labelrole=options.labelRole, lang=options.labelLang)
                     if options.calFile:
-                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", XbrlConst.summationItem, labelrole=options.labelRole, lang=options.labelLang)
+                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", XbrlConst.summationItem, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
                     if options.dimFile:
-                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", labelrole=options.labelRole, lang=options.labelLang)
+                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
                     if options.anchFile:
                         ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.anchFile, "Anchoring", XbrlConst.widerNarrower, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
                     if options.formulaeFile:
                         ViewFileFormulae.viewFormulae(modelXbrl, options.formulaeFile, "Formulae", lang=options.labelLang)
                     if options.viewArcrole and options.viewFile:
-                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.viewFile, os.path.basename(options.viewArcrole), options.viewArcrole, labelrole=options.labelRole, lang=options.labelLang)
+                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.viewFile, os.path.basename(options.viewArcrole), options.viewArcrole, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)
                     if options.roleTypesFile:
                         ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.roleTypesFile, "Role Types", isArcrole=False, lang=options.labelLang)
                     if options.arcroleTypesFile:
