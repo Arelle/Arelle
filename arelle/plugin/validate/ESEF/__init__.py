@@ -54,7 +54,7 @@ styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-esef-ix-hidden\s*:\s*([\w.-]+).*
 ifrsNsPattern = re.compile(r"http://xbrl.ifrs.org/taxonomy/[0-9-]{10}/ifrs-full")
 datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
 imgDataMediaBase64Pattern = re.compile(r"data:image([^,]*);base64,")
-ixErrorPattern = re.compile(r"ix11[.]|xmlSchema[:]|xbrl[.]|xbrld[ti]e[:]|utre[:]")
+ixErrorPattern = re.compile(r"ix11[.]|xmlSchema[:]|(?!xbrl.5.2.5.2|xbrl.5.2.6.2)xbrl[.]|xbrld[ti]e[:]|utre[:]")
 
 FOOTNOTE_LINK_CHILDREN = {qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote}
 PERCENT_TYPE = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
@@ -198,9 +198,10 @@ def validateXbrlFinally(val, *args, **kwargs):
                 # check location in a taxonomy package
                 # ixds loading for ESEF expects all xhtml instances to be combined into single IXDS regardless of directory in report zip
                 docDirPath = re.split(r"[/\\]", doc.uri)
-                reportCorrectlyPlacedInPackage = False
+                reportCorrectlyPlacedInPackage = reportIsInZipFile = False
                 for i, dir in enumerate(docDirPath):
                     if dir.lower().endswith(".zip"):
+                        reportIsInZipFile = True
                         packageName = dir[:-4] # web service posted zips are always named POSTupload.zip instead of the source file name
                         if len(docDirPath) >= i + 2 and packageName in (docDirPath[i+1],"POSTupload") and docDirPath[i+2] == "reports":
                             ixdsDocDirs.add("/".join(docDirPath[i+3:-1]))
@@ -208,7 +209,11 @@ def validateXbrlFinally(val, *args, **kwargs):
                         else:
                             ixdsDocDirs.add("/".join(docDirPath[i+1:len(docDirPath)-1])) # needed for error msg on orphaned instance docs
                         break
-                if not reportCorrectlyPlacedInPackage:
+                if not reportIsInZipFile:
+                    modelXbrl.warning("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
+                        _("Document file must be within a report package zip file: %(fileName)s"),
+                        modelObject=doc, fileName=doc.basename)
+                elif not reportCorrectlyPlacedInPackage:
                     modelXbrl.warning("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
                         _("Document file not in correct place in report package: %(fileName)s"),
                         modelObject=doc, fileName=doc.basename)

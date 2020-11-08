@@ -122,8 +122,7 @@ esefMandatoryElementNames2020 = (
     "PrincipalPlaceOfBusiness",
     "DescriptionOfNatureOfEntitysOperationsAndPrincipalActivities",
     "NameOfParentEntity",
-    "NameOfUltimateParentOfGroup",
-    "PrincipalPlaceOfBusiness"
+    "NameOfUltimateParentOfGroup"
     )     
 
 esefMandatoryElementNames2022 = (
