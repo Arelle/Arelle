@@ -455,7 +455,7 @@ def parseMetadataCellValues(metadataTable):
         # CSV table in Appendix A (similar to "cellValue"
         if dimValue is None or dimValue == "#nil":
             metadataTable[dimName] = None
-        elif dimValue == "": # empty cell
+        elif dimValue == "" and dimName != "period": # empty cell except for period
             metadataTable[dimName] = EMPTY_CELL
         elif dimValue == "#none":
             metadataTable[dimName] = NONE_CELL
@@ -514,9 +514,11 @@ periodForms = ((PER_ISO, re_compile("([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{
                (PER_HALF, re_compile("([0-9]{4})H([1-2])(@(start|end))?$")),
                (PER_WEEK, re_compile("([0-9]{4}W[1-5]?[0-9])(@(start|end))?$")))
 
-def csvPeriod(cellValue, startOrEnd):
+def csvPeriod(cellValue, startOrEnd, dimSource):
     if cellValue is EMPTY_CELL or cellValue is NONE_CELL:
-        return NONE_CELL # Forever period (null in xBRL-JSON
+        return NONE_CELL # Forever period (absent in xBRL-JSON)
+    if cellValue is None: # #nil is not valid for date
+        return cellValue  # stays None
     isoDuration = None
     for perType, perFormMatch in periodForms:
         m = perFormMatch.match(cellValue)
@@ -609,6 +611,7 @@ def checkForDuplicates(modelXbrl, allowedDups, footnoteIDs):
             if (f.isNil or getattr(f,"xValid", 0) >= 4) and f.context is not None and f.concept is not None and f.concept.type is not None:
                 factForConceptContextUnitHash[f.conceptContextUnitHash].append(f)
         aspectEqualFacts = defaultdict(dict) # dict [(qname,lang)] of dict(cntx,unit) of [fact, fact] 
+        decVals = {}
         for hashEquivalentFacts in factForConceptContextUnitHash.values():
             if len(hashEquivalentFacts) > 1:
                 for f in hashEquivalentFacts: # check for hash collision by value checks on context and unit
@@ -636,12 +639,23 @@ def checkForDuplicates(modelXbrl, allowedDups, footnoteIDs):
                                     v0 = rangeValue(f0.value)
                                     _inConsistent = not all(rangeValue(f.value) == v0 for f in fList[1:])
                                 else: # not all have same decimals
-                                    aMax, bMin = rangeValue(f0.value, inferredDecimals(f0))
+                                    _inConsistent = False
+                                    _d = inferredDecimals(f0)
+                                    _v = f0.value
+                                    decVals[_d] = _v
+                                    aMax, bMin = rangeValue(_v, _d)
                                     for f in fList[1:]:
-                                        a, b = rangeValue(f.value, inferredDecimals(f))
+                                        _d = inferredDecimals(f)
+                                        _v = f.value
+                                        if _d in decVals:
+                                            _inConsistent |= _v != decVals[_d]
+                                        else:
+                                            decVals[_d] = _v
+                                        a, b = rangeValue(_v, _d)
                                         if a > aMax: aMax = a
                                         if b < bMin: bMin = b
-                                    _inConsistent = (bMin < aMax)
+                                    _inConsistent |= (bMin < aMax)
+                                    decVals.clear()
                             else: # includes COMPLETE
                                 _inConsistent = any(not oimEquivalentFacts(f0, f) for f in fList[1:])
                             if _inConsistent:
@@ -1165,12 +1179,14 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         canonicalValuesFeature = False
         if isJSON:
             errPrefix = "xbrlje"
+            valErrPrefix = "oime"
             NSReservedAliasURIs.update(JSONNSReservedAliasURIs)
             factItems = oimObject.get("facts",{}).items()
             footnotes = oimObject.get("facts",{}).values() # shares this object
             canonicalValuesFeature = featuresDict.get("xbrl:canonicalValues") in (True, "true")
         else: # isCSVorXL
             errPrefix = "xbrlce"
+            valErrPrefix = "xbrlce"
             NSReservedAliasURIs.update(CSVNSReservedAliasURIs)
             reportDimensions = oimObject.get("dimensions", EMPTY_DICT)
             reportDecimals = oimObject.get("decimals", None)
@@ -1618,7 +1634,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                             dimValue = reportParameters[paramName]
                                                 # else if in parameters?
                                                 if dimName == "period":
-                                                    _dimValue = csvPeriod(dimValue, dimAttr)
+                                                    _dimValue = csvPeriod(dimValue, dimAttr, dimSource)
                                                     if _dimValue == "referenceTargetNotDuration":
                                                         error("xbrlce:referenceTargetNotDuration", 
                                                               _("Table %(table)s row %(row)s column %(column)s has instant date with period reference \"%(date)s\", from %(source)s, url: %(url)s"),
@@ -1868,9 +1884,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         entityAsQn = qname(entitySQName, namespaces)
                 if "period" in dimensions:
                     period = dimensions["period"]
-                    if period is None or period is NONE_CELL:
+                    if period is NONE_CELL:
                         period = "forever"
-                    elif not PeriodPattern.match(period):
+                    elif period is None or not PeriodPattern.match(period):
                         error("xbrlce:invalidPeriodRepresentation" if isCSVorXL else "oimce:invalidPeriodRepresentation",
                               _("The fact %(factId)s, concept %(element)s has a lexically invalid period dateTime %(periodError)s"),
                               modelObject=modelXbrl, factId=id, element=conceptQn, periodError=period)
@@ -1927,7 +1943,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             if dimConcept.isExplicitDimension:
                                 mem = qname(dimVal, namespaces)
                                 if mem is None:
-                                    error("xbrlce:invalidDimensionValue" if isCSVorXL else "oime:invalidDimensionValue",
+                                    error("{}:invalidDimensionValue".format(valErrPrefix),
                                           _("Fact %(factId)s taxonomy-defined explicit dimension value is invalid: %(memberQName)s."),
                                           modelObject=modelXbrl, factId=id, memberQName=dimVal)
                                     continue
@@ -1972,7 +1988,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         if len(modelXbrl.errors) > prevErrLen:
                             numFactCreationXbrlErrors += sum(err != "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:])
                             if any(err == "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:]):
-                                error("xbrlce:invalidDimensionValue" if isCSVorXL else "oime:invalidDimensionValue",
+                                error("{}:invalidDimensionValue".format(valErrPrefix),
                                       _("Fact %(factId)s taxonomy-defined dimension value errors noted above."),
                                       modelObject=modelXbrl, factId=id)
                                 continue
@@ -2047,7 +2063,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         
                 if fact.get("value") is None:
                     if not concept.isNillable:
-                        error("xbrlce:invalidFactValue" if isCSVorXL else "oime:invalidFactValue",
+                        error("{}:invalidFactValue".format(valErrPrefix),
                               _("Nil value applied to non-nillable concept: %(concept)s."),
                               modelObject=modelXbrl, concept=conceptSQName)
                         continue
@@ -2073,7 +2089,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     if isFactValid:
                         text = " ".join(sorted(expandedNames))
                     else:
-                        error("xbrlce:invalidFactValue" if isCSVorXL else "oime:invalidFactValue",
+                        error("{}:invalidFactValue".format(valErrPrefix),
                               _("Enumeration item must be %(canonicalOrdered)slist of QNames: %(concept)s."),
                               modelObject=modelXbrl, concept=conceptSQName, canonicalOrdered="a canonical ordered " if canonicalValuesFeature else "")
                         continue
@@ -2125,7 +2141,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             if len(modelXbrl.errors) > prevErrLen:
                 numFactCreationXbrlErrors += sum(err != "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:])
                 if any(err == "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:]):
-                    error("xbrlce:invalidFactValue" if isCSVorXL else "oime:invalidFactValue",
+                    error("{}:invalidFactValue".format(valErrPrefix),
                           _("Fact %(factId)s value error noted above."),
                           modelObject=modelXbrl, factId=id)
             
