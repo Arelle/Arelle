@@ -10,7 +10,8 @@ Data and content created by government employees within the scope of their emplo
 to domestic copyright protection. 17 U.S.C. 105.
 '''
 import re, datetime, decimal, json, unicodedata, holidays
-from collections import defaultdict
+from math import isnan
+from collections import defaultdict, OrderedDict
 from pytz import timezone
 from arelle import (ModelDocument, ModelValue, ModelRelationshipSet, 
                     XmlUtil, XbrlConst, ValidateFilingText)
@@ -778,7 +779,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         for f1 in modelXbrl.facts:
             if f1.context is not None and f1.concept is not None and f1.concept.type is not None:
                 # build keys table for 6.5.14
-                if not f1.isNil:
+                if not f1.isNil and getattr(f1,"xValid", 0) >= VALID:
                     langTestKey = "{0},{1},{2}".format(f1.qname, f1.contextID, f1.unitID)
                     factsForLang.setdefault(langTestKey, []).append(f1)
                     lang = f1.xmlLang
@@ -786,7 +787,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         keysNotDefaultLang[langTestKey] = f1
                         
                     # 6.5.37 test (insignificant digits due to rounding)
-                    if f1.isNumeric and f1.decimals and f1.decimals != "INF" and not f1.isNil and getattr(f1,"xValid", 0) >= VALID:
+                    if f1.isNumeric and f1.decimals and f1.decimals != "INF":
                         try:
                             insignificance = insignificantDigits(f1.xValue, decimals=f1.decimals)
                             if insignificance: # if not None, returns (truncatedDigits, insiginficantDigits)
@@ -806,6 +807,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 factForConceptContextUnitHash[f1.conceptContextUnitHash].append(f1)
         # 6.5.12 test
         aspectEqualFacts = defaultdict(list)
+        decVals = {}
         for hashEquivalentFacts in factForConceptContextUnitHash.values():
             if len(hashEquivalentFacts) > 1:
                 for f in hashEquivalentFacts:
@@ -816,16 +818,28 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     if f0.concept.isNumeric:
                         if any(f.isNil for f in fList):
                             _inConsistent = not all(f.isNil for f in fList)
-                        elif all(inferredDecimals(f) == inferredDecimals(f0) for f in fList[1:]): # same decimals
-                            v0 = rangeValue(f0.value)
-                            _inConsistent = not all(rangeValue(f.value) == v0 for f in fList[1:])
                         else: # not all have same decimals
-                            aMax, bMin = rangeValue(f0.value, inferredDecimals(f0))
+                            _d = inferredDecimals(f0)
+                            _v = f0.xValue
+                            _inConsistent = isnan(_v) # NaN is incomparable, always makes dups inconsistent
+                            decVals[_d] = _v
+                            aMax, bMin = rangeValue(_v, _d)
                             for f in fList[1:]:
-                                a, b = rangeValue(f.value, inferredDecimals(f))
+                                _d = inferredDecimals(f)
+                                _v = f.xValue
+                                if isnan(_v):
+                                    _inConsistent = True
+                                    break
+                                if _d in decVals:
+                                    _inConsistent |= _v != decVals[_d]
+                                else:
+                                    decVals[_d] = _v
+                                a, b = rangeValue(_v, _d)
                                 if a > aMax: aMax = a
                                 if b < bMin: bMin = b
-                            _inConsistent = (bMin < aMax)
+                            if not _inConsistent:
+                                _inConsistent = (bMin < aMax)
+                            decVals.clear()
                     else:
                         _inConsistent = any(not f.isVEqualTo(f0) for f in fList[1:])
                     if _inConsistent:
@@ -1073,7 +1087,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             coverVisibleDeiNames = set()
             unexpectedEloParams = set()
             expectedEloParams = set()
-            eloValuesFromFacts = {}
+            storeDbObjectFacts = defaultdict(dict)
             eloValueFactNames = set(n for fev in fevs if "store-db-name" in fev for n in fev.get("xbrl-names", ())) # fact names producing elo values
             missingReqInlineTag = False
             for fevIndex, fev in enumerate(fevs):
@@ -1081,6 +1095,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 names = fev.get("xbrl-names", ())
                 eloName = fev.get("elo-name")
                 storeDbName = fev.get("store-db-name")
+                storeDbObject = fev.get("store-db-object")
                 efmSection = fev.get("efm")
                 validation = fev.get("validation")
                 axisKey = fev.get("axis","")
@@ -1207,6 +1222,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             (fr is None and f is not None)):
                             fevMessage(fev, subType=submissionType, modelObject=fevFacts(fev), tag=name, otherTag=referenceTag, value=referenceValue,
                                        contextID=f.contextID if f is not None else fr.contextID if fr is not None else "N/A")
+                elif validation == "ra":
+                    fr = fevFact(fev, referenceTag)
+                    for name in names:
+                        f = fevFact(fev, name, fr)
+                        if fr is not None and fr.xValue in referenceValue and f is None:
+                            fevMessage(fev, subType=submissionType, modelObject=fevFacts(fev), tag=referenceTag, otherTag=name, value=fr.xValue, contextID=fr.contextID)
                 elif validation == "t":
                     frs = [f for f in fevFacts(fev, referenceTag)] # all reference facts from generator
                     for name in names:
@@ -1335,9 +1356,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 if storeDbName:
                     f = fevFact(fev, names)
                     if f is not None:
-                        eloValuesFromFacts[storeDbName] = eloValueOfFact(names[0], f.xValue)
-                    elif storeDbName not in eloValuesFromFacts:
-                        eloValuesFromFacts[storeDbName] = None
+                        storeDbObjectFacts[storeDbObject][storeDbName] = eloValueOfFact(names[0], f.xValue)
+                    elif storeDbName not in storeDbObjectFacts:
+                        storeDbObjectFacts[storeDbObject][storeDbName] = None
 
                         
             del unexpectedDeiNameEfmSects, expectedDeiNames # dereference
@@ -1658,9 +1679,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             val.modelXbrl.profileActivity("... filer required facts checks", minTimeToShow=1.0)
             
         # log extracted facts
-        if isInlineXbrl and (extractedCoverFacts or eloValuesFromFacts):
-            if eloValuesFromFacts:
-                eloValuesFromFacts["missingReqInlineTag"] = ["no", "yes"][missingReqInlineTag]
+        if isInlineXbrl and (extractedCoverFacts or storeDbObjectFacts):
+            if storeDbObjectFacts.get("eloValuesFromFacts"):
+                storeDbObjectFacts["eloValuesFromFacts"]["missingReqInlineTag"] = ["no", "yes"][missingReqInlineTag]
             contextualFactNameSets = (("Security12bTitle", "TradingSymbol"), ("Security12gTitle", "TradingSymbol"))
             exchangeFactName = "SecurityExchangeName"
             exchangeAxisQN = qname(deiNamespaceURI, "EntityListingsExchangeAxis")
@@ -1728,14 +1749,15 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                             if name in exchCEqualFacts:
                                                 rec.append(f)
                                         addCoverFactRecord(rec)
-                                                        
+            jsonParam = OrderedDict()
+            jsonParam["coverFacts"] = [dict(keyval for keyval in rec) for rec in sorted(coverFactRecords)]
+            for _objName, _objFacts in sorted(storeDbObjectFacts.items(), key=lambda i:i[0]):
+                jsonParam[_objName] = _objFacts                                  
             modelXbrl.log("INFO-RESULT",
                           "EFM.coverFacts",
                           "Extracted cover facts returned as json parameter",
                           modelXbrl=modelXbrl,  
-                          json=json.dumps({"coverFacts":[dict(keyval for keyval in rec) for rec in sorted(coverFactRecords)],
-                                           "eloValuesFromFacts": eloValuesFromFacts
-                                           }))
+                          json=json.dumps(jsonParam))
 
         #6.5.27 footnote elements, etc
         footnoteLinkNbr = 0
@@ -2596,7 +2618,8 @@ def eloValueOfFact(deiName, xbrlVal):
     elif deiName == "CurrentFiscalYearEndDate":
         return ("{0}/{1}".format(*str(xbrlVal).lstrip('-').split('-')))
     elif deiName in {"EntityEmergingGrowthCompany", "EntityExTransitionPeriod", "EntityShellCompany", 
-                     "EntitySmallBusiness", "EntityVoluntaryFilers", "EntityWellKnownSeasonedIssuer"}:
+                     "EntitySmallBusiness", "EntityVoluntaryFilers", "EntityWellKnownSeasonedIssuer",
+                     "IcfrAuditorAttestationFlag"}:
         return {"y": "yes", "yes": "yes", "true": "yes", "n": "no", "no": "no", "false": "no"
                 }.get(str(xbrlVal).lower())
     elif deiName == "EntityFileNumber":

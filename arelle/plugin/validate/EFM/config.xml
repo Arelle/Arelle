@@ -4,17 +4,17 @@
       xsi:noNamespaceSchemaLocation="../../../config/disclosuresystems.xsd" >
   <!-- see ../config/disclosuresystem.xml for full comments -->
    
+   
   <DisclosureSystem 
      names="US SEC (Edgar Filing Manual, Strict)|efm|efm-strict"
      description="US SEC Edgar Filing Manual v54 Release 20.3\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
-     Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
-     Disallowed references are processed\n
+     Disallowed references are blocked and not loaded (same as SEC production system)\n
      Includes content (semantic) tests"
      validationType="EFM"
      exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
-     blockDisallowedReferences="false" 
+     blockDisallowedReferences="true" 
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
      standardTaxonomiesUrl="edgartaxonomies-20-3.xml"

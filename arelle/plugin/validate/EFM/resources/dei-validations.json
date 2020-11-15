@@ -26,6 +26,7 @@
         "  xbrl-name: single local name of XBRL element,",
         "  elo-name: optional single ELO schema name of XML element,",
         "  store-db-name: optional ELO db name if elo value to be stored in EDGAR db", 
+        "  store-db-object: optional ELO object for DB parameter passing, e.g., eloValuesFromFacts or submissionFacts",
         "  efm: section in EFM, e.g., 6.5.21,",
         "  validation: cell reference per FRD (replace below), required except for store-db-name entries",
         "  axis: optional, when an element has an axis specification",
@@ -211,6 +212,32 @@
         "comment": "if and only if non-empty, AmendmentFlag must be true"
     },
     {
+        "forms": ["@10-K+KT", "@20-F"],
+        "xbrl-names": "IcfrAuditorAttestationFlag",
+        "efm": "6.5.21",
+        "validation": "ra",
+        "references": "EntityFilerCategory",
+        "reference-value": ["Large Accelerated Filer", "Accelerated Filer"],
+        "source": "both",
+        "dei/cover": "cover"
+    },
+    {
+        "forms": ["@40-F"],
+        "xbrl-names": "IcfrAuditorAttestationFlag",
+        "efm": "6.5.21",
+        "validation": "o",
+        "source": "both",
+        "dei/cover": "cover"
+    },
+    {
+        "forms": ["@10-K+KT", "@20+40-F"],
+        "xbrl-names": "IcfrAuditorAttestationFlag",
+        "store-db-name": "icfrAuditorAttestationFlag",
+        "store-db-object": "submissionFacts",
+        "source": "inline",
+        "comment": "store for indicated document types"
+    },
+    {
         "forms": ["@all-FAST"],
         "xbrl-names": "DocumentPeriodEndDate",
         "elo-name": "periodOfReport",
@@ -257,6 +284,7 @@
     	"forms": ["@all"],
         "xbrl-names": "DocumentPeriodEndDate",
         "store-db-name": "periodOfReport",
+        "store-db-object": "eloValuesFromFacts",
         "source": "inline",
         "comment": "always store to DB when present in XBRL"
     },
@@ -412,6 +440,7 @@
     	"forms": ["@all"],
         "xbrl-names": "CurrentFiscalYearEndDate",
         "store-db-name": "fiscalYear",
+        "store-db-object": "eloValuesFromFacts",
         "source": "inline",
         "comment": "all forms store to DB when present in inline XBRL"
     },
@@ -454,6 +483,7 @@
     	"forms": ["@all"],
         "xbrl-names": "EntitySmallBusiness",
         "store-db-name": "smallBusinessFlag",
+        "store-db-object": "eloValuesFromFacts",
         "source": "inline",
         "comment": "all forms store to DB when present in inline XBRL"
     },
@@ -470,6 +500,7 @@
     	"forms": ["@all"],
         "xbrl-names": "EntityShellCompany",
         "store-db-name": "shellCompanyFlag",
+        "store-db-object": "eloValuesFromFacts",
         "source": "inline",
         "comment": "all forms store to DB when present in inline XBRL"
     },
@@ -486,6 +517,7 @@
     	"forms": ["@all"],
         "xbrl-names": "EntityVoluntaryFilers",
         "store-db-name": "voluntaryFilerFlag",
+        "store-db-object": "eloValuesFromFacts",
         "source": "inline",
         "comment": "all forms store to DB when present in inline XBRL"
     },
@@ -526,6 +558,7 @@
     	"forms": ["@all"],
         "xbrl-names": "EntityWellKnownSeasonedIssuer",
         "store-db-name": "wellKnownSeasonedIssuerFlag",
+        "store-db-object": "eloValuesFromFacts",
         "source": "inline",
         "comment": "all forms store to DB when present in inline XBRL"
     },
@@ -560,6 +593,7 @@
     	"forms": ["@all"],
         "xbrl-names": "EntityFilerCategory",
         "store-db-name": "acceleratedFilerStatus",
+        "store-db-object": "eloValuesFromFacts",
         "source": "inline",
         "comment": "all forms store to DB when present in inline XBRL"
     },
@@ -594,6 +628,7 @@
     	"forms": ["@all"],
         "xbrl-names": "EntityEmergingGrowthCompany",
         "store-db-name": "emergingGrowthCompanyFlag",
+        "store-db-object": "eloValuesFromFacts",
         "source": "inline",
         "comment": "all forms store to DB when present in inline XBRL"
     },
@@ -633,6 +668,7 @@
     	"forms": ["@all"],
         "xbrl-names": "EntityExTransitionPeriod",
         "store-db-name": "exTransitionPeriodFlag",
+        "store-db-object": "eloValuesFromFacts",
         "source": "inline",
         "comment": "all forms store to DB when present in inline XBRL"
     },
@@ -1957,6 +1993,11 @@
 			"message": "dq-0540-EntityExTransitionPeriod-EntityEmergingGrowthCompany-Dependency",
 			"severity": "error",
 			"validation": "error when EntityEmergingGrowthCompany=true otherwise warning, warning is set in code not here"
+		},
+		"ra": {
+			"message": "dq-{efmSection}-{tag}-Value-{otherTag}-Missing",
+			"severity": "warning",
+			"validation": "When this fact is non-empty, referenced fact must have reference-value (filerCategory accelerated filer codes)."
 		},
 		"sb": {
 			"message": "dq-{efmSection}-{tag}-{otherTag}-Dependent-Value",
