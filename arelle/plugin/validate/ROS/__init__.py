@@ -18,6 +18,7 @@ from arelle.ModelValue import qname
 from arelle.PythonUtil import strTruncate
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.XbrlConst import qnXbrliXbrl, xhtml
+from arelle.XmlValidate import VALID
 
 taxonomyReferences = {
     "https://xbrl.frc.org.uk/ireland/FRS-101/2019-01-01/ie-FRS-101-2019-01-01.xsd": "FRS 101 Irish Extension",
@@ -77,7 +78,6 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     if not (val.validateROSplugin):
         return
     
-
 def validateXbrlFinally(val, *args, **kwargs):
     if not (val.validateROSplugin):
         return
@@ -151,7 +151,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             if doc.type == ModelDocument.Type.INLINEXBRL:
                 # base file extension
                 _baseName, _baseExt = os.path.splitext(doc.basename)
-                if _baseExt not in (".xhtml",".html", "htm", "ixbrl", "xml", "xhtml"):
+                if _baseExt not in (".xhtml",".html", ".htm", ".ixbrl", ".xml", ".xhtml"):
                     modelXbrl.error("ROS.fileNameExtension",
                         _("The list of acceptable file extensions for upload is: html, htm, ixbrl, xml, xhtml: %(fileName)s"),
                         modelObject=doc, fileName=doc.basename)
@@ -269,14 +269,15 @@ def validateXbrlFinally(val, *args, **kwargs):
             mandatory.add(qname("ie-common:CompaniesRegistrationOfficeNumber", nsMap))
         
         reportedMandatory = set()
-        numFactsByConceptContextUnit = defaultdict(list) 
+        factForConceptContextUnitHash = defaultdict(list) 
                 
         for qn, facts in modelXbrl.factsByQname.items():
             if qn in mandatory:
                 reportedMandatory.add(qn)
             for f in facts:
-                if f.isNumeric and f.parentElement.qname == qnXbrliXbrl:
-                    numFactsByConceptContextUnit[(f.qname, mapContext.get(f.context,f.context), mapUnit.get(f.unit, f.unit))].append(f)
+                if (f.parentElement.qname == qnXbrliXbrl and 
+                    (f.isNil or getattr(f,"xValid", 0) >= VALID) and f.context is not None and f.concept is not None and f.concept.type is not None):
+                    factForConceptContextUnitHash[f.conceptContextUnitHash].append(f)
             
         missingElements = (mandatory - reportedMandatory) # | (reportedFootnoteIfNil - reportedFootnoteIfNil)
         
@@ -290,27 +291,62 @@ def validateXbrlFinally(val, *args, **kwargs):
                             _("Required elements missing from document: %(elements)s."), 
                             modelObject=modelXbrl, elements=", ".join(sorted(str(qn) for qn in missingElements)))
                 
-        for fList in numFactsByConceptContextUnit.values():
-            if len(fList) > 1:
-                f0 = fList[0]
-                if any(f.isNil for f in fList):
-                    _inConsistent = not all(f.isNil for f in fList)
-                elif all(inferredDecimals(f) == inferredDecimals(f0) for f in fList[1:]): # same decimals
-                    v0 = rangeValue(f0.value)
-                    _inConsistent = not all(rangeValue(f.value) == v0 for f in fList[1:])
-                else: # not all have same decimals
-                    aMax, bMin = rangeValue(f0.value, inferredDecimals(f0))
-                    for f in fList[1:]:
-                        a, b = rangeValue(f.value, inferredDecimals(f))
-                        if a > aMax: aMax = a
-                        if b < bMin: bMin = b
-                    _inConsistent = (bMin < aMax)
-                if _inConsistent:
-                    modelXbrl.error(("ROS.inconsistentDuplicateFacts"),
-                        "Inconsistent duplicate numeric facts: %(fact)s were used more than once in contexts equivalent to %(contextID)s: values %(values)s.  ",
-                        modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(strTruncate(f.value, 128) for f in fList))
-                
-
+        aspectEqualFacts = defaultdict(dict) # dict [(qname,lang)] of dict(cntx,unit) of [fact, fact] 
+        decVals = {}
+        for hashEquivalentFacts in factForConceptContextUnitHash.values():
+            if len(hashEquivalentFacts) > 1:
+                for f in hashEquivalentFacts: # check for hash collision by value checks on context and unit
+                    cuDict = aspectEqualFacts[(f.qname,
+                                               (f.xmlLang or "").lower() if f.concept.type.isWgnStringFactType else None)]
+                    _matched = False
+                    for (_cntx,_unit),fList in cuDict.items():
+                        if (((_cntx is None and f.context is None) or (f.context is not None and f.context.isEqualTo(_cntx))) and
+                            ((_unit is None and f.unit is None) or (f.unit is not None and f.unit.isEqualTo(_unit)))):
+                            _matched = True
+                            fList.append(f)
+                            break
+                    if not _matched:
+                        cuDict[(f.context,f.unit)] = [f]
+                for cuDict in aspectEqualFacts.values(): # dups by qname, lang
+                    for fList in cuDict.values():  # dups by equal-context equal-unit
+                        if len(fList) > 1:
+                            f0 = fList[0]
+                            _inConsistent = True
+                            if f0.concept.isNumeric:
+                                if any(f.isNil for f in fList):
+                                    _inConsistent = not all(f.isNil for f in fList)
+                                else: # not all have same decimals
+                                    _d = inferredDecimals(f0)
+                                    _v = f0.xValue
+                                    _inConsistent = isnan(_v) # NaN is incomparable, always makes dups inconsistent
+                                    decVals[_d] = _v
+                                    aMax, bMin = rangeValue(_v, _d)
+                                    for f in fList[1:]:
+                                        _d = inferredDecimals(f)
+                                        _v = f.xValue
+                                        if isnan(_v):
+                                            _inConsistent = True
+                                            break
+                                        if _d in decVals:
+                                            _inConsistent |= _v != decVals[_d]
+                                        else:
+                                            decVals[_d] = _v
+                                        a, b = rangeValue(_v, _d)
+                                        if a > aMax: aMax = a
+                                        if b < bMin: bMin = b
+                                    if not _inConsistent:
+                                        _inConsistent = (bMin < aMax)
+                                    decVals.clear()
+                            else: # string complete duplicates
+                                _inConsistent = any(not f.isVEqualTo(f0) for f in fList[1:])
+                            if _inConsistent:
+                                modelXbrl.error("ROS.inconsistentDuplicateFacts",
+                                    "Inconsistent duplicate fact values %(element)s: %(values)s, in contexts: %(contextIDs)s.",
+                                    modelObject=fList, element=f0.qname, 
+                                    contextIDs=", ".join(sorted(set(f.contextID for f in fList))), 
+                                    values=", ".join(strTruncate(f.value,64) for f in fList))
+                aspectEqualFacts.clear()
+        del factForConceptContextUnitHash, aspectEqualFacts
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
