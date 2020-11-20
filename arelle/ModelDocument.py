@@ -416,7 +416,7 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
         Xml = ('<nsmap>{}<schema xmlns="http://www.w3.org/2001/XMLSchema" /></nsmap>').format(initialComment)
     elif type == Type.RSSFEED:
         Xml = '<nsmap><rss version="2.0" /></nsmap>'
-    elif type == Type.DTSENTRIES:
+    elif type in (Type.DTSENTRIES, Type.HTML):
         Xml = None
     else:
         type = Type.UnknownXML
@@ -489,6 +489,7 @@ class Type:
     RSSFEED=14
     ARCSINFOSET=15
     FACTDIMSINFOSET=16
+    HTML=17
     
     TESTCASETYPES = (TESTCASESINDEX, TESTCASE, REGISTRY, REGISTRYTESTCASE, XPATHTESTSUITE)
 
@@ -508,13 +509,14 @@ class Type:
                 "xpath test suite",
                 "RSS feed",
                 "arcs infoset",
-                "fact dimensions infoset")
+                "fact dimensions infoset",
+                "html non-XBRL")
     
     def identify(filesource, filepath):
         file, = filesource.file(filepath, stripDeclaration=True, binary=True)
         try:
             _rootElt = True
-            for _event, elt in etree.iterparse(file, events=("start",)):
+            for _event, elt in etree.iterparse(file, events=("start",), recover=True, huge_tree=True):
                 if _rootElt:
                     _rootElt = False
                     _type = {"{http://www.xbrl.org/2003/instance}xbrl": Type.INSTANCE,
@@ -530,7 +532,11 @@ class Type:
                 if elt.tag.startswith("{http://www.xbrl.org/2013/inlineXBRL}"):
                     _type = Type.INLINEXBRL
                     break
-        except Exception:
+        except Exception as err:
+            if filesource.cntlr:
+                filesource.cntlr.addToLog("%(error)s", 
+                                          messageCode="arelle:fileIdentificationError",
+                                          messageArgs={"error":err}, file=filepath)
             _type = Type.UnknownXML
         file.close()
         return _type
@@ -885,9 +891,9 @@ class ModelDocument:
         try:
             self.schemaDiscoverChildElements(rootElement, isSupplemental)
         except (ValueError, LookupError) as err:
-            self.modelXbrl.modelManager.addToLog("discovery: {0} error {1}".format(
-                        self.basename,
-                        err))
+            self.filesource.cntlr.addToLog("error during schema discovery: %(error)s",
+                                           messageCode="arelle:discoveryError",
+                                           messageArgs={"error":err}, file=self.basename)
         if not isIncluded:
             if targetNamespace: 
                 nsDocs = self.modelXbrl.namespaceDocs
