@@ -2,8 +2,12 @@ version: '3'
 services:
   arelle:
     build: .
+    command: shoryuken -r ./xbrl_extraction_worker.rb -q xbrl_extraction
     volumes:
       - .:/opt/arelle
       - ${HOST_PATH}:/index/data
     environment:
       HOST_PATH:
+      AWS_REGION:
+      AWS_ACCESS_KEY:
+      AWS_SECRET_ACCESS_KEY:
