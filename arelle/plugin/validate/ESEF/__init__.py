@@ -538,9 +538,9 @@ def validateXbrlFinally(val, *args, **kwargs):
             for f in facts:
                 if f.precision is not None:
                     precisionFacts.add(f)
-                if f.isNumeric:
+                if f.isNumeric and f.concept is not None and getattr(ixElt, "xValid", 0) >= VALID:
                     numFactsByConceptContextUnit[(f.qname, mapContext.get(f.context,f.context), mapUnit.get(f.unit, f.unit))].append(f)
-                    if f.concept is not None and not f.isNil and f.xValid >= VALID and f.xValue > 1 and f.concept.type is not None and (
+                    if not f.isNil and f.xValue > 1 and f.concept.type is not None and (
                         f.concept.type.qname == PERCENT_TYPE or f.concept.type.isDerivedFrom(PERCENT_TYPE)):
                         modelXbrl.warning("ESEF.2.2.2.percentGreaterThan100",
                             _("A percent fact should have value <= 100: %(element)s in context %(context)s value %(value)s"),
@@ -581,21 +581,34 @@ def validateXbrlFinally(val, *args, **kwargs):
         
             
         # 2.2.4 test
+        decVals = {}
         for fList in numFactsByConceptContextUnit.values():
             if len(fList) > 1:
                 f0 = fList[0]
                 if any(f.isNil for f in fList):
                     _inConsistent = not all(f.isNil for f in fList)
-                elif all(inferredDecimals(f) == inferredDecimals(f0) for f in fList[1:]): # same decimals
-                    v0 = rangeValue(f0.value)
-                    _inConsistent = not all(rangeValue(f.value) == v0 for f in fList[1:])
                 else: # not all have same decimals
-                    aMax, bMin = rangeValue(f0.value, inferredDecimals(f0))
+                    _d = inferredDecimals(f0)
+                    _v = f0.xValue
+                    _inConsistent = isnan(_v) # NaN is incomparable, always makes dups inconsistent
+                    decVals[_d] = _v
+                    aMax, bMin = rangeValue(_v, _d)
                     for f in fList[1:]:
-                        a, b = rangeValue(f.value, inferredDecimals(f))
+                        _d = inferredDecimals(f)
+                        _v = f.xValue
+                        if isnan(_v):
+                            _inConsistent = True
+                            break
+                        if _d in decVals:
+                            _inConsistent |= _v != decVals[_d]
+                        else:
+                            decVals[_d] = _v
+                        a, b = rangeValue(_v, _d)
                         if a > aMax: aMax = a
                         if b < bMin: bMin = b
-                    _inConsistent = (bMin < aMax)
+                    if not _inConsistent:
+                        _inConsistent = (bMin < aMax)
+                    decVals.clear()
                 if _inConsistent:
                     modelXbrl.error(("ESEF.2.2.4.inconsistentDuplicateNumericFactInInlineXbrlDocument"),
                         "Inconsistent duplicate numeric facts MUST NOT appear in the content of an inline XBRL document. %(fact)s that was used more than once in contexts equivalent to %(contextID)s: values %(values)s.  ",
