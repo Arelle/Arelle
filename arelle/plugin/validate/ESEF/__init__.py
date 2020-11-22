@@ -27,6 +27,7 @@ try:
 except ImportError:
     import re
 from collections import defaultdict
+from math import isnan
 from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction
 from arelle import LeiUtil, ModelDocument, XbrlConst, XmlUtil
 from arelle.FunctionIxt import ixtNamespaces
