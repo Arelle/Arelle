@@ -123,7 +123,8 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                                 else:
                                     hasNonStandardLabel = True
                             langRoleLabels[(label.xmlLang,label.role)].append(label)
-                            if label.role not in standardLabelRoles:
+                            if label.role not in standardLabelRoles and not ( #not in LRR
+                                label.role in val.modelXbrl.roleTypes and val.modelXbrl.roleTypes[label.role][0].modelDocument.uri.startswith("http://www.xbrl.org/lrr")):
                                 val.modelXbrl.warning("ESEF.3.4.5.extensionTaxonomyElementLabelCustomRole",
                                     _("Extension taxonomy element label SHOULD not be custom: %(concept)s role %(labelrole)s"),
                                     modelObject=(modelConcept,label), concept=modelConcept.qname, labelrole=label.role)
