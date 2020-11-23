@@ -513,6 +513,7 @@ class Type:
                 "html non-XBRL")
     
     def identify(filesource, filepath):
+        _type = Type.UnknownNonXML
         file, = filesource.file(filepath, stripDeclaration=True, binary=True)
         try:
             _rootElt = True
@@ -533,11 +534,12 @@ class Type:
                     _type = Type.INLINEXBRL
                     break
         except Exception as err:
-            if filesource.cntlr:
-                filesource.cntlr.addToLog("%(error)s", 
-                                          messageCode="arelle:fileIdentificationError",
-                                          messageArgs={"error":err}, file=filepath)
-            _type = Type.UnknownXML
+            if not _rootElt: # if _rootElt is false then a root element was found and it's some kind of xml
+                _type = Type.UnknownXML
+                if filesource.cntlr:
+                    filesource.cntlr.addToLog("%(error)s", 
+                                              messageCode="arelle:fileIdentificationError",
+                                              messageArgs={"error":err}, file=filepath)
         file.close()
         return _type
 
