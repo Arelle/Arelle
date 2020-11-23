@@ -12,6 +12,7 @@ References:
   
 '''
 import os
+from math import isnan
 from arelle import ModelDocument, XmlUtil
 from arelle.ModelValue import qname, dateTime, DATE
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue, insignificantDigits
@@ -358,17 +359,19 @@ def validateXbrlFinally(val, *args, **kwargs):
         for hashEquivalentFacts in factForConceptContextUnitHash.values():
             if len(hashEquivalentFacts) > 1:
                 for f in hashEquivalentFacts: # check for hash collision by value checks on context and unit
-                    cuDict = aspectEqualFacts[(f.qname,
-                                               f.xmlLang if f.concept.type.isWgnStringFactType else None)]
-                    _matched = False
-                    for (_cntx,_unit),fList in cuDict.items():
-                        if (((_cntx is None and f.context is None) or (f.context is not None and f.context.isEqualTo(_cntx))) and
-                            ((_unit is None and f.unit is None) or (f.unit is not None and f.unit.isEqualTo(_unit)))):
-                            _matched = True
-                            fList.append(f)
-                            break
-                    if not _matched:
-                        cuDict[(f.context,f.unit)] = [f]
+                    if getattr(f,"xValid", 0) >= 4:
+                        cuDict = aspectEqualFacts[(f.qname,
+                                                   (f.xmlLang or "").lower() if f.concept.type.isWgnStringFactType else None)]
+                        _matched = False
+                        for (_cntx,_unit),fList in cuDict.items():
+                            if (((_cntx is None and f.context is None) or (f.context is not None and f.context.isEqualTo(_cntx))) and
+                                ((_unit is None and f.unit is None) or (f.unit is not None and f.unit.isEqualTo(_unit)))):
+                                _matched = True
+                                fList.append(f)
+                                break
+                        if not _matched:
+                            cuDict[(f.context,f.unit)] = [f]
+                decVals = {}
                 for cuDict in aspectEqualFacts.values(): # dups by qname, lang
                     for fList in cuDict.values():  # dups by equal-context equal-unit
                         if len(fList) > 1:
@@ -376,18 +379,28 @@ def validateXbrlFinally(val, *args, **kwargs):
                             if f0.concept.isNumeric:
                                 if any(f.isNil for f in fList):
                                     _inConsistent = not all(f.isNil for f in fList)
-                                elif all(inferredDecimals(f) == inferredDecimals(f0) for f in fList[1:]): # same decimals
-                                    v0 = rangeValue(f0.value)
-                                    _inConsistent = not all(rangeValue(f.value) == v0 for f in fList[1:])
                                 else: # not all have same decimals
-                                    aMax, bMin = rangeValue(f0.value, inferredDecimals(f0))
+                                    _d = inferredDecimals(f0)
+                                    _v = f0.xValue
+                                    _inConsistent = isnan(_v) # NaN is incomparable, always makes dups inconsistent
+                                    decVals[_d] = _v
+                                    aMax, bMin = rangeValue(_v, _d)
                                     for f in fList[1:]:
-                                        a, b = rangeValue(f.value, inferredDecimals(f))
+                                        _d = inferredDecimals(f)
+                                        _v = f.xValue
+                                        if isnan(_v):
+                                            _inConsistent = True
+                                            break
+                                        if _d in decVals:
+                                            _inConsistent |= _v != decVals[_d]
+                                        else:
+                                            decVals[_d] = _v
+                                        a, b = rangeValue(_v, _d)
                                         if a > aMax: aMax = a
                                         if b < bMin: bMin = b
-                                    _inConsistent = (bMin < aMax)
-                            else:
-                                _inConsistent = any(not f.isVEqualTo(f0) for f in fList[1:])
+                                    if not _inConsistent:
+                                        _inConsistent = (bMin < aMax)
+                                    decVals.clear()
                             if _inConsistent:
                                 modelXbrl.error("JFCVC.3314",
                                     "Inconsistent duplicate fact values %(fact)s: %(values)s.",

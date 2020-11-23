@@ -116,6 +116,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     val.standardNamespaceConflicts = defaultdict(set)
     documentType = None # needed for non-instance validation too
     submissionType = val.params.get("submissionType", "")
+    requiredFactLang = disclosureSystem.defaultXmlLang.lower() if disclosureSystem.defaultXmlLang else disclosureSystem.defaultXmlLang
     hasSubmissionType = bool(submissionType)
     isInlineXbrl = modelXbrl.modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET)
     if isEFM:
@@ -418,7 +419,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             if context is not None and f.xValid >= VALID: # tests do not apply to tuples
                 if not context.hasSegment and not context.hasScenario: 
                     #required context
-                    if factInDeiNamespace:
+                    if factInDeiNamespace and (
+                        not f.concept.type.isWgnStringFactType or f.xmlLang.lower() == requiredFactLang):
                         value = f.xValue
                         if factElementName == disclosureSystem.deiAmendmentFlagElement:
                             amendmentFlag = value
@@ -492,7 +494,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         hasCommonSharesOutstandingDimensionedFactWithDefaultStockClass = True   # absent dimension, may be no def LB
                      
                 # 6.5.43 signs - applies to all facts having a context.
-                if (isEFM and f.qname in nonNegFacts.concepts and f.isNumeric and not f.isNil and f.xValid >= VALID and f.xValue < 0 and (
+                if (isEFM and f.qname in nonNegFacts.concepts and f.isNumeric and not f.isNil and f.xValue < 0 and (
                     all((dim.dimensionQname not in nonNegFacts.excludedAxesMembers or
                          ("*" not in nonNegFacts.excludedAxesMembers[dim.dimensionQname] and
                           dim.memberQname not in nonNegFacts.excludedAxesMembers[dim.dimensionQname])) and
@@ -606,7 +608,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     if prefix is not None:
                         if ((isInlineXbrl and not re.match(cleanedCompanyName(prefix).replace("-", r"[\s-]?"),
                                                           cleanedCompanyName(value), flags=re.IGNORECASE)) or
-                            (not isInlineXbrl and not value.lower().startswith(prefix.lower()))):
+                            (not isInlineXbrl and not value.casefold().startswith(prefix.casefold()))): # casefold needed for some non-en languages
                             val.modelXbrl.error(("EFM.6.05.24", "GFM.3.02.02"),
                                 _("The Official Registrant name, %(prefix)s, does not match the value %(value)s in the Required Context.  "
                                   "Please correct dei:%(elementName)s."),
@@ -770,20 +772,19 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         #    factLangStartsWith = disclosureSystem.defaultXmlLang[:2]
         #else:
         #    factLangStartsWith = disclosureSystem.defaultXmlLang
-        requiredFactLang = disclosureSystem.defaultXmlLang
 
         #6.5.12 equivalent facts
         factsForLang = {}
         factForConceptContextUnitHash = defaultdict(list)
         keysNotDefaultLang = {}
         for f1 in modelXbrl.facts:
-            if f1.context is not None and f1.concept is not None and f1.concept.type is not None:
+            if f1.context is not None and f1.concept is not None and f1.concept.type is not None and getattr(f1,"xValid", 0) >= VALID:
                 # build keys table for 6.5.14
-                if not f1.isNil and getattr(f1,"xValid", 0) >= VALID:
+                if not f1.isNil:
                     langTestKey = "{0},{1},{2}".format(f1.qname, f1.contextID, f1.unitID)
                     factsForLang.setdefault(langTestKey, []).append(f1)
                     lang = f1.xmlLang
-                    if lang and lang != requiredFactLang: # not lang.startswith(factLangStartsWith):
+                    if lang and lang.lower() != requiredFactLang: # not lang.startswith(factLangStartsWith):
                         keysNotDefaultLang[langTestKey] = f1
                         
                     # 6.5.37 test (insignificant digits due to rounding)
@@ -812,7 +813,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             if len(hashEquivalentFacts) > 1:
                 for f in hashEquivalentFacts:
                     aspectEqualFacts[(f.qname,f.contextID,f.unitID,
-                                      f.xmlLang if f.concept.type.isWgnStringFactType else None)].append(f)
+                                      f.xmlLang.lower() if f.concept.type.isWgnStringFactType else None)].append(f)
                 for fList in aspectEqualFacts.values():
                     f0 = fList[0]
                     if f0.concept.isNumeric:
@@ -856,7 +857,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         for keyNotDefaultLang, factNotDefaultLang in keysNotDefaultLang.items():
             anyDefaultLangFact = False
             for fact in factsForLang[keyNotDefaultLang]:
-                if fact.xmlLang == requiredFactLang: #.startswith(factLangStartsWith):
+                if fact.xmlLang.lower() == requiredFactLang: #.startswith(factLangStartsWith):
                     anyDefaultLangFact = True
                     break
             if not anyDefaultLangFact:
@@ -865,7 +866,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                       "Please provide a fact with xml:lang equal to '%(lang2)s'."),
                     edgarCode="du-0514-English-Text-Missing",
                     modelObject=factNotDefaultLang, fact=factNotDefaultLang.qname, contextID=factNotDefaultLang.contextID, 
-                    lang=factNotDefaultLang.xmlLang, lang2=requiredFactLang) # factLangStartsWith)
+                    lang=factNotDefaultLang.xmlLang, lang2=disclosureSystem.defaultXmlLang) # report lexical format default lang
                 
         #label validations
         if not labelsRelationshipSet:
@@ -2652,6 +2653,4 @@ def cleanedCompanyName(name):
                                  ):
         name = re.sub(pattern, replacement, name, flags=re.IGNORECASE)
     return unicodedata.normalize('NFKD', name.strip().lower()).encode('ASCII', 'ignore').decode()  # remove diacritics 
-
-
 

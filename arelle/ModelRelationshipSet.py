@@ -315,6 +315,7 @@ class ModelRelationshipSet:
         return False
     
     def label(self, modelFrom, role, lang, returnMultiple=False, returnText=True, linkroleHint=None):
+        _lang = lang.lower() if lang else lang # lang processing is case insensitive
         shorterLangInLabel = longerLangInLabel = None
         shorterLangLabels = longerLangLabels = None
         langLabels = []
@@ -346,13 +347,15 @@ class ModelRelationshipSet:
             label = modelLabelRel.toModelObject
             if wildRole or role == label.role:
                 labelLang = label.xmlLang # None if absent or un-declared by empty string (see xml schema)
+                if labelLang:
+                    labelLang = labelLang.lower() # must be case insensitive for processiing
                 text = label.textValue if returnText else label
-                if lang is None or len(lang) == 0 or lang == labelLang:
+                if _lang is None or len(_lang) == 0 or _lang == labelLang:
                     langLabels.append(text)
                     if not returnMultiple:
                         break
                 elif labelLang is not None:
-                    if labelLang.startswith(lang):
+                    if labelLang.startswith(_lang):
                         if not longerLangInLabel or len(longerLangInLabel) > len(labelLang):
                             longerLangInLabel = labelLang
                             longerLangLabels = [text,]
