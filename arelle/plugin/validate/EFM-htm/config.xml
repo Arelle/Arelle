@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) Copyright 2017 Mark V Systems Limited, All rights reserved. -->
+<DisclosureSystems  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+      xsi:noNamespaceSchemaLocation="../../../config/disclosuresystems.xsd" >
+  <!-- see ../config/disclosuresystem.xml for full comments -->
+   
+  <DisclosureSystem 
+     names="US SEC HTML (Edgar Filing Manual 5.2.2)|efm-htm"
+     description="US SEC non-XBRL HTML Edgar Filing Manual v54 Release 20.3"
+     validationType="EFM"
+     exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|EFM"
+     validateFileText="true"
+     allowedExternalHrefPattern="https?://www.sec.gov/(ix[?]doc=/)?Archives/edgar/data/"
+     />
+
+</DisclosureSystems>
