@@ -1304,7 +1304,7 @@ class ModelDimensionRelationshipDefinitionNode(ModelRelationshipDefinitionNode):
             self._coveredAspect = self.dimRelationships(structuralNode, getDimQname=True)
             return self._coveredAspect
         
-    def relationships(self, structuralNode):
+    def relationships(self, structuralNode, **kwargs):
         return self.dimRelationships(structuralNode, getMembers=True)
     
     def dimRelationships(self, structuralNode, getMembers=False, getDimQname=False):
