@@ -14,6 +14,7 @@ except ImportError:
     from re import compile as re_compile, match as re_match, DOTALL as re_DOTALL
 from arelle import ValidateFilingText
 from arelle.ModelDocument import Type, create as createModelDocument
+from arelle.UrlUtil import isHttpUrl, scheme
 from .Const import edgarAdditionalTags, disallowedElements, disallowedElementAttrs, recognizedElements
 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
@@ -62,7 +63,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                     modelXbrl.error("EFM.6.05.16.externalReference",
                         _("Element has an invalid external reference in '%(attribute)s' for <%(element)s>"),
                         modelObject=elt, attribute=attrTag, element=eltTag)
-                if attrTag == "src" and attrValue not in checkedGraphicsFiles:
+                if attrTag == "src":
                     if scheme(attrValue)  == "data":
                         modelXbrl.error("EFM.5.02.02.10.graphicDataUrl",
                             _("Element references a graphics data URL which isn't accepted '%(attribute)s' for <%(element)s>"),

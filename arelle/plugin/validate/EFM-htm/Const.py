@@ -188,6 +188,7 @@ recognizedElements = {
     "head",
     "hr",
     "i",
+    "img",
     "isindex",
     "kbd",
     "li",
