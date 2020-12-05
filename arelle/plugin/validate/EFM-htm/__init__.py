@@ -14,6 +14,7 @@ except ImportError:
     from re import compile as re_compile, match as re_match, DOTALL as re_DOTALL
 from arelle import ValidateFilingText
 from arelle.ModelDocument import Type, create as createModelDocument
+from .Const import edgarAdditionalTags, disallowedElements, disallowedElementAttrs, recognizedElements
 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
@@ -33,19 +34,21 @@ def validateXbrlFinally(val, *args, **kwargs):
 
     modelXbrl = val.modelXbrl
     allowedExternalHrefPattern = modelXbrl.modelManager.disclosureSystem.allowedExternalHrefPattern
-    efmHtmDTD = None
-    with open(os.path.join(os.path.dirname(__file__), "resources", "efm-htm.dtd")) as fh:
-        efmHtmDTD = DTD(fh)
-    if efmHtmDTD and not efmHtmDTD.validate( modelXbrl.modelDocument.xmlRootElement.getroottree() ):
-        for e in efmHtmDTD.error_log.filter_from_errors():
-            if "declared in the external subset contains white spaces nodes" not in e.message:
-                modelXbrl.error("html.syntax",
-                    _("HTML error %(error)s"),
-                    error=e.message)
+    #efmHtmDTD = None
+    #with open(os.path.join(os.path.dirname(__file__), "resources", "efm-htm.dtd")) as fh:
+    #    efmHtmDTD = DTD(fh)
+    #if efmHtmDTD and not efmHtmDTD.validate( modelXbrl.modelDocument.xmlRootElement ):
+    #    for e in efmHtmDTD.error_log.filter_from_errors():
+    #        if "declared in the external subset contains white spaces nodes" not in e.message:
+    #            modelXbrl.error("html.syntax",
+    #                _("HTML error %(error)s"),
+    #                error=e.message)
+    numHtmlTags = 0
+    inBody = False
     for elt in modelXbrl.modelDocument.xmlRootElement.iter():
-        eltTag = elt.tag
         if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction)):
             continue # comment or other non-parsed element
+        eltTag = elt.tag.lower()
         for attrTag, attrValue in elt.items():
             if ((attrTag == "href" and eltTag == "a") or 
                 (attrTag == "src" and eltTag == "img")):
@@ -55,7 +58,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                         modelObject=elt, attribute=attrTag, element=eltTag)
                 elif eltTag == "a" and (not allowedExternalHrefPattern or allowedExternalHrefPattern.match(attrValue)):
                     pass
-                elif scheme(attrValue) in ("http", "https", "ftp"):
+                elif scheme(attrValue) in ("http", "https", "ftp", "mailto"):
                     modelXbrl.error("EFM.6.05.16.externalReference",
                         _("Element has an invalid external reference in '%(attribute)s' for <%(element)s>"),
                         modelObject=elt, attribute=attrTag, element=eltTag)
@@ -68,11 +71,41 @@ def validateXbrlFinally(val, *args, **kwargs):
                         modelXbrl.error("EFM.5.02.02.10.graphicFileType",
                             _("Element references a graphics file which isn't .gif or .jpg '%(attribute)s' for <%(element)s>"),
                             modelObject=elt, attribute=attrValue, element=eltTag)
-        if eltTag == "table" and any(a is not None for a in elt.iterancestors("table")):
-            modelXbrl.error("EFM.5.02.02.10.nestedTable",
-                _("Element is a disallowed nested <table>."),
-                modelObject=elt)
-    
+            elif attrTag in disallowedElementAttrs.get(eltTag,()) or attrTag in disallowedElementAttrs["*"]:
+                modelXbrl.error("EFM.5.02.02.05.disallowedAttribute",
+                    _("Element has disallowed attribute '%(attribute)s' for <%(element)s>"),
+                    modelObject=elt, attribute=attrTag, element=eltTag)
+            elif attrTag.startswith("xmlns"):
+                modelXbrl.error("EFM.5.02.02.05.xmlns",
+                    _("Element has disallowed xmlns declaration '%(attribute)s' for <%(element)s>"),
+                    modelObject=elt, attribute=attrTag, element=eltTag)
+        if eltTag == "html":
+            numHtmlTags += 1
+            if numHtmlTags > 1:
+                modelXbrl.error("EFM.5.02.02.02.htmlTags",
+                    _("Document can only have one html tag"),
+                    modelObject=elt)
+        elif eltTag in ("head", "meta", "isindex", "title"):
+            pass # these are allowed
+        elif eltTag == "body":
+            inBody = True
+        elif eltTag == "table":
+            if any(a is not None for a in elt.iterancestors("table")):
+                modelXbrl.error("EFM.5.02.02.10.nestedTable",
+                    _("Element is a disallowed nested <table>."),
+                    modelObject=elt)
+        elif eltTag in disallowedElements:
+            modelXbrl.error("EFM.5.02.02.04.disallowedElement",
+                _("Element is disallowed: <%(element)s>"),
+                modelObject=elt, element=eltTag)
+        elif eltTag not in recognizedElements:
+            modelXbrl.error("EFM.5.02.02.03.unrecognizedElement",
+                _("Element is not recognized: <%(element)s>"),
+                modelObject=elt, element=eltTag)
+        elif not inBody:
+            modelXbrl.error("EFM.5.02.02.03.bodyTags",
+                _("Element is not in a body: <%(element)s>"),
+                modelObject=elt, element=eltTag)
     
 def filingStart(cntlr, options, filesource, entrypointFiles, sourceZipStream=None, responseZipStream=None, *args, **kwargs):
     modelManager = cntlr.modelManager
@@ -124,10 +157,13 @@ def htmlLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
         _parser = HTMLParser()
         htmlTree = parse(file, _parser, base_url=filepath)
         for error in _parser.error_log:
-            modelXbrl.error("html:syntax",
-                    _("%(error)s, %(fileName)s, line %(line)s, column %(column)s"),
-                    fileName=os.path.basename(mappedUri), 
-                    error=error.message, line=error.line, column=error.column)
+            if not (error.type_name == "HTML_UNKNOWN_TAG" and 
+                    error.message.startswith("Tag ") and 
+                    error.message.lower()[4:].partition(" ")[0] in edgarAdditionalTags):
+                modelXbrl.error("html:syntax",
+                        _("%(error)s, %(fileName)s, line %(line)s, column %(column)s"),
+                        fileName=os.path.basename(mappedUri), 
+                        error=error.message, line=error.line, column=error.column)
         file.close()
     except Exception as err:
         modelXbrl.error(type(err).__name__,
