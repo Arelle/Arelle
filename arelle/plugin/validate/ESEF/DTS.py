@@ -41,9 +41,9 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
         filenamePattern = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}[.]xsd$")
 
         for doc, docRef in modelDocument.referencesDocument.items():
-            if docRef.referenceType == "import":
+            if "import" in docRef.referenceTypes:
                 val.extensionImportedUrls.add(doc.uri)
-            #if docRef.referenceType in ("import","include"):
+            #if docRef.referenceTypes & {"import","include"}:
             #    if disallowedURIsPattern.match(doc.uri):
             #        val.modelXbrl.warning("ESEF.3.1.1.extensionImportNotAllowed",
             #                            _("Taxonomy reference not allowed for extension schema: %(taxonomy)s"),

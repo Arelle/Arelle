@@ -1017,9 +1017,10 @@ class ModelDocument:
             else:
                 doc = load(self.modelXbrl, schemaLocation, base=importElementBase, isDiscovered=self.inDTS, 
                            isIncluded=isIncluded, namespace=importNamespace, referringElement=element)
-            if doc is not None and doc not in self.referencesDocument:
-                self.referencesDocument[doc] = ModelDocumentReference(element.localName, element)  #import or include
+            if doc is not None:
+                self.addDocumentReference(doc, element.localName, element) #import or include
                 self.referencedNamespaces.add(importNamespace)
+                
             # future note: for redefine, if doc was just loaded, process redefine type definitions
                 
     def schemalocateElementNamespace(self, element):
@@ -1177,12 +1178,13 @@ class ModelDocument:
                     for pluginMethod in pluginClassMethods(urlRewritePluginClass):
                         url = pluginMethod(self, url)
                 doc = _newDoc(self.modelXbrl, url, isDiscovered=not nonDTS, base=self.baseForElement(element), referringElement=element)
-                if not nonDTS and doc is not None and doc not in self.referencesDocument:
-                    self.referencesDocument[doc] = ModelDocumentReference("href", element)
-                    if not doc.inDTS and doc.type > Type.UnknownTypes:    # non-XBRL document is not in DTS
-                        doc.inDTS = True    # now known to be discovered
-                        if doc.type == Type.SCHEMA and not self.skipDTS: # schema coming newly into DTS
-                            doc.schemaDiscoverChildElements(doc.xmlRootElement)
+                if not nonDTS and doc is not None:
+                    if doc not in self.referencesDocument:
+                        if not doc.inDTS and doc.type > Type.UnknownTypes:    # non-XBRL document is not in DTS
+                            doc.inDTS = True    # now known to be discovered
+                            if doc.type == Type.SCHEMA and not self.skipDTS: # schema coming newly into DTS
+                                doc.schemaDiscoverChildElements(doc.xmlRootElement)
+                    self.addDocumentReference(doc, "href", element)
             href = (element, doc, id if len(id) > 0 else None)
             if doc is not None:  # if none, an error would have already been reported, don't multiply report it
                 self.hrefObjects.append(href)
@@ -1347,14 +1349,12 @@ class ModelDocument:
                         uriAttr = testcaseElement.get("uri") or testcaseElement.get("file") or testcaseElement.get("{http://www.w3.org/1999/xlink}href")
                         if uriAttr:
                             doc = load(self.modelXbrl, uriAttr, base=base, referringElement=testcaseElement)
-                            if doc is not None and doc not in self.referencesDocument:
-                                self.referencesDocument[doc] = ModelDocumentReference("testcaseIndex", testcaseElement)
+                            self.addDocumentReference(doc, "testcaseIndex", testcaseElement)
                     elif isinstance(testcaseElement,ModelObject) and testcaseElement.localName in ("testcases", "registries"):
                         uriAttr = testcaseElement.get("uri") or testcaseElement.get("{http://www.w3.org/1999/xlink}href")
                         if uriAttr:
                             doc = load(self.modelXbrl, uriAttr, base=base, referringElement=testcaseElement)
-                            if doc is not None and doc not in self.referencesDocument:
-                                self.referencesDocument[doc] = ModelDocumentReference("testcaseIndex", testcaseElement)
+                            self.addDocumentReference(doc, "testcaseIndex", testcaseElement)
 
     def testcaseDiscover(self, testcaseElement):
         isTransformTestcase = testcaseElement.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms"
@@ -1390,12 +1390,22 @@ class ModelDocument:
                         testbase = functionDoc.filepath
                         if testuri is not None:
                             testcaseDoc = load(self.modelXbrl, testuri, base=testbase, referringElement=testUriElt)
-                            if testcaseDoc is not None and testcaseDoc not in self.referencesDocument:
-                                self.referencesDocument[testcaseDoc] = ModelDocumentReference("registryIndex", testUriElt)
+                            self.addDocumentReference(testcaseDoc, "registryIndex", testUriElt)
             
     def xPathTestSuiteDiscover(self, rootNode):
         # no child documents to reference
         pass
+    
+    def addDocumentReference(self, doc, referenceType, referringModelObject=None):
+        if doc is not None:
+            if doc not in self.referencesDocument:
+                self.referencesDocument[doc] = ModelDocumentReference(referenceType, referringModelObject)
+            else:
+                r = self.referencesDocument[doc]
+                r.referenceTypes.add(referenceType)
+                if r.referringModelObject is None and referringModelObject is not None:
+                    r.referringModelObject = referringModelObject
+                    
     
 # inline document set level compilation
 # modelIxdsDocument is an inlineDocumentSet or entry inline document (if not a document set)
@@ -1875,12 +1885,12 @@ class LoadingException(Exception):
 
 class ModelDocumentReference:
     def __init__(self, referenceType, referringModelObject=None):
-        self.referenceType = referenceType
+        self.referenceTypes = {referenceType}
         self.referringModelObject = referringModelObject
     
     @property
     def referringXlinkRole(self):
-        if self.referenceType == "href" and isinstance(self.referringModelObject, ModelObject):
+        if "href" in self.referenceTypes and isinstance(self.referringModelObject, ModelObject):
             return self.referringModelObject.get("{http://www.w3.org/1999/xlink}role")
         return None
 

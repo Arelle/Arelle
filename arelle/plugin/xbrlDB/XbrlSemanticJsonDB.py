@@ -380,7 +380,7 @@ class XbrlSemanticJsonDatabaseConnection():
                     'documentType': Type.typeName[modelDocument.type],
                     'references': [modelObjectDocumentUri(doc)
                                    for doc, ref in modelDocument.referencesDocument.items()
-                                   if doc.inDTS and ref.referenceType in ("href", "import", "include")],
+                                   if doc.inDTS and ref.referenceTypes & {"href", "import", "include"}],
                     'resources': {}
                     }
             self.filing['documents'].append(docUri)

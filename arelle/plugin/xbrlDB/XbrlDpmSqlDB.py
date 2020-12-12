@@ -253,7 +253,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         _instanceSchemaRef = "(none)"
         if self.modelXbrl.modelDocument.type in (Type.INSTANCE, Type.INLINEXBRL):
             for refDoc, ref in self.modelXbrl.modelDocument.referencesDocument.items():
-                if refDoc.inDTS and ref.referenceType == "href":
+                if refDoc.inDTS and "href" in ref.referenceTypes:
                     if self.moduleId is None:
                         _instanceSchemaRef = _schemaRef = refDoc.uri
                         # perform schemaRef substitutions

@@ -226,7 +226,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             if mdlDoc.type in (Type.INSTANCE, Type.INLINEXBRL):
                 instanceDocuments.add(mdlDoc)
                 for refDoc, ref in mdlDoc.referencesDocument.items():
-                    if refDoc.inDTS and ref.referenceType in ("href", "import", "include"):
+                    if refDoc.inDTS and ref.referenceTypes * {"href", "import", "include"}:
                         instanceReferencedDocuments.add(refDoc)
             elif mdlDoc.type == Type.INLINEXBRLDOCUMENTSET:
                 inlineXbrlDocSet = mdlDoc
@@ -467,7 +467,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 referencedDocuments.add( (self.reportPk, self.documentIds[mdlDoc] ))
             if mdlDoc in self.documentIds:
                 for refDoc, ref in mdlDoc.referencesDocument.items():
-                    if refDoc.inDTS and ref.referenceType in ("href", "import", "include") \
+                    if refDoc.inDTS and ref.referenceTypes & {"href", "import", "include"} \
                        and refDoc in self.documentIds:
                         referencedDocuments.add( (self.documentIds[mdlDoc], self.documentIds[refDoc] ))
         
@@ -485,7 +485,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             creationSoftware = mdlDoc.creationSoftware
             # referenced doc may be extension schema
             for refDoc, ref in mdlDoc.referencesDocument.items():
-                if refDoc.inDTS and ref.referenceType == "href" and refDoc in self.documentIds:
+                if refDoc.inDTS and "href" in ref.referenceTypes and refDoc in self.documentIds:
                     instSchemaDocId = self.documentIds[refDoc]
                     break
         elif mdlDoc.type == Type.SCHEMA:

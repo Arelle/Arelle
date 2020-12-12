@@ -82,7 +82,7 @@ def validateSetup(val, parameters=None, *args, **kwargs):
     modelDocument = val.modelXbrl.modelDocument
     if modelDocument.type == ModelDocument.Type.INSTANCE:
         for doc, docRef in modelDocument.referencesDocument.items():
-            if docRef.referenceType == "href":
+            if "href" in docRef.referenceTypes:
                 if docRef.referringModelObject.localName == "schemaRef":
                     _match = schemaRefDatePattern.match(doc.uri)
                     if _match:
@@ -563,7 +563,7 @@ def final(val):
         schemaRefElts = []
         schemaRefFileNames = []
         for doc, docRef in modelDocument.referencesDocument.items():
-            if docRef.referenceType == "href":
+            if "href" in docRef.referenceTypes:
                 if docRef.referringModelObject.localName == "schemaRef":
                     schemaRefElts.append(docRef.referringModelObject)
                     schemaRefFileNames.append(doc.basename)

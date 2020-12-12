@@ -49,7 +49,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
     extensionFiledStandardTaxonomy = isEFM and modelDocument.targetNamespace in val.otherStandardTaxonomies
     for referencedDocument, modelDocumentReference in modelDocument.referencesDocument.items():
         #6.07.01 no includes
-        if modelDocumentReference.referenceType == "include":
+        if "include" in modelDocumentReference.referenceTypes:
             val.modelXbrl.error(("EFM.6.07.01", "GFM.1.03.01"),
                 _("Taxonomy schema %(schema)s includes %(include)s, only import is allowed"),
                 modelObject=modelDocumentReference.referringModelObject,

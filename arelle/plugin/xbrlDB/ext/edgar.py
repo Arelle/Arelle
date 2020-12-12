@@ -199,7 +199,7 @@ def extEdgarReportUpdate(xbrlOpenDb):
     for mdlDoc in xbrlOpenDb.modelXbrl.urlDocs.values():
         if mdlDoc in xbrlOpenDb.documentIds:
             for refDoc, ref in mdlDoc.referencesDocument.items():
-                if refDoc.inDTS and ref.referenceType in ("href", "import", "include") \
+                if refDoc.inDTS and ref.referenceTypes & {"href", "import", "include"} \
                    and refDoc in xbrlOpenDb.documentIds:
                     if refDoc.type == Type.SCHEMA:
                         nsAuthority = authority(refDoc.targetNamespace, includeScheme=False)

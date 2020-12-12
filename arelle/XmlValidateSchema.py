@@ -58,7 +58,7 @@ def validate(modelDocument, schemaElement, targetNamespace):
 
     declaredNamespaces = set(doc.targetNamespace
                              for doc, docRef in modelDocument.referencesDocument.items()
-                             if docRef.referenceType in ("include", "import"))
+                             if docRef.referenceTypes & {"include", "import"})
 
     if targetNamespace:
         declaredNamespaces.add(targetNamespace)

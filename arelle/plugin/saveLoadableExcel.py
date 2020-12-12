@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+""# -*- coding: utf-8 -*-
 '''
 loadFromExcel.py is an example of a plug-in that will load an extension taxonomy from Excel
 input and optionally save an (extension) DTS.
@@ -170,7 +170,7 @@ def saveLoadableExcel(dts, excelFile):
         extensionSchemaDoc = dts.modelDocument
     elif dts.modelDocument.type == ModelDocument.Type.INSTANCE:
         for doc, docReference in dts.modelDocument.referencesDocument.items():
-            if docReference.referenceType == "href":
+            if "href" in docReference.referenceTypes:
                 extensionSchemaDoc = doc
                 break
     if extensionSchemaDoc is None:
@@ -180,7 +180,7 @@ def saveLoadableExcel(dts, excelFile):
         return
             
     for doc, docReference in extensionSchemaDoc.referencesDocument.items():
-        if docReference.referenceType == "import" and doc.targetNamespace != XbrlConst.xbrli:
+        if "import" in docReference.referenceTypes and doc.targetNamespace != XbrlConst.xbrli:
             writeCell(dtsWs, dtsRow, 1, "import") 
             writeCell(dtsWs, dtsRow, 2, "schema") 
             writeCell(dtsWs, dtsRow, 3, XmlUtil.xmlnsprefix(doc.xmlRootElement, doc.targetNamespace)) 
@@ -199,7 +199,7 @@ def saveLoadableExcel(dts, excelFile):
     dtsRow += 1
 
     for doc, docReference in extensionSchemaDoc.referencesDocument.items():
-        if docReference.referenceType == "href" and doc.type == ModelDocument.Type.LINKBASE:
+        if "href" in docReference.referenceTypes and doc.type == ModelDocument.Type.LINKBASE:
             linkbaseType = ""
             role = docReference.referringModelObject.get("{http://www.w3.org/1999/xlink}role") or ""
             if role.startswith("http://www.xbrl.org/2003/role/") and role.endswith("LinkbaseRef"):

@@ -455,7 +455,7 @@ class XbrlSemanticRdfDatabaseConnection():
                 g.add( (docUri, XBRL.documentType, DocumentTypes.get(modelDocument.type,
                                                              DocumentTypes.get(Type.UnknownXML))) )
                 for doc, ref in modelDocument.referencesDocument.items():
-                    if doc.inDTS and ref.referenceType in ("href", "import", "include"):
+                    if doc.inDTS and ref.referenceTypes & {"href", "import", "include"}:
                         g.add( (docUri, XBRL.references, URIRef( modelObjectDocumentUri(doc) )) )
             g.add( (self.filingURI, Filing.document, docUri) )
             if modelDocument.uri == self.modelXbrl.modelDocument.uri: # entry document

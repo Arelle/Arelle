@@ -16,7 +16,8 @@ Example to run from web server:
 
 
 '''
-import os, sys, io, time, traceback, json, csv, logging, math, zipfile, datetime, isodate
+import os, sys, io, time, traceback, json, csv, logging, zipfile, datetime, isodate
+from math import isnan, log10
 try:
     from regex import compile as re_compile, match as re_match, DOTALL as re_DOTALL
 except ImportError:
@@ -29,7 +30,7 @@ from arelle import XbrlConst, ModelDocument, ModelXbrl, PackageManager, Validate
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, dateTime, DATETIME, yearMonthDuration, dayTimeDuration
 from arelle.PrototypeInstanceObject import DimValuePrototype
-from arelle.PythonUtil import attrdict, flattenToSet
+from arelle.PythonUtil import attrdict, flattenToSet, strTruncate
 from arelle.UrlUtil import isHttpUrl, isAbsolute as isAbsoluteUri, relativeUrlPattern
 from arelle.XbrlConst import (qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
                               qnLinkPart, gen, link, defaultLinkRole, footnote, factFootnote, isStandardRole,
@@ -635,18 +636,18 @@ def checkForDuplicates(modelXbrl, allowedDups, footnoteIDs):
                             elif allowedDups == CONSISTENT and f0.concept.isNumeric:
                                 if any(f.isNil for f in fList):
                                     _inConsistent = not all(f.isNil for f in fList)
-                                elif all(inferredDecimals(f) == inferredDecimals(f0) for f in fList[1:]): # same decimals
-                                    v0 = rangeValue(f0.value)
-                                    _inConsistent = not all(rangeValue(f.value) == v0 for f in fList[1:])
                                 else: # not all have same decimals
-                                    _inConsistent = False
                                     _d = inferredDecimals(f0)
-                                    _v = f0.value
+                                    _v = f0.xValue
+                                    _inConsistent = isnan(_v) # NaN is incomparable, always makes dups inconsistent
                                     decVals[_d] = _v
                                     aMax, bMin = rangeValue(_v, _d)
                                     for f in fList[1:]:
                                         _d = inferredDecimals(f)
-                                        _v = f.value
+                                        _v = f.xValue
+                                        if isnan(_v):
+                                            _inConsistent = True
+                                            break
                                         if _d in decVals:
                                             _inConsistent |= _v != decVals[_d]
                                         else:
@@ -654,7 +655,8 @@ def checkForDuplicates(modelXbrl, allowedDups, footnoteIDs):
                                         a, b = rangeValue(_v, _d)
                                         if a > aMax: aMax = a
                                         if b < bMin: bMin = b
-                                    _inConsistent |= (bMin < aMax)
+                                    if not _inConsistent:
+                                        _inConsistent = (bMin < aMax)
                                     decVals.clear()
                             else: # includes COMPLETE
                                 _inConsistent = any(not oimEquivalentFacts(f0, f) for f in fList[1:])
@@ -663,7 +665,7 @@ def checkForDuplicates(modelXbrl, allowedDups, footnoteIDs):
                                     "%(disallowance)s duplicate fact values %(element)s: %(values)s, %(contextIDs)s.",
                                     modelObject=fList, disallowance=DisallowedDescription[allowedDups], element=f0.qname, 
                                     contextIDs=", ".join(sorted(set(f.contextID for f in fList))), 
-                                    values=", ".join(f.value for f in fList))
+                                    values=", ".join(strTruncate(f.value,64) for f in fList))
                 aspectEqualFacts.clear()
         del factForConceptContextUnitHash, aspectEqualFacts
         
@@ -1412,7 +1414,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         if tableWb is not None:
                             hasSheetname = xlSheetName and xlSheetName in tableWb
                             hasNamedRange = xlNamedRange and xlNamedRange in tableWb.defined_names
-                            if tableWb and not hasSheetname:
+                            if xlSheetName and not hasSheetname:
                                 if tableIsOptional:
                                     continue
                                 raise OIMException("xbrlwe:missingTable", 
@@ -1762,7 +1764,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         currentAction = "creating facts"
         factNum = 0 # for synthetic fact number
         if isJSON:
-            syntheticFactFormat = "_f{{:0{}}}".format(int(math.log10(len(factItems) or 1))) #want 
+            syntheticFactFormat = "_f{{:0{}}}".format(int(log10(len(factItems) or 1))) #want 
         else:
             syntheticFactFormat = "_f{}" #want 
         
@@ -2557,7 +2559,7 @@ def validateFinally(val, *args, **kwargs):
                 visited = set()
             visited.add(thisdoc)
             for doc, docRef in thisdoc.referencesDocument.items():
-                if not (docRef.referenceType in ("roleType", "arcroleType") and thisdoc.type == Type.INSTANCE):
+                if not (docRef.referenceTypes & {"roleType", "arcroleType"} and thisdoc.type == Type.INSTANCE):
                     if doc == roleTypeDoc or (doc not in visited and docInSchemaRefedDTS(doc, roleTypeDoc, visited)):
                         return True
             visited.remove(thisdoc)

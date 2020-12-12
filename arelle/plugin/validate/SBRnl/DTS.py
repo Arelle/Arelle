@@ -43,7 +43,7 @@ def checkFilingDTS(val, modelDocument, visited):
     visited.append(modelDocument)
     for referencedDocument, modelDocumentReference in modelDocument.referencesDocument.items():
         #6.07.01 no includes
-        if modelDocumentReference.referenceType == "include":
+        if "include" in modelDocumentReference.referenceTypes:
             val.modelXbrl.error("SBR.NL.2.2.0.18",
                 _("Taxonomy schema %(schema)s includes %(include)s, only import is allowed"),
                 modelObject=modelDocumentReference.referringModelObject,
