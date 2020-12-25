@@ -354,7 +354,7 @@ class ModelTestcaseVariation(ModelObject):
 
     @property
     def blockedMessageCodes(self):
-        blockedCodesRegex = XmlUtil.descendantAttr(self, None, "results", "blockedMessageCodes") # DQC 4/5 test suite
+        blockedCodesRegex = XmlUtil.descendantAttr(self, None, ("results","result"), "blockedMessageCodes") # DQC 4/5 test suite
         if not blockedCodesRegex:
             ignoredCodes = XmlUtil.descendants(self, None, "ignore-error") # ESEF test suite
             if ignoredCodes:
