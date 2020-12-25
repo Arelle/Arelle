@@ -539,7 +539,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             for f in facts:
                 if f.precision is not None:
                     precisionFacts.add(f)
-                if f.isNumeric and f.concept is not None and getattr(ixElt, "xValid", 0) >= VALID:
+                if f.isNumeric and f.concept is not None and getattr(f, "xValid", 0) >= VALID:
                     numFactsByConceptContextUnit[(f.qname, mapContext.get(f.context,f.context), mapUnit.get(f.unit, f.unit))].append(f)
                     if not f.isNil and f.xValue > 1 and f.concept.type is not None and (
                         f.concept.type.qname == PERCENT_TYPE or f.concept.type.isDerivedFrom(PERCENT_TYPE)):
