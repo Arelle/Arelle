@@ -80,11 +80,11 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
             msg = varSet.message(result)
             if msg is not None:
                 xpCtx.inScopeVars[XbrlConst.qnEaTestExpression] = varSet.test
-                unsatSeverity = varSet.unsatisfiedSeverity()
+                unsatSeverity = varSet.unsatisfiedSeverity(contextItem=varSet.evaluationsCount)
                 xpCtx.modelXbrl.log(
                     "INFO" if result else {"OK":"INFO", "WARNING":"WARNING", "ERROR":"ERROR"}[unsatSeverity],
                     "message:" + (varSet.id or varSet.xlinkLabel or  _("unlabeled variableSet")),
-                    msg.evaluate(xpCtx),
+                    msg.evaluate(xpCtx, contextItem=varSet.evaluationsCount),
                     modelObject=varSet,
                     label=varSet.logLabel(),
                     messageCodes=("message:{variableSetID|xlinkLabel}",))
