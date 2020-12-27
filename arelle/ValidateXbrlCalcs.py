@@ -360,7 +360,7 @@ def decimalRound(x, d, rounding):
         if d >= 0:
             return x.quantize(ONE.scaleb(-d),rounding)
         else: # quantize only seems to work on fractional part, convert integer to fraction at scaled point    
-            return x.scaleb(d).quantize(ONE,rounding).scaleb(-d)
+            return x.scaleb(d).quantize(ONE,rounding) * (TEN ** decimal.Decimal(-d)) # multiply by power of 10 to prevent scaleb scientific notatino
     return x # infinite, NaN, zero, or excessive decimal digits ( > 28 )
 
 def inferredPrecision(fact):
