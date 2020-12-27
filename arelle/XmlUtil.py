@@ -16,8 +16,8 @@ from arelle.ModelValue import qname, QName
 from arelle.PrototypeDtsObject import PrototypeElementTree, PrototypeObject
 htmlEltUriAttrs = resolveHtmlUri = None
 
-datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})\s*|"
-                             r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*")
+datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})(\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*|"
+                             r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})(Z|[+-][0-9]{2}:[0-9]{2})?\s*")
 xmlEncodingPattern = re.compile(r"\s*<\?xml\s.*encoding=['\"]([^'\"]*)['\"].*\?>")
 xpointerFragmentIdentifierPattern = re.compile(r"([\w.]+)(\(([^)]*)\))?")
 xmlnsStripPattern = re.compile(r'\s*xmlns(:[\w.-]+)?="[^"]*"')
@@ -706,6 +706,14 @@ def sortKey(parentElement, childNamespaceUri, childLocalNames, childAttributeNam
 
 DATETIME_MINYEAR = datetime.datetime(datetime.MINYEAR,1,1)
 DATETIME_MAXYEAR = datetime.datetime(datetime.MAXYEAR,12,31)
+def tzinfo(tz):
+    if tz is None:
+        return None
+    elif tz == 'Z':
+        return datetime.timezone(datetime.timedelta(0))
+    else:
+        return datetime.timezone(datetime.timedelta(hours=int(tz[0:3]), minutes=int(tz[4:6])))
+    
 def datetimeValue(element, addOneDay=False, none=None):
     if element is None:
         if none == "minyear":
@@ -718,17 +726,22 @@ def datetimeValue(element, addOneDay=False, none=None):
         return None
     hour24 = False
     try:
-        if match.lastindex == 6:
+        if 6 <= match.lastindex <= 8: # has time portion
             hour = int(match.group(4))
             min = int(match.group(5))
             sec = int(match.group(6))
+            fracSec = match.group(7)
+            tz = match.group(8)
             if hour == 24 and min == 0 and sec == 0:
                 hour24 = True
                 hour = 0
-            result = datetime.datetime(int(match.group(1)),int(match.group(2)),int(match.group(3)),hour,min,sec)
+            ms = 0
+            if fracSec and fracSec[0] == ".":
+                ms = int(fracSec[1:7].ljust(6,'0'))
+            result = datetime.datetime(int(match.group(1)),int(match.group(2)),int(match.group(3)),hour,min,sec,ms,tzinfo(tz))
         else:
-            result = datetime.datetime(int(match.group(7)),int(match.group(8)),int(match.group(9)))
-        if addOneDay and match.lastindex == 9:
+            result = datetime.datetime(int(match.group(9)),int(match.group(10)),int(match.group(11)),0,0,0,0,tzinfo(match.group(12)))
+        if addOneDay and match.lastindex >= 11:
             result += datetime.timedelta(1) 
         if hour24:  #add one day
             result += datetime.timedelta(1) 

@@ -832,6 +832,19 @@ class ModelXbrl:
                     else: # default typed dimension
                         fbdq[DEFAULT].add(fact)
             return fbdq[memQname]
+    
+    @property    
+    def contextsInUse(self):
+        try:
+            if self._contextsInUseMarked:
+                return (cntx for cntx in self.contexts.values() if getattr(cntx, "_inUse", False))
+        except AttributeError:
+            for fact in self.factsInInstance:
+                cntx = fact.context
+                if cntx is not None:
+                    cntx._inUse = True
+            self._contextsInUseMarked = True
+            return self.contextsInUse
         
     def matchFact(self, otherFact, unmatchedFactsStack=None, deemP0inf=False, matchId=False, matchLang=True):
         """Finds matching fact, by XBRL 2.1 duplicate definition (if tuple), or by

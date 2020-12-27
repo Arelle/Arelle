@@ -531,6 +531,13 @@ errMsgPrefixNS = { # err prefixes which are not declared, such as XPath's "err" 
     "utre" : "http://www.xbrl.org/2009/utr/errors",
     }
 
+# Filing Indicators
+qnEuFiTuple = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}ef-find:fIndicators")
+qnEuFiIndFact = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}ef-find:filingIndicator")
+cnEuFiIndAttr = "{http://www.eurofiling.info/xbrl/ext/filing-indicators}filed" # clark name
+qnFiFact = qname("{http://www.xbrl.org/taxonomy/int/fi/PWD/2018-01-17}fi:filed")
+qnFiDim = qname("{http://www.xbrl.org/taxonomy/int/fi/PWD/2018-01-17}fi:template")
+
 arcroleGroupDetect = "*detect*"
 
 def baseSetArcroleLabel(arcrole): # with sort char in first position

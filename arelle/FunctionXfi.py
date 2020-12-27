@@ -1262,6 +1262,113 @@ def  create_element(xc, p, args):
                 
     return newElement
 
+def any_identifier(xc, p, args):
+    if len(args) != 0: raise XPathContext.FunctionNumArgs()
+    for cntx in xc.modelXbrl.contextsInUse:
+        return cntx.entityIdentifierElement
+    return ()
+
+def unique_identifiers(xc, p, args):
+    if len(args) != 0: raise XPathContext.FunctionNumArgs()
+    distinctIdentifiers = {}
+    for cntx in xc.modelXbrl.contextsInUse:
+        if cntx.entityIdentifier not in distinctIdentifiers:
+            distinctIdentifiers[cntx.entityIdentifier] = cntx.entityIdentifierElement
+    return [e for k,e in sorted(distinctIdentifiers.items(), key=lambda i:i[0])]
+
+def single_unique_identifier(xc, p, args):
+    if len(args) != 0: raise XPathContext.FunctionNumArgs()
+    return len(set(cntx.entityIdentifier for cntx in xc.modelXbrl.contextsInUse)) == 1
+
+def any_start_date(xc, p, args):
+    if len(args) != 0: raise XPathContext.FunctionNumArgs()
+    for cntx in xc.modelXbrl.contextsInUse:
+        if cntx.isStartEndPeriod:
+            return cntx.startDatetime
+    return ()
+
+def unique_start_dates(xc, p, args):
+    if len(args) != 0: raise XPathContext.FunctionNumArgs()
+    distinctStartDates = set()
+    for cntx in xc.modelXbrl.contextsInUse:
+        if cntx.isStartEndPeriod:
+            distinctStartDates.add(cntx.startDatetime)
+    return [sorted(distinctStartDates, key=lambda d:(d.tzinfo is None,d))]
+
+def single_unique_start_date(xc, p, args):
+    if len(args) != 0: raise XPathContext.FunctionNumArgs()
+    return len(set(cntx.startDatetime for cntx in xc.modelXbrl.contextsInUse if cntx.isStartEndPeriod)) == 1
+
+def any_end_date(xc, p, args):
+    if len(args) != 0: raise XPathContext.FunctionNumArgs()
+    for cntx in xc.modelXbrl.contextsInUse:
+        if cntx.isStartEndPeriod:
+            return cntx.endDatetime
+    return ()
+
+def unique_end_dates(xc, p, args):
+    if len(args) != 0: raise XPathContext.FunctionNumArgs()
+    distinctStartDates = set()
+    for cntx in inst.contextsInUse:
+        if cntx.isStartEndPeriod:
+            distinctStartDates.add(cntx.endDatetime)
+    return [sorted(distinctStartDates, key=lambda d:(d.tzinfo is None,d))]
+
+def single_unique_end_date(xc, p, args):
+    if len(args) != 0: raise XPathContext.FunctionNumArgs()
+    return len(set(cntx.endDatetime for cntx in inst.contextsInUse if cntx.isStartEndPeriod)) == 1
+
+def any_instant_date(xc, p, args):
+    if len(args) != 0: raise XPathContext.FunctionNumArgs()
+    for cntx in xc.modelXbrl.contextsInUse:
+        if cntx.isInstantPeriod:
+            return cntx.instantDatetime
+    return ()
+
+def unique_instant_dates(xc, p, args):
+    if len(args) != 0: raise XPathContext.FunctionNumArgs()
+    distinctStartDates = set()
+    for cntx in xc.modelXbrl.contextsInUse:
+        if cntx.isInstantPeriod:
+            distinctStartDates.add(cntx.instantDatetime)
+    return [sorted(distinctStartDates, key=lambda d:(d.tzinfo is None,d))]
+
+def single_unique_instant_date(xc, p, args):
+    if len(args) != 0: raise XPathContext.FunctionNumArgs()
+    return len(set(cntx.instantDatetime for cntx in xc.modelXbrl.contextsInUse if cntx.isInstantPeriod)) == 1
+
+def filingIndicatorValues(inst, filedValue):
+    filingIndicators = set()
+    for fact in inst.factsByQname[XbrlConst.qnEuFiIndFact]:
+        if fact.parentElement.qname == XbrlConst.qnEuFiTuple and fact.get(XbrlConst.cnEuFiIndAttr,"true") == filedValue:
+            filingIndicators.add(fact.stringValue.strip())
+    for fact in inst.factsByQname[XbrlConst.qnFiFact]:
+        if fact.context is not None and XbrlConst.qnFiDim in fact.context.qnameDims and fact.value.strip() == filedValue:
+            fiValue = fact.context.qnameDims[XbrlConst.qnFiDim].stringValue.strip()
+            if fiValue:
+                filingIndicators.add(fiValue)
+    return filingIndicators
+            
+def positive_filing_indicators(xc, p, args):
+    if len(args) != 0: raise XPathContext.FunctionNumArgs()
+    return sorted(filingIndicatorValues(xc.modelXbrl, "true"))
+
+def positive_filing_indicator(xc, p, args):
+    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    ind = anytypeArg(xc, args, 0, "xs:string", None)
+    if ind is None: raise XPathContext.FunctionArgType(1,"xs:string")
+    return ind in filingIndicatorValues(xc.modelXbrl, "true")
+            
+def negative_filing_indicators(xc, p, args):
+    if len(args) != 0: raise XPathContext.FunctionNumArgs()
+    return sorted(filingIndicatorValues(xc.modelXbrl, "false"))
+
+def negative_filing_indicator(xc, p, args):
+    if len(args) != 1: raise XPathContext.FunctionNumArgs()
+    ind = anytypeArg(xc, args, 0, "xs:string", None)
+    if ind is None: raise XPathContext.FunctionArgType(1,"xs:string")
+    return ind in filingIndicatorValues(xc.modelXbrl, "false")
+
 xfiFunctions = {
     'context': context,
     'unit': unit,
@@ -1363,5 +1470,21 @@ xfiFunctions = {
     'xbrl-instance': xbrl_instance,
     'format-number':  format_number,
     'create-element': create_element,
+    'any-identifier': any_identifier,
+    'unique-identifiers': unique_identifiers,
+    'single-unique-identifier': single_unique_identifier,
+    'any-start-date': any_start_date,
+    'unique-start-dates': unique_start_dates,
+    'single-unique-start-date': single_unique_start_date,
+    'any-end-date': any_end_date,
+    'unique-end-dates': unique_end_dates,
+    'single-unique-end-date': single_unique_end_date,
+    'any-instant-date': any_instant_date,
+    'unique-instant-dates': unique_instant_dates,
+    'single-unique-instant-date': single_unique_instant_date,
+    'positive-filing-indicators': positive_filing_indicators,
+    'positive-filing-indicator': positive_filing_indicator,
+    'negative-filing-indicators': negative_filing_indicators,
+    'negative-filing-indicator': negative_filing_indicator,
      }
 
