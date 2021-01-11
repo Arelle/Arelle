@@ -463,7 +463,7 @@ def removePluginModule(name):
                             del pluginConfig["classes"][classMethod] # remove class
                 for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
                     _removePluginModule(importModuleInfo)
-                del pluginConfig["modules"][_name]
+                pluginConfig["modules"].pop(_name, None)
         _removePluginModule(moduleInfo)
         global pluginConfigChanged
         pluginConfigChanged = True
