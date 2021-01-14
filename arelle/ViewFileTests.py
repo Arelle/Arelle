@@ -5,6 +5,7 @@ Created on Nov 28, 2010
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import ModelDocument, ViewFile
+from arelle.ViewUtil import sortCountExpected
 import os
 
 def viewTests(modelXbrl, outfile, cols=None):
@@ -156,7 +157,8 @@ class ViewTests(ViewFile.View):
             elif col == "Status":
                 cols.append(modelTestcaseVariation.status)
             elif col == "Expected":
-                cols.append(modelTestcaseVariation.expected)
+                _exp = sortCountExpected(modelTestcaseVariation.expected)
+                cols.append(", ".join(str(e) for e in _exp) if isinstance(_exp, list) else _exp)
             elif col == "Actual":
                 cols.append(", ".join(str(code) for code in modelTestcaseVariation.actual))
             else:

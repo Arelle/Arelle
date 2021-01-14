@@ -11,6 +11,7 @@ except ImportError:
     from ttk import *
 import os
 from arelle import (ViewWinTree, ModelDocument, XmlUtil)
+from arelle.ViewUtil import sortCountExpected
 
 def viewTests(modelXbrl, tabWin):
     view = ViewTests(modelXbrl, tabWin)
@@ -143,7 +144,9 @@ class ViewTests(ViewWinTree.ViewTree):
             self.treeView.set(node, "test", test[0])
         if getattr(self.modelXbrl.modelDocument, "outpath", None) and modelTestcaseVariation.resultIsInfoset:
             self.treeView.set(node, "infoset", modelTestcaseVariation.resultInfosetUri)
-        self.treeView.set(node, "expected", modelTestcaseVariation.expected)
+        _exp = sortCountExpected(modelTestcaseVariation.expected)
+        self.treeView.set(node, "expected", 
+                          ", ".join(str(e) for e in _exp) if isinstance(_exp, list) else _exp)
         self.treeView.set(node, "actual", ", ".join(modelTestcaseVariation.actual))
         self.id += 1;
                 
