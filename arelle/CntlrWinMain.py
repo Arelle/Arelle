@@ -1517,8 +1517,8 @@ def main():
     # this is the entry called by arelleGUI.pyw for windows
     if sys.platform == "darwin": 
         _resourcesDir = Cntlr.resourcesDir()
-        for _tcltk in ("tcl", "tk"):
-            for _tcltkVer in ("8.5", "8.6"):
+        for _tcltk in ("tcl", "tk", "Tktable"):
+            for _tcltkVer in ("8.5", "8.6", "2.11"): # Tktable ver is 2.11
                 _tcltkDir = os.path.join(_resourcesDir, _tcltk + _tcltkVer)
                 if os.path.exists(_tcltkDir): 
                     os.environ[_tcltk.upper() + "_LIBRARY"] = _tcltkDir
