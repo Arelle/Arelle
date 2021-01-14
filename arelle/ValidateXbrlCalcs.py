@@ -426,7 +426,7 @@ def roundValue(value, precision=None, decimals=None, scale=None):
             vFloat = float(value)
             if scale:
                 vFloat = pow(vFloat, iScale)
-    except (decimal.InvalidOperation, ValueError): # would have been a schema error reported earlier
+    except (decimal.InvalidOperation, ValueError, TypeError): # would have been a schema error reported earlier  None gives Type Error (e.g., xsi:nil)
         return NaN
     if precision is not None:
         if not isinstance(precision, (int,float)):
