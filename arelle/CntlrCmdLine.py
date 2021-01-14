@@ -271,6 +271,8 @@ def parseAndRun(args):
     parser.add_option("--testcaseResultsCaptureWarnings", action="store_true", dest="testcaseResultsCaptureWarnings",
                       help=_("For testcase variations capture warning results, default is inconsistency or warning if there is any warning expected result.  "))
     parser.add_option("--testcaseresultscapturewarnings", action="store_true", dest="testcaseResultsCaptureWarnings", help=SUPPRESS_HELP)
+    parser.add_option("--testcaseResultOptions", choices=("match-any", "match-all"), action="store", dest="testcaseResultOptions",
+                      help=_("For testcase results, default is match any expected result, options to match any or match all expected result(s).  "))
     parser.add_option("--formulaRunIDs", action="store", dest="formulaRunIDs", help=_("Specify formula/assertion IDs to run, separated by a '|' character."))
     parser.add_option("--formularunids", action="store", dest="formulaRunIDs", help=SUPPRESS_HELP)
     parser.add_option("--formulaCompileOnly", action="store_true", dest="formulaCompileOnly", help=_("Specify formula are to be compiled but not executed."))
@@ -290,7 +292,7 @@ def parseAndRun(args):
     parser.add_option("--internetTimeout", type="int", dest="internetTimeout", 
                       help=_("Specify internet connection timeout in seconds (0 means unlimited)."))
     parser.add_option("--internettimeout", type="int", action="store", dest="internetTimeout", help=SUPPRESS_HELP)
-    parser.add_option("--internetRecheck", choices=("weekly", "daily", "never"), dest="internetRecheck", 
+    parser.add_option("--internetRecheck", choices=("weekly", "daily", "never"), action="store", dest="internetRecheck", 
                       help=_("Specify rechecking cache files (weekly is default)"))
     parser.add_option("--internetrecheck", choices=("weekly", "daily", "never"), action="store", dest="internetRecheck", help=SUPPRESS_HELP)
     parser.add_option("--internetLogDownloads", action="store_true", dest="internetLogDownloads", 
@@ -783,6 +785,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.traceVariableFiltersResult = True
         if options.testcaseResultsCaptureWarnings:
             fo.testcaseResultsCaptureWarnings = True
+        if options.testcaseResultOptions:
+            fo.testcaseResultOptions = options.testcaseResultOptions
         if options.formulaRunIDs:
             fo.runIDs = options.formulaRunIDs   
         if options.formulaCompileOnly:

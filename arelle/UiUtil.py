@@ -7,7 +7,7 @@ Created on Jan 25, 2011
 from tkinter import *
 try:
     from tkinter.ttk import *
-    _Combobox = ttk.Combobox
+    from tkinter.ttk import Combobox as _Combobox
 except ImportError:
     from ttk import *
     _Combobox = Combobox
@@ -216,8 +216,9 @@ class gridCell(Entry):
         self.isChanged = True
     
 class gridCombobox(_Combobox): 
-    def __init__(self, master, x, y, value="", values=(), width=None, objectId=None, columnspan=None, selectindex=None, comboboxselected=None, state=None): 
+    def __init__(self, master, x, y, value="", values=(), width=None, objectId=None, columnspan=None, selectindex=None, comboboxselected=None, state=None, padx=None, attr=None): 
         _Combobox.__init__(self, master=master) 
+        self.attr = attr 
         self.valueVar = StringVar() 
         self.valueVar.trace('w', self.valueChanged)
         self.config(textvariable=self.valueVar,
@@ -232,13 +233,20 @@ class gridCombobox(_Combobox):
             y = y * 2
             if columnspan: columnspan = columnspan * 2 - 1
         if columnspan and columnspan > 1:
-            self.grid(column=x, row=y, sticky=(E,W), columnspan=columnspan)
+            self.grid(column=x, row=y, sticky=(E,W), columnspan=columnspan, padx=padx)
         else:
-            self.grid(column=x, row=y, sticky=(E,W)) 
+            self.grid(column=x, row=y, sticky=(E,W), padx=padx) 
         if selectindex is not None:
             self.valueVar.set(values[selectindex])
         elif value: 
             self.valueVar.set(value)
+        elif attr:
+            try:
+                options = master.master.options
+                if attr in options:
+                    self.valueVar.set( options[attr] or "" )
+            except AttributeError:
+                pass
         self.objectId = objectId
         # copy bindings
         try:

@@ -110,6 +110,9 @@ class DialogFormulaParameters(Toplevel):
            checkbox(frame, 1, y + 9,
                     "Capture Warnings", 
                     "testcaseResultsCaptureWarnings"),
+           gridCombobox(frame, 1, y + 10, padx=24,
+                        attr="testcaseResultOptions", 
+                        values=("match-any", "match-all")),
 
            checkbox(frame, 2, y + 1, 
                     "Expression Source", 
