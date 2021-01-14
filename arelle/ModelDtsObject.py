@@ -508,6 +508,15 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         return self.type is not None and self.type.isTextBlock
     
     @property
+    def isLanguage(self):
+        """(bool) -- True if the baseXbrliType is languageItemType"""
+        try:
+            return self._isLanguage
+        except AttributeError:
+            self._isLanguage = self.baseXbrliType == "languageItemType"
+            return self._isLanguage
+    
+    @property
     def type(self):
         """Element's modelType object (if any)"""
         try:
