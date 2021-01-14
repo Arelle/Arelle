@@ -37,7 +37,7 @@ class DialogURL(Toplevel):
         self.transient(self.parent)
         self.title("Enter URL")
         self.urlVar = StringVar()
-        self.urlVar.set(url if url is not None else "http://")
+        self.urlVar.set(url if url is not None else "")
         
         frame = Frame(self)
         urlLabel = Label(frame, text=_("URL:"), underline=0)
