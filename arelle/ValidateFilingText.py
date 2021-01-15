@@ -934,8 +934,8 @@ def referencedFiles(modelXbrl, localFilesOnly=True):
                         base = docElt.modelDocument.baseForElement(docElt)
                         normalizedUri = docElt.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(attrValue, base)
                         if not docElt.modelXbrl.fileSource.isInArchive(normalizedUri):
-                            normalizedUri = docElt.modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
-                        if modelXbrl.fileSource.isInArchive(normalizedUri, checkExistence=True) or modelXbrl.fileSource.exists(normalizedUri):
+                            normalizedUri = docElt.modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri) # may be nonexistent web file, returning None
+                        if normalizedUri and (modelXbrl.fileSource.isInArchive(normalizedUri, checkExistence=True) or modelXbrl.fileSource.exists(normalizedUri)):
                             referencedFiles.add(attrValue) # add file name within source directory
     for fact in modelXbrl.facts:
         if fact.concept is not None and fact.isItem and fact.concept.isTextBlock:
