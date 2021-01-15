@@ -21,7 +21,7 @@ try:
     import ssl
 except ImportError:
     ssl = None
-from arelle.FileSource import SERVER_WEB_CACHE
+from arelle.FileSource import SERVER_WEB_CACHE, archiveFilenameParts
 from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
 addServerWebCache = None
@@ -295,6 +295,13 @@ class WebCache:
             url = self.normalizeUrl(url, base)
         urlScheme, schemeSep, urlSchemeSpecificPart = url.partition("://")
         if schemeSep and urlScheme in ("http", "https"):
+            # is this a mapped archive file contents?
+            _archiveFileNameParts = archiveFilenameParts(url)
+            if _archiveFileNameParts:
+                _archiveFilename = self.getfilename(_archiveFileNameParts[0], reload=reload, checkModifiedTime=checkModifiedTime)
+                if _archiveFilename:
+                    return os.path.join(_archiveFilename, _archiveFileNameParts[1])
+                return None
             # form cache file name (substituting _ for any illegal file characters)
             filepath = self.urlToCacheFilepath(url)
             if self.cacheDir == SERVER_WEB_CACHE:
