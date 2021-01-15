@@ -160,7 +160,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             if modelDocument is not None:
                 file.close()
                 return modelDocument
-        _parser, _parserLookupName, _parserLookupClass = parser(modelXbrl,filepath)
+        _parser, _parserLookupName, _parserLookupClass = parser(modelXbrl,normalizedUri)
         xmlDocument = etree.parse(file,parser=_parser,base_url=filepath)
         for error in _parser.error_log:
             modelXbrl.error("xmlSchema:syntax",
@@ -364,8 +364,9 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
 def loadSchemalocatedSchema(modelXbrl, element, relativeUrl, namespace, baseUrl):
     if namespace == XbrlConst.xhtml: # block loading xhtml as a schema (e.g., inline which is xsd validated instead)
         return None
-    importSchemaLocation = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(relativeUrl, baseUrl)
-    doc = load(modelXbrl, importSchemaLocation, isIncluded=False, isDiscovered=False, namespace=namespace, referringElement=element, referringElementUrl=baseUrl)
+    #importSchemaLocation = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(relativeUrl, baseUrl)
+    #doc = load(modelXbrl, relativeUrl, isIncluded=False, isDiscovered=False, namespace=namespace, referringElement=element, referringElementUrl=baseUrl)
+    doc = load(modelXbrl, relativeUrl, isIncluded=False, isDiscovered=False, namespace=namespace, referringElement=element, base=baseUrl)
     if doc:
         if doc.targetNamespace != namespace:
             modelXbrl.error("xmlSchema1.4.2.3:refSchemaNamespace",
@@ -424,7 +425,7 @@ def create(modelXbrl, type, uri, schemaRefs=None, isEntry=False, initialXml=None
     if Xml:
         import io
         file = io.StringIO(Xml)
-        _parser, _parserLookupName, _parserLookupClass = parser(modelXbrl,filepath)
+        _parser, _parserLookupName, _parserLookupClass = parser(modelXbrl,normalizedUri)
         xmlDocument = etree.parse(file,parser=_parser,base_url=filepath)
         file.close()
     else:
