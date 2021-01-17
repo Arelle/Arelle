@@ -12,7 +12,7 @@ from tkinter import *
 from tkinter import messagebox
 try:
     from tkinter.ttk import *
-    _Combobox = ttk.Combobox
+    from tkinter.ttk import Combobox as _Combobox
 except ImportError:
     from ttk import *
     _Combobox = Combobox
