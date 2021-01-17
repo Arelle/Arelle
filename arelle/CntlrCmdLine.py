@@ -456,6 +456,42 @@ def parseAndRun(args):
         
         return cntlr
     
+def filesourceEntrypointFiles(filesource, entrypointFiles=[]):
+    if filesource.isArchive:
+        if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
+            filesource.loadTaxonomyPackageMappings()
+        del entrypointFiles[:] # clear out archive from entrypointFiles
+        # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
+        for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
+            if _archiveFile.endswith(".xhtml"):
+                filesource.select(_archiveFile)
+                if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
+                    entrypointFiles.append({"file":filesource.url})
+        urlsByType = {}
+        if not entrypointFiles:
+            for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
+                filesource.select(_archiveFile)
+                identifiedType = ModelDocument.Type.identify(filesource, filesource.url)
+                if identifiedType in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
+                    urlsByType.setdefault(identifiedType, []).append(filesource.url)
+        # use inline instances, if any, else non-inline instances
+        for identifiedType in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE):
+            for url in urlsByType.get(identifiedType, []):
+                entrypointFiles.append({"file":url})
+            if entrypointFiles:
+                if identifiedType == ModelDocument.Type.INLINEXBRL:
+                    for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
+                        entrypointFiles = pluginXbrlMethod(entrypointFiles) # group into IXDS if plugin feature is available
+                break # found inline (or non-inline) entrypoint files, don't look for any other type
+            
+    elif os.path.isdir(filesource.url):
+        del entrypointFiles[:] # clear list
+        for _file in os.listdir(filesource.url):
+            _path = os.path.join(filesource.url, _file)
+            if os.path.isfile(_path) and ModelDocument.Type.identify(filesource, _path) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
+                entrypointFiles.append({"file":_path})
+    return entrypointFiles
+                            
 class ParserForDynamicPlugins:
     def __init__(self, options):
         self.options = options
@@ -838,40 +874,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
             filesource = FileSource.openFileSource(_entryPoints[0].get("file",None), self, checkIfXmlIsEis=_checkIfXmlIsEis)
         _entrypointFiles = _entryPoints
         if filesource and not filesource.selection:
-            if filesource.isArchive:
-                if filesource.isTaxonomyPackage:  # if archive is also a taxonomy package, activate mappings
-                    filesource.loadTaxonomyPackageMappings()
-                if not (sourceZipStream and len(_entrypointFiles) > 0): # web loaded files specify archive files to load
-                    _entrypointFiles = [] # clear out archive from entrypointFiles
-                    # attempt to find inline XBRL files before instance files, .xhtml before probing others (ESMA)
-                    for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
-                        if _archiveFile.endswith(".xhtml"):
-                            filesource.select(_archiveFile)
-                            if ModelDocument.Type.identify(filesource, filesource.url) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
-                                _entrypointFiles.append({"file":filesource.url})
-                    urlsByType = {}
-                    if not _entrypointFiles:
-                        for _archiveFile in (filesource.dir or ()): # .dir might be none if IOerror
-                            filesource.select(_archiveFile)
-                            identifiedType = ModelDocument.Type.identify(filesource, filesource.url)
-                            if identifiedType in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
-                                urlsByType.setdefault(identifiedType, []).append(filesource.url)
-                    # use inline instances, if any, else non-inline instances
-                    for identifiedType in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INSTANCE):
-                        for url in urlsByType.get(identifiedType, []):
-                            _entrypointFiles.append({"file":url})
-                        if _entrypointFiles:
-                            if identifiedType == ModelDocument.Type.INLINEXBRL:
-                                for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
-                                    _entrypointFiles = pluginXbrlMethod(_entrypointFiles) # group into IXDS if plugin feature is available
-                            break # found inline (or non-inline) entrypoint files, don't look for any other type
-                    
-            elif os.path.isdir(filesource.url):
-                _entrypointFiles = []
-                for _file in os.listdir(filesource.url):
-                    _path = os.path.join(filesource.url, _file)
-                    if os.path.isfile(_path) and ModelDocument.Type.identify(filesource, _path) in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL):
-                        _entrypointFiles.append({"file":_path})
+            if not (sourceZipStream and len(_entrypointFiles) > 0):
+                filesourceEntrypointFiles(filesource, _entrypointFiles)
+
         for pluginXbrlMethod in pluginClassMethods("CntlrCmdLine.Filing.Start"):
             pluginXbrlMethod(self, options, filesource, _entrypointFiles, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
         for _entrypoint in _entrypointFiles:

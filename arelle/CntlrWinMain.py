@@ -734,7 +734,7 @@ class CntlrWinMain (Cntlr.Cntlr):
                 if not filesource.selection: # or filesource.isRss:
                     from arelle import DialogOpenArchive
                     filename = DialogOpenArchive.askArchiveFile(self, filesource)
-                    if filesource.basefile and not isHttpUrl(filesource.basefile):
+                    if filename and filesource.basefile and not isHttpUrl(filesource.basefile):
                         self.config["fileOpenDir"] = os.path.dirname(filesource.baseurl)
                 filesource.loadTaxonomyPackageMappings() # if a package, load mappings if not loaded yet
         if filename:

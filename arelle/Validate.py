@@ -230,13 +230,28 @@ class Validate:
                                                        ixdsTarget=modelTestcaseVariation.ixdsTarget)
                         else: # need own file source, may need instance discovery
                             filesource = FileSource.openFileSource(readMeFirstUri, self.modelXbrl.modelManager.cntlr, base=baseForElement)
-                            if filesource and not filesource.selection and filesource.isArchive and filesource.isTaxonomyPackage:
-                                _rptPkgIxdsOptions = {}
-                                for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxdsOptions"):
-                                    pluginXbrlMethod(self, _rptPkgIxdsOptions)
-                                filesource.loadTaxonomyPackageMappings()
-                                for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxds"):
-                                    filesource.select(pluginXbrlMethod(filesource, **_rptPkgIxdsOptions))
+                            if filesource and not filesource.selection and filesource.isArchive:
+                                try:
+                                    if filesource.isTaxonomyPackage:
+                                        _rptPkgIxdsOptions = {}
+                                        for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxdsOptions"):
+                                            pluginXbrlMethod(self, _rptPkgIxdsOptions)
+                                        filesource.loadTaxonomyPackageMappings()
+                                        for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxds"):
+                                            filesource.select(pluginXbrlMethod(filesource, **_rptPkgIxdsOptions))
+                                    else:
+                                        from arelle.CntlrCmdLine import filesourceEntrypointFiles
+                                        entrypoints = filesourceEntrypointFiles(filesource)
+                                        if entrypoints:
+                                            # resolve an IXDS in entrypoints
+                                            for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ArchiveIxds"):
+                                                pluginXbrlMethod(self, filesource,entrypoints)
+                                            filesource.select(entrypoints[0].get("file", None) )
+                                except Exception as err:
+                                    self.modelXbrl.error("exception:" + type(err).__name__,
+                                        _("Testcase variation validation exception: %(error)s, entry URL: %(instance)s"),
+                                        modelXbrl=self.modelXbrl, instance=readMeFirstUri, error=err)
+                                    continue # don't try to load this entry URL
                             modelXbrl = ModelXbrl.load(self.modelXbrl.modelManager, 
                                                        filesource,
                                                        _("validating"), 

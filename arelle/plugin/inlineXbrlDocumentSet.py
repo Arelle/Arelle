@@ -37,6 +37,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, load, create, inlineIxdsDiscover
 from arelle.ModelValue import qname
 from arelle.PluginManager import pluginClassMethods
+from arelle.PythonUtil import attrdict
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateFilingText import CDATApattern
 from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier, elementChildSequence, xmlnsprefix, setXmlns
@@ -457,7 +458,7 @@ def commandLineOptionExtender(parser, *args, **kwargs):
                       action="store_true", 
                       dest="encodeSavedXmlChars", 
                       help=SUPPRESS_HELP)
-       
+    
 def commandLineFilingStart(cntlr, options, filesource, entrypointFiles, *args, **kwargs):
     global skipExpectedInstanceComparison
     skipExpectedInstanceComparison = getattr(options, "skipExpectedInstanceComparison", False)
@@ -578,6 +579,12 @@ def testcaseVariationResultInstanceUri(modelTestcaseObject):
         return "" # block any testcase URIs
     return None # default behavior
 
+def testcaseVariationArchiveIxds(val, filesource, entrypointFiles):
+    commandLineFilingStart(val.modelXbrl.modelManager.cntlr, 
+                           attrdict(skipExpectedInstanceComparison=True),
+                           filesource, entrypointFiles)
+       
+
 def inlineDocsetDiscovery(entrypointFiles): # [{"file":"url1"}, ...]
     if len(entrypointFiles): # return [{"ixds":[{"file":"url1"}, ...]}]
         return [{"ixds": entrypointFiles}]
@@ -608,6 +615,7 @@ __pluginInfo__ = {
     'ModelDocument.IdentifyType': identifyInlineXbrlDocumentSet,
     'ModelDocument.Discover': discoverInlineXbrlDocumentSet,
     'ModelTestcaseVariation.ReadMeFirstUris': testcaseVariationReadMeFirstUris,
+    'ModelTestcaseVariation.ArchiveIxds': testcaseVariationArchiveIxds,
     'ModelTestcaseVariation.ReportPackageIxds': testcaseVariationReportPackageIxds,
     'ModelTestcaseVariation.ResultXbrlInstanceUri': testcaseVariationResultInstanceUri,
 }

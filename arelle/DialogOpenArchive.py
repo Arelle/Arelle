@@ -35,28 +35,32 @@ PACKAGE = 5
 reportIxdsPattern = re.compile(r"^([^/]+/reports/[^/]+)/[^/]+$")
 
 def askArchiveFile(parent, filesource, multiselect=False):
-    filenames = filesource.dir
-    if filenames is not None:   # an IO or other error can return None
-        
-        if filesource.isTaxonomyPackage:            
-            dialog = DialogOpenArchive(parent, 
-                                       ENTRY_POINTS, 
-                                       filesource, 
-                                       filenames,
-                                       _("Select Entry Point"), 
-                                       _("File"),
-                                       showAltViewButton=True,
-                                       multiselect=multiselect)
-        else:
-            dialog = DialogOpenArchive(parent, 
-                                       ARCHIVE, 
-                                       filesource, 
-                                       filenames,
-                                       _("Select Archive File"), 
-                                       _("File"),
-                                       multiselect=multiselect)
-        if dialog.accepted:
-            return filesource.url
+    try:
+        filenames = filesource.dir
+        if filenames is not None:   # an IO or other error can return None
+            if filesource.isTaxonomyPackage:            
+                dialog = DialogOpenArchive(parent, 
+                                           ENTRY_POINTS, 
+                                           filesource, 
+                                           filenames,
+                                           _("Select Entry Point"), 
+                                           _("File"),
+                                           showAltViewButton=True,
+                                           multiselect=multiselect)
+            else:
+                dialog = DialogOpenArchive(parent, 
+                                           ARCHIVE, 
+                                           filesource, 
+                                           filenames,
+                                           _("Select Archive File"), 
+                                           _("File"),
+                                           multiselect=multiselect)
+            if dialog.accepted:
+                return filesource.url
+    except Exception as e:
+        err = _("Unable to open archive; the underlying error was: {0}").format(e)
+        parent.addToLog(err)
+        messagebox.showerror(_("Unable to open archive"), err)
     return None
 
 def selectDisclosureSystem(parent, disclosureSystem):
