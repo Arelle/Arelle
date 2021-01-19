@@ -405,7 +405,7 @@ class DialogPluginManager(Toplevel):
                                                         moduleInfo.get("license")), 
                                             fPath, moduleInfo["name"], moduleInfo.get("version"), moduleInfo.get("description"), moduleInfo.get("license")))
                             dirHasEntries = True
-                    if os.path.isdir(fPath) and f not in ("DQC_US_Rules",):
+                    if os.path.isdir(fPath) and f not in ("DQC_US_Rules",) and not f.startswith("ixviewer"):
                         if selectChoices(fPath, indent=indent + "   ") and not moduleInfo:
                             choices.insert(dirInsertPoint, (indent + f,None,None,None,None,None,None))
             return dirHasEntries
