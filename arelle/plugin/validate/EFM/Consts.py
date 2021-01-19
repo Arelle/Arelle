@@ -121,21 +121,24 @@ latestTaxonomyDocs = { # note that these URLs are blocked by EFM validation mode
     "currency/*": {
         "deprecatedLabels": ["https://xbrl.sec.gov/currency/2017/currency-lab-2017-01-31.xml",
                              "https://xbrl.sec.gov/currency/2019/currency-lab-2019-01-31.xml",
-                             "https://xbrl.sec.gov/currency/2020/currency-lab-2020-01-31.xml"],
+                             "https://xbrl.sec.gov/currency/2020/currency-lab-2020-01-31.xml",
+                             "https://xbrl.sec.gov/currency/2021/currency-2021_dep.xsd"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
     "dei/*": {
         "deprecatedLabels": ["http://xbrl.sec.gov/dei/2012/dei-lab-2012-01-31.xml",
                              "https://xbrl.sec.gov/dei/2018/dei-lab-2018-01-31.xml",
-                             "https://xbrl.sec.gov/dei/2019/dei-lab-2019-01-31.xml"],
+                             "https://xbrl.sec.gov/dei/2019/dei-lab-2019-01-31.xml",
+                             "https://xbrl.sec.gov/dei/2021/dei-2021_dep.xsd"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
     "exch/*": {
         "deprecatedLabels": ["https://xbrl.sec.gov/exch/2018/exch-lab-2018-01-31.xml",
                              "https://xbrl.sec.gov/exch/2019/exch-lab-2019-01-31.xml",
-                             "https://xbrl.sec.gov/exch/2020/exch-lab-2020-01-31.xml"],
+                             "https://xbrl.sec.gov/exch/2020/exch-lab-2020-01-31.xml",
+                             "https://xbrl.sec.gov/exch/2021/exch-2021_dep.xsd"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
@@ -147,14 +150,16 @@ latestTaxonomyDocs = { # note that these URLs are blocked by EFM validation mode
         },
     "rr/*": {
         "deprecatedLabels": ["http://xbrl.sec.gov/rr/2012/rr-lab-2012-01-31.xml",
-                             "https://xbrl.sec.gov/rr/2018/rr-lab-2018-01-31.xml"],
+                             "https://xbrl.sec.gov/rr/2018/rr-lab-2018-01-31.xml",
+                             "https://xbrl.sec.gov/rr/2021/rr-2021_dep.xsd"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
     "srt/*": {
         "deprecatedLabels": ["http://xbrl.fasb.org/srt/2018/elts/srt-lab-2018-01-31.xml",
                              "http://xbrl.fasb.org/srt/2019/elts/srt-lab-2019-01-31.xml",
-                             "http://xbrl.fasb.org/srt/2020/elts/srt-lab-2020-01-31.xml"],
+                             "http://xbrl.fasb.org/srt/2020/elts/srt-lab-2020-01-31.xml",
+                             "https://xbrl.fasb.org/srt/2021/elts/srt-lab-2021-01-31.xml"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
@@ -166,7 +171,8 @@ latestTaxonomyDocs = { # note that these URLs are blocked by EFM validation mode
     "us-gaap/*": {
         "deprecatedLabels": ["http://xbrl.fasb.org/us-gaap/2018/elts/us-gaap-lab-2018-01-31.xml",
                              "http://xbrl.fasb.org/us-gaap/2019/elts/us-gaap-lab-2019-01-31.xml",
-                             "http://xbrl.fasb.org/us-gaap/2020/elts/us-gaap-lab-2020-01-31.xml"],
+                             "http://xbrl.fasb.org/us-gaap/2020/elts/us-gaap-lab-2020-01-31.xml",
+                             "https://xbrl.fasb.org/us-gaap/2021/elts/us-gaap-lab-2021-01-31.xml"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern,
         "dqcRuleArcrole": "http://fasb.org/dqcRules/arcrole/concept-rule",
@@ -180,18 +186,31 @@ latestTaxonomyDocs = { # note that these URLs are blocked by EFM validation mode
         "deprecationDatePattern": ifrsDeprecatedLabelPattern
         }
     }
+''' Moved to Ugt resource files
 latestDqcrtDocs = {
-        "us-gaap/2020": "http://xbrl.fasb.org/us-gaap/2020/dqcrules/dqcrules-2020-01-31.xsd"
-        }
+    "us-gaap/2020": "http://xbrl.fasb.org/us-gaap/2020/dqcrules/dqcrules-2020-01-31.xsd",
+    "us-gaap/2021": "http://xbrl.fasb.org/us-gaap/2021/dqcrules/dqcrules-2021-01-31.xsd"
+    }
+'''
+latestEntireUgt = {
+    "us-gaap/2019": ["http://xbrl.fasb.org/us-gaap/2019/entire/us-gaap-entryPoint-std-2019-01-31.xsd", None],
+    "us-gaap/2020": ["http://xbrl.fasb.org/us-gaap/2020/entire/us-gaap-entryPoint-std-2020-01-31.xsd",
+                     # use 2021 DQCRT for 2020 us-gaap checks
+                     "http://xbrl.fasb.org/us-gaap/2021/dqcrules/dqcrules-2021-01-31.xsd"],
+    "us-gaap/2021": ["http://xbrl.fasb.org/us-gaap/2021/entire/us-gaap-entryPoint-std-2021-01-31.xsd",
+                     "http://xbrl.fasb.org/us-gaap/2021/dqcrules/dqcrules-2021-01-31.xsd"]
+    }
 ifrsUsgaapConflictClasses = {
     'ifrs-2018+us-gaap-2017': {"http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full", "http://fasb.org/us-gaap/2017-01-31"},
     'ifrs-2019+us-gaap-2018': {"http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full", "http://fasb.org/us-gaap/2018-01-31"},
     'ifrs-2018+us-gaap-2020': {"http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full", "http://fasb.org/us-gaap/2020-01-31"},
+    'ifrs-2018+us-gaap-2021': {"http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full", "http://fasb.org/us-gaap/2021-01-31"},
     'ifrs-2020+us-gaap-2018': {"http://xbrl.ifrs.org/taxonomy/2020-03-16/ifrs-full", "http://fasb.org/us-gaap/2018-01-31"},
     'ifrs-2020+us-gaap-2019': {"http://xbrl.ifrs.org/taxonomy/2020-03-16/ifrs-full", "http://fasb.org/us-gaap/2019-01-31"},
     }
 ifrsSrtConflictClasses = {
     'ifrs-2018+srt-2020': {"http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full", "http://fasb.org/srt/2020-01-31"},
+    'ifrs-2018+srt-2021': {"http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full", "http://fasb.org/srt/2020-01-31"},
     'ifrs-2019+srt-2018': {"http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full", "http://fasb.org/srt/2018-01-31"},
     'ifrs-2020+srt-2018': {"http://xbrl.ifrs.org/taxonomy/2020-03-16/ifrs-full", "http://fasb.org/srt/2018-01-31"},
     'ifrs-2020+srt-2019': {"http://xbrl.ifrs.org/taxonomy/2020-03-16/ifrs-full", "http://fasb.org/srt/2019-01-31"},

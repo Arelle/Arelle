@@ -8,23 +8,26 @@ Original work (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 Subsequent validations and enhancements created by staff of the U.S. Securities and Exchange Commission.
 Data and content created by government employees within the scope of their employment are not subject 
 to domestic copyright protection. 17 U.S.C. 105.
+Implementation of DQC rules invokes https://xbrl.us/dqc-license and https://xbrl.us/dqc-patent
+
 '''
 import re, datetime, decimal, json, unicodedata, holidays
-from math import isnan
+from math import isnan, pow
 from collections import defaultdict, OrderedDict
 from pytz import timezone
 from arelle import (ModelDocument, ModelValue, ModelRelationshipSet, 
                     XmlUtil, XbrlConst, ValidateFilingText)
-from arelle.ModelValue import qname
+from arelle.ModelValue import qname, QName
 from arelle.ValidateXbrlCalcs import insignificantDigits
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFootnote
 from arelle.ModelDtsObject import ModelConcept, ModelResource
+from arelle.ModelXbrl import NONDEFAULT
 from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype
-from arelle.PythonUtil import pyNamedObject, strTruncate
+from arelle.PythonUtil import pyNamedObject, strTruncate, flattenToSet
 from arelle.UrlUtil import isHttpUrl
-from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
+from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue, roundValue
 from arelle.XmlValidate import VALID
 from .DTS import checkFilingDTS
 from .Consts import submissionTypesAllowingWellKnownSeasonedIssuer, \
@@ -43,16 +46,23 @@ from .Consts import submissionTypesAllowingWellKnownSeasonedIssuer, \
                                         
 from .Dimensions import checkFilingDimensions
 from .PreCalAlignment import checkCalcsTreeWalk
-from .Util import conflictClassFromNamespace, abbreviatedNamespace, abbreviatedWildNamespace, loadDeprecatedConceptDates, \
-                    loadCustomAxesReplacements, loadNonNegativeFacts, loadDeiValidations, loadOtherStandardTaxonomies
+from .Util import conflictClassFromNamespace, abbreviatedNamespace, NOYEAR, loadDeprecatedConceptDates, \
+                    loadCustomAxesReplacements, loadNonNegativeFacts, loadDeiValidations, loadOtherStandardTaxonomies, \
+                    loadUgtRelQnames, loadDqcRules, factBindings, leastDecimals, axisMemQnames, memChildQnames
                     
 MIN_DOC_PER_END_DATE = ModelValue.dateTime("1980-01-01", type=ModelValue.DATE)
 MAX_DOC_PER_END_DATE = ModelValue.dateTime("2050-12-31", type=ModelValue.DATE)
+EMPTY_DICT = {}
+EMPTY_SET = set()
+EMPTY_LIST = []
 
 def fevMessageArgValue(x):
     if isinstance(x, bool):
         return ("false", "true")[x]
     return str(x)
+
+def logMsg(msg):
+    return re.sub(r"{(\w+)}", r"%(\1)s", msg) # replace {...} args with %(...)s args for modelXbrl.log functionality
 
 def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     if not modelXbrl.modelDocument or not hasattr(modelXbrl.modelDocument, "xmlDocument"): # not parsed
@@ -128,9 +138,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         
         if isEFM:
             loadDeprecatedConceptDates(val, deprecatedConceptDates)
-            nonNegFacts = loadNonNegativeFacts(modelXbrl)
             customAxesReplacements = loadCustomAxesReplacements(modelXbrl)
             deiValidations = loadDeiValidations(modelXbrl, isInlineXbrl)
+            dqcRules = loadDqcRules(modelXbrl) # empty {} if no rules for filing
+            ugtRels = loadUgtRelQnames(modelXbrl, dqcRules) # None if no rels applicable
+            nonNegFacts = loadNonNegativeFacts(modelXbrl) if "DQC.US.0015" not in ugtRels else None
+            
         
         # inline doc set has multiple instance names to check
         if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET:
@@ -494,7 +507,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         hasCommonSharesOutstandingDimensionedFactWithDefaultStockClass = True   # absent dimension, may be no def LB
                      
                 # 6.5.43 signs - applies to all facts having a context.
-                if (isEFM and f.qname in nonNegFacts.concepts and f.isNumeric and not f.isNil and f.xValue < 0 and (
+                if (isEFM and nonNegFacts and f.qname in nonNegFacts.concepts and f.isNumeric and not f.isNil and f.xValue < 0 and (
                     all((dim.dimensionQname not in nonNegFacts.excludedAxesMembers or
                          ("*" not in nonNegFacts.excludedAxesMembers[dim.dimensionQname] and
                           dim.memberQname not in nonNegFacts.excludedAxesMembers[dim.dimensionQname])) and
@@ -1012,8 +1025,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 if "subType" in logArgs: # provide item 5.03 friendly format for submission type
                     logArgs["subType"] = logArgs["subType"].replace("+5.03", " (with item 5.03)")
                 message = deiValidations["messages"][messageKey]
-                message = re.sub(r"{(\w+)}", r"%(\1)s", message)
-                modelXbrl.log(severity, arelleCode, message, **logArgs)
+                modelXbrl.log(severity, arelleCode, logMsg(message), **logArgs)
                 
             fevs = deiValidations["form-element-validations"]
             deiCAxes = deiValidations["axis-validations"]["c"]["axes"]
@@ -1929,7 +1941,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             (not ixElt.qname.namespaceURI.startswith("http://xbrl.sec.gov/dei/") 
                              or ixElt.qname.localName in coverVisibleDeiNames) and
                             (not isRR or not rrUntransformableEltsPattern.match(ixElt.qname.localName)
-                                      or abbreviatedWildNamespace(ixElt.qname.namespaceURI) != "rr/*")):
+                                      or abbreviatedNamespace(ixElt.qname.namespaceURI, NOYEAR) != "rr")):
                             if (ixElt.concept.baseXsdType not in untransformableTypes and
                                 not ixElt.isNil):
                                 eligibleForTransformHiddenFacts.append(ixElt)
@@ -2083,7 +2095,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     val.modelXbrl.profileActivity("... filer concepts checks", minTimeToShow=1.0)
 
     del defaultLangStandardLabels #dereference
-    
+
     # checks on all documents: instance, schema, instance
     val.hasExtensionSchema = False
     checkFilingDTS(val, modelXbrl.modelDocument, isEFM, isGFM, [])
@@ -2424,7 +2436,6 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
     del localPreferredLabels # dereference
     del usedCalcFromTosELR
-    del val.summationItemRelsSetAllELRs
 
     val.modelXbrl.profileActivity("... filer relationships checks", minTimeToShow=1.0)
 
@@ -2487,6 +2498,175 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     
     # 6 16 4, 1.16.5 Base sets of Domain Relationship Sets testing
     val.modelXbrl.profileActivity("... filer preferred label checks", minTimeToShow=1.0)
+    
+    # DQC.US rules
+    for dqcRuleName, dqcRule in dqcRules.items(): # note this is an OrderedDict to preserve rule execution order
+        if not dqcRuleName.startswith("DQC.US."):
+            continue # skip copyright and description
+        msg = dqcRule["message"]
+        if dqcRuleName == "DQC.US.0001" and ugtRels:
+            ugtAxisMembers = ugtRels["axes"]
+            warnedFactsByQn = defaultdict(list)
+            for id, rule in dqcRule["rules"].items():
+                for axisConcept in modelXbrl.nameConcepts.get(rule["axis"],()):        
+                    membersOfExtensionAxis = axisMemQnames(modelXbrl, axisConcept.qname, rule["extensions-allowed"] == "Yes") # set of QNames
+                    allowableMembers = ugtAxisMembers[axisConcept.name] if rule["axis-descendants"] == "Yes" else set()
+                    for otherAxis in rule.get("additional-axes",EMPTY_LIST):
+                        allowableMembers |= ugtAxisMembers[otherAxis]
+                    for otherMemName in rule.get("additional-members",EMPTY_LIST) + rule.get("extension-members",EMPTY_LIST):
+                        for otherMemConcept in modelXbrl.nameConcepts.get(otherMemName,()):
+                            allowableMembers.add(otherMemConcept.qname)
+                    for childExtensionMember in rule.get("child-extension-members",EMPTY_LIST):
+                        allowableMembers |= memChildQnames(modelXbrl, childExtensionMember)
+                    unallowedMembers = membersOfExtensionAxis - allowableMembers
+                    if "unallowed-axes" in rule:
+                        unallowedMembers &= set.union(*(ugtAxisMembers[a] for a in rule.get("unallowed-axes")))
+                    unallowedMembersUsedByFacts = set()
+                    if unallowedMembers:
+                        for f in modelXbrl.factsByDimMemQname(axisConcept.qname, NONDEFAULT):
+                            dimValueQname = f.context.dimValue(axisConcept.qname).memberQname
+                            if dimValueQname in unallowedMembers:
+                                unallowedMembersUsedByFacts.add(dimValueQname)
+                                if dimValueQname.namespaceURI not in disclosureSystem.standardTaxonomiesDict: # is extension member concept
+                                    issue = {"No": "Extension members should not be used with this axis. ",
+                                             "Limited": "This extension member should not be used with this axis. ",
+                                             "Yes": "Extension member is not allowed by rule. "
+                                             }[rule["extensions-allowed"]]
+                                elif rule["axis-descendants"] == "None":
+                                    issue = "Only extension members can be used with this axis. "
+                                else:
+                                    issue = "Base taxonomy member is not allowed by rule. "
+                                if not any(f.isDuplicateOf(warnedFact) for warnedFact in warnedFactsByQn[f.qname]):
+                                    warnedFactsByQn[f.qname].append(f)
+                                    modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                                        modelObject=f, name=f.qname, value=str(f.value), axis=axisConcept.qname, member=dimValueQname, issue=issue,
+                                        contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)")
+                    unusedUnallowed = unallowedMembers - unallowedMembersUsedByFacts
+                    if unusedUnallowed:
+                        modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(dqcRule["message-unreported"])),
+                            modelObject=modelXbrl, axis=axisConcept.qname, members=", ".join(str(u) for u in unusedUnallowed))
+            del warnedFactsByQn # dereference objects
+
+        elif dqcRuleName == "DQC.US.0004":
+            for id, rule in dqcRule["rules"].items():
+                sumLn = rule["sum"]
+                itemLns = rule["items"]
+                blkAxis = rule.get("blocking-axes",())
+                alts = rule.get("alternatives",EMPTY_DICT)
+                tolerance = rule["tolerance"]
+                bindings = factBindings(val.modelXbrl, flattenToSet( (sumLn, itemLns, alts.values() )), nils=False)
+                for b in bindings.values():
+                    _itemLns = itemLns.copy() # need fresh array to use for substituting
+                    for iLn in itemLns: # check if substitution is necessary
+                        if iLn not in b and iLn in alts:
+                            for aLns in alts[iLn]:
+                                if all(aLn in b for aLn in aLns):
+                                    p = _itemLns.index(iLn) # replace iLn with alts that all are in binding
+                                    _itemLns[p:p] = aLns
+                                    break
+                    if sumLn in b and all(ln in b for ln in _itemLns) and not (
+                        any(ax in f.context.qnameDims for ax in blkAxis for f in b.values())):
+                        dec = leastDecimals(b, flattenToSet( (sumLn, itemLns) ))
+                        sumFact = b[sumLn]
+                        itemFacts = [b[ln] for ln in _itemLns]
+                        sfNil = sumFact.isNil
+                        allIfNil = all(f.isNil for f in itemFacts)
+                        if sfNil:
+                            sumValue = "(nil)"
+                        else:
+                            sumValue = roundValue(sumFact.xValue, decimals=dec)
+                        if not allIfNil:
+                            itemValues = tuple(roundValue(f.xValue, decimals=dec) for f in itemFacts if not f.isNil)
+                        try:
+                            if ((not (sfNil & allIfNil)) and (
+                                (sfNil ^ allIfNil) or 
+                                abs(sumValue - sum(itemValues)) > pow(10, -dec) * tolerance)):
+                                modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                                    modelObject=b.values(), sumName=sumLn, sumValue=str(sumValue), 
+                                    itemNames=", ".join(_itemLns), itemValues=" + ".join(str(v) for v in itemValues), 
+                                    contextID=sumFact.context.id, unitID=sumFact.unit.id if sumFact.unit is not None else "(none)")
+                        except:
+                            print("exception")
+        elif dqcRuleName == "DQC.US.0008" and ugtRels:
+            for id, rule in dqcRule["rules"].items():
+                ugtCalcs = ugtRels["calcs"]
+                for rel in val.summationItemRelsSetAllELRs.modelRelationships:
+                    relFrom = rel.fromModelObject
+                    relTo = rel.toModelObject
+                    if (relFrom is not None and relTo is not None and 
+                        relFrom.qname in ugtCalcs.get(rel.weight,EMPTY_DICT).get(relTo.qname,EMPTY_DICT)):
+                        modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                                          modelObject=rel, linkrole=rel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole), 
+                                          conceptFrom=relFrom.qname, conceptTo=relTo.qname)
+
+        elif dqcRuleName == "DQC.US.0009":
+            for id, rule in dqcRule["rules"].items():
+                lesserLn = rule["lesser"]
+                greaterLn = rule["greater"]
+                ruleMsg = rule.get("message", msg)
+                bindings = factBindings(val.modelXbrl, (lesserLn, greaterLn) )
+                for b in bindings.values():
+                    if lesserLn in b and greaterLn in b:
+                        dec = leastDecimals(b, (lesserLn, greaterLn) )
+                        lesserFact = b[lesserLn]
+                        lesserValue = roundValue(lesserFact.xValue, decimals=dec)
+                        greaterValue = roundValue(b[greaterLn].xValue, decimals=dec)
+                        if lesserValue > greaterValue:
+                            modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(ruleMsg)),
+                                modelObject=b.values(), lesserName=lesserLn, lesserValue=str(lesserValue), greaterName=greaterLn, greaterValue=str(greaterValue),
+                                contextID=lesserFact.context.id, unitID=lesserFact.unit.id if lesserFact.unit is not None else "(none)")
+        elif dqcRuleName == "DQC.US.0015" and "DQC.US.0015" in ugtRels:
+            dqc0015 = ugtRels["DQC.US.0015"]
+            warnedFactsByQn = defaultdict(list)
+            for f in modelXbrl.facts:
+                if (f.qname in dqc0015.concepts and f.isNumeric and not f.isNil and f.xValue < 0 and (
+                    all((dim.dimensionQname not in dqc0015.excludedAxesMembers or
+                         ("*" not in dqc0015.excludedAxesMembers[dim.dimensionQname] and
+                          dim.memberQname not in dqc0015.excludedAxesMembers[dim.dimensionQname])) and
+                         dim.memberQname not in dqc0015.excludedMembers and
+                         (dqc0015.excludedMemberNamesPattern is None or 
+                          not dqc0015.excludedMemberNamesPattern.search(dim.memberQname.localName))
+                        for dim in f.context.qnameDims.values()))):
+                    id = dqc0015.conceptRuleIDs.get(f.qname, 9999)
+                    if not any(f.isDuplicateOf(warnedFact) for warnedFact in warnedFactsByQn[f.qname]):
+                        warnedFactsByQn[f.qname].append(f)
+                        modelXbrl.warning("{}.{}".format(dqcRuleName, id), _(logMsg(msg)),
+                            modelObject=f, name=f.qname, value=f.value, contextID=f.contextID, unitID=f.unit.id if f.unit is not None else "(none)")
+            del warnedFactsByQn # dereference objects
+        elif dqcRuleName == "DQC.US.0048" and documentType not in dqcRule["excluded-document-types"]:
+            # 0048 has only one id, rule
+            id, rule = next(iter(dqcRule["rules"].items()))
+            # check if calc root check is blocked
+            blockRootCheck = any(f.xValue == v for ln,v in dqcRule["blocking-facts"].items() for f in modelXbrl.factsByLocalName.get(ln,()))
+            # find presentation ELR of interest
+            calcRelationshipsFound = False
+            cashFlowLinkRoles = []
+            for modelLink in val.modelXbrl.baseSets[(XbrlConst.parentChild,None,None,None)]:
+                linkroleUri = modelLink.role
+                roleTypes = val.modelXbrl.roleTypes.get(linkroleUri)
+                definition = (roleTypes[0].definition or linkroleUri) if roleTypes else linkroleUri
+                preRoots = val.modelXbrl.relationshipSet(XbrlConst.parentChild, linkroleUri, None, None).rootConcepts
+                if ((any(c.name == "StatementOfCashFlowsAbstract" for c in preRoots) or 
+                     'cashflow' in linkroleUri.lower())
+                    and '- Statement ' in definition and 'parenthetical' not in linkroleUri.lower()):
+                    cashFlowLinkRoles.append(linkroleUri)
+                    calcRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.summationItem, linkroleUri, None, None)
+                    calcRoots = calcRelationshipSet.rootConcepts
+                    if calcRoots:
+                        calcRelationshipsFound = True
+                        roots = rule["roots"]
+                        if not (blockRootCheck or 
+                                any(all(any(c.name == rName for c in calcRoots) for rName in rNames) for rNames in roots)):
+                            modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                                modelObject=modelLink, linkRole=linkroleUri, linkroleDefinition=definition,
+                                rootNames=(", ".join(r.name for r in calcRoots) or "(none)"))
+            if cashFlowLinkRoles and not calcRelationshipsFound:
+                modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(dqcRule["message-no-roles"])),
+                    modelObject=modelLink, linkRole=linkroleUri, linkroleDefinition=definition,
+                    linkRoles=(", ".join(sorted(cashFlowLinkRoles))))
+            del cashFlowLinkRoles
+    
+    del val.summationItemRelsSetAllELRs
     
     if "EFM/Filing.py#validateFiling_end" in val.modelXbrl.arelleUnitTests:
         raise pyNamedObject(val.modelXbrl.arelleUnitTests["EFM/Filing.py#validateFiling_end"], "EFM/Filing.py#validateFiling_end")

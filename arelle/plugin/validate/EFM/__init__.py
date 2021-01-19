@@ -1,8 +1,12 @@
 '''
-Created on Dec 12, 2013
-
 @author: Mark V Systems Limited
-(c) Copyright 2013 Mark V Systems Limited, All rights reserved.
+
+This is a collective work.
+Original work (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+Subsequent validations and enhancements created by staff of the U.S. Securities and Exchange Commission.
+Data and content created by government employees within the scope of their employment are not subject 
+to domestic copyright protection. 17 U.S.C. 105.
+Implementation of DQC rules invokes https://xbrl.us/dqc-license and https://xbrl.us/dqc-patent.
 
 Input file parameters may be in JSON (without newlines for pretty printing as below):
 
@@ -674,12 +678,12 @@ class Report:
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EFM',
-    'version': '1.20.4', # SEC EDGAR release 20.4
+    'version': '1.21.1', # SEC EDGAR release 21-1
     'description': '''EFM Validation.''',
     'license': 'Apache-2',
     'import': ('transforms/SEC',), # SEC inline can use SEC transformations
     'author': 'Mark V Systems',
-    'copyright': '(c) Copyright 2013-15 Mark V Systems Limited, All rights reserved.',
+    'copyright': '(c) Copyright 2010-21 Mark V Systems Limited, All rights reserved.',
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,
     'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,

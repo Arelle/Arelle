@@ -10,7 +10,9 @@ from arelle.FileSource import openFileStream, openFileSource, saveFile # only ne
 from arelle.ModelValue import qname
 from arelle import XbrlConst
 from arelle.PythonUtil import attrdict, flattenSequence, pyObjectSize
-from .Consts import standardNamespacesPattern, latestTaxonomyDocs, latestDqcrtDocs
+from arelle.ValidateXbrlCalcs import inferredDecimals, floatINF
+from arelle.XmlValidate import VALID
+from .Consts import standardNamespacesPattern, latestTaxonomyDocs, latestEntireUgt
 
 EMPTY_DICT = {}
 
@@ -22,26 +24,27 @@ def conflictClassFromNamespace(namespaceURI):
             _class = "ifrs"
         return "{}/{}".format(_class, match.group(3) or match.group(4))
         
-def abbreviatedNamespace(namespaceURI):
+WITHYEAR = 0
+WILD = 1
+NOYEAR = 2
+def abbreviatedNamespace(namespaceURI, pattern=WITHYEAR):
     match = standardNamespacesPattern.match(namespaceURI or "")
     if match:
-        return "{}/{}".format(match.group(2) or match.group(5), match.group(3) or match.group(4))
+        return {WITHYEAR: "{}/{}", WILD: "{}/*", NOYEAR: "{}"
+                }[pattern].format(match.group(2) or match.group(5), match.group(3) or match.group(4))
     
-def abbreviatedWildNamespace(namespaceURI):
-    match = standardNamespacesPattern.match(namespaceURI or "")
-    if match:
-        return "{}/*".format(match.group(2) or match.group(5))
-    return None
     
 def loadNonNegativeFacts(modelXbrl):
-    signwarnings = loadDqc0015signwarningRules(modelXbrl)
+    _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "signwarnings.json"), 'rt', encoding='utf-8')
+    signwarnings = json.load(_file) # {localName: date, ...}
+    _file.close()
     concepts = set()
     excludedMembers = set()
     excludedMemberStrings = set()
     excludedAxesMembers = defaultdict(set)
     for modelDocument in modelXbrl.urlDocs.values():
         ns = modelDocument.targetNamespace # set up non neg lookup by full NS
-        for abbrNs in (abbreviatedNamespace(ns), abbreviatedWildNamespace(ns)):
+        for abbrNs in (abbreviatedNamespace(ns), abbreviatedNamespace(ns, WILD)):
             nsMatch = False
             for exName, exSet, isQName in (("conceptNames", concepts, True),
                                            ("excludedMemberNames", excludedMembers, True),
@@ -181,7 +184,7 @@ def loadDeiValidations(modelXbrl, isInlineXbrl):
 def loadDeprecatedConceptDates(val, deprecatedConceptDates):  
     for modelDocument in val.modelXbrl.urlDocs.values():
         ns = modelDocument.targetNamespace
-        abbrNs = abbreviatedWildNamespace(ns)
+        abbrNs = abbreviatedNamespace(ns, WILD)
         if abbrNs in latestTaxonomyDocs:
             latestTaxonomyDoc = latestTaxonomyDocs[abbrNs]
             _fileName = deprecatedConceptDatesFile(val.modelXbrl.modelManager, abbrNs, latestTaxonomyDoc)
@@ -213,11 +216,11 @@ def deprecatedConceptDatesFile(modelManager, abbrNs, latestTaxonomyDoc):
     # load labels and store file name
     modelManager.addToLog(_("loading {} deprecated concepts into {}").format(abbrNs, _fileName), messageCode="info")
     deprecatedConceptDates = {}
-    # load without SEC/EFM validation (doc file would not be acceptable)
-    priorValidateDisclosureSystem = modelManager.validateDisclosureSystem
-    modelManager.validateDisclosureSystem = False
     from arelle import ModelXbrl
     for latestTaxonomyLabelFile in flattenSequence(latestTaxonomyDoc["deprecatedLabels"]):
+        # load without SEC/EFM validation (doc file would not be acceptable)
+        priorValidateDisclosureSystem = modelManager.validateDisclosureSystem
+        modelManager.validateDisclosureSystem = False
         deprecationsInstance = ModelXbrl.load(modelManager, 
               # "http://xbrl.fasb.org/us-gaap/2012/elts/us-gaap-doc-2012-01-31.xml",
               # load from zip (especially after caching) is incredibly faster
@@ -243,77 +246,7 @@ def deprecatedConceptDatesFile(modelManager, abbrNs, latestTaxonomyDoc):
             saveFile(cntlr, _fileName, jsonStr)  # 2.7 gets unicode this way
             deprecationsInstance.close()
             del deprecationsInstance # dereference closed modelXbrl
-                    
-def loadDqc0015signwarningRules(modelXbrl):
-    conceptRule = "http://fasb.org/dqcrules/arcrole/concept-rule" # FASB arcrule
-    rule0015 = "http://fasb.org/us-gaap/role/dqc/0015"
-    modelManager = modelXbrl.modelManager
-    cntlr = modelXbrl.modelManager.cntlr
-    # check for cached completed signwarnings
-    _signwarningsFileName = resourcesFilePath(modelManager, "signwarnings.json")
-    if os.path.exists(_signwarningsFileName): 
-        _file = openFileStream(modelManager.cntlr, _signwarningsFileName, 'rt', encoding='utf-8')
-        signwarnings = json.load(_file) # {localName: date, ...}
-        _file.close()
-        return signwarnings
-    # load template rules
-    _fileName = resourcesFilePath(modelManager, "signwarnings-template.json")
-    if _fileName:
-        _file = openFileStream(modelXbrl.modelManager.cntlr, _fileName, 'rt', encoding='utf-8')
-        signwarnings = json.load(_file, object_pairs_hook=OrderedDict) # {localName: date, ...}
-        _file.close()
-
-    # load rules and add to signwarnings template
-    for dqcAbbr, dqcrtUrl in latestDqcrtDocs.items():
-        modelManager.addToLog(_("loading {} DQC Rules {}").format(dqcAbbr, dqcrtUrl), messageCode="info")
-        # load without SEC/EFM validation (doc file would not be acceptable)
-        priorValidateDisclosureSystem = modelManager.validateDisclosureSystem
-        modelManager.validateDisclosureSystem = False
-        from arelle import ModelXbrl
-        dqcrtInstance = ModelXbrl.load(modelManager, 
-              # "http://xbrl.fasb.org/us-gaap/2012/elts/us-gaap-doc-2012-01-31.xml",
-              # load from zip (especially after caching) is incredibly faster
-              openFileSource(dqcrtUrl, cntlr), 
-              _("built dqcrt table in cache"))
-        modelManager.validateDisclosureSystem = priorValidateDisclosureSystem
-        if dqcrtInstance is None:
-            modelManager.addToLog(
-                _("%(name)s documentation not loaded"),
-                messageCode="arelle:notLoaded", messageArgs={"modelXbrl": val, "name":dqcAbbr})
-        else:   
-            # load signwarnings from DQC 0015
-            dqcRelSet = dqcrtInstance.relationshipSet(conceptRule, rule0015)
-            for signWrnObj, headEltName in (("conceptNames", "Dqc_0015_ListOfElements"),
-                                            ("excludedMemberNames", "Dqc_0015_ExcludeNonNegMembersAbstract"),
-                                            ("excludedAxesMembers", "Dqc_0015_ExcludeNonNegAxisAbstract"),
-                                            ("excludedAxesMembers", "Dqc_0015_ExcludeNonNegAxisMembersAbstract"),
-                                            ("excludedMemberStrings", "Dqc_0015_ExcludeNonNegMemberStringsAbstract")):
-                headElts = dqcrtInstance.nameConcepts.get(headEltName,())
-                for headElt in headElts:
-                    if signWrnObj == "excludedMemberStrings":
-                        for refRel in dqcrtInstance.relationshipSet(XbrlConst.conceptReference).fromModelObject(headElt):
-                            for refPart in refRel.toModelObject.iterchildren("{*}allowableSubString"):
-                                for subStr in refPart.text.split():
-                                    signwarnings[signWrnObj].setdefault(nsAbbr, []).append(subStr)
-                    else:
-                        for ruleRel in dqcRelSet.fromModelObject(headElt):
-                            elt = ruleRel.toModelObject
-                            nsAbbr = abbreviatedNamespace(elt.qname.namespaceURI)
-                            if signWrnObj in ("conceptNames", "excludedMemberNames"):
-                                signwarnings[signWrnObj].setdefault(nsAbbr, []).append(elt.name)
-                            else:
-                                l = signwarnings[signWrnObj].setdefault(nsAbbr, {}).setdefault(elt.name, [])
-                                if headEltName == "Dqc_0015_ExcludeNonNegAxisAbstract":
-                                    l.append("*")
-                                else:
-                                    for memRel in dqcRelSet.fromModelObject(elt):
-                                        l.append(memRel.toModelObject.name)
-            jsonStr = _STR_UNICODE(json.dumps(signwarnings, ensure_ascii=False, indent=2)) # might not be unicode in 2.7
-            saveFile(cntlr, _signwarningsFileName, jsonStr)  # 2.7 gets unicode this way
-            dqcrtInstance.close()
-            del dqcrtInstance # dereference closed modelXbrl
-    return signwarnings
-    
+                        
 def buildDeprecatedConceptDatesFiles(cntlr):
     # will build in subdirectory "resources" if exists, otherwise in cache/resources
     for abbrNs, latestTaxonomyDoc in latestTaxonomyDocs.items():
@@ -331,3 +264,261 @@ def loadOtherStandardTaxonomies(modelXbrl, val):
                if doc.targetNamespace and 
                doc.targetNamespace not in val.disclosureSystem.standardTaxonomiesDict
                and any(doc.targetNamespace.startswith(nsPrefix) for nsPrefix in otherStandardNsPrefixes))
+      
+def loadUgtRelQnames(modelXbrl, dqcRules):
+    if not dqcRules:
+        return {} # not a us-gaap filing
+    abbrNs = ""
+    for modelDocument in modelXbrl.urlDocs.values():
+        abbrNs = abbreviatedNamespace(modelDocument.targetNamespace)
+        if abbrNs and abbrNs.startswith("us-gaap/"):
+            break
+    if not abbrNs: # no gaap/ifrs taxonomy for this filing
+        return {}
+    _ugtRelsFileName = resourcesFilePath(modelXbrl.modelManager, "us-gaap-rels-{}.json".format(abbrNs.rpartition("/")[2]))
+    if not os.path.exists(_ugtRelsFileName): 
+        buildUgtFullRelsFiles(modelXbrl, dqcRules)
+    if not os.path.exists(_ugtRelsFileName): 
+        return {}
+    _file = openFileStream(modelXbrl.modelManager.cntlr, _ugtRelsFileName, 'rt', encoding='utf-8')
+    ugtRels = json.load(_file) # {localName: date, ...}
+    _file.close()
+    def qn(nsPrefix, localName):
+        return qname(nsPrefix + ":" + localName, modelXbrl.prefixedNamespaces)
+    ugtCalcsByQnames = defaultdict(dict) # store as concept indices to avoid using memory for repetitive strings
+    for wgt, fromNSes in ugtRels["calcs"].items():
+        calcWgtObj = ugtCalcsByQnames.setdefault(float(wgt), {}) # json weight object needs to be float
+        for fromNs, fromObjs in fromNSes.items():
+            for fromName,toNSes in fromObjs.items():
+                fromConcept = modelXbrl.qnameConcepts.get(qn(fromNs, fromName))
+                if fromConcept is not None:
+                    calcFromObj = calcWgtObj.setdefault(fromConcept.qname,set())
+                    for toNs, toNames in toNSes.items():
+                        for toName in toNames:
+                            toConcept = modelXbrl.qnameConcepts.get(qn(toNs, toName))
+                            if toConcept is not None:
+                                calcFromObj.add(toConcept.qname)
+    ugtAxesByQnames = defaultdict(set) # store as concept indices to avoid using memory for repetitive strings
+    for axisName, memNames in ugtRels["axes"].items():
+        for axisConcept in modelXbrl.nameConcepts.get(axisName,()):
+            axisObj = ugtAxesByQnames[axisConcept.name]
+            for memName in memNames:
+                for memConcept in modelXbrl.nameConcepts.get(memName,()):
+                    axisObj.add(memConcept.qname)
+    ugt = {"calcs": ugtCalcsByQnames,
+           "axes": ugtAxesByQnames}
+     # dqc0015
+    if "DQC.US.0015" in ugtRels:
+        dqc0015 = ugtRels["DQC.US.0015"]
+        concepts = set()
+        excludedMembers = set()
+        excludedMemberStrings = set()
+        excludedAxesMembers = defaultdict(set)
+        conceptRuleIDs = {}
+        for exName, exSet, isQName in (("conceptNames", concepts, True),
+                                       ("excludedMemberNames", excludedMembers, True),
+                                       ("excludedMemberStrings", excludedMemberStrings, False)):
+            for ns, names in dqc0015[exName].items():
+                for localName in names:
+                    exSet.add(qn(ns, localName) if isQName else localName)
+        for localDimNs, localDimMems in dqc0015["excludedAxesMembers"].items():
+            for localDimName, localMemObjs in localDimMems.items():
+                for localMemNs, localMemNames in localMemObjs.items():
+                    if localMemNs == "*":
+                        excludedAxesMembers[qn(localDimNs, localDimName)].add("*")
+                    else:
+                        for localMemName in localMemNames:
+                            excludedAxesMembers[qn(localDimNs, localDimName)].add(qn(localMemNs, localMemName) if localMemName != "*" else "*")
+        #if abbrNs < "us-gaap/2021": # no rel ids in us-gaap/2020
+        #    _ugtRelsFileName = resourcesFilePath(modelXbrl.modelManager, "us-gaap-rels-2021.json")
+        #    _file = openFileStream(modelXbrl.modelManager.cntlr, _ugtRelsFileName, 'rt', encoding='utf-8')
+        #    ugtRels = json.load(_file) # {localName: date, ...}
+        #    _file.close()
+        for conceptNs, conceptNameIDs in ugtRels["DQC.US.0015"]["conceptRuleIDs"].items():
+            for conceptName, conceptID in conceptNameIDs.items():
+                conceptRuleIDs[qn(conceptNs, conceptName)] = conceptID
+        ugt["DQC.US.0015"] = attrdict(concepts=concepts, 
+                                  excludedAxesMembers=excludedAxesMembers, 
+                                  excludedMembers=excludedMembers, 
+                                  excludedMemberNamesPattern=re.compile("|".join(excludedMemberStrings), re.IGNORECASE) 
+                                               if excludedMemberStrings else None,
+                                               conceptRuleIDs=conceptRuleIDs)
+    return ugt
+    
+def addDomMems(rel, mems, useLocalName=False, baseTaxonomyOnly=False, visited=None):
+    if visited is None: visited = set()
+    modelXbrl = rel.modelXbrl
+    disclosureSystem = modelXbrl.modelManager.disclosureSystem
+    toConcept = rel.toModelObject
+    if toConcept not in visited: # prevent looping
+        if not baseTaxonomyOnly or toConcept.qname.namespaceURI in disclosureSystem.standardTaxonomiesDict:
+            mems.add(toConcept.name if useLocalName else toConcept.qname)
+        visited.add(toConcept)
+        for childRel in modelXbrl.relationshipSet(XbrlConst.domainMember, rel.consecutiveLinkrole).fromModelObject(toConcept):
+            addDomMems(childRel, mems, useLocalName, baseTaxonomyOnly, visited)
+        visited.remove(toConcept)
+
+
+def buildUgtFullRelsFiles(modelXbrl, dqcRules):
+    from arelle import ModelXbrl
+    modelManager = modelXbrl.modelManager
+    cntlr = modelXbrl.modelManager.cntlr
+    conceptRule = ("http://fasb.org/dqcrules/arcrole/concept-rule", # FASB arcrule
+                   "http://fasb.org/dqcrules/arcrole/rule-concept")
+    rule0015 = "http://fasb.org/us-gaap/role/dqc/0015"
+    # load without SEC/EFM validation (doc file would not be acceptable)
+    priorValidateDisclosureSystem = modelManager.validateDisclosureSystem
+    modelManager.validateDisclosureSystem = False
+    for ugtAbbr, (ugtEntireUrl, dqcrtUrl) in latestEntireUgt.items():
+        modelManager.addToLog(_("loading {} Entire UGT {}").format(ugtAbbr, ugtEntireUrl), messageCode="info")
+        ugtRels = {}
+        ugtRels["calcs"] = ugtCalcs = {}
+        ugtRels["axes"] = ugtAxes = defaultdict(set)
+        ugtInstance = ModelXbrl.load(modelManager, 
+              # "http://xbrl.fasb.org/us-gaap/2012/elts/us-gaap-doc-2012-01-31.xml",
+              # load from zip (especially after caching) is incredibly faster
+              openFileSource(ugtEntireUrl, cntlr), 
+              _("built dqcrt table in cache"))
+        if ugtInstance is None:
+            modelManager.addToLog(
+                _("%(name)s documentation not loaded"),
+                messageCode="arelle:notLoaded", messageArgs={"modelXbrl": val, "name":ugtAbbr})
+        else:   
+            # load signwarnings from DQC 0015
+            calcRelSet = ugtInstance.relationshipSet(XbrlConst.summationItem)
+            for rel in calcRelSet.modelRelationships:
+                _fromQn = rel.fromModelObject.qname
+                _toQn = rel.toModelObject.qname
+                ugtCalcs.setdefault(rel.weight,{}).setdefault(_fromQn.prefix,{}).setdefault(_fromQn.localName,{}
+                        ).setdefault(_toQn.prefix,set()).add(_toQn.localName)
+            for w in ugtCalcs.values():
+                for fNs in w.values():
+                    for fLn in fNs.values():
+                        for tNs in fLn.keys():
+                            fLn[tNs] = sorted(fLn[tNs]) # change set to array for json                            
+            dimDomRelSet = ugtInstance.relationshipSet(XbrlConst.dimensionDomain)
+            axesOfInterest = set()
+            for rule in dqcRules["DQC.US.0001"]["rules"].values():
+                axesOfInterest.add(rule["axis"])
+                for ruleAxesEntry in ("additional-axes", "unallowed-axes"):
+                    for additionalAxis in rule.get(ruleAxesEntry, ()):
+                        axesOfInterest.add(additionalAxis)
+            for rel in dimDomRelSet.modelRelationships:
+                axisConcept = rel.fromModelObject
+                if axisConcept.name in axesOfInterest:
+                    addDomMems(rel, ugtAxes[axisConcept.name], True)
+            for axis in tuple(ugtAxes.keys()):
+                ugtAxes[axis] = sorted(ugtAxes[axis]) # change set to array for json                       
+            ugtInstance.close()
+            del ugtInstance # dereference closed modelXbrl
+            
+            if dqcrtUrl: # none for 2019
+                modelManager.addToLog(_("loading {} DQC Rules {}").format(ugtAbbr, dqcrtUrl), messageCode="info")
+                dqcrtInstance = ModelXbrl.load(modelManager, 
+                      # "http://xbrl.fasb.org/us-gaap/2012/elts/us-gaap-doc-2012-01-31.xml",
+                      # load from zip (especially after caching) is incredibly faster
+                      openFileSource(dqcrtUrl, cntlr), 
+                      _("built dqcrt table in cache"))
+                if dqcrtInstance is None:
+                    modelManager.addToLog(
+                        _("%(name)s documentation not loaded"),
+                        messageCode="arelle:notLoaded", messageArgs={"modelXbrl": val, "name":ugtAbbr})
+                else:   
+                    ugtRels["DQC.US.0015"] = dqc0015 = defaultdict(dict)
+                    # load DQC 0015
+                    dqcRelSet = dqcrtInstance.relationshipSet(("http://fasb.org/dqcrules/arcrole/concept-rule", # FASB arcrule
+                                                               "http://fasb.org/dqcrules/arcrole/rule-concept"), 
+                                                               "http://fasb.org/us-gaap/role/dqc/0015")
+                    for dqc0015obj, headEltName in (("conceptNames", "Dqc_0015_ListOfElements"),
+                                                    ("excludedMemberNames", "Dqc_0015_ExcludeNonNegMembersAbstract"),
+                                                    ("excludedAxesMembers", "Dqc_0015_ExcludeNonNegAxisAbstract"),
+                                                    ("excludedAxesMembers", "Dqc_0015_ExcludeNonNegAxisMembersAbstract"),
+                                                    ("excludedMemberStrings", "Dqc_0015_ExcludeNonNegMemberStringsAbstract")):
+                        headElts = dqcrtInstance.nameConcepts.get(headEltName,())
+                        for headElt in headElts:
+                            if dqc0015obj == "excludedMemberStrings":
+                                for refRel in dqcrtInstance.relationshipSet(XbrlConst.conceptReference).fromModelObject(headElt):
+                                    for refPart in refRel.toModelObject.iterchildren("{*}allowableSubString"):
+                                        for subStr in refPart.text.split():
+                                            dqc0015[dqc0015obj].setdefault("*", []).append(subStr) # applies to any namespace
+                            else:
+                                for ruleRel in dqcRelSet.fromModelObject(headElt):
+                                    elt = ruleRel.toModelObject
+                                    if dqc0015obj in ("conceptNames", "excludedMemberNames"):
+                                        dqc0015[dqc0015obj].setdefault(elt.qname.prefix, []).append(elt.name)
+                                    else:
+                                        l = dqc0015[dqc0015obj].setdefault(elt.qname.prefix, {}).setdefault(elt.name, {})
+                                        if headEltName == "Dqc_0015_ExcludeNonNegAxisAbstract":
+                                            l["*"] = None
+                                        else:
+                                            for memRel in dqcRelSet.fromModelObject(elt):
+                                                l.setdefault(memRel.toModelObject.qname.prefix, []).append(memRel.toModelObject.name)
+                    dqc0015["conceptRuleIDs"] = conceptRuleIDs = {}
+                    for rel in dqcrtInstance.relationshipSet(XbrlConst.conceptReference).modelRelationships:
+                        if rel.toModelObject.role == "http://fasb.org/us-gaap/role/dqc/ruleID":
+                            conceptRuleIDs.setdefault(elt.qname.prefix, {})[rel.fromModelObject.name] = int(rel.toModelObject.stringValue.rpartition(".")[2])
+                    
+                dqcrtInstance.close()
+                del dqcrtInstance # dereference closed modelXbrl
+                def sortDqcLists(obj):
+                    if isinstance(obj, list):
+                        obj.sort()
+                    elif isinstance(obj, dict):
+                        for objVal in obj.values():
+                            sortDqcLists(objVal)
+                sortDqcLists(dqc0015)
+            jsonStr = _STR_UNICODE(json.dumps(ugtRels, ensure_ascii=False, indent=2)) # might not be unicode in 2.7
+            _ugtRelsFileName = resourcesFilePath(modelManager, "us-gaap-rels-{}.json".format(ugtAbbr.rpartition("/")[2]))
+            saveFile(cntlr, _ugtRelsFileName, jsonStr)  # 2.7 gets unicode this way
+            
+    modelManager.validateDisclosureSystem = priorValidateDisclosureSystem
+
+def axisMemQnames(modelXbrl, axisQname, baseTaxonomyOnly=False):
+    memQnames = set()
+    for dimDomRel in modelXbrl.relationshipSet(XbrlConst.dimensionDomain).fromModelObject(modelXbrl.qnameConcepts[axisQname]):
+        addDomMems(dimDomRel, memQnames, False, baseTaxonomyOnly)
+    return memQnames                       
+
+def memChildQnames(modelXbrl, memName):
+    memQnames = set()
+    for memConcept in modelXbrl.nameConcepts.get(memName,()):        
+        for memMemRel in modelXbrl.relationshipSet(XbrlConst.domainMember).fromModelObject(memConcept):
+            addDomMems(memMemRel, memQnames)
+    return memQnames                       
+
+def loadDqcRules(modelXbrl): # returns match expression, standard patterns
+    # determine taxonomy usage by facts, must have more us-gaap facts than ifrs facts
+    # (some ifrs filings may have a few us-gaap facts or us-gaap concepts loaded but are not us-gaap filings)
+    namespaceUsage = {}
+    for f in modelXbrl.facts:
+        ns = f.qname.namespaceURI
+        namespaceUsage[ns] = namespaceUsage.get(ns, 0) + 1
+    if (modelXbrl.modelManager.disclosureSystem.version[0] >= 56 and # EDGAR release >= 21.1 
+        sum(n for ns,n in namespaceUsage.items() if "us-gaap" in ns) >  # mostly us-gaap elements, not ifrs elements
+        sum(n for ns,n in namespaceUsage.items() if "ifrs" in ns)): 
+        # found us-gaap facts present (more than ifrs facts present), load us-gaap DQC.US rules
+        _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "dqc-us-rules.json"), 'rt', encoding='utf-8')
+        dqcRules = json.load(_file, object_pairs_hook=OrderedDict) # preserve order of keys
+        _file.close()
+        return dqcRules
+    return {}
+
+def factBindings(modelXbrl, localNames, nils=False):
+    bindings = defaultdict(dict)
+    def addMostAccurateFactToBinding(f):
+        if f.xValid >= VALID and (nils or not f.isNil) and f.context is not None:
+            binding = bindings[f.context.contextDimAwareHash, f.unit.hash if f.unit is not None else None]
+            ln = f.qname.localName
+            if ln not in binding or inferredDecimals(f) > inferredDecimals(binding[ln]):
+                binding[ln] = f
+    for ln in localNames:
+        for f in modelXbrl.factsByLocalName.get(ln,()):
+            addMostAccurateFactToBinding(f)
+    return bindings
+    
+def leastDecimals(binding, localNames):
+    nonNilFacts = [binding[ln] for ln in localNames if not binding[ln].isNil]
+    if nonNilFacts:
+        return min((inferredDecimals(f) for f in nonNilFacts))
+    return floatINF
+    

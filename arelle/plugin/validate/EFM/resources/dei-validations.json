@@ -423,7 +423,7 @@
         "efm": "6.5.21",
         "validation": "e503", 
         "source": "inline",
-        "dei/cover": "cover"
+        "dei/cover": "dei"
     },
     {
         "forms": ["@8-K"],

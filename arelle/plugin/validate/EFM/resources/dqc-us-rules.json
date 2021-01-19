@@ -1,0 +1,406 @@
+{
+    "copyright": [
+        "This file was created by staff of the U.S. Securities and Exchange Commission.",
+        "Data and content created by government employees within the scope of their employment", 
+        "are not subject to domestic copyright protection. 17 U.S.C. 105.",
+        "Implementation of DQC rules invokes https://xbrl.us/dqc-license and https://xbrl.us/dqc-patent."        
+    ],
+    "description": [
+        "DQC.US rule 0001 is implemented below",
+        "DQC.US rule 0004 is implemented below",
+        "DQC.US rule 0008 is implemented by us-gaap calc linkbase, compiled into file resources/us-gaap-calc-YYYY.json",
+        "DQC.US rule 0009 is implemented below",
+        "DQC.US rule 0015 is implemented below",
+        "DQC.US rule 0048 is implemented below",
+        "",
+        "Each below rule contains a description of syntax used herein, message and rules. "
+    ],
+    "DQC.US.0001": {
+        "description" : [
+            "DQC.US 0001 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and value object as follows:",
+            "axis: the axis that is the subject of this rule",
+            "axis-descendants: Yes if UGT descendents are allowed as members, else None",
+            "additional-axes: array of additional axes whose UGT descendants are allowed members",
+            "additional-members: array of additional UGT members allowed",
+            "unallowed-axes: array of additional axes whose UGT descendants are allowed members",
+            "extensions-allowed: Yes, No or Limited",
+            "extension-members: array of limited extension member names",
+            "child-extension-members: array of extension members whose children are allowed ",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0001/DQC_0001_ListOfAxes.xlsx",
+            "also see: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0001/DQC_0001.md"
+        ],
+        "message": "The fact {name} with a value of {value} is dimensionally qualified with the {axis} and the unallowable member {member}. {issue} \nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}",
+        "message-unreported": "Members defined for the axis {axis} were not reported with any fact(s): {members}",
+        "rules": {
+            "51": {
+                "axis": "FairValueByFairValueHierarchyLevelAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "Limited",
+                "extension-members": ["FairValueInputsLevel1AndLevel2Member", "FairValueInputsLevel2AndLevel3Member", "InvestmentsNetAssetValueMember"]
+            },
+            "52": {
+                "axis": "ReclassificationOutOfAccumulatedOtherComprehensiveIncomeAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "No"
+            },
+            "53": {
+                "axis": "OtherOwnershipInterestsByNameAxis",
+                "axis-descendants": "None",
+                "additional-members": ["OtherOwnershipInterestsNameDomain"],
+                "extensions-allowed": "Yes"
+            },
+            "54": {
+                "axis": "LegalEntityAxis",
+                "axis-descendants": "Yes",
+                "additional-axes": ["FederalHomeLoanBankAdvancesBranchOfFHLBBankAxis"],
+                "additional-members": ["PredecessorMember", "CoVenturerMember", "SpinOffMember", "PartnershipMember", "LimitedLiabilityCompanyMember", "TrustForBenefitOfEmployeesMember"],
+                "extensions-allowed": "Yes"
+            },
+            "56": {
+                "axis": "NoncashOrPartNoncashDivestituresByUniqueNameAxis",
+                "axis-descendants": "None",
+                "additional-members": ["NoncashOrPartNoncashDivestitureNameDomain"],
+                "extensions-allowed": "Yes"
+            },
+            "57": {
+                "axis": "ScheduleOfEquityMethodInvestmentEquityMethodInvesteeNameAxis",
+                "axis-descendants": "None",
+                "additional-members": ["EquityMethodInvesteeNameDomain"],
+                "extensions-allowed": "Yes"
+            },
+            "58": {
+                "axis": "CounterpartyNameAxis",
+                "axis-descendants": "Yes",
+                "additional-members": ["AffiliatedEntityMember", "InvestorMember", "VariableInterestEntityNotPrimaryBeneficiaryMember", "ChiefFinancialOfficerMember", "IndividualMember", "GovernmentMember", "GuarantorSubsidiariesMember", "SubsidiaryIssuerMember", "DirectorMember", "ChiefExecutiveOfficerMember,  ChiefOperatingOfficerMember", "GeneralPartnerMember", "CorporateJointVentureMember", "SubsidiaryOfCommonParentMember", "IndividuallyImmaterialCounterpartiesMember", "RepurchaseAgreementCounterpartyNameDomain"],
+                "extensions-allowed": "Yes"
+            },
+            "59": {
+                "axis": "PlanNameAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "Yes"
+            },
+            "62": {
+                "axis": "CurrencyAxis",
+                "axis-descendants": "Yes",
+                "additional-members": ["VES", "SVC", "STN", "MRU"],
+                "extensions-allowed": "Limited",
+                "extension-members": ["SICAD1Member", "SICAD2Member", "OtherCurrencyMember", "NonUSDollarMember", "CENCOEXMember", "SICADMember", "SIMADIMember", "DIPROMember", "DICOMMember"]
+            },
+            "63": {
+                "axis": "PositionAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "Limited",
+                "extension-members": ["NetLongPositionMember", "NetShortPositionMember"]
+            },
+            "64": {
+                "axis": "FairValueByMeasurementFrequencyAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "No"
+            },
+            "65": {
+                "axis": "FairValueByMeasurementBasisAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "Limited",
+                "extension-members": ["InvestmentsNetAssetValueMember"]
+            },
+            "66": {
+                "axis": "HedgingDesignationAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "Limited"
+            },
+            "69": {
+                "axis": "ProductOrServiceAxis",
+                "axis-descendants": "Yes",
+                "additional-axes": ["ScheduleOfMalpracticeInsuranceTypeAndTierIdentifierAxis", "AircraftTypeAxis", "PublicUtilitiesInventoryAxis", "PropertyPlantAndEquipmentByTypeAxis", "ReserveQuantitiesByTypeOfReserveAxis"],
+                "additional-members": ["AuctionRateSecuritiesMember", "AutomobileLoanMember", "CommercialLoanMember", "CommercialRealEstateMember", "ConstructionLoansMember", "ConsumerLoanMember", "CrudeOilMember", "FuelMember", "GeneralLiabilityMember", "HeatingOilMember", "HomeEquityLoanMember", "HomeEquityMember", "LetterOfCreditMember", "LineOfCreditMember", "LoansMember", "MortgageLoansOnRealEstateMember", "NaturalGasLiquidsReservesMember", "NaturalGasReservesMember", "OilReservesMember", "ProfessionalMalpracticeLiabilityMember", "RealEstateLoanMember", "ResidentialMortgageMember", "SyntheticOilMember", "PublicUtilitiesInventoryWaterMember", "PublicUtilitiesInventoryPropaneMember", "ResidentialRealEstateMember", "RealEstateMember", "AutomobilesMember", "HotelMember", "RegionalCarrierMember", "MainlineMember"],
+                "extensions-allowed": "Yes"
+            },
+            "70": {
+                "axis": "ConsolidationItemsAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "Limited",
+                "child-extension-members": ["MaterialReconcilingItemsMember", "ConsolidationEliminationsMember"],
+                "extension-members": ["CorporateReconcilingItemsAndEliminationsMember", "CorporateAndReconcilingItemsMember", "CorporateAndEliminationsMember", "EliminationsAndReconcilingItemsMember", "OperatingSegmentsAndCorporateNonSegmentMember", "OperatingSegmentsExcludingIntersegmentEliminationMember", "OtherOperatingSegmentsAndIntersegmentEliminationsMember"]
+            },
+            "71": {
+                "axis": "DefinedBenefitPlanByPlanAssetCategoriesAxis",
+                "axis-descendants": "None",
+                "unallowed-axes": ["RetirementPlanTypeAxis", "RetirementPlanSponsorLocationAxis", "RetirementPlanFundingStatusAxis", "RetirementPlanNameAxis"],
+                "extensions-allowed": "Yes"
+            },
+            "72": {
+                "axis": "AwardDateAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "Yes"
+            },
+            "74": {
+                "axis": "SubsequentEventTypeAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "No"
+            },
+            "75": {
+                "axis": "StatementEquityComponentsAxis",
+                "axis-descendants": "Yes",
+                "additional-members": ["AccumulatedNetGainLossFromCashFlowHedgesIncludingPortionAttributableToNoncontrollingInterestMember", "AccumulatedNetGainLossFromDesignatedOrQualifyingCashFlowHedgesMember", "AccumulatedNetGainLossFromCashFlowHedgesAttributableToNoncontrollingInterestMember", "TrustForBenefitOfEmployeesMember"],
+                "extensions-allowed": "Yes"
+            },
+            "76": {
+                "axis": "StatementScenarioAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "Yes"
+            },
+            "61": {
+                "axis": "RangeAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "No"
+            },
+            "77": {
+                "axis": "PreferredUnitsByNameAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "Yes"
+            },
+            "78": {
+                "axis": "RetirementPlanNameAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "Yes"
+            },
+            "79": {
+                "axis": "OwnershipAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "Yes"
+            },
+            "80": {
+                "axis": "MajorCustomersAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "Yes"
+            },
+            "9366": {
+                "axis": "BusinessAcquisitionAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "Yes"
+            }
+        }
+    },
+    "DQC.US.0004": {
+        "description" : [
+            "DQC.US 0004 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and value object as follows:",
+            "sum: local name of the sum fact",
+            "items: array of local name(s) of the items which add up to the sum (within tolerance)",
+            "blocking-axes: array of local name(s) of axes which, if any is present, block this check from running",
+            "alternatives: object whose keys are alternatives for item and values an array of ",
+            "     alternatives arrays of items to sum for substitution,",
+            "tolerance: integer representing 10**-leastDecimals*tolerance for equality margin)",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0004/DQC_0004.md"
+        ],
+        "message": "{sumName} with a value of {sumValue} is not equal to the total of {itemNames} with a value of {itemValues}. These values should be equal. \nThe properties of this {sumName} fact are: \nContext: {contextID} \nUnit: {unitID}",
+        "rules": {
+        	"16": { 
+        	    "sum": "Assets", 
+        	    "items": ["LiabilitiesAndStockholdersEquity"],
+        	    "tolerance": 2
+        	},
+        	"9280": {
+        	    "sum": "Assets", 
+        	    "items": ["AssetsCurrent", "AssetsNoncurrent"],
+        	    "tolerance": 2
+        	},
+        	"9281": {
+        	    "sum": "Liabilities", 
+        	    "items": ["LiabilitiesCurrent", "LiabilitiesNoncurrent"],
+        	    "tolerance": 2
+        	},
+        	"9282": {
+        	    "sum": "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest", 
+        	    "items": ["StockholdersEquity", "MinorityInterest"],
+        	    "blocking-axes": ["ConsolidationItemsAxis"],
+        	    "tolerance": 2
+        	},
+        	"9283": {
+        	    "sum": "LiabilitiesAndStockholdersEquity", 
+        	    "items": ["StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest", "Liabilities", "TemporaryEquityCarryingAmountIncludingPortionAttributableToNoncontrollingInterests"],
+        	    "alternatives": {
+        	        "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest": [
+        	            ["StockholdersEquity", "MinorityInterest"],
+        	            ["StockholdersEquity"]
+        	        ],
+        	        "Liabilities": [
+        	            ["LiabilitiesCurrent", "LiabilitiesNoncurrent"]
+        	        ]
+        	    },
+        	    "tolerance": 2
+        	},
+        	"9284": {
+        	    "sum": "ComprehensiveIncomeNetOfTaxIncludingPortionAttributableToNoncontrollingInterest", 
+        	    "items": ["ProfitLoss", "OtherComprehensiveIncomeLossNetOfTax"],
+        	    "tolerance": 2
+        	},
+        	"9285": {
+        	    "sum": "ComprehensiveIncomeNetOfTaxIncludingPortionAttributableToNoncontrollingInterest", 
+        	    "items": ["ComprehensiveIncomeNetOfTaxAttributableToNoncontrollingInterest", "ComprehensiveIncomeNetOfTax"],
+        	    "tolerance": 2
+        	},
+        	"9286": {
+        	    "sum": "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseExcludingExchangeRateEffect", 
+        	    "items": ["NetCashProvidedByUsedInOperatingActivities", "NetCashProvidedByUsedInInvestingActivities", "NetCashProvidedByUsedInFinancingActivities"],
+        	    "alternatives": {
+        	        "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseExcludingExchangeRateEffect ": [
+        	            ["CashAndCashEquivalentsPeriodIncreaseDecreaseExcludingExchangeRateEffect"]
+        	        ]
+        	    },
+        	    "tolerance": 2
+        	},
+        	"9287": {
+        	    "sum": "NetCashProvidedByUsedInFinancingActivities", 
+        	    "items": ["NetCashProvidedByUsedInFinancingActivitiesContinuingOperations", "CashProvidedByUsedInFinancingActivitiesDiscontinuedOperations"],
+        	    "tolerance": 2
+        	},
+        	"9288": {
+        	    "sum": "NetCashProvidedByUsedInInvestingActivities", 
+        	    "items": ["NetCashProvidedByUsedInInvestingActivitiesContinuingOperations", "CashProvidedByUsedInInvestingActivitiesDiscontinuedOperations"],
+        	    "tolerance": 2
+        	},
+        	"9289": {
+        	    "sum": "NetCashProvidedByUsedInOperatingActivities", 
+        	    "items": ["NetCashProvidedByUsedInOperatingActivitiesContinuingOperations", "CashProvidedByUsedInOperatingActivitiesDiscontinuedOperations"],
+        	    "tolerance": 2
+        	},
+        	"9290": {
+        	    "sum": "NetCashProvidedByUsedInDiscontinuedOperations", 
+        	    "items": ["CashProvidedByUsedInOperatingActivitiesDiscontinuedOperations", "CashProvidedByUsedInInvestingActivitiesDiscontinuedOperations", "CashProvidedByUsedInFinancingActivitiesDiscontinuedOperations"],
+        	    "tolerance": 2
+        	},
+        	"9291": {
+        	    "sum": "NetCashProvidedByUsedInContinuingOperations", 
+        	    "items": ["NetCashProvidedByUsedInOperatingActivitiesContinuingOperations", "NetCashProvidedByUsedInInvestingActivitiesContinuingOperations", "NetCashProvidedByUsedInFinancingActivitiesContinuingOperations"],
+        	    "tolerance": 2
+        	}
+        }
+	},
+    "DQC.US.0009": {
+        "description" : [
+            "DQC.US 0009 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and value object as follows:",
+            "lesser: local name of the fact which must be lesser than or equal",
+            "greater: local name of the fact which must be greater than lesser fact",
+            "message: optional message specific to this rule to override inherited message",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0009/DQC_0009.md"
+        ],
+        "message": "The value of {lesserName}, {lesserValue}, should be less than or equal to {greaterName}, {greaterValue}. \nThe properties of this {lesserName} fact are:\nContext: {contextID}\nUnit: {unitID}",
+        "rules": {
+            "15": {
+                "lesser": "CommonStockSharesOutstanding",
+                "greater": "CommonStockSharesAuthorized"
+            },
+            "19": {
+                "lesser": "PreferredStockSharesOutstanding",
+                "greater": "PreferredStockSharesIssued"
+            },
+            "21": {
+                "lesser": "CommonStockSharesIssued",
+                "greater": "CommonStockSharesAuthorized"
+            },
+            "22": {
+                "lesser": "PreferredStockSharesIssued",
+                "greater": "PreferredStockSharesAuthorized"
+            },
+            "23": {
+                "lesser": "PreferredStockSharesOutstanding",
+                "greater": "PreferredStockSharesAuthorized"
+            },
+            "24": {
+                "lesser": "CommonStockSharesOutstanding",
+                "greater": "CommonStockSharesIssued"
+            },
+            "39": {
+                "lesser": "DefinedBenefitPlanPlansWithBenefitObligationsInExcessOfPlanAssetsAggregateBenefitObligation",
+                "greater": "DefinedBenefitPlanBenefitObligation",
+                "message": "The value of {lesserName}, {lesserValue}, should be less than or equal to {greaterName}, {greaterValue}. {lesserName} is a subset of {greaterName}. \nThe properties of this {lesserName} fact are:\nContext: {contextID}\nUnit: {unitID}"
+            },
+            "40": {
+                "lesser": "DefinedBenefitPlanPensionPlansWithAccumulatedBenefitObligationsInExcessOfPlanAssetsAggregateAccumulatedBenefitObligation",
+                "greater": "DefinedBenefitPlanAccumulatedBenefitObligation",
+                "message": "The value of {lesserName}, {lesserValue}, should be less than or equal to {greaterName}, {greaterValue}. {lesserName} is a subset of {greaterName}. \nThe properties of this {lesserName} fact are:\nContext: {contextID}\nUnit: {unitID}"
+            },
+            "41": {
+                "lesser": "DefinedBenefitPlanPensionPlansWithAccumulatedBenefitObligationsInExcessOfPlanAssetsAggregateFairValueOfPlanAssets",
+                "greater": "DefinedBenefitPlanFairValueOfPlanAssets",
+                "message": "The value of {lesserName}, {lesserValue}, should be less than or equal to {greaterName}, {greaterValue}. {lesserName} is a subset of {greaterName}. \nThe properties of this {lesserName} fact are:\nContext: {contextID}\nUnit: {unitID}"
+            },
+            "42": {
+                "lesser": "DefinedBenefitPlanPensionPlansWithAccumulatedBenefitObligationsInExcessOfPlanAssetsAggregateProjectedBenefitObligation",
+                "greater": "DefinedBenefitPlanBenefitObligation",
+                "message": "The value of {lesserName}, {lesserValue}, should be less than or equal to {greaterName}, {greaterValue}. {lesserName} is a subset of {greaterName}. \nThe properties of this {lesserName} fact are:\nContext: {contextID}\nUnit: {unitID}"
+            },
+            "45": {
+                "lesser": "DefinedBenefitPlansEstimatedFutureEmployerContributionsInCurrentFiscalYear",
+                "greater": "DefinedBenefitPlanExpectedContributionsInCurrentFiscalYear",
+                "message": "The value of {lesserName}, {lesserValue}, should be less than or equal to {greaterName}, {greaterValue}. The value of the remaining contribution for the year should be less than or equal to the expected contributions for the entire year. \nThe properties of this {lesserName} fact are:\nContext: {contextID}\nUnit: {unitID}"
+            },
+            "46": {
+                "lesser": "DefinedBenefitPlanAccumulatedBenefitObligation",
+                "greater": "DefinedBenefitPlanBenefitObligation",
+                "message": "The value of {lesserName}, {lesserValue}, should be less than or equal to {greaterName}, {greaterValue}. {lesserName} must be less than or equal to {greaterName}, as it does not include assumptions about future compensation levels. \nThe properties of this {lesserName} fact are:\nContext: {contextID}\nUnit: {unitID}"
+            },
+            "47": {
+                "lesser": "DeferredTaxLiabilityNotRecognizedAmountOfUnrecognizedDeferredTaxLiabilityUndistributedEarningsOfForeignSubsidiaries",
+                "greater": "UndistributedEarningsOfForeignSubsidiaries"
+            }
+        }
+    },
+    "DQC.US.0008": {
+        "description" : [
+            "DQC.US 0008 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and empty value object",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_00098DQC_0008.md"
+        ],
+        "message": "The calculation in the extension taxonomy from {conceptFrom} to {conceptTo} in {linkroleDefinition} is the opposite of a calculation defined in the base US GAAP taxonomy. Check that the calculation is correct or that you have used the correct tag for the two elements identified in the calculation. It is possible that the calculation is correct in the case of a reconciliation calculation.",
+        "rules": {
+            "6819": {
+            }
+        }
+    },
+    "DQC.US.0015": {
+        "description" : [
+            "DQC.US 0015 rule entries based on the DQCRT taxonomy rule 0015 entries specifying facts and rule IDs.",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0015/DQC_0015.md"
+        ],
+        "message": "Fact {name} has a value of {value} which is less than zero. This element should not have a negative value. The preparer should consider if the value is input correctly for this assertion and, after considering the appropriateness of the input, if incorrect, input the amount as a positive (i.e., absolute) value and provide a negated label.  \nThe properties of this {name} fact are:\nContext: {contextID}\nUnit: {unitID}"
+    },
+    "DQC.US.0048": {
+        "description" : [
+            "DQC.US 0048 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and roots is an array of element name(s) ",
+            "of which at least one of the element name(s) choices must be a calculation root.",
+            "Where there are two names in a choice both must be roots for the choice to match.",
+            "",
+            "Rule is skipped for excluded-document-types or any of blocking-facts",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0048/DQC_0048.md"
+        ],
+        "excluded-document-types": ["S-1", "S-3", "S-4", "S-6", "S-8", "S-11", "S-20", "S-1/A", "S-3/A", "S-4/A", "S-6/A", "S-8/A", "S-11/A", "S-20/A", "F-1","F-3"],
+        "blocking-facts": {"EntityEmergingGrowthCompany": true},
+        "message": "The filing should include in the cash flow statement calculation linkbase(s) {linkRole} - {linkroleDefinition} one of the following elements as the root(first element) of the calculation tree to represent the aggregate change in cash for the period:\n\n\nCashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffect,\nCashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseExcludingExchangeRateEffect, \nNetCashProvidedByUsedInContinuingOperations (As long as the element NetCashProvidedByUsedInDiscontinuedOperations is also included the reconciliation between opening and closing cash). \nThe calculation linkbase in the filing has the following root elements defined: {rootNames}",
+        "message-no-roles": "The filing should include in the cash flow statement calculation linkbase(s) one of the following elements as the root(first element) of the calculation tree to represent the aggregate change in cash for the period:\n\n\nCashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffect,\nCashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseExcludingExchangeRateEffect, \nNetCashProvidedByUsedInContinuingOperations (As long as the element NetCashProvidedByUsedInDiscontinuedOperations is also included the reconciliation between opening and closing cash). \nThe calculation linkbase in the filing has no relationships for the role(s): {linkRoles}",
+        "rules": {
+            "7482": {
+                "roots" : [
+                    ["CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffect"],
+                    ["CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseExcludingExchangeRateEffect"],
+                    ["NetCashProvidedByUsedInContinuingOperations", "NetCashProvidedByUsedInDiscontinuedOperations"]
+                ]
+            }
+        }
+    }
+}
