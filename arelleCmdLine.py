@@ -7,6 +7,11 @@ Use this module to start Arelle in command line modes
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 import sys, os
+
+if sys.platform == "darwin" and getattr(sys, 'frozen', False):
+    for i in range(len(sys.path)): # signed code can't contain python modules
+        sys.path.append(sys.path[i].replace("MacOS", "Resources"))
+
 from arelle import CntlrCmdLine, CntlrComServer
 
 if '--COMserver' in sys.argv:

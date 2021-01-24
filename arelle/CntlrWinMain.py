@@ -1515,19 +1515,19 @@ class TkinterCallWrapper:
 
 def main():
     # this is the entry called by arelleGUI.pyw for windows
-    if sys.platform == "darwin": 
-        _resourcesDir = Cntlr.resourcesDir()
-        for _tcltk in ("tcl", "tk", "Tktable"):
-            for _tcltkVer in ("8.5", "8.6", "2.11"): # Tktable ver is 2.11
-                _d = _resourcesDir
-                while len(_d) > 3: # stop at root directory
-                    _tcltkDir = os.path.join(_d, _tcltk + _tcltkVer)
-                    if os.path.exists(_tcltkDir): 
-                        os.environ[_tcltk.upper() + "_LIBRARY"] = _tcltkDir
-                        break
-                    _d = os.path.dirname(_d)
-    elif sys.platform == 'win32':
-        if getattr(sys, 'frozen', False): # windows requires fake stdout/stderr because no write/flush (e.g., EdgarRenderer LocalViewer pybottle)
+    if getattr(sys, 'frozen', False):
+        if sys.platform in ("darwin", "linux"): # Use frozen tcl, tk and TkTable libraries
+            _resourcesDir = os.path.join(Cntlr.resourcesDir(), "lib")
+            for _tcltk in ("tcl", "tk", "Tktable"):
+                for _tcltkVer in ("8.5", "8.6", "2.11"): # Tktable ver is 2.11
+                    _d = _resourcesDir
+                    while len(_d) > 3: # stop at root directory
+                        _tcltkDir = os.path.join(_d, _tcltk + _tcltkVer)
+                        if os.path.exists(_tcltkDir): 
+                            os.environ[_tcltk.upper() + "_LIBRARY"] = _tcltkDir
+                            break
+                        _d = os.path.dirname(_d)
+        elif sys.platform == 'win32': # windows requires fake stdout/stderr because no write/flush (e.g., EdgarRenderer LocalViewer pybottle)
             class dummyFrozenStream:
                 def __init__(self): pass
                 def write(self,data): pass

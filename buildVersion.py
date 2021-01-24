@@ -44,7 +44,7 @@ if __name__ == "__main__":
         
     if sys.platform == "darwin":
         with open("buildRenameDmg.sh", "w") as fh:
-            fh.write("mv dist_dmg/arelle.dmg dist_dmg/arelle-macOS-{}.dmg\n".format(dateDashYmd))
+            fh.write("cp dist_dmg/arelle.dmg dist/arelle-macOS-{}.dmg\n".format(dateDashYmd))
     if sys.platform == "linux2":
         with open("buildRenameLinux-x86_64.sh", "w") as fh:
             fh.write("mv dist/exe.linux-x86_64-{}.{}.tar.gz dist/arelle-linux-x86_64-{}.tgz\n"
