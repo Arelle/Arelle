@@ -1,4 +1,4 @@
-""# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 '''
 loadFromExcel.py is an example of a plug-in that will load an extension taxonomy from Excel
 input and optionally save an (extension) DTS.
