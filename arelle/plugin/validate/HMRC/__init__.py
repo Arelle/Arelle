@@ -7,6 +7,7 @@ Created on Dec 12, 2013
 References:
   https://xbrl.frc.org.uk (taxonomies, filing requirements, consistency checks)
   https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/434597/joint-filing-validation-checks.pdf
+  https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/893127/Joint-Filing-Common-Validation-Checks-v4.0.pdf
   
   Style Guide: https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/434588/xbrl-style-guide.pdf
   
@@ -401,6 +402,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                                     if not _inConsistent:
                                         _inConsistent = (bMin < aMax)
                                     decVals.clear()
+                            else:
+                                _inConsistent = any(not f.isVEqualTo(f0) for f in fList[1:])
                             if _inConsistent:
                                 modelXbrl.error("JFCVC.3314",
                                     "Inconsistent duplicate fact values %(fact)s: %(values)s.",
