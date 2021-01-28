@@ -260,7 +260,7 @@ class Validate:
                                                        ixdsTarget=modelTestcaseVariation.ixdsTarget)
                         modelXbrl.isTestcaseVariation = True
                     if modelXbrl.modelDocument is None:
-                        modelXbrl.error("arelle:notLoaded",
+                        modelXbrl.info("arelle:notLoaded",
                              _("Variation %(id)s %(name)s readMeFirst document not loaded: %(file)s"),
                              modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, file=os.path.basename(readMeFirstUri))
                         self.determineNotLoadedTestStatus(modelTestcaseVariation, modelXbrl.errors)
