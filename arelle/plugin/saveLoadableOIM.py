@@ -608,13 +608,20 @@ def saveLoadableOIMCommandLineOptionExtender(parser, *args, **kwargs):
                       action="store", 
                       dest="saveLoadableOIM", 
                       help=_("Save Loadable OIM file (JSON, CSV or XLSX)"))
+    parser.add_option("--saveTestcaseOIM", 
+                      action="store", 
+                      dest="saveTestcaseOimFileSuffix", 
+                      help=_("Save Testcase Variation OIM file (argument file suffix and type, such as -savedOim.csv"))
+    
+def saveLoadableOIMCaptureOptions(cntlr, options, *args, **kwargs):
+    cntlr.modelManager.saveTestcaseOimFileSuffix = getattr(options, "saveTestcaseOimFileSuffix", None)
 
 def saveLoadableOIMCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
     # extend XBRL-loaded run processing for this option
     oimFile = getattr(options, "saveLoadableOIM", None)
     if oimFile:
         if (modelXbrl is None or
-            modelXbrl.modelDocument.type not in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL)):
+            modelXbrl.modelDocument.type not in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET)):
             cntlr.addToLog("No XBRL instance has been loaded.")
             return
         try:
@@ -629,6 +636,18 @@ def saveLoadableOIMCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs
                 responseZipStream.seek(0)
         except Exception as ex:
             cntlr.addToLog("Exception saving OIM {}".format(ex))
+ 
+oimErrorPattern = re.compile("oime|oimce|xbrlje|xbrlce")
+       
+def saveLoadableOIMAfterTestcaseValidated(testcaseDTS, testInstanceDTS, extraErrors):
+    oimFileSuffix = getattr(testcaseDTS.modelManager, "saveTestcaseOimFileSuffix", None)
+    if (oimFileSuffix and testInstanceDTS is not None and 
+        testInstanceDTS.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET) and
+        not any(oimErrorPattern.match(error) for error in testInstanceDTS.errors)): # no OIM errors
+        try:
+            saveLoadableOIM(testInstanceDTS, testInstanceDTS.modelDocument.uri + oimFileSuffix)
+        except Exception as ex:
+            cntlr.addToLog("Exception saving OIM {}".format(ex))
 
 __pluginInfo__ = {
     'name': 'Save Loadable OIM',
@@ -640,5 +659,7 @@ __pluginInfo__ = {
     # classes of mount points (required)
     'CntlrWinMain.Menu.Tools': saveLoadableOIMMenuEntender,
     'CntlrCmdLine.Options': saveLoadableOIMCommandLineOptionExtender,
+    'CntlrCmdLine.Utility.Run': saveLoadableOIMCaptureOptions,
     'CntlrCmdLine.Xbrl.Run': saveLoadableOIMCommandLineXbrlRun,
+    'TestcaseVariation.Validated': saveLoadableOIMAfterTestcaseValidated,
 }
