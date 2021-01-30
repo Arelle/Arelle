@@ -171,27 +171,27 @@ def innerTextNodes(element, ixExclude, ixEscape, ixContinuation, ixResolveUris):
     global htmlEltUriAttrs, resolveHtmlUri
     if htmlEltUriAttrs is None:
         from arelle.XhtmlValidate import htmlEltUriAttrs, resolveHtmlUri
-    if element.text:
-        yield escapedText(element.text) if ixEscape else element.text
-    for child in element.iterchildren():
-        if isinstance(child,ModelObject) and (
-           not ixExclude or 
-           not ((child.localName == "exclude" or ixExclude == "tuple") and child.namespaceURI in ixbrlAll)):
-            firstChild = True
-            for nestedText in innerTextNodes(child, ixExclude, ixEscape, False, ixResolveUris): # nested elements don't participate in continuation chain
-                if firstChild and ixEscape:
-                    yield escapedNode(child, True, False, ixEscape, ixResolveUris)
-                    firstChild = False
-                yield nestedText
-            if ixEscape:
-                yield escapedNode(child, False, firstChild, ixEscape, ixResolveUris)
-        if child.tail:
-            yield escapedText(child.tail) if ixEscape else child.tail
-    if ixContinuation:
-        contAt = getattr(element, "_continuationElement", None)
-        if contAt is not None:
-            for contText in innerTextNodes(contAt, ixExclude, ixEscape, ixContinuation, ixResolveUris):
-                yield contText
+    while element is not None:
+        if element.text:
+            yield escapedText(element.text) if ixEscape else element.text
+        for child in element.iterchildren():
+            if isinstance(child,ModelObject) and (
+               not ixExclude or 
+               not ((child.localName == "exclude" or ixExclude == "tuple") and child.namespaceURI in ixbrlAll)):
+                firstChild = True
+                for nestedText in innerTextNodes(child, ixExclude, ixEscape, False, ixResolveUris): # nested elements don't participate in continuation chain
+                    if firstChild and ixEscape:
+                        yield escapedNode(child, True, False, ixEscape, ixResolveUris)
+                        firstChild = False
+                    yield nestedText
+                if ixEscape:
+                    yield escapedNode(child, False, firstChild, ixEscape, ixResolveUris)
+            if child.tail:
+                yield escapedText(child.tail) if ixEscape else child.tail
+        if ixContinuation:
+            element = getattr(element, "_continuationElement", None)
+        else:
+            break
             
 def escapedNode(elt, start, empty, ixEscape, ixResolveUris):
     if elt.namespaceURI in ixbrlAll:

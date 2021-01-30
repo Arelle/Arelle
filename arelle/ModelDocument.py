@@ -1562,34 +1562,37 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
             except KeyError:
                 modelFact._ixFactParent = modelXbrl.ixTargetRootElements[None]
             
-    def locateContinuation(element, chain=None):
+    def locateContinuation(element):
         contAt = element.get("continuedAt")
-        if contAt:
-            continuationReferences[contAt].add(element)
-            if contAt not in continuationElements:
-                if contAt in element.modelDocument.idObjects:
-                    _contAtTarget = element.modelDocument.idObjects[contAt]
-                    modelXbrl.error(ixMsgCode("continuationTarget", element, sect="validation"),
-                                    _("continuedAt %(continuationAt)s target is an %(targetElement)s element instead of ix:continuation element."),
-                                    modelObject=(element, _contAtTarget), continuationAt=contAt, targetElement=_contAtTarget.elementQname)
+        if contAt: # has continuation
+            chain = [element] # implement non-recursively for very long continuaion chains
+            while contAt:
+                continuationReferences[contAt].add(element)
+                if contAt not in continuationElements:
+                    if contAt in element.modelDocument.idObjects:
+                        _contAtTarget = element.modelDocument.idObjects[contAt]
+                        modelXbrl.error(ixMsgCode("continuationTarget", element, sect="validation"),
+                                        _("continuedAt %(continuationAt)s target is an %(targetElement)s element instead of ix:continuation element."),
+                                        modelObject=(element, _contAtTarget), continuationAt=contAt, targetElement=_contAtTarget.elementQname)
+                    else:
+                        modelXbrl.error(ixMsgCode("continuationMissing", element, sect="validation"),
+                                        _("Inline XBRL continuation %(continuationAt)s not found"),
+                                        modelObject=element, continuationAt=contAt)
+                    break
                 else:
-                    modelXbrl.error(ixMsgCode("continuationMissing", element, sect="validation"),
-                                    _("Inline XBRL continuation %(continuationAt)s not found"),
-                                    modelObject=element, continuationAt=contAt)
-            else:
-                if chain is None: chain = [element]
-                contElt = continuationElements[contAt]
-                if contElt in chain:
-                    cycle = ", ".join(e.get("continuedAt") for e in chain)
-                    chain.append(contElt) # makes the cycle clear
-                    modelXbrl.error(ixMsgCode("continuationCycle", element, sect="validation"),
-                                    _("Inline XBRL continuation cycle: %(continuationCycle)s"),
-                                    modelObject=chain, continuationCycle=cycle)
-                else:
-                    chain.append(contElt)
-                    element._continuationElement = contElt
-                    locateContinuation(contElt, chain)
-        elif chain: # end of chain
+                    contElt = continuationElements[contAt]
+                    if contElt in chain:
+                        cycle = ", ".join(e.get("continuedAt") for e in chain)
+                        chain.append(contElt) # makes the cycle clear
+                        modelXbrl.error(ixMsgCode("continuationCycle", element, sect="validation"),
+                                        _("Inline XBRL continuation cycle: %(continuationCycle)s"),
+                                        modelObject=chain, continuationCycle=cycle)
+                        break
+                    else:
+                        chain.append(contElt)
+                        element._continuationElement = contElt
+                        element = contElt # loop to continuation element
+                        contAt = element.get("continuedAt")
             # check if any chain element is descendant of another
             chainSet = set(chain)
             for chainElt in chain:
