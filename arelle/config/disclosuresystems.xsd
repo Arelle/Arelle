@@ -69,6 +69,7 @@
       <xs:attribute name="logCodeFilter" />
       <xs:attribute name="standardTaxonomyDatabase" />
       <xs:attribute name="standardTaxonomyUrlPattern" />
+      <xs:attribute name="options" />
     </xs:complexType>
   </xs:element>
 </xs:schema>

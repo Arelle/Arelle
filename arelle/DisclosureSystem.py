@@ -95,6 +95,7 @@ class DisclosureSystem:
         self.logCodeFilter = None
         self.standardTaxonomyDatabase = None
         self.standardTaxonomyUrlPattern = None
+        self.options = None
         self.version = (0,0,0)
 
     @property
@@ -217,6 +218,7 @@ class DisclosureSystem:
                                 self.logCodeFilter = dsElt.get("logCodeFilter")
                                 self.standardTaxonomyDatabase = dsElt.get("standardTaxonomyDatabase")
                                 self.standardTaxonomyUrlPattern = compileAttrPattern(dsElt, "standardTaxonomyUrlPattern")
+                                self.options = dsElt.get("options")
 
                                 self.selection = self.name
                                 isSelected = True
