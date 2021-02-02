@@ -27,14 +27,32 @@ def conflictClassFromNamespace(namespaceURI):
 WITHYEAR = 0
 WILD = 1
 NOYEAR = 2
+WITHYEARandWILD = 3
 def abbreviatedNamespace(namespaceURI, pattern=WITHYEAR):
+    if pattern == WITHYEARandWILD:
+        return (abbreviatedNamespace(namespaceURI,WITHYEAR), abbreviatedNamespace(namespaceURI,WILD))
     match = standardNamespacesPattern.match(namespaceURI or "")
     if match:
         return {WITHYEAR: "{}/{}", WILD: "{}/*", NOYEAR: "{}"
                 }[pattern].format(match.group(2) or match.group(5), match.group(3) or match.group(4))
+    return None
+
+def usgaapYear(modelXbrl):
+    for d in modelXbrl.urlDocs.values():
+        abbrNs = abbreviatedNamespace(d.targetNamespace)
+        if abbrNs and abbrNs.startswith("us-gaap/"):
+            return abbrNs[8:]
+    return ""
+
     
-    
-def loadNonNegativeFacts(modelXbrl):
+def loadNonNegativeFacts(modelXbrl, dqcRules, ugtRels):
+    # for us-gaap newer than 2020 use DQCRT non-negative facts.
+    if dqcRules and ugtRels: # not used before 2020
+        if usgaapYear(modelXbrl) == "2020" and "dqcrt-2021-usgaap-2020" not in (modelXbrl.modelManager.disclosureSystem.options or ""):
+            dqcRules.clear() # remove dqc rules
+            return ugtRels["DQC.US.0015"] # use 20.1 2020 nonNegFacts test and warning
+        return None # use all available DQCRT tests
+    # for us-gaap < dqcyear use EFM non-negative warning  insead of DQC rule
     _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "signwarnings.json"), 'rt', encoding='utf-8')
     signwarnings = json.load(_file) # {localName: date, ...}
     _file.close()
@@ -181,6 +199,19 @@ def loadDeiValidations(modelXbrl, isInlineXbrl):
 #print ("compiled validations size {}".format(pyObjectSize(validations)))
     return validations
 
+def loadTaxonomyCompatibility(modelXbrl):
+    _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "taxonomy-compatibility.json"), 'rt', encoding='utf-8')
+    compat = json.load(_file, object_pairs_hook=OrderedDict) # preserve order of keys
+    _file.close()
+    tc = compat["taxonomy-classes"]
+    cc = compat["compatible-classes"]
+    def refTx(txAbbrs):
+        return [refTx(tc[txAbbr[1:]]) if txAbbr.startswith("@") else txAbbr for txAbbr in txAbbrs]
+    for k in cc.keys():
+        cc[k] = set(flattenSequence(refTx(cc[k])))
+    compat["checked-taxonomies"] = set(flattenSequence([t for t in cc.items()]))
+    return compat
+
 def loadDeprecatedConceptDates(val, deprecatedConceptDates):  
     for modelDocument in val.modelXbrl.urlDocs.values():
         ns = modelDocument.targetNamespace
@@ -242,7 +273,10 @@ def deprecatedConceptDatesFile(modelManager, abbrNs, latestTaxonomyDoc):
                         date = match.group(1)
                         if date:
                             deprecatedConceptDates[conceptName] = date
-            jsonStr = _STR_UNICODE(json.dumps(deprecatedConceptDates, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
+            
+            jsonStr = _STR_UNICODE(json.dumps(
+                OrderedDict(((k,v) for k,v in sorted(deprecatedConceptDates.items()))), # sort in json file
+                ensure_ascii=False, indent=0)) # might not be unicode in 2.7
             saveFile(cntlr, _fileName, jsonStr)  # 2.7 gets unicode this way
             deprecationsInstance.close()
             del deprecationsInstance # dereference closed modelXbrl
@@ -268,6 +302,7 @@ def loadOtherStandardTaxonomies(modelXbrl, val):
 def loadUgtRelQnames(modelXbrl, dqcRules):
     if not dqcRules:
         return {} # not a us-gaap filing
+    disclosureSystem = modelXbrl.modelManager.disclosureSystem
     abbrNs = ""
     for modelDocument in modelXbrl.urlDocs.values():
         abbrNs = abbreviatedNamespace(modelDocument.targetNamespace)
@@ -301,10 +336,12 @@ def loadUgtRelQnames(modelXbrl, dqcRules):
     ugtAxesByQnames = defaultdict(set) # store as concept indices to avoid using memory for repetitive strings
     for axisName, memNames in ugtRels["axes"].items():
         for axisConcept in modelXbrl.nameConcepts.get(axisName,()):
-            axisObj = ugtAxesByQnames[axisConcept.name]
-            for memName in memNames:
-                for memConcept in modelXbrl.nameConcepts.get(memName,()):
-                    axisObj.add(memConcept.qname)
+            if axisConcept.qname.namespaceURI in disclosureSystem.standardTaxonomiesDict: # ignore extension concepts
+                axisObj = ugtAxesByQnames[axisConcept.name]
+                for memName in memNames:
+                    for memConcept in modelXbrl.nameConcepts.get(memName,()):
+                        if memConcept.qname.namespaceURI in disclosureSystem.standardTaxonomiesDict: # ignore extension concepts
+                            axisObj.add(memConcept.qname)
     ugt = {"calcs": ugtCalcsByQnames,
            "axes": ugtAxesByQnames}
      # dqc0015
@@ -412,7 +449,7 @@ def buildUgtFullRelsFiles(modelXbrl, dqcRules):
             ugtInstance.close()
             del ugtInstance # dereference closed modelXbrl
             
-            if dqcrtUrl: # none for 2019
+            if dqcrtUrl: # none for pre-2020
                 modelManager.addToLog(_("loading {} DQC Rules {}").format(ugtAbbr, dqcrtUrl), messageCode="info")
                 dqcrtInstance = ModelXbrl.load(modelManager, 
                       # "http://xbrl.fasb.org/us-gaap/2012/elts/us-gaap-doc-2012-01-31.xml",
@@ -493,9 +530,10 @@ def loadDqcRules(modelXbrl): # returns match expression, standard patterns
     for f in modelXbrl.facts:
         ns = f.qname.namespaceURI
         namespaceUsage[ns] = namespaceUsage.get(ns, 0) + 1
-    if (modelXbrl.modelManager.disclosureSystem.version[0] >= 56 and # EDGAR release >= 21.1 
-        sum(n for ns,n in namespaceUsage.items() if "us-gaap" in ns) >  # mostly us-gaap elements, not ifrs elements
-        sum(n for ns,n in namespaceUsage.items() if "ifrs" in ns)): 
+    numUsGaapFacts = sum(n for ns,n in namespaceUsage.items() if "us-gaap" in ns)
+    numIfrsFacts = sum(n for ns,n in namespaceUsage.items() if "ifrs" in ns)
+    if (usgaapYear(modelXbrl) >= "2020" and
+        ((numUsGaapFacts == 0 and numIfrsFacts == 0) or (numUsGaapFacts > numIfrsFacts))):
         # found us-gaap facts present (more than ifrs facts present), load us-gaap DQC.US rules
         _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "dqc-us-rules.json"), 'rt', encoding='utf-8')
         dqcRules = json.load(_file, object_pairs_hook=OrderedDict) # preserve order of keys

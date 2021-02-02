@@ -68,16 +68,6 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 	<Loc>
 		<Family>US GAAP</Family>
 		<Version>2021</Version>
-		<Href>https://xbrl.sec.gov/currency/2019/currency-2019-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/currency/2019-01-31</Namespace>
-		<Prefix>currency</Prefix>
-	</Loc>
-	<Loc>
-		<Family>US GAAP</Family>
-		<Version>2021</Version>
 		<Href>https://xbrl.sec.gov/exch/2021/exch-2021.xsd</Href>
 		<AttType>SCH</AttType>
 		<FileTypeName>Schema</FileTypeName>
@@ -224,6 +214,15 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 	<Loc>
 		<Family>US GAAP</Family>
 		<Version>2021</Version>
+		<Href>http://www.xbrl.org/lrr/role/negated-2009-12-16.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Roles/Arcroles</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://www.xbrl.org/2009/role/negated</Namespace>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2021</Version>
 		<Href>http://www.xbrl.org/lrr/arcrole/factExplanatory-2009-12-16.xsd</Href>
 		<AttType>SCH</AttType>
 		<FileTypeName>Roles/Arcroles</FileTypeName>
@@ -238,14 +237,6 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<FileTypeName>Roles/Arcroles</FileTypeName>
 		<Elements>0</Elements>
 		<Namespace>http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower</Namespace>
-	</Loc>
-	<Loc>
-		<Family>US GAAP</Family>
-		<Version>2021</Version>
-		<Href>https://xbrl.fasb.org/srt/2021/elts/srt-eedm1-def-2021-01-31.xml</Href>
-		<AttType>DEF</AttType>
-		<FileTypeName>Definition, Dimensions</FileTypeName>
-		<Elements>0</Elements>
 	</Loc>
 	<Loc>
 		<Family>US GAAP</Family>
@@ -2737,22 +2728,21 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 	<Loc>
 		<Family>RR</Family>
 		<Version>2021</Version>
+		<Href>https://www.xbrl.org/dtr/type/2020-01-21/types.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Roles/Arcroles</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://www.xbrl.org/dtr/type/2020-01-21</Namespace>
+	</Loc>
+	<Loc>
+		<Family>RR</Family>
+		<Version>2021</Version>
 		<Href>https://xbrl.sec.gov/dei/2021/dei-2021.xsd</Href>
 		<AttType>SCH</AttType>
 		<FileTypeName>Schema</FileTypeName>
 		<Elements>1</Elements>
 		<Namespace>http://xbrl.sec.gov/dei/2021</Namespace>
 		<Prefix>dei</Prefix>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2021</Version>
-		<Href>https://xbrl.sec.gov/dei/2021/dei-entire-2021.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/dei-entire/2021</Namespace>
-		<Prefix>dei-entire</Prefix>
 	</Loc>
 	<Loc>
 		<Family>RR</Family>

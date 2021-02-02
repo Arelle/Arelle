@@ -1,0 +1,60 @@
+{
+    "copyright": [
+        "This file was created by staff of the U.S. Securities and Exchange Commission.",
+        "Data and content created by government employees within the scope of their employment", 
+        "are not subject to domestic copyright protection. 17 U.S.C. 105."
+    ],
+    "description": [
+        "The format is as follows:",
+        "",
+        "A JSON object with objects named taxonomy-classes and compatible-classes",
+        "",
+        "The objects contain taxonomy abbreviation codes arrayed for convenience ",
+        "of specifying taxonomy compatibility validations.",
+        "",
+        "A taxonomy abbreviation is the prefix/version, e.g. ifrs/2020, dei/2020, and in for ",
+        "future 3rd quarter releases in hypothetical year 20XY, dei/2020q3.  When prefixed by ",
+        "future- this represents planning for a taxonomy expected to be released after the ",
+        "effective date of the current release, such as ifrs following one quarter after us-gaap. ",
+        "",
+        "A form beginning with @ is a reference to the taxonomy-class following @ character.",
+        "A taxonomy-class and resolved references behave as a set (deduplicating arrayed references).",
+        "",
+        "The compatible-classes object contains an OrderedDict object of compatibility items.  ",
+        "If the set of recognized abbreviations matches any compatible-class (having the key class ",
+        "and all of the recognized classes contained in the value array), then it passes, but if not ",
+        "match checking continues to the next compatibility object.  (Thus ifrs with us-gaap is ",
+        "always checked with the us-gaap object and never with the ifrs-alone object.) ",
+        "",
+        "Thus because rr is not listed in the us-gaap or ifrs keyed compatibility classes, it would ",
+        "only match an rr-keyed class. ",
+        "",
+        "The messages object contains messages which may be produced by validation. "
+    ],
+    "taxonomy-classes": {
+    	"stx-to-2020": [
+    		"dei/2019", "dei/2020", 
+    		"country/2017", "country/2020", 
+    		"currency/2019", "currency/2020", 
+    		"exch/2019", "exch/2020", 
+    		"naics/2011", "naics/2017", 
+    		"sic/2011", "sic/2020", 
+    		"stpr/2018"
+    	],
+    	"stx-2021": [
+    		"dei/2021", "country/2021", "currency/2021", "exch/2021", "naics/2021", "sic/2021", "stpr/2021"
+    	],
+    	"us-gaap-to-2020": ["us-gaap/2019", "us-gaap/2020"]
+    },
+    "compatible-classes": {
+        "rr/2012": ["@stx-to-2020"],
+        "rr/2018": ["@stx-to-2020"],
+        "rr/2021": ["@stx-2021"],
+        "us-gaap/2019": ["srt/2019", "ifrs/2019", "@stx-to-2020"],
+        "us-gaap/2020": ["srt/2020", "ifrs/2019", "ifrs/2020", "@stx-to-2020"],
+        "us-gaap/2021": ["srt/2021", "future-ifrs/2021", "@stx-2021"],
+        "ifrs/2019": ["srt/2019", "srt/2020", "@stx-to-2020"],
+        "ifrs/2020": ["srt/2020", "@stx-to-2020"],
+        "future-ifrs/2021": ["srt/2021", "@stx-2021"]
+    }
+}

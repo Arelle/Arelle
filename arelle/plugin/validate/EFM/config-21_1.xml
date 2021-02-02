@@ -71,6 +71,44 @@
      standardTaxonomyDatabase="efmStandardTaxonomies.db"
      standardTaxonomyUrlPattern="http://www.fasb.org|http://xbrl.sec.gov|http://www.xbrl.org|http://taxonomies.xbrl.us|http://xbrl.us/us-gaap|http://xbrl.ici.org/rr|http://xbrl.ifrs.org/taxonomy"
      />
+  <DisclosureSystem 
+     names="US SEC 2021 Preview with DQCRT applied to us-gaap 2020-2021 (EFM Pragmatic)|efm-preview-dqcrt-testing"
+     description="US SEC Edgar Filing Manual v56 Release 21.1\n
+     DQCRT/2021 applied to us-gaap/2020 for testing purposes\n
+     Default language en-US (en allowed in some cases per EFM)\n
+     CIK identifier patterns\n
+     Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
+     Disallowed references are blocked and not loaded (same as SEC production system)\n
+     No content (semantic) tests are reported"
+     validationType="EFM"
+     options="dqcrt-2021-usgaap-2020"
+     exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL"
+     blockDisallowedReferences="true" 
+     defaultXmlLang="en-US" 
+     defaultLanguage="English" 
+     standardTaxonomiesUrl="edgartaxonomies-21-1.xml"
+     utrUrl="http://www.xbrl.org/utr/2017-07-12/utr.xml"
+     validateFileText="true"
+     allowedExternalHrefPattern="https?://www.sec.gov/(ix[?]doc=/)?Archives/edgar/data/"
+     identifierSchemePattern="^http://www\.sec\.gov/CIK$"
+     identifierValuePattern="^[0-9]{10}$" 
+     identifierValueName="CIK" 
+     contextElement="segment" 
+     roleDefinitionPattern="^[0-9]+ - (Statement|Disclosure|Schedule|Document) - [^\n]*\S$"
+     labelCheckPattern="[ \n\r\t]{2,}|&lt;|&amp;lt;|&amp;#60;|&amp;#x3C"
+     labelTrimPattern="[ \n\r\t]"
+     deiNamespacePattern="^http://xbrl\.us/dei/|^http://xbrl\.sec\.gov/dei"
+     deiAmendmentFlagElement="AmendmentFlag"
+     deiCurrentFiscalYearEndDateElement="CurrentFiscalYearEndDate"
+     deiDocumentFiscalYearFocusElement="DocumentFiscalYearFocus"
+     deiDocumentPeriodEndDateElement="DocumentPeriodEndDate"
+     deiFilerIdentifierElement="EntityCentralIndexKey" 
+     deiFilerNameElement="EntityRegistrantName"
+     logLevelFilter="(?!.*-semantic$)"
+     logCodeFilter="(?!EFM.6.05.28.linkrole|EFM.6.07.06|EFM.6.07.09.roleEnding|EFM.6.07.13.arcroleEnding|EFM.6.10.01.missingLabelLinkbase)"
+     standardTaxonomyDatabase="efmStandardTaxonomies.db"
+     standardTaxonomyUrlPattern="http://www.fasb.org|http://xbrl.sec.gov|http://www.xbrl.org|http://taxonomies.xbrl.us|http://xbrl.us/us-gaap|http://xbrl.ici.org/rr|http://xbrl.ifrs.org/taxonomy"
+     />
    <DisclosureSystem 
       names="US SEC (Edgar Filing Manual, Liberal, All Years)|efm-nonblocking|efm-liberal"
       description="US SEC Edgar Filing Manual, all years\n

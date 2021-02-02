@@ -200,18 +200,3 @@ latestEntireUgt = {
     "us-gaap/2021": ["http://xbrl.fasb.org/us-gaap/2021/entire/us-gaap-entryPoint-std-2021-01-31.xsd",
                      "http://xbrl.fasb.org/us-gaap/2021/dqcrules/dqcrules-2021-01-31.xsd"]
     }
-ifrsUsgaapConflictClasses = {
-    'ifrs-2018+us-gaap-2017': {"http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full", "http://fasb.org/us-gaap/2017-01-31"},
-    'ifrs-2019+us-gaap-2018': {"http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full", "http://fasb.org/us-gaap/2018-01-31"},
-    'ifrs-2018+us-gaap-2020': {"http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full", "http://fasb.org/us-gaap/2020-01-31"},
-    'ifrs-2018+us-gaap-2021': {"http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full", "http://fasb.org/us-gaap/2021-01-31"},
-    'ifrs-2020+us-gaap-2018': {"http://xbrl.ifrs.org/taxonomy/2020-03-16/ifrs-full", "http://fasb.org/us-gaap/2018-01-31"},
-    'ifrs-2020+us-gaap-2019': {"http://xbrl.ifrs.org/taxonomy/2020-03-16/ifrs-full", "http://fasb.org/us-gaap/2019-01-31"},
-    }
-ifrsSrtConflictClasses = {
-    'ifrs-2018+srt-2020': {"http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full", "http://fasb.org/srt/2020-01-31"},
-    'ifrs-2018+srt-2021': {"http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full", "http://fasb.org/srt/2020-01-31"},
-    'ifrs-2019+srt-2018': {"http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full", "http://fasb.org/srt/2018-01-31"},
-    'ifrs-2020+srt-2018': {"http://xbrl.ifrs.org/taxonomy/2020-03-16/ifrs-full", "http://fasb.org/srt/2018-01-31"},
-    'ifrs-2020+srt-2019': {"http://xbrl.ifrs.org/taxonomy/2020-03-16/ifrs-full", "http://fasb.org/srt/2019-01-31"},
-    }

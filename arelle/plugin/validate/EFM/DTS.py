@@ -67,22 +67,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
         pass
 
     if isEFM: 
-        if modelDocument.uri in val.disclosureSystem.standardTaxonomiesDict:
-            if modelDocument.targetNamespace:
-                # check for duplicates of us-types, dei, and rr taxonomies
-                match = standardNamespacesPattern.match(modelDocument.targetNamespace)
-                if match is not None:
-                    conflictClass = match.group(2) or match.group(5)
-                    if (conflictClass == 'us-gaap' and match.group(3) < '2018') or conflictClass == 'srt':
-                        val.standardNamespaceConflicts['srt+us-gaap'].add(modelDocument) # ignore non-srt multi-usgaap in Filing.py
-                    if conflictClass == 'ifrs-full' or conflictClass == 'srt':
-                        val.standardNamespaceConflicts['srt+ifrs'].add(modelDocument)
-                    if conflictClass == 'us-gaap' or conflictClass == 'ifrs-full':
-                        val.standardNamespaceConflicts['ifrs+us-gaap'].add(modelDocument)
-                    if conflictClass not in ('us-gaap', 'srt'):
-                        val.standardNamespaceConflicts[conflictClass].add(modelDocument)
-                
-        else:
+        if modelDocument.uri not in val.disclosureSystem.standardTaxonomiesDict:
             if len(modelDocument.basename) > 32:
                 val.modelXbrl.error("EFM.5.01.01.tooManyCharacters",
                     _("Document file name %(filename)s must not exceed 32 characters."),

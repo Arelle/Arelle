@@ -25,7 +25,7 @@ from arelle.ModelDtsObject import ModelConcept, ModelResource
 from arelle.ModelXbrl import NONDEFAULT
 from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype
-from arelle.PythonUtil import pyNamedObject, strTruncate, flattenToSet
+from arelle.PythonUtil import pyNamedObject, strTruncate, flattenSequence, flattenToSet, OrderedSet
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue, roundValue
 from arelle.XmlValidate import VALID
@@ -42,13 +42,14 @@ from .Consts import submissionTypesAllowingWellKnownSeasonedIssuer, \
                     submissionTypesAllowingVoluntaryFilerFlag, docTypesNotAllowingInlineXBRL, \
                     docTypesRequiringRrSchema, docTypesNotAllowingIfrs, \
                     untransformableTypes, rrUntransformableEltsPattern, \
-                    docTypes20F, ifrsUsgaapConflictClasses, ifrsSrtConflictClasses
+                    docTypes20F 
                                         
 from .Dimensions import checkFilingDimensions
 from .PreCalAlignment import checkCalcsTreeWalk
-from .Util import conflictClassFromNamespace, abbreviatedNamespace, NOYEAR, loadDeprecatedConceptDates, \
+from .Util import conflictClassFromNamespace, abbreviatedNamespace, NOYEAR, WITHYEARandWILD, loadDeprecatedConceptDates, \
                     loadCustomAxesReplacements, loadNonNegativeFacts, loadDeiValidations, loadOtherStandardTaxonomies, \
-                    loadUgtRelQnames, loadDqcRules, factBindings, leastDecimals, axisMemQnames, memChildQnames
+                    loadUgtRelQnames, loadDqcRules, factBindings, leastDecimals, axisMemQnames, memChildQnames, \
+                    loadTaxonomyCompatibility
                     
 MIN_DOC_PER_END_DATE = ModelValue.dateTime("1980-01-01", type=ModelValue.DATE)
 MAX_DOC_PER_END_DATE = ModelValue.dateTime("2050-12-31", type=ModelValue.DATE)
@@ -123,14 +124,15 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     val.fileNameDate = None
     val.entityRegistrantName = None
     val.requiredContext = None
-    val.standardNamespaceConflicts = defaultdict(set)
     documentType = None # needed for non-instance validation too
     submissionType = val.params.get("submissionType", "")
     requiredFactLang = disclosureSystem.defaultXmlLang.lower() if disclosureSystem.defaultXmlLang else disclosureSystem.defaultXmlLang
     hasSubmissionType = bool(submissionType)
+    dqcRules = {}
     isInlineXbrl = modelXbrl.modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET)
     if isEFM:
         val.otherStandardTaxonomies = loadOtherStandardTaxonomies(modelXbrl, val)
+        compatibleTaxonomies = loadTaxonomyCompatibility(modelXbrl)
     if modelXbrl.modelDocument.type == ModelDocument.Type.INSTANCE or isInlineXbrl:
         deprecatedConceptDates = {}
         deprecatedConceptFacts = defaultdict(list) # index by concept Qname, value is list of facts
@@ -142,7 +144,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             deiValidations = loadDeiValidations(modelXbrl, isInlineXbrl)
             dqcRules = loadDqcRules(modelXbrl) # empty {} if no rules for filing
             ugtRels = loadUgtRelQnames(modelXbrl, dqcRules) # None if no rels applicable
-            nonNegFacts = loadNonNegativeFacts(modelXbrl) if "DQC.US.0015" not in ugtRels else None
+            nonNegFacts = loadNonNegativeFacts(modelXbrl, dqcRules, ugtRels) # none if dqcRules are used after 2020
             
         
         # inline doc set has multiple instance names to check
@@ -2102,84 +2104,41 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     val.modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
 
     # checks for namespace clashes
-    def elementsReferencingDocs(docs):
-        return set(doc.referencesDocument[d].referringModelObject
+    def elementsReferencingTxClass(txClass):
+        return set(rd.referringModelObject
+                   for t in flattenSequence(txClass)
                    for doc in modelXbrl.urlDocs.values()
-                   for d in conflictDocuments
-                   if d in doc.referencesDocument)
+                   for d, rd in doc.referencesDocument.items()
+                   if t in abbreviatedNamespace(d.targetNamespace,WITHYEARandWILD))
     if isEFM:
-        # check number of us-roles taxonomies referenced
-        for conflictClass, conflictDocuments in val.standardNamespaceConflicts.items():                                                                
-            if (len(conflictDocuments) > 1 and 
-                (conflictClass != 'srt+us-gaap' or ('us-types' in val.standardNamespaceConflicts and
-                                                    'srt-types' in val.standardNamespaceConflicts)) and # ignore multi us-gaap/srt conflicts without the other
-                (conflictClass != 'ifrs+us-gaap' or ('us-types' in val.standardNamespaceConflicts and
-                                                     'ifrs-full' in val.standardNamespaceConflicts)) # ignore multi us-gaap/ifrs conflicts without the other
-                ):
-                if conflictClass == 'ifrs+us-gaap':
-                    conflictClass = None
-                    for _class, _conflicts in ifrsUsgaapConflictClasses.items():
-                        if set(d.targetNamespace for d in val.standardNamespaceConflicts['ifrs+us-gaap']) >= _conflicts:
-                            conflictClass = _class
-                            break
-                if conflictClass == 'srt+ifrs':
-                    conflictClass = None
-                    for _class, _conflicts in ifrsSrtConflictClasses.items():
-                        if set(d.targetNamespace for d in val.standardNamespaceConflicts['srt+ifrs']) >= _conflicts:
-                            conflictClass = _class
-                            break
-                if conflictClass:
-                    modelXbrl.error("EFM.6.22.03.incompatibleSchemas",
-                        _("References for conflicting standard taxonomies %(conflictClass)s are not allowed in same DTS %(namespaceConflicts)s"),
-                        edgarCode="cp-2203-Incompatible-Taxonomy-Versions",
-                        modelObject=elementsReferencingDocs(conflictDocuments), conflictClass=conflictClass,
-                        namespaceConflicts=", ".join(sorted([conflictClassFromNamespace(d.targetNamespace) for d in conflictDocuments])))
-        if 'rr' in val.standardNamespaceConflicts and documentType not in docTypesRequiringRrSchema:
+        t = set(conflictClassFromNamespace(d.targetNamespace) for d in modelXbrl.urlDocs.values())
+        t &= compatibleTaxonomies["checked-taxonomies"] # only consider checked taxonomy classes
+        conflictClass = None
+        for ti, ts in compatibleTaxonomies["compatible-classes"].items():
+            if ti in t:
+                conflictClasses = t - {ti} - ts
+                if conflictClasses:
+                    conflictClass = "-".join([ti] + sorted(conflictClasses))
+                break # match found
+        if not conflictClass: # look for same taxnomy class in multiple years
+            for ti in t:
+                tiClass = ti[:-4]
+                if any(ts.startswith(tiClass) for ts in (t - {ti})):
+                    conflictClasses = sorted(ts for ts in t if ts.startswith(tiClass))
+                    conflictClass = "-".join(conflictClasses)
+        if conflictClass:
+            modelXbrl.error("EFM.6.22.03.incompatibleSchemas",
+                _("References for conflicting standard taxonomies %(conflictClass)s are not allowed in same DTS %(namespaceConflicts)s"),
+                edgarCode="cp-2203-Incompatible-Taxonomy-Versions", conflictClass=conflictClass,
+                modelObject=elementsReferencingTxClass(conflictClasses), namespaceConflicts=", ".join(sorted(t)))          
+        if any(ti.startswith("rr/") for ti in t) and documentType not in docTypesRequiringRrSchema:
             modelXbrl.error("EFM.6.22.03.incompatibleTaxonomyDocumentType",
                 _("Taxonomy class %(conflictClass)s may not be used with document type %(documentType)s"),
-                modelObject=elementsReferencingDocs(val.standardNamespaceConflicts['rr']), conflictClass="RR", documentType=documentType)
-        if 'ifrs-full' in val.standardNamespaceConflicts and documentType in docTypesNotAllowingIfrs:
-            conflictDoc = val.standardNamespaceConflicts['ifrs-full']
+                modelObject=elementsReferencingTxClass("rr/*"), conflictClass="rr/*", documentType=documentType)
+        if any(ti.startswith("ifrs/") for ti in t) and documentType in docTypesNotAllowingIfrs:
             modelXbrl.error("EFM.6.22.03.incompatibleTaxonomyDocumentType",
                 _("Taxonomy class %(conflictClass)s may not be used with document type %(documentType)s"),
-                modelObject=elementsReferencingDocs(val.standardNamespaceConflicts['ifrs-full']), 
-                conflictClass="IFRS", documentType=documentType)
-        if 'ifrs-full' in val.standardNamespaceConflicts:
-            ifrsNS = next(iter(val.standardNamespaceConflicts['ifrs-full'])).targetNamespace
-            srtNS = None
-            for ns in modelXbrl.namespaceDocs:
-                if "fasb.org/srt/" in ns:
-                    srtNS = ns
-                    break
-            """ removed per PCR22280 5/16/18
-            ifrsSrtConceptQNs = set(qname(ifrsNS, ifrsConceptName) for ifrsConceptName in ifrsSrtConcepts.keys())
-            ifrsSrtConceptsUsed = set(c.qname for c in conceptsUsed if c.qname in ifrsSrtConceptQNs)
-            if ifrsSrtConceptsUsed and srtNS:
-                ifrsSrtObjs = set(f for f in modelXbrl.facts if f.qname in ifrsSrtConceptsUsed
-                                  ) | set(c for c in modelXbrl.contexts.values() if _DICT_SET(c.qnameDims.keys()) & ifrsSrtConceptsUsed)
-                modelXbrl.warning("EFM.6.05.40.srtConceptsForIFRSConcepts",
-                    _("Taxonomy concepts from the SRT taxonomy should be used for the following IFRS concepts: %(ifrsSrtConceptsUsed)s"),
-                    edgarCode="cp-0540-SRT-Concepts-For-IFRS-Concepts",
-                    modelObject=ifrsSrtObjs, ifrsSrtConceptsUsed=", ".join(str(qn) for qn in sorted(ifrsSrtConceptsUsed)))
-            srtAxesIfrsMemberQNs = {}
-            for srtAxisName, ifrsMems in srtAxisIfrsMembers.items():
-                srtAxisQn = qname(srtNS, srtAxisName)
-                srtAxisConcept = modelXbrl.qnameConcepts.get(srtAxisQn)
-                if srtAxisConcept in conceptsUsed:
-                    srtAxesIfrsMemberQNs[srtAxisQn] = set(qname(ifrsNS, ifrsMem) for ifrsMem in ifrsMems)
-            if srtAxesIfrsMemberQNs:
-                ifrsSrtMembersUsed = set(dim.memberQname 
-                                         for c in modelXbrl.contexts.values()
-                                         for dim in c.qnameDims.values()
-                                         if dim.dimensionQname in srtAxesIfrsMemberQNs and dim.memberQname in srtAxesIfrsMemberQNs[dim.dimensionQname])
-                if ifrsSrtMembersUsed:
-                    ifrsSrtObjs = set(c for c in modelXbrl.contexts.values() for dim in c.qnameDims.values()
-                                      if dim.dimensionQname in srtAxesIfrsMemberQNs and dim.memberQname in srtAxesIfrsMemberQNs[dim.dimensionQname])
-                    modelXbrl.warning("EFM.6.05.40.srtMembersForSRTAxes",
-                        _("Taxonomy axes from the SRT taxonomy should use SRT or extension members for the following IFRS member concepts: %(ifrsSrtConceptsUsed)s."),
-                        edgarCode="cp-0540-SRT-Members-For-SRT-Axes",
-                        modelObject=ifrsSrtObjs, ifrsSrtConceptsUsed=", ".join(str(qn) for qn in sorted(ifrsSrtMembersUsed)))
-            """
+                modelObject=elementsReferencingTxClass("ifrs/*"), conflictClass="ifrs/*", documentType=documentType)
         if isInlineXbrl and documentType in docTypesNotAllowingInlineXBRL:
             modelXbrl.error("EFM.6.22.03.incompatibleInlineDocumentType",
                 _("Inline XBRL may not be used with document type %(documentType)s"),
@@ -2542,9 +2501,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                         modelObject=f, name=f.qname, value=str(f.value), axis=axisConcept.qname, member=dimValueQname, issue=issue,
                                         contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)")
                     unusedUnallowed = unallowedMembers - unallowedMembersUsedByFacts
-                    if unusedUnallowed:
+                    for unusedMember in unusedUnallowed: # report one member per message for result comparability to XBRL-US implementation
                         modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(dqcRule["message-unreported"])),
-                            modelObject=modelXbrl, axis=axisConcept.qname, members=", ".join(str(u) for u in unusedUnallowed))
+                            modelObject=modelXbrl, axis=axisConcept.qname, member=unusedMember)
             del warnedFactsByQn # dereference objects
 
         elif dqcRuleName == "DQC.US.0004":
@@ -2562,11 +2521,11 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             for aLns in alts[iLn]:
                                 if all(aLn in b for aLn in aLns):
                                     p = _itemLns.index(iLn) # replace iLn with alts that all are in binding
-                                    _itemLns[p:p] = aLns
+                                    _itemLns[p:p+1] = aLns
                                     break
                     if sumLn in b and all(ln in b for ln in _itemLns) and not (
                         any(ax in f.context.qnameDims for ax in blkAxis for f in b.values())):
-                        dec = leastDecimals(b, flattenToSet( (sumLn, itemLns) ))
+                        dec = leastDecimals(b, flattenToSet( (sumLn, _itemLns) ))
                         sumFact = b[sumLn]
                         itemFacts = [b[ln] for ln in _itemLns]
                         sfNil = sumFact.isNil
@@ -2641,8 +2600,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             # find presentation ELR of interest
             calcRelationshipsFound = False
             cashFlowLinkRoles = []
-            for modelLink in val.modelXbrl.baseSets[(XbrlConst.parentChild,None,None,None)]:
-                linkroleUri = modelLink.role
+            linkroleUris = OrderedSet(modelLink.role for modelLink in val.modelXbrl.baseSets[(XbrlConst.parentChild,None,None,None)])
+            for linkroleUri in linkroleUris: # role ELRs may be repeated in pre LB
                 roleTypes = val.modelXbrl.roleTypes.get(linkroleUri)
                 definition = (roleTypes[0].definition or linkroleUri) if roleTypes else linkroleUri
                 preRoots = val.modelXbrl.relationshipSet(XbrlConst.parentChild, linkroleUri, None, None).rootConcepts
@@ -2658,11 +2617,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         if not (blockRootCheck or 
                                 any(all(any(c.name == rName for c in calcRoots) for rName in rNames) for rNames in roots)):
                             modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
-                                modelObject=modelLink, linkRole=linkroleUri, linkroleDefinition=definition,
+                                modelObject=val.modelXbrl.baseSets[(XbrlConst.summationItem,linkroleUri,None,None)], 
+                                linkRole=linkroleUri, linkroleDefinition=definition,
                                 rootNames=(", ".join(r.name for r in calcRoots) or "(none)"))
             if cashFlowLinkRoles and not calcRelationshipsFound:
                 modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(dqcRule["message-no-roles"])),
-                    modelObject=modelLink, linkRole=linkroleUri, linkroleDefinition=definition,
+                    modelObject=modelXbrl, linkRole=linkroleUri, linkroleDefinition=definition,
                     linkRoles=(", ".join(sorted(cashFlowLinkRoles))))
             del cashFlowLinkRoles
     

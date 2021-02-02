@@ -33,7 +33,7 @@
             "also see: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0001/DQC_0001.md"
         ],
         "message": "The fact {name} with a value of {value} is dimensionally qualified with the {axis} and the unallowable member {member}. {issue} \nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}",
-        "message-unreported": "Members defined for the axis {axis} were not reported with any fact(s): {members}",
+        "message-unreported": "Member defined for the axis {axis} was not reported with any fact: {member}",
         "rules": {
             "51": {
                 "axis": "FairValueByFairValueHierarchyLevelAxis",
@@ -282,6 +282,20 @@
         	}
         }
 	},
+    "DQC.US.0008": {
+        "description" : [
+            "DQC.US 0008 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and empty value object",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_00098DQC_0008.md"
+        ],
+        "message": "The calculation in the extension taxonomy from {conceptFrom} to {conceptTo} in {linkroleDefinition} is the opposite of a calculation defined in the base US GAAP taxonomy. Check that the calculation is correct or that you have used the correct tag for the two elements identified in the calculation. It is possible that the calculation is correct in the case of a reconciliation calculation.",
+        "rules": {
+            "6819": {
+            }
+        }
+    },
     "DQC.US.0009": {
         "description" : [
             "DQC.US 0009 rule entries are formatted is as follows:",
@@ -352,20 +366,6 @@
             "47": {
                 "lesser": "DeferredTaxLiabilityNotRecognizedAmountOfUnrecognizedDeferredTaxLiabilityUndistributedEarningsOfForeignSubsidiaries",
                 "greater": "UndistributedEarningsOfForeignSubsidiaries"
-            }
-        }
-    },
-    "DQC.US.0008": {
-        "description" : [
-            "DQC.US 0008 rule entries are formatted is as follows:",
-            "",
-            "A JSON object with key that is the rule id and empty value object",
-            "",
-            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_00098DQC_0008.md"
-        ],
-        "message": "The calculation in the extension taxonomy from {conceptFrom} to {conceptTo} in {linkroleDefinition} is the opposite of a calculation defined in the base US GAAP taxonomy. Check that the calculation is correct or that you have used the correct tag for the two elements identified in the calculation. It is possible that the calculation is correct in the case of a reconciliation calculation.",
-        "rules": {
-            "6819": {
             }
         }
     },
