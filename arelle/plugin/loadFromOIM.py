@@ -1588,7 +1588,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                             rowIds.add(rowId)
                                     if rowId is None:
                                         rowId = str(rowIndex)
-                                    factId = "{}.{}.{}".format(tableId, rowId, colName)
+                                    factId = "{}.r_{}.{}".format(tableId, rowId, colName)
                                     fact = {}
                                     # if this is an id column
                                     cellValue = _cellValue(colValue) # nil facts return None, #empty string is ""
