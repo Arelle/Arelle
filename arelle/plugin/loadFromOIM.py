@@ -58,7 +58,7 @@ jsonDocumentTypes = (
 csvDocumentTypes = (
         "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-csv",
         "http://xbrl.org/YYYY/xbrl-csv",
-        "http://www.xbrl.org/((~status_date_uri~))/xbrl-csv", # allows loading of XII "template" test cases without CI production
+        "https://xbrl.org/((~status_date_uri~))/xbrl-csv", # allows loading of XII "template" test cases without CI production
         "http://www.xbrl.org/CR/2019-10-19/xbrl-csv",
         "http://xbrl.org/CR/2020-10-14/xbrl-csv",
         "http://www.xbrl.org/CR/2020-10-14/xbrl-csv"
