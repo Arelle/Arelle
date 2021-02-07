@@ -205,14 +205,29 @@ class AnyURI(str):
     def __new__(cls, value):
         return str.__new__(cls, value)
 
-datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})[T ]([0-9]{2}):([0-9]{2}):([0-9]{2})\s*|"
-                             r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})\s*")
-timePattern = re.compile(r"\s*([0-9]{2}):([0-9]{2}):([0-9]{2})\s*")
+datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})[T ]([0-9]{2}):([0-9]{2}):([0-9]{2})(\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*|"
+                             r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})(Z|[+-][0-9]{2}:[0-9]{2})?\s*")
+timePattern = re.compile(r"\s*([0-9]{2}):([0-9]{2}):([0-9]{2})(\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*")
 durationPattern = re.compile(r"\s*(-?)P((-?[0-9]+)Y)?((-?[0-9]+)M)?((-?[0-9]+)D)?(T((-?[0-9]+)H)?((-?[0-9]+)M)?((-?[0-9.]+)S)?)?\s*")
 
 DATE = 1
 DATETIME = 2
 DATEUNION = 3
+
+def tzinfo(tz):
+    if tz is None:
+        return None
+    elif tz == 'Z':
+        return datetime.timezone(datetime.timedelta(0))
+    else:
+        return datetime.timezone(datetime.timedelta(hours=int(tz[0:3]), minutes=int(tz[0]+tz[4:6])))
+    
+def tzinfoStr(dt):
+    tz = str(dt.tzinfo or "")
+    if tz.startswith("UTC"):
+        return tz[3:] or "Z"
+    return ""
+
 def dateTime(value, time=None, addOneDay=None, type=None, castException=None):
     if value == "MinDate":
         return DateTime(datetime.MINYEAR,1,1)
@@ -243,12 +258,16 @@ def dateTime(value, time=None, addOneDay=None, type=None, castException=None):
         if castException:
             raise castException("lexical pattern mismatch")
         return None
-    if match.lastindex == 6:
+    if 6 <= match.lastindex <= 8:
         if type == DATE: 
             if castException:
                 raise castException("date-only object has too many fields or contains time")
             return None
-        result = DateTime(int(match.group(1)),int(match.group(2)),int(match.group(3)),int(match.group(4)),int(match.group(5)),int(match.group(6)), dateOnly=False)
+        ms = 0
+        fracSec = match.group(7)
+        if fracSec and fracSec[0] == ".":
+            ms = int(fracSec[1:7].ljust(6,'0'))
+        result = DateTime(int(match.group(1)),int(match.group(2)),int(match.group(3)),int(match.group(4)),int(match.group(5)),int(match.group(6)),ms,tzinfo(match.group(8)), dateOnly=False)
     else:
         if type == DATE or type == DATEUNION: 
             dateOnly = True
@@ -256,7 +275,7 @@ def dateTime(value, time=None, addOneDay=None, type=None, castException=None):
             dateOnly = False
         else: 
             dateOnly = False
-        result = DateTime(int(match.group(7)),int(match.group(8)),int(match.group(9)),dateOnly=dateOnly,addOneDay=addOneDay)
+        result = DateTime(int(match.group(9)),int(match.group(10)),int(match.group(11)),tzinfo=tzinfo(match.group(12)),dateOnly=dateOnly,addOneDay=addOneDay)
     return result
 
 def lastDayOfMonth(year, month):
@@ -289,10 +308,11 @@ class DateTime(datetime.datetime):
         return DateTime(self.year, self.month, self.day, self.hour, self.minute, self.second, self.microsecond, self.tzinfo, self.dateOnly)
     def __str__(self):
         # note does not print negative dates but xml does allow negative date
+        tz = tzinfoStr(self)
         if self.dateOnly:
-            return "{0.year:04}-{0.month:02}-{0.day:02}".format(self)
+            return "{0.year:04}-{0.month:02}-{0.day:02}{1}".format(self, tz)
         else:
-            return "{0.year:04}-{0.month:02}-{0.day:02}T{0.hour:02}:{0.minute:02}:{0.second:02}".format(self)
+            return "{0.year:04}-{0.month:02}-{0.day:02}T{0.hour:02}:{0.minute:02}:{0.second:02}{1}".format(self, tz)
     def addYearMonthDuration(self, other, sign):
         m = self.month + sign * other.months - 1 # m is zero based now (0 - Jan, 11 - Dec)
         y = self.year + sign * other.years + m // 12
@@ -472,7 +492,11 @@ def time(value, castException=None):
     match = timePattern.match(value.strip())
     if match is None:
         return None
-    return Time(int(match.group(1)),int(match.group(2)),int(match.group(3)))
+    ms = 0
+    fracSec = match.group(4)
+    if fracSec and fracSec[0] == ".":
+        ms = int(fracSec[1:7].ljust(6,'0'))
+    return Time(int(match.group(1)),int(match.group(2)),int(match.group(3)),ms,tzinfo(match.group(5)))
 
 class Time(datetime.time):
     def __new__(cls, hour=0, minute=0, second=0, microsecond=0, tzinfo=None):

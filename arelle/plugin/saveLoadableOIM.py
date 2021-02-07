@@ -11,7 +11,7 @@ from math import isinf, isnan
 from collections import defaultdict, OrderedDict
 from arelle import ModelDocument, XbrlConst
 from arelle.ModelInstanceObject import ModelFact
-from arelle.ModelValue import (qname, QName, DateTime, YearMonthDuration, 
+from arelle.ModelValue import (qname, QName, DateTime, YearMonthDuration, tzinfoStr,
                                dayTimeDuration, DayTimeDuration, yearMonthDayTimeDuration, Time,
                                gYearMonth, gMonthDay, gYear, gMonth, gDay, IsoDuration)
 from arelle.ModelRelationshipSet import ModelRelationshipSet
@@ -106,11 +106,11 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
         else: # instant
             s = e = cntx.instantDatetime
         return({str(qnOimPeriodAspect):
-                ("{0:04n}-{1:02n}-{2:02n}T{3:02n}:{4:02n}:{5:02n}/".format(
-                         s.year, s.month, s.day, s.hour, s.minute, s.second)
+                ("{0:04n}-{1:02n}-{2:02n}T{3:02n}:{4:02n}:{5:02n}{6}/".format(
+                         s.year, s.month, s.day, s.hour, s.minute, s.second, tzinfoStr(s))
                     if cntx.isStartEndPeriod else "") +
-                "{0:04n}-{1:02n}-{2:02n}T{3:02n}:{4:02n}:{5:02n}".format(
-                         e.year, e.month, e.day, e.hour, e.minute, e.second)
+                "{0:04n}-{1:02n}-{2:02n}T{3:02n}:{4:02n}:{5:02n}{6}".format(
+                         e.year, e.month, e.day, e.hour, e.minute, e.second, tzinfoStr(e))
                 })
               
     hasId = False
