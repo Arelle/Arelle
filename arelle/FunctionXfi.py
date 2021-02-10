@@ -1316,7 +1316,7 @@ def unique_end_dates(xc, p, args):
 
 def single_unique_end_date(xc, p, args):
     if len(args) != 0: raise XPathContext.FunctionNumArgs()
-    return len(set(cntx.endDatetime for cntx in inst.contextsInUse if cntx.isStartEndPeriod)) == 1
+    return len(set(cntx.endDatetime for cntx in xc.modelXbrl.contextsInUse if cntx.isStartEndPeriod)) == 1
 
 def any_instant_date(xc, p, args):
     if len(args) != 0: raise XPathContext.FunctionNumArgs()
