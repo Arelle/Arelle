@@ -16,6 +16,7 @@
         "Each below rule contains a description of syntax used herein, message and rules. "
     ],
     "DQC.US.0001": {
+    	"name": "Axis with Inappropriate Members",
         "description" : [
             "DQC.US 0001 rule entries are formatted is as follows:",
             "",
@@ -56,7 +57,7 @@
                 "axis": "LegalEntityAxis",
                 "axis-descendants": "Yes",
                 "additional-axes": ["FederalHomeLoanBankAdvancesBranchOfFHLBBankAxis"],
-                "additional-members": ["PredecessorMember", "CoVenturerMember", "SpinOffMember", "PartnershipMember", "LimitedLiabilityCompanyMember", "TrustForBenefitOfEmployeesMember"],
+                "additional-members": ["PredecessorMember", "CoVenturerMember", "SpinOffMember", "PartnershipMember", "LimitedLiabilityCompanyMember", "TrustForBenefitOfEmployeesMember", "EntityDomain"],
                 "extensions-allowed": "Yes"
             },
             "56": {
@@ -74,7 +75,7 @@
             "58": {
                 "axis": "CounterpartyNameAxis",
                 "axis-descendants": "Yes",
-                "additional-members": ["AffiliatedEntityMember", "InvestorMember", "VariableInterestEntityNotPrimaryBeneficiaryMember", "ChiefFinancialOfficerMember", "IndividualMember", "GovernmentMember", "GuarantorSubsidiariesMember", "SubsidiaryIssuerMember", "DirectorMember", "ChiefExecutiveOfficerMember,  ChiefOperatingOfficerMember", "GeneralPartnerMember", "CorporateJointVentureMember", "SubsidiaryOfCommonParentMember", "IndividuallyImmaterialCounterpartiesMember", "RepurchaseAgreementCounterpartyNameDomain"],
+                "additional-members": ["AffiliatedEntityMember", "InvestorMember", "VariableInterestEntityNotPrimaryBeneficiaryMember", "ChiefFinancialOfficerMember", "IndividualMember", "GovernmentMember", "GuarantorSubsidiariesMember", "SubsidiaryIssuerMember", "DirectorMember", "ChiefExecutiveOfficerMember",  "ChiefOperatingOfficerMember", "GeneralPartnerMember", "CorporateJointVentureMember", "SubsidiaryOfCommonParentMember", "IndividuallyImmaterialCounterpartiesMember", "RepurchaseAgreementCounterpartyNameDomain"],
                 "extensions-allowed": "Yes"
             },
             "59": {
@@ -185,6 +186,7 @@
         }
     },
     "DQC.US.0004": {
+    	"name": "Element Values Are Equal",
         "description" : [
             "DQC.US 0004 rule entries are formatted is as follows:",
             "",
@@ -283,6 +285,7 @@
         }
 	},
     "DQC.US.0008": {
+    	"name": "Reversed Calculation",
         "description" : [
             "DQC.US 0008 rule entries are formatted is as follows:",
             "",
@@ -297,17 +300,21 @@
         }
     },
     "DQC.US.0009": {
+    	"name": "Element A must be less than or equal to Element B",
         "description" : [
             "DQC.US 0009 rule entries are formatted is as follows:",
             "",
             "A JSON object with key that is the rule id and value object as follows:",
             "lesser: local name of the fact which must be lesser than or equal",
             "greater: local name of the fact which must be greater than lesser fact",
-            "message: optional message specific to this rule to override inherited message",
+            "use-message: optional message specific to this rule to override general message",
             "",
             "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0009/DQC_0009.md"
         ],
-        "message": "The value of {lesserName}, {lesserValue}, should be less than or equal to {greaterName}, {greaterValue}. \nThe properties of this {lesserName} fact are:\nContext: {contextID}\nUnit: {unitID}",
+        "message": "The value of {lesserName}, {lesserValue}, should be less than or equal to {greaterName}, {greaterValue}. \nThe properties of this {lesserName} fact are: \nContext: {contextID} \nUnit: {unitID}",
+        "message-pension": "The value of {lesserName}, {lesserValue}, should be less than or equal to {greaterName}, {greaterValue}. {lesserName} is a subset of {greaterName}. \nThe properties of this {lesserName} fact are: \nContext: {contextID} \nUnit: {unitID}",
+        "message-future-contributions": "The value of {lesserName}, {lesserValue}, should be less than or equal to {greaterName}, {greaterValue}. The value of the remaining contribution for the year should be less than or equal to the expected contributions for the entire year. \nThe properties of this {lesserName} fact are:\nContext: {contextID} \nUnit: {unitID}",
+        "message-benefit-obligation": "The value of {lesserName}, {lesserValue}, should be less than or equal to {greaterName}, {greaterValue}. {lesserName} must be less than or equal to {greaterName}, as it does not include assumptions about future compensation levels. \nThe properties of this {lesserName} fact are: \nContext: {contextID} \nUnit: {unitID}",
         "rules": {
             "15": {
                 "lesser": "CommonStockSharesOutstanding",
@@ -336,32 +343,32 @@
             "39": {
                 "lesser": "DefinedBenefitPlanPlansWithBenefitObligationsInExcessOfPlanAssetsAggregateBenefitObligation",
                 "greater": "DefinedBenefitPlanBenefitObligation",
-                "message": "The value of {lesserName}, {lesserValue}, should be less than or equal to {greaterName}, {greaterValue}. {lesserName} is a subset of {greaterName}. \nThe properties of this {lesserName} fact are:\nContext: {contextID}\nUnit: {unitID}"
+                "use-message": "message-pension"
             },
             "40": {
                 "lesser": "DefinedBenefitPlanPensionPlansWithAccumulatedBenefitObligationsInExcessOfPlanAssetsAggregateAccumulatedBenefitObligation",
                 "greater": "DefinedBenefitPlanAccumulatedBenefitObligation",
-                "message": "The value of {lesserName}, {lesserValue}, should be less than or equal to {greaterName}, {greaterValue}. {lesserName} is a subset of {greaterName}. \nThe properties of this {lesserName} fact are:\nContext: {contextID}\nUnit: {unitID}"
+                "use-message": "message-pension"
             },
             "41": {
                 "lesser": "DefinedBenefitPlanPensionPlansWithAccumulatedBenefitObligationsInExcessOfPlanAssetsAggregateFairValueOfPlanAssets",
                 "greater": "DefinedBenefitPlanFairValueOfPlanAssets",
-                "message": "The value of {lesserName}, {lesserValue}, should be less than or equal to {greaterName}, {greaterValue}. {lesserName} is a subset of {greaterName}. \nThe properties of this {lesserName} fact are:\nContext: {contextID}\nUnit: {unitID}"
+                "use-message": "message-pension"
             },
             "42": {
                 "lesser": "DefinedBenefitPlanPensionPlansWithAccumulatedBenefitObligationsInExcessOfPlanAssetsAggregateProjectedBenefitObligation",
                 "greater": "DefinedBenefitPlanBenefitObligation",
-                "message": "The value of {lesserName}, {lesserValue}, should be less than or equal to {greaterName}, {greaterValue}. {lesserName} is a subset of {greaterName}. \nThe properties of this {lesserName} fact are:\nContext: {contextID}\nUnit: {unitID}"
+                "use-message": "message-pension"
             },
             "45": {
                 "lesser": "DefinedBenefitPlansEstimatedFutureEmployerContributionsInCurrentFiscalYear",
                 "greater": "DefinedBenefitPlanExpectedContributionsInCurrentFiscalYear",
-                "message": "The value of {lesserName}, {lesserValue}, should be less than or equal to {greaterName}, {greaterValue}. The value of the remaining contribution for the year should be less than or equal to the expected contributions for the entire year. \nThe properties of this {lesserName} fact are:\nContext: {contextID}\nUnit: {unitID}"
+                "use-message": "message-future-contributions"
             },
             "46": {
                 "lesser": "DefinedBenefitPlanAccumulatedBenefitObligation",
                 "greater": "DefinedBenefitPlanBenefitObligation",
-                "message": "The value of {lesserName}, {lesserValue}, should be less than or equal to {greaterName}, {greaterValue}. {lesserName} must be less than or equal to {greaterName}, as it does not include assumptions about future compensation levels. \nThe properties of this {lesserName} fact are:\nContext: {contextID}\nUnit: {unitID}"
+                "use-message": "message-benefit-obligation"
             },
             "47": {
                 "lesser": "DeferredTaxLiabilityNotRecognizedAmountOfUnrecognizedDeferredTaxLiabilityUndistributedEarningsOfForeignSubsidiaries",
@@ -370,14 +377,16 @@
         }
     },
     "DQC.US.0015": {
+    	"name": "Negative Values",
         "description" : [
             "DQC.US 0015 rule entries based on the DQCRT taxonomy rule 0015 entries specifying facts and rule IDs.",
             "",
             "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0015/DQC_0015.md"
         ],
-        "message": "Fact {name} has a value of {value} which is less than zero. This element should not have a negative value. The preparer should consider if the value is input correctly for this assertion and, after considering the appropriateness of the input, if incorrect, input the amount as a positive (i.e., absolute) value and provide a negated label.  \nThe properties of this {name} fact are:\nContext: {contextID}\nUnit: {unitID}"
+        "message": "Fact {name} has a value of {value} which is less than zero. This element should not have a negative value. The preparer should consider if the value is input correctly for this assertion and, after considering the appropriateness of the input, if incorrect, input the amount as a positive (i.e., absolute) value and provide a negated label.  \nThe properties of this {name} fact are:\nContext: {contextID} \nUnit: {unitID}"
     },
     "DQC.US.0048": {
+    	"name": "Required Calculation Parent Element in the Cash Flow Statement",
         "description" : [
             "DQC.US 0048 rule entries are formatted is as follows:",
             "",
@@ -392,7 +401,7 @@
         "excluded-document-types": ["S-1", "S-3", "S-4", "S-6", "S-8", "S-11", "S-20", "S-1/A", "S-3/A", "S-4/A", "S-6/A", "S-8/A", "S-11/A", "S-20/A", "F-1","F-3"],
         "blocking-facts": {"EntityEmergingGrowthCompany": true},
         "message": "The filing should include in the cash flow statement calculation linkbase(s) {linkRole} - {linkroleDefinition} one of the following elements as the root(first element) of the calculation tree to represent the aggregate change in cash for the period:\n\n\nCashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffect,\nCashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseExcludingExchangeRateEffect, \nNetCashProvidedByUsedInContinuingOperations (As long as the element NetCashProvidedByUsedInDiscontinuedOperations is also included the reconciliation between opening and closing cash). \nThe calculation linkbase in the filing has the following root elements defined: {rootNames}",
-        "message-no-roles": "The filing should include in the cash flow statement calculation linkbase(s) one of the following elements as the root(first element) of the calculation tree to represent the aggregate change in cash for the period:\n\n\nCashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffect,\nCashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseExcludingExchangeRateEffect, \nNetCashProvidedByUsedInContinuingOperations (As long as the element NetCashProvidedByUsedInDiscontinuedOperations is also included the reconciliation between opening and closing cash). \nThe calculation linkbase in the filing has no relationships for the role(s): {linkRoles}",
+        "message-no-roles": "The filing should include in the cash flow statement calculation linkbase(s) one of the following elements as the root(first element) of the calculation tree to represent the aggregate change in cash for the period: \n\n\nCashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffect, \nCashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseExcludingExchangeRateEffect, \nNetCashProvidedByUsedInContinuingOperations (As long as the element NetCashProvidedByUsedInDiscontinuedOperations is also included the reconciliation between opening and closing cash). \nThe calculation linkbase in the filing has no relationships for the role(s): {linkRoles}",
         "rules": {
             "7482": {
                 "roots" : [
