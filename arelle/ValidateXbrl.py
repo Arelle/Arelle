@@ -887,7 +887,7 @@ class ValidateXbrl:
                             modelObject=cntx, contextID=cntx.id)
                 except (TypeError, ValueError) as err:
                     self.modelXbrl.error("xbrl.4.7.2:contextDateError",
-                        _("Context %(contextID) startDate or endDate: %(error)s"),
+                        _("Context %(contextID)s startDate or endDate: %(error)s"),
                         modelObject=cntx, contextID=cntx.id, error=err)
             elif cntx.isInstantPeriod:
                 try:

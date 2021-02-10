@@ -236,7 +236,7 @@ COMPLETE = 2
 CONSISTENT = 3
 ALL = 4
 AllowedDuplicatesFeatureValues = {"none": NONE, "complete": COMPLETE, "consistent": CONSISTENT, "all": ALL}
-DisallowedDescription = {NONE: "Disallowed", COMPLETE: "Incomplete", CONSISTENT: "Inconsistent", ALL: "Allowed"}
+DisallowedDescription = {NONE: "Disallowed", COMPLETE: "Non-complete", CONSISTENT: "Inconsistent", ALL: "Allowed"}
 
 class SQNameType:
     pass # fake class for detecting SQName type in JSON structure check
