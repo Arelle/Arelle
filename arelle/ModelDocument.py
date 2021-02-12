@@ -253,7 +253,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         elif ns == XbrlConst.xhtml and \
              (ln == "html" or ln == "xhtml"):
             _type = Type.UnknownXML
-            if (XbrlConst.ixbrlAll & set(rootNode.nsmap.values()) or
+            if (# not a valid test: XbrlConst.ixbrlAll & set(rootNode.nsmap.values()) or
                 any(e is not None for e in rootNode.iter("{http://www.xbrl.org/2013/inlineXBRL}*"))):
                 _type = Type.INLINEXBRL
         elif ln == "report" and ns == XbrlConst.ver:
@@ -276,7 +276,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
             _type = Type.ARCSINFOSET
         elif ln == "facts":
             _type = Type.FACTDIMSINFOSET
-        elif (XbrlConst.ixbrlAll & set(rootNode.nsmap.values()) or
+        elif (# not a valid test: XbrlConst.ixbrlAll & set(rootNode.nsmap.values()) or
               any(e is not None for e in rootNode.iter("{http://www.xbrl.org/2013/inlineXBRL}*"))):
             # any xml document can be an inline document, only html and xhtml are found above
             _type = Type.INLINEXBRL
@@ -298,7 +298,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                         nestedInline = htmlElt
                         break
                 if nestedInline is not None:
-                    if (XbrlConst.ixbrl in nestedInline.nsmap.values() or
+                    if (# not a valid test: XbrlConst.ixbrl in nestedInline.nsmap.values() or
                         any(e is not None for e in rootNode.iter("{http://www.xbrl.org/2013/inlineXBRL}*"))):
                         _type = Type.INLINEXBRL
                         rootNode = nestedInline
@@ -525,9 +525,10 @@ class Type:
                              "{http://www.xbrl.org/2003/linkbase}linkbase": Type.LINKBASE,
                              "{http://www.w3.org/2001/XMLSchema}schema": Type.SCHEMA}.get(elt.tag, Type.UnknownXML)
                     if _type == Type.UnknownXML and elt.tag.endswith("html"):
-                        if XbrlConst.ixbrl in elt.nsmap.values():
-                            _type = Type.INLINEXBRL
-                            break # stop parsing
+                        pass # following is not a valid test: 
+                        # if XbrlConst.ixbrl in elt.nsmap.values():
+                        #    _type = Type.INLINEXBRL
+                        #    break # stop parsing
                         # else fall through to element scan for ix11 element
                     else:
                         break # stop parsing

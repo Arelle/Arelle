@@ -254,7 +254,7 @@ def xhtmlValidate(modelXbrl, elt):
     ixNsStartTags = ["{" + ns + "}" for ns in XbrlConst.ixbrlAll]
     isEFM = modelXbrl.modelManager.disclosureSystem.validationType == "EFM"
     # find ix version for messages
-    _ixNS = elt.modelDocument.ixNS
+    _ixNS = getattr(elt.modelDocument, "ixNS", XbrlConst.ixbrl11)
     _xhtmlDTD = XHTML_DTD[_ixNS]
     _customTransforms = modelXbrl.modelManager.customTransforms or {}
     
