@@ -14,7 +14,7 @@ from arelle.ModelDtsObject import anonymousTypeSuffix, ModelConcept
 from arelle.ModelInstanceObject import ModelDimensionValue, ModelFact, ModelInlineFact
 from arelle.ModelFormulaObject import ModelFormulaResource
 from arelle.PythonUtil import flattenSequence
-from arelle.XmlValidate import UNKNOWN, VALID, validate as xmlValidate, NCNamePattern
+from arelle.XmlValidate import UNKNOWN, VALID, VALID_NO_CONTENT, validate as xmlValidate, NCNamePattern
 from arelle.ValidateXbrlCalcs import inferredDecimals, inferredPrecision
 from arelle.ValidateXbrlDimensions import priItemElrHcRels
 from arelle.Locale import format_picture
@@ -889,6 +889,28 @@ def fact_typed_dimension_value(xc, p, args):
         return result if result is not None else ()
     raise XPathContext.FunctionArgType(1,"xbrl:item")
 
+def fact_typed_dimension_simple_value(xc, p, args):
+    if len(args) != 2: raise XPathContext.FunctionNumArgs()
+    context = item_context(xc, args)
+    if context is not None:
+        qn = qnameArg(xc, p, args, 1, 'QName', emptyFallback=())
+        if qn == (): raise XPathContext.FunctionArgType(2,"xbrl:QName")
+        modelConcept = xc.modelXbrl.qnameConcepts.get(qn) # check qname is explicit dimension
+        if modelConcept is None or not modelConcept.isTypedDimension:
+            raise XPathContext.XPathException(p, 'xfie:invalidTypedDimensionQName', _('dimension does not specify a typed dimension'))
+        result = context.dimValue(qn)
+        if result is None:
+            return ()
+        typedMember = result.typedMember
+        if typedMember.get("{http://www.w3.org/2001/XMLSchema-instance}nil", "false") in ("true","1"):
+            return ()
+        if typedMember.xValid == VALID_NO_CONTENT:
+            for _child in typedMember.iterchildren(): # has children
+                raise XPathContext.XPathException(p, 'xqt-err:FOTY0012', _('dimension domain element is not atomizable'))
+            return () # no error if no children
+        return typedMember.xValue
+    raise XPathContext.FunctionArgType(1,"xbrl:item")
+
 def fact_explicit_dimensions(xc, p, args):
     if len(args) != 1: raise XPathContext.FunctionNumArgs()
     context = item_context(xc, args)
@@ -1309,7 +1331,7 @@ def any_end_date(xc, p, args):
 def unique_end_dates(xc, p, args):
     if len(args) != 0: raise XPathContext.FunctionNumArgs()
     distinctStartDates = set()
-    for cntx in inst.contextsInUse:
+    for cntx in xc.modelXbrl.contextsInUse:
         if cntx.isStartEndPeriod:
             distinctStartDates.add(cntx.endDatetime)
     return [sorted(distinctStartDates, key=lambda d:(d.tzinfo is None,d))]
@@ -1451,6 +1473,7 @@ xfiFunctions = {
     'fact-has-explicit-dimension-value': fact_has_explicit_dimension_value,
     'fact-explicit-dimension-value': fact_explicit_dimension_value,
     'fact-typed-dimension-value': fact_typed_dimension_value,
+    'fact-typed-dimension-simple-value': fact_typed_dimension_simple_value,
     'fact-explicit-dimensions': fact_explicit_dimensions,
     'fact-typed-dimensions': fact_typed_dimensions,
     'fact-dimension-s-equal2': fact_dimension_s_equal2,
