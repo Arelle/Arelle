@@ -5,13 +5,22 @@
 
   <DisclosureSystem 
      names="ESMA RTS on ESEF|ESEF|esef"
-     description="ESMA RTS on ESEF Validation Checks"
+     description="ESMA RTS on ESEF Validation Checks for Consolidated Financial Statements"
+     validationType="ESEF"
+	 exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|EBA|EIOPA|ESEF-Unconsolidated"
+     blockDisallowedReferences="false" 
+     validateFileText="false"
+     contextElement="scenario" 
+     />
+
+  <DisclosureSystem 
+     names="ESMA RTS on ESEF Unconsolidated|ESEF-Unconsolidated|esef-unconsolidated"
+     description="ESMA RTS on ESEF Validation Checks for Unconsolidated Financial Statements"
      validationType="ESEF"
 	 exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|EBA|EIOPA|ESEF"
      blockDisallowedReferences="false" 
      validateFileText="false"
      contextElement="scenario" 
      />
-
 
 </DisclosureSystems>

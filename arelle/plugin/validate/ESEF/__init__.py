@@ -29,7 +29,7 @@ except ImportError:
 from collections import defaultdict
 from math import isnan
 from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction
-from arelle import LeiUtil, ModelDocument, XbrlConst, XmlUtil
+from arelle import LeiUtil, ModelDocument, XbrlConst, XhtmlValidate, XmlUtil
 from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
@@ -76,6 +76,16 @@ def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
 
 def modelXbrlLoadComplete(modelXbrl):
     if getattr(modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
+        if any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
+            htmlElement = modelXbrl.modelDocument.xmlRootElement
+            if htmlElement.namespaceURI == xhtml:  
+                # xhtml is validated by ModelDocument inine, plain xhtml still needs validating
+                XhtmlValidate.xhtmlValidate(modelXbrl, htmlElement)
+            if modelXbrl.facts:
+                modelXbrl.warning("arelle-ESEF:unconsolidatedContainsInline",
+                                _("Inline XBRL not expected in unconsolidated xhtml document."), 
+                                modelObject=modelXbrl)
+            return
         if modelXbrl.modelDocument is None:
             modelXbrl.error("ESEF.3.1.3.missingOrInvalidTaxonomyPackage",
                             _("RTS Annex III Par 3 and ESEF 3.1.3 requires an XBRL Report Package but one could not be loaded."), 
@@ -92,8 +102,9 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     if not (val.validateESEFplugin):
         return
     val.extensionImportedUrls = set()
+    val.unconsolidated = any("unconsolidated" in n for n in val.disclosureSystem.names)
+    val.consolidated = not val.unconsolidated
     
-
 def validateXbrlFinally(val, *args, **kwargs):
     if not (val.validateESEFplugin):
         return
@@ -117,7 +128,7 @@ def validateXbrlFinally(val, *args, **kwargs):
         if ifrsNsPattern.match(targetNs):
             _ifrsNs = targetNs
             break
-    if not _ifrsNs:
+    if val.consolidated and not _ifrsNs:
         modelXbrl.warning("ESEF.RTS.ifrsRequired",
                         _("RTS on ESEF requires IFRS taxonomy."), 
                         modelObject=modelXbrl)
@@ -127,7 +138,7 @@ def validateXbrlFinally(val, *args, **kwargs):
     esefStatementsOfMonetaryDeclaration = set(qname(_ifrsNs, n) for n in esefStatementsOfMonetaryDeclarationNames)
     esefMandatoryElements2020 = set(qname(_ifrsNs, n) for n in esefMandatoryElementNames2020)
     
-    if modelDocument.type == ModelDocument.Type.INSTANCE:
+    if modelDocument.type == ModelDocument.Type.INSTANCE and not val.unconsolidated:
         modelXbrl.error("ESEF.I.1.instanceShallBeInlineXBRL",
                         _("RTS on ESEF requires inline XBRL instances."), 
                         modelObject=modelXbrl)
@@ -137,7 +148,7 @@ def validateXbrlFinally(val, *args, **kwargs):
     checkFilingDTS(val, modelXbrl.modelDocument, [])
     modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
     
-    if not (val.hasExtensionSchema and val.hasExtensionPre and val.hasExtensionCal and val.hasExtensionDef and val.hasExtensionLbl):
+    if val.consolidated and not (val.hasExtensionSchema and val.hasExtensionPre and val.hasExtensionCal and val.hasExtensionDef and val.hasExtensionLbl):
         missingFiles = []
         if not val.hasExtensionSchema: missingFiles.append("schema file")
         if not val.hasExtensionPre: missingFiles.append("presentation linkbase")
@@ -153,8 +164,7 @@ def validateXbrlFinally(val, *args, **kwargs):
     #    # reports only under reports, none elsewhere
     #    modelXbrl.fileSource.dir
         
-
-    if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET, ModelDocument.Type.INSTANCE):
+    if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET, ModelDocument.Type.INSTANCE, ModelDocument.Type.UnknownXML):
         footnotesRelationshipSet = modelXbrl.relationshipSet("XBRL-footnotes")
         orphanedFootnotes = set()
         noLangFootnotes = set()
@@ -181,7 +191,7 @@ def validateXbrlFinally(val, *args, **kwargs):
         # check file name of each inline document (which might be below a top-level IXDS)
         ixdsDocDirs = set()
         for doc in modelXbrl.urlDocs.values():
-            if doc.type == ModelDocument.Type.INLINEXBRL:
+            if doc.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.UnknownXML):
                 _baseName, _baseExt = os.path.splitext(doc.basename)
                 if _baseExt not in (".xhtml",".html"):
                     modelXbrl.error("ESEF.RTS.Art.3.fileNameExtension",
@@ -192,45 +202,47 @@ def validateXbrlFinally(val, *args, **kwargs):
                     modelXbrl.error("ESEF.RTS.Art.3.htmlDoctype",
                         _("Doctype SHALL NOT be html: %(fileName)s"),
                         modelObject=doc, fileName=doc.basename)
-                if doc.ixNS != ixbrl11:
-                    modelXbrl.error("ESEF.RTS.Annex.III.Par.1.invalidInlineXBRL",
-                        _("Invalid inline XBRL namespace: %(namespace)s"),
-                        modelObject=doc, namespace=doc.ixNS)
-                # check location in a taxonomy package
-                # ixds loading for ESEF expects all xhtml instances to be combined into single IXDS regardless of directory in report zip
-                docDirPath = re.split(r"[/\\]", doc.uri)
-                reportCorrectlyPlacedInPackage = reportIsInZipFile = False
-                for i, dir in enumerate(docDirPath):
-                    if dir.lower().endswith(".zip"):
-                        reportIsInZipFile = True
-                        packageName = dir[:-4] # web service posted zips are always named POSTupload.zip instead of the source file name
-                        if len(docDirPath) >= i + 2 and packageName in (docDirPath[i+1],"POSTupload") and docDirPath[i+2] == "reports":
-                            ixdsDocDirs.add("/".join(docDirPath[i+3:-1]))
-                            reportCorrectlyPlacedInPackage = True
-                        else:
-                            ixdsDocDirs.add("/".join(docDirPath[i+1:len(docDirPath)-1])) # needed for error msg on orphaned instance docs
-                        break
-                if not reportIsInZipFile:
-                    modelXbrl.warning("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
-                        _("Document file must be within a report package zip file: %(fileName)s"),
-                        modelObject=doc, fileName=doc.basename)
-                elif not reportCorrectlyPlacedInPackage:
-                    modelXbrl.warning("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
-                        _("Document file not in correct place in report package: %(fileName)s"),
-                        modelObject=doc, fileName=doc.basename)
-        if len(ixdsDocDirs) > 1:
+                if val.consolidated:
+                    if doc.ixNS != ixbrl11:
+                        modelXbrl.error("ESEF.RTS.Annex.III.Par.1.invalidInlineXBRL",
+                            _("Invalid inline XBRL namespace: %(namespace)s"),
+                            modelObject=doc, namespace=doc.ixNS)
+                    # check location in a taxonomy package
+                    # ixds loading for ESEF expects all xhtml instances to be combined into single IXDS regardless of directory in report zip
+                    docDirPath = re.split(r"[/\\]", doc.uri)
+                    reportCorrectlyPlacedInPackage = reportIsInZipFile = False
+                    for i, dir in enumerate(docDirPath):
+                        if dir.lower().endswith(".zip"):
+                            reportIsInZipFile = True
+                            packageName = dir[:-4] # web service posted zips are always named POSTupload.zip instead of the source file name
+                            if len(docDirPath) >= i + 2 and packageName in (docDirPath[i+1],"POSTupload") and docDirPath[i+2] == "reports":
+                                ixdsDocDirs.add("/".join(docDirPath[i+3:-1]))
+                                reportCorrectlyPlacedInPackage = True
+                            else:
+                                ixdsDocDirs.add("/".join(docDirPath[i+1:len(docDirPath)-1])) # needed for error msg on orphaned instance docs
+                            break
+                    if not reportIsInZipFile:
+                        modelXbrl.warning("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
+                            _("Document file must be within a report package zip file: %(fileName)s"),
+                            modelObject=doc, fileName=doc.basename)
+                    elif not reportCorrectlyPlacedInPackage:
+                        modelXbrl.warning("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
+                            _("Document file not in correct place in report package: %(fileName)s"),
+                            modelObject=doc, fileName=doc.basename)
+        if len(ixdsDocDirs) > 1 and val.consolidated:
             modelXbrl.warning("ESEF.2.6.2.reportSetIncorrectlyPlacedInPackage",
                 _("Document files appear to be in multiple document sets: %(documentSets)s"),
                 modelObject=doc, documentSets=", ".join(sorted(ixdsDocDirs)))
-        if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET):
+        if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET, ModelDocument.Type.UnknownXML):
             hiddenEltIds = {}
             presentedHiddenEltIds = defaultdict(list)
             eligibleForTransformHiddenFacts = []
             requiredToDisplayFacts = []
             requiredToDisplayFactIds = {}
             firstIxdsDoc = True
-            for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements: # ix root elements for all ix docs in IXDS
-                ixNStag = ixdsHtmlRootElt.modelDocument.ixNStag
+            for ixdsHtmlRootElt in (modelXbrl.ixdsHtmlElements if val.consolidated else # ix root elements for all ix docs in IXDS
+                                    (modelXbrl.modelDocument.xmlRootElement,)): # plain xhtml filing
+                ixNStag = getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11)
                 ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
                 ixTextTags = set(ixNStag + ln for ln in ("nonFraction", "continuation", "footnote"))
                 ixExcludeTag = ixNStag + "exclude"
@@ -331,6 +343,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                             modelXbrl.error("ESEF.2.4.2.htmlOrXmlBaseUsed",
                                 _("The HTML <base> elements MUST NOT be used in the Inline XBRL document."),
                                 modelObject=elt, element=eltTag)
+                        elif val.unconsolidated:
+                            pass # rest of following tests don't apply to unconsolidated
                         elif eltTag == "link" and elt.get("type") == "text/css":
                             if len(modelXbrl.ixdsHtmlElements) > 1:
                                 f = elt.get("href")
@@ -385,6 +399,10 @@ def validateXbrlFinally(val, *args, **kwargs):
                             if ixElt.id:
                                 hiddenEltIds[ixElt.id] = ixElt
                 firstIxdsDoc = False
+
+            if val.unconsolidated:
+                modelXbrl.modelManager.showStatus(None)
+                return # no more checks apply
             if eligibleForTransformHiddenFacts:
                 modelXbrl.error("ESEF.2.4.1.transformableElementIncludedInHiddenSection",
                     _("The ix:hidden section of Inline XBRL document MUST not include elements eligible for transformation. "
@@ -420,6 +438,9 @@ def validateXbrlFinally(val, *args, **kwargs):
                 if elt.qname == XbrlConst.qnLinkFootnote: # for now assume no private elements extend link:footnote
                     checkFootnote(elt, elt.stringValue)
                         
+        if val.unconsolidated:
+            modelXbrl.modelManager.showStatus(None)
+            return # no more checks apply
                
         contextsWithDisallowedOCEs = []
         contextsWithDisallowedOCEcontent = []
@@ -864,6 +885,9 @@ def validateXbrlFinally(val, *args, **kwargs):
 
 def validateFinally(val, *args, **kwargs): # runs all inline checks
     if not (val.validateESEFplugin):
+        return
+    
+    if val.unconsolidated:
         return
 
     modelXbrl = val.modelXbrl
