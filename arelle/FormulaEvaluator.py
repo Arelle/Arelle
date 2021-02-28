@@ -78,9 +78,9 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
                      _("Existence Assertion %(xlinkLabel)s \nResult: %(result)s"), 
                      modelObject=varSet, xlinkLabel=varSet.xlinkLabel, result=result)
             msg = varSet.message(result)
+            unsatSeverity = varSet.unsatisfiedSeverity(contextItem=varSet.evaluationsCount)
             if msg is not None:
                 xpCtx.inScopeVars[XbrlConst.qnEaTestExpression] = varSet.test
-                unsatSeverity = varSet.unsatisfiedSeverity(contextItem=varSet.evaluationsCount)
                 xpCtx.modelXbrl.log(
                     "INFO" if result else {"OK":"INFO", "WARNING":"WARNING", "ERROR":"ERROR"}[unsatSeverity],
                     "message:" + (varSet.id or varSet.xlinkLabel or  _("unlabeled variableSet")),
@@ -93,10 +93,9 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
                 varSet.countSatisfied += 1
             else: 
                 varSet.countNotSatisfied += 1
-                if msg is not None:
-                    if unsatSeverity == "OK": varSet.countOkMessages += 1
-                    elif unsatSeverity == "WARNING": varSet.countWarningMessages += 1
-                    elif unsatSeverity == "ERROR": varSet.countErrorMessages += 1
+                if unsatSeverity == "OK": varSet.countOkMessages += 1
+                elif unsatSeverity == "WARNING": varSet.countWarningMessages += 1
+                elif unsatSeverity == "ERROR": varSet.countErrorMessages += 1
         if xpCtx.formulaOptions.traceVariableSetExpressionResult and initialTraceCount == xpCtx.modelXbrl.logCount.get(logging._checkLevel('INFO'), 0):
             xpCtx.modelXbrl.info("formula:trace",
                  _("Variable set %(xlinkLabel)s had no xpCtx.evaluations"),
@@ -202,9 +201,9 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
             elif isinstance(varSet, ModelValueAssertion):
                 result = xpCtx.evaluateBooleanValue(varSet.testProg)
                 msg = varSet.message(result)
+                unsatSeverity = varSet.unsatisfiedSeverity()
                 if msg is not None:
                     xpCtx.inScopeVars[XbrlConst.qnVaTestExpression] = varSet.test
-                    unsatSeverity = varSet.unsatisfiedSeverity()
                     xpCtx.modelXbrl.log(
                         "INFO" if result else {"OK":"INFO", "WARNING":"WARNING", "ERROR":"ERROR"}[unsatSeverity],
                         "message:" + (varSet.id or varSet.xlinkLabel or  _("unlabeled variableSet")),
@@ -217,10 +216,9 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                     varSet.countSatisfied += 1
                 else: 
                     varSet.countNotSatisfied += 1
-                    if msg is not None:
-                        if unsatSeverity == "OK": varSet.countOkMessages += 1
-                        elif unsatSeverity == "WARNING": varSet.countWarningMessages += 1
-                        elif unsatSeverity == "ERROR": varSet.countErrorMessages += 1
+                    if unsatSeverity == "OK": varSet.countOkMessages += 1
+                    elif unsatSeverity == "WARNING": varSet.countWarningMessages += 1
+                    elif unsatSeverity == "ERROR": varSet.countErrorMessages += 1
                             
                 if ((xpCtx.formulaOptions.traceSatisfiedAssertions and result) or
                     ((xpCtx.formulaOptions.traceUnsatisfiedAssertions or
