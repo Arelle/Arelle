@@ -35,7 +35,7 @@ from arelle.UrlUtil import isHttpUrl, isAbsolute as isAbsoluteUri, relativeUrlPa
 from arelle.XbrlConst import (qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
                               qnLinkPart, gen, link, defaultLinkRole, footnote, factFootnote, isStandardRole,
                               conceptLabel, elementLabel, conceptReference, all as hc_all, notAll as hc_notAll,
-                              xhtml)
+                              xhtml, qnXbrliDateItemType)
 from arelle.XmlUtil import addChild, addQnameValue, copyIxFootnoteHtml, setXmlns
 from arelle.XmlValidate import integerPattern, languagePattern, NCNamePattern, QNamePattern, validate as xmlValidate, VALID
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
@@ -1855,7 +1855,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                           modelObject=modelXbrl, memberQName=dimValue, path="/".join(pathSegs+(dimName,)))
                             elif dimConcept.isTypedDimension:
                                 # a modelObject xml element is needed for all of the instance functions to manage the typed dim
-                                if dimConcept.typedDomainElement.type is not None and dimConcept.typedDomainElement.type.localName == "complexType":
+                                if (dimConcept.typedDomainElement.type is not None and 
+                                    dimConcept.typedDomainElement.type.qname != qnXbrliDateItemType and
+                                    (dimConcept.typedDomainElement.type.localName in ("complexType", "union", "list", "ENTITY", "ENTITIES", "ID", "IDREF", "IDREFS", "NMTOKEN", "NMTOKENS", "NOTATION"))):
                                     error("oime:unsupportedDimensionDataType",
                                           _("Taxonomy-defined typed dimension value is complex: %(memberQName)s at %(path)s"),
                                           modelObject=modelXbrl, memberQName=dimValue, path="/".join(pathSegs+(dimName,)))
@@ -2199,7 +2201,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     continue
                             elif dimConcept.isTypedDimension:
                                 # a modelObject xml element is needed for all of the instance functions to manage the typed dim
-                                if dimConcept.typedDomainElement.type is not None and dimConcept.typedDomainElement.type.localName == "complexType":
+                                if dimConcept.typedDomainElement.baseXsdType in ("ENTITY", "ENTITIES", "ID", "IDREF", "IDREFS", "NMTOKEN", "NMTOKENS", "NOTATION") or (
+                                    dimConcept.typedDomainElement.type is not None and 
+                                    dimConcept.typedDomainElement.type.qname != qnXbrliDateItemType and
+                                    (dimConcept.typedDomainElement.type.localName == "complexType" or
+                                     any(c.localName in ("union","list") for c in dimConcept.typedDomainElement.type.iterchildren()))):
                                     error("oime:unsupportedDimensionDataType",
                                           _("Fact %(factId)s taxonomy-defined typed dimension value is complex: %(memberQName)s."),
                                           modelObject=modelXbrl, factId=id, memberQName=dimVal)
