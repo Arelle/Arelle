@@ -27,7 +27,7 @@ from arelle.PluginManager import pluginClassMethods
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype
 from arelle.PythonUtil import pyNamedObject, strTruncate, flattenSequence, flattenToSet, OrderedSet
 from arelle.UrlUtil import isHttpUrl
-from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue, roundValue
+from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue, roundValue, ONE
 from arelle.XmlValidate import VALID
 from .DTS import checkFilingDTS
 from .Consts import submissionTypesAllowingWellKnownSeasonedIssuer, \
@@ -510,12 +510,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                      
                 # 6.5.43 signs - applies to all facts having a context.
                 if (isEFM and nonNegFacts and f.qname in nonNegFacts.concepts and f.isNumeric and not f.isNil and f.xValue < 0 and (
-                    all((dim.dimensionQname not in nonNegFacts.excludedAxesMembers or
+                    all(dim.isTyped or (
+                        (dim.dimensionQname not in nonNegFacts.excludedAxesMembers or
                          ("*" not in nonNegFacts.excludedAxesMembers[dim.dimensionQname] and
                           dim.memberQname not in nonNegFacts.excludedAxesMembers[dim.dimensionQname])) and
                          dim.memberQname not in nonNegFacts.excludedMembers and
                          (nonNegFacts.excludedMemberNamesPattern is None or 
-                          not nonNegFacts.excludedMemberNamesPattern.search(dim.memberQname.localName))
+                          not nonNegFacts.excludedMemberNamesPattern.search(dim.memberQname.localName)))
                         for dim in context.qnameDims.values()))):
                     modelXbrl.warning("EFM.6.05.43",
                         _("Concept %(element)s in %(taxonomy)s has a negative value %(value)s in context %(context)s.  Correct the sign, use a more appropriate concept, or change the context."),
@@ -2485,8 +2486,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         unallowedMembers &= set.union(*(ugtAxisMembers[a] for a in rule.get("unallowed-axes")))
                     unallowedMembersUsedByFacts = set()
                     if unallowedMembers:
-                        for f in modelXbrl.factsByDimMemQname(axisConcept.qname, NONDEFAULT):
-                            dimValueQname = f.context.dimValue(axisConcept.qname).memberQname
+                        for f in modelXbrl.factsByDimMemQname(axisConcept.qname, None): # None also includes default members
+                            dimValueQname = f.context.dimMemberQname(axisConcept.qname) # include default members
                             if dimValueQname in unallowedMembers:
                                 unallowedMembersUsedByFacts.add(dimValueQname)
                                 if dimValueQname.namespaceURI not in disclosureSystem.standardTaxonomiesDict: # is extension member concept
@@ -2501,7 +2502,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 if not any(f.isDuplicateOf(warnedFact) for warnedFact in warnedFactsByQn[f.qname]):
                                     warnedFactsByQn[f.qname].append(f)
                                     modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
-                                        modelObject=f, name=f.qname, value=str(f.value), axis=axisConcept.qname, member=dimValueQname, issue=issue,
+                                        modelObject=f, name=f.qname, value=strTruncate(f.value,128), axis=axisConcept.qname, member=dimValueQname, issue=issue,
                                         contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
                                         edgarCode=edgarCode, ruleElementId=id)
                     unusedUnallowed = unallowedMembers - unallowedMembersUsedByFacts
@@ -2513,8 +2514,20 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
 
         elif dqcRuleName == "DQC.US.0004":
             for id, rule in dqcRule["rules"].items():
-                sumLn = rule["sum"]
-                itemLns = rule["items"]
+                # first check if there's a calc-sum and calc-items
+                sumLn = rule.get("calc-sum")
+                itemWeights = {}
+                if sumLn in modelXbrl.nameConcepts and "calc-items" in rule:
+                    itemWeights = dict((rel.toModelObject.name, rel.weightDecimal)
+                                        for rel in modelXbrl.relationshipSet(XbrlConst.summationItem, None, None, None
+                                        ).fromModelObject(modelXbrl.nameConcepts[rule.get("calc-sum")][0]))
+                    if set(rule.get("calc-items")) <= itemWeights.keys():
+                        itemLns = list(itemWeights.keys())
+                    else:
+                        sumLn = None
+                if not sumLn:
+                    sumLn = rule["sum"]
+                    itemLns = rule["items"]
                 blkAxis = rule.get("blocking-axes",())
                 alts = rule.get("alternatives",EMPTY_DICT)
                 tolerance = rule["tolerance"]
@@ -2540,7 +2553,8 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         else:
                             sumValue = roundValue(sumFact.xValue, decimals=dec)
                         if not allIfNil:
-                            itemValues = tuple(roundValue(f.xValue, decimals=dec) for f in itemFacts if not f.isNil)
+                            itemValues = tuple(roundValue(f.xValue * itemWeights.get(f.qname.localName, ONE), decimals=dec) 
+                                               for f in itemFacts if not f.isNil)
                         try:
                             if ((not (sfNil & allIfNil)) and (
                                 (sfNil ^ allIfNil) or 
@@ -2589,12 +2603,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             warnedFactsByQn = defaultdict(list)
             for f in modelXbrl.facts:
                 if (f.qname in dqc0015.concepts and f.isNumeric and not f.isNil and f.xValue < 0 and (
-                    all((dim.dimensionQname not in dqc0015.excludedAxesMembers or
+                    all(dim.isTyped or (
+                        (dim.dimensionQname not in dqc0015.excludedAxesMembers or
                          ("*" not in dqc0015.excludedAxesMembers[dim.dimensionQname] and
                           dim.memberQname not in dqc0015.excludedAxesMembers[dim.dimensionQname])) and
                          dim.memberQname not in dqc0015.excludedMembers and
                          (dqc0015.excludedMemberNamesPattern is None or 
-                          not dqc0015.excludedMemberNamesPattern.search(dim.memberQname.localName))
+                          not dqc0015.excludedMemberNamesPattern.search(dim.memberQname.localName)))
                         for dim in f.context.qnameDims.values()))):
                     id = dqc0015.conceptRuleIDs.get(f.qname, 9999)
                     if not any(f.isDuplicateOf(warnedFact) for warnedFact in warnedFactsByQn[f.qname]):

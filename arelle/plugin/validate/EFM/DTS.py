@@ -372,16 +372,6 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                                 _("Concept %(concept)s of type xbrli:stringItemType must have periodType duration"),
                                 modelObject=modelConcept, concept=modelConcept.qname)
                         
-
-        # 6.7.8 check for embedded linkbase
-        for e in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}linkbase"):
-            if isinstance(e,ModelObject):
-                val.modelXbrl.error(("EFM.6.07.08", "GFM.1.03.08"),
-                    _("Your filing contained embedded linkbases in %(schema)s.  Please recheck your submission and remove all embedded linkbases."),
-                    edgarCode="cp-0708-No-Embedded-Linkbases",
-                    modelObject=e, schema=modelDocument.basename)
-                break
-
         requiredUsedOns = {XbrlConst.qnLinkPresentationLink,
                            XbrlConst.qnLinkCalculationLink,
                            XbrlConst.qnLinkDefinitionLink}

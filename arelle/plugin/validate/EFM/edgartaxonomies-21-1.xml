@@ -4,7 +4,7 @@ This file was created by staff of the U.S. Securities and Exchange Commission.
 Data and content created by government employees within the scope of their employment
 are not subject to domestic copyright protection. 17 U.S.C. 105.
 -->
-<Erxl version="56" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="erxl.xsd">
+<Erxl version="57" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="erxl.xsd">
 	<Loc>
 		<Family>US GAAP</Family>
 		<Version>2021</Version>
@@ -2525,7 +2525,7 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<AttType>SCH</AttType>
 		<FileTypeName>Schema</FileTypeName>
 		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/currency/2019-01-31</Namespace>
+		<Namespace>http://xbrl.sec.gov/currency/2020-01-31</Namespace>
 		<Prefix>currency</Prefix>
 	</Loc>
 	<Loc>

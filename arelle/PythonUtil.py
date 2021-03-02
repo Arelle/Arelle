@@ -119,6 +119,11 @@ def pyNamedObject(name, *args, **kwargs):
     except:
         return None
     
+def lcStr(value): # lower case first letter of string
+    if len(value):
+        return value[0].lower() + value[1:]
+    return str
+    
 def strTruncate(value, length):
     _s = str(value).strip()
     if len(_s) <= length:

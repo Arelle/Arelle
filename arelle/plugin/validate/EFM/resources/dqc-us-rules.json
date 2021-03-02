@@ -196,6 +196,8 @@
             "blocking-axes: array of local name(s) of axes which, if any is present, block this check from running",
             "alternatives: object whose keys are alternatives for item and values an array of ",
             "     alternatives arrays of items to sum for substitution,",
+            "calc-sum: local name of a calculation summation item to be used instead if available",
+            "calc-items: local names of calculation items required if using calc instead of sum/items above",
             "tolerance: integer representing 10**-leastDecimals*tolerance for equality margin)",
             "",
             "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0004/DQC_0004.md"
@@ -245,6 +247,8 @@
         	"9285": {
         	    "sum": "ComprehensiveIncomeNetOfTaxIncludingPortionAttributableToNoncontrollingInterest", 
         	    "items": ["ComprehensiveIncomeNetOfTaxAttributableToNoncontrollingInterest", "ComprehensiveIncomeNetOfTax"],
+        	    "calc-sum": "ComprehensiveIncomeNetOfTax",
+        	    "calc-items": ["ComprehensiveIncomeNetOfTaxAttributableToNoncontrollingInterest", "ComprehensiveIncomeNetOfTaxIncludingPortionAttributableToNoncontrollingInterest"],
         	    "tolerance": 2
         	},
         	"9286": {

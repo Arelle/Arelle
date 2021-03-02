@@ -19,10 +19,10 @@ EMPTY_DICT = {}
 def conflictClassFromNamespace(namespaceURI):
     match = standardNamespacesPattern.match(namespaceURI or "")
     if match:
-        _class = match.group(2) or match.group(5)[:4] # trim ifrs-full to ifrs
+        _class = match.group(2) or match.group(6)[:4] # trim ifrs-full to ifrs
         if _class.startswith("ifrs"):
             _class = "ifrs"
-        return "{}/{}".format(_class, match.group(3) or match.group(4))
+        return "{}/{}".format(_class, match.group(3) or match.group(5))
         
 WITHYEAR = 0
 WILD = 1
@@ -34,7 +34,7 @@ def abbreviatedNamespace(namespaceURI, pattern=WITHYEAR):
     match = standardNamespacesPattern.match(namespaceURI or "")
     if match:
         return {WITHYEAR: "{}/{}", WILD: "{}/*", NOYEAR: "{}"
-                }[pattern].format(match.group(2) or match.group(5), match.group(3) or match.group(4))
+                }[pattern].format(match.group(2) or match.group(6), match.group(3) or match.group(5))
     return None
 
 def usgaapYear(modelXbrl):

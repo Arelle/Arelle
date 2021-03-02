@@ -6,7 +6,7 @@
    
   <DisclosureSystem 
      names="US SEC (Edgar Filing Manual, Strict)|efm|efm-strict"
-     description="US SEC Edgar Filing Manual v56 Release 21.1\n
+     description="US SEC Edgar Filing Manual v57 Release 21.1\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Disallowed references are blocked and not loaded (same as SEC production system)\n
@@ -37,7 +37,7 @@
      />
   <DisclosureSystem 
      names="US SEC (Edgar Filing Manual, Pragmatic)|efm-blocking|efm-pragmatic"
-     description="US SEC Edgar Filing Manual v56 Release 21.1\n
+     description="US SEC Edgar Filing Manual v57 Release 21.1\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
@@ -73,7 +73,7 @@
      />
   <DisclosureSystem 
      names="US SEC 2021 Preview with DQCRT applied to us-gaap 2020-2021 (EFM Pragmatic)|efm-preview-dqcrt-testing"
-     description="US SEC Edgar Filing Manual v56 Release 21.1\n
+     description="US SEC Edgar Filing Manual v57 Release 21.1\n
      DQCRT/2021 applied to us-gaap/2020 for testing purposes\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n

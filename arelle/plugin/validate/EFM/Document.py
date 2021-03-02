@@ -103,7 +103,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                         modelObject=elt, element=elt.qname)
                 if not val.extendedElementName:
                     val.extendedElementName = elt.qname
-                elif val.extendedElementName != elt.qname:
+                elif val.extendedElementName != elt.qname and modelDocument.type == ModelDocument.Type.LINKBASE:
                     val.modelXbrl.error(("EFM.6.09.07", "GFM:1.04.07"),
                         _("Your filing contained extended type links with roles of different namesapces and local names, %(element)s "
                           "and %(element2)s in the same linkbase, %(refUrl)s.  Please recheck your submission and ensure that all "
