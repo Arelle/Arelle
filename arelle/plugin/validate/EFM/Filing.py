@@ -2647,13 +2647,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             if preCashFlowLinkRoles:
                 if not calcCashFlowLinkRoles:
                     modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(dqcRule["message-no-roles"])),
-                        modelObject=modelXbrl, linkRole=linkroleUri, linkroleDefinition=definition,
+                        modelObject=modelXbrl, 
                         linkRoles=(", ".join(sorted(preCashFlowLinkRoles))),
                         edgarCode=edgarCode+"-No-Roles", ruleElementId=id)
                 elif calcCashFlowLinkRolesMissingRoots == calcCashFlowLinkRoles: # every calc is missing the roots
                     for linkRole in calcCashFlowLinkRolesMissingRoots:
                         modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
-                            modelObject=val.modelXbrl.baseSets[(XbrlConst.summationItem,linkroleUri,None,None)], 
+                            modelObject=val.modelXbrl.baseSets[(XbrlConst.summationItem,linkroleUri,None,None)] or modelXbrl, # may be no base sets, in which case just show the instance
                             linkRole=linkroleUri, linkroleDefinition=definition,
                             rootNames=(", ".join(r.name for r in calcRoots) or "(none)"),
                             edgarCode=edgarCode, ruleElementId=id)
