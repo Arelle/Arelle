@@ -204,11 +204,19 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                 unsatSeverity = varSet.unsatisfiedSeverity()
                 if msg is not None:
                     xpCtx.inScopeVars[XbrlConst.qnVaTestExpression] = varSet.test
+                    _modelObjects = [varSet]
+                    for vb in xpCtx.varBindings.values():
+                        if not vb.isFallback:
+                            if vb.isBindAsSequence:
+                                if isinstance(vb.yieldedEvaluation, list):
+                                    _modelObjects.extend(vb.yieldedEvaluation)
+                            elif vb.yieldedFact is not None:
+                                _modelObjects.append(vb.yieldedFact)
                     xpCtx.modelXbrl.log(
                         "INFO" if result else {"OK":"INFO", "WARNING":"WARNING", "ERROR":"ERROR"}[unsatSeverity],
                         "message:" + (varSet.id or varSet.xlinkLabel or  _("unlabeled variableSet")),
                         msg.evaluate(xpCtx),
-                        modelObject=varSet,
+                        modelObject=_modelObjects,
                         label=varSet.logLabel(),
                         messageCodes=("message:{variableSetID|xlinkLabel}",))
                     xpCtx.inScopeVars.pop(XbrlConst.qnVaTestExpression)
