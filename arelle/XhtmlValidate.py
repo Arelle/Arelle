@@ -515,7 +515,7 @@ def xhtmlValidate(modelXbrl, elt):
                 if excludeSubtree or (fromChild.localName in {"references", "resources"} and isIxNs):
                     copyNonIxChildren(fromChild, toElt, excludeSubtree=True)
                 else:
-                    if fromChild.localName in {"footnote", "nonNumeric", "continuation"} and isIxNs:
+                    if fromChild.localName in {"footnote", "nonNumeric", "fraction", "numerator", "denominator", "nonFraction", "continuation", "exclude"} and isIxNs:
                         toChild = etree.Element("ixNestedContent")
                         toElt.append(toChild)
                         copyNonIxChildren(fromChild, toChild)
