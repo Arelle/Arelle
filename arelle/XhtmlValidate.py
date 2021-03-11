@@ -255,6 +255,7 @@ def xhtmlValidate(modelXbrl, elt):
     isEFM = modelXbrl.modelManager.disclosureSystem.validationType == "EFM"
     # find ix version for messages
     _ixNS = getattr(elt.modelDocument, "ixNS", XbrlConst.ixbrl11)
+    _ixNStag = "{{{}}}".format(_ixNS)
     _xhtmlDTD = XHTML_DTD[_ixNS]
     _customTransforms = modelXbrl.modelManager.customTransforms or {}
     
@@ -485,7 +486,7 @@ def xhtmlValidate(modelXbrl, elt):
 
                     
     def ixToXhtml(fromRoot):
-        toRoot = etree.Element(fromRoot.localName)
+        toRoot = etree.Element(fromRoot.localName, nsmap={"ix": _ixNS})
         copyNonIxChildren(fromRoot, toRoot)
         for attrTag, attrValue in fromRoot.items():
             checkAttribute(fromRoot, False, attrTag, attrValue)
@@ -516,13 +517,13 @@ def xhtmlValidate(modelXbrl, elt):
                     copyNonIxChildren(fromChild, toElt, excludeSubtree=True)
                 else:
                     if fromChild.localName in {"footnote", "nonNumeric", "fraction", "numerator", "denominator", "nonFraction", "continuation", "exclude"} and isIxNs:
-                        toChild = etree.Element("ixNestedContent")
+                        toChild = etree.Element(_ixNStag + fromChild.localName)
                         toElt.append(toChild)
-                        copyNonIxChildren(fromChild, toChild)
                         if fromChild.text is not None:
                             toChild.text = fromChild.text
                         if fromChild.tail is not None:
                             toChild.tail = fromChild.tail
+                        copyNonIxChildren(fromChild, toChild)
                     elif isIxNs:
                         copyNonIxChildren(fromChild, toElt)
                     else:
@@ -539,8 +540,8 @@ def xhtmlValidate(modelXbrl, elt):
                         if fromChild.tail is not None:
                             if toChild.tail:
                                 toChild.tail += fromChild.tail
-                            else:  
-                                toChild.tail = fromChild.tail    
+                            else:
+                                toChild.tail = fromChild.tail
                         copyNonIxChildren(fromChild, toChild)
             elif isinstance(fromChild, ModelComment): # preserve non-xsd-whitespac after comments
                 if fromChild.tail and not XmlValidate.entirelyWhitespacePattern.match(fromChild.tail):

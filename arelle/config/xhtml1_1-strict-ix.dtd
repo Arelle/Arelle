@@ -27,6 +27,8 @@
 
 -->
 
+
+
 <!--================ Character mnemonic entities =========================-->
 
 <!ENTITY % HTMLlat1 PUBLIC
@@ -196,12 +198,14 @@
 
 <!-- these can occur at block or inline level -->
 <!-- HF: note that inline schema allows nested content at block level -->
-<!ENTITY % misc.inline "ins | del | script | ixNestedContent">
+<!ENTITY % ixNestedContent "ix:footnote|ix:nonNumeric|ix:fraction|ix:numerator|ix:denominator|ix:nonFraction|ix:continuation|ix:exclude">
+
+<!ENTITY % misc.inline "ins | del | script | %ixNestedContent; ">
 
 <!-- these can only occur at block level -->
 <!ENTITY % misc "noscript | %misc.inline;">
 
-<!ENTITY % inline "a | %special; | %fontstyle; | %phrase; | %inline.forms; | ixNestedContent">
+<!ENTITY % inline "a | %special; | %fontstyle; | %phrase; | %inline.forms;  ">
 
 <!-- %Inline; covers inline or "text-level" elements -->
 <!ENTITY % Inline "(#PCDATA | %inline; | %misc.inline;)*">
@@ -252,6 +256,7 @@
   %i18n;
   id          ID             #IMPLIED
   xmlns       %URI;          #FIXED 'http://www.w3.org/1999/xhtml'
+  xmlns:ix    CDATA          #FIXED 'http://www.xbrl.org/2013/inlineXBRL'
   >
 
 <!--================ Document Head =======================================-->
@@ -991,9 +996,22 @@ several semantically related columns together.
   %cellvalign;
   >
 
-<!--=================== Inline XBRL nonNumeric and Footnote ====================================-->
+<!--=================== Inline XBRL text content bearing elements ====================================-->
 
-<!ELEMENT ixNestedContent %Flow;>  <!-- substitution for ix:footnote and ix:nonNumeric -->
-<!ATTLIST ixNestedContent
-  %attrs;
-  >
+<!ELEMENT ix:footnote %Flow;>
+<!ATTLIST ix:footnote %attrs; xmlns:ix CDATA #FIXED "http://www.xbrl.org/2013/inlineXBRL">
+<!ELEMENT ix:nonNumeric %Flow;>
+<!ATTLIST ix:nonNumeric %attrs; xmlns:ix CDATA #FIXED "http://www.xbrl.org/2013/inlineXBRL">
+<!ELEMENT ix:fraction %Flow;>
+<!ATTLIST ix:fraction %attrs; xmlns:ix CDATA #FIXED "http://www.xbrl.org/2013/inlineXBRL">
+<!ELEMENT ix:numerator %Flow;>
+<!ATTLIST ix:numerator %attrs; xmlns:ix CDATA #FIXED "http://www.xbrl.org/2013/inlineXBRL">
+<!ELEMENT ix:denominator %Flow;>
+<!ATTLIST ix:denominator %attrs; xmlns:ix CDATA #FIXED "http://www.xbrl.org/2013/inlineXBRL">
+<!ELEMENT ix:nonFraction %Flow;>
+<!ATTLIST ix:nonFraction %attrs; xmlns:ix CDATA #FIXED "http://www.xbrl.org/2013/inlineXBRL">
+<!ELEMENT ix:continuation %Flow;>
+<!ATTLIST ix:continuation %attrs; xmlns:ix CDATA #FIXED "http://www.xbrl.org/2013/inlineXBRL">
+<!ELEMENT ix:exclude %Flow;>
+<!ATTLIST ix:exclude %attrs; xmlns:ix CDATA #FIXED "http://www.xbrl.org/2013/inlineXBRL">
+
