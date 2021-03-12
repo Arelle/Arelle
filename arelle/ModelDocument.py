@@ -254,7 +254,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
              (ln == "html" or ln == "xhtml"):
             _type = Type.UnknownXML
             if (# not a valid test: XbrlConst.ixbrlAll & set(rootNode.nsmap.values()) or
-                any(e is not None for e in rootNode.iter("{http://www.xbrl.org/2013/inlineXBRL}*"))):
+                any(e is not None for e in rootNode.iter(*XbrlConst.ixbrlTags))):
                 _type = Type.INLINEXBRL
         elif ln == "report" and ns == XbrlConst.ver:
             _type = Type.VERSIONINGREPORT
@@ -277,7 +277,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         elif ln == "facts":
             _type = Type.FACTDIMSINFOSET
         elif (# not a valid test: XbrlConst.ixbrlAll & set(rootNode.nsmap.values()) or
-              any(e is not None for e in rootNode.iter("{http://www.xbrl.org/2013/inlineXBRL}*"))):
+              any(e is not None for e in rootNode.iter(*XbrlConst.ixbrlTags))):
             # any xml document can be an inline document, only html and xhtml are found above
             _type = Type.INLINEXBRL
         else:
@@ -299,7 +299,7 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                         break
                 if nestedInline is not None:
                     if (# not a valid test: XbrlConst.ixbrl in nestedInline.nsmap.values() or
-                        any(e is not None for e in rootNode.iter("{http://www.xbrl.org/2013/inlineXBRL}*"))):
+                        any(e is not None for e in rootNode.iter(*XbrlConst.ixbrlTags))):
                         _type = Type.INLINEXBRL
                         rootNode = nestedInline
 
@@ -532,7 +532,7 @@ class Type:
                         # else fall through to element scan for ix11 element
                     else:
                         break # stop parsing
-                if elt.tag.startswith("{http://www.xbrl.org/2013/inlineXBRL}"):
+                if XbrlConst.ixbrlTagPattern.match(elt.tag):
                     _type = Type.INLINEXBRL
                     break
         except Exception as err:
