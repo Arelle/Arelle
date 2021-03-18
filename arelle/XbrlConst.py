@@ -541,8 +541,8 @@ errMsgPrefixNS = { # err prefixes which are not declared, such as XPath's "err" 
 qnEuFiTuple = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}ef-find:fIndicators")
 qnEuFiIndFact = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}ef-find:filingIndicator")
 cnEuFiIndAttr = "{http://www.eurofiling.info/xbrl/ext/filing-indicators}filed" # clark name
-qnFiFact = qname("{http://www.xbrl.org/taxonomy/int/fi/PWD/2018-01-17}fi:filed")
-qnFiDim = qname("{http://www.xbrl.org/taxonomy/int/fi/PWD/2018-01-17}fi:template")
+qnFiFact = qname("{http://www.xbrl.org/taxonomy/int/fi/REC/2021-02-03}fi:filed")
+qnFiDim = qname("{http://www.xbrl.org/taxonomy/int/fi/REC/2021-02-03}fi:template")
 
 arcroleGroupDetect = "*detect*"
 
