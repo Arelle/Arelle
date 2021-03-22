@@ -525,12 +525,12 @@ def rebuildRemappings(cntlr):
     
 
 def isMappedUrl(url):
-    return (packagesConfig is not None and 
+    return (packagesConfig is not None and url is not None and
             any(url.startswith(mapFrom) and not url.startswith(mapTo) # prevent recursion in mapping for url hosted Packages
                 for mapFrom, mapTo in packagesConfig.get('remappings', EMPTYDICT).items()))
 
 def mappedUrl(url):
-    if packagesConfig is not None:
+    if packagesConfig is not None and url is not None:
         longestPrefix = 0
         for mapFrom, mapTo in packagesConfig.get('remappings', EMPTYDICT).items():
             if url.startswith(mapFrom):
