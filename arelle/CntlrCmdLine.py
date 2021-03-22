@@ -481,7 +481,7 @@ def filesourceEntrypointFiles(filesource, entrypointFiles=[]):
             if entrypointFiles:
                 if identifiedType == ModelDocument.Type.INLINEXBRL:
                     for pluginXbrlMethod in pluginClassMethods("InlineDocumentSet.Discovery"):
-                        entrypointFiles = pluginXbrlMethod(entrypointFiles) # group into IXDS if plugin feature is available
+                        pluginXbrlMethod(filesource, entrypointFiles) # group into IXDS if plugin feature is available
                 break # found inline (or non-inline) entrypoint files, don't look for any other type
             
     elif os.path.isdir(filesource.url):

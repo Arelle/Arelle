@@ -585,10 +585,12 @@ def testcaseVariationArchiveIxds(val, filesource, entrypointFiles):
                            filesource, entrypointFiles)
        
 
-def inlineDocsetDiscovery(entrypointFiles): # [{"file":"url1"}, ...]
+def inlineDocsetDiscovery(filesource, entrypointFiles): # [{"file":"url1"}, ...]
     if len(entrypointFiles): # return [{"ixds":[{"file":"url1"}, ...]}]
-        return [{"ixds": entrypointFiles}]
-    return entrypointFiles
+        # replace contents of entrypointFiles (array object), don't return a new object
+        _entrypointFiles = entrypointFiles.copy()
+        del entrypointFiles[:]
+        entrypointFiles.append( {"ixds": _entrypointFiles} )
 
 def inlineDocsetUrlSeparator():
     return IXDS_DOC_SEPARATOR
