@@ -9,7 +9,7 @@ from arelle.FunctionXs import xsString
 from arelle.ModelObject import ModelObject
 from arelle.ModelFormulaObject import (aspectModels, Aspect, aspectModelAspect,
                                  ModelFormula, ModelTuple, ModelExistenceAssertion,
-                                 ModelValueAssertion,
+                                 ModelValueAssertion, ModelMessage,
                                  ModelFactVariable, ModelGeneralVariable, ModelVariable,
                                  ModelParameter, ModelFilter, ModelAspectCover, ModelBooleanFilter, ModelTypedDimension)
 from arelle.PrototypeInstanceObject import DimValuePrototype
@@ -25,6 +25,9 @@ ModelFact = None
 
 expressionVariablesPattern = re.compile(r"([^$]*)([$]\w[\w:.-]*)([^$]*)")
 EMPTYSET = set()
+
+DEFAULT_FORMULA_MSG = 'A {assertion} assertion with the id of {id} did not satisfy the following test expression: {test}'
+
 
 def init():
     global ModelDimensionValue, ModelFact # initialize objects that would cause recursive import
@@ -78,13 +81,15 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
                      _("Existence Assertion %(xlinkLabel)s \nResult: %(result)s"), 
                      modelObject=varSet, xlinkLabel=varSet.xlinkLabel, result=result)
             msg = varSet.message(result)
+            if msg is None and not result:
+                msg = DEFAULT_FORMULA_MSG.format(assertion='existence', id=varSet.id, test=varSet.test)
             unsatSeverity = varSet.unsatisfiedSeverity(contextItem=varSet.evaluationsCount)
             if msg is not None:
                 xpCtx.inScopeVars[XbrlConst.qnEaTestExpression] = varSet.test
                 xpCtx.modelXbrl.log(
                     "INFO" if result else {"OK":"INFO", "WARNING":"WARNING", "ERROR":"ERROR"}[unsatSeverity],
                     "message:" + (varSet.id or varSet.xlinkLabel or  _("unlabeled variableSet")),
-                    msg.evaluate(xpCtx, contextItem=varSet.evaluationsCount),
+                    msg.evaluate(xpCtx, contextItem=varSet.evaluationsCount) if isinstance(msg, ModelMessage) else msg,
                     modelObject=varSet,
                     label=varSet.logLabel(),
                     messageCodes=("message:{variableSetID|xlinkLabel}",))
@@ -201,6 +206,8 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
             elif isinstance(varSet, ModelValueAssertion):
                 result = xpCtx.evaluateBooleanValue(varSet.testProg)
                 msg = varSet.message(result)
+                if msg is None and not result:
+                    msg = DEFAULT_FORMULA_MSG.format(assertion='value', id=varSet.id, test=varSet.test)
                 unsatSeverity = varSet.unsatisfiedSeverity()
                 if msg is not None:
                     xpCtx.inScopeVars[XbrlConst.qnVaTestExpression] = varSet.test
@@ -215,7 +222,7 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                     xpCtx.modelXbrl.log(
                         "INFO" if result else {"OK":"INFO", "WARNING":"WARNING", "ERROR":"ERROR"}[unsatSeverity],
                         "message:" + (varSet.id or varSet.xlinkLabel or  _("unlabeled variableSet")),
-                        msg.evaluate(xpCtx),
+                        msg.evaluate(xpCtx) if isinstance(msg, ModelMessage) else msg,
                         modelObject=_modelObjects,
                         label=varSet.logLabel(),
                         messageCodes=("message:{variableSetID|xlinkLabel}",))
