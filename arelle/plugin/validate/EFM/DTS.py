@@ -93,6 +93,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
         ):
         
         val.hasExtensionSchema = True
+        disclosureSystemVersion = val.disclosureSystem.version
         # check schema contents types
         # 6.7.3 check namespace for standard authority
         targetNamespaceAuthority = UrlUtil.authority(modelDocument.targetNamespace) 
@@ -298,11 +299,14 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                             modelObject=modelConcept, concept=modelConcept.qname)
     
                     #6.7.32 (version 27) instant non numeric
-                    if modelConcept.isItem and (not modelConcept.isNumeric and not isDuration and not modelConcept.isAbstract and not isDomainItemType):
+                    # (version 58) instant textBlock (escapedItemType derivation)
+                    if modelConcept.isItem and (not isDuration and not modelConcept.isAbstract and not isDomainItemType and
+                        (modelConcept.isTextBlock or (disclosureSystemVersion[0] < 58 and not modelConcept.isNumeric))):
                         val.modelXbrl.error("EFM.6.07.32",
-                            _("Declaration of element %(concept)s in %(schema)s must have xbrli:periodType of 'duration' because its base type is not numeric."),
+                            _("Declaration of element %(concept)s in %(schema)s must have xbrli:periodType of 'duration' because its base type is %(baseTypeRequirement)s."),
                             edgarCode="rq-0732-Nonnnumeric-Must-Be-Duration",
-                            modelObject=modelConcept, schema=modelDocument.basename, concept=modelConcept.qname)
+                            modelObject=modelConcept, schema=modelDocument.basename, concept=modelConcept.qname,
+                            baseTypeRequirement="not numeric" if disclosureSystemVersion[0] < 58 else "a text block")
                         
                     # 6.8.5 semantic check, check LC3 name
                     if name:

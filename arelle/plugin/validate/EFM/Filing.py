@@ -2146,7 +2146,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             modelXbrl.error("EFM.6.22.03.incompatibleInlineDocumentType",
                 _("Inline XBRL may not be used with document type %(documentType)s"),
                 modelObject=modelXbrl, conflictClass="inline XBRL", documentType=documentType)
-        if documentType is not None and not val.hasExtensionSchema and documentType != "L SDR":
+        if documentType is not None and not val.hasExtensionSchema and documentType != "L SDR" and disclosureSystemVersion[0] < 58:
             modelXbrl.error("EFM.6.03.10",
                             _("%(documentType)s report is missing a extension schema file."),
                             edgarCode="cp-0310-Missing-Schema",

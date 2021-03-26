@@ -5,6 +5,8 @@
         "are not subject to domestic copyright protection. 17 U.S.C. 105."
     ],
     "description": [
+        "DEI validations for Cover and supplemental instances except EX-107 (Fee Tagging).",
+        "",
         "The format is as follows:",
         "",
         "A JSON object with objects named forms, validations and messages",
@@ -40,7 +42,9 @@
         "",
         "The messages object contains messages which may be referenced by validations",
         "",
-        "The validation-legend object describes the codes in the validation object @validation value"        
+        "The validation-legend object describes the codes in the validation object @validation value",
+        "",
+    "The extraction-cover-tags array lists local names of facts to be added to exported JSON facts."        
     ],
     "form-classes": {
     	"comment1": "FAST act form classes",
