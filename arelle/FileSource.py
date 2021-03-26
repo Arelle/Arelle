@@ -622,6 +622,8 @@ def openFileStream(cntlr, filepath, mode='r', encoding=None):
         if _cacheFilepath is None:
             raise IOError(_("Unable to open file: {0}.").format(filepath))
         filepath = _cacheFilepath
+    if not filepath and cntlr:
+        raise IOError(_("Unable to open file: \"{0}\".").format(filepath))
     # file path may be server (or memcache) or local file system
     if filepath.startswith(SERVER_WEB_CACHE) and cntlr:
         filestream = None
