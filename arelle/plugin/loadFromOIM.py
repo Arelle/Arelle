@@ -28,7 +28,7 @@ from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelDtsObject import ModelResource
 from arelle import XbrlConst, ModelDocument, ModelXbrl, PackageManager, ValidateXbrlDimensions
 from arelle.ModelObject import ModelObject
-from arelle.ModelValue import qname, dateTime, DATETIME, yearMonthDuration, dayTimeDuration
+from arelle.ModelValue import qname, dateTime, DateTime, DATETIME, yearMonthDuration, dayTimeDuration
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict, flattenToSet, strTruncate
 from arelle.UrlUtil import isHttpUrl, isAbsolute as isAbsoluteUri, relativeUrlPattern
@@ -112,12 +112,13 @@ NSReservedAliasURIs = {
     #"xbrlxe": [ns + "/xbrl-xml/error" for ns in nsOims]
     }
 JSONNSReservedAliasURIs = {
-    "xbrlje": [ns + "/xbrl-json/error" for ns in nsOims],
+    # xbrlje no longer reserved, issue #381
+    # "xbrlje": [ns + "/xbrl-json/error" for ns in nsOims],
     }
 CSVNSReservedAliasURIs = {
     "xbrlce": [ns + "/xbrl-csv/error" for ns in nsOims],
     }
-JSONNSReservedURIAliases = dict((ns + "/xbrl-json/error", "xbrlje") for ns in nsOims)
+JSONNSReservedURIAliases = {} # #381 no longer reserved - dict((ns + "/xbrl-json/error", "xbrlje") for ns in nsOims)
 CSVNSReservedURIAliases = dict((ns + "/xbrl-csv/error", "xbrlce") for ns in nsOims)
 NSReservedAliasURIPrefixes = { # for starts-with checking
     # "dtr-type": "http://www.xbrl.org/dtr/type/", 
@@ -633,6 +634,8 @@ def oimEquivalentFacts(f1, f2):
         elif type(f1.xValue) == type(f2.xValue):
             if f1.concept.isLanguage and f2.concept.isLanguage and f1.xValue is not None and f2.xValue is not None:
                 return f1.xValue.lower() == f2.xValue.lower() # required to handle case insensitivity
+            if isinstance(f1.xValue, DateTime): # with/without time makes values unequal
+                return f1.xValue.dateOnly == f2.xValue.dateOnly and f1.xValue == f2.xValue
             return f1.xValue == f2.xValue # required to handle date/time with 24 hrs.
         return f1.value == f2.value
     
@@ -1212,10 +1215,12 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         linkTypes = oimDocumentInfo.get("linkTypes", EMPTY_DICT)
         linkGroups = oimDocumentInfo.get("linkGroups", EMPTY_DICT)
         featuresDict = oimDocumentInfo.get("features", EMPTY_DICT)
+        documentInfoProperties = {"documentType", "features", "namespaces", "linkTypes", "linkGroups", "taxonomy", "baseURL"}
+        factProperties = {"decimals", "dimensions", "links", "value"}
         canonicalValuesFeature = False
         if isJSON:
             errPrefix = "xbrlje"
-            valErrPrefix = "oime"
+            valErrPrefix = "xbrlje"
             OIMReservedAliasURIs["namespaces"] = NSReservedAliasURIs.copy()
             OIMReservedAliasURIs["namespaces"].update(JSONNSReservedAliasURIs)
             OIMReservedURIAlias["namespaces"] = NSReservedURIAlias.copy()
@@ -1237,6 +1242,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             tables = oimObject.get("tables", EMPTY_DICT)
             footnotes = (oimObject.get("links", {}), )
             final = oimObject.get("final", EMPTY_DICT)
+            documentInfoProperties.add("extends")
+            documentInfoProperties.add("final")
             
         allowedDuplicatesFeature = ALL
         v = featuresDict.get("xbrl:allowedDuplicates")
@@ -1247,6 +1254,17 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 error("{}:invalidJSONStructure".format(errPrefix), 
                       _("The xbbrl:allowedDuplicates feature has an invalid value: %(value)s"),
                       value=v)
+                
+        # check extension properties
+        extensionProperties = dict((qn,val)
+                                   for qn,val in oimDocumentInfo.items()
+                                   if qn not in documentInfoProperties)
+        for extPropSQName in extensionProperties.keys():
+            extPropPrefix = extPropSQName.partition(":")[0]
+            if extPropPrefix not in namespaces:
+                error("oimce:unboundPrefix",
+                      _("The documentInfo extension property QName prefix was not defined in namespaces: %(extensionProperty)s."),
+                      modelObject=modelXbrl, extensionProperty=extPropSQName)
                     
         # check features
         for featureSQName, isActive in featuresDict.items():
@@ -1255,7 +1273,6 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 error("oimce:unboundPrefix",
                       _("The feature QName prefix was not defined in namespaces: %(feature)s."),
                       modelObject=modelXbrl, feature=featureSQName)
-                continue
 
         # check maps
         for alias, uris in NSReservedAliasURIs.items():
@@ -1850,7 +1867,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             elif dimConcept.isExplicitDimension:
                                 mem = qname(dimValue, namespaces)
                                 if mem is None:
-                                    error("oimce:invalidDimensionValue",
+                                    error("{}:invalidDimensionValue".format("oime" if isJSON else valErrPrefix),
                                           _("Taxonomy-defined explicit dimension value is invalid: %(memberQName)s at %(path)s"),
                                           modelObject=modelXbrl, memberQName=dimValue, path="/".join(pathSegs+(dimName,)))
                             elif dimConcept.isTypedDimension:
@@ -1984,6 +2001,17 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         
         for id, fact in factItems:
             factProduced.clear()
+            
+            # check fact's extension properties
+            extensionFactProperties = dict((qn,val)
+                                       for qn,val in fact.items()
+                                       if qn not in factProperties)
+            for extPropSQName in extensionFactProperties.keys():
+                extPropPrefix = extPropSQName.partition(":")[0]
+                if extPropPrefix not in namespaces:
+                    error("oimce:unboundPrefix",
+                          _("The fact extension property QName prefix was not defined in namespaces: %(extensionProperty)s."),
+                          modelObject=modelXbrl, extensionProperty=extPropSQName)
             
             dimensions = fact.get("dimensions", EMPTY_DICT)
             if "concept" not in dimensions:
@@ -2195,7 +2223,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             if dimConcept.isExplicitDimension:
                                 mem = qname(dimVal, namespaces)
                                 if mem is None:
-                                    error("{}:invalidDimensionValue".format(valErrPrefix),
+                                    error("{}:invalidDimensionValue".format("oime" if isJSON else valErrPrefix),
                                           _("Fact %(factId)s taxonomy-defined explicit dimension value is invalid: %(memberQName)s."),
                                           modelObject=modelXbrl, factId=id, memberQName=dimVal)
                                     continue
@@ -2203,7 +2231,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 # a modelObject xml element is needed for all of the instance functions to manage the typed dim
                                 if dimConcept.typedDomainElement.baseXsdType in ("ENTITY", "ENTITIES", "ID", "IDREF", "IDREFS", "NMTOKEN", "NMTOKENS", "NOTATION") or (
                                     dimConcept.typedDomainElement.type is not None and 
-                                    dimConcept.typedDomainElement.type.qname != qnXbrliDateItemType and
+                                    dimConcept.typedDomainElement.type.qname != XbrlConst.qnXbrliDateUnion and
                                     (dimConcept.typedDomainElement.type.localName == "complexType" or
                                      any(c.localName in ("union","list") for c in dimConcept.typedDomainElement.type.iterchildren()))):
                                     error("oime:unsupportedDimensionDataType",
@@ -2246,7 +2274,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         if len(modelXbrl.errors) > prevErrLen:
                             numFactCreationXbrlErrors += sum(err != "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:])
                             if any(err == "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:]):
-                                error("{}:invalidDimensionValue".format(valErrPrefix),
+                                error("{}:invalidDimensionValue".format("oime" if isJSON else valErrPrefix),
                                       _("Fact %(factId)s taxonomy-defined dimension value errors noted above."),
                                       modelObject=modelXbrl, factId=id)
                                 continue
@@ -2327,14 +2355,21 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         
                 if fact.get("value") is None:
                     if not concept.isNillable:
-                        error("{}:invalidFactValue".format(valErrPrefix),
+                        error("{}:invalidFactValue".format("oime" if isJSON else valErrPrefix),
                               _("Nil value applied to non-nillable concept: %(concept)s."),
                               modelObject=modelXbrl, concept=conceptSQName)
                         continue
                     attrs[XbrlConst.qnXsiNil] = "true"
                     text = None
                 elif concept.isEnumeration2Item:
-                    qnames = fact["value"].split(" ")
+                    text = fact["value"]
+                    if concept.instanceOfType(XbrlConst.qnEnumerationSetItemType2020):
+                        if len(text):
+                            qnames = text.split(" ")
+                        else:
+                            qnames = () # empty enumerations set
+                    else: # single value may be a QName with whitespaces
+                        qnames = (text.strip(),)
                     expandedNames = set()
                     if canonicalValuesFeature and not all(qnames[i] < qnames[i+1] for i in range(len(qnames)-1)):
                         error("xbrlje:nonCanonicalValue",
@@ -2347,7 +2382,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         else:
                             _qname = qname(qn, namespaces)
                             if not _qname:
-                                isFactValid = False
+                                error("oimce:unboundPrefix",
+                                      _("Enumeration item QName prefix was not defined in namespaces, %(qname)s: %(concept)s."),
+                                      modelObject=modelXbrl, concept=conceptSQName, qname=qn)
+                                continue
                             else:
                                 expandedNames.add(_qname.expandedName)
                     if isFactValid:

@@ -6,7 +6,7 @@ Created on Nov 26, 2010
 '''
 import xml.dom.minidom, math
 from arelle import XbrlConst, XmlUtil
-from arelle.ModelValue import qname, QName
+from arelle.ModelValue import qname, QName, DateTime
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.XmlValidate import UNKNOWN, VALID, VALID_ID, validate as xmlValidate
 
@@ -151,6 +151,8 @@ def xEqual(elt1, elt2, equalMode=S_EQUAL):
     elif equalMode == S_EQUAL: # formula WG e-mail 2018-09-06: or (equalMode == S_EQUAL2 and not isinstance(elt1.sValue, QName)):
         return elt1.sValue == elt2.sValue
     else: # includes dimension S-equal2, use xpath-2 equality.
+        if isinstance(elt1.xValue, DateTime) and isinstance(elt2.xValue, DateTime) and elt1.xValue.dateOnly != elt2.xValue.dateOnly:
+            return False
         return elt1.xValue == elt2.xValue
     
 def vEqual(elt1, elt2):
