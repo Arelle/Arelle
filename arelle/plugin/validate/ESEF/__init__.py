@@ -45,7 +45,7 @@ from arelle.XbrlConst import (ixbrl11, xhtml, link, parentChild, summationItem, 
                               qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote, iso17442)
 from arelle.XmlValidate import VALID
 from arelle.ValidateUtr import ValidateUtr
-from .Const import (browserMaxBase64ImageLength, mandatory, untransformableTypes, outdatedTaxonomyURLs, esefTaxonomyURLs,
+from .Const import (browserMaxBase64ImageLength, mandatory, untransformableTypes, outdatedTaxonomyURLs, esefTaxonomyURLs, esefFormulaMessagesURLs,
                     esefPrimaryStatementPlaceholderNames, esefStatementsOfMonetaryDeclarationNames, esefMandatoryElementNames2020)
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
@@ -96,6 +96,15 @@ def modelXbrlLoadComplete(modelXbrl):
             modelXbrl.error("ESEF.RTS.Art.6.a.noInlineXbrlTags",
                             _("RTS on ESEF requires inline XBRL, no facts were reported."),
                             modelObject=modelXbrl)
+        # add in formula messages if not loaded
+        for docUrl in modelXbrl.urlDocs:
+            if docUrl in esefFormulaMessagesURLs and esefFormulaMessagesURLs[docUrl] not in modelXbrl.urlDocs:
+                priorValidateDisclosureSystem = modelXbrl.modelManager.validateDisclosureSystem
+                modelXbrl.modelManager.validateDisclosureSystem = False
+                ModelDocument.load(modelXbrl,esefFormulaMessagesURLs[docUrl],isSupplemental=True)
+                modelXbrl.modelManager.validateDisclosureSystem = priorValidateDisclosureSystem
+                modelXbrl.relationshipSets.clear() # relationships have to be re-cached
+                break
 
 def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateESEFplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "ESEFplugin", False)
