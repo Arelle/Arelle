@@ -142,6 +142,7 @@ class FormulaOptions():
         self.traceSatisfiedAssertions = False
         self.errorUnsatisfiedAssertions = False
         self.traceUnsatisfiedAssertions = False
+        self.traceUnmessagedUnsatisfiedAssertions = False
         self.traceFormulaRules = False
         self.traceVariablesDependencies = False
         self.traceVariablesOrder = False

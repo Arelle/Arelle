@@ -270,7 +270,7 @@ def checkFormulaXPathCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwar
         
 
         
-def validateFormulaCompiled(modelXbrl):
+def validateFormulaCompiled(modelXbrl, xpathContext):
     if getattr(modelXbrl, "checkFormulaRestrictedXPath", True): # true allows it to always work for GUI
         try: 
             FormulaXPathChecker(modelXbrl)

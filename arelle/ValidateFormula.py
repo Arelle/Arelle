@@ -838,7 +838,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
 
     val.modelXbrl.profileStat(_("formulaValidation"))
     for pluginXbrlMethod in pluginClassMethods("ValidateFormula.Compiled"):
-        pluginXbrlMethod(val.modelXbrl)
+        pluginXbrlMethod(val.modelXbrl, xpathContext)
         
     if (initialErrorCount < val.modelXbrl.logCount.get(logging._checkLevel('ERROR'), 0) or
         compileOnly or 

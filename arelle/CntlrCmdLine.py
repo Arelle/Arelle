@@ -252,6 +252,8 @@ def parseAndRun(args):
     parser.add_option("--formulaunsatisfiedasser", action="store_true", dest="formulaUnsatisfiedAsser", help=SUPPRESS_HELP)
     parser.add_option("--formulaUnsatisfiedAsserError", action="store_true", dest="formulaUnsatisfiedAsserError", help=_("Specify formula tracing."))
     parser.add_option("--formulaunsatisfiedassererror", action="store_true", dest="formulaUnsatisfiedAsserError", help=SUPPRESS_HELP)
+    parser.add_option("--formulaUnmessagedUnsatisfiedAsser", action="store_true", dest="formulaUnmessagedUnsatisfiedAsser", help=_("Specify trace messages for unsatisfied assertions with no formula messages."))
+    parser.add_option("--formulaunmessagedunsatisfiedasser", action="store_true", dest="formulaUnmessagedUnsatisfiedAsser", help=SUPPRESS_HELP)
     parser.add_option("--formulaFormulaRules", action="store_true", dest="formulaFormulaRules", help=_("Specify formula tracing."))
     parser.add_option("--formulaformularules", action="store_true", dest="formulaFormulaRules", help=SUPPRESS_HELP)
     parser.add_option("--formulaVarsOrder", action="store_true", dest="formulaVarsOrder", help=_("Specify formula tracing."))
@@ -801,6 +803,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.traceUnsatisfiedAssertions = True
         if options.formulaUnsatisfiedAsserError:
             fo.errorUnsatisfiedAssertions = True
+        if options.formulaUnmessagedUnsatisfiedAsser:
+            fo.traceUnmessagedUnsatisfiedAssertions = True
         if options.formulaFormulaRules:
             fo.traceFormulaRules = True
         if options.formulaVarsOrder:
