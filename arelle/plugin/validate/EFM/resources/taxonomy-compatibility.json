@@ -55,6 +55,6 @@
         "us-gaap/2021": ["srt/2021", "future-ifrs/2021", "@stx-2021"],
         "ifrs/2019": ["srt/2019", "srt/2020", "@stx-to-2020"],
         "ifrs/2020": ["srt/2020", "@stx-to-2020"],
-        "future-ifrs/2021": ["srt/2021", "@stx-2021"]
+        "ifrs/2021": ["srt/2021", "@stx-2021"]
     }
 }
