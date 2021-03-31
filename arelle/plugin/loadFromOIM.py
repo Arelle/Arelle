@@ -324,6 +324,7 @@ CsvMemberTypes = {
     "/dimensions": dict,
     "/decimals": (int,str),
     "/links": dict,
+    "/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck), # custom extensions
     # documentInfo
     "/documentInfo/baseURL": URIType,
     "/documentInfo/documentType": str,
@@ -340,6 +341,7 @@ CsvMemberTypes = {
     "/documentInfo/taxonomy/": str,
     "/documentInfo/extends": list,
     "/documentInfo/extends/": URIType,
+    "/documentInfo/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck), # custom extensions
     # documentInfo/final
     "/documentInfo/final/namespaces": bool,
     "/documentInfo/final/taxonomy": bool,
@@ -358,6 +360,7 @@ CsvMemberTypes = {
     "/tableTemplates/*/columns": dict,
     "/tableTemplates/*/decimals": (int,str),
     "/tableTemplates/*/dimensions": dict,
+    "/tableTemplates/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck), # custom extensions
     "/tableTemplates/*/dimensions/concept": str,
     "/tableTemplates/*/dimensions/entity": str,
     "/tableTemplates/*/dimensions/period": str,
@@ -371,6 +374,7 @@ CsvMemberTypes = {
     "/tableTemplates/*/columns/*/comment": bool,
     "/tableTemplates/*/columns/*/decimals": (int,str),
     "/tableTemplates/*/columns/*/dimensions": dict,
+    "/tableTemplates/*/columns/*/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck), # custom extensions
     # dimensions (column)
     "/tableTemplates/*/columns/*/dimensions/concept": str,
     "/tableTemplates/*/columns/*/dimensions/entity": str,
@@ -409,6 +413,7 @@ CsvMemberTypes = {
     "/tables/*/optional": bool,
     "/tables/*/parameters": dict,
     "/tables/*/parameters/*": (str, int),
+    "/tables/*/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck), # custom extensions
     # links 
     "/links/*": dict,
     # link group
@@ -1014,7 +1019,6 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     shortObjStr = "{:.32}...".format(shortObjStr)
                 return "/{}={}".format("/".join(str(p) for p in parts), shortObjStr) 
             def checkMemberTypes(obj, path, pathParts):
-                checkNestedMembers = True
                 if (isinstance(obj,dict)):
                     for missingMbr in oimRequiredMembers.get(path,EMPTY_SET) - obj.keys():
                         missingRequiredMembers.append(path + missingMbr)
@@ -1037,7 +1041,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             if not (QNamePattern.match(mbrName) and isinstance(mbrObj, _mbrTypes)):
                                 invalidMemberTypes.append(showPathObj(pathParts, mbrObj))
                             elif isinstance(_mbrTypes,tuple) and NoRecursionCheck in _mbrTypes:
-                                checkNestedMembers = False # custom types, block recursive check
+                                continue # custom types, block recursive check
                             mbrPath = path + "*.*" # for recursion
                         elif path + "*" in oimMemberTypes:
                             mbrTypes = oimMemberTypes[path + "*"]
@@ -1047,7 +1051,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             mbrPath = path + "*" # for recursion
                         else:
                             unexpectedMembers.append(showPathObj(pathParts, mbrObj))
-                        if isinstance(mbrObj, (dict,list)) and checkNestedMembers:
+                        if isinstance(mbrObj, (dict,list)):
                             checkMemberTypes(mbrObj, mbrPath + "/", pathParts)
                         pathParts.pop() # remove mbrName
                 if (isinstance(obj,list)):
@@ -1216,6 +1220,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         linkGroups = oimDocumentInfo.get("linkGroups", EMPTY_DICT)
         featuresDict = oimDocumentInfo.get("features", EMPTY_DICT)
         documentInfoProperties = {"documentType", "features", "namespaces", "linkTypes", "linkGroups", "taxonomy", "baseURL"}
+        oimObjectProperties = {}
         factProperties = {"decimals", "dimensions", "links", "value"}
         canonicalValuesFeature = False
         if isJSON:
@@ -1244,6 +1249,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             final = oimObject.get("final", EMPTY_DICT)
             documentInfoProperties.add("extends")
             documentInfoProperties.add("final")
+            reportProperties = {"documentInfo", "tableTemplates", "tables", "parameters", "parameterURL", "dimensions", "decimals", "links"}
+            columnProperties = {"comment", "decimals", "dimensions", "propertyGroups", "parameterURL", "propertiesFrom"}
             
         allowedDuplicatesFeature = ALL
         v = featuresDict.get("xbrl:allowedDuplicates")
@@ -1256,10 +1263,21 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                       value=v)
                 
         # check extension properties
-        extensionProperties = dict((qn,val)
+        if not isJSON:
+            extensionReportProperties = dict((qn,val)
+                                   for qn,val in oimObject.items()
+                                   if qn not in reportProperties)
+            for extPropSQName in extensionReportProperties.keys():
+                extPropPrefix = extPropSQName.partition(":")[0]
+                if extPropPrefix not in namespaces:
+                    error("oimce:unboundPrefix",
+                          _("The report extension property QName prefix was not defined in namespaces: %(extensionProperty)s."),
+                          modelObject=modelXbrl, extensionProperty=extPropSQName)
+
+        extensionDocInfoProperties = dict((qn,val)
                                    for qn,val in oimDocumentInfo.items()
                                    if qn not in documentInfoProperties)
-        for extPropSQName in extensionProperties.keys():
+        for extPropSQName in extensionDocInfoProperties.keys():
             extPropPrefix = extPropSQName.partition(":")[0]
             if extPropPrefix not in namespaces:
                 error("oimce:unboundPrefix",
@@ -1321,6 +1339,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         propertiesFrom = {}
                         dimensionsColumns = set()
                         commentColumns = set()
+                        extensionColumnProperties = defaultdict(dict)
                         for colId, colProperties in tableTemplate["columns"].items():
                             isCommentColumn = colProperties.get("comment") == True
                             if isCommentColumn:
@@ -1337,6 +1356,15 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             isPropertyGroupColumn = "propertyGroups" in colProperties
                             if isPropertyGroupColumn:
                                 propertyGroups[colId] = colProperties["propertyGroups"]
+                            for extPropSQName, prop in colProperties.items():
+                                if extPropSQName not in columnProperties:
+                                    extPropPrefix = extPropSQName.partition(":")[0]
+                                    if extPropPrefix not in namespaces:
+                                        error("oimce:unboundPrefix", 
+                                              _("Table %(table)s extension property QName prefix was not defined in namespaces: %(extensionProperty)s."),
+                                              table=tableId, extensionProperty=extPropSQName)
+                                    else:
+                                        extensionColumnProperties[colId][extPropSQName] = prop
                         # check table parameters
                         tableParameterReferenceNames = set()
                         def checkParamRef(paramValue, factColName=None, dimName=None):
@@ -1600,6 +1628,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     if cellPropGroup:
                                         for propFromColName in propFromColNames:
                                             rowPropGroupsUsed.add(propFromColName)
+                                    if colName in extensionColumnProperties: # merge extension properties to fact
+                                        fact.update(extensionColumnProperties[colName])
                                     fact["value"] = cellValue
                                     fact["dimensions"] = colFactDims = {}
                                     noValueDimNames = set()
@@ -1780,7 +1810,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
 
             def checkSQName(sqname, *pathSegs):
                 if not SQNamePattern.match(sqname):
-                    error("xbrlce:invalidSQName",
+                    error("oimce:invalidSQName",
                           _("Invalid SQName: %(sqname)s"),
                           sourceFileLine=oimFile, sqname=sqname, path="/".join(pathSegs))
                     return False
@@ -1879,7 +1909,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                           _("Taxonomy-defined typed dimension value is complex: %(memberQName)s at %(path)s"),
                                           modelObject=modelXbrl, memberQName=dimValue, path="/".join(pathSegs+(dimName,)))
                 if pathSegs[-1] in ("/dimensions", "dimensions") and not DimensionsKeyPattern.match(dimName):
-                    error("xbrlce:invalidSQName",
+                    error("oimce:invalidSQName",
                           _("Invalid SQName: %(sqname)s"),
                           sourceFileLine=oimFile, sqname=dimName, path="/".join(pathSegs))
             
@@ -2138,7 +2168,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 if entitySQName is not None and entitySQName is not NONE_CELL:
                     factProduced.dimensionsUsed.add("entity")
                     if not SQNamePattern.match(entitySQName):
-                        error("xbrlce:invalidSQName",
+                        error("oimce:invalidSQName",
                               _("Entity has an invalid value: %(entity)s."),
                               modelObject=modelXbrl, entity=entitySQName)
                         continue
