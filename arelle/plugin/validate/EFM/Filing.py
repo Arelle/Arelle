@@ -631,6 +631,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 edgarCode="cp-0524-Registrant-Name-Mismatch",
                                 modelObject=deiFilerNameFact, elementName=disclosureSystem.deiFilerNameElement,
                                 prefix=prefix, value=value)
+                            
+        if isEFM and disclosureSystem.deiNamespacePattern is not None and deiNamespaceURI is None:
+            modelXbrl.error("EFM.6.05.20.deiFactsMissing",
+                _("DEI facts are missing."),
+                edgarCode="dq-{efmSection}-{tag}-Missing",
+                modelObject=modelXbrl, subType=submissionType, efmSection="0520", severityVerb="must", tag="DEI-Facts", context="Required Context")
                         
         val.modelXbrl.profileActivity("... filer fact checks", minTimeToShow=1.0)
 

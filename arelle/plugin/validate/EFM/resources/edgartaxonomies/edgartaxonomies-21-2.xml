@@ -434,16 +434,6 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 	<Loc>
 		<Family>US GAAP</Family>
 		<Version>2020</Version>
-		<Href>https://xbrl.sec.gov/sic/2011/sic-2011-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/sic/2011-01-31</Namespace>
-		<Prefix>sic</Prefix>
-	</Loc>
-	<Loc>
-		<Family>US GAAP</Family>
-		<Version>2020</Version>
 		<Href>https://xbrl.sec.gov/naics/2017/naics-2017-01-31.xsd</Href>
 		<AttType>SCH</AttType>
 		<FileTypeName>Schema</FileTypeName>
@@ -459,16 +449,6 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<FileTypeName>Schema</FileTypeName>
 		<Elements>1</Elements>
 		<Namespace>http://xbrl.sec.gov/exch/2020-01-31</Namespace>
-		<Prefix>exch</Prefix>
-	</Loc>
-	<Loc>
-		<Family>US GAAP</Family>
-		<Version>2020</Version>
-		<Href>https://xbrl.sec.gov/exch/2019/exch-2019-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/exch/2019-01-31</Namespace>
 		<Prefix>exch</Prefix>
 	</Loc>
 	<Loc>
@@ -499,16 +479,6 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<FileTypeName>Schema</FileTypeName>
 		<Elements>1</Elements>
 		<Namespace>http://xbrl.sec.gov/country/2020-01-31</Namespace>
-		<Prefix>country</Prefix>
-	</Loc>
-	<Loc>
-		<Family>US GAAP</Family>
-		<Version>2020</Version>
-		<Href>https://xbrl.sec.gov/country/2017/country-2017-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/country/2017-01-31</Namespace>
 		<Prefix>country</Prefix>
 	</Loc>
 	<Loc>
@@ -708,16 +678,6 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 	<Loc>
 		<Family>IFRS</Family>
 		<Version>2020</Version>
-		<Href>https://xbrl.sec.gov/sic/2011/sic-2011-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/sic/2011-01-31</Namespace>
-		<Prefix>sic</Prefix>
-	</Loc>
-	<Loc>
-		<Family>IFRS</Family>
-		<Version>2020</Version>
 		<Href>https://xbrl.sec.gov/naics/2017/naics-2017-01-31.xsd</Href>
 		<AttType>SCH</AttType>
 		<FileTypeName>Schema</FileTypeName>
@@ -733,16 +693,6 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<FileTypeName>Schema</FileTypeName>
 		<Elements>1</Elements>
 		<Namespace>http://xbrl.sec.gov/exch/2020-01-31</Namespace>
-		<Prefix>exch</Prefix>
-	</Loc>
-	<Loc>
-		<Family>IFRS</Family>
-		<Version>2020</Version>
-		<Href>https://xbrl.sec.gov/exch/2019/exch-2019-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/exch/2019-01-31</Namespace>
 		<Prefix>exch</Prefix>
 	</Loc>
 	<Loc>
@@ -773,16 +723,6 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<FileTypeName>Schema</FileTypeName>
 		<Elements>1</Elements>
 		<Namespace>http://xbrl.sec.gov/country/2020-01-31</Namespace>
-		<Prefix>country</Prefix>
-	</Loc>
-	<Loc>
-		<Family>IFRS</Family>
-		<Version>2020</Version>
-		<Href>http://xbrl.sec.gov/country/2017/country-2017-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/country/2017-01-31</Namespace>
 		<Prefix>country</Prefix>
 	</Loc>
 	<Loc>
@@ -891,16 +831,6 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 	<Loc>
 		<Family>IFRS</Family>
 		<Version>2019</Version>
-		<Href>https://xbrl.sec.gov/sic/2011/sic-2011-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/sic/2011-01-31</Namespace>
-		<Prefix>sic</Prefix>
-	</Loc>
-	<Loc>
-		<Family>IFRS</Family>
-		<Version>2019</Version>
 		<Href>https://xbrl.sec.gov/naics/2017/naics-2017-01-31.xsd</Href>
 		<AttType>SCH</AttType>
 		<FileTypeName>Schema</FileTypeName>
@@ -916,16 +846,6 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<FileTypeName>Schema</FileTypeName>
 		<Elements>1</Elements>
 		<Namespace>http://xbrl.sec.gov/exch/2020-01-31</Namespace>
-		<Prefix>exch</Prefix>
-	</Loc>
-	<Loc>
-		<Family>IFRS</Family>
-		<Version>2019</Version>
-		<Href>https://xbrl.sec.gov/exch/2019/exch-2019-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/exch/2019-01-31</Namespace>
 		<Prefix>exch</Prefix>
 	</Loc>
 	<Loc>
@@ -956,16 +876,6 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<FileTypeName>Schema</FileTypeName>
 		<Elements>1</Elements>
 		<Namespace>http://xbrl.sec.gov/country/2020-01-31</Namespace>
-		<Prefix>country</Prefix>
-	</Loc>
-	<Loc>
-		<Family>IFRS</Family>
-		<Version>2019</Version>
-		<Href>http://xbrl.sec.gov/country/2017/country-2017-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/country/2017-01-31</Namespace>
 		<Prefix>country</Prefix>
 	</Loc>
 	<Loc>
@@ -1176,16 +1086,6 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 	<Loc>
 		<Family>RR</Family>
 		<Version>2018</Version>
-		<Href>http://xbrl.sec.gov/country/2017/country-2017-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/country/2017-01-31</Namespace>
-		<Prefix>country</Prefix>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2018</Version>
 		<Href>https://xbrl.sec.gov/dei/2020/dei-std-2020-01-31.xsd</Href>
 		<AttType>SCH</AttType>
 		<FileTypeName>Entry Point</FileTypeName>
@@ -1234,193 +1134,6 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<Href>https://xbrl.sec.gov/dei/2020/dei-def-2020-01-31.xml</Href>
 		<AttType>DEF</AttType>
 		<FileTypeName>Definition, Dimensions</FileTypeName>
-		<Elements>0</Elements>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>https://xbrl.sec.gov/dei/2020/dei-2020-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/dei/2020-01-31</Namespace>
-		<Prefix>dei</Prefix>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>http://xbrl.sec.gov/rr/2012/rr-2012-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/rr/2012-01-31</Namespace>
-		<Prefix>rr</Prefix>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>http://xbrl.sec.gov/naics/2011/naics-2011-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/naics/2011-01-31</Namespace>
-		<Prefix>naics</Prefix>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>http://xbrl.sec.gov/dei/2012/dei-2012-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/dei/2012-01-31</Namespace>
-		<Prefix>dei</Prefix>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>https://xbrl.sec.gov/currency/2020/currency-2020-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/currency/2020-01-31</Namespace>
-		<Prefix>currency</Prefix>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>https://xbrl.sec.gov/country/2020/country-2020-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/country/2020-01-31</Namespace>
-		<Prefix>country</Prefix>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>http://xbrl.sec.gov/country/2017/country-2017-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/country/2017-01-31</Namespace>
-		<Prefix>country</Prefix>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>https://xbrl.sec.gov/dei/2020/dei-std-2020-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Entry Point</FileTypeName>
-		<Elements>0</Elements>
-		<Namespace>http://xbrl.sec.gov/dei-std/2020-01-31</Namespace>
-		<Prefix>dei-std</Prefix>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>https://xbrl.sec.gov/dei/2020/dei-ent-std-2020-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Entry Point</FileTypeName>
-		<Elements>0</Elements>
-		<Namespace>http://xbrl.sec.gov/dei-ent-std/2020-01-31</Namespace>
-		<Prefix>dei-ent-std</Prefix>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>http://xbrl.sec.gov/rr/2012/rr-pre-2012-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Entry Point</FileTypeName>
-		<Elements>0</Elements>
-		<Namespace>http://xbrl.sec.gov/rr-pre/2012-01-31</Namespace>
-		<Prefix>rr-pre</Prefix>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>http://xbrl.sec.gov/rr/2012/rr-ent-2012-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Entry Point</FileTypeName>
-		<Elements>0</Elements>
-		<Namespace>http://xbrl.sec.gov/rr-ent/2012-01-31</Namespace>
-		<Prefix>rr-ent</Prefix>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>http://xbrl.sec.gov/rr/2012/rr-def-2012-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Entry Point</FileTypeName>
-		<Elements>0</Elements>
-		<Namespace>http://xbrl.sec.gov/rr-def/2012-01-31</Namespace>
-		<Prefix>rr-def</Prefix>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>http://xbrl.sec.gov/rr/2012/rr-cal-2012-01-31.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Entry Point</FileTypeName>
-		<Elements>0</Elements>
-		<Namespace>http://xbrl.sec.gov/rr-cal/2012-01-31</Namespace>
-		<Prefix>rr-cal</Prefix>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>http://www.xbrl.org/lrr/role/negated-2009-12-16.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Roles/Arcroles</FileTypeName>
-		<Elements>0</Elements>
-		<Namespace>http://www.xbrl.org/2009/role/negated</Namespace>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>https://xbrl.sec.gov/dei/2020/dei-pre-2020-01-31.xml</Href>
-		<AttType>PRE</AttType>
-		<FileTypeName>Presentation</FileTypeName>
-		<Elements>0</Elements>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>http://xbrl.sec.gov/rr/2012/rr-pre-2012-01-31.xml</Href>
-		<AttType>PRE</AttType>
-		<FileTypeName>Presentation</FileTypeName>
-		<Elements>0</Elements>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>https://xbrl.sec.gov/dei/2020/dei-lab-2020-01-31.xml</Href>
-		<AttType>LAB</AttType>
-		<FileTypeName>Label</FileTypeName>
-		<Elements>0</Elements>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>https://xbrl.sec.gov/dei/2020/dei-def-2020-01-31.xml</Href>
-		<AttType>DEF</AttType>
-		<FileTypeName>Definition, Dimensions</FileTypeName>
-		<Elements>0</Elements>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>http://xbrl.sec.gov/rr/2012/rr-def-2012-01-31.xml</Href>
-		<AttType>DEF</AttType>
-		<FileTypeName>Definition, Dimensions</FileTypeName>
-		<Elements>0</Elements>
-	</Loc>
-	<Loc>
-		<Family>RR</Family>
-		<Version>2012</Version>
-		<Href>http://xbrl.sec.gov/rr/2012/rr-cal-2012-01-31.xml</Href>
-		<AttType>CAL</AttType>
-		<FileTypeName>Calculation</FileTypeName>
 		<Elements>0</Elements>
 	</Loc>
 	<Loc>
