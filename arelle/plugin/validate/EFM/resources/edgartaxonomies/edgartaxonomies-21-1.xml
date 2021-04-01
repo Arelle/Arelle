@@ -78,36 +78,6 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 	<Loc>
 		<Family>US GAAP</Family>
 		<Version>2021</Version>
-		<Href>https://xbrl.sec.gov/exch/2021/exch-2021_lab.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/exch-lab/2021</Namespace>
-		<Prefix>exch-lab</Prefix>
-	</Loc>
-	<Loc>
-		<Family>US GAAP</Family>
-		<Version>2021</Version>
-		<Href>https://xbrl.sec.gov/exch/2021/exch-2021_pre.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/exch-pre/2021</Namespace>
-		<Prefix>exch-pre</Prefix>
-	</Loc>
-	<Loc>
-		<Family>US GAAP</Family>
-		<Version>2021</Version>
-		<Href>https://xbrl.sec.gov/exch/2021/exch-2021_def.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/exch-def/2021</Namespace>
-		<Prefix>exch-def</Prefix>
-	</Loc>
-	<Loc>
-		<Family>US GAAP</Family>
-		<Version>2021</Version>
 		<Href>https://xbrl.sec.gov/sic/2021/sic-2021.xsd</Href>
 		<AttType>SCH</AttType>
 		<FileTypeName>Schema</FileTypeName>
