@@ -6,7 +6,7 @@ Created on Oct 17, 2010
 '''
 import os, sys, traceback, re
 from arelle import (ModelXbrl, XmlUtil, ModelVersReport, XbrlConst, ModelDocument, 
-               ValidateXbrl, ValidateFiling, ValidateVersReport, ValidateFormula)
+               ValidateXbrl, ValidateFormula)
 from arelle.FileSource import openFileSource
 from arelle.ModelValue import (qname, QName)
 from arelle.PluginManager import pluginClassMethods
