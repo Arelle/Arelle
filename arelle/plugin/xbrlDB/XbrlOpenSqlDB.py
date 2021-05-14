@@ -226,7 +226,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             if mdlDoc.type in (Type.INSTANCE, Type.INLINEXBRL):
                 instanceDocuments.add(mdlDoc)
                 for refDoc, ref in mdlDoc.referencesDocument.items():
-                    if refDoc.inDTS and ref.referenceTypes * {"href", "import", "include"}:
+                    if refDoc.inDTS and ref.referenceTypes & {"href", "import", "include"}:
                         instanceReferencedDocuments.add(refDoc)
             elif mdlDoc.type == Type.INLINEXBRLDOCUMENTSET:
                 inlineXbrlDocSet = mdlDoc
