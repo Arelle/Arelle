@@ -29,7 +29,7 @@ ix facts and resources with no @target attribute.
 
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import FileSource, ModelXbrl, ValidateXbrlDimensions, XbrlConst
+from arelle import DialogURL, FileSource, ModelXbrl, ValidateXbrlDimensions, XbrlConst
 from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
 from arelle.FileSource import archiveFilenameParts
 from arelle.ModelInstanceObject import ModelInlineFootnote
@@ -117,7 +117,7 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
         _firstdoc = True
         for elt in ixdocset.xmlRootElement.iter(tag="instance"):
             # load ix document
-            ixdoc = load(modelXbrl, elt.text, referringElement=elt)
+            ixdoc = load(modelXbrl, elt.text, referringElement=elt, isDiscovered=True)
             if ixdoc is not None and ixdoc.type == Type.INLINEXBRL:
                 # set reference to ix document in document set surrogate object
                 referencedDocument = ModelDocumentReference("inlineDocument", elt)
@@ -320,9 +320,12 @@ def discoverInlineXbrlDocumentSet(modelDocument, *args, **kwargs):
 
 def fileOpenMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
-    menu.insert_command(2, label="Open Inline Doc Set", 
+    menu.insert_command(2, label="Open Web Inline Doc Set", 
                         underline=0, 
-                        command=lambda: runOpenInlineDocumentSetMenuCommand(cntlr, runInBackground=True) )
+                        command=lambda: runOpenWebInlineDocumentSetMenuCommand(cntlr, runInBackground=True) )
+    menu.insert_command(2, label="Open File Inline Doc Set", 
+                        underline=0, 
+                        command=lambda: runOpenFileInlineDocumentSetMenuCommand(cntlr, runInBackground=True) )
 
 def saveTargetDocumentMenuEntender(cntlr, menu, *args, **kwargs):
     # Extend menu with an item for the savedts plugin
@@ -330,13 +333,21 @@ def saveTargetDocumentMenuEntender(cntlr, menu, *args, **kwargs):
                      underline=0, 
                      command=lambda: runSaveTargetDocumentMenuCommand(cntlr, runInBackground=True) )
 
-def runOpenInlineDocumentSetMenuCommand(cntlr, runInBackground=False, saveTargetFiling=False):
+def runOpenFileInlineDocumentSetMenuCommand(cntlr, runInBackground=False, saveTargetFiling=False):
     filenames = cntlr.uiFileDialog("open",
                                    multiple=True,
                                    title=_("arelle - Multi-open inline XBRL file(s)"),
                                    initialdir=cntlr.config.setdefault("fileOpenDir","."),
                                    filetypes=[(_("XBRL files"), "*.*")],
                                    defaultextension=".xbrl")
+    runOpenInlineDocumentSetMenuCommand(cntlr, filenames, runInBackground, saveTargetFiling)
+    
+def runOpenWebInlineDocumentSetMenuCommand(cntlr, runInBackground=False, saveTargetFiling=False):
+    url = DialogURL.askURL(cntlr.parent, buttonSEC=True, buttonRSS=True)
+    if url:
+        runOpenInlineDocumentSetMenuCommand(cntlr, [url], runInBackground, saveTargetFiling)
+
+def runOpenInlineDocumentSetMenuCommand(cntlr, filenames, runInBackground=False, saveTargetFiling=False):
     if os.sep == "\\":
         filenames = [f.replace("/", "\\") for f in filenames]
 
