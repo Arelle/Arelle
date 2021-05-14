@@ -8,6 +8,10 @@ echo DO_CODESIGN=$DO_CODESIGN
 echo IDENTAPP="$IDENTAPP"
 echo IDENTPKG="$IDENTPKG"
 
+PYTHON=python3.9 # built-in framework accessed via /usr/local/bin
+# PYTHON=$HOME/Python39/bin/$PYTHON
+# export LD_LIBRARY_PATH=$HOME/Python39/lib
+
 # remove old build
 /bin/rm -rf build/*.app build/lib build/exe.macos* build/*.dmg build/*.command
 /bin/rm -rf dist_dmg/arelle-macOS*
@@ -15,16 +19,16 @@ echo IDENTPKG="$IDENTPKG"
 /bin/rm -rf dist_dmg/*.dmg
 
 # set the build date in version.py
-python3.9 buildVersion.py
+$PYTHON buildVersion.py
 
 # Regenerate messages catalog (doc/messagesCatalog.xml)
-python3.9 generateMessagesCatalog.py
+$PYTHON generateMessagesCatalog.py
 
 # create new app
-python3.9 setup.py bdist_mac
+$PYTHON setup.py bdist_mac
 
 # 3.9 patches
-cp -r /Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/pycountry-20.7.3-py3.9.egg-info build/Arelle.app/Contents/MacOS/lib
+#cp -r /Library/Frameworks/Python.framework/Versions/3.9/lib/$PYTHON/site-packages/pycountry-20.7.3-py3.9.egg-info build/Arelle.app/Contents/MacOS/lib
 cp -r /Library/Frameworks/Python.framework/Versions/3.9/lib/tcl8.6 build/Arelle.app/Contents/MacOS
 cp -r /Library/Frameworks/Python.framework/Versions/3.9/lib/tk8.6 build/Arelle.app/Contents/MacOS
 rm -fr build/Arelle.app/Contents/MacOS/lib/arelle/plugin build/Arelle.app/Contents/MacOS/lib/arelle/config build/Arelle.app/Contents/MacOS/lib/arelle/images

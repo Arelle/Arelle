@@ -3,24 +3,28 @@ Created on Jan 30, 2011
 
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
+
+  pip3.9 or python3.9 -m pip (followed by install below)
+    >> windows only may need install wheel
+  install lxml pg8000 pymysql pyodbc
+    >> windows only install cx_Oracle
+  install numpy matplotlib
+  install rdflib
+  install isodate regex aniso8601 graphviz holidays openpyxl Pillow 
+  install pycrypto
+  install cx_freeze cherrypy cheroot tornado
+  pip install --no-cache --use-pep517 pycountry
+  
+  may need to reinstall pycountry to get pep517 format
+  install pycountry: pip uninstall -y pycountry ; pip install --no-cache --use-pep517 pycountry
+
+to install pycrypto on windows: https://www.dariawan.com/tutorials/python/python-3-install-pycrypto-windows/
+
 """
 import sys
 import os
 import datetime
 from distutils.command.build_py import build_py as _build_py
-
-# building pycrypto on windows see https://www.dariawan.com/tutorials/python/python-3-install-pycrypto-windows/
-# 1. C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC>vcvarsall.bat
-# 2. set CL=-FI"%VCINSTALLDIR%\INCLUDE\stdint.h"
-# 3. pip install pycrypto
-
-# pip installation of needed libraries:
-# pip3 install lxml pg8000 pymysql numpy rdflib isodate
-# windows pip3 install cx-oracle
-# pip3 install regex aniso8601 graphviz holidays openpyxl pillow pycountry
-# pip3 install pycrypto
-# pip3 install cherrypy cheroot py-dateutil tornado pyparsing matplotlib
-# pip3 install cx-freeze
 
 
 def get_version():
@@ -48,7 +52,7 @@ setup_requires = ['lxml'] # ,'Crypto.Cipher']
 # this also allows installation directly from the github repository 
 # (using 'pip install -e git+git://github.com/rheimbuchArelle.git#egg=Arelle') 
 # and the install_requires packages are auto-installed as well.
-install_requires = ['lxml', 'isodate', 'openpyxl']
+install_requires = ['lxml', 'isodate', 'openpyxl'] # , 'pycountry']
 options = {}
 scripts = []
 cxFreezeExecutables = []
@@ -215,7 +219,7 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
     try:
         from cx_Freeze import setup, Executable  
         cx_FreezeExecutables = [ 
-            Executable(script="arelleGUI.pyw", targetName="arelleGUI"),
+            Executable(script="arelleGUI.py", targetName="arelleGUI"),
             Executable(script="arelleCmdLine.py")
         ]
     except:
@@ -244,10 +248,11 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
     if sys.platform == 'darwin':
         includeFiles.append(('arelle/scripts-macOS','scripts'))
         # copy tck and tk built as described: https://www.tcl.tk/doc/howto/compile.html#mac
-        includeFiles.append(('/Library/Frameworks/Tcl.framework/Versions/8.6/Resources/Scripts','tcl8.6'))
-        includeFiles.append(('/Library/Frameworks/Tk.framework/Versions/8.6/Resources/Scripts','tk8.6'))
-        includeFiles.append(('/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/tkinter','lib/tkinter'))
-        includeFiles.append(('/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload/_tkinter.cpython-35m-darwin.so','lib/_tkinter.cpython-35m-darwin.so'))
+        # includeFiles.append(('/Library/Frameworks/Tcl.framework/Versions/8.6/Resources/Scripts','tcl8.6'))
+        # includeFiles.append(('/Library/Frameworks/Tk.framework/Versions/8.6/Resources/Scripts','tk8.6'))
+        # includeFiles.append(('/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/tkinter','lib/tkinter'))
+        # includeFiles.append(('/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload/_tkinter.cpython-35m-darwin.so','lib/_tkinter.cpython-35m-darwin.so'))
+        includeFiles.append(('../libs/macos/Tktable2.11','Tktable2.11'))
     else: 
         includeFiles.append(('arelle/scripts-unix','scripts'))
         if os.path.exists("/etc/redhat-release"):
@@ -285,19 +290,16 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         'rdflib.plugins.sparql',
         'rdflib.plugins.stores',
         'isodate', 'regex', 'gzip', 'zlib', 'aniso8601', 'graphviz', 'holidays',
-        'openpyxl', 'PIL', 'pycountry',  # to install PIL it's named Pillow
-        # building pycrypto on windows see https://www.dariawan.com/tutorials/python/python-3-install-pycrypto-windows/
-        # 1. C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC>vcvarsall.bat
-        # 2. set CL=-FI"%VCINSTALLDIR%\INCLUDE\stdint.h"
-        # 3. pip install pycrypto
+        'openpyxl', 'PIL', # to install PIL it's named Pillow
+        'pycountry', # to install pycountry: pip uninstall -y pycountry ; pip install --no-cache --use-pep517 pycountry
         'Crypto', 'Crypto.Cipher', 'Crypto.Cipher.AES' # install pycrypto not another crypto module
         #'google_api_python_client', 'oauth2client', 'six', 'httplib2', 'uritemplate', 'pyasn1', 'rsa', 'pyasn1_modules' # google-api-python-client
     ]
 
     excludeLibs = []
 
-    if sys.platform == 'darwin':
-        excludeLibs += ['tkinter'] # copied in as files
+    #if sys.platform == 'darwin':
+    #    excludeLibs += ['tkinter'] # copied in as files
     
     # uncomment the next two files if cx_Freezing with EdgarRenderer
     # note that openpyxl must be 2.1.4 at this time
@@ -309,7 +311,7 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
             
             'tornado',
             'pyparsing',
-            'matplotlib', "matplotlib.pyplot"
+            'matplotlib', 'matplotlib.pyplot'
         ]
         import matplotlib
         #dataFiles += matplotlib.get_py2exe_datafiles()
@@ -387,11 +389,8 @@ elif sys.platform == 'win32':
         'rdflib.plugins.stores',
         'isodate', 'regex', 'gzip', 'zlib', 'aniso8601', 'graphviz', 'holidays',
         'openpyxl', 'PIL', 'pycountry', 
-        # building pycrypto on windows see https://www.dariawan.com/tutorials/python/python-3-install-pycrypto-windows/
-        # 1. C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC>vcvarsall.bat
-        # 2. set CL=-FI"%VCINSTALLDIR%\INCLUDE\stdint.h"
-        # 3. pip install pycrypto
-        'Crypto', 'Crypto.Cipher', 'Crypto.Cipher.AES'
+        'Crypto', 'Crypto.Cipher', 'Crypto.Cipher.AES',
+        'requests', 'requests_negotiate_sspi'
     ]
     # uncomment the next line if cx_Freezing with EdgarRenderer
     # note that openpyxl must be 2.1.4 at this time
@@ -452,7 +451,7 @@ setup(
     author='arelle.org',
     author_email='support@arelle.org',
     url='http://www.arelle.org',
-    download_url='http://www.arelle.org/download',
+    download_url='http://www.arelle.org/pub',
     cmdclass=cmdclass,
     # include_package_data=True,  # note: this uses MANIFEST.in
     packages=packages,
@@ -467,7 +466,7 @@ setup(
         'License :: OSI Approved :: Apache-2 License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Operating System :: OS Independent',
         'Topic :: XBRL Validation and Versioning',
     ],
