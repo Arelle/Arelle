@@ -20,7 +20,7 @@ from arelle import (ModelDocument, ModelValue, ModelRelationshipSet,
 from arelle.ModelValue import qname, QName
 from arelle.ValidateXbrlCalcs import insignificantDigits
 from arelle.ModelObject import ModelObject
-from arelle.ModelInstanceObject import ModelFact, ModelInlineFootnote
+from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
 from arelle.ModelDtsObject import ModelConcept, ModelResource
 from arelle.ModelXbrl import NONDEFAULT
 from arelle.PluginManager import pluginClassMethods
@@ -49,7 +49,7 @@ from .PreCalAlignment import checkCalcsTreeWalk
 from .Util import conflictClassFromNamespace, abbreviatedNamespace, NOYEAR, WITHYEARandWILD, loadDeprecatedConceptDates, \
                     loadCustomAxesReplacements, loadNonNegativeFacts, loadDeiValidations, loadOtherStandardTaxonomies, \
                     loadUgtRelQnames, loadDqcRules, factBindings, leastDecimals, axisMemQnames, memChildQnames, \
-                    loadTaxonomyCompatibility
+                    loadTaxonomyCompatibility, loadIxTransformRegistries
                     
 MIN_DOC_PER_END_DATE = ModelValue.dateTime("1980-01-01", type=ModelValue.DATE)
 MAX_DOC_PER_END_DATE = ModelValue.dateTime("2050-12-31", type=ModelValue.DATE)
@@ -145,6 +145,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             dqcRules = loadDqcRules(modelXbrl) # empty {} if no rules for filing
             ugtRels = loadUgtRelQnames(modelXbrl, dqcRules) # None if no rels applicable
             nonNegFacts = loadNonNegativeFacts(modelXbrl, dqcRules, ugtRels) # none if dqcRules are used after 2020
+            ixTrRegistries = loadIxTransformRegistries(modelXbrl)
             
         
         # inline doc set has multiple instance names to check
@@ -540,7 +541,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     edgarCode="fs-0403-Fact-Xbrl-Error",
                     modelObject=f, fact=f.qname, contextID=factContextID)
             else:
-                # note fact concpts used
+                # note fact concepts used
                 conceptsUsed[concept] = False
                 
                 if concept.isNumeric:
@@ -1912,9 +1913,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                   "http://www.xbrl.org/inlineXBRL/transformation/2015-02-26": "ixt",
                                   "http://www.sec.gov/inlineXBRL/transformation/2015-08-31": "ixt-sec"}
             for prefix, ns in ((None, "http://www.w3.org/1999/xhtml"),
-                               ("ix", "http://www.xbrl.org/2013/inlineXBRL"),
-                               ("ixt", "http://www.xbrl.org/inlineXBRL/transformation/2015-02-26"),
-                               ("ixt-sec", "http://www.sec.gov/inlineXBRL/transformation/2015-08-31")):
+                               ("ix", "http://www.xbrl.org/2013/inlineXBRL")):
                 for _prefix, _ns in ixdsHtmlRootElt.nsmap.items():
                     if _ns == ns and _prefix != prefix:
                         modelXbrl.error("EFM.5.02.05.standardNamespacePrefix",
@@ -1923,6 +1922,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             modelObject=ixdsHtmlRootElt, submittedPrefix=_prefix, recommendedPrefix=prefix, namespace=ns)
             ixNStag = ixdsHtmlRootElt.modelDocument.ixNStag
             ixTags = set(ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
+            unsupportedTrFacts = []
+            unsupportedTrNamespaces = set()
+            unsupportedNamespacePrefixes = defaultdict(set)
             for tag in ixTags:
                 for ixElt in ixdsHtmlRootElt.iterdescendants(tag=tag):
                     if isinstance(ixElt,ModelObject):
@@ -1930,6 +1932,26 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             modelXbrl.error("EFM.5.02.05.targetDisallowed",
                                 _("Inline element %(localName)s has disallowed target attribute '%(target)s'."),
                                 modelObject=ixElt, localName=ixElt.elementQname, target=ixElt.get("target"))
+                        if isinstance(ixElt, ModelInlineFact):
+                            format = ixElt.format
+                            if format:
+                                if format.namespaceURI not in ixTrRegistries:
+                                    unsupportedTrNamespaces.add(format.namespaceURI)
+                                    unsupportedTrFacts.append(ixElt)
+                                elif format.prefix != ixTrRegistries[format.namespaceURI]:
+                                    unsupportedNamespacePrefixes[(format.prefix,format.namespaceURI)].add(ixElt)
+            if unsupportedTrFacts:
+                modelXbrl.error("EFM.5.02.05.12.unupportedTransformationRegistry",
+                    _("Inline elements have disallowed transformation registries %(unsupportedRegistries)s."),
+                    edgarCode="ix-0512-Unsupported-Transformation-Registry",
+                    modelObject=unsupportedTrFacts, unsupportedRegistries=", ".join(sorted(unsupportedTrNamespaces)))
+            for (pfx,ns),facts in unsupportedNamespacePrefixes.items():
+                modelXbrl.error("EFM.5.02.05.standardNamespacePrefix",
+                    _("The prefix %(submittedPrefix)s must be replaced by %(recommendedPrefix)s for standard namespace %(namespace)s."),
+                    edgarCode="ix-0502-Standard-Namespace-Prefix",
+                    modelObject=facts, submittedPrefix=pfx, recommendedPrefix=ixTrRegistries[ns], namespace=ns)
+                
+            del unsupportedTrFacts, unsupportedTrNamespaces, unsupportedNamespacePrefixes
             for ixElt in ixdsHtmlRootElt.iterdescendants(tag=ixNStag+"tuple"):
                 if isinstance(ixElt,ModelObject):
                     modelXbrl.error("EFM.5.02.05.tupleDisallowed",
@@ -2522,56 +2544,62 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             for id, rule in dqcRule["rules"].items():
                 # first check if there's a calc-sum and calc-items
                 sumLn = rule.get("calc-sum")
-                itemWeights = {}
-                if sumLn in modelXbrl.nameConcepts and "calc-items" in rule:
-                    itemWeights = dict((rel.toModelObject.name, rel.weightDecimal)
-                                        for rel in modelXbrl.relationshipSet(XbrlConst.summationItem, None, None, None
-                                        ).fromModelObject(modelXbrl.nameConcepts[rule.get("calc-sum")][0]))
-                    if set(rule.get("calc-items")) <= itemWeights.keys():
-                        itemLns = list(itemWeights.keys())
-                    else:
-                        sumLn = None
-                if not sumLn:
-                    sumLn = rule["sum"]
-                    itemLns = rule["items"]
                 blkAxis = rule.get("blocking-axes",())
                 alts = rule.get("alternatives",EMPTY_DICT)
                 tolerance = rule["tolerance"]
-                bindings = factBindings(val.modelXbrl, flattenToSet( (sumLn, itemLns, alts.values() )), nils=False)
-                for b in bindings.values():
-                    _itemLns = itemLns.copy() # need fresh array to use for substituting
-                    for iLn in itemLns: # check if substitution is necessary
-                        if iLn not in b and iLn in alts:
-                            for aLns in alts[iLn]:
-                                if all(aLn in b for aLn in aLns):
-                                    p = _itemLns.index(iLn) # replace iLn with alts that all are in binding
-                                    _itemLns[p:p+1] = aLns
-                                    break
-                    if sumLn in b and all(ln in b for ln in _itemLns) and not (
-                        any(ax in f.context.qnameDims for ax in blkAxis for f in b.values())):
-                        dec = leastDecimals(b, flattenToSet( (sumLn, _itemLns) ))
-                        sumFact = b[sumLn]
-                        itemFacts = [b[ln] for ln in _itemLns]
-                        sfNil = sumFact.isNil
-                        allIfNil = all(f.isNil for f in itemFacts)
-                        if sfNil:
-                            sumValue = "(nil)"
+                linkroleURIs = (None,) # for IDs without calc network evaluation
+                if sumLn in modelXbrl.nameConcepts and "calc-items" in rule: # (dqc_us_rules/pull/544)
+                    sumConcept = modelXbrl.nameConcepts[sumLn][0]
+                    linkroleURIs = OrderedSet(modelLink.role
+                                              for modelLink in val.modelXbrl.baseSets[(XbrlConst.summationItem,None,None,None)]
+                                              if modelXbrl.relationshipSet(XbrlConst.summationItem, modelLink.role , None, None).fromModelObject(sumConcept))
+                for linkroleUri in linkroleURIs: # evaluate by network where applicable to ID
+                    itemWeights = {}
+                    if linkroleUri: # has calc network evaluation
+                        itemWeights = dict((rel.toModelObject.name, rel.weightDecimal)
+                                            for rel in modelXbrl.relationshipSet(XbrlConst.summationItem, linkroleUri, None, None).fromModelObject(sumConcept))
+                        if set(rule.get("calc-items")) <= itemWeights.keys():
+                            itemLns = list(itemWeights.keys())
                         else:
-                            sumValue = roundValue(sumFact.xValue, decimals=dec)
-                        if not allIfNil:
-                            itemValues = tuple(roundValue(f.xValue * itemWeights.get(f.qname.localName, ONE), decimals=dec) 
-                                               for f in itemFacts if not f.isNil)
-                        try:
-                            if ((not (sfNil & allIfNil)) and (
-                                (sfNil ^ allIfNil) or 
-                                abs(sumValue - sum(itemValues)) > pow(10, -dec) * tolerance)):
-                                modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
-                                    modelObject=b.values(), sumName=sumLn, sumValue=str(sumValue), 
-                                    itemNames=", ".join(_itemLns), itemValues=" + ".join(str(v) for v in itemValues), 
-                                    contextID=sumFact.context.id, unitID=sumFact.unit.id if sumFact.unit is not None else "(none)",
-                                    edgarCode=edgarCode, ruleElementId=id)
-                        except:
-                            print("exception")
+                            sumLn = None
+                    if not sumLn:
+                        sumLn = rule["sum"]
+                        itemLns = rule["items"]
+                    bindings = factBindings(val.modelXbrl, flattenToSet( (sumLn, itemLns, alts.values() )), nils=False)
+                    for b in bindings.values():
+                        _itemLns = itemLns.copy() # need fresh array to use for substituting
+                        for iLn in itemLns: # check if substitution is necessary
+                            if iLn not in b and iLn in alts:
+                                for aLns in alts[iLn]:
+                                    if all(aLn in b for aLn in aLns):
+                                        p = _itemLns.index(iLn) # replace iLn with alts that all are in binding
+                                        _itemLns[p:p+1] = aLns
+                                        break
+                        if sumLn in b and all(ln in b for ln in _itemLns) and not (
+                            any(ax in f.context.qnameDims for ax in blkAxis for f in b.values())):
+                            dec = leastDecimals(b, flattenToSet( (sumLn, _itemLns) ))
+                            sumFact = b[sumLn]
+                            itemFacts = [b[ln] for ln in _itemLns]
+                            sfNil = sumFact.isNil
+                            allIfNil = all(f.isNil for f in itemFacts)
+                            if sfNil:
+                                sumValue = "(nil)"
+                            else:
+                                sumValue = roundValue(sumFact.xValue, decimals=dec)
+                            if not allIfNil:
+                                itemValues = tuple(roundValue(f.xValue * itemWeights.get(f.qname.localName, ONE), decimals=dec) 
+                                                   for f in itemFacts if not f.isNil)
+                            try:
+                                if ((not (sfNil & allIfNil)) and (
+                                    (sfNil ^ allIfNil) or 
+                                    abs(sumValue - sum(itemValues)) > pow(10, -dec) * tolerance)):
+                                    modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                                        modelObject=b.values(), sumName=sumLn, sumValue=str(sumValue), 
+                                        itemNames=", ".join(_itemLns), itemValues=" + ".join(str(v) for v in itemValues), 
+                                        contextID=sumFact.context.id, unitID=sumFact.unit.id if sumFact.unit is not None else "(none)",
+                                        edgarCode=edgarCode, ruleElementId=id)
+                            except:
+                                print("exception")
         elif dqcRuleName == "DQC.US.0008" and ugtRels:
             for id, rule in dqcRule["rules"].items():
                 ugtCalcs = ugtRels["calcs"]

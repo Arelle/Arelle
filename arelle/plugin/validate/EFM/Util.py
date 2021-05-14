@@ -212,6 +212,15 @@ def loadTaxonomyCompatibility(modelXbrl):
     compat["checked-taxonomies"] = set(flattenSequence([t for t in cc.items()]))
     return compat
 
+def loadIxTransformRegistries(modelXbrl):
+    _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "ixbrl-transform-registries.json"), 'rt', encoding='utf-8')
+    ixTrRegistries = json.load(_file, object_pairs_hook=OrderedDict) # preserve order of keys
+    _file.close()
+    ixTrRegistries.pop("copyright", None)
+    ixTrRegistries.pop("description", None)
+    return ixTrRegistries
+
+
 def loadDeprecatedConceptDates(val, deprecatedConceptDates):  
     for modelDocument in val.modelXbrl.urlDocs.values():
         ns = modelDocument.targetNamespace
