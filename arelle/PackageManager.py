@@ -20,6 +20,16 @@ try:
     from collections import OrderedDict
 except ImportError:
     OrderedDict = dict # python 3.0 lacks OrderedDict, json file will be in weird order 
+    
+class UnloadablePackage(Exception):
+    def __init__(self):
+        self.args =  (_("package has errors"),)
+    def __repr__(self):
+        return self.args[0]
+    
+TP_XSD = "http://www.xbrl.org/2016/taxonomy-package.xsd"
+CAT_XSD = "/Users/hermf/Documents/mvsl/projects/XBRL.org/taxonomy-package-conformance/taxonomy-package-catalog.xsd"
+
 
 EMPTYDICT = {}
 
@@ -65,16 +75,22 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
 
     currentLang = Locale.getLanguageCode()
     _file = filesource.file(metadataFile)[0] # URL in zip, plain file in file system or web
+    tpXsdFilename = cntlr.webCache.getfilename(TP_XSD)
+    _xsdFile = filesource.file(tpXsdFilename)[0]
     try:
         tree = etree.parse(_file)
-    except etree.XMLSyntaxError as err:
-        cntlr.addToLog(_("Package catalog syntax error %(error)s"),
+        # schema validate tp xml
+        xsdTree = etree.parse(_xsdFile)
+        etree.XMLSchema(xsdTree).assertValid(tree)
+    except (etree.XMLSyntaxError, etree.DocumentInvalid) as err:
+        cntlr.addToLog(_("Taxonomy package file syntax error %(error)s"),
                        messageArgs={"error": str(err)},
                        messageCode="tpe:invalidMetaDataFile",
                        file=os.path.basename(metadataFile),
                        level=logging.ERROR)
         errors.append("tpe:invalidMetaDataFile")
         raise # reraise error
+    
     root = tree.getroot()
     ns = root.tag.partition("}")[0][1:]
     nsPrefix = "{{{}}}".format(ns)
@@ -155,8 +171,21 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
               "http://xbrl.org/2016/taxonomy-package",
               "http://xbrl.org/REC/2016-04-19/taxonomy-package"):
         catalogFile = metadataFile.replace('taxonomyPackage.xml','catalog.xml')
+        catXsdFilename = cntlr.webCache.getfilename(CAT_XSD)
+        _xsdFile = filesource.file(catXsdFilename)[0]
         try:
             rewriteTree = etree.parse(filesource.file(catalogFile)[0])
+            # schema validate tp xml
+            xsdTree = etree.parse(_xsdFile)
+            etree.XMLSchema(xsdTree).assertValid(rewriteTree)
+        except (etree.XMLSyntaxError, etree.DocumentInvalid) as err:
+            cntlr.addToLog(_("Catalog file syntax error %(error)s"),
+                           messageArgs={"error": str(err)},
+                           messageCode="tpe:invalidCatalogFile",
+                           file=os.path.basename(metadataFile),
+                           level=logging.ERROR)
+            errors.append("tpe:invalidCatalogFile")
+            raise # reraise error
         except ArchiveFileIOError:
             pass
     for tag, prefixAttr, replaceAttr in (
@@ -373,6 +402,13 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                 _dir = filesource.dir
                 if not _dir:
                     raise IOError(_("Unable to open taxonomy package: {0}.").format(packageFilename))
+                if filesource.isZipBackslashed:
+                    cntlr.addToLog(_("Taxonomy package directory uses '\\' as fire separator"),
+                                   messageCode="tpe:invalidArchiveFormat",
+                                   file=os.path.basename(packageFilename),
+                                   level=logging.ERROR)
+                    errors.append("tpe:invalidArchiveFormat")
+                    raise UnloadablePackage()
                 # single top level directory
                 topLevelDirectories = set(f.partition('/')[0] for f in _dir)
                 if len(topLevelDirectories) != 1:
@@ -487,7 +523,7 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                        }
             filesource.close()
             return package
-        except (EnvironmentError, etree.XMLSyntaxError):
+        except (EnvironmentError, etree.XMLSyntaxError, UnloadablePackage):
             pass
         if filesource:
             filesource.close()
