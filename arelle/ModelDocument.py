@@ -1689,26 +1689,26 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                     
         for tupleFact in tupleElements:
             checkForTupleCycle(tupleFact, [tupleFact])
-                        
-        # validate particle structure of elements after transformations and established tuple structure
-        fractionTermTags = (ixNStag + "numerator", ixNStag + "denominator")
-        for rootModelFact in modelXbrl.facts:
-            # validate XBRL (after complete document set is loaded)
-            if rootModelFact.localName == "fraction":
-                numDenom = [None,None]
-                for i, tag in enumerate(fractionTermTags):
-                    for modelInlineFractionTerm in rootModelFact.iterchildren(tag=tag):
-                        xmlValidate(modelXbrl, modelInlineFractionTerm, ixFacts=True)
-                        if modelInlineFractionTerm.xValid >= VALID:
-                            numDenom[i] = modelInlineFractionTerm.xValue
-                rootModelFact._fractionValue = numDenom
-            xmlValidate(modelXbrl, rootModelFact, ixFacts=True)
 
         for modelInlineFootnote in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Footnote.clarkNotation):
             if isinstance(modelInlineFootnote,ModelObject):
                 locateContinuation(modelInlineFootnote)
                 modelInlineFootnotesById[modelInlineFootnote.footnoteID] = modelInlineFootnote
 
+                        
+    # validate particle structure of elements after transformations and established tuple structure
+    fractionTermTags = (ixNStag + "numerator", ixNStag + "denominator")
+    for rootModelFact in modelXbrl.facts:
+        # validate XBRL (after complete document set is loaded)
+        if rootModelFact.localName == "fraction":
+            numDenom = [None,None]
+            for i, tag in enumerate(fractionTermTags):
+                for modelInlineFractionTerm in rootModelFact.iterchildren(tag=tag):
+                    xmlValidate(modelXbrl, modelInlineFractionTerm, ixFacts=True)
+                    if modelInlineFractionTerm.xValid >= VALID:
+                        numDenom[i] = modelInlineFractionTerm.xValue
+            rootModelFact._fractionValue = numDenom
+        xmlValidate(modelXbrl, rootModelFact, ixFacts=True)
             
     if len(targetReferenceAttrElts) == 0:
         modelXbrl.error(ixMsgCode("missingReferences", None, name="references", sect="validation"),

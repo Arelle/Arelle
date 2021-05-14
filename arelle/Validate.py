@@ -475,7 +475,7 @@ class Validate:
                                             missingFact = expectedInstanceFact
                                         # is it possible to show value mismatches?
                                         expectedFacts = formulaOutputInstance.factsByQname.get(missingFact.qname)
-                                        if len(expectedFacts) == 1:
+                                        if expectedFacts and len(expectedFacts) == 1:
                                             formulaOutputInstance.error("{}:expectedFactMissing".format(errMsgPrefix),
                                                 _("Output missing expected fact %(fact)s, extracted value \"%(value1)s\", expected value  \"%(value2)s\""),
                                                 modelXbrl=missingFact, fact=missingFact.qname, value1=missingFact.xValue, value2=next(iter(expectedFacts)).xValue,
