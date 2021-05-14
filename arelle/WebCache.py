@@ -28,6 +28,7 @@ addServerWebCache = None
     
 DIRECTORY_INDEX_FILE = "!~DirectoryIndex~!"
 INF = float("inf")
+RETRIEVAL_RETRY_COUNT = 5
 
 def proxyDirFmt(httpProxyTuple):
     if isinstance(httpProxyTuple,(tuple,list)) and len(httpProxyTuple) == 5:
@@ -178,6 +179,8 @@ class WebCache:
             _proxyDirFmt = proxyDirFmt(httpProxyTuple)
             # only try ntlm if user and password are provided because passman is needed
             if user and not useOsProxy:
+                for pluginXbrlMethod in pluginClassMethods("Proxy.HTTPAuthenticate"):
+                    pluginXbrlMethod(self.cntlr)
                 for pluginXbrlMethod in pluginClassMethods("Proxy.HTTPNtlmAuthHandler"):
                     HTTPNtlmAuthHandler = pluginXbrlMethod()
                     if HTTPNtlmAuthHandler is not None:
@@ -201,7 +204,7 @@ class WebCache:
             self.proxy_auth_handler = proxyhandlers.ProxyBasicAuthHandler()
             self.http_auth_handler = proxyhandlers.HTTPBasicAuthHandler()
             proxyHandlers = [self.proxy_handler, self.proxy_auth_handler, self.http_auth_handler]
-        if ssl and self.noCertificateCheck:
+        if ssl and self.noCertificateCheck: # this is required in some Akamai environments, such as sec.gov
             context = ssl.create_default_context()
             context.check_hostname = False
             context.verify_mode = ssl.CERT_NONE
@@ -442,12 +445,20 @@ class WebCache:
                         if retrievingDueToRecheckInterval:
                             return self.internetRecheckFailedRecovery(filepath, url, err, timeNowStr) 
                         if tryWebAuthentication:
+                            # check if single signon is requested (on first retry)
+                            if retryCount == RETRIEVAL_RETRY_COUNT:
+                                for pluginXbrlMethod in pluginClassMethods("Proxy.HTTPAuthenticate"):
+                                    if pluginXbrlMethod(self.cntlr): # true if succeessful single sign on
+                                        retryCount -= 1 
+                                        break
+                                if retryCount < RETRIEVAL_RETRY_COUNT:
+                                    continue # succeeded
                             # may be a web login authentication request
                             response = None  # found possible logon request
                             if self.cntlr.hasGui:
                                 response = self.cntlr.internet_logon(url, quotedUrl, 
-                                                                     _("HTTP {0} authentication request").format(err.code),                                                                                                                                          _("Unexpected HTML in {0}").format(url),
-                                                                     _("Is browser-based possible? If so, click 'yes', or 'cancel' to abort retrieval: \n\n{0}")
+                                                                     _("HTTP {0} authentication request").format(err.code),
+                                                                     _("Is browser-based internet access authentication possible? If so, click 'yes', or 'cancel' to abort retrieval: \n\n{0}")
                                                                      .format(url))
                             if response == "retry":
                                 retryCount -= 1
