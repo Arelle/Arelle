@@ -467,7 +467,7 @@ def xhtmlValidate(modelXbrl, elt):
                     if normalizeSpace(elt.get("unitRef")) != normalizeSpace(ancestorFraction.get("unitRef")):
                         modelXbrl.error(ixMsgCode("fractionNestedUnitRef", elt),
                             _("Fact %(fact)s fraction and ancestor fractions must have matching unitRefs: %(unitRef)s, %(unitRef2)s"),
-                            modelObject=[elt] + nonFrChildren, fact=elt.qname, unitRef=elt.get("unitRef"), unitRef2=ancestorFraction.get("unitRef"))
+                            modelObject=[elt, ancestorFraction], fact=elt.qname, unitRef=elt.get("unitRef"), unitRef2=ancestorFraction.get("unitRef"))
         if elt.localName in ("nonFraction", "numerator", "denominator", "nonNumeric"):
             fmt = elt.format
             if fmt:
