@@ -624,7 +624,7 @@ class ParseResults(object):
     def __dir__(self):
         return dir(super(ParseResults,self)) + self.keys()
 
-collections.MutableMapping.register(ParseResults)
+collections.abc.MutableMapping.register(ParseResults)
 
 def col (loc,strg):
     """Returns current column within a string, counting newlines as line separators.
