@@ -100,6 +100,7 @@ def startWebserver(_cntlr, options):
             app.run(server=server)
             sys.exit(0)
         elif server:
+            sys.path.insert(0,os.path.join(os.path.dirname(__file__),"webserver"))
             app.run(host=host, port=port or 80, server=server)
         else:
             app.run(host=host, port=port or 80)
@@ -416,7 +417,7 @@ def stopWebServer():
         time.sleep(delaySeconds)
         import signal
         os.kill(_os_pid, signal.SIGTERM)
-    threading.Thread(target=stopSoon, ags=(2.5,), daemon=True).start()
+    threading.Thread(target=stopSoon, args=(2.5,), daemon=True).start()
     response.content_type = 'text/html; charset=UTF-8'
     return htmlBody(tableRows((time.strftime("Received at %Y-%m-%d %H:%M:%S"),
                                "Good bye...",), 

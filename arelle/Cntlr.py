@@ -445,7 +445,7 @@ class Cntlr:
     
     # default web authentication password
     def internet_logon(self, url, quotedUrl, dialogCaption, dialogText):
-        """Web file retieval results in html that appears to require user logon,
+        """Web file retrieval results in html that appears to require user logon,
         if interactive allow the user to log on. 
            
         :url: The URL as requested (by an import, include, href, schemaLocation, ...)
