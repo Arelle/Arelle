@@ -103,6 +103,7 @@ class ModelTestcaseVariation(ModelObject):
             return self._readMeFirstUris
         except AttributeError:
             self._readMeFirstUris = []
+            self.readMeFirstElements = []
             # first look if any plugin method to get readme first URIs
             if not any(pluginXbrlMethod(self)
                        for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReadMeFirstUris")):
@@ -112,18 +113,22 @@ class ModelTestcaseVariation(ModelObject):
                         self._readMeFirstUris.append(XmlUtil.descendantAttr(instanceTestElement, None, 
                                                                             "instanceDocument", 
                                                                             "{http://www.w3.org/1999/xlink}href"))
+                        self.readMeFirstElements.append(instanceTestElement)
                     else:
                         schemaTestElement = XmlUtil.descendant(self, None, "schemaTest")
                         if schemaTestElement is not None:
                             self._readMeFirstUris.append(XmlUtil.descendantAttr(schemaTestElement, None, 
                                                                                 "schemaDocument", 
                                                                                 "{http://www.w3.org/1999/xlink}href"))
+                            self.readMeFirstElements.append(schemaTestElement)
                 elif self.localName == "test-case":  #xpath testcase
                     inputFileElement = XmlUtil.descendant(self, None, "input-file")
                     if inputFileElement is not None: # take instance first
                         self._readMeFirstUris.append("TestSources/" + inputFileElement.text + ".xml")
+                        self.readMeFirstElements.append(inputFileElement)
                 elif self.resultIsTaxonomyPackage:
                     self._readMeFirstUris.append( os.path.join(self.modelDocument.filepathdir, "tests", self.get("name") + ".zip") )
+                    self.readMeFirstElements.append(self)
                 else:
                     # default built-in method for readme first uris
                     for anElement in self.iterdescendants():
@@ -134,12 +139,16 @@ class ModelTestcaseVariation(ModelObject):
                                 uri = XmlUtil.innerText(anElement)
                             if anElement.get("name"):
                                 self._readMeFirstUris.append( (ModelValue.qname(anElement, anElement.get("name")), uri) )
+                                self.readMeFirstElements.append(anElement)
                             elif anElement.get("dts"):
                                 self._readMeFirstUris.append( (anElement.get("dts"), uri) )
+                                self.readMeFirstElements.append(anElement)
                             else:
                                 self._readMeFirstUris.append(uri)
+                                self.readMeFirstElements.append(anElement)
             if not self._readMeFirstUris:  # provide a dummy empty instance document
                 self._readMeFirstUris.append(os.path.join(self.modelXbrl.modelManager.cntlr.configDir, "empty-instance.xml"))
+                self.readMeFirstElements.append(None)
             return self._readMeFirstUris
     
     @property
@@ -226,6 +235,12 @@ class ModelTestcaseVariation(ModelObject):
     @property
     def resultIsTaxonomyPackage(self):
         return any(e.localName for e in XmlUtil.descendants(self,None,TXMY_PKG_SRC_ELTS))
+    
+    @property
+    def variationDiscoversDTS(self):
+        return any(e.localName != "taxonomyPackage" # find any nonTP element (instance, schema, linkbase, etc)
+                   for e in self.iterdescendants()
+                   if isinstance(e,ModelObject) and e.get("readMeFirst") == "true")
 
     @property
     def cfcnCall(self):

@@ -47,6 +47,8 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None, erro
     if nextaction is None: nextaction = _("loading")
     from arelle import (ModelDocument, FileSource)
     modelXbrl = create(modelManager, errorCaptureLevel=errorCaptureLevel)
+    if "errors" in kwargs: # pre-load errors, such as from taxonomy package validation
+        modelXbrl.errors.extend(kwargs.get("errors"))
     supplementalUrls = None
     if useFileSource is not None:
         modelXbrl.fileSource = useFileSource
@@ -64,13 +66,16 @@ def load(modelManager, url, nextaction=None, base=None, useFileSource=None, erro
     else:
         modelXbrl.fileSource = FileSource.FileSource(url, modelManager.cntlr)
         modelXbrl.closeFileSource= True
-    modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True, **kwargs)
-    if supplementalUrls:
-        for url in supplementalUrls:
-            ModelDocument.load(modelXbrl, url, base, isEntry=False, isDiscovered=True, **kwargs)
-    if hasattr(modelXbrl, "entryLoadingUrl"):
-        del modelXbrl.entryLoadingUrl
-    loadSchemalocatedSchemas(modelXbrl)
+    if kwargs.get("isLoadable",True): # used for test cases to block taxonomy packages without discoverable contents
+        modelXbrl.modelDocument = ModelDocument.load(modelXbrl, url, base, isEntry=True, **kwargs)
+        if supplementalUrls:
+            for url in supplementalUrls:
+                ModelDocument.load(modelXbrl, url, base, isEntry=False, isDiscovered=True, **kwargs)
+        if hasattr(modelXbrl, "entryLoadingUrl"):
+            del modelXbrl.entryLoadingUrl
+        loadSchemalocatedSchemas(modelXbrl)
+    else:
+        modelXbrl.modelDocument = None
     
     #from arelle import XmlValidate
     #uncomment for trial use of lxml xml schema validation of entry document

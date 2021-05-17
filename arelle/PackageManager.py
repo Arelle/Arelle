@@ -21,14 +21,8 @@ try:
 except ImportError:
     OrderedDict = dict # python 3.0 lacks OrderedDict, json file will be in weird order 
     
-class UnloadablePackage(Exception):
-    def __init__(self):
-        self.args =  (_("package has errors"),)
-    def __repr__(self):
-        return self.args[0]
-    
 TP_XSD = "http://www.xbrl.org/2016/taxonomy-package.xsd"
-CAT_XSD = "/Users/hermf/Documents/mvsl/projects/XBRL.org/taxonomy-package-conformance/taxonomy-package-catalog.xsd"
+CAT_XSD = "http://www.xbrl.org/2016/taxonomy-package-catalog.xsd"
 
 
 EMPTYDICT = {}
@@ -89,7 +83,7 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                        file=os.path.basename(metadataFile),
                        level=logging.ERROR)
         errors.append("tpe:invalidMetaDataFile")
-        raise # reraise error
+        return pkg
     
     root = tree.getroot()
     ns = root.tag.partition("}")[0][1:]
@@ -185,7 +179,6 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                            file=os.path.basename(metadataFile),
                            level=logging.ERROR)
             errors.append("tpe:invalidCatalogFile")
-            raise # reraise error
         except ArchiveFileIOError:
             pass
     for tag, prefixAttr, replaceAttr in (
@@ -384,6 +377,57 @@ def packageNamesWithNewerFileDates():
             pass
     return names
 
+def validateTaxonomyPackage(cntlr, filesource, packageFiles=[], errors=[]):
+        numErrorsOnEntry = len(errors)
+        _dir = filesource.dir
+        if not _dir:
+            raise IOError(_("Unable to open taxonomy package: {0}.").format(filesource.url))
+        if filesource.isZipBackslashed:
+            cntlr.addToLog(_("Taxonomy package directory uses '\\' as fire separator"),
+                           messageCode="tpe:invalidArchiveFormat",
+                           file=os.path.basename(filesource.url),
+                           level=logging.ERROR)
+            errors.append("tpe:invalidArchiveFormat")
+            return False
+        # single top level directory
+        topLevels = set(f.partition('/')[0] for f in _dir)
+        topLevelFiles = set(f for f in topLevels if f in _dir) # have no trailing /, not a directory
+        topLevelDirectories = topLevels - topLevelFiles
+        if topLevelFiles:
+            cntlr.addToLog(_("Taxonomy package contains %(count)s top level file(s):  %(topLevelFiles)s"),
+                           messageArgs={"count": len(topLevelFiles),
+                                        "topLevelFiles": ', '.join(sorted(topLevelFiles))},
+                           messageCode="tpe:invalidDirectoryStructure",
+                           file=os.path.basename(filesource.url),
+                           level=logging.ERROR)
+            errors.append("tpe:invalidDirectoryStructure")
+        if len(topLevelDirectories) != 1:
+            cntlr.addToLog(_("Taxonomy package contains %(count)s top level directories:  %(topLevelDirectories)s"),
+                           messageArgs={"count": len(topLevelDirectories),
+                                        "topLevelDirectories": ', '.join(sorted(topLevelDirectories))},
+                           messageCode="tpe:invalidDirectoryStructure",
+                           file=os.path.basename(filesource.url),
+                           level=logging.ERROR)
+            if not topLevelFiles:
+                errors.append("tpe:invalidDirectoryStructure")
+        if not any('META-INF' in f.split('/')[1:][:1] for f in _dir): # only check child of top level
+            cntlr.addToLog(_("Taxonomy package top-level directory does not contain a subdirectory META-INF"),
+                           messageCode="tpe:metadataDirectoryNotFound",
+                           file=os.path.basename(filesource.url),
+                           level=logging.ERROR)
+            errors.append("tpe:metadataDirectoryNotFound")
+        elif any(f.endswith('/META-INF/taxonomyPackage.xml') for f in _dir):
+            for f in _dir:
+                if f.endswith('/META-INF/taxonomyPackage.xml'):
+                    packageFiles.append(f)
+        else:
+            cntlr.addToLog(_("Taxonomy package does not contain a metadata file */META-INF/taxonomyPackage.xml"),
+                           messageCode="tpe:metadataFileNotFound",
+                           file=os.path.basename(filesource.url),
+                           level=logging.ERROR)
+            errors.append("tpe:metadataFileNotFound")
+        return len(errors) == numErrorsOnEntry
+
 def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
     #TODO several directories, eg User Application Data
     packageFilename = _cntlr.webCache.getfilename(URL, reload=reload, normalize=True)
@@ -399,42 +443,10 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
             packages = []
             packageFiles = []
             if filesource.isZip:
-                _dir = filesource.dir
-                if not _dir:
-                    raise IOError(_("Unable to open taxonomy package: {0}.").format(packageFilename))
-                if filesource.isZipBackslashed:
-                    cntlr.addToLog(_("Taxonomy package directory uses '\\' as fire separator"),
-                                   messageCode="tpe:invalidArchiveFormat",
-                                   file=os.path.basename(packageFilename),
-                                   level=logging.ERROR)
-                    errors.append("tpe:invalidArchiveFormat")
-                    raise UnloadablePackage()
-                # single top level directory
-                topLevelDirectories = set(f.partition('/')[0] for f in _dir)
-                if len(topLevelDirectories) != 1:
-                    cntlr.addToLog(_("Taxonomy package contains %(count)s top level directories:  %(topLevelDirectories)s"),
-                                   messageArgs={"count": len(topLevelDirectories),
-                                                "topLevelDirectories": ', '.join(sorted(topLevelDirectories))},
-                                   messageCode="tpe:invalidDirectoryStructure",
-                                   file=os.path.basename(packageFilename),
-                                   level=logging.ERROR)
-                    errors.append("tpe:invalidDirectoryStructure")
-                elif not any('/META-INF/' in f for f in _dir):
-                    cntlr.addToLog(_("Taxonomy package does not contain a subdirectory META-INF"),
-                                   messageCode="tpe:metadataDirectoryNotFound",
-                                   file=os.path.basename(packageFilename),
-                                   level=logging.ERROR)
-                    errors.append("tpe:metadataDirectoryNotFound")
-                elif any(f.endswith('/META-INF/taxonomyPackage.xml') for f in _dir):
-                    packageFiles = [f for f in _dir if f.endswith('/META-INF/taxonomyPackage.xml')]
-                else:
-                    cntlr.addToLog(_("Taxonomy package does not contain a metadata file */META-INF/taxonomyPackage.xml"),
-                                   messageCode="tpe:metadataFileNotFound",
-                                   file=os.path.basename(packageFilename),
-                                   level=logging.ERROR)
-                    errors.append("tpe:metadataFileNotFound")
+                validateTaxonomyPackage(cntlr, filesource, packageFiles, errors)
                 if not packageFiles:
                     # look for pre-PWD packages
+                    _dir = filesource.dir
                     _metaInf = '{}/META-INF/'.format(
                                 os.path.splitext(os.path.basename(packageFilename))[0])
                     if packageManifestName:
@@ -448,9 +460,6 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                     elif 'META-INF/taxonomyPackage.xml' in _dir:
                         # root-level META-INF taxonomy packages
                         packageFiles = ['META-INF/taxonomyPackage.xml']
-                    else:
-                        # early generation taxonomy packages
-                        packageFiles = filesource.taxonomyPackageMetadataFiles
                 if len(packageFiles) < 1:
                     raise IOError(_("Taxonomy package contained no metadata file: {0}.")
                                   .format(', '.join(packageFiles)))
@@ -489,19 +498,20 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
             descriptions = []
             for packageFileUrl, packageFilePrefix, packageFile in packages:
                 parsedPackage = parsePackage(_cntlr, filesource, packageFileUrl, packageFilePrefix, errors)
-                packageNames.append(parsedPackage['name'])
-                if parsedPackage.get('description'):
-                    descriptions.append(parsedPackage['description'])
-                for prefix, remapping in parsedPackage["remappings"].items():
-                    if prefix not in remappings:
-                        remappings[prefix] = remapping
-                    else:
-                        cntlr.addToLog("Package mapping duplicate rewrite start string %(rewriteStartString)s",
-                                       messageArgs={"rewriteStartString": prefix},
-                                       messageCode="arelle.packageDuplicateMapping",
-                                       file=os.path.basename(URL),
-                                       level=logging.ERROR)
-                        errors.append("arelle.packageDuplicateMapping")
+                if parsedPackage:
+                    packageNames.append(parsedPackage['name'])
+                    if parsedPackage.get('description'):
+                        descriptions.append(parsedPackage['description'])
+                    for prefix, remapping in parsedPackage["remappings"].items():
+                        if prefix not in remappings:
+                            remappings[prefix] = remapping
+                        else:
+                            cntlr.addToLog("Package mapping duplicate rewrite start string %(rewriteStartString)s",
+                                           messageArgs={"rewriteStartString": prefix},
+                                           messageCode="arelle.packageDuplicateMapping",
+                                           file=os.path.basename(URL),
+                                           level=logging.ERROR)
+                            errors.append("arelle.packageDuplicateMapping")
             if not parsedPackage:
                 return None
             package = {'name': ", ".join(packageNames),
@@ -523,7 +533,7 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
                        }
             filesource.close()
             return package
-        except (EnvironmentError, etree.XMLSyntaxError, UnloadablePackage):
+        except (EnvironmentError, etree.XMLSyntaxError):
             pass
         if filesource:
             filesource.close()
@@ -604,7 +614,7 @@ def reloadPackageModule(cntlr, name):
     packageUrls = []
     packagesList = packagesConfig["packages"]
     for _packageInfo in packagesList:
-        if _packageInfo['name'] == name:
+        if _packageInfo.get('name') == name:
             packageUrls.append(_packageInfo['URL'])
     result = False
     for url in packageUrls:
@@ -616,7 +626,7 @@ def removePackageModule(cntlr, name):
     packageIndices = []
     packagesList = packagesConfig["packages"]
     for i, _packageInfo in enumerate(packagesList):
-        if _packageInfo['name'] == name:
+        if _packageInfo.get('name') == name:
             packageIndices.insert(0, i) # must remove in reverse index order
     result = False
     for i in packageIndices:

@@ -190,7 +190,10 @@ class Validate:
                 else:
                     errorCaptureLevel = modelTestcaseVariation.severityLevel # default is INCONSISTENCY
                 parameters = modelTestcaseVariation.parameters.copy()
-                for readMeFirstUri in modelTestcaseVariation.readMeFirstUris:
+                for i, readMeFirstUri in enumerate(modelTestcaseVariation.readMeFirstUris):
+                    expectTaxonomyPackage = (
+                        i < len(modelTestcaseVariation.readMeFirstElements) and 
+                        modelTestcaseVariation.readMeFirstElements[i].qname.localName == "taxonomyPackage")
                     if isinstance(readMeFirstUri,tuple):
                         # dtsName is for formula instances, but is from/to dts if versioning
                         dtsName, readMeFirstUri = readMeFirstUri
@@ -230,13 +233,15 @@ class Validate:
                                                        ixdsTarget=modelTestcaseVariation.ixdsTarget)
                         else: # need own file source, may need instance discovery
                             filesource = FileSource.openFileSource(readMeFirstUri, self.modelXbrl.modelManager.cntlr, base=baseForElement)
+                            _errors = [] # accumulate pre-loading errors, such as during taxonomy package loading
                             if filesource and not filesource.selection and filesource.isArchive:
                                 try:
-                                    if filesource.isTaxonomyPackage:
+                                    if filesource.isTaxonomyPackage or expectTaxonomyPackage:
                                         _rptPkgIxdsOptions = {}
                                         for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxdsOptions"):
                                             pluginXbrlMethod(self, _rptPkgIxdsOptions)
-                                        filesource.loadTaxonomyPackageMappings()
+                                        filesource.loadTaxonomyPackageMappings(errors=_errors, expectTaxonomyPackage=expectTaxonomyPackage)
+                                        filesource.select(None) # must select loadable reports (not the taxonomy package itself)
                                         for pluginXbrlMethod in pluginClassMethods("ModelTestcaseVariation.ReportPackageIxds"):
                                             filesource.select(pluginXbrlMethod(filesource, **_rptPkgIxdsOptions))
                                     else:
@@ -257,9 +262,14 @@ class Validate:
                                                        _("validating"), 
                                                        base=baseForElement,
                                                        errorCaptureLevel=errorCaptureLevel,
-                                                       ixdsTarget=modelTestcaseVariation.ixdsTarget)
+                                                       ixdsTarget=modelTestcaseVariation.ixdsTarget,
+                                                       isLoadable=modelTestcaseVariation.variationDiscoversDTS or filesource.url,
+                                                       errors=_errors)
                         modelXbrl.isTestcaseVariation = True
-                    if modelXbrl.modelDocument is None:
+                    if not modelTestcaseVariation.variationDiscoversDTS and modelXbrl.modelDocument is None: # e.g., taxonomyPackage test
+                        self.determineTestStatus(modelTestcaseVariation, modelXbrl.errors)
+                        modelXbrl.close()
+                    elif modelXbrl.modelDocument is None:
                         modelXbrl.info("arelle:notLoaded",
                              _("Variation %(id)s %(name)s readMeFirst document not loaded: %(file)s"),
                              modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, file=os.path.basename(readMeFirstUri))
