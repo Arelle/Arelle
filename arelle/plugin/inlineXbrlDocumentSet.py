@@ -29,7 +29,8 @@ ix facts and resources with no @target attribute.
 
 (c) Copyright 2013 Mark V Systems Limited, All rights reserved.
 '''
-from arelle import DialogURL, FileSource, ModelXbrl, ValidateXbrlDimensions, XbrlConst
+from arelle import FileSource, ModelXbrl, ValidateXbrlDimensions, XbrlConst
+DialogURL = None # dynamically imported when first used
 from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
 from arelle.FileSource import archiveFilenameParts
 from arelle.ModelInstanceObject import ModelInlineFootnote
@@ -319,6 +320,9 @@ def discoverInlineXbrlDocumentSet(modelDocument, *args, **kwargs):
     return False  # not discoverable by this plug-in
 
 def fileOpenMenuEntender(cntlr, menu, *args, **kwargs):
+    # install DialogURL for GUI menu operation of runOpenWebInlineDocumentSetMenuCommand
+    global DialogURL
+    from arelle import DialogURL
     # Extend menu with an item for the savedts plugin
     menu.insert_command(2, label="Open Web Inline Doc Set", 
                         underline=0, 
