@@ -20,7 +20,7 @@ from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype,
 from arelle.PluginManager import pluginClassMethods
 from arelle.PythonUtil import OrderedDefaultDict, Fraction, normalizeSpace
 from arelle.XhtmlValidate import ixMsgCode
-from arelle.XmlValidate import VALID, validate as xmlValidate
+from arelle.XmlValidate import VALID, validate as xmlValidate, lxmlSchemaValidate
 
 creationSoftwareNames = None
 
@@ -1339,6 +1339,7 @@ class ModelDocument:
             self.modelXbrl.undefinedFacts.append(modelFact)
     
     def testcasesIndexDiscover(self, rootNode):
+        lxmlSchemaValidate(self)
         for testcasesElement in rootNode.iter():
             if isinstance(testcasesElement,ModelObject) and testcasesElement.localName in ("testcases", "registries", "testSuite"):
                 rootAttr = testcasesElement.get("root")
@@ -1359,6 +1360,7 @@ class ModelDocument:
                             self.addDocumentReference(doc, "testcaseIndex", testcaseElement)
 
     def testcaseDiscover(self, testcaseElement):
+        lxmlSchemaValidate(self)
         isTransformTestcase = testcaseElement.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms"
         if XmlUtil.xmlnsprefix(testcaseElement, XbrlConst.cfcn) or isTransformTestcase:
             self.type = Type.REGISTRYTESTCASE
@@ -1380,6 +1382,7 @@ class ModelDocument:
                 self.testcaseVariations.append(testcaseElement)
 
     def registryDiscover(self, rootNode):
+        lxmlSchemaValidate(self)
         base = self.filepath
         for entryElement in rootNode.iterdescendants(tag="{http://xbrl.org/2008/registry}entry"):
             if isinstance(entryElement,ModelObject): 

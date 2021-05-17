@@ -4,7 +4,8 @@ Created on Feb 20, 2011
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import os
+import os, logging
+from lxml import etree
 try:
     from regex import compile as re_compile
 except ImportError:
@@ -600,3 +601,51 @@ def validateAnyWildcard(qnElt, qnAttr, attributeWildcards):
         if attributeWildcard.allowsNamespace(qnAttr.namespaceURI):
             return True
     return False
+
+def lxmlSchemaValidate(modelDocument):
+    # lxml schema-validate modelDocument
+    if modelDocument is None:
+        return
+    modelXbrl = modelDocument.modelXbrl
+    cntlr = modelXbrl.modelManager.cntlr
+    ns = modelDocument.xmlRootElement.qname.namespaceURI
+    if ns:
+        try:
+            if ns in modelXbrl.namespaceDocs:
+                xsdTree = modelXbrl.namespaceDocs[ns][0].xmlRootElement.getroottree()
+            else:
+                xsdTree = None
+                for slElt in modelDocument.schemaLocationElements:
+                    _sl = (slElt.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation") or "").split()
+                    for i in range(0, len(_sl), 2):
+                        if _sl[i] == ns and i+1 < len(_sl):
+                            xsdFilename = cntlr.webCache.getfilename(_sl[i+1])
+                            try:
+                                _xsdFile = modelXbrl.fileSource.file(xsdFilename)[0]
+                                xsdTree = etree.parse(_xsdFile)
+                                break
+                            except (EnvironmentError, KeyError, UnicodeDecodeError) as err:
+                                msgCode = "arelle.schemaFileError"
+                                cntlr.addToLog(_("XML schema validation error: %(error)s"),
+                                               messageArgs={"error": str(err)},
+                                               messageCode=msgCode,
+                                               file=(modelDocument.basename, xsdFilename),
+                                               level=logging.INFO) # schemaLocation is just a hint
+                                modelDocument.modelXbrl.errors.append(msgCode)
+                    if xsdTree is not None:
+                        break
+            if xsdTree is None:
+                return # no schema to validate
+            docTree = modelDocument.xmlRootElement.getroottree()
+            etreeXMLSchema = etree.XMLSchema(xsdTree)
+            etreeXMLSchema.assertValid(docTree)
+        except (etree.XMLSyntaxError, etree.DocumentInvalid) as err:
+            msgCode = "lxml.schemaError"
+            cntlr.addToLog(_("XML file syntax error %(error)s"),
+                           messageArgs={"error": str(err)},
+                           messageCode=msgCode,
+                           file=modelDocument.basename,
+                           level=logging.ERROR)
+            modelDocument.modelXbrl.errors.append(msgCode)
+    
+    
