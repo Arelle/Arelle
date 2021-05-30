@@ -14,6 +14,8 @@ pluginClassMethods = None # dynamic import
 
 archivePathSeparators = (".zip" + os.sep, ".tar.gz" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, '.taxonomyPackage.xml' + os.sep) + \
                         ((".zip/", ".tar.gz/", ".eis/", ".xml/", ".xfd/", ".frm/", '.taxonomyPackage.xml/') if os.sep != "/" else ()) #acomodate windows and http styles
+                    
+archiveFilenameSuffixes = {".zip", ".tar.gz", ".eis", ".xml", ".xfd", ".frm"}
 
 POST_UPLOADED_ZIP = os.sep + "POSTupload.zip"
 SERVER_WEB_CACHE = os.sep + "_HTTP_CACHE"

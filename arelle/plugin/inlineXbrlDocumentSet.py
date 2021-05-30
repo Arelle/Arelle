@@ -32,7 +32,7 @@ ix facts and resources with no @target attribute.
 from arelle import FileSource, ModelXbrl, ValidateXbrlDimensions, XbrlConst
 DialogURL = None # dynamically imported when first used
 from arelle.PrototypeDtsObject import LocPrototype, ArcPrototype
-from arelle.FileSource import archiveFilenameParts
+from arelle.FileSource import archiveFilenameParts, archiveFilenameSuffixes
 from arelle.ModelInstanceObject import ModelInlineFootnote
 from arelle.ModelObject import ModelObject
 from arelle.ModelDocument import ModelDocument, ModelDocumentReference, Type, load, create, inlineIxdsDiscover
@@ -357,7 +357,7 @@ def runOpenInlineDocumentSetMenuCommand(cntlr, filenames, runInBackground=False,
 
     if not filenames:
         filename = ""
-    elif len(filenames) == 1 and (filenames[0].endswith(".zip") or filenames[0].endswith(".tar.gz")):
+    elif len(filenames) == 1 and any(filenames[0].endswith(s) for s in archiveFilenameSuffixes):
         # get archive file names
         from arelle.FileSource import openFileSource
         filesource = openFileSource(filenames[0], cntlr)
