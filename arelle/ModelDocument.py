@@ -1293,25 +1293,8 @@ class ModelDocument:
         # with DTS loaded, now validate inline HTML (so schema definition of facts is available)
         if htmlElement.namespaceURI == XbrlConst.xhtml:  # must validate xhtml
             XhtmlValidate.xhtmlValidate(self.modelXbrl, htmlElement)  # fails on prefixed content
-        # may be multiple targets across inline document set
-        if not hasattr(self.modelXbrl, "targetRoleRefs"):
-            self.modelXbrl.targetRoleRefs = {}     # first inline instance in inline document set
-            self.modelXbrl.targetArcroleRefs = {}
         for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "resources"):
-            self.instanceContentsDiscover(inlineElement)
             xmlValidate(self.modelXbrl, inlineElement) # validate instance elements
-            for refElement in inlineElement.iterchildren("{http://www.xbrl.org/2003/linkbase}roleRef"):
-                self.modelXbrl.targetRoleRefs[refElement.get("roleURI")] = refElement
-                if self.discoverHref(refElement) is None: # discover role-defining schema file
-                    self.modelXbrl.error("xmlSchema:requiredAttribute",
-                            _("Reference for roleURI href attribute missing or malformed"),
-                            modelObject=refElement)
-            for refElement in inlineElement.iterchildren("{http://www.xbrl.org/2003/linkbase}arcroleRef"):
-                self.modelXbrl.targetArcroleRefs[refElement.get("arcroleURI")] = refElement
-                if self.discoverHref(refElement) is None: # discover arcrole-defining schema file
-                    self.modelXbrl.error("xmlSchema:requiredAttribute",
-                            _("Reference for arcroleURI href attribute missing or malformed"),
-                            modelObject=refElement)
      
         # subsequent inline elements have to be processed after all of the document set is loaded
         if not hasattr(self.modelXbrl, "ixdsHtmlElements"):
@@ -1432,15 +1415,23 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
     tuplesByTupleID = {}
     factsByFactID = {} # non-tuple facts
     factTargetIDs = set() # target IDs referenced on facts
+    factTargetContextRefs = defaultdict(set) # index is target, value is set of contextRefs
+    factTargetUnitRefs = defaultdict(set) # index is target, value is set of unitRefs
+    targetRoleUris = defaultdict(set) # index is target, value is set of roleUris
+    targetArcroleUris = defaultdict(set) # index is target, value is set of arcroleUris
     targetReferenceAttrElts = defaultdict(dict) # target dict by attrname of elts
     targetReferenceAttrVals = defaultdict(dict) # target dict by attrname of attr value
     targetReferencePrefixNs = defaultdict(dict) # target dict by prefix, namespace
     targetReferencesIDs = {} # target dict by id of reference elts
     modelInlineFootnotesById = {} # inline 1.1 ixRelationships and ixFootnotes
+    modelXbrl.targetRoleRefs = {} # roleRefs used by selected target
+    modelXbrl.targetArcroleRefs = {}  # arcroleRefs used by selected target
+    modelXbrl.targetRelationships = set() # relationship elements used by selected target
     hasResources = hasHeader = False
     for htmlElement in modelXbrl.ixdsHtmlElements:  
         mdlDoc = htmlElement.modelDocument
-        for modelInlineTuple in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "tuple"):
+        ixNStag = mdlDoc.ixNStag
+        for modelInlineTuple in htmlElement.iterdescendants(tag=ixNStag + "tuple"):
             if isinstance(modelInlineTuple,ModelObject):
                 modelInlineTuple.unorderedTupleFacts = defaultdict(list)
                 if modelInlineTuple.qname is not None:
@@ -1459,15 +1450,25 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                     if modelInlineTuple.id:
                         factsByFactID[modelInlineTuple.id] = modelInlineTuple
                 factTargetIDs.add(modelInlineTuple.get("target"))
-        for elt in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "continuation"):
+        for modelInlineFact in htmlElement.iterdescendants(ixNStag + "nonNumeric", ixNStag + "nonFraction", ixNStag + "fraction"):
+            if isinstance(modelInlineFact,ModelObject):
+                _target = modelInlineFact.get("target")
+                factTargetContextRefs[_target].add(modelInlineFact.get("contextRef"))
+                factTargetUnitRefs[_target].add(modelInlineFact.get("unitRef"))
+                if modelInlineFact.id:
+                    factsByFactID[modelInlineFact.id] = modelInlineFact
+        for elt in htmlElement.iterdescendants(tag=ixNStag + "continuation"):
             if isinstance(elt,ModelObject) and elt.id:
                 continuationElements[elt.id] = elt
-        for elt in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "references"):
+        for elt in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Footnote.clarkNotation):
+            if isinstance(elt,ModelObject):
+                modelInlineFootnotesById[elt.footnoteID] = elt
+        for elt in htmlElement.iterdescendants(tag=ixNStag + "references"):
             if isinstance(elt,ModelObject):
                 target = elt.get("target")
                 targetReferenceAttrsDict = targetReferenceAttrElts[target]
                 for attrName, attrValue in elt.items():
-                    if attrName.startswith('{') and not attrName.startswith(mdlDoc.ixNStag) and attrName != "{http://www.w3.org/XML/1998/namespace}base":
+                    if attrName.startswith('{') and not attrName.startswith(ixNStag) and attrName != "{http://www.w3.org/XML/1998/namespace}base":
                         if attrName in targetReferenceAttrsDict:
                             modelXbrl.error(ixMsgCode("referencesAttributeDuplication",ns=mdlDoc.ixNS,name="references",sect="validation"),
                                             _("Inline XBRL ix:references attribute %(name)s duplicated in target %(target)s"),
@@ -1495,9 +1496,9 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                     else:
                         targetReferencePrefixNsDict[_prefix] = (_ns, elt)
 
-        for hdrElt in htmlElement.iterdescendants(tag=mdlDoc.ixNStag + "header"):
+        for hdrElt in htmlElement.iterdescendants(tag=ixNStag + "header"):
             hasHeader = True    
-            for elt in hdrElt.iterchildren(tag=mdlDoc.ixNStag + "resources"):
+            for elt in hdrElt.iterchildren(tag=ixNStag + "resources"):
                 hasResources = True
                 for subEltTag in ("{http://www.xbrl.org/2003/instance}context","{http://www.xbrl.org/2003/instance}unit"):
                     for resElt in elt.iterdescendants(tag=subEltTag):
@@ -1516,6 +1517,68 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                         modelObject=modelXbrl)
                         
     del ixdsEltById, targetReferencesIDs
+    
+    # discovery of relationships which are used by target documents
+    for htmlElement in modelXbrl.ixdsHtmlElements:  
+        for modelInlineRel in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Relationship.clarkNotation):
+            if isinstance(modelInlineRel,ModelObject):
+                linkrole = modelInlineRel.get("linkRole", XbrlConst.defaultLinkRole)
+                arcrole = modelInlineRel.get("arcrole", XbrlConst.factFootnote)
+                sourceFactTargets = set()
+                for id in modelInlineRel.get("fromRefs","").split():
+                    if id in factsByFactID:
+                        _target = factsByFactID[id].get("target")
+                        targetRoleUris[_target].add(linkrole)
+                        targetArcroleUris[_target].add(arcrole)
+                        sourceFactTargets.add(_target)
+                for id in modelInlineRel.get("toRefs","").split():
+                    if id in factsByFactID:
+                        _target = factsByFactID[id].get("target")
+                        targetRoleUris[_target].add(linkrole)
+                        targetArcroleUris[_target].add(arcrole)
+                    elif id in modelInlineFootnotesById:
+                        footnoteRole = modelInlineFootnotesById[id].get("footnoteRole")
+                        if footnoteRole:
+                            for _target in sourceFactTargets:
+                                targetRoleUris[_target].add(footnoteRole)
+                                
+    # discovery of contexts, units and roles which are used by target document
+    for htmlElement in modelXbrl.ixdsHtmlElements:  
+        mdlDoc = htmlElement.modelDocument
+        ixNStag = mdlDoc.ixNStag
+        
+        for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "resources"):
+            contextRefs = factTargetContextRefs[ixdsTarget]
+            allContextRefs = set.union(*factTargetContextRefs.values())
+            unitRefs = factTargetUnitRefs[ixdsTarget]
+            allUnitRefs = set.union(*factTargetUnitRefs.values())
+            for elt in inlineElement.iterchildren("{http://www.xbrl.org/2003/instance}context"):
+                id = elt.get("id")
+                if id in contextRefs or (not ixdsTarget and id not in allContextRefs):
+                    mdlDoc.contextDiscover(elt)
+            for elt in inlineElement.iterchildren("{http://www.xbrl.org/2003/instance}unit"):
+                id = elt.get("id")
+                if id in unitRefs or (not ixdsTarget and id not in allUnitRefs):
+                    mdlDoc.unitDiscover(elt)
+            for refElement in inlineElement.iterchildren("{http://www.xbrl.org/2003/linkbase}roleRef"):
+                r = refElement.get("roleURI")
+                if r in targetRoleUris[ixdsTarget]:
+                    modelXbrl.targetRoleRefs[r] = refElement
+                    if mdlDoc.discoverHref(refElement) is None: # discover role-defining schema file
+                        modelXbrl.error("xmlSchema:requiredAttribute",
+                                _("Reference for roleURI href attribute missing or malformed"),
+                                modelObject=refElement)
+            for refElement in inlineElement.iterchildren("{http://www.xbrl.org/2003/linkbase}arcroleRef"):
+                r = refElement.get("arcroleURI")
+                if r in targetArcroleUris[ixdsTarget]:
+                    modelXbrl.targetArcroleRefs[r] = refElement
+                    if mdlDoc.discoverHref(refElement) is None: # discover arcrole-defining schema file
+                        modelXbrl.error("xmlSchema:requiredAttribute",
+                                _("Reference for arcroleURI href attribute missing or malformed"),
+                                modelObject=refElement)
+                        
+                    
+    del factTargetContextRefs, factTargetUnitRefs
     
     # root elements by target
     modelXbrl.ixTargetRootElements = {}
@@ -1644,19 +1707,16 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                     addItemFactToTarget(tupleFact) # needs to be in factsInInstance
                 
 
-        for modelInlineFact in htmlElement.iterdescendants(tag=ixNStag + '*'):
-            if isinstance(modelInlineFact,ModelInlineFact) and modelInlineFact.localName in ("nonNumeric", "nonFraction", "fraction"):
-                _target = modelInlineFact.get("target")
-                factTargetIDs.add(_target)
-                if modelInlineFact.qname is not None: # must have a qname to be in facts
-                    if _target == ixdsTarget: # if not the selected target, schema isn't loaded
-                        addItemFactToTarget(modelInlineFact)
-                    locateFactInTuple(modelInlineFact, tuplesByTupleID, ixNStag)
-                    locateContinuation(modelInlineFact)
-                    for r in modelInlineFact.footnoteRefs:
-                        footnoteRefs[r].append(modelInlineFact)
-                    if modelInlineFact.id:
-                        factsByFactID[modelInlineFact.id] = modelInlineFact
+        for modelInlineFact in htmlElement.iterdescendants(ixNStag + "nonNumeric", ixNStag + "nonFraction", ixNStag + "fraction"):
+            _target = modelInlineFact.get("target")
+            factTargetIDs.add(_target)
+            if modelInlineFact.qname is not None: # must have a qname to be in facts
+                if _target == ixdsTarget: # if not the selected target, schema isn't loaded
+                    addItemFactToTarget(modelInlineFact)
+                locateFactInTuple(modelInlineFact, tuplesByTupleID, ixNStag)
+                locateContinuation(modelInlineFact)
+                for r in modelInlineFact.footnoteRefs:
+                    footnoteRefs[r].append(modelInlineFact)
         # order tuple facts
         for tupleFact in tupleElements:
             # check for duplicates
@@ -1696,7 +1756,6 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
         for modelInlineFootnote in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Footnote.clarkNotation):
             if isinstance(modelInlineFootnote,ModelObject):
                 locateContinuation(modelInlineFootnote)
-                modelInlineFootnotesById[modelInlineFootnote.footnoteID] = modelInlineFootnote
 
                         
     # validate particle structure of elements after transformations and established tuple structure
@@ -1788,7 +1847,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
         for modelInlineRel in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Relationship.clarkNotation):
             if isinstance(modelInlineRel,ModelObject):
                 fromLabels = set()
-                relHasFromFactsInTarget = False
+                relHasFromFactsInTarget = relHasToObjectsInTarget = False
                 for fromId in modelInlineRel.get("fromRefs","").split():
                     fromLabels.add(fromId)
                     if not relHasFromFactsInTarget and fromId in factsByFactID and factsByFactID[fromId].get("target") == ixdsTarget:
@@ -1825,6 +1884,7 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                                 linkPrototype.childElements.append(modelInlineFootnote)
                                 linkModelInlineFootnoteIds[linkrole].add(toId)
                                 linkPrototype.labeledResources[toId].append(modelInlineFootnote)
+                                relHasToObjectsInTarget = True
                     elif toId in factsByFactID:
                         toLabels.add(toId)
                         if toId not in linkModelLocIds[linkrole]:
@@ -1843,10 +1903,13 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                                 toFactQnames.add(str(locPrototype.dereference().qname))
                                 linkPrototype.childElements.append(locPrototype)
                                 linkPrototype.labeledResources[toId].append(locPrototype)
+                                relHasToObjectsInTarget = True
                     else: 
                         toIdsNotFound.append(toId)
                     if toId in fromLabels:
                         fromToMatchedIds.add(toId)
+                if relHasFromFactsInTarget and relHasToObjectsInTarget:
+                    modelXbrl.targetRelationships.add(modelInlineRel)
                 if toIdsNotFound:
                     modelXbrl.error(ixMsgCode("relationshipToRef", ns=XbrlConst.ixbrl11, name="relationship", sect="validation"),
                                     _("Inline relationship toRef(s) %(toIds)s not found."),

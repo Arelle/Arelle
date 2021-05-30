@@ -477,6 +477,8 @@ class ValidateXbrl:
                                 _("Inline XBRL document set must have consistent prefixes for target %(target)s: %(prefix1)s, %(prefix2)s"),
                                 modelObject=ixReferences, target=target, prefix1=schemaRefUris[href], prefix2=prefix)
             for ixRel in self.ixdsRelationships:
+                if ixRel not in modelXbrl.targetRelationships:
+                    continue # skip if not in this target
                 for fromRef in ixRel.get("fromRefs","").split():
                     refs = ixdsIdObjects.get(fromRef)
                     if refs is None or refs[0].namespaceURI not in ixbrlAll or refs[0].localName not in ("fraction", "nonFraction", "nonNumeric", "tuple"):

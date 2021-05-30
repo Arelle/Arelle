@@ -87,6 +87,8 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
     # check for linked up hrefs
     isInstance = (modelDocument.type == ModelDocument.Type.INSTANCE or
                   modelDocument.type == ModelDocument.Type.INLINEXBRL)
+    if not hasattr(val, "ixdsRoleRefURIs"):
+        val.ixdsRoleRefURIs = val.ixdsArcroleRefURIs = {} # in case no ixds
     if modelDocument.type == ModelDocument.Type.INLINEXBRL:
         if not val.validateIXDS: # set up IXDS validation
             val.validateIXDS = True
@@ -96,8 +98,8 @@ def checkDTS(val, modelDocument, checkedModelDocuments):
             val.ixdsTuples = {}
             val.ixdsReferences = defaultdict(list)
             val.ixdsRelationships = []
-            val.ixdsRoleRefURIs = val.modelXbrl.targetRoleRefs  # roleRefs defined for all targets
-            val.ixdsArcroleRefURIs = val.modelXbrl.targetArcroleRefs  # arcroleRefs defined for all targets
+            val.ixdsRoleRefURIs = val.modelXbrl.targetRoleRefs  # roleRefs defined for current targets
+            val.ixdsArcroleRefURIs = val.modelXbrl.targetArcroleRefs  # arcroleRefs defined for current targets
         # accumulate all role/arcrole refs across target document instance files
         val.roleRefURIs = val.ixdsRoleRefURIs
         val.arcroleRefURIs = val.ixdsArcroleRefURIs
@@ -301,7 +303,7 @@ def checkElements(val, modelDocument, parent):
         parentIsLinkbase = parent.namespaceURI == XbrlConst.link and parent.localName == "linkbase"
         parentIsSchema = parent.namespaceURI == XbrlConst.xsd and parent.localName == "schema"
         if isInstance or parentIsLinkbase: # only for non-inline instance
-            val.roleRefURIs = {} # uses ixdsRoleRefURIs when inline instance (across all target documents)
+            val.roleRefURIs = {} # uses ixdsRoleRefURIs when inline instance (across current target documents)
             val.arcroleRefURIs = {}
             def linkbaseTopElts():
                 for refPass in (True, False): # do roleType and arcroleType before extended links and any other children
@@ -669,9 +671,9 @@ def checkElements(val, modelDocument, parent):
                             parent=elt.parentQname,
                             modelObject=elt)
                 elif elt.localName in ("roleRef","arcroleRef"):
-                    uriAttr, xbrlSection, roleTypeDefs, refs = {
-                           "roleRef":("roleURI","3.5.2.4",val.modelXbrl.roleTypes,val.roleRefURIs), 
-                           "arcroleRef":("arcroleURI","3.5.2.5",val.modelXbrl.arcroleTypes,val.arcroleRefURIs)
+                    uriAttr, xbrlSection, roleTypeDefs, refs, ixdsTgtRefs = {
+                           "roleRef":("roleURI","3.5.2.4",val.modelXbrl.roleTypes,val.roleRefURIs, val.ixdsRoleRefURIs), 
+                           "arcroleRef":("arcroleURI","3.5.2.5",val.modelXbrl.arcroleTypes,val.arcroleRefURIs, val.ixdsArcroleRefURIs)
                            }[elt.localName]
                     if parentIsAppinfo:
                         pass    #ignore roleTypes in appinfo (test case 160 v05)
@@ -691,6 +693,8 @@ def checkElements(val, modelDocument, parent):
                                 _("%(element)s %(refURI)s missing"),
                                 modelObject=elt, element=elt.qname, refURI=refUri,
                                 messageCodes=("xbrl.3.5.2.4.5:roleRefMissing", "xbrl.3.5.2.5.5:arcroleRefMissing"))
+                        elif elt.parentQname == XbrlConst.qnIXbrl11Resources and refUri not in ixdsTgtRefs:
+                            continue # elt not in this ixds target
                         elif refUri in refs:
                             val.modelXbrl.error("xbrl.{}.5:{}Duplicate".format(xbrlSection,elt.localName),
                                 _("%(element)s is duplicated for %(refURI)s"),
