@@ -635,7 +635,7 @@ def validateTextBlockFacts(modelXbrl):
                                         try:
                                             if validateGraphicFile(f1, attrValue) != attrValue.lower()[-3:]:
                                                 modelXbrl.error("EFM.6.05.16.graphicFileContent",
-                                                    _("Fact %(fact)s of context %(contextID)s references a graphics file which doesn't have expected content '%(attribute)s' for <%(element)s>"),
+                                                    _("Fact %(fact)s of context %(contextID)s references a graphics file which has invalid format '%(attribute)s' for <%(element)s>"),
                                                     modelObject=f1, fact=f1.qname, contextID=f1.contextID,
                                                     attribute=attrValue, element=eltTag)
                                         except IOError as err:
@@ -765,7 +765,7 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                         try:
                             if validateGraphicFile(referenceElt, attrValue) != attrValue.lower()[-3:]:
                                 modelXbrl.error(messageCodePrefix +"graphicFileContent",
-                                    _("%(validatedObjectLabel)s references a graphics file which doesn't have expected content '%(attribute)s' for <%(element)s>"),
+                                    _("%(validatedObjectLabel)s references a graphics file which has invalid format '%(attribute)s' for <%(element)s>"),
                                     modelObject=elt, validatedObjectLabel=validatedObjectLabel,
                                     attribute=attrValue, element=eltTag,
                                     messageCodes=("EFM.6.05.34.graphicFileContent", "EFM.5.02.05.graphicFileContent"))
