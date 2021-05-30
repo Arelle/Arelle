@@ -128,7 +128,7 @@ def strTruncate(value, length):
     _s = str(value).strip()
     if len(_s) <= length:
         return _s
-    return _s[0:length] + "..."
+    return _s[0:length-3] + "..."
 
 def normalizeSpace(s):
     if isinstance(s, str):
