@@ -4,7 +4,7 @@ Created on Oct 5, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, posixpath, sys, re, shutil, time, calendar, io, json, logging, shutil, cgi
+import os, posixpath, sys, re, shutil, time, calendar, io, json, logging, shutil, cgi, zlib
 if sys.version[0] >= '3':
     from urllib.parse import quote, unquote
     from urllib.error import URLError, HTTPError, ContentTooShortError
@@ -24,6 +24,7 @@ except ImportError:
 from arelle.FileSource import SERVER_WEB_CACHE, archiveFilenameParts
 from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
+from arelle.Version import __version__
 addServerWebCache = None
     
 DIRECTORY_INDEX_FILE = "!~DirectoryIndex~!"
@@ -210,7 +211,10 @@ class WebCache:
             context.verify_mode = ssl.CERT_NONE
             proxyHandlers.append(proxyhandlers.HTTPSHandler(context=context))
         self.opener = proxyhandlers.build_opener(*proxyHandlers)
-        self.opener.addheaders = [('User-agent', 'Mozilla/5.0 (Arelle/1.0)')]
+        self.opener.addheaders = [
+            ('User-Agent', 'Mozilla/5.0 (Arelle/{})'.format(__version__)),
+            ('Accept-Encoding', 'gzip, deflate')
+            ]
 
         #self.opener.close()
         #self.opener = WebCacheUrlOpener(self.cntlr, proxyDirFmt(httpProxyTuple))
@@ -624,10 +628,15 @@ class WebCache:
                     if "content-length" in headers:
                         size = int(headers["Content-Length"])
                     reporthook(blocknum, bs, size)
+                isGzipped = "gzip" in headers.get("content-encoding", "")
+                if isGzipped:
+                    decompressor = zlib.decompressobj(16+zlib.MAX_WBITS) #this magic number can be inferred from the structure of a gzip file
                 while 1:
                     block = fp.read(bs)
                     if not block:
                         break
+                    if isGzipped:
+                        block = decompressor.decompress(block)
                     read += len(block)
                     tfp.write(block)
                     if blocknum == 0:
