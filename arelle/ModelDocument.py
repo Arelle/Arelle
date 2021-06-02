@@ -1948,8 +1948,9 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                             _("ix:continuation %(continuedAt)s is not referenced by a, ix:footnote, ix:nonNumeric or other ix:continuation element."),
                             modelObject=_contElt, continuedAt=_contAt)
 
-    modelIxdsDocument.targetXbrlRootElement = modelXbrl.ixTargetRootElements[ixdsTarget]
-    modelIxdsDocument.targetXbrlElementTree = PrototypeElementTree(modelIxdsDocument.targetXbrlRootElement)
+    if ixdsTarget in modelXbrl.ixTargetRootElements:
+        modelIxdsDocument.targetXbrlRootElement = modelXbrl.ixTargetRootElements[ixdsTarget]
+        modelIxdsDocument.targetXbrlElementTree = PrototypeElementTree(modelIxdsDocument.targetXbrlRootElement)
     
 class LoadingException(Exception):
     pass
