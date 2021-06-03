@@ -93,7 +93,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     
     # note that some XFM tests are done by ValidateXbrl to prevent mulstiple node walks
     disclosureSystem = val.disclosureSystem
-    disclosureSystemVersion = disclosureSystem.version
+    val.disclosureSystemVersion = disclosureSystemVersion = disclosureSystem.version
     
     modelXbrl.modelManager.showStatus(_("validating {0}").format(disclosureSystem.name))
     
@@ -535,12 +535,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         pluginXbrlMethod(val, f)
             #6.5.17 facts with precision
             concept = f.concept
-            if concept is None:
-                modelXbrl.error(("EFM.6.04.03", "GFM.2.01.01"),
-                    _("Fact %(fact)s of context %(contextID)s has an XBRL error"),
-                    edgarCode="fs-0403-Fact-Xbrl-Error",
-                    modelObject=f, fact=f.qname, contextID=factContextID)
-            else:
+            if concept is not None:
                 # note fact concepts used
                 conceptsUsed[concept] = False
                 
@@ -2174,7 +2169,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             modelXbrl.error("EFM.6.22.03.incompatibleInlineDocumentType",
                 _("Inline XBRL may not be used with document type %(documentType)s"),
                 modelObject=modelXbrl, conflictClass="inline XBRL", documentType=documentType)
-        if documentType is not None and not val.hasExtensionSchema and documentType != "L SDR" and disclosureSystemVersion[0] < 58:
+        if documentType is not None and not val.hasExtensionSchema and documentType != "L SDR" and disclosureSystemVersion[0] <= 58:
             modelXbrl.error("EFM.6.03.10",
                             _("%(documentType)s report is missing a extension schema file."),
                             edgarCode="cp-0310-Missing-Schema",
