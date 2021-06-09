@@ -50,7 +50,7 @@ def langCloseness(l1, l2):
             return i
     return _len
 
-def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
+def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[], tolerateInvalidMetadata = False):
     global ArchiveFileIOError
     if ArchiveFileIOError is None:
         from arelle.FileSource import ArchiveFileIOError
@@ -83,7 +83,8 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
                        file=os.path.basename(metadataFile),
                        level=logging.ERROR)
         errors.append("tpe:invalidMetaDataFile")
-        return pkg
+        if not tolerateInvalidMetadata:
+            return pkg
     
     root = tree.getroot()
     ns = root.tag.partition("}")[0][1:]
@@ -428,7 +429,7 @@ def validateTaxonomyPackage(cntlr, filesource, packageFiles=[], errors=[]):
             errors.append("tpe:metadataFileNotFound")
         return len(errors) == numErrorsOnEntry
 
-def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
+def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[], tolerateInvalidMetadata = False):
     #TODO several directories, eg User Application Data
     packageFilename = _cntlr.webCache.getfilename(URL, reload=reload, normalize=True)
     if packageFilename:
@@ -497,7 +498,7 @@ def packageInfo(cntlr, URL, reload=False, packageManifestName=None, errors=[]):
             packageNames = []
             descriptions = []
             for packageFileUrl, packageFilePrefix, packageFile in packages:
-                parsedPackage = parsePackage(_cntlr, filesource, packageFileUrl, packageFilePrefix, errors)
+                parsedPackage = parsePackage(_cntlr, filesource, packageFileUrl, packageFilePrefix, errors, tolerateInvalidMetadata = tolerateInvalidMetadata)
                 if parsedPackage:
                     packageNames.append(parsedPackage['name'])
                     if parsedPackage.get('description'):
@@ -590,8 +591,8 @@ def mappedUrl(url):
             return mappedUrl
     return url
 
-def addPackage(cntlr, url, packageManifestName=None):
-    newPackageInfo = packageInfo(cntlr, url, packageManifestName=packageManifestName)
+def addPackage(cntlr, url, packageManifestName=None, tolerateInvalidMetadata = False):
+    newPackageInfo = packageInfo(cntlr, url, packageManifestName=packageManifestName, tolerateInvalidMetadata = tolerateInvalidMetadata)
     if newPackageInfo and newPackageInfo.get("name"):
         name = newPackageInfo.get("name")
         version = newPackageInfo.get("version")
