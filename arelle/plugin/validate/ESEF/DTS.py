@@ -211,9 +211,11 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
         disallowedArcroles = defaultdict(list)
         prohibitedBaseConcepts = []
         prohibitingLbElts = []
+        linkbaseRefType = None
         
         if hrefXlinkRole in linkbaseRefFilenamePatterns:
-            filenamePattern = filenamePatterns[linkbaseRefFilenamePatterns[hrefXlinkRole]]
+            linkbaseRefType = linkbaseRefFilenamePatterns[hrefXlinkRole]
+            filenamePattern = filenamePatterns[linkbaseRefType]
 
         for linkEltName in ("labelLink", "presentationLink", "calculationLink", "definitionLink", "referenceLink"):
             for linkElt in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}" + linkEltName):
@@ -270,7 +272,28 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                                   "ESEF.RTS.Annex.IV.Par.8.coreTaxonomyLabelModification"))
             del prohibitingLbElts[:]
             del prohibitedBaseConcepts[:]
-        if len(linkbasesFound) > 1:
+        if not linkbasesFound and linkbaseRefType: # type of expected linkbase is known but it has no ext links
+            # block top level warning message for 3.1.1 because reported here with specialized message
+            linkEltName = None
+            if linkbaseRefType == "cal":
+                linkEltName = "calculationLink"
+                val.hasExtensionCal = True
+            elif linkbaseRefType == "def":
+                linkEltName = "definitionLink"
+                val.hasExtensionDef = True
+            elif linkbaseRefType == "lab":
+                linkEltName = "labelLink"
+                val.hasExtensionLbl = True
+            elif linkbaseRefType == "pre":
+                linkEltName = "presentationLink"
+                val.hasExtensionPre = True
+            if linkEltName:
+                linkbasesFound.add(linkEltName)
+                val.modelXbrl.warning("ESEF.3.1.1.linkbasesNotSeparateFiles",
+                    _("Each linkbase type SHOULD be provided in a separate linkbase file: %(linkbaseType)s linkbase has no %(extendedLinkElement)s element."),
+                    modelObject=modelDocument.xmlRootElement, linkbaseType=linkbaseRefType, extendedLinkElement=linkEltName)
+                
+        elif len(linkbasesFound) > 1:
             val.modelXbrl.warning("ESEF.3.1.1.linkbasesNotSeparateFiles",
                 _("Each linkbase type SHOULD be provided in a separate linkbase file, found: %(linkbasesFound)s."),
                 modelObject=modelDocument.xmlRootElement, linkbasesFound=", ".join(sorted(linkbasesFound)))
