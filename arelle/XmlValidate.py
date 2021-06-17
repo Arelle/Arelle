@@ -95,7 +95,6 @@ baseXsdTypePatterns = {
 predefinedAttributeTypes = {
     qname("{http://www.w3.org/XML/1998/namespace}xml:lang"):("languageOrEmpty",None),
     qname("{http://www.w3.org/XML/1998/namespace}xml:space"):("NCName",{"enumeration":{"default","preserve"}})}
-
 xAttributesSharedEmptyDict = {}
 
 def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
@@ -469,17 +468,14 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     xValue = sValue = _INT(value)
                     if xValue == 0:
                         raise ValueError("invalid value")
-                elif baseXsdType == "regex-pattern":
+                elif baseXsdType == "xsd-pattern":
                     # for facet compiling
                     try:
                         sValue = value
                         if value in xmlSchemaPatterns:
                             xValue = xmlSchemaPatterns[value]
                         else:
-                            if r"\i" in value or r"\c" in value:
-                                value = value.replace(r"[\i-[:]]", iNameChar).replace(r"\i", iNameChar) \
-                                              .replace(r"[\c-[:]]", cMinusCNameChar).replace(r"\c", cNameChar)
-                            xValue = re_compile(value + "$") # must match whole string
+                            xValue = XsdPattern().compile(value)
                     except Exception as err:
                         raise ValueError(err)
                 elif baseXsdType == "fraction":
@@ -585,7 +581,7 @@ def validateFacet(typeElt, facetElt):
         baseXsdType = "string"
         facets = {"enumeration": {"replace","preserve","collapse"}}
     elif facetName == "pattern":
-        baseXsdType = "regex-pattern"
+        baseXsdType = "xsd-pattern"
         facets = None
     else:
         baseXsdType = "string"
@@ -646,6 +642,25 @@ def lxmlSchemaValidate(modelDocument):
                            messageCode=msgCode,
                            file=modelDocument.basename,
                            level=logging.ERROR)
-            modelDocument.modelXbrl.errors.append(msgCode)
+            modelDocument.modelXbrl.errors.append(msgCode)  
+
+class XsdPattern():
+    # shim class for python wrapper of xsd pattern
+    def compile(self, p):
+        self.xsdPattern = p
+        if r"\i" in p or r"\c" in p:
+            p = p.replace(r"[\i-[:]]", iNameChar).replace(r"\i", iNameChar) \
+                 .replace(r"[\c-[:]]", cMinusCNameChar).replace(r"\c", cNameChar)
+        self.pyPattern = re_compile(p + "$") # must match whole string
+        return self
+        
+    def match(self, string):
+        return self.pyPattern.match(string)
+        
+    @property
+    def pattern(self):
+        return self.xsdPattern
     
-    
+    def __repr__(self):
+        return self.xsdPattern
+
