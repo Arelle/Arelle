@@ -30,6 +30,7 @@ addServerWebCache = None
 DIRECTORY_INDEX_FILE = "!~DirectoryIndex~!"
 INF = float("inf")
 RETRIEVAL_RETRY_COUNT = 5
+HTTP_USER_AGENT = 'Mozilla/5.0 (Arelle/{})'.format(__version__)
 
 def proxyDirFmt(httpProxyTuple):
     if isinstance(httpProxyTuple,(tuple,list)) and len(httpProxyTuple) == 5:
@@ -84,9 +85,10 @@ class WebCache:
         self._timeout = None        
         
         self._noCertificateCheck = False
+        self._httpUserAgent = HTTP_USER_AGENT # default user agent for product
         self.resetProxies(httpProxyTuple)
         
-        self.opener.addheaders = [('User-agent', 'Mozilla/5.0 (Arelle/1.0)')]
+        self.opener.addheaders = [('User-agent', self.httpUserAgent)]
 
         #self.opener = WebCacheUrlOpener(cntlr, proxyDirFmt(httpProxyTuple)) # self.proxies)
         
@@ -171,6 +173,17 @@ class WebCache:
         if priorValue != check:
             self.resetProxies(self._httpProxyTuple)
 
+    @property
+    def httpUserAgent(self):
+        return self._httpUserAgent
+    
+    @httpUserAgent.setter
+    def httpUserAgent(self, userAgent):
+        priorValue = self._httpUserAgent
+        self._httpUserAgent = userAgent
+        if priorValue != userAgent:
+            self.resetProxies(self._httpProxyTuple)
+
     def resetProxies(self, httpProxyTuple):
         # for ntlm user and password are required
         self.hasNTLM = False
@@ -212,7 +225,7 @@ class WebCache:
             proxyHandlers.append(proxyhandlers.HTTPSHandler(context=context))
         self.opener = proxyhandlers.build_opener(*proxyHandlers)
         self.opener.addheaders = [
-            ('User-Agent', 'Mozilla/5.0 (Arelle/{})'.format(__version__)),
+            ('User-Agent', self.httpUserAgent),
             ('Accept-Encoding', 'gzip, deflate')
             ]
 
