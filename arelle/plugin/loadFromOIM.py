@@ -1307,6 +1307,12 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                           _("The %(map)s URI \"%(uri)s\" is bound to alias \"%(key)s\" instead of standard alias \"%(alias)s\"."),
                           modelObject=modelXbrl, map=key, key=key, uri=value, alias=OIMReservedURIAlias[map][value])
                     
+        # check baseURL
+        if documentBase and not isAbsoluteUri(documentBase):
+            error("oime:invalidBaseURL",
+                  _("The base-url must be absolute: \"%(url)s\"."),
+                  modelObject=modelXbrl, url=documentBase)
+
         factProduced = FactProduced() # pass back fact info to csv Fact producer
                 
         if isCSVorXL:
