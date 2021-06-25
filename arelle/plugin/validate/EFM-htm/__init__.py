@@ -6,7 +6,8 @@ Created on Dec 12, 2013
 
 
 '''
-import os, io
+import os, io, zipfile
+from pathlib import Path
 from lxml.etree import HTMLParser, parse, DTD, _ElementTree, _Comment, _ProcessingInstruction
 try:
     from regex import compile as re_compile, match as re_match, DOTALL as re_DOTALL
@@ -136,8 +137,27 @@ def isLoadableHtml(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
     lastFilePathIsHTML = False
     _ext = os.path.splitext(filepath)[1]
     if _ext.lower() in (".htm", ".html"):
-        with io.open(filepath, 'rt', encoding='utf-8') as f:
-            _fileStart = f.read(4096)
+        if isHttpUrl(filepath):  # open() won't work with that; getting local file in cache instead
+            filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(mappedUri, reload=False, checkModifiedTime=kwargs.get("checkModifiedTime",False))
+        isZip = False
+        archivepath = None
+        if not Path(filepath).is_file():  # open() probably won't like that either
+            archivepath = Path(filepath)
+            while archivepath != Path(archivepath.anchor) and isZip is False:  # path.anchor is a string, leading to incorrect evaluation on Windows
+                if not zipfile.is_zipfile(archivepath):
+                    archivepath = archivepath.parent
+                else:
+                    isZip = True
+
+        _fileStart = None
+        if not isZip:
+            with io.open(filepath, 'rt', encoding='utf-8') as f:
+                _fileStart = f.read(4096)
+        else:
+            relativeFilepath = str(Path(filepath).relative_to(archivepath))  # Path to the file inside the archive
+            with zipfile.ZipFile(archivepath) as zipObject:
+                with zipObject.open(relativeFilepath) as f:
+                    _fileStart = str(f.read(4096))
         if _fileStart and re_match(r"(?!.*<?xml\s).*<html.*>", _fileStart):
             lastFilePathIsHTML = True
     return lastFilePathIsHTML
