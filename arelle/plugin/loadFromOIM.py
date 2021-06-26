@@ -227,6 +227,8 @@ htmlBodyTemplate = "<body xmlns='http://www.w3.org/1999/xhtml'>\n{0}\n</body>\n"
 xhtmlTagPrefix = "{http://www.w3.org/1999/xhtml}"
 DimensionsKeyPattern = re_compile(r"^(concept|entity|period|unit|language|(\w+:\w+))$")
 
+nonDiscoveringXmlInstanceElements = {qname(link, "roleRef"), qname(link, "arcroleRef")}
+
 # CSV Files
 CSV_PARAMETER_FILE = 1
 CSV_FACTS_FILE = 2
@@ -1013,6 +1015,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             del loadDictErrors[:]
             
             invalidMemberTypes = []
+            invalidSQNames = []
             missingRequiredMembers = []
             unexpectedMembers = []
             def showPathObj(parts, obj): # this can be replaced with jsonPath syntax if appropriate
@@ -1033,8 +1036,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         # print("mbrName {} mbrObj {}".format(mbrName, mbrObj))
                         if mbrPath in oimMemberTypes:
                             mbrTypes = oimMemberTypes[mbrPath]
-                            if (not ((mbrTypes is QNameType or (isinstance(mbrTypes,tuple) and QNameType in mbrTypes)) and isinstance(mbrObj, str) and QNamePattern.match(mbrObj)) and
-                                not ((mbrTypes is SQNameType or (isinstance(mbrTypes,tuple) and SQNameType in mbrTypes)) and isinstance(mbrObj, str) and SQNamePattern.match(mbrObj)) and
+                            if (mbrTypes is SQNameType or (isinstance(mbrTypes,tuple) and SQNameType in mbrTypes)):
+                                if not isinstance(mbrObj, str) or not SQNamePattern.match(mbrObj):
+                                    invalidSQNames.append(showPathObj(pathParts, mbrObj))
+                            elif (not ((mbrTypes is QNameType or (isinstance(mbrTypes,tuple) and QNameType in mbrTypes)) and isinstance(mbrObj, str) and QNamePattern.match(mbrObj)) and
                                 not ((mbrTypes is LangType or (isinstance(mbrTypes,tuple) and LangType in mbrTypes)) and isinstance(mbrObj, str) and languagePattern.match(mbrObj)) and
                                 not ((mbrTypes is URIType or (isinstance(mbrTypes,tuple) and URIType in mbrTypes)) and isinstance(mbrObj, str) and relativeUrlPattern.match(mbrObj) and not WhitespaceUntrimmedPattern.match(mbrObj)) and
                                 #not (mbrTypes is IdentifierType and isinstance(mbrObj, str) and isinstance(mbrObj, str) and IdentifierPattern.match(mbrObj)) and
@@ -1097,6 +1102,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 error("{}:invalidJSONStructure".format(errPrefix),
                       _("Invalid JSON structure member types in metadata: %(members)s"),
                       sourceFileLine=oimFile, members=", ".join(invalidMemberTypes))
+            if invalidSQNames:
+                error("oimce:invalidSQName".format(errPrefix),
+                      _("Invalid SQNames in metadata: %(members)s"),
+                      sourceFileLine=oimFile, members=", ".join(invalidMemberTypes))
                 
             if isCSV and not primaryReportParameters:
                 primaryReportParameters = oimObject.setdefault("parameters", {})
@@ -1146,7 +1155,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     error("xbrlce:missingParametersFile", 
                           _("Report parameter file is missing: %(file)s"),
                           file=parameterURL)
-
+                    
+            if isCSVorXL: # normalize relative taxonomy URLs to primary document or nearest absolute parent
+                t = documentInfo.get("taxonomy",())
+                for i, tUrl in enumerate(t):
+                    t[i] = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(tUrl, normalizedUrl)
 
             if isCSVorXL and "extends" in documentInfo:
                 # process extension
@@ -1774,6 +1787,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         
         # create the instance document
         currentAction = "creating instance document"
+        # relativize taxonomyRefs to base where feasible
+        txBase = os.path.dirname(documentBase or (modelXbrl.entryLoadingUrl if modelXbrl else ""))
+        for i, tUrl in enumerate(taxonomyRefs or ()):
+            if not isAbsoluteUri(tUrl) and os.path.isabs(tUrl) and not isAbsoluteUri(txBase) and os.path.isabs(txBase):
+                taxonomyRefs[i] = os.path.relpath(tUrl, txBase)
         if modelXbrl: # pull loader implementation
             modelXbrl.blockDpmDBrecursion = True
             modelXbrl.modelDocument = _return = createModelDocument(
@@ -1784,7 +1802,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                   isEntry=True,
                   initialComment="extracted from OIM {}".format(mappedUri),
                   documentEncoding="utf-8",
-                  base=documentBase)
+                  base=documentBase or modelXbrl.entryLoadingUrl)
             modelXbrl.modelDocument.inDTS = True
         else: # API implementation
             modelXbrl = ModelXbrl.create(
@@ -2837,7 +2855,7 @@ def validateFinally(val, *args, **kwargs):
             modelXbrl.error("xbrlxe:unsupportedZeroPrecisionFact",
                             _("Instance has %(count)s precision zero facts"),
                             modelObject=precisionZeroFacts, count=len(precisionZeroFacts))
-        
+        definedContainers = set(rel.contextElement for rel in modelXbrl.relationshipSet(hc_all).modelRelationships)
         containers = {"segment", "scenario"}  
         dimContainers = set(t for c in contextsInUse for t in containers if c.dimValues(t))
         if len(dimContainers) > 1:
@@ -2847,7 +2865,7 @@ def validateFinally(val, *args, **kwargs):
         contextsWithNonDimContent = set()
         contextsWithNonDimContainer = set()
         contextsWithComplexTypedDimensions = set()
-        containersNotUsedForDimensions = containers - dimContainers
+        containersNotUsedForDimensions = containers - definedContainers
         for context in contextsInUse:
             if context.nonDimValues("segment"):
                 contextsWithNonDimContent.add(context)
@@ -2896,7 +2914,7 @@ def validateFinally(val, *args, **kwargs):
                 visited = set()
             visited.add(thisdoc)
             for doc, docRef in thisdoc.referencesDocument.items():
-                if not (docRef.referenceTypes & {"roleType", "arcroleType"} and thisdoc.type == Type.INSTANCE):
+                if thisdoc.type != Type.INSTANCE or docRef.referringModelObject.qname not in nonDiscoveringXmlInstanceElements:
                     if doc == roleTypeDoc or (doc not in visited and docInSchemaRefedDTS(doc, roleTypeDoc, visited)):
                         return True
             visited.remove(thisdoc)
@@ -2913,8 +2931,8 @@ def validateFinally(val, *args, **kwargs):
             for arcroleType in modelXbrl.arcroleTypes[arcrole]:
                 roleDefiningDocs[arcrole].add(arcroleType.modelDocument)
         extRoles = set(role
-                      for role, doc in roleDefiningDocs.items()
-                      if not docInSchemaRefedDTS(modelXbrl.modelDocument, doc))
+                      for role, docs in roleDefiningDocs.items()
+                      if not any(docInSchemaRefedDTS(modelXbrl.modelDocument, doc) for doc in docs))
         if extRoles:
             modelXbrl.error("xbrlxe:unsupportedExternalRoleRef",
                             _("Role and arcrole definitions MUST be in standard or schemaRef discoverable sources"),
