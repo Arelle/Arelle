@@ -2844,7 +2844,7 @@ def validateFinally(val, *args, **kwargs):
             if context is not None:
                 contextsInUse.add(context)
         if unsupportedDataTypeFacts:
-            modelXbrl.error("oime:unsupportedConceptDataType",
+            modelXbrl.error("xbrlxe:unsupportedConceptDataType", # this pertains only to xBRL-XML validation (JSON and CSV were checked during loading when loadedFromOIM is True)
                             _("Instance has %(count)s facts with unsupported data types"),
                             modelObject=unsupportedDataTypeFacts, count=len(unsupportedDataTypeFacts))
         if tupleFacts:
@@ -2898,7 +2898,7 @@ def validateFinally(val, *args, **kwargs):
                             containers=" or ".join(sorted(containersNotUsedForDimensions)),
                             contexts=", ".join(sorted(c.id for c in contextsWithNonDimContainer)))
         if contextsWithComplexTypedDimensions:
-            modelXbrl.error("oime:unsupportedDimensionDataType", # was: "xbrlxe:unsupportedComplexTypedDimension",
+            modelXbrl.error("xbrlxe:unsupportedComplexTypedDimension",  # this pertains only to xBRL-XML validation (JSON and CSV were checked during loading when loadedFromOIM is True)
                             _("Instance has contexts with complex typed dimensions: %(contexts)s"),
                             modelObject=contextsWithNonDimContainer, 
                             contexts=", ".join(sorted(c.id for c in contextsWithComplexTypedDimensions)))
