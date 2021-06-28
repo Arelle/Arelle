@@ -21,7 +21,17 @@ class UtrEntry(): # use slotted class for execution efficiency
         return "utrEntry({})".format(', '.join("{}={}".format(n, getattr(self,n))
                                                for n in self.__slots__))
 
-def loadUtr(modelXbrl, rec_units_only=True): # Build a dictionary of item types that are constrained by the UTR
+def loadUtr(modelXbrl, statusFilters=None): # Build a dictionary of item types that are constrained by the UTR
+    """
+    Parses the units from modelXbrl.modelManager.disclosureStystem.utrUrl, and sets them on
+    modelXbrl.modelManager.disclosureSystem.utrItemTypeEntries
+
+    :param modelXbrl: the loaded xbrl model
+    :param statusFilters: the list of status to keep. If unset, 'REC' status is the default filter
+    :return: None
+    """
+    if statusFilters is None:
+        statusFilters = ['REC']
     modelManager = modelXbrl.modelManager
     modelManager.disclosureSystem.utrItemTypeEntries = utrItemTypeEntries = defaultdict(dict)
     # print('UTR LOADED FROM '+utrUrl);
@@ -48,7 +58,7 @@ def loadUtr(modelXbrl, rec_units_only=True): # Build a dictionary of item types 
             u.isSimple = all(e is None for e in (u.numeratorItemType, u.nsNumeratorItemType, u.denominatorItemType, u.nsDenominatorItemType))
             u.symbol = unitElt.findtext("{http://www.xbrl.org/2009/utr}symbol")
             u.status = unitElt.findtext("{http://www.xbrl.org/2009/utr}status")
-            if not rec_units_only or u.status == "REC":
+            if u.status in statusFilters:
                 # TO DO: This indexing scheme assumes that there are no name clashes in item types of the registry.
                 (utrItemTypeEntries[u.itemType])[u.id] = u
             unitDupKey = (u.unitId, u.nsUnit, u.status)
