@@ -263,6 +263,10 @@ class NoRecursionCheck:
 class CheckPrefix:
     pass
 
+class KeyIsNcName:
+    pass
+
+
 UnrecognizedDocMemberTypes = {
     "/documentInfo": dict,
     "/documentInfo/documentType": str,
@@ -421,9 +425,9 @@ CsvMemberTypes = {
     "/tables/*/parameters/*": str,
     "/tables/*/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     # links 
-    "/links/*": dict,
+    "/links/*": (dict,KeyIsNcName),
     # link group
-    "/links/*/*": dict,
+    "/links/*/*": (dict,KeyIsNcName),
     # fact links
     "/links/*/*/*": list,
     # fact IDs
@@ -1060,6 +1064,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             mbrTypes = oimMemberTypes[path + "*"]
                             if (not ((mbrTypes is URIType or (isinstance(mbrTypes,tuple) and isinstance(mbrObj, str) and URIType in mbrTypes)) and relativeUrlPattern.match(mbrObj)) and
                                 not isinstance(mbrObj, mbrTypes)):
+                                invalidMemberTypes.append(showPathObj(pathParts, mbrObj))
+                            if isinstance(mbrTypes,tuple) and KeyIsNcName in mbrTypes and not NCNamePattern.match(mbrName):
                                 invalidMemberTypes.append(showPathObj(pathParts, mbrObj))
                             mbrPath = path + "*" # for recursion
                         else:
@@ -1970,6 +1976,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         checkDim(tblTmpl, dimName, dimValue, "/tableTemplates", tblTmplId, "columns", columnId, "dimensions")
                     checkDim(tblTmpl, "decimals", column.get("decimals",None), "/tableTemplates", tblTmplId, "columns", columnId)
                     for propGrpName, propGrp in column.get("propertyGroups",EMPTY_DICT).items():
+                        checkIdentifier(propGrpName, "/tableTemplates", tblTmplId, "columns", columnId, "propertyGroups", propGrpName)
                         for dimName, dimValue in propGrp.get("dimensions",EMPTY_DICT).items():
                             checkDim(tblTmpl, dimName, dimValue, "/tableTemplates", tblTmplId, "columns", columnId, "propertyGroups", propGrpName, "dimensions")
                         checkDim(tblTmpl, "decimals", propGrp.get("decimals",None), "/tableTemplates", tblTmplId, "columns", columnId, "propertyGroups", propGrpName)
