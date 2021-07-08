@@ -18,6 +18,8 @@
      contextElement="segment" 
      utrUrl="http://www.xbrl.org/utr/utr.xml resources/ferc-utr.xml"
      utrStatusFilters="REC CR"
+     identifierSchemePattern="^http://www\.ferc\.gov/CID$"
+     identifierValuePattern="^C[0-9]{6}$" 
      />
 
 

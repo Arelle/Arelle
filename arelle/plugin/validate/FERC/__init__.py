@@ -4,7 +4,7 @@ Created on Jul 5, 2021
 Filer Guidelines: 
     Basically EFM 5.2.2.1, 5.2.2.6,  5.2.2.10,  5.2.5.4, 5.2.5.5(Inline XBRL), 5.2.5.6(Inline XBRL), 
                   5.2.5.7, 5.2.5.8, 5.2.5.9, 5.2.5.10, 
-                  6.5.3, 6.5.4, 6.5.7, 6.5.8, 6.5.15, 6.5.16, 6.5.17
+                  6.5.3, 6.5.4, 6.5.7, 6.5.8, 6.5.14, 6.5.15, 6.5.16, 6.5.17
     Filers can only submit an instance so EFM DTS checks are not needed.
                   
 @author: Mark V Systems Limited
@@ -40,12 +40,14 @@ def validateXbrlFinally(val, *args, **kwargs):
     modelDocument = modelXbrl.modelDocument
     if not modelDocument:
         return # never loaded properly
+    disclosureSystem = val.disclosureSystem
 
     _statusMsg = _("validating {0} filing rules").format(val.disclosureSystem.name)
     modelXbrl.profileActivity()
     modelXbrl.modelManager.showStatus(_statusMsg)
 
     isInlineXbrl = modelXbrl.modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET)
+    requiredFactLang = disclosureSystem.defaultXmlLang.lower() if disclosureSystem.defaultXmlLang else disclosureSystem.defaultXmlLang
 
     # inline doc set has multiple instance names to check
     if modelXbrl.modelDocument.type == ModelDocument.Type.INLINEXBRLDOCUMENTSET:
@@ -90,6 +92,14 @@ def validateXbrlFinally(val, *args, **kwargs):
             _("There are more than one entity identifiers: %(entityIdentifiers)s."),
             modelObject=modelXbrl,
             entityIdentifiers=", ".join(sorted(entityIdentifiers)))
+    for ei in sorted(entityIdentifiers):
+        scheme, _sep, identifier = ei.rpartition("#")
+        if not disclosureSystem.identifierSchemePattern.match(scheme) or not disclosureSystem.identifierValuePattern.match(identifier):
+            modelXbrl.error("FERC.6.05.01",
+                _("Entity identifier %(identifier)s, or scheme %(scheme)s does not adhere "
+                  "to the standard naming convention of <identifier scheme='http://www.ferc.gov/CID'>Cnnnnnn</identifier>'.  "),
+                modelObject=modelXbrl, scheme=scheme, identifier=identifier)
+
     #6.5.4 scenario
     segContexts = set()
     uniqueContextHashes = {}
@@ -97,6 +107,8 @@ def validateXbrlFinally(val, *args, **kwargs):
     precisionFacts = set()
     formType = None
     formEntrySchema = None
+    factsForLang = {}
+    keysNotDefaultLang = {}
     
     for c in modelXbrl.contexts.values():
         if XmlUtil.hasChild(c, xbrli, "segment"):
@@ -124,6 +136,12 @@ def validateXbrlFinally(val, *args, **kwargs):
         if f.isNumeric:
             if f.precision is not None:
                 precisionFacts.add(f)
+        elif not f.isNil:
+            langTestKey = "{0},{1}".format(f.qname, f.contextID)
+            factsForLang.setdefault(langTestKey, []).append(f)
+            lang = f.xmlLang
+            if lang and lang.lower() != requiredFactLang: # not lang.startswith(factLangStartsWith):
+                keysNotDefaultLang[langTestKey] = f
         if getattr(f, "xValid", 0) >= VALID:
             if f.qname.localName == "FormType":
                 formType = f.xValue
@@ -154,6 +172,19 @@ def validateXbrlFinally(val, *args, **kwargs):
             modelXbrl.error("FERC.6.05.17",
                 _("The instance document contains elements using the precision attribute."),
                 modelObject=precisionFacts)
+
+    #6.5.14 facts without english text
+    for keyNotDefaultLang, factNotDefaultLang in keysNotDefaultLang.items():
+        anyDefaultLangFact = False
+        for fact in factsForLang[keyNotDefaultLang]:
+            if fact.xmlLang.lower() == requiredFactLang: #.startswith(factLangStartsWith):
+                anyDefaultLangFact = True
+                break
+        if not anyDefaultLangFact:
+            val.modelXbrl.error("FERC.6.05.14",
+                _("Element %(fact)s in context %(contextID)s has text with xml:lang other than '%(lang2)s' (%(lang)s) without matching English text.  "),
+                modelObject=factNotDefaultLang, fact=factNotDefaultLang.qname, contextID=factNotDefaultLang.contextID, 
+                lang=factNotDefaultLang.xmlLang, lang2=disclosureSystem.defaultXmlLang) # report lexical format default lang
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
