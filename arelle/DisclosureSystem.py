@@ -49,7 +49,7 @@ class DisclosureSystem:
         self.name = None
         self.validationType = None
         self.exclusiveTypesPattern = None # regex of type matches exclusive with validationType
-        # previoulsy built-in types (intent to replace with plugin defined types)
+        # previously built-in types (intent to replace with plugin defined types)
         self.EFM = False
         self.GFM = False
         self.EFMorGFM = False
@@ -61,6 +61,7 @@ class DisclosureSystem:
                 setattr(self, typeTestVariable, False)
                 self.pluginTypes.add(typeName)
         self.validateFileText = False
+        self.validateEntryText = False
         self.allowedExternalHrefPattern = None
         self.schemaValidateSchema = None
         self.blockDisallowedReferences = False
@@ -75,7 +76,8 @@ class DisclosureSystem:
         self.mappingsUrl = os.path.join(self.modelManager.cntlr.configDir, "mappings.xml")
         self.mappedFiles = {}
         self.mappedPaths = []
-        self.utrUrl = "http://www.xbrl.org/utr/utr.xml"
+        self.utrUrl = ["http://www.xbrl.org/utr/utr.xml"]
+        self.utrStatusFilters = None
         self.utrTypeEntries = None
         self.identifierSchemePattern = None
         self.identifierValuePattern = None
@@ -175,6 +177,7 @@ class DisclosureSystem:
                                     for typeName, typeTestVariable in pluginXbrlMethod(self):
                                         setattr(self, typeTestVariable, self.validationType == typeName)
                                 self.validateFileText = dsElt.get("validateFileText") == "true"
+                                self.validateEntryText = dsElt.get("validateEntryText") == "true"
                                 if dsElt.get("allowedExternalHrefPattern"):
                                     self.allowedExternalHrefPattern = re.compile(dsElt.get("allowedExternalHrefPattern"))
                                 self.blockDisallowedReferences = dsElt.get("blockDisallowedReferences") == "true"
@@ -197,9 +200,9 @@ class DisclosureSystem:
                                                  dsElt.get("mappingsUrl"),
                                                  url)
                                 if dsElt.get("utrUrl"): # may be mapped by mappingsUrl entries, see below
-                                    self.utrUrl = self.modelManager.cntlr.webCache.normalizeUrl(
-                                                 dsElt.get("utrUrl"),
-                                                 url)
+                                    self.utrUrl = [self.modelManager.cntlr.webCache.normalizeUrl(u, url)
+                                                   for u in dsElt.get("utrUrl").split()]
+                                self.utrStatusFilters = dsElt.get("utrStatusFilters")
                                 self.identifierSchemePattern = compileAttrPattern(dsElt,"identifierSchemePattern")
                                 self.identifierValuePattern = compileAttrPattern(dsElt,"identifierValuePattern")
                                 self.identifierValueName = dsElt.get("identifierValueName")
@@ -227,7 +230,7 @@ class DisclosureSystem:
                     if isSelected:
                         break
             self.loadMappings()
-            self.utrUrl = self.mappedUrl(self.utrUrl) # utr may be mapped, change to its mapped entry
+            self.utrUrl = [self.mappedUrl(u) for u in self.utrUrl] # utr may be mapped, change to its mapped entry
             self.loadStandardTaxonomiesDict()
             self.utrTypeEntries = None # clear any prior loaded entries
             # set log level filters (including resetting prior disclosure systems values if no such filter)

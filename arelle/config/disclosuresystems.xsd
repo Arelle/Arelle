@@ -61,7 +61,9 @@
       <xs:attribute name="standardTaxonomiesUrl" use="optional" />
       <xs:attribute name="mappingsUrl" />
       <xs:attribute name="utrUrl" />
+      <xs:attribute name="utrStatusFilters" />
       <xs:attribute name="validateFileText" type="xs:boolean"/>
+      <xs:attribute name="validateEntryText" type="xs:boolean"/>
       <xs:attribute name="allowedExternalHrefPattern" type="xs:string"/>
       <xs:attribute name="blockDisallowedReferences" type="xs:boolean"/>
       <xs:attribute name="maxSubmissionSubdirectoryEntryNesting" type="xs:integer"/>

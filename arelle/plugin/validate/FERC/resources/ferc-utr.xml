@@ -1,0 +1,77 @@
+<utr 
+ lastUpdated="2021-07-07" 
+ version="1.0" 
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+ xsi:schemaLocation="http://www.xbrl.org/2009/utr https://www.xbrl.org/utr/utr.xsd" 
+ xmlns="http://www.xbrl.org/2009/utr">
+  <units>
+    <unit id="u100">
+      <unitId>MVa</unitId>
+      <unitName>MegaVolt-ampere</unitName>
+      <itemType>powerItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>MVa</symbol>
+      <definition>A megavolt-ampere (MVa) is the unit used for the apparent power in an electrical circuit, equal to the product of root-mean-square (RMS) voltage and RMS current. In direct current (DC) circuits, this product is equal to the real power (active power) in watts. Volt-amperes are useful only in the context of alternating current (AC) circuits.</definition>
+      <baseStandard>SI</baseStandard>
+      <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>1000000</mn>
+            <mo>&#xB7;</mo>
+            <mi>VA</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>1000000</cn>
+            <ci>VA</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>CR</status>
+      <versionDate>2021-06-30</versionDate>
+    </unit>
+    <unit id="u00303">
+      <unitId>dth</unitId>
+      <unitName>Dekatherm</unitName>
+      <itemType>energyItemType</itemType>
+      <itemTypeDate>2009-12-16</itemTypeDate>
+      <symbol>dth</symbol>
+      <definition>The dekatherm is a unit of energy used to measure natural gas. One dekatherm is equal to 10 therms or one million British thermal units (Btu).</definition>
+      <baseStandard>Customary</baseStandard>
+     <conversionPresentation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mn>1.0550559</mn>
+            <mo>*</mo>
+            <msup>
+              <mn>10</mn>
+              <mn>9</mn>
+            </msup>
+            <mo>*</mo>
+            <mi>J</mi>
+          </mrow>
+        </math>
+      </conversionPresentation>
+      <conversionContent>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <times/>
+            <cn>1.0550559</cn>
+            <apply>
+              <power/>
+              <cn>10</cn>
+              <cn>9</cn>
+            </apply>
+            <ci>J</ci>
+          </apply>
+        </math>
+      </conversionContent>
+      <status>CR</status>
+      <versionDate>2021-02-16</versionDate>
+    </unit>
+  </units>
+</utr>
