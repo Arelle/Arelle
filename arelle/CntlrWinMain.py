@@ -710,6 +710,10 @@ class CntlrWinMain (Cntlr.Cntlr):
     
         
     def updateFileHistory(self, url, importToDTS):
+        if isinstance(url, list): # may be multi-doc ixds
+            if len(url) != 1:
+                return
+            url = url[0]
         key = "importHistory" if importToDTS else "fileHistory"
         fileHistory = self.config.setdefault(key, [])
         while fileHistory.count(url) > 0:
