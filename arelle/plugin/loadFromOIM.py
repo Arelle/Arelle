@@ -156,6 +156,7 @@ CanonicalXmlTypePattern = {
     "boolean": re_compile("^true$|^false$"),
     "date": re_compile(r"-?[0-9]{4}-[0-9]{2}-[0-9]{2}Z?$"),
     "dateTime": re_compile(r"-?[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?$"),
+    "XBRLI_DATEUNION": re_compile(r"-?[0-9]{4}-[0-9]{2}-[0-9]{2}Z?$|-?[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?$"),
     "time": re_compile(r"-?([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?$"),
     "decimal": re_compile(r"^[-]?([1-9][0-9]*)?[0-9]\.[0-9]([0-9]*[1-9])?$"),
     "float": CanonicalFloatPattern,
@@ -184,8 +185,8 @@ RowIdentifierPattern = re_compile(
      r"[_\-" 
      "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*$")
 PeriodPattern = re_compile(
-    "^-?[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?"
-    "(/-?[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?)?$"
+    "^-?[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?"
+    "(/-?[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?)?$"
     )
 PrefixedQName = re_compile(
     "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
@@ -1920,6 +1921,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 error("xbrlce:invalidPeriodRepresentation",
                                       _("The period has lexically invalid dateTime %(period)s at %(path)s"),
                                       modelObject=modelXbrl, period=dimValue, path="/".join(pathSegs+(dimName,)))
+                        elif dimName == "language":
+                            if dimValue != "#none" and not languagePattern.match(dimValue or ""):
+                                error("xbrlce:invalidLanguageCode",
+                                      _("The language is lexically invalid %(language)s at %(path)s"),
+                                      modelObject=modelXbrl, language=dimValue, path="/".join(pathSegs+(dimName,)))
                         elif dimName == "xbrl:noteId":
                             error("xbrlce:invalidJSONStructure",
                                   _("NoteId dimension must not be explicitly defined at %(path)s"),
@@ -2171,7 +2177,13 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                       modelObject=modelXbrl, concept=conceptQn)
                 continue
             attrs = {}
-            if concept.isItem:
+            if ((concept.instanceOfType(UNSUPPORTED_DATA_TYPES) and not concept.instanceOfType(dtrSQNameNamesItemTypes))
+                   or concept.isTuple):
+                error("oime:unsupportedConceptDataType",
+                      _("Concept has unsupported data type, %(value)s: %(concept)s."),
+                      modelObject=modelXbrl, concept=conceptSQName, value=fact["value"])
+                continue
+            elif concept.isItem:
                 if concept.isAbstract:
                     error("oime:valueForAbstractConcept",
                           _("Value provided for abstract concept by fact %(factId)s, concept %(concept)s."),
@@ -2469,12 +2481,6 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                               _("Enumeration item must be %(canonicalOrdered)slist of QNames: %(concept)s."),
                               modelObject=modelXbrl, concept=conceptSQName, canonicalOrdered="a canonical ordered " if canonicalValuesFeature else "")
                         continue
-                elif ((concept.instanceOfType(UNSUPPORTED_DATA_TYPES) and not concept.instanceOfType(dtrSQNameNamesItemTypes))
-                       or concept.isTuple):
-                    error("oime:unsupportedConceptDataType",
-                          _("Concept has unsupported data type, %(value)s: %(concept)s."),
-                          modelObject=modelXbrl, concept=conceptSQName, value=fact["value"])
-                    continue
                 else:
                     text = fact["value"]
                     if (canonicalValuesFeature and text is not None and 
@@ -2864,15 +2870,15 @@ def validateFinally(val, *args, **kwargs):
                                 modelObject=modelXbrl)
     else:
         # validate xBRL-XML instances
-        unsupportedDataTypeFacts = []
+        fractionFacts = []
         tupleFacts = [] 
         precisionZeroFacts = []
         contextsInUse = set()   
         for f in modelXbrl.factsInInstance: # facts in document order (no sorting required for messages)
             concept = f.concept
             if concept is not None:
-                if concept.instanceOfType(UNSUPPORTED_DATA_TYPES) and not concept.instanceOfType(dtrSQNameNamesItemTypes):
-                    unsupportedDataTypeFacts.append(f)
+                if concept.isFraction:
+                    fractionFacts.append(f)
                 elif concept.isTuple:
                     tupleFacts.append(f)
                 elif concept.isNumeric:
@@ -2881,10 +2887,10 @@ def validateFinally(val, *args, **kwargs):
             context = f.context
             if context is not None:
                 contextsInUse.add(context)
-        if unsupportedDataTypeFacts:
-            modelXbrl.error("xbrlxe:unsupportedConceptDataType", # this pertains only to xBRL-XML validation (JSON and CSV were checked during loading when loadedFromOIM is True)
-                            _("Instance has %(count)s facts with unsupported data types"),
-                            modelObject=unsupportedDataTypeFacts, count=len(unsupportedDataTypeFacts))
+        if fractionFacts:
+            modelXbrl.error("xbrlxe:unsupportedFraction", # this pertains only to xBRL-XML validation (JSON and CSV were checked during loading when loadedFromOIM is True)
+                            _("Instance has %(count)s facts with fraction facts"),
+                            modelObject=fractionFacts, count=len(fractionFacts))
         if tupleFacts:
             modelXbrl.error("xbrlxe:unsupportedTuple",
                             _("Instance has %(count)s tuple facts"),
