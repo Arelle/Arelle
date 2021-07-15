@@ -19,9 +19,9 @@ Example to run from web server:
 import os, sys, io, time, traceback, json, csv, logging, zipfile, datetime, isodate
 from math import isnan, log10
 try:
-    from regex import compile as re_compile, match as re_match, DOTALL as re_DOTALL
+    from regex import compile as re_compile, match as re_match, sub as re_sub, DOTALL as re_DOTALL
 except ImportError:
-    from re import compile as re_compile, match as re_match, DOTALL as re_DOTALL
+    from re import compile as re_compile, match as re_match, sub as re_sub, DOTALL as re_DOTALL
 from lxml import etree
 from collections import defaultdict, OrderedDict
 from arelle.ModelDocument import Type, create as createModelDocument
@@ -32,7 +32,7 @@ from arelle.ModelValue import qname, dateTime, DateTime, DATETIME, yearMonthDura
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict, flattenToSet, strTruncate
 from arelle.UrlUtil import isHttpUrl, isAbsolute as isAbsoluteUri, relativeUrlPattern
-from arelle.XbrlConst import (qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
+from arelle.XbrlConst import (xbrli, qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
                               qnLinkPart, gen, link, defaultLinkRole, footnote, factFootnote, isStandardRole,
                               conceptLabel, elementLabel, conceptReference, all as hc_all, notAll as hc_notAll,
                               xhtml, qnXbrliDateItemType,
@@ -42,6 +42,7 @@ from arelle.XmlValidate import integerPattern, languagePattern, NCNamePattern, Q
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 
 nsOims = ("http://www.xbrl.org/WGWD/YYYY-MM-DD",
+          "https://www.xbrl.org/WGWD/YYYY-MM-DD",
           "http://www.xbrl.org/CR/2020-05-06",
           "https://xbrl.org/CR/2021-02-03",
           "http://www.xbrl.org/((~status_date_uri~))",
@@ -137,7 +138,6 @@ OIMReservedURIAlias = {
     "linkGroups": reservedLinkGroupAliases
     }
 
-ENTITY_NA_QNAME = qname("https://xbrl.org/entities", "NA")
 EMPTY_DICT = {}
 EMPTY_LIST = []
 
@@ -229,6 +229,9 @@ DimensionsKeyPattern = re_compile(r"^(concept|entity|period|unit|language|(\w+:\
 
 nonDiscoveringXmlInstanceElements = {qname(link, "roleRef"), qname(link, "arcroleRef")}
 
+UNSUPPORTED_DATA_TYPES = dtrPrefixedContentItemTypes + (
+    qname(xbrli,"fractionItemType"), )
+
 # CSV Files
 CSV_PARAMETER_FILE = 1
 CSV_FACTS_FILE = 2
@@ -286,7 +289,7 @@ JsonMemberTypes = {
     "/documentInfo/baseURL": URIType,
     "/documentInfo/documentType": str,
     "/documentInfo/features": dict,
-    "/documentInfo/features/*:*": (int,bool,str,type(None)),
+    "/documentInfo/features/*:*": (int,float,bool,str,type(None)),
     "/documentInfo/namespaces": dict,
     "/documentInfo/namespaces/*": URIType,
     "/documentInfo/linkTypes": dict,
@@ -295,7 +298,7 @@ JsonMemberTypes = {
     "/documentInfo/linkGroups/*": str,
     "/documentInfo/taxonomy": list,
     "/documentInfo/taxonomy/": str,
-    "/documentInfo/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
+    "/documentInfo/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     # facts
     "/facts/*": dict,
     "/facts/*/value": (str,type(None)),
@@ -314,7 +317,7 @@ JsonMemberTypes = {
     "/facts/*/dimensions/noteId": str,
     "/facts/*/dimensions/*:*": (str,type(None)),
     # custom properties on fact are unchecked
-    "/facts/*/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
+    "/facts/*/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     }
 JsonRequiredMembers = {
     "/": {"documentInfo"},
@@ -334,12 +337,12 @@ CsvMemberTypes = {
     "/dimensions": dict,
     "/decimals": (int,str),
     "/links": dict,
-    "/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
+    "/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     # documentInfo
     "/documentInfo/baseURL": URIType,
     "/documentInfo/documentType": str,
     "/documentInfo/features": dict,
-    "/documentInfo/features/*:*": (int,bool,str,type(None)),
+    "/documentInfo/features/*:*": (int,float,bool,str,type(None)),
     "/documentInfo/final": dict,
     "/documentInfo/namespaces": dict,
     "/documentInfo/namespaces/*": URIType,
@@ -351,7 +354,7 @@ CsvMemberTypes = {
     "/documentInfo/taxonomy/": str,
     "/documentInfo/extends": list,
     "/documentInfo/extends/": URIType,
-    "/documentInfo/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
+    "/documentInfo/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     # documentInfo/final
     "/documentInfo/final/namespaces": bool,
     "/documentInfo/final/taxonomy": bool,
@@ -370,7 +373,7 @@ CsvMemberTypes = {
     "/tableTemplates/*/columns": dict,
     "/tableTemplates/*/decimals": (int,str),
     "/tableTemplates/*/dimensions": dict,
-    "/tableTemplates/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
+    "/tableTemplates/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     "/tableTemplates/*/dimensions/concept": str,
     "/tableTemplates/*/dimensions/entity": str,
     "/tableTemplates/*/dimensions/period": str,
@@ -384,7 +387,7 @@ CsvMemberTypes = {
     "/tableTemplates/*/columns/*/comment": bool,
     "/tableTemplates/*/columns/*/decimals": (int,str),
     "/tableTemplates/*/columns/*/dimensions": dict,
-    "/tableTemplates/*/columns/*/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
+    "/tableTemplates/*/columns/*/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     # dimensions (column)
     "/tableTemplates/*/columns/*/dimensions/concept": str,
     "/tableTemplates/*/columns/*/dimensions/entity": str,
@@ -423,7 +426,7 @@ CsvMemberTypes = {
     "/tables/*/optional": bool,
     "/tables/*/parameters": dict,
     "/tables/*/parameters/*": str,
-    "/tables/*/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
+    "/tables/*/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     # links 
     "/links/*": (dict,KeyIsNcName),
     # link group
@@ -1284,6 +1287,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             reportProperties = {"documentInfo", "tableTemplates", "tables", "parameters", "parameterURL", "dimensions", "decimals", "links"}
             columnProperties = {"comment", "decimals", "dimensions", "propertyGroups", "parameterURL", "propertiesFrom"}
             
+        entityNaQName = qname(re_sub("/xbrl-(json|csv)$","/entities",documentType), "NA")
         allowedDuplicatesFeature = ALL
         v = featuresDict.get("xbrl:allowedDuplicates")
         if v is not None:
@@ -1849,7 +1853,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         error("xbrlce:unknownSpecialValue",
                               _("Unknown special value: %(value)s at %(path)s"),
                               modelObject=modelXbrl, value=dimValue, path="/".join(pathSegs+(dimName,)))
-                    elif dimValue == "#nil" and ":" not in dimName and dimName not in ("period", "value", "entity", "unit"):
+                    elif dimValue == "#nil" and ":" not in dimName and dimName not in ("concept", "period", "value", "entity", "unit"):
                         error("xbrlce:invalidJSONStructure",
                               _("Invalid value: %(value)s at %(path)s"),
                               modelObject=modelXbrl, value=dimValue, path="/".join(pathSegs+(dimName,)))
@@ -1889,6 +1893,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                             error("oime:valueForAbstractConcept",
                                                   _("Value provided for abstract concept by %(concept)s at %(path)s"),
                                                   modelObject=modelXbrl, concept=dimValue, path="/".join(pathSegs+(dimName,)))
+                                        elif ((concept.instanceOfType(UNSUPPORTED_DATA_TYPES) and not concept.instanceOfType(dtrSQNameNamesItemTypes))
+                                              or concept.isTuple):
+                                            error("oime:unsupportedConceptDataType",
+                                                  _("Concept has unsupported data type, %(dataType)s: %(concept)s at %(path)s"),
+                                                  modelObject=modelXbrl, concept=dimValue, dataType=concept.typeQname, path="/".join(pathSegs+(dimName,)))
                         elif dimName == "unit":
                             if dimValue == "xbrli:pure":
                                 error("oime:illegalPureUnit",
@@ -1901,6 +1910,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         elif dimName == "entity":
                             if dimValue != "#none":
                                 checkSQName(dimValue or "", *(pathSegs+(dimName,)) )
+                                dimQname = qname(dimValue, namespaces)
+                                if dimQname == entityNaQName:
+                                    error("oime:invalidUseOfReservedIdentifier",
+                                          _("The entity core dimension MUST NOT have a scheme of 'https://xbrl.org/.../entities' with an identifier of 'NA': %(entity)s at %(path)s"),
+                                          modelObject=modelXbrl, entity=dimQname, path="/".join(pathSegs+(dimName,)))
                         elif dimName == "period":
                             if dimValue != "#none" and not PeriodPattern.match(csvPeriod(dimValue) or ""):
                                 error("xbrlce:invalidPeriodRepresentation",
@@ -1929,9 +1943,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                           modelObject=modelXbrl, memberQName=dimValue, path="/".join(pathSegs+(dimName,)))
                             elif dimConcept.isTypedDimension:
                                 # a modelObject xml element is needed for all of the instance functions to manage the typed dim
-                                if (dimConcept.typedDomainElement.type is not None and 
-                                    dimConcept.typedDomainElement.type.qname != qnXbrliDateItemType and
-                                    (dimConcept.typedDomainElement.type.localName in ("complexType", "union", "list", "ENTITY", "ENTITIES", "ID", "IDREF", "IDREFS", "NMTOKEN", "NMTOKENS", "NOTATION"))):
+                                _type = dimConcept.typedDomainElement.type
+                                if (_type is not None and 
+                                    _type.qname != qnXbrliDateItemType and
+                                    (_type.localName in ("complexType", "union", "list", "ENTITY", "ENTITIES", "ID", "IDREF", "IDREFS", "NMTOKEN", "NMTOKENS", "NOTATION")
+                                     or _type.isDerivedFrom(dtrPrefixedContentTypes))):
                                     error("oime:unsupportedDimensionDataType",
                                           _("Taxonomy-defined typed dimension value is complex: %(memberQName)s at %(path)s"),
                                           modelObject=modelXbrl, memberQName=dimValue, path="/".join(pathSegs+(dimName,)))
@@ -2177,7 +2193,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                               modelObject=modelXbrl, factId=id, concept=conceptSQName, lang=lang)
                     factProduced.dimensionsUsed.add("language")
                     attrs["{http://www.w3.org/XML/1998/namespace}lang"] = lang
-                entityAsQn = ENTITY_NA_QNAME
+                entityAsQn = entityNaQName
                 entitySQName = dimensions.get("entity")
                 if entitySQName is INVALID_REFERENCE_TARGET:
                     factProduced.invalidReferenceTarget = "entity"
@@ -2196,6 +2212,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                               modelObject=modelXbrl, entity=entitySQName)
                     else:
                         entityAsQn = qname(entitySQName, namespaces)
+                        if entityAsQn == entityNaQName:
+                            error("oime:invalidUseOfReservedIdentifier",
+                                  _("The entity core dimension MUST NOT have a scheme of 'https://xbrl.org/.../entities' with an identifier of 'NA': %(entity)s."),
+                                  modelObject=modelXbrl, entity=entitySQName)
+                            continue
                 if "period" in dimensions:
                     period = dimensions["period"]
                     if period is INVALID_REFERENCE_TARGET:
@@ -2253,6 +2274,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 break
                             factProduced.dimensionsUsed.add(dimName)
                             dimQname = qname(dimName, namespaces)
+                            if isJSON and dimQname.namespaceURI in nsOims:
+                                error("xbrlje:invalidJSONStructure",
+                                      _("Fact %(factId)s taxonomy-defined dimension QName must not be xbrl prefixed: %(qname)s."),
+                                      modelObject=modelXbrl, factId=id, qname=dimQname)
+                                continue
                             dimConcept = modelXbrl.qnameConcepts.get(dimQname)
                             if dimConcept is None:
                                 error("oime:unknownDimension",
@@ -2443,9 +2469,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                               _("Enumeration item must be %(canonicalOrdered)slist of QNames: %(concept)s."),
                               modelObject=modelXbrl, concept=conceptSQName, canonicalOrdered="a canonical ordered " if canonicalValuesFeature else "")
                         continue
-                elif concept.instanceOfType(dtrPrefixedContentItemTypes) and not concept.instanceOfType(dtrSQNameNamesItemTypes):
+                elif ((concept.instanceOfType(UNSUPPORTED_DATA_TYPES) and not concept.instanceOfType(dtrSQNameNamesItemTypes))
+                       or concept.isTuple):
                     error("oime:unsupportedConceptDataType",
-                          _("Concept has unsupporte data type, %(value)s: %(concept)s."),
+                          _("Concept has unsupported data type, %(value)s: %(concept)s."),
                           modelObject=modelXbrl, concept=conceptSQName, value=fact["value"])
                     continue
                 else:
@@ -2479,7 +2506,13 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     attrs["unitRef"] = _unit.id
                     if text is not None: # no decimals for nil value
                         attrs["decimals"] = decimals if decimals is not None else "INF"
+                    elif decimals is not None:
+                        error("oime:misplacedDecimalsProperty",
+                              _("The decimals property MUST NOT be present on nil facts: %(concept)s, decimals %(decimals)s"),
+                              modelObject=modelXbrl, concept=conceptSQName, decimals=decimals)
+                        continue
                 elif decimals is not None and not isCSVorXL:
+                    # includes nil facts for JSON (but not CSV)
                     error("oime:misplacedDecimalsProperty",
                           _("The decimals property MUST NOT be present on non-numeric facts: %(concept)s, decimals %(decimals)s"),
                           modelObject=modelXbrl, concept=conceptSQName, decimals=decimals)
@@ -2838,15 +2871,13 @@ def validateFinally(val, *args, **kwargs):
         for f in modelXbrl.factsInInstance: # facts in document order (no sorting required for messages)
             concept = f.concept
             if concept is not None:
-                if concept.isFraction:
+                if concept.instanceOfType(UNSUPPORTED_DATA_TYPES) and not concept.instanceOfType(dtrSQNameNamesItemTypes):
                     unsupportedDataTypeFacts.append(f)
+                elif concept.isTuple:
+                    tupleFacts.append(f)
                 elif concept.isNumeric:
                     if f.precision is not None and precisionZeroPattern.match(f.precision):
                         precisionZeroFacts.append(f)
-                elif concept.isTuple:
-                    tupleFacts.append(f)
-                elif concept.instanceOfType(dtrPrefixedContentItemTypes) and not concept.instanceOfType(dtrSQNameNamesItemTypes):
-                    unsupportedDataTypeFacts.append(f)
             context = f.context
             if context is not None:
                 contextsInUse.add(context)
