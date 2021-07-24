@@ -203,6 +203,7 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
     def createFacts(facts, parent):
         for fact in facts:
             if fact.isItem: # HF does not de-duplicate, which is currently-desired behavior
+                modelConcept = fact.concept # isItem ensures concept is not None
                 attrs = {"contextRef": fact.contextID}
                 if fact.id:
                     attrs["id"] = fact.id
@@ -215,8 +216,12 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                 if fact.isNil:
                     attrs[XbrlConst.qnXsiNil] = "true"
                     text = None
+                elif ( not(modelConcept.baseXsdType == "token" and modelConcept.isEnumeration)
+                       and fact.xValid ):
+                    text = fact.xValue
+                # may need a special case for QNames (especially if prefixes defined below root)
                 else:
-                    text = fact.xValue if fact.xValid else fact.textValue
+                    text = fact.textValue
                 for attrName, attrValue in fact.items():
                     if attrName.startswith("{"):
                         attrs[qname(attrName,fact.nsmap)] = attrValue # using qname allows setting prefix in extracted instance
