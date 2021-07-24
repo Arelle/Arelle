@@ -75,18 +75,14 @@ csvDocinfoObjects = {"documentType", "namespaces", "taxonomy", "extends", "final
 csvExtensibleObjects = {"namespaces", "linkTypes", "linkGroups", "features", "final", "tableTemplates", "tables", "dimensions", "parameters"}
 
          
-reservedLinkTypes = {
+reservedLinkTypesAndGroups = {
         "footnote":         "http://www.xbrl.org/2003/arcrole/fact-footnote",
-        "explanatoryFact":  "http://www.xbrl.org/2009/arcrole/fact-explanatoryFact"
-    }
-reservedLinkTypeAliases = {
-        "http://www.xbrl.org/2003/arcrole/fact-footnote": "footnote",
-        "http://www.xbrl.org/2009/arcrole/fact-explanatoryFact": "explanatoryFact"
-    }
-reservedLinkGroups = {
+        "explanatoryFact":  "http://www.xbrl.org/2009/arcrole/fact-explanatoryFact",
         "_":     "http://www.xbrl.org/2003/role/link"
     }
-reservedLinkGroupAliases = {
+reservedLinkTypeAndGroupAliases = {
+        "http://www.xbrl.org/2003/arcrole/fact-footnote": "footnote",
+        "http://www.xbrl.org/2009/arcrole/fact-explanatoryFact": "explanatoryFact",
         "http://www.xbrl.org/2003/role/link": "_"
     }
 
@@ -129,13 +125,13 @@ NSReservedURIAlias = {}
 
 OIMReservedAliasURIs = {
     # "namespaces": NSReservedAliasURIs,  -- generated at load time
-    "linkTypes": reservedLinkTypes,
-    "linkGroups": reservedLinkGroups
+    "linkTypes": reservedLinkTypesAndGroups, 
+    "linkGroups": reservedLinkTypesAndGroups
     }
 OIMReservedURIAlias = {
     #"namespaces": NSReservedURIAlias, -- generated at load time
-    "linkTypes": reservedLinkTypeAliases,
-    "linkGroups": reservedLinkGroupAliases
+    "linkTypes": reservedLinkTypeAndGroupAliases,
+    "linkGroups": reservedLinkTypeAndGroupAliases
     }
 
 EMPTY_DICT = {}
@@ -1484,12 +1480,15 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         for rowIndex, row in enumerate(_rowIterator):
                             if rowIndex == 0:
                                 header = [_cellValue(cell) for cell in row]
+                                emptyHeaderCols = set()
                                 if isXL: # trim empty cells
                                     header = xlTrimHeaderRow(header)
                                 colNameIndex = dict((name, colIndex) for colIndex, name in enumerate(header))
                                 idColIndex = colNameIndex.get(rowIdColName)
                                 for colIndex, colName in enumerate(header):
-                                    if not IdentifierPattern.match(colName):
+                                    if colName == "":
+                                        emptyHeaderCols.add(colIndex)
+                                    elif not IdentifierPattern.match(colName):
                                         hasHeaderError = True
                                         error("xbrlce:invalidHeaderValue", 
                                               _("Table %(table)s CSV file header column %(column)s is not a valid identifier: %(identifier)s, url: %(url)s"),
@@ -1559,6 +1558,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 paramColsWithValue = set()
                                 paramColsUsed = set()
                                 emptyCols = set()
+                                emptyHeaderColsWithValue = []
                                 if isXL and all(cell.value in (None, "") for cell in row): # skip empty excel rows
                                     continue
                                 rowPropGroups = {} # colName, propGroupObject for property groups in this row
@@ -1585,10 +1585,16 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     continue
                                 for colIndex, colValue in enumerate(row):
                                     if colIndex >= len(header):
+                                        if _cellValue(colValue) != EMPTY_CELL:
+                                            emptyHeaderColsWithValue.append(colIndex)
                                         continue
                                     cellPropGroup = {}
                                     propGroupDimSource = {}
                                     colName = header[colIndex]
+                                    if colName == "":
+                                        if _cellValue(colValue) != EMPTY_CELL:
+                                            emptyHeaderColsWithValue.append(colIndex)
+                                        continue
                                     if colName in commentColumns:
                                         continue
                                     propFromColNames = propertiesFrom.get(colName,EMPTY_LIST)
@@ -1779,6 +1785,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     error("xbrlce:unmappedCellValue", 
                                           _("Table %(table)s row %(row)s unmapped property group columns %(columns)s, url: %(url)s"),
                                           table=tableId, row=rowIndex+1, columns=", ".join(sorted(unmappedPropGrps)), url=tableUrl)
+                                if emptyHeaderColsWithValue:
+                                    error("xbrlce:unmappedCellValue", 
+                                          _("Table %(table)s row %(row)s empty-header columns with unmapped values in columns %(columns)s, url: %(url)s"),
+                                          table=tableId, row=rowIndex+1, columns=", ".join(str(c) for c in emptyHeaderColsWithValue), url=tableUrl)
+                                    
                     except UnicodeDecodeError as ex:
                         raise OIMException("{}:invalidJSON".format(errPrefix),
                               _("File MUST use utf-8 encoding: %(file)s, error %(error)s"),
@@ -2358,12 +2369,12 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                 qnameDims, [], [],
                                                 id=cntxId)
                         if len(modelXbrl.errors) > prevErrLen:
-                            numFactCreationXbrlErrors += sum(err != "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:])
                             if any(err == "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:]):
                                 error("{}:invalidDimensionValue".format("oime" if isJSON else valErrPrefix),
                                       _("Fact %(factId)s taxonomy-defined dimension value errors noted above."),
                                       modelObject=modelXbrl, factId=id)
                                 continue
+                            numFactCreationXbrlErrors += sum(err != "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:])
                     except ValueError as err:
                         error("xbrlce:invalidPeriodRepresentation" if isCSVorXL else "oimce:invalidPeriodRepresentation",
                               _("Invalid period for fact %(factId)s period %(period)s, %(error)s."),
