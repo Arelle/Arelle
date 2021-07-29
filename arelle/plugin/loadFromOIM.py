@@ -1733,7 +1733,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     if dimValue is not None:
                                         validCsvCell = False
                                         if isinstance(dimValue, str) and dimValue.startswith("$"):
-                                            paramName = dimValue[1:]
+                                            paramName = dimValue[1:].partition("@")[0]
                                             if paramName in colNameIndex:
                                                 dimSource += " from CSV column " + paramName
                                                 dimValue = _cellValue(row[colNameIndex[paramName]])
@@ -1766,7 +1766,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     if factProduced.invalidReferenceTarget:
                                         error("xbrlce:invalidReferenceTarget", 
                                               _("Table %(table)s %(dimension)s target not in table columns, parameters or report parameters: %(target)s, url: %(url)s"),
-                                              table=tableId, dimension=factProduced.invalidReferenceTarget, target=potentialInvalidReferenceTargets[factProduced.invalidReferenceTarget], url=tableUrl)
+                                              table=tableId, dimension=factProduced.invalidReferenceTarget, target=potentialInvalidReferenceTargets.get(factProduced.invalidReferenceTarget), url=tableUrl)
                                         break # stop processing table
                                     for dimName, dimSource in factDimensionSourceCol.items():
                                         if dimName in factProduced.dimensionsUsed:
@@ -1937,6 +1937,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 error("xbrlce:invalidLanguageCode",
                                       _("The language is lexically invalid %(language)s at %(path)s"),
                                       modelObject=modelXbrl, language=dimValue, path="/".join(pathSegs+(dimName,)))
+                        elif dimName == "decimals":
+                            if dimValue != "#none" and not isinstance(dimValue,int) and not integerPattern.match(str(dimValue) or ""):
+                                error("xbrlce:invalidDecimalsValue",
+                                      _("Decimals is lexically invalid %(language)s at %(path)s"),
+                                      modelObject=modelXbrl, language=dimValue, path="/".join(pathSegs+(dimName,)))
                         elif dimName == "xbrl:noteId":
                             error("xbrlce:invalidJSONStructure",
                                   _("NoteId dimension must not be explicitly defined at %(path)s"),
@@ -1955,7 +1960,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             elif dimConcept.isExplicitDimension:
                                 mem = qname(dimValue, namespaces)
                                 if mem is None:
-                                    error("{}:invalidDimensionValue".format("oime" if isJSON else valErrPrefix),
+                                    error("{}:invalidDimensionValue".format(valErrPrefix),
                                           _("Taxonomy-defined explicit dimension value is invalid: %(memberQName)s at %(path)s"),
                                           modelObject=modelXbrl, memberQName=dimValue, path="/".join(pathSegs+(dimName,)))
                             elif dimConcept.isTypedDimension:
@@ -2319,7 +2324,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             if dimConcept.isExplicitDimension:
                                 mem = qname(dimVal, namespaces)
                                 if mem is None:
-                                    error("{}:invalidDimensionValue".format("oime" if isJSON else valErrPrefix),
+                                    error("{}:invalidDimensionValue".format(valErrPrefix),
                                           _("Fact %(factId)s taxonomy-defined explicit dimension value is invalid: %(memberQName)s."),
                                           modelObject=modelXbrl, factId=id, memberQName=dimVal)
                                     continue
@@ -2370,7 +2375,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                 id=cntxId)
                         if len(modelXbrl.errors) > prevErrLen:
                             if any(err == "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:]):
-                                error("{}:invalidDimensionValue".format("oime" if isJSON else valErrPrefix),
+                                error("{}:invalidDimensionValue".format(valErrPrefix),
                                       _("Fact %(factId)s taxonomy-defined dimension value errors noted above."),
                                       modelObject=modelXbrl, factId=id)
                                 continue
