@@ -2153,9 +2153,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         if not elt.tag.startswith(xhtmlTagPrefix):
                             unacceptableTopElts.add(elt.tag)
                     for elt in valueXhtmlElts.iter():
-                        for prefix, ns in elt.nsmap.items():
-                            if prefix and ns == xhtml:
-                                unacceptablePrefixes.add(prefix)
+                        if elt.tag.startswith(xhtmlTagPrefix) and elt.prefix:
+                            unacceptablePrefixes.add(elt.prefix)
                     if unacceptableTopElts:
                         error("oime:invalidXHTMLFragment",
                               _("xbrl:note MUST have xhtml top level elements in the default xhtml namespace, fact %(id)s, elements %(elements)s"),
