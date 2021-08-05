@@ -43,14 +43,13 @@ from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 
 nsOims = ("http://www.xbrl.org/WGWD/YYYY-MM-DD",
           "https://www.xbrl.org/WGWD/YYYY-MM-DD",
-          "http://www.xbrl.org/CR/2020-05-06",
-          "https://xbrl.org/CR/2021-02-03",
+          "https://xbrl.org/PR/2021-08-04",
           "http://www.xbrl.org/((~status_date_uri~))",
           "https://xbrl.org/((~status_date_uri~))"
          )
 nsOimCes = ("http://www.xbrl.org/WGWD/YYYY-MM-DD/oim-common/error",
             "http://www.xbrl.org/CR/2020-05-06/oim-common/error",
-            "https://xbrl.org/CR/2021-02-03/oim-common/error",
+            "https://xbrl.org/PR/2021-08-04/oim-common/error",
             "http://www.xbrl.org/((~status_date_uri~))/oim-common/error",
             "https://xbrl.org/((~status_date_uri~))/oim-common/error"
     )
@@ -58,8 +57,7 @@ jsonDocumentTypes = (
         "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-json",
         "http://www.xbrl.org/YYYY-MM-DD/xbrl-json",
         "https://xbrl.org/((~status_date_uri~))/xbrl-json", # allows loading of XII "template" test cases without CI production
-        "http://www.xbrl.org/CR/2020-05-06/xbrl-json",
-        "http://www.xbrl.org/CR/2020-10-14/xbrl-json",
+        "https://xbrl.org/PR/2021-08-04/xbrl-json",
         "https://xbrl.org/CR/2021-02-03/xbrl-json"
     )
 csvDocumentTypes = (

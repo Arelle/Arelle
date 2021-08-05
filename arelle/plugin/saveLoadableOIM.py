@@ -20,7 +20,7 @@ from arelle.ValidateXbrlCalcs import inferredDecimals
 from arelle.XmlUtil import dateunionValue, elementIndex, xmlstring
 from collections import defaultdict
 
-nsOim = "https://xbrl.org/CR/2021-02-03"
+nsOim = "https://xbrl.org/PR/2021-08-04"
 qnOimConceptAspect = qname("concept", noPrefixIsNoNamespace=True)
 qnOimLangAspect = qname("language", noPrefixIsNoNamespace=True)
 qnOimPeriodAspect = qname("period", noPrefixIsNoNamespace=True)
