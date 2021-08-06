@@ -36,7 +36,8 @@ from arelle.XbrlConst import (xbrli, qnLinkLabel, standardLabelRoles, qnLinkRefe
                               qnLinkPart, gen, link, defaultLinkRole, footnote, factFootnote, isStandardRole,
                               conceptLabel, elementLabel, conceptReference, all as hc_all, notAll as hc_notAll,
                               xhtml, qnXbrliDateItemType,
-                              dtrPrefixedContentItemTypes, dtrPrefixedContentTypes, dtrSQNameNamesItemTypes, dtrSQNameNamesTypes)
+                              dtrPrefixedContentItemTypes, dtrPrefixedContentTypes, dtrSQNameNamesItemTypes, dtrSQNameNamesTypes,
+                              lrrRoleHrefs, lrrArcroleHrefs)
 from arelle.XmlUtil import addChild, addQnameValue, copyIxFootnoteHtml, setXmlns
 from arelle.XmlValidate import integerPattern, languagePattern, NCNamePattern, QNamePattern, validate as xmlValidate, VALID
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
@@ -2651,14 +2652,17 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                         _("FootnoteId has no arcrole %(footnoteId)s."),
                                         modelObject=modelXbrl, footnoteId=footnote.get("footnoteId"))
                     continue
-                for refType, refValue, roleTypes in (("role", linkrole, modelXbrl.roleTypes),
-                                                     ("arcrole", arcrole, modelXbrl.arcroleTypes)):
+                for refType, refValue, roleTypes, lrrRoles in (("role", linkrole, modelXbrl.roleTypes, lrrRoleHrefs),
+                                                               ("arcrole", arcrole, modelXbrl.arcroleTypes, lrrArcroleHrefs)):
                     if not (XbrlConst.isStandardRole(refValue) or XbrlConst.isStandardArcrole(refValue)):
                         if refValue not in definedInstanceRoles:
-                            if refValue in roleTypes:
+                            if refValue in roleTypes or refValue in lrrRoles:
                                 definedInstanceRoles.add(refValue)
-                                hrefElt = roleTypes[refValue][0]
-                                href = hrefElt.modelDocument.uri + "#" + hrefElt.id
+                                if refValue in roleTypes:
+                                    hrefElt = roleTypes[refValue][0]
+                                    href = hrefElt.modelDocument.uri + "#" + hrefElt.id
+                                else:
+                                    href = lrrRoles[refValue]
                                 elt = addChild(modelXbrl.modelDocument.xmlRootElement, 
                                                qname(link, refType+"Ref"), 
                                                attributes=(("{http://www.w3.org/1999/xlink}href", href),
