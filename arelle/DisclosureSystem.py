@@ -199,7 +199,7 @@ class DisclosureSystem:
                                     self.mappingsUrl = self.modelManager.cntlr.webCache.normalizeUrl(
                                                  dsElt.get("mappingsUrl"),
                                                  url)
-                                if dsElt.get("utrUrl"): # may be mapped by mappingsUrl entries, see below
+                                if dsElt.get("utrUrl") is not None: # may be mapped by mappingsUrl entries, see below
                                     self.utrUrl = [self.modelManager.cntlr.webCache.normalizeUrl(u, url)
                                                    for u in dsElt.get("utrUrl").split()]
                                 self.utrStatusFilters = dsElt.get("utrStatusFilters")
