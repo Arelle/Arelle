@@ -30,6 +30,9 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     if not (val.validateFERCplugin):
         return
     
+    # use UTR validation if list of URLs was provided
+    val.validateUTR = bool(val.disclosureSystem.utrUrl)
+    
 def validateXbrlFinally(val, *args, **kwargs):
     if not (val.validateFERCplugin):
         return
@@ -151,11 +154,11 @@ def validateXbrlFinally(val, *args, **kwargs):
                 formEntryXsd = "https://ecollection.ferc.gov/taxonomy/form{}/{}/form/form{}{}/form-{}{}_{}.xsd".format(
                     formNum, txDate, formNum, formLtr, formNum, formLtr, txDate)
                 # print("trace " + formEntryXsd)
-                unexpectedXsds = set(doc.modelDocument.uri
-                                     for doc, referencingDoc in modelXbrl.modelDocument.referencesDocument.items()
-                                     if "href" in referencingDoc.referenceTypes
-                                     if doc.modelDocument.uri.lower() != formEntryXsd.lower())
                 
+    unexpectedXsds = set(doc.modelDocument.uri
+                         for doc, referencingDoc in modelXbrl.modelDocument.referencesDocument.items()
+                         if "href" in referencingDoc.referenceTypes
+                         if doc.modelDocument.uri.lower() != formEntryXsd.lower())
     if unexpectedXsds:
         modelXbrl.error("FERC.22.00",
                         _("The instance document contained unexpected schema references %(schemaReferences)s."),

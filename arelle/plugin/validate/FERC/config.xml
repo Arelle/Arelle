@@ -21,6 +21,22 @@
      identifierSchemePattern="^http://www\.ferc\.gov/CID$"
      identifierValuePattern="^C[0-9]{6}$" 
      />
+  <DisclosureSystem 
+     names="Federal Energy Regulatory Commission (US) without UTR validation|FERC-NO-UTR|ferc-no-utr"
+     description="FERC (US) Validation Checks\n
+     Default language en\n
+     Disallowed references are processed"
+     validationType="EFM"
+     blockDisallowedReferences="false"
+     defaultXmlLang="en" 
+     defaultLanguage="English" 
+     validateEntryText="true"
+     contextElement="segment" 
+     utrUrl=""
+     utrStatusFilters="REC CR"
+     identifierSchemePattern="^http://www\.ferc\.gov/CID$"
+     identifierValuePattern="^C[0-9]{6}$" 
+     />
 
 
 </DisclosureSystems>
