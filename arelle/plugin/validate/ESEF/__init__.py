@@ -400,8 +400,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                             if scheme(src) in ("http", "https", "ftp"):
                                 modelXbrl.error("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
                                                 else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
-                                    _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
-                                    modelObject=elt, element=eltTag,
+                                    _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: <%(element)s src=\"%(src)s\">"),
+                                    modelObject=elt, element=eltTag, src=src,
                                     messageCodes=("ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences", "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
                             elif not src.startswith("data:image"):
                                 if hasParentIxTextTag:
@@ -454,7 +454,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                                         modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
                                             _("Base64 encoding error %(err)s in image source: %(src)s."),
                                             modelObject=elt, err=str(err), src=src[:128])
-                        # links to external documents are allowed as of 2021 per G.2.5.1 
+                        # links to external documents are allowed as of 2021 per G.2.5.1
                         #    Since ESEF is a format requirement and is not expected to impact the 'human readable layer' of a report, 
                         #    this guidance should not be seen as limiting the inclusion of links to external websites, to other documents 
                         #    or to other sections of the annual financial report.'''
@@ -463,8 +463,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                         #    if scheme(href) in ("http", "https", "ftp"):
                         #        modelXbrl.error("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
                         #                        else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
-                        #            _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
-                        #            modelObject=elt, element=eltTag,
+                        #            _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: <%(element)s href=\"%(href)s\">"),
+                        #            modelObject=elt, element=eltTag, href=href,
                         #            messageCodes=("ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences", "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
                         elif eltTag == "base":
                             modelXbrl.error("ESEF.2.4.2.htmlOrXmlBaseUsed",
