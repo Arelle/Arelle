@@ -912,7 +912,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         primaryOimFile = oimFile
         extensionProperties = OrderedDict() # key is property QName, value is property path
         
-        def loadOimObject(oimFile, extendingFile, primaryReportParameters=None): # returns oimObject, oimWb
+        def loadOimObject(oimFile, extendingFile, visitedFiles, primaryReportParameters=None): # returns oimObject, oimWb
             # isXL means metadata loaded from Excel (but instance data can be in excel or CSV)
             isXL = oimFile.endswith(".xlsx") or oimFile.endswith(".xls")
             # same logic as modelDocument.load
@@ -933,6 +933,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 errPrefix = "xbrlce"
             else:
                 errPrefix = "xbrlje"
+            # prevent recursion
+            if filepath in visitedFiles:
+                return None # block directed cycle looping
+            visitedFiles.add(filepath)
             if not isXL:
                 try:
                     _file = modelXbrl.fileSource.file(filepath, encoding="utf-8-sig")[0]
@@ -1169,7 +1173,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             if isCSVorXL and "extends" in documentInfo:
                 # process extension
                 for extendedFile in documentInfo["extends"]:
-                    extendedOimObject = loadOimObject(extendedFile, mappedUrl)
+                    extendedOimObject = loadOimObject(extendedFile, mappedUrl, visitedFiles)
+                    if extendedOimObject is None:
+                        continue # None returned when directed cycle blocks reloading same file
                     # extended must be CSV
                     extendedDocumentInfo = extendedOimObject.get("documentInfo", EMPTY_DICT)
                     extendedDocumentType = extendedDocumentInfo.get("documentType")
@@ -1237,7 +1243,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             return oimObject
         
         errorIndexBeforeLoadOim = len(modelXbrl.errors)
-        oimObject = loadOimObject(oimFile, None)
+        oimObject = loadOimObject(oimFile, None, set())
         try:
             isJSON, isCSV, isXL, isCSVorXL, oimWb, oimDocumentInfo, documentType, documentBase = oimObject["=entryParameters"]
         except KeyError:
