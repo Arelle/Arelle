@@ -615,7 +615,10 @@ def lxmlSchemaValidate(modelDocument):
                     _sl = (slElt.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation") or "").split()
                     for i in range(0, len(_sl), 2):
                         if _sl[i] == ns and i+1 < len(_sl):
-                            xsdFilename = cntlr.webCache.getfilename(_sl[i+1])
+                            xsdFilename = cntlr.webCache.getfilename(
+                                cntlr.webCache.normalizeUrl(
+                                    _sl[i+1], 
+                                    modelDocument.baseForElement(slElt)))
                             try:
                                 _xsdFile = modelXbrl.fileSource.file(xsdFilename)[0]
                                 xsdTree = etree.parse(_xsdFile)
