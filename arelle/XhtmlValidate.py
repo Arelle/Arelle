@@ -252,7 +252,9 @@ def xhtmlValidate(modelXbrl, elt):
     from lxml.etree import DTD, XMLSyntaxError
     from arelle import FunctionIxt
     ixNsStartTags = ["{" + ns + "}" for ns in XbrlConst.ixbrlAll]
-    isEFM = modelXbrl.modelManager.disclosureSystem.validationType == "EFM"
+    validateEntryText = modelXbrl.modelManager.disclosureSystem.validateEntryText
+    if validateEntryText:
+        valHtmlContentMsgPrefix = modelXbrl.modelManager.disclosureSystem.validationType + ".5.02.05."
     # find ix version for messages
     _ixNS = getattr(elt.modelDocument, "ixNS", XbrlConst.ixbrl11)
     _ixNStag = "{{{}}}".format(_ixNS)
@@ -589,8 +591,8 @@ def xhtmlValidate(modelXbrl, elt):
             modelXbrl.error("html:syntaxError",
                 _("%(element)s error %(error)s"),
                 modelObject=dtdErrElts or elt, element=elt.localName.title(), error=', '.join(dtdErrMsgs))
-        if isEFM:
-            ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", "EFM.5.02.05.", isInline=True) 
+        if validateEntryText:
+            ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", valHtmlContentMsgPrefix, isInline=True) 
     except XMLSyntaxError as err:
         modelXbrl.error("html:syntaxError",
             _("%(element)s error %(error)s"),

@@ -20,7 +20,7 @@ from arelle.XmlValidate import VALID
 
 def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
     # return ((disclosure system name, variable name), ...)
-    return (("EFM", "FERCplugin"),) # use EFM type for EFM infrastructure tests
+    return (("FERC", "FERCplugin"),) # FERC disclosure system
 
 def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
     return os.path.join(os.path.dirname(__file__), "config.xml")

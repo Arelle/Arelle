@@ -10,7 +10,8 @@
      description="FERC (US) Validation Checks\n
      Default language en\n
      Disallowed references are processed"
-     validationType="EFM"
+     validationType="FERC"
+     exclusiveTypesPattern="FERC|EFM|GFM|HMRC|SBR.NL"
      blockDisallowedReferences="false"
      defaultXmlLang="en" 
      defaultLanguage="English" 
@@ -26,7 +27,8 @@
      description="FERC (US) Validation Checks\n
      Default language en\n
      Disallowed references are processed"
-     validationType="EFM"
+     validationType="FERC"
+     exclusiveTypesPattern="FERC|EFM|GFM|HMRC|SBR.NL"
      blockDisallowedReferences="false"
      defaultXmlLang="en" 
      defaultLanguage="English" 
