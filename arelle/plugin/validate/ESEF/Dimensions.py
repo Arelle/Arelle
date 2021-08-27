@@ -57,8 +57,8 @@ def checkFilingDimensions(val):
                               ": hypercube %(hypercube)s, linkrole %(linkrole)s, primary item %(primaryItem)s"),
                             modelObject=hasHcRel, hypercube=hc.qname, linkrole=hasHcRel.linkrole, primaryItem=sourceConcept.qname)
                     if isExtension(val, hasHcRel):
-                        val.modelXbrl.warning("ESEF.3.4.2.notAllArcroleUsedInDefinitionLinkbase",
-                            _("Extension taxonomies SHOULD NOT define definition arcs with http://xbrl.org/int/dim/arcrole/notAll arcrole"
+                        val.modelXbrl.error("ESEF.3.4.2.notAllArcroleUsedInDefinitionLinkbase",
+                            _("Extension taxonomies MUST NOT define definition arcs with http://xbrl.org/int/dim/arcrole/notAll arcrole"
                               ": hypercube %(hypercube)s, linkrole %(linkrole)s, primary item %(primaryItem)s"),
                             modelObject=hasHcRel, hypercube=hc.qname, linkrole=hasHcRel.linkrole, primaryItem=sourceConcept.qname)
                 for hcDimRel in val.modelXbrl.relationshipSet(XbrlConst.hypercubeDimension, hasHcRel.consecutiveLinkrole).fromModelObject(hc):
