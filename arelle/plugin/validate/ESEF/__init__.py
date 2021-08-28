@@ -721,7 +721,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 hasOutdatedUrl = True
                 
         if not hasOutdatedUrl and not any(e in val.extensionImportedUrls for e in esefTaxonomyURLs):
-            val.modelXbrl.warning("ESEF.3.1.1.requiredEntryPointNotImported",
+            val.modelXbrl.warning("ESEF.3.1.2.requiredEntryPointNotImported",
                 _("The issuer's extension taxonomies SHOULD import the entry point of the taxonomy files prepared by ESMA."),
                 modelObject=modelDocument)
 
