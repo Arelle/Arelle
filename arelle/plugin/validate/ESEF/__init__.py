@@ -315,10 +315,10 @@ def validateXbrlFinally(val, *args, **kwargs):
                                 _ancestorElt = _ancestorElt.getparent()                     
                             if scheme(src) in ("http", "https", "ftp"):
                                 modelXbrl.error("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
-                                                else "ESEF.3.5.1.inlineXbrlContainsExternalReferences",
+                                                else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
                                     _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
                                     modelObject=elt, element=eltTag,
-                                    messageCodes=("ESEF.3.5.1.inlineXbrlContainsExternalReferences", "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
+                                    messageCodes=("ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences", "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
                             elif not src.startswith("data:image"):
                                 if hasParentIxTextTag:
                                     modelXbrl.error("ESEF.2.5.1.imageInIXbrlElementNotEmbedded",
@@ -378,10 +378,10 @@ def validateXbrlFinally(val, *args, **kwargs):
                             href = elt.get("href","").strip()
                             if scheme(href) in ("http", "https", "ftp"):
                                 modelXbrl.error("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
-                                                else "ESEF.3.5.1.inlineXbrlContainsExternalReferences",
+                                                else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
                                     _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
                                     modelObject=elt, element=eltTag,
-                                    messageCodes=("ESEF.3.5.1.inlineXbrlContainsExternalReferences", "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
+                                    messageCodes=("ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences", "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
                         elif eltTag == "base":
                             modelXbrl.error("ESEF.2.4.2.htmlOrXmlBaseUsed",
                                 _("The HTML <base> elements MUST NOT be used in the Inline XBRL document."),
