@@ -289,7 +289,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                 val.hasExtensionPre = True
             if linkEltName:
                 linkbasesFound.add(linkEltName)
-                val.modelXbrl.warning("ESEF.3.1.1.linkbasesNotSeparateFiles",
+                val.modelXbrl.warning("ESEF.3.1.1.extensionTaxonomyWrongFilesStructure",
                     _("Each linkbase type SHOULD be provided in a separate linkbase file: %(linkbaseType)s linkbase has no %(extendedLinkElement)s element."),
                     modelObject=modelDocument.xmlRootElement, linkbaseType=linkbaseRefType, extendedLinkElement=linkEltName)
                 

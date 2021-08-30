@@ -35,6 +35,7 @@ from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
+from arelle.PackageManager import validateTaxonomyPackage
 from arelle.PythonUtil import strTruncate
 from arelle.UrlUtil import isHttpUrl, scheme
 from arelle.XmlValidate import VALID, lexicalPatterns
@@ -56,6 +57,7 @@ ifrsNsPattern = re.compile(r"http://xbrl.ifrs.org/taxonomy/[0-9-]{10}/ifrs-full"
 datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
 imgDataMediaBase64Pattern = re.compile(r"data:image([^,]*);base64,")
 ixErrorPattern = re.compile(r"ix11[.]|xmlSchema[:]|(?!xbrl.5.2.5.2|xbrl.5.2.6.2)xbrl[.]|xbrld[ti]e[:]|utre[:]")
+docTypeXhtmlPattern = re.compile(r"^<!(?:DOCTYPE\s+)\s*html(?:PUBLIC\s+)?(?:.*-//W3C//DTD\s+(X?HTML)\s)?.*>$", re.IGNORECASE)
 
 FOOTNOTE_LINK_CHILDREN = {qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote}
 PERCENT_TYPE = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
@@ -73,6 +75,16 @@ def dislosureSystemTypes(disclosureSystem, *args, **kwargs):
 
 def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
     return os.path.join(os.path.dirname(__file__), "config.xml")
+
+def modelXbrlBeforeLoading(modelXbrl, normalizedUri, filepath, isEntry=False, **kwargs):
+    if getattr(modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
+        if isEntry and not any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
+            if modelXbrl.fileSource.isArchive and not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
+                modelXbrl.error("ESEF.RTS.Annex.III.3.missingOrInvalidTaxonomyPackage",
+                    _("Single reporting package with issuer's XBRL extension taxonomy files and Inline XBRL instance document must be compliant with the latest recommended version of the Taxonomy Packages specification (1.0)"),
+                    modelObject=modelXbrl) 
+                return ModelDocument.LoadingException("Invalid taxonomy package") 
+    return None                       
 
 def modelXbrlLoadComplete(modelXbrl):
     if getattr(modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
@@ -207,11 +219,17 @@ def validateXbrlFinally(val, *args, **kwargs):
                         _("FileName SHALL have the extension .xhtml or .html: %(fileName)s"),
                         modelObject=doc, fileName=doc.basename)
                 docinfo = doc.xmlRootElement.getroottree().docinfo
-                if " html" in docinfo.doctype:
-                    modelXbrl.error("ESEF.RTS.Art.3.htmlDoctype",
-                        _("Doctype SHALL NOT be html: %(fileName)s"),
-                        modelObject=doc, fileName=doc.basename)
+                docTypeMatch = docTypeXhtmlPattern.match(docinfo.doctype)
                 if val.consolidated:
+                    if docTypeMatch:
+                        if not docTypeMatch.group(1) or docTypeMatch.group(1).lower() == "html":
+                            modelXbrl.error("ESEF.RTS.Art.3.htmlDoctype",
+                                _("Doctype SHALL NOT specify html: %(doctype)s"),
+                                modelObject=doc, doctype=docinfo.doctype)
+                        else:
+                            modelXbrl.warning("ESEF.RTS.Art.3.xhtmlDoctype",
+                                _("Doctype implies xhtml DTD validation but inline 1.1 requires schema validation: %(doctype)s"),
+                                modelObject=doc, doctype=docinfo.doctype)
                     if doc.ixNS != ixbrl11:
                         modelXbrl.error("ESEF.RTS.Annex.III.Par.1.invalidInlineXBRL",
                             _("Invalid inline XBRL namespace: %(namespace)s"),
@@ -238,6 +256,14 @@ def validateXbrlFinally(val, *args, **kwargs):
                         modelXbrl.warning("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
                             _("Document file not in correct place in report package: %(fileName)s"),
                             modelObject=doc, fileName=doc.basename)
+                else: # non-consolidated
+                    if docTypeMatch:
+                        if not docTypeMatch.group(1) or docTypeMatch.group(1).lower() == "html":
+                            modelXbrl.error("ESEF.RTS.Art.3.htmlDoctype",
+                                _("Doctype SHALL NOT specify html validation: %(doctype)s"),
+                                modelObject=doc, doctype=docinfo.doctype)
+                        
+
         if len(ixdsDocDirs) > 1 and val.consolidated:
             modelXbrl.warning("ESEF.2.6.2.reportSetIncorrectlyPlacedInPackage",
                 _("Document files appear to be in multiple document sets: %(documentSets)s"),
@@ -288,9 +314,11 @@ def validateXbrlFinally(val, *args, **kwargs):
                                     break
                                 _ancestorElt = _ancestorElt.getparent()                     
                             if scheme(src) in ("http", "https", "ftp"):
-                                modelXbrl.error("ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
+                                modelXbrl.error("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
+                                                else "ESEF.3.5.1.inlineXbrlContainsExternalReferences",
                                     _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
-                                    modelObject=elt, element=eltTag)
+                                    modelObject=elt, element=eltTag,
+                                    messageCodes=("ESEF.3.5.1.inlineXbrlContainsExternalReferences", "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
                             elif not src.startswith("data:image"):
                                 if hasParentIxTextTag:
                                     modelXbrl.error("ESEF.2.5.1.imageInIXbrlElementNotEmbedded",
@@ -309,10 +337,10 @@ def validateXbrlFinally(val, *args, **kwargs):
                                             imglen += len(imgContents)
                                             checkImageContents(modelXbrl, elt, os.path.splitext(src)[1], True, imgContents)
                                             imgContents = None # deref, may be very large
-                                        if imglen < browserMaxBase64ImageLength:
-                                            modelXbrl.error("ESEF.2.5.1.imageIncludedAndNotEmbeddedAsBase64EncodedString",
-                                                _("Images MUST be included in the XHTML document as a base64 encoded string unless their size exceeds support of browsers (%(maxImageSize)s): %(file)s."),
-                                                modelObject=elt, maxImageSize=browserMaxBase64ImageLength, file=os.path.basename(normalizedUri))
+                                        #if imglen < browserMaxBase64ImageLength:
+                                        #    modelXbrl.error("ESEF.2.5.1.imageIncludedAndNotEmbeddedAsBase64EncodedString",
+                                        #        _("Images MUST be included in the XHTML document as a base64 encoded string unless their size exceeds support of browsers (%(maxImageSize)s): %(file)s."),
+                                        #        modelObject=elt, maxImageSize=browserMaxBase64ImageLength, file=os.path.basename(normalizedUri))
                                     except IOError as err:
                                         modelXbrl.error("ESEF.2.5.1.imageFileCannotBeLoaded",
                                             _("Image file which isn't openable '%(src)s', error: %(error)s"),
@@ -323,39 +351,47 @@ def validateXbrlFinally(val, *args, **kwargs):
                                     modelXbrl.warning("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
                                         _("Images included in the XHTML document SHOULD be base64 encoded: %(src)s."),
                                         modelObject=elt, src=src[:128])
-                                elif not m.group(1):
-                                    modelXbrl.error("ESEF.2.5.1.MIMETypeNotSpecified",
-                                        _("Images included in the XHTML document MUST be saved with MIME type specifying PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
-                                        modelObject=elt, src=src[:128])
-                                elif m.group(1) not in ("/gif", "/jpeg", "/jpg", "/png", "/svg+xml"):
-                                    modelXbrl.error("ESEF.2.5.1.imageFormatNotSupported",
-                                        _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
-                                        modelObject=elt, src=src[:128])
-                                # check for malicious image contents
-                                mime, _sep, b64ImgContents = src.partition(";base64,")
-                                try:
-                                    imgContents = base64.b64decode(b64ImgContents) # allow embedded newlines
+                                    if "," in imgContents:
+                                        imgContents = imgContents.partition(",")[2]
                                     checkImageContents(modelXbrl, elt, mime, False, imgContents)
-                                    imgContents = None # deref, may be very large
-                                except base64.binascii.Error as err:
-                                    modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
-                                        _("Base64 encoding error %(err)s in image source: %(src)s."),
-                                        modelObject=elt, err=str(err), src=src[:128])
+                                else:
+                                    if not m.group(1):
+                                        modelXbrl.error("ESEF.2.5.1.MIMETypeNotSpecified",
+                                            _("Images included in the XHTML document MUST be saved with MIME type specifying PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
+                                            modelObject=elt, src=src[:128])
+                                    elif m.group(1) not in ("/gif", "/jpeg", "/jpg", "/png", "/svg+xml"):
+                                        modelXbrl.error("ESEF.2.5.1.imageFormatNotSupported",
+                                            _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
+                                            modelObject=elt, src=src[:128])
+                                    # check for malicious image contents
+                                    mime, _sep, b64ImgContents = src.partition(";base64,")
+                                    try:
+                                        imgContents = base64.b64decode(b64ImgContents) # allow embedded newlines
+                                        checkImageContents(modelXbrl, elt, mime, False, imgContents)
+                                        imgContents = None # deref, may be very large
+                                    except base64.binascii.Error as err:
+                                        modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
+                                            _("Base64 encoding error %(err)s in image source: %(src)s."),
+                                            modelObject=elt, err=str(err), src=src[:128])
                             
                         elif eltTag == "a":
                             href = elt.get("href","").strip()
                             if scheme(href) in ("http", "https", "ftp"):
-                                modelXbrl.error("ESEF.3.5.1.inlineXbrlContainsExternalReferences",
+                                modelXbrl.error("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
+                                                else "ESEF.3.5.1.inlineXbrlContainsExternalReferences",
                                     _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
-                                    modelObject=elt, element=eltTag)
+                                    modelObject=elt, element=eltTag,
+                                    messageCodes=("ESEF.3.5.1.inlineXbrlContainsExternalReferences", "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
                         elif eltTag == "base":
                             modelXbrl.error("ESEF.2.4.2.htmlOrXmlBaseUsed",
                                 _("The HTML <base> elements MUST NOT be used in the Inline XBRL document."),
                                 modelObject=elt, element=eltTag)
-                        elif val.unconsolidated:
-                            pass # rest of following tests don't apply to unconsolidated
                         elif eltTag == "link" and elt.get("type") == "text/css":
-                            if len(modelXbrl.ixdsHtmlElements) > 1:
+                            if val.unconsolidated:
+                                modelXbrl.warning("ESEF.4.1.4.externalCssFileForXhtmlDocument",
+                                    _("For XHTML stand-alone documents, the CSS SHOULD be embedded within the document."),
+                                    modelObject=elt, element=eltTag)
+                            elif len(modelXbrl.ixdsHtmlElements) > 1:
                                 f = elt.get("href")
                                 if not f or isHttpUrl(f) or os.path.isabs(f):
                                     modelXbrl.warning("ESEF.2.5.4.externalCssReportPackage",
@@ -365,6 +401,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                                 modelXbrl.error("ESEF.2.5.4.externalCssFileForSingleIXbrlDocument",
                                     _("Where an Inline XBRL document set contains a single document, the CSS MUST be embedded within the document."),
                                     modelObject=elt, element=eltTag)
+                        elif val.unconsolidated:
+                            pass # rest of following tests don't apply to unconsolidated
                         elif eltTag == "style" and elt.get("type") == "text/css":
                             if len(modelXbrl.ixdsHtmlElements) > 1:
                                 modelXbrl.warning("ESEF.2.5.4.embeddedCssForMultiHtmlIXbrlDocumentSets",
@@ -657,8 +695,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                             modelObject=modelXbrl, elements=", ".join(sorted(str(qn) for qn in missingElements)))
             
         if transformRegistryErrors:
-            modelXbrl.error("ESEF.2.2.3.transformRegistry",
-                              _("ESMA recommends applying the latest available version of the Transformation Rules Registry marked with 'Recommendation' status for these elements: %(elements)s."), 
+            modelXbrl.error("ESEF.2.2.3.incorrectTransformationRuleApplied",
+                              _("ESMA recommends applying the Transformation Rules Registry 4, as published by XBRL International or any more recent versions of the Transformation Rules Registry provided with a ‘Recommendation’ status, for these elements: %(elements)s."), 
                               modelObject=transformRegistryErrors, 
                               elements=", ".join(sorted(str(fact.qname) for fact in transformRegistryErrors)))
             
@@ -954,6 +992,7 @@ __pluginInfo__ = {
     'license': 'Apache-2',
     'author': 'Mark V Systems',
     'copyright': '(c) Copyright 2018-20 Mark V Systems Limited, All rights reserved.',
+    'ModelDocument.PullLoader': modelXbrlBeforeLoading,
     'import': ('inlineXbrlDocumentSet', ), # import dependent modules
     # classes of mount points (required)
     'DisclosureSystem.Types': dislosureSystemTypes,

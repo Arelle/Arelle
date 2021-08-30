@@ -413,7 +413,7 @@ def validateTaxonomyPackage(cntlr, filesource, packageFiles=[], errors=[]):
         if not any('META-INF' in f.split('/')[1:][:1] for f in _dir): # only check child of top level
             cntlr.addToLog(_("Taxonomy package top-level directory does not contain a subdirectory META-INF"),
                            messageCode="tpe:metadataDirectoryNotFound",
-                           file=os.path.basename(filesource.url),
+                           file=os.path.basename(filesource.baseurl),
                            level=logging.ERROR)
             errors.append("tpe:metadataDirectoryNotFound")
         elif any(f.endswith('/META-INF/taxonomyPackage.xml') for f in _dir):
