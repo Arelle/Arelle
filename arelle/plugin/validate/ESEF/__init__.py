@@ -215,8 +215,8 @@ def validateXbrlFinally(val, *args, **kwargs):
             if doc.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.UnknownXML):
                 _baseName, _baseExt = os.path.splitext(doc.basename)
                 if _baseExt not in (".xhtml",".html"):
-                    modelXbrl.error("ESEF.RTS.Art.3.fileNameExtension",
-                        _("FileName SHALL have the extension .xhtml or .html: %(fileName)s"),
+                    modelXbrl.error("ESEF.2.6.1.incorrectFileExtension",
+                        _("Inline XBRL document included within a ESEF report package MUST have a .html or .xhtml extension: %(fileName)s"),
                         modelObject=doc, fileName=doc.basename)
                 docinfo = doc.xmlRootElement.getroottree().docinfo
                 docTypeMatch = docTypeXhtmlPattern.match(docinfo.doctype)
@@ -249,12 +249,16 @@ def validateXbrlFinally(val, *args, **kwargs):
                                 ixdsDocDirs.add("/".join(docDirPath[i+1:len(docDirPath)-1])) # needed for error msg on orphaned instance docs
                             break
                     if not reportIsInZipFile:
-                        modelXbrl.warning("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
-                            _("Document file must be within a report package zip file: %(fileName)s"),
+                        modelXbrl.error("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
+                            _("Inline XBRL document MUST be included within an ESEF report package as defined in"
+                               "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14"
+                               ".html: %(fileName)s (Document is not in a zip archive)"),
                             modelObject=doc, fileName=doc.basename)
                     elif not reportCorrectlyPlacedInPackage:
-                        modelXbrl.warning("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
-                            _("Document file not in correct place in report package: %(fileName)s"),
+                        modelXbrl.error("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
+                             _("Inline XBRL document MUST be included within an ESEF report package as defined in"
+                               "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14"
+                               ".html: %(fileName)s (Document file not in correct place in package)"),
                             modelObject=doc, fileName=doc.basename)
                 else: # non-consolidated
                     if docTypeMatch:
@@ -265,8 +269,10 @@ def validateXbrlFinally(val, *args, **kwargs):
                         
 
         if len(ixdsDocDirs) > 1 and val.consolidated:
-            modelXbrl.warning("ESEF.2.6.2.reportSetIncorrectlyPlacedInPackage",
-                _("Document files appear to be in multiple document sets: %(documentSets)s"),
+            modelXbrl.error("ESEF.2.6.2.reportSetIncorrectlyPlacedInPackage",
+                     _("Multiple Inline XBRL documents MUST be included within a ESEF report package as defined in "
+                       "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14.html: "
+                       "%(documentSets)s (Document files appear to be in multiple document sets)"),
                 modelObject=doc, documentSets=", ".join(sorted(ixdsDocDirs)))
         if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET, ModelDocument.Type.UnknownXML):
             hiddenEltIds = {}
@@ -401,8 +407,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                                         _("The CSS file should be physically stored within the report package: %{file}s."),
                                         modelObject=elt, file=f)
                             else:
-                                modelXbrl.error("ESEF.2.5.4.externalCssFileForSingleIXbrlDocument",
-                                    _("Where an Inline XBRL document set contains a single document, the CSS MUST be embedded within the document."),
+                                modelXbrl.warning("ESEF.2.5.4.externalCssFileForSingleIXbrlDocument",
+                                    _("Where an Inline XBRL document set contains a single document, the CSS SHOULD be embedded within the document."),
                                     modelObject=elt, element=eltTag)
                         elif val.unconsolidated:
                             pass # rest of following tests don't apply to unconsolidated
@@ -687,8 +693,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                         modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(strTruncate(f.value, 128) for f in fList))
 
         if precisionFacts:
-            modelXbrl.warning("ESEF.2.2.1.precisionAttributeUsed",
-                            _("The accuracy of numeric facts SHOULD be defined with the 'decimals' attribute rather than the 'precision' attribute: %(elements)s."), 
+            modelXbrl.error("ESEF.2.2.1.precisionAttributeUsed",
+                            _("The accuracy of numeric facts MUST be defined with the 'decimals' attribute rather than the 'precision' attribute: %(elements)s."), 
                             modelObject=precisionFacts, elements=", ".join(sorted(str(e.qname) for e in precisionFacts)))
             
         missingElements = (mandatory - reportedMandatory) 
@@ -699,13 +705,13 @@ def validateXbrlFinally(val, *args, **kwargs):
             
         if transformRegistryErrors:
             modelXbrl.error("ESEF.2.2.3.incorrectTransformationRuleApplied",
-                              _("ESMA recommends applying the Transformation Rules Registry 4, as published by XBRL International or any more recent versions of the Transformation Rules Registry provided with a 'Recommendation' status, for these elements: %(elements)s."), 
+                              _("ESMA recommends applying the Transformation Rules Registry 4, as published by XBRL International or any more recent versions of the Transformation Rules Registry provided with a 'Recommendation' status, for these elements: %(elements)s."),
                               modelObject=transformRegistryErrors, 
                               elements=", ".join(sorted(str(fact.qname) for fact in transformRegistryErrors)))
             
         if orphanedFootnotes:
-            modelXbrl.error("ESEF.2.3.1.unusedFootnote",
-                _("Non-empty footnotes must be connected to fact(s)."),
+            modelXbrl.warning("ESEF.2.3.1.unusedFootnote",
+                _("Every nonempty link:footnote element SHOULD be linked to at least one fact."),
                 modelObject=orphanedFootnotes)
 
         # this test removed from Filer Manual July 2020
@@ -756,14 +762,14 @@ def validateXbrlFinally(val, *args, **kwargs):
         hasOutdatedUrl = False
         for e in outdatedTaxonomyURLs:
             if e in val.extensionImportedUrls:
-                val.modelXbrl.warning("ESEF.3.1.1.incorrectEsefTaxonomyVersionUsed",
-                    _("The issuer's extension taxonomies SHOULD import the entry point of the taxonomy files prepared by ESMA.  Outdated entry point: %(url)s"),
+                val.modelXbrl.error("ESEF.3.1.2.incorrectEsefTaxonomyVersionUsed",
+                     _("The issuer's extension taxonomies MUST import the applicable version of the taxonomy files prepared by ESMA. Outdated entry point: %(url)s"),
                     modelObject=modelDocument, url=e)
                 hasOutdatedUrl = True
                 
         if not hasOutdatedUrl and not any(e in val.extensionImportedUrls for e in esefTaxonomyURLs):
-            val.modelXbrl.warning("ESEF.3.1.2.requiredEntryPointNotImported",
-                _("The issuer's extension taxonomies SHOULD import the entry point of the taxonomy files prepared by ESMA."),
+            val.modelXbrl.error("ESEF.3.1.2.requiredEntryPointNotImported",
+                 _("The issuer's extension taxonomies MUST import the entry point of the taxonomy files prepared by ESMA."),
                 modelObject=modelDocument)
 
             

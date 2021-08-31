@@ -160,8 +160,8 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                 _("Fractions MUST NOT be defined in extension taxonomy: %(concepts)s"),
                 modelObject=fractionsInExtTxmy, concepts=", ".join(str(c.qname) for c in fractionsInExtTxmy))
         if typedDimsInExtTxmy:
-            val.modelXbrl.warning("ESEF.3.2.3.typedDimensionDefinitionInExtensionTaxonomy",
-                _("Extension taxonomy SHOULD NOT define typed dimensions: %(concepts)s."),
+            val.modelXbrl.error("ESEF.3.2.3.typedDimensionDefinitionInExtensionTaxonomy",
+                _("Extension taxonomy MUST NOT define typed dimensions: %(concepts)s."),
                 modelObject=typedDimsInExtTxmy, concepts=", ".join(str(c.qname) for c in typedDimsInExtTxmy))
         if domainMembersWrongType:
             val.modelXbrl.error("ESEF.3.2.2.domainMemberWrongDataType",
@@ -197,8 +197,8 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                                     for e in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}linkbase")
                                     if isinstance(e,ModelObject)]
         if embeddedLinkbaseElements:
-                val.modelXbrl.warning("ESEF.3.1.1.linkbasesNotSeparateFiles",
-                    _("Each linkbase type SHOULD be provided in a separate linkbase file, but a linkbase was found in %(schema)s."),
+                val.modelXbrl.error("ESEF.3.1.1.linkbasesNotSeparateFiles",
+                    _("Each linkbase type MUST be provided in a separate linkbase file, but a linkbase was found in %(schema)s."),
                     modelObject=embeddedLinkbaseElements, schema=modelDocument.basename)
 
         del (tuplesInExtTxmy, fractionsInExtTxmy, typedDimsInExtTxmy, domainMembersWrongType, 
@@ -289,8 +289,8 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                 val.hasExtensionPre = True
             if linkEltName:
                 linkbasesFound.add(linkEltName)
-                val.modelXbrl.warning("ESEF.3.1.1.extensionTaxonomyWrongFilesStructure",
-                    _("Each linkbase type SHOULD be provided in a separate linkbase file: %(linkbaseType)s linkbase has no %(extendedLinkElement)s element."),
+                val.modelXbrl.error("ESEF.3.1.1.extensionTaxonomyWrongFilesStructure",
+                    _("Each linkbase type MUST be provided in a separate linkbase file: %(linkbaseType)s linkbase has no %(extendedLinkElement)s element."),
                     modelObject=modelDocument.xmlRootElement, linkbaseType=linkbaseRefType, extendedLinkElement=linkEltName)
                 
         elif len(linkbasesFound) > 1:
