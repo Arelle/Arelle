@@ -315,10 +315,10 @@ def validateXbrlFinally(val, *args, **kwargs):
                                 _ancestorElt = _ancestorElt.getparent()                     
                             if scheme(src) in ("http", "https", "ftp"):
                                 modelXbrl.error("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
-                                                else "ESEF.3.5.1.inlineXbrlContainsExternalReferences",
+                                                else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
                                     _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
                                     modelObject=elt, element=eltTag,
-                                    messageCodes=("ESEF.3.5.1.inlineXbrlContainsExternalReferences", "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
+                                    messageCodes=("ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences", "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
                             elif not src.startswith("data:image"):
                                 if hasParentIxTextTag:
                                     modelXbrl.error("ESEF.2.5.1.imageInIXbrlElementNotEmbedded",
@@ -373,15 +373,18 @@ def validateXbrlFinally(val, *args, **kwargs):
                                         modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
                                             _("Base64 encoding error %(err)s in image source: %(src)s."),
                                             modelObject=elt, err=str(err), src=src[:128])
-                            
-                        elif eltTag == "a":
-                            href = elt.get("href","").strip()
-                            if scheme(href) in ("http", "https", "ftp"):
-                                modelXbrl.error("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
-                                                else "ESEF.3.5.1.inlineXbrlContainsExternalReferences",
-                                    _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
-                                    modelObject=elt, element=eltTag,
-                                    messageCodes=("ESEF.3.5.1.inlineXbrlContainsExternalReferences", "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
+                        # links to external documents are allowed as of 2021 per G.2.5.1 
+                        #    Since ESEF is a format requirement and is not expected to impact the 'human readable layer' of a report, 
+                        #    this guidance should not be seen as limiting the inclusion of links to external websites, to other documents 
+                        #    or to other sections of the annual financial report.'''
+                        #elif eltTag == "a":
+                        #    href = elt.get("href","").strip()
+                        #    if scheme(href) in ("http", "https", "ftp"):
+                        #        modelXbrl.error("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
+                        #                        else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
+                        #            _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
+                        #            modelObject=elt, element=eltTag,
+                        #            messageCodes=("ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences", "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
                         elif eltTag == "base":
                             modelXbrl.error("ESEF.2.4.2.htmlOrXmlBaseUsed",
                                 _("The HTML <base> elements MUST NOT be used in the Inline XBRL document."),
@@ -696,7 +699,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             
         if transformRegistryErrors:
             modelXbrl.error("ESEF.2.2.3.incorrectTransformationRuleApplied",
-                              _("ESMA recommends applying the Transformation Rules Registry 4, as published by XBRL International or any more recent versions of the Transformation Rules Registry provided with a ‘Recommendation’ status, for these elements: %(elements)s."), 
+                              _("ESMA recommends applying the Transformation Rules Registry 4, as published by XBRL International or any more recent versions of the Transformation Rules Registry provided with a 'Recommendation' status, for these elements: %(elements)s."), 
                               modelObject=transformRegistryErrors, 
                               elements=", ".join(sorted(str(fact.qname) for fact in transformRegistryErrors)))
             
