@@ -26,6 +26,7 @@ AUTO_LOCATE_ELEMENT = '771407c0-1d0c-11e1-be5e-028037ec0200' # singleton meaning
 DEFAULT = sys.intern(_STR_8BIT("default"))
 NONDEFAULT = sys.intern(_STR_8BIT("non-default"))
 DEFAULTorNONDEFAULT = sys.intern(_STR_8BIT("default-or-non-default"))
+EMPTY_TUPLE = ()
     
 
 def load(modelManager, url, nextaction=None, base=None, useFileSource=None, errorCaptureLevel=None, **kwargs):
@@ -303,6 +304,7 @@ class ModelXbrl:
         self.logRefObjectProperties = getattr(self.logger, "logRefObjectProperties", False)
         self.logRefHasPluginAttrs = any(True for m in pluginClassMethods("Logging.Ref.Attributes"))
         self.logRefHasPluginProperties = any(True for m in pluginClassMethods("Logging.Ref.Properties"))
+        self.logRefFileRelUris = defaultdict(dict)
         self.profileStats = {}
         self.schemaDocsToValidate = set()
         self.modelXbrl = self # for consistency in addressing modelXbrl
@@ -973,7 +975,11 @@ class ModelXbrl:
                             modelObject,
                             err, traceback.format_tb(sys.exc_info()[2])))
 
-    def effectiveMessageCode(self, messageCodes):        
+    def effectiveMessageCode(self, messageCodes):     
+        """
+        If codes includes EFM, GFM, HMRC, or SBR-coded error then the code chosen (if a sequence)
+        corresponds to whether EFM, GFM, HMRC, or SBR validation is in effect.
+        """
         effectiveMessageCode = None
         _validationType = self.modelManager.disclosureSystem.validationType
         _exclusiveTypesPattern = self.modelManager.disclosureSystem.exclusiveTypesPattern
@@ -1005,19 +1011,13 @@ class ModelXbrl:
             levelEffective = True
         return codeEffective and levelEffective
 
-    def logArguments(self, codes, msg, codedArgs):
-        """ Prepares arguments for logger function as per info() below.
-        
-        If codes includes EFM, GFM, HMRC, or SBR-coded error then the code chosen (if a sequence)
-        corresponds to whether EFM, GFM, HMRC, or SBR validation is in effect.
-        """
+    def logArguments(self, messageCode, msg, codedArgs):
+        # Prepares arguments for logger function as per info() below.
+
         def propValues(properties):
             # deref objects in properties
             return [(p[0],str(p[1])) if len(p) == 2 else (p[0],str(p[1]),propValues(p[2]))
                     for p in properties if 2 <= len(p) <= 3]
-        # determine logCode
-        messageCode = self.effectiveMessageCode(codes)
-        
         # determine message and extra arguments
         fmtArgs = {}
         extras = {"messageCode":messageCode}
@@ -1053,8 +1053,11 @@ class ModelXbrl:
                         try:
                             if objectUrl.endswith("/_IXDS"):
                                 file = objectUrl[:-6] # inline document set or report package
+                            elif objectUrl in self.logRefFileRelUris.get(entryUrl, EMPTY_TUPLE):
+                                file = self.logRefFileRelUris[entryUrl][objectUrl]
                             else:
                                 file = UrlUtil.relativeUri(entryUrl, objectUrl)
+                                self.logRefFileRelUris[entryUrl][objectUrl] = file
                         except:
                             file = ""
                         ref = {}
@@ -1177,12 +1180,16 @@ class ModelXbrl:
         """Same as error(), but level passed in as argument
         """
         logger = self.logger
-        messageCode, logArgs, extras = self.logArguments(codes, msg, args)
+        # determine logCode
+        messageCode = self.effectiveMessageCode(codes)
         if messageCode == "asrtNoLog":
             self.errors.append(args["assertionResults"])
-        elif (messageCode and
+            return
+        if (messageCode and
               (not logger.messageCodeFilter or logger.messageCodeFilter.match(messageCode)) and
               (not logger.messageLevelFilter or logger.messageLevelFilter.match(level.lower()))):
+            # note that plugin Logging.Message.Parameters may rewrite messageCode which now occurs after filtering on messageCode
+            messageCode, logArgs, extras = self.logArguments(messageCode, msg, args)
             numericLevel = logging._checkLevel(level)
             self.logCount[numericLevel] = self.logCount.get(numericLevel, 0) + 1
             if numericLevel >= self.errorCaptureLevel:

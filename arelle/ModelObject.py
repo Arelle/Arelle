@@ -215,6 +215,25 @@ class ModelObject(etree.ElementBase):
         return elementModelXbrl.qnameConcepts.get(self.qname)
     
     @property
+    def elementSequence(self):
+        # ordinal position among siblings, 1 is first position
+        try:
+            return self._elementSequence
+        except AttributeError:
+            sibling = self.getprevious # mostly elements are preceded by element or None
+            if not isinstance(sibling,(etree.ElementBase,type(None))):
+                sibling = None # preceding may be comment or PI
+                for s in self.itersiblings(preceding=True):
+                    if isinstance(sibling,etree.ElementBase):
+                        sibling = s
+                        break
+            if sibling is None:
+                self._elementSequence = 1
+            else:
+                self._elementSequence = sibling.elementSequence + 1
+            return self._elementSequence
+    
+    @property
     def parentQname(self):
         try:
             return self._parentQname
