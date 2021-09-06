@@ -1,0 +1,819 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?xml-stylesheet type='text/xsl' href='tests.xsl'?>
+<testcase
+  xmlns="http://xbrl.org/2011/conformance-rendering/transforms"
+  xmlns:case="http://xbrl.org/2011/conformance-rendering/transforms" 
+  xmlns:ixt-sec="http://www.sec.gov/inlineXBRL/transformation/2015-08-31"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  target="http://www.sec.gov/inlineXBRL/transformation/2015-08-31"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2011/conformance-rendering/transforms tests.xsd"
+  >
+  <!--
+       Invalidity in these tests refers to the input data, not
+       to the output value.  The output value should only be 
+       provided for inputs which are valid and then they should
+       always be the correct output values.
+       -->
+
+  <transform name="ixt-sec:boolballotbox" outputType="xs:boolean">
+      <variation input="&#x2610;" output="false" result="valid" />
+      <variation input="  &#x2610;" output="false" result="valid" description="xml whitespace trimming supported" />
+      <variation input="&#x2610;  " output="false" result="valid" />
+      <variation input="&#xA0;&#x2610;" output="" result="invalid" description="Leading non-breaking space not supported by xml whitespace trimming" />
+      <variation input="&#x2610;&#xA0;" output="" result="invalid" description="Trailing non-breaking space not supported by xml whitespace trimming" />
+      <variation input="&#x2611;" output="true" result="valid" />
+      <variation input="&#x2612;" output="true" result="valid" />
+      <variation input="X" output="" result="invalid" description="Only ballot box unicode characters are accepted" />
+  </transform>
+
+  <transform name="ixt-sec:countrynameen" outputType="xs:token">
+      <variation input="Endor" output="" result="invalid" description="Ewoks didn't pay ISO fees." />
+      <variation input="Afghanistan" output="AF" result="valid" />
+      <variation input=" Afghanistan" output="AF" result="valid" description="xml whitespace trimming supported" />
+      <variation input="Afghanistan " output="AF" result="valid" />
+      <variation input="
+      Afghanistan" output="AF" result="valid" />
+      <variation input="	Afghanistan"	 output="AF" result="valid" />
+      <variation input="&#xA0;Afghanistan&#xA0;"	 output="" result="invalid"  description="Non-breaking space not supported by xml whitespace trimming" />
+      <variation input="Afghanistan&#xA0;"	 output="" result="invalid"  description="Trailing non-breaking space not supported by xml whitespace trimming" />
+      <variation input="afghanistan" output="AF" result="valid" />
+      <variation input="AFGHANISTAN" output="" result="invalid" description="All caps is not in any pattern" />
+      <variation input="Åland&#xA0;Islands" output="AX" result="valid" description="Non-breaking space allowed as word spacings for all terms but not by xml schema pattern for whitespace trimming" />
+      <variation input="Åland Islands" output="AX" result="valid" />
+      <variation input="åland Islands" output="AX" result="valid" />
+      <variation input="Aland Islands" output="AX" result="valid" />
+      <variation input="aland Islands" output="AX" result="valid" />
+      <variation input="Albania" output="AL" result="valid" />
+      <variation input="Algeria" output="DZ" result="valid" />
+      <variation input="American Samoa" output="AS" result="valid" />
+      <variation input="Andorra" output="AD" result="valid" />
+      <variation input="Angola" output="AO" result="valid" />
+      <variation input="Anguilla" output="AI" result="valid" />
+      <variation input="Antarctica" output="AQ" result="valid" />
+      <variation input="Antigua And Barbuda" output="AG" result="valid" />
+      <variation input="Argentina" output="AR" result="valid" />
+      <variation input="Republic Of Argentina" output="AR" result="valid" />
+      <variation input="The Republic Of Argentina" output="AR" result="valid" />
+      <variation input="Armenia" output="AM" result="valid" />
+      <variation input="Aruba" output="AW" result="valid" />
+      <variation input="Australia" output="AU" result="valid" />
+      <variation input="Austria" output="AT" result="valid" />
+      <variation input="Azerbaijan" output="AZ" result="valid" />
+      <variation input="Bahamas" output="BS" result="valid" />
+      <variation input="Bahrain" output="BH" result="valid" />
+      <variation input="Bangladesh" output="BD" result="valid" />
+      <variation input="Barbados" output="BB" result="valid" />
+      <variation input="Belarus" output="BY" result="valid" />
+      <variation input="Belgium" output="BE" result="valid" />
+      <variation input="Belize" output="BZ" result="valid" />
+      <variation input="Benin" output="BJ" result="valid" />
+      <variation input="Bermuda" output="BM" result="valid" />
+      <variation input="Bhutan" output="BT" result="valid" />
+      <variation input="Bolivia" output="BO" result="valid" />
+      <variation input="Bonaire, Sint Eustatius And Saba" output="BQ" result="valid" />
+      <variation input="Bosnia And Herzegovina" output="BA" result="valid" />
+      <variation input="Botswana" output="BW" result="valid" />
+      <variation input="Bouvet Island" output="BV" result="valid" />
+      <variation input="Brasil" output="BR" result="valid" />
+      <variation input="Federative Republic Of Brasil" output="BR" result="valid" />
+      <variation input="The Federative Republic Of Brasil" output="BR" result="valid" />
+      <variation input="British Indian Ocean Territory" output="IO" result="valid" />
+      <variation input="Brunei Darussalam" output="BN" result="valid" />
+      <variation input="Bulgaria" output="BG" result="valid" />
+      <variation input="Burkina Faso" output="BF" result="valid" />
+      <variation input="Burundi" output="BI" result="valid" />
+      <variation input="Cabo Verde" output="CV" result="valid" />
+      <variation input="Cambodia" output="KH" result="valid" />
+      <variation input="Cameroon" output="CM" result="valid" />
+      <variation input="Canada" output="CA" result="valid" />
+      <variation input="Cayman Islands" output="KY" result="valid" />
+      <variation input="Central African Republic" output="CF" result="valid" />
+      <variation input="Chad" output="TD" result="valid" />
+      <variation input="Chile" output="CL" result="valid" />
+      <variation input="China" output="CN" result="valid" />
+      <variation input="People's Republic Of China" output="CN" result="valid" />
+      <variation input="Peoples Republic Of China" output="CN" result="valid" />
+      <variation input="The People's Republic Of China" output="CN" result="valid" />
+      <variation input="Christmas Island" output="CX" result="valid" />
+      <variation input="Cocos Islands" output="CC" result="valid" />
+      <variation input="cocos islands" output="CC" result="valid" />
+      <variation input="Cocos (Keeling) Islands" output="CC" result="valid" />
+      <variation input="cocos (keeling) islands" output="CC" result="valid" />
+      <variation input="Cocos [Keeling] Islands" output="CC" result="valid" />
+      <variation input="Cocos Keeling Islands" output="" result="invalid" description="parenthesis are required" />
+      <variation input="Colombia" output="CO" result="valid" />
+      <variation input="Republic Of Colombia" output="CO" result="valid" />
+      <variation input="The Republic Of Colombia" output="CO" result="valid" />
+      <variation input="Comoros" output="KM" result="valid" />
+      <variation input="Democratic Republic Of Congo" output="CD" result="valid" />
+      <variation input="Democratic Republic of the Congo" output="CD" result="valid" />
+      <variation input="democratic republic of the congo" output="CD" result="valid" />
+      <variation input="The Democratic Republic Of The Congo" output="" result="invalid" />
+      <variation input="Republic Of Congo" output="" result="invalid" />
+      <variation input="Congo" output="CG" result="valid" />
+      <variation input="Cook Islands" output="CK" result="valid" />
+      <variation input="Costa Rica" output="CR" result="valid" />
+      <variation input="Côte d'Ivoire" output="CI" result="valid" />
+      <variation input="Croatia" output="HR" result="valid" />
+      <variation input="Cuba" output="CU" result="valid" />
+      <variation input="Curaçao" output="CW" result="valid" />
+      <variation input="Cyprus" output="CY" result="valid" />
+      <variation input="Czechia" output="CZ" result="valid" />
+      <variation input="Czech Republic" output="CZ" result="valid" />
+      <variation input="Denmark" output="DK" result="valid" />
+      <variation input="Kingdom Of Denmark" output="DK" result="valid" />
+      <variation input="The Kingdom Of Denmark" output="DK" result="valid" />
+      <variation input="Djibouti" output="DJ" result="valid" />
+      <variation input="Dominica" output="DM" result="valid" />
+      <variation input="Dominican Republic" output="DO" result="valid" />
+      <variation input="Ecuador" output="EC" result="valid" />
+      <variation input="Egypt" output="EG" result="valid" />
+      <variation input="El Salvador" output="SV" result="valid" />
+      <variation input="Equatorial Guinea" output="GQ" result="valid" />
+      <variation input="Eritrea" output="ER" result="valid" />
+      <variation input="Estonia" output="EE" result="valid" />
+      <variation input="Eswatini" output="SZ" result="valid" />
+      <variation input="Ethiopia" output="ET" result="valid" />
+      <variation input="Falkland Islands" output="FK" result="valid" />
+      <variation input="Falkland Islands (Malvinas)" output="FK" result="valid" />
+      <variation input="The Falkland Islands (Malvinas)" output="FK" result="valid" />
+      <variation input="Islas Malvinas" output="FK" result="valid" />
+      <variation input="Malvinas Islands" output="FK" result="valid" />
+      <variation input="Falkland" output="" result="invalid" />
+      <variation input="Faroe Islands" output="FO" result="valid" />
+      <variation input="Fiji" output="FJ" result="valid" />
+      <variation input="Finland" output="FI" result="valid" />
+      <variation input="France" output="FR" result="valid" />
+      <variation input="French Guiana" output="GF" result="valid" />
+      <variation input="French Polynesia" output="PF" result="valid" />
+      <variation input="French Southern Territories" output="TF" result="valid" />
+      <variation input="Gabon" output="GA" result="valid" />
+      <variation input="Gambia" output="GM" result="valid" />
+      <variation input="Georgia" output="GE" result="valid" />
+      <variation input="Germany" output="DE" result="valid" />
+      <variation input="Ghana" output="GH" result="valid" />
+      <variation input="Gibraltar" output="GI" result="valid" />
+      <variation input="Greece" output="GR" result="valid" />
+      <variation input="Greenland" output="GL" result="valid" />
+      <variation input="Grenada" output="GD" result="valid" />
+      <variation input="Guadeloupe" output="GP" result="valid" />
+      <variation input="Guam" output="GU" result="valid" />
+      <variation input="Guatemala" output="GT" result="valid" />
+      <variation input="Guernsey" output="GG" result="valid" />
+      <variation input="Guinea" output="GN" result="valid" />
+      <variation input="Guinea-Bissau" output="GW" result="valid" />
+      <variation input="Guyana" output="GY" result="valid" />
+      <variation input="Haiti" output="HT" result="valid" />
+      <variation input="Heard Island And McDonald Islands" output="HM" result="valid" />
+      <variation input="Holy See" output="VA" result="valid" />
+      <variation input="The Holy See" output="VA" result="valid" />
+      <variation input="Vatican City" output="VA" result="valid" />
+      <variation input="Vatican" output="" result="invalid" />
+      <variation input="Honduras" output="HN" result="valid" />
+      <variation input="Hong Kong" output="HK" result="valid" />
+      <variation input="Hungary" output="HU" result="valid" />
+      <variation input="Iceland" output="IS" result="valid" />
+      <variation input="India" output="IN" result="valid" />
+      <variation input="Indonesia" output="ID" result="valid" />
+      <variation input="Iran" output="IR" result="valid" />
+      <variation input="Islamic Republic of Iran" output="IR" result="valid" />
+      <variation input="The Islamic Republic of Iran" output="IR" result="valid" />
+      <variation input="Iraq" output="IQ" result="valid" />
+      <variation input="Ireland" output="IE" result="valid" />
+      <variation input="Isle Of Man" output="IM" result="valid" />
+      <variation input="Israel" output="IL" result="valid" />
+      <variation input="Italy" output="IT" result="valid" />
+      <variation input="Jamaica" output="JM" result="valid" />
+      <variation input="Japan" output="JP" result="valid" />
+      <variation input="Jersey" output="JE" result="valid" />
+      <variation input="Jordan" output="JO" result="valid" />
+      <variation input="Kazakhstan" output="KZ" result="valid" />
+      <variation input="Kenya" output="KE" result="valid" />
+      <variation input="Kiribati" output="KI" result="valid" />
+      <variation input="Democratic People's Republic Of Korea" output="KP" result="valid" />
+      <variation input="Democratic Peoples Republic Of Korea" output="KP" result="valid" />
+      <variation input="North Korea" output="KP" result="valid" />
+      <variation input="Republic Of Korea" output="KR" result="valid" />
+      <variation input="South Korea" output="KR" result="valid" />
+      <variation input="Korea" output="" result="invalid" />
+      <variation input="Kuwait" output="KW" result="valid" />
+      <variation input="Kyrgyzstan" output="KG" result="valid" />
+      <variation input="Lao People's Democratic Republic" output="LA" result="valid" />
+      <variation input="Lao Peoples Democratic Republic" output="LA" result="valid" />
+      <variation input="Latvia" output="LV" result="valid" />
+      <variation input="Lebanon" output="LB" result="valid" />
+      <variation input="Lesotho" output="LS" result="valid" />
+      <variation input="Liberia" output="LR" result="valid" />
+      <variation input="Libya" output="LY" result="valid" />
+      <variation input="State Of Libya" output="LY" result="valid" />
+      <variation input="The State Of Libya" output="LY" result="valid" />
+      <variation input="Libya Arab Jamahiriya" output="" result="invalid" />
+      <variation input="Liechtenstein" output="LI" result="valid" />
+      <variation input="Lithuania" output="LT" result="valid" />
+      <variation input="Luxembourg" output="LU" result="valid" />
+      <variation input="Duchy Of Luxembourg" output="LU" result="valid" />
+      <variation input="Grand Duchy Of Luxembourg" output="LU" result="valid" />
+      <variation input="The Duchy Of Luxembourg" output="LU" result="valid" />
+      <variation input="The Grand Duchy Of Luxembourg" output="LU" result="valid" />
+      <variation input="Macao" output="MO" result="valid" />
+      <variation input="Madagascar" output="MG" result="valid" />
+      <variation input="Malawi" output="MW" result="valid" />
+      <variation input="Malaysia" output="MY" result="valid" />
+      <variation input="Maldives" output="MV" result="valid" />
+      <variation input="Mali" output="ML" result="valid" />
+      <variation input="Malta" output="MT" result="valid" />
+      <variation input="Marshall Islands" output="MH" result="valid" />
+      <variation input="Republic Of Marshall Islands" output="MH" result="valid" />
+      <variation input="The Republic Of The Marshall Islands" output="MH" result="valid" />
+      <variation input="Martinique" output="MQ" result="valid" />
+      <variation input="Mauritania" output="MR" result="valid" />
+      <variation input="Mauritius" output="MU" result="valid" />
+      <variation input="Mayotte" output="YT" result="valid" />
+      <variation input="Mexico" output="MX" result="valid" />
+      <variation input="United Mexican States" output="MX" result="valid" />
+      <variation input="Micronesia" output="FM" result="valid" />
+      <variation input="Federated States Of Micronesia" output="FM" result="valid" />
+      <variation input="The Federated States Of Micronesia" output="FM" result="valid" />
+      <variation input="Moldova" output="MD" result="valid" />
+      <variation input="Republic Of Moldova" output="MD" result="valid" />
+      <variation input="The Republic Of Moldova" output="MD" result="valid" />
+      <variation input="Monaco" output="MC" result="valid" />
+      <variation input="Mongolia" output="MN" result="valid" />
+      <variation input="Montenegro" output="ME" result="valid" />
+      <variation input="Montserrat" output="MS" result="valid" />
+      <variation input="Morocco" output="MA" result="valid" />
+      <variation input="Mozambique" output="MZ" result="valid" />
+      <variation input="Myanmar" output="MM" result="valid" />
+      <variation input="Namibia" output="NA" result="valid" />
+      <variation input="Nauru" output="NR" result="valid" />
+      <variation input="Nepal" output="NP" result="valid" />
+      <variation input="Netherlands" output="NL" result="valid" />
+      <variation input="New Caledonia" output="NC" result="valid" />
+      <variation input="New Zealand" output="NZ" result="valid" />
+      <variation input="Nicaragua" output="NI" result="valid" />
+      <variation input="Niger" output="NE" result="valid" />
+      <variation input="Nigeria" output="NG" result="valid" />
+      <variation input="Niue" output="NU" result="valid" />
+      <variation input="Norfolk Island" output="NF" result="valid" />
+      <variation input="North Macedonia" output="MK" result="valid" />
+      <variation input="Republic Of North Macedonia" output="MK" result="valid" />
+      <variation input="The Republic Of North Macedonia" output="MK" result="valid" />
+      <variation input="Northern Mariana Islands" output="MP" result="valid" />
+      <variation input="Norway" output="NO" result="valid" />
+      <variation input="Oman" output="OM" result="valid" />
+      <variation input="Pakistan" output="PK" result="valid" />
+      <variation input="Palau" output="PW" result="valid" />
+      <variation input="Palestine" output="PS" result="valid" />
+      <variation input="State Of Palestine" output="PS" result="valid" />
+      <variation input="The State Of Palestine" output="PS" result="valid" />
+      <variation input="Palestinian Territory" output="" result="invalid" />
+      <variation input="Panama" output="PA" result="valid" />
+      <variation input="Papua New Guinea" output="PG" result="valid" />
+      <variation input="Paraguay" output="PY" result="valid" />
+      <variation input="Peru" output="PE" result="valid" />
+      <variation input="Philippines" output="PH" result="valid" />
+      <variation input="Pitcairn" output="PN" result="valid" />
+      <variation input="Poland" output="PL" result="valid" />
+      <variation input="Portugal" output="PT" result="valid" />
+      <variation input="Puerto Rico" output="PR" result="valid" />
+      <variation input="Qatar" output="QA" result="valid" />
+      <variation input="Réunion" output="RE" result="valid" />
+      <variation input="Romania" output="RO" result="valid" />
+      <variation input="Russian Federation" output="RU" result="valid" />
+      <variation input="Rwanda" output="RW" result="valid" />
+      <variation input="Saint Barthélemy" output="BL" result="valid" />
+      <variation input="Saint Helena" output="SH" result="valid" />
+      <variation input="Saint Helena, Ascension, And Tristan" output="SH" result="valid" />
+      <variation input="Saint Helena, Ascension And Tristan" output="SH" result="valid" />
+      <variation input="Saint Helena, Ascension, and Tristan Da Cunha" output="SH"  result="valid" />
+      <variation input="Saint Helena, Ascension and Tristan Da Cunha" output="SH" result="valid" />
+      <variation input="Saint Helena, Ascension and Tristan Da Cunha" output="SH" result="valid" />
+      <variation input="Saint Kitts And Nevis" output="KN" result="valid" />
+      <variation input="Saint Lucia" output="LC" result="valid" />
+      <variation input="Saint Martin" output="MF" result="valid" />
+      <variation input="Saint Pierre And Miquelon" output="PM" result="valid" />
+      <variation input="Saint Vincent" output="VC" result="valid" />
+      <variation input="Saint Vincent And Grenadines" output="VC" result="valid" />
+      <variation input="Saint Vincent And The Grenadines" output="VC" result="valid" />
+      <variation input="Samoa" output="WS" result="valid" />
+      <variation input="San Marino" output="SM" result="valid" />
+      <variation input="Sao Tome And Principe" output="ST" result="valid" />
+      <variation input="Saudi Arabia" output="SA" result="valid" />
+      <variation input="Senegal" output="SN" result="valid" />
+      <variation input="Serbia" output="RS" result="valid" />
+      <variation input="Seychelles" output="SC" result="valid" />
+      <variation input="Sierra Leone" output="SL" result="valid" />
+      <variation input="Singapore" output="SG" result="valid" />
+      <variation input="Sint Maarten" output="SX" result="valid" />
+      <variation input="Slovakia" output="SK" result="valid" />
+      <variation input="Slovenia" output="SI" result="valid" />
+      <variation input="Solomon Islands" output="SB" result="valid" />
+      <variation input="Somalia" output="SO" result="valid" />
+      <variation input="South Africa" output="ZA" result="valid" />
+      <variation input="Republic Of South Africa" output="ZA" result="valid" />
+      <variation input="The Republic Of South Africa" output="ZA" result="valid" />
+      <variation input="South Georgia And South Sandwich Islands" output="GS" result="valid" />
+      <variation input="South Georgia And The South Sandwich Islands" output="GS" result="valid" />
+      <variation input="South Sudan" output="SS" result="valid" />
+      <variation input="Spain" output="ES" result="valid" />
+      <variation input="España" output="ES" result="valid" />
+      <variation input="Kingdom Of Spain" output="ES" result="valid" />
+      <variation input="The Kingdom Of Spain" output="ES" result="valid" />
+      <variation input="Sri Lanka" output="LK" result="valid" />
+      <variation input="Sudan" output="SD" result="valid" />
+      <variation input="Suriname" output="SR" result="valid" />
+      <variation input="Svalbard And Jan Mayen" output="SJ" result="valid" />
+      <variation input="Sweden" output="SE" result="valid" />
+      <variation input="Switzerland" output="CH" result="valid" />
+      <variation input="Syria" output="SY" result="valid" />
+      <variation input="Syrian Arab Republic" output="SY" result="valid" />
+      <variation input="Taiwan" output="TW" result="valid" />
+      <variation input="Taiwan, Province Of China" output="TW" result="valid" />
+      <variation input="Taiwan Province Of China" output="TW" result="valid" />
+      <variation input="Tajikistan" output="TJ" result="valid" />
+      <variation input="Tanzania" output="TZ" result="valid" />
+      <variation input="United Republic Of Tanzania" output="TZ" result="valid" />
+      <variation input="The United Republic Of Tanzania" output="TZ" result="valid" />
+      <variation input="Thailand" output="TH" result="valid" />
+      <variation input="Timor-Leste" output="TL" result="valid" />
+      <variation input="Togo" output="TG" result="valid" />
+      <variation input="Tokelau" output="TK" result="valid" />
+      <variation input="Tonga" output="TO" result="valid" />
+      <variation input="Trinidad And Tobago" output="TT" result="valid" />
+      <variation input="Tunisia" output="TN" result="valid" />
+      <variation input="Turkey" output="TR" result="valid" />
+      <variation input="Turkmenistan" output="TM" result="valid" />
+      <variation input="Turks And Caicos Islands" output="TC" result="valid" />
+      <variation input="Tuvalu" output="TV" result="valid" />
+      <variation input="Uganda" output="UG" result="valid" />
+      <variation input="Ukraine" output="UA" result="valid" />
+      <variation input="UAE" output="AE" result="valid" />
+      <variation input="United Arab Emirates" output="AE" result="valid" />
+      <variation input="U.K." output="GB" result="valid" />
+      <variation input="UK" output="GB" result="valid" />
+      <variation input="Britain" output="GB" result="valid" />
+      <variation input="Great Britain" output="GB" result="valid" />
+      <variation input="United Kingdom" output="GB" result="valid" />
+      <variation input="United Kingdom Of Great Britain And Northern Ireland" output="GB" result="valid" />
+      <variation input="England" output="GB" result="valid" />
+      <variation input="England And Wales" output="GB" result="valid" />
+      <variation input="United States Minor Outlying Islands" output="UM" result="valid" />
+      <variation input="U.S.A." output="US" result="valid" />
+      <variation input="USA" output="US" result="valid" />
+      <variation input="United States Of America" output="US" result="valid" />
+      <variation input="United States" output="US" result="valid" />
+      <variation input="Uruguay" output="UY" result="valid" />
+      <variation input="Uzbekistan" output="UZ" result="valid" />
+      <variation input="Vanuatu" output="VU" result="valid" />
+      <variation input="Venezuela" output="VE" result="valid" />
+      <variation input="Viet Nam" output="VN" result="valid" />
+      <variation input="British Virgin Islands" output="VG" result="valid" />
+      <variation input="U.S. Virgin Islands" output="VI" result="valid" />
+      <variation input="US Virgin Islands" output="VI" result="valid" />
+      <variation input="Wallis And Futuna" output="WF" result="valid" />
+      <variation input="Western Sahara" output="EH" result="valid" />
+      <variation input="Yemen" output="YE" result="valid" />
+      <variation input="Zambia" output="ZM" result="valid" />
+      <variation input="Zimbabwe" output="ZW" result="valid" />  </transform>
+
+  <transform name="ixt-sec:datequarterend" outputType="xs:date">
+      <variation input="3rd quarter, 1999" output="1999-09-30" result="valid" />
+      <variation input="Last quarter 1999" output="1999-12-31" result="valid" />
+      <variation input="1999, Q5" output="" result="invalid" />
+      <variation input="1999, Q4" output="1999-12-31" result="valid" />
+      <variation input="1999 1st Quarter" output="1999-03-31" result="valid" />
+      <variation input="1999&#xA0;1st&#xA0;Quarter" output="1999-03-31" result="valid" description="Non-breaking space supported within expression" />
+      <variation input=" 1999 1st Quarter " output="1999-03-31" result="valid" description="Schema whitespace is trimmed." />
+      <variation input="&#xA0;1999 1st Quarter" output="" result="invalid" description="Leading non-breaking space not supported by xml whitespace trimming." />
+      <variation input="1999 1st Quarter&#xA0;" output="" result="invalid" description="Trailing non-breaking space not supported by xml whitespace trimming" />
+  </transform>
+
+  <transform name="ixt-sec:durday" outputType="xs:duration">
+      <variation input="7.5" output="P7DT12H" result="valid" />
+      <variation input="-12345" output="-P12345D" result="valid" />
+      <variation input="12,345" output="" result="invalid" />
+      <variation input="seven" output="" result="invalid" />
+      <variation input=" 7.5 " output="P7DT12H" result="valid" />
+      <variation input="&#xA0;7.5" output="" result="invalid" description="Leading non-breaking space not supported by xml whitespace trimming" />
+      <variation input="7.5&#xA0;" output="" result="invalid" description="Trailing non-breaking space not supported by xml whitespace trimming" />
+  </transform>
+
+  <transform name="ixt-sec:durhour" outputType="xs:duration">
+      <variation input="7" output="PT7H" result="valid" />
+      <variation input="-7" output="-PT7H" result="valid" />
+      <variation input="7.3" output="PT7H" result="valid" />
+      <variation input="seven" output="" result="invalid" />
+      <variation input=" 7 " output="PT7H" result="valid" />
+      <variation input="&#xA0;7" output="" result="invalid" description="Leading non-breaking space not supported by xml whitespace trimming" />
+      <variation input="7&#xA0;" output="" result="invalid" description="Trailing non-breaking space not supported by xml whitespace trimming" />
+  </transform>
+
+  <transform name="ixt-sec:durmonth" outputType="xs:duration">
+      <variation input="7" output="P7M" result="valid" />
+      <variation input="-7" output="-P7M" result="valid" />
+      <variation input="7.3" output="P7M9D" result="valid" />
+      <variation input="seven" output="" result="invalid" />
+      <variation input=" 7 " output="P7M" result="valid" />
+      <variation input="&#xA0;7" output="" result="invalid" description="Leading non-breaking space not supported by xml whitespace trimming" />
+      <variation input="7&#xA0;" output="" result="invalid" description="Trailing non-breaking space not supported by xml whitespace trimming" />
+  </transform>
+
+  <transform name="ixt-sec:durweek" outputType="xs:duration">
+      <variation input="7" output="P49D" result="valid" />
+      <variation input="-7" output="-P49D" result="valid" />
+      <variation input="7.3" output="P51D" result="valid" />
+      <variation input="seven" output="" result="invalid" />
+      <variation input=" 7 " output="P49D" result="valid" />
+      <variation input="&#xA0;7" output="" result="invalid" description="Leading non-breaking space not supported by xml whitespace trimming" />
+      <variation input="7&#xA0;" output="" result="invalid" description="Trailing non-breaking space not supported by xml whitespace trimming" />
+  </transform>
+
+  <transform name="ixt-sec:durwordsen" outputType="xs:duration">
+      <variation input="seven days" output="P7D" result="valid" />
+      <variation input="twelve years" output="P12Y" result="valid" />
+      <variation input="twelve-years" output="P12Y" result="valid" />
+      <variation input="twelve&#x058A;years" output="P12Y" result="valid" />
+      <variation input="twelve&#x05BE;years" output="P12Y" result="valid" />
+      <variation input="twelve&#x2010;years" output="P12Y" result="valid" />
+      <variation input="twelve&#x2011;years" output="P12Y" result="valid" />
+      <variation input="twelve&#x2012;years" output="P12Y" result="valid" />
+      <variation input="twelve&#x2013;years" output="P12Y" result="valid" />
+      <variation input="twelve&#x2014;years" output="P12Y" result="valid" />
+      <variation input="twelve&#x2015;years" output="P12Y" result="valid" />
+      <variation input="twelve&#xFE58;years" output="P12Y" result="valid" />
+      <variation input="twelve&#xFE63;years" output="P12Y" result="valid" />
+      <variation input="twelve&#xFF0D;years" output="P12Y" result="valid" />
+      <variation input="twelve_years" output="" result="invalid" />
+      <variation input="twelveyears" output="" result="invalid" />
+      <variation input="twelve years, six months and four days" output="P12Y6M4D" result="valid" />
+      <variation input="no days" output="P0D" result="valid" />
+      <variation input="about four days" output="" result="invalid" />
+      <variation input=" seven days " output="P7D" result="valid" />
+      <variation input="seven&#xA0;days" output="P7D" result="valid" />
+      <variation input="&#xA0;seven days" output="" result="invalid" description="Leading non-breaking space not supported by xml whitespace trimming" />
+      <variation input="seven days&#xA0;" output="" result="invalid" description="Trailing non-breaking space not supported by xml whitespace trimming" />
+  </transform>
+
+  <transform name="ixt-sec:duryear" outputType="xs:duration">
+      <variation input="7" output="P7Y" result="valid" />
+      <variation input="-7" output="-P7Y" result="valid" />
+      <variation input="7.3" output="P7Y3M18D" result="valid" />
+      <variation input="seven" output="" result="invalid" />
+      <variation input=" 7 " output="P7Y" result="valid" />
+      <variation input="&#xA0;7" output="" result="invalid" description="Leading non-breaking space not supported by xml whitespace trimming" />
+      <variation input="7&#xA0;" output="" result="invalid" description="Trailing non-breaking space not supported by xml whitespace trimming" />
+  </transform>
+
+  <transform name="ixt-sec:edgarprovcountryen" outputType="xs:token">
+      <variation input="Endor" output="" result="invalid" />
+      <variation input="American Samoa" output="B5" result="valid" />
+      <variation input="american samoa" output="B5" result="valid" />
+      <variation input=" american samoa " output="B5" result="valid" />
+      <variation input="american&#xa0;samoa" output="B5" result="valid" />
+      <variation input="&#xa0;american samoa" output="" result="invalid" description="Leading non-breaking space not supported by xml whitespace trimming" />
+      <variation input="american samoa&#xa0;" output="" result="invalid" description="Trailing non-breaking space not supported by xml whitespace trimming" />
+      <variation input="Guam" output="GU" result="valid" />
+      <variation input="Puerto Rico" output="PR" result="valid" />
+      <variation input="United States Minor Outlying Islands" output="2J" result="valid" />
+      <variation input="US Virgin Islands" output="VI" result="valid" />
+      <variation input="U.S. Virgin Islands" output="VI" result="valid" />
+      <variation input="Virgin Islands, US" output="VI" result="valid" />
+      <variation input="Virgin Islands, U.S." output="VI" result="valid" />
+      <variation input="Alberta" output="A0" result="valid" />
+      <variation input="British Columbia" output="A1" result="valid" />
+      <variation input="Manitoba" output="A2" result="valid" />
+      <variation input="New Brunswick" output="A3" result="valid" />
+      <variation input="Newfoundland" output="A4" result="valid" />
+      <variation input="Nova Scotia" output="A5" result="valid" />
+      <variation input="Ontario" output="A6" result="valid" />
+      <variation input="Prince Edward Island" output="A7" result="valid" />
+      <variation input="Quebec" output="A8" result="valid" />
+      <variation input="Saskatchewan" output="A9" result="valid" />
+      <variation input="Yukon" output="B0" result="valid" />
+      <variation input="Afghanistan" output="B2" result="valid" />
+      <variation input="Åland Islands" output="Y6" result="valid" />
+      <variation input="Albania" output="B3" result="valid" />
+      <variation input="Algeria" output="B4" result="valid" />
+      <variation input="American Samoa" output="B5" result="valid" />
+      <variation input="Andorra" output="B6" result="valid" />
+      <variation input="Angola" output="B7" result="valid" />
+      <variation input="Anguilla" output="1A" result="valid" />
+      <variation input="Antarctica" output="B8" result="valid" />
+      <variation input="Antigua And Barbuda" output="B9" result="valid" />
+      <variation input="Argentina" output="C1" result="valid" />
+      <variation input="Armenia" output="1B" result="valid" />
+      <variation input="Aruba" output="1C" result="valid" />
+      <variation input="Australia" output="C3" result="valid" />
+      <variation input="Austria" output="C4" result="valid" />
+      <variation input="Azerbaijan" output="1D" result="valid" />
+      <variation input="Bahamas" output="C5" result="valid" />
+      <variation input="Bahrain" output="C6" result="valid" />
+      <variation input="Bangladesh" output="C7" result="valid" />
+      <variation input="Barbados" output="C8" result="valid" />
+      <variation input="Belarus" output="1F" result="valid" />
+      <variation input="Belgium" output="C9" result="valid" />
+      <variation input="Belize" output="D1" result="valid" />
+      <variation input="Benin" output="G6" result="valid" />
+      <variation input="Bermuda" output="D0" result="valid" />
+      <variation input="Bhutan" output="D2" result="valid" />
+      <variation input="Bolivia" output="D3" result="valid" />
+      <variation input="Bosnia And Herzegovina" output="1E" result="valid" />
+      <variation input="Botswana" output="B1" result="valid" />
+      <variation input="Bouvet Island" output="D4" result="valid" />
+      <variation input="Brasil" output="D5" result="valid" />
+      <variation input="British Indian Ocean Territory" output="D6" result="valid" />
+      <variation input="Brunei Darussalam" output="D9" result="valid" />
+      <variation input="Bulgaria" output="E0" result="valid" />
+      <variation input="Burkina Faso" output="X2" result="valid" />
+      <variation input="Burundi" output="E2" result="valid" />
+      <variation input="Cabo Verde" output="E8" result="valid" />
+      <variation input="Cape Verde" output="E8" result="valid" />
+      <variation input="Cambodia" output="E3" result="valid" />
+      <variation input="Cameroon" output="E4" result="valid" />
+      <variation input="Canada" output="Z4" result="valid" />
+      <variation input="Cayman Islands" output="E9" result="valid" />
+      <variation input="Central African Republic" output="F0" result="valid" />
+      <variation input="Chad" output="F2" result="valid" />
+      <variation input="Chile" output="F3" result="valid" />
+      <variation input="China" output="F4" result="valid" />
+      <variation input="Christmas Island" output="F6" result="valid" />
+      <variation input="Cocos Islands" output="F7" result="valid" />
+      <variation input="Colombia" output="F8" result="valid" />
+      <variation input="Comoros" output="F9" result="valid" />
+      <variation input="Democratic Republic Of Congo" output="Y3" result="valid" />
+      <variation input="Congo" output="G0" result="valid" />
+      <variation input="Cook Islands" output="G1" result="valid" />
+      <variation input="Costa Rica" output="G2" result="valid" />
+      <variation input="Côte d'Ivoire" output="L7" result="valid" />
+      <variation input="Croatia" output="1M" result="valid" />
+      <variation input="Cuba" output="G3" result="valid" />
+      <variation input="Cyprus" output="G4" result="valid" />
+      <variation input="Czechia" output="2N" result="valid" />
+      <variation input="Czech Republic" output="2N" result="valid" />
+      <variation input="Denmark" output="G7" result="valid" />
+      <variation input="Djibouti" output="1G" result="valid" />
+      <variation input="Dominica" output="G9" result="valid" />
+      <variation input="Dominican Republic" output="G8" result="valid" />
+      <variation input="Ecuador" output="H1" result="valid" />
+      <variation input="Egypt" output="H2" result="valid" />
+      <variation input="El Salvador" output="H3" result="valid" />
+      <variation input="Equatorial Guinea" output="H4" result="valid" />
+      <variation input="Eritrea" output="1J" result="valid" />
+      <variation input="Estonia" output="1H" result="valid" />
+      <variation input="Ethiopia" output="H5" result="valid" />
+      <variation input="Falkland Islands" output="H7" result="valid" />
+      <variation input="Faroe Islands" output="H6" result="valid" />
+      <variation input="Fiji" output="H8" result="valid" />
+      <variation input="Finland" output="H9" result="valid" />
+      <variation input="France" output="I0" result="valid" />
+      <variation input="French Guiana" output="I3" result="valid" />
+      <variation input="French Polynesia" output="I4" result="valid" />
+      <variation input="French Southern Territories" output="2C" result="valid" />
+      <variation input="Gabon" output="I5" result="valid" />
+      <variation input="Gambia" output="I6" result="valid" />
+      <variation input="Georgia" output="2Q" result="valid" />
+      <variation input="Germany" output="2M" result="valid" />
+      <variation input="Ghana" output="J0" result="valid" />
+      <variation input="Gibraltar" output="J1" result="valid" />
+      <variation input="Greece" output="J3" result="valid" />
+      <variation input="Greenland" output="J4" result="valid" />
+      <variation input="Grenada" output="J5" result="valid" />
+      <variation input="Guadeloupe" output="J6" result="valid" />
+      <variation input="Guatemala" output="J8" result="valid" />
+      <variation input="Guernsey" output="Y7" result="valid" />
+      <variation input="Guinea" output="J9" result="valid" />
+      <variation input="Guinea-Bissau" output="S0" result="valid" />
+      <variation input="Guyana" output="K0" result="valid" />
+      <variation input="Haiti" output="K1" result="valid" />
+      <variation input="Heard Island And McDonald Islands" output="K4" result="valid" />
+      <variation input="Holy See" output="X4" result="valid" />
+      <variation input="Vatican City" output="X4" result="valid" />
+      <variation input="Honduras" output="K2" result="valid" />
+      <variation input="Hong Kong" output="K3" result="valid" />
+      <variation input="Hungary" output="K5" result="valid" />
+      <variation input="Iceland" output="K6" result="valid" />
+      <variation input="India" output="K7" result="valid" />
+      <variation input="Indonesia" output="K8" result="valid" />
+      <variation input="Iran" output="K9" result="valid" />
+      <variation input="Iraq" output="L0" result="valid" />
+      <variation input="Ireland" output="L2" result="valid" />
+      <variation input="Isle Of Man" output="Y8" result="valid" />
+      <variation input="Israel" output="L3" result="valid" />
+      <variation input="Italy" output="L6" result="valid" />
+      <variation input="Jamaica" output="L8" result="valid" />
+      <variation input="Japan" output="M0" result="valid" />
+      <variation input="Jersey" output="Y9" result="valid" />
+      <variation input="Jordan" output="M2" result="valid" />
+      <variation input="Kazakhstan" output="1P" result="valid" />
+      <variation input="Kenya" output="M3" result="valid" />
+      <variation input="Kiribati" output="J2" result="valid" />
+      <variation input="Democratic People's Republic Of Korea" output="M4" result="valid" />
+      <variation input="Republic Of Korea" output="M5" result="valid" />
+      <variation input="Kuwait" output="M6" result="valid" />
+      <variation input="Kyrgyzstan" output="1N" result="valid" />
+      <variation input="Lao People's Democratic Republic" output="M7" result="valid" />
+      <variation input="Latvia" output="1R" result="valid" />
+      <variation input="Lebanon" output="M8" result="valid" />
+      <variation input="Lesotho" output="M9" result="valid" />
+      <variation input="Liberia" output="N0" result="valid" />
+      <variation input="Libya" output="N1" result="valid" />
+      <variation input="Liechtenstein" output="N2" result="valid" />
+      <variation input="Lithuania" output="1Q" result="valid" />
+      <variation input="Luxembourg" output="N4" result="valid" />
+      <variation input="Macao" output="N5" result="valid" />
+      <variation input="Madagascar" output="N6" result="valid" />
+      <variation input="Malawi" output="N7" result="valid" />
+      <variation input="Malaysia" output="N8" result="valid" />
+      <variation input="Maldives" output="N9" result="valid" />
+      <variation input="Mali" output="O0" result="valid" />
+      <variation input="Malta" output="O1" result="valid" />
+      <variation input="Marshall Islands" output="1T" result="valid" />
+      <variation input="Martinique" output="O2" result="valid" />
+      <variation input="Mauritania" output="O3" result="valid" />
+      <variation input="Mauritius" output="O4" result="valid" />
+      <variation input="Mayotte" output="2P" result="valid" />
+      <variation input="Mexico" output="O5" result="valid" />
+      <variation input="Micronesia" output="1K" result="valid" />
+      <variation input="Moldova" output="1S" result="valid" />
+      <variation input="Monaco" output="O9" result="valid" />
+      <variation input="Mongolia" output="P0" result="valid" />
+      <variation input="Montenegro" output="Z5" result="valid" />
+      <variation input="Montserrat" output="P1" result="valid" />
+      <variation input="Morocco" output="P2" result="valid" />
+      <variation input="Mozambique" output="P3" result="valid" />
+      <variation input="Myanmar" output="E1" result="valid" />
+      <variation input="Namibia" output="T6" result="valid" />
+      <variation input="Nauru" output="P5" result="valid" />
+      <variation input="Nepal" output="P6" result="valid" />
+      <variation input="Netherlands Antilles" output="P8" result="valid" />
+      <variation input="Netherlands" output="P7" result="valid" />
+      <variation input="New Caledonia" output="1W" result="valid" />
+      <variation input="New Zealand" output="Q2" result="valid" />
+      <variation input="Nicaragua" output="Q3" result="valid" />
+      <variation input="Niger" output="Q4" result="valid" />
+      <variation input="Nigeria" output="Q5" result="valid" />
+      <variation input="Niue" output="Q6" result="valid" />
+      <variation input="Norfolk Island" output="Q7" result="valid" />
+      <variation input="North Macedonia" output="1U" result="valid" />
+      <variation input="Northern Mariana Islands" output="1V" result="valid" />
+      <variation input="Norway" output="Q8" result="valid" />
+      <variation input="Oman" output="P4" result="valid" />
+      <variation input="Pakistan" output="R0" result="valid" />
+      <variation input="Palau" output="1Y" result="valid" />
+      <variation input="Palestine" output="1X" result="valid" />
+      <variation input="Panama" output="R1" result="valid" />
+      <variation input="Papua New Guinea" output="R2" result="valid" />
+      <variation input="Paraguay" output="R4" result="valid" />
+      <variation input="Peru" output="R5" result="valid" />
+      <variation input="Philippines" output="R6" result="valid" />
+      <variation input="Pitcairn" output="R8" result="valid" />
+      <variation input="Poland" output="R9" result="valid" />
+      <variation input="Portugal" output="S1" result="valid" />
+      <variation input="Qatar" output="S3" result="valid" />
+      <variation input="Réunion" output="S4" result="valid" />
+      <variation input="Romania" output="S5" result="valid" />
+      <variation input="Russian Federation" output="1Z" result="valid" />
+      <variation input="Rwanda" output="S6" result="valid" />
+      <variation input="Saint Barthélemy" output="Z0" result="valid" />
+      <variation input="Saint Helena" output="U8" result="valid" />
+      <variation input="Saint Kitts And Nevis" output="U7" result="valid" />
+      <variation input="Saint Lucia" output="U9" result="valid" />
+      <variation input="Saint Martin" output="Z1" result="valid" />
+      <variation input="Saint Pierre And Miquelon" output="V0" result="valid" />
+      <variation input="Saint Vincent" output="V1" result="valid" />
+      <variation input="Samoa" output="Y0" result="valid" />
+      <variation input="San Marino" output="S8" result="valid" />
+      <variation input="Sao Tome And Principe" output="S9" result="valid" />
+      <variation input="Saudi Arabia" output="T0" result="valid" />
+      <variation input="Senegal" output="T1" result="valid" />
+      <variation input="Serbia" output="Z2" result="valid" />
+      <variation input="Seychelles" output="T2" result="valid" />
+      <variation input="Sierra Leone" output="T8" result="valid" />
+      <variation input="Singapore" output="U0" result="valid" />
+      <variation input="Slovakia" output="2B" result="valid" />
+      <variation input="Slovenia" output="2A" result="valid" />
+      <variation input="Solomon Islands" output="D7" result="valid" />
+      <variation input="Somalia" output="U1" result="valid" />
+      <variation input="South Africa" output="T3" result="valid" />
+      <variation input="South Georgia And South Sandwich Islands" output="1L" result="valid" />
+      <variation input="Spain" output="U3" result="valid" />
+      <variation input="Sri Lanka" output="F1" result="valid" />
+      <variation input="Sudan" output="V2" result="valid" />
+      <variation input="Suriname" output="V3" result="valid" />
+      <variation input="Svalbard And Jan Mayen" output="L9" result="valid" />
+      <variation input="Swaziland" output="V6" result="valid" />
+      <variation input="Sweden" output="V7" result="valid" />
+      <variation input="Switzerland" output="V8" result="valid" />
+      <variation input="Syria" output="V9" result="valid" />
+      <variation input="Syrian Arab Republic" output="V9" result="valid" />
+      <variation input="Taiwan" output="F5" result="valid" />
+      <variation input="Taiwan Province Of China" output="F5" result="valid" />
+      <variation input="Taiwan, Province Of China" output="F5" result="valid" />
+      <variation input="Tajikistan" output="2D" result="valid" />
+      <variation input="Tanzania" output="W0" result="valid" />
+      <variation input="Thailand" output="W1" result="valid" />
+      <variation input="Timor-Leste" output="Z3" result="valid" />
+      <variation input="Togo" output="W2" result="valid" />
+      <variation input="Tokelau" output="W3" result="valid" />
+      <variation input="Tonga" output="W4" result="valid" />
+      <variation input="Trinidad And Tobago" output="W5" result="valid" />
+      <variation input="Tunisia" output="W6" result="valid" />
+      <variation input="Turkey" output="W8" result="valid" />
+      <variation input="Turkmenistan" output="2E" result="valid" />
+      <variation input="Turks And Caicos Islands" output="W7" result="valid" />
+      <variation input="Tuvalu" output="2G" result="valid" />
+      <variation input="Uganda" output="W9" result="valid" />
+      <variation input="Ukraine" output="2H" result="valid" />
+      <variation input="UAE" output="C0" result="valid" />
+      <variation input="United Kingdom" output="X0" result="valid" />
+      <variation input="United States Minor Outlying Islands" output="2J" result="valid" />
+      <variation input="United States" output="X1" result="valid" />
+      <variation input="Uruguay" output="X3" result="valid" />
+      <variation input="Uzbekistan" output="2K" result="valid" />
+      <variation input="Vanuatu" output="2L" result="valid" />
+      <variation input="Venezuela" output="X5" result="valid" />
+      <variation input="Viet Nam" output="Q1" result="valid" />
+      <variation input="British Virgin Islands" output="D8" result="valid" />
+      <variation input="Wallis And Futuna" output="X8" result="valid" />
+      <variation input="Western Sahara" output="U5" result="valid" />
+      <variation input="Yemen" output="T7" result="valid" />
+      <variation input="Zambia" output="Y4" result="valid" />
+      <variation input="Zimbabwe" output="Y5" result="valid" />
+      <variation input="Unknown" output="XX" result="valid" />
+  </transform>
+
+  <transform name="ixt-sec:exchnameen" outputType="xs:token">
+      <variation input="BOX Exchange LLC" output="BOX" result="valid" />
+      <variation input="BOX&#xA0;Exchange&#xA0;LLC" output="BOX" result="valid" />
+      <variation input=" BOX Exchange LLC " output="BOX" result="valid" />
+      <variation input="&#xA0;BOX Exchange LLC" output="" result="invalid" description="Leading non-breaking space not supported by xml whitespace trimming" />
+      <variation input="BOX Exchange LLC&#xA0;" output="" result="invalid" description="Trailing non-breaking space not supported by xml whitespace trimming" />
+      <variation input="Cboe BYX Exchange, Inc." output="CboeBYX" result="valid" />
+      <variation input="Cboe BZX Exchange, Inc." output="CboeBZX" result="valid" />
+      <variation input="Cboe C2 Exchange, Inc." output="C2" result="valid" />
+      <variation input="Cboe EDGA Exchange, Inc." output="CboeEDGA" result="valid" />
+      <variation input="Cboe EDGX Exchange, Inc." output="CboeEDGX" result="valid" />
+      <variation input="Cboe Exchange, Inc." output="CBOE" result="valid" />
+      <variation input="Chicago Stock Exchange, Inc." output="CHX" result="valid" />
+      <variation input="Investors Exchange LLC" output="IEX" result="valid" />
+      <variation input="Miami International Securities Exchange LLC" output="MIAX" result="valid" />
+      <variation input="MIAX PEARL, LLC" output="PEARL" result="valid" />
+      <variation input="Nasdaq BX, Inc. " output="BX" result="valid" />
+      <variation input="Nasdaq GEMX, LLC" output="GEMX" result="valid" />
+      <variation input="Nasdaq ISE, LLC" output="ISE" result="valid" />
+      <variation input="Nasdaq MRX, LLC" output="MRX" result="valid" />
+      <variation input="Nasdaq PHLX LLC" output="Phlx" result="valid" />
+      <variation input="New York Stock Exchange LLC" output="NYSE" result="valid" />
+      <variation input="NYSE American LLC" output="NYSEAMER" result="valid" />
+      <variation input="NYSE Arca, Inc." output="NYSEArca" result="valid" />
+      <variation input="NYSE National, Inc." output="NYSENAT" result="valid" />
+      <variation input="The Nasdaq Stock Market LLC" output="NASDAQ" result="valid" />
+      <variation input="Bernard Madoff &amp; Sons" output="" result="invalid" />
+ </transform>
+
+  <transform name="ixt-sec:numwordsen" outputType="xs:integer">
+      <variation input="eighteen million three hundred thousand fifty-one" output="18300051" result="valid" />
+      <variation input="eighteen million three hundred thousand and fifty-one" output="18300051" result="valid" />
+      <variation input="fifty-one" output="51" result="valid" />
+      <variation input="fifty&#x058A;one" output="51" result="valid" />
+      <variation input="fifty&#x05BE;one" output="51" result="valid" />
+      <variation input="fifty&#x2010;one" output="51" result="valid" />
+      <variation input="fifty&#x2011;one" output="51" result="valid" />
+      <variation input="fifty&#x2012;one" output="51" result="valid" />
+      <variation input="fifty&#x2013;one" output="51" result="valid" />
+      <variation input="fifty&#x2014;one" output="51" result="valid" />
+      <variation input="fifty&#x2015;one" output="51" result="valid" />
+      <variation input="fifty&#xFE58;one" output="51" result="valid" />
+      <variation input="fifty&#xFE63;one" output="51" result="valid" />
+      <variation input="fifty&#xFF0D;one" output="51" result="valid" />
+      <variation input="fifty_one" output="" result="invalid" />
+      <variation input="fiftyone" output="" result="invalid" />
+      <variation input="none" output="0" result="valid" />
+      <variation input="zero" output="0" result="valid" />
+      <variation input="four gazillion" output="" result="invalid" />
+      <variation input="zero hundred" output="" result="invalid" />
+      <variation input="one hundred" output="100" result="valid" />
+      <variation input=" one hundred " output="100" result="valid" />
+      <variation input="one&#xA0;hundred" output="100" result="valid" />
+      <variation input="&#xA0;one hundred" output="" result="invalid" description="Leading non-breaking space not supported by xml whitespace trimming" />
+      <variation input="one hundred&#xA0;" output="" result="invalid" />
+      <variation input=" zero " output="0" result="valid" />
+      <variation input="&#xA0;zero" output="" result="invalid" description="Leading non-breaking space not supported by xml whitespace trimming" />
+      <variation input="zero&#xA0;" output="" result="invalid" description="Trailing non-breaking space not supported by xml whitespace trimming" />
+  </transform>
+
+  <transform name="ixt-sec:stateprovnameen" outputType="xs:token">
+      <variation input="Alaska" output="AK" result="valid" />
+      <variation input="alaska" output="AK" result="valid" />
+      <variation input="Yukon" output="YT" result="valid" />
+      <variation input="Greenland" output="" result="invalid" />
+      <variation input="New York" output="NY" result="valid" />
+      <variation input="New&#xA0;York" output="NY" result="valid" />
+      <variation input=" New York " output="NY" result="valid" />
+      <variation input="New Yowk" output="" result="invalid" />
+      <variation input="&#xA0;New York" output="" result="invalid" description="Leading non-breaking space not supported by xml whitespace trimming" />
+      <variation input="New York&#xA0;" output="" result="invalid" description="Trailing non-breaking space not supported by xml whitespace trimming" />
+  </transform>
+
+</testcase>
