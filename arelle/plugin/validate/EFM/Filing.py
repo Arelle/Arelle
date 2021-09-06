@@ -199,7 +199,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             for xbrlInstRoot in xbrlInstRoots: # check all inline docs in ix doc set
                 for entityIdentifierElt in xbrlInstRoot.iterdescendants("{http://www.xbrl.org/2003/instance}identifier"):
                     if isinstance(entityIdentifierElt,ModelObject):
-                        schemeAttr = entityIdentifierElt.get("scheme")
+                        schemeAttr = entityIdentifierElt.get("scheme","")
                         entityIdentifier = XmlUtil.text(entityIdentifierElt)
                         if not disclosureSystem.identifierSchemePattern.match(schemeAttr):
                             try:
@@ -745,7 +745,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             modelXbrl.error(("EFM.6.05.19", "GFM.1.02.18"),
                 _("Required context (no segment) not found for document type %(documentType)s."),
                 edgarCode="cp-0519-Required-Context",
-                modelObject=documentTypeFact, documentType=documentType)
+                modelObject=modelXbrl, documentType=documentType)
             
         #6.5.11 equivalent units
         uniqueUnitHashes = {}
@@ -2169,7 +2169,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             modelXbrl.error("EFM.6.22.03.incompatibleInlineDocumentType",
                 _("Inline XBRL may not be used with document type %(documentType)s"),
                 modelObject=modelXbrl, conflictClass="inline XBRL", documentType=documentType)
-        if documentType is not None and not val.hasExtensionSchema and documentType != "L SDR" and disclosureSystemVersion[0] <= 58:
+        if documentType is not None and not val.hasExtensionSchema and documentType != "L SDR": # and disclosureSystemVersion[0] <= 58:
             modelXbrl.error("EFM.6.03.10",
                             _("%(documentType)s report is missing a extension schema file."),
                             edgarCode="cp-0310-Missing-Schema",
@@ -2555,6 +2555,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                             for rel in modelXbrl.relationshipSet(XbrlConst.summationItem, linkroleUri, None, None).fromModelObject(sumConcept))
                         if set(rule.get("calc-items")) <= itemWeights.keys():
                             itemLns = list(itemWeights.keys())
+                            sumLn = rule.get("calc-sum") # may be reset on previous linkroleUri in loop
                         else:
                             sumLn = None
                     if not sumLn:

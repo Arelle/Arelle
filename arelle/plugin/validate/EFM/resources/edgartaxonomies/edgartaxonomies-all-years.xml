@@ -6,6 +6,16 @@ Data and content created by government employees within the scope of their emplo
 are not subject to domestic copyright protection. 17 U.S.C. 105.
 -->
 	<Loc>
+		<Family>IFRS</Family>
+		<Version>2021</Version>
+		<Href>https://xbrl.sec.gov/dei/2021/dei-2021.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/dei/2021</Namespace>
+		<Prefix>dei</Prefix>
+	</Loc>
+	<Loc>
 		<Family>US GAAP</Family>
 		<Version>2021</Version>
 		<Href>https://xbrl.sec.gov/dei/2021/dei-2021.xsd</Href>
