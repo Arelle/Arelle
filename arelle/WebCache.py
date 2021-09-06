@@ -179,6 +179,8 @@ class WebCache:
     
     @httpUserAgent.setter
     def httpUserAgent(self, userAgent):
+        if not userAgent: # None or blank sets to default
+            userAgent = HTTP_USER_AGENT
         priorValue = self._httpUserAgent
         self._httpUserAgent = userAgent
         if priorValue != userAgent:

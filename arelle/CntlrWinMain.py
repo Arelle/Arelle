@@ -26,6 +26,7 @@ except ImportError:
 import tkinter.tix
 import tkinter.filedialog
 import tkinter.messagebox, traceback
+import tkinter.simpledialog
 from arelle.FileSource import saveFile as writeToFile
 from arelle.Locale import format_string
 from arelle.CntlrWinTooltip import ToolTip
@@ -203,6 +204,8 @@ class CntlrWinMain (Cntlr.Cntlr):
         cacheMenu.add_command(label=_("Clear cache"), underline=0, command=self.confirmClearWebCache)
         cacheMenu.add_command(label=_("Manage cache"), underline=0, command=self.manageWebCache)
         cacheMenu.add_command(label=_("Proxy Server"), underline=0, command=self.setupProxy)
+        cacheMenu.add_command(label=_("HTTP User Agent"), underline=0, command=self.setupUserAgent)
+        self.webCache.httpUserAgent = self.config.get("httpUserAgent")
         
         logmsgMenu = Menu(self.menubar, tearoff=0)
         toolsMenu.add_cascade(label=_("Messages log"), menu=logmsgMenu, underline=0)
@@ -1121,6 +1124,19 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.webCache.resetProxies(proxySettings)
             self.config["proxySettings"] = proxySettings
             self.saveConfig()
+        
+    def setupUserAgent(self):
+        httpUserAgent = tkinter.simpledialog.askstring(
+            _("HTTP header User-Agent value"),
+            _("Specify non-standard value or cancel to use standard User Agent"),
+            initialvalue=self.config.get("httpUserAgent"),
+            parent=self.parent)
+        self.webCache.httpUserAgent = httpUserAgent
+        if not httpUserAgent:
+            self.config.pop("httpUserAgent",None)
+        else:
+            self.config["httpUserAgent"] = httpUserAgent
+        self.saveConfig()
         
     def setValidateDisclosureSystem(self, *args):
         self.modelManager.validateDisclosureSystem = self.validateDisclosureSystem.get()
