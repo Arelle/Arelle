@@ -438,7 +438,7 @@ def checkfile(modelXbrl, filepath):
         def end(self, tag): pass
         def data(self, data): pass
         def close(self): pass
-    _parser = XMLParser(huge_tree=True, target=checkFileType())
+    _parser = XMLParser(recover=True, huge_tree=True, target=checkFileType())
     _isTestcase = False
     mayBeInline = isInline = False
     
