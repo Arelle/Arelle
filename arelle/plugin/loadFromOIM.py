@@ -2117,7 +2117,19 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 factProduced.invalidReferenceTarget = "concept"
                 continue
             factProduced.dimensionsUsed.add("concept")
-            if conceptSQName == "xbrl:note":
+            if isCSVorXL and (not isinstance(conceptSQName,str) or ":" not in conceptSQName or not QNamePattern.match(conceptSQName or "")): # allow #nil
+                error("xbrlce:invalidConceptQName",
+                      _("Concept does not match lexical QName pattern: %(concept)s."),
+                      modelObject=modelXbrl, concept=conceptSQName)
+                continue
+            conceptPrefix = conceptSQName.partition(":")[0]
+            if conceptPrefix not in namespaces:
+                error("oimce:unboundPrefix",
+                      _("The concept QName prefix was not defined in namespaces: %(concept)s."),
+                      modelObject=modelXbrl, concept=conceptSQName)
+                continue
+            conceptQn = qname(conceptSQName, namespaces)
+            if conceptQn.localName == "note" and conceptQn.namespaceURI in nsOims:
                 xbrlNoteTbl[id] = fact
                 if "language" not in dimensions:
                     error("oime:missingLanguageForNoteFact",
@@ -2178,18 +2190,6 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 error("oime:misplacedNoteIDDimension",
                       _("Unexpected noteId dimension on non-footnote fact, id %(id)s"),
                       modelObject=modelXbrl, id=id, noteId=dimensions["noteId"])
-            if isCSVorXL and (not isinstance(conceptSQName,str) or ":" not in conceptSQName or not QNamePattern.match(conceptSQName or "")): # allow #nil
-                error("xbrlce:invalidConceptQName",
-                      _("Concept does not match lexical QName pattern: %(concept)s."),
-                      modelObject=modelXbrl, concept=conceptSQName)
-                continue
-            conceptPrefix = conceptSQName.partition(":")[0]
-            if conceptPrefix not in namespaces:
-                error("oimce:unboundPrefix",
-                      _("The concept QName prefix was not defined in namespaces: %(concept)s."),
-                      modelObject=modelXbrl, concept=conceptSQName)
-                continue
-            conceptQn = qname(conceptSQName, namespaces)
             concept = modelXbrl.qnameConcepts.get(conceptQn)
             if concept is None:
                 error("oime:unknownConcept",
