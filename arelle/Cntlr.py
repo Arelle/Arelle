@@ -234,6 +234,7 @@ class Cntlr:
             
         # start language translation for domain
         self.setUiLanguage(self.config.get("userInterfaceLangOverride",None), fallbackToDefault=True)
+        os.environ['ARELLE_DISABLE_RTL'] = str(int(self.config.get('disableRtl', 0)))
             
         from arelle.WebCache import WebCache
         self.webCache = WebCache(self, self.config.get("proxySettings"))

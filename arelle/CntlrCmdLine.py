@@ -127,6 +127,8 @@ def parseAndRun(args):
     parser.add_option("--labelLang", action="store", dest="labelLang",
                       help=_("Language for labels in following file options (override system settings)"))
     parser.add_option("--labellang", action="store", dest="labelLang", help=SUPPRESS_HELP)
+    parser.add_option("--disableRtl", action="store_true", dest="disableRtl", default=False,
+                      help=_("Flag to disable reversing string read order for right to left languages, useful for some locale settings"))
     parser.add_option("--labelRole", action="store", dest="labelRole",
                       help=_("Label role for labels in following file options (instead of standard label)"))
     parser.add_option("--labelrole", action="store", dest="labelRole", help=SUPPRESS_HELP)
@@ -562,6 +564,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
             for optName, optValue in sorted(options.__dict__.items(), key=lambda optItem: optItem[0]):
                 self.addToLog("Option {0}={1}".format(optName, optValue), messageCode="info")
             self.addToLog("sys.argv {0}".format(sys.argv), messageCode="info")
+        
+        os.environ['ARELLE_DISABLE_RTL'] = str(int(options.disableRtl)) # not saved to config
+        
         if options.uiLang: # set current UI Lang (but not config setting)
             self.setUiLanguage(options.uiLang)
         if options.proxy:

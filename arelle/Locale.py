@@ -10,7 +10,7 @@ system-wide settings.  (The system settings can remain in 'C' locale.)
 
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
-import sys, subprocess
+import sys, subprocess, os
 try:
     import regex as re
 except ImportError:
@@ -258,6 +258,8 @@ def languageCodes():  # dynamically initialize after gettext is loaded
 
 def rtlString(source, lang):
     if lang and source and lang[0:2] in {"ar","he"}:
+        if int(os.environ.get('ARELLE_DISABLE_RTL', False)):
+            return source
         line = []
         lineInsertion = 0
         words = []
