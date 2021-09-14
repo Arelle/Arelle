@@ -88,7 +88,7 @@ class View:
             if style == "rendering":
                 html = io.StringIO(
 '''
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="%s">
     <head>
         <meta http-equiv="content-type" content="text/html;charset=utf-8" />
         <STYLE type="text/css"> 
@@ -109,7 +109,7 @@ class View:
             .abstractCell{border-top:1.0pt solid windowtext;border-right:.5pt solid windowtext;border-bottom:.5pt solid windowtext;border-left:.5pt solid windowtext;background:#e8e8e8;}
             .blockedCell{border-top:1.0pt solid windowtext;border-right:.5pt solid windowtext;border-bottom:.5pt solid windowtext;border-left:.5pt solid windowtext;background:#eee;}
             .tblCell{border-top:.5pt solid windowtext;border-right:.5pt solid windowtext;border-bottom:.5pt solid windowtext;border-left:.5pt solid windowtext;}
-            ''' + cssExtras + '''
+            ''' % ('rtl' if self.lang[:2] in {'ar', 'he'} else 'ltr') + cssExtras + '''
         </STYLE>
     </head>
     <body>
@@ -122,7 +122,7 @@ class View:
             else:
                 html = io.StringIO(
 '''
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="%s">
     <head>
         <meta http-equiv="content-type" content="text/html;charset=utf-8" />
         <STYLE type="text/css"> 
@@ -141,7 +141,7 @@ class View:
         </table>
     </body>
 </html>
-'''
+''' % ('rtl' if self.lang[:2] in {'ar', 'he'} else 'ltr')
                 )
             self.xmlDoc = etree.parse(html)
             html.close()

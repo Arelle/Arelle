@@ -258,6 +258,10 @@ class Cntlr:
             gettext.translation("arelle", 
                                 self.localeDir, 
                                 getLanguageCodes(lang)).install()
+            self.uiLanguage = getLanguageCodes(lang)[0].lower()
+            self.uiLanguageDirection = 'ltr'
+            if self.uiLanguage[0:2] in {"ar","he"}:
+                self.uiLanguageDirection = 'rtl'
             if not isPy3: # 2.7 gettext provides string instead of unicode from .mo files
                 installedGettext = __builtins__['_']
                 def convertGettextResultToUnicode(msg):
