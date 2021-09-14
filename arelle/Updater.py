@@ -38,7 +38,7 @@ def checkUpdateUrl(cntlr, attachmentFileName):
             if filenameDate > versionDate:
                 # newer
                 reply = tkinter.messagebox.askyesnocancel(
-                            _("arelle\u2122 - Updater"),
+                            _(u"arelle\u2122 - Updater"),
                             _("Update {0} is available, running version is {1}.  \n\nDownload now?    \n\n(Arelle will exit before installing.)").format(
                                   filenameDate, versionDate), 
                             parent=cntlr.parent)
@@ -55,7 +55,7 @@ def checkUpdateUrl(cntlr, attachmentFileName):
                 else:
                     msg = _("Arelle running version, {0}, is the same as the downloadable version.").format(
                               versionDate)
-                tkinter.messagebox.showwarning(_("arelle\u2122 - Updater"), msg, parent=cntlr.parent) 
+                tkinter.messagebox.showwarning(_(u"arelle\u2122 - Updater"), msg, parent=cntlr.parent) 
                                 
     except:
         pass
