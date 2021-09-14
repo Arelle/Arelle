@@ -58,6 +58,15 @@ def parseAndRun(args):
     except ImportError:
         hasWebServer = False
     cntlr = CntlrCmdLine()  # need controller for plug ins to be loaded
+
+    # Check if there is UI language override to use the selected language
+    # for help and error messages...
+    for _i, _arg in enumerate(args):
+        if _arg.startswith('--uiLang'):
+            _uiLang = args[_i+1]
+            cntlr.setUiLanguage(_uiLang)
+            break
+
     usage = "usage: %prog [options]"
     
     parser = OptionParser(usage, 
