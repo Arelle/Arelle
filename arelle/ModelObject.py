@@ -224,7 +224,7 @@ class ModelObject(etree.ElementBase):
             if not isinstance(sibling,(etree.ElementBase,type(None))):
                 sibling = None # preceding may be comment or PI
                 for s in self.itersiblings(preceding=True):
-                    if isinstance(sibling,etree.ElementBase):
+                    if isinstance(s, etree.ElementBase):
                         sibling = s
                         break
             if sibling is None:
