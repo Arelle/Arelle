@@ -477,8 +477,6 @@ class ValidateXbrl:
                                 _("Inline XBRL document set must have consistent prefixes for target %(target)s: %(prefix1)s, %(prefix2)s"),
                                 modelObject=ixReferences, target=target, prefix1=schemaRefUris[href], prefix2=prefix)
             for ixRel in self.ixdsRelationships:
-                if ixRel not in modelXbrl.targetRelationships:
-                    continue # skip if not in this target
                 for fromRef in ixRel.get("fromRefs","").split():
                     refs = ixdsIdObjects.get(fromRef)
                     if refs is None or refs[0].namespaceURI not in ixbrlAll or refs[0].localName not in ("fraction", "nonFraction", "nonNumeric", "tuple"):
@@ -501,10 +499,11 @@ class ValidateXbrl:
                     modelXbrl.error(ixMsgCode("relationshipToRefMix", ns=_ixNS, name="relationship", sect="validation"),
                         _("Inline XBRL fromRef is not only either footnotes, or ix:fraction, ix:nonFraction, ix:nonNumeric or ix:tuple."),
                         modelObject=ixRel)
-                if ixRel.get("linkRole") is not None: # XBRL 2.1 check of ixRelationships
-                    ValidateXbrlDTS.checkLinkRole(self, ixRel, XbrlConst.qnLinkFootnoteLink, ixRel.get("linkRole"), "extended", self.ixdsRoleRefURIs)
-                if ixRel.get("arcrole") is not None:
-                    ValidateXbrlDTS.checkArcrole(self, ixRel, XbrlConst.qnLinkFootnoteArc, ixRel.get("arcrole"), self.ixdsArcroleRefURIs)
+                if ixRel in modelXbrl.targetRelationships: # XBRL 2.1 role checks for ixRelationships used in target
+                    if ixRel.get("linkRole") is not None:
+                        ValidateXbrlDTS.checkLinkRole(self, ixRel, XbrlConst.qnLinkFootnoteLink, ixRel.get("linkRole"), "extended", self.ixdsRoleRefURIs)
+                    if ixRel.get("arcrole") is not None:
+                        ValidateXbrlDTS.checkArcrole(self, ixRel, XbrlConst.qnLinkFootnoteArc, ixRel.get("arcrole"), self.ixdsArcroleRefURIs)
             
 
             del ixdsIdObjects
