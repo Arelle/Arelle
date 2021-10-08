@@ -2739,6 +2739,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             if srcElt.__len__() > 0: # has html children
                                 setXmlns(modelXbrl.modelDocument, "xhtml", "http://www.w3.org/1999/xhtml")
                             copyIxFootnoteHtml(srcElt, tgtElt, withText=True, isContinChainElt=False)
+                            xmlValidate(modelXbrl, tgtElt)
                         footnoteArc = addChild(footnoteLink, 
                                                XbrlConst.qnLinkFootnoteArc, 
                                                attributes={XLINKTYPE: "arc",
