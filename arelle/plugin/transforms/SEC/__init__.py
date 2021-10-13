@@ -62,7 +62,7 @@ def durhour(arg):
     hours = int(n)
     return durationValue(None, None, None, hours, sign)
 
-dateQuarterEndPattern = re_compile(r"^([ \t\n\r]*(1|[Ff]irst|2|[Ss]econd|3|[Tt]hird|4|[Ff]ourth|[Ll]ast)[^0-9]*([0-9]{4})[ \t\n\r]*)|([ \t\n\r]*([0-9]{4})[^0-9]*(1|[Ff]irst|2|[Ss]econd|3|[Tt]hird|4|[Ff]ourth|[Ll]ast)(.*\w+)?[ \t\n\r]*)$") 
+dateQuarterEndPattern = re_compile(r"(^[ \t\n\r]*(?:\w[^0-9]*)?(1|[Ff]irst|2|[Ss]econd|3|[Tt]hird|4|[Ff]ourth|[Ll]ast)[^0-9]*([0-9]{4})[ \t\n\r]*$)|(^[ \t\n\r]*([0-9]{4})[^0-9]*(1|[Ff]irst|2|[Ss]econd|3|[Tt]hird|4|[Ff]ourth|[Ll]ast)(.*\w+)?[ \t\n\r]*$)") 
 
 # the output is a date value of a calendar quarter end
 def datequarterend(arg):

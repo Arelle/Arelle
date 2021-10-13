@@ -108,7 +108,7 @@ The order of appearance of a single-digit quarter (1, 2, 3, 4) or word (First, S
     </xs:annotation>
     <xs:restriction base="xs:string">
       <xs:whiteSpace value="collapse" />
-      <xs:pattern value="((1|[Ff]irst|2|[Ss]econd|3|[Tt]hird|4|[Ff]ourth|[Ll]ast)[^0-9]*([0-9]{4}))|(([0-9]{4})[^0-9]*(1|[Ff]irst|2|[Ss]econd|3|[Tt]hird|4|[Ff]ourth|[Ll]ast)(.*\w+)?)"></xs:pattern>
+      <xs:pattern value="((\w[^0-9]*)?(1|[Ff]irst|2|[Ss]econd|3|[Tt]hird|4|[Ff]ourth|[Ll]ast)[^0-9]*([0-9]{4}))|(([0-9]{4})[^0-9]*(1|[Ff]irst|2|[Ss]econd|3|[Tt]hird|4|[Ff]ourth|[Ll]ast)(.*\w+)?)"></xs:pattern>
     </xs:restriction>
   </xs:simpleType>
   

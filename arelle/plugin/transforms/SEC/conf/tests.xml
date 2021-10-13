@@ -380,13 +380,23 @@
   <transform name="ixt-sec:datequarterend" outputType="xs:date">
       <variation input="3rd quarter, 1999" output="1999-09-30" result="valid" />
       <variation input="Last quarter 1999" output="1999-12-31" result="valid" />
+      <variation input="The 3rd quarter, 1999" output="1999-09-30" result="valid" />
+      <variation input="The Last quarter, 1999" output="1999-12-31" result="valid" />
+      <variation input="Q3 1999" output="1999-09-30" result="valid" />
+      <variation input="Q3&#xA0;1999" output="1999-09-30" result="valid" />
+      <variation input="Quarter 3, 1999" output="1999-09-30" result="valid" />
+      <variation input="Q3'1999" output="1999-09-30" result="valid" />
       <variation input="1999, Q5" output="" result="invalid" />
       <variation input="1999, Q4" output="1999-12-31" result="valid" />
       <variation input="1999 1st Quarter" output="1999-03-31" result="valid" />
+      <variation input="1999 1st Quarter End" output="1999-03-31" result="valid" />
+      <variation input="1999 1st quarter-end" output="1999-03-31" result="valid" />
       <variation input="1999&#xA0;1st&#xA0;Quarter" output="1999-03-31" result="valid" description="Non-breaking space supported within expression" />
       <variation input=" 1999 1st Quarter " output="1999-03-31" result="valid" description="Schema whitespace is trimmed." />
       <variation input="&#xA0;1999 1st Quarter" output="" result="invalid" description="Leading non-breaking space not supported by xml whitespace trimming." />
+      <variation input="&#xA0;Q3 1999" output="1999-09-30" result="invalid" description="Leading non-breaking space not supported by xml whitespace trimming." />
       <variation input="1999 1st Quarter&#xA0;" output="" result="invalid" description="Trailing non-breaking space not supported by xml whitespace trimming" />
+      <variation input="1999 1st Quarter&#xA0;End" output="1999-03-31" result="valid" />
   </transform>
 
   <transform name="ixt-sec:durday" outputType="xs:duration">
