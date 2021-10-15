@@ -220,17 +220,7 @@ class ModelObject(etree.ElementBase):
         try:
             return self._elementSequence
         except AttributeError:
-            sibling = self.getprevious # mostly elements are preceded by element or None
-            if not isinstance(sibling,(etree.ElementBase,type(None))):
-                sibling = None # preceding may be comment or PI
-                for s in self.itersiblings(preceding=True):
-                    if isinstance(s, etree.ElementBase):
-                        sibling = s
-                        break
-            if sibling is None:
-                self._elementSequence = 1
-            else:
-                self._elementSequence = sibling.elementSequence + 1
+            self._elementSequence = 1 + sum(1 for s in self.itersiblings(etree.Element, preceding=True))
             return self._elementSequence
     
     @property
