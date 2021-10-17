@@ -42,33 +42,29 @@ from arelle.XmlUtil import addChild, addQnameValue, copyIxFootnoteHtml, setXmlns
 from arelle.XmlValidate import integerPattern, languagePattern, NCNamePattern, QNamePattern, validate as xmlValidate, VALID
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 
-nsOims = ("http://www.xbrl.org/WGWD/YYYY-MM-DD",
+nsOims = ("https://xbrl.org/2021",
+          "http://www.xbrl.org/WGWD/YYYY-MM-DD",
           "https://www.xbrl.org/WGWD/YYYY-MM-DD",
-          "https://xbrl.org/PR/2021-08-04",
           "http://www.xbrl.org/((~status_date_uri~))",
           "https://xbrl.org/((~status_date_uri~))"
          )
-nsOimCes = ("http://www.xbrl.org/WGWD/YYYY-MM-DD/oim-common/error",
+nsOimCes = ("https://xbrl.org/2021/oim-common/error",
+            "http://www.xbrl.org/WGWD/YYYY-MM-DD/oim-common/error",
             "http://www.xbrl.org/CR/2020-05-06/oim-common/error",
-            "https://xbrl.org/PR/2021-08-04/oim-common/error",
             "http://www.xbrl.org/((~status_date_uri~))/oim-common/error",
             "https://xbrl.org/((~status_date_uri~))/oim-common/error"
     )
 jsonDocumentTypes = (
+        "https://xbrl.org/2021/xbrl-json",
         "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-json",
         "http://www.xbrl.org/YYYY-MM-DD/xbrl-json",
-        "https://xbrl.org/((~status_date_uri~))/xbrl-json", # allows loading of XII "template" test cases without CI production
-        "https://xbrl.org/PR/2021-08-04/xbrl-json",
-        "https://xbrl.org/CR/2021-02-03/xbrl-json"
+        "https://xbrl.org/((~status_date_uri~))/xbrl-json" # allows loading of XII "template" test cases without CI production
     )
 csvDocumentTypes = (
+        "https://xbrl.org/2021/xbrl-csv",
         "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-csv",
         "http://xbrl.org/YYYY/xbrl-csv",
-        "https://xbrl.org/((~status_date_uri~))/xbrl-csv", # allows loading of XII "template" test cases without CI production
-        "http://www.xbrl.org/CR/2019-10-19/xbrl-csv",
-        "http://xbrl.org/CR/2020-10-14/xbrl-csv",
-        "http://www.xbrl.org/CR/2020-10-14/xbrl-csv",
-        "https://xbrl.org/CR/2021-02-03/xbrl-csv"
+        "https://xbrl.org/((~status_date_uri~))/xbrl-csv" # allows loading of XII "template" test cases without CI production
     )
 csvDocinfoObjects = {"documentType", "namespaces", "taxonomy", "extends", "final", "linkTypes", "linkGroups"}
 csvExtensibleObjects = {"namespaces", "linkTypes", "linkGroups", "features", "final", "tableTemplates", "tables", "dimensions", "parameters"}
@@ -1888,7 +1884,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         if tblTmpl:
                             tblTmpl.setdefault("_parametersUsed",set()).add(paramName)
                     elif not (isinstance(dimValue,str) and dimValue.startswith("$")):
-                        if dimName == "concept" and dimValue != "xbrl:note":
+                        if dimName == "concept":
                             if dimValue != "#none":
                                 if not isinstance(dimValue,str) or ":" not in dimValue or not QNamePattern.match(dimValue): # allow #nil
                                     error("xbrlce:invalidConceptQName",
@@ -1900,7 +1896,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                         error("oimce:unboundPrefix",
                                               _("The QName prefix could not be resolved with available namespaces: %(concept)s at %(path)s"),
                                               modelObject=modelXbrl, concept=dimValue, path="/".join(pathSegs+(dimName,)))
-                                    else:
+                                    elif conceptQn.localName != "note" or conceptQn.namespaceURI not in nsOims:
                                         concept = modelXbrl.qnameConcepts.get(conceptQn)
                                         if concept is None:
                                             error("oime:unknownConcept",

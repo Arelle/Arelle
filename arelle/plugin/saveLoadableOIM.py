@@ -3,6 +3,24 @@
 '''
 saveLoadableOIM.py is an example of a plug-in that will save a re-loadable JSON or CSV instance.
 
+When run from GUI a save-as dialog defaults to save .json but can also save .csv and .xlsx files.
+
+When run from command line interface in single-instance mode (a single instance is loaded):
+   --saveLoadableOIM oim-file-path
+   specifies file name or full path to save with .json, .csv or .xlsx sufffix
+When used to augment test case operation to save oim files when running a test suite
+   --saveTestcaseOimFileSuffix oim-file-suffix
+   specifies characters to add to read-me-first file when saving oim file
+
+CSV saving produces a single row-per-fact table.
+
+Extensions can be added to the results in the following manner:
+
+    extensionPrefixes - optional dict of prefix/name pairs to extend saved metadata
+    extensionReportObjects - optional dict of extension report objects
+    extensionFactObjectsMethod - method to return dict of extension objects for a single fact
+    extensionReportFinalizeMethod - (JSON only) method to finalize json object, for example change facts from object to array.
+
 (c) Copyright 2015 Mark V Systems Limited, All rights reserved.
 '''
 import sys, os, io, time, regex as re, json, csv, zipfile
@@ -20,7 +38,7 @@ from arelle.ValidateXbrlCalcs import inferredDecimals
 from arelle.XmlUtil import dateunionValue, elementIndex, xmlstring
 from collections import defaultdict
 
-nsOim = "https://xbrl.org/PR/2021-08-04"
+nsOim = "https://xbrl.org/2021"
 qnOimConceptAspect = qname("concept", noPrefixIsNoNamespace=True)
 qnOimLangAspect = qname("language", noPrefixIsNoNamespace=True)
 qnOimPeriodAspect = qname("period", noPrefixIsNoNamespace=True)
@@ -44,7 +62,12 @@ else:
     csvOpenMode = 'wb' # for 2.7
     csvOpenNewline = None
     
-def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
+def saveLoadableOIM(modelXbrl, oimFile, outputZip=None, 
+                    # arguments to add extension features to OIM document
+                    extensionPrefixes=None,
+                    extensionReportObjects=None,
+                    extensionFactObjectsMethod=None,
+                    extensionReportFinalizeMethod=None):
     
     isJSON = oimFile.endswith(".json")
     isCSV = oimFile.endswith(".csv")
@@ -55,6 +78,10 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
 
     namespacePrefixes = {nsOim: "xbrl"}
     prefixNamespaces = {}
+    if extensionPrefixes:
+        for extensionPrefix, extensionNamespace in extensionPrefixes.items():
+            namespacePrefixes[extensionNamespace] = extensionPrefix
+            prefixNamespaces[extensionPrefix] = extensionNamespace
     linkTypeAliases = {}
     groupAliases = {}
     linkTypePrefixes = {}
@@ -355,10 +382,18 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
     if isJSON:
         # save JSON
         oimReport["facts"] = oimFacts = OrderedDict()
+        # add in report level extension objects
+        if extensionReportObjects:
+            for extObjQName, extObj in extensionReportObjects.items():
+                oimReport[extObjQName] = extObj
         
         def saveJsonFacts(facts, oimFacts, parentFact):
             for fact in facts:
                 oimFact = factAspects(fact)
+                # add in fact level extension objects
+                if extensionFactObjectsMethod:
+                    for extObjQName, extObj in extensionFactObjectsMethod(fact).items():
+                        oimFact[extObjQName] = extObj
                 id = fact.id if fact.id else "f{}".format(fact.objectIndex)
                 oimFacts[id] = oimFact
                 if fact.modelTupleFacts:
@@ -375,6 +410,11 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None):
                                               ("noteId", ftId)))
             if ftObj.xmlLang:
                 oimFact["dimensions"]["language"] = ftObj.xmlLang.lower()
+                
+        # allow extension report final editing before writing json structure
+        # (possible example, reorganize facts into array vs object)
+        if extensionReportFinalizeMethod:
+            extensionReportFinalizeMethod(oimReport)
             
         if outputZip:
             fh = io.StringIO()
@@ -662,4 +702,5 @@ __pluginInfo__ = {
     'CntlrCmdLine.Utility.Run': saveLoadableOIMCaptureOptions,
     'CntlrCmdLine.Xbrl.Run': saveLoadableOIMCommandLineXbrlRun,
     'TestcaseVariation.Validated': saveLoadableOIMAfterTestcaseValidated,
+    'SaveLoadableOim.Save': saveLoadableOIM,
 }
