@@ -15,7 +15,10 @@ try:
     import regex as re
 except ImportError:
     import re
-import collections
+try:
+    from collections.abc import Mapping
+except:
+    from collections import Mapping
 import unicodedata
 
 CHAR_MAX = 127
@@ -402,7 +405,7 @@ def format_string(conv, f, val, grouping=False):
     percents = list(_percent_re.finditer(f))
     new_f = _percent_re.sub('%s', f)
 
-    if isinstance(val, collections.Mapping):
+    if isinstance(val, Mapping):
         new_val = []
         for perc in percents:
             if perc.group()[-1]=='%':
