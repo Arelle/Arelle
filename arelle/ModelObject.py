@@ -220,7 +220,7 @@ class ModelObject(etree.ElementBase):
         try:
             return self._elementSequence
         except AttributeError:
-            self._elementSequence = 1 + sum(1 for s in self.itersiblings(etree.Element, preceding=True))
+            self._elementSequence = 1 + sum(isinstance(s, etree._Element) for s in self.itersiblings(preceding=True))
             return self._elementSequence
     
     @property
