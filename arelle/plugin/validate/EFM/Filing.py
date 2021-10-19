@@ -510,7 +510,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         hasCommonSharesOutstandingDimensionedFactWithDefaultStockClass = True   # absent dimension, may be no def LB
                      
                 # 6.5.43 signs - applies to all facts having a context.
-                if (isEFM and nonNegFacts and f.qname in nonNegFacts.concepts and f.isNumeric and not f.isNil and f.xValue < 0 and (
+                if (isEFM and nonNegFacts and f.qname in nonNegFacts.concepts and f.isNumeric and f.xValid >= VALID and not f.isNil and f.xValue < 0 and (
                     all(dim.isTyped or (
                         (dim.dimensionQname not in nonNegFacts.excludedAxesMembers or
                          ("*" not in nonNegFacts.excludedAxesMembers[dim.dimensionQname] and
@@ -2632,7 +2632,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             dqc0015 = ugtRels["DQC.US.0015"]
             warnedFactsByQn = defaultdict(list)
             for f in modelXbrl.facts:
-                if (f.qname in dqc0015.concepts and f.isNumeric and not f.isNil and f.xValue < 0 and (
+                if (f.qname in dqc0015.concepts and f.isNumeric and f.xValid >= VALID and not f.isNil and f.xValue < 0 and (
                     all(dim.isTyped or (
                         (dim.dimensionQname not in dqc0015.excludedAxesMembers or
                          ("*" not in dqc0015.excludedAxesMembers[dim.dimensionQname] and
