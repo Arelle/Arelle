@@ -53,6 +53,7 @@ from .DTS import checkFilingDTS
 from .Util import isExtension, checkImageContents
 
 styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-esef-ix-hidden\s*:\s*([\w.-]+).*")
+styleCssHiddenPattern = re.compile(r"(.*[^\w]|^)display\s*:\s*none([^\w].*|$)")
 ifrsNsPattern = re.compile(r"http://xbrl.ifrs.org/taxonomy/[0-9-]{10}/ifrs-full")
 datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
 imgDataMediaBase64Pattern = re.compile(r"data:image([^,]*);base64,")
@@ -442,6 +443,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                     elif isinstance(elt, ModelInlineFact):
                         if elt.format is not None and elt.format.namespaceURI not in IXT_NAMESPACES:
                             transformRegistryErrors.add(elt)
+                ixHiddenFacts = set()
                 for ixHiddenElt in ixdsHtmlRootElt.iterdescendants(tag=ixNStag + "hidden"):
                     for tag in (ixNStag + "nonNumeric", ixNStag+"nonFraction"):
                         for ixElt in ixHiddenElt.iterdescendants(tag=tag):
@@ -454,6 +456,18 @@ def validateXbrlFinally(val, *args, **kwargs):
                                     requiredToDisplayFacts.append(ixElt)
                             if ixElt.id:
                                 hiddenEltIds[ixElt.id] = ixElt
+                            ixHiddenFacts.add(ixElt)
+                # maliciously hidden facts
+                for cssHiddenElt in ixdsHtmlRootElt.getroottree().iterfind("//{http://www.w3.org/1999/xhtml}*[@style]"):
+                    if styleCssHiddenPattern.match(cssHiddenElt.get("style","")):
+                        for tag in (ixNStag + "nonNumeric", ixNStag+"nonFraction"):
+                            for ixElt in cssHiddenElt.iterdescendants(tag=tag):
+                                if ixElt not in ixHiddenFacts:
+                                    modelXbrl.error("ESEF.2.5.4.displayNoneUsedToHideTaggedFacts",
+                                        _("\"display:none\" style applies to a fact that is not in an ix:hidden section."),
+                                        modelObject=ixElt)
+                del ixHiddenFacts
+                
                 firstIxdsDoc = False
 
             if val.unconsolidated:
