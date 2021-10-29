@@ -15,6 +15,7 @@ else:
 openFileSource = None
 from arelle import Locale, XmlUtil
 from arelle.UrlUtil import isAbsolute
+from arelle.XmlValidate import lxmlResolvingParser
 ArchiveFileIOError = None
 try:
     from collections import OrderedDict
@@ -69,12 +70,11 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
 
     currentLang = Locale.getLanguageCode()
     _file = filesource.file(metadataFile)[0] # URL in zip, plain file in file system or web
-    tpXsdFilename = cntlr.webCache.getfilename(TP_XSD)
-    _xsdFile = filesource.file(tpXsdFilename)[0]
+    parser = lxmlResolvingParser(cntlr)
     try:
-        tree = etree.parse(_file)
+        tree = etree.parse(_file,parser=parser)
         # schema validate tp xml
-        xsdTree = etree.parse(_xsdFile)
+        xsdTree = etree.parse(TP_XSD,parser=parser)
         etree.XMLSchema(xsdTree).assertValid(tree)
     except (etree.XMLSyntaxError, etree.DocumentInvalid) as err:
         cntlr.addToLog(_("Taxonomy package file syntax error %(error)s"),
@@ -165,12 +165,10 @@ def parsePackage(cntlr, filesource, metadataFile, fileBase, errors=[]):
               "http://xbrl.org/2016/taxonomy-package",
               "http://xbrl.org/REC/2016-04-19/taxonomy-package"):
         catalogFile = metadataFile.replace('taxonomyPackage.xml','catalog.xml')
-        catXsdFilename = cntlr.webCache.getfilename(CAT_XSD)
-        _xsdFile = filesource.file(catXsdFilename)[0]
         try:
-            rewriteTree = etree.parse(filesource.file(catalogFile)[0])
+            rewriteTree = etree.parse(filesource.file(catalogFile)[0],parser=parser)
             # schema validate tp xml
-            xsdTree = etree.parse(_xsdFile)
+            xsdTree = etree.parse(CAT_XSD,parser=parser)
             etree.XMLSchema(xsdTree).assertValid(rewriteTree)
         except (etree.XMLSyntaxError, etree.DocumentInvalid) as err:
             cntlr.addToLog(_("Catalog file syntax error %(error)s"),

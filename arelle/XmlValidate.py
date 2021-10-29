@@ -598,6 +598,19 @@ def validateAnyWildcard(qnElt, qnAttr, attributeWildcards):
             return True
     return False
 
+class lxmlSchemaResolver(etree.Resolver):
+    def __init__(self, cntlr):
+        super(lxmlSchemaResolver, self).__init__()
+        self.cntlr = cntlr
+    def resolve(self, url, id, context): 
+        filepath = self.cntlr.webCache.getfilename(url)
+        return self.resolve_filename(filepath, context)
+
+def lxmlResolvingParser(cntlr):
+    parser = etree.XMLParser()
+    parser.resolvers.add(lxmlSchemaResolver(cntlr))
+    return parser
+
 def lxmlSchemaValidate(modelDocument):
     # lxml schema-validate modelDocument
     if modelDocument is None:
@@ -615,13 +628,9 @@ def lxmlSchemaValidate(modelDocument):
                     _sl = (slElt.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation") or "").split()
                     for i in range(0, len(_sl), 2):
                         if _sl[i] == ns and i+1 < len(_sl):
-                            xsdFilename = cntlr.webCache.getfilename(
-                                cntlr.webCache.normalizeUrl(
-                                    _sl[i+1], 
-                                    modelDocument.baseForElement(slElt)))
+                            url = cntlr.webCache.normalizeUrl(_sl[i+1], modelDocument.baseForElement(slElt))
                             try:
-                                _xsdFile = modelXbrl.fileSource.file(xsdFilename)[0]
-                                xsdTree = etree.parse(_xsdFile)
+                                xsdTree = etree.parse(url,parser=lxmlResolvingParser(cntlr))
                                 break
                             except (EnvironmentError, KeyError, UnicodeDecodeError) as err:
                                 msgCode = "arelle.schemaFileError"
