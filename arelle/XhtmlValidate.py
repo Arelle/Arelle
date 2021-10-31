@@ -571,16 +571,19 @@ def xhtmlValidate(modelXbrl, elt):
         for e in dtd.error_log.filter_from_errors():
             msg = e.message
             path = getattr(e, "path", None)
-            if path and path.startswith("/html/"):
-                errPath = "/".join("{{{}}}{}".format(_ixNS if p.startswith("ixN") else XbrlConst.xhtml,
-                                                     "*" if p.startswith("ixN") else p)
-                                    for p in path[6:].split("/"))
-                errElt = elt.find(errPath)
-                if errElt is not None:
-                    if "ixNestedContent" in msg and isinstance(errElt,ModelObject):
-                        msg = msg.replace("ixNestedContent", str(errElt.elementQname))
-                    msg += " line {}".format(errElt.sourceline)
-                    elts.append(errElt)
+            if path:
+                if path.startswith("/html/"):
+                    errPath = "/".join("{{{}}}{}".format(_ixNS if (p.startswith("ixN") or p.startswith("ix:")) else XbrlConst.xhtml,
+                                                         "*" if p.startswith("ixN") else p[3:] if p.startswith("ix:") else p)
+                                        for p in path[6:].split("/"))
+                    errElt = elt.find(errPath)
+                    if errElt is not None:
+                        if "ixNestedContent" in msg and isinstance(errElt,ModelObject):
+                            msg = msg.replace("ixNestedContent", str(errElt.elementQname))
+                        msg += " line {}".format(errElt.sourceline)
+                        elts.append(errElt)
+                # also show use element path
+                msg += ", at path {}".format(path)
             errs.append(msg)
         return errs, elts
     try:
