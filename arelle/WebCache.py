@@ -3,6 +3,10 @@ Created on Oct 5, 2010
 
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
+
+For SEC EDGAR data access see: https://www.sec.gov/os/accessing-edgar-data
+e.g., User-Agent: Sample Company Name AdminContact@<sample company domain>.com
+
 '''
 import os, posixpath, sys, re, shutil, time, calendar, io, json, logging, shutil, cgi, zlib
 if sys.version[0] >= '3':
