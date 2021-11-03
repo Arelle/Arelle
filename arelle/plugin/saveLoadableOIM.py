@@ -18,7 +18,7 @@ Extensions can be added to the results in the following manner:
 
     extensionPrefixes - optional dict of prefix/name pairs to extend saved metadata
     extensionReportObjects - optional dict of extension report objects
-    extensionFactObjectsMethod - method to return dict of extension objects for a single fact
+    extensionFactPropertiesMethod - method to add extension properties to oimFact
     extensionReportFinalizeMethod - (JSON only) method to finalize json object, for example change facts from object to array.
 
 (c) Copyright 2015 Mark V Systems Limited, All rights reserved.
@@ -66,7 +66,7 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None,
                     # arguments to add extension features to OIM document
                     extensionPrefixes=None,
                     extensionReportObjects=None,
-                    extensionFactObjectsMethod=None,
+                    extensionFactPropertiesMethod=None,
                     extensionReportFinalizeMethod=None):
     
     isJSON = oimFile.endswith(".json")
@@ -391,9 +391,8 @@ def saveLoadableOIM(modelXbrl, oimFile, outputZip=None,
             for fact in facts:
                 oimFact = factAspects(fact)
                 # add in fact level extension objects
-                if extensionFactObjectsMethod:
-                    for extObjQName, extObj in extensionFactObjectsMethod(fact).items():
-                        oimFact[extObjQName] = extObj
+                if extensionFactPropertiesMethod:
+                    extensionFactPropertiesMethod(fact, oimFact)
                 id = fact.id if fact.id else "f{}".format(fact.objectIndex)
                 oimFacts[id] = oimFact
                 if fact.modelTupleFacts:
