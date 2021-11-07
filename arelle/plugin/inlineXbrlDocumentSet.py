@@ -42,7 +42,7 @@ from arelle.PythonUtil import attrdict
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateFilingText import CDATApattern
 from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier, elementChildSequence, xmlnsprefix, setXmlns
-import os, zipfile
+import os, zipfile, re
 from optparse import SUPPRESS_HELP
 from lxml.etree import XML, XMLSyntaxError
 from collections import defaultdict
@@ -354,7 +354,7 @@ def runOpenFileInlineDocumentSetMenuCommand(cntlr, runInBackground=False, saveTa
 def runOpenWebInlineDocumentSetMenuCommand(cntlr, runInBackground=False, saveTargetFiling=False):
     url = DialogURL.askURL(cntlr.parent, buttonSEC=True, buttonRSS=True)
     if url:
-        runOpenInlineDocumentSetMenuCommand(cntlr, [url], runInBackground, saveTargetFiling)
+        runOpenInlineDocumentSetMenuCommand(cntlr, re.split(r",\s*|\s+", url), runInBackground, saveTargetFiling)
 
 def runOpenInlineDocumentSetMenuCommand(cntlr, filenames, runInBackground=False, saveTargetFiling=False):
     if os.sep == "\\":
