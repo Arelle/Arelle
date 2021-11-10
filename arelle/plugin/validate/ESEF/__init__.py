@@ -56,7 +56,7 @@ styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-esef-ix-hidden\s*:\s*([\w.-]+).*
 styleCssHiddenPattern = re.compile(r"(.*[^\w]|^)display\s*:\s*none([^\w].*|$)")
 ifrsNsPattern = re.compile(r"http://xbrl.ifrs.org/taxonomy/[0-9-]{10}/ifrs-full")
 datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
-imgDataMediaBase64Pattern = re.compile(r"data:image([^,]*);base64,")
+imgDataMediaBase64Pattern = re.compile(r"data:image([^,;]*)(;base64)?,(.*)$", re.S)
 ixErrorPattern = re.compile(r"ix11[.]|xmlSchema[:]|(?!xbrl.5.2.5.2|xbrl.5.2.6.2)xbrl[.]|xbrld[ti]e[:]|utre[:]")
 docTypeXhtmlPattern = re.compile(r"^<!(?:DOCTYPE\s+)\s*html(?:PUBLIC\s+)?(?:.*-//W3C//DTD\s+(X?HTML)\s)?.*>$", re.IGNORECASE)
 
@@ -354,13 +354,12 @@ def validateXbrlFinally(val, *args, **kwargs):
                                             modelObject=elt, src=src, error=err)
                             else:
                                 m = imgDataMediaBase64Pattern.match(src)
-                                if not m:
+                                if not m or not m.group(2):
                                     modelXbrl.warning("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
                                         _("Images included in the XHTML document SHOULD be base64 encoded: %(src)s."),
                                         modelObject=elt, src=src[:128])
-                                    if "," in imgContents:
-                                        imgContents = imgContents.partition(",")[2]
-                                    checkImageContents(modelXbrl, elt, mime, False, imgContents)
+                                    if m and m.group(1) and m.group(3):
+                                        checkImageContents(modelXbrl, elt, m.group(1), False, m.group(3))
                                 else:
                                     if not m.group(1):
                                         modelXbrl.error("ESEF.2.5.1.MIMETypeNotSpecified",
@@ -371,10 +370,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                                             _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
                                             modelObject=elt, src=src[:128])
                                     # check for malicious image contents
-                                    mime, _sep, b64ImgContents = src.partition(";base64,")
-                                    try:
-                                        imgContents = base64.b64decode(b64ImgContents) # allow embedded newlines
-                                        checkImageContents(modelXbrl, elt, mime, False, imgContents)
+                                    try: # allow embedded newlines
+                                        checkImageContents(modelXbrl, elt, m.group(1), False, base64.b64decode(m.group(3)))
                                         imgContents = None # deref, may be very large
                                     except base64.binascii.Error as err:
                                         modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",

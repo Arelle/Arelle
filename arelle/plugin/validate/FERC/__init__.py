@@ -63,7 +63,10 @@ def validateXbrlFinally(val, *args, **kwargs):
         xbrlInstRoots = [modelXbrl.modelDocument.xmlDocument.getroot()]
             
     #6.5.15 facts with xml in text blocks
-    ValidateFilingText.validateTextBlockFacts(modelXbrl)
+    ValidateFilingText.validateTextBlockFacts(modelXbrl, {
+                                    True: ("gif", "jpg", "jpeg", "png"), # img file extensions
+                                    False: ("gif", "jpeg", "png") # mime types: jpg is not a valid mime type
+                                    })
     
     # check footnotes text
     if isInlineXbrl:

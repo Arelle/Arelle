@@ -6,7 +6,7 @@ Created on Oct 17, 2010
 '''
 #import xml.sax, xml.sax.handler
 from lxml.etree import XML, DTD, SubElement, _ElementTree, _Comment, _ProcessingInstruction, XMLSyntaxError, XMLParser
-import os, re, io
+import os, re, io, base64
 from arelle.XbrlConst import ixbrlAll, xhtml
 from arelle.XmlUtil import setXmlns, xmlstring
 from arelle.ModelObject import ModelObject
@@ -28,6 +28,7 @@ namedEntityPattern = re.compile("&[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02
 
 inlinePattern = re.compile(r"xmlns:[\w.-]+=['\"]http://www.xbrl.org/2013/inlineXBRL['\"]")
 inlineSelfClosedElementPattern = re.compile(r"<(([\w.-]+:)?(\w+))([^\w/][^<]*)?/>")
+imgDataMediaBase64Pattern = re.compile(r"data:image([^,;]*)(;base64)?,(.*)$", re.S)
 
 edbodyDTD = None
 isInlineDTD = None
@@ -528,7 +529,7 @@ def removeEntities(text):
     '''
     return namedEntityPattern.sub("", text).replace('&','&amp;')
 
-def validateTextBlockFacts(modelXbrl):
+def validateTextBlockFacts(modelXbrl, supportedImgTypes):
     #handler = TextBlockHandler(modelXbrl)
     loadDTD(modelXbrl)
     checkedGraphicsFiles = set() #  only check any graphics file reference once per fact
@@ -622,11 +623,21 @@ def validateTextBlockFacts(modelXbrl):
                                         attribute=attrTag, element=eltTag)
                                 if attrTag == "src" and attrValue not in checkedGraphicsFiles:
                                     if scheme(attrValue)  == "data":
-                                        modelXbrl.error(("EFM.6.05.16.graphicDataUrl", "FERC.6.05.16.graphicDataUrl"),
-                                            _("Fact %(fact)s of context %(contextID)s references a graphics data URL which isn't accepted '%(attribute)s' for <%(element)s>"),
-                                            modelObject=f1, fact=f1.qname, contextID=f1.contextID,
-                                            attribute=attrValue[:32], element=eltTag)
-                                    elif attrValue.lower()[-4:] not in ('.jpg', '.gif'):
+                                        try: # allow embedded newlines
+                                            m = imgDataMediaBase64Pattern.match(attrValue)
+                                            if (not m or not m.group(1) or not m.group(2)
+                                                or m.group(1)[1:] not in supportedImgTypes[False]
+                                                or m.group(1)[1:] != validateGraphicHeaderType(base64.b64decode(m.group(3)))):
+                                                modelXbrl.error(("EFM.6.05.16.graphicDataUrl", "FERC.6.05.16.graphicDataUrl"),
+                                                    _("Fact %(fact)s of context %(contextID)s references a graphics data URL which isn't accepted or valid '%(attribute)s' for <%(element)s>"),
+                                                    modelObject=f1, fact=f1.qname, contextID=f1.contextID,
+                                                    attribute=attrValue[:32], element=eltTag)
+                                        except base64.binascii.Error as err:
+                                            modelXbrl.error(("EFM.6.05.16.graphicDataEncodingError", "FERC.6.05.16.graphicDataEncodingError"),
+                                                _("Fact %(fact)s of context %(contextID)s Base64 encoding error %(err)s in <%(element)s>"),
+                                                modelObject=f1, fact=f1.qname, contextID=f1.contextID, err=err,
+                                                attribute=attrValue[:32], element=eltTag)
+                                    elif attrValue.lower()[-3:] not in supportedImgTypes[True]:
                                         modelXbrl.error(("EFM.6.05.16.graphicFileType", "FERC.6.05.16.graphicFileType"),
                                             _("Fact %(fact)s of context %(contextID)s references a graphics file which isn't .gif or .jpg '%(attribute)s' for <%(element)s>"),
                                             modelObject=f1, fact=f1.qname, contextID=f1.contextID,
@@ -899,6 +910,28 @@ class TextBlockHandler(xml.sax.ContentHandler, xml.sax.ErrorHandler):
              modelObject=self.fact, fact=self.fact.qname, contextID=self.fact.contextID, 
              error=err.getMessage(), line=err.getLineNumber(), column=err.getColumnNumber())
 '''
+            
+def validateGraphicHeaderType(data):
+    # Support both JFIF APP0 (0xffe0 + 'JFIF') and APP1 Exif (0xffe1 + 'Exif') JPEG application segment types
+    if ((data[:4] == b'\xff\xd8\xff\xe0' and data[6:11] == b'JFIF\0') or 
+        (data[:4] == b'\xff\xd8\xff\xe1' and data[6:11] == b'Exif\0')):
+        return "jpg"
+    elif data[:3] == b"GIF" and data[3:6] in (b'89a', b'89b', b'87a'):
+        return "gif"
+    elif data[:8] == b"\x89PNG\r\n\x1a\n":
+        return "png"
+    elif data[:2] in (b"MM", b"II"):
+        return "tiff"
+    elif data[:2] in (b"BM", b"BA"):
+        return "bmp"
+    elif data[:4] == b"\x00\x00\x01\x00":
+        return "ico"
+    elif data[:4] == b"\x00\x00\x02\x00":
+        return "cur"
+    elif len(data) == 0:
+        return "none"
+    else:
+        return "unrecognized"
 
 def validateGraphicFile(elt, graphicFile):
     base = elt.modelDocument.baseForElement(elt)
@@ -909,13 +942,7 @@ def validateGraphicFile(elt, graphicFile):
     #normalizedUri = elt.modelXbrl.modelManager.cntlr.webCache.getfilename(normalizedUri)
     if normalizedUri: # may be None if file doesn't exist
         with elt.modelXbrl.fileSource.file(normalizedUri,binary=True)[0] as fh:
-            data = fh.read(11)
-            # Support both JFIF APP0 (0xffe0 + 'JFIF') and APP1 Exif (0xffe1 + 'Exif') JPEG application segment types
-            if ((data[:4] == b'\xff\xd8\xff\xe0' and data[6:11] == b'JFIF\0') or 
-                (data[:4] == b'\xff\xd8\xff\xe1' and data[6:11] == b'Exif\0')):
-                return "jpg"
-            if data[:3] == b"GIF" and data[3:6] in (b'89a', b'89b', b'87a'):
-                return "gif"
+            return validateGraphicHeaderType(fh.read(11))
     return None
 
 def referencedFiles(modelXbrl, localFilesOnly=True):
