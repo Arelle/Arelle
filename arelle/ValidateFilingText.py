@@ -673,11 +673,12 @@ def validateTextBlockFacts(modelXbrl, supportedImgTypes):
     
 def copyHtml(sourceXml, targetHtml):
     for sourceChild in sourceXml.iterchildren():
-        targetChild = SubElement(targetHtml,
-                                 sourceChild.localName if sourceChild.namespaceURI == xhtml else sourceChild.tag)
-        for attrTag, attrValue in sourceChild.items():
-            targetChild.set("lang" if attrTag == "{http://www.w3.org/XML/1998/namespace}lang" else attrTag, attrValue)
-        copyHtml(sourceChild, targetChild)
+        if isinstance(sourceChild, ModelObject):
+            targetChild = SubElement(targetHtml,
+                                     sourceChild.localName if sourceChild.namespaceURI == xhtml else sourceChild.tag)
+            for attrTag, attrValue in sourceChild.items():
+                targetChild.set("lang" if attrTag == "{http://www.w3.org/XML/1998/namespace}lang" else attrTag, attrValue)
+            copyHtml(sourceChild, targetChild)
         
 def validateFootnote(modelXbrl, footnote):
     #handler = TextBlockHandler(modelXbrl)
