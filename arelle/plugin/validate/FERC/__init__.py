@@ -115,7 +115,8 @@ def validateXbrlFinally(val, *args, **kwargs):
     formEntrySchema = None
     factsForLang = {}
     keysNotDefaultLang = {}
-    
+    allFormEntryXsd = () 
+       
     for c in modelXbrl.contexts.values():
         if XmlUtil.hasChild(c, xbrli, "segment"):
             segContexts.add(c)
@@ -154,14 +155,25 @@ def validateXbrlFinally(val, *args, **kwargs):
                 formNum = re.sub("([0-9]+).*", r"\1", formType)
                 formLtr = re.match("[^A-Z]*([A-Z]?)", formType).group(1)
                 txDate = re.sub("http://ferc.gov/form/([0-9]{4}-[0-9]{2}-[0-9]{2})/ferc", r"\1", f.qname.namespaceURI)
-                formEntryXsd = "https://ecollection.ferc.gov/taxonomy/form{}/{}/form/form{}{}/form-{}{}_{}.xsd".format(
-                    formNum, txDate, formNum, formLtr, formNum, formLtr, txDate)
-                # print("trace " + formEntryXsd)
+
+                formEntryXsd = "https://eCollection.ferc.gov/taxonomy/form{}/{}/form/form{}{}/form-{}{}_{}.xsd".format(formNum, txDate, formNum, formLtr, formNum, formLtr, txDate)
+
+                formEntryXsdUAT = formEntryXsd.replace("eCollection","uat.eforms")
+                formEntryXsdTest = formEntryXsd.replace("eCollection","test.eforms")
+                formEntryXsdDev = formEntryXsd.replace("eCollection","dev.eforms")
+
+                confFormEntryXsd = "https://eCollection.ferc.gov/taxonomy/form{}/{}/ferc-core-footnote-roles_{}.xsd".format(formNum, txDate,txDate)
+
+                confFormEntryXsdUAT = confFormEntryXsd.replace("eCollection","uat.eforms")
+                confFormEntryXsdTest = confFormEntryXsd.replace("eCollection","test.eforms")
+                confFormEntryXsdDev = confFormEntryXsd.replace("eCollection","dev.eforms")
+
+                allFormEntryXsd = [formEntryXsd, formEntryXsdUAT, formEntryXsdTest, formEntryXsdDev, confFormEntryXsd, confFormEntryXsdUAT, confFormEntryXsdTest, confFormEntryXsdDev]
                 
     unexpectedXsds = set(doc.modelDocument.uri
                          for doc, referencingDoc in modelXbrl.modelDocument.referencesDocument.items()
                          if "href" in referencingDoc.referenceTypes
-                         if doc.modelDocument.uri.lower() != formEntryXsd.lower())
+                         if doc.modelDocument.uri not in allFormEntryXsd)
     if unexpectedXsds:
         modelXbrl.error("FERC.22.00",
                         _("The instance document contained unexpected schema references %(schemaReferences)s."),
