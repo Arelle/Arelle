@@ -468,7 +468,7 @@ def evaluateTableIndex(modelXbrl, lang=None):
     elif _ifrsStyleELRs: 
         for roleType in definitionElrs.values():
             roleType._tableChildren = []
-        return sortedRoleTypes[0][1], None # first link role in order             
+        return sortedRoleTypes[0][1].roleURI, None # first link role in order             
     return None, None
 
 def parentNameMatchLen(tableName, parentRoleType):
