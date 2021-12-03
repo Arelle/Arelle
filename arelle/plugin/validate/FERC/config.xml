@@ -20,7 +20,7 @@
      utrUrl="http://www.xbrl.org/utr/utr.xml resources/ferc-utr.xml"
      utrStatusFilters="REC CR"
      identifierSchemePattern="^http://www\.ferc\.gov/CID$"
-     identifierValuePattern="^C[0-9]{6}$" 
+     identifierValuePattern="^[CR][0-9]{6}$" 
      />
   <DisclosureSystem 
      names="Federal Energy Regulatory Commission (US) without UTR validation|FERC-NO-UTR|ferc-no-utr"
@@ -37,7 +37,7 @@
      utrUrl=""
      utrStatusFilters="REC CR"
      identifierSchemePattern="^http://www\.ferc\.gov/CID$"
-     identifierValuePattern="^C[0-9]{6}$" 
+     identifierValuePattern="^[CR][0-9]{6}$" 
      />
 
 
