@@ -131,7 +131,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     # table name
                     modelRoleTypes = self.modelXbrl.roleTypes.get(tblLinkroleUri)
                     if modelRoleTypes is not None and len(modelRoleTypes) > 0:
-                        roledefinition = modelRoleTypes[0].definition
+                        # roledefinition = modelRoleTypes[0].definition
+                        roledefinition = self.modelXbrl.roleTypeDefinition(tblLinkroleUri, self.lang) # Definition in selected language
                         if roledefinition is None or roledefinition == "":
                             roledefinition = os.path.basename(tblLinkroleUri)       
                         for table in tblAxisRelSet.rootConcepts:

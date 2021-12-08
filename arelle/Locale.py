@@ -256,8 +256,13 @@ def languageCodes():  # dynamically initialize after gettext is loaded
         }
         return _languageCodes
 
+_disableRtl = False # disable for implementations where tkinter supports rtl
+def setDisableRTL(disableRTL):
+    global _disableRTL
+    _disableRTL = disableRTL
+    
 def rtlString(source, lang):
-    if lang and source and lang[0:2] in {"ar","he"}:
+    if lang and source and lang[0:2] in {"ar","he"} and not _disableRTL:
         line = []
         lineInsertion = 0
         words = []

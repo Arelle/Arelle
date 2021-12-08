@@ -11,7 +11,7 @@
 from arelle import PythonUtil # define 2.x or 3.x string types
 import tempfile, os, io, sys, logging, gettext, json, re, subprocess, math
 from arelle import ModelManager
-from arelle.Locale import getLanguageCodes
+from arelle.Locale import getLanguageCodes, setDisableRTL
 from arelle import PluginManager, PackageManager
 from collections import defaultdict
 osPrcs = None
@@ -108,6 +108,7 @@ class Cntlr:
         self.isGAE = False
         self.isCGI = False
         self.systemWordSize = int(round(math.log(sys.maxsize, 2)) + 1) # e.g., 32 or 64
+        self.uiLangDir = "ltr"
         
         # sys.setrecursionlimit(10000) # 1000 default exceeded in some inline documents
 
@@ -234,7 +235,8 @@ class Cntlr:
             
         # start language translation for domain
         self.setUiLanguage(self.config.get("userInterfaceLangOverride",None), fallbackToDefault=True)
-            
+        setDisableRTL(self.config.get('disableRtl', False))
+           
         from arelle.WebCache import WebCache
         self.webCache = WebCache(self, self.config.get("proxySettings"))
         
@@ -255,9 +257,12 @@ class Cntlr:
             
     def setUiLanguage(self, lang, fallbackToDefault=False):
         try:
+            langCodes = getLanguageCodes(lang)
             gettext.translation("arelle", 
                                 self.localeDir, 
-                                getLanguageCodes(lang)).install()
+                                langCodes).install()
+            self.uiLang = langCodes[0].lower()
+            self.uiLangDir = 'rtl' if self.uiLang[0:2] in {"ar","he"} else 'ltr'
             if not isPy3: # 2.7 gettext provides string instead of unicode from .mo files
                 installedGettext = __builtins__['_']
                 def convertGettextResultToUnicode(msg):
@@ -268,6 +273,8 @@ class Cntlr:
                 __builtins__['_'] = convertGettextResultToUnicode
         except Exception:
             if fallbackToDefault or (lang and lang.lower().startswith("en")):
+                self.uiLang = "en"
+                self.uiLangDir = "ltr"
                 gettext.install("arelle", 
                                 self.localeDir)
         

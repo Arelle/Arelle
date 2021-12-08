@@ -9,7 +9,7 @@ This module is Arelle's controller in command line non-interactive mode
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import PythonUtil # define 2.x or 3.x string types
-import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json, logging
+import gettext, time, datetime, os, shlex, sys, traceback, fnmatch, threading, json, logging, platform
 from optparse import OptionParser, SUPPRESS_HELP
 import re
 from arelle import (Cntlr, FileSource, ModelDocument, RenderingEvaluator, XmlUtil, XbrlConst, Version, 
@@ -18,7 +18,7 @@ from arelle import (Cntlr, FileSource, ModelDocument, RenderingEvaluator, XmlUti
                     ViewFileRoleTypes,
                     ModelManager)
 from arelle.ModelValue import qname
-from arelle.Locale import format_string
+from arelle.Locale import format_string, setDisableRTL
 from arelle.ModelFormulaObject import FormulaOptions
 from arelle import PluginManager
 from arelle.PluginManager import pluginClassMethods
@@ -58,6 +58,15 @@ def parseAndRun(args):
     except ImportError:
         hasWebServer = False
     cntlr = CntlrCmdLine()  # need controller for plug ins to be loaded
+
+    # Check if there is UI language override to use the selected language
+    # for help and error messages...
+    for _i, _arg in enumerate(args):
+        if _arg.startswith('--uiLang'):
+            _uiLang = args[_i+1]
+            cntlr.setUiLanguage(_uiLang)
+            break
+
     usage = "usage: %prog [options]"
     
     parser = OptionParser(usage, 
@@ -127,6 +136,8 @@ def parseAndRun(args):
     parser.add_option("--labelLang", action="store", dest="labelLang",
                       help=_("Language for labels in following file options (override system settings)"))
     parser.add_option("--labellang", action="store", dest="labelLang", help=SUPPRESS_HELP)
+    parser.add_option("--disableRtl", action="store_true", dest="disableRtl", default=False,
+                       help=_("Flag to disable reversing string read order for right to left languages, useful for some locale settings")) 
     parser.add_option("--labelRole", action="store", dest="labelRole",
                       help=_("Label role for labels in following file options (instead of standard label)"))
     parser.add_option("--labelrole", action="store", dest="labelRole", help=SUPPRESS_HELP)
@@ -397,7 +408,7 @@ def parseAndRun(args):
         
     (options, leftoverArgs) = parser.parse_args(args)
     if options.about:
-        print(_("\narelle(r) {0} ({1}bit)\n\n"
+        print(_("\narelle(r) {0} ({1}bit {6})\n\n"
                 "An open source XBRL platform\n"
                 "(c) 2010-{2} Mark V Systems Limited\n"
                 "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
@@ -418,7 +429,7 @@ def parseAndRun(args):
                 "\n   May include installable plug-in modules with author-specific license terms"
                 ).format(Version.__version__, cntlr.systemWordSize, Version.copyrightLatestYear,
                          _("\n   Bottle (c) 2011-2013 Marcel Hellkamp") if hasWebServer else "",
-                         sys.version_info, etree.LXML_VERSION))
+                         sys.version_info, etree.LXML_VERSION, platform.machine()))
     elif options.disclosureSystemName in ("help", "help-verbose"):
         text = _("Disclosure system choices: \n{0}").format(' \n'.join(cntlr.modelManager.disclosureSystem.dirlist(options.disclosureSystemName)))
         try:
@@ -562,6 +573,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
             for optName, optValue in sorted(options.__dict__.items(), key=lambda optItem: optItem[0]):
                 self.addToLog("Option {0}={1}".format(optName, optValue), messageCode="info")
             self.addToLog("sys.argv {0}".format(sys.argv), messageCode="info")
+
+        setDisableRTL(options.disableRtl) # not saved to config
+
         if options.uiLang: # set current UI Lang (but not config setting)
             self.setUiLanguage(options.uiLang)
         if options.proxy:

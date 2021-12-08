@@ -7,7 +7,7 @@ This module is Arelle's controller in windowing interactive UI mode
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import PythonUtil # define 2.x or 3.x string types
-import os, sys, subprocess, pickle, time, locale, re, fnmatch
+import os, sys, subprocess, pickle, time, locale, re, fnmatch, platform
 
 if sys.platform == 'win32' and getattr(sys, 'frozen', False): 
     # need the .dll directory in path to be able to access Tk and Tcl DLLs efore importinng Tk, etc.
@@ -1294,7 +1294,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         DialogAbout.about(self.parent,
                           _("About arelle"),
                           os.path.join(self.imagesDir, "arelle32.gif"),
-                          _("arelle\u00ae {0} ({1}bit)\n"
+                          _("arelle\u00ae {0} ({1}bit {7})\n"
                               "An open source XBRL platform\n"
                               "\u00a9 2010-{2} Mark V Systems Limited\n"
                               "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
@@ -1318,7 +1318,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                             .format(Version.__version__, self.systemWordSize, Version.copyrightLatestYear,
                                     _("\n   Bottle \u00a9 2011-2013 Marcel Hellkamp"
                                       "\n   CherryPy \u00a9 2002-2013 CherryPy Team") if self.hasWebServer else "",
-                                    sys.version_info, etree.LXML_VERSION, Tcl().eval('info patchlevel')
+                                    sys.version_info, etree.LXML_VERSION, Tcl().eval('info patchlevel'),
+                                    platform.machine()
                                     ))
 
     # worker threads addToLog        
