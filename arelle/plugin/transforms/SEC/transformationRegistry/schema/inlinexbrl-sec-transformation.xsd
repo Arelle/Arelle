@@ -240,6 +240,22 @@ Transforms the Unicode empty ballot box character "&#x2610;" into "false", and b
   </xs:simpleType>
   
 <!--
+     Yes or No from a ballot box character.
+-->
+  
+  <xs:simpleType name="yesnoballotboxType">
+    <xs:annotation>
+      <xs:documentation>
+Transforms the Unicode empty ballot box character "&#x2610;" into "No", and both checked "&#x2611;" and x'ed "&#x2612;" ballot box characgers into "Yes".
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:whiteSpace value="collapse" />
+      <xs:pattern value="([&#x2610;-&#x2612;])"></xs:pattern>
+    </xs:restriction>
+  </xs:simpleType>
+  
+<!--
      Country code from an English country name.
 -->
   
@@ -375,6 +391,10 @@ definitions.
     <xs:complexType />
   </xs:element>
 
+  <xs:element name="yesnoballotbox">
+    <xs:complexType />
+  </xs:element>
+  
   <xs:element name="countrynameen">
     <xs:complexType />
   </xs:element>

@@ -27,6 +27,17 @@
       <variation input="X" output="" result="invalid" description="Only ballot box unicode characters are accepted" />
   </transform>
 
+  <transform name="ixt-sec:yesnoballotbox" outputType="xs:string">
+      <variation input="&#x2610;" output="No" result="valid" />
+      <variation input="  &#x2610;" output="No" result="valid" description="xml whitespace trimming supported" />
+      <variation input="&#x2610;  " output="No" result="valid" />
+      <variation input="&#xA0;&#x2610;" output="" result="invalid" description="Leading non-breaking space not supported by xml whitespace trimming" />
+      <variation input="&#x2610;&#xA0;" output="" result="invalid" description="Trailing non-breaking space not supported by xml whitespace trimming" />
+      <variation input="&#x2611;" output="Yes" result="valid" />
+      <variation input="&#x2612;" output="Yes" result="valid" />
+      <variation input="X" output="" result="invalid" description="Only ballot box unicode characters are accepted" />
+  </transform>
+
   <transform name="ixt-sec:countrynameen" outputType="xs:token">
       <variation input="Endor" output="" result="invalid" description="Ewoks didn't pay ISO fees." />
       <variation input="Afghanistan" output="AF" result="valid" />

@@ -179,7 +179,16 @@ def boolballotbox(arg):
         return ("false", "true", "true")[ord(ballotboxMatch.group(1)[0]) - ord('\u2610')]
     except (IndexException, TypeError) as ex:
         raise FunctionArgType(0, str(ex))
-    
+
+def yesnoballotbox(arg):
+    ballotboxMatch = ballotboxPattern.match(arg)
+    if not ballotboxMatch or len(arg.strip()) == 0:
+        raise FunctionArgType(1, "yesnoballotboxMatch lexical error")
+    try:
+        return ("No", "Yes", "Yes")[ord(ballotboxMatch.group(1)[0]) - ord('\u2610')]
+    except (IndexException, TypeError) as ex:
+        raise FunctionArgType(0, str(ex))
+
 def codeIndex(match):
     groups = match.groups()
     for grpNbr in range(1, len(groups)):
@@ -281,6 +290,7 @@ def loadSECtransforms(customTransforms, *args, **kwargs):
         qname(ixtSEC, "ixt-sec:numwordsen"): numwordsen,
         qname(ixtSEC, "ixt-sec:durwordsen"): durwordsen,
         qname(ixtSEC, "ixt-sec:boolballotbox"): boolballotbox,
+        qname(ixtSEC, "ixt-sec:yesnoballotbox"): yesnoballotbox,
         qname(ixtSEC, "ixt-sec:countrynameen"): countrynameen,
         qname(ixtSEC, "ixt-sec:stateprovnameen"): stateprovnameen,
         qname(ixtSEC, "ixt-sec:edgarprovcountryen"): edgarprovcountryen,

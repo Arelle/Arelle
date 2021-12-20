@@ -406,7 +406,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                 # 6.7.9 end with .../role/lc3 name
                 if not roleTypePattern.match(roleURI):
                     val.modelXbrl.warning(("EFM.6.07.09.roleEnding", "GFM.1.03.09"),
-                        "RoleType %(roleType)s should end with /role/{LC3name}",
+                        "RoleType %(roleType)s should end with /role/{mnemonic name}",
                         modelObject=e, roleType=roleURI)
                     
                 # 6.7.10 only one role type declaration in DTS
@@ -452,7 +452,7 @@ def checkFilingDTS(val, modelDocument, isEFM, isGFM, visited):
                 # 6.7.13 end with .../arcrole/lc3 name
                 if not arcroleTypePattern.match(arcroleURI):
                     val.modelXbrl.warning(("EFM.6.07.13.arcroleEnding", "GFM.1.03.15"),
-                        _("ArcroleType %(arcroleType)s should end with /arcrole/{LC3name}"),
+                        _("ArcroleType %(arcroleType)s should end with /arcrole/{mnemonic name}"),
                         modelObject=e, arcroleType=arcroleURI)
                     
                 # 6.7.15 definition match pattern
