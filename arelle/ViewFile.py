@@ -32,7 +32,7 @@ class View:
         global Workbook, cell, utils, Font, PatternFill, Border, Alignment, Color, fills, Side
         self.modelXbrl = modelXbrl
         self.lang = lang
-        if lang[:2] in {'ar', 'he'}:
+        if lang and lang[:2] in {'ar', 'he'}:
             self.langDir = 'rtl'
             self.langAlign = 'right'
         else:
