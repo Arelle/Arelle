@@ -98,8 +98,8 @@ def checkFilingDimensions(val):
                concept not in elrPrimaryItems.get(LineItemsNotQualifiedLinkrole, set()) and
                concept not in elrPrimaryItems.get("*", set()))
     if i:
-        val.modelXbrl.warning("ESEF.3.4.2.extensionTaxonomyLineItemNotLinkedToAnyHypercube",
-            _("Dimensional line item reported non-dimensionally SHOULD be linked to \"not dimensionally qualified\" hypercube %(linkrole)s, primary item %(qnames)s"),
+        val.modelXbrl.error("ESEF.3.4.2.extensionTaxonomyLineItemNotLinkedToAnyHypercube",
+            _("Line items that do not require any dimensional information to tag data MUST be linked to the dedicated \"Line items not dimensionally qualified\" hypercube in %(linkrole)s declared in esef_cor.xsd, primary item %(qnames)s"),
             modelObject=i, linkrole=LineItemsNotQualifiedLinkrole, qnames=", ".join(sorted(str(c.qname) for c in i)))
     # pri items in LineItemsNotQualifiedLinkrole which are not used in report non-dimensionally
     # check no longer in Filer Manual as of 2021

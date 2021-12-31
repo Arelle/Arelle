@@ -294,8 +294,8 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                     modelObject=modelDocument.xmlRootElement, linkbaseType=linkbaseRefType, extendedLinkElement=linkEltName)
                 
         elif len(linkbasesFound) > 1:
-            val.modelXbrl.warning("ESEF.3.1.1.linkbasesNotSeparateFiles",
-                _("Each linkbase type SHOULD be provided in a separate linkbase file, found: %(linkbasesFound)s."),
+            val.modelXbrl.error("ESEF.3.1.1.linkbasesNotSeparateFiles",
+                _("Each linkbase type MUST be provided in a separate linkbase file, found: %(linkbasesFound)s."),
                 modelObject=modelDocument.xmlRootElement, linkbasesFound=", ".join(sorted(linkbasesFound)))
             
         # check for any prohibiting dimensionArc's
