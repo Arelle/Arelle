@@ -251,13 +251,13 @@ def validateXbrlFinally(val, *args, **kwargs):
                             break
                     if not reportIsInZipFile:
                         modelXbrl.error("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
-                            _("Inline XBRL document MUST be included within an ESEF report package as defined in"
+                            _("Inline XBRL document MUST be included within an ESEF report package as defined in "
                                "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14"
                                ".html: %(fileName)s (Document is not in a zip archive)"),
                             modelObject=doc, fileName=doc.basename)
                     elif not reportCorrectlyPlacedInPackage:
                         modelXbrl.error("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
-                             _("Inline XBRL document MUST be included within an ESEF report package as defined in"
+                             _("Inline XBRL document MUST be included within an ESEF report package as defined in "
                                "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14"
                                ".html: %(fileName)s (Document file not in correct place in package)"),
                             modelObject=doc, fileName=doc.basename)
@@ -282,6 +282,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             requiredToDisplayFacts = []
             requiredToDisplayFactIds = {}
             firstIxdsDoc = True
+            contentOtherThanXHTMLGuidance = '2.5.1' if val.consolidated else '4.1.3'  # Different reference for iXBRL and stand-alone XHTML
             for ixdsHtmlRootElt in (modelXbrl.ixdsHtmlElements if val.consolidated else # ix root elements for all ix docs in IXDS
                                     (modelXbrl.modelDocument.xmlRootElement,)): # plain xhtml filing
                 ixNStag = getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11)
@@ -306,7 +307,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                         if ((eltTag in ("object", "script")) or
                             (eltTag == "a" and "javascript:" in elt.get("href","")) or
                             (eltTag == "img" and "javascript:" in elt.get("src",""))):
-                            modelXbrl.error("ESEF.2.5.1.executableCodePresent",
+                            modelXbrl.error("ESEF.%s.executableCodePresent" % contentOtherThanXHTMLGuidance,
                                 _("Inline XBRL documents MUST NOT contain executable code: %(element)s"),
                                 modelObject=elt, element=eltTag)
                         elif eltTag == "img":
@@ -323,7 +324,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                             if scheme(src) in ("http", "https", "ftp"):
                                 modelXbrl.error("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
                                                 else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
-                                    _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
+                                    _("Inline XBRL instance documents MUST NOT contain references pointing to resources outside the reporting package: %(element)s"),
                                     modelObject=elt, element=eltTag,
                                     messageCodes=("ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences", "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
                             elif not src.startswith("data:image"):
@@ -342,39 +343,39 @@ def validateXbrlFinally(val, *args, **kwargs):
                                         with elt.modelXbrl.fileSource.file(normalizedUri,binary=True)[0] as fh:
                                             imgContents = fh.read()
                                             imglen += len(imgContents)
-                                            checkImageContents(modelXbrl, elt, os.path.splitext(src)[1], True, imgContents)
+                                            checkImageContents(modelXbrl, elt, os.path.splitext(src)[1], True, imgContents, val.consolidated)
                                             imgContents = None # deref, may be very large
                                         #if imglen < browserMaxBase64ImageLength:
                                         #    modelXbrl.error("ESEF.2.5.1.imageIncludedAndNotEmbeddedAsBase64EncodedString",
                                         #        _("Images MUST be included in the XHTML document as a base64 encoded string unless their size exceeds support of browsers (%(maxImageSize)s): %(file)s."),
                                         #        modelObject=elt, maxImageSize=browserMaxBase64ImageLength, file=os.path.basename(normalizedUri))
                                     except IOError as err:
-                                        modelXbrl.error("ESEF.2.5.1.imageFileCannotBeLoaded",
+                                        modelXbrl.error("ESEF.%s.imageFileCannotBeLoaded" % contentOtherThanXHTMLGuidance,
                                             _("Image file which isn't openable '%(src)s', error: %(error)s"),
                                             modelObject=elt, src=src, error=err)
                             else:
                                 m = imgDataMediaBase64Pattern.match(src)
                                 if not m or not m.group(2):
-                                    modelXbrl.warning("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
+                                    modelXbrl.warning("ESEF.%s.embeddedImageNotUsingBase64Encoding" % contentOtherThanXHTMLGuidance,
                                         _("Images included in the XHTML document SHOULD be base64 encoded: %(src)s."),
                                         modelObject=elt, src=src[:128])
                                     if m and m.group(1) and m.group(3):
-                                        checkImageContents(modelXbrl, elt, m.group(1), False, m.group(3))
+                                        checkImageContents(modelXbrl, elt, m.group(1), False, m.group(3), val.consolidated)
                                 else:
                                     if not m.group(1):
-                                        modelXbrl.error("ESEF.2.5.1.MIMETypeNotSpecified",
+                                        modelXbrl.error("ESEF.%s.MIMETypeNotSpecified" % contentOtherThanXHTMLGuidance,
                                             _("Images included in the XHTML document MUST be saved with MIME type specifying PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
                                             modelObject=elt, src=src[:128])
                                     elif m.group(1) not in ("/gif", "/jpeg", "/jpg", "/png", "/svg+xml"):
-                                        modelXbrl.error("ESEF.2.5.1.imageFormatNotSupported",
+                                        modelXbrl.error("ESEF.%s.imageFormatNotSupported" % contentOtherThanXHTMLGuidance,
                                             _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPG/JPEG formats: %(src)s."),
                                             modelObject=elt, src=src[:128])
                                     # check for malicious image contents
                                     try: # allow embedded newlines
-                                        checkImageContents(modelXbrl, elt, m.group(1), False, base64.b64decode(m.group(3)))
+                                        checkImageContents(modelXbrl, elt, m.group(1), False, base64.b64decode(m.group(3)), val.consolidated)
                                         imgContents = None # deref, may be very large
                                     except base64.binascii.Error as err:
-                                        modelXbrl.error("ESEF.2.5.1.embeddedImageNotUsingBase64Encoding",
+                                        modelXbrl.error("ESEF.%s.embeddedImageNotUsingBase64Encoding" % contentOtherThanXHTMLGuidance,
                                             _("Base64 encoding error %(err)s in image source: %(src)s."),
                                             modelObject=elt, err=str(err), src=src[:128])
                         # links to external documents are allowed as of 2021 per G.2.5.1 
@@ -386,7 +387,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                         #    if scheme(href) in ("http", "https", "ftp"):
                         #        modelXbrl.error("ESEF.4.1.6.xHTMLDocumentContainsExternalReferences" if val.unconsolidated
                         #                        else "ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences",
-                        #            _("Inline XBRL instance documents MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
+                        #            _("Inline XBRL instance documents MUST NOT contain references pointing to resources outside the reporting package: %(element)s"),
                         #            modelObject=elt, element=eltTag,
                         #            messageCodes=("ESEF.3.5.1.inlineXbrlDocumentContainsExternalReferences", "ESEF.4.1.6.xHTMLDocumentContainsExternalReferences"))
                         elif eltTag == "base":
