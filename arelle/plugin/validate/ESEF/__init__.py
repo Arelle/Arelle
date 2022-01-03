@@ -28,7 +28,7 @@ except ImportError:
     import re
 from collections import defaultdict
 from math import isnan
-from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction
+from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction, EntityBase
 from arelle import LeiUtil, ModelDocument, XbrlConst, XhtmlValidate, XmlUtil
 from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelDtsObject import ModelResource
@@ -292,7 +292,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 ixFractionTag = ixNStag + "fraction"
                 for elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
                     eltTag = elt.tag
-                    if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction)):
+                    if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, EntityBase)):
                         continue # comment or other non-parsed element
                     else:
                         eltTag = elt.tag
