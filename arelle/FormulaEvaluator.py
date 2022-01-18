@@ -65,7 +65,7 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
             else:
                 result = varSet.evaluationsCount > 0
             msg = varSet.message(result)
-            unsatSeverity = varSet.unsatisfiedSeverity(contextItem=varSet.evaluationsCount)
+            unsatSeverity = varSet.unsatisfiedSeverity(xpCtx, contextItem=varSet.evaluationsCount)
             if ((msg is None and not result and xpCtx.formulaOptions.traceUnmessagedUnsatisfiedAssertions and unsatSeverity in ("WARNING","ERROR")) or
                 (xpCtx.formulaOptions.traceSatisfiedAssertions and result) or
                 ((xpCtx.formulaOptions.traceUnsatisfiedAssertions or
@@ -203,7 +203,7 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
             elif isinstance(varSet, ModelValueAssertion):
                 result = xpCtx.evaluateBooleanValue(varSet.testProg)
                 msg = varSet.message(result)
-                unsatSeverity = varSet.unsatisfiedSeverity()
+                unsatSeverity = varSet.unsatisfiedSeverity(xpCtx)
                 if msg is not None:
                     xpCtx.inScopeVars[XbrlConst.qnVaTestExpression] = varSet.test
                     _modelObjects = [varSet]
