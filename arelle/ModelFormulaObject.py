@@ -2078,6 +2078,8 @@ class ModelExplicitDimension(ModelFilter):
             return None
     
     def filter(self, xpCtx, varBinding, facts, cmplmt):
+        if not facts: # if an empty winnowing fact set return it
+            return facts
         if self.isFilterStatic:
             dimQname = self.dimQname
             memQnames = self.staticMemberQnames
@@ -2128,6 +2130,8 @@ class ModelExplicitDimension(ModelFilter):
                                         factOk = True
                                         break
                                 elif memberModel.axis and memberModel.linkrole and memberModel.arcrole:
+                                    if memberModel.axis in ("child", "descendant") and dimConcept not in fact.modelXbrl.dimensionsInUse:
+                                        return set()
                                     relSet = fact.modelXbrl.relationshipSet(memberModel.arcrole, memberModel.linkrole)
                                     if relSet:
                                         ''' removed by Erratum 2011-03-10

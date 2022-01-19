@@ -852,7 +852,17 @@ class ModelXbrl:
                     cntx._inUse = True
             self._contextsInUseMarked = True
             return self.contextsInUse
-        
+    
+    @property    
+    def dimensionsInUse(self):
+        try:
+            return self._dimensionsInUse
+        except AttributeError:
+            self._dimensionsInUse = set(dim.dimension
+                                        for cntx in self.contexts.values()  # use contextsInUse?  slower?
+                                        for dim in cntx.qnameDims.values())
+            return self._dimensionsInUse
+                
     def matchFact(self, otherFact, unmatchedFactsStack=None, deemP0inf=False, matchId=False, matchLang=True):
         """Finds matching fact, by XBRL 2.1 duplicate definition (if tuple), or by
         QName and VEquality (if an item), lang and accuracy equality, as in formula and test case usage
