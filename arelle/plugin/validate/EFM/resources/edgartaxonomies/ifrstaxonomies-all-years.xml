@@ -9,4 +9,14 @@
   <Loc><Family>IFRS</Family><Version>2015</Version><Href>http://xbrl.ifrs.org/taxonomy/2015-03-11/full_ifrs/full_ifrs-cor_2015-03-11.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://xbrl.ifrs.org/taxonomy/2015-03-11/ifrs-full</Namespace><Prefix>ifrs</Prefix></Loc>
   <Loc><Family>IFRS</Family><Version>2016</Version><Href>http://xbrl.ifrs.org/taxonomy/2016-03-31/full_ifrs/full_ifrs-cor_2016-03-31.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://xbrl.ifrs.org/taxonomy/2016-03-31/ifrs-full</Namespace><Prefix>ifrs</Prefix></Loc>
   <Loc><Family>IFRS</Family><Version>2016.2</Version><Href>http://xbrl.ifrs.org/taxonomy/2016-09-12/full_ifrs/full_ifrs-cor_2016-09-12.xsd</Href><AttType>SCH</AttType><FileTypeName>Schema</FileTypeName><Elements>1</Elements><Namespace>http://xbrl.ifrs.org/taxonomy/2016-09-12/ifrs-full</Namespace><Prefix>ifrs</Prefix></Loc>
+	<Loc>
+		<Family>IFRS</Family>
+		<Version>2021</Version>
+		<Href>https://xbrl.sec.gov/dei/2021/dei-2021.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/dei/2021</Namespace>
+		<Prefix>dei</Prefix>
+	</Loc>
 </Erxl>

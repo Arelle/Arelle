@@ -807,7 +807,7 @@ def htmlBody(body, script=""):
     """
     return '''
 <?xml version="1.0" encoding="utf-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="%s">
 %s    <head>
         <STYLE type="text/css">
             body, table, p {font-family:Arial,sans-serif;font-size:10pt;}
@@ -823,7 +823,7 @@ def htmlBody(body, script=""):
     %s
     </body>
 </html>
-''' % (script, body)
+''' % (cntlr.uiLangDir, script, body)
 
 def tableRows(lines, header=None):
     """Wraps lines of text into a one-column table (for display of text results of operations, such as processing messages and status, to web browser).

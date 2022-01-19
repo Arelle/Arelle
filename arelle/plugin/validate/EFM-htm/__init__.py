@@ -136,10 +136,14 @@ def isLoadableHtml(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
     lastFilePathIsHTML = False
     _ext = os.path.splitext(filepath)[1]
     if _ext.lower() in (".htm", ".html"):
-        with io.open(filepath, 'rt', encoding='utf-8') as f:
-            _fileStart = f.read(4096)
-        if _fileStart and re_match(r"(?!.*<?xml\s).*<html.*>", _fileStart):
-            lastFilePathIsHTML = True
+        try:
+            file, _encoding = modelXbrl.fileSource.file(filepath, stripDeclaration=False)
+            _fileStart = file.read(4096)
+            file.close()
+            if _fileStart and re_match(r"(?!.*<[?]xml\s).*<html.*>", _fileStart):
+                lastFilePathIsHTML = True
+        except Exception as err:
+            return False
     return lastFilePathIsHTML
 
 def htmlLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):

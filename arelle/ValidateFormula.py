@@ -42,6 +42,11 @@ arcroleChecks = {
                                      (XbrlConst.qnAssertionSeverityError, XbrlConst.qnAssertionSeverityWarning, XbrlConst.qnAssertionSeverityOk),
                                      "seve:assertionSeveritySourceError",
                                      "seve:assertionSeverityTargetError"),
+    XbrlConst.assertionUnsatisfiedSeverity20:
+                                    ((XbrlConst.qnAssertion,XbrlConst.qnVariableSetAssertion),
+                                     (XbrlConst.qnAssertionSeverityError20, XbrlConst.qnAssertionSeverityWarning20, XbrlConst.qnAssertionSeverityOk20, XbrlConst.qnAssertionSeverityExpression20),
+                                     "seve:assertionSeveritySourceError",
+                                     "seve:assertionSeverityTargetError"),
     XbrlConst.variableSet:           (XbrlConst.qnVariableSet,
                                       (XbrlConst.qnVariableVariable, XbrlConst.qnParameter),
                                       "xbrlve:info"),
@@ -228,14 +233,15 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
                 val.modelXbrl.error("xbrlcfie:tooManyCFIRelationships",
                     _("Function implementation %(xlinkLabel)s must be the target of only one function-implementation relationship"),
                     modelObject=[relTo] + rels, xlinkLabel=relTo.xlinkLabel)
-    elif arcrole == XbrlConst.assertionUnsatisfiedSeverity:
+    elif arcrole in (XbrlConst.assertionUnsatisfiedSeverity,
+                     XbrlConst.assertionUnsatisfiedSeverity20):
         for relFrom, rels in relsSet.fromModelObjects().items():
             if len(rels) > 1:
                 val.modelXbrl.error("seve:multipleSeveritiesForAssertionError",
                     _("Assertion-unsatisfied-severity relationship from %(xlinkLabel)s has more than one severity target"),
                      modelObject=[relFrom] + rels, xlinkLabel=relFrom.xlinkLabel)
         for relTo, rels in relsSet.toModelObjects().items():
-            if relTo.modelDocument.basename != "severities.xml" or relTo.getparent().qname != XbrlConst.qnGenLink or relTo.getparent().getparent().qname != XbrlConst.qnLinkLinkbase:
+            if relTo.isStatic and relTo.modelDocument.basename != "severities.xml" or relTo.getparent().qname != XbrlConst.qnGenLink or relTo.getparent().getparent().qname != XbrlConst.qnLinkLinkbase:
                 val.modelXbrl.error("seve:assertionSeverityTargetError",
                     _("Target of assertion-unsatisfied-severity relationship must be a severity element in the published severities linkbase."),
                      modelObject=[relTo] + rels)
@@ -1331,3 +1337,5 @@ def checkValidationMessageVariables(val, modelVariableSet, varNames, paramNames)
                     val.modelXbrl.error("err:XPST0008",
                         _("Existence Assertion depends on evaluation variable in message %(xlinkLabel)s, %(name)s"),
                         modelObject=message, xlinkLabel=message.xlinkLabel, name=msgVarQname)
+    for modelRel in val.modelXbrl.relationshipSet(XbrlConst.assertionUnsatisfiedSeverity20).fromModelObject(modelVariableSet):
+        modelRel.toModelObject.compile()

@@ -480,7 +480,7 @@ class ViewRenderedGrid(ViewFile.View):
                             edgeBorder = "border-bottom:.5pt solid windowtext;"
                     depth = yStructuralNode.depth
                     attrib = {"style":"text-align:{0};max-width:{1}em;{2}".format(
-                                            "left" if isNonAbstract or nestRow == hdrRow else "center",
+                                            self.langAlign if isNonAbstract or nestRow == hdrRow else "center",
                                             # this is a wrap length max width in characters
                                             self.rowHdrColWidth[depth] if isAbstract else
                                             self.rowHdrWrapLength - sum(self.rowHdrColWidth[0:depth]),

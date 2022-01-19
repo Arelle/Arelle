@@ -80,7 +80,8 @@ submissionTypesAllowingExTransitionPeriodFlag = docTypesCoverTagged | {
 
 docTypesRequiringRrSchema = \
 docTypesExemptFromRoleOrder = \
-submissionTypesExemptFromRoleOrder = ('485APOS', '485BPOS','485BXT', '497', 'N-1A', 'N-1A/A')
+submissionTypesExemptFromRoleOrder = ('485APOS', '485BPOS','485BXT', '497', 'N-1A', 'N-1A/A',
+                                      'N-2', 'N-2/A', 'N-2MEF', 'N-2ASR', 'N-2 POSASR')
 
 docTypesNotAllowingIfrs = ('485APOS', '485BPOS','485BXT', '497', 'N-1A', 'N-1A/A',
                            'N-CSR', 'N-CSR/A', 'N-CSRS', 'N-CSRS/A', 'N-Q', 'N-Q/A',
@@ -92,8 +93,8 @@ docTypesNotAllowingInlineXBRL = {
 standardNamespacesPattern = re.compile(
     # non-IFRS groups 1 - authority, 2 - taxonomy (e.g. us-gaap, us-types), 3 - year
     r"http://(xbrl\.us|fasb\.org|xbrl\.sec\.gov)/("
-            r"dei|us-gaap|srt|us-types|us-roles|srt-types|srt-roles|rr|country|currency|exch|invest|naics|sic|stpr"
-            r")/([0-9]{4}|[0-9]{2}q[1-4])(-[0-9]{2}-[0-9]{2})?$"
+            r"dei|us-gaap|srt|us-types|us-roles|srt-types|srt-roles|rr|cef|country|currency|exch|invest|naics|sic|stpr"
+            r")/([0-9]{4}|[0-9]{4}q[1-4])(-[0-9]{2}-[0-9]{2})?$"
     # ifrs groups 4 - year, 5 - taxonomy (e.g. ifrs-full)
     r"|http://xbrl.ifrs.org/taxonomy/([0-9]{4})-[0-9]{2}-[0-9]{2}/(ifrs[\w-]*)$")
 

@@ -106,7 +106,7 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<Prefix>dei</Prefix>
 	</Loc>
 	<Loc>
-		<Family>US GAAP</Family>
+		<Family>IFRS</Family>
 		<Version>2021</Version>
 		<Href>https://xbrl.sec.gov/dei/2021/dei-2021_lab.xsd</Href>
 		<AttType>SCH</AttType>
@@ -116,7 +116,7 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<Prefix>dei-lab</Prefix>
 	</Loc>
 	<Loc>
-		<Family>US GAAP</Family>
+		<Family>IFRS</Family>
 		<Version>2021</Version>
 		<Href>https://xbrl.sec.gov/dei/2021/dei-2021_pre.xsd</Href>
 		<AttType>SCH</AttType>
@@ -126,7 +126,7 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<Prefix>dei-pre</Prefix>
 	</Loc>
 	<Loc>
-		<Family>US GAAP</Family>
+		<Family>IFRS</Family>
 		<Version>2021</Version>
 		<Href>https://xbrl.sec.gov/dei/2021/dei-2021_def.xsd</Href>
 		<AttType>SCH</AttType>
@@ -143,30 +143,6 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<FileTypeName>Roles/Arcroles</FileTypeName>
 		<Elements>0</Elements>
 		<Namespace>http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower</Namespace>
-	</Loc>
-	<Loc>
-		<Family>IFRS</Family>
-		<Version>2021</Version>
-		<Href>https://xbrl.sec.gov/dei/2020/dei-pre-2020-01-31.xml</Href>
-		<AttType>PRE</AttType>
-		<FileTypeName>Presentation</FileTypeName>
-		<Elements>0</Elements>
-	</Loc>
-	<Loc>
-		<Family>IFRS</Family>
-		<Version>2021</Version>
-		<Href>https://xbrl.sec.gov/dei/2020/dei-lab-2020-01-31.xml</Href>
-		<AttType>LAB</AttType>
-		<FileTypeName>Label</FileTypeName>
-		<Elements>0</Elements>
-	</Loc>
-	<Loc>
-		<Family>IFRS</Family>
-		<Version>2021</Version>
-		<Href>https://xbrl.sec.gov/dei/2020/dei-def-2020-01-31.xml</Href>
-		<AttType>DEF</AttType>
-		<FileTypeName>Definition, Dimensions</FileTypeName>
-		<Elements>0</Elements>
 	</Loc>
 	<Loc>
 		<Family>US GAAP</Family>

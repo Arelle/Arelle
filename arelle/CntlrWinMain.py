@@ -7,7 +7,7 @@ This module is Arelle's controller in windowing interactive UI mode
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import PythonUtil # define 2.x or 3.x string types
-import os, sys, subprocess, pickle, time, locale, re, fnmatch
+import os, sys, subprocess, pickle, time, locale, re, fnmatch, platform
 
 if sys.platform == 'win32' and getattr(sys, 'frozen', False): 
     # need the .dll directory in path to be able to access Tk and Tcl DLLs efore importinng Tk, etc.
@@ -26,6 +26,7 @@ except ImportError:
 import tkinter.tix
 import tkinter.filedialog
 import tkinter.messagebox, traceback
+import tkinter.simpledialog
 from arelle.FileSource import saveFile as writeToFile
 from arelle.Locale import format_string
 from arelle.CntlrWinTooltip import ToolTip
@@ -203,6 +204,8 @@ class CntlrWinMain (Cntlr.Cntlr):
         cacheMenu.add_command(label=_("Clear cache"), underline=0, command=self.confirmClearWebCache)
         cacheMenu.add_command(label=_("Manage cache"), underline=0, command=self.manageWebCache)
         cacheMenu.add_command(label=_("Proxy Server"), underline=0, command=self.setupProxy)
+        cacheMenu.add_command(label=_("HTTP User Agent"), underline=0, command=self.setupUserAgent)
+        self.webCache.httpUserAgent = self.config.get("httpUserAgent")
         
         logmsgMenu = Menu(self.menubar, tearoff=0)
         toolsMenu.add_cascade(label=_("Messages log"), menu=logmsgMenu, underline=0)
@@ -710,6 +713,10 @@ class CntlrWinMain (Cntlr.Cntlr):
     
         
     def updateFileHistory(self, url, importToDTS):
+        if isinstance(url, list): # may be multi-doc ixds
+            if len(url) != 1:
+                return
+            url = url[0]
         key = "importHistory" if importToDTS else "fileHistory"
         fileHistory = self.config.setdefault(key, [])
         while fileHistory.count(url) > 0:
@@ -1118,6 +1125,19 @@ class CntlrWinMain (Cntlr.Cntlr):
             self.config["proxySettings"] = proxySettings
             self.saveConfig()
         
+    def setupUserAgent(self):
+        httpUserAgent = tkinter.simpledialog.askstring(
+            _("HTTP header User-Agent value"),
+            _("Specify non-standard value or cancel to use standard User Agent"),
+            initialvalue=self.config.get("httpUserAgent"),
+            parent=self.parent)
+        self.webCache.httpUserAgent = httpUserAgent
+        if not httpUserAgent:
+            self.config.pop("httpUserAgent",None)
+        else:
+            self.config["httpUserAgent"] = httpUserAgent
+        self.saveConfig()
+        
     def setValidateDisclosureSystem(self, *args):
         self.modelManager.validateDisclosureSystem = self.validateDisclosureSystem.get()
         self.config["validateDisclosureSystem"] = self.modelManager.validateDisclosureSystem
@@ -1274,7 +1294,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         DialogAbout.about(self.parent,
                           _("About arelle"),
                           os.path.join(self.imagesDir, "arelle32.gif"),
-                          _("arelle\u00ae {0} ({1}bit)\n"
+                          _("arelle\u00ae {0} ({1}bit {7})\n"
                               "An open source XBRL platform\n"
                               "\u00a9 2010-{2} Mark V Systems Limited\n"
                               "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
@@ -1298,7 +1318,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                             .format(Version.__version__, self.systemWordSize, Version.copyrightLatestYear,
                                     _("\n   Bottle \u00a9 2011-2013 Marcel Hellkamp"
                                       "\n   CherryPy \u00a9 2002-2013 CherryPy Team") if self.hasWebServer else "",
-                                    sys.version_info, etree.LXML_VERSION, Tcl().eval('info patchlevel')
+                                    sys.version_info, etree.LXML_VERSION, Tcl().eval('info patchlevel'),
+                                    platform.machine()
                                     ))
 
     # worker threads addToLog        

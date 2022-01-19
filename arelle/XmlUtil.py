@@ -831,42 +831,21 @@ def elementFragmentIdentifier(element):
                 if element.get('id'):  # has ID, use as start of path instead of root
                     childSequence[0] = element.get('id')
                     break
-                try:
-                    siblingPosition = element._elementSequence # set by loader in some element hierarchies
-                except AttributeError:
-                    siblingPosition = 1
-                    for sibling in element.itersiblings(preceding=True):
-                        if isinstance(sibling,etree.ElementBase):
-                            siblingPosition += 1
-                childSequence.insert(1, str(siblingPosition))
+                childSequence.insert(1, str(element.elementSequence))
             element = element.getparent()
         location = "/".join(childSequence)
         return "element({0})".format(location)
     
 def elementIndex(element):
     if isinstance(element,etree.ElementBase):
-        try:
-            return element._elementSequence # set by loader in some element hierarchies
-        except AttributeError:
-            siblingPosition = 1
-            for sibling in element.itersiblings(preceding=True):
-                if isinstance(sibling,etree.ElementBase):
-                    siblingPosition += 1
-            return siblingPosition
+        return element.elementSequence
     return 0
     
 def elementChildSequence(element):
     childSequence = [""] # "" represents document element for / (root) on the join below
     while element is not None:
         if isinstance(element,etree.ElementBase):
-            try:
-                siblingPosition = element._elementSequence # set by loader in some element hierarchies
-            except AttributeError:
-                siblingPosition = 1
-                for sibling in element.itersiblings(preceding=True):
-                    if isinstance(sibling,etree.ElementBase):
-                        siblingPosition += 1
-            childSequence.insert(1, str(siblingPosition))
+            childSequence.insert(1, str(element.elementSequence))
         element = element.getparent()
     return "/".join(childSequence)
 

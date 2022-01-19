@@ -548,11 +548,11 @@ class ModelVariableSetAssertion(ModelVariableSet):
             return msgsRelationshipSet.label(self, preferredMessage, lang, returnText=False)
         return None
     
-    def unsatisfiedSeverity(self, contextItem=None):
-        msgsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.assertionUnsatisfiedSeverity)
+    def unsatisfiedSeverity(self, xpCtx, contextItem=None):
+        msgsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.assertionUnsatisfiedSeverities)
         if msgsRelationshipSet:
             for rel in msgsRelationshipSet.fromModelObject(self):
-                return rel.toModelObject.id # OK, WARNING or ERROR
+                return rel.toModelObject.evaluate(xpCtx, contextItem=contextItem)
         return "ERROR"
     
     @property
@@ -2078,6 +2078,8 @@ class ModelExplicitDimension(ModelFilter):
             return None
     
     def filter(self, xpCtx, varBinding, facts, cmplmt):
+        if not facts: # if an empty winnowing fact set return it
+            return facts
         if self.isFilterStatic:
             dimQname = self.dimQname
             memQnames = self.staticMemberQnames
@@ -2128,6 +2130,8 @@ class ModelExplicitDimension(ModelFilter):
                                         factOk = True
                                         break
                                 elif memberModel.axis and memberModel.linkrole and memberModel.arcrole:
+                                    if memberModel.axis in ("child", "descendant") and dimConcept not in fact.modelXbrl.dimensionsInUse:
+                                        return set()
                                     relSet = fact.modelXbrl.relationshipSet(memberModel.arcrole, memberModel.linkrole)
                                     if relSet:
                                         ''' removed by Erratum 2011-03-10
@@ -2713,25 +2717,61 @@ class ModelMessage(ModelFormulaResource):
     def viewExpression(self):
         return XmlUtil.text(self)
     
-class ModelAssertionSeverity(ModelResource):
+class ModelAssertionSeverity(ModelFormulaResource): # both Assertion Severity 1.0 & 2.0
     def init(self, modelDocument):
         super(ModelAssertionSeverity, self).init(modelDocument)
+
+    def clear(self):
+        if not self.isStatic:
+            XPathParser.clearNamedProg(self, "severityProg")
+            super(ModelResource, self).clear()
+    
+    def compile(self):
+        if not self.isStatic and not hasattr(self, "severityProg"):
+            self.severityProg = XPathParser.parse(self, self.severity, self, "severity", Trace.VARIABLE_SET)
+            super(ModelAssertionSeverity, self).compile()
+    
+    def evaluate(self, xpCtx, contextItem=None):
+        if self.isStatic:
+            return self.id # OK, WARNING or ERROR
+        result = xpCtx.evaluateAtomicValue(self.severityProg, 'xs:string', contextItem=contextItem)
+        if result in ("ERROR", "WARNING", "OK"):
+            return result
+        self.modelXbrl.error("seve:invalidSeverityExpressionResultError",
+            _("Invalid assertion severity id %(id)s expression result %(result)s"),
+            modelObject=self, id=self.id, result=result)
+        return "ERROR"
+        
+    def variableRefs(self, progs=[], varRefSet=None):
+        if self.isStatic:
+            return [] 
+        return super(ModelAssertionSeverity, self).variableRefs((self.severityProg or []), varRefSet)
+        
+    @property
+    def isStatic(self):
+        return self.localName != "expression"
         
     @property
     def level(self):
         return self.localName
+        
+    @property
+    def severity(self):
+        return self.get("severity")
 
     @property
     def propertyView(self):
         return (("label", self.xlinkLabel),
-                ("level", self.level) )
+                ("level", self.level) ) + (
+               () if self.isStatic else
+               (("severity", self.severity),) )
         
     def __repr__(self):
         return ("{0}[{1}]{2})".format(self.__class__.__name__, self.objectId(),self.propertyView))
     
     @property
     def viewExpression(self):
-        return self.level
+        return self.level if self.isStatic else self.severity
     
 
 
@@ -2925,6 +2965,10 @@ elementSubstitutionModelClass.update((
      (XbrlConst.qnAssertionSeverityError, ModelAssertionSeverity),
      (XbrlConst.qnAssertionSeverityWarning, ModelAssertionSeverity),
      (XbrlConst.qnAssertionSeverityOk, ModelAssertionSeverity),
+     (XbrlConst.qnAssertionSeverityError20, ModelAssertionSeverity),
+     (XbrlConst.qnAssertionSeverityWarning20, ModelAssertionSeverity),
+     (XbrlConst.qnAssertionSeverityOk20, ModelAssertionSeverity),
+     (XbrlConst.qnAssertionSeverityExpression20, ModelAssertionSeverity),
      ))
 
 # import after other modules resolved to prevent circular references

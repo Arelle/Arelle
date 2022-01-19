@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<DisclosureSystems  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+      xsi:noNamespaceSchemaLocation="../../../config/disclosuresystems.xsd" >
+  <!-- see ../config/disclosuresystem.xml for full comments -->
+  
+  <!-- FERC notes: validationType EFM uses their inline HTML element checks -->
+
+  <DisclosureSystem 
+     names="Federal Energy Regulatory Commission (US)|FERC|ferc"
+     description="FERC (US) Validation Checks\n
+     Default language en\n
+     Disallowed references are processed"
+     validationType="FERC"
+     exclusiveTypesPattern="FERC|EFM|GFM|HMRC|SBR.NL"
+     blockDisallowedReferences="false"
+     defaultXmlLang="en" 
+     defaultLanguage="English" 
+     validateEntryText="true"
+     contextElement="segment" 
+     utrUrl="http://www.xbrl.org/utr/utr.xml resources/ferc-utr.xml"
+     utrStatusFilters="REC CR"
+     identifierSchemePattern="^http://www\.ferc\.gov/CID$"
+     identifierValuePattern="^[CR][0-9]{6}$" 
+     />
+  <DisclosureSystem 
+     names="Federal Energy Regulatory Commission (US) without UTR validation|FERC-NO-UTR|ferc-no-utr"
+     description="FERC (US) Validation Checks\n
+     Default language en\n
+     Disallowed references are processed"
+     validationType="FERC"
+     exclusiveTypesPattern="FERC|EFM|GFM|HMRC|SBR.NL"
+     blockDisallowedReferences="false"
+     defaultXmlLang="en" 
+     defaultLanguage="English" 
+     validateEntryText="true"
+     contextElement="segment" 
+     utrUrl=""
+     utrStatusFilters="REC CR"
+     identifierSchemePattern="^http://www\.ferc\.gov/CID$"
+     identifierValuePattern="^[CR][0-9]{6}$" 
+     />
+
+
+</DisclosureSystems>

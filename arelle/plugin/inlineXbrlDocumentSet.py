@@ -42,7 +42,7 @@ from arelle.PythonUtil import attrdict
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateFilingText import CDATApattern
 from arelle.XmlUtil import addChild, copyIxFootnoteHtml, elementFragmentIdentifier, elementChildSequence, xmlnsprefix, setXmlns
-import os, zipfile
+import os, zipfile, re
 from optparse import SUPPRESS_HELP
 from lxml.etree import XML, XMLSyntaxError
 from collections import defaultdict
@@ -203,6 +203,7 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
     def createFacts(facts, parent):
         for fact in facts:
             if fact.isItem: # HF does not de-duplicate, which is currently-desired behavior
+                modelConcept = fact.concept # isItem ensures concept is not None
                 attrs = {"contextRef": fact.contextID}
                 if fact.id:
                     attrs["id"] = fact.id
@@ -215,8 +216,12 @@ def createTargetInstance(modelXbrl, targetUrl, targetDocumentSchemaRefs, filingF
                 if fact.isNil:
                     attrs[XbrlConst.qnXsiNil] = "true"
                     text = None
+                elif ( not(modelConcept.baseXsdType == "token" and modelConcept.isEnumeration)
+                       and fact.xValid ):
+                    text = fact.xValue
+                # may need a special case for QNames (especially if prefixes defined below root)
                 else:
-                    text = fact.xValue if fact.xValid else fact.textValue
+                    text = fact.textValue
                 for attrName, attrValue in fact.items():
                     if attrName.startswith("{"):
                         attrs[qname(attrName,fact.nsmap)] = attrValue # using qname allows setting prefix in extracted instance
@@ -349,7 +354,7 @@ def runOpenFileInlineDocumentSetMenuCommand(cntlr, runInBackground=False, saveTa
 def runOpenWebInlineDocumentSetMenuCommand(cntlr, runInBackground=False, saveTargetFiling=False):
     url = DialogURL.askURL(cntlr.parent, buttonSEC=True, buttonRSS=True)
     if url:
-        runOpenInlineDocumentSetMenuCommand(cntlr, [url], runInBackground, saveTargetFiling)
+        runOpenInlineDocumentSetMenuCommand(cntlr, re.split(r",\s*|\s+", url), runInBackground, saveTargetFiling)
 
 def runOpenInlineDocumentSetMenuCommand(cntlr, filenames, runInBackground=False, saveTargetFiling=False):
     if os.sep == "\\":
@@ -422,8 +427,7 @@ def runSaveTargetDocumentMenuCommand(cntlr, runInBackground=False, saveTargetFil
         thread.start()
     else:
         if saveTargetFiling:
-            targetFilename = os.path.basename(targetFilename)
-            filingZip = zipfile.ZipFile(saveTargetFiling, 'w', zipfile.ZIP_DEFLATED, True)
+            filingZip = zipfile.ZipFile(os.path.splitext(targetFilename)[0] + ".zip", 'w', zipfile.ZIP_DEFLATED, True)
             filingFiles = set()
             # copy referencedDocs to two levels
             def addRefDocs(doc):

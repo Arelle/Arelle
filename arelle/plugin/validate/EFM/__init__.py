@@ -36,6 +36,12 @@ Input file parameters may be in JSON (without newlines for pretty printing as be
    "rptIncludeAllSeriesFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
    "rptSeriesClassInfo.seriesIds": ["S0000990666", ...] # list of EDGAR seriesId values
    "newClass2.seriesIds": [] # //seriesId xpath result on submission headers
+   # CEF forms
+   "eligibleFundFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
+   "pursuantGeneralInstructionFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
+   "filerNewRegistrantFlag": true/false, # JSON Boolean, string Yes/No, yes/no, Y/N, y/n or absent
+   # Test/debug fields
+   datetimeForTesting: xml-syntax datetime to override clock time for test/debug purposes 
    },
  {"file": "file 2"...
 ]
@@ -128,7 +134,9 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
                       "periodOfReport", "entityRegistration.fyEnd", "submissionHeader.fyEnd", "voluntaryFilerFlag", 
                       "wellKnownSeasonedIssuerFlag", "shellCompanyFlag", "acceleratedFilerStatus", "smallBusinessFlag",
                       "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "invCompanyType",
-                      "rptIncludeAllSeriesFlag", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds")
+                      "rptIncludeAllSeriesFlag", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds",
+                      "eligibleFundFlag", "pursuantGeneralInstructionFlag", "filerNewRegistrantFlag",
+                      "datetimeForTesting")
     parameterEisFileTags = {
         "cik":["depositorId", "cik", "filerId"],
         "submissionType": "submissionType",
@@ -145,7 +153,10 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         "invCompanyType": "invCompany",
         #"rptIncludeAllSeriesFlag": ?, 
         #"rptSeriesClassInfo.seriesIds": ?, 
-        #"newClass2.seriesIds": ?
+        #"newClass2.seriesIds": ?,
+        "filerNewRegistrantFlag": "filerNewRegistrantFlag",
+        "pursuantGeneralInstructionFlag": "pursuantGeneralInstructionFlag",
+        "eligibleFundFlag": "eligibleFundFlag"
     }
     # retrieve any EIS file parameters first
     if val.modelXbrl.fileSource and val.modelXbrl.fileSource.isEis and hasattr(val.modelXbrl.fileSource, "eisDocument"):
@@ -156,7 +167,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
                 if paramName in ("itemsList",):
                     parameters.setdefault(paramQName, []).append(eisElt.text)
                 else:
-                    parameters[paramQName] = eisElt.text
+                    parameters[paramQName] = ("", "".join(eisElt.itertext()).strip())
     if parameters: # parameter-provided CIKs and registrant names
         for paramName in parameterNames:
             p = parameters.get(ModelValue.qname(paramName,noPrefixIsNoNamespace=True))
@@ -164,7 +175,8 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
                 v = p[1] # formula dialog and cmd line formula parameters may need type conversion
                 if isinstance(v, str):
                     if paramName in {"voluntaryFilerFlag", "wellKnownSeasonedIssuerFlag", "shellCompanyFlag", "acceleratedFilerStatus",
-                                     "smallBusinessFlag", "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "rptIncludeAllSeriesFlag"}:
+                                     "smallBusinessFlag", "emergingGrowthCompanyFlag", "exTransitionPeriodFlag", "rptIncludeAllSeriesFlag",
+                                     "filerNewRegistrantFlag", "pursuantGeneralInstructionFlag", "eligibleFundFlag"}:
                         v = {"true":True, "false":False}.get(v)
                     elif paramName in {"itemsList", "rptSeriesClassInfo.seriesIds", "newClass2.seriesIds"}:
                         v = v.split()
@@ -678,7 +690,7 @@ class Report:
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
     'name': 'Validate EFM',
-    'version': '1.21.1', # SEC EDGAR release 21-1
+    'version': '1.21.4', # SEC EDGAR release 21-4
     'description': '''EFM Validation.''',
     'license': 'Apache-2',
     'import': ('transforms/SEC',), # SEC inline can use SEC transformations

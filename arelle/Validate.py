@@ -191,9 +191,10 @@ class Validate:
                     errorCaptureLevel = modelTestcaseVariation.severityLevel # default is INCONSISTENCY
                 parameters = modelTestcaseVariation.parameters.copy()
                 for i, readMeFirstUri in enumerate(modelTestcaseVariation.readMeFirstUris):
-                    expectTaxonomyPackage = (
-                        i < len(modelTestcaseVariation.readMeFirstElements) and 
-                        modelTestcaseVariation.readMeFirstElements[i].qname.localName == "taxonomyPackage")
+                    readMeFirstElements = modelTestcaseVariation.readMeFirstElements
+                    expectTaxonomyPackage = (i < len(readMeFirstElements) and 
+                                             readMeFirstElements[i] is not None and
+                                             readMeFirstElements[i].qname.localName == "taxonomyPackage")
                     if isinstance(readMeFirstUri,tuple):
                         # dtsName is for formula instances, but is from/to dts if versioning
                         dtsName, readMeFirstUri = readMeFirstUri

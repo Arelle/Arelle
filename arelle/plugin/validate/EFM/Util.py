@@ -101,21 +101,21 @@ def loadDeiValidations(modelXbrl, isInlineXbrl):
     validations = json.load(_file) # {localName: date, ...}
     _file.close()
     #print ("original validations size {}".format(pyObjectSize(validations)))
-    # get dei namespaceURI
-    deiNamespaceURI = None
+    prefixedNamespaces = validations["prefixed-namespaces"] = modelXbrl.prefixedNamespaces
+    # set dei namespaceURI as default
     for doc in modelXbrl.urlDocs.values():
          if doc.targetNamespace and doc.targetNamespace.startswith("http://xbrl.sec.gov/dei/"):
-             deiNamespaceURI = doc.targetNamespace
+             prefixedNamespaces[None] = doc.targetNamespace
              break
-    # compile form-classes
-    fc = validations["form-classes"]
-    def compileFormSet(forms, formSet=None, visitedClasses=None):
+    # compile sub-type-classes
+    stc = validations["sub-type-classes"]
+    def compileSubTypeSet(forms, formSet=None, visitedClasses=None):
         if visitedClasses is None: visitedClasses = set()
         if formSet is None: formSet = set()
         for form in flattenSequence(forms):
             if form.startswith("@"):
                 referencedClass = form[1:]
-                if referencedClass not in fc:
+                if referencedClass not in stc:
                     modelXbrl.error("arelle:loadDeiValidations", _("Missing declaration for %(referencedClass)s."), referencedClass=form)
                 elif form in visitedClasses:
                     modelXbrl.error("arelle:loadDeiValidations", 
@@ -123,67 +123,70 @@ def loadDeiValidations(modelXbrl, isInlineXbrl):
                                     formClass=referencedClass, formClasses=sorted(visitedClasses))
                 else:
                     visitedClasses.add(form)
-                    compileFormSet(fc[referencedClass], formSet, visitedClasses)
+                    compileSubTypeSet(stc[referencedClass], formSet, visitedClasses)
             else:
                 formSet.add(form)
         return formSet
-    for fev in validations["form-element-validations"]:
+    for sev in validations["sub-type-element-validations"]:
+        if sev.keys() == {"comment"}:
+            continue
         for field in (
-            ("xbrl-names",) if "store-db-name" in fev else
+            ("xbrl-names",) if "store-db-name" in sev else
             ("xbrl-names", "validation", "efm", "source")):
-            if field not in fev:
+            if field not in sev:
                 modelXbrl.error("arelle:loadDeiValidations", 
-                                _("Missing form-element-validation[\"%(field)s\"] from %(validation)s."), 
-                                field=field, validation=fev)
-        if "severity" in fev and not any(field.startswith("message") for field in fev):
+                                _("Missing sub-type-element-validation[\"%(field)s\"] from %(validation)s."), 
+                                field=field, validation=sev)
+        if "severity" in sev and not any(field.startswith("message") for field in sev):
             modelXbrl.error("arelle:loadDeiValidations", 
-                            _("Missing form-element-validation[\"%(field)s\"] from %(validation)s."), 
-                            field="message*", validation=fev)
-        validationCode = fev.get("validation")
-        if validationCode in ("f2", "og", "ol1", "ol2", "oph", "ar", "sr", "oth", "t", "tb", "t1", "te") and "references" not in fev:
+                            _("Missing sub-type-element-validation[\"%(field)s\"] from %(validation)s."), 
+                            field="message*", validation=sev)
+        validationCode = sev.get("validation")
+        if validationCode in ("f2", "og", "ol1", "ol2", "oph", "ar", "sr", "oth", "t", "tb", "t1", "te") and "references" not in sev:
             modelXbrl.error("arelle:loadDeiValidations", 
-                            _("Missing form-element-validation[\"references\"] from %(validation)s."), 
-                            field=field, validation=fev)
+                            _("Missing sub-type-element-validation[\"references\"] from %(validation)s."), 
+                            field=field, validation=sev)
         if validationCode in ("ru", "ou"):
-            if isinstance(fev.get("value"), list):
-                fev["value"] = set(fev["value"]) # change options list into set
+            if isinstance(sev.get("value"), list):
+                sev["value"] = set(sev["value"]) # change options list into set
             else:
                 modelXbrl.error("arelle:loadDeiValidations", 
-                                _("Missing form-element-validation[\"value\"] from %(validation)s, must be a list."), 
-                                field=field, validation=fev)
+                                _("Missing sub-type-element-validation[\"value\"] from %(validation)s, must be a list."), 
+                                field=field, validation=sev)
         if validationCode in ():
-            if isinstance(fev.get("reference-value"), list):
-                fev["reference-value"] = set(fev["reference-value"]) # change options list into set
+            if isinstance(sev.get("reference-value"), list):
+                sev["reference-value"] = set(sev["reference-value"]) # change options list into set
             else:
                 modelXbrl.error("arelle:loadDeiValidations", 
-                                _("Missing form-element-validation[\"value\"] from %(validation)s, must be a list."), 
-                                field=field, validation=fev)
-        if not validationCode and "store-db-name" in fev:
-            fev["validation"] = None # only storing, no validation
+                                _("Missing sub-type-element-validation[\"value\"] from %(validation)s, must be a list."), 
+                                field=field, validation=sev)
+        if not validationCode and "store-db-name" in sev:
+            sev["validation"] = None # only storing, no validation
         elif validationCode not in validations["validations"]:
             modelXbrl.error("arelle:loadDeiValidations", _("Missing validation[\"%(validationCode)s\"]."), validationCode=validationCode)
-        axisCode = fev.get("axis")
+        axisCode = sev.get("axis")
         if axisCode and axisCode not in validations["axis-validations"]:
             modelXbrl.error("arelle:loadDeiValidations", _("Missing axis[\"%(axisCode)s\"]."), axisCode=axisCode)
-        if "lang" in fev:
-            fev["langPattern"] = re.compile(fev["lang"])
-        s = fev.get("source")
-        if s is None and not validationCode and "store-db-name" in fev:
+        if "lang" in sev:
+            sev["langPattern"] = re.compile(sev["lang"])
+        s = sev.get("source")
+        if s is None and not validationCode and "store-db-name" in sev:
             pass # not a validation entry
         elif s not in ("inline", "non-inline", "both"):
             modelXbrl.error("arelle:loadDeiValidations", _("Invalid source [\"%(source)s\"]."), source=s)
         elif (isInlineXbrl and s in ("inline", "both")) or (not isInlineXbrl and s in ("non-inline", "both")):
-            messageKey = fev.get("message")
+            messageKey = sev.get("message")
             if messageKey and messageKey not in validations["messages"]:
                 modelXbrl.error("arelle:loadDeiValidations", _("Missing message[\"%(messageKey)s\"]."), messageKey=messageKey)
             # only include dei names in current dei taxonomy
-            fev["xbrl-names"] = [name
-                                 for name in flattenSequence(fev.get("xbrl-names", ()))
-                                 if qname(deiNamespaceURI, name) in modelXbrl.qnameConcepts]
-            formSet = compileFormSet(fev.get("forms", (fev.get("form",()),)))
-            if "*" in formSet:
-                formSet = "all" # change to string for faster testing in Filing.py
-            fev["formSet"] = formSet
+            sev["xbrl-names"] = [name
+                                 for name in flattenSequence(sev.get("xbrl-names", ()))
+                                 if qname(name, prefixedNamespaces) in modelXbrl.qnameConcepts or name.endswith(":*")]
+            subTypeSet = compileSubTypeSet(sev.get("sub-types", (sev.get("sub-type",()),)))
+            if "*" in subTypeSet:
+                subTypeSet = "all" # change to string for faster testing in Filing.py
+            sev["subTypeSet"] = subTypeSet
+            sev["formTypeSet"] = compileSubTypeSet(sev.get("form-types", (sev.get("form-type",()),)))
         
     for axisKey, axisValidation in validations["axis-validations"].items():
         messageKey = axisValidation.get("message")

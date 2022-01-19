@@ -8,8 +8,9 @@
      names="US SEC HTML (Edgar Filing Manual 5.2.2)|efm-htm"
      description="US SEC non-XBRL HTML Edgar Filing Manual v54 Release 20.3"
      validationType="EFM"
-     exclusiveTypesPattern="EFM|GFM|HMRC|SBR.NL|EFM"
+     exclusiveTypesPattern="EFM|GFM|FERC|HMRC|SBR.NL|EFM"
      validateFileText="true"
+     validateEntryText="true"
      allowedExternalHrefPattern="https?://www.sec.gov/(ix[?]doc=/)?Archives/edgar/data/"
      />
 

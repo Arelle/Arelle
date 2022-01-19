@@ -15,7 +15,10 @@ try:
     import regex as re
 except ImportError:
     import re
-import collections
+try:
+    from collections.abc import Mapping
+except:
+    from collections import Mapping
 import unicodedata
 
 CHAR_MAX = 127
@@ -253,8 +256,13 @@ def languageCodes():  # dynamically initialize after gettext is loaded
         }
         return _languageCodes
 
+_disableRtl = False # disable for implementations where tkinter supports rtl
+def setDisableRTL(disableRTL):
+    global _disableRTL
+    _disableRTL = disableRTL
+    
 def rtlString(source, lang):
-    if lang and source and lang[0:2] in {"ar","he"}:
+    if lang and source and lang[0:2] in {"ar","he"} and not _disableRTL:
         line = []
         lineInsertion = 0
         words = []
@@ -402,7 +410,7 @@ def format_string(conv, f, val, grouping=False):
     percents = list(_percent_re.finditer(f))
     new_f = _percent_re.sub('%s', f)
 
-    if isinstance(val, collections.Mapping):
+    if isinstance(val, Mapping):
         new_val = []
         for perc in percents:
             if perc.group()[-1]=='%':

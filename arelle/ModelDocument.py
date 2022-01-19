@@ -147,9 +147,10 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
                 return None
             if modelDocument is not None:
                 return modelDocument
-        if (modelXbrl.modelManager.validateDisclosureSystem and 
-            modelXbrl.modelManager.disclosureSystem.validateFileText and
-            not normalizedUri in modelXbrl.modelManager.disclosureSystem.standardTaxonomiesDict):
+        if (modelXbrl.modelManager.validateDisclosureSystem and (
+            (isEntry and modelXbrl.modelManager.disclosureSystem.validateEntryText) or
+            (modelXbrl.modelManager.disclosureSystem.validateFileText and
+             not normalizedUri in modelXbrl.modelManager.disclosureSystem.standardTaxonomiesDict))):
             file, _encoding = ValidateFilingText.checkfile(modelXbrl,filepath)
         else:
             file, _encoding = modelXbrl.fileSource.file(filepath, stripDeclaration=True)
@@ -1057,6 +1058,10 @@ class ModelDocument:
             for element in tree.iterdescendants(tag=refln):
                 if isinstance(element,ModelObject):
                     self.schemaLinkbaseRefDiscover(element)
+        # schemaLocate xbrldi if there is an xbrldi element
+        for element in tree.iterdescendants("{http://xbrl.org/2006/xbrldi}*"):
+            loadSchemalocatedSchema(self.modelXbrl, element, "http://www.xbrl.org/2006/xbrldi-2006.xsd", "http://xbrl.org/2006/xbrldi", self.baseForElement(element))
+            break
 
     def schemaLinkbaseRefDiscover(self, element):
         return self.discoverHref(element, urlRewritePluginClass="ModelDocument.InstanceSchemaRefRewriter")
@@ -1239,14 +1244,16 @@ class ModelDocument:
                 for sElt in containerElement.iterchildren():
                     if isinstance(sElt,ModelObject):
                         if sElt.namespaceURI == XbrlConst.xbrldi and sElt.localName in ("explicitMember","typedMember"):
-                            #xmlValidate(self.modelXbrl, sElt)
-                            modelContext.qnameDims[sElt.dimensionQname] = sElt # both seg and scen
-                            if not self.skipDTS:
-                                dimension = sElt.dimension
-                                if dimension is not None and dimension not in containerDimValues:
-                                    containerDimValues[dimension] = sElt
-                                else:
-                                    modelContext.errorDimValues.append(sElt)
+                            dimQn = sElt.dimensionQname
+                            if dimQn: # may be null if schema error omits dimension element
+                                #xmlValidate(self.modelXbrl, sElt)
+                                modelContext.qnameDims[dimQn] = sElt # both seg and scen
+                                if not self.skipDTS:
+                                    dimension = sElt.dimension
+                                    if dimension is not None and dimension not in containerDimValues:
+                                        containerDimValues[dimension] = sElt
+                                    else:
+                                        modelContext.errorDimValues.append(sElt)
                         else:
                             containerNonDimValues.append(sElt)
                             
@@ -1948,8 +1955,9 @@ def inlineIxdsDiscover(modelXbrl, modelIxdsDocument):
                             _("ix:continuation %(continuedAt)s is not referenced by a, ix:footnote, ix:nonNumeric or other ix:continuation element."),
                             modelObject=_contElt, continuedAt=_contAt)
 
-    modelIxdsDocument.targetXbrlRootElement = modelXbrl.ixTargetRootElements[ixdsTarget]
-    modelIxdsDocument.targetXbrlElementTree = PrototypeElementTree(modelIxdsDocument.targetXbrlRootElement)
+    if ixdsTarget in modelXbrl.ixTargetRootElements:
+        modelIxdsDocument.targetXbrlRootElement = modelXbrl.ixTargetRootElements[ixdsTarget]
+        modelIxdsDocument.targetXbrlElementTree = PrototypeElementTree(modelIxdsDocument.targetXbrlRootElement)
     
 class LoadingException(Exception):
     pass

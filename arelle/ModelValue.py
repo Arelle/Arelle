@@ -693,7 +693,10 @@ class IsoDuration(isodate.Duration):
     def __hash__(self):
         return self._hash
     def __eq__(self,other):
-        return self.avgdays == other.avgdays and self.tdelta.seconds == other.tdelta.seconds and self.tdelta.microseconds == other.tdelta.microseconds
+        try:
+            return self.avgdays == other.avgdays and self.tdelta.seconds == other.tdelta.seconds and self.tdelta.microseconds == other.tdelta.microseconds
+        except AttributeError:
+            return False
     def __ne__(self,other):
         return not self.__eq__(other)
     def __lt__(self,other):

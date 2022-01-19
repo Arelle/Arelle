@@ -52,6 +52,8 @@ esefTaxonomyURLs = {
     "https://www.esma.europa.eu/taxonomy/2019-03-27/esef_cor.xsd",
     "http://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor.xsd",
     "https://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor.xsd",
+    "http://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd",
+    "https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd",
     }
 
 disallowedURIsPattern = re.compile(

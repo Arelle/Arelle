@@ -32,6 +32,12 @@ class View:
         global Workbook, cell, utils, Font, PatternFill, Border, Alignment, Color, fills, Side
         self.modelXbrl = modelXbrl
         self.lang = lang
+        if lang and lang[:2] in {'ar', 'he'}:
+            self.langDir = 'rtl'
+            self.langAlign = 'right'
+        else:
+            self.langDir = 'ltr'
+            self.langAlign = 'left'
         if outfile is None:
             self.type = NOOUT
         elif isinstance(outfile, FileNamedStringIO):
@@ -88,7 +94,7 @@ class View:
             if style == "rendering":
                 html = io.StringIO(
 '''
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="''' + self.langDir + '''">
     <head>
         <meta http-equiv="content-type" content="text/html;charset=utf-8" />
         <STYLE type="text/css"> 
@@ -122,7 +128,7 @@ class View:
             else:
                 html = io.StringIO(
 '''
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="''' + self.langDir + '''">
     <head>
         <meta http-equiv="content-type" content="text/html;charset=utf-8" />
         <STYLE type="text/css"> 

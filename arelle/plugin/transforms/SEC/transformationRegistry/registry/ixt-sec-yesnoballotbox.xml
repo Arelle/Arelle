@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+<?xml-stylesheet type="text/xsl" href="stylesheets/functionDefinition.xsl"?>
+
+<function
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://xbrl.org/2008/function"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:ix="http://www.xbrl.org/2008/inlineXBRL"
+  xmlns:ixt-sec="http://www.sec.gov/inlineXBRL/transformation/2015-08-31"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:reg="http://xbrl.org/2008/registry"
+  xsi:schemaLocation="http://xbrl.org/2008/registry schemas/registry.xsd http://xbrl.org/2008/function schemas/function.xsd">
+  <lastUpdated moment="2019-03-26T12:00:00"/>
+  <owners>
+    <reg:owner id="herm">
+      <reg:name>Herm Fischer</reg:name>
+      <reg:affiliation>Mark V Systems Limited</reg:affiliation>
+      <reg:email>fischer@markv.com</reg:email>
+      <reg:assumedOwnership moment="2019-03-26T12:00:00"/>
+    </reg:owner>
+
+  </owners>
+  <summary>
+
+Transforms yesnoballotbox characters (empty, checked and x'ed) into Yes/No.
+
+  </summary>
+  <documentation>
+    <xhtml:p>
+
+Transforms the Unicode empty ballot box character "&#x2610;" into "No", and both checked "&#x2611;" and x'ed "&#x2612;" ballot box characters into "Yes".
+(http://www.codetable.net/decimal/9744)
+.
+
+    </xhtml:p>
+  </documentation>
+  <reference xlink:type="simple" 
+             xlink:href="inlineXBRL-part1/REC-2010-04-20/inlineXBRL-part1-REC-2010-04-20.html#sec-transformationrules"
+             >Inline XBRL Part 1: Specification 1.0 Section 14</reference>
+  <signature name="ixt-sec:yesnoballotbox">
+    <input name="input" type="ixt-sec:yesnoballotboxType">
+      <xhtml:p>
+		Yes/No from a ballot box expression, such as the following:
+		<xhtml:table>
+		<xhtml:tr><xhtml:th>Source Expression</xhtml:th><xhtml:th>Transformed Value</xhtml:th></xhtml:tr>
+		<xhtml:tr><xhtml:td>&#x2610;</xhtml:td><xhtml:td>No</xhtml:td></xhtml:tr>
+		<xhtml:tr><xhtml:td>&#x2611;</xhtml:td><xhtml:td>Yes</xhtml:td></xhtml:tr>
+		<xhtml:tr><xhtml:td>&#x2612;</xhtml:td><xhtml:td>Yes</xhtml:td></xhtml:tr>
+		</xhtml:table>
+      </xhtml:p>
+    </input>
+      <output type="xs:string">
+      <xhtml:p>
+
+The value in xs:string.
+
+      </xhtml:p>
+    </output>
+  </signature>
+  <revisions>
+    <reg:revision on="2019-03-26T12:00:00" by="herm"/> 
+  </revisions>
+</function>

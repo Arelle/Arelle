@@ -21,8 +21,21 @@ class UtrEntry(): # use slotted class for execution efficiency
         return "utrEntry({})".format(', '.join("{}={}".format(n, getattr(self,n))
                                                for n in self.__slots__))
 
-def loadUtr(modelXbrl): # Build a dictionary of item types that are constrained by the UTR
+def loadUtr(modelXbrl, statusFilters=None): # Build a dictionary of item types that are constrained by the UTR
+    """
+    Parses the units from modelXbrl.modelManager.disclosureStystem.utrUrl, and sets them on
+    modelXbrl.modelManager.disclosureSystem.utrItemTypeEntries
+
+    :param modelXbrl: the loaded xbrl model
+    :param statusFilters: the list of statuses to keep. If unset, 'REC' status is the default filter
+    :return: None
+    """
     modelManager = modelXbrl.modelManager
+    if statusFilters is None:
+        if modelManager.disclosureSystem.utrStatusFilters:
+            statusFilters = modelManager.disclosureSystem.utrStatusFilters.split()
+        else:
+            statusFilters = ['REC']
     modelManager.disclosureSystem.utrItemTypeEntries = utrItemTypeEntries = defaultdict(dict)
     # print('UTR LOADED FROM '+utrUrl);
     # skip status message as it hides prior activity during which this might have just obtained symbols
@@ -32,49 +45,52 @@ def loadUtr(modelXbrl): # Build a dictionary of item types that are constrained 
         from arelle.FileSource import openXmlFileStream
         # normalize any relative paths to config directory
         unitDupCheck = set()
-        file = openXmlFileStream(modelManager.cntlr, modelManager.disclosureSystem.utrUrl, stripDeclaration=True)[0]
-        xmldoc = etree.parse(file)
-        for unitElt in xmldoc.iter(tag="{http://www.xbrl.org/2009/utr}unit"):
-            u = UtrEntry()
-            u.id = unitElt.get("id")
-            u.unitId = unitElt.findtext("{http://www.xbrl.org/2009/utr}unitId")
-            u.nsUnit = (unitElt.findtext("{http://www.xbrl.org/2009/utr}nsUnit") or None) # None if empty entry
-            u.itemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}itemType")
-            u.nsItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsItemType")
-            u.numeratorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}numeratorItemType")
-            u.nsNumeratorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsNumeratorItemType")
-            u.denominatorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}denominatorItemType")
-            u.nsDenominatorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsDenominatorItemType")
-            u.isSimple = all(e is None for e in (u.numeratorItemType, u.nsNumeratorItemType, u.denominatorItemType, u.nsDenominatorItemType))
-            u.symbol = unitElt.findtext("{http://www.xbrl.org/2009/utr}symbol")
-            u.status = unitElt.findtext("{http://www.xbrl.org/2009/utr}status")
-            if u.status == "REC":
-                # TO DO: This indexing scheme assumes that there are no name clashes in item types of the registry.
-                (utrItemTypeEntries[u.itemType])[u.id] = u
-            unitDupKey = (u.unitId, u.nsUnit, u.status)
-            if unitDupKey in unitDupCheck:
-                modelXbrl.error("arelleUtrLoader:entryDuplication",
-                                "Unit Type Registry entry duplication: id %(id)s unit %(unitId)s nsUnit %(nsUnit)s status %(status)s",
-                                modelObject=modelXbrl, id=u.id, unitId=u.unitId, nsUnit=u.nsUnit, status=u.status)
-            unitDupCheck.add(unitDupKey)
-            if u.isSimple:
-                if not u.itemType:
-                    modelXbrl.error("arelleUtrLoader:simpleDefMissingField",
-                                    "Unit Type Registry simple unit definition missing item type: id %(id)s unit %(unitId)s nsUnit %(nsUnit)s status %(status)s",
+        for _utrUrl in modelManager.disclosureSystem.utrUrl: # list of URLs
+            if file:
+                file.close()
+            file = openXmlFileStream(modelManager.cntlr, _utrUrl, stripDeclaration=True)[0]
+            xmldoc = etree.parse(file)
+            for unitElt in xmldoc.iter(tag="{http://www.xbrl.org/2009/utr}unit"):
+                u = UtrEntry()
+                u.id = unitElt.get("id")
+                u.unitId = unitElt.findtext("{http://www.xbrl.org/2009/utr}unitId")
+                u.nsUnit = (unitElt.findtext("{http://www.xbrl.org/2009/utr}nsUnit") or None) # None if empty entry
+                u.itemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}itemType")
+                u.nsItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsItemType")
+                u.numeratorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}numeratorItemType")
+                u.nsNumeratorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsNumeratorItemType")
+                u.denominatorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}denominatorItemType")
+                u.nsDenominatorItemType = unitElt.findtext("{http://www.xbrl.org/2009/utr}nsDenominatorItemType")
+                u.isSimple = all(e is None for e in (u.numeratorItemType, u.nsNumeratorItemType, u.denominatorItemType, u.nsDenominatorItemType))
+                u.symbol = unitElt.findtext("{http://www.xbrl.org/2009/utr}symbol")
+                u.status = unitElt.findtext("{http://www.xbrl.org/2009/utr}status")
+                if u.status in statusFilters:
+                    # TO DO: This indexing scheme assumes that there are no name clashes in item types of the registry.
+                    (utrItemTypeEntries[u.itemType])[u.id] = u
+                unitDupKey = (u.unitId, u.nsUnit, u.status)
+                if unitDupKey in unitDupCheck:
+                    modelXbrl.error("arelleUtrLoader:entryDuplication",
+                                    "Unit Type Registry entry duplication: id %(id)s unit %(unitId)s nsUnit %(nsUnit)s status %(status)s",
                                     modelObject=modelXbrl, id=u.id, unitId=u.unitId, nsUnit=u.nsUnit, status=u.status)
-                if u.numeratorItemType or u.denominatorItemType or u.nsNumeratorItemType or u.nsDenominatorItemType:
-                    modelXbrl.error("arelleUtrLoader",
-                                    "Unit Type Registry simple unit definition may not have complex fields: id %(id)s unit %(unitId)s nsUnit %(nsUnit)s status %(status)s",
-                                    modelObject=modelXbrl, id=u.id, unitId=u.unitId, nsUnit=u.nsUnit, status=u.status)
-            else:
-                if u.symbol:
-                    modelXbrl.error("arelleUtrLoader:complexDefSymbol",
-                                    "Unit Type Registry complex unit definition may not have symbol: id %(id)s unit %(unitId)s nsUnit %(nsUnit)s status %(status)s",
-                                    modelObject=modelXbrl, id=u.id, unitId=u.unitId, nsUnit=u.nsUnit, status=u.status)
-                if not u.numeratorItemType or not u.denominatorItemType:
-                    modelXbrl.error("arelleUtrLoader:complexDefMissingField",
-                                    "Unit Type Registry complex unit definition must have numerator and denominator fields: id %(id)s unit %(unitId)s nsUnit %(nsUnit)s status %(status)s",
-                                    modelObject=modelXbrl, id=u.id, unitId=u.unitId, nsUnit=u.nsUnit, status=u.status)
+                unitDupCheck.add(unitDupKey)
+                if u.isSimple:
+                    if not u.itemType:
+                        modelXbrl.error("arelleUtrLoader:simpleDefMissingField",
+                                        "Unit Type Registry simple unit definition missing item type: id %(id)s unit %(unitId)s nsUnit %(nsUnit)s status %(status)s",
+                                        modelObject=modelXbrl, id=u.id, unitId=u.unitId, nsUnit=u.nsUnit, status=u.status)
+                    if u.numeratorItemType or u.denominatorItemType or u.nsNumeratorItemType or u.nsDenominatorItemType:
+                        modelXbrl.error("arelleUtrLoader",
+                                        "Unit Type Registry simple unit definition may not have complex fields: id %(id)s unit %(unitId)s nsUnit %(nsUnit)s status %(status)s",
+                                        modelObject=modelXbrl, id=u.id, unitId=u.unitId, nsUnit=u.nsUnit, status=u.status)
+                else:
+                    if u.symbol:
+                        modelXbrl.error("arelleUtrLoader:complexDefSymbol",
+                                        "Unit Type Registry complex unit definition may not have symbol: id %(id)s unit %(unitId)s nsUnit %(nsUnit)s status %(status)s",
+                                        modelObject=modelXbrl, id=u.id, unitId=u.unitId, nsUnit=u.nsUnit, status=u.status)
+                    if not u.numeratorItemType or not u.denominatorItemType:
+                        modelXbrl.error("arelleUtrLoader:complexDefMissingField",
+                                        "Unit Type Registry complex unit definition must have numerator and denominator fields: id %(id)s unit %(unitId)s nsUnit %(nsUnit)s status %(status)s",
+                                        modelObject=modelXbrl, id=u.id, unitId=u.unitId, nsUnit=u.nsUnit, status=u.status)
     except (EnvironmentError,
             etree.LxmlError) as err:
         modelManager.modelXbrl.error("arelleUtrLoader:error",

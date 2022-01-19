@@ -95,7 +95,6 @@ baseXsdTypePatterns = {
 predefinedAttributeTypes = {
     qname("{http://www.w3.org/XML/1998/namespace}xml:lang"):("languageOrEmpty",None),
     qname("{http://www.w3.org/XML/1998/namespace}xml:space"):("NCName",{"enumeration":{"default","preserve"}})}
-
 xAttributesSharedEmptyDict = {}
 
 def validate(modelXbrl, elt, recurse=True, attrQname=None, ixFacts=False):
@@ -469,17 +468,14 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     xValue = sValue = _INT(value)
                     if xValue == 0:
                         raise ValueError("invalid value")
-                elif baseXsdType == "regex-pattern":
+                elif baseXsdType == "xsd-pattern":
                     # for facet compiling
                     try:
                         sValue = value
                         if value in xmlSchemaPatterns:
                             xValue = xmlSchemaPatterns[value]
                         else:
-                            if r"\i" in value or r"\c" in value:
-                                value = value.replace(r"[\i-[:]]", iNameChar).replace(r"\i", iNameChar) \
-                                              .replace(r"[\c-[:]]", cMinusCNameChar).replace(r"\c", cNameChar)
-                            xValue = re_compile(value + "$") # must match whole string
+                            xValue = XsdPattern().compile(value)
                     except Exception as err:
                         raise ValueError(err)
                 elif baseXsdType == "fraction":
@@ -585,7 +581,7 @@ def validateFacet(typeElt, facetElt):
         baseXsdType = "string"
         facets = {"enumeration": {"replace","preserve","collapse"}}
     elif facetName == "pattern":
-        baseXsdType = "regex-pattern"
+        baseXsdType = "xsd-pattern"
         facets = None
     else:
         baseXsdType = "string"
@@ -601,6 +597,19 @@ def validateAnyWildcard(qnElt, qnAttr, attributeWildcards):
         if attributeWildcard.allowsNamespace(qnAttr.namespaceURI):
             return True
     return False
+
+class lxmlSchemaResolver(etree.Resolver):
+    def __init__(self, cntlr):
+        super(lxmlSchemaResolver, self).__init__()
+        self.cntlr = cntlr
+    def resolve(self, url, id, context): 
+        filepath = self.cntlr.webCache.getfilename(url)
+        return self.resolve_filename(filepath, context)
+
+def lxmlResolvingParser(cntlr):
+    parser = etree.XMLParser()
+    parser.resolvers.add(lxmlSchemaResolver(cntlr))
+    return parser
 
 def lxmlSchemaValidate(modelDocument):
     # lxml schema-validate modelDocument
@@ -619,17 +628,16 @@ def lxmlSchemaValidate(modelDocument):
                     _sl = (slElt.get("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation") or "").split()
                     for i in range(0, len(_sl), 2):
                         if _sl[i] == ns and i+1 < len(_sl):
-                            xsdFilename = cntlr.webCache.getfilename(_sl[i+1])
+                            url = cntlr.webCache.normalizeUrl(_sl[i+1], modelDocument.baseForElement(slElt))
                             try:
-                                _xsdFile = modelXbrl.fileSource.file(xsdFilename)[0]
-                                xsdTree = etree.parse(_xsdFile)
+                                xsdTree = etree.parse(url,parser=lxmlResolvingParser(cntlr))
                                 break
                             except (EnvironmentError, KeyError, UnicodeDecodeError) as err:
                                 msgCode = "arelle.schemaFileError"
                                 cntlr.addToLog(_("XML schema validation error: %(error)s"),
                                                messageArgs={"error": str(err)},
                                                messageCode=msgCode,
-                                               file=(modelDocument.basename, xsdFilename),
+                                               file=(modelDocument.basename, _sl[i+1]),
                                                level=logging.INFO) # schemaLocation is just a hint
                                 modelDocument.modelXbrl.errors.append(msgCode)
                     if xsdTree is not None:
@@ -646,6 +654,25 @@ def lxmlSchemaValidate(modelDocument):
                            messageCode=msgCode,
                            file=modelDocument.basename,
                            level=logging.ERROR)
-            modelDocument.modelXbrl.errors.append(msgCode)
+            modelDocument.modelXbrl.errors.append(msgCode)  
+
+class XsdPattern():
+    # shim class for python wrapper of xsd pattern
+    def compile(self, p):
+        self.xsdPattern = p
+        if r"\i" in p or r"\c" in p:
+            p = p.replace(r"[\i-[:]]", iNameChar).replace(r"\i", iNameChar) \
+                 .replace(r"[\c-[:]]", cMinusCNameChar).replace(r"\c", cNameChar)
+        self.pyPattern = re_compile(p + "$") # must match whole string
+        return self
+        
+    def match(self, string):
+        return self.pyPattern.match(string)
+        
+    @property
+    def pattern(self):
+        return self.xsdPattern
     
-    
+    def __repr__(self):
+        return self.xsdPattern
+

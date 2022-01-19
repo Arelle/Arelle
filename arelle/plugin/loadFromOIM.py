@@ -19,9 +19,9 @@ Example to run from web server:
 import os, sys, io, time, traceback, json, csv, logging, zipfile, datetime, isodate
 from math import isnan, log10
 try:
-    from regex import compile as re_compile, match as re_match, DOTALL as re_DOTALL
+    from regex import compile as re_compile, match as re_match, sub as re_sub, DOTALL as re_DOTALL
 except ImportError:
-    from re import compile as re_compile, match as re_match, DOTALL as re_DOTALL
+    from re import compile as re_compile, match as re_match, sub as re_sub, DOTALL as re_DOTALL
 from lxml import etree
 from collections import defaultdict, OrderedDict
 from arelle.ModelDocument import Type, create as createModelDocument
@@ -32,60 +32,52 @@ from arelle.ModelValue import qname, dateTime, DateTime, DATETIME, yearMonthDura
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict, flattenToSet, strTruncate
 from arelle.UrlUtil import isHttpUrl, isAbsolute as isAbsoluteUri, relativeUrlPattern
-from arelle.XbrlConst import (qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
+from arelle.XbrlConst import (xbrli, qnLinkLabel, standardLabelRoles, qnLinkReference, standardReferenceRoles,
                               qnLinkPart, gen, link, defaultLinkRole, footnote, factFootnote, isStandardRole,
                               conceptLabel, elementLabel, conceptReference, all as hc_all, notAll as hc_notAll,
                               xhtml, qnXbrliDateItemType,
-                              dtrPrefixedContentItemTypes, dtrPrefixedContentTypes, dtrSQNameNamesItemTypes, dtrSQNameNamesTypes)
+                              dtrPrefixedContentItemTypes, dtrPrefixedContentTypes, dtrSQNameNamesItemTypes, dtrSQNameNamesTypes,
+                              lrrRoleHrefs, lrrArcroleHrefs)
 from arelle.XmlUtil import addChild, addQnameValue, copyIxFootnoteHtml, setXmlns
 from arelle.XmlValidate import integerPattern, languagePattern, NCNamePattern, QNamePattern, validate as xmlValidate, VALID
 from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 
-nsOims = ("http://www.xbrl.org/WGWD/YYYY-MM-DD",
-          "http://www.xbrl.org/CR/2020-05-06",
-          "https://xbrl.org/CR/2021-02-03",
+nsOims = ("https://xbrl.org/2021",
+          "http://www.xbrl.org/WGWD/YYYY-MM-DD",
+          "https://www.xbrl.org/WGWD/YYYY-MM-DD",
           "http://www.xbrl.org/((~status_date_uri~))",
           "https://xbrl.org/((~status_date_uri~))"
          )
-nsOimCes = ("http://www.xbrl.org/WGWD/YYYY-MM-DD/oim-common/error",
+nsOimCes = ("https://xbrl.org/2021/oim-common/error",
+            "http://www.xbrl.org/WGWD/YYYY-MM-DD/oim-common/error",
             "http://www.xbrl.org/CR/2020-05-06/oim-common/error",
-            "https://xbrl.org/CR/2021-02-03/oim-common/error",
             "http://www.xbrl.org/((~status_date_uri~))/oim-common/error",
             "https://xbrl.org/((~status_date_uri~))/oim-common/error"
     )
 jsonDocumentTypes = (
+        "https://xbrl.org/2021/xbrl-json",
         "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-json",
         "http://www.xbrl.org/YYYY-MM-DD/xbrl-json",
-        "https://xbrl.org/((~status_date_uri~))/xbrl-json", # allows loading of XII "template" test cases without CI production
-        "http://www.xbrl.org/CR/2020-05-06/xbrl-json",
-        "http://www.xbrl.org/CR/2020-10-14/xbrl-json",
-        "https://xbrl.org/CR/2021-02-03/xbrl-json"
+        "https://xbrl.org/((~status_date_uri~))/xbrl-json" # allows loading of XII "template" test cases without CI production
     )
 csvDocumentTypes = (
+        "https://xbrl.org/2021/xbrl-csv",
         "http://www.xbrl.org/WGWD/YYYY-MM-DD/xbrl-csv",
         "http://xbrl.org/YYYY/xbrl-csv",
-        "https://xbrl.org/((~status_date_uri~))/xbrl-csv", # allows loading of XII "template" test cases without CI production
-        "http://www.xbrl.org/CR/2019-10-19/xbrl-csv",
-        "http://xbrl.org/CR/2020-10-14/xbrl-csv",
-        "http://www.xbrl.org/CR/2020-10-14/xbrl-csv",
-        "https://xbrl.org/CR/2021-02-03/xbrl-csv"
+        "https://xbrl.org/((~status_date_uri~))/xbrl-csv" # allows loading of XII "template" test cases without CI production
     )
 csvDocinfoObjects = {"documentType", "namespaces", "taxonomy", "extends", "final", "linkTypes", "linkGroups"}
 csvExtensibleObjects = {"namespaces", "linkTypes", "linkGroups", "features", "final", "tableTemplates", "tables", "dimensions", "parameters"}
 
          
-reservedLinkTypes = {
+reservedLinkTypesAndGroups = {
         "footnote":         "http://www.xbrl.org/2003/arcrole/fact-footnote",
-        "explanatoryFact":  "http://www.xbrl.org/2009/arcrole/fact-explanatoryFact"
-    }
-reservedLinkTypeAliases = {
-        "http://www.xbrl.org/2003/arcrole/fact-footnote": "footnote",
-        "http://www.xbrl.org/2009/arcrole/fact-explanatoryFact": "explanatoryFact"
-    }
-reservedLinkGroups = {
+        "explanatoryFact":  "http://www.xbrl.org/2009/arcrole/fact-explanatoryFact",
         "_":     "http://www.xbrl.org/2003/role/link"
     }
-reservedLinkGroupAliases = {
+reservedLinkTypeAndGroupAliases = {
+        "http://www.xbrl.org/2003/arcrole/fact-footnote": "footnote",
+        "http://www.xbrl.org/2009/arcrole/fact-explanatoryFact": "explanatoryFact",
         "http://www.xbrl.org/2003/role/link": "_"
     }
 
@@ -128,16 +120,15 @@ NSReservedURIAlias = {}
 
 OIMReservedAliasURIs = {
     # "namespaces": NSReservedAliasURIs,  -- generated at load time
-    "linkTypes": reservedLinkTypes,
-    "linkGroups": reservedLinkGroups
+    "linkTypes": reservedLinkTypesAndGroups, 
+    "linkGroups": reservedLinkTypesAndGroups
     }
 OIMReservedURIAlias = {
     #"namespaces": NSReservedURIAlias, -- generated at load time
-    "linkTypes": reservedLinkTypeAliases,
-    "linkGroups": reservedLinkGroupAliases
+    "linkTypes": reservedLinkTypeAndGroupAliases,
+    "linkGroups": reservedLinkTypeAndGroupAliases
     }
 
-ENTITY_NA_QNAME = qname("https://xbrl.org/entities", "NA")
 EMPTY_DICT = {}
 EMPTY_LIST = []
 
@@ -156,6 +147,7 @@ CanonicalXmlTypePattern = {
     "boolean": re_compile("^true$|^false$"),
     "date": re_compile(r"-?[0-9]{4}-[0-9]{2}-[0-9]{2}Z?$"),
     "dateTime": re_compile(r"-?[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?$"),
+    "XBRLI_DATEUNION": re_compile(r"-?[0-9]{4}-[0-9]{2}-[0-9]{2}Z?$|-?[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?$"),
     "time": re_compile(r"-?([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?$"),
     "decimal": re_compile(r"^[-]?([1-9][0-9]*)?[0-9]\.[0-9]([0-9]*[1-9])?$"),
     "float": CanonicalFloatPattern,
@@ -184,8 +176,8 @@ RowIdentifierPattern = re_compile(
      r"[_\-" 
      "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*$")
 PeriodPattern = re_compile(
-    "^-?[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?"
-    "(/-?[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?)?$"
+    "^-?[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?"
+    "(/-?[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?)?$"
     )
 PrefixedQName = re_compile(
     "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
@@ -227,6 +219,11 @@ htmlBodyTemplate = "<body xmlns='http://www.w3.org/1999/xhtml'>\n{0}\n</body>\n"
 xhtmlTagPrefix = "{http://www.w3.org/1999/xhtml}"
 DimensionsKeyPattern = re_compile(r"^(concept|entity|period|unit|language|(\w+:\w+))$")
 
+nonDiscoveringXmlInstanceElements = {qname(link, "roleRef"), qname(link, "arcroleRef")}
+
+UNSUPPORTED_DATA_TYPES = dtrPrefixedContentItemTypes + (
+    qname(xbrli,"fractionItemType"), )
+
 # CSV Files
 CSV_PARAMETER_FILE = 1
 CSV_FACTS_FILE = 2
@@ -261,6 +258,10 @@ class NoRecursionCheck:
 class CheckPrefix:
     pass
 
+class KeyIsNcName:
+    pass
+
+
 UnrecognizedDocMemberTypes = {
     "/documentInfo": dict,
     "/documentInfo/documentType": str,
@@ -280,7 +281,7 @@ JsonMemberTypes = {
     "/documentInfo/baseURL": URIType,
     "/documentInfo/documentType": str,
     "/documentInfo/features": dict,
-    "/documentInfo/features/*:*": (int,bool,str,type(None)),
+    "/documentInfo/features/*:*": (int,float,bool,str,type(None)),
     "/documentInfo/namespaces": dict,
     "/documentInfo/namespaces/*": URIType,
     "/documentInfo/linkTypes": dict,
@@ -289,7 +290,7 @@ JsonMemberTypes = {
     "/documentInfo/linkGroups/*": str,
     "/documentInfo/taxonomy": list,
     "/documentInfo/taxonomy/": str,
-    "/documentInfo/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
+    "/documentInfo/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     # facts
     "/facts/*": dict,
     "/facts/*/value": (str,type(None)),
@@ -308,7 +309,7 @@ JsonMemberTypes = {
     "/facts/*/dimensions/noteId": str,
     "/facts/*/dimensions/*:*": (str,type(None)),
     # custom properties on fact are unchecked
-    "/facts/*/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
+    "/facts/*/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     }
 JsonRequiredMembers = {
     "/": {"documentInfo"},
@@ -328,12 +329,12 @@ CsvMemberTypes = {
     "/dimensions": dict,
     "/decimals": (int,str),
     "/links": dict,
-    "/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
+    "/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     # documentInfo
     "/documentInfo/baseURL": URIType,
     "/documentInfo/documentType": str,
     "/documentInfo/features": dict,
-    "/documentInfo/features/*:*": (int,bool,str,type(None)),
+    "/documentInfo/features/*:*": (int,float,bool,str,type(None)),
     "/documentInfo/final": dict,
     "/documentInfo/namespaces": dict,
     "/documentInfo/namespaces/*": URIType,
@@ -345,7 +346,7 @@ CsvMemberTypes = {
     "/documentInfo/taxonomy/": str,
     "/documentInfo/extends": list,
     "/documentInfo/extends/": URIType,
-    "/documentInfo/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
+    "/documentInfo/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     # documentInfo/final
     "/documentInfo/final/namespaces": bool,
     "/documentInfo/final/taxonomy": bool,
@@ -364,7 +365,7 @@ CsvMemberTypes = {
     "/tableTemplates/*/columns": dict,
     "/tableTemplates/*/decimals": (int,str),
     "/tableTemplates/*/dimensions": dict,
-    "/tableTemplates/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
+    "/tableTemplates/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     "/tableTemplates/*/dimensions/concept": str,
     "/tableTemplates/*/dimensions/entity": str,
     "/tableTemplates/*/dimensions/period": str,
@@ -378,7 +379,7 @@ CsvMemberTypes = {
     "/tableTemplates/*/columns/*/comment": bool,
     "/tableTemplates/*/columns/*/decimals": (int,str),
     "/tableTemplates/*/columns/*/dimensions": dict,
-    "/tableTemplates/*/columns/*/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
+    "/tableTemplates/*/columns/*/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     # dimensions (column)
     "/tableTemplates/*/columns/*/dimensions/concept": str,
     "/tableTemplates/*/columns/*/dimensions/entity": str,
@@ -417,11 +418,11 @@ CsvMemberTypes = {
     "/tables/*/optional": bool,
     "/tables/*/parameters": dict,
     "/tables/*/parameters/*": str,
-    "/tables/*/*:*": (int,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
+    "/tables/*/*:*": (int,float,bool,str,dict,list,type(None),NoRecursionCheck,CheckPrefix), # custom extensions
     # links 
-    "/links/*": dict,
+    "/links/*": (dict,KeyIsNcName),
     # link group
-    "/links/*/*": dict,
+    "/links/*/*": (dict,KeyIsNcName),
     # fact links
     "/links/*/*/*": list,
     # fact IDs
@@ -907,7 +908,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         primaryOimFile = oimFile
         extensionProperties = OrderedDict() # key is property QName, value is property path
         
-        def loadOimObject(oimFile, extendingFile, primaryReportParameters=None): # returns oimObject, oimWb
+        def loadOimObject(oimFile, extendingFile, visitedFiles, primaryReportParameters=None): # returns oimObject, oimWb
             # isXL means metadata loaded from Excel (but instance data can be in excel or CSV)
             isXL = oimFile.endswith(".xlsx") or oimFile.endswith(".xls")
             # same logic as modelDocument.load
@@ -928,6 +929,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 errPrefix = "xbrlce"
             else:
                 errPrefix = "xbrlje"
+            # prevent recursion
+            if filepath in visitedFiles:
+                return None # block directed cycle looping
+            visitedFiles.add(filepath)
             if not isXL:
                 try:
                     _file = modelXbrl.fileSource.file(filepath, encoding="utf-8-sig")[0]
@@ -1013,6 +1018,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             del loadDictErrors[:]
             
             invalidMemberTypes = []
+            invalidSQNames = []
             missingRequiredMembers = []
             unexpectedMembers = []
             def showPathObj(parts, obj): # this can be replaced with jsonPath syntax if appropriate
@@ -1033,8 +1039,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         # print("mbrName {} mbrObj {}".format(mbrName, mbrObj))
                         if mbrPath in oimMemberTypes:
                             mbrTypes = oimMemberTypes[mbrPath]
-                            if (not ((mbrTypes is QNameType or (isinstance(mbrTypes,tuple) and QNameType in mbrTypes)) and isinstance(mbrObj, str) and QNamePattern.match(mbrObj)) and
-                                not ((mbrTypes is SQNameType or (isinstance(mbrTypes,tuple) and SQNameType in mbrTypes)) and isinstance(mbrObj, str) and SQNamePattern.match(mbrObj)) and
+                            if (mbrTypes is SQNameType or (isinstance(mbrTypes,tuple) and SQNameType in mbrTypes)):
+                                if not isinstance(mbrObj, str) or not SQNamePattern.match(mbrObj):
+                                    invalidSQNames.append(showPathObj(pathParts, mbrObj))
+                            elif (not ((mbrTypes is QNameType or (isinstance(mbrTypes,tuple) and QNameType in mbrTypes)) and isinstance(mbrObj, str) and QNamePattern.match(mbrObj)) and
                                 not ((mbrTypes is LangType or (isinstance(mbrTypes,tuple) and LangType in mbrTypes)) and isinstance(mbrObj, str) and languagePattern.match(mbrObj)) and
                                 not ((mbrTypes is URIType or (isinstance(mbrTypes,tuple) and URIType in mbrTypes)) and isinstance(mbrObj, str) and relativeUrlPattern.match(mbrObj) and not WhitespaceUntrimmedPattern.match(mbrObj)) and
                                 #not (mbrTypes is IdentifierType and isinstance(mbrObj, str) and isinstance(mbrObj, str) and IdentifierPattern.match(mbrObj)) and
@@ -1055,6 +1063,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             mbrTypes = oimMemberTypes[path + "*"]
                             if (not ((mbrTypes is URIType or (isinstance(mbrTypes,tuple) and isinstance(mbrObj, str) and URIType in mbrTypes)) and relativeUrlPattern.match(mbrObj)) and
                                 not isinstance(mbrObj, mbrTypes)):
+                                invalidMemberTypes.append(showPathObj(pathParts, mbrObj))
+                            if isinstance(mbrTypes,tuple) and KeyIsNcName in mbrTypes and not NCNamePattern.match(mbrName):
                                 invalidMemberTypes.append(showPathObj(pathParts, mbrObj))
                             mbrPath = path + "*" # for recursion
                         else:
@@ -1096,6 +1106,10 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             if invalidMemberTypes:
                 error("{}:invalidJSONStructure".format(errPrefix),
                       _("Invalid JSON structure member types in metadata: %(members)s"),
+                      sourceFileLine=oimFile, members=", ".join(invalidMemberTypes))
+            if invalidSQNames:
+                error("oimce:invalidSQName".format(errPrefix),
+                      _("Invalid SQNames in metadata: %(members)s"),
                       sourceFileLine=oimFile, members=", ".join(invalidMemberTypes))
                 
             if isCSV and not primaryReportParameters:
@@ -1146,12 +1160,18 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     error("xbrlce:missingParametersFile", 
                           _("Report parameter file is missing: %(file)s"),
                           file=parameterURL)
-
+                    
+            if isCSVorXL: # normalize relative taxonomy URLs to primary document or nearest absolute parent
+                t = documentInfo.get("taxonomy",())
+                for i, tUrl in enumerate(t):
+                    t[i] = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(tUrl, normalizedUrl)
 
             if isCSVorXL and "extends" in documentInfo:
                 # process extension
                 for extendedFile in documentInfo["extends"]:
-                    extendedOimObject = loadOimObject(extendedFile, mappedUrl)
+                    extendedOimObject = loadOimObject(extendedFile, mappedUrl, visitedFiles)
+                    if extendedOimObject is None:
+                        continue # None returned when directed cycle blocks reloading same file
                     # extended must be CSV
                     extendedDocumentInfo = extendedOimObject.get("documentInfo", EMPTY_DICT)
                     extendedDocumentType = extendedDocumentInfo.get("documentType")
@@ -1219,7 +1239,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             return oimObject
         
         errorIndexBeforeLoadOim = len(modelXbrl.errors)
-        oimObject = loadOimObject(oimFile, None)
+        oimObject = loadOimObject(oimFile, None, set())
         try:
             isJSON, isCSV, isXL, isCSVorXL, oimWb, oimDocumentInfo, documentType, documentBase = oimObject["=entryParameters"]
         except KeyError:
@@ -1265,6 +1285,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             reportProperties = {"documentInfo", "tableTemplates", "tables", "parameters", "parameterURL", "dimensions", "decimals", "links"}
             columnProperties = {"comment", "decimals", "dimensions", "propertyGroups", "parameterURL", "propertiesFrom"}
             
+        entityNaQName = qname(re_sub("/xbrl-(json|csv)$","/entities",documentType), "NA")
         allowedDuplicatesFeature = ALL
         v = featuresDict.get("xbrl:allowedDuplicates")
         if v is not None:
@@ -1307,6 +1328,12 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                           _("The %(map)s URI \"%(uri)s\" is bound to alias \"%(key)s\" instead of standard alias \"%(alias)s\"."),
                           modelObject=modelXbrl, map=key, key=key, uri=value, alias=OIMReservedURIAlias[map][value])
                     
+        # check baseURL
+        if documentBase and not isAbsoluteUri(documentBase):
+            error("oime:invalidBaseURL",
+                  _("The base-url must be absolute: \"%(url)s\"."),
+                  modelObject=modelXbrl, url=documentBase)
+
         factProduced = FactProduced() # pass back fact info to csv Fact producer
                 
         if isCSVorXL:
@@ -1454,12 +1481,15 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         for rowIndex, row in enumerate(_rowIterator):
                             if rowIndex == 0:
                                 header = [_cellValue(cell) for cell in row]
+                                emptyHeaderCols = set()
                                 if isXL: # trim empty cells
                                     header = xlTrimHeaderRow(header)
                                 colNameIndex = dict((name, colIndex) for colIndex, name in enumerate(header))
                                 idColIndex = colNameIndex.get(rowIdColName)
                                 for colIndex, colName in enumerate(header):
-                                    if not IdentifierPattern.match(colName):
+                                    if colName == "":
+                                        emptyHeaderCols.add(colIndex)
+                                    elif not IdentifierPattern.match(colName):
                                         hasHeaderError = True
                                         error("xbrlce:invalidHeaderValue", 
                                               _("Table %(table)s CSV file header column %(column)s is not a valid identifier: %(identifier)s, url: %(url)s"),
@@ -1529,6 +1559,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 paramColsWithValue = set()
                                 paramColsUsed = set()
                                 emptyCols = set()
+                                emptyHeaderColsWithValue = []
                                 if isXL and all(cell.value in (None, "") for cell in row): # skip empty excel rows
                                     continue
                                 rowPropGroups = {} # colName, propGroupObject for property groups in this row
@@ -1555,10 +1586,16 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     continue
                                 for colIndex, colValue in enumerate(row):
                                     if colIndex >= len(header):
+                                        if _cellValue(colValue) != EMPTY_CELL:
+                                            emptyHeaderColsWithValue.append(colIndex)
                                         continue
                                     cellPropGroup = {}
                                     propGroupDimSource = {}
                                     colName = header[colIndex]
+                                    if colName == "":
+                                        if _cellValue(colValue) != EMPTY_CELL:
+                                            emptyHeaderColsWithValue.append(colIndex)
+                                        continue
                                     if colName in commentColumns:
                                         continue
                                     propFromColNames = propertiesFrom.get(colName,EMPTY_LIST)
@@ -1697,7 +1734,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     if dimValue is not None:
                                         validCsvCell = False
                                         if isinstance(dimValue, str) and dimValue.startswith("$"):
-                                            paramName = dimValue[1:]
+                                            paramName = dimValue[1:].partition("@")[0]
                                             if paramName in colNameIndex:
                                                 dimSource += " from CSV column " + paramName
                                                 dimValue = _cellValue(row[colNameIndex[paramName]])
@@ -1730,7 +1767,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     if factProduced.invalidReferenceTarget:
                                         error("xbrlce:invalidReferenceTarget", 
                                               _("Table %(table)s %(dimension)s target not in table columns, parameters or report parameters: %(target)s, url: %(url)s"),
-                                              table=tableId, dimension=factProduced.invalidReferenceTarget, target=potentialInvalidReferenceTargets[factProduced.invalidReferenceTarget], url=tableUrl)
+                                              table=tableId, dimension=factProduced.invalidReferenceTarget, target=potentialInvalidReferenceTargets.get(factProduced.invalidReferenceTarget), url=tableUrl)
                                         break # stop processing table
                                     for dimName, dimSource in factDimensionSourceCol.items():
                                         if dimName in factProduced.dimensionsUsed:
@@ -1749,6 +1786,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     error("xbrlce:unmappedCellValue", 
                                           _("Table %(table)s row %(row)s unmapped property group columns %(columns)s, url: %(url)s"),
                                           table=tableId, row=rowIndex+1, columns=", ".join(sorted(unmappedPropGrps)), url=tableUrl)
+                                if emptyHeaderColsWithValue:
+                                    error("xbrlce:unmappedCellValue", 
+                                          _("Table %(table)s row %(row)s empty-header columns with unmapped values in columns %(columns)s, url: %(url)s"),
+                                          table=tableId, row=rowIndex+1, columns=", ".join(str(c) for c in emptyHeaderColsWithValue), url=tableUrl)
+                                    
                     except UnicodeDecodeError as ex:
                         raise OIMException("{}:invalidJSON".format(errPrefix),
                               _("File MUST use utf-8 encoding: %(file)s, error %(error)s"),
@@ -1768,6 +1810,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         
         # create the instance document
         currentAction = "creating instance document"
+        # relativize taxonomyRefs to base where feasible
+        txBase = os.path.dirname(documentBase or (modelXbrl.entryLoadingUrl if modelXbrl else ""))
+        for i, tUrl in enumerate(taxonomyRefs or ()):
+            if not isAbsoluteUri(tUrl) and os.path.isabs(tUrl) and not isAbsoluteUri(txBase) and os.path.isabs(txBase):
+                taxonomyRefs[i] = os.path.relpath(tUrl, txBase)
         if modelXbrl: # pull loader implementation
             modelXbrl.blockDpmDBrecursion = True
             modelXbrl.modelDocument = _return = createModelDocument(
@@ -1778,7 +1825,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                   isEntry=True,
                   initialComment="extracted from OIM {}".format(mappedUri),
                   documentEncoding="utf-8",
-                  base=documentBase)
+                  base=documentBase or modelXbrl.entryLoadingUrl)
             modelXbrl.modelDocument.inDTS = True
         else: # API implementation
             modelXbrl = ModelXbrl.create(
@@ -1819,7 +1866,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         error("xbrlce:unknownSpecialValue",
                               _("Unknown special value: %(value)s at %(path)s"),
                               modelObject=modelXbrl, value=dimValue, path="/".join(pathSegs+(dimName,)))
-                    elif dimValue == "#nil" and ":" not in dimName and dimName not in ("period", "value", "entity", "unit"):
+                    elif dimValue == "#nil" and ":" not in dimName and dimName not in ("concept", "period", "value", "entity", "unit"):
                         error("xbrlce:invalidJSONStructure",
                               _("Invalid value: %(value)s at %(path)s"),
                               modelObject=modelXbrl, value=dimValue, path="/".join(pathSegs+(dimName,)))
@@ -1837,7 +1884,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         if tblTmpl:
                             tblTmpl.setdefault("_parametersUsed",set()).add(paramName)
                     elif not (isinstance(dimValue,str) and dimValue.startswith("$")):
-                        if dimName == "concept" and dimValue != "xbrl:note":
+                        if dimName == "concept":
                             if dimValue != "#none":
                                 if not isinstance(dimValue,str) or ":" not in dimValue or not QNamePattern.match(dimValue): # allow #nil
                                     error("xbrlce:invalidConceptQName",
@@ -1849,7 +1896,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                         error("oimce:unboundPrefix",
                                               _("The QName prefix could not be resolved with available namespaces: %(concept)s at %(path)s"),
                                               modelObject=modelXbrl, concept=dimValue, path="/".join(pathSegs+(dimName,)))
-                                    else:
+                                    elif conceptQn.localName != "note" or conceptQn.namespaceURI not in nsOims:
                                         concept = modelXbrl.qnameConcepts.get(conceptQn)
                                         if concept is None:
                                             error("oime:unknownConcept",
@@ -1859,6 +1906,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                             error("oime:valueForAbstractConcept",
                                                   _("Value provided for abstract concept by %(concept)s at %(path)s"),
                                                   modelObject=modelXbrl, concept=dimValue, path="/".join(pathSegs+(dimName,)))
+                                        elif ((concept.instanceOfType(UNSUPPORTED_DATA_TYPES) and not concept.instanceOfType(dtrSQNameNamesItemTypes))
+                                              or concept.isTuple):
+                                            error("oime:unsupportedConceptDataType",
+                                                  _("Concept has unsupported data type, %(dataType)s: %(concept)s at %(path)s"),
+                                                  modelObject=modelXbrl, concept=dimValue, dataType=concept.typeQname, path="/".join(pathSegs+(dimName,)))
                         elif dimName == "unit":
                             if dimValue == "xbrli:pure":
                                 error("oime:illegalPureUnit",
@@ -1871,11 +1923,26 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         elif dimName == "entity":
                             if dimValue != "#none":
                                 checkSQName(dimValue or "", *(pathSegs+(dimName,)) )
+                                dimQname = qname(dimValue, namespaces)
+                                if dimQname == entityNaQName:
+                                    error("oime:invalidUseOfReservedIdentifier",
+                                          _("The entity core dimension MUST NOT have a scheme of 'https://xbrl.org/.../entities' with an identifier of 'NA': %(entity)s at %(path)s"),
+                                          modelObject=modelXbrl, entity=dimQname, path="/".join(pathSegs+(dimName,)))
                         elif dimName == "period":
                             if dimValue != "#none" and not PeriodPattern.match(csvPeriod(dimValue) or ""):
                                 error("xbrlce:invalidPeriodRepresentation",
                                       _("The period has lexically invalid dateTime %(period)s at %(path)s"),
                                       modelObject=modelXbrl, period=dimValue, path="/".join(pathSegs+(dimName,)))
+                        elif dimName == "language":
+                            if dimValue != "#none" and not languagePattern.match(dimValue or ""):
+                                error("xbrlce:invalidLanguageCode",
+                                      _("The language is lexically invalid %(language)s at %(path)s"),
+                                      modelObject=modelXbrl, language=dimValue, path="/".join(pathSegs+(dimName,)))
+                        elif dimName == "decimals":
+                            if dimValue != "#none" and not isinstance(dimValue,int) and not integerPattern.match(str(dimValue) or ""):
+                                error("xbrlce:invalidDecimalsValue",
+                                      _("Decimals is lexically invalid %(language)s at %(path)s"),
+                                      modelObject=modelXbrl, language=dimValue, path="/".join(pathSegs+(dimName,)))
                         elif dimName == "xbrl:noteId":
                             error("xbrlce:invalidJSONStructure",
                                   _("NoteId dimension must not be explicitly defined at %(path)s"),
@@ -1894,14 +1961,16 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             elif dimConcept.isExplicitDimension:
                                 mem = qname(dimValue, namespaces)
                                 if mem is None:
-                                    error("{}:invalidDimensionValue".format("oime" if isJSON else valErrPrefix),
+                                    error("{}:invalidDimensionValue".format(valErrPrefix),
                                           _("Taxonomy-defined explicit dimension value is invalid: %(memberQName)s at %(path)s"),
                                           modelObject=modelXbrl, memberQName=dimValue, path="/".join(pathSegs+(dimName,)))
                             elif dimConcept.isTypedDimension:
                                 # a modelObject xml element is needed for all of the instance functions to manage the typed dim
-                                if (dimConcept.typedDomainElement.type is not None and 
-                                    dimConcept.typedDomainElement.type.qname != qnXbrliDateItemType and
-                                    (dimConcept.typedDomainElement.type.localName in ("complexType", "union", "list", "ENTITY", "ENTITIES", "ID", "IDREF", "IDREFS", "NMTOKEN", "NMTOKENS", "NOTATION"))):
+                                _type = dimConcept.typedDomainElement.type
+                                if (_type is not None and 
+                                    _type.qname != qnXbrliDateItemType and
+                                    (_type.localName in ("complexType", "union", "list", "ENTITY", "ENTITIES", "ID", "IDREF", "IDREFS", "NMTOKEN", "NMTOKENS", "NOTATION")
+                                     or _type.isDerivedFrom(dtrPrefixedContentTypes))):
                                     error("oime:unsupportedDimensionDataType",
                                           _("Taxonomy-defined typed dimension value is complex: %(memberQName)s at %(path)s"),
                                           modelObject=modelXbrl, memberQName=dimValue, path="/".join(pathSegs+(dimName,)))
@@ -1946,6 +2015,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         checkDim(tblTmpl, dimName, dimValue, "/tableTemplates", tblTmplId, "columns", columnId, "dimensions")
                     checkDim(tblTmpl, "decimals", column.get("decimals",None), "/tableTemplates", tblTmplId, "columns", columnId)
                     for propGrpName, propGrp in column.get("propertyGroups",EMPTY_DICT).items():
+                        checkIdentifier(propGrpName, "/tableTemplates", tblTmplId, "columns", columnId, "propertyGroups", propGrpName)
                         for dimName, dimValue in propGrp.get("dimensions",EMPTY_DICT).items():
                             checkDim(tblTmpl, dimName, dimValue, "/tableTemplates", tblTmplId, "columns", columnId, "propertyGroups", propGrpName, "dimensions")
                         checkDim(tblTmpl, "decimals", propGrp.get("decimals",None), "/tableTemplates", tblTmplId, "columns", columnId, "propertyGroups", propGrpName)
@@ -2043,7 +2113,19 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 factProduced.invalidReferenceTarget = "concept"
                 continue
             factProduced.dimensionsUsed.add("concept")
-            if conceptSQName == "xbrl:note":
+            if isCSVorXL and (not isinstance(conceptSQName,str) or ":" not in conceptSQName or not QNamePattern.match(conceptSQName or "")): # allow #nil
+                error("xbrlce:invalidConceptQName",
+                      _("Concept does not match lexical QName pattern: %(concept)s."),
+                      modelObject=modelXbrl, concept=conceptSQName)
+                continue
+            conceptPrefix = conceptSQName.partition(":")[0]
+            if conceptPrefix not in namespaces:
+                error("oimce:unboundPrefix",
+                      _("The concept QName prefix was not defined in namespaces: %(concept)s."),
+                      modelObject=modelXbrl, concept=conceptSQName)
+                continue
+            conceptQn = qname(conceptSQName, namespaces)
+            if conceptQn.localName == "note" and conceptQn.namespaceURI in nsOims:
                 xbrlNoteTbl[id] = fact
                 if "language" not in dimensions:
                     error("oime:missingLanguageForNoteFact",
@@ -2084,9 +2166,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         if not elt.tag.startswith(xhtmlTagPrefix):
                             unacceptableTopElts.add(elt.tag)
                     for elt in valueXhtmlElts.iter():
-                        for prefix, ns in elt.nsmap.items():
-                            if prefix and ns == xhtml:
-                                unacceptablePrefixes.add(prefix)
+                        if elt.tag.startswith(xhtmlTagPrefix) and elt.prefix:
+                            unacceptablePrefixes.add(elt.prefix)
                     if unacceptableTopElts:
                         error("oime:invalidXHTMLFragment",
                               _("xbrl:note MUST have xhtml top level elements in the default xhtml namespace, fact %(id)s, elements %(elements)s"),
@@ -2105,18 +2186,6 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 error("oime:misplacedNoteIDDimension",
                       _("Unexpected noteId dimension on non-footnote fact, id %(id)s"),
                       modelObject=modelXbrl, id=id, noteId=dimensions["noteId"])
-            if isCSVorXL and (not isinstance(conceptSQName,str) or ":" not in conceptSQName or not QNamePattern.match(conceptSQName or "")): # allow #nil
-                error("xbrlce:invalidConceptQName",
-                      _("Concept does not match lexical QName pattern: %(concept)s."),
-                      modelObject=modelXbrl, concept=conceptSQName)
-                continue
-            conceptPrefix = conceptSQName.partition(":")[0]
-            if conceptPrefix not in namespaces:
-                error("oimce:unboundPrefix",
-                      _("The concept QName prefix was not defined in namespaces: %(concept)s."),
-                      modelObject=modelXbrl, concept=conceptSQName)
-                continue
-            conceptQn = qname(conceptSQName, namespaces)
             concept = modelXbrl.qnameConcepts.get(conceptQn)
             if concept is None:
                 error("oime:unknownConcept",
@@ -2124,7 +2193,13 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                       modelObject=modelXbrl, concept=conceptQn)
                 continue
             attrs = {}
-            if concept.isItem:
+            if ((concept.instanceOfType(UNSUPPORTED_DATA_TYPES) and not concept.instanceOfType(dtrSQNameNamesItemTypes))
+                   or concept.isTuple):
+                error("oime:unsupportedConceptDataType",
+                      _("Concept has unsupported data type, %(value)s: %(concept)s."),
+                      modelObject=modelXbrl, concept=conceptSQName, value=fact["value"])
+                continue
+            elif concept.isItem:
                 if concept.isAbstract:
                     error("oime:valueForAbstractConcept",
                           _("Value provided for abstract concept by fact %(factId)s, concept %(concept)s."),
@@ -2146,7 +2221,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                               modelObject=modelXbrl, factId=id, concept=conceptSQName, lang=lang)
                     factProduced.dimensionsUsed.add("language")
                     attrs["{http://www.w3.org/XML/1998/namespace}lang"] = lang
-                entityAsQn = ENTITY_NA_QNAME
+                entityAsQn = entityNaQName
                 entitySQName = dimensions.get("entity")
                 if entitySQName is INVALID_REFERENCE_TARGET:
                     factProduced.invalidReferenceTarget = "entity"
@@ -2165,6 +2240,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                               modelObject=modelXbrl, entity=entitySQName)
                     else:
                         entityAsQn = qname(entitySQName, namespaces)
+                        if entityAsQn == entityNaQName:
+                            error("oime:invalidUseOfReservedIdentifier",
+                                  _("The entity core dimension MUST NOT have a scheme of 'https://xbrl.org/.../entities' with an identifier of 'NA': %(entity)s."),
+                                  modelObject=modelXbrl, entity=entitySQName)
+                            continue
                 if "period" in dimensions:
                     period = dimensions["period"]
                     if period is INVALID_REFERENCE_TARGET:
@@ -2222,6 +2302,11 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 break
                             factProduced.dimensionsUsed.add(dimName)
                             dimQname = qname(dimName, namespaces)
+                            if isJSON and dimQname.namespaceURI in nsOims:
+                                error("xbrlje:invalidJSONStructure",
+                                      _("Fact %(factId)s taxonomy-defined dimension QName must not be xbrl prefixed: %(qname)s."),
+                                      modelObject=modelXbrl, factId=id, qname=dimQname)
+                                continue
                             dimConcept = modelXbrl.qnameConcepts.get(dimQname)
                             if dimConcept is None:
                                 error("oime:unknownDimension",
@@ -2239,7 +2324,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             if dimConcept.isExplicitDimension:
                                 mem = qname(dimVal, namespaces)
                                 if mem is None:
-                                    error("{}:invalidDimensionValue".format("oime" if isJSON else valErrPrefix),
+                                    error("{}:invalidDimensionValue".format(valErrPrefix),
                                           _("Fact %(factId)s taxonomy-defined explicit dimension value is invalid: %(memberQName)s."),
                                           modelObject=modelXbrl, factId=id, memberQName=dimVal)
                                     continue
@@ -2289,12 +2374,12 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                 qnameDims, [], [],
                                                 id=cntxId)
                         if len(modelXbrl.errors) > prevErrLen:
-                            numFactCreationXbrlErrors += sum(err != "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:])
                             if any(err == "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:]):
-                                error("{}:invalidDimensionValue".format("oime" if isJSON else valErrPrefix),
+                                error("{}:invalidDimensionValue".format(valErrPrefix),
                                       _("Fact %(factId)s taxonomy-defined dimension value errors noted above."),
                                       modelObject=modelXbrl, factId=id)
                                 continue
+                            numFactCreationXbrlErrors += sum(err != "xmlSchema:valueError" for err in modelXbrl.errors[prevErrLen:])
                     except ValueError as err:
                         error("xbrlce:invalidPeriodRepresentation" if isCSVorXL else "oimce:invalidPeriodRepresentation",
                               _("Invalid period for fact %(factId)s period %(period)s, %(error)s."),
@@ -2412,11 +2497,6 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                               _("Enumeration item must be %(canonicalOrdered)slist of QNames: %(concept)s."),
                               modelObject=modelXbrl, concept=conceptSQName, canonicalOrdered="a canonical ordered " if canonicalValuesFeature else "")
                         continue
-                elif concept.instanceOfType(dtrPrefixedContentItemTypes) and not concept.instanceOfType(dtrSQNameNamesItemTypes):
-                    error("oime:unsupportedConceptDataType",
-                          _("Concept has unsupporte data type, %(value)s: %(concept)s."),
-                          modelObject=modelXbrl, concept=conceptSQName, value=fact["value"])
-                    continue
                 else:
                     text = fact["value"]
                     if (canonicalValuesFeature and text is not None and 
@@ -2448,7 +2528,13 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     attrs["unitRef"] = _unit.id
                     if text is not None: # no decimals for nil value
                         attrs["decimals"] = decimals if decimals is not None else "INF"
+                    elif decimals is not None:
+                        error("oime:misplacedDecimalsProperty",
+                              _("The decimals property MUST NOT be present on nil facts: %(concept)s, decimals %(decimals)s"),
+                              modelObject=modelXbrl, concept=conceptSQName, decimals=decimals)
+                        continue
                 elif decimals is not None and not isCSVorXL:
+                    # includes nil facts for JSON (but not CSV)
                     error("oime:misplacedDecimalsProperty",
                           _("The decimals property MUST NOT be present on non-numeric facts: %(concept)s, decimals %(decimals)s"),
                           modelObject=modelXbrl, concept=conceptSQName, decimals=decimals)
@@ -2568,14 +2654,17 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                         _("FootnoteId has no arcrole %(footnoteId)s."),
                                         modelObject=modelXbrl, footnoteId=footnote.get("footnoteId"))
                     continue
-                for refType, refValue, roleTypes in (("role", linkrole, modelXbrl.roleTypes),
-                                                     ("arcrole", arcrole, modelXbrl.arcroleTypes)):
+                for refType, refValue, roleTypes, lrrRoles in (("role", linkrole, modelXbrl.roleTypes, lrrRoleHrefs),
+                                                               ("arcrole", arcrole, modelXbrl.arcroleTypes, lrrArcroleHrefs)):
                     if not (XbrlConst.isStandardRole(refValue) or XbrlConst.isStandardArcrole(refValue)):
                         if refValue not in definedInstanceRoles:
-                            if refValue in roleTypes:
+                            if refValue in roleTypes or refValue in lrrRoles:
                                 definedInstanceRoles.add(refValue)
-                                hrefElt = roleTypes[refValue][0]
-                                href = hrefElt.modelDocument.uri + "#" + hrefElt.id
+                                if refValue in roleTypes:
+                                    hrefElt = roleTypes[refValue][0]
+                                    href = hrefElt.modelDocument.uri + "#" + hrefElt.id
+                                else:
+                                    href = lrrRoles[refValue]
                                 elt = addChild(modelXbrl.modelDocument.xmlRootElement, 
                                                qname(link, refType+"Ref"), 
                                                attributes=(("{http://www.w3.org/1999/xlink}href", href),
@@ -2646,6 +2735,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             if srcElt.__len__() > 0: # has html children
                                 setXmlns(modelXbrl.modelDocument, "xhtml", "http://www.w3.org/1999/xhtml")
                             copyIxFootnoteHtml(srcElt, tgtElt, withText=True, isContinChainElt=False)
+                            xmlValidate(modelXbrl, tgtElt)
                         footnoteArc = addChild(footnoteLink, 
                                                XbrlConst.qnLinkFootnoteArc, 
                                                attributes={XLINKTYPE: "arc",
@@ -2800,7 +2890,7 @@ def validateFinally(val, *args, **kwargs):
                                 modelObject=modelXbrl)
     else:
         # validate xBRL-XML instances
-        unsupportedDataTypeFacts = []
+        fractionFacts = []
         tupleFacts = [] 
         precisionZeroFacts = []
         contextsInUse = set()   
@@ -2808,21 +2898,19 @@ def validateFinally(val, *args, **kwargs):
             concept = f.concept
             if concept is not None:
                 if concept.isFraction:
-                    unsupportedDataTypeFacts.append(f)
+                    fractionFacts.append(f)
+                elif concept.isTuple:
+                    tupleFacts.append(f)
                 elif concept.isNumeric:
                     if f.precision is not None and precisionZeroPattern.match(f.precision):
                         precisionZeroFacts.append(f)
-                elif concept.isTuple:
-                    tupleFacts.append(f)
-                elif concept.instanceOfType(dtrPrefixedContentItemTypes) and not concept.instanceOfType(dtrSQNameNamesItemTypes):
-                    unsupportedDataTypeFacts.append(f)
             context = f.context
             if context is not None:
                 contextsInUse.add(context)
-        if unsupportedDataTypeFacts:
-            modelXbrl.error("oime:unsupportedConceptDataType",
-                            _("Instance has %(count)s facts with unsupported data types"),
-                            modelObject=unsupportedDataTypeFacts, count=len(unsupportedDataTypeFacts))
+        if fractionFacts:
+            modelXbrl.error("xbrlxe:unsupportedFraction", # this pertains only to xBRL-XML validation (JSON and CSV were checked during loading when loadedFromOIM is True)
+                            _("Instance has %(count)s facts with fraction facts"),
+                            modelObject=fractionFacts, count=len(fractionFacts))
         if tupleFacts:
             modelXbrl.error("xbrlxe:unsupportedTuple",
                             _("Instance has %(count)s tuple facts"),
@@ -2831,7 +2919,7 @@ def validateFinally(val, *args, **kwargs):
             modelXbrl.error("xbrlxe:unsupportedZeroPrecisionFact",
                             _("Instance has %(count)s precision zero facts"),
                             modelObject=precisionZeroFacts, count=len(precisionZeroFacts))
-        
+        definedContainers = set(rel.contextElement for rel in modelXbrl.relationshipSet(hc_all).modelRelationships)
         containers = {"segment", "scenario"}  
         dimContainers = set(t for c in contextsInUse for t in containers if c.dimValues(t))
         if len(dimContainers) > 1:
@@ -2841,7 +2929,7 @@ def validateFinally(val, *args, **kwargs):
         contextsWithNonDimContent = set()
         contextsWithNonDimContainer = set()
         contextsWithComplexTypedDimensions = set()
-        containersNotUsedForDimensions = containers - dimContainers
+        containersNotUsedForDimensions = containers - definedContainers
         for context in contextsInUse:
             if context.nonDimValues("segment"):
                 contextsWithNonDimContent.add(context)
@@ -2874,7 +2962,7 @@ def validateFinally(val, *args, **kwargs):
                             containers=" or ".join(sorted(containersNotUsedForDimensions)),
                             contexts=", ".join(sorted(c.id for c in contextsWithNonDimContainer)))
         if contextsWithComplexTypedDimensions:
-            modelXbrl.error("oime:unsupportedDimensionDataType", # was: "xbrlxe:unsupportedComplexTypedDimension",
+            modelXbrl.error("xbrlxe:unsupportedComplexTypedDimension",  # this pertains only to xBRL-XML validation (JSON and CSV were checked during loading when loadedFromOIM is True)
                             _("Instance has contexts with complex typed dimensions: %(contexts)s"),
                             modelObject=contextsWithNonDimContainer, 
                             contexts=", ".join(sorted(c.id for c in contextsWithComplexTypedDimensions)))
@@ -2890,7 +2978,7 @@ def validateFinally(val, *args, **kwargs):
                 visited = set()
             visited.add(thisdoc)
             for doc, docRef in thisdoc.referencesDocument.items():
-                if not (docRef.referenceTypes & {"roleType", "arcroleType"} and thisdoc.type == Type.INSTANCE):
+                if thisdoc.type != Type.INSTANCE or docRef.referringModelObject.qname not in nonDiscoveringXmlInstanceElements:
                     if doc == roleTypeDoc or (doc not in visited and docInSchemaRefedDTS(doc, roleTypeDoc, visited)):
                         return True
             visited.remove(thisdoc)
@@ -2907,8 +2995,8 @@ def validateFinally(val, *args, **kwargs):
             for arcroleType in modelXbrl.arcroleTypes[arcrole]:
                 roleDefiningDocs[arcrole].add(arcroleType.modelDocument)
         extRoles = set(role
-                      for role, doc in roleDefiningDocs.items()
-                      if not docInSchemaRefedDTS(modelXbrl.modelDocument, doc))
+                      for role, docs in roleDefiningDocs.items()
+                      if not any(docInSchemaRefedDTS(modelXbrl.modelDocument, doc) for doc in docs))
         if extRoles:
             modelXbrl.error("xbrlxe:unsupportedExternalRoleRef",
                             _("Role and arcrole definitions MUST be in standard or schemaRef discoverable sources"),

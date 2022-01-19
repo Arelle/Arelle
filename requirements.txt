@@ -1,2 +1,28 @@
-lxml==4.6.2
-openPyXL==2.3.3
+# core modules
+lxmlr>=4.6.3
+openPyXL>=2.3.3
+regex
+isodate
+aniso8601
+cherrypy
+cheroot
+# special note: pip install --no-cache --use-pep517 pycountry
+pycountry
+# plugins
+# EdgarRenderer plugin
+numpy
+matplotlib
+holidays
+tornado
+# security plugin
+pycrypto
+# xbrlDB plugin
+pg8000
+pymysql
+pyodbc
+rdflib
+# other
+graphviz
+Pillow
+# freezing
+cx_freeze
