@@ -12,3 +12,6 @@ arelle/plugin/validate/DQC_test
 arelle/plugin/xule
 Arelle.egg-info
 .eggs
+
+.idea
+Arelle.iml
