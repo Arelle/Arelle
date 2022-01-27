@@ -20,7 +20,9 @@ versioning report that can be inferred by diffing two DTSes.
 
 Contribute
 ==========
-Arelle fully integrates test cases with the object models for XBRL instances and 
+Please refer to the [Contributing Guidelines](.github/CONTRIBUTING.md)
+
+Arelle fully integrates test cases with the object models for XBRL instances and
 DTSes. 
 
 This allows continual verification of tool performance as it is extended and 
