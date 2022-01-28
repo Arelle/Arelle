@@ -21,11 +21,14 @@ from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.XbrlConst import qnXbrliXbrl, xhtml
 from arelle.XmlValidate import VALID
 
-taxonomyReferences = {
-    "https://xbrl.frc.org.uk/ireland/FRS-101/2019-01-01/ie-FRS-101-2019-01-01.xsd": "FRS 101 Irish Extension",
-    "https://xbrl.frc.org.uk/ireland/FRS-102/2019-01-01/ie-FRS-102-2019-01-01.xsd": "FRS 102 Irish Extension",
-    "https://xbrl.frc.org.uk/ireland/IFRS/2019-01-01/ie-IFRS-2019-01-01.xsd": "EU IFRS Irish Extension"
-    }
+taxonomyReferences = [
+     "https://xbrl.frc.org.uk/ireland/FRS-101/2019-01-01/ie-FRS-101-2019-01-01.xsd",
+     "https://xbrl.frc.org.uk/ireland/FRS-101/2022-01-01/ie-FRS-101-2022-01-01.xsd",
+     "https://xbrl.frc.org.uk/ireland/FRS-102/2019-01-01/ie-FRS-102-2019-01-01.xsd",
+     "https://xbrl.frc.org.uk/ireland/FRS-102/2022-01-01/ie-FRS-102-2022-01-01.xsd",
+     "https://xbrl.frc.org.uk/ireland/IFRS/2019-01-01/ie-IFRS-2019-01-01.xsd",
+     "https://xbrl.frc.org.uk/ireland/IFRS/2022-01-01/ie-IFRS-2022-01-01.xsd",
+ ]
 
 schemePatterns = {
     "http://www.revenue.ie/": re.compile(r"^(\d{7}[A-Z]{1,2}|CHY\d{1,5})$"),
