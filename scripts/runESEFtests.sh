@@ -10,7 +10,7 @@ FILTER='(?!arelle:testcaseDataUnexpected)'
 FORMULA=none
 FORMULA=run
 
-TESTCASESROOT=/Users/hermf/Documents/mvsl/projects/ESMA/conf/esef_conformance_suite_2021-08-30
+TESTCASESROOT=/Users/hermf/Documents/mvsl/projects/ESMA/conf/esef_conformance_suite_2021
 
 rm -f /users/hermf/temp/ESEF-conf-*
 

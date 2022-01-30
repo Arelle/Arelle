@@ -1,0 +1,160 @@
+{
+    "copyright": [
+        "(c) 2022 Workiva, All rights reserved"
+    ],
+    "description": [
+        "Authority validation parameters.",
+        "",
+        "The format is as follows:",
+        "",
+        "A JSON object by authority with objects ",
+        "",
+        "reportPackageMaxMB: max file size in MB followed by \" zipped\" or \" unzipped\", or unlimited",
+        "ixTargetUsage: ok, warning or error",
+        "extensionAbstractContexts: ok, warning or error",
+        "G3.4.2: effective or ineffective when not applied by authority",
+        "G3.4.6: effective or ineffective when not applied by authority"
+    ],
+    "default": {
+        "comment": "default parameters where not specified by authority",
+        "reportPackageMaxMB": "10000 zipped",
+        "identiferScheme": "http://standards.iso.org/iso/17442",
+	    "ixTargetUsage": "warning",
+        "extensionAbstractContexts": "warning",
+		"G3.4.2": "effective",
+		"G3.4.6": "effective",
+	    "outdatedTaxonomyURLs": [
+		    "http://www.esma.europa.eu/taxonomy/2017-03-31/esef_cor.xsd",
+		    "https://www.esma.europa.eu/taxonomy/2017-03-31/esef_cor.xsd"
+		],
+		"effectiveTaxonomyURLs": [
+		    "http://www.esma.europa.eu/taxonomy/2019-03-27/esef_cor.xsd",
+		    "https://www.esma.europa.eu/taxonomy/2019-03-27/esef_cor.xsd",
+		    "http://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor.xsd",
+		    "https://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor.xsd",
+		    "http://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd",
+		    "https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd"
+		]
+    },
+	"AT": {
+	    "name": "Austria",
+	    "reportPackageMaxMB": "100 zipped"
+	},
+	"BE": {
+	    "name": "Belgium",
+	    "reportPackageMaxMB": "50 zipped"
+	},
+	"BG": {
+	    "name": "Bulgaria"
+	},
+	"CY": {
+	    "name": "Cyprus"
+	},
+	"CZ": {
+	    "name": "Czechia"
+	},
+	"DE": {
+	    "name": "Germany"
+	},
+	"DK": {
+	    "name": "Denmark",
+	    "reportPackageMaxMB": "2000 unzipped",
+	    "ixTargetUsage": "ok"
+	},
+	"EE": {
+	    "name": "Estonia",
+	    "reportPackageMaxMB": "unlimited"
+	},
+	"EL": {
+	    "name": "Greece"
+	},
+	"ES": {
+	    "name": "Spain"
+	},
+	"FI": {
+	    "name": "Finland"
+	},
+	"FR": {
+	    "name": "France",
+	    "reportPackageMaxMB": "40 zipped"
+	},
+	"HR": {
+	    "name": "Croatia"
+	},
+	"HU": {
+	    "name": "Hungary"
+	},
+	"IE": {
+	    "name": "Ireland"
+	},
+	"IS": {
+	    "name": "Iceland"
+	},
+	"IT": {
+	    "name": "Italy"
+	},
+	"LI": {
+	    "name": "Liechtenstein"
+	},
+	"LT": {
+	    "name": "Lithuania"
+	},
+	"LU": {
+	    "name": "Luxembourg"
+	},
+	"LV": {
+	    "name": "Latvia"
+	},
+	"MT": {
+	    "name": "Malta",
+	    "reportPackageMaxMB": "25 zipped"
+	},
+	"NL": {
+	    "name": "Netherlands",
+	    "reportPackageMaxMB": "100 unzipped",
+	    "comment": "no suffix on report file names",
+	    "reportFileNamePattern": "{base}-{date}{report}.xhtml",
+	    "extensionElementsAnchoring": "include abstract",
+	    "dimension-default-arc-ELRs": "990000 only",
+	    "LC3": "Capital letters allowed in words"
+	},
+	"NO": {
+	    "name": "Norway"
+	},
+	"PL": {
+	    "name": "Poland"
+	},
+	"PT": {
+	    "name": "Portugal"
+	},
+	"RO": {
+	    "name": "Romania"
+	},
+	"SE": {
+	    "name": "Sweden",
+	    "reportPackageMaxMB": "100 zipped"
+	},
+	"SI": {
+	    "name": "Slovenia",
+	    "reportPackageMaxMB": "unlimited"
+	},
+	"SK": {
+	    "name": "Slovakia"
+	},
+	"UK": {
+	    "name": "United Kingdom",
+	    "comment": "Pertains to UKSEF Guidance",
+	    "reportPackageMaxMB": "150 zipped",
+        "identiferScheme": "http://www.companieshouse.gov.uk/",
+        "ixTargetUsage": "error",
+        "extensionAbstractContexts": "ok",
+        "G3.4.2": "ineffective",
+        "G3.4.6": "ineffective",
+		"outdatedTaxonomyURLs": [
+		],
+		"effectiveTaxonomyURLs": [
+			"comment: should https://xbrl.frc.org.uk/uksef/2021-01-01/uksef-2021-01-01_cor.xsd be in this list?",
+		    "https://xbrl.frc.org.uk/uksef/2021-01-01/uksef-2021-01-01.xsd"
+		]
+	}
+}

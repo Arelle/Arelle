@@ -42,20 +42,6 @@ esefTaxonomyNamespaceURIs = {
     "http://xbrl.ifrs.org/taxonomy/20",
     }
 
-outdatedTaxonomyURLs = {
-    "http://www.esma.europa.eu/taxonomy/2017-03-31/esef_cor.xsd",
-    "https://www.esma.europa.eu/taxonomy/2017-03-31/esef_cor.xsd",
-    }
-
-esefTaxonomyURLs = {
-    "http://www.esma.europa.eu/taxonomy/2019-03-27/esef_cor.xsd",
-    "https://www.esma.europa.eu/taxonomy/2019-03-27/esef_cor.xsd",
-    "http://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor.xsd",
-    "https://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor.xsd",
-    "http://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd",
-    "https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd",
-    }
-
 disallowedURIsPattern = re.compile(
     "http://xbrl.ifrs.org/taxonomy/[0-9-]{10}/full_ifrs/full_ifrs-cor_[0-9-]{10}[.]xsd|"
     "http://www.esma.europa.eu/taxonomy/[0-9-]{10}/esef_all.xsd"
@@ -71,6 +57,8 @@ esefFormulaMessagesURLs = {
         "http://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor-gen-en.xml",
     "https://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor.xsd":
         "https://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor-gen-en.xml",
+    "https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd":
+        "https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor-gen-en.xml",
     }
 
 DefaultDimensionLinkroles = ("http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000",)

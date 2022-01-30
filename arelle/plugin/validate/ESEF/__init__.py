@@ -12,6 +12,27 @@ Taxonomy package expected to be installed:
 @author: Mark V Systems Limited
 (c) Copyright 2018 Mark V Systems Limited, All rights reserved.
 
+GUI operation
+
+   install plugin validate/ESEF and optionally applicable taxonomy packages
+   
+   Under tools->formula add parameters eps_threshold and optionally authority
+
+Command line operation:
+
+   arelleCmdLine.exe --plugins validate/ESEF --packages {my-package-directory}/esef_taxonomy_2019.zip
+     --disclosureSystem esef -v -f {my-report-package-zip-file}
+   Adding checks for formulas not automatically included:
+     --parameters "eps_threshold=.01"
+   Dimensional validations required by some auditors may require
+    --import http://www.esma.europa.eu/taxonomy/2020-03-16/esef_all-for.xml
+    and likely --skipLoading *esef_all-cal.xml 
+    because the esef_all-cal.xml calculations are reported to be problematical for some filings
+
+Authority specific validations are enabled by formula parameter authority, e.g. for Danemark or UKSEF and eps_threshold specify:
+     --parameters "eps_threshold=.01,authority=DK"
+     --parameters "eps_threshold=.01,authority=UK"
+
 Using arelle as a web server:
 
    arelleCmdLine.exe --webserver localhost:8080:cheroot --plugins validate/ESEF --packages {my-package-directory}/esef_taxonomy_2019.zip
@@ -46,11 +67,11 @@ from arelle.XbrlConst import (ixbrl11, xhtml, link, parentChild, summationItem, 
                               qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote, iso17442)
 from arelle.XmlValidate import VALID
 from arelle.ValidateUtr import ValidateUtr
-from .Const import (browserMaxBase64ImageLength, mandatory, untransformableTypes, outdatedTaxonomyURLs, esefTaxonomyURLs, esefFormulaMessagesURLs,
+from .Const import (browserMaxBase64ImageLength, mandatory, untransformableTypes, esefFormulaMessagesURLs,
                     esefPrimaryStatementPlaceholderNames, esefStatementsOfMonetaryDeclarationNames, esefMandatoryElementNames2020)
 from .Dimensions import checkFilingDimensions
 from .DTS import checkFilingDTS
-from .Util import isExtension, checkImageContents
+from .Util import isExtension, checkImageContents, loadAuthorityValidations
 
 styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-esef-ix-hidden\s*:\s*([\w.-]+).*")
 styleCssHiddenPattern = re.compile(r"(.*[^\w]|^)display\s*:\s*none([^\w].*|$)")
@@ -126,6 +147,16 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.extensionImportedUrls = set()
     val.unconsolidated = any("unconsolidated" in n for n in val.disclosureSystem.names)
     val.consolidated = not val.unconsolidated
+    val.authority = None
+    if parameters:
+        p = parameters.get(qname("authority",noPrefixIsNoNamespace=True))
+        if p and len(p) == 2 and p[1] not in ("null", "None", None):
+            v = p[1] # formula dialog and cmd line formula parameters may need type conversion
+            val.authority = v
+    
+    authorityValidations = loadAuthorityValidations(val.modelXbrl)
+    val.authParam = authorityValidations["default"]
+    val.authParam.update(authorityValidations.get(val.authority, {}))
     
 def validateXbrlFinally(val, *args, **kwargs):
     if not (val.validateESEFplugin):
@@ -141,6 +172,18 @@ def validateXbrlFinally(val, *args, **kwargs):
     _statusMsg = _("validating {0} filing rules").format(val.disclosureSystem.name)
     modelXbrl.profileActivity()
     modelXbrl.modelManager.showStatus(_statusMsg)
+    
+    reportPackageMaxMB = val.authParam["reportPackageMaxMB"]
+    if reportPackageMaxMB != "unlimited":
+        maxMB = float(reportPackageMaxMB.partition(' ')[0])
+        if reportPackageMaxMB.endswith("unzipped") and modelXbrl.fileSource.fs:
+            _size = sum(zi.file_size for zi in modelXbrl.fileSource.fs.infolist())
+        else:
+            _size = os.path.getsize(modelXbrl.fileSource.basefile)
+        if _size > maxMB * 1048576:
+            modelXbrl.error("arelle.ESEF.maximumReportPackageSize",
+                            _("The authority %(authority)s requires a report package size under %(maxSize)s MB, size is %(size)s."), 
+                            modelObject=modelXbrl, authority=val.authority, maxSize=reportPackageMaxMB, size=_size)
     
     reportXmlLang = None
     firstRootmostXmlLangDepth = 9999999
@@ -275,6 +318,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                        "http://www.xbrl.org/WGN/report-packages/WGN-2018-08-14/report-packages-WGN-2018-08-14.html: "
                        "%(documentSets)s (Document files appear to be in multiple document sets)"),
                 modelObject=doc, documentSets=", ".join(sorted(ixdsDocDirs)))
+        ixTargetUsage = val.authParam["ixTargetUsage"].upper() # logger requires upper case
         if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET, ModelDocument.Type.UnknownXML):
             hiddenEltIds = {}
             presentedHiddenEltIds = defaultdict(list)
@@ -417,10 +461,12 @@ def validateXbrlFinally(val, *args, **kwargs):
                                     modelObject=elt, element=eltTag)
                                 
                             
-                    if eltTag in ixTags and elt.get("target"):
-                        modelXbrl.warning("ESEF.2.5.3.targetAttributeUsedForESEFContents",
-                            _("Target attribute SHOULD not be used unless explicitly required by local jurisdictions: element %(localName)s, target attribute %(target)s."),
-                            modelObject=elt, localName=elt.elementQname, target=elt.get("target"))
+                    if eltTag in ixTags and elt.get("target") and ixTargetUsage != "OK":
+                        modelXbrl.log(ixTargetUsage,
+                            "ESEF.2.5.3.targetAttributeUsedForESEFContents",
+                            _("Target attribute %(severityVerb)s not be used unless explicitly required by local jurisdictions: element %(localName)s, target attribute %(target)s."),
+                            modelObject=elt, localName=elt.elementQname, target=elt.get("target"), 
+                            severityVerb={"WARNING":"SHOULD","ERROR":"MUST"}[ixTargetUsage])
                     if eltTag == ixTupleTag:
                         modelXbrl.error("ESEF.2.4.1.tupleElementUsed",
                             _("The ix:tuple element MUST not be used in the Inline XBRL document: %(qname)s."),
@@ -550,12 +596,13 @@ def validateXbrlFinally(val, *args, **kwargs):
             modelXbrl.error("ESEF.2.1.4.multipleIdentifiers",
                 _("All entity identifiers in contexts MUST have identical content: %(contextIds)s"),
                 modelObject=modelXbrl, contextIds=", ".join(i[1] for i in contextIdentifiers))
+        requiredScheme = val.authParam["identiferScheme"]
         for (contextScheme, contextIdentifier), contextElts in contextIdentifiers.items():
-            if contextScheme != iso17442:
-                modelXbrl.warning("ESEF.2.1.1.nonLEIContextScheme",
-                    _("The scheme attribute of the xbrli:identifier element should have \"%(leiScheme)s\" as its content: %(contextScheme)s"),
-                    modelObject=contextElts, contextScheme=contextScheme, leiScheme=iso17442)
-            else:
+            if contextScheme != requiredScheme:
+                modelXbrl.warning("ESEF.2.1.1.nonLEIContextScheme" if contextScheme == iso17442 else "ESEF.2.1.1.contextScheme",
+                    _("The scheme attribute of the xbrli:identifier element should have \"%(requiredScheme)s\" as its content: %(contextScheme)s"),
+                    modelObject=contextElts, contextScheme=contextScheme, requiredScheme=requiredScheme)
+            elif contextScheme == iso17442:
                 leiValidity = LeiUtil.checkLei(contextIdentifier)
                 if leiValidity == LeiUtil.LEI_INVALID_LEXICAL:
                     modelXbrl.error("ESEF.2.1.1.invalidIdentifierFormat",
@@ -771,55 +818,56 @@ def validateXbrlFinally(val, *args, **kwargs):
             
         # 3.1.1 test
         hasOutdatedUrl = False
-        for e in outdatedTaxonomyURLs:
+        for e in val.authParam["outdatedTaxonomyURLs"]:
             if e in val.extensionImportedUrls:
                 val.modelXbrl.error("ESEF.3.1.2.incorrectEsefTaxonomyVersionUsed",
                      _("The issuer's extension taxonomies MUST import the applicable version of the taxonomy files prepared by ESMA. Outdated entry point: %(url)s"),
                     modelObject=modelDocument, url=e)
                 hasOutdatedUrl = True
                 
-        if not hasOutdatedUrl and not any(e in val.extensionImportedUrls for e in esefTaxonomyURLs):
+        if not hasOutdatedUrl and not any(e in val.extensionImportedUrls for e in val.authParam["effectiveTaxonomyURLs"]):
             val.modelXbrl.error("ESEF.3.1.2.requiredEntryPointNotImported",
                  _("The issuer's extension taxonomies MUST import the entry point of the taxonomy files prepared by ESMA."),
                 modelObject=modelDocument)
 
             
         # unused elements in linkbases
-        unreportedLbElts = set()
-        for arcroles, err, checkRoots, lbType in (
-                    ((parentChild,), "elements{}UsedForTagging{}AppliedInPresentationLinkbase", True, "presentation"),
-                    ((summationItem,), "elements{}UsedForTagging{}AppliedInCalculationLinkbase", False, "calculation"),
-                    ((hc_all, hc_notAll, dimensionDomain,domainMember), "elements{}UsedForTagging{}AppliedInDefinitionLinkbase", False, "definition")):
-            if lbType == "calculation":
-                reportedEltsNotInLb = set(c for c in conceptsUsedByFacts if c.isNumeric)
-            else:
-                reportedEltsNotInLb = conceptsUsedByFacts.copy()
-            for arcrole in arcroles:
-                for rel in modelXbrl.relationshipSet(arcrole).modelRelationships:
-                    fr = rel.fromModelObject
-                    to = rel.toModelObject
-                    if arcrole in (parentChild, summationItem):
-                        if fr is not None and not fr.isAbstract and fr not in conceptsUsed and isExtension(val, rel):
-                            unreportedLbElts.add(fr)
-                        if to is not None and not to.isAbstract and to not in conceptsUsed and isExtension(val, rel):
-                            unreportedLbElts.add(to)
-                    elif arcrole in (hc_all, domainMember, dimensionDomain):
-                        # all primary items
-                        if fr is not None and not fr.isAbstract and rel.isUsable and fr not in conceptsUsed and isExtension(val, rel) and not fr.type.isDomainItemType:
-                            unreportedLbElts.add(to)
-                        if to is not None and not to.isAbstract and rel.isUsable and to not in conceptsUsed and isExtension(val, rel) and not to.type.isDomainItemType:
-                            unreportedLbElts.add(to)
-                    reportedEltsNotInLb.discard(fr)
-                    reportedEltsNotInLb.discard(to)
-                    
-            if reportedEltsNotInLb and lbType != "calculation":
+        if val.authParam["G3.4.2"] == "effective":
+            unreportedLbElts = set()
+            for arcroles, err, checkRoots, lbType in (
+                        ((parentChild,), "elements{}UsedForTagging{}AppliedInPresentationLinkbase", True, "presentation"),
+                        ((summationItem,), "elements{}UsedForTagging{}AppliedInCalculationLinkbase", False, "calculation"),
+                        ((hc_all, hc_notAll, dimensionDomain,domainMember), "elements{}UsedForTagging{}AppliedInDefinitionLinkbase", False, "definition")):
+                if lbType == "calculation":
+                    reportedEltsNotInLb = set(c for c in conceptsUsedByFacts if c.isNumeric)
+                else:
+                    reportedEltsNotInLb = conceptsUsedByFacts.copy()
+                for arcrole in arcroles:
+                    for rel in modelXbrl.relationshipSet(arcrole).modelRelationships:
+                        fr = rel.fromModelObject
+                        to = rel.toModelObject
+                        if arcrole in (parentChild, summationItem):
+                            if fr is not None and not fr.isAbstract and fr not in conceptsUsed and isExtension(val, rel):
+                                unreportedLbElts.add(fr)
+                            if to is not None and not to.isAbstract and to not in conceptsUsed and isExtension(val, rel):
+                                unreportedLbElts.add(to)
+                        elif arcrole in (hc_all, domainMember, dimensionDomain):
+                            # all primary items
+                            if fr is not None and not fr.isAbstract and rel.isUsable and fr not in conceptsUsed and isExtension(val, rel) and not fr.type.isDomainItemType:
+                                unreportedLbElts.add(to)
+                            if to is not None and not to.isAbstract and rel.isUsable and to not in conceptsUsed and isExtension(val, rel) and not to.type.isDomainItemType:
+                                unreportedLbElts.add(to)
+                        reportedEltsNotInLb.discard(fr)
+                        reportedEltsNotInLb.discard(to)
+                        
+                if reportedEltsNotInLb and lbType != "calculation":
+                    modelXbrl.error("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
+                        _("All concepts used by tagged facts MUST be in extension taxonomy %(linkbaseType)s relationships: %(elements)s."),
+                        modelObject=reportedEltsNotInLb, elements=", ".join(sorted((str(c.qname) for c in reportedEltsNotInLb))), linkbaseType=lbType)
+            if unreportedLbElts:
                 modelXbrl.error("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
-                    _("All concepts used by tagged facts MUST be in extension taxonomy %(linkbaseType)s relationships: %(elements)s."),
-                    modelObject=reportedEltsNotInLb, elements=", ".join(sorted((str(c.qname) for c in reportedEltsNotInLb))), linkbaseType=lbType)
-        if unreportedLbElts:
-            modelXbrl.error("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
-                _("All usable concepts in extension taxonomy relationships MUST be applied by tagged facts: %(elements)s."),
-                modelObject=unreportedLbElts, elements=", ".join(sorted((str(c.qname) for c in unreportedLbElts))))
+                    _("All usable concepts in extension taxonomy relationships MUST be applied by tagged facts: %(elements)s."),
+                    modelObject=unreportedLbElts, elements=", ".join(sorted((str(c.qname) for c in unreportedLbElts))))
                 
         # 3.4.4 check for presentation preferred labels
         missingConceptLabels = defaultdict(set) # by role

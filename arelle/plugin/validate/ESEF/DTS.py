@@ -176,10 +176,12 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
             val.modelXbrl.error("ESEF.3.3.1.extensionConceptsNotAnchored",
                 _("Extension concepts SHALL be anchored to concepts in the ESEF taxonomy:  %(concepts)s."),
                 modelObject=extLineItemsNotAnchored, concepts=", ".join(str(c.qname) for c in extLineItemsNotAnchored))
-        if extAbstractConcepts:
-            val.modelXbrl.warning("ESEF.3.2.5.abstractConceptDefinitionInExtensionTaxonomy",
-                _("Extension taxonomy SHOULD NOT define abstract concepts: concept %(concepts)s."),
-                modelObject=extAbstractConcepts, concepts=", ".join(str(c.qname) for c in extAbstractConcepts))
+        if extAbstractConcepts and val.authParam["extensionAbstractContexts"] != "ok":
+            val.modelXbrl.log(val.authParam["extensionAbstractContexts"].upper(),
+                "ESEF.3.2.5.abstractConceptDefinitionInExtensionTaxonomy",
+                _("Extension taxonomy %()s define abstract concepts: concept %(concepts)s."),
+                modelObject=extAbstractConcepts, concepts=", ".join(str(c.qname) for c in extAbstractConcepts),
+                severityVerb={"warning":"SHOULD NOT","error":"MUST NOT"}[val.authParam["extensionAbstractContexts"]])
         if extMonetaryConceptsWithoutBalance:  
             val.modelXbrl.error("ESEF.RTS.Annex.IV.Par.4.2.monetaryConceptWithoutBalance",
                 _("Extension monetary concepts MUST provide balance attribute: concept %(concepts)s."),
