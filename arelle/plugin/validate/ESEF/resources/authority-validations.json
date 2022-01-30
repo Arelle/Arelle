@@ -17,7 +17,7 @@
     ],
     "default": {
         "comment": "default parameters where not specified by authority",
-        "reportPackageMaxMB": "10000 zipped",
+        "reportPackageMaxMB": "unlimited",
         "identiferScheme": "http://standards.iso.org/iso/17442",
 	    "ixTargetUsage": "warning",
         "extensionAbstractContexts": "warning",
