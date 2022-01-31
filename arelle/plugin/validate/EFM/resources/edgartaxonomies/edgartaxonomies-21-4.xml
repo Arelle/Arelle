@@ -6,8 +6,8 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 -->
 <Erxl version="60" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="erxl.xsd">
 	<Loc>
-		<Family>IFRS</Family>
-		<Version>2021q4</Version>
+		<Family>CEF</Family>
+		<Version>2021Q4</Version>
 		<Href>https://xbrl.sec.gov/dei/2021q4/dei-2021q4.xsd</Href>
 		<AttType>SCH</AttType>
 		<FileTypeName>Schema</FileTypeName>
@@ -16,8 +16,8 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<Prefix>dei</Prefix>
 	</Loc>
 	<Loc>
-		<Family>IFRS</Family>
-		<Version>2021q4</Version>
+		<Family>CEF</Family>
+		<Version>2021Q4</Version>
 		<Href>https://xbrl.sec.gov/dei/2021q4/dei-2021q4_lab.xsd</Href>
 		<AttType>SCH</AttType>
 		<FileTypeName>Schema</FileTypeName>
@@ -26,8 +26,8 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<Prefix>dei-lab</Prefix>
 	</Loc>
 	<Loc>
-		<Family>IFRS</Family>
-		<Version>2021q4</Version>
+		<Family>CEF</Family>
+		<Version>2021Q4</Version>
 		<Href>https://xbrl.sec.gov/dei/2021q4/dei-2021q4_pre.xsd</Href>
 		<AttType>SCH</AttType>
 		<FileTypeName>Schema</FileTypeName>
@@ -36,8 +36,8 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<Prefix>dei-pre</Prefix>
 	</Loc>
 	<Loc>
-		<Family>IFRS</Family>
-		<Version>2021q4</Version>
+		<Family>CEF</Family>
+		<Version>2021Q4</Version>
 		<Href>https://xbrl.sec.gov/dei/2021q4/dei-2021q4_def.xsd</Href>
 		<AttType>SCH</AttType>
 		<FileTypeName>Schema</FileTypeName>
@@ -46,8 +46,8 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<Prefix>dei-def</Prefix>
 	</Loc>
 	<Loc>
-		<Family>IFRS</Family>
-		<Version>2021q4</Version>
+		<Family>CEF</Family>
+		<Version>2021Q4</Version>
 		<Href>https://xbrl.sec.gov/dei/2021q4/dei-sub-2021q4.xsd</Href>
 		<AttType>SCH</AttType>
 		<FileTypeName>Schema</FileTypeName>
@@ -56,64 +56,52 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<Prefix>dei-sub</Prefix>
 	</Loc>
 	<Loc>
-		<Family>US GAAP</Family>
-		<Version>2021q4</Version>
-		<Href>https://xbrl.sec.gov/dei/2021q4/dei-2021q4.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/dei/2021q4</Namespace>
-		<Prefix>dei</Prefix>
-	</Loc>
-	<Loc>
-		<Family>US GAAP</Family>
-		<Version>2021q4</Version>
-		<Href>https://xbrl.sec.gov/dei/2021q4/dei-2021q4_lab.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/dei-lab/2021q4</Namespace>
-		<Prefix>dei-lab</Prefix>
-	</Loc>
-	<Loc>
-		<Family>US GAAP</Family>
-		<Version>2021q4</Version>
-		<Href>https://xbrl.sec.gov/dei/2021q4/dei-2021q4_pre.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/dei-pre/2021q4</Namespace>
-		<Prefix>dei-pre</Prefix>
-	</Loc>
-	<Loc>
-		<Family>US GAAP</Family>
-		<Version>2021q4</Version>
-		<Href>https://xbrl.sec.gov/dei/2021q4/dei-2021q4_def.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/dei-def/2021q4</Namespace>
-		<Prefix>dei-def</Prefix>
-	</Loc>
-	<Loc>
-		<Family>US GAAP</Family>
-		<Version>2021q4</Version>
-		<Href>https://xbrl.sec.gov/dei/2021q4/dei-sub-2021q4.xsd</Href>
-		<AttType>SCH</AttType>
-		<FileTypeName>Schema</FileTypeName>
-		<Elements>1</Elements>
-		<Namespace>http://xbrl.sec.gov/dei-sub/2021q4</Namespace>
-		<Prefix>dei-sub</Prefix>
-	</Loc>
-	<Loc>
-		<Family>US GAAP</Family>
-		<Version>2021q4</Version>
+		<Family>CEF</Family>
+		<Version>2021Q4</Version>
 		<Href>https://xbrl.sec.gov/cef/2021q4/cef-2021q4.xsd</Href>
 		<AttType>SCH</AttType>
 		<FileTypeName>Schema</FileTypeName>
 		<Elements>1</Elements>
 		<Namespace>http://xbrl.sec.gov/cef/2021q4</Namespace>
 		<Prefix>cef</Prefix>
+	</Loc>
+	<Loc>
+		<Family>CEF</Family>
+		<Version>2021Q4</Version>
+		<Href>https://xbrl.sec.gov/country/2021/country-2021.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/country/2021</Namespace>
+		<Prefix>country</Prefix>
+	</Loc>
+	<Loc>
+		<Family>CEF</Family>
+		<Version>2021Q4</Version>
+		<Href>https://xbrl.sec.gov/currency/2021/currency-2021.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/currency/2021</Namespace>
+		<Prefix>currency</Prefix>
+	</Loc>
+	<Loc>
+		<Family>CEF</Family>
+		<Version>2021Q4</Version>
+		<Href>https://www.xbrl.org/dtr/type/2020-01-21/types.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Roles/Arcroles</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://www.xbrl.org/dtr/type/2020-01-21</Namespace>
+	</Loc>
+	<Loc>
+		<Family>CEF</Family>
+		<Version>2021Q4</Version>
+		<Href>http://www.xbrl.org/lrr/role/negated-2009-12-16.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Roles/Arcroles</FileTypeName>
+		<Elements>0</Elements>
+		<Namespace>http://www.xbrl.org/2009/role/negated</Namespace>
 	</Loc>
 	<Loc>
 		<Family>IFRS</Family>
@@ -248,6 +236,56 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 	<Loc>
 		<Family>IFRS</Family>
 		<Version>2021</Version>
+		<Href>https://xbrl.sec.gov/dei/2021q4/dei-2021q4.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/dei/2021q4</Namespace>
+		<Prefix>dei</Prefix>
+	</Loc>
+	<Loc>
+		<Family>IFRS</Family>
+		<Version>2021</Version>
+		<Href>https://xbrl.sec.gov/dei/2021q4/dei-2021q4_lab.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/dei-lab/2021q4</Namespace>
+		<Prefix>dei-lab</Prefix>
+	</Loc>
+	<Loc>
+		<Family>IFRS</Family>
+		<Version>2021</Version>
+		<Href>https://xbrl.sec.gov/dei/2021q4/dei-2021q4_pre.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/dei-pre/2021q4</Namespace>
+		<Prefix>dei-pre</Prefix>
+	</Loc>
+	<Loc>
+		<Family>IFRS</Family>
+		<Version>2021</Version>
+		<Href>https://xbrl.sec.gov/dei/2021q4/dei-2021q4_def.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/dei-def/2021q4</Namespace>
+		<Prefix>dei-def</Prefix>
+	</Loc>
+	<Loc>
+		<Family>IFRS</Family>
+		<Version>2021</Version>
+		<Href>https://xbrl.sec.gov/dei/2021q4/dei-sub-2021q4.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/dei-sub/2021q4</Namespace>
+		<Prefix>dei-sub</Prefix>
+	</Loc>
+	<Loc>
+		<Family>IFRS</Family>
+		<Version>2021</Version>
 		<Href>http://www.xbrl.org/lrr/arcrole/esma-arcrole-2018-11-21.xsd</Href>
 		<AttType>SCH</AttType>
 		<FileTypeName>Roles/Arcroles</FileTypeName>
@@ -293,6 +331,66 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 		<Elements>1</Elements>
 		<Namespace>http://xbrl.sec.gov/dei-def/2021</Namespace>
 		<Prefix>dei-def</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2021</Version>
+		<Href>https://xbrl.sec.gov/dei/2021q4/dei-2021q4.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/dei/2021q4</Namespace>
+		<Prefix>dei</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2021</Version>
+		<Href>https://xbrl.sec.gov/dei/2021q4/dei-2021q4_lab.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/dei-lab/2021q4</Namespace>
+		<Prefix>dei-lab</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2021</Version>
+		<Href>https://xbrl.sec.gov/dei/2021q4/dei-2021q4_pre.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/dei-pre/2021q4</Namespace>
+		<Prefix>dei-pre</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2021</Version>
+		<Href>https://xbrl.sec.gov/dei/2021q4/dei-2021q4_def.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/dei-def/2021q4</Namespace>
+		<Prefix>dei-def</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2021</Version>
+		<Href>https://xbrl.sec.gov/dei/2021q4/dei-sub-2021q4.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/dei-sub/2021q4</Namespace>
+		<Prefix>dei-sub</Prefix>
+	</Loc>
+	<Loc>
+		<Family>US GAAP</Family>
+		<Version>2021</Version>
+		<Href>https://xbrl.sec.gov/cef/2021q4/cef-2021q4.xsd</Href>
+		<AttType>SCH</AttType>
+		<FileTypeName>Schema</FileTypeName>
+		<Elements>1</Elements>
+		<Namespace>http://xbrl.sec.gov/cef/2021q4</Namespace>
+		<Prefix>cef</Prefix>
 	</Loc>
 	<Loc>
 		<Family>US GAAP</Family>
