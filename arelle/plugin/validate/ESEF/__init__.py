@@ -173,6 +173,8 @@ def validateXbrlFinally(val, *args, **kwargs):
     modelXbrl.profileActivity()
     modelXbrl.modelManager.showStatus(_statusMsg)
     
+    prefixedNamespaces = modelXbrl.prefixedNamespaces
+    
     reportPackageMaxMB = val.authParam["reportPackageMaxMB"]
     if reportPackageMaxMB != "unlimited":
         maxMB = float(reportPackageMaxMB.partition(' ')[0])
@@ -979,6 +981,17 @@ def validateXbrlFinally(val, *args, **kwargs):
             modelXbrl.warning("ESEF.RTS.Annex.II.Par.2.missingMandatoryMarkups",
                 _("Mandatory elements to be marked up are missing: %(qnames)s."),
                 modelObject=missingMandatoryElements, qnames=", ".join(sorted(str(qn) for qn in missingMandatoryElements)))
+            
+        # supplemental authority required tags
+        additionalTagQnames = set(qname(n, prefixedNamespaces)
+                                  for n in val.authParam.get("additionalMandatoryTags", ())
+                                  if qname(n, prefixedNamespaces))
+        missingAuthorityElements = additionalTagQnames - modelXbrl.factsByQname.keys()
+        if missingAuthorityElements:
+            modelXbrl.warning("arelle.ESEF.missingAuthorityMandatoryMarkups",
+                _("Mandatory authority elements to be marked up are missing: %(qnames)s."),
+                modelObject=missingAuthorityElements, qnames=", ".join(sorted(str(qn) for qn in missingAuthorityElements)))
+        
         
         # duplicated core taxonomy elements  
         for name, concepts in modelXbrl.nameConcepts.items():

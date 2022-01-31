@@ -13,7 +13,8 @@
         "ixTargetUsage: ok, warning or error",
         "extensionAbstractContexts: ok, warning or error",
         "G3.4.2: effective or ineffective when not applied by authority",
-        "G3.4.6: effective or ineffective when not applied by authority"
+        "G3.4.6: effective or ineffective when not applied by authority",
+        "additionalMandatoryTags: qnames of tags additionally required by authority when prefixed schema is imported"
     ],
     "default": {
         "comment": "default parameters where not specified by authority",
@@ -155,6 +156,26 @@
 		"effectiveTaxonomyURLs": [
 			"comment: should https://xbrl.frc.org.uk/uksef/2021-01-01/uksef-2021-01-01_cor.xsd be in this list?",
 		    "https://xbrl.frc.org.uk/uksef/2021-01-01/uksef-2021-01-01.xsd"
+		],
+		"additionalMandatoryTags": [
+			"bus:UKCompaniesHouseRegisteredNumber",
+			"bus:BalanceSheetDate",
+			"bus:StartDateForPeriodCoveredByReport",
+			"bus:EndDateForPeriodCoveredByReport",
+			"bus:EntityCurrentLegalOrRegisteredName",
+			"core:DateAuthorisationFinancialStatementsForIssue",
+			"core:DirectorSigningFinancialStatements",
+			"bus:EntityDormantTruefalse",
+			"bus:EntityTradingStatus",
+			"bus:AccountingStandardsApplied",
+			"bus:AccountsStatusAuditedOrUnaudited",
+			"aurep:DateAuditorsReport",
+			"aurep:OpinionAuditorsOnEntity",
+			"aurep:NameIndividualAuditor",
+			"aurep:NameSeniorStatutoryAuditor",
+			"bus:NameEntityAuditors",
+			"direp:DateSigningDirectorsReport",
+			"direp:DirectorSigningDirectorsReport"
 		]
 	}
 }
