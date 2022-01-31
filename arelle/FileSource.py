@@ -342,6 +342,9 @@ class FileSource:
         for f in (self.dir or []):
             if f.endswith("/META-INF/taxonomyPackage.xml"): # must be in a sub directory in the zip
                 return [f]  # standard package
+        # If not found in subdirectory, start by checking if META-INF is at archive top-level (and contains target file)
+        if "META-INF/taxonomyPackage.xml" in self.dir:
+            return ["META-INF/taxonomyPackage.xml"]
         return [f for f in (self.dir or []) if os.path.split(f)[-1] in TAXONOMY_PACKAGE_FILE_NAMES]
     
     def isInArchive(self,filepath, checkExistence=False):

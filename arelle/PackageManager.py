@@ -383,7 +383,7 @@ def validateTaxonomyPackage(cntlr, filesource, packageFiles=[], errors=[]):
         if filesource.isZipBackslashed:
             cntlr.addToLog(_("Taxonomy package directory uses '\\' as fire separator"),
                            messageCode="tpe:invalidArchiveFormat",
-                           file=os.path.basename(filesource.url),
+                           file=os.path.basename(filesource.baseurl),
                            level=logging.ERROR)
             errors.append("tpe:invalidArchiveFormat")
             return False
@@ -396,7 +396,7 @@ def validateTaxonomyPackage(cntlr, filesource, packageFiles=[], errors=[]):
                            messageArgs={"count": len(topLevelFiles),
                                         "topLevelFiles": ', '.join(sorted(topLevelFiles))},
                            messageCode="tpe:invalidDirectoryStructure",
-                           file=os.path.basename(filesource.url),
+                           file=os.path.basename(filesource.baseurl),
                            level=logging.ERROR)
             errors.append("tpe:invalidDirectoryStructure")
         if len(topLevelDirectories) != 1:
@@ -404,7 +404,7 @@ def validateTaxonomyPackage(cntlr, filesource, packageFiles=[], errors=[]):
                            messageArgs={"count": len(topLevelDirectories),
                                         "topLevelDirectories": ', '.join(sorted(topLevelDirectories))},
                            messageCode="tpe:invalidDirectoryStructure",
-                           file=os.path.basename(filesource.url),
+                           file=os.path.basename(filesource.baseurl),
                            level=logging.ERROR)
             if not topLevelFiles:
                 errors.append("tpe:invalidDirectoryStructure")
@@ -421,7 +421,7 @@ def validateTaxonomyPackage(cntlr, filesource, packageFiles=[], errors=[]):
         else:
             cntlr.addToLog(_("Taxonomy package does not contain a metadata file */META-INF/taxonomyPackage.xml"),
                            messageCode="tpe:metadataFileNotFound",
-                           file=os.path.basename(filesource.url),
+                           file=os.path.basename(filesource.baseurl),
                            level=logging.ERROR)
             errors.append("tpe:metadataFileNotFound")
         return len(errors) == numErrorsOnEntry
