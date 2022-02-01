@@ -1130,8 +1130,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             reportDate = val.params.get("periodOfReport")
             if reportDate:
                 reportDate = "{2}-{0}-{1}".format(*str(reportDate   ).split('-')) # mm-dd-yyyy
-            else:
-                reportDate = str(documentPeriodEndDate or XmlUtil.dateunionValue(val.requiredContext.endDatetime, subtractOneDay=True))
+            elif documentPeriodEndDate:
+                reportDate = str(documentPeriodEndDate)
+            elif val.requiredContext is not None:
+                reportDate = str(XmlUtil.dateunionValue(val.requiredContext.endDatetime, subtractOneDay=True))
             for sevIndex, sev in enumerate(sevs):
                 subTypes = sev.get("subTypeSet", EMPTY_SET) # compiled set of sub-types
                 names = sev.get("xbrl-names", ())
@@ -1147,7 +1149,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                   }[sev.get("dei/cover")]
                 referenceTag = sev.get("references")
                 referenceValue = sev.get("reference-value")
-                if checkAfter and checkAfter >= reportDate:
+                if checkAfter and reportDate and checkAfter >= reportDate:
                     continue
                 subFormTypesCheck = {submissionType, "{}§{}".format(submissionType, documentType)}
                 if subTypes != "all" and (subFormTypesCheck.isdisjoint(subTypes) ^ ("!not!" in subTypes)):
@@ -2526,11 +2528,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         if relFrom is not None and relTo is not None:
                             relset = modelXbrl.relationshipSet(XbrlConst.parentChild, rel.linkrole)
                             if ((rel.linkrole == "http://xbrl.sec.gov/cef/role/N2" and
-                                 (relFrom.qname.namespaceURI == nsCEF and (
-                                     relTo.qname.namespaceURI != nsCEF and (
+                                 (relTo.qname.namespaceURI != nsCEF and (
                                          not relTo.type.isDomainItemType or not
                                          (relset.isRelated(cAllSecurMem, "descendant", relTo) or
-                                          relset.isRelated(cAllRisksMem, "descendant", relTo))))
+                                          relset.isRelated(cAllRisksMem, "descendant", relTo)))
                                  ) or
                                 (rel.linkrole != "http://xbrl.sec.gov/cef/role/N2" and 
                                  (relFrom.qname.namespaceURI == nsCEF or relTo.qname.namespaceURI == nsCEF)))):

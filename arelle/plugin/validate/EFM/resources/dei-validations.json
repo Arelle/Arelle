@@ -292,7 +292,7 @@
         "dei/cover": "cover"
     },
     {
-        "sub-types": ["@POS"],
+        "sub-types": ["@POS", "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A"],
         "xbrl-names": "DocumentPeriodEndDate",
         "elo-name": "periodOfReport",
         "efm": "6.5.20",
