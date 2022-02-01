@@ -116,6 +116,8 @@ def parseAndRun(args):
     parser.add_option("--calcDeduplicate", action="store_true", dest="calcDeduplicate",
                       help=_("Specify de-duplication of consistent facts when performing calculation validation, chooses most accurate fact."))
     parser.add_option("--calcdeduplicate", action="store_true", dest="calcDeduplicate", help=SUPPRESS_HELP)
+    parser.add_option("--calc11", action="store_true", dest="calc11",
+                      help=_("Specify calculation linkbase 1.1 validation."))
     parser.add_option("--efm", action="store_true", dest="validateEFM",
                       help=_("Select Edgar Filer Manual (U.S. SEC) disclosure system validation (strict)."))
     parser.add_option("--gfm", action="store", dest="disclosureSystemName", help=SUPPRESS_HELP)
@@ -768,12 +770,14 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 self.addToLog(_("both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"),
                               messageCode="info", file=options.entrypointFile)
             self.modelManager.validateInferDecimals = True
-            self.modelManager.validateCalcLB = True
+            self.modelManager.validateCalcLB = True # validate calc LB with 2.1 semantics
         elif options.calcPrecision:
             self.modelManager.validateInferDecimals = False
-            self.modelManager.validateCalcLB = True
+            self.modelManager.validateCalcLB = True # validate calc LB with 2.1 semantics
         if options.calcDeduplicate:
             self.modelManager.validateDedupCalcs = True
+        if options.calc11:
+            self.modelManager.validateCalc11 = True # validate calc LB with calc 1.1 semantics
         if options.utrValidate:
             self.modelManager.validateUtr = True
         if options.infosetValidate:

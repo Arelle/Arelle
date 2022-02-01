@@ -146,6 +146,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.validateDisclosureSystem.trace("w", self.setValidateDisclosureSystem)
         validateMenu.add_checkbutton(label=_("Disclosure system checks"), underline=0, variable=self.validateDisclosureSystem, onvalue=True, offvalue=False)
         validateMenu.add_command(label=_("Select disclosure system..."), underline=0, command=self.selectDisclosureSystem)
+        # validate calc LB with 2.1 semantics
         self.modelManager.validateCalcLB = self.config.setdefault("validateCalcLB",False)
         self.validateCalcLB = BooleanVar(value=self.modelManager.validateCalcLB)
         self.validateCalcLB.trace("w", self.setValidateCalcLB)
@@ -162,6 +163,11 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.validateUtr = BooleanVar(value=self.modelManager.validateUtr)
         self.validateUtr.trace("w", self.setValidateUtr)
         validateMenu.add_checkbutton(label=_("Unit Type Registry validation"), underline=0, variable=self.validateUtr, onvalue=True, offvalue=False)
+        # validate calc LB with calc 1.1 semantics
+        self.modelManager.validateCalc11 = self.config.setdefault("validateCalc11",False)
+        self.validateCalc11 = BooleanVar(value=self.modelManager.validateCalc11)
+        self.validateCalc11.trace("w", self.setValidateCalc11)
+        validateMenu.add_checkbutton(label=_("Calculations 1.1 checks"), underline=0, variable=self.validateCalc11, onvalue=True, offvalue=False)
         for pluginMenuExtender in pluginClassMethods("CntlrWinMain.Menu.Validation"):
             pluginMenuExtender(self, validateMenu)
 
@@ -1238,6 +1244,8 @@ class CntlrWinMain (Cntlr.Cntlr):
                         c += _("\nDeduplicate calculations")
                 else:
                     c = ""
+                if self.modelManager.validateCalc11:
+                    c += _("\nCheck calculations 1.1")
                 if self.modelManager.validateUtr:
                     u = _("\nCheck unit type registry")
                 else:
@@ -1266,6 +1274,12 @@ class CntlrWinMain (Cntlr.Cntlr):
     def setValidateDedupCalcs(self, *args):
         self.modelManager.validateDedupCalcs = self.validateDedupCalcs.get()
         self.config["validateDedupCalcs"] = self.modelManager.validateDedupCalcs
+        self.saveConfig()
+        self.setValidateTooltipText()
+            
+    def setValidateCalc11(self, *args):
+        self.modelManager.validateCalc11 = self.validateCalc11.get()
+        self.config["validateCalc11"] = self.modelManager.validateCalc11
         self.saveConfig()
         self.setValidateTooltipText()
             

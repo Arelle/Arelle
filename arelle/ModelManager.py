@@ -54,9 +54,10 @@ class ModelManager:
         self.cntlr = cntlr
         self.validateDisclosureSystem = False
         self.disclosureSystem = DisclosureSystem.DisclosureSystem(self)
-        self.validateCalcLB = False
+        self.validateCalcLB = False # validate calc LB with XBRL v2.1 semantics
         self.validateInferDecimals = True
         self.validateDedupCalcs = False
+        self.validateCalc11 = False # validate calc LB with Calculation 1.1 semantics
         self.validateInfoset = False
         self.validateUtr = False
         self.skipDTS = False

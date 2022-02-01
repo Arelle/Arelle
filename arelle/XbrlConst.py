@@ -124,6 +124,7 @@ factFootnote = "http://www.xbrl.org/2003/arcrole/fact-footnote"
 factExplanatoryFact = "http://www.xbrl.org/2009/arcrole/fact-explanatoryFact"
 parentChild = "http://www.xbrl.org/2003/arcrole/parent-child"
 summationItem = "http://www.xbrl.org/2003/arcrole/summation-item"
+summationItem11 = ("https://xbrl.org/WGWD/YYYY-MM-DD/arcrole/summation-item",) # tuple to deal with pre-REC versions
 essenceAlias = "http://www.xbrl.org/2003/arcrole/essence-alias"
 similarTuples = "http://www.xbrl.org/2003/arcrole/similar-tuples"
 requiresElement = "http://www.xbrl.org/2003/arcrole/requires-element"
