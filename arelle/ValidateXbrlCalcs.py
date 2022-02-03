@@ -212,7 +212,7 @@ class ValidateXbrlCalcs:
                                                     del unreportedContribingItemQnames[:]
                                     if calc11:
                                         s1, s2 = self.oimConsistentInterval(sumFacts)
-                                        if s1 is not INCONSISTENT and factKey not in blockedIntervals and sumBindKey in boundIntervals:
+                                        if s1 is not INCONSISTENT and sumBindKey not in blockedIntervals and sumBindKey in boundIntervals:
                                             x1, x2 = boundIntervals[sumBindKey]
                                             if min(s2, x2) < max(s1, x1):
                                                 modelXbrl.error("calc11e:inconsistentCalculation",
