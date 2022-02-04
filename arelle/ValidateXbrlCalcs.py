@@ -181,35 +181,36 @@ class ValidateXbrlCalcs:
                                 factKey = (sumConcept, ancestor, contextHash, unit)
                                 if factKey in self.sumFacts:
                                     sumFacts = self.sumFacts[factKey]
-                                    for fact in sumFacts:
-                                        if not fact.isNil:
-                                            if fact in self.duplicatedFacts:
-                                                dupBindingKeys.add(sumBindKey)
-                                            elif (xbrl21 and sumBindKey in boundSums and sumBindKey not in dupBindingKeys 
-                                                  and fact not in self.consistentDupFacts
-                                                  and not (len(sumFacts) > 1 and not self.deDuplicate)): # don't bind if sum duplicated without dedup option
-                                                roundedSum = roundFact(fact, self.inferDecimals)
-                                                roundedItemsSum = roundFact(fact, self.inferDecimals, vDecimal=boundSums[sumBindKey])
-                                                if roundedItemsSum  != roundFact(fact, self.inferDecimals):
-                                                    d = inferredDecimals(fact)
-                                                    if isnan(d) or isinf(d): d = 4
-                                                    _boundSummationItems = boundSummationItems[sumBindKey]
-                                                    unreportedContribingItemQnames = [] # list the missing/unreported contributors in relationship order
-                                                    for modelRel in modelRels:
-                                                        itemConcept = modelRel.toModelObject
-                                                        if (itemConcept is not None and 
-                                                            (itemConcept, ancestor, contextHash, unit) not in self.itemFacts):
-                                                            unreportedContribingItemQnames.append(str(itemConcept.qname))
-                                                    modelXbrl.log('INCONSISTENCY', "xbrl.5.2.5.2:calcInconsistency",
-                                                        _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreportedContributingItems %(unreportedContributors)s"),
-                                                        modelObject=wrappedSummationAndItems(fact, roundedSum, _boundSummationItems),
-                                                        concept=sumConcept.qname, linkrole=ELR, 
-                                                        linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
-                                                        reportedSum=Locale.format_decimal(modelXbrl.locale, roundedSum, 1, max(d,0)),
-                                                        computedSum=Locale.format_decimal(modelXbrl.locale, roundedItemsSum, 1, max(d,0)), 
-                                                        contextID=fact.context.id, unitID=fact.unit.id,
-                                                        unreportedContributors=", ".join(unreportedContribingItemQnames) or "none")
-                                                    del unreportedContribingItemQnames[:]
+                                    if xbrl21:
+                                        for fact in sumFacts:
+                                            if not fact.isNil:
+                                                if fact in self.duplicatedFacts:
+                                                    dupBindingKeys.add(sumBindKey)
+                                                elif (sumBindKey in boundSums and sumBindKey not in dupBindingKeys 
+                                                      and fact not in self.consistentDupFacts
+                                                      and not (len(sumFacts) > 1 and not self.deDuplicate)): # don't bind if sum duplicated without dedup option
+                                                    roundedSum = roundFact(fact, self.inferDecimals)
+                                                    roundedItemsSum = roundFact(fact, self.inferDecimals, vDecimal=boundSums[sumBindKey])
+                                                    if roundedItemsSum  != roundFact(fact, self.inferDecimals):
+                                                        d = inferredDecimals(fact)
+                                                        if isnan(d) or isinf(d): d = 4
+                                                        _boundSummationItems = boundSummationItems[sumBindKey]
+                                                        unreportedContribingItemQnames = [] # list the missing/unreported contributors in relationship order
+                                                        for modelRel in modelRels:
+                                                            itemConcept = modelRel.toModelObject
+                                                            if (itemConcept is not None and 
+                                                                (itemConcept, ancestor, contextHash, unit) not in self.itemFacts):
+                                                                unreportedContribingItemQnames.append(str(itemConcept.qname))
+                                                        modelXbrl.log('INCONSISTENCY', "xbrl.5.2.5.2:calcInconsistency",
+                                                            _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreportedContributingItems %(unreportedContributors)s"),
+                                                            modelObject=wrappedSummationAndItems(fact, roundedSum, _boundSummationItems),
+                                                            concept=sumConcept.qname, linkrole=ELR, 
+                                                            linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
+                                                            reportedSum=Locale.format_decimal(modelXbrl.locale, roundedSum, 1, max(d,0)),
+                                                            computedSum=Locale.format_decimal(modelXbrl.locale, roundedItemsSum, 1, max(d,0)), 
+                                                            contextID=fact.context.id, unitID=fact.unit.id,
+                                                            unreportedContributors=", ".join(unreportedContribingItemQnames) or "none")
+                                                        del unreportedContribingItemQnames[:]
                                     if calc11:
                                         s1, s2 = self.oimConsistentInterval(sumFacts)
                                         if s1 is not INCONSISTENT and sumBindKey not in blockedIntervals and sumBindKey in boundIntervals:
@@ -217,12 +218,12 @@ class ValidateXbrlCalcs:
                                             if min(s2, x2) < max(s1, x1):
                                                 modelXbrl.error("calc11e:inconsistentCalculation",
                                                     _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s"),
-                                                    modelObject=[fact] + boundIntervalItems[sumBindKey],
+                                                    modelObject=sumFacts + boundIntervalItems[sumBindKey],
                                                     concept=sumConcept.qname, linkrole=ELR, 
                                                     linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
                                                     reportedSum="[{},{}]".format(s1, s2),
                                                     computedSum="[{},{}]".format(x1, x2), 
-                                                    contextID=fact.context.id, unitID=fact.unit.id)
+                                                    contextID=sumFacts[0].context.id, unitID=sumFacts[0].unit.id)
                             boundSummationItems.clear() # dereference facts in list
                             boundIntervalItems.clear()
                     elif arcrole == XbrlConst.essenceAlias:
@@ -360,9 +361,9 @@ class ValidateXbrlCalcs:
                     _inConsistent |= _v != decVals[_d]
                 else:
                     decVals[_d] = _v
-                a, b = rangeValue(_v, _d)
-                if a > aMax: aMax = a
-                if b < bMin: bMin = b
+                    a, b = rangeValue(_v, _d)
+                    if a > aMax: aMax = a
+                    if b < bMin: bMin = b
             if not _inConsistent:
                 _inConsistent = (bMin < aMax)
         if _inConsistent:
