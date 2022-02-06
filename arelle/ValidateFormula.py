@@ -4,7 +4,7 @@ Created on Dec 9, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, sys, time, logging
+import os, sys, time, logging, re
 from collections import defaultdict
 from threading import Timer
 
@@ -19,9 +19,12 @@ from arelle.ModelRenderingObject import (ModelRuleDefinitionNode, ModelRelations
 from arelle.ModelObject import (ModelObject)
 from arelle.ModelValue import (qname,QName)
 from arelle.PluginManager import pluginClassMethods
+from arelle.PythonUtil import normalizeSpace
 from arelle.XmlValidate import validate as xml_validate
 from arelle import (XbrlConst, XmlUtil, ModelXbrl, ModelDocument, XPathParser, XPathContext, FunctionXs,
                     ValidateXbrlDimensions) 
+
+formulaIdWhitespacesSeparatedPattern = re.compile(r"(\w+\s)*(\w+)$") # prenormalized IDs list
 
 class FormulaValidationException(Exception):
     def __init__(self):
@@ -886,12 +889,21 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
         
     val.modelXbrl.modelManager.showStatus(_("running formulae"))
     
-    # IDs may be "|" or whitespace separated
-    runIDs = (formulaOptions.runIDs or '').replace('|',' ').split()
-    if runIDs:
-        val.modelXbrl.info("formula:trace",
-                           _("Formula/assertion IDs restriction: %(ids)s"), 
-                           modelXbrl=val.modelXbrl, ids=', '.join(runIDs))
+    # IDs may be a regex expression (or whitespace separated ID names if not)
+    runIDs = None
+    if formulaOptions.runIDs:
+        _runIdPattern = normalizeSpace(formulaOptions.runIDs)
+        if formulaIdWhitespacesSeparatedPattern.match(formulaOptions.runIDs):
+            _runIdPattern = "|".join(formulaOptions.runIDs.split()) # whitespace separated IDs
+        try: # should be a regex now
+            runIDs = re.compile(_runIdPattern)
+            val.modelXbrl.info("formula:trace",
+                               _("Formula/assertion IDs restriction pattern: %(ids)s"), 
+                               modelXbrl=val.modelXbrl, ids=', '.join(_runIdPattern))
+        except:
+            val.modelXbrl.info("formula:invalidRunIDsPattern",
+                               _("Formula/assertion IDs pattern is invalid: %(runIdPattern)s"), 
+                               modelXbrl=val.modelXbrl, runIdPattern=_runIdPattern)
         
     # evaluate consistency assertions
     try:
@@ -909,9 +921,9 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                 # produce variable evaluations if no dependent variables-scope relationships
                 if not val.modelXbrl.relationshipSet(XbrlConst.variablesScope).toModelObject(modelVariableSet):
                     if (not runIDs or 
-                        modelVariableSet.id in runIDs or
+                        runIDs.match(modelVariableSet.id) or
                         (modelVariableSet.hasConsistencyAssertion and 
-                         any(modelRel.fromModelObject.id in runIDs
+                         any(runIDs.match(modelRel.fromModelObject.id)
                              for modelRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).toModelObject(modelVariableSet)
                              if isinstance(modelRel.fromModelObject, ModelConsistencyAssertion)))):
                         try:
@@ -936,7 +948,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
     asserTests = {}
     for exisValAsser in val.modelXbrl.modelVariableSets:
         if isinstance(exisValAsser, ModelVariableSetAssertion) and \
-           (not runIDs or exisValAsser.id in runIDs):
+                      (not runIDs or runIDs.match(exisValAsser.id)):
             asserTests[exisValAsser.id] = (exisValAsser.countSatisfied, exisValAsser.countNotSatisfied, exisValAsser.countOkMessages, exisValAsser.countWarningMessages, exisValAsser.countErrorMessages)
             if formulaOptions.traceAssertionResultCounts:
                 val.modelXbrl.info("formula:trace",
@@ -948,7 +960,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
     for modelRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).modelRelationships:
         if isinstance(modelRel.fromModelObject, ModelConsistencyAssertion) and \
            isinstance(modelRel.toModelObject, ModelFormula) and \
-           (not runIDs or modelRel.fromModelObject.id in runIDs):
+           (not runIDs or runIDs.match(modelRel.fromModelObject.id)):
             consisAsser = modelRel.fromModelObject
             asserTests[consisAsser.id] = (consisAsser.countSatisfied, consisAsser.countNotSatisfied, consisAsser.countOkMessages, consisAsser.countWarningMessages, consisAsser.countErrorMessages)
             if formulaOptions.traceAssertionResultCounts:

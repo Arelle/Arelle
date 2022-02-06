@@ -3,11 +3,11 @@ Created on January 5, 2020
 
 Filer Guidelines: ESMA_ESEF Manula 2019.pdf
 
-@author: Mark V Systems Limited
-(c) Copyright 2020 Mark V Systems Limited, All rights reserved.
+@author: Workiva
+(c) Copyright 2022 Workiva, All rights reserved.
 '''
 import os, json
-from .Const import standardTaxonomyURIs, esefTaxonomyNamespaceURIs
+from .Const import esefTaxonomyNamespaceURIs
 from lxml.etree import XML, XMLSyntaxError
 from arelle.FileSource import openFileStream
 from arelle.UrlUtil import scheme
@@ -22,7 +22,7 @@ def isExtension(val, modelObject):
     else:
         uri = modelObject.modelDocument.uri
     return (uri.startswith(val.modelXbrl.uriDir) or
-            not any(uri.startswith(standardTaxonomyURI) for standardTaxonomyURI in standardTaxonomyURIs))
+            not any(uri.startswith(standardTaxonomyURI) for standardTaxonomyURI in val.authParam["standardTaxonomyURIs"]))
 
 # check if in core esef taxonomy (based on namespace URI)
 def isInEsefTaxonomy(val, modelObject):
