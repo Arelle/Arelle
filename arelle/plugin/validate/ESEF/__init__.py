@@ -859,10 +859,19 @@ def validateXbrlFinally(val, *args, **kwargs):
                     modelObject=modelDocument, url=e)
                 hasOutdatedUrl = True
                 
+        if ("authorityRequiredTaxonomyURLs" in val.authParam and
+            not any(e in val.extensionImportedUrls for e in val.authParam["authorityRequiredTaxonomyURLs"])):
+            val.modelXbrl.error(
+                "UKFRC21.1.requiredFrcEntryPointNotImported",
+                 _("The issuer's extension taxonomies MUST import the UKFRC entry point of the taxonomy files prepared by %(authority)s."),
+                modelObject=modelDocument, authority=val.authority)
+            
         if not hasOutdatedUrl and not any(e in val.extensionImportedUrls for e in val.authParam["effectiveTaxonomyURLs"]):
-            val.modelXbrl.error("ESEF.3.1.2.requiredEntryPointNotImported",
-                 _("The issuer's extension taxonomies MUST import the entry point of the taxonomy files prepared by ESMA."),
-                modelObject=modelDocument)
+            val.modelXbrl.error(
+                "UKFRC21.3.requiredEsefEntryPointNotImported" if val.authority == "UK" else
+                "ESEF.3.1.2.requiredEntryPointNotImported",
+                 _("The issuer's extension taxonomies MUST import the entry point of the taxonomy files prepared by %(authority)s."),
+                modelObject=modelDocument, authority=val.authority)
 
             
         # unused elements in linkbases
