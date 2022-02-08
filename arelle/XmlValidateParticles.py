@@ -15,7 +15,7 @@ from arelle.XmlValidate import validate
 
 def validateElementSequence(modelXbrl, compositor, children, ixFacts, iNextChild=0):
     if compositor.modelDocument.targetNamespace == xsd:
-        return None
+        return (iNextChild, True, None, None)
     particles = compositor.dereference().particles        
     iStartingChild = iNextChild
     errDesc = None
