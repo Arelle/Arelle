@@ -9,9 +9,13 @@ from arelle.ModelDtsObject import (ModelConcept, ModelType, ModelGroupDefinition
                                    ModelAll, ModelChoice, ModelSequence, 
                                    ModelAny, anonymousTypeSuffix)
 from arelle.ModelObject import ModelObject, ModelAttribute
+from arelle.XbrlConst import xsd
 from arelle.XmlValidate import validate
 
+
 def validateElementSequence(modelXbrl, compositor, children, ixFacts, iNextChild=0):
+    if compositor.modelDocument.targetNamespace == xsd:
+        return (iNextChild, True, None, None)
     particles = compositor.dereference().particles        
     iStartingChild = iNextChild
     errDesc = None
