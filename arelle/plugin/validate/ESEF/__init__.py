@@ -209,7 +209,7 @@ def validateXbrlFinally(val, *args, **kwargs):
     if val.authority == "UK":
         if modelXbrl.fileSource and modelXbrl.fileSource.taxonomyPackage and modelXbrl.fileSource.taxonomyPackage["publisherCountry"] != "GB":
             modelXbrl.error("UKFRC.1.2.publisherCountrySetting",
-                        _("The “Publisher Country” element of the report package metadata for a UKSEF report MUST be set to \"GB\" but was \"%(publisherCountry)s\"."), 
+                        _("The \"Publisher Country\" element of the report package metadata for a UKSEF report MUST be set to \"GB\" but was \"%(publisherCountry)s\"."), 
                         modelObject=modelXbrl, publisherCountry=modelXbrl.fileSource.taxonomyPackage["publisherCountry"] )
     
     reportXmlLang = None
