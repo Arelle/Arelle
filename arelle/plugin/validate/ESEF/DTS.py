@@ -344,7 +344,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                 _("Extension taxonomy document file name {base} component SHOULD be no longer than 20 characters, length is %(length)s:  %(documentName)s."),
                 modelObject=modelDocument.xmlRootElement, length=len(m.group(1)), documentName=modelDocument.basename)
         
-    if isExtensionDoc and val.authority == "UK":
+    if isExtensionDoc and val.authority == "UKFRC":
         if modelDocument.type == ModelDocument.Type.INLINEXBRL:
             if modelDocument.documentEncoding.lower() != "utf-8":
                 modelXbrl.error("UKFRC.1.1.instanceDocumentEncoding",

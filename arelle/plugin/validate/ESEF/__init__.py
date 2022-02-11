@@ -195,18 +195,19 @@ def validateXbrlFinally(val, *args, **kwargs):
     prefixedNamespaces = modelXbrl.prefixedNamespaces
     
     reportPackageMaxMB = val.authParam["reportPackageMaxMB"]
-    if reportPackageMaxMB is not None:
+    if reportPackageMaxMB is not None and modelXbrl.fileSource.fs: # must be a zip to be a report package
         maxMB = float(reportPackageMaxMB)
-        if val.authParam["reportPackageMeasurement"] == "unzipped" and modelXbrl.fileSource.fs:
+        if val.authParam["reportPackageMeasurement"] == "unzipped":
             _size = sum(zi.file_size for zi in modelXbrl.fileSource.fs.infolist())
         else:
-            _size = os.path.getsize(modelXbrl.fileSource.basefile)
+            _size = sum(zi.compress_size for zi in modelXbrl.fileSource.fs.infolist())
+            # not usable because zip may be posted or streamed: _size = os.path.getsize(modelXbrl.fileSource.basefile)
         if _size > maxMB * 1048576:
             modelXbrl.error("arelle.ESEF.maximumReportPackageSize",
                             _("The authority %(authority)s requires a report package size under %(maxSize)s MB, size is %(size)s."), 
                             modelObject=modelXbrl, authority=val.authority, maxSize=reportPackageMaxMB, size=_size)
                             
-    if val.authority == "UK":
+    if val.authority == "UKFRC":
         if modelXbrl.fileSource and modelXbrl.fileSource.taxonomyPackage and modelXbrl.fileSource.taxonomyPackage["publisherCountry"] != "GB":
             modelXbrl.error("UKFRC.1.2.publisherCountrySetting",
                         _("The \"Publisher Country\" element of the report package metadata for a UKSEF report MUST be set to \"GB\" but was \"%(publisherCountry)s\"."), 
@@ -868,7 +869,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             
         if not hasOutdatedUrl and not any(e in val.extensionImportedUrls for e in val.authParam["effectiveTaxonomyURLs"]):
             val.modelXbrl.error(
-                "UKFRC21.3.requiredEsefEntryPointNotImported" if val.authority == "UK" else
+                "UKFRC21.3.requiredEsefEntryPointNotImported" if val.authority == "UKFRC" else
                 "ESEF.3.1.2.requiredEntryPointNotImported",
                  _("The issuer's extension taxonomies MUST import the entry point of the taxonomy files prepared by %(authority)s."),
                 modelObject=modelDocument, authority=val.authParam["authorityName"])
