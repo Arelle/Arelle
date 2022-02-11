@@ -12,13 +12,13 @@ to domestic copyright protection. 17 U.S.C. 105.
 Implementation of DQC rules invokes https://xbrl.us/dqc-license and https://xbrl.us/dqc-patent
 
 '''
-import re, datetime, decimal, json, unicodedata, holidays
+import re, datetime, decimal, json, unicodedata, holidays, fnmatch
 from math import isnan, pow
 from collections import defaultdict, OrderedDict
 from pytz import timezone
 from arelle import (ModelDocument, ModelValue, ModelRelationshipSet, 
                     XmlUtil, XbrlConst, ValidateFilingText)
-from arelle.ModelValue import qname, QName
+from arelle.ModelValue import qname, QName, dateUnionEqual
 from arelle.ValidateXbrlCalcs import insignificantDigits
 from arelle.ModelObject import ModelObject
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
@@ -54,6 +54,7 @@ from .Util import conflictClassFromNamespace, abbreviatedNamespace, NOYEAR, WITH
                     
 MIN_DOC_PER_END_DATE = ModelValue.dateTime("1980-01-01", type=ModelValue.DATE)
 MAX_DOC_PER_END_DATE = ModelValue.dateTime("2050-12-31", type=ModelValue.DATE)
+ONE_DAY = datetime.timedelta(days=1)
 EMPTY_DICT = {}
 EMPTY_SET = set()
 EMPTY_LIST = []
@@ -1069,7 +1070,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 members = axesValidations["members"]
 
                 for name in names:
-                    for f in modelXbrl.factsByQname[qname(name, deiDefaultPrefixedNamespaces)]:
+                    for f in modelXbrl.factsByQname.get(qname(name, deiDefaultPrefixedNamespaces), EMPTY_SET):
                         if langPattern is not None and not langPattern.match(f.xmlLang):
                             continue
                         context = f.context
@@ -1205,6 +1206,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     if len(names) != value:
                         et = sev["earliest-taxonomy"]
                         sevMessage(sev, subType=submissionType, efmSection=efmSection, taxonomy=et.partition('/')[0], earliestTaxonomy=et)                        
+                elif validation == "taxonomy-url-required-in-dts": 
+                    if not any(fnmatch.fnmatch(url, value) for url in modelXbrl.urlDocs.keys()):
+                        sevMessage(sev, subType=submissionType, efmSection=efmSection, taxonomy=value)                        
                 # type-specific validations
                 elif len(names) == 0:
                     pass # no name entries if all dei names of this validation weren't in the loaded dei taxonomy (i.e., pre 2019) 
@@ -2517,7 +2521,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     if isEFM:
         # find CEF
         for d in modelXbrl.urlDocs.values():
-            if d.type == ModelDocument.Type.SCHEMA and d.targetNamespace.startswith("http://xbrl.sec.gov/cef/"):
+            if d.type == ModelDocument.Type.SCHEMA and d.targetNamespace and d.targetNamespace.startswith("http://xbrl.sec.gov/cef/"):
                 nsCEF = d.targetNamespace
                 cAllSecurMem = modelXbrl.qnameConcepts.get(qname(nsCEF,"AllSecuritiesMember"))
                 cAllRisksMem = modelXbrl.qnameConcepts.get(qname(nsCEF,"AllRisksMember"))
@@ -2644,9 +2648,18 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     
     # DQC.US rules
     for dqcRuleName, dqcRule in dqcRules.items(): # note this is an OrderedDict to preserve rule execution order
-        if not dqcRuleName.startswith("DQC.US."):
-            continue # skip copyright and description
-        msg = dqcRule["message"]
+        if dqcRuleName == "copyright": # first in JSON OrderedDict, initialize common variables for rule
+            if ugtRels:
+                ugtAxisDefaults = ugtRels["axis-defaults"]
+            hasDocPerEndDateFact = documentPeriodEndDateFact is not None and documentPeriodEndDateFact.xValid >= VALID and documentPeriodEndDateFact.xValue and documentPeriodEndDateFact.context.endDatetime
+            if hasDocPerEndDateFact and documentPeriodEndDate:
+                maxEndDate = max(documentPeriodEndDate, documentPeriodEndDateFact.context.endDatetime)
+            else:
+                maxEndDate = documentPeriodEndDate # note that this may be None if there is no documentPeriodEndDate
+            continue
+        elif not dqcRuleName.startswith("DQC.US."):
+            continue # skip description and any other non-rule entries
+        msg = dqcRule.get("message")
         edgarCode = "dqc-{}-{}".format(dqcRuleName[-4:], "-".join(dqcRule["name"].title().split()))
         if dqcRuleName == "DQC.US.0001" and ugtRels:
             ugtAxisMembers = ugtRels["axes"]
@@ -2691,6 +2704,15 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(dqcRule["message-unreported"])),
                             modelObject=modelXbrl, axis=axisConcept.qname, member=unusedMember,
                             edgarCode=edgarCode+"-Unreported", ruleElementId=id)
+                    if rule.get("axis-default-must-match-UGT") == "Yes" and rule["axis"] in ugtAxisDefaults:
+                        ugtDefaultMem = ugtAxisDefaults[rule["axis"]]
+                        for dimDefRel in modelXbrl.relationshipSet(XbrlConst.dimensionDefault).fromModelObject(axisConcept):
+                            if dimDefRel.toModelObject is not None:
+                                extDefaultQname = dimDefRel.toModelObject.qname
+                                if extDefaultQname.localName != ugtDefaultMem:
+                                    modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(dqcRule["message-disallowed-default"])),
+                                        modelObject=modelXbrl, axis=axisConcept.qname, default=extDefaultQname, allowedDefault=ugtDefaultMem,
+                                        edgarCode=edgarCode+"-Disallowed-Default", ruleElementId=id)
             del warnedFactsByQn # dereference objects
 
         elif dqcRuleName == "DQC.US.0004":
@@ -2706,14 +2728,18 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     linkroleURIs = OrderedSet(modelLink.role
                                               for modelLink in val.modelXbrl.baseSets[(XbrlConst.summationItem,None,None,None)]
                                               if modelXbrl.relationshipSet(XbrlConst.summationItem, modelLink.role , None, None).fromModelObject(sumConcept))
+                    
                 for linkroleUri in linkroleURIs: # evaluate by network where applicable to ID
                     itemWeights = {}
+                    summingNetworkChildren = False
                     if linkroleUri: # has calc network evaluation
                         itemWeights = dict((rel.toModelObject.name, rel.weightDecimal)
-                                            for rel in modelXbrl.relationshipSet(XbrlConst.summationItem, linkroleUri, None, None).fromModelObject(sumConcept))
+                                            for rel in modelXbrl.relationshipSet(XbrlConst.summationItem, linkroleUri, None, None).fromModelObject(sumConcept)
+                                            if rel.toModelObject is not None)
                         if set(rule.get("calc-items")) <= itemWeights.keys():
                             itemLns = list(itemWeights.keys())
                             sumLn = rule.get("calc-sum") # may be reset on previous linkroleUri in loop
+                            summingNetworkChildren = True
                         else:
                             sumLn = None
                     if not sumLn:
@@ -2722,6 +2748,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     bindings = factBindings(val.modelXbrl, flattenToSet( (sumLn, itemLns, alts.values() )), nils=False)
                     for b in bindings.values():
                         _itemLns = itemLns.copy() # need fresh array to use for substituting
+                        _sumLn = sumLn
                         for iLn in itemLns: # check if substitution is necessary
                             if iLn not in b and iLn in alts:
                                 for aLns in alts[iLn]:
@@ -2729,10 +2756,17 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                         p = _itemLns.index(iLn) # replace iLn with alts that all are in binding
                                         _itemLns[p:p+1] = aLns
                                         break
-                        if sumLn in b and all(ln in b for ln in _itemLns) and not (
+                        if _sumLn not in b and _sumLn in alts:
+                            for aLns in alts[sumLn]:
+                                if aLns and aLns[0] in b:
+                                    _sumLn = aLns[0]
+                                    break
+                        if summingNetworkChildren: # use actually-present contributing items in binding
+                            _itemLns = b.keys() - {_sumLn}
+                        if _sumLn in b and all(ln in b for ln in _itemLns) and not (
                             any(ax in f.context.qnameDims for ax in blkAxis for f in b.values())):
-                            dec = leastDecimals(b, flattenToSet( (sumLn, _itemLns) ))
-                            sumFact = b[sumLn]
+                            dec = leastDecimals(b, flattenToSet( (_sumLn, _itemLns) ))
+                            sumFact = b[_sumLn]
                             itemFacts = [b[ln] for ln in _itemLns]
                             sfNil = sumFact.isNil
                             allIfNil = all(f.isNil for f in itemFacts)
@@ -2748,12 +2782,59 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     (sfNil ^ allIfNil) or 
                                     abs(sumValue - sum(itemValues)) > pow(10, -dec) * tolerance)):
                                     modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
-                                        modelObject=b.values(), sumName=sumLn, sumValue=str(sumValue), 
+                                        modelObject=b.values(), sumName=_sumLn, sumValue=str(sumValue), 
                                         itemNames=", ".join(_itemLns), itemValues=" + ".join(str(v) for v in itemValues), 
                                         contextID=sumFact.context.id, unitID=sumFact.unit.id if sumFact.unit is not None else "(none)",
                                         edgarCode=edgarCode, ruleElementId=id)
                             except:
                                 print("exception")
+        elif dqcRuleName == "DQC.US.0005" and  documentType not in dqcRule["excluded-document-types"] and maxEndDate:
+            for id, rule in dqcRule["rules"].items():
+                msg = rule.get("message") # each rule has a message
+                if "name" in rule:
+                    facts = modelXbrl.factsByLocalName.get(rule["name"],())
+                    maxEndDateComparedTo = maxEndDate.__gt__ # f.endDate < maxEndDate
+                elif "axis" in rule and rule["axis"] in modelXbrl.nameConcepts:
+                    axisQn = modelXbrl.nameConcepts[rule["axis"]][0].qname
+                    if rule.get("member") in modelXbrl.nameConcepts:
+                        memQn = modelXbrl.nameConcepts[rule.get("member")][0].qname
+                    else:
+                        memQn = NONDEFAULT
+                    facts = modelXbrl.factsByDimMemQname(axisQn, memQn)
+                    maxEndDateComparedTo = maxEndDate.__ge__ # f.endDate <= maxEndDate
+                else:
+                    continue
+                for f in facts:
+                    if maxEndDateComparedTo(f.context.endDatetime):
+                        modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                                          modelObject=f, name=f.qname.localName, value=f.xValue,
+                                          date=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True),
+                                          endDate=XmlUtil.dateunionValue(maxEndDate, subtractOneDay=True),
+                                          axis=rule.get("axis"), member=rule.get("member"),
+                                          contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
+                                          edgarCode=edgarCode + '-' + id, ruleElementId=id)
+        elif (dqcRuleName == "DQC.US.0006" 
+              and documentType not in dqcRule["excluded-document-types"] 
+              and documentType and "T" not in documentType):
+            for id, rule in dqcRule["rules"].items():
+                focusRange = rule["focus-range"].get(deiItems.get("DocumentFiscalPeriodFocus"))
+                if focusRange and not any(modelXbrl.factsByLocalName.get(n,()) for n in rule["blocking-names"]):
+                    def r6facts():
+                        for n in rule["names"]:
+                            for f in modelXbrl.factsByLocalName.get(n,()):
+                                yield f
+                        for n in ("{http://www.xbrl.org/dtr/type/non-numeric}textBlockItemType",
+                                  "{http://www.xbrl.org/dtr/type/2020-01-21}textBlockItemType"):
+                            for f in modelXbrl.factsByDatatype(True, qname(n)):
+                                yield f
+                    for f in r6facts():
+                        durationDays = (f.context.endDatetime - f.context.startDatetime).days
+                        if not (focusRange[0] <= durationDays <= focusRange[1]):
+                            modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                                              modelObject=f, name=f.qname.localName, durationDays=durationDays, documentFiscalPeriodFocus=deiItems.get("DocumentFiscalPeriodFocus"),
+                                              startDate=XmlUtil.dateunionValue(f.context.startDatetime), endDate=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True),
+                                              contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
+                                              edgarCode=edgarCode, ruleElementId=id)
         elif dqcRuleName == "DQC.US.0008" and ugtRels:
             for id, rule in dqcRule["rules"].items():
                 ugtCalcs = ugtRels["calcs"]
@@ -2791,14 +2872,14 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             warnedFactsByQn = defaultdict(list)
             for f in modelXbrl.facts:
                 if (f.qname in dqc0015.concepts and f.isNumeric and not f.isNil and f.xValue < 0 and (
-                    all(dim.isTyped or (
-                        (dim.dimensionQname not in dqc0015.excludedAxesMembers or
-                         ("*" not in dqc0015.excludedAxesMembers[dim.dimensionQname] and
-                          dim.memberQname not in dqc0015.excludedAxesMembers[dim.dimensionQname])) and
-                         dim.memberQname not in dqc0015.excludedMembers and
+                    all(d.isTyped or (
+                        (d.dimensionQname not in dqc0015.excludedAxesMembers or
+                         ("*" not in dqc0015.excludedAxesMembers[d.dimensionQname] and
+                          d.memberQname not in dqc0015.excludedAxesMembers[d.dimensionQname])) and
+                         d.memberQname not in dqc0015.excludedMembers and
                          (dqc0015.excludedMemberNamesPattern is None or 
-                          not dqc0015.excludedMemberNamesPattern.search(dim.memberQname.localName)))
-                        for dim in f.context.qnameDims.values()))):
+                          not dqc0015.excludedMemberNamesPattern.search(d.memberQname.localName)))
+                        for d in f.context.qnameDims.values()))):
                     id = dqc0015.conceptRuleIDs.get(f.qname, 9999)
                     if not any(f.isDuplicateOf(warnedFact) for warnedFact in warnedFactsByQn[f.qname]):
                         warnedFactsByQn[f.qname].append(f)
@@ -2806,6 +2887,87 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             modelObject=f, name=f.qname, value=f.value, contextID=f.contextID, unitID=f.unit.id if f.unit is not None else "(none)",
                             edgarCode=edgarCode, ruleElementId=id)
             del warnedFactsByQn # dereference objects
+        elif (dqcRuleName == "DQC.US.0033" and hasDocPerEndDateFact
+              and not (documentType == "8K" and any(f.get("xValue") for f in modelXbrl.factsByLocalName.get("AmendmentFlag",())))
+              and abs((documentPeriodEndDate + ONE_DAY - documentPeriodEndDateFact.context.endDatetime).days) == 0): # was 3
+            for id, rule in dqcRule["rules"].items():
+                for n in rule["names"]:
+                    for f in modelXbrl.factsByLocalName.get(n,()):
+                        if not dateUnionEqual(documentPeriodEndDate, f.context.endDatetime, instantEndDate=True):
+                            modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                                              modelObject=f, name=f.qname.localName, endDate=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True), 
+                                              documentPeriodEndDate=documentPeriodEndDate,
+                                              contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
+                                              edgarCode=edgarCode, ruleElementId=id)
+        elif dqcRuleName == "DQC.US.0036" and hasDocPerEndDateFact:
+            for id, rule in dqcRule["rules"].items():
+                if abs((documentPeriodEndDate + ONE_DAY - documentPeriodEndDateFact.context.endDatetime).days) > 1: # was 3
+                    modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                                      modelObject=f, name=documentPeriodEndDateFact.qname.localName, 
+                                      endDate=XmlUtil.dateunionValue(documentPeriodEndDateFact.context.endDatetime, subtractOneDay=True), 
+                                      documentPeriodEndDate=documentPeriodEndDate,
+                                      contextID=documentPeriodEndDateFact.context.id,
+                                      edgarCode=edgarCode, ruleElementId=id)
+        elif dqcRuleName == "DQC.US.0041":
+            ugtAxisDefaults = ugtRels["axis-defaults"]
+            for id, rule in dqcRule["rules"].items():
+                for rel in modelXbrl.relationshipSet(XbrlConst.dimensionDefault).modelRelationships:
+                    if (rel.fromModelObject is not None and rel.toModelObject is not None
+                        and rel.fromModelObject.qname in ugtAxisDefaults 
+                        and ugtAxisDefaults[rel.fromModelObject.qname] != rel.toModelObject.qname):
+                        modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                                          modelObject=(rel, rel.fromModelObject), axisName=rel.fromModelObject.qname, 
+                                          axisDefaultName=ugtAxisDefaults[rel.fromModelObject.qname],
+                                          extensionDefaultName=rel.toModelObject.qname,
+                                          edgarCode=edgarCode, ruleElementId=id)
+        elif dqcRuleName == "DQC.US.0043":
+            incomeNames = dqcRule["income-names"]
+            def descendantWeights(fromConcept, ELR=None, effectiveWeight=1, bottomWeights=None, visited=None):
+                if visited is None:
+                    visited = set()
+                    bottomWeights = set()
+                visited.add(fromConcept)
+                for rel in modelXbrl.relationshipSet(XbrlConst.summationItem, ELR).fromModelObject(fromConcept):
+                    if rel.toModelObject is not None and rel.toModelObject.name not in incomeNames:
+                        w = effectiveWeight * rel.weight
+                        bottomWeights.add((rel.toModelObject, w))
+                        descendantWeights(rel.toModelObject, rel.linkrole, w, bottomWeights, visited)
+                visited.discard(fromConcept)
+                return bottomWeights
+                
+            for id, rule in dqcRule["rules"].items():
+                topName = rule["parent-name"]
+                if (modelXbrl.factsByLocalName.get(topName,())
+                    and ("excluded-name" not in rule or not modelXbrl.factsByLocalName.get(rule["excluded-name"],()))):
+                    top = modelXbrl.nameConcepts[topName][0]
+                    for bottom, effectiveWeight in descendantWeights(top): # don't include stopping income concept
+                        if ((bottom.balance == "credit" and effectiveWeight > 0)
+                            or (bottom.balance == "debit" and effectiveWeight < 0)):
+                            modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg[bottom.balance or ""])),
+                                              modelObject=(top, bottom), topName=top.name, bottomName=bottom.name,
+                                              edgarCode=edgarCode, ruleElementId=id)
+                        
+        elif dqcRuleName == "DQC.US.0044":
+            ugtAccrualItems = ugtRels["accrual-items"]
+            for id, rule in dqcRule["rules"].items():
+                def checkAccrualDescendants(rel, visited):
+                    if rel.toModelObject is not None:
+                        name = rel.toModelObject.name
+                        if name in ugtAccrualItems:
+                            for f in modelXbrl.factsByLocalName[name]:
+                                if f.xValue != 0:
+                                    modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                                        modelObject=f, name=name, contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)", value=f.xValue,
+                                        edgarCode=edgarCode, ruleElementId=id)
+                        if name not in visited:
+                            visited.add(name)
+                            for childRel in modelXbrl.relationshipSet(rel.arcrole, rel.consecutiveLinkrole).fromModelObject(rel.toModelObject):
+                                checkAccrualDescendants(childRel, visited)
+                            visited.discard(name)
+                for parentLn in rule["summation-items"]:
+                    for parentConcept in modelXbrl.nameConcepts[parentLn]:
+                        for rel in val.summationItemRelsSetAllELRs.fromModelObject(parentConcept):
+                            checkAccrualDescendants(rel, set())
         elif dqcRuleName == "DQC.US.0048" and documentType not in dqcRule["excluded-document-types"]:
             # 0048 has only one id, rule
             id, rule = next(iter(dqcRule["rules"].items()))
@@ -2845,6 +3007,40 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             linkRole=linkroleUri, linkroleDefinition=definition,
                             rootNames=(", ".join(r.name for r in calcRoots) or "(none)"),
                             edgarCode=edgarCode, ruleElementId=id)
+        elif dqcRuleName == "DQC.US.0060":
+            for id, rule in dqcRule["rules"].items():
+                for eltLn, depLns in rule["element-dependencies"].items():
+                    bindings = factBindings(val.modelXbrl, flattenToSet( (eltLn, depLns )), nils=False)
+                    for b in bindings.values():
+                        if eltLn in b and not any(depLn in b for depLn in depLns):
+                            f = b[eltLn]
+                            modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                                modelObject=b.values(), name=eltLn, value=f.xValue, 
+                                dependentElements=", ".join(depLns), 
+                                contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
+                                edgarCode=edgarCode, ruleElementId=id)
+        elif dqcRuleName == "DQC.US.0079":
+            for id, rule in dqcRule["rules"].items():
+                ignoreDims = rule["acceptable-dimensions"]
+                replacementMembers = rule["replacement-members"]
+                def checkMember(axis, rel, visited):
+                    if rel.toModelObject is not None:
+                        name = rel.toModelObject.name
+                        if name.lower() in replacementMembers and rel.toModelObject.qname.namespaceURI not in val.disclosureSystem.standardTaxonomiesDict:
+                            modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                                modelObject=(rel, rel.toModelObject), member=rel.toModelObject.qname, axis=axis.qname, 
+                                replacement=replacementMembers[name.lower()],
+                                edgarCode=edgarCode, ruleElementId=id)
+                        if name not in visited:
+                                visited.add(name)
+                                for childRel in modelXbrl.relationshipSet(XbrlConst.domainMember, rel.consecutiveLinkrole).fromModelObject(rel.toModelObject):
+                                    checkMember(axis, childRel, visited)
+                                visited.discard(name)
+                for rel in modelXbrl.relationshipSet(XbrlConst.dimensionDomain).modelRelationships:
+                    if rel.fromModelObject is not None and rel.fromModelObject.name not in ignoreDims:
+                        checkMember(rel.fromModelObject, rel, set())
+                    
+                
     
     del val.summationItemRelsSetAllELRs
     

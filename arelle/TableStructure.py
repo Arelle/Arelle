@@ -307,7 +307,7 @@ def evaluateTableIndex(modelXbrl, lang=None):
             tableGroup, tableSeq, tableName = roleType._tableIndex
             roleURIdims, priItemQNames = EFMlinkRoleURIstructure(modelXbrl, roleType.roleURI)
             for priItemQName in priItemQNames:
-                for fact in factsByQname[priItemQName]:
+                for fact in factsByQname.get(priItemQName,()):
                     cntx = fact.context
                     # non-explicit dims must be default
                     if (cntx is not None and

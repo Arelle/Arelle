@@ -8,12 +8,21 @@
     "description": [
         "DQC.US rule 0001 is implemented below",
         "DQC.US rule 0004 is implemented below",
+        "DQC.US rule 0005 is implemented below (new for 2022)",
+        "DQC.US rule 0006 is implemented below (new for 2022)",
         "DQC.US rule 0008 is implemented by us-gaap calc linkbase, compiled into file resources/us-gaap-calc-YYYY.json",
         "DQC.US rule 0009 is implemented below",
         "DQC.US rule 0015 is implemented below",
+        "DQC.US rule 0033 is implemented below (new for 2022)",
+        "DQC.US rule 0036 is implemented below (new for 2022)",
+        "DQC.US rule 0041 is implemented below (new for 2022)",
+        "DQC.US rule 0043 is implemented below (new for 2022)",
+        "DQC.US rule 0044 is implemented below (new for 2022)",
         "DQC.US rule 0048 is implemented below",
         "",
-        "Each below rule contains a description of syntax used herein, message and rules. "
+        "Each below rule contains a description of syntax used herein, message and rules. ",
+        "",
+        "This json must load with OrderedDict's to ensure consistent processing order"
     ],
     "DQC.US.0001": {
     	"name": "Axis with Inappropriate Members",
@@ -28,19 +37,21 @@
             "unallowed-axes: array of additional axes whose UGT descendants are allowed members",
             "extensions-allowed: Yes, No or Limited",
             "extension-members: array of limited extension member names",
-            "child-extension-members: array of extension members whose children are allowed ",
+            "child-extension-members: array of extension members whose children are allowed",
+            "axis-default-must-match-UGT: Yes - extension axis default must match UGT default",
             "",
             "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0001/DQC_0001_ListOfAxes.xlsx",
             "also see: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0001/DQC_0001.md"
         ],
         "message": "The fact {name} with a value of {value} is dimensionally qualified with the {axis} and the unallowable member {member}. {issue} \nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}",
         "message-unreported": "Member defined for the axis {axis} was not reported with any fact: {member}",
+        "message-disallowed-default": "Default defined for the axis {axis}, {default}, should be {allowedDefault}",
         "rules": {
             "51": {
                 "axis": "FairValueByFairValueHierarchyLevelAxis",
                 "axis-descendants": "Yes",
                 "extensions-allowed": "Limited",
-                "extension-members": ["FairValueInputsLevel1AndLevel2Member", "FairValueInputsLevel2AndLevel3Member", "InvestmentsNetAssetValueMember"]
+                "extension-members": ["FairValueInputsLevel1AndLevel2Member", "FairValueInputsLevel2AndLevel3Member", "FairValueInputsLevel1AndLevel3Member"]
             },
             "52": {
                 "axis": "ReclassificationOutOfAccumulatedOtherComprehensiveIncomeAxis",
@@ -75,7 +86,7 @@
             "58": {
                 "axis": "CounterpartyNameAxis",
                 "axis-descendants": "Yes",
-                "additional-members": ["AffiliatedEntityMember", "InvestorMember", "VariableInterestEntityNotPrimaryBeneficiaryMember", "ChiefFinancialOfficerMember", "IndividualMember", "GovernmentMember", "GuarantorSubsidiariesMember", "SubsidiaryIssuerMember", "DirectorMember", "ChiefExecutiveOfficerMember",  "ChiefOperatingOfficerMember", "GeneralPartnerMember", "CorporateJointVentureMember", "SubsidiaryOfCommonParentMember", "IndividuallyImmaterialCounterpartiesMember", "RepurchaseAgreementCounterpartyNameDomain"],
+                "additional-members": ["RepurchaseAgreementCounterpartyNameDomain", "AffiliatedEntityMember", "InvestorMember", "VariableInterestEntityNotPrimaryBeneficiaryMember", "ChiefFinancialOfficerMember", "IndividualMember", "GovernmentMember", "GuarantorSubsidiariesMember", "SubsidiaryIssuerMember", "DirectorMember", "ChiefExecutiveOfficerMember",  "ChiefOperatingOfficerMember", "GeneralPartnerMember", "CorporateJointVentureMember", "SubsidiaryOfCommonParentMember", "IndividuallyImmaterialCounterpartiesMember"],
                 "extensions-allowed": "Yes"
             },
             "59": {
@@ -83,12 +94,17 @@
                 "axis-descendants": "Yes",
                 "extensions-allowed": "Yes"
             },
+            "61": {
+                "axis": "RangeAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "No"
+            },
             "62": {
                 "axis": "CurrencyAxis",
                 "axis-descendants": "Yes",
                 "additional-members": ["VES", "SVC", "STN", "MRU"],
                 "extensions-allowed": "Limited",
-                "extension-members": ["SICAD1Member", "SICAD2Member", "OtherCurrencyMember", "NonUSDollarMember", "CENCOEXMember", "SICADMember", "SIMADIMember", "DIPROMember", "DICOMMember"]
+                "extension-members": ["SICAD1Member", "SICAD2Member", "OtherCurrencyMember", "NonUSDollarMember", "CENCOEXMember", "SICADMember", "SIMADIMember", "DIPROMember", "DICOMMember", "XBT"]
             },
             "63": {
                 "axis": "PositionAxis",
@@ -104,19 +120,19 @@
             "65": {
                 "axis": "FairValueByMeasurementBasisAxis",
                 "axis-descendants": "Yes",
-                "extensions-allowed": "Limited",
-                "extension-members": ["InvestmentsNetAssetValueMember"]
+                "extensions-allowed": "No",
+                "axis-default-must-match-UGT": "Yes"
             },
             "66": {
                 "axis": "HedgingDesignationAxis",
                 "axis-descendants": "Yes",
-                "extensions-allowed": "Limited"
+                "extensions-allowed": "No"
             },
             "69": {
                 "axis": "ProductOrServiceAxis",
                 "axis-descendants": "Yes",
-                "additional-axes": ["ScheduleOfMalpracticeInsuranceTypeAndTierIdentifierAxis", "AircraftTypeAxis", "PublicUtilitiesInventoryAxis", "PropertyPlantAndEquipmentByTypeAxis", "ReserveQuantitiesByTypeOfReserveAxis"],
-                "additional-members": ["AuctionRateSecuritiesMember", "AutomobileLoanMember", "CommercialLoanMember", "CommercialRealEstateMember", "ConstructionLoansMember", "ConsumerLoanMember", "CrudeOilMember", "FuelMember", "GeneralLiabilityMember", "HeatingOilMember", "HomeEquityLoanMember", "HomeEquityMember", "LetterOfCreditMember", "LineOfCreditMember", "LoansMember", "MortgageLoansOnRealEstateMember", "NaturalGasLiquidsReservesMember", "NaturalGasReservesMember", "OilReservesMember", "ProfessionalMalpracticeLiabilityMember", "RealEstateLoanMember", "ResidentialMortgageMember", "SyntheticOilMember", "PublicUtilitiesInventoryWaterMember", "PublicUtilitiesInventoryPropaneMember", "ResidentialRealEstateMember", "RealEstateMember", "AutomobilesMember", "HotelMember", "RegionalCarrierMember", "MainlineMember"],
+                "additional-axes": ["AircraftTypeAxis", "ScheduleOfMalpracticeInsuranceTypeAndTierIdentifierAxis", "PropertyPlantAndEquipmentByTypeAxis", "ReserveQuantitiesByTypeOfReserveAxis", "PublicUtilitiesInventoryAxis"],
+                "additional-members": ["AuctionRateSecuritiesMember", "AutomobileLoanMember", "CommercialLoanMember", "CommercialRealEstateMember", "ConstructionLoansMember", "ConsumerLoanMember", "CrudeOilMember", "FuelMember", "GeneralLiabilityMember", "HeatingOilMember", "HomeEquityLoanMember", "HomeEquityMember", "LetterOfCreditMember", "LineOfCreditMember", "LoansMember", "NaturalGasLiquidsReservesMember", "NaturalGasReservesMember", "OilReservesMember", "ProfessionalMalpracticeLiabilityMember", "RealEstateLoanMember", "ResidentialMortgageMember", "SyntheticOilMember", "ResidentialRealEstateMember", "PublicUtilitiesInventoryPropaneMember", "PublicUtilitiesInventoryWaterMember", "AutomobilesMember", "HotelMember", "RegionalCarrierMember", "MainlineMember"],
                 "extensions-allowed": "Yes"
             },
             "70": {
@@ -146,17 +162,13 @@
                 "axis": "StatementEquityComponentsAxis",
                 "axis-descendants": "Yes",
                 "additional-members": ["AccumulatedNetGainLossFromCashFlowHedgesIncludingPortionAttributableToNoncontrollingInterestMember", "AccumulatedNetGainLossFromDesignatedOrQualifyingCashFlowHedgesMember", "AccumulatedNetGainLossFromCashFlowHedgesAttributableToNoncontrollingInterestMember", "TrustForBenefitOfEmployeesMember"],
-                "extensions-allowed": "Yes"
+                "extensions-allowed": "Yes",
+                "comment": "DQC implementation additionally notes in message when disallowed member is also in the StatementClassOfStockAxis"
             },
             "76": {
                 "axis": "StatementScenarioAxis",
                 "axis-descendants": "Yes",
                 "extensions-allowed": "Yes"
-            },
-            "61": {
-                "axis": "RangeAxis",
-                "axis-descendants": "Yes",
-                "extensions-allowed": "No"
             },
             "77": {
                 "axis": "PreferredUnitsByNameAxis",
@@ -178,6 +190,16 @@
                 "axis-descendants": "Yes",
                 "extensions-allowed": "Yes"
             },
+            "81": {
+                "axis": "StatementBusinessSegmentsAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "Yes"
+            },
+            "82": {
+                "axis": "AssetAcquisitionAxis",
+                "axis-descendants": "Yes",
+                "extensions-allowed": "Yes"
+            },
             "9366": {
                 "axis": "BusinessAcquisitionAxis",
                 "axis-descendants": "Yes",
@@ -196,6 +218,7 @@
             "blocking-axes: array of local name(s) of axes which, if any is present, block this check from running",
             "alternatives: object whose keys are alternatives for item and values an array of ",
             "     alternatives arrays of items to sum for substitution,",
+            "     or an alternative of sum for substitution (single item in list for sum substitute),",
             "calc-sum: local name of a calculation summation item to be used instead if available",
             "calc-items: local names of calculation items required if using calc instead of sum/items above",
             "tolerance: integer representing 10**-leastDecimals*tolerance for equality margin)",
@@ -255,7 +278,7 @@
         	    "sum": "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseExcludingExchangeRateEffect", 
         	    "items": ["NetCashProvidedByUsedInOperatingActivities", "NetCashProvidedByUsedInInvestingActivities", "NetCashProvidedByUsedInFinancingActivities"],
         	    "alternatives": {
-        	        "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseExcludingExchangeRateEffect ": [
+        	        "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseExcludingExchangeRateEffect": [
         	            ["CashAndCashEquivalentsPeriodIncreaseDecreaseExcludingExchangeRateEffect"]
         	        ]
         	    },
@@ -285,6 +308,68 @@
         	    "sum": "NetCashProvidedByUsedInContinuingOperations", 
         	    "items": ["NetCashProvidedByUsedInOperatingActivitiesContinuingOperations", "NetCashProvidedByUsedInInvestingActivitiesContinuingOperations", "NetCashProvidedByUsedInFinancingActivitiesContinuingOperations"],
         	    "tolerance": 2
+        	}
+        }
+	},
+    "DQC.US.0005": {
+    	"name": "Context Dates After Period End Date",
+        "description" : [
+            "DQC.US 0005 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and value object as follows:",
+            "name: local name of the fact",
+            "axis: local name of axis",
+            "member: local name of axis member",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0005/DQC_0005.md",
+            "",
+            "DQC searches for latest document period end date but EDGAR uses required context and header value instead"
+        ],
+        "excluded-document-types": ["S-1", "S-3", "S-4", "S-6", "S-8", "S-11", "S-20", "S-1/A", "S-3/A", "S-4/A", "S-6/A", "S-8/A", "S-11/A", "S-20/A", "F-1","F-3"],
+        "rules": {
+        	"17": { 
+        	    "name": "EntityCommonStockSharesOutstanding",
+		        "message": "The date of {date} used for {name} with a value of {value} is earlier than the reporting period end date {endDate}. \nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}"
+        	},
+        	"48": { 
+        	    "axis": "SubsequentEventTypeAxis",
+		        "message": "The date of {date} used for {name} with a value of {value} and the {axis} is earlier than or the same as the reporting period end date {endDate}. \nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}"
+        	},
+        	"49": { 
+        	    "axis": "StatementScenarioAxis",
+        	    "member": "ScenarioForecastMember",
+		        "message": "The date of {date} used for {name} with a value of {value} and the {axis} member {member} is earlier than or the same as the reporting period end date {endDate}. \nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}"
+        	}
+        }
+	},
+    "DQC.US.0006": {
+    	"name": "DEI and Block Tag Date Contexts",
+        "description" : [
+            "DQC.US 0006 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and value object as follows:",
+            "name: local name of the fact",
+            "axis: local name of axis",
+            "member: local name of axis member",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0005/DQC_0006.md"
+        ],
+        "excluded-document-types":  ["S-1", "S-3", "S-4", "S-6", "S-8", "S-11", "S-20", "S-1/A", "S-3/A", "S-4/A", "S-6/A", "S-8/A", "S-11/A", "S-20/A", "F-1","F-3"],
+        "message": "The number of days, {durationDays}, in the date range reported for {name}, {startDate} to {endDate} is not consistent with the DocumentFiscalPeriodFocus value of {documentFiscalPeriodFocus}. \nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}",
+        "rules": {
+        	"14": { 
+        	    "names": ["AmendmentFlag", "AmendmentDesription", "CurrentFiscalYearEndDate", "DocumentFiscalPeriodFocus", "DocumentFiscalYearFocus", 
+        	    		  "DocumentPeriodEndDate", "DocumentType", "EntityCentralIndexKey", "EntityFilerCategory", "EntityRegistrantName"],
+        	    "blocking-names": ["TransitionReport", "DocumentTransitionReport"],
+        	    "focus-range": {
+					"FY": [340,390], 
+					"Q1": [65,115], 
+					"Q3": [245,295], 
+					"Q2": [155,205], 
+					"Q4": [340,390], 
+					"H1": [155,205], 
+					"H2": [340,390]
+				}
         	}
         }
 	},
@@ -389,6 +474,287 @@
         ],
         "message": "Fact {name} has a value of {value} which is less than zero. This element should not have a negative value. The preparer should consider if the value is input correctly for this assertion and, after considering the appropriateness of the input, if incorrect, input the amount as a positive (i.e., absolute) value and provide a negated label.  \nThe properties of this {name} fact are:\nContext: {contextID} \nUnit: {unitID}"
     },
+    "DQC.US.0033": {
+    	"name": "Document Period End Date Context",
+        "description" : [
+            "DQC.US 0033 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and value object as follows:",
+            "names: local name of DEI facts to test",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0033/DQC_0033.md"
+        ],
+        "message": "The ending date of {endDate} used for {name} must be the same as the Document Period End Date, {documentPeriodEndDate}.  \nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}",
+        "rules": {
+        	"2": { 
+        	    "names": [
+					"AdditionalSecurities462b", 
+					"AdditionalSecurities462bFileNumber", 
+					"AdditionalSecuritiesEffective413b", 
+					"AmendmentDescription", 
+					"AmendmentFlag", 
+					"AnnualInformationForm", 
+					"ApproximateDateOfCommencementOfProposedSaleToThePublic", 
+					"AuditedAnnualFinancialStatements", 
+					"CityAreaCode", 
+					"ContactPersonnelEmailAddress", 
+					"ContactPersonnelFaxNumber", 
+					"ContactPersonnelName", 
+					"ContactPersonnelUniformResourceLocatorURL", 
+					"ContainedFileInformationFileDescription", 
+					"ContainedFileInformationFileName", 
+					"ContainedFileInformationFileNumber", 
+					"ContainedFileInformationFileType", 
+					"CountryRegion", 
+					"CurrentFiscalYearEndDate", 
+					"DelayedOrContinuousOffering", 
+					"DividendOrInterestReinvestmentPlanOnly", 
+					"DocumentAccountingStandard", 
+					"DocumentAnnualReport", 
+					"DocumentCopyrightInformation", 
+					"DocumentCreationDate", 
+					"DocumentDescription", 
+					"DocumentEffectiveDate", 
+					"DocumentFiscalPeriodFocus", 
+					"DocumentFiscalYearFocus", 
+					"DocumentInformationTextBlock", 
+					"DocumentName", 
+					"DocumentPeriodStartDate", 
+					"DocumentQuarterlyReport", 
+					"DocumentRegistrationStatement", 
+					"DocumentShellCompanyEventDate", 
+					"DocumentShellCompanyReport", 
+					"DocumentsIncorporatedByReferenceTextBlock", 
+					"DocumentSubtitle", 
+					"DocumentSynopsis", 
+					"DocumentTitle", 
+					"DocumentTransitionReport", 
+					"DocumentType", 
+					"DocumentVersion", 
+					"EffectiveAfter60Days486a", 
+					"EffectiveOnDate486a", 
+					"EffectiveOnDate486b", 
+					"EffectiveOnSetDate486a", 
+					"EffectiveOnSetDate486b", 
+					"EffectiveUponFiling462e", 
+					"EffectiveUponFiling486b", 
+					"EffectiveWhenDeclaredSection8c", 
+					"EntityAccountingStandard", 
+					"EntityAddressAddressDescription", 
+					"EntityAddressAddressLine1", 
+					"EntityAddressAddressLine2", 
+					"EntityAddressAddressLine3", 
+					"EntityAddressCityOrTown", 
+					"EntityAddressCountry", 
+					"EntityAddressPostalZipCode", 
+					"EntityAddressRegion", 
+					"EntityAddressStateOrProvince", 
+					"EntityBankruptcyProceedingsReportingCurrent", 
+					"EntityCentralIndexKey", 
+					"EntityCurrentReportingStatus", 
+					"EntityDataUniversalNumberingSystemNumber", 
+					"EntityEmergingGrowthCompany", 
+					"EntityExTransitionPeriod", 
+					"EntityFileNumber", 
+					"EntityFilerCategory", 
+					"EntityHomeCountryISOCode", 
+					"EntityIncorporationDateOfIncorporation", 
+					"EntityIncorporationStateCountryCode", 
+					"EntityInformationDateToChangeFormerLegalOrRegisteredName", 
+					"EntityInformationFormerLegalOrRegisteredName", 
+					"EntityInteractiveDataCurrent", 
+					"EntityInvCompanyType", 
+					"EntityLegalForm", 
+					"EntityListingDescription", 
+					"EntityListingForeign", 
+					"EntityListingParValuePerShare", 
+					"EntityListingPrimary", 
+					"EntityListingSecurityTradingCurrency", 
+					"EntityLocationPrimary", 
+					"EntityNorthAmericanIndustryClassificationPrimary", 
+					"EntityOtherIdentificationType", 
+					"EntityOtherIdentificationValue", 
+					"EntityPrimarySicNumber", 
+					"EntityRegistrantName", 
+					"EntityReportingCurrencyISOCode", 
+					"EntitySectorIndustryClassificationPrimary", 
+					"EntityShellCompany", 
+					"EntitySmallBusiness", 
+					"EntityTaxIdentificationNumber", 
+					"EntityTextBlock", 
+					"EntityVoluntaryFilers", 
+					"EntityWellKnownSeasonedIssuer", 
+					"ExhibitsOnly462d", 
+					"ExhibitsOnly462dFileNumber", 
+					"Extension", 
+					"FormerFiscalYearEndDate", 
+					"IcfrAuditorAttestationFlag", 
+					"InvestmentCompanyActFileNumber", 
+					"InvestmentCompanyActRegistration", 
+					"InvestmentCompanyRegistrationAmendmentNumber", 
+					"LegalEntityIdentifier", 
+					"LocalPhoneNumber", 
+					"NewEffectiveDateForPreviousFiling", 
+					"NoSubstantiveChanges462c", 
+					"NoSubstantiveChanges462cFileNumber", 
+					"NoTradingSymbolFlag", 
+					"OtherReportingStandardItemNumber", 
+					"ParentEntityLegalName", 
+					"PhoneFaxNumberDescription", 
+					"PostEffectiveAmendment", 
+					"PostEffectiveAmendmentNumber", 
+					"PreCommencementIssuerTenderOffer", 
+					"PreCommencementTenderOffer", 
+					"PreEffectiveAmendment", 
+					"PreEffectiveAmendmentNumber", 
+					"RegistrationStatementAmendmentNumber", 
+					"Security12bTitle", 
+					"Security12gTitle", 
+					"SecurityExchangeName", 
+					"SecurityReportingObligation", 
+					"SolicitingMaterial", 
+					"TradingSymbol", 
+					"WrittenCommunications"
+				]
+        	}
+        }
+	},
+    "DQC.US.0036": {
+    	"name": "Document Period End Date Context Fact Value Check",
+        "description" : [
+            "DQC.US 0036 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0036/DQC_0036.md"
+        ],
+        "message": "The ending date of {endDate} used for {name} must be the same as the Document Period End Date, {documentPeriodEndDate}.  \nThe properties of this {name} fact are: \nContext: {contextID}",
+        "rules": {
+        	"1": {
+        	}
+        }
+	},
+    "DQC.US.0041": {
+    	"name": "Axis with a Default Member that Differs from the Base Taxonomy",
+        "description" : [
+            "DQC.US 0041 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and value object as follows:",
+            "parent-name: local name of summation concept to test relationships to item concepts",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0041/DQC_0041.md"
+        ],
+        "message": "The dimension default defined for the axis in the base taxonomy should not be changed in a company extension taxonomy. The default for the {axisName} in the base taxonomy is {axisDefaultName}, but the default has been replaced with {extensionDefaultName}",
+        "rules": {
+        	"73": { 
+        	}
+        }
+    },
+    "DQC.US.0043": {
+    	"name": "Incorrect Calculation Weights in Operating Cash Flows",
+        "description" : [
+            "DQC.US 0043 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and value object as follows:",
+            "parent-name: local name of summation concept to test relationships to item concepts",
+            "excluded-name: local names of descendants to be excluded from rule",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0043/DQC_0043.md"
+        ],
+		"message": {
+			"credit": "The concept {bottomName} is included in the calculation of {topName}.{bottomName} is a credit balance type concept representing a natural cash outflow in the reconciliation of net income (loss) to {topName}. \n\nA credit balance type concept should always be assigned a negative one (-1) calculation weight as it is a deduction from net income (loss) to reconcile to {topName}.{bottomName} has been incorrectly provided a positive one (+1) calculation weight in the extension taxonomy. \n\nCorrect the calculation weight to negative one (-1) and input the value as a positive amount if it is a deduction of a non-cash income or gain, an increase in an asset, or a decrease in a liability. If the value is an add-back of a non-cash expense or loss, decrease in an asset, or an increase in a liability and {bottomName} is the correct concept, input a negative value.",
+			"debit": "The concept {bottomName} is included in the calculation of {topName}.{bottomName} is a debit balance type concept representing a natural cash inflow in the reconciliation of net income (loss) to {topName}. \n\nA debit balance type concept should always be assigned a positive one (+1) calculation weight as it is an addition to net income (loss) to reconcile to {topName}.{bottomName} has been incorrectly provided a negative one (-1) calculation weight in the extension taxonomy. \n\nCorrect the calculation weight to positive one (+1) and input the value as a positive amount if it is an addition of a non-cash expense or loss, a decrease in an asset, or an increase in a liability. If the value is an increase in an asset or a decrease in a liability and {bottomName} is the correct concept, input a negative value.",
+			"": "The concept {bottomName} is included in the calculation of {topName}.{bottomName} does not have a balance type attribute. \n\nIf {bottomName}, by definition, represents a natural cash inflow (i.e., a non-cash add-back, decrease in an asset, or an increase in a liability) in the reconciliation of net income (loss) to {topName}, then the concept should be given a positive one (+1) calculation weight. \n\nIf {bottomName}, by definition, represents a natural cash outflow (i.e., a non-cash reduction, an increase in an asset, or a decrease in a liability) in the reconciliation of net income (loss) to {topName}, then the concept should be given a negative one (-1) calculation weight. \n\nThe significant portion of values input to the Instance are expected to be absolute; the values are debits or credits, not positive or negative. As there is no balance type attribute, the positive input would represent the value that is consistent with the substance of the concept, as defined."
+			},
+        "rules": {
+        	"6833": { 
+        	    "parent-name": "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations",
+        	    "excluded-name": "NetCashProvidedByUsedInOperatingActivities"
+        	},
+        	"7488": { 
+        	    "parent-name": "NetCashProvidedByUsedInOperatingActivities"
+        	}
+        },
+        "income-names": [
+			"ComprehensiveIncomeNetOfTax", 
+			"DiscontinuedOperationIncomeLossFromDiscontinuedOperationBeforeIncomeTax", 
+			"ExtraordinaryItemGainOrLossNetOfTaxAttributableToNoncontrollingInterest", 
+			"ExtraordinaryItemGainOrLossNetOfTaxAttributableToReportingEntity", 
+			"ExtraordinaryItemNetOfTax", 
+			"ExtraordinaryItemsGross", 
+			"GainLossOnSaleOfPropertiesNetOfApplicableIncomeTaxes", 
+			"IncomeLossAttributableToNoncontrollingInterest", 
+			"IncomeLossAttributableToParent", 
+			"IncomeLossBeforeExtraordinaryItemsAndCumulativeEffectOfChangeInAccountingPrinciple", 
+			"IncomeLossBeforeGainOrLossOnSaleOfPropertiesExtraordinaryItemsAndCumulativeEffectsOfAccountingChanges", 
+			"IncomeLossFromContinuingOperations", 
+			"IncomeLossFromContinuingOperationsAttributableToNoncontrollingEntity", 
+			"IncomeLossFromContinuingOperationsBeforeIncomeTaxesDomestic", 
+			"IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest", 
+			"IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments", 
+			"IncomeLossFromContinuingOperationsBeforeInterestExpenseInterestIncomeIncomeTaxesExtraordinaryItemsNoncontrollingInterestsNet", 
+			"IncomeLossFromContinuingOperationsIncludingPortionAttributableToNoncontrollingInterest", 
+			"IncomeLossFromDiscontinuedOperationsNetOfTax", 
+			"IncomeLossFromDiscontinuedOperationsNetOfTaxAttributableToNoncontrollingInterest", 
+			"IncomeLossFromDiscontinuedOperationsNetOfTaxAttributableToReportingEntity", 
+			"IncomeLossFromSubsidiariesNetOfTax", 
+			"IncomeLossIncludingPortionAttributableToNoncontrollingInterest", 
+			"NetIncomeLoss", 
+			"NetIncomeLossAllocatedToGeneralPartners", 
+			"NetIncomeLossAllocatedToLimitedPartners", 
+			"NetIncomeLossAttributableToNoncontrollingInterest", 
+			"NetIncomeLossAttributableToParentNetOfFederalHomeLoanBankAssessments", 
+			"NetIncomeLossAvailableToCommonStockholdersBasic", 
+			"NetIncomeLossIncludingPortionAttributableToNonredeemableNoncontrollingInterest",
+			"ProfitLoss"
+        ]
+      },
+    "DQC.US.0044": {
+    	"name": "Accrual Items used in Investing or Financing Cash Flow Reconciliation",
+        "description" : [
+            "DQC.US 0044 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and value object as follows:",
+            "parent-name: local name of summation concept to test relationships to item concepts",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0044/DQC_0044.md"
+        ],
+        "message": "The concept {name} with a value of {value} is an accrual-based item in the US GAAP taxonomy that is included in the sum of cash provided by (used in) investing activities in the cash flows of the extension taxonomy.  \n\nAccrual-based concepts do not belong and should not be included in the investing section of the cash flows statement of the extension taxonomy.  \n\nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}",
+        "rules": {
+        	"6834": {
+        		"activity": "financing",
+        		"summation-items": [
+        			"NetCashProvidedByUsedInFinancingActivities", 
+        			"NetCashProvidedByUsedInFinancingActivitiesContinuingOperations"
+        			]
+        	},
+        	"7503": {
+        		"activity": "investing",
+        		"summation-items": [
+        			"NetCashProvidedByUsedInInvestingActivities", 
+        			"NetCashProvidedByUsedInInvestingActivitiesContinuingOperations"
+        			]
+        	}        	
+        },
+        "accrual-items-calc-parents": [
+			"ComprehensiveIncomeNetOfTax",
+			"NetIncomeLoss",
+			"NetIncomeLossAvailableToCommonStockholdersBasic",
+			"NetIncomeLossAvailableToCommonStockholdersDiluted",
+			"IncomeLossIncludingPortionAttributableToNoncontrollingInterest",
+			"IncomeLossAttributableToParent",
+			"NetIncomeLossAllocatedToGeneralPartners",
+			"NetIncomeLossAllocatedToLimitedPartners",
+			"StockholdersEquityPeriodIncreaseDecrease",
+			"PartnersCapitalAccountPeriodIncreaseDecrease"
+        ],
+        "accrual-items-pre-parents": [
+			"IncomeStatementAbstract",
+			"StatementOfIncomeAndComprehensiveIncomeAbstract",
+			"StatementOfStockholdersEquityAbstract",
+			"StatementOfPartnersCapitalAbstract"
+        ]
+    },
     "DQC.US.0048": {
     	"name": "Required Calculation Parent Element in the Cash Flow Statement",
         "description" : [
@@ -411,9 +777,363 @@
                 "roots" : [
                     ["CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffect"],
                     ["CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseExcludingExchangeRateEffect"],
-                    ["NetCashProvidedByUsedInContinuingOperations", "NetCashProvidedByUsedInDiscontinuedOperations"]
+                    ["NetCashProvidedByUsedInContinuingOperations", "NetCashProvidedByUsedInDiscontinuedOperations"],
+                    ["CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffectContinuingOperations"],
+					["CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffectDisposalGroupIncludingDiscontinuedOperations"]
                 ]
             }
         }
-    }
+    },
+    "DQC.US.0060": {
+    	"name": "Element Dependence for Specific Elements",
+        "description" : [
+            "DQC.US 0060 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and value object as follows:",
+            "key is element, value is array of corresponding dependent elements",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0060/DQC_0060.md"
+        ],
+        "message": "The fact {name} has been reported with a value of {value}. However no value has been reported for dependent element(s): {dependentElements}.   \nThe properties of this {name} fact are: \nContext: {contextID} \nUnit: {unitID}",
+        "rules": {
+        	"7495": {
+        		"element-dependencies": {
+	        		"NetCashProvidedByUsedInFinancingActivitiesContinuingOperations": [
+	        			"CashProvidedByUsedInFinancingActivitiesDiscontinuedOperations",
+	        			"NetCashProvidedByUsedInFinancingActivities"
+	        		]
+        		}
+        	},
+        	"7496": {
+        		"element-dependencies": {
+	        		"NetCashProvidedByUsedInInvestingActivitiesContinuingOperations": [
+	        			"CashProvidedByUsedInInvestingActivitiesDiscontinuedOperations",
+	        			"NetCashProvidedByUsedInInvestingActivities"
+	        		]
+        		}
+        	},
+        	"7497": {
+        		"element-dependencies": {
+	        		"NetCashProvidedByUsedInOperatingActivitiesContinuingOperations": [
+	        			"CashProvidedByUsedInOperatingActivitiesDiscontinuedOperations",
+	        			"NetCashProvidedByUsedInOperatingActivities"
+	        		]
+        		}
+        	}
+        }
+	},
+    "DQC.US.0079": {
+    	"name": "Extension Members",
+        "description" : [
+            "DQC.US 0079 rule entries are formatted is as follows:",
+            "",
+            "A JSON object with key that is the rule id and value object as follows:",
+            "   array of acceptable dimension axes names",
+            "",
+            "based on: https://github.com/DataQualityCommittee/dqc_us_rules/blob/master/docs/DQC_US_0079/DQC_0079.md"
+        ],
+        "message": "{member} is an extension member on the axis {axis} that was reported in the extension taxonomy, but duplicates a concept, {replacement}, that exists in the SEC Non-GAAP taxonomies.",
+        "rules": {
+        	"7657": {
+        		"acceptable-dimensions": [
+	        		"StatementBusinessSegmentsAxis", 
+	        		"IncomeTaxAuthorityNameAxis"
+	        		],
+	        	"replacement-members": {
+					"afghanistanmember": "country:AF",
+					"alabamamember": "stpr:AL",
+					"alaskamember": "stpr:AK",
+					"albaniamember": "country:AL",
+					"algeriamember": "country:DZ",
+					"americansamoamember": "country:AS",
+					"andorramember": "country:AD",
+					"angolamember": "country:AO",
+					"anguillamember": "country:AI",
+					"antarcticamember": "country:AQ",
+					"antiguaandbarbudamember": "country:AG",
+					"argentinamember": "country:AR",
+					"arizonamember": "stpr:AZ",
+					"arkansasmember": "stpr:AR",
+					"armeniamember": "country:AM",
+					"arubamember": "country:AW",
+					"australiamember": "country:AU",
+					"austriamember": "country:AT",
+					"azerbaijanmember": "country:AZ",
+					"bahamasmember": "country:BS",
+					"bahrainmember": "country:BH",
+					"bangladeshmember": "country:BD",
+					"barbadosmember": "country:BB",
+					"belarusmember": "country:BY",
+					"belgiummember": "country:BE",
+					"belizemember": "country:BZ",
+					"beninmember": "country:BJ",
+					"bermudamember": "country:BM",
+					"bhutanmember": "country:BT",
+					"boliviamember": "country:BO",
+					"bosniaandherzegowinamember": "country:BA",
+					"botswanamember": "country:BW",
+					"bouvetislandmember": "country:BV",
+					"brazilmember": "country:BR",
+					"britishvirginislandsmember": "country:VG",
+					"bruneidarussalammember": "country:BN",
+					"bulgariamember": "country:BG",
+					"burkinafasomember": "country:BF",
+					"burundimember": "country:BI",
+					"californiamember": "stpr:CA",
+					"cambodiamember": "country:KH",
+					"cameroonmember": "country:CM",
+					"canadamember": "country:CA",
+					"canadianmember": "country:CA",
+					"capeverdemember": "country:CV",
+					"caymanislandsmember": "country:KY",
+					"centralafricanrepublicmember": "country:CF",
+					"chadmember": "country:TD",
+					"chilemember": "country:CL",
+					"chinamember": "country:CN",
+					"christmasislandmember": "country:CX",
+					"cocosislandsmember": "country:CC",
+					"colombiamember": "country:CO",
+					"coloradomember": "stpr:CO",
+					"comorosmember": "country:KM",
+					"congomember": "country:CD",
+					"congorepublicofmember": "country:CG",
+					"connecticutmember": "stpr:CT",
+					"cookislandsmember": "country:CK",
+					"costaricamember": "country:CR",
+					"costaricamember": "country:CR",
+					"cotedivoiremember": "country:CI",
+					"croatiamember": "country:HR",
+					"cubamember": "country:CU",
+					"cyprusmember": "country:CY",
+					"czechrepublicmember": "country:CZ",
+					"delawaremember": "stpr:DE",
+					"denmarkmember": "country:DK",
+					"districtofcolumbiamember": "stpr:DC",
+					"djiboutimember": "country:DJ",
+					"dominicamember": "country:DM",
+					"dominicanrepublicmember": "country:DO",
+					"ecuadormember": "country:EC",
+					"egyptmember": "country:EG",
+					"elsalvadormember": "country:SV",
+					"equatorialguineamember": "country:GQ",
+					"eritreamember": "country:ER",
+					"estoniamember": "country:EE",
+					"ethiopiamember": "country:ET",
+					"falklandislandsmember": "country:FK",
+					"faroeislandsmember": "country:FO",
+					"fijimember": "country:FJ",
+					"finlandmember": "country:FI",
+					"floridamember": "stpr:FL",
+					"francemember": "country:FR",
+					"frenchguianamember": "country:GF",
+					"frenchpolynesiamember": "country:PF",
+					"gabonmember": "country:GA",
+					"gambiamember": "country:GM",
+					"georgiamember": "stpr:GA",
+					"georgiamember": "country:GE",
+					"germanymember": "country:DE",
+					"ghanamember": "country:GH",
+					"ghanamember": "country:GH",
+					"gibraltarmember": "country:GI",
+					"greecemember": "country:GR",
+					"greenlandmember": "country:GL",
+					"grenadamember": "country:GD",
+					"guadeloupemember": "country:GP",
+					"guammember": "country:GU",
+					"guatemalamember": "country:GT",
+					"guineamember": "country:GN",
+					"guyanamember": "country:GY",
+					"haitimember": "country:HT",
+					"hawaiimember": "stpr:HI",
+					"heardandmcdonaldislandsmember": "country:HM",
+					"hondurasmember": "country:HN",
+					"hongkongmember": "country:HK",
+					"hungarymember": "country:HU",
+					"icelandmember": "country:IS",
+					"idahomember": "stpr:ID",
+					"illinoismember": "stpr:IL",
+					"indiamember": "country:IN",
+					"indianamember": "stpr:IN",
+					"indonesiamember": "country:ID",
+					"iowamember": "stpr:IA",
+					"iranmember": "country:IR",
+					"iraqmember": "country:IQ",
+					"irelandmember": "country:IE",
+					"israelmember": "country:IL",
+					"italymember": "country:IT",
+					"jamaicamember": "country:JM",
+					"japanmember": "country:JP",
+					"jordanmember": "country:JO",
+					"kansasmember": "stpr:KS",
+					"kazakhstanmember": "country:KZ",
+					"kentuckymember": "stpr:KY",
+					"kenyamember": "country:KE",
+					"kiribatimember": "country:KI",
+					"koreamember": "country:KP",
+					"kuwaitmember": "country:KW",
+					"kyrgyzstanmember": "country:KG",
+					"laomember": "country:LA",
+					"latviamember": "country:LV",
+					"lebanonmember": "country:LB",
+					"lesothomember": "country:LS",
+					"liberiamember": "country:LR",
+					"libyanarabjamahiriyamember": "country:LY",
+					"liechtensteinmember": "country:LI",
+					"lithuaniamember": "country:LT",
+					"louisianamember": "stpr:LA",
+					"luxembourgmember": "country:LU",
+					"macaumember": "country:MO",
+					"macedoniamember": "country:MK",
+					"madagascarmember": "country:MG",
+					"mainemember": "stpr:ME",
+					"malawimember": "country:MW",
+					"malaysiamember": "country:MY",
+					"maldivesmember": "country:MV",
+					"malimember": "country:ML",
+					"maltamember": "country:MT",
+					"marshallislandsmember": "country:MH",
+					"martiniquemember": "country:MQ",
+					"marylandmember": "stpr:MD",
+					"massachusettsmember": "stpr:MA",
+					"mauritaniamember": "country:MR",
+					"mauritiusmember": "country:MU",
+					"mayottemember": "country:YT",
+					"mexicomember": "country:MX",
+					"michiganmember": "stpr:MI",
+					"micronesiamember": "country:FM",
+					"minnesotamember": "stpr:MN",
+					"mississippimember": "stpr:MS",
+					"missourimember": "stpr:MO",
+					"moldovamember": "country:MD",
+					"monacomember": "country:MC",
+					"mongoliamember": "country:MN",
+					"montanamember": "stpr:MT",
+					"montserratmember": "country:MS",
+					"moroccomember": "country:MA",
+					"mozambiquemember": "country:MZ",
+					"myanmarmember": "country:MM",
+					"namibiamember": "country:NA",
+					"naurumember": "country:NR",
+					"nebraskamember": "stpr:NE",
+					"nepalmember": "country:NP",
+					"netherlandsantillesmember": "country:AN",
+					"netherlandsmember": "country:NL",
+					"nevadamember": "stpr:NV",
+					"newcaledoniamember": "country:NC",
+					"newhampshiremember": "stpr:NH",
+					"newjerseymember": "stpr:NJ",
+					"newmexicomember": "stpr:NM",
+					"newyorkmember": "stpr:NY",
+					"newzealandmember": "country:NZ",
+					"nicaraguamember": "country:NI",
+					"nigeriamember": "country:NG",
+					"nigermember": "country:NE",
+					"niuemember": "country:NU",
+					"norfolkislandmember": "country:NF",
+					"northcarolinamember": "stpr:NC",
+					"northdakotamember": "stpr:ND",
+					"northernmarianaislandsmember": "country:MP",
+					"norwaymember": "country:NO",
+					"ohiomember": "stpr:OH",
+					"oklahomamember": "stpr:OK",
+					"omanmember": "country:OM",
+					"oregonmember": "stpr:OR",
+					"pakistanmember": "country:PK",
+					"palaumember": "country:PW",
+					"panamamember": "country:PA",
+					"papuanewguineamember": "country:PG",
+					"paraguaymember": "country:PY",
+					"pennsylvaniamember": "stpr:PA",
+					"perumember": "country:PE",
+					"philippinesmember": "country:PH",
+					"pitcairnmember": "country:PN",
+					"polandmember": "country:PL",
+					"portugalmember": "country:PT",
+					"puertoricomember": "country:PR",
+					"qatarmember": "country:QA",
+					"reunionmember": "country:RE",
+					"rhodeislandmember": "stpr:RI",
+					"romaniamember": "country:RO",
+					"russiamember": "country:RU",
+					"russianfederationmember": "country:RU",
+					"rwandamember": "country:RW",
+					"sainthelenamember": "country:SH",
+					"saintkittsandnevismember": "country:KN",
+					"saintluciamember": "country:LC",
+					"saintpierreandmiquelonmember": "country:PM",
+					"saintvincentandthegrenadinesmember": "country:VC",
+					"samoamember": "country:WS",
+					"sanmarinomember": "country:SM",
+					"saotomeandprincipemember": "country:ST",
+					"saudiarabiamember": "country:SA",
+					"senegalmember": "country:SN",
+					"serbiaandmontenegromember": "country:CS",
+					"seychellesmember": "country:SC",
+					"sierraleonemember": "country:SL",
+					"singaporemember": "country:SG",
+					"slovakiamember": "country:SK",
+					"sloveniamember": "country:SI",
+					"solomonislandsmember": "country:SB",
+					"somaliamember": "country:SO",
+					"southafricamember": "country:ZA",
+					"southcarolinamember": "stpr:SC",
+					"southdakotamember": "stpr:SD",
+					"southgeorgiaandthesouthsandwichislandsmember": "country:GS",
+					"southkoreamember": "country:KR",
+					"spainmember": "country:ES",
+					"srilankamember": "country:LK",
+					"sudanmember": "country:SD",
+					"surinamemember": "country:SR",
+					"svalbardandjanmayenislandsmember": "country:SJ",
+					"swazilandmember": "country:SZ",
+					"swedenmember": "country:SE",
+					"switzerlandmember": "country:CH",
+					"syrianarabrepublicmember": "country:SY",
+					"taiwanmember": "country:TW",
+					"tajikistanmember": "country:TJ",
+					"tanzaniamember": "country:TZ",
+					"tennesseemember": "stpr:TN",
+					"texasmember": "stpr:TX",
+					"thailandmember": "country:TH",
+					"togomember": "country:TG",
+					"tokelaumember": "country:TK",
+					"tongamember": "country:TO",
+					"trinidadandtobagomember": "country:TT",
+					"tunisiamember": "country:TN",
+					"turkeymember": "country:TR",
+					"turkmenistanmember": "country:TM",
+					"turksandcaicosislandsmember": "country:TC",
+					"tuvalumember": "country:TV",
+					"ugandamember": "country:UG",
+					"ukrainemember": "country:UA",
+					"unitedarabemiratesmember": "country:AE",
+					"unitedkingdommember": "country:GB",
+					"unitedstatescountrymember": "country:US",
+					"unitedstatesgeographicmember": "country:US",
+					"unitedstatesgeographicregionmember": "country:US",
+					"unitedstatesmember": "country:US",
+					"unitedstatesofamericamember": "country:US",
+					"uruguaymember": "country:UY",
+					"usamember": "country:US",
+					"usmember": "country:US",
+					"utahmember": "stpr:UT",
+					"uzbekistanmember": "country:UZ",
+					"vanuatumember": "country:VU",
+					"venezuelamember": "country:VE",
+					"vermontmember": "stpr:VT",
+					"vietnammember": "country:VN",
+					"virginiamember": "stpr:VA",
+					"wallisandfutunaislandsmember": "country:WF",
+					"washingtonmember": "stpr:WA",
+					"westernsaharamember": "country:EH",
+					"westvirginiamember": "stpr:WV",
+					"wisconsinmember": "stpr:WI",
+					"wyomingmember": "stpr:WY",
+					"yemenmember": "country:YE",
+					"zambiamember": "country:ZM",
+					"zimbabwemember": "country:ZW"
+	        		}
+	        	}
+        }
+	}
 }

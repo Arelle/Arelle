@@ -381,7 +381,8 @@ def validateTaxonomyPackage(cntlr, filesource, packageFiles=[], errors=[]):
         if not _dir:
             raise IOError(_("Unable to open taxonomy package: {0}.").format(filesource.url))
         if filesource.isZipBackslashed:
-            cntlr.addToLog(_("Taxonomy package directory uses '\\' as fire separator"),
+            # see 4.4.17.1 in https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
+            cntlr.addToLog(_("Taxonomy package directory uses '\\' as file separator"),
                            messageCode="tpe:invalidArchiveFormat",
                            file=os.path.basename(filesource.url),
                            level=logging.ERROR)
