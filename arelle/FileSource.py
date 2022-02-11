@@ -122,6 +122,7 @@ class FileSource:
         self.selection = None
         self.filesDir = None
         self.referencedFileSources = {}  # archive file name, fileSource object
+        self.taxonomyPackage = None # taxonomy package
         self.mappedPaths = None  # remappings of path segments may be loaded by taxonomyPackage manifest
         
         # for SEC xml files, check if it's an EIS anyway
@@ -285,10 +286,10 @@ class FileSource:
         if not self.mappedPaths and (self.taxonomyPackageMetadataFiles or expectTaxonomyPackage):
             if PackageManager.validateTaxonomyPackage(self.cntlr, self, errors=errors):
                 metadata = self.baseurl + os.sep + self.taxonomyPackageMetadataFiles[0]
-                taxonomyPackage = PackageManager.parsePackage(self.cntlr, self, metadata,
-                                                              os.sep.join(os.path.split(metadata)[:-1]) + os.sep,
-                                                              errors=errors)
-                self.mappedPaths = taxonomyPackage.get("remappings")
+                self.taxonomyPackage = PackageManager.parsePackage(self.cntlr, self, metadata,
+                                                                   os.sep.join(os.path.split(metadata)[:-1]) + os.sep,
+                                                                   errors=errors)
+                self.mappedPaths = self.taxonomyPackage.get("remappings")
 
     def openZipStream(self, sourceZipStream):
         if not self.isOpen:
@@ -335,7 +336,7 @@ class FileSource:
     
     @property
     def isTaxonomyPackage(self):
-        return (self.isZip and self.taxonomyPackageMetadataFiles) or self.isInstalledTaxonomyPackage
+        return bool(self.isZip and self.taxonomyPackageMetadataFiles) or self.isInstalledTaxonomyPackage
     
     @property
     def taxonomyPackageMetadataFiles(self):

@@ -3,11 +3,13 @@ Created on January 5, 2020
 
 Filer Guidelines: ESMA_ESEF Manula 2019.pdf
 
-@author: Mark V Systems Limited
-(c) Copyright 2020 Mark V Systems Limited, All rights reserved.
+@author: Workiva
+(c) Copyright 2022 Workiva, All rights reserved.
 '''
-from .Const import standardTaxonomyURIs, esefTaxonomyNamespaceURIs
+import os, json
+from .Const import esefTaxonomyNamespaceURIs
 from lxml.etree import XML, XMLSyntaxError
+from arelle.FileSource import openFileStream
 from arelle.UrlUtil import scheme
 
 # check if a modelDocument URI is an extension URI (document URI)
@@ -20,7 +22,7 @@ def isExtension(val, modelObject):
     else:
         uri = modelObject.modelDocument.uri
     return (uri.startswith(val.modelXbrl.uriDir) or
-            not any(uri.startswith(standardTaxonomyURI) for standardTaxonomyURI in standardTaxonomyURIs))
+            not any(uri.startswith(standardTaxonomyURI) for standardTaxonomyURI in val.authParam["standardTaxonomyURIs"]))
 
 # check if in core esef taxonomy (based on namespace URI)
 def isInEsefTaxonomy(val, modelObject):
@@ -93,4 +95,21 @@ def checkImageContents(modelXbrl, imgElt, imgType, isFile, data):
                 _("Image type %(imgType)s has wrong header type: %(headerType)s"),
                 modelObject=imgElt, imgType=imgType, headerType=headerType,
                 messageCodes=("ESEF.2.5.1.imageDoesNotMatchItsFileExtension", "ESEF.2.5.1.incorrectMIMETypeSpecified"))
+            
+def resourcesFilePath(modelManager, fileName):
+    # resourcesDir can be in cache dir (production) or in validate/EFM/resources (for development)
+    _resourcesDir = os.path.join( os.path.dirname(__file__), "resources") # dev/testing location
+    _target = "validate/ESEF/resources"
+    if not os.path.isabs(_resourcesDir):
+        _resourcesDir = os.path.abspath(_resourcesDir)
+    if not os.path.exists(_resourcesDir): # production location
+        _resourcesDir = os.path.join(modelManager.cntlr.webCache.cacheDir, "resources", "validation", "ESEF")
+        _target = "web-cache/resources"
+    return os.path.join(_resourcesDir, fileName)
+
+def loadAuthorityValidations(modelXbrl):
+    _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "authority-validations.json"), 'rt', encoding='utf-8')
+    validations = json.load(_file) # {localName: date, ...}
+    _file.close()
+    return validations
         

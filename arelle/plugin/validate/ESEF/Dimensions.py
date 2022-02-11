@@ -31,87 +31,87 @@ def checkFilingDimensions(val):
                 #if domMbrRel.isUsable:
                 addDomMbrs(domMbrRel.toModelObject, domMbrRel.consecutiveLinkrole, membersSet)
             
+    if val.authParam["G3.4.2"] == "effective":
+        for hasHypercubeArcrole in (XbrlConst.all, XbrlConst.notAll):
+            hasHypercubeRelationships = val.modelXbrl.relationshipSet(hasHypercubeArcrole).fromModelObjects()
+            for hasHcRels in hasHypercubeRelationships.values():
+                for hasHcRel in hasHcRels:
+                    sourceConcept = hasHcRel.fromModelObject
+                    hcPrimaryItems.add(sourceConcept)
+                    # find associated primary items to source concept
+                    for domMbrRel in val.modelXbrl.relationshipSet(XbrlConst.domainMember).fromModelObject(sourceConcept):
+                        if domMbrRel.consecutiveLinkrole == hasHcRel.linkrole: # only those related to this hc
+                            addDomMbrs(domMbrRel.toModelObject, domMbrRel.consecutiveLinkrole, hcPrimaryItems)
+                    val.primaryItems.update(hcPrimaryItems)
+                    hc = hasHcRel.toModelObject
+                    if hasHypercubeArcrole == XbrlConst.all:
+                        if not hasHcRel.isClosed and isExtension(val, hasHcRel):
+                            val.modelXbrl.error("ESEF.3.4.2.openPositiveHypercubeInDefinitionLinkbase",
+                                _("Hypercubes appearing as target of definition arc with http://xbrl.org/int/dim/arcrole/all arcrole MUST have xbrldt:closed attribute set to \"true\""
+                                  ": hypercube %(hypercube)s, linkrole %(linkrole)s, primary item %(primaryItem)s"),
+                                modelObject=hasHcRel, hypercube=hc.qname, linkrole=hasHcRel.linkrole, primaryItem=sourceConcept.qname)
+                    elif hasHypercubeArcrole == XbrlConst.notAll:
+                        if hasHcRel.isClosed and isExtension(val, hasHcRel):
+                            val.modelXbrl.error("ESEF.3.4.2.closedNegativeHypercubeInDefinitionLinkbase",
+                                _("Hypercubes appearing as target of definition arc with http://xbrl.org/int/dim/arcrole/notAll arcrole MUST have xbrldt:closed attribute set to \"false\""
+                                  ": hypercube %(hypercube)s, linkrole %(linkrole)s, primary item %(primaryItem)s"),
+                                modelObject=hasHcRel, hypercube=hc.qname, linkrole=hasHcRel.linkrole, primaryItem=sourceConcept.qname)
+                        if isExtension(val, hasHcRel):
+                            val.modelXbrl.error("ESEF.3.4.2.notAllArcroleUsedInDefinitionLinkbase",
+                                _("Extension taxonomies MUST NOT define definition arcs with http://xbrl.org/int/dim/arcrole/notAll arcrole"
+                                  ": hypercube %(hypercube)s, linkrole %(linkrole)s, primary item %(primaryItem)s"),
+                                modelObject=hasHcRel, hypercube=hc.qname, linkrole=hasHcRel.linkrole, primaryItem=sourceConcept.qname)
+                    for hcDimRel in val.modelXbrl.relationshipSet(XbrlConst.hypercubeDimension, hasHcRel.consecutiveLinkrole).fromModelObject(hc):
+                        dim = hcDimRel.toModelObject
+                        if isinstance(dim, ModelConcept):
+                            for dimDomRel in val.modelXbrl.relationshipSet(XbrlConst.dimensionDomain, hcDimRel.consecutiveLinkrole).fromModelObject(dim):
+                                dom = dimDomRel.toModelObject
+                                if isinstance(dom, ModelConcept):
+                                     addDomMbrs(dom, dimDomRel.consecutiveLinkrole, hcMembers)
+                    val.domainMembers.update(hcMembers)
+                    if hasHcRel.linkrole == LineItemsNotQualifiedLinkrole or hcMembers:
+                        for hcPrimaryItem in hcPrimaryItems:
+                            if not hcPrimaryItem.isAbstract:
+                                elrPrimaryItems[hasHcRel.linkrole].add(hcPrimaryItem)
+                                elrPrimaryItems["*"].add(hcPrimaryItem) # members of any ELR
+                    hcPrimaryItems.clear()
+                    hcMembers.clear()
+                                     
+        # find primary items with other dimensions in 
+        #for ELR, priItems in elrPrimaryItems.items():
+        #    if ELR != LineItemsNotQualifiedLinkrole:
+        #        # consider any pri item in not reported non-dimensionally
+        #        i = set(hcPrimaryItem
+        #                for hcPrimaryItem in (priItems & elrPrimaryItems.get(LineItemsNotQualifiedLinkrole, set()))
+        #                if not any(not f.context.qnameDims for f in val.modelXbrl.factsByQname.get(hcPrimaryItem.qname,())))
+        #        if i:
+        #            val.modelXbrl.warning("ESEF.3.4.2.extensionTaxonomyLineItemIncorrectlyLinkedToNonDimensionallyQualifiedHypercube",
+        #                _("Dimensional line item SHOULD NOT also be linked to \"not dimensionally qualified\" hypercube from %(linkrole)s, primary item %(qnames)s"),
+        #                modelObject=i, linkrole=ELR, qnames=", ".join(sorted(str(c.qname) for c in i)))
     
-    for hasHypercubeArcrole in (XbrlConst.all, XbrlConst.notAll):
-        hasHypercubeRelationships = val.modelXbrl.relationshipSet(hasHypercubeArcrole).fromModelObjects()
-        for hasHcRels in hasHypercubeRelationships.values():
-            for hasHcRel in hasHcRels:
-                sourceConcept = hasHcRel.fromModelObject
-                hcPrimaryItems.add(sourceConcept)
-                # find associated primary items to source concept
-                for domMbrRel in val.modelXbrl.relationshipSet(XbrlConst.domainMember).fromModelObject(sourceConcept):
-                    if domMbrRel.consecutiveLinkrole == hasHcRel.linkrole: # only those related to this hc
-                        addDomMbrs(domMbrRel.toModelObject, domMbrRel.consecutiveLinkrole, hcPrimaryItems)
-                val.primaryItems.update(hcPrimaryItems)
-                hc = hasHcRel.toModelObject
-                if hasHypercubeArcrole == XbrlConst.all:
-                    if not hasHcRel.isClosed and isExtension(val, hasHcRel):
-                        val.modelXbrl.error("ESEF.3.4.2.openPositiveHypercubeInDefinitionLinkbase",
-                            _("Hypercubes appearing as target of definition arc with http://xbrl.org/int/dim/arcrole/all arcrole MUST have xbrldt:closed attribute set to \"true\""
-                              ": hypercube %(hypercube)s, linkrole %(linkrole)s, primary item %(primaryItem)s"),
-                            modelObject=hasHcRel, hypercube=hc.qname, linkrole=hasHcRel.linkrole, primaryItem=sourceConcept.qname)
-                elif hasHypercubeArcrole == XbrlConst.notAll:
-                    if hasHcRel.isClosed and isExtension(val, hasHcRel):
-                        val.modelXbrl.error("ESEF.3.4.2.closedNegativeHypercubeInDefinitionLinkbase",
-                            _("Hypercubes appearing as target of definition arc with http://xbrl.org/int/dim/arcrole/notAll arcrole MUST have xbrldt:closed attribute set to \"false\""
-                              ": hypercube %(hypercube)s, linkrole %(linkrole)s, primary item %(primaryItem)s"),
-                            modelObject=hasHcRel, hypercube=hc.qname, linkrole=hasHcRel.linkrole, primaryItem=sourceConcept.qname)
-                    if isExtension(val, hasHcRel):
-                        val.modelXbrl.error("ESEF.3.4.2.notAllArcroleUsedInDefinitionLinkbase",
-                            _("Extension taxonomies MUST NOT define definition arcs with http://xbrl.org/int/dim/arcrole/notAll arcrole"
-                              ": hypercube %(hypercube)s, linkrole %(linkrole)s, primary item %(primaryItem)s"),
-                            modelObject=hasHcRel, hypercube=hc.qname, linkrole=hasHcRel.linkrole, primaryItem=sourceConcept.qname)
-                for hcDimRel in val.modelXbrl.relationshipSet(XbrlConst.hypercubeDimension, hasHcRel.consecutiveLinkrole).fromModelObject(hc):
-                    dim = hcDimRel.toModelObject
-                    if isinstance(dim, ModelConcept):
-                        for dimDomRel in val.modelXbrl.relationshipSet(XbrlConst.dimensionDomain, hcDimRel.consecutiveLinkrole).fromModelObject(dim):
-                            dom = dimDomRel.toModelObject
-                            if isinstance(dom, ModelConcept):
-                                 addDomMbrs(dom, dimDomRel.consecutiveLinkrole, hcMembers)
-                val.domainMembers.update(hcMembers)
-                if hasHcRel.linkrole == LineItemsNotQualifiedLinkrole or hcMembers:
-                    for hcPrimaryItem in hcPrimaryItems:
-                        if not hcPrimaryItem.isAbstract:
-                            elrPrimaryItems[hasHcRel.linkrole].add(hcPrimaryItem)
-                            elrPrimaryItems["*"].add(hcPrimaryItem) # members of any ELR
-                hcPrimaryItems.clear()
-                hcMembers.clear()
-                                 
-    # find primary items with other dimensions in 
-    #for ELR, priItems in elrPrimaryItems.items():
-    #    if ELR != LineItemsNotQualifiedLinkrole:
-    #        # consider any pri item in not reported non-dimensionally
-    #        i = set(hcPrimaryItem
-    #                for hcPrimaryItem in (priItems & elrPrimaryItems.get(LineItemsNotQualifiedLinkrole, set()))
-    #                if not any(not f.context.qnameDims for f in val.modelXbrl.factsByQname.get(hcPrimaryItem.qname,())))
-    #        if i:
-    #            val.modelXbrl.warning("ESEF.3.4.2.extensionTaxonomyLineItemIncorrectlyLinkedToNonDimensionallyQualifiedHypercube",
-    #                _("Dimensional line item SHOULD NOT also be linked to \"not dimensionally qualified\" hypercube from %(linkrole)s, primary item %(qnames)s"),
-    #                modelObject=i, linkrole=ELR, qnames=", ".join(sorted(str(c.qname) for c in i)))
-
-    # reported pri items not in LineItemsNotQualifiedLinkrole
-    i = set(concept
-            for qn, facts in val.modelXbrl.factsByQname.items()
-            if any(not f.context.qnameDims for f in facts if f.context is not None)
-            for concept in (val.modelXbrl.qnameConcepts.get(qn),)
-            if concept is not None and 
-               concept not in elrPrimaryItems.get(LineItemsNotQualifiedLinkrole, set()) and
-               concept not in elrPrimaryItems.get("*", set()))
-    if i:
-        val.modelXbrl.warning("ESEF.3.4.2.extensionTaxonomyLineItemNotLinkedToAnyHypercube",
-            _("Dimensional line item reported non-dimensionally SHOULD be linked to \"not dimensionally qualified\" hypercube %(linkrole)s, primary item %(qnames)s"),
-            modelObject=i, linkrole=LineItemsNotQualifiedLinkrole, qnames=", ".join(sorted(str(c.qname) for c in i)))
-    # pri items in LineItemsNotQualifiedLinkrole which are not used in report non-dimensionally
-    # check no longer in Filer Manual as of 2021
-    #i = set(hcPrimaryItem
-    #       for hcPrimaryItem in elrPrimaryItems.get(LineItemsNotQualifiedLinkrole, set())
-    #       if not any(not f.context.qnameDims 
-    #                  for f in val.modelXbrl.factsByQname.get(hcPrimaryItem.qname,())
-    #                  if f.context is not None))
-    #if i:
-    #    val.modelXbrl.warning("ESEF.3.4.2.extensionTaxonomyLineItemIncorrectlyLinkedToNonDimensionallyQualifiedHypercube",
-    #        _("Dimensional line item not reported non-dimensionally has no need to be linked to \"not dimensionally qualified\" hypercube %(linkrole)s, primary item %(qnames)s"),
-    #        modelObject=i, linkrole=LineItemsNotQualifiedLinkrole, qnames=", ".join(sorted(str(c.qname) for c in i)))
+        # reported pri items not in LineItemsNotQualifiedLinkrole
+        i = set(concept
+                for qn, facts in val.modelXbrl.factsByQname.items()
+                if any(not f.context.qnameDims for f in facts if f.context is not None)
+                for concept in (val.modelXbrl.qnameConcepts.get(qn),)
+                if concept is not None and 
+                   concept not in elrPrimaryItems.get(LineItemsNotQualifiedLinkrole, set()) and
+                   concept not in elrPrimaryItems.get("*", set()))
+        if i:
+            val.modelXbrl.warning("ESEF.3.4.2.extensionTaxonomyLineItemNotLinkedToAnyHypercube",
+                _("Dimensional line item reported non-dimensionally SHOULD be linked to \"not dimensionally qualified\" hypercube %(linkrole)s, primary item %(qnames)s"),
+                modelObject=i, linkrole=LineItemsNotQualifiedLinkrole, qnames=", ".join(sorted(str(c.qname) for c in i)))
+        # pri items in LineItemsNotQualifiedLinkrole which are not used in report non-dimensionally
+        # check no longer in Filer Manual as of 2021
+        #i = set(hcPrimaryItem
+        #       for hcPrimaryItem in elrPrimaryItems.get(LineItemsNotQualifiedLinkrole, set())
+        #       if not any(not f.context.qnameDims 
+        #                  for f in val.modelXbrl.factsByQname.get(hcPrimaryItem.qname,())
+        #                  if f.context is not None))
+        #if i:
+        #    val.modelXbrl.warning("ESEF.3.4.2.extensionTaxonomyLineItemIncorrectlyLinkedToNonDimensionallyQualifiedHypercube",
+        #        _("Dimensional line item not reported non-dimensionally has no need to be linked to \"not dimensionally qualified\" hypercube %(linkrole)s, primary item %(qnames)s"),
+        #        modelObject=i, linkrole=LineItemsNotQualifiedLinkrole, qnames=", ".join(sorted(str(c.qname) for c in i)))
 
     # check ELRs with WiderNarrower relationships
     elrsContainingDimensionalRelationships = set(
@@ -158,3 +158,8 @@ def checkFilingDimensions(val):
                             val.modelXbrl.error("ESEF.3.4.3.extensionTaxonomyOverridesDefaultMembers",
                                 _("The extension taxonomy MUST not modify (prohibit and/or override) default members assigned to dimensions by the ESEF taxonomy."),
                                 modelObject=linkChild)
+                    if modelLink.role != "http://www.esma.europa.eu/xbrl/role/cor/ifrs- dim_role-990000":
+                        val.modelXbrl.error("ESEF.3.4.3.dimensionDefaultLinkrole",
+                            _("Each dimension in an issuer specific extension taxonomy MUST be assigned to a default member in the ELR with role URI http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000, but linkrole used is %(linkrole)s."),
+                            modelObject=linkChild, linkrole=modelLink.role)
+                        
