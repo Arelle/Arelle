@@ -17,8 +17,8 @@
         "reportPackageMeasurement: \"zipped\" or \"unzipped\"",
         "ixTargetUsage: allowed, warning or error",
         "extensionAbstractContexts: allowed, warning or error",
-        "G3.4.2: effective or ineffective when not applied by authority",
-        "G3.4.6: effective or ineffective when not applied by authority",
+        "lineItemsNotDimQualExclusionNsPattern: concepts namespace pattern excluded from check for extensionTaxonomyLineItemNotLinkedToAnyHypercube",
+        "lineItemsMustBeInPreLbExclusionNsPattern: concepts namespace pattern excluded from check for required presence in presentation linkbase",
         "LC3CapitalsInWord: true means label \"NonControlling Interest\" matches name \"NoncontrollingInterest\"",
         "reportFileNamePattern: filename pattern where applied by authority, for message display",
         "reportFileNameRegex: regex to correspond, in same manner as filenameRegexes in Consts.py",
@@ -224,8 +224,8 @@
         "identiferScheme": "http://www.companieshouse.gov.uk/",
         "ixTargetUsage": "error",
         "extensionAbstractContexts": "allowed",
-        "G3.4.2": "ineffective",
-        "G3.4.6": "ineffective",
+        "lineItemsNotDimQualExclusionNsPattern": "http://xbrl.frc.org.uk/",
+        "lineItemsMustBeInPreLbExclusionNsPattern": "http://xbrl.frc.org.uk/",
         "outdatedTaxonomyURLs": [
         ],
         "effectiveTaxonomyURLs": [
