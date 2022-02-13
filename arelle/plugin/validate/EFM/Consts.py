@@ -93,7 +93,7 @@ docTypesNotAllowingInlineXBRL = {
 standardNamespacesPattern = re.compile(
     # non-IFRS groups 1 - authority, 2 - taxonomy (e.g. us-gaap, us-types), 3 - year
     r"http://(xbrl\.us|fasb\.org|xbrl\.sec\.gov)/("
-            r"dei|us-gaap|srt|us-types|us-roles|srt-types|srt-roles|rr|cef|country|currency|exch|invest|naics|sic|stpr"
+            r"dei|us-gaap|srt|us-types|us-roles|srt-types|srt-roles|rr|cef|country|currency|exch|invest|naics|sic|stpr|vip"
             r")/([0-9]{4}|[0-9]{4}q[1-4])(-[0-9]{2}-[0-9]{2})?$"
     # ifrs groups 4 - year, 5 - taxonomy (e.g. ifrs-full)
     r"|http://xbrl.ifrs.org/taxonomy/([0-9]{4})-[0-9]{2}-[0-9]{2}/(ifrs[\w-]*)$")
@@ -101,6 +101,10 @@ standardNamespacesPattern = re.compile(
 # hidden references
 untransformableTypes = {"anyURI", "base64Binary", "hexBinary", "NOTATION", "QName", "time",
                         "token", "language"}
+
+# hideable namespaceURIs
+hideableNamespacesPattern = re.compile("http://xbrl.sec.gov/(dei|vip)/")
+
 # RR untransformable facts
 rrUntransformableEltsPattern = re.compile(r"(\w*TableTextBlock|BarChart\w+|AnnualReturn(19|20)[0-9][0-9])")
 
@@ -213,3 +217,24 @@ latestEntireUgt = {
     "us-gaap/2022": ["https://xbrl.fasb.org/us-gaap/2022/entire/us-gaap-entryPoint-std-2022.xsd",
                      "https://xbrl.fasb.org/us-gaap/2022/dqcrules/dqcrules-entire-2022.xsd"]
     }
+
+linkbaseValidations = {
+    "cef": attrdict(
+        efmPre = "6.12.10",
+        efmCal = "6.14.06",
+        efmDef = "6.16.10",
+        elrPre = re.compile("http://xbrl.sec.gov/cef/role/N2"),
+        elrDefInNs = re.compile("http://xbrl.sec.gov/cef/role/N2"),
+        elrDefExNs = re.compile("http://xbrl.sec.gov/cef/role/(Security|Risk)Only"),
+        preSources = ("AllSecuritiesMember", "AllRisksMember")
+    ),
+    "vip": attrdict(
+        efmPre = "6.12.11",
+        efmCal = "6.14.07",
+        efmDef = "6.16.11",
+        elrPre = re.compile("http://xbrl.sec.gov/vip/role/N[346]"),
+        elrDefInNs = re.compile("http://xbrl.sec.gov/vip/role/.*Only"),
+        elrDefExNs = re.compile("http://xbrl.sec.gov/vip/role/.*Only"),
+        preSources = ()
+    )
+}

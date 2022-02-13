@@ -43,7 +43,7 @@ from .Consts import submissionTypesAllowingWellKnownSeasonedIssuer, \
                     submissionTypesAllowingVoluntaryFilerFlag, docTypesNotAllowingInlineXBRL, \
                     docTypesRequiringRrSchema, docTypesNotAllowingIfrs, \
                     untransformableTypes, rrUntransformableEltsPattern, \
-                    docTypes20F 
+                    docTypes20F, hideableNamespacesPattern, linkbaseValidations
                                         
 from .Dimensions import checkFilingDimensions
 from .PreCalAlignment import checkCalcsTreeWalk
@@ -2061,7 +2061,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     for ixElt in ixHiddenElt.iterdescendants(tag=tag):
                         if (getattr(ixElt, "xValid", 0) >= VALID and # may not be validated
                             (ixElt.qname in coverVisibleQNames
-                             or not ixElt.qname.namespaceURI.startswith("http://xbrl.sec.gov/dei/")) and
+                             or not hideableNamespacesPattern.match(ixElt.qname.namespaceURI)) and
                             (not isRR or not rrUntransformableEltsPattern.match(ixElt.qname.localName)
                                       or abbreviatedNamespace(ixElt.qname.namespaceURI, NOYEAR) != "rr")):
                             if (ixElt.concept.baseXsdType not in untransformableTypes and
@@ -2519,29 +2519,27 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 
     # 6.9.10 checks on custom arcs
     if isEFM:
-        # find CEF
+        # find CEF or VIP
         for d in modelXbrl.urlDocs.values():
-            if d.type == ModelDocument.Type.SCHEMA and d.targetNamespace and d.targetNamespace.startswith("http://xbrl.sec.gov/cef/"):
-                nsCEF = d.targetNamespace
-                cAllSecurMem = modelXbrl.qnameConcepts.get(qname(nsCEF,"AllSecuritiesMember"))
-                cAllRisksMem = modelXbrl.qnameConcepts.get(qname(nsCEF,"AllRisksMember"))
+            ns = d.targetNamespace
+            lbVal = linkbaseValidations.get(abbreviatedNamespace(d.targetNamespace, NOYEAR))
+            if d.type == ModelDocument.Type.SCHEMA and lbVal:
+                preSrcConcepts = [modelXbrl.qnameConcepts.get(qname(ns,c)) for c in lbVal.preSources]
                 for rel in modelXbrl.relationshipSet(XbrlConst.parentChild).modelRelationships:
                     if not isStandardUri(val, rel.modelDocument.uri) and rel.modelDocument.targetNamespace not in val.otherStandardTaxonomies:
                         relFrom = rel.fromModelObject
                         relTo = rel.toModelObject
                         if relFrom is not None and relTo is not None:
                             relset = modelXbrl.relationshipSet(XbrlConst.parentChild, rel.linkrole)
-                            if ((rel.linkrole == "http://xbrl.sec.gov/cef/role/N2" and
-                                 (relTo.qname.namespaceURI != nsCEF and (
-                                         not relTo.type.isDomainItemType or not
-                                         (relset.isRelated(cAllSecurMem, "descendant", relTo) or
-                                          relset.isRelated(cAllRisksMem, "descendant", relTo)))
-                                 ) or
-                                (rel.linkrole != "http://xbrl.sec.gov/cef/role/N2" and 
-                                 (relFrom.qname.namespaceURI == nsCEF or relTo.qname.namespaceURI == nsCEF)))):
-                                modelXbrl.error("EFM.6.12.10.relationshipNotPermitted",
+                            roleMatch = lbVal.elrPre.match(rel.linkrole)
+                            if ((roleMatch and relTo.qname.namespaceURI != ns and (
+                                         not relTo.type.isDomainItemType or (lbVal.preSources and not
+                                         any(relset.isRelated(c, "descendant", relTo) for c in preSrcConcepts))))
+                                or
+                                (not roleMatch and  (relFrom.qname.namespaceURI == ns or relTo.qname.namespaceURI == ns))):
+                                modelXbrl.error(f"EFM.{lbVal.efmPre}.relationshipNotPermitted",
                                     _("The %(arcrole)s relationship from %(conceptFrom)s to %(conceptTo)s, link role %(linkroleDefinition)s, is not permitted."),
-                                    edgarCode="du-1210-Relationship-Not-Permitted",
+                                    edgarCode=f"du-{lbVal.efmPre[2:4]}{lbVal.efmPre[5:]}-Relationship-Not-Permitted",
                                     modelObject=(rel,relFrom,relTo), arc=rel.qname, arcrole=rel.arcrole,
                                     linkrole=rel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole), 
                                     conceptFrom=relFrom.qname, conceptTo=relTo.qname)
@@ -2550,10 +2548,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         relFrom = rel.fromModelObject
                         relTo = rel.toModelObject
                         if relFrom is not None and relTo is not None:
-                            if relFrom.qname.namespaceURI == nsCEF or relTo.qname.namespaceURI == nsCEF:
-                                modelXbrl.error("EFM.6.14.06.relationshipNotPermitted",
+                            if relFrom.qname.namespaceURI == ns or relTo.qname.namespaceURI == ns:
+                                modelXbrl.error(f"EFM.{lbVal.efmCal}.relationshipNotPermitted",
                                     _("The %(arcrole)s relationship from %(conceptFrom)s to %(conceptTo)s, link role %(linkroleDefinition)s, is not permitted."),
-                                    edgarCode="du-1210-Relationship-Not-Permitted",
+                                    edgarCode=f"du-{lbVal.efmCal[2:4]}{lbVal.efmCal[5:]}-Relationship-Not-Permitted",
                                     modelObject=(rel,relFrom,relTo), arc=rel.qname, arcrole=rel.arcrole,
                                     linkrole=rel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole), 
                                     conceptFrom=relFrom.qname, conceptTo=relTo.qname)              
@@ -2562,23 +2560,19 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         relFrom = rel.fromModelObject
                         relTo = rel.toModelObject
                         if relFrom is not None and relTo is not None:
-                            if ((relFrom.qname.namespaceURI == nsCEF or relTo.qname.namespaceURI == nsCEF) 
+                            if ((relFrom.qname.namespaceURI == ns or relTo.qname.namespaceURI == ns) 
                                 and not (
                                   rel.arcrole == XbrlConst.domainMember and (
-                                    (relFrom.qname.namespaceURI == nsCEF and relTo.qname.namespaceURI == nsCEF
-                                     and rel.linkrole == "http://xbrl.sec.gov/cef/role/N2"
-                                    ) or
-                                    (relFrom.qname.namespaceURI == nsCEF and
-                                     rel.linkrole in ("http://xbrl.sec.gov/cef/role/SecurityOnly",
-                                                       "http://xbrl.sec.gov/cef/role/RiskOnly")
-                                  )))):
-                                modelXbrl.error("EFM.6.16.10.relationshipNotPermitted",
+                                    (relFrom.qname.namespaceURI == ns and relTo.qname.namespaceURI == ns and lbVal.elrDefInNs.match(rel.linkrole))
+                                    or
+                                    (relFrom.qname.namespaceURI == ns and lbVal.elrDefExNs.match(rel.linkrole))
+                                  ))):
+                                modelXbrl.error(f"EFM.{lbVal.efmDef}.relationshipNotPermitted",
                                     _("The %(arcrole)s relationship from %(conceptFrom)s to %(conceptTo)s, link role %(linkroleDefinition)s, is not permitted."),
-                                    edgarCode="du-1210-Relationship-Not-Permitted",
+                                    edgarCode=f"du-{lbVal.efmDef[2:4]}{lbVal.efmDef[5:]}-Relationship-Not-Permitted",
                                     modelObject=(rel,relFrom,relTo), arc=rel.qname, arcrole=rel.arcrole,
                                     linkrole=rel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole), 
-                                    conceptFrom=relFrom.qname, conceptTo=relTo.qname)              
-                break
+                                    conceptFrom=relFrom.qname, conceptTo=relTo.qname)           
             
 
     del localPreferredLabels # dereference

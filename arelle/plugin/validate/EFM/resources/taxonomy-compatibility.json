@@ -63,6 +63,6 @@
         "ifrs/2021": ["srt/2021", "@stx-2021"],
         "cef/2021q4": ["dei/2021q4", "us-gaap/2021", "srt/2021", "country/2021", "currency/2021", "exch/2021", "naics/2021", "sic/2021", "stpr/2021"],
         "cef/2022": ["dei/2022", "us-gaap/2022", "srt/2022", "country/2022", "currency/2022", "exch/2022", "naics/2022", "sic/2022", "stpr/2022"],
-        "vip/2022": ["@stx-2021"]
+        "vip/2022": ["@stx-2022"]
     }
 }
