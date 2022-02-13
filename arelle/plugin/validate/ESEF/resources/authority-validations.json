@@ -44,8 +44,6 @@
         "identiferScheme": "http://standards.iso.org/iso/17442",
         "ixTargetUsage": "warning",
         "extensionAbstractContexts": "warning",
-        "G3.4.2": "effective",
-        "G3.4.6": "effective",
         "LC3AllowCapitalsInWord": true,
         "reportFileNamePattern": null,
         "reportFileNameRegex": null,
