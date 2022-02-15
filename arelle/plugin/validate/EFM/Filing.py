@@ -1208,7 +1208,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         sevMessage(sev, subType=submissionType, efmSection=efmSection, taxonomy=et.partition('/')[0], earliestTaxonomy=et)                        
                 elif validation == "taxonomy-url-required-in-dts": 
                     if not any(fnmatch.fnmatch(url, value) for url in modelXbrl.urlDocs.keys()):
-                        sevMessage(sev, subType=submissionType, efmSection=efmSection, taxonomy=value)                        
+                        sevMessage(sev, subType=submissionType, efmSection=efmSection, taxonomy=value, docType=documentType)
                 # type-specific validations
                 elif len(names) == 0:
                     pass # no name entries if all dei names of this validation weren't in the loaded dei taxonomy (i.e., pre 2019) 
@@ -2757,13 +2757,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     break
                         if summingNetworkChildren: # use actually-present contributing items in binding
                             _itemLns = b.keys() - {_sumLn}
-                        if _sumLn in b and all(ln in b for ln in _itemLns) and not (
+                        if _sumLn in b and _itemLns and all(ln in b for ln in _itemLns) and not (
                             any(ax in f.context.qnameDims for ax in blkAxis for f in b.values())):
                             dec = leastDecimals(b, flattenToSet( (_sumLn, _itemLns) ))
                             sumFact = b[_sumLn]
                             itemFacts = [b[ln] for ln in _itemLns]
                             sfNil = sumFact.isNil
-                            allIfNil = all(f.isNil for f in itemFacts)
+                            allIfNil = itemFacts and all(f.isNil for f in itemFacts)
                             if sfNil:
                                 sumValue = "(nil)"
                             else:
