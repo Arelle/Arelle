@@ -928,7 +928,7 @@ def validateXbrlFinally(val, *args, **kwargs):
         
         def checkLabels(parent, relSet, labelrole, visited):
             if not parent.label(labelrole,lang=reportXmlLang,fallbackToQname=False):
-                if (not labelrole or labelrole == standardLabel) and isExtension(modelXbrl, parent):
+                if (not labelrole or labelrole == standardLabel) and isExtension(val, parent):
                     missingConceptLabels[labelrole].add(parent)
             visited.add(parent)
             conceptRels = defaultdict(list) # counts for concepts without preferred label role
