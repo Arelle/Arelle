@@ -13,7 +13,7 @@ from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
 from arelle import XbrlConst
-from .Const import LineItemsNotQualifiedLinkrole
+from .Const import LineItemsNotQualifiedLinkrole, DefaultDimensionLinkroles
 from .Util import isExtension, isInEsefTaxonomy
 try:
     import regex as re
@@ -165,7 +165,7 @@ def checkFilingDimensions(val):
                             val.modelXbrl.error("ESEF.3.4.3.extensionTaxonomyOverridesDefaultMembers",
                                 _("The extension taxonomy MUST not modify (prohibit and/or override) default members assigned to dimensions by the ESEF taxonomy."),
                                 modelObject=linkChild)
-                    if modelLink.role != "http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000":
+                    if modelLink.role not in DefaultDimensionLinkroles:
                         val.modelXbrl.error("ESEF.3.4.3.dimensionDefaultLinkrole",
                             _("Each dimension in an issuer specific extension taxonomy MUST be assigned to a default member in the ELR with role URI http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000, but linkrole used is %(linkrole)s."),
                             modelObject=linkChild, linkrole=modelLink.role)
