@@ -227,8 +227,7 @@
         "outdatedTaxonomyURLs": [
         ],
         "effectiveTaxonomyURLs": [
-            "https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd",
-            "http://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd"
+            "https://xbrl.frc.org.uk/uksef/2022-01-01/uksef-2022-01-01_cor.xsd"
         ],
         "authorityRequiredTaxonomyURLs": [
             "https://xbrl.frc.org.uk/fr/2022-01-01/core/frc-core-2022-01-01.xsd"

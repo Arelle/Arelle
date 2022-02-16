@@ -863,13 +863,13 @@ def validateXbrlFinally(val, *args, **kwargs):
         if ("authorityRequiredTaxonomyURLs" in val.authParam and
             not any(e in val.extensionImportedUrls for e in val.authParam["authorityRequiredTaxonomyURLs"])):
             val.modelXbrl.error(
-                "UKFRC21.1.requiredFrcEntryPointNotImported",
-                 _("The issuer's extension taxonomies MUST import the UKFRC entry point of the taxonomy files prepared by %(authority)s."),
+                "UKFRC22.3.requiredFrcEntryPointNotImported",
+                 _("The issuer's extension taxonomies MUST import the FRC entry point of the taxonomy files prepared by %(authority)s."),
                 modelObject=modelDocument, authority=val.authParam["authorityName"])
             
         if not hasOutdatedUrl and not any(e in val.extensionImportedUrls for e in val.authParam["effectiveTaxonomyURLs"]):
             val.modelXbrl.error(
-                "UKFRC21.3.requiredEsefEntryPointNotImported" if val.authority == "UKFRC" else
+                "UKFRC22.1.requiredUksefEntryPointNotImported" if val.authority == "UKFRC" else
                 "ESEF.3.1.2.requiredEntryPointNotImported",
                  _("The issuer's extension taxonomies MUST import the entry point of the taxonomy files prepared by %(authority)s."),
                 modelObject=modelDocument, authority=val.authParam["authorityName"])
