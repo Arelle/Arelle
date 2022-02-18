@@ -2790,7 +2790,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             dqc0015 = ugtRels["DQC.US.0015"]
             warnedFactsByQn = defaultdict(list)
             for f in modelXbrl.facts:
-                if (f.qname in dqc0015.concepts and f.isNumeric and not f.isNil and f.xValue < 0 and (
+                if (f.qname in dqc0015.concepts and f.isNumeric and not f.isNil and f.xValid >= VALID and f.xValue < 0 and (
                     all(dim.isTyped or (
                         (dim.dimensionQname not in dqc0015.excludedAxesMembers or
                          ("*" not in dqc0015.excludedAxesMembers[dim.dimensionQname] and
