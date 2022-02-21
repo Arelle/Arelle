@@ -273,6 +273,7 @@
             "https://www.w3.org/2001/",
             "http://xbrl.frc.org.uk/",
             "https://xbrl.frc.org.uk/"
-        ]
+        ],
+        "formulaRunIDs": "(?!con_IdentifierSchemeMustBeLEI|lei-identifier-scheme)"
     }
 }

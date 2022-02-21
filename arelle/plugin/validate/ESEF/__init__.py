@@ -182,8 +182,6 @@ def validateXbrlFinally(val, *args, **kwargs):
     _xhtmlNs = "{{{}}}".format(xhtml)
     _xhtmlNsLen = len(_xhtmlNs)
     modelXbrl = val.modelXbrl
-    # reset environment formula run IDs
-    modelXbrl.modelManager.formulaOptions.runIDs = val.priorFormulaOptionsRunIDs
     modelDocument = modelXbrl.modelDocument
     if not modelDocument:
         return # never loaded properly
@@ -1093,6 +1091,8 @@ def validateFormulaFinished(val, *args, **kwargs): # runs *after* formula (which
         return
 
     modelXbrl = val.modelXbrl
+    # reset environment formula run IDs
+    modelXbrl.modelManager.formulaOptions.runIDs = val.priorFormulaOptionsRunIDs
     sumWrnMsgs = sumErrMsgs = 0
     for e in modelXbrl.errors:
         if isinstance(e,dict):

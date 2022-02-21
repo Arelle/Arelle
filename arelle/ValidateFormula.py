@@ -897,9 +897,10 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
             _runIdPattern = "|".join(formulaOptions.runIDs.split()) # whitespace separated IDs
         try: # should be a regex now
             runIDs = re.compile(_runIdPattern)
-            val.modelXbrl.info("formula:trace",
-                               _("Formula/assertion IDs restriction pattern: %(ids)s"), 
-                               modelXbrl=val.modelXbrl, ids=', '.join(_runIdPattern))
+            if formulaOptions.traceVariableSetExpressionResult:
+                val.modelXbrl.info("formula:trace",
+                                   _("Formula/assertion IDs restriction pattern: %(ids)s"), 
+                                   modelXbrl=val.modelXbrl, ids=', '.join(_runIdPattern))
         except:
             val.modelXbrl.info("formula:invalidRunIDsPattern",
                                _("Formula/assertion IDs pattern is invalid: %(runIdPattern)s"), 
