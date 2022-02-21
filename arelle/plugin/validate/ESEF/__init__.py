@@ -170,6 +170,7 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
         
     formulaOptions = val.modelXbrl.modelManager.formulaOptions
     # skip formula IDs as needed per authority if no formula runIDs provided by environment
+    val.priorFormulaOptionsRunIDs = formulaOptions.runIDs
     if not formulaOptions.runIDs and val.authParam["formulaRunIDs"]:
         formulaOptions.runIDs = val.authParam["formulaRunIDs"]
         
@@ -1091,6 +1092,8 @@ def validateFormulaFinished(val, *args, **kwargs): # runs *after* formula (which
         return
 
     modelXbrl = val.modelXbrl
+    # reset environment formula run IDs
+    modelXbrl.modelManager.formulaOptions.runIDs = val.priorFormulaOptionsRunIDs
     sumWrnMsgs = sumErrMsgs = 0
     for e in modelXbrl.errors:
         if isinstance(e,dict):
