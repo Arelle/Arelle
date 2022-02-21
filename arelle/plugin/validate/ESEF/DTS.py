@@ -73,12 +73,14 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
         domainMembersWrongType = []
         extLineItemsWithoutHypercube = []
         extLineItemsNotAnchored = []
+        extLineItemsWronglyAnchored = []
         extAbstractConcepts = []
         extMonetaryConceptsWithoutBalance = []
         langRoleLabels = defaultdict(list)
         conceptsWithoutStandardLabel = []
         conceptsWithNoLabel = []
         widerNarrowerRelSet = val.modelXbrl.relationshipSet(XbrlConst.widerNarrower)
+        generalSpecialRelSet = val.modelXbrl.relationshipSet(XbrlConst.generalSpecial)
         calcRelSet = val.modelXbrl.relationshipSet(XbrlConst.summationItem)
         dimensionDefaults = val.modelXbrl.relationshipSet(dimensionDefault, DefaultDimensionLinkroles)
         labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
@@ -107,13 +109,22 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                             extLineItemsWithoutHypercube.append(modelConcept)
                         elif not widerNarrowerRelSet.fromModelObject(modelConcept) and not widerNarrowerRelSet.toModelObject(modelConcept):
                             if not calcRelSet.fromModelObject(modelConcept): # exclude subtotals
-                                extLineItemsNotAnchored.append(modelConcept)
+                                # Conformance suite RTS_Annex_IV_Par_9_Par_10_G1-4-1_G1-4-2_G3-3-1_G3-3-2/TC6_invalid: look for other arcroles
+                                if not generalSpecialRelSet.fromModelObject(modelConcept) and not generalSpecialRelSet.toModelObject(modelConcept):
+                                    extLineItemsNotAnchored.append(modelConcept)
+                                else:
+                                    extLineItemsWronglyAnchored.append(modelConcept)
                     if (modelConcept.isAbstract and modelConcept not in val.domainMembers and 
                         modelConcept.type is not None and not modelConcept.type.isDomainItemType and
                         not modelConcept.isHypercubeItem and not modelConcept.isDimensionItem):
                         extAbstractConcepts.append(modelConcept)
-                        if anchorAbstractExtensionElements and not widerNarrowerRelSet.fromModelObject(modelConcept) and not widerNarrowerRelSet.toModelObject(modelConcept):
-                            extLineItemsNotAnchored.append(modelConcept)
+                        if anchorAbstractExtensionElements:
+                            if not widerNarrowerRelSet.fromModelObject(modelConcept) and not widerNarrowerRelSet.toModelObject(modelConcept):
+                                # Conformance suite RTS_Annex_IV_Par_9_Par_10_G1-4-1_G1-4-2_G3-3-1_G3-3-2/TC6_invalid: look for other arcroles
+                                if not generalSpecialRelSet.fromModelObject(modelConcept) and not generalSpecialRelSet.toModelObject(modelConcept):
+                                    extLineItemsNotAnchored.append(modelConcept)
+                                else:
+                                    extLineItemsWronglyAnchored.append(modelConcept)
                     if modelConcept.isMonetary and not modelConcept.balance:
                         extMonetaryConceptsWithoutBalance.append(modelConcept)
                     # check all lang's of standard label
@@ -196,6 +207,11 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
             val.modelXbrl.error("ESEF.3.3.1.extensionConceptsNotAnchored",
                 _("Extension concepts SHALL be anchored to concepts in the ESEF taxonomy:  %(concepts)s."),
                 modelObject=extLineItemsNotAnchored, concepts=", ".join(str(c.qname) for c in extLineItemsNotAnchored))
+        if extLineItemsWronglyAnchored:
+            val.modelXbrl.error("ESEF.3.3.1.anchoringWrongArcrole",
+                _("Anchoring relationships for concepts MUST use "
+                  "\"http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower\" arcrole: %(concepts)s."),
+                modelObject=extLineItemsWronglyAnchored, concepts=", ".join(sorted(str(c.qname) for c in extLineItemsWronglyAnchored)))
         if extAbstractConcepts and val.authParam["extensionAbstractContexts"] != "allowed":
             val.modelXbrl.log(val.authParam["extensionAbstractContexts"].upper(),
                 "ESEF.3.2.5.abstractConceptDefinitionInExtensionTaxonomy",
@@ -223,8 +239,8 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                     _("Each linkbase type MUST be provided in a separate linkbase file, but a linkbase was found in %(schema)s."),
                     modelObject=embeddedLinkbaseElements, schema=modelDocument.basename)
 
-        del (tuplesInExtTxmy, fractionsInExtTxmy, typedDimsInExtTxmy, domainMembersWrongType, 
-             extLineItemsWithoutHypercube, extLineItemsNotAnchored, extAbstractConcepts, 
+        del (tuplesInExtTxmy, fractionsInExtTxmy, typedDimsInExtTxmy, domainMembersWrongType, generalSpecialRelSet,
+             extLineItemsWithoutHypercube, extLineItemsNotAnchored, extLineItemsWronglyAnchored, extAbstractConcepts,
              extMonetaryConceptsWithoutBalance, langRoleLabels, conceptsWithNoLabel, conceptsWithoutStandardLabel)
                             
     elif modelDocument.type == ModelDocument.Type.LINKBASE:
