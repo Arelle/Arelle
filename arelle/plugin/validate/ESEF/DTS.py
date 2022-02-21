@@ -347,7 +347,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
     if isExtensionDoc and val.authority == "UKFRC":
         if modelDocument.type == ModelDocument.Type.INLINEXBRL:
             if modelDocument.documentEncoding.lower() != "utf-8":
-                modelXbrl.error("UKFRC.1.1.instanceDocumentEncoding",
+                val.modelXbrl.error("UKFRC.1.1.instanceDocumentEncoding",
                     _("UKFRC instance documents should be UTF-8 encoded: %(encoding)s"),
                     modelObject=modelDocument, encoding=modelDocument.documentEncoding)
   
