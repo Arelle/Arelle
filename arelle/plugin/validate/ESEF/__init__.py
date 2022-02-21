@@ -908,8 +908,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 nsExcl = val.authParam.get("lineItemsMustBeInPreLbExclusionNsPattern")
                 if nsExcl:
                     nsExclPat = re.compile(nsExcl)
-                reportedEltsNotInLb -= set(c for c in reportedEltsNotInLb 
-                                           if nsExclPat.match(c.qname.namespaceURI))
+                    reportedEltsNotInLb -= set(c for c in reportedEltsNotInLb if nsExclPat.match(c.qname.namespaceURI))
             if reportedEltsNotInLb and lbType != "calculation":
                 modelXbrl.error("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
                     _("All concepts used by tagged facts MUST be in extension taxonomy %(linkbaseType)s relationships: %(elements)s."),
