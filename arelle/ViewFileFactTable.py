@@ -12,15 +12,29 @@ from collections import defaultdict
 
 stripXmlPattern = re.compile(r"<.*?>")
 
-def viewFacts(modelXbrl, outfile, arcrole=None, linkrole=None, linkqname=None, arcqname=None, ignoreDims=False, showDimDefaults=False, labelrole=None, lang=None):
+def viewFacts(modelXbrl, outfile, arcrole=None, linkrole=None, linkqname=None, arcqname=None, ignoreDims=False, showDimDefaults=False, labelrole=None, lang=None, cols=None):
     if not arcrole: arcrole=XbrlConst.parentChild
     modelXbrl.modelManager.showStatus(_("viewing facts"))
-    view = ViewFacts(modelXbrl, outfile, arcrole, linkrole, linkqname, arcqname, ignoreDims, showDimDefaults, labelrole, lang)
+    view = ViewFacts(modelXbrl, outfile, arcrole, linkrole, linkqname, arcqname, ignoreDims, showDimDefaults, labelrole, lang, cols)
     view.view(modelXbrl.modelDocument)
     view.close()
     
+COL_WIDTHS = {
+    "Concept": 70, # same as label
+    "Facts": 24, # one column per fact period/dimension/unit
+    "Label": 70,
+    "Name": 70,
+    "LocalName":  40,
+    "Namespace": 60,
+    "ID": 40,
+    "Type": 32,
+    "PeriodType": 16, 
+    "Balance": 16,
+    "Documentation": 100
+    }
+    
 class ViewFacts(ViewFile.View):
-    def __init__(self, modelXbrl, outfile, arcrole, linkrole, linkqname, arcqname, ignoreDims, showDimDefaults, labelrole, lang):
+    def __init__(self, modelXbrl, outfile, arcrole, linkrole, linkqname, arcqname, ignoreDims, showDimDefaults, labelrole, lang, cols):
         super(ViewFacts, self).__init__(modelXbrl, outfile, "Fact Table", lang)
         self.arcrole = arcrole
         self.linkrole = linkrole
@@ -29,8 +43,38 @@ class ViewFacts(ViewFile.View):
         self.ignoreDims = ignoreDims
         self.showDimDefaults = showDimDefaults
         self.labelrole = labelrole
+        self.cols = cols
 
     def view(self, modelDocument):
+        if self.cols:
+            if isinstance(self.cols,str): self.cols = self.cols.replace(',',' ').split()
+            unrecognizedCols = []
+            for col in self.cols:
+                if col not in COL_WIDTHS:
+                    unrecognizedCols.append(col)
+            if unrecognizedCols:
+                self.modelXbrl.error("arelle:unrecognizedFactListColumn",
+                                     _("Unrecognized columns: %(cols)s"),
+                                     modelXbrl=self.modelXbrl, cols=','.join(unrecognizedCols))
+            if "Period" in self.cols:
+                i = self.cols.index("Period")
+                self.cols[i:i+1] = ["Start", "End/Instant"]
+        else:
+            self.cols = ["Concept", "Facts"]
+        col0 = self.cols[0]
+        try:
+            colIdxFacts = self.cols.index("Facts")
+        except ValueError:
+            self.modelXbrl.error("arelle:factTableFactsColumn",
+                                 _("A columns entry for Facts is required"),
+                                 modelXbrl=self.modelXbrl)
+            colIdxFacts = len(self.cols)
+            self.cols.append("Facts")
+        if col0 not in ("Concept", "Label", "Name", "LocalName"):
+            self.modelXbrl.error("arelle:firstFactTableColumn",
+                                 _("First column must be Concept, Label, Name or LocalName: %(col1)s"),
+                                 modelXbrl=self.modelXbrl, col1=col0)
+        self.isCol0Label = col0 in ("Concept", "Label")
         relationshipSet = self.modelXbrl.relationshipSet(self.arcrole, self.linkrole, self.linkqname, self.arcqname)
         if relationshipSet:
             # sort URIs by definition
@@ -107,11 +151,11 @@ class ViewFacts(ViewFile.View):
         self.periodKeys.sort()
         
         # set up treeView widget and tabbed pane
-        heading = ["Concept"]
+        heading = self.cols[0:colIdxFacts]
         columnHeadings = []
         self.contextColId = {}
         self.startdatetimeColId = {}
-        self.numCols = 1
+        self.numCols = len(heading)
         for periodKey in self.periodKeys:
             columnHeadings.append(periodKey)
             for contextId in self.periodContexts[periodKey]:
@@ -129,9 +173,12 @@ class ViewFacts(ViewFile.View):
                 heading.append(date)
             else:
                 heading.append(colHeading)
-
+                
+        heading += self.cols[colIdxFacts+1:]
+        self.numCols = len(heading)
                     
-        self.setColWidths([(70 if iCol==0 else 24) for iCol, col in enumerate(heading)])
+        self.setColWidths([COL_WIDTHS[col] if col in COL_WIDTHS else COL_WIDTHS["Facts"]
+                           for col in enumerate(heading)])
         self.setColWrapText([True for col in heading])
         self.addRow(heading, asHeader=True) # must do after determining tree depth
 
@@ -179,8 +226,34 @@ class ViewFacts(ViewFile.View):
             concept.substitutionGroupQname == XbrlConst.qnXbrldtDimensionItem):
             return
         cols = ['' for i in range(self.numCols)]
-        cols[0] = labelPrefix + concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole)
-        self.setRowFacts(cols,concept,preferredLabel)
+        i = 0 
+        for col in self.cols:
+            if col == "Facts":
+                self.setRowFacts(cols,concept,preferredLabel)
+                i = self.numCols - (len(self.cols) - i - 1) # skip to next concept property column
+            else:
+                if col in ("Concept", "Label"):
+                    cols[i] = labelPrefix + concept.label(preferredLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole)
+                elif col == "Name":
+                    cols[i] = concept.qname
+                elif col == "LocalName":
+                    cols[i] = concept.name
+                elif col == "Namespace":
+                    cols[i] = concept.qname.namespaceURI
+                elif col == "ID":
+                    cols[i] = concept.id
+                elif col == "Substitution Group":
+                    cols[i] = concept.substitutionGroupQname
+                elif col == "Type":
+                    cols[i] = concept.typeQname
+                elif col == "Period Type":
+                    cols[i] = concept.periodType
+                elif col == "Balance":
+                    cols[i] = concept.balance
+                elif col == "Documentation":
+                    cols[i] = concept.label(preferredLabel=XbrlConst.documentationLabel, fallbackToQname=False, lang=self.lang, strip=True, linkroleHint=XbrlConst.defaultLinkRole)
+                i += 1
+
         attr = {"concept": str(concept.qname)}
         self.addRow(cols, treeIndent=n, 
                     xmlRowElementName="facts", xmlRowEltAttr=attr, xmlCol0skipElt=True)

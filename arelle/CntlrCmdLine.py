@@ -149,6 +149,8 @@ def parseAndRun(args):
                       help=_("Columns for fact list file"))
     parser.add_option("--factTable", "--csvFactTable", action="store", dest="factTableFile",
                       help=_("Write fact table into FILE"))
+    parser.add_option("--factTableCols", action="store", dest="factTableCols",
+                      help=_("Columns for fact table file"))
     parser.add_option("--concepts", "--csvConcepts", action="store", dest="conceptsFile",
                       help=_("Write concepts into FILE"))
     parser.add_option("--pre", "--csvPre", action="store", dest="preFile",
@@ -446,7 +448,7 @@ def parseAndRun(args):
     elif hasWebServer and options.webserver:
         # webserver incompatible with file operations
         if any((options.entrypointFile, options.importFiles, options.diffFile, options.versReportFile,
-                options.factsFile, options.factListCols, options.factTableFile, options.relationshipCols,
+                options.factsFile, options.factListCols, options.factTableFile, options.factTableCols, options.relationshipCols,
                 options.conceptsFile, options.preFile, options.tableFile, options.calFile, options.dimFile, options.anchFile, options.formulaeFile, options.viewArcrole, options.viewFile,
                 options.roleTypesFile, options.arcroleTypesFile
                 )):
@@ -1034,7 +1036,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     if options.factsFile:
                         ViewFileFactList.viewFacts(modelXbrl, options.factsFile, labelrole=options.labelRole, lang=options.labelLang, cols=options.factListCols)
                     if options.factTableFile:
-                        ViewFileFactTable.viewFacts(modelXbrl, options.factTableFile, labelrole=options.labelRole, lang=options.labelLang)
+                        ViewFileFactTable.viewFacts(modelXbrl, options.factTableFile, labelrole=options.labelRole, lang=options.labelLang, cols=options.factTableCols)
                     if options.conceptsFile:
                         ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, labelrole=options.labelRole, lang=options.labelLang)
                     if options.preFile:
