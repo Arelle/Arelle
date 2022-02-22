@@ -2689,13 +2689,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     issue = "Base taxonomy member is not allowed by rule. "
                                 if not any(f.isDuplicateOf(warnedFact) for warnedFact in warnedFactsByQn[f.qname]):
                                     warnedFactsByQn[f.qname].append(f)
-                                    modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                                    modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                         modelObject=f, name=f.qname, value=strTruncate(f.value,128), axis=axisConcept.qname, member=dimValueQname, issue=issue,
                                         contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
                                         edgarCode=edgarCode, ruleElementId=id)
                     unusedUnallowed = unallowedMembers - unallowedMembersUsedByFacts
                     for unusedMember in unusedUnallowed: # report one member per message for result comparability to XBRL-US implementation
-                        modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(dqcRule["message-unreported"])),
+                        modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(dqcRule["message-unreported"])),
                             modelObject=modelXbrl, axis=axisConcept.qname, member=unusedMember,
                             edgarCode=edgarCode+"-Unreported", ruleElementId=id)
                     if rule.get("axis-default-must-match-UGT") == "Yes" and rule["axis"] in ugtAxisDefaults:
@@ -2704,7 +2704,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             if dimDefRel.toModelObject is not None:
                                 extDefaultQname = dimDefRel.toModelObject.qname
                                 if extDefaultQname.localName != ugtDefaultMem:
-                                    modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(dqcRule["message-disallowed-default"])),
+                                    modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(dqcRule["message-disallowed-default"])),
                                         modelObject=modelXbrl, axis=axisConcept.qname, default=extDefaultQname, allowedDefault=ugtDefaultMem,
                                         edgarCode=edgarCode+"-Disallowed-Default", ruleElementId=id)
             del warnedFactsByQn # dereference objects
@@ -2775,7 +2775,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                 if ((not (sfNil & allIfNil)) and (
                                     (sfNil ^ allIfNil) or 
                                     abs(sumValue - sum(itemValues)) > pow(10, -dec) * tolerance)):
-                                    modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                                    modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                         modelObject=b.values(), sumName=_sumLn, sumValue=str(sumValue), 
                                         itemNames=", ".join(_itemLns), itemValues=" + ".join(str(v) for v in itemValues), 
                                         contextID=sumFact.context.id, unitID=sumFact.unit.id if sumFact.unit is not None else "(none)",
@@ -2800,7 +2800,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     continue
                 for f in facts:
                     if maxEndDateComparedTo(f.context.endDatetime):
-                        modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                        modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                           modelObject=f, name=f.qname.localName, value=f.xValue,
                                           date=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True),
                                           endDate=XmlUtil.dateunionValue(maxEndDate, subtractOneDay=True),
@@ -2824,7 +2824,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     for f in r6facts():
                         durationDays = (f.context.endDatetime - f.context.startDatetime).days
                         if not (focusRange[0] <= durationDays <= focusRange[1]):
-                            modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                            modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                               modelObject=f, name=f.qname.localName, durationDays=durationDays, documentFiscalPeriodFocus=deiItems.get("DocumentFiscalPeriodFocus"),
                                               startDate=XmlUtil.dateunionValue(f.context.startDatetime), endDate=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True),
                                               contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
@@ -2837,7 +2837,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     relTo = rel.toModelObject
                     if (relFrom is not None and relTo is not None and 
                         relFrom.qname in ugtCalcs.get(rel.weight,EMPTY_DICT).get(relTo.qname,EMPTY_DICT)):
-                        modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                        modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                           modelObject=rel, linkrole=rel.linkrole, linkroleDefinition=modelXbrl.roleTypeDefinition(rel.linkrole), 
                                           conceptFrom=relFrom.qname, conceptTo=relTo.qname,
                                           edgarCode=edgarCode, ruleElementId=id)
@@ -2857,7 +2857,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         lesserValue = roundValue(lesserFact.xValue, decimals=dec)
                         greaterValue = roundValue(b[greaterLn].xValue, decimals=dec)
                         if lesserValue > greaterValue:
-                            modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(ruleMsg)),
+                            modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(ruleMsg)),
                                 modelObject=b.values(), lesserName=lesserLn, lesserValue=str(lesserValue), greaterName=greaterLn, greaterValue=str(greaterValue),
                                 contextID=lesserFact.context.id, unitID=lesserFact.unit.id if lesserFact.unit is not None else "(none)",
                                 edgarCode=ruleEdgarCode, ruleElementId=id)
@@ -2865,7 +2865,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             dqc0015 = ugtRels["DQC.US.0015"]
             warnedFactsByQn = defaultdict(list)
             for f in modelXbrl.facts:
-                if (f.qname in dqc0015.concepts and f.isNumeric and not f.isNil and f.xValue < 0 and (
+                if (f.qname in dqc0015.concepts and f.isNumeric and not f.isNil and f.xValid >= VALID and f.xValue < 0 and (
                     all(d.isTyped or (
                         (d.dimensionQname not in dqc0015.excludedAxesMembers or
                          ("*" not in dqc0015.excludedAxesMembers[d.dimensionQname] and
@@ -2888,7 +2888,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 for n in rule["names"]:
                     for f in modelXbrl.factsByLocalName.get(n,()):
                         if not dateUnionEqual(documentPeriodEndDate, f.context.endDatetime, instantEndDate=True):
-                            modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                            modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                               modelObject=f, name=f.qname.localName, endDate=XmlUtil.dateunionValue(f.context.endDatetime, subtractOneDay=True), 
                                               documentPeriodEndDate=documentPeriodEndDate,
                                               contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
@@ -2896,7 +2896,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         elif dqcRuleName == "DQC.US.0036" and hasDocPerEndDateFact:
             for id, rule in dqcRule["rules"].items():
                 if abs((documentPeriodEndDate + ONE_DAY - documentPeriodEndDateFact.context.endDatetime).days) > 1: # was 3
-                    modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                    modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                       modelObject=f, name=documentPeriodEndDateFact.qname.localName, 
                                       endDate=XmlUtil.dateunionValue(documentPeriodEndDateFact.context.endDatetime, subtractOneDay=True), 
                                       documentPeriodEndDate=documentPeriodEndDate,
@@ -2909,7 +2909,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     if (rel.fromModelObject is not None and rel.toModelObject is not None
                         and rel.fromModelObject.qname in ugtAxisDefaults 
                         and ugtAxisDefaults[rel.fromModelObject.qname] != rel.toModelObject.qname):
-                        modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                        modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                           modelObject=(rel, rel.fromModelObject), axisName=rel.fromModelObject.qname, 
                                           axisDefaultName=ugtAxisDefaults[rel.fromModelObject.qname],
                                           extensionDefaultName=rel.toModelObject.qname,
@@ -2937,9 +2937,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     for bottom, effectiveWeight in descendantWeights(top): # don't include stopping income concept
                         if ((bottom.balance == "credit" and effectiveWeight > 0)
                             or (bottom.balance == "debit" and effectiveWeight < 0)):
-                            modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg[bottom.balance or ""])),
+                            modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg[bottom.balance or ""])),
                                               modelObject=(top, bottom), topName=top.name, bottomName=bottom.name,
-                                              edgarCode=edgarCode, ruleElementId=id)
+                                              edgarCode=f"{edgarCode}-{bottom.balance}", ruleElementId=id)
                         
         elif dqcRuleName == "DQC.US.0044":
             ugtAccrualItems = ugtRels["accrual-items"]
@@ -2950,7 +2950,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         if name in ugtAccrualItems:
                             for f in modelXbrl.factsByLocalName[name]:
                                 if f.xValue != 0:
-                                    modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                                    modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                         modelObject=f, name=name, contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)", value=f.xValue,
                                         edgarCode=edgarCode, ruleElementId=id)
                         if name not in visited:
@@ -2990,13 +2990,13 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             calcCashFlowLinkRolesMissingRoots.add(linkroleUri)
             if preCashFlowLinkRoles:
                 if not calcCashFlowLinkRoles:
-                    modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(dqcRule["message-no-roles"])),
+                    modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(dqcRule["message-no-roles"])),
                         modelObject=modelXbrl, 
                         linkRoles=(", ".join(sorted(preCashFlowLinkRoles))),
                         edgarCode=edgarCode+"-No-Roles", ruleElementId=id)
                 elif calcCashFlowLinkRolesMissingRoots == calcCashFlowLinkRoles: # every calc is missing the roots
                     for linkRole in calcCashFlowLinkRolesMissingRoots:
-                        modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                        modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                             modelObject=val.modelXbrl.baseSets[(XbrlConst.summationItem,linkroleUri,None,None)] or modelXbrl, # may be no base sets, in which case just show the instance
                             linkRole=linkroleUri, linkroleDefinition=definition,
                             rootNames=(", ".join(r.name for r in calcRoots) or "(none)"),
@@ -3008,7 +3008,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     for b in bindings.values():
                         if eltLn in b and not any(depLn in b for depLn in depLns):
                             f = b[eltLn]
-                            modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                            modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                 modelObject=b.values(), name=eltLn, value=f.xValue, 
                                 dependentElements=", ".join(depLns), 
                                 contextID=f.context.id, unitID=f.unit.id if f.unit is not None else "(none)",
@@ -3021,7 +3021,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     if rel.toModelObject is not None:
                         name = rel.toModelObject.name
                         if name.lower() in replacementMembers and rel.toModelObject.qname.namespaceURI not in val.disclosureSystem.standardTaxonomiesDict:
-                            modelXbrl.warning(dqcRuleName + "." + id, _(logMsg(msg)),
+                            modelXbrl.warning(f"{dqcRuleName}.{id}", _(logMsg(msg)),
                                 modelObject=(rel, rel.toModelObject), member=rel.toModelObject.qname, axis=axis.qname, 
                                 replacement=replacementMembers[name.lower()],
                                 edgarCode=edgarCode, ruleElementId=id)
