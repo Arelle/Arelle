@@ -10,7 +10,7 @@ def generateHtmlEbaTablesetFiles(dts, indexFile, lang="en"):
         import os, io
         from arelle import Version, XbrlConst, XmlUtil
         from arelle.ViewFileRenderedGrid import viewRenderedGrid
-        from arelle.ModelRenderingObject import ModelEuTable, ModelTable
+        from arelle.ModelRenderingObject import ModelTable
         
         numTableFiles = 0
 
@@ -61,7 +61,7 @@ table {background:#fff}
         def viewTable(modelTable):
             if modelTable is None:
                 return
-            if isinstance(modelTable, (ModelEuTable, ModelTable)):
+            if isinstance(modelTable, ModelTable):
                 # status
                 dts.modelManager.cntlr.addToLog("viewing: " + modelTable.id)
                 # for table file name, use table ELR

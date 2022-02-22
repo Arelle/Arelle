@@ -16,7 +16,7 @@ from arelle.FunctionXs import xsString
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import DEFAULT
-from arelle.ModelRenderingObject import (ModelClosedDefinitionNode, ModelEuAxisCoord, ModelFilterDefinitionNode,
+from arelle.ModelRenderingObject import (ModelClosedDefinitionNode, ModelFilterDefinitionNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.PrototypeInstanceObject import FactPrototype
 # change tableModel for namespace needed for consistency suite
@@ -54,7 +54,7 @@ class ViewRenderedGrid(ViewFile.View):
         # find table model namespace based on table namespace
         self.tableModelNamespace = XbrlConst.tableModel
         for xsdNs in modelXbrl.namespaceDocs.keys():
-            if xsdNs in (XbrlConst.tableMMDD, XbrlConst.table, XbrlConst.table201305, XbrlConst.table201301, XbrlConst.table2011):
+            if xsdNs in (XbrlConst.tableMMDD, XbrlConst.table):
                 self.tableModelNamespace = xsdNs + "/model"
                 break
         super(ViewRenderedGrid, self).__init__(modelXbrl, outfile, 
@@ -322,7 +322,7 @@ class ViewRenderedGrid(ViewFile.View):
                 #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
                 if renderNow:
                     label = xStructuralNode.header(lang=self.lang,
-                                                   returnGenLabel=isinstance(xStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)))
+                                                   returnGenLabel=isinstance(xStructuralNode.definitionNode, ModelClosedDefinitionNode))
                     columnspan = rightCol - leftCol
                     if columnspan > 0 and nonAbstract: columnspan += 1
                     elt = None
@@ -446,7 +446,7 @@ class ViewRenderedGrid(ViewFile.View):
                                         childrenFirst, childrenFirst, False)
                 isAbstract = (yStructuralNode.isAbstract or 
                               (yStructuralNode.childStructuralNodes and
-                               not isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord))))
+                               not isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode)))
                 isNonAbstract = not isAbstract
                 isLabeled = yStructuralNode.isLabeled
                 topRow = row
@@ -561,7 +561,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                    childrenFirst, childrenFirst, False)
                 isAbstract = (yStructuralNode.isAbstract or 
                               (yStructuralNode.childStructuralNodes and
-                               not isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord))))
+                               not isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode)))
                 isNonAbstract = not isAbstract
                 isLabeled = yStructuralNode.isLabeled
                 topRow = row
@@ -570,7 +570,7 @@ class ViewRenderedGrid(ViewFile.View):
                 #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
                 if renderNow and isLabeled:
                     label = yStructuralNode.header(lang=self.lang,
-                                                   returnGenLabel=isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)),
+                                                   returnGenLabel=isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode),
                                                    recurseParent=not isinstance(yStructuralNode.definitionNode, ModelFilterDefinitionNode))
                     brkdownNode = yStructuralNode.breakdownNode
                     rowspan= nestRow - row + 1
@@ -651,7 +651,7 @@ class ViewRenderedGrid(ViewFile.View):
                     row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspectStructuralNodes, yChildrenFirst)
                 if not (yStructuralNode.isAbstract or 
                         (yStructuralNode.childStructuralNodes and
-                         not isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)))) and yStructuralNode.isLabeled:
+                         not isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode))) and yStructuralNode.isLabeled:
                     if self.type == XML:
                         if self.breakdownNodes.get("x"):
                             cellsParentElt = etree.SubElement(self.cellsParentElt, self.tableModelQName("cells"),

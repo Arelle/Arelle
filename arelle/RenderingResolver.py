@@ -11,8 +11,8 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelValue import QName
 from arelle.ModelFormulaObject import Aspect
-from arelle.ModelRenderingObject import (ModelEuTable, ModelTable, ModelBreakdown,
-                                         ModelEuAxisCoord, ModelDefinitionNode, ModelClosedDefinitionNode, ModelRuleDefinitionNode,
+from arelle.ModelRenderingObject import (ModelTable, ModelBreakdown,
+                                         ModelDefinitionNode, ModelClosedDefinitionNode, ModelRuleDefinitionNode,
                                          ModelRelationshipDefinitionNode, ModelSelectionDefinitionNode, ModelFilterDefinitionNode,
                                          ModelConceptRelationshipDefinitionNode, ModelDimensionRelationshipDefinitionNode,
                                          ModelCompositionDefinitionNode, ModelTupleDefinitionNode, StructuralNode,
@@ -33,16 +33,16 @@ class ResolutionException(Exception):
         return _('[{0}] exception {1}').format(self.code, self.message % self.kwargs)
 
 def resolveAxesStructure(view, viewTblELR):
-    if isinstance(viewTblELR, (ModelEuTable, ModelTable)):
+    if isinstance(viewTblELR, ModelTable):
         # called with a modelTable instead of an ELR
         
         # find an ELR for this table object
         table = viewTblELR
-        for rel in view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201305, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011)).fromModelObject(table):
+        for rel in view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD)).fromModelObject(table):
             # find relationships in table's linkrole
-            view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableBreakdownTree201305, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD, XbrlConst.tableDefinitionNodeSubtree201305, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011), rel.linkrole)
+            view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD), rel.linkrole)
             return resolveTableAxesStructure(view, table,
-                                             view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201305, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011), rel.linkrole))
+                                             view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD), rel.linkrole))
         # no relationships from table found
         return (None, None, None, None)
     
@@ -51,8 +51,8 @@ def resolveAxesStructure(view, viewTblELR):
     if len(tblAxisRelSet.modelRelationships) > 0:
         view.axisSubtreeRelSet = view.modelXbrl.relationshipSet(XbrlConst.euAxisMember, viewTblELR)
     else: # try 2011 roles
-        tblAxisRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201305, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011), viewTblELR)
-        view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableBreakdownTree201305, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD, XbrlConst.tableDefinitionNodeSubtree201305, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011), viewTblELR)
+        tblAxisRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD), viewTblELR)
+        view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD), viewTblELR)
     if tblAxisRelSet is None or len(tblAxisRelSet.modelRelationships) == 0:
         view.modelXbrl.modelManager.addToLog(_("no table relationships for {0}").format(viewTblELR))
         return (None, None, None, None)
@@ -112,7 +112,7 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
         for i, tblAxisRel in enumerate(tblAxisRels):
             definitionNode = tblAxisRel.toModelObject
             if (tblAxisRel.axisDisposition == disposition and 
-                isinstance(definitionNode, (ModelEuAxisCoord, ModelBreakdown, ModelDefinitionNode))):
+                isinstance(definitionNode, (ModelBreakdown, ModelDefinitionNode))):
                 if disposition == "x" and xTopStructuralNode is None:
                     xTopStructuralNode = StructuralNode(None, definitionNode, definitionNode, view.zmostOrdCntx, tableNode=table, rendrCntx=view.rendrCntx)
                     xTopStructuralNode.hasOpenNode = False
@@ -243,7 +243,7 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                         
     if axisDisposition == "z" and structuralNode.aspects is None:
         structuralNode.aspects = view.zOrdinateChoices.get(definitionNode, None)
-    if structuralNode and isinstance(definitionNode, (ModelBreakdown, ModelEuAxisCoord, ModelDefinitionNode)):
+    if structuralNode and isinstance(definitionNode, (ModelBreakdown, ModelDefinitionNode)):
         try:
             
             #cartesianProductNestedArgs = (view, depth, axisDisposition, facts, tblAxisRels, i)
@@ -552,7 +552,7 @@ def cartesianProductExpander(childStructuralNode, view, depth, axisDisposition, 
     if i is not None: # recurse table relationships for cartesian product
         for j, tblRel in enumerate(tblAxisRels[i+1:]):
             tblObj = tblRel.toModelObject
-            if isinstance(tblObj, (ModelEuAxisCoord, ModelDefinitionNode)) and axisDisposition == tblRel.axisDisposition:        
+            if isinstance(tblObj, ModelDefinitionNode) and axisDisposition == tblRel.axisDisposition:        
                 #addBreakdownNode(view, axisDisposition, tblObj)
                 #if tblObj.cardinalityAndDepth(childStructuralNode)[1] or axisDisposition == "z":
                 if axisDisposition == "z":

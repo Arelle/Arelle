@@ -14,7 +14,7 @@ from arelle.ModelValue import qname, QName
 from arelle.RenderingResolver import resolveAxesStructure, RENDER_UNITS_PER_CHAR
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectModelAspect
 from arelle.ModelInstanceObject import ModelDimensionValue
-from arelle.ModelRenderingObject import (ModelClosedDefinitionNode, ModelEuAxisCoord,
+from arelle.ModelRenderingObject import (ModelClosedDefinitionNode,
                                          ModelFilterDefinitionNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.FormulaEvaluator import init as formulaEvaluatorInit, aspectMatches
@@ -47,7 +47,7 @@ integerItemTypes = {"integerItemType", "nonPositiveIntegerItemType", "negativeIn
                     "longItemType", "intItemType", "shortItemType", "byteItemType",
                     "nonNegativeIntegerItemType", "unsignedLongItemType", "unsignedIntItemType",
                     "unsignedShortItemType", "unsignedByteItemType", "positiveIntegerItemType"}
-TABLE_AXIS_ROLES = (XbrlConst.euTableAxis, XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201305, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011)
+TABLE_AXIS_ROLES = (XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD)
 
 '''
 Returns a tuple with all known table axis roles
@@ -433,7 +433,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     isLabeled = xStructuralNode.isLabeled
                     isAbstract = (xStructuralNode.isAbstract or
                                   (xStructuralNode.childStructuralNodes and
-                                   not isinstance(xStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord))))
+                                   not isinstance(xStructuralNode.definitionNode, ModelClosedDefinitionNode)))
                     isNonAbstract = not isAbstract
                     rightCol, row, width, leafNode = self.xAxis(leftCol, topRow + isLabeled, rowBelow, xStructuralNode, xStructuralNodes, # nested items before totals
                                                                 childrenFirst, childrenFirst, False)
@@ -451,7 +451,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     if renderNow and isLabeled:
                         columnspan = (rightCol - leftCol + (1 if isNonAbstract else 0))
                         label = xStructuralNode.header(lang=self.lang,
-                                                       returnGenLabel=isinstance(xStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)))
+                                                       returnGenLabel=isinstance(xStructuralNode.definitionNode, ModelClosedDefinitionNode))
                         if label != OPEN_ASPECT_ENTRY_SURROGATE:
                             xValue = leftCol-1
                             yValue = topRow-1
@@ -498,7 +498,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 if not yStructuralNode.isRollUp:
                     isAbstract = (yStructuralNode.isAbstract or 
                                   (yStructuralNode.childStructuralNodes and
-                                   not isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord))))
+                                   not isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode)))
                     isNonAbstract = not isAbstract
                     isLabeled = yStructuralNode.isLabeled
                     nestRow, nextRow = self.yAxis(leftCol + isLabeled, row, yStructuralNode,  # nested items before totals
@@ -515,7 +515,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         if wraplength < 0:
                             wraplength = self.rowHdrColWidth[depth]
                         label = yStructuralNode.header(lang=self.lang,
-                                                       returnGenLabel=isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)),
+                                                       returnGenLabel=isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode),
                                                        recurseParent=not isinstance(yStructuralNode.definitionNode, ModelFilterDefinitionNode))
                         if label != OPEN_ASPECT_ENTRY_SURROGATE:
                             xValue = leftCol-1
@@ -592,7 +592,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspectStructuralNodes, yChildrenFirst)
                 if not (yStructuralNode.isAbstract or 
                         (yStructuralNode.childStructuralNodes and
-                         not isinstance(yStructuralNode.definitionNode, (ModelClosedDefinitionNode, ModelEuAxisCoord)))) and yStructuralNode.isLabeled:
+                         not isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode))) and yStructuralNode.isLabeled:
                     isYEntryPrototype = yStructuralNode.isEntryPrototype(default=False) # row to enter open aspects
                     yAspectStructuralNodes = defaultdict(set)
                     for aspect in aspectModels[self.aspectModel]:

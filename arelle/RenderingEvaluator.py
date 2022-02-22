@@ -7,7 +7,7 @@ Created on Jun 6, 2012
 from arelle import XPathContext, XbrlConst, XmlUtil
 from arelle.ModelFormulaObject import (aspectModels, aspectStr, Aspect)
 from arelle.ModelRenderingObject import (CHILD_ROLLUP_FIRST, CHILD_ROLLUP_LAST,
-                                         ModelDefinitionNode, ModelEuAxisCoord,
+                                         ModelDefinitionNode, 
                                          ModelBreakdown,
                                          ModelClosedDefinitionNode, 
                                          ModelRuleDefinitionNode,
@@ -29,7 +29,7 @@ def init(modelXbrl):
         arcrole, ELR, linkqname, arcqname = baseSetKey
         if ELR and linkqname and arcqname and XbrlConst.isTableRenderingArcrole(arcrole):
             ValidateFormula.checkBaseSet(modelXbrl, arcrole, ELR, modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname))
-            if arcrole in (XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201305, XbrlConst.tableBreakdown201301, XbrlConst.tableAxis2011):
+            if arcrole in (XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD):
                 hasXbrlTables = True
 
     # provide context for view
@@ -53,68 +53,43 @@ def init(modelXbrl):
         # validate parameters and custom function signatures
         ValidateFormula.validate(modelXbrl, xpathContext=modelXbrl.rendrCntx, parametersOnly=True, statusMsg=_("compiling rendering tables"))
         
-        # deprecated as of 2013-05-17
-        # check and extract message expressions into compilable programs
-        for msgArcrole in (XbrlConst.tableDefinitionNodeMessage201301, XbrlConst.tableDefinitionNodeSelectionMessage201301,
-                           XbrlConst.tableAxisMessage2011, XbrlConst.tableAxisSelectionMessage2011):
-            for msgRel in modelXbrl.relationshipSet(msgArcrole).modelRelationships:
-                ValidateFormula.checkMessageExpressions(modelXbrl, msgRel.toModelObject)
-                
         # compile and validate tables
         for modelTable in modelXbrl.modelRenderingTables:
             modelTable.fromInstanceQnames = None # required if referred to by variables scope chaining
             modelTable.compile()
 
-            hasNsWithAspectModel = modelTable.namespaceURI in (XbrlConst.euRend, XbrlConst.table2011, XbrlConst.table201301, XbrlConst.table201305) 
-        
-            # check aspectModel  (attribute removed 2013-06, now always dimensional)
-            if modelTable.aspectModel not in ("non-dimensional", "dimensional") and hasNsWithAspectModel:
-                modelXbrl.error("xbrlte:unknownAspectModel",
-                    _("Table %(xlinkLabel)s, aspect model %(aspectModel)s not recognized"),
-                    modelObject=modelTable, xlinkLabel=modelTable.xlinkLabel, aspectModel=modelTable.aspectModel)
-            else:
-                modelTable.priorAspectAxisDisposition = {}
-                # check ordinate aspects against aspectModel
-                oppositeAspectModel = (_DICT_SET({'dimensional','non-dimensional'}) - _DICT_SET({modelTable.aspectModel})).pop()
-                if hasNsWithAspectModel:
-                    uncoverableAspects = aspectModels[oppositeAspectModel] - aspectModels[modelTable.aspectModel]
+            modelTable.priorAspectAxisDisposition = {}
+            # check ordinate aspects against aspectModel
+            oppositeAspectModel = (_DICT_SET({'dimensional','non-dimensional'}) - _DICT_SET({modelTable.aspectModel})).pop()
+            uncoverableAspects = ()
+            aspectsCovered = set()
+            for tblAxisRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD)).fromModelObject(modelTable):
+                breakdownAspectsCovered = set()
+                hasCoveredAspect = checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisRel.axisDisposition, uncoverableAspects, breakdownAspectsCovered)
+                aspectsCovered |= breakdownAspectsCovered
+                checkBreakdownLeafNodeAspects(modelXbrl, modelTable, tblAxisRel, set(), breakdownAspectsCovered)
+            if Aspect.CONCEPT not in aspectsCovered:
+                modelXbrl.error("xbrlte:tableMissingConceptAspect",
+                    _("Table %(xlinkLabel)s does not include the concept aspect as one of its participating aspects"),
+                    modelObject=modelTable, xlinkLabel=modelTable.xlinkLabel)
+            del modelTable.priorAspectAxisDisposition
+            # check for table-parameter name clash
+            parameterNames = {}
+            for tblParamRel in modelXbrl.relationshipSet((XbrlConst.tableParameter, XbrlConst.tableParameterMMDD)).fromModelObject(modelTable):
+                parameterName = tblParamRel.variableQname
+                if parameterName in parameterNames:
+                    modelXbrl.error("xbrlte:tableParameterNameClash ",
+                        _("Table %(xlinkLabel)s has parameter name clash for variable %(name)s"),
+                        modelObject=(modelTable,tblParamRel,parameterNames[parameterName]), xlinkLabel=modelTable.xlinkLabel, name=parameterName)
                 else:
-                    uncoverableAspects = ()
-                aspectsCovered = set()
-                for tblAxisRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD, XbrlConst.tableBreakdown201305, XbrlConst.tableBreakdown201301,XbrlConst.tableAxis2011)).fromModelObject(modelTable):
-                    breakdownAspectsCovered = set()
-                    hasCoveredAspect = checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisRel.axisDisposition, uncoverableAspects, breakdownAspectsCovered)
-                    ''' removed 2013-10
-                    if not hasCoveredAspect:
-                        definitionNode = tblAxisRel.toModelObject
-                        modelXbrl.error("xbrlte:breakdownDefinesNoAspects",
-                            _("Breakdown %(xlinkLabel)s has no participating aspects"),
-                            modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel, axis=definitionNode.localName)
-                    '''
-                    aspectsCovered |= breakdownAspectsCovered
-                    checkBreakdownLeafNodeAspects(modelXbrl, modelTable, tblAxisRel, set(), breakdownAspectsCovered)
-                if Aspect.CONCEPT not in aspectsCovered and not hasNsWithAspectModel:
-                    modelXbrl.error("xbrlte:tableMissingConceptAspect",
-                        _("Table %(xlinkLabel)s does not include the concept aspect as one of its participating aspects"),
-                        modelObject=modelTable, xlinkLabel=modelTable.xlinkLabel)
-                del modelTable.priorAspectAxisDisposition
-                # check for table-parameter name clash
-                parameterNames = {}
-                for tblParamRel in modelXbrl.relationshipSet((XbrlConst.tableParameter, XbrlConst.tableParameterMMDD)).fromModelObject(modelTable):
-                    parameterName = tblParamRel.variableQname
-                    if parameterName in parameterNames:
-                        modelXbrl.error("xbrlte:tableParameterNameClash ",
-                            _("Table %(xlinkLabel)s has parameter name clash for variable %(name)s"),
-                            modelObject=(modelTable,tblParamRel,parameterNames[parameterName]), xlinkLabel=modelTable.xlinkLabel, name=parameterName)
-                    else:
-                        parameterNames[parameterName] = tblParamRel
+                    parameterNames[parameterName] = tblParamRel
     
         modelXbrl.profileStat(_("compileTables"))
 
 def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisDisposition, uncoverableAspects, aspectsCovered):
     definitionNode = tblAxisRel.toModelObject
     hasCoveredAspect = False
-    if isinstance(definitionNode, (ModelDefinitionNode, ModelEuAxisCoord)):
+    if isinstance(definitionNode, ModelDefinitionNode):
         for aspect in definitionNode.aspectsCovered():
             aspectsCovered.add(aspect)
             if (aspect in uncoverableAspects or
@@ -187,7 +162,7 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisDispo
                 _("DimensionRelationship axis %(xlinkLabel)s can't be used in non-dimensional aspect model"),
                 modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel)
     definitionNodeHasChild = False
-    for axisSubtreeRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableBreakdownTree201305, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD, XbrlConst.tableDefinitionNodeSubtree201305, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011)).fromModelObject(definitionNode):
+    for axisSubtreeRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD)).fromModelObject(definitionNode):
         if checkBreakdownDefinitionNode(modelXbrl, modelTable, axisSubtreeRel, tblAxisDisposition, uncoverableAspects, aspectsCovered):
             hasCoveredAspect = True # something below was covering
         definitionNodeHasChild = True
@@ -216,11 +191,11 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisDispo
 def checkBreakdownLeafNodeAspects(modelXbrl, modelTable, tblAxisRel, parentAspectsCovered, breakdownAspects):
     definitionNode = tblAxisRel.toModelObject
     aspectsCovered = parentAspectsCovered.copy()
-    if isinstance(definitionNode, (ModelDefinitionNode, ModelEuAxisCoord)):
+    if isinstance(definitionNode, ModelDefinitionNode):
         for aspect in definitionNode.aspectsCovered():
             aspectsCovered.add(aspect)
         definitionNodeHasChild = False
-        for axisSubtreeRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableBreakdownTree201305, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD, XbrlConst.tableDefinitionNodeSubtree201305, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011)).fromModelObject(definitionNode):
+        for axisSubtreeRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD)).fromModelObject(definitionNode):
             checkBreakdownLeafNodeAspects(modelXbrl, modelTable, axisSubtreeRel, aspectsCovered, breakdownAspects)
             definitionNodeHasChild = True
         
