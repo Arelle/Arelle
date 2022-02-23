@@ -129,7 +129,8 @@ class Table(tkinter.Widget):
                 tkinter.messagebox.showerror(_("Exception"), 
                     _("Unable to locate or to load Tktable.  \n\n"
                       "GUI functions requiring tables, such as TableLinkbase, are likely to be unusable. \n\n"
-                      "Environment parameter TKTABLE_LIBRARY may be used to specify the location of Tktable."))
+                      "Environment parameter TKTABLE_LIBRARY may be used to specify the location of Tktable. \n\n"
+                      "Details: {}").format(ex))
         # force minimum padding
         if not 'padx' in kw:
             kw['padx'] = 1
