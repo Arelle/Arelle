@@ -16,13 +16,15 @@ class ViewTkTable(ViewPane):
                                        contentView, hasToolTip=hasToolTip,
                                        lang=lang)
         self.table = self.viewFrame.table
-        self.setHeightAndWidth()
-        self.table.contextMenuClick = self.contextMenuClick
+        if self.table.isInitialized:
+            self.setHeightAndWidth()
+            self.table.contextMenuClick = self.contextMenuClick
 
     def contextMenu(self):
-        super(ViewTkTable, self).contextMenu()
-        self.bindContextMenu(self.table)
-        return self.menu
+        if self.table.isInitialized:
+            super(ViewTkTable, self).contextMenu()
+            self.bindContextMenu(self.table)
+            return self.menu
     
     def setHeightAndWidth(self):
         frameWidth = self.tabWin.winfo_width()

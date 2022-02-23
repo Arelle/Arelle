@@ -58,6 +58,8 @@ def getTableAxisArcroles():
 def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     modelXbrl.modelManager.showStatus(_("viewing rendering"))
     view = ViewRenderedGrid(modelXbrl, tabWin, lang)
+    if not view.table.isInitialized: # unable to load or initialize tktable
+        return None
         
     view.blockMenuEvents = 1
 

@@ -456,6 +456,8 @@ class XbrlTable(TkTableWrapper.Table):
                                                 multiline=1,
                                                 borderwidth=(1, 1, 0, 0),
                                                 browsecmd=browsecmd)
+        if not self.isInitialized:
+            return
 
         self.lastMouseCoordinates = None
         self.toolTipShown = False
@@ -925,11 +927,12 @@ class ScrolledTkTableFrame(Frame):
                                            command=table.yview_scroll)
         self.horizontalScrollbar = Scrollbar(self, orient='horizontal',
                                              command=table.xview_scroll)
-        table.config(xscrollcommand=self.horizontalScrollbar.set,
-                     yscrollcommand=self.verticalScrollbar.set)
+        if table.isInitialized:
+            table.config(xscrollcommand=self.horizontalScrollbar.set,
+                         yscrollcommand=self.verticalScrollbar.set)
+            self.table.grid(column="0", row='0', sticky=(N, W, S, E))
         self.verticalScrollbar.grid(column="1", row='0', sticky=(N, S))
         self.horizontalScrollbar.grid(column="0", row='1', sticky=(W, E))
-        self.table.grid(column="0", row='0', sticky=(N, W, S, E))
         self.verticalScrollbarWidth = self.verticalScrollbar.winfo_reqwidth()+5
         self.horizontalScrollbarHeight = self.horizontalScrollbar.winfo_reqheight()+5
 
