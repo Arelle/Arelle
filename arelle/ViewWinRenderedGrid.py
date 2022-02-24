@@ -15,7 +15,7 @@ from arelle.RenderingResolver import resolveAxesStructure, RENDER_UNITS_PER_CHAR
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectModelAspect
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelRenderingObject import (ModelClosedDefinitionNode,
-                                         ModelFilterDefinitionNode,
+                                         ModelAspectDefinitionNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.FormulaEvaluator import init as formulaEvaluatorInit, aspectMatches
 
@@ -308,7 +308,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         break
                 # for open filter nodes of explicit dimension allow selection of all values
                 zAxisAspectEntryMode = False
-                if isinstance(chosenStructuralNode.definitionNode, ModelFilterDefinitionNode):
+                if isinstance(chosenStructuralNode.definitionNode, ModelAspectDefinitionNode):
                     if isinstance(aspect, QName):
                         dimConcept = self.modelXbrl.qnameConcepts[aspect]
                         if dimConcept.isExplicitDimension:
@@ -518,7 +518,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                             wraplength = self.rowHdrColWidth[depth]
                         label = yStructuralNode.header(lang=self.lang,
                                                        returnGenLabel=isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode),
-                                                       recurseParent=not isinstance(yStructuralNode.definitionNode, ModelFilterDefinitionNode))
+                                                       recurseParent=not isinstance(yStructuralNode.definitionNode, ModelAspectDefinitionNode))
                         if label != OPEN_ASPECT_ENTRY_SURROGATE:
                             xValue = leftCol-1
                             yValue = row-1

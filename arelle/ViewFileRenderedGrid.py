@@ -16,7 +16,7 @@ from arelle.FunctionXs import xsString
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import DEFAULT
-from arelle.ModelRenderingObject import (ModelClosedDefinitionNode, ModelFilterDefinitionNode,
+from arelle.ModelRenderingObject import (ModelClosedDefinitionNode, ModelAspectDefinitionNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.PrototypeInstanceObject import FactPrototype
 # change tableModel for namespace needed for consistency suite
@@ -454,7 +454,7 @@ class ViewRenderedGrid(ViewFile.View):
                 if renderNow and isLabeled:
                     label = yStructuralNode.header(lang=self.lang,
                                                    returnGenLabel=isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode),
-                                                   recurseParent=not isinstance(yStructuralNode.definitionNode, ModelFilterDefinitionNode))
+                                                   recurseParent=not isinstance(yStructuralNode.definitionNode, ModelAspectDefinitionNode))
                     columnspan = self.rowHdrCols - leftCol + 1 if isNonAbstract or nextRow == row else 1
                     if childrenFirst and isNonAbstract and nextRow > row:
                         elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
@@ -571,19 +571,21 @@ class ViewRenderedGrid(ViewFile.View):
                 if renderNow and isLabeled:
                     label = yStructuralNode.header(lang=self.lang,
                                                    returnGenLabel=isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode),
-                                                   recurseParent=not isinstance(yStructuralNode.definitionNode, ModelFilterDefinitionNode))
+                                                   recurseParent=not isinstance(yStructuralNode.definitionNode, ModelAspectDefinitionNode))
                     brkdownNode = yStructuralNode.breakdownNode
-                    rowspan= nestRow - row + 1
+                    rowspan= nestRow - row
                     cellElt = etree.Element(self.tableModelQName("cell"),
                                             attrib={"span": str(rowspan)} if rowspan > 1 else None)
                     elt = etree.SubElement(cellElt, self.tableModelQName("label"))
                     elt.text = label if label != OPEN_ASPECT_ENTRY_SURROGATE else ""
                     self.headerCells[leftCol].append((brkdownNode, cellElt))
                     # self.structuralNodeModelElements.append((yStructuralNode, cellElt))
+                    ''' HF debug 2/22/22
                     for rollUpCol in range(leftCol, self.rowHdrCols - 1):
                         rollUpElt = etree.Element(self.tableModelQName("cell"),
                                                   attrib={"rollup":"true"})
                         self.headerCells[leftCol].append((brkdownNode, rollUpElt))
+                    '''
                     #if isNonAbstract:
                     i = -1 # for case where no enumeration takes place
                     for i, role in enumerate(self.rowHdrNonStdRoles):

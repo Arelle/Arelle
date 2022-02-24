@@ -13,9 +13,9 @@ from arelle.ModelValue import QName
 from arelle.ModelFormulaObject import Aspect
 from arelle.ModelRenderingObject import (ModelTable, ModelBreakdown,
                                          ModelDefinitionNode, ModelClosedDefinitionNode, ModelRuleDefinitionNode,
-                                         ModelRelationshipDefinitionNode, ModelSelectionDefinitionNode, ModelFilterDefinitionNode,
+                                         ModelRelationshipDefinitionNode, ModelAspectDefinitionNode,
                                          ModelConceptRelationshipDefinitionNode, ModelDimensionRelationshipDefinitionNode,
-                                         ModelCompositionDefinitionNode, ModelTupleDefinitionNode, StructuralNode,
+                                         StructuralNode,
                                          ROLLUP_NOT_ANALYZED, CHILDREN_BUT_NO_ROLLUP, CHILD_ROLLUP_FIRST, CHILD_ROLLUP_LAST,
                                          OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.PrototypeInstanceObject import FactPrototype
@@ -207,7 +207,7 @@ def addBreakdownNode(view, disposition, node):
             axisBreakdowns.append(node)
 
 def childContainsOpenNodes(childStructuralNode):
-    if isinstance(childStructuralNode.definitionNode, ModelFilterDefinitionNode) \
+    if isinstance(childStructuralNode.definitionNode, ModelAspectDefinitionNode) \
        and (childStructuralNode.isLabeled \
             or any([node.isEntryPrototype(default=False) for node in childStructuralNode.childStructuralNodes])):
         # either the child structural node has a concrete header or it contains a structure
@@ -316,21 +316,15 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                             else:
                                 hdrNonStdRoles.insert(hdrNonStdPosition + 1, labelRole)
             isCartesianProductExpanded = False
-            if not isinstance(definitionNode, ModelFilterDefinitionNode):
+            if not isinstance(definitionNode, ModelAspectDefinitionNode):
                 isCartesianProductExpanded = True
                 # note: reduced set of facts should always be passed to subsequent open nodes
                 for axisSubtreeRel in subtreeRelationships:
                     childDefinitionNode = axisSubtreeRel.toModelObject
                     if childDefinitionNode.isRollUp:
                         structuralNode.rollUpStructuralNode = StructuralNode(structuralNode, breakdownNode, childDefinitionNode, )
-                        if not structuralNode.childStructuralNodes: # first sub ordinate is the roll up
-                            structuralNode.subtreeRollUp = CHILD_ROLLUP_FIRST
-                        else: 
-                            structuralNode.subtreeRollUp = CHILD_ROLLUP_LAST
-                        if not view.topRollup.get(axisDisposition):
-                            view.topRollup[axisDisposition] = structuralNode.subtreeRollUp
                     else:
-                        if (isinstance(definitionNode, (ModelBreakdown, ModelCompositionDefinitionNode)) and
+                        if (isinstance(definitionNode, ModelBreakdown) and
                             isinstance(childDefinitionNode, ModelRelationshipDefinitionNode)): # append list products to composititionAxes subObjCntxs
                             childStructuralNode = structuralNode
                         else:
@@ -398,29 +392,7 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                             _("Relationship rule node %(xlinkLabel)s formulaAxis %(axis)s implies a single generation tree walk but generations %(generations)s is greater than one."),
                             modelObject=definitionNode, xlinkLabel=definitionNode.xlinkLabel, axis=definitionNode._axis, generations=definitionNode._generations)
                     
-                elif isinstance(definitionNode, ModelSelectionDefinitionNode):
-                    structuralNode.setHasOpenNode()
-                    structuralNode.isLabeled = False
-                    isCartesianProductExpanded = True
-                    varQn = definitionNode.variableQname
-                    if varQn:
-                        selections = sorted(structuralNode.evaluate(definitionNode, definitionNode.evaluate) or [], 
-                                            key=lambda obj:sortkey(obj))
-                        if isinstance(selections, (list,set,tuple)) and len(selections) > 1:
-                            for selection in selections: # nested choices from selection list
-                                childStructuralNode = StructuralNode(structuralNode, breakdownNode, definitionNode, contextItemFact=selection)
-                                childStructuralNode.variables[varQn] = selection
-                                childStructuralNode.indent = 0
-                                if axisDisposition == "z":
-                                    structuralNode.choiceStructuralNodes.append(childStructuralNode)
-                                    childStructuralNode.zSelection = True
-                                else:
-                                    structuralNode.childStructuralNodes.append(childStructuralNode)
-                                    expandDefinition(view, childStructuralNode, breakdownNode, definitionNode, depth, axisDisposition, facts, processOpenDefinitionNode=False) #recurse
-                                    cartesianProductExpander(childStructuralNode, *cartesianProductNestedArgs)
-                        else:
-                            structuralNode.variables[varQn] = selections
-                elif isinstance(definitionNode, ModelFilterDefinitionNode):
+                elif isinstance(definitionNode, ModelAspectDefinitionNode):
                     structuralNode.setHasOpenNode()
                     structuralNode.isLabeled = False
                     isCartesianProductExpanded = True
@@ -477,20 +449,6 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                                    or '') # exception on trying to sort if header returns None
                     
                     # TBD if there is no abstract 'sub header' for these subOrdCntxs, move them in place of parent structuralNode 
-                elif isinstance(definitionNode, ModelTupleDefinitionNode):
-                    structuralNode.abstract = True # spanning ordinate acts as a subtitle
-                    matchingTupleFacts = structuralNode.evaluate(definitionNode, 
-                                                                 definitionNode.filteredFacts, 
-                                                                 evalArgs=(facts,))
-                    for tupleFact in matchingTupleFacts:
-                        childStructuralNode = StructuralNode(structuralNode, breakdownNode, definitionNode, contextItemFact=tupleFact)
-                        childStructuralNode.indent = 0
-                        structuralNode.childStructuralNodes.append(childStructuralNode)
-                        expandDefinition(view, childStructuralNode, breakdownNode, definitionNode, depth, axisDisposition, [tupleFact]) #recurse
-                    # sort by header (which is likely to be typed dim value, for example)
-                    if (structuralNode.childStructuralNodes and
-                        any(sOC.header(lang=view.lang) for sOC in structuralNode.childStructuralNodes)):
-                        structuralNode.childStructuralNodes.sort(key=lambda childStructuralNode: childStructuralNode.header(lang=view.lang) or '')
                 elif isinstance(definitionNode, ModelRuleDefinitionNode):
                     for constraintSet in definitionNode.constraintSets.values():
                         _aspectsCovered = constraintSet.aspectsCovered()

@@ -15,7 +15,7 @@ from arelle.ModelFormulaObject import (ModelParameter, ModelInstance, ModelVaria
                                        ModelPrecondition, ModelConceptName, Trace,
                                        Aspect, aspectModels, ModelAspectCover,
                                        ModelMessage)
-from arelle.ModelRenderingObject import (ModelRuleDefinitionNode, ModelRelationshipDefinitionNode, ModelFilterDefinitionNode)
+from arelle.ModelRenderingObject import (ModelRuleDefinitionNode, ModelRelationshipDefinitionNode, ModelAspectDefinitionNode)
 from arelle.ModelObject import (ModelObject)
 from arelle.ModelValue import (qname,QName)
 from arelle.PluginManager import pluginClassMethods
@@ -1134,7 +1134,7 @@ def checkDefinitionNodeRules(val, table, parent, arcrole, xpathContext):
     for rel in val.modelXbrl.relationshipSet(arcrole).fromModelObject(parent):
         axis = rel.toModelObject
         if axis is not None:
-            if isinstance(axis, ModelFilterDefinitionNode):
+            if isinstance(axis, ModelAspectDefinitionNode):
                 checkFilterAspectModel(val, table, axis.filterRelationships, xpathContext)
             else:
                 if isinstance(axis, ModelRuleDefinitionNode):

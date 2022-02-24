@@ -11,7 +11,7 @@ from arelle.ModelRenderingObject import (CHILD_ROLLUP_FIRST, CHILD_ROLLUP_LAST,
                                          ModelBreakdown,
                                          ModelClosedDefinitionNode, 
                                          ModelRuleDefinitionNode,
-                                         ModelFilterDefinitionNode,
+                                         ModelAspectDefinitionNode,
                                          ModelDimensionRelationshipDefinitionNode)
 from arelle.ModelValue import (QName)
 
@@ -41,7 +41,6 @@ def init(modelXbrl):
                                         ("http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd",))
         
     if hasXbrlTables:
-        # formula processor is needed for 2011 XBRL tables but not for 2010 Eurofiling tables
         FormulaEvaluator.init()
         modelXbrl.rendrCntx = XPathContext.create(modelXbrl, instance)
         
@@ -166,7 +165,7 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisDispo
         if checkBreakdownDefinitionNode(modelXbrl, modelTable, axisSubtreeRel, tblAxisDisposition, uncoverableAspects, aspectsCovered):
             hasCoveredAspect = True # something below was covering
         definitionNodeHasChild = True
-    if isinstance(definitionNode, ModelFilterDefinitionNode):
+    if isinstance(definitionNode, ModelAspectDefinitionNode):
         for aspect in definitionNode.aspectsCovered():
             if isinstance(aspect, QName): # dimension aspect
                 concept = modelXbrl.qnameConcepts.get(aspect)
