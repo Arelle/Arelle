@@ -83,7 +83,8 @@ docTypeXhtmlPattern = re.compile(r"^<!(?:DOCTYPE\s+)\s*html(?:PUBLIC\s+)?(?:.*-/
 
 FOOTNOTE_LINK_CHILDREN = {qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote}
 PERCENT_TYPE = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
-IXT_NAMESPACES = {ixtNamespaces["ixt v4"]} # only tr4 is currently recommended
+IXT_NAMESPACES = {ixtNamespaces["ixt v4"], # only tr4 or newer REC is currently recommended
+                  ixtNamespaces["ixt v5"]}
 
 def etreeIterWithDepth(node, depth=0):
     yield (node, depth)
