@@ -18,7 +18,7 @@
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
      standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-22-1-preview.xml"
-     utrUrl="http://www.xbrl.org/utr/2021-12-08/utr.xml"
+     utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
      validateFileText="true"
      validateEntryText="true"
      allowedExternalHrefPattern="https?://www.sec.gov/(ix[?]doc=/)?Archives/edgar/data/"
