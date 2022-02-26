@@ -107,10 +107,8 @@ class FileSource:
         self.url = str(url)  # allow either string or FileNamedStringIO
         self.baseIsHttp = isHttpUrl(self.url)
         self.cntlr = cntlr
-        self.type = self.url.lower()[-7:]
+        self.type = self._determineType()
         self.isTarGz = self.type == ".tar.gz"
-        if not self.isTarGz:
-            self.type = self.type[3:]
         self.isZip = self.type == ".zip"
         self.isZipBackslashed = False # windows style backslashed paths
         self.isEis = self.type == ".eis"
@@ -141,7 +139,31 @@ class FileSource:
                     if self.cntlr:
                         self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
                     pass
-            
+
+    def _determineType(self):
+        """
+        Attempt to detect the format of the file located at self.url.
+
+        Try to use methods dedicated to some formats such as `zipfile.is_zipfile`.
+        If that fails, use the historical algorithm using the file extension.
+
+        :return: a string corresponding to the usual file extension for the file format:
+                 ".zip" for a ZIP archive, ".tar.gz" for a tgz archive, etc.
+        """
+        filetype = None
+        # Extension-independent file type detection
+        try:
+            if zipfile.is_zipfile(self.url):
+                filetype = '.zip'
+        except Exception:  # if the value of self.url is incompatible with the methods used
+            pass
+        # If no advanced methods gave a result, fall back to file extension
+        if filetype is None:
+            filetype = self.url.lower()[-7:]
+            if not filetype == ".tar.gz":
+                filetype = filetype[3:]
+        return filetype
+
     def logError(self, err):
         if self.cntlr:
             self.cntlr.addToLog(_("[{0}] {1}").format(type(err).__name__, err))
