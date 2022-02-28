@@ -50,7 +50,7 @@ class StructuralNode:
         self.variables = {}
         self.aspects = {}
         self.childStructuralNodes = []
-        self.rollUpStructuralNode = None
+        self.rollUpStructuralNode = None # child node which is roll-up, if any
         self.zInheritance = zInheritance
         if contextItemFact is not None:
             self.contextItemBinding = VariableBinding(self._rendrCntx,
@@ -94,6 +94,10 @@ class StructuralNode:
                 return self.definitionNode.isAbstract
         except AttributeError: # axis may never be abstract
             return False
+        
+    @property
+    def hasRollUpChild(self):
+        return self.rollUpStructuralNode is not None
         
     @property
     def isRollUp(self):
@@ -606,11 +610,15 @@ class ModelBreakdown(ModelDefinitionNode):
     @property
     def ancestorArcroles(self):        
         return (XbrlConst.tableModel, XbrlConst.tableModelMMDD)
+
+    @property
+    def isRollUp(self):
+        return False
     
     @property
     def propertyView(self):
         return ((("id", self.id),
-                 ("parent child order", self.parentChildOrder),
+                 ("parent child order", self.get("parentChildOrder")),
                  ("definition", self.definitionNodeView)) +
                  self.definitionLabelsView)
 
@@ -636,7 +644,7 @@ class ModelClosedDefinitionNode(ModelDefinitionNode):
 
     @property
     def ancestorArcroles(self):        
-        return (tableBreakdownTree, tableBreakdownTreeMMDD, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD)
+        return (XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD)
     
     def filteredFacts(self, xpCtx, facts):
         aspects = self.aspectsCovered()
@@ -650,9 +658,10 @@ class ModelClosedDefinitionNode(ModelDefinitionNode):
     @property
     def isRollUp(self):
         descendantRels = self.modelXbrl.relationshipSet(self.descendantArcroles).fromModelObject(self)
-        return descendantRels and all(self.aspectsCovered() == rel.toModelObject.aspectsCovered()
-                                      for rel in descendantRels
-                                      if rel.toModelObject is not None)
+        return bool(descendantRels) and all(
+            self.aspectsCovered() == rel.toModelObject.aspectsCovered()
+            for rel in descendantRels
+            if rel.toModelObject is not None)
     
         
 class ModelConstraintSet(ModelFormulaRules):

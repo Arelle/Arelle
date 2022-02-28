@@ -52,7 +52,7 @@ def resolveAxesStructure(view, viewTblELR):
         view.axisSubtreeRelSet = view.modelXbrl.relationshipSet(XbrlConst.euAxisMember, viewTblELR)
     else: # try 2011 roles
         tblAxisRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD), viewTblELR)
-        view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD), viewTblELR)
+        view.axisSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD), viewTblELR)
     if tblAxisRelSet is None or len(tblAxisRelSet.modelRelationships) == 0:
         view.modelXbrl.modelManager.addToLog(_("no table relationships for {0}").format(viewTblELR))
         return (None, None, None, None)
@@ -116,7 +116,7 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
                 if disposition == "x" and xTopStructuralNode is None:
                     xTopStructuralNode = StructuralNode(None, definitionNode, definitionNode, view.zmostOrdCntx, tableNode=table, rendrCntx=view.rendrCntx)
                     xTopStructuralNode.hasOpenNode = False
-                    if isinstance(definitionNode,(ModelBreakdown, ModelClosedDefinitionNode)) and definitionNode.parentChildOrder is not None:
+                    if isinstance(definitionNode, (ModelBreakdown, ModelClosedDefinitionNode)) and definitionNode.isRollUp and definitionNode.parentChildOrder is not None:
                         #addBreakdownNode(view, disposition, definitionNode)
                         view.xAxisChildrenFirst.set(definitionNode.parentChildOrder == "children-first")
                         view.xTopRollup = CHILD_ROLLUP_LAST if definitionNode.parentChildOrder == "children-first" else CHILD_ROLLUP_FIRST
@@ -126,7 +126,7 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
                 elif disposition == "y" and yTopStructuralNode is None:
                     yTopStructuralNode = StructuralNode(None, definitionNode, definitionNode, view.zmostOrdCntx, tableNode=table, rendrCntx=view.rendrCntx)
                     yTopStructuralNode.hasOpenNode = False
-                    if isinstance(definitionNode,(ModelBreakdown, ModelClosedDefinitionNode)) and definitionNode.parentChildOrder is not None:
+                    if isinstance(definitionNode, (ModelBreakdown, ModelClosedDefinitionNode)) and definitionNode.isRollUp and definitionNode.parentChildOrder is not None:
                         #addBreakdownNode(view, disposition, definitionNode)
                         view.yAxisChildrenFirst.set(definitionNode.parentChildOrder == "children-first")
                         view.yTopRollup = CHILD_ROLLUP_LAST if definitionNode.parentChildOrder == "children-first" else CHILD_ROLLUP_FIRST
@@ -140,24 +140,27 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
                     #addBreakdownNode(view, disposition, definitionNode)
                     expandDefinition(view, zTopStructuralNode, definitionNode, definitionNode, 1, disposition, facts, i, tblAxisRels)
                     break
-    ''' 
+                
+    # uncomment below for debugging Definition and Structural Models
     def jsonDefaultEncoder(obj):
         if isinstance(obj, StructuralNode):
             return {'1StructNode': str(obj),
                     '2Depth': obj.structuralDepth,
-                    '2Group': obj.breakdownNode(view.tblELR).genLabel(),
-                    '3Label': obj.header() or obj.xlinkLabel,
-                    '4ChildNodes': obj.childStructuralNodes}
+                    '2Group': obj.breakdownNode.genLabel(),
+                    '3Label': (obj.header() or obj.definitionNode.xlinkLabel).replace(OPEN_ASPECT_ENTRY_SURROGATE,"{OPEN_ASPECT_ENTRY_SURROGATE}"),
+                    '4Definition': str(obj.definitionNode),
+                    '5Breakdown': str(obj.breakdownNode),
+                    '6ChildRollupNode': obj.rollUpStructuralNode.definitionNode.id if obj.rollUpStructuralNode is not None else None,
+                    '7ChildNodes': obj.childStructuralNodes}
         raise TypeError("Type {} is not supported for json output".format(type(obj).__name__))
                
-    with io.open(r"c:\temp\test.json", 'wt') as fh:
+    with io.open(r"/Users/hermf/temp/test.json", 'wt') as fh:
         json.dump({"x":xTopStructuralNode, "y":yTopStructuralNode, "z":zTopStructuralNode}, 
                   fh,
                   sort_keys=True,
                   ensure_ascii=False, 
                   indent=2, 
                   default=jsonDefaultEncoder)
-    '''
    
     view.colHdrTopRow = view.zAxisRows + 1 # need rest if combobox used (2 if view.zAxisRows else 1)
     for i in range(view.rowHdrCols):
@@ -219,7 +222,7 @@ def childContainsOpenNodes(childStructuralNode):
                 return True
         return False
 
-def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth, axisDisposition, facts, i=None, tblAxisRels=None, processOpenDefinitionNode=True):
+def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth, axisDisposition, facts, i=None, tblAxisRels=None, processOpenDefinitionNode=True, rollUpNode=None):
     subtreeRelationships = view.axisSubtreeRelSet.fromModelObject(definitionNode)
     
     def checkLabelWidth(structuralNode, checkBoundFact=False):
@@ -321,14 +324,22 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                 # note: reduced set of facts should always be passed to subsequent open nodes
                 for axisSubtreeRel in subtreeRelationships:
                     childDefinitionNode = axisSubtreeRel.toModelObject
-                    if childDefinitionNode.isRollUp:
-                        structuralNode.rollUpStructuralNode = StructuralNode(structuralNode, breakdownNode, childDefinitionNode, )
+                    if childDefinitionNode.isRollUp and rollUpNode is None:
+                        if childDefinitionNode.parentChildOrder == "parent-first":
+                            structuralNode.subtreeRollUp = CHILD_ROLLUP_FIRST
+                            expandDefinition(view, structuralNode, breakdownNode, childDefinitionNode, depth, axisDisposition, facts, i, tblAxisRels, rollUpNode=childDefinitionNode) #recurse
+                        expandDefinition(view, structuralNode, breakdownNode, childDefinitionNode, depth, axisDisposition, facts, i, tblAxisRels) #recurse
+                        if childDefinitionNode.parentChildOrder == "children-first":
+                            structuralNode.subtreeRollUp = CHILD_ROLLUP_LAST
+                            expandDefinition(view, structuralNode, breakdownNode, childDefinitionNode, depth, axisDisposition, facts, i, tblAxisRels, rollUpNode=childDefinitionNode) #recurse
+                        if not view.topRollup.get(axisDisposition):
+                            view.topRollup[axisDisposition] = structuralNode.subtreeRollUp
                     else:
                         if (isinstance(definitionNode, ModelBreakdown) and
                             isinstance(childDefinitionNode, ModelRelationshipDefinitionNode)): # append list products to composititionAxes subObjCntxs
                             childStructuralNode = structuralNode
                         else:
-                            childStructuralNode = StructuralNode(structuralNode, breakdownNode, childDefinitionNode) # others are nested structuralNode
+                            childStructuralNode = StructuralNode(structuralNode, breakdownNode, rollUpNode if rollUpNode is not None else childDefinitionNode) # others are nested structuralNode
                             if axisDisposition != "z":
                                 structuralNode.childStructuralNodes.append(childStructuralNode)
                         if axisDisposition != "z":
@@ -341,9 +352,14 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                             if structuralNode.choiceStructuralNodes is not None:
                                 structuralNode.choiceStructuralNodes.append(childStructuralNode)
                             expandDefinition(view, childStructuralNode, breakdownNode, childDefinitionNode, depth + 1, axisDisposition, facts) #recurse
+                        if rollUpNode is not None:
+                            structuralNode.rollUpStructuralNode = childStructuralNode
                     # required when switching from abstract to roll up to determine abstractness
                     #if not structuralNode.subtreeRollUp and structuralNode.childStructuralNodes and definitionNode.tag.endswith("Node"):
                     #    structuralNode.subtreeRollUp = CHILDREN_BUT_NO_ROLLUP
+
+                    if rollUpNode is not None:
+                        break # single iteration when expanding default node for roll up
                     
             #if not hasattr(structuralNode, "indent"): # probably also for multiple open axes
             if processOpenDefinitionNode:
