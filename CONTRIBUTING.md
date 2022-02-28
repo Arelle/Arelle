@@ -1,4 +1,4 @@
-  <div align="center">
+<div align="center">
   <img src="http://arelle.org/arelle/wp-content/themes/platform/images/logo-platform.png">
 </div>
 
