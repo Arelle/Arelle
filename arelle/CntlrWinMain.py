@@ -212,9 +212,12 @@ class CntlrWinMain (Cntlr.Cntlr):
         _internetRecheckEntries = ((_("daily"), "daily"), (_("weekly"), "weekly"), (_("monthly"), "monthly"), (_("never"), "never"))
 
         for (_opt_label, _opt_val) in _internetRecheckEntries:
-            internetCacheRecheckMenu.add_checkbutton(label=_opt_label,
-                    variable=self.internetRecheckVar, underline=0,
-                    onvalue=_opt_val)
+            internetCacheRecheckMenu.add_checkbutton(
+                    label=_opt_label,
+                    variable=self.internetRecheckVar, 
+                    underline=0,
+                    onvalue=_opt_val
+             )
 
         cacheMenu.add_command(label=_("Clear cache"), underline=0, command=self.confirmClearWebCache)
         cacheMenu.add_command(label=_("Manage cache"), underline=0, command=self.manageWebCache)
