@@ -209,8 +209,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         _recheck_initial = 'disable' if self.webCache.workOffline else 'normal'
         self.internetRecheckVar.trace("w", self.setInternetRecheck)
 
-        _internetRecheckEntries = ((_("daily"), "daily"), (_("weekly"), "weekly"
-                                ), (_("monthly"), "monthly"), (_("never"), "never"))
+        _internetRecheckEntries = ((_("daily"), "daily"), (_("weekly"), "weekly"), (_("monthly"), "monthly"), (_("never"), "never"))
 
         for (_opt_label, _opt_val) in _internetRecheckEntries:
             internetCacheRecheckMenu.add_checkbutton(label=_opt_label,
@@ -1115,10 +1114,8 @@ class CntlrWinMain (Cntlr.Cntlr):
     def setInternetRecheck(self, *args):
         self.webCache.recheck = self.internetRecheckVar.get()
         self.config["internetRecheck"] = self.webCache.recheck
-        self.addToLog('WebCache.recheck = {}'.format(self.webCache.recheck),
-                    messageCode='debug', level=logging.DEBUG)
-        self.addToLog('WebCache.maxAgeSeconds = {}'.format(self.webCache.maxAgeSeconds),
-                    messageCode='debug', level=logging.DEBUG)
+        self.addToLog('WebCache.recheck = {}'.format(self.webCache.recheck), messageCode='debug', level=logging.DEBUG)
+        self.addToLog('WebCache.maxAgeSeconds = {}'.format(self.webCache.maxAgeSeconds), messageCode='debug', level=logging.DEBUG)
         self.saveConfig()
 
     def setNoCertificateCheck(self, *args):
