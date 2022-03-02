@@ -85,8 +85,8 @@ class StructuralNode:
     
     @property
     def isAbstract(self):
-        if self.subtreeRollUp:
-            return self.subtreeRollUp == CHILDREN_BUT_NO_ROLLUP
+        if self.definitionNode.isRollUp:
+            return False
         try:
             try:
                 return self.abstract # ordinate may have an abstract attribute

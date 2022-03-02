@@ -299,12 +299,14 @@ class ViewRenderedGrid(ViewFile.View):
             parentRow = rowBelow
             noDescendants = True
             rightCol = leftCol
+            colsToSpanParent = 0
             widthToSpanParent = 0
             sideBorder = not xStructuralNodes
+            rowsForThisBreakdown = 1 + xParentStructuralNode.hasRollUpChild
             for xStructuralNode in xParentStructuralNode.childStructuralNodes:
                 noDescendants = False
-                rightCol, row, width, leafNode = self.xAxis(leftCol, topRow + 1, rowBelow, xStructuralNode, xStructuralNodes, # nested items before totals
-                                                            True, False)
+                rightCol, row, cols, width, leafNode = self.xAxis(leftCol, topRow + rowsForThisBreakdown, rowBelow, xStructuralNode, xStructuralNodes, # nested items before totals
+                                                                  True, False)
                 if row - 1 < parentRow:
                     parentRow = row - 1
                 #if not leafNode: 
@@ -313,12 +315,17 @@ class ViewRenderedGrid(ViewFile.View):
                 if nonAbstract:
                     width += 100 # width for this label
                 widthToSpanParent += width
+                colsToSpanParent += rightCol + 1 - leftCol
                 thisCol = leftCol
-                #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
+                isRollUp = xStructuralNode.definitionNode.isRollUp
+                 #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
                 if renderNow:
                     label = xStructuralNode.header(lang=self.lang,
                                                    returnGenLabel=isinstance(xStructuralNode.definitionNode, ModelClosedDefinitionNode))
-                    columnspan = rightCol - leftCol
+                    if cols:
+                        columnspan = cols
+                    else:
+                        columnspan = rightCol - leftCol
                     if columnspan > 0 and nonAbstract: columnspan += 1
                     elt = None
                     if self.type == HTML:
@@ -336,12 +343,13 @@ class ViewRenderedGrid(ViewFile.View):
                                 attrib["rowspan"] = str(rowspan)
                         elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
                                             attrib=attrib)
-                        self.rowElts[topRow-1].insert(leftCol,elt)
+                        if isRollUp:
+                            rollUpCellElt = elt
+                        self.rowElts[topRow-2+rowsForThisBreakdown-isRollUp].insert(leftCol,elt)
                     elif (self.type == XML and # is leaf or no sub-breakdown cardinality
                           # TBD: determine why following clause is needed
                           (True or xStructuralNode.childStructuralNodes is None or columnspan > 0)): # ignore no-breakdown situation
                         brkdownNode = xStructuralNode.breakdownNode
-                        isRollUp = xStructuralNode.definitionNode.isRollUp
                         attrib = {}
                         if columnspan > 1:
                             attrib["span"] = str(columnspan)
@@ -389,20 +397,18 @@ class ViewRenderedGrid(ViewFile.View):
                     if elt is not None:
                         elt.text = label if bool(label) and label != OPEN_ASPECT_ENTRY_SURROGATE else "\u00A0" #produces &nbsp;
                     if nonAbstract:
-                        if columnspan > 1 and rowBelow > topRow:   # add spanned left leg portion one row down
-                            if self.type == HTML:
+                        if self.type == HTML:
+                            if isRollUp:   # add spanned left leg portion one row down
                                 attrib= {"class":"xAxisSpanLeg",
                                          "rowspan": str(rowBelow - row)}
+                                if columnspan > 1:
+                                    attrib["colspan"] = str(columnspan)
                                 if edgeBorder:
                                     attrib["style"] = edgeBorder
                                 elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
                                                     attrib=attrib)
                                 elt.text = "\u00A0"
-                                if childrenFirst:
-                                    self.rowElts[topRow].append(elt)
-                                else:
-                                    self.rowElts[topRow].insert(leftCol,elt)
-                        if self.type == HTML:
+                                self.rowElts[topRow].append(elt)
                             for i, role in enumerate(self.colHdrNonStdRoles):
                                 elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
                                                     attrib={"class":"xAxisHdr",
@@ -440,20 +446,21 @@ class ViewRenderedGrid(ViewFile.View):
                 # insert roll up span header
                 label = xParentStructuralNode.rollUpStructuralNode.header(lang=self.lang,
                                                returnGenLabel=isinstance(xStructuralNode.definitionNode, ModelClosedDefinitionNode))
-                columnspan = rightCol - leftCol
+                columnspan = colsToSpanParent
                 if self.type == HTML:
-                    pass # TBD
+                    if columnspan > 1:
+                        rollUpCellElt.set("colspan", str(columnspan))
                 elif self.type == XML:
                     if columnspan > 1:
                         rollUpCellElt.set("span", str(columnspan))
-            return (rightCol, parentRow, widthToSpanParent, noDescendants)
+            return (rightCol, parentRow, colsToSpanParent, widthToSpanParent, noDescendants)
             
-    def yAxisByRow(self, leftCol, row, yParentStructuralNode, rollUpRow, renderNow, atLeft):
+    def yAxisByRow(self, leftCol, row, yParentStructuralNode, renderNow, atLeft):
         if yParentStructuralNode is not None:
             nestedBottomRow = row
             for yStructuralNode in yParentStructuralNode.childStructuralNodes:
                 nestRow, nextRow = self.yAxisByRow(leftCol + 1, row, yStructuralNode,  # nested items before totals
-                                        childrenFirst, childrenFirst, False)
+                                        True, False)
                 isAbstract = (yStructuralNode.isAbstract or 
                               (yStructuralNode.childStructuralNodes and
                                not isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode)))
@@ -466,6 +473,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                    returnGenLabel=isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode),
                                                    recurseParent=not isinstance(yStructuralNode.definitionNode, ModelAspectDefinitionNode))
                     columnspan = self.rowHdrCols - leftCol + 1 if isNonAbstract or nextRow == row else 1
+                    childrenFirst = not yStructuralNode.isRollUp or yStructuralNode.definitionNode.parentChildOrder == "children-first"
                     if childrenFirst and isNonAbstract and nextRow > row:
                         elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
                                             attrib={"class":"yAxisSpanArm",
