@@ -298,7 +298,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                     else:
                         XHTMLExtensionGuidance = "4.1.1"
                         reportType = _("Stand-alone XHTML document")
-                    modelXbrl.error("ESEF.%s.incorrectFileExtension" % XHTMLExtensionGuidance,
+                    modelXbrl.error(f"ESEF.{XHTMLExtensionGuidance}.incorrectFileExtension",
                                     _("%(reportType)s MUST have a .html or .xhtml extension: %(fileName)s"),
                                     modelObject=doc, fileName=doc.basename, reportType=reportType)
                 docinfo = doc.xmlRootElement.getroottree().docinfo
