@@ -150,7 +150,7 @@ class WebCache:
         else:
             return "(invalid)"
 
-    @timeout.setter
+    @recheck.setter
     def recheck(self, recheckInterval):
         self.maxAgeSeconds = {"daily": 1.0, "weekly": 7.0, "monthly": 30.0, "never": INF,
                               "hourly": 1.0/24.0, "quarter-hourly": 1.0/96.0 # lower numbers for testing purposes
@@ -160,7 +160,7 @@ class WebCache:
     def logDownloads(self):
         return self._logDownloads
 
-    @timeout.setter
+    @logDownloads.setter
     def logDownloads(self, _logDownloads):
         self._logDownloads = _logDownloads
 
