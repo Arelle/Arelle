@@ -430,13 +430,14 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             rightCol = leftCol
             widthToSpanParent = 0
             for xStructuralNode in xParentStructuralNode.childStructuralNodes:
-                if not xStructuralNode.isRollUp:
+                if True: # not xStructuralNode.isRollUp:
                     noDescendants = False
                     isLabeled = xStructuralNode.isLabeled
                     isAbstract = (xStructuralNode.isAbstract or
                                   (xStructuralNode.childStructuralNodes and
                                    not isinstance(xStructuralNode.definitionNode, ModelClosedDefinitionNode)))
                     isNonAbstract = not isAbstract
+                    isRollUp = xStructuralNode.definitionNode.isRollUp
                     rightCol, row, width, leafNode = self.xAxis(leftCol, topRow + isLabeled, rowBelow, xStructuralNode, xStructuralNodes, # nested items before totals
                                                                 childrenFirst, childrenFirst, False)
                     if row - 1 < parentRow:
@@ -464,7 +465,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                            ((row - topRow) if leafNode else 0),
                                                            XbrlTable.TG_CENTERED,
                                                            objectId=xStructuralNode.objectId(),
-                                                           isRollUp=columnspan>1 and isNonAbstract and len(xStructuralNode.childStructuralNodes)<columnspan)
+                                                           isRollUp=isRollUp) #columnspan>1 and isNonAbstract and len(xStructuralNode.childStructuralNodes)<columnspan)
                         else:
                             self.aspectEntryObjectIdsNode[xStructuralNode.aspectEntryObjectId] = xStructuralNode
                             self.aspectEntryObjectIdsCell[xStructuralNode.aspectEntryObjectId] = self.table.initHeaderCombobox(leftCol-1,

@@ -150,8 +150,9 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
                     '3Label': (obj.header() or obj.definitionNode.xlinkLabel).replace(OPEN_ASPECT_ENTRY_SURROGATE,"{OPEN_ASPECT_ENTRY_SURROGATE}"),
                     '4Definition': str(obj.definitionNode),
                     '5Breakdown': str(obj.breakdownNode),
-                    '6ChildRollupNode': obj.rollUpStructuralNode.definitionNode.id if obj.rollUpStructuralNode is not None else None,
-                    '7ChildNodes': obj.childStructuralNodes}
+                    '6ChildRollupNode': obj.rollUpStructuralNode.definitionNode.id if obj.rollUpStructuralNode is not None and obj.rollUpStructuralNode.definitionNode is not None else None,
+                    '7ChildNodes': obj.childStructuralNodes,
+                    '8zChoiceNodes':[z.definitionNode.id for z in obj.choiceStructuralNodes if z.definitionNode is not None] if obj.choiceStructuralNodes else None}
         raise TypeError("Type {} is not supported for json output".format(type(obj).__name__))
                
     with io.open(r"/Users/hermf/temp/test.json", 'wt') as fh:
