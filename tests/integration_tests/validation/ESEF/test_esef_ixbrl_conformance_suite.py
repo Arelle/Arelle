@@ -32,7 +32,3 @@ def test_esef_ixbrl_conformance_suite(result):
         'Expected these validation suffixes: {}, but received these validations: {}'.format(
             result.get('expected'), result.get('actual')
         )
-
-
-if __name__ == "__main__":
-    get_test_data(ARGS)
