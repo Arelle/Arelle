@@ -3,14 +3,17 @@
 # Run ESMA ESEF conformance tests
 
 ARELLECMDLINESRC=/users/hermf/Documents/mvsl/projects/arelle/arelleproject/src/arelleCmdLine.py
-PYTHON=python3.9
+PYTHON=/opt/homebrew/bin/python3.9
 PLUGINS='validate/ESEF'
 PACKAGES=/Users/hermf/Documents/mvsl/projects/ESMA/esef_taxonomy_2021.zip 
 FILTER='(?!arelle:testcaseDataUnexpected)'
 FORMULA=none
 FORMULA=run
 
-TESTCASESROOT=/Users/hermf/Documents/mvsl/projects/ESMA/conf/esef_conformance_suite_2021
+# run from directory test case root
+#TESTCASESROOT=/Users/hermf/Documents/mvsl/projects/ESMA/conf/esef_conformance_suite_2021
+# zip file test case root
+TESTCASESROOT=/Users/hermf/Documents/mvsl/projects/ESMA/conf/esef_conformance_suite_2021.zip/esef_conformance_suite_2021/esef_conformance_suite_2021
 
 rm -f /users/hermf/temp/ESEF-conf-*
 

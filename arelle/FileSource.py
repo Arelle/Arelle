@@ -24,7 +24,7 @@ XMLdeclaration = re.compile(r"<\?xml[^><\?]*\?>", re.DOTALL)
 
 TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml') # pre-PWD packages
 
-def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=False, reloadCache=False, base=None):
+def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=False, reloadCache=False, base=None, sourceFileSource=None):
     if sourceZipStream:
         filesource = FileSource(POST_UPLOADED_ZIP, cntlr)
         filesource.openZipStream(sourceZipStream)
@@ -38,7 +38,11 @@ def openFileSource(filename, cntlr=None, sourceZipStream=None, checkIfXmlIsEis=F
         if archivepathSelection is not None:
             archivepath = archivepathSelection[0]
             selection = archivepathSelection[1]
-            filesource = FileSource(archivepath, cntlr, checkIfXmlIsEis)
+            if sourceFileSource and sourceFileSource.isArchive and selection in sourceFileSource.dir and selection.endswith(".zip"):
+                filesource = FileSource(filename, cntlr)
+                selection = None
+            else:
+                filesource = FileSource(archivepath, cntlr, checkIfXmlIsEis)
             filesource.open(reloadCache)
             if selection:
                 filesource.select(selection)
