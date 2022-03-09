@@ -522,9 +522,21 @@ class Type:
             for _event, elt in etree.iterparse(file, events=("start",), recover=True, huge_tree=True):
                 if _rootElt:
                     _rootElt = False
+                    _type = {"testcases": Type.TESTCASESINDEX, 
+                             "documentation": Type.TESTCASESINDEX, 
+                             "testSuite": Type.TESTCASESINDEX, 
+                             "registries": Type.TESTCASESINDEX,
+                             "testcase": Type.TESTCASE, 
+                             "testSet": Type.TESTCASE,
+                             "rss": Type.RSSFEED
+                        }.get(etree.QName(elt).localname)
+                    if _type:
+                        break
                     _type = {"{http://www.xbrl.org/2003/instance}xbrl": Type.INSTANCE,
                              "{http://www.xbrl.org/2003/linkbase}linkbase": Type.LINKBASE,
-                             "{http://www.w3.org/2001/XMLSchema}schema": Type.SCHEMA}.get(elt.tag, Type.UnknownXML)
+                             "{http://www.w3.org/2001/XMLSchema}schema": Type.SCHEMA,
+                             "{http://xbrl.org/2008/registry}registry": Type.REGISTRY
+                             }.get(elt.tag, Type.UnknownXML)
                     if _type == Type.UnknownXML and elt.tag.endswith("html"):
                         pass # following is not a valid test: 
                         # if XbrlConst.ixbrl in elt.nsmap.values():
