@@ -62,6 +62,7 @@ submissionTypesAllowingEntityInvCompanyType = docTypesRR | {
     'N-CSR', 'N-CSR/A', 'N-CSRS', 'N-CSRS/A', 'N-Q', 'N-Q/A'}
 submissionTypesAllowingSeriesClasses = docTypesRR | {
     "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A", 'N-Q', 'N-Q/A'}
+invCompanyTypesAllowingSeriesClasses = {"N-1A", "N-3"}
 
 docTypesRequiringPeriodOfReport = {"10", "10-K", "10-Q", "20-F", "40-F", "6-K", "8-K", 
     "F-1", "F-10", "F-3", "F-4", "F-9", "S-1", "S-11", "S-3", "S-4", "POS AM", "10-KT", "10-QT", "POS EX", 
@@ -108,7 +109,7 @@ hideableNamespacesPattern = re.compile("http://xbrl.sec.gov/(dei|vip)/")
 # RR untransformable facts
 rrUntransformableEltsPattern = re.compile(r"(\w*TableTextBlock|BarChart\w+|AnnualReturn(19|20)[0-9][0-9])")
 
-usDeprecatedLabelPattern = re.compile(r"^.* \(Deprecated (....-..-..)\)$")
+usDeprecatedLabelPattern = re.compile(r"^.* \(Deprecated (....(-..-..)?)\)$")
 usDeprecatedLabelRole = "http://www.xbrl.org/2003/role/label"
 ifrsDeprecatedLabelPattern = re.compile(r"^\s*([0-9]{4}-[0-1][0-9]-[0-2][0-9])\s*$")
 ifrsDeprecatedLabelRole = "http://www.xbrl.org/2009/role/deprecatedDateLabel"
@@ -171,7 +172,7 @@ latestTaxonomyDocs = { # note that these URLs are blocked by EFM validation mode
                              "http://xbrl.fasb.org/srt/2019/elts/srt-lab-2019-01-31.xml",
                              "http://xbrl.fasb.org/srt/2020/elts/srt-lab-2020-01-31.xml",
                              "https://xbrl.fasb.org/srt/2021/elts/srt-lab-2021-01-31.xml",
-                             "https://xbrl.fasb.org/srt/2022/elts/srt-lab-2022-01-31.xml"],
+                             "https://xbrl.fasb.org/srt/2022/elts/srt-lab-2022.xml"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern
         },
@@ -185,7 +186,7 @@ latestTaxonomyDocs = { # note that these URLs are blocked by EFM validation mode
                              "http://xbrl.fasb.org/us-gaap/2019/elts/us-gaap-lab-2019-01-31.xml",
                              "http://xbrl.fasb.org/us-gaap/2020/elts/us-gaap-lab-2020-01-31.xml",
                              "https://xbrl.fasb.org/us-gaap/2021/elts/us-gaap-lab-2021-01-31.xml",
-                             "https://xbrl.fasb.org/us-gaap/2022/elts/us-gaap-lab-2022-01-31.xml"],
+                             "https://xbrl.fasb.org/us-gaap/2022/elts/us-gaap-lab-2022.xml"],
         "deprecatedLabelRole": usDeprecatedLabelRole,
         "deprecationDatePattern": usDeprecatedLabelPattern,
         "dqcRuleArcrole": "http://fasb.org/dqcRules/arcrole/concept-rule",

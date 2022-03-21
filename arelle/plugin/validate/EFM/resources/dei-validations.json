@@ -86,7 +86,7 @@
         "N-6": ["N-6", "N-6/A", "485POS§N-6", "485APOS§N-6", "485BPOS§N-6", "485BXT§N-6", "497§N-6"],
         "N-346": ["@N-3", "@N-4", "@N-6"],
 		"POS": ["POS AM", "POS EX"],
-		"RR": ["485APOS", "485BPOS", "485BXT", "497", "N-1A", "N-1A/A"],
+		"RR": ["485APOS", "485BPOS", "485BXT", "497", "N-1A"],
 		"SP 15D2": ["SP 15D2", "SP 15D2/A"],
 		"S-n": ["S-1", "S-1/A", "S-3", "S-3/A", "S-4", "S-4/A", "S-11", "S-11/A"],
 		"S-nX": ["S-1MEF", "S-3D", "S-3DPOS", "S-3MEF", "S-4EF", "S-4MEF", "S-4 POS", "S-11MEF"],
@@ -322,7 +322,7 @@
         "dei/cover": "dei"
     },
     {
-        "sub-types": ["@all-FAST-not-8K", "@SP 15D2", "@POS", "@N", "@RR", "@N-346", "@SDR"],
+        "sub-types": ["@all-FAST-not-8K", "@SP 15D2", "@POS", "@N", "@RR", "N-3", "N-4", "N-6", "@SDR"],
         "xbrl-names": "DocumentPeriodEndDate",
         "efm": "6.5.20",
         "validation": "de",
@@ -388,7 +388,7 @@
         "comment": "must be english"
     },
     {
-        "sub-types": ["@all-FAST", "@CEF-cover", "@N-2-any-form", "@N-3", "@N-4", "@N-6"],
+        "sub-types": ["@all-FAST", "@N-2-any-form", "@N-3", "@N-4", "@N-6"],
         "xbrl-names": "EntityRegistrantName",
         "efm": "6.5.21",
         "validation": "o",
@@ -797,7 +797,7 @@
         "dei/cover": "dei"
     },
     {
-        "sub-types": ["@RR", "@CEF-cover", "@N", "@N-2", "@N-346"],
+        "sub-types": ["@RR", "N-2", "N-2/A", "N-3", "N-3/A", "N-4", "N-4/A", "N-6", "N-6/A"],
         "xbrl-names": "EntityInvCompanyType",
         "elo-name": "invCompanyType",
         "efm": "6.5.40",
@@ -858,7 +858,7 @@
         "comment": "dei here because cover checked in following only for trading sym, not no-sym"
     },
     {
-        "sub-types": ["@10-K+Q", "@8-K", "@20+40-F", "@CEF-cover"],
+        "sub-types": ["@10-K+Q", "@8-K", "@20+40-F"],
         "xbrl-names": "TradingSymbol",
         "efm": "6.5.46",
         "validation": "o",
@@ -891,7 +891,7 @@
         "comment": "cover here only checks trading symbol, if OTC may have no exchange"
     },
     {
-        "sub-types": ["@RR", "@N-346"],
+        "sub-types": ["@RR", "N-2", "N-2/A", "N-3", "N-3/A", "N-4", "N-4/A", "N-6", "N-6/A"],
         "xbrl-names": "TradingSymbol",
         "efm": "6.5.46",
         "validation": "o",

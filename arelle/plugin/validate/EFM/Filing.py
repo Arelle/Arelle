@@ -39,7 +39,7 @@ from .Consts import submissionTypesAllowingWellKnownSeasonedIssuer, \
                     submissionTypesAllowingExTransitionPeriodFlag, submissionTypesAllowingSeriesClasses, \
                     submissionTypesExemptFromRoleOrder, docTypesExemptFromRoleOrder, \
                     submissionTypesAllowingPeriodOfReport, docTypesRequiringPeriodOfReport, \
-                    docTypesRequiringEntityWellKnownSeasonedIssuer, \
+                    docTypesRequiringEntityWellKnownSeasonedIssuer, invCompanyTypesAllowingSeriesClasses, \
                     submissionTypesAllowingVoluntaryFilerFlag, docTypesNotAllowingInlineXBRL, \
                     docTypesRequiringRrSchema, docTypesNotAllowingIfrs, \
                     untransformableTypes, rrUntransformableEltsPattern, \
@@ -909,7 +909,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                    for doc in modelXbrl.urlDocs.values() if doc.targetNamespace)
     
          # seriesId 6.5.41
-        if submissionType in submissionTypesAllowingSeriesClasses:
+        if submissionType in submissionTypesAllowingSeriesClasses and deiItems.get("EntityInvCompanyType") in invCompanyTypesAllowingSeriesClasses:
             legalEntityAxis = modelXbrl.nameConcepts.get("LegalEntityAxis",())
             if len(legalEntityAxis) > 0:
                 legalEntityAxisQname = legalEntityAxis[0].qname
