@@ -140,14 +140,25 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
                     #addBreakdownNode(view, disposition, definitionNode)
                     expandDefinition(view, zTopStructuralNode, definitionNode, definitionNode, 1, disposition, facts, i, tblAxisRels)
                     break
+        if i == 0: # no breakdown nodes for axis
+            if disposition == "x":
+                xTopStructuralNode = StructuralNode(None, None, None, view.zmostOrdCntx, tableNode=table, rendrCntx=view.rendrCntx)
+                xTopStructuralNode.hasOpenNode = True
+                expandDefinition(view, xTopStructuralNode, None, None, 1, disposition, facts, i, tblAxisRels)
+                view.dataCols = xTopStructuralNode.leafNodeCount
+            elif disposition == "y":
+                yTopStructuralNode = StructuralNode(None, None, None, view.zmostOrdCntx, tableNode=table, rendrCntx=view.rendrCntx)
+                yTopStructuralNode.hasOpenNode = True
+                expandDefinition(view, yTopStructuralNode, None, None, 1, disposition, facts, i, tblAxisRels)
+                view.dataCols = yTopStructuralNode.leafNodeCount
                 
     # uncomment below for debugging Definition and Structural Models
     def jsonDefaultEncoder(obj):
         if isinstance(obj, StructuralNode):
             return {'1StructNode': str(obj),
                     '2Depth': obj.structuralDepth,
-                    '2Group': obj.breakdownNode.genLabel(),
-                    '3Label': (obj.header() or obj.definitionNode.xlinkLabel).replace(OPEN_ASPECT_ENTRY_SURROGATE,"{OPEN_ASPECT_ENTRY_SURROGATE}"),
+                    '2Group': obj.breakdownNode.genLabel() if obj.breakdownNode is not None else None,
+                    '3Label': (obj.header() or obj.definitionNode.xlinkLabel).replace(OPEN_ASPECT_ENTRY_SURROGATE,"{OPEN_ASPECT_ENTRY_SURROGATE}")  if obj.definitionNode is not None else None,
                     '4Definition': str(obj.definitionNode),
                     '5Breakdown': str(obj.breakdownNode),
                     '6ChildRollupNode': obj.rollUpStructuralNode.definitionNode.id if obj.rollUpStructuralNode is not None and obj.rollUpStructuralNode.definitionNode is not None else None,
@@ -522,6 +533,9 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                 raise e.with_traceback(ex.__traceback__)  # provide original traceback information
             else:
                 raise e
+    elif structuralNode and definitionNode is None: # no breakdown nodes for axis
+        cartesianProductNestedArgs = [view, depth+1, axisDisposition, facts, (), i]
+        cartesianProductExpander(structuralNode, *cartesianProductNestedArgs)
             
 def cartesianProductExpander(childStructuralNode, view, depth, axisDisposition, facts, tblAxisRels, i):
     if i is not None: # recurse table relationships for cartesian product

@@ -285,7 +285,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     self.treeView.set(childnode, "axis", modelObject.axisDisposition)
                     if isinstance(concept, ModelRuleDefinitionNode):
                         self.treeView.set(childnode, "priItem", concept.aspectValue(None, Aspect.CONCEPT))
-                        self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim, concept.aspectValue(None, dim)) 
+                        self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim, concept.aspectValue(None, dim) or concept.variableRefs()) 
                                                                        for dim in (concept.aspectValue(None, Aspect.DIMENSIONS, inherit=False) or []))))
             elif self.arcrole == widerNarrower:
                 if isRelation:

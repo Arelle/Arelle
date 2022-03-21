@@ -67,7 +67,7 @@ class StructuralNode:
         if tableNode is not None:
             self.tableNode = tableNode
         self.breakdownNode = breakdownNode # CR definition node
-        self.tagSelector = definitionNode.tagSelector
+        self.tagSelector = definitionNode.tagSelector if definitionNode is not None else None
         self.isLabeled = True
         
     @property
@@ -189,7 +189,9 @@ class StructuralNode:
     '''
         
     def objectId(self, refId=""):
-        return self.definitionNode.objectId(refId)
+        if self.definitionNode is not None:
+            return self.definitionNode.objectId(refId)
+        return None
         
     def header(self, role=None, lang=None, evaluate=True, returnGenLabel=True, returnMsgFormatString=False, recurseParent=True, returnStdLabel=True):
         if returnGenLabel:

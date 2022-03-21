@@ -719,11 +719,8 @@ class ViewRenderedGrid(ViewFile.View):
                         (yStructuralNode.childStructuralNodes and
                          not isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode))) and yStructuralNode.isLabeled:
                     if self.type == XML:
-                        if self.breakdownNodes.get("x"):
-                            cellsParentElt = etree.SubElement(self.cellsYElt, self.tableModelQName("cells"),
-                                                           attrib={"axis": "x"})
-                        else:
-                            cellsParentElt = self.cellsYElt
+                        cellsParentElt = etree.SubElement(self.cellsYElt, self.tableModelQName("cells"),
+                                                       attrib={"axis": "x"})
                     isEntryPrototype = yStructuralNode.isEntryPrototype(default=False) # row to enter open aspects
                     yAspectStructuralNodes = defaultdict(set)
                     for aspect in aspectModels[self.aspectModel]:
