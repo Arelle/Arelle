@@ -75,13 +75,18 @@
 		"F-n": ["F-1", "F-1/A", "F-3", "F-3/A", "F-4", "F-4/A"],
 		"F-nX": ["F-1MEF", "F-3ASR", "F-3D", "F-3DPOS", "F-3MEF", "F-4 POS", "F-4EF", "F-4MEF", "F-10", "F-10/A", "F-10EF", "F-10POS"],
 		"N": ["N-Q", "N-Q/A", "N-CSRS", "N-CSRS/A", "NCSR", "NCSR/A", "N-CSR", "N-CSR/A"],
+        "N-1A": ["485POS§N-1A", "485APOS§N-1A", "485BPOS§N-1A", "485BXT§N-1A", "497§N-1A"],
         "N-2": ["N-2§N-2", "@N-2-a"],
         "N-2-a": ["N-2/A§N-2", "N-2ASR§N-2", "N-2 POSASR§N-2", "N-2MEF§N-2", 
                   "N-2/A§N-2/A", "N-2ASR§N-2ASR", "N-2 POSASR§N-2 POSASR", "N-2MEF§N-2MEF", 
                   "486APOS§N-2", "486BPOS§N-2", "POS 8C§N-2", "POS AMI§N-2", "POS EX§N-2", "POS462B§N-2", "POS462C§N-2", "486BXT§N-2"],
         "N-2-any-form": ["N-2", "N-2/A", "N-2ASR", "N-2 POSASR", "N-2MEF", "486APOS", "486BPOS", "POS 8C", "POS AMI", "POS EX", "POS462B", "POS462C", "486BXT"],
+        "N-3": ["N-3", "N-3/A", "485POS§N-3", "485APOS§N-3", "485BPOS§N-3", "485BXT§N-3", "497§N-3"],
+        "N-4": ["N-4", "N-4/A", "485POS§N-4", "485APOS§N-4", "485BPOS§N-4", "485BXT§N-4", "497§N-4"],
+        "N-6": ["N-6", "N-6/A", "485POS§N-6", "485APOS§N-6", "485BPOS§N-6", "485BXT§N-6", "497§N-6"],
+        "N-346": ["@N-3", "@N-4", "@N-6"],
 		"POS": ["POS AM", "POS EX"],
-		"RR": ["485APOS", "485BPOS", "485BXT", "497", "N-1A", "N-1A/A"],
+		"RR": ["485APOS", "485BPOS", "485BXT", "497", "N-1A"],
 		"SP 15D2": ["SP 15D2", "SP 15D2/A"],
 		"S-n": ["S-1", "S-1/A", "S-3", "S-3/A", "S-4", "S-4/A", "S-11", "S-11/A"],
 		"S-nX": ["S-1MEF", "S-3D", "S-3DPOS", "S-3MEF", "S-4EF", "S-4MEF", "S-4 POS", "S-11MEF"],
@@ -135,13 +140,14 @@
     {"sub-types": ["424B6"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["424B6"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["424B7"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["424B7"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["424B8"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["424B8"], "source": "both", "dei/cover": "dei"},
-    {"sub-types": ["485APOS"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["485APOS"], "source": "both", "dei/cover": "dei"},
-    {"sub-types": ["485BPOS"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["485BPOS"], "source": "both", "dei/cover": "dei"},
-    {"sub-types": ["485BXT"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["485BXT"], "source": "both", "dei/cover": "dei"},
+    {"sub-types": ["485POS"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["485POS", "N-3", "N-4", "N-6", "N-1A"], "source": "both", "dei/cover": "dei"},
+    {"sub-types": ["485APOS"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["485APOS", "N-3", "N-4", "N-6", "N-1A"], "source": "both", "dei/cover": "dei"},
+    {"sub-types": ["485BPOS"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["485BPOS", "N-3", "N-4", "N-6", "N-1A"], "source": "both", "dei/cover": "dei"},
+    {"sub-types": ["485BXT"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["485BXT", "N-3", "N-4", "N-6", "N-1A"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["486APOS"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-2"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["486BPOS"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-2"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["486BXT"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-2"], "source": "both", "dei/cover": "dei"},
-	{"sub-types": ["497"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["497"], "source": "both", "dei/cover": "dei"},
+	{"sub-types": ["497"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["497", "N-3", "N-4", "N-6", "N-1A"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["6-K"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["6-K"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["6-K/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["6-K/A"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["8-K"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["8-K"], "source": "both", "dei/cover": "cover"},
@@ -191,6 +197,12 @@
     {"sub-types": ["N-2MEF"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-2MEF", "N-2"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["N-2ASR"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-2ASR", "N-2"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["N-2 POSASR"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-2 POSASR", "N-2"], "source": "both", "dei/cover": "dei"},
+    {"sub-types": ["N-3"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-3"], "source": "both", "dei/cover": "dei"},
+    {"sub-types": ["N-3/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-3/A"], "source": "both", "dei/cover": "dei"},
+    {"sub-types": ["N-4"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-4"], "source": "both", "dei/cover": "dei"},
+    {"sub-types": ["N-4/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-4/A"], "source": "both", "dei/cover": "dei"},
+    {"sub-types": ["N-6"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-6"], "source": "both", "dei/cover": "dei"},
+    {"sub-types": ["N-6/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-6/A"], "source": "both", "dei/cover": "dei"},
     {"sub-types": ["N-ASR"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-ASR"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["N-CSR"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-CSR"], "source": "both", "dei/cover": "dei"},
 	{"sub-types": ["N-CSR/A"], "xbrl-names": "DocumentType", "efm": "6.5.20", "validation": "xv", "value": ["N-CSR/A"], "source": "both", "dei/cover": "dei"},
@@ -301,7 +313,7 @@
         "dei/cover": "dei"
     },
     {
-        "sub-types": ["@6-K", "@SP 15D2", "@RR", "@SDR"],
+        "sub-types": ["@6-K", "@SP 15D2", "@RR", "@N-346", "@SDR"],
         "xbrl-names": "DocumentPeriodEndDate",
         "elo-name": "periodOfReport",
         "efm": "6.5.20",
@@ -310,7 +322,7 @@
         "dei/cover": "dei"
     },
     {
-        "sub-types": ["@all-FAST-not-8K", "@SP 15D2", "@POS", "@N", "@RR", "@SDR"],
+        "sub-types": ["@all-FAST-not-8K", "@SP 15D2", "@POS", "@N", "@RR", "N-3", "N-4", "N-6", "@SDR"],
         "xbrl-names": "DocumentPeriodEndDate",
         "efm": "6.5.20",
         "validation": "de",
@@ -356,7 +368,7 @@
         "dei/cover": "dei"
     },
     {
-        "sub-types": ["@all-FAST"],
+        "sub-types": ["@all-FAST", "@N-3", "@N-4", "@N-6"],
         "xbrl-names": "EntityRegistrantName",
         "efm": "6.5.21",
         "validation": "x",
@@ -376,7 +388,7 @@
         "comment": "must be english"
     },
     {
-        "sub-types": ["@all-FAST", "@CEF-cover", "@N-2-any-form"],
+        "sub-types": ["@all-FAST", "@N-2-any-form", "@N-3", "@N-4", "@N-6"],
         "xbrl-names": "EntityRegistrantName",
         "efm": "6.5.21",
         "validation": "o",
@@ -785,7 +797,7 @@
         "dei/cover": "dei"
     },
     {
-        "sub-types": ["@RR", "@CEF-cover", "@N", "@N-2"],
+        "sub-types": ["@RR", "N-2", "N-2/A", "N-3", "N-3/A", "N-4", "N-4/A", "N-6", "N-6/A"],
         "xbrl-names": "EntityInvCompanyType",
         "elo-name": "invCompanyType",
         "efm": "6.5.40",
@@ -846,7 +858,7 @@
         "comment": "dei here because cover checked in following only for trading sym, not no-sym"
     },
     {
-        "sub-types": ["@10-K+Q", "@8-K", "@20+40-F", "@CEF-cover"],
+        "sub-types": ["@10-K+Q", "@8-K", "@20+40-F"],
         "xbrl-names": "TradingSymbol",
         "efm": "6.5.46",
         "validation": "o",
@@ -879,7 +891,7 @@
         "comment": "cover here only checks trading symbol, if OTC may have no exchange"
     },
     {
-        "sub-types": ["@RR"],
+        "sub-types": ["@RR", "N-2", "N-2/A", "N-3", "N-3/A", "N-4", "N-4/A", "N-6", "N-6/A"],
         "xbrl-names": "TradingSymbol",
         "efm": "6.5.46",
         "validation": "o",
@@ -1932,7 +1944,7 @@
             "AuditorLocation",
             "AuditorFirmId"
             ],
-        "efm": "6.5.55",
+        "efm": "6.5.54",
         "validation": "taxonomy-version-required",
         "check-after": "2021-12-15",
         "value": 3,
@@ -2214,6 +2226,49 @@
         "dei/cover": "dei"
     },
     {
+        "comment": "N-3 VIP"
+    },
+    {
+        "sub-types": ["@N-3", "@N-4", "@N-6"],
+        "xbrl-names": "vip:*",
+        "efm": "6.5.56",
+        "validation": "(supported-taxonomy)",
+        "source": "both",
+        "dei/cover": "dei"
+    },
+    {
+        "sub-types": ["@N-1A"],
+        "xbrl-names": [],
+        "efm": "6.5.56",
+        "validation": "taxonomy-url-required-in-dts",
+        "value": "https://xbrl.sec.gov/rr/*/rr-*.xsd",
+        "source": "both"
+    },
+    {
+        "sub-types": ["@N-3"],
+        "xbrl-names": [],
+        "efm": "6.5.56",
+        "validation": "taxonomy-url-required-in-dts",
+        "value": "https://xbrl.sec.gov/vip/*/vip-n3-*.xsd",
+        "source": "both"
+    },
+    {
+        "sub-types": ["@N-4"],
+        "xbrl-names": "vip-n4:*",
+        "efm": "6.5.56",
+        "validation": "taxonomy-url-required-in-dts",
+        "value": "https://xbrl.sec.gov/vip/*/vip-n4-*.xsd",
+        "source": "both"
+    },
+    {
+        "sub-types": ["@N-6"],
+        "xbrl-names": "vip-n6:*",
+        "efm": "6.5.56",
+        "validation": "taxonomy-url-required-in-dts",
+        "value": "https://xbrl.sec.gov/vip/*/vip-n6-*.xsd",
+        "source": "both"
+    },
+    {
         "comment": "Following validationd must be last."
     },
     {
@@ -2275,6 +2330,10 @@
             "message": "dq-{efmSection}-{taxonomy}-Version-Required",
             "severity": "error"
         },
+        "taxonomy-url-required-in-dts": {
+            "message": "dq-{efmSection}-Taxonomy-Url-Required",
+            "severity": "error"
+        },
 		"x": {
 			"message": "dq-{efmSection}-{tag}-Missing",
 			"severity": "error",
@@ -2283,7 +2342,7 @@
 		"xv": {
 			"message": "dq-{efmSection}-{tag}-Value",
 			"severity": "error",
-			"validation": "X - A non-null fact must appear with specified vcalue"
+			"validation": "X - A non-null fact must appear with specified value"
 		},
 		"f2": {
 			"message": "dq-{efmSection}-{tag}-{otherTags}-Missing",
@@ -2533,6 +2592,7 @@
         "dq-{efmSection}-{tag}-Unexpected": "Submission type {subType} {severityVerb} not have a value for {tag} in the {context}.",
         "dq-{efmSection}-{taxonomy}-Facts-Unexpected": "Submission type {subType} {severityVerb} not report {taxonomy} namespace facts.",
         "dq-{efmSection}-{taxonomy}-Version-Required": "Submission type {subType} {severityVerb} use {taxonomy} version {earliestTaxonomy} or later.",
+        "dq-{efmSection}-Taxonomy-Url-Required": "Submission type {subType} document type {docType} {severityVerb} contain a taxonomy URL {taxonomy} in its DTS.",
 		"dq-{efmSection}-{tag}-{value}": "In submission type {subType}, {tag} value {severityVerb} have {value} in the {context}.",
 		"dq-{efmSection}-{tag}-Value": "In submission type {subType}, {tag} value {severityVerb} have {value} in the {context}.",
 		"dq-{efmSection}-{tag}-{otherTag}": "In submission type {subType}, {tag} value {severityVerb} have value \"{value}\" in the same context as {otherTag}, {contextID}.",

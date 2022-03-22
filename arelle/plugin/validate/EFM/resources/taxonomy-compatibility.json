@@ -44,18 +44,25 @@
     	"stx-2021": [
     		"dei/2021", "dei/2021q4", "country/2021", "currency/2021", "exch/2021", "naics/2021", "sic/2021", "stpr/2021"
     	],
+    	"stx-2022": [
+    		"dei/2022", "country/2022", "currency/2022", "exch/2022", "naics/2022", "sic/2022", "stpr/2022"
+    	],
     	"us-gaap-to-2020": ["us-gaap/2019", "us-gaap/2020"]
     },
     "compatible-classes": {
         "rr/2012": ["@stx-to-2020"],
         "rr/2018": ["@stx-to-2020"],
         "rr/2021": ["@stx-2021"],
+        "rr/2022": ["@stx-2022"],
         "us-gaap/2019": ["srt/2019", "ifrs/2019", "@stx-to-2020"],
         "us-gaap/2020": ["srt/2020", "ifrs/2019", "ifrs/2020", "@stx-to-2020"],
         "us-gaap/2021": ["srt/2021", "ifrs/2021", "@stx-2021", "cef/2021q4"],
+        "us-gaap/2022": ["@stx-2022", "srt/2022", "ifrs/2021", "cef/2022"],
         "ifrs/2019": ["srt/2019", "srt/2020", "@stx-to-2020"],
         "ifrs/2020": ["srt/2020", "@stx-to-2020"],
         "ifrs/2021": ["srt/2021", "@stx-2021"],
-        "cef/2021q4": ["dei/2021q4", "us-gaap/2021", "srt/2021", "country/2021", "currency/2021", "exch/2021", "naics/2021", "sic/2021", "stpr/2021"]
+        "cef/2021q4": ["dei/2021q4", "us-gaap/2021", "srt/2021", "country/2021", "currency/2021", "exch/2021", "naics/2021", "sic/2021", "stpr/2021"],
+        "cef/2022": ["dei/2022", "us-gaap/2022", "srt/2022", "country/2022", "currency/2022", "exch/2022", "naics/2022", "sic/2022", "stpr/2022"],
+        "vip/2022": ["@stx-2022"]
     }
 }
