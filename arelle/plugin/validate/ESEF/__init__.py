@@ -103,7 +103,8 @@ def modelXbrlBeforeLoading(modelXbrl, normalizedUri, filepath, isEntry=False, **
     if getattr(modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
         if isEntry and not any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
             if modelXbrl.fileSource.isArchive:
-                if (modelXbrl.fileSource.selection.endswith(".xml") and 
+                if (not isinstance(modelXbrl.fileSource.selection, list) and
+                    modelXbrl.fileSource.selection.endswith(".xml") and 
                     ModelDocument.Type.identify(modelXbrl.fileSource, modelXbrl.fileSource.url) in (
                         ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE)):
                     return None # allow zipped test case to load normally
