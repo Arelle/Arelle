@@ -1,5 +1,5 @@
 # core modules
-lxmlr>=4.6.3
+lxml>=4.6.3
 openPyXL>=2.3.3
 regex
 isodate

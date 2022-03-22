@@ -201,12 +201,32 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.downloadNotify.trace("w", self.setRetrievalNotify)
         cacheMenu.add_checkbutton(label=_("Notify file downloads"), underline=0, variable=self.workOffline, onvalue=True, offvalue=False)
         '''
+
+        internetCacheRecheckMenu = Menu(cacheMenu, tearoff=0)
+        self.webCache.recheck = self.config.setdefault("internetRecheck", "weekly")
+        self.internetRecheckVar = StringVar(value=self.webCache.recheck)
+        self._internetRecheckLabel = _("Internet recheck Interval")
+        _recheck_initial = 'disable' if self.webCache.workOffline else 'normal'
+        self.internetRecheckVar.trace("w", self.setInternetRecheck)
+
+        _internetRecheckEntries = ((_("daily"), "daily"), (_("weekly"), "weekly"), (_("monthly"), "monthly"), (_("never"), "never"))
+
+        for (_opt_label, _opt_val) in _internetRecheckEntries:
+            internetCacheRecheckMenu.add_checkbutton(
+                    label=_opt_label,
+                    variable=self.internetRecheckVar, 
+                    underline=0,
+                    onvalue=_opt_val
+             )
+
         cacheMenu.add_command(label=_("Clear cache"), underline=0, command=self.confirmClearWebCache)
         cacheMenu.add_command(label=_("Manage cache"), underline=0, command=self.manageWebCache)
+        cacheMenu.add_cascade(label=self._internetRecheckLabel, menu=internetCacheRecheckMenu, underline=0, state=_recheck_initial)
         cacheMenu.add_command(label=_("Proxy Server"), underline=0, command=self.setupProxy)
         cacheMenu.add_command(label=_("HTTP User Agent"), underline=0, command=self.setupUserAgent)
         self.webCache.httpUserAgent = self.config.get("httpUserAgent")
-        
+        self._cacheMenu = cacheMenu
+
         logmsgMenu = Menu(self.menubar, tearoff=0)
         toolsMenu.add_cascade(label=_("Messages log"), menu=logmsgMenu, underline=0)
         logmsgMenu.add_command(label=_("Clear"), underline=0, command=self.logClear)
@@ -1088,7 +1108,19 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.webCache.workOffline = self.workOffline.get()
         self.config["workOffline"] = self.webCache.workOffline
         self.saveConfig()
-                    
+        # disable internet recheck choices when working offline
+        if self.workOffline.get():
+            self._cacheMenu.entryconfig(self._internetRecheckLabel, state='disable')
+        else:
+            self._cacheMenu.entryconfig(self._internetRecheckLabel, state='normal')
+
+    def setInternetRecheck(self, *args):
+        self.webCache.recheck = self.internetRecheckVar.get()
+        self.config["internetRecheck"] = self.webCache.recheck
+        self.addToLog('WebCache.recheck = {}'.format(self.webCache.recheck), messageCode='debug', level=logging.DEBUG)
+        self.addToLog('WebCache.maxAgeSeconds = {}'.format(self.webCache.maxAgeSeconds), messageCode='debug', level=logging.DEBUG)
+        self.saveConfig()
+
     def setNoCertificateCheck(self, *args):
         self.webCache.noCertificateCheck = self.noCertificateCheck.get() # resets proxy handlers
         self.config["noCertificateCheck"] = self.webCache.noCertificateCheck

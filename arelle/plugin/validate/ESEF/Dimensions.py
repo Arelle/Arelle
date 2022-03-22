@@ -13,8 +13,12 @@ from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
 from arelle import XbrlConst
-from .Const import LineItemsNotQualifiedLinkrole
+from .Const import LineItemsNotQualifiedLinkrole, DefaultDimensionLinkroles
 from .Util import isExtension, isInEsefTaxonomy
+try:
+    import regex as re
+except ImportError:
+    import re
 
 def checkFilingDimensions(val):
 
@@ -31,7 +35,6 @@ def checkFilingDimensions(val):
                 #if domMbrRel.isUsable:
                 addDomMbrs(domMbrRel.toModelObject, domMbrRel.consecutiveLinkrole, membersSet)
             
-    
     for hasHypercubeArcrole in (XbrlConst.all, XbrlConst.notAll):
         hasHypercubeRelationships = val.modelXbrl.relationshipSet(hasHypercubeArcrole).fromModelObjects()
         for hasHcRels in hasHypercubeRelationships.values():
@@ -90,13 +93,17 @@ def checkFilingDimensions(val):
     #                modelObject=i, linkrole=ELR, qnames=", ".join(sorted(str(c.qname) for c in i)))
 
     # reported pri items not in LineItemsNotQualifiedLinkrole
+    nsExcl = val.authParam.get("lineItemsNotDimQualExclusionNsPattern")
+    if nsExcl:
+        nsExclPat = re.compile(nsExcl)
     i = set(concept
             for qn, facts in val.modelXbrl.factsByQname.items()
             if any(not f.context.qnameDims for f in facts if f.context is not None)
             for concept in (val.modelXbrl.qnameConcepts.get(qn),)
             if concept is not None and 
                concept not in elrPrimaryItems.get(LineItemsNotQualifiedLinkrole, set()) and
-               concept not in elrPrimaryItems.get("*", set()))
+               concept not in elrPrimaryItems.get("*", set()) and
+               (not nsExcl or not nsExclPat.match(qn.namespaceURI)))
     if i:
         val.modelXbrl.warning("ESEF.3.4.2.extensionTaxonomyLineItemNotLinkedToAnyHypercube",
             _("Dimensional line item reported non-dimensionally SHOULD be linked to \"not dimensionally qualified\" hypercube %(linkrole)s, primary item %(qnames)s"),
@@ -158,3 +165,8 @@ def checkFilingDimensions(val):
                             val.modelXbrl.error("ESEF.3.4.3.extensionTaxonomyOverridesDefaultMembers",
                                 _("The extension taxonomy MUST not modify (prohibit and/or override) default members assigned to dimensions by the ESEF taxonomy."),
                                 modelObject=linkChild)
+                    if modelLink.role not in DefaultDimensionLinkroles:
+                        val.modelXbrl.error("ESEF.3.4.3.dimensionDefaultLinkrole",
+                            _("Each dimension in an issuer specific extension taxonomy MUST be assigned to a default member in the ELR with role URI http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000, but linkrole used is %(linkrole)s."),
+                            modelObject=linkChild, linkrole=modelLink.role)
+                        

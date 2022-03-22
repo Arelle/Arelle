@@ -143,19 +143,24 @@ class WebCache:
             return "weekly"
         elif days >=1:
             return "daily"
+        elif self.maxAgeSeconds >= 3600.0:
+            return "hourly"
+        elif self.maxAgeSeconds >= 900.0: # 15 minutes. just intended for testing
+            return "quarter-hourly"
         else:
             return "(invalid)"
 
-    @timeout.setter
+    @recheck.setter
     def recheck(self, recheckInterval):
-        self.maxAgeSeconds = {"daily": 1.0, "weekly": 7.0, "monthly": 30.0, "never": INF
+        self.maxAgeSeconds = {"daily": 1.0, "weekly": 7.0, "monthly": 30.0, "never": INF,
+                              "hourly": 1.0/24.0, "quarter-hourly": 1.0/96.0 # lower numbers for testing purposes
                               }.get(recheckInterval, 7.0) * (60.0 * 60.0 * 24.0) 
 
     @property
     def logDownloads(self):
         return self._logDownloads
 
-    @timeout.setter
+    @logDownloads.setter
     def logDownloads(self, _logDownloads):
         self._logDownloads = _logDownloads
 

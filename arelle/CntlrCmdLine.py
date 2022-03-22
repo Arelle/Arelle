@@ -286,7 +286,7 @@ def parseAndRun(args):
     parser.add_option("--testcaseresultscapturewarnings", action="store_true", dest="testcaseResultsCaptureWarnings", help=SUPPRESS_HELP)
     parser.add_option("--testcaseResultOptions", choices=("match-any", "match-all"), action="store", dest="testcaseResultOptions",
                       help=_("For testcase results, default is match any expected result, options to match any or match all expected result(s).  "))
-    parser.add_option("--formulaRunIDs", action="store", dest="formulaRunIDs", help=_("Specify formula/assertion IDs to run, separated by a '|' character."))
+    parser.add_option("--formulaRunIDs", action="store", dest="formulaRunIDs", help=_("Specify formula/assertion IDs to run, separated by a '|' character, or a regex expression."))
     parser.add_option("--formularunids", action="store", dest="formulaRunIDs", help=SUPPRESS_HELP)
     parser.add_option("--formulaCompileOnly", action="store_true", dest="formulaCompileOnly", help=_("Specify formula are to be compiled but not executed."))
     parser.add_option("--formulacompileonly", action="store_true", dest="formulaCompileOnly", help=SUPPRESS_HELP)
@@ -305,8 +305,8 @@ def parseAndRun(args):
     parser.add_option("--internetTimeout", type="int", dest="internetTimeout", 
                       help=_("Specify internet connection timeout in seconds (0 means unlimited)."))
     parser.add_option("--internettimeout", type="int", action="store", dest="internetTimeout", help=SUPPRESS_HELP)
-    parser.add_option("--internetRecheck", choices=("weekly", "daily", "never"), action="store", dest="internetRecheck", 
-                      help=_("Specify rechecking cache files (weekly is default)"))
+    parser.add_option("--internetRecheck", choices=("weekly", "daily", "never", "hourly", "quarter-hourly"), action="store", dest="internetRecheck", 
+                      help=_("Specify rechecking for newer cache files 'daily', 'weekly', 'monthly' or 'never' ('weekly' is default)"))
     parser.add_option("--internetrecheck", choices=("weekly", "daily", "never"), action="store", dest="internetRecheck", help=SUPPRESS_HELP)
     parser.add_option("--internetLogDownloads", action="store_true", dest="internetLogDownloads", 
                       help=_("Log info message for downloads to web cache."))
@@ -792,6 +792,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.webCache.timeout = (options.internetTimeout or None)  # use None if zero specified to disable timeout
         if options.internetLogDownloads:
             self.webCache.logDownloads = True
+        if options.internetRecheck:
+            self.webCache.recheck = options.internetRecheck
         fo = FormulaOptions()
         if options.parameters:
             parameterSeparator = (options.parameterSeparator or ',')

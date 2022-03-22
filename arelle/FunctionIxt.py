@@ -61,6 +61,7 @@ dateUsPattern = RePattern(r"^[ \t\n\r]*(\w+)\s+(\d+),\s+(\d+)[ \t\n\r]*$")
 dateEuPattern = RePattern(r"^[ \t\n\r]*(\d+)\s+(\w+)\s+(\d+)[ \t\n\r]*$")
 daymonthBgPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]+(ян|фев|мар|апр|май|маи|юни|юли|авг|сеп|окт|ное|дек|ЯН|ФЕВ|МАР|АПР|МАЙ|МАИ|ЮНИ|ЮЛИ|АВГ|СЕП|ОКТ|НОЕ|ДЕК|Ян|Фев|Мар|Апр|Май|Маи|Юни|Юли|Авг|Сеп|Окт|Ное|Дек)[^0-9]{0,6}[ \t\n\r]*$")
 daymonthCsPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]+(ledna|února|unora|března|brezna|dubna|května|kvetna|června|cervna|července|cervence|srpna|září|zari|října|rijna|listopadu|prosince|led|úno|uno|bře|bre|dub|kvě|kve|čvn|cvn|čvc|cvc|srp|zář|zar|říj|rij|lis|pro|LEDNA|ÚNORA|UNORA|BŘEZNA|BREZNA|DUBNA|KVĚTNA|KVETNA|ČERVNA|CERVNA|ČERVENCE|CERVENCE|SRPNA|ZÁŘÍ|ZARI|ŘÍJNA|RIJNA|LISTOPADU|PROSINCE|LED|ÚNO|UNO|BŘE|BRE|DUB|KVĚ|KVE|ČVN|CVN|ČVC|CVC|SRP|ZÁŘ|ZAR|ŘÍJ|RIJ|LIS|PRO|Ledna|Února|Unora|Března|Brezna|Dubna|Května|Kvetna|Června|Cervna|Července|Cervence|Srpna|Září|Zari|Října|Rijna|Listopadu|Prosince|Led|Úno|Uno|Bře|Bre|Dub|Kvě|Kve|Čvn|Cvn|Čvc|Cvc|Srp|Zář|Zar|Říj|Rij|Lis|Pro)\.?[ \t\n\r]*$")
+daymonthCyPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]*[^0-9a-zA-Z]+(ion|chwe|maw|ebr|mai|meh|gor|aws|med|hyd|tach|rhag|ION|CHWE|MAW|EBR|MAI|MEH|GOR|AWS|MED|HYD|TACH|RHAG|Ion|Chwe|Maw|Ebr|Mai|Meh|Gor|Aws|Med|Hyd|Tach|Rhag)[^0-9]{0,7}[ \t\n\r]*$")
 daymonthDePattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|jän|jaen|feb|mär|maer|mar|apr|mai|jun|jul|aug|sep|okt|nov|dez|JAN|JÄN|JAEN|FEB|MÄR|MAER|MAR|APR|MAI|JUN|JUL|AUG|SEP|OKT|NOV|DEZ|Jan|Jän|Jaen|Feb|Mär|Maer|Mar|Apr|Mai|Jun|Jul|Aug|Sep|Okt|Nov|Dez)[^0-9]{0,6}[ \t\n\r]*$")
 daymonthDkPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec)([A-Za-z]*)([.]*)[ \t\n\r]*$", re.IGNORECASE)
 daymonthElPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]+(ιαν|ίαν|φεβ|μάρ|μαρ|απρ|άπρ|αρίλ|άρίλ|αριλ|άριλ|μαΐ|μαι|μάι|μαϊ|μάϊ|ιούν|ίούν|ίουν|ιουν|ιούλ|ίούλ|ίουλ|ίουλ|ιουλ|αύγ|αυγ|σεπ|οκτ|όκτ|νοέ|νοε|δεκ|ΙΑΝ|ΊΑΝ|IΑΝ|ΦΕΒ|ΜΆΡ|ΜΑΡ|ΑΠΡ|ΆΠΡ|AΠΡ|AΡΙΛ|ΆΡΙΛ|ΑΡΙΛ|ΜΑΪ́|ΜΑΙ|ΜΆΙ|ΜΑΪ|ΜΆΪ|ΙΟΎΝ|ΊΟΎΝ|ΊΟΥΝ|IΟΥΝ|ΙΟΥΝ|IΟΥΝ|ΙΟΎΛ|ΊΟΎΛ|ΊΟΥΛ|IΟΎΛ|ΙΟΥΛ|IΟΥΛ|ΑΎΓ|ΑΥΓ|ΣΕΠ|ΟΚΤ|ΌΚΤ|OΚΤ|ΝΟΈ|ΝΟΕ|ΔΕΚ|Ιαν|Ίαν|Iαν|Φεβ|Μάρ|Μαρ|Απρ|Άπρ|Aπρ|Αρίλ|Άρίλ|Aρίλ|Aριλ|Άριλ|Αριλ|Μαΐ|Μαι|Μάι|Μαϊ|Μάϊ|Ιούν|Ίούν|Ίουν|Iούν|Ιουν|Iουν|Ιούλ|Ίούλ|Ίουλ|Iούλ|Ιουλ|Iουλ|Αύγ|Αυγ|Σεπ|Οκτ|Όκτ|Oκτ|Νοέ|Νοε|Δεκ)[^0-9]{0,8}[ \t\n\r]*$")
@@ -85,6 +86,7 @@ daymonthSkPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|feb|mar|apr|m
 daymonthSlPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|feb|mar|apr|maj|jun|jul|avg|sep|okt|nov|dec|JAN|FEB|MAR|APR|MAJ|JUN|JUL|AVG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Maj|Jun|Jul|Avg|Sep|Okt|Nov|Dec)[^0-9]{0,6}[ \t\n\r]*$")
 daymonthyearBgPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]+(ян|фев|мар|апр|май|маи|юни|юли|авг|сеп|окт|ное|дек|ЯН|ФЕВ|МАР|АПР|МАЙ|МАИ|ЮНИ|ЮЛИ|АВГ|СЕП|ОКТ|НОЕ|ДЕК|Ян|Фев|Мар|Апр|Май|Маи|Юни|Юли|Авг|Сеп|Окт|Ное|Дек)[A-Za-z]*[^0-9]+([0-9]{1,2}|[0-9]{4})[^0-9]*[ \t\n\r]*$")
 daymonthyearCsPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]+(ledna|února|unora|března|brezna|dubna|května|kvetna|června|cervna|července|cervence|srpna|září|zari|října|rijna|listopadu|prosince|led|úno|uno|bře|bre|dub|kvě|kve|čvn|cvn|čvc|cvc|srp|zář|zar|říj|rij|lis|pro|LEDNA|ÚNORA|UNORA|BŘEZNA|BREZNA|DUBNA|KVĚTNA|KVETNA|ČERVNA|CERVNA|ČERVENCE|CERVENCE|SRPNA|ZÁŘÍ|ZARI|ŘÍJNA|RIJNA|LISTOPADU|PROSINCE|LED|ÚNO|UNO|BŘE|BRE|DUB|KVĚ|KVE|ČVN|CVN|ČVC|CVC|SRP|ZÁŘ|ZAR|ŘÍJ|RIJ|LIS|PRO|Ledna|Února|Unora|Března|Brezna|Dubna|Května|Kvetna|Června|Cervna|Července|Cervence|Srpna|Září|Zari|Října|Rijna|Listopadu|Prosince|Led|Úno|Uno|Bře|Bre|Dub|Kvě|Kve|Čvn|Cvn|Čvc|Cvc|Srp|Zář|Zar|Říj|Rij|Lis|Pro)[^0-9a-zA-Z]+[^0-9]*([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$")
+daymonthyearCyPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]*[^0-9a-zA-Z]+(ion|chwe|maw|ebr|mai|meh|gor|aws|med|hyd|tach|rhag|ION|CHWE|MAW|EBR|MAI|MEH|GOR|AWS|MED|HYD|TACH|RHAG|Ion|Chwe|Maw|Ebr|Mai|Meh|Gor|Aws|Med|Hyd|Tach|Rhag)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$")
 daymonthyearDePattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|jän|jaen|feb|mär|maer|mar|apr|mai|jun|jul|aug|sep|okt|nov|dez|JAN|JÄN|JAEN|FEB|MÄR|MAER|MAR|APR|MAI|JUN|JUL|AUG|SEP|OKT|NOV|DEZ|Jan|Jän|Jaen|Feb|Mär|Maer|Mar|Apr|Mai|Jun|Jul|Aug|Sep|Okt|Nov|Dez)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$")
 daymonthyearDkPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec)([A-Za-z]*)([.]*)[^0-9]*([0-9]{4}|[0-9]{1,2})[ \t\n\r]*$", re.IGNORECASE)
 daymonthyearElPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]+(ιαν|ίαν|φεβ|μάρ|μαρ|απρ|άπρ|αρίλ|άρίλ|αριλ|άριλ|μαΐ|μαι|μάι|μαϊ|μάϊ|ιούν|ίούν|ίουν|ιουν|ιούλ|ίούλ|ίουλ|ίουλ|ιουλ|αύγ|αυγ|σεπ|οκτ|όκτ|νοέ|νοε|δεκ|ΙΑΝ|ΊΑΝ|IΑΝ|ΦΕΒ|ΜΆΡ|ΜΑΡ|ΑΠΡ|ΆΠΡ|AΠΡ|AΡΙΛ|ΆΡΙΛ|ΑΡΙΛ|ΜΑΪ́|ΜΑΙ|ΜΆΙ|ΜΑΪ|ΜΆΪ|ΙΟΎΝ|ΊΟΎΝ|ΊΟΥΝ|IΟΎΝ|ΙΟΥΝ|IΟΥΝ|ΙΟΎΛ|ΊΟΎΛ|ΊΟΥΛ|IΟΎΛ|ΙΟΥΛ|IΟΥΛ|ΑΎΓ|ΑΥΓ|ΣΕΠ|ΟΚΤ|ΌΚΤ|OΚΤ|ΝΟΈ|ΝΟΕ|ΔΕΚ|Ιαν|Ίαν|Iαν|Φεβ|Μάρ|Μαρ|Απρ|Άπρ|Aπρ|Αρίλ|Άρίλ|Aρίλ|Aριλ|Άριλ|Αριλ|Μαΐ|Μαι|Μάι|Μαϊ|Μάϊ|Ιούν|Ίούν|Ίουν|Iούν|Ιουν|Iουν|Ιούλ|Ίούλ|Ίουλ|Iούλ|Ιουλ|Iουλ|Αύγ|Αυγ|Σεπ|Οκτ|Όκτ|Oκτ|Νοέ|Νοε|Δεκ)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$")
@@ -112,6 +114,7 @@ daymonthyearSkPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|feb|mar|a
 daymonthyearSlPattern = RePattern(r"^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|feb|mar|apr|maj|jun|jul|avg|sep|okt|nov|dec|JAN|FEB|MAR|APR|MAJ|JUN|JUL|AVG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Maj|Jun|Jul|Avg|Sep|Okt|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$")
 monthyearBgPattern = RePattern(r"^[ \t\n\r]*(ян|фев|мар|апр|май|маи|юни|юли|авг|сеп|окт|ное|дек|ЯН|ФЕВ|МАР|АПР|МАЙ|МАИ|ЮНИ|ЮЛИ|АВГ|СЕП|ОКТ|НОЕ|ДЕК|Ян|Фев|Мар|Апр|Май|Маи|Юни|Юли|Авг|Сеп|Окт|Ное|Дек)[^0-9]+([0-9]{1,2}|[0-9]{4})[^0-9]*[ \t\n\r]*$")
 monthyearCsPattern = RePattern(r"^[ \t\n\r]*(leden|ledna|lednu|únor|unor|února|unora|únoru|unoru|březen|brezen|března|brezna|březnu|breznu|duben|dubna|dubnu|květen|kveten|května|kvetna|květnu|kvetnu|červen|cerven|června|cervna|červnu|cervnu|červenec|cervenec|července|cervence|červenci|cervenci|srpen|srpna|srpnu|září|zari|říjen|rijen|října|rijna|říjnu|rijnu|listopad|listopadu|prosinec|prosince|prosinci|led|úno|uno|bře|bre|dub|kvě|kve|čvn|cvn|čvc|cvc|srp|zář|zar|říj|rij|lis|pro|LEDEN|LEDNA|LEDNU|ÚNOR|UNOR|ÚNORA|UNORA|ÚNORU|UNORU|BŘEZEN|BREZEN|BŘEZNA|BREZNA|BŘEZNU|BREZNU|DUBEN|DUBNA|DUBNU|KVĚTEN|KVETEN|KVĚTNA|KVETNA|KVĚTNU|KVETNU|ČERVEN|CERVEN|ČERVNA|CERVNA|ČERVNU|CERVNU|ČERVENEC|CERVENEC|ČERVENCE|CERVENCE|ČERVENCI|CERVENCI|SRPEN|SRPNA|SRPNU|ZÁŘÍ|ZARI|ŘÍJEN|RIJEN|ŘÍJNA|RIJNA|ŘÍJNU|RIJNU|LISTOPAD|LISTOPADU|PROSINEC|PROSINCE|PROSINCI|LED|ÚNO|UNO|BŘE|BRE|DUB|KVĚ|KVE|ČVN|CVN|ČVC|CVC|SRP|ZÁŘ|ZAR|ŘÍJ|RIJ|LIS|PRO|Leden|Ledna|Lednu|Únor|Unor|Února|Unora|Únoru|Unoru|Březen|Brezen|Března|Brezna|Březnu|Breznu|Duben|Dubna|Dubnu|Květen|Kveten|Května|Kvetna|Květnu|Kvetnu|Červen|Cerven|Června|Cervna|Červnu|Cervnu|Červenec|Cervenec|Července|Cervence|Červenci|Cervenci|Srpen|Srpna|Srpnu|Září|Zari|Říjen|Rijen|Října|Rijna|Říjnu|Rijnu|Listopad|Listopadu|Prosinec|Prosince|Prosinci|Led|Úno|Uno|Bře|Bre|Dub|Kvě|Kve|Čvn|Cvn|Čvc|Cvc|Srp|Zář|Zar|Říj|Rij|Lis|Pro)[^0-9a-zA-Z]+[^0-9]*([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$")
+monthyearCyPattern = RePattern(r"^[ \t\n\r]*(ion|chwe|maw|faw|ebr|mai|fai|meh|feh|gor|ngor|aws|med|fed|hyd|tach|dach|nhach|thach|rhag|rag|ION|CHWE|MAW|FAW|EBR|MAI|FAI|MEH|FEH|GOR|NGOR|AWS|MED|FED|HYD|TACH|DACH|NHACH|THACH|RHAG|RAG|Ion|Chwe|Maw|Faw|Ebr|Mai|Fai|Meh|Feh|Gor|Ngor|Aws|Med|Fed|Hyd|Tach|Dach|Nhach|Thach|Rhag|Rag)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$")
 monthyearDePattern = RePattern(r"^[ \t\n\r]*(jan|jän|jaen|feb|mär|maer|mar|apr|mai|jun|jul|aug|sep|okt|nov|dez|JAN|JÄN|JAEN|FEB|MÄR|MAER|MAR|APR|MAI|JUN|JUL|AUG|SEP|OKT|NOV|DEZ|Jan|Jän|Jaen|Feb|Mär|Maer|Mar|Apr|Mai|Jun|Jul|Aug|Sep|Okt|Nov|Dez)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$")
 monthyearDkPattern = RePattern(r"^[ \t\n\r]*(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec)([A-Za-z]*)([.]*)[^0-9]*([0-9]{4}|[0-9]{1,2})[ \t\n\r]*$", re.IGNORECASE)
 monthyearElPattern = RePattern(r"^[ \t\n\r]*(ιαν|ίαν|φεβ|μάρ|μαρ|απρ|άπρ|αρίλ|άρίλ|αριλ|άριλ|μαΐ|μαι|μάι|μαϊ|μάϊ|ιούν|ίούν|ίουν|ιουν|ιούλ|ίούλ|ίουλ|ίουλ|ιουλ|αύγ|αυγ|σεπ|οκτ|όκτ|νοέ|νοε|δεκ|ΙΑΝ|ΊΑΝ|IΑΝ|ΦΕΒ|ΜΆΡ|ΜΑΡ|ΑΠΡ|ΆΠΡ|AΠΡ|AΡΙΛ|ΆΡΙΛ|ΑΡΙΛ|ΜΑΪ́|ΜΑΙ|ΜΆΙ|ΜΑΪ|ΜΆΪ|ΙΟΎΝ|ΊΟΎΝ|ΊΟΥΝ|IΟΎΝ|ΙΟΥΝ|IΟΥΝ|ΙΟΎΛ|ΊΟΎΛ|ΊΟΥΛ|IΟΎΛ|ΙΟΥΛ|IΟΥΛ|ΑΎΓ|ΑΥΓ|ΣΕΠ|ΟΚΤ|ΌΚΤ|OΚΤ|ΝΟΈ|ΝΟΕ|ΔΕΚ|Ιαν|Ίαν|Iαν|Φεβ|Μάρ|Μαρ|Απρ|Άπρ|Aπρ|Αρίλ|Άρίλ|Aρίλ|Aριλ|Άριλ|Αριλ|Μαΐ|Μαι|Μάι|Μαϊ|Μάϊ|Ιούν|Ίούν|Ίουν|Iούν|Ιουν|Iουν|Ιούλ|Ίούλ|Ίουλ|Iούλ|Ιουλ|Iουλ|Αύγ|Αυγ|Σεπ|Οκτ|Όκτ|Oκτ|Νοέ|Νοε|Δεκ)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$")
@@ -162,12 +165,15 @@ yearmonthdayPattern = RePattern(r"^[ \t\n\r]*([0-9]{4}|[0-9]{1,2})[^0-9]+([0-9]{
 zeroDashPattern = RePattern(r"^[ \t\n\r]*([-]|\u002D|\u002D|\u058A|\u05BE|\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\uFE58|\uFE63|\uFF0D)[ \t\n\r]*$")
 numDotDecimalPattern = RePattern(r"^[ \t\n\r]*[0-9]{1,3}([, \xA0]?[0-9]{3})*(\.[0-9]+)?[ \t\n\r]*$")
 numDotDecimalTR4Pattern = RePattern(r"^[ \t\n\r]*[, \xA00-9]*(\.[ \xA00-9]+)?[ \t\n\r]*$")
+numDotDecimalAposPattern = RePattern(r"^[ \t\n\r]*[,'`´’′ \u00a00-9]*(\.[ \u00a00-9]+)?[ \t\n\r]*$")
 numDotDecimalInPattern = RePattern(r"^(([0-9]{1,2}[, \xA0])?([0-9]{2}[, \xA0])*[0-9]{3})([.][0-9]+)?$|^([0-9]+)([.][0-9]+)?$")
 numCommaDecimalPattern = RePattern(r"^[ \t\n\r]*[0-9]{1,3}([. \xA0]?[0-9]{3})*(,[0-9]+)?[ \t\n\r]*$")
 numCommaDecimalTR4Pattern = RePattern(r"^[ \t\n\r]*[\. \xA00-9]*(,[ \xA00-9]+)?[ \t\n\r]*$")
+numCommaDecimalAposPattern = RePattern(r"^[ \t\n\r]*[\.'`´’′ \u00a00-9]*(,[ \u00a00-9]+)?[ \t\n\r]*$")
 numUnitDecimalPattern = RePattern(r"^([0]|([1-9][0-9]{0,2}([.,\uFF0C\uFF0E]?[0-9]{3})*))[^0-9,.\uFF0C\uFF0E]+([0-9]{1,2})[^0-9,.\uFF0C\uFF0E]*$")
 numUnitDecimalInPattern = RePattern(r"^(([0-9]{1,2}[, \xA0])?([0-9]{2}[, \xA0])*[0-9]{3})([^0-9]+)([0-9]{1,2})([^0-9]*)$|^([0-9]+)([^0-9]+)([0-9]{1,2})([^0-9]*)$")
 numUnitDecimalTR4Pattern = RePattern(r"^([0-9０-９\.,，]+)([^0-9０-９\.,，][^0-9０-９]*)([0-9０-９]{1,2})[^0-9０-９]*$")
+numUnitDecimalAposPattern = RePattern(r"^([0-9０-９\.,，'`´’′＇]+)([^0-9０-９\.,，'`´’′＇][^0-9０-９]*)([0-9０-９]{1,2})[^0-9０-９]*$")
 numCommaPattern = RePattern(r"^[ \t\n\r]*[0-9]+(,[0-9]+)?[ \t\n\r]*$")
 numCommaDotPattern = RePattern(r"^[ \t\n\r]*[0-9]{1,3}(,[0-9]{3,3})*([.][0-9]+)?[ \t\n\r]*$")
 numDashPattern = RePattern(r"^[ \t\n\r]*-[ \t\n\r]*$")
@@ -237,6 +243,8 @@ monthnumbercs = {"ledna":1, "leden":1, "lednu":1, "února":2, "unora":2, "únoru
                 "čvn":6, "cvn":6, "čvc":7, "cvc":7, "srp":8, "zář":9, "zar":9,
                 "říj":10, "rij":10, "lis":11, "pro":12
                 }
+
+monthnumbercy = {"ion":1, "chwe":2, "maw":3, "faw":3, "ebr":4, "mai":5, "fai":5, "meh":6, "feh":6, "gor":7, "ngor":7, "aws":8, "med":9, "fed":9, "hyd":10, "tach":11, "dach":11, "nhach":11, "thach":11, "rhag":12, "rag":12}
 
 monthnumberfi = {"tam":1, "hel":2, "maa":3, "huh":4, "tou":5, "kes":6, "hei":7, "elo":8, "syy":9, "lok":10, "mar":11, "jou":12}
 
@@ -485,6 +493,9 @@ def datedaymonthbg(arg):
 def datedaymonthcs(arg):
     return datedaymonth(arg, daymonthCsPattern, monthnumbercs)
 
+def datedaymonthcy(arg):
+    return datedaymonth(arg, daymonthCyPattern, monthnumbercy)
+
 def datedaymonthde(arg):
     return datedaymonth(arg, daymonthDePattern)
 
@@ -630,6 +641,9 @@ def datemonthyearbg(arg):
 def datemonthyearcs(arg):
     return datemonthyear(arg, monthyearCsPattern, monthnumbercs)
 
+def datemonthyearcy(arg):
+    return datemonthyear(arg, monthyearCyPattern, monthnumbercy)
+
 def datemonthyearde(arg):
     return datemonthyear(arg, monthyearDePattern)
 
@@ -749,6 +763,9 @@ def datedaymonthyearbg(arg):
 
 def datedaymonthyearcs(arg):
     return datedaymonthyear(arg, daymonthyearCsPattern, monthnumbercs)
+
+def datedaymonthyearcy(arg):
+    return datedaymonthyear(arg, daymonthyearCyPattern, monthnumbercy)
 
 def datedaymonthyearde(arg):
     return datedaymonthyear(arg, daymonthyearDePattern)
@@ -929,6 +946,13 @@ def numcommadecimalTR4(arg):
             return canonicalNumber(result)
     raise XPathContext.FunctionArgType(0,"ixt:nonNegativeDecimalType")
 
+def numcommadecimalApos(arg):
+    if numCommaDecimalAposPattern.match(arg):
+        result = arg.replace('.', '').replace('\'', '').replace('`', '').replace('´', '').replace('’', '').replace('′', '').replace(',', '.').replace(' ', '').replace('\u00A0', '')
+        if decimalPattern.match(result):
+            return canonicalNumber(result)
+    raise XPathContext.FunctionArgType(0,"ixt:nonNegativeDecimalType")
+
 def numcommadot(arg):
     if numCommaDotPattern.match(arg):
         return arg.replace(',', '')
@@ -979,6 +1003,13 @@ def numdotdecimalTR4(arg):
             return canonicalNumber(result)
     raise XPathContext.FunctionArgType(0,"ixt:numdotdecimalType")
 
+def numdotdecimalApos(arg):
+    if numDotDecimalAposPattern.match(arg):
+        result = arg.replace(',', '').replace('\'', '').replace('`', '').replace('´', '').replace('’', '').replace('′', '').replace(' ', '').replace('\u00A0', '')
+        if decimalPattern.match(result):
+            return canonicalNumber(result)
+    raise XPathContext.FunctionArgType(0,"ixt:numdotdecimalType")
+
 def numdotdecimalin(arg):
     m = numDotDecimalInPattern.match(arg)
     if m:
@@ -1005,6 +1036,16 @@ def numunitdecimalTR4(arg):
     m = numUnitDecimalTR4Pattern.match(jpDigitsToNormal(arg))
     if m and m.lastindex > 1:
         majorValue = m.group(1).replace('.','').replace(',','').replace('\uFF0C','').replace('\uFF0E','')
+        fractValue = z2(m.group(m.lastindex))
+        if len(majorValue) > 0 and len(fractValue) > 0:
+            return canonicalNumber(majorValue + '.' + fractValue)
+    raise XPathContext.FunctionArgType(1,"ixt:nonNegativeDecimalType")
+
+def numunitdecimalApos(arg):
+    # remove comma (normal), full-width comma, and stops (periods)
+    m = numUnitDecimalAposPattern.match(jpDigitsToNormal(arg))
+    if m and m.lastindex > 1:
+        majorValue = m.group(1).replace('.','').replace(',','').replace('\'', '').replace('`', '').replace('´', '').replace('’', '').replace('′', '').replace('＇', '').replace('\uFF0C','').replace('\uFF0E','')
         fractValue = z2(m.group(m.lastindex))
         if len(majorValue) > 0 and len(fractValue) > 0:
             return canonicalNumber(majorValue + '.' + fractValue)
@@ -1108,7 +1149,6 @@ tr3Functions.update ({
     # same as v2: 'zerodash': zerodash,
 })
     # transformation registry v-4 functions
-tr4Functions = tr3Functions.copy() # tr4 starts with tr3 and adds more functions
 tr4Functions = {
     'date-day-month': datedaymonthTR2,
     'date-day-monthname-bg': datedaymonthbg,
@@ -1206,6 +1246,18 @@ tr4Functions = {
     'numdotdecimalin': numdotdecimalinTR4,
     'num-unit-decimal': numunitdecimalTR4,
 }
+    # transformation registry v-5 functions
+tr5Functions = tr4Functions.copy() # tr5 starts with tr4 and adds more functions
+tr5Functions.update ({
+    # Welsh language
+    'date-day-monthname-cy': datedaymonthcy,
+    'date-day-monthname-year-cy': datedaymonthyearcy,
+    'date-monthname-year-cy': datemonthyearcy,
+    # Swiss-style numbers with apostrophes as thousand separators
+    'num-comma-decimal-apos': numcommadecimalApos,
+    'num-dot-decimal-apos': numdotdecimalApos,
+    'num-unit-decimal-apos': numunitdecimalApos
+})
 deprecatedNamespaceURI = 'http://www.xbrl.org/2008/inlineXBRL/transformation' # the CR/PR pre-REC namespace
 
 ixtNamespaces = {
@@ -1213,6 +1265,7 @@ ixtNamespaces = {
     "ixt v2": 'http://www.xbrl.org/inlineXBRL/transformation/2011-07-31',
     "ixt v3": 'http://www.xbrl.org/inlineXBRL/transformation/2015-02-26',
     "ixt v4": 'http://www.xbrl.org/inlineXBRL/transformation/2020-02-12',
+    "ixt v5": 'http://www.xbrl.org/inlineXBRL/transformation/2022-02-16',
     }
 
 ixtNamespaceFunctions = {
@@ -1220,6 +1273,7 @@ ixtNamespaceFunctions = {
     ixtNamespaces["ixt v2"]: tr2Functions, # transformation registry v2
     ixtNamespaces["ixt v3"]: tr3Functions, # transformation registry v3
     ixtNamespaces["ixt v4"]: tr4Functions, # transformation registry v4
-    "http://www.xbrl.org/inlineXBRL/transformation/WGWD/YYYY-MM-DD": tr4Functions, # transformation registry v4 draft
+    ixtNamespaces["ixt v5"]: tr5Functions, # transformation registry v5
+    "http://www.xbrl.org/inlineXBRL/transformation/WGWD/YYYY-MM-DD": tr5Functions, # transformation registry v4 draft
     'http://www.xbrl.org/2008/inlineXBRL/transformation': tr1Functions # the CR/PR pre-REC namespace
 }

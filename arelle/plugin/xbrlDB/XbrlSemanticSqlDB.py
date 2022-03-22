@@ -791,7 +791,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                      elementChildSequence(resource),
                                      resource.qname.clarkNotation,
                                      resource.role,
-                                     resource.textValue,
+                                     resource.stringValue,
                                      resource.xmlLang)
                                     for resource in uniqueResources.values()),
                               checkIfExisting=True)

@@ -1481,14 +1481,16 @@ def compileXfsGrammar( cntlr, debugParsing ):
     
     dimensionFilter = ( 
         ZeroOrMore( Keyword("complemented") | Keyword("covering") | Keyword("non-covering") ) + 
-         (Keyword("explicit-dimension") + (qName | xpathExpression) + 
-            ZeroOrMore( Keyword("default-member") | 
-               (Keyword("member") + (variableRef | qName | xpathExpression) +
-                Optional(Keyword("linkrole") + quotedString) + 
-                Optional(Keyword("arcrole") + quotedString) +
-                Optional(Keyword("axis") + dimensionAxis))) + separator) |
-         (Keyword("typed-dimension") + (variableRef | qName | xpathExpression) + 
-            Optional( Keyword("test") + xpathExpression )  + separator)
+            (
+                (Keyword("explicit-dimension") + (qName | xpathExpression) + 
+                    ZeroOrMore( Keyword("default-member") | 
+                       (Keyword("member") + (variableRef | qName | xpathExpression) +
+                        Optional(Keyword("linkrole") + quotedString) + 
+                        Optional(Keyword("arcrole") + quotedString) +
+                        Optional(Keyword("axis") + dimensionAxis))) + separator) |
+                (Keyword("typed-dimension") + (variableRef | qName | xpathExpression) + 
+                    Optional( Keyword("test") + xpathExpression )  + separator)
+            )
         ).setParseAction(compileDimensionFilter).ignore(xfsComment).setName("dimension-filter").setDebug(debugParsing)
 
     unitFilter = ( 

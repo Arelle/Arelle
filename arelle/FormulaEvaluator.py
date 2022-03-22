@@ -86,7 +86,8 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
                 xpCtx.modelXbrl.log(
                     "INFO" if result else {"OK":"INFO", "WARNING":"WARNING", "ERROR":"ERROR"}[unsatSeverity],
                     "message:" + (varSet.id or varSet.xlinkLabel or  _("unlabeled variableSet")),
-                    msg.evaluate(xpCtx, contextItem=varSet.evaluationsCount),
+                    "%(formulaMessage)s",
+                    formulaMessage=msg.evaluate(xpCtx, contextItem=varSet.evaluationsCount),
                     modelObject=varSet,
                     label=varSet.logLabel(),
                     messageCodes=("message:{variableSetID|xlinkLabel}",))
@@ -217,7 +218,8 @@ def evaluateVar(xpCtx, varSet, varIndex, cachedFilteredFacts, uncoveredAspectFac
                     xpCtx.modelXbrl.log(
                         "INFO" if result else {"OK":"INFO", "WARNING":"WARNING", "ERROR":"ERROR"}[unsatSeverity],
                         "message:" + (varSet.id or varSet.xlinkLabel or  _("unlabeled variableSet")),
-                        msg.evaluate(xpCtx),
+                        "%(formulaMessage)s",
+                        formulaMessage=msg.evaluate(xpCtx),
                         modelObject=_modelObjects,
                         label=varSet.logLabel(),
                         messageCodes=("message:{variableSetID|xlinkLabel}",))

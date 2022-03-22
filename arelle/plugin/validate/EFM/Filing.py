@@ -3206,4 +3206,3 @@ def cleanedCompanyName(name):
                                  ):
         name = re.sub(pattern, replacement, name, flags=re.IGNORECASE)
     return unicodedata.normalize('NFKD', name.strip().lower()).encode('ASCII', 'ignore').decode()  # remove diacritics 
-

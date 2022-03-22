@@ -5,8 +5,8 @@ Filer Guidelines: esma32-60-254_esef_reporting_manual.pdf
 
 
 
-@author: Mark V Systems Limited
-(c) Copyright 2018 Mark V Systems Limited, All rights reserved.
+@author: Workiva
+(c) Copyright 2022 Workiva, All rights reserved.
 '''
 
 try:
@@ -18,42 +18,9 @@ from arelle.XbrlConst import all, notAll, hypercubeDimension, dimensionDomain, d
 
 browserMaxBase64ImageLength = 5242880 # 5MB
 
-standardTaxonomyURIs = {
-    "http://www.esma.europa.eu/",
-    "https://www.esma.europa.eu/",
-    "http://xbrl.ifrs.org/taxonomy/",
-    "https://xbrl.ifrs.org/taxonomy/",
-    "http://www.xbrl.org/taxonomy/int/lei/",
-    "https://www.xbrl.org/taxonomy/int/lei/",
-    "http://www.xbrl.org/20",
-    "https://www.xbrl.org/20",
-    "http://www.xbrl.org/dtr/",
-    "https://www.xbrl.org/dtr/",
-    "http://www.xbrl.org/lrr/",
-    "https://www.xbrl.org/lrr/",
-    "http://www.xbrl.org/utr/",
-    "https://www.xbrl.org/utr/",
-    "http://www.w3.org/1999/xlink/",
-    "https://www.w3.org/1999/xlink/",
-    }
-
 esefTaxonomyNamespaceURIs = {
     "http://xbrl.ifrs.org/taxonomy/20",
     "http://xbrl.ifrs.org/taxonomy/20",
-    }
-
-outdatedTaxonomyURLs = {
-    "http://www.esma.europa.eu/taxonomy/2017-03-31/esef_cor.xsd",
-    "https://www.esma.europa.eu/taxonomy/2017-03-31/esef_cor.xsd",
-    }
-
-esefTaxonomyURLs = {
-    "http://www.esma.europa.eu/taxonomy/2019-03-27/esef_cor.xsd",
-    "https://www.esma.europa.eu/taxonomy/2019-03-27/esef_cor.xsd",
-    "http://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor.xsd",
-    "https://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor.xsd",
-    "http://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd",
-    "https://www.esma.europa.eu/taxonomy/2021-03-24/esef_cor.xsd",
     }
 
 disallowedURIsPattern = re.compile(
@@ -62,17 +29,6 @@ disallowedURIsPattern = re.compile(
     )
 
 
-esefFormulaMessagesURLs = {
-    "http://www.esma.europa.eu/taxonomy/2019-03-27/esef_cor.xsd":
-        "http://www.esma.europa.eu/taxonomy/2019-03-27/esef_cor-gen-en.xml",
-    "https://www.esma.europa.eu/taxonomy/2019-03-27/esef_cor.xsd":
-        "https://www.esma.europa.eu/taxonomy/2019-03-27/esef_cor-gen-en.xml",
-    "http://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor.xsd":
-        "http://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor-gen-en.xml",
-    "https://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor.xsd":
-        "https://www.esma.europa.eu/taxonomy/2020-03-16/esef_cor-gen-en.xml",
-    }
-
 DefaultDimensionLinkroles = ("http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000",)
 LineItemsNotQualifiedLinkrole = "http://www.esma.europa.eu/xbrl/role/cor/esef_role-999999"
 
@@ -80,20 +36,28 @@ qnDomainItemTypes = {qname("{http://www.xbrl.org/dtr/type/non-numeric}nonnum:dom
                      qname("{http://www.xbrl.org/dtr/type/2020-01-21}nonnum:domainItemType")}
 
 
-filenamePatterns = {
-    "cal": re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_cal[.]xml$"),
-    "def": re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_def[.]xml$"),
-    "lab": re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_lab-[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*[.]xml$"),
-    "pre": re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_pre[.]xml$"),
-    "ref": re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_ref[.]xml$")
-    }
-
-linkbaseRefFilenamePatterns = {
+linkbaseRefTypes = {
     "http://www.xbrl.org/2003/role/calculationLinkbaseRef": "cal",
     "http://www.xbrl.org/2003/role/definitionLinkbaseRef": "def",
     "http://www.xbrl.org/2003/role/labelLinkbaseRef": "lab",
     "http://www.xbrl.org/2003/role/presentationLinkbaseRef": "pre",
     "http://www.xbrl.org/2003/role/referenceLinkbaseRef": "ref"
+    }
+
+filenamePatterns = {
+    "cal": "{base}-{date}_cal.xml",
+    "def": "{base}-{date}_def.xml",
+    "lab": "{base}-{date}_lab-{lang}.xml",
+    "pre": "{base}-{date}_pre.xml",
+    "ref": "{base}-{date}_ref.xml"
+    }
+
+filenameRegexes = {
+    "cal": r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_cal[.]xml$",
+    "def": r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_def[.]xml$",
+    "lab": r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_lab-[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*[.]xml$",
+    "pre": r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_pre[.]xml$",
+    "ref": r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_ref[.]xml$"
     }
 
 mandatory = set() # mandatory element qnames
