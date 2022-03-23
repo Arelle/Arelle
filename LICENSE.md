@@ -50,8 +50,6 @@ Pillow: Copyright © 2010-2022 by Alex Clark and contributors [License](https://
 
 pycountry: Copyright (c) 2008-2015 gocept gmbh & co. kg [License](https://pypi.org/project/gocept.country/)
 
-pycrypto: Copyright: public-domain. [License](https://github.com/pycrypto/pycrypto/blob/master/COPYRIGHT)
-
 PyParsing: Copyright © 2003-2022 Paul McGuire. [License](https://github.com/pyparsing/pyparsing/blob/master/LICENSE)
 
 rdflib: Copyright (c) 2002-2021, RDFLib Team. All rights reserved. [License](https://opensource.org/licenses/BSD-3-Clause)
