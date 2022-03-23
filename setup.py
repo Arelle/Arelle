@@ -11,14 +11,15 @@ Created on Jan 30, 2011
   install numpy matplotlib
   install rdflib
   install isodate regex aniso8601 graphviz holidays openpyxl Pillow 
-  install pycrypto
+  #  install pycrypto  << end user installed only if using any plugin/security module
   install cx_freeze cherrypy cheroot tornado
   pip install --no-cache --use-pep517 pycountry
   
   may need to reinstall pycountry to get pep517 format
   install pycountry: pip uninstall -y pycountry ; pip install --no-cache --use-pep517 pycountry
 
-to install pycrypto on windows: https://www.dariawan.com/tutorials/python/python-3-install-pycrypto-windows/
+to install pycrypto on windows (by end-users using plugin/security modules) see: 
+  https://www.dariawan.com/tutorials/python/python-3-install-pycrypto-windows/
 
 """
 import sys
@@ -46,7 +47,7 @@ def get_version():
     return mod.version
 
 
-setup_requires = ['lxml'] # ,'Crypto.Cipher']
+setup_requires = ['lxml']
 # install_requires specifies a list of package dependencies that are 
 # installed when 'python setup.py install' is run. On Linux/Mac systems 
 # this also allows installation directly from the github repository 
@@ -291,8 +292,8 @@ if sys.platform in ('darwin', 'linux2', 'linux', 'sunos5'):
         'rdflib.plugins.stores',
         'isodate', 'regex', 'gzip', 'zlib', 'aniso8601', 'graphviz', 'holidays',
         'openpyxl', 'PIL', # to install PIL it's named Pillow
-        'pycountry', # to install pycountry: pip uninstall -y pycountry ; pip install --no-cache --use-pep517 pycountry
-        'Crypto', 'Crypto.Cipher', 'Crypto.Cipher.AES' # install pycrypto not another crypto module
+        'pycountry' # to install pycountry: pip uninstall -y pycountry ; pip install --no-cache --use-pep517 pycountry
+        # only installed by end-users when using security plugins: 'Crypto', 'Crypto.Cipher', 'Crypto.Cipher.AES' # install pycrypto not another crypto module
         #'google_api_python_client', 'oauth2client', 'six', 'httplib2', 'uritemplate', 'pyasn1', 'rsa', 'pyasn1_modules' # google-api-python-client
     ]
 
@@ -389,7 +390,7 @@ elif sys.platform == 'win32':
         'rdflib.plugins.stores',
         'isodate', 'regex', 'gzip', 'zlib', 'aniso8601', 'graphviz', 'holidays',
         'openpyxl', 'PIL', 'pycountry', 
-        'Crypto', 'Crypto.Cipher', 'Crypto.Cipher.AES',
+        # only installed by end-users when using security plugins: 'Crypto', 'Crypto.Cipher', 'Crypto.Cipher.AES',
         'requests', 'requests_negotiate_sspi'
     ]
     # uncomment the next line if cx_Freezing with EdgarRenderer
