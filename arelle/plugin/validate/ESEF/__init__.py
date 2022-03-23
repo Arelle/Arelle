@@ -49,7 +49,7 @@ except ImportError:
     import re
 from collections import defaultdict
 from math import isnan
-from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction
+from lxml.etree import _ElementTree, _Comment, _ProcessingInstruction, EntityBase
 from arelle import LeiUtil, ModelDocument, XbrlConst, XhtmlValidate, XmlUtil
 from arelle.FunctionIxt import ixtNamespaces
 from arelle.ModelDtsObject import ModelResource
@@ -83,7 +83,8 @@ docTypeXhtmlPattern = re.compile(r"^<!(?:DOCTYPE\s+)\s*html(?:PUBLIC\s+)?(?:.*-/
 
 FOOTNOTE_LINK_CHILDREN = {qnLinkLoc, qnLinkFootnoteArc, qnLinkFootnote, qnIXbrl11Footnote}
 PERCENT_TYPE = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
-IXT_NAMESPACES = {ixtNamespaces["ixt v4"]} # only tr4 is currently recommended
+IXT_NAMESPACES = {ixtNamespaces["ixt v4"], # only tr4 or newer REC is currently recommended
+                  ixtNamespaces["ixt v5"]}
 
 def etreeIterWithDepth(node, depth=0):
     yield (node, depth)
@@ -101,15 +102,22 @@ def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
 def modelXbrlBeforeLoading(modelXbrl, normalizedUri, filepath, isEntry=False, **kwargs):
     if getattr(modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
         if isEntry and not any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
-            if modelXbrl.fileSource.isArchive and not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
-                modelXbrl.error("ESEF.RTS.Annex.III.3.missingOrInvalidTaxonomyPackage",
-                    _("Single reporting package with issuer's XBRL extension taxonomy files and Inline XBRL instance document must be compliant with the latest recommended version of the Taxonomy Packages specification (1.0)"),
-                    modelObject=modelXbrl) 
-                return ModelDocument.LoadingException("Invalid taxonomy package") 
+            if modelXbrl.fileSource.isArchive:
+                if (not isinstance(modelXbrl.fileSource.selection, list) and
+                    modelXbrl.fileSource.selection.endswith(".xml") and 
+                    ModelDocument.Type.identify(modelXbrl.fileSource, modelXbrl.fileSource.url) in (
+                        ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE)):
+                    return None # allow zipped test case to load normally
+                if not validateTaxonomyPackage(modelXbrl.modelManager.cntlr, modelXbrl.fileSource):
+                    modelXbrl.error("ESEF.RTS.Annex.III.3.missingOrInvalidTaxonomyPackage",
+                        _("Single reporting package with issuer's XBRL extension taxonomy files and Inline XBRL instance document must be compliant with the latest recommended version of the Taxonomy Packages specification (1.0)"),
+                        modelObject=modelXbrl) 
+                    return ModelDocument.LoadingException("Invalid taxonomy package") 
     return None                       
 
 def modelXbrlLoadComplete(modelXbrl):
-    if getattr(modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
+    if (getattr(modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False) and
+        (modelXbrl.modelDocument is None or modelXbrl.modelDocument.type not in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRY, ModelDocument.Type.RSSFEED))):
         if any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
             htmlElement = modelXbrl.modelDocument.xmlRootElement
             if htmlElement.namespaceURI == xhtml:  
@@ -124,9 +132,8 @@ def modelXbrlLoadComplete(modelXbrl):
             modelXbrl.error("ESEF.3.1.3.missingOrInvalidTaxonomyPackage",
                             _("RTS Annex III Par 3 and ESEF 3.1.3 requires an XBRL Report Package but one could not be loaded."), 
                             modelObject=modelXbrl)
-        if (modelXbrl.modelDocument is None or 
-            (modelXbrl.modelDocument.type not in (ModelDocument.Type.TESTCASESINDEX, ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRY, ModelDocument.Type.RSSFEED)
-            and not modelXbrl.facts and "ESEF.RTS.Art.6.a.noInlineXbrlTags" not in modelXbrl.errors)):
+        if (modelXbrl.modelDocument is None or
+            not modelXbrl.facts and "ESEF.RTS.Art.6.a.noInlineXbrlTags" not in modelXbrl.errors):
             modelXbrl.error("ESEF.RTS.Art.6.a.noInlineXbrlTags",
                             _("RTS on ESEF requires inline XBRL, no facts were reported."),
                             modelObject=modelXbrl)
@@ -292,9 +299,15 @@ def validateXbrlFinally(val, *args, **kwargs):
             if doc.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.UnknownXML):
                 _baseName, _baseExt = os.path.splitext(doc.basename)
                 if _baseExt not in (".xhtml",".html"):
-                    modelXbrl.error("ESEF.2.6.1.incorrectFileExtension",
-                        _("Inline XBRL document included within a ESEF report package MUST have a .html or .xhtml extension: %(fileName)s"),
-                        modelObject=doc, fileName=doc.basename)
+                    if val.consolidated:
+                        XHTMLExtensionGuidance = "2.6.1"
+                        reportType = _("Inline XBRL document included within a ESEF report package")
+                    else:
+                        XHTMLExtensionGuidance = "4.1.1"
+                        reportType = _("Stand-alone XHTML document")
+                    modelXbrl.error(f"ESEF.{XHTMLExtensionGuidance}.incorrectFileExtension",
+                                    _("%(reportType)s MUST have a .html or .xhtml extension: %(fileName)s"),
+                                    modelObject=doc, fileName=doc.basename, reportType=reportType)
                 docinfo = doc.xmlRootElement.getroottree().docinfo
                 docTypeMatch = docTypeXhtmlPattern.match(docinfo.doctype)
                 if val.consolidated:
@@ -317,6 +330,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                     reportCorrectlyPlacedInPackage = reportIsInZipFile = False
                     for i, dir in enumerate(docDirPath):
                         if dir.lower().endswith(".zip"):
+                            if reportIsInZipFile: # report package was nested in a zip file
+                                ixdsDocDirs.clear() # ignore containing zip
                             reportIsInZipFile = True
                             packageName = dir[:-4] # web service posted zips are always named POSTupload.zip instead of the source file name
                             if len(docDirPath) >= i + 2 and packageName in (docDirPath[i+1],"POSTupload") and docDirPath[i+2] == "reports":
@@ -324,7 +339,6 @@ def validateXbrlFinally(val, *args, **kwargs):
                                 reportCorrectlyPlacedInPackage = True
                             else:
                                 ixdsDocDirs.add("/".join(docDirPath[i+1:len(docDirPath)-1])) # needed for error msg on orphaned instance docs
-                            break
                     if not reportIsInZipFile:
                         modelXbrl.error("ESEF.2.6.1.reportIncorrectlyPlacedInPackage",
                             _("Inline XBRL document MUST be included within an ESEF report package as defined in"
@@ -369,7 +383,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 ixFractionTag = ixNStag + "fraction"
                 for elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
                     eltTag = elt.tag
-                    if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction)):
+                    if isinstance(elt, (_ElementTree, _Comment, _ProcessingInstruction, EntityBase)):
                         continue # comment or other non-parsed element
                     else:
                         eltTag = elt.tag

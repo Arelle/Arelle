@@ -451,7 +451,7 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                               ('resource_id', 'label', 'xml_lang'), 
                               ('resource_id',), 
                               tuple((resourceId,
-                                     resource.textValue,
+                                     resource.stringValue,
                                      resource.xmlLang)
                                     for resourceId, resource in uniqueResources.items()),
                               checkIfExisting=True)

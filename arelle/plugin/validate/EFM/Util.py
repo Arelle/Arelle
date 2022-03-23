@@ -354,8 +354,17 @@ def loadUgtRelQnames(modelXbrl, dqcRules):
                     for memConcept in modelXbrl.nameConcepts.get(memName,()):
                         if memConcept.qname.namespaceURI in disclosureSystem.standardTaxonomiesDict: # ignore extension concepts
                             axisObj.add(memConcept.qname)
+    ugtAxisDefaultQnames = {}
+    for axisName, defName in ugtRels["axis-defaults"].items():
+        for axisConcept in modelXbrl.nameConcepts.get(axisName,()):
+            if axisConcept.qname.namespaceURI in disclosureSystem.standardTaxonomiesDict: # ignore extension concepts
+                for defConcept in modelXbrl.nameConcepts.get(defName,()):
+                    if defConcept.qname.namespaceURI in disclosureSystem.standardTaxonomiesDict: # ignore extension concepts
+                        ugtAxisDefaultQnames[axisConcept.qname] = defConcept.qname
     ugt = {"calcs": ugtCalcsByQnames,
-           "axes": ugtAxesByQnames}
+           "axes": ugtAxesByQnames,
+           "axis-defaults": ugtAxisDefaultQnames,
+           "accrual-items": set(ugtRels["accrual-items"])}
      # dqc0015
     if "DQC.US.0015" in ugtRels:
         dqc0015 = ugtRels["DQC.US.0015"]
@@ -421,8 +430,10 @@ def buildUgtFullRelsFiles(modelXbrl, dqcRules):
     for ugtAbbr, (ugtEntireUrl, dqcrtUrl) in latestEntireUgt.items():
         modelManager.addToLog(_("loading {} Entire UGT {}").format(ugtAbbr, ugtEntireUrl), messageCode="info")
         ugtRels = {}
-        ugtRels["calcs"] = ugtCalcs = {}
-        ugtRels["axes"] = ugtAxes = defaultdict(set)
+        ugtCalcs = {}
+        ugtAxes = defaultdict(set)
+        ugtAxisDefaults = {}
+        accrualItems = set()
         ugtInstance = ModelXbrl.load(modelManager, 
               # "http://xbrl.fasb.org/us-gaap/2012/elts/us-gaap-doc-2012-01-31.xml",
               # load from zip (especially after caching) is incredibly faster
@@ -435,6 +446,7 @@ def buildUgtFullRelsFiles(modelXbrl, dqcRules):
         else:   
             # load signwarnings from DQC 0015
             calcRelSet = ugtInstance.relationshipSet(XbrlConst.summationItem)
+            preRelSet = ugtInstance.relationshipSet(XbrlConst.parentChild)
             for rel in calcRelSet.modelRelationships:
                 _fromQn = rel.fromModelObject.qname
                 _toQn = rel.toModelObject.qname
@@ -458,6 +470,29 @@ def buildUgtFullRelsFiles(modelXbrl, dqcRules):
                     addDomMems(rel, ugtAxes[axisConcept.name], True)
             for axis in tuple(ugtAxes.keys()):
                 ugtAxes[axis] = sorted(ugtAxes[axis]) # change set to array for json                       
+            for rel in ugtInstance.relationshipSet(XbrlConst.dimensionDefault).modelRelationships:
+                ugtAxisDefaults[rel.fromModelObject.name] = rel.toModelObject.name
+            # accrual items
+            def addAccrualDescendants(rel, visited):
+                name = rel.toModelObject.name
+                if rel.toModelObject.isMonetary:
+                    accrualItems.add(name)
+                if name not in visited:
+                    visited.add(name)
+                    for childRel in ugtInstance.relationshipSet(rel.arcrole, rel.consecutiveLinkrole).fromModelObject(rel.toModelObject):
+                        addAccrualDescendants(childRel, visited)
+                    visited.discard(name)
+            for parentLns, relset in ((dqcRules["DQC.US.0044"]["accrual-items-calc-parents"], calcRelSet), 
+                                      (dqcRules["DQC.US.0044"]["accrual-items-pre-parents"], preRelSet)):
+                for parentLn in parentLns:
+                    for parentConcept in ugtInstance.nameConcepts[parentLn]:
+                        for rel in relset.fromModelObject(parentConcept):
+                            addAccrualDescendants(rel, set())
+            ugtRels["accrual-items"] = sorted(accrualItems) # sort set into a list
+            ugtRels["calcs"] = OrderedDict(sorted(ugtCalcs.items(), key=lambda i:i[0]))
+            ugtRels["axes"] = OrderedDict(sorted(ugtAxes.items(), key=lambda i:i[0]))
+            ugtRels["axis-defaults"] = OrderedDict(sorted(ugtAxisDefaults.items(), key=lambda i:i[0]))
+            del calcRelSet, dimDomRelSet, preRelSet   
             ugtInstance.close()
             del ugtInstance # dereference closed modelXbrl
             
@@ -505,7 +540,9 @@ def buildUgtFullRelsFiles(modelXbrl, dqcRules):
                     dqc0015["conceptRuleIDs"] = conceptRuleIDs = {}
                     for rel in dqcrtInstance.relationshipSet(XbrlConst.conceptReference).modelRelationships:
                         if rel.toModelObject.role == "http://fasb.org/us-gaap/role/dqc/ruleID":
-                            conceptRuleIDs.setdefault(elt.qname.prefix, {})[rel.fromModelObject.name] = int(rel.toModelObject.stringValue.rpartition(".")[2])
+                            refValue = rel.toModelObject.stringValue
+                            if refValue.startswith("DQC.US.0015."):
+                                conceptRuleIDs.setdefault(rel.fromModelObject.qname.prefix, {})[rel.fromModelObject.name] = int(refValue.rpartition(".")[2])
                     
                 dqcrtInstance.close()
                 del dqcrtInstance # dereference closed modelXbrl
@@ -571,4 +608,3 @@ def leastDecimals(binding, localNames):
     if nonNilFacts:
         return min((inferredDecimals(f) for f in nonNilFacts))
     return floatINF
-    

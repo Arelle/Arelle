@@ -4,12 +4,13 @@
         "Data and content created by government employees within the scope of their employment", 
         "are not subject to domestic copyright protection. 17 U.S.C. 105."
     ],
-    "version": "EDGAR release 22.0.1",
+    "version": "EDGAR release 22.1",
     "description": [
         "Each JSON object key is a supported namespace and the value is its required prefix."
     ],
     "http://www.xbrl.org/inlineXBRL/transformation/2015-02-26": "ixt",
     "http://www.xbrl.org/inlineXBRL/transformation/2020-02-12": "ixt",
+    "http://www.xbrl.org/inlineXBRL/transformation/2022-02-16": "ixt",
     "http://www.sec.gov/inlineXBRL/transformation/2015-08-31": "ixt-sec"
     
 }

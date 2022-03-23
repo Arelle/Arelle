@@ -6,7 +6,7 @@
    
   <DisclosureSystem 
      names="US SEC (Edgar Filing Manual, Strict)|efm|efm-strict"
-     description="US SEC Edgar Filing Manual v60 Release 21.4\n
+     description="US SEC Edgar Filing Manual v61 Release 22.1\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Disallowed references are blocked and not loaded (same as SEC production system)\n
@@ -16,8 +16,8 @@
      blockDisallowedReferences="true" 
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
-     standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-21-4.xml"
-     utrUrl="http://www.xbrl.org/utr/2017-07-12/utr.xml"
+     standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-22-1.xml"
+     utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
      validateFileText="true"
      validateEntryText="true"
      allowedExternalHrefPattern="https?://www.sec.gov/(ix[?]doc=/)?Archives/edgar/data/"
@@ -38,7 +38,7 @@
      />
   <DisclosureSystem 
      names="US SEC (Edgar Filing Manual, Pragmatic)|efm-blocking|efm-pragmatic"
-     description="US SEC Edgar Filing Manual v60 Release 21.4\n
+     description="US SEC Edgar Filing Manual v61 Release 22.1\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
@@ -49,8 +49,8 @@
      blockDisallowedReferences="true" 
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
-     standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-21-4.xml"
-     utrUrl="http://www.xbrl.org/utr/2017-07-12/utr.xml"
+     standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-22-1.xml"
+     utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
      validateFileText="true"
      validateEntryText="true"
      allowedExternalHrefPattern="https?://www.sec.gov/(ix[?]doc=/)?Archives/edgar/data/"
@@ -75,7 +75,7 @@
      />
   <DisclosureSystem 
      names="US SEC 2021 Preview with DQCRT applied to us-gaap 2020-2021 (EFM Pragmatic)|efm-preview-dqcrt-testing"
-     description="US SEC Edgar Filing Manual v60 Release 21.4\n
+     description="US SEC Edgar Filing Manual v61 Release 22.1\n
      DQCRT/2021 applied to us-gaap/2020 for testing purposes\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
@@ -88,8 +88,8 @@
      blockDisallowedReferences="true" 
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
-     standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-21-4.xml"
-     utrUrl="http://www.xbrl.org/utr/2017-07-12/utr.xml"
+     standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-all-years.xml"
+     utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
      validateFileText="true"
      validateEntryText="true"
      allowedExternalHrefPattern="https?://www.sec.gov/(ix[?]doc=/)?Archives/edgar/data/"
@@ -126,7 +126,7 @@
       defaultXmlLang="en-US" 
       defaultLanguage="English" 
       standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-all-years.xml"
-      utrUrl="http://www.xbrl.org/utr/2017-07-12/utr.xml"
+      utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
       validateFileText="true"
       validateEntryText="true"
       allowedExternalHrefPattern="https?://www.sec.gov/(ix[?]doc=/)?Archives/edgar/data/"
@@ -161,7 +161,7 @@
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
      standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-all-years.xml"
-     utrUrl="http://www.xbrl.org/utr/2017-07-12/utr.xml"
+     utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
      validateFileText="true"
      validateEntryText="true"
      allowedExternalHrefPattern="https?://www.sec.gov/(ix[?]doc=/)?Archives/edgar/data/"
@@ -196,7 +196,7 @@
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
      standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-all-years.xml"
-     utrUrl="http://www.xbrl.org/utr/2017-07-12/utr.xml"
+     utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
      validateFileText="true"
      validateEntryText="true"
      allowedExternalHrefPattern="https?://www.sec.gov/(ix[?]doc=/)?Archives/edgar/data/"
@@ -233,7 +233,7 @@
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
      standardTaxonomiesUrl="resources/edgartaxonomies/extendedtaxonomies-all-years.xml"
-     utrUrl="http://www.xbrl.org/utr/2017-07-12/utr.xml"
+     utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
      validateFileText="true"
      validateEntryText="true"
      allowedExternalHrefPattern="https?://www.sec.gov/(ix[?]doc=/)?Archives/edgar/data/"

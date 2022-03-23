@@ -132,8 +132,13 @@
 <!ENTITY % special.basic
 	"br">
 
+<!ENTITY % special.edgar
+	"r | page" >
+
 <!ENTITY % special
-   "%special.basic; | %special.extra;">
+   "%special.basic; | %special.extra; | %special.edgar;">
+
+
 
 <!ENTITY % fontstyle.extra "big | small | font">
 
@@ -647,4 +652,13 @@
   name        CDATA          #IMPLIED
   content     CDATA          #IMPLIED
   >
+
+<!--===================== EDGAR Elements ================================-->
+
+<!ELEMENT page EMPTY>   <!-- EDGAR  break -->
+<!ATTLIST page
+  >
+
+<!ELEMENT r %Inline;>   <!-- EDGAR redline tag -->
+<!ATTLIST r >
 
