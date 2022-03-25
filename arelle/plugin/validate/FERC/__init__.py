@@ -11,10 +11,13 @@ Filer Guidelines:
 (c) Copyright 2021 Mark V Systems Limited, All rights reserved.
 '''
 import os, re
+from collections import defaultdict
+from math import isnan
 from arelle import ModelDocument, ValidateFilingText, XmlUtil
 from arelle.ModelInstanceObject import ModelFact, ModelInlineFact, ModelInlineFootnote
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype
+from arelle.ValidateXbrlCalcs import inferredDecimals, rangeValue
 from arelle.XbrlConst import xbrli, xhtml
 from arelle.XmlValidate import VALID
 
@@ -136,6 +139,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             _("There must be no contexts with segment, but %(count)s was(were) found: %(context)s."),
             modelObject=segContexts, count=len(segContexts), context=", ".join(sorted(c.id for c in segContexts)))
 
+    factForConceptContextUnitHash = defaultdict(list)
     # unused contexts
     for f in modelXbrl.facts:
         factContextID = f.contextID
@@ -169,6 +173,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                 confFormEntryXsdDev = confFormEntryXsd.replace("eCollection","dev.eforms")
 
                 allFormEntryXsd = [formEntryXsd, formEntryXsdUAT, formEntryXsdTest, formEntryXsdDev, confFormEntryXsd, confFormEntryXsdUAT, confFormEntryXsdTest, confFormEntryXsdDev]
+            factForConceptContextUnitHash[f.conceptContextUnitHash].append(f)
                 
     unexpectedXsds = set(doc.modelDocument.uri
                          for doc, referencingDoc in modelXbrl.modelDocument.referencesDocument.items()
@@ -190,6 +195,62 @@ def validateXbrlFinally(val, *args, **kwargs):
             modelXbrl.error("FERC.6.05.17",
                 _("The instance document contains elements using the precision attribute."),
                 modelObject=precisionFacts)
+            
+    # check for inconsistent duplicates (same check as in plugin/validate/HMRC
+    aspectEqualFacts = defaultdict(dict) # dict [(qname,lang)] of dict(cntx,unit) of [fact, fact] 
+    for hashEquivalentFacts in factForConceptContextUnitHash.values():
+        if len(hashEquivalentFacts) > 1:
+            for f in hashEquivalentFacts: # check for hash collision by value checks on context and unit
+                if getattr(f,"xValid", 0) >= 4:
+                    cuDict = aspectEqualFacts[(f.qname,
+                                               (f.xmlLang or "").lower() if f.concept.type.isWgnStringFactType else None)]
+                    _matched = False
+                    for (_cntx,_unit),fList in cuDict.items():
+                        if (((_cntx is None and f.context is None) or (f.context is not None and f.context.isEqualTo(_cntx))) and
+                            ((_unit is None and f.unit is None) or (f.unit is not None and f.unit.isEqualTo(_unit)))):
+                            _matched = True
+                            fList.append(f)
+                            break
+                    if not _matched:
+                        cuDict[(f.context,f.unit)] = [f]
+            decVals = {}
+            for cuDict in aspectEqualFacts.values(): # dups by qname, lang
+                for fList in cuDict.values():  # dups by equal-context equal-unit
+                    if len(fList) > 1:
+                        f0 = fList[0]
+                        if f0.concept.isNumeric:
+                            if any(f.isNil for f in fList):
+                                _inConsistent = not all(f.isNil for f in fList)
+                            else: # not all have same decimals
+                                _d = inferredDecimals(f0)
+                                _v = f0.xValue
+                                _inConsistent = isnan(_v) # NaN is incomparable, always makes dups inconsistent
+                                decVals[_d] = _v
+                                aMax, bMin = rangeValue(_v, _d)
+                                for f in fList[1:]:
+                                    _d = inferredDecimals(f)
+                                    _v = f.xValue
+                                    if isnan(_v):
+                                        _inConsistent = True
+                                        break
+                                    if _d in decVals:
+                                        _inConsistent |= _v != decVals[_d]
+                                    else:
+                                        decVals[_d] = _v
+                                    a, b = rangeValue(_v, _d)
+                                    if a > aMax: aMax = a
+                                    if b < bMin: bMin = b
+                                if not _inConsistent:
+                                    _inConsistent = (bMin < aMax)
+                                decVals.clear()
+                        else:
+                            _inConsistent = any(not f.isVEqualTo(f0) for f in fList[1:])
+                        if _inConsistent:
+                            modelXbrl.error("FERC.6.05.12",
+                                "Inconsistent duplicate fact values %(fact)s: %(values)s.",
+                                modelObject=fList, fact=f0.qname, contextID=f0.contextID, values=", ".join(f.value for f in fList))
+            aspectEqualFacts.clear()
+    del factForConceptContextUnitHash, aspectEqualFacts
 
     #6.5.14 facts without english text
     for keyNotDefaultLang, factNotDefaultLang in keysNotDefaultLang.items():
