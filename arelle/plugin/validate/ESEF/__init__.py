@@ -1098,10 +1098,11 @@ def validateFinally(val, *args, **kwargs): # runs all inline checks
     
 def validateFormulaCompiled(modelXbrl, xpathContext):
     # request unsatisfied assertions without a message to print a trace
+    # this is not conditional on validateESEFplugin so the flag is set even if DisclosureSystemChecks not requested upon compiling but set later in workflow
     xpathContext.formulaOptions.traceUnmessagedUnsatisfiedAssertions = True
         
 def validateFormulaFinished(val, *args, **kwargs): # runs *after* formula (which is different for test suite from other operation
-    if not getattr(val.modelXbrl.modelManager.disclosureSystem, "ESEFplugin", False):
+    if not (val.validateESEFplugin):
         return
 
     modelXbrl = val.modelXbrl
