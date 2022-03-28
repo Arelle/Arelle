@@ -23,6 +23,7 @@
         "Each validation object contains the following entries:",
         "  sub-types: arrayed submissionType or submissionType references or single submissionType or submissionType reference,",
         "             where specific to a form type, section-sign § separates sub and form types, e.g. 'POS EX§N-2' ",
+        "  sub-types-pattern: a regex to match submissionTypes instead of the sub-types array of submissionType values",
         "  xbrl-names, elo-names, and severities may be array (plural) or individual", 
         "  xbrl-names: arrayed dei local names or prefixed non-dei nmes of XBRL elements,",
         "  elo-names: optional corresponding arrayed ELO schema names of XML elements,",
@@ -86,7 +87,7 @@
         "N-6": ["N-6", "N-6/A", "485POS§N-6", "485APOS§N-6", "485BPOS§N-6", "485BXT§N-6", "497§N-6"],
         "N-346": ["@N-3", "@N-4", "@N-6"],
 		"POS": ["POS AM", "POS EX"],
-		"RR": ["485APOS", "485BPOS", "485BXT", "497", "N-1A"],
+		"RR": ["485APOS", "485BPOS", "485BXT", "497", "N-1A", "N-1A/A"],
 		"SP 15D2": ["SP 15D2", "SP 15D2/A"],
 		"S-n": ["S-1", "S-1/A", "S-3", "S-3/A", "S-4", "S-4/A", "S-11", "S-11/A"],
 		"S-nX": ["S-1MEF", "S-3D", "S-3DPOS", "S-3MEF", "S-4EF", "S-4MEF", "S-4 POS", "S-11MEF"],
@@ -338,7 +339,12 @@
         "dei/cover": "dei"
     },
     {
-    	"sub-types": ["@all"],
+        "sub-types": [
+            "@all-FAST",
+            "@POS", "N-CSR", "N-CSR/A", "N-CSRS", "N-CSRS/A",
+            "@6-K", "@SP 15D2", "@RR", "@N-346", "@SDR",
+            "@N", "N-3", "N-4", "N-6"
+        ],
         "xbrl-names": "DocumentPeriodEndDate",
         "store-db-name": "periodOfReport",
         "store-db-object": "eloValuesFromFacts",
@@ -802,6 +808,15 @@
         "elo-name": "invCompanyType",
         "efm": "6.5.40",
         "validation": "r",
+        "source": "both",
+        "dei/cover": "dei"
+    },
+    {
+        "sub-types-pattern": "^(N-.*|(485(A|B)(POS|BXT))|486.*|497.*|POS(ASR|462[BC]| 8C| AMI))$",
+        "xbrl-names": "EntityInvCompanyType",
+        "elo-name": "invCompanyType",
+        "efm": "6.5.40",
+        "validation": "o",
         "source": "both",
         "dei/cover": "dei"
     },
