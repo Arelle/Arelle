@@ -481,6 +481,8 @@ def xlValue(cell): # excel values may have encoded unicode, such as _0000D_
         v = xlUnicodePattern.sub(xlUnicodeChar, v).replace('\r\n','\n').replace('\r','\n')
     elif v is None:
         v = ""
+    elif isinstance(v, float): 
+        return str(round(v, 14)) # Deal with general numbers which may be imprecise
     else:
         v = str(v)
     return csvCellValue(v)
