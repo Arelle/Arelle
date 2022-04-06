@@ -186,6 +186,8 @@ def loadDeiValidations(modelXbrl, isInlineXbrl):
             if "*" in subTypeSet:
                 subTypeSet = "all" # change to string for faster testing in Filing.py
             sev["subTypeSet"] = subTypeSet
+            if "sub-types-pattern" in sev:
+                sev["subTypesPattern"] = re.compile(sev["sub-types-pattern"])
             sev["formTypeSet"] = compileSubTypeSet(sev.get("form-types", (sev.get("form-type",()),)))
         
     for axisKey, axisValidation in validations["axis-validations"].items():
@@ -590,10 +592,13 @@ def loadDqcRules(modelXbrl): # returns match expression, standard patterns
         return dqcRules
     return {}
 
-def factBindings(modelXbrl, localNames, nils=False):
+def factBindings(modelXbrl, localNames, nils=False, noAdditionalDims=False):
     bindings = defaultdict(dict)
     def addMostAccurateFactToBinding(f):
-        if f.xValid >= VALID and (nils or not f.isNil) and f.context is not None:
+        if (f.xValid >= VALID 
+            and (nils or not f.isNil) 
+            and f.context is not None
+            and (not noAdditionalDims or not f.context.qnameDims)):
             binding = bindings[f.context.contextDimAwareHash, f.unit.hash if f.unit is not None else None]
             ln = f.qname.localName
             if ln not in binding or inferredDecimals(f) > inferredDecimals(binding[ln]):

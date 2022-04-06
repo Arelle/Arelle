@@ -4,7 +4,7 @@
 
 TESTCASESINDEXFILE=/Users/hermf/Documents/mvsl/projects/SEC/efm/conf/testcases.xml
 PLUGINS=EdgarRenderer
-DISCLOSURE_SYSTEM=efm-pragmatic-preview
+DISCLOSURE_SYSTEM=efm-pragmatic
 
 LOG_DIR=/users/hermf/temp
 rm -f $LOG_DIR/EFM-conf-*

@@ -1137,6 +1137,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 reportDate = str(XmlUtil.dateunionValue(val.requiredContext.endDatetime, subtractOneDay=True))
             for sevIndex, sev in enumerate(sevs):
                 subTypes = sev.get("subTypeSet", EMPTY_SET) # compiled set of sub-types
+                subTypesPattern = sev.get("subTypesPattern")
                 names = sev.get("xbrl-names", ())
                 eloName = sev.get("elo-name")
                 storeDbName = sev.get("store-db-name")
@@ -1153,7 +1154,9 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 if checkAfter and reportDate and checkAfter >= reportDate:
                     continue
                 subFormTypesCheck = {submissionType, "{}§{}".format(submissionType, documentType)}
-                if subTypes != "all" and (subFormTypesCheck.isdisjoint(subTypes) ^ ("!not!" in subTypes)):
+                if (subTypes != "all" 
+                    and (subFormTypesCheck.isdisjoint(subTypes) ^ ("!not!" in subTypes))
+                    and (not subTypesPattern or not subTypesPattern.match(submissionType))):
                     if validation is not None: # don't process name for sev's which only store-db-field
                         for name in names:
                             if name.endswith(":*") and validation == "(supported-taxonomy)": # taxonomy-prefix filter
@@ -3004,7 +3007,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
         elif dqcRuleName == "DQC.US.0060":
             for id, rule in dqcRule["rules"].items():
                 for eltLn, depLns in rule["element-dependencies"].items():
-                    bindings = factBindings(val.modelXbrl, flattenToSet( (eltLn, depLns )), nils=False)
+                    bindings = factBindings(val.modelXbrl, flattenToSet( (eltLn, depLns )), nils=False, noAdditionalDims=True)
                     for b in bindings.values():
                         if eltLn in b and not any(depLn in b for depLn in depLns):
                             f = b[eltLn]
@@ -3206,3 +3209,4 @@ def cleanedCompanyName(name):
                                  ):
         name = re.sub(pattern, replacement, name, flags=re.IGNORECASE)
     return unicodedata.normalize('NFKD', name.strip().lower()).encode('ASCII', 'ignore').decode()  # remove diacritics 
+

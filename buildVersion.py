@@ -8,7 +8,7 @@ This module emits the version.py file contents which are used in the
 build process to indicate the time that this version was built.
 
 '''
-import datetime, sys
+import datetime, sys, subprocess, os
 arelleMajorVersion = 1 # major verison = 1 (python), 2 (cython)
 
 if __name__ == "__main__":
@@ -30,12 +30,28 @@ if __name__ == "__main__":
                  "version = '{3}'  # string version of date compiled\n"
                  "copyrightLatestYear = '{0}'  # string version of year compiled\n"
                  ).format(dateYr, arelleMajorVersion, dateDotYmd, dateDashYmdHmUtc)
+                 
+    versionTxt = dateDashYmdHmUtc
+
+    try:
+        arelleCommit = subprocess.check_output(["git", "show", "--format='%h'", "--no-patch"]).decode("utf-8").strip()
+        os.chdir("arelle/plugin/EdgarRenderer")
+        edgarRendererCommit = subprocess.check_output(["git", "show", "--format='%h'", "--no-patch"]).decode("utf-8").strip()
+        os.chdir("../../..")
+        versionPy += ("arelleCommit = {0} # git Arelle commit \n"
+                      "edgarRendererCommit = {1} # git EdgarRenderer commit \n"
+                      ).format(arelleCommit, edgarRendererCommit)
+        versionTxt += ("\narelleCommit {0} "
+                       "\nedgarRendererCommit {1}"
+                      ).format(arelleCommit[1:-1], edgarRendererCommit[1:-1])
+    except Exception:
+        pass
 
     with open("arelle/Version.py", "w") as fh:
         fh.write(versionPy)
         
     with open("version.txt", "w") as fh:
-        fh.write(dateDashYmdHmUtc)
+        fh.write(versionTxt)
         
 
     # add name suffix, like ER3 or TKTABLE
