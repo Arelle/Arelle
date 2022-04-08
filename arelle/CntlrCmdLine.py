@@ -1008,8 +1008,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                                     _("validated in %.2f secs"), 
                                                     time.time() - startedAt),
                                                     messageCode="info", file=self.entrypointFile)
-                    if (options.formulaAction in ("validate", "run") and  # do nothing here if "none"
-                        not isAlreadyValidated):  # formulas can't run if streaming has validated the instance 
+                    if (modelXbrl.modelDocument.type not in ModelDocument.Type.TESTCASETYPES and
+                            options.formulaAction in ("validate", "run") and  # do nothing here if "none"
+                            not isAlreadyValidated):  # formulas can't run if streaming has validated the instance
                         from arelle import ValidateXbrlDimensions, ValidateFormula
                         startedAt = time.time()
                         if not options.validate:
