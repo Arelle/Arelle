@@ -566,6 +566,7 @@ class Validate:
         elif isinstance(expected,(QName,_STR_BASE,dict,list)): # string or assertion id counts dict
             status = "fail"
             _passCount = 0
+            matched_expected = []
             if isinstance(expected, list):
                 _expectedList = expected.copy() # need shallow copy
             else:
@@ -603,12 +604,15 @@ class Validate:
                             _expMatched = True
                     if _expMatched:
                         _passCount += 1
+                        matched_expected.append(_exp)
                         if matchAllExpected:
                             _expectedList.remove(_exp)
                         break
             if _passCount > 0:
                 if expectedCount is not None and (expectedCount != _passCount or 
                                                   (matchAllExpected and expectedCount != numErrors)):
+                    status = "fail"
+                elif set(matched_expected) != set(expected):
                     status = "fail"
                 else:
                     status = "pass"
