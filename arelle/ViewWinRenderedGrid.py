@@ -111,6 +111,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         self.xAxisChildrenFirst = BooleanVar(value=self.options.setdefault("xAxisChildrenFirst",True))
         self.yAxisChildrenFirst = BooleanVar(value=self.options.setdefault("yAxisChildrenFirst",False))
         formulaEvaluatorInit() # one-time module initialization
+        self.conceptMessageIssued = False
 
     def close(self):
         super(ViewRenderedGrid, self).close()
@@ -437,7 +438,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                   (xStructuralNode.childStructuralNodes and
                                    not isinstance(xStructuralNode.definitionNode, ModelClosedDefinitionNode)))
                     isNonAbstract = not isAbstract
-                    isRollUp = xStructuralNode.definitionNode.isRollUp
+                    isRollUp = xStructuralNode.isRollUp
                     rightCol, row, width, leafNode = self.xAxis(leftCol, topRow + isLabeled, rowBelow, xStructuralNode, xStructuralNodes, # nested items before totals
                                                                 childrenFirst, childrenFirst, False)
                     if row - 1 < parentRow:
@@ -652,7 +653,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                             # reduce set of matchable facts to those with pri item qname and have dimension aspects
                             facts = self.modelXbrl.factsByQname[priItemQname] if priItemQname else self.modelXbrl.factsInInstance
                             if self.hasTableFilters:
-                                facts = self.modelTable.filterFacts(self.rendrCntx, facts)
+                                facts = self.modelTable.filteredFacts(self.rendrCntx, facts)
                             for aspect in matchableAspects:  # trim down facts with explicit dimensions match or just present
                                 if isinstance(aspect, QName):
                                     aspectValue = cellAspectValues.get(aspect, None)

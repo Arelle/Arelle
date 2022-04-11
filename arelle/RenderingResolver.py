@@ -109,10 +109,12 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
     
     # do z's first to set variables needed by x and y axes expressions
     for disposition in ("z", "x", "y"):
+        dispositionHasNoBreakdown = True
         for i, tblAxisRel in enumerate(tblAxisRels):
             definitionNode = tblAxisRel.toModelObject
             if (tblAxisRel.axisDisposition == disposition and 
                 isinstance(definitionNode, (ModelBreakdown, ModelDefinitionNode))):
+                dispositionHasNoBreakdown = False
                 if disposition == "x" and xTopStructuralNode is None:
                     xTopStructuralNode = StructuralNode(None, definitionNode, definitionNode, view.zmostOrdCntx, tableNode=table, rendrCntx=view.rendrCntx)
                     xTopStructuralNode.hasOpenNode = False
@@ -140,11 +142,13 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
                     #addBreakdownNode(view, disposition, definitionNode)
                     expandDefinition(view, zTopStructuralNode, definitionNode, definitionNode, 1, disposition, facts, i, tblAxisRels)
                     break
-        if i == 0: # no breakdown nodes for axis
+        if dispositionHasNoBreakdown: # no breakdown nodes for axis
             if disposition == "x":
                 xTopStructuralNode = StructuralNode(None, None, None, view.zmostOrdCntx, tableNode=table, rendrCntx=view.rendrCntx)
                 xTopStructuralNode.hasOpenNode = True
                 expandDefinition(view, xTopStructuralNode, None, None, 1, disposition, facts, i, tblAxisRels)
+                # must have a single column when no breakdown
+                xTopStructuralNode.childStructuralNodes.append(StructuralNode(xTopStructuralNode, None, None, None))
                 view.dataCols = xTopStructuralNode.leafNodeCount
             elif disposition == "y":
                 yTopStructuralNode = StructuralNode(None, None, None, view.zmostOrdCntx, tableNode=table, rendrCntx=view.rendrCntx)
@@ -183,6 +187,8 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
     #view.rowHdrColWidth = (60,60,60,60,60,60,60,60,60,60,60,60,60,60)
     # use as wraplength for all row hdr name columns 200 + fixed indent and abstract mins (not incl last name col)
     view.rowHdrWrapLength = 200 + sum(view.rowHdrColWidth[:view.rowHdrCols + 1])
+    if view.colHdrRows == 0:
+        view.colHdrRows = 1 # always reserve aa col header row even if no labels for col headers
     view.dataFirstRow = view.colHdrTopRow + view.colHdrRows + len(view.colHdrNonStdRoles)
     view.dataFirstCol = 1 + view.rowHdrCols + len(view.rowHdrNonStdRoles)
     #view.dataFirstRow = view.colHdrTopRow + view.colHdrRows + view.colHdrDocRow + view.colHdrCodeRow

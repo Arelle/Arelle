@@ -99,11 +99,13 @@ class StructuralNode:
         
     @property
     def isRollUp(self):
-        return self.definitionNode.isRollUp
+        return self.definitionNode is not None and self.definitionNode.isRollUp
         
     @property
     def cardinalityAndDepth(self):
-        return self.definitionNode.cardinalityAndDepth(self)
+        if self.definitionNode is not None:
+            return self.definitionNode.cardinalityAndDepth(self)
+        return (1, 0) # no breakdown
     
     @property
     def structuralDepth(self):
@@ -135,14 +137,17 @@ class StructuralNode:
         return definitionNode.constraintSets.get(None) # returns None if no default constraint set
     
     def aspectsCovered(self, inherit=False):
-        aspectsCovered = _DICT_SET(self.aspects.keys()) | self.definitionNode.aspectsCovered()
+        aspectsCovered = _DICT_SET(self.aspects.keys())
+        if self.definitionNode is not None:
+            aspectsCovered |= self.definitionNode.aspectsCovered()
         if inherit and self.parentStructuralNode is not None:
             aspectsCovered.update(self.parentStructuralNode.aspectsCovered(inherit=inherit))
         return aspectsCovered
       
     def hasAspect(self, aspect, inherit=True):
         return (aspect in self.aspects or 
-                self.definitionNode.hasAspect(self, aspect) or 
+                (self.definitionNode is not None and 
+                 self.definitionNode.hasAspect(self, aspect)) or 
                 (inherit and
                  self.parentStructuralNode is not None and 
                  self.parentStructuralNode.hasAspect(aspect, inherit)))
@@ -193,17 +198,17 @@ class StructuralNode:
             return self.definitionNode.objectId(refId)
         return None
         
-    def header(self, role=None, lang=None, evaluate=True, returnGenLabel=True, returnMsgFormatString=False, recurseParent=True, returnStdLabel=True):
+    def headerAndSource(self, role=None, lang=None, evaluate=True, returnGenLabel=True, returnMsgFormatString=False, recurseParent=True, returnStdLabel=True):
         if returnGenLabel:
             label = self.definitionNode.genLabel(role=role, lang=lang)
             if label:
-                return label
+                return label, None # explicit is default source
         if self.isEntryAspect and role is None:
             # True if open node bound to a prototype, false if boudn to a real fact
-            return OPEN_ASPECT_ENTRY_SURROGATE # sort pretty high, work ok for python 2.7/3.2 as well as 3.3
+            return OPEN_ASPECT_ENTRY_SURROGATE, None # sort pretty high, work ok for python 2.7/3.2 as well as 3.3
         # if there's a child roll up, check for it
         if self.rollUpStructuralNode is not None:  # check the rolling-up child too
-            return self.rollUpStructuralNode.header(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent)
+            return self.rollUpStructuralNode.headerAndSource(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent)
         # if aspect is a concept of dimension, return its standard label
         concept = None
         if role is None and returnStdLabel:
@@ -222,15 +227,18 @@ class StructuralNode:
                     text = XmlUtil.innerTextList(aspectValue)
                     if not text and XmlUtil.hasChild(aspectValue, aspectValue.namespaceURI, "forever"):
                         text = "forever" 
-                    return text
+                    return text, "processor"
         if concept is not None:
             label = concept.label(lang=lang)
             if label:
-                return label
+                return label, "processor"
         # if there is a role, check if it's available on a parent node
         if role and recurseParent and self.parentStructuralNode is not None:
-            return self.parentStructuralNode.header(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent)
-        return None
+            return self.parentStructuralNode.headerAndSource(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent)
+        return None, None
+    
+    def header(self, role=None, lang=None, evaluate=True, returnGenLabel=True, returnMsgFormatString=False, recurseParent=True, returnStdLabel=True):
+        return self.headerAndSource(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent, returnStdLabel)[0]
     
     def evaluate(self, evalObject, evalMethod, otherAxisStructuralNode=None, evalArgs=(), handleXPathException=True, **kwargs):
         xc = self._rendrCntx
@@ -275,11 +283,15 @@ class StructuralNode:
     
     def hasValueExpression(self, otherAxisStructuralNode=None):
         return (self.definitionNode.hasValueExpression or 
-                (otherAxisStructuralNode is not None and otherAxisStructuralNode.definitionNode.hasValueExpression))
+                (otherAxisStructuralNode is not None and 
+                 otherAxisStructuralNode.definitionNode is not None and
+                 otherAxisStructuralNode.definitionNode.hasValueExpression))
     
     def evalValueExpression(self, fact, otherAxisStructuralNode=None):
         for structuralNode in (self, otherAxisStructuralNode):
-            if structuralNode is not None and structuralNode.definitionNode.hasValueExpression:
+            if (structuralNode is not None and 
+                structuralNode.definitionNode is not None and 
+                structuralNode.definitionNode.hasValueExpression):
                 return self.evaluate(self.definitionNode, structuralNode.definitionNode.evalValueExpression, otherAxisStructuralNode=otherAxisStructuralNode, evalArgs=(fact,))
         return None
     
@@ -296,6 +308,12 @@ class StructuralNode:
         if self.parentStructuralNode is not None:
             return self.parentStructuralNode.isEntryPrototype(default)
         return default # nothing open to be bound to a fact
+    
+    @property
+    def parentChildOrder(self):
+        if self.definitionNode is not None:
+            return self.definitionNode.parentChildOrder
+        return "parent-first" # default value
             
     @property
     def tableDefinitionNode(self):
