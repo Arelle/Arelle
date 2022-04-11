@@ -554,24 +554,14 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                         edgarCode="du-0525-Domain-As-Fact",
                         modelObject=f, fact=f.qname, contextID=factContextID)
                     
-                # fasb extensibleListItemType checks (2017-2018 only)
-                #if concept.instanceOfType(qnFasbExtensibleListItemTypes):
-                #    qnEnumsInvalid = []
-                #    for qnToken in value.split():
-                #        for qnValue in qnameEltPfxName(f, qnToken):
-                #            qnConcept = modelXbrl.qnameConcepts.get(qnValue)
-                #            if qnConcept is None:
-                #                qnEnumsInvalid.append(qnToken)
-                #            else:
-                #                conceptsUsed[qnConcept] = False
-                #    if qnEnumsInvalid:
-                #        modelXbrl.error("EFM.tbd",
-                #            _("The fact %(fact)s contains inappropriate enumeration items %(enumerationItems)s in context %(contextID)s.  Please remove the inappropriate enumeratiuon items."),
-                #            edgarCode="du-tbd",
-                #            modelObject=f, fact=f.qname, contextID=factContextID, enumerationItems=", ".join(qnEnumsInvalid))
-                
                 if concept.qname in deprecatedConceptDates:
                     deprecatedConceptFacts[concept.qname].append(f) 
+                    
+                if concept.isEnumeration and not f.isNil:
+                    for qnEnum in flattenSequence(f.xValue):
+                        if qnEnum in deprecatedConceptDates:
+                            deprecatedConceptFacts[qnEnum].append(f) 
+
             if factContextID in deprecatedConceptContexts: # deprecated dimension and member qnames
                 for _qname in deprecatedConceptContexts[factContextID]:
                     deprecatedConceptFacts[_qname].append(f) 
