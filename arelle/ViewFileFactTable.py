@@ -5,7 +5,7 @@ Created on Jan 24, 2011
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 '''
 from arelle import ViewFile, ModelDtsObject, XbrlConst, XmlUtil
-from arelle.XbrlConst import conceptNameLabelRole
+from arelle.XbrlConst import conceptNameLabelRole, standardLabel, terseLabel, documentationLabel 
 from arelle.ViewFile import CSV, XLSX, HTML, XML, JSON
 import datetime, re
 from collections import defaultdict
@@ -22,15 +22,25 @@ def viewFacts(modelXbrl, outfile, arcrole=None, linkrole=None, linkqname=None, a
 COL_WIDTHS = {
     "Concept": 70, # same as label
     "Facts": 24, # one column per fact period/dimension/unit
-    "Label": 70,
+    "Label": 70, # preferred label
     "Name": 70,
     "LocalName":  40,
     "Namespace": 60,
+    "ParentName": 70,
+    "ParentLocalName":  40,
+    "ParentNamespace": 60,
     "ID": 40,
     "Type": 32,
     "PeriodType": 16, 
     "Balance": 16,
-    "Documentation": 100
+    "StandardLabel": 70,
+    "TerseLabel": 70,
+    "Documentation": 100,
+    "LinkRole": 70,
+    "LinkDefinition": 100,
+    "PreferredLabelRole": 70,
+    "Depth": 16,
+    "ArcRole": 70,
     }
     
 class ViewFacts(ViewFile.View):
@@ -92,6 +102,7 @@ class ViewFacts(ViewFile.View):
                 linkRelationshipSet = self.modelXbrl.relationshipSet(self.arcrole, linkroleUri, self.linkqname, self.arcqname)
                 for rootConcept in linkRelationshipSet.rootConcepts:
                     self.treeDepth(rootConcept, rootConcept, 2, self.arcrole, linkRelationshipSet, set())
+        self.linkRoleDefintions = dict((linkroleUri,roledefinition) for roledefinition, linkroleUri in linkroleUris)
         
         # allocate facts to table structure for US-GAAP-style filings
         if not self.modelXbrl.hasTableIndexing:
@@ -185,7 +196,8 @@ class ViewFacts(ViewFile.View):
         if relationshipSet:
             # for each URI in definition order
             for roledefinition, linkroleUri in linkroleUris:
-                attr = {"role": linkroleUri}
+                attr = {"role": linkroleUri,
+                        "definition": roledefinition}
                 self.addRow([roledefinition], treeIndent=0, colSpan=len(heading), 
                             xmlRowElementName="linkRole", xmlRowEltAttr=attr, xmlCol0skipElt=True)
                 linkRelationshipSet = self.modelXbrl.relationshipSet(self.arcrole, linkroleUri, self.linkqname, self.arcqname)
@@ -200,7 +212,7 @@ class ViewFacts(ViewFile.View):
                             self.conceptFacts[fact.qname].append(fact)
                 # view root and descendant
                 for rootConcept in linkRelationshipSet.rootConcepts:
-                    self.viewConcept(rootConcept, rootConcept, "", self.labelrole, 1, linkRelationshipSet, set())
+                    self.viewConcept(rootConcept, linkroleUri, "", self.labelrole, 1, linkRelationshipSet, set())
     
         return True
 
@@ -250,8 +262,38 @@ class ViewFacts(ViewFile.View):
                     cols[i] = concept.periodType
                 elif col == "Balance":
                     cols[i] = concept.balance
+                elif col == "StandardLabel":
+                    cols[i] = concept.label(preferredLabel=standardLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole)
+                elif col == "TerseLabel":
+                    cols[i] = concept.label(preferredLabel=terseLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole)
                 elif col == "Documentation":
-                    cols[i] = concept.label(preferredLabel=XbrlConst.documentationLabel, fallbackToQname=False, lang=self.lang, strip=True, linkroleHint=XbrlConst.defaultLinkRole)
+                    cols[i] = concept.label(preferredLabel=documentationLabel, fallbackToQname=False, lang=self.lang, strip=True, linkroleHint=XbrlConst.defaultLinkRole)
+                elif col == "PreferredLabelRole":
+                    cols[i] = preferredLabel
+                elif col == "LinkRole":
+                    if isinstance(modelObject, str):
+                        cols[i] = modelObject
+                    elif isinstance(modelObject, ModelDtsObject.ModelRelationship):
+                        cols[i] = modelObject.linkrole
+                elif col == "LinkDefinition":
+                    if isinstance(modelObject, str):
+                        cols[i] = self.linkRoleDefintions[modelObject]
+                    elif isinstance(modelObject, ModelDtsObject.ModelRelationship):
+                        cols[i] = self.linkRoleDefintions[modelObject.linkrole]
+                elif col == "ArcRole":
+                    if isinstance(modelObject, ModelDtsObject.ModelRelationship):
+                        cols[i] = modelObject.arcrole
+                elif col == "Depth":
+                    cols[i] = n
+                elif col == "ParentName":
+                    if isinstance(modelObject, ModelDtsObject.ModelRelationship):
+                        cols[i] = modelObject.fromModelObject.qname
+                elif col == "ParentLocalName":
+                    if isinstance(modelObject, ModelDtsObject.ModelRelationship):
+                        cols[i] = modelObject.fromModelObject.name
+                elif col == "ParentNamespace":
+                    if isinstance(modelObject, ModelDtsObject.ModelRelationship):
+                        cols[i] = modelObject.fromModelObject.qname.namespaceURI
                 i += 1
 
         attr = {"concept": str(concept.qname)}
