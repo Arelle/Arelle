@@ -276,7 +276,25 @@ def evaluateTableIndex(modelXbrl, lang=None):
                 if startMo <= 0:
                     startMo += 12
                     startYr -= 1
-                startDatetime = datetime(startYr, startMo, endDatetime.day, endDatetime.hour, endDatetime.minute, endDatetime.second)
+                start_datetime_day = endDatetime.day
+                # check if we are in Feb past the 28th
+                if startMo == 2 and start_datetime_day > 28:
+                    import calendar
+                    if endOfMonth:
+                        # reset day to the last day of Feb.
+                        start_datetime_day = 29 if calendar.isleap(startYr) else 28
+                    else:
+                        # probably 52-53 weeks fiscal year, 2 cases only, current qtr ends on May 29th or 30th (31st then endOfMonth is True)
+                        if start_datetime_day == 29:
+                            if not calendar.isleap(startYr):
+                                start_datetime_day = 1
+                                # step into March
+                                startMo +=1
+                        elif start_datetime_day == 30:
+                            start_datetime_day = 1 if calendar.isleap(startYr) else 2
+                            # step into March
+                            startMo +=1
+                startDatetime = datetime(startYr, startMo, start_datetime_day, endDatetime.hour, endDatetime.minute, endDatetime.second)
                 if endOfMonth:
                     startDatetime -= timedelta(1)
                     endDatetime -= timedelta(1)
