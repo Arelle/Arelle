@@ -781,9 +781,9 @@ class ViewRenderedGrid(ViewFile.View):
                         conceptNotAbstract = concept is None or not concept.isAbstract
                         from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
                         fact = None
-                        value = None
-                        objectId = None
-                        justify = None
+                        factsVals = [] # matched / filtered [(fact, value, justify), ...]
+                        value = None # last of the facts matched
+                        justify = "left"
                         fp = FactPrototype(self, cellAspectValues)
                         if conceptNotAbstract:
                             # reduce set of matchable facts to those with pri item qname and have dimension aspects
@@ -805,7 +805,7 @@ class ViewRenderedGrid(ViewFile.View):
                                     else:
                                         dimMemQname = None # match facts that report this dimension
                                     facts = facts & self.modelXbrl.factsByDimMemQname(aspect, dimMemQname)
-                            for fact in facts:
+                            for fact in sorted(facts, key=lambda f:f.objectIndex):
                                 if (all(aspectMatches(self.rendrCntx, fact, fp, aspect) 
                                         for aspect in matchableAspects) and
                                     all(fact.context.dimMemberQname(dim,includeDefaults=True) in (dimDefaults[dim], None)
@@ -816,11 +816,11 @@ class ViewRenderedGrid(ViewFile.View):
                                     else:
                                         value = fact.effectiveValue
                                     justify = "right" if fact.isNumeric else "left"
-                                    break
+                                    factsVals.append( (fact, value, justify) )
                         if justify is None:
                             justify = "right" if fp.isNumeric else "left"
                         if conceptNotAbstract:
-                            if self.type == XML and fact is not None:
+                            if self.type == XML and factsVals:
                                 cellsParentElt.append(etree.Comment("Cell concept {0}: segDims {1}, scenDims {2}"
                                                                     .format(str(fp.qname).replace(OPEN_ASPECT_ENTRY_SURROGATE, '\u00a0'),
                                                                          ', '.join("({}={})".format(dimVal.dimensionQname, dimVal.memberQname)
@@ -828,22 +828,24 @@ class ViewRenderedGrid(ViewFile.View):
                                                                          ', '.join("({}={})".format(dimVal.dimensionQname, dimVal.memberQname)
                                                                                    for dimVal in sorted(fp.context.scenDimVals.values(), key=lambda d: d.dimensionQname)),
                                                                          )))
-                            if value is not None or ignoreDimValidity or isFactDimensionallyValid(self, fp) or isEntryPrototype:
+                            if factsVals or ignoreDimValidity or isFactDimensionallyValid(self, fp) or isEntryPrototype:
                                 if self.type == HTML:
-                                    etree.SubElement(self.rowElts[row - 1], 
-                                                     "{http://www.w3.org/1999/xhtml}td",
-                                                     attrib={"class":"cell",
-                                                             "style":"text-align:{0};width:8em".format(justify)}
-                                                     ).text = value or "\u00A0"
+                                    elt = etree.SubElement(self.rowElts[row - 1], 
+                                                           "{http://www.w3.org/1999/xhtml}td",
+                                                           attrib={"class":"cell",
+                                                                   "style":"text-align:{0};width:8em".format(justify)}
+                                                           )
+                                    if len(factsVals) == 0:
+                                        elt.text = "\u00A0"
+                                    elif len(factsVals) == 1:
+                                        elt.text = v
+                                    else:
+                                        for i, (_f, v, _j) in enumerate(factsVals):
+                                            if i > 0:
+                                                elt = etree.SubElement(elt, "{http://www.w3.org/1999/xhtml}br")
+                                            elt.text = v or "\u00A0"
                                 elif self.type == XML:
-                                    if value is not None and fact is not None:
-                                        cellsParentElt.append(etree.Comment("{0}: context {1}, value {2}, file {3}, line {4}"
-                                                                            .format(fact.qname,
-                                                                                 fact.contextID,
-                                                                                 value[:32], # no more than 32 characters
-                                                                                 fact.modelDocument.basename, 
-                                                                                 fact.sourceline)))
-                                    elif fact is not None:
+                                    if not factsVals and fact is not None:
                                         cellsParentElt.append(etree.Comment("Fact was not matched {0}: context {1}, value {2}, file {3}, line {4}, aspects not matched: {5}, dimensions expected to have been defaulted: {6}"
                                                                             .format(fact.qname,
                                                                                  fact.contextID,
@@ -857,12 +859,19 @@ class ViewRenderedGrid(ViewFile.View):
                                                                                            for dim in cellDefaultedDims
                                                                                            if fact.context.dimMemberQname(dim,includeDefaults=True) not in (dimDefaults[dim], None))
                                                                                  )))
-                                    if fact is not None:
+                                    if factsVals:
                                         cellElt = etree.SubElement(cellsParentElt, self.tableModelQName("cell"))
-                                        if value is not None:
-                                            etree.SubElement(cellElt, self.tableModelQName("fact")
-                                                             ).text = '{}#{}'.format(fact.modelDocument.basename,
-                                                                                     elementFragmentIdentifier(fact))
+                                        for f, v, _j in factsVals:
+                                            cellElt.append(etree.Comment("{0}: context {1}, value {2}, file {3}, line {4}"
+                                                                                .format(f.qname,
+                                                                                     f.contextID,
+                                                                                     v[:32], # no more than 32 characters
+                                                                                     f.modelDocument.basename, 
+                                                                                     f.sourceline)))
+                                            if v is not None:
+                                                etree.SubElement(cellElt, self.tableModelQName("fact")
+                                                                 ).text = '{}#{}'.format(f.modelDocument.basename,
+                                                                                             elementFragmentIdentifier(f))
                             else:
                                 if self.type == HTML:
                                     etree.SubElement(self.rowElts[row - 1], 
