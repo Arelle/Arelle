@@ -342,7 +342,7 @@ class ModelRelationshipSet:
                             labelsOtherLinks.append(modelLabelRel)
                 labels = (labelsHintedLink or labelsDefaultLink or labelsOtherLinks)
         if len(labels) > 1: # order by priority (ignoring equivalence of relationships)
-            labels.sort(key=lambda rel: rel.priority, reverse=True)
+            labels = sorted(labels, key=lambda rel: rel.priority, reverse=True)
         for modelLabelRel in labels:
             label = modelLabelRel.toModelObject
             if wildRole or role == label.role:
