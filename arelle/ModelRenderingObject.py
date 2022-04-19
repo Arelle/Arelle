@@ -1179,26 +1179,16 @@ class ModelAspectDefinitionNode(ModelOpenDefinitionNode):
             self._aspectsCovered = set()
             self._dimensionsCovered = set()
             self.includeUnreportedValue = False
-            if self.localName == "aspectNode": # after 2-13-05-17
-                aspectElt = XmlUtil.child(self, self.namespaceURI, ("conceptAspect", "unitAspect", "entityIdentifierAspect", "periodAspect", "dimensionAspect"))
-                if aspectElt is not None:
-                    if aspectElt.localName == "dimensionAspect":
-                        dimQname = qname(aspectElt, aspectElt.textValue)
-                        self._aspectsCovered.add(dimQname)
-                        self._aspectsCovered.add(Aspect.DIMENSIONS)
-                        self._dimensionsCovered.add(dimQname)
-                        self.includeUnreportedValue = aspectElt.get("includeUnreportedValue") in ("true", "1")
-                    else:
-                        self._aspectsCovered.add(aspectNodeAspectCovered[aspectElt.localName])                                                  
-            else:
-                # filter node (prior to 2013-05-17)
-                for rel in self.filterRelationships:
-                    if rel.isCovered:
-                        _filter = rel.toModelObject
-                        self._aspectsCovered |= _filter.aspectsCovered(varBinding)
-                self._dimensionsCovered = set(aspect for aspect in self._aspectsCovered if isinstance(aspect,QName))
-                if self._dimensionsCovered:
+            aspectElt = XmlUtil.child(self, self.namespaceURI, ("conceptAspect", "unitAspect", "entityIdentifierAspect", "periodAspect", "dimensionAspect"))
+            if aspectElt is not None:
+                if aspectElt.localName == "dimensionAspect":
+                    dimQname = qname(aspectElt, aspectElt.textValue)
+                    self._aspectsCovered.add(dimQname)
                     self._aspectsCovered.add(Aspect.DIMENSIONS)
+                    self._dimensionsCovered.add(dimQname)
+                    self.includeUnreportedValue = aspectElt.get("includeUnreportedValue") in ("true", "1")
+                else:
+                    self._aspectsCovered.add(aspectNodeAspectCovered[aspectElt.localName])                                                  
             return self._aspectsCovered
 
     def aspectValue(self, xpCtx, aspect, inherit=None):
