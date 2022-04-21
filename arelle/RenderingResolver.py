@@ -162,6 +162,7 @@ def resolveTableAxesStructure(view, table, tblAxisRelSet):
             return {'1StructNode': str(obj),
                     '2Depth': obj.structuralDepth,
                     '2Group': obj.breakdownNode.genLabel() if obj.breakdownNode is not None else None,
+                    '2isRollUp': obj.isRollUp,
                     '3Label': (obj.header() or obj.definitionNode.xlinkLabel).replace(OPEN_ASPECT_ENTRY_SURROGATE,"{OPEN_ASPECT_ENTRY_SURROGATE}")  if obj.definitionNode is not None else None,
                     '4Definition': str(obj.definitionNode),
                     '5Breakdown': str(obj.breakdownNode),
@@ -279,7 +280,7 @@ def expandDefinition(view, structuralNode, breakdownNode, definitionNode, depth,
                     return
             if (not definitionNode.isAbstract and
                 isinstance(definitionNode, ModelClosedDefinitionNode) and 
-                ordCardinality == 0):
+                ordCardinality == 0 and not definitionNode.isRollUp):
                 view.modelXbrl.error("xbrlte:closedDefinitionNodeZeroCardinality",
                     _("Closed definition node %(xlinkLabel)s does not contribute at least one structural node"),
                     modelObject=(view.modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel, axis=definitionNode.localName)

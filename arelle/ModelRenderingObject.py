@@ -676,10 +676,22 @@ class ModelClosedDefinitionNode(ModelDefinitionNode):
     @property
     def isRollUp(self):
         descendantRels = self.modelXbrl.relationshipSet(self.descendantArcroles).fromModelObject(self)
-        return bool(descendantRels) and all(
-            self.aspectsCovered() == rel.toModelObject.aspectsCovered()
-            for rel in descendantRels
-            if rel.toModelObject is not None)
+        if descendantRels:
+            selfAspectsCovered = self.aspectsCovered()
+            if selfAspectsCovered: # is roll up if self and descendants cover same aspects
+                return all(selfAspectsCovered == rel.toModelObject.aspectsCovered()
+                           for rel in descendantRels
+                           if rel.toModelObject is not None)
+            aDescendantAspectsCovered = None
+            for rel in descendantRels: # no self aspects, find any descendant's aspects
+                if rel.toModelObject is not None:
+                    aDescendantAspectsCovered = rel.toModelObject.aspectsCovered()
+                    break
+            if aDescendantAspectsCovered: # all descendants must contribute same aspects to be a roll up
+                return all(aDescendantAspectsCovered == rel.toModelObject.aspectsCovered()
+                           for rel in descendantRels
+                           if rel.toModelObject is not None)
+        return False
     
         
 class ModelConstraintSet(ModelFormulaRules):
