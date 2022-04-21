@@ -43,7 +43,7 @@ from .Consts import submissionTypesAllowingWellKnownSeasonedIssuer, \
                     submissionTypesAllowingVoluntaryFilerFlag, docTypesNotAllowingInlineXBRL, \
                     docTypesRequiringRrSchema, docTypesNotAllowingIfrs, \
                     untransformableTypes, rrUntransformableEltsPattern, \
-                    docTypes20F, hideableNamespacesPattern, linkbaseValidations
+                    docTypes20F, hideableNamespacesPattern, linkbaseValidations, supportedImageTypes
                                         
 from .Dimensions import checkFilingDimensions
 from .PreCalAlignment import checkCalcsTreeWalk
@@ -887,10 +887,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     
 
         #6.5.15 facts with xml in text blocks
-        ValidateFilingText.validateTextBlockFacts(modelXbrl, {
-                                    True: ("gif", "jpg"), # img file extensions
-                                    False: () # mime types: none at this time
-                                    })
+        ValidateFilingText.validateTextBlockFacts(modelXbrl, supportedImageTypes)
         
         isDei2018orLater = any(doc.targetNamespace.startswith("http://xbrl.sec.gov/dei/") and doc.targetNamespace >= "http://xbrl.sec.gov/dei/2018"
                                for doc in modelXbrl.urlDocs.values() if doc.targetNamespace)
@@ -1953,7 +1950,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                                     modelObject=child, xlinkLabel=getattr(child, "xlinkLabel", None),
                                     role=footnoterole)
                             if isEFM and not isInlineXbrl: # inline content was validated before and needs continuations assembly
-                                ValidateFilingText.validateFootnote(modelXbrl, child)
+                                ValidateFilingText.validateFootnote(modelXbrl, child, supportedImageTypes)
                             # find modelResource for this element
                             foundFact = False
                             if XmlUtil.text(child) != "" and not isInlineXbrl:
