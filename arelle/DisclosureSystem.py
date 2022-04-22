@@ -4,7 +4,7 @@ Created on Dec 16, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, re, logging
+import os, re, logging, json
 from collections import defaultdict
 from lxml import etree
 from arelle import UrlUtil
@@ -63,6 +63,7 @@ class DisclosureSystem:
         self.validateFileText = False
         self.validateEntryText = False
         self.allowedExternalHrefPattern = None
+        self.allowedImageTypes = None
         self.schemaValidateSchema = None
         self.blockDisallowedReferences = False
         self.maxSubmissionSubdirectoryEntryNesting = 0
@@ -180,6 +181,8 @@ class DisclosureSystem:
                                 self.validateEntryText = dsElt.get("validateEntryText") == "true"
                                 if dsElt.get("allowedExternalHrefPattern"):
                                     self.allowedExternalHrefPattern = re.compile(dsElt.get("allowedExternalHrefPattern"))
+                                if dsElt.get("allowedImageTypes"):
+                                    self.allowedImageTypes = json.loads(dsElt.get("allowedImageTypes"))
                                 self.blockDisallowedReferences = dsElt.get("blockDisallowedReferences") == "true"
                                 try:
                                     self.maxSubmissionSubdirectoryEntryNesting = int(dsElt.get("maxSubmissionSubdirectoryEntryNesting"))

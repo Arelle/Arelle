@@ -16,6 +16,11 @@
      defaultXmlLang="en" 
      defaultLanguage="English" 
      validateEntryText="true"
+     allowedImageTypes = '{
+        "data-scheme": true,
+        "img-file-extensions": ["gif", "jpg", "jpeg", "png"],
+        "mime-types": ["gif", "jpeg", "png"]
+     }'
      contextElement="segment" 
      utrUrl="http://www.xbrl.org/utr/utr.xml resources/ferc-utr.xml"
      utrStatusFilters="REC CR"
@@ -33,6 +38,11 @@
      defaultXmlLang="en" 
      defaultLanguage="English" 
      validateEntryText="true"
+     allowedImageTypes = '{
+        "data-scheme": true,
+        "img-file-extensions": ["gif", "jpg", "jpeg", "png"],
+        "mime-types": ["gif", "jpeg", "png"]
+     }'
      contextElement="segment" 
      utrUrl=""
      utrStatusFilters="REC CR"

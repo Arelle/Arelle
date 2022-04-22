@@ -529,11 +529,12 @@ def removeEntities(text):
     '''
     return namedEntityPattern.sub("", text).replace('&','&amp;')
 
-def validateTextBlockFacts(modelXbrl, supportedImageTypes):
+def validateTextBlockFacts(modelXbrl):
     #handler = TextBlockHandler(modelXbrl)
     loadDTD(modelXbrl)
     checkedGraphicsFiles = set() #  only check any graphics file reference once per fact
     allowedExternalHrefPattern = modelXbrl.modelManager.disclosureSystem.allowedExternalHrefPattern
+    allowedImageTypes = modelXbrl.modelManager.disclosureSystem.allowedImageTypes
     
     if isInlineDTD:
         htmlBodyTemplate = "<body><div>\n{0}\n</div></body>\n"
@@ -621,13 +622,13 @@ def validateTextBlockFacts(modelXbrl, supportedImageTypes):
                                         _("Fact %(fact)s of context %(contextID)s has an invalid external reference in '%(attribute)s' for <%(element)s>"),
                                         modelObject=f1, fact=f1.qname, contextID=f1.contextID,
                                         attribute=attrTag, element=eltTag)
-                                if attrTag == "src" and attrValue not in checkedGraphicsFiles:
+                                if attrTag == "src" and allowedImageTypes and attrValue not in checkedGraphicsFiles:
                                     if scheme(attrValue)  == "data":
                                         try: # allow embedded newlines
                                             m = imgDataMediaBase64Pattern.match(attrValue)
-                                            if (not supportedImageTypes["data-scheme"] or
+                                            if (not allowedImageTypes["data-scheme"] or
                                                 not m or not m.group(1) or not m.group(2)
-                                                or m.group(1)[1:] not in supportedImageTypes["mime-types"]
+                                                or m.group(1)[1:] not in allowedImageTypes["mime-types"]
                                                 or m.group(1)[1:] != validateGraphicHeaderType(base64.b64decode(m.group(3)))):
                                                 modelXbrl.error(("EFM.6.05.16.graphicDataUrl", "FERC.6.05.16.graphicDataUrl"),
                                                     _("Fact %(fact)s of context %(contextID)s references a graphics data URL which isn't accepted or valid '%(attribute)s' for <%(element)s>"),
@@ -638,10 +639,10 @@ def validateTextBlockFacts(modelXbrl, supportedImageTypes):
                                                 _("Fact %(fact)s of context %(contextID)s Base64 encoding error %(err)s in <%(element)s>"),
                                                 modelObject=f1, fact=f1.qname, contextID=f1.contextID, err=err,
                                                 attribute=attrValue[:32], element=eltTag)
-                                    elif attrValue.lower()[-3:] not in supportedImageTypes["img-file-extensions"]:
+                                    elif attrValue.lower()[-3:] not in allowedImageTypes["img-file-extensions"]:
                                         modelXbrl.error(("EFM.6.05.16.graphicFileType", "FERC.6.05.16.graphicFileType"),
-                                            _("Fact %(fact)s of context %(contextID)s references a graphics file which isn't %(supportedExtensions)s '%(attribute)s' for <%(element)s>"),
-                                            modelObject=f1, fact=f1.qname, contextID=f1.contextID, supportedExtensions=supportedImageTypes["img-file-extensions"],
+                                            _("Fact %(fact)s of context %(contextID)s references a graphics file which isn't %(allowedExtensions)s '%(attribute)s' for <%(element)s>"),
+                                            modelObject=f1, fact=f1.qname, contextID=f1.contextID, allowedExtensions=allowedImageTypes["img-file-extensions"],
                                             attribute=attrValue, element=eltTag)
                                     else:   # test file contents
                                         try:
@@ -681,13 +682,7 @@ def copyHtml(sourceXml, targetHtml):
                 targetChild.set("lang" if attrTag == "{http://www.w3.org/XML/1998/namespace}lang" else attrTag, attrValue)
             copyHtml(sourceChild, targetChild)
             
-defaultSupportedImageTypes = { # HF temporary, should be in disclosure system or some other mechanism
-    "data-scheme": False,
-    "img-file-extensions": ("gif", "jpg"), # img file extensions
-    "mime-types": () # mime types: none at this time
-    }
-        
-def validateFootnote(modelXbrl, footnote, supportedImageTypes=defaultSupportedImageTypes):
+def validateFootnote(modelXbrl, footnote):
     #handler = TextBlockHandler(modelXbrl)
     loadDTD(modelXbrl)
     validatedObjectLabel = _("Footnote {}").format(footnote.get("{http://www.w3.org/1999/xlink}label"))
@@ -709,13 +704,14 @@ def validateFootnote(modelXbrl, footnote, supportedImageTypes=defaultSupportedIm
             modelObject=footnote, validatedObjectLabel=validatedObjectLabel,
             error=edbodyDTD.error_log.filter_from_errors())
 
-def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLabel, messageCodePrefix, isInline=False, supportedImageTypes=defaultSupportedImageTypes):
+def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLabel, messageCodePrefix, isInline=False):
     checkedGraphicsFiles = set() # only check any graphics file reference once per footnote
     _xhtmlNs = "{{{}}}".format(xhtml)
     _xhtmlNsLen = len(_xhtmlNs)
     _tableTags = ("table", _xhtmlNs + "table")
     _anchorAncestorTags = set(_xhtmlNs + tag for tag in ("html", "body", "div"))
     allowedExternalHrefPattern = modelXbrl.modelManager.disclosureSystem.allowedExternalHrefPattern
+    allowedImageTypes = modelXbrl.modelManager.disclosureSystem.allowedImageTypes
     for elt in htmlEltTree.iter():
         if isinstance(elt, ModelObject) and elt.namespaceURI == xhtml:
             eltTag = elt.localName
@@ -768,11 +764,11 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                         modelObject=elt, validatedObjectLabel=validatedObjectLabel,
                         attribute=attrTag, element=eltTag, value=attrValue,
                         messageCodes=("EFM.6.05.34.externalReference", "EFM.5.02.05.externalReference", "FERC.6.05.34.externalReference", "FERC.5.02.05.externalReference"))
-                if attrTag == "src" and attrValue not in checkedGraphicsFiles:
+                if attrTag == "src" and allowedImageTypes and attrValue not in checkedGraphicsFiles:
                     if scheme(attrValue) == "data":
                         try: # allow embedded newlines
                             m = imgDataMediaBase64Pattern.match(attrValue)
-                            if (not supportedImageTypes["data-scheme"] or
+                            if (not allowedImageTypes["data-scheme"] or
                                 not m or not m.group(1) or not m.group(2)
                                 or m.group(1)[1:] not in supportedImageTypes["mime-types"]
                                 or m.group(1)[1:] != validateGraphicHeaderType(base64.b64decode(m.group(3)))):
@@ -785,11 +781,11 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                                     _("%(validatedObjectLabel)s references a graphics data URL with Base64 encoding error %(err)s in <%(element)s>"),
                                     modelObject=elt, validatedObjectLabel=validatedObjectLabel,
                                     element=eltTag, err=err)
-                    elif attrValue.lower()[-4:] not in supportedImageTypes["img-file-extensions"]:
+                    elif attrValue.lower()[-4:] not in allowedImageTypes["img-file-extensions"]:
                         modelXbrl.error(messageCodePrefix + "graphicFileType",
-                            _("%(validatedObjectLabel)s references a graphics file which isn't %(supportedExtensions)s '%(attribute)s' for <%(element)s>"),
+                            _("%(validatedObjectLabel)s references a graphics file which isn't %(allowedExtensions)s '%(attribute)s' for <%(element)s>"),
                             modelObject=elt, validatedObjectLabel=validatedObjectLabel,
-                            attribute=attrValue, element=eltTag, supportedExtensions=supportedImageTypes["img-file-extensions"],
+                            attribute=attrValue, element=eltTag, allowedExtensions=allowedImageTypes["img-file-extensions"],
                             messageCodes=("EFM.6.05.34.graphicFileType", "EFM.5.02.05.graphicFileType", "FERC.6.05.34.graphicFileType", "FERC.5.02.05.graphicFileType"))
                     else:   # test file contents
                         try:

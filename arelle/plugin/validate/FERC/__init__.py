@@ -33,12 +33,6 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     # use UTR validation if list of URLs was provided
     val.validateUTR = bool(val.disclosureSystem.utrUrl)
     
-supportedImageTypes = {
-        "data-scheme": True,
-        "img-file-extensions": ("gif", "jpg", "jpeg", "png"), # img file extensions
-        "mime-types": ("gif", "jpeg", "png") # mime types: jpg is not a valid mime type
-    }
-    
 def validateXbrlFinally(val, *args, **kwargs):
     if not (val.validateFERCplugin):
         return
@@ -69,7 +63,7 @@ def validateXbrlFinally(val, *args, **kwargs):
         xbrlInstRoots = [modelXbrl.modelDocument.xmlDocument.getroot()]
             
     #6.5.15 facts with xml in text blocks
-    ValidateFilingText.validateTextBlockFacts(modelXbrl, supportedImageTypes)
+    ValidateFilingText.validateTextBlockFacts(modelXbrl)
     
     # check footnotes text
     if isInlineXbrl:
@@ -88,7 +82,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                     xlinkType = child.get("{http://www.w3.org/1999/xlink}type")
                     if xlinkType == "resource" or isinstance(child,ModelInlineFootnote): # footnote
                         if not isInlineXbrl: # inline content was validated before and needs continuations assembly
-                            ValidateFilingText.validateFootnote(modelXbrl, child, supportedImageTypes)
+                            ValidateFilingText.validateFootnote(modelXbrl, child)
 
     # same identifier in all contexts (EFM 6.5.3)
     entityIdentifiers = set()

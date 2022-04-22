@@ -21,6 +21,11 @@
      validateFileText="true"
      validateEntryText="true"
      allowedExternalHrefPattern="https?://www.sec.gov/(ix[?]doc=/)?Archives/edgar/data/"
+	 allowedImageTypes = '{
+	    "data-scheme": false,
+	    "img-file-extensions": ["gif", "jpg"],
+	    "mime-types": []
+	    }'
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
      identifierValuePattern="^[0-9]{10}$" 
      identifierValueName="CIK" 
@@ -54,6 +59,11 @@
      validateFileText="true"
      validateEntryText="true"
      allowedExternalHrefPattern="https?://www.sec.gov/(ix[?]doc=/)?Archives/edgar/data/"
+	 allowedImageTypes = '{
+	    "data-scheme": false,
+	    "img-file-extensions": ["gif", "jpg"],
+	    "mime-types": []
+	    }'
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
      identifierValuePattern="^[0-9]{10}$" 
      identifierValueName="CIK" 
@@ -93,6 +103,11 @@
      validateFileText="true"
      validateEntryText="true"
      allowedExternalHrefPattern="https?://www.sec.gov/(ix[?]doc=/)?Archives/edgar/data/"
+	 allowedImageTypes = '{
+	    "data-scheme": false,
+	    "img-file-extensions": ["gif", "jpg"],
+	    "mime-types": []
+	    }'
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
      identifierValuePattern="^[0-9]{10}$" 
      identifierValueName="CIK" 
@@ -130,6 +145,11 @@
       validateFileText="true"
       validateEntryText="true"
       allowedExternalHrefPattern="https?://www.sec.gov/(ix[?]doc=/)?Archives/edgar/data/"
+	  allowedImageTypes = '{
+	    "data-scheme": false,
+	    "img-file-extensions": ["gif", "jpg"],
+	    "mime-types": []
+	    }'
       identifierSchemePattern="^http://www\.sec\.gov/CIK$"
       identifierValuePattern="^[0-9]{10}$" 
       identifierValueName="CIK" 
@@ -165,6 +185,11 @@
      validateFileText="true"
      validateEntryText="true"
      allowedExternalHrefPattern="https?://www.sec.gov/(ix[?]doc=/)?Archives/edgar/data/"
+	 allowedImageTypes = '{
+	    "data-scheme": false,
+	    "img-file-extensions": ["gif", "jpg"],
+	    "mime-types": []
+	    }'
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
      identifierValuePattern="^[0-9]{10}$" 
      identifierValueName="CIK" 
@@ -200,6 +225,11 @@
      validateFileText="true"
      validateEntryText="true"
      allowedExternalHrefPattern="https?://www.sec.gov/(ix[?]doc=/)?Archives/edgar/data/"
+	 allowedImageTypes = '{
+	    "data-scheme": false,
+	    "img-file-extensions": ["gif", "jpg"],
+	    "mime-types": []
+	    }'
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
      identifierValuePattern="^[0-9]{10}$" 
      identifierValueName="CIK" 
@@ -237,6 +267,11 @@
      validateFileText="true"
      validateEntryText="true"
      allowedExternalHrefPattern="https?://www.sec.gov/(ix[?]doc=/)?Archives/edgar/data/"
+	 allowedImageTypes = '{
+	    "data-scheme": false,
+	    "img-file-extensions": ["gif", "jpg"],
+	    "mime-types": []
+	    }'
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
      identifierValuePattern="^[0-9]{10}$" 
      identifierValueName="CIK" 
@@ -272,6 +307,11 @@
      validateFileText="true"
      validateEntryText="true"
      allowedExternalHrefPattern="https?://www.sec.gov/(ix[?]doc=/)?Archives/edgar/data/"
+	 allowedImageTypes = '{
+	    "data-scheme": false,
+	    "img-file-extensions": ["gif", "jpg"],
+	    "mime-types": []
+	    }'
      identifierSchemePattern="^http://www\.sec\.gov/CIK$"
      identifierValuePattern="^[0-9]{10}$" 
      identifierValueName="CIK" 

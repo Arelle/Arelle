@@ -239,9 +239,3 @@ linkbaseValidations = {
         preSources = ()
     )
 }
-
-supportedImageTypes = {
-    "data-scheme": False,
-    "img-file-extensions": ("gif", "jpg"), # img file extensions
-    "mime-types": () # mime types: none at this time
-    }
