@@ -42,7 +42,7 @@ def init(cntlr, loadPluginConfig=True):
             freshenModuleInfos()
         except Exception:
             pass # on GAE no userAppDir, will always come here
-    if pluginConfig is None or len(pluginConfig) == 0:
+    if not pluginConfig:
         pluginConfig = {  # savable/reloadable plug in configuration
             "modules": {}, # dict of moduleInfos by module name
             "classes": {}  # dict by class name of list of class modules in execution order
