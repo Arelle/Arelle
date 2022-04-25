@@ -349,7 +349,7 @@ class View:
                     fh.close()
                 self.modelXbrl.info("info", _("Saved output %(type)s to %(file)s"), file=self.outfile, type=fileType)
             except (IOError, EnvironmentError) as err:
-                self.modelXbrl.exception("arelle:htmlIOError", _("Failed to save output %(type)s to %(file)s: \s%(error)s"), file=self.outfile, type=fileType, error=err)
+                self.modelXbrl.exception("arelle:htmlIOError", _("Failed to save output %(type)s to %(file)s: %(error)s"), file=self.outfile, type=fileType, error=err)
         self.modelXbrl = None
         if self.type == HTML:
             self.tblElt = None
