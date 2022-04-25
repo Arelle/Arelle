@@ -11,7 +11,7 @@ FILTER = '(?!arelle:testcaseDataUnexpected)'
 
 BASE_ARGS = [
     '--csvTestReport', './EFM-conf-report.xlsx',
-    '--disclosureSystem', 'efm-pramatic',
+    '--disclosureSystem', 'efm-pragmatic',
     '--file', os.path.abspath(os.path.join(CONFORMANCE_SUITE, 'testcases.xml')),
     '--formula', 'run',
     '--logCodeFilter', FILTER,
