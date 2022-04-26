@@ -38,8 +38,6 @@ def viewRenderedGrid(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=
     if sourceView is not None:
         viewTblELR = sourceView.tblELR
         view.ignoreDimValidity.set(sourceView.ignoreDimValidity.get())
-        view.xAxisChildrenFirst.set(sourceView.xAxisChildrenFirst.get())
-        view.yAxisChildrenFirst.set(sourceView.yAxisChildrenFirst.get())
     view.view(viewTblELR)
     if diffToFile and outfile:
         from arelle.ValidateInfoset import validateRenderingInfoset
@@ -71,8 +69,6 @@ class ViewRenderedGrid(ViewFile.View):
                 return self.value
         # context menu boolean vars (non-tkinter boolean
         self.ignoreDimValidity = nonTkBooleanVar(value=True)
-        self.xAxisChildrenFirst = nonTkBooleanVar(value=True)
-        self.yAxisChildrenFirst = nonTkBooleanVar(value=False)
         
 
     def tableModelQName(self, localName):
@@ -97,7 +93,7 @@ class ViewRenderedGrid(ViewFile.View):
             for discriminator in range(1, 65535):
                 # each table z production
                 tblAxisRelSet, xTopStructuralNode, yTopStructuralNode, zTopStructuralNode = resolveAxesStructure(self, tblELR)
-                self.hasTableFilters = bool(self.modelTable.filterRelationships)
+                self.hasTableFilters = bool(self.defnMdlTable.filterRelationships)
                 
                 self.zStrNodesWithChoices = []
                 if tblAxisRelSet and self.tblElt is not None:
@@ -319,7 +315,7 @@ class ViewRenderedGrid(ViewFile.View):
                             if source:
                                 elt.set("source", source)
 
-            for aspect in aspectModels[self.aspectModel]:
+            for aspect in aspectModels["dimensional"]:
                 if effectiveStructuralNode.hasAspect(aspect, inherit=True): #implies inheriting from other z axes
                     if aspect == Aspect.DIMENSIONS:
                         for dim in (effectiveStructuralNode.aspectValue(Aspect.DIMENSIONS, inherit=True) or emptyList):
@@ -637,13 +633,13 @@ class ViewRenderedGrid(ViewFile.View):
                     rowsToSpanParent += rows
                 else:
                     rowsToSpanParent = nestRow - row
+                isRollUp = yStructuralNode.isRollUp
                 #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
                 if renderNow and isLabeled:
                     label, source = yStructuralNode.headerAndSource(lang=self.lang,
                                                    returnGenLabel=isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode),
                                                    recurseParent=not isinstance(yStructuralNode.definitionNode, ModelAspectDefinitionNode))
                     brkdownNode = yStructuralNode.breakdownNode
-                    isRollUp = yStructuralNode.isRollUp
                     attrib = {}
                     if rows:
                         rowspan = rows
@@ -740,7 +736,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                        attrib={"axis": "x"})
                     isEntryPrototype = yStructuralNode.isEntryPrototype(default=False) # row to enter open aspects
                     yAspectStructuralNodes = defaultdict(set)
-                    for aspect in aspectModels[self.aspectModel]:
+                    for aspect in aspectModels["dimensional"]:
                         if yStructuralNode.hasAspect(aspect):
                             if aspect == Aspect.DIMENSIONS:
                                 for dim in (yStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
@@ -752,7 +748,7 @@ class ViewRenderedGrid(ViewFile.View):
                     ignoreDimValidity = self.ignoreDimValidity.get()
                     for i, xStructuralNode in enumerate(xStructuralNodes):
                         xAspectStructuralNodes = defaultdict(set)
-                        for aspect in aspectModels[self.aspectModel]:
+                        for aspect in aspectModels["dimensional"]:
                             if xStructuralNode.hasAspect(aspect):
                                 if aspect == Aspect.DIMENSIONS:
                                     for dim in (xStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
@@ -764,7 +760,6 @@ class ViewRenderedGrid(ViewFile.View):
                         matchableAspects = set()
                         for aspect in _DICT_SET(xAspectStructuralNodes.keys()) | _DICT_SET(yAspectStructuralNodes.keys()) | _DICT_SET(zAspectStructuralNodes.keys()):
                             aspectValue = xStructuralNode.inheritedAspectValue(yStructuralNode,
-                                               self, aspect, cellTagSelectors, 
                                                xAspectStructuralNodes, yAspectStructuralNodes, zAspectStructuralNodes)
                             # value is None for a dimension whose value is to be not reported in this slice
                             if (isinstance(aspect, _INT) or  # not a dimension
@@ -789,7 +784,7 @@ class ViewRenderedGrid(ViewFile.View):
                             # reduce set of matchable facts to those with pri item qname and have dimension aspects
                             facts = self.modelXbrl.factsByQname[priItemQname] if priItemQname else self.modelXbrl.factsInInstance
                             if self.hasTableFilters:
-                                facts = self.modelTable.filteredFacts(self.rendrCntx, facts)
+                                facts = self.defnMdlTable.filteredFacts(self.rendrCntx, facts)
                             for aspect in matchableAspects:  # trim down facts with explicit dimensions match or just present
                                 if isinstance(aspect, QName):
                                     aspectValue = cellAspectValues.get(aspect, None)

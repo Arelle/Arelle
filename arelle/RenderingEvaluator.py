@@ -7,12 +7,12 @@ Created on Jun 6, 2012
 from arelle import XPathContext, XbrlConst, XmlUtil
 from arelle.ModelFormulaObject import (aspectModels, aspectStr, Aspect)
 from arelle.ModelRenderingObject import (CHILD_ROLLUP_FIRST, CHILD_ROLLUP_LAST,
-                                         ModelDefinitionNode, 
-                                         ModelBreakdown,
-                                         ModelClosedDefinitionNode, 
-                                         ModelRuleDefinitionNode,
-                                         ModelAspectDefinitionNode,
-                                         ModelDimensionRelationshipDefinitionNode)
+                                         DefnMdlDefinitionNode, 
+                                         DefnMdlBreakdown,
+                                         DefnMdlClosedDefinitionNode, 
+                                         DefnMdlRuleNode,
+                                         DefnMdlAspectNode,
+                                         DefnMdlDimensionRelationshipNode)
 from arelle.ModelValue import (QName)
 
 def init(modelXbrl):
@@ -88,7 +88,7 @@ def init(modelXbrl):
 def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisDisposition, uncoverableAspects, aspectsCovered):
     definitionNode = tblAxisRel.toModelObject
     hasCoveredAspect = False
-    if isinstance(definitionNode, ModelDefinitionNode):
+    if isinstance(definitionNode, DefnMdlDefinitionNode):
         for aspect in definitionNode.aspectsCovered():
             aspectsCovered.add(aspect)
             if (aspect in uncoverableAspects or
@@ -125,7 +125,7 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisDispo
                 modelXbrl.error("xbrlte:nonAbstractMergedRuleNode",
                     _("Merged %(definitionNode)s %(xlinkLabel)s is not abstract"),
                     modelObject=(modelTable, definitionNode), definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel)
-    if isinstance(definitionNode, ModelRuleDefinitionNode):
+    if isinstance(definitionNode, DefnMdlRuleNode):
         tagConstraintSets = {}
         otherConstraintSet = None
         # must look at xml constructs for duplicates
@@ -154,7 +154,7 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisDispo
                     aspects=", ".join(aspectStr(aspect) 
                                       for aspect in otherConstraintSet.aspectsCovered() ^ constraintSet.aspectsCovered()
                                       if aspect != Aspect.DIMENSIONS))
-    if isinstance(definitionNode, ModelDimensionRelationshipDefinitionNode):
+    if isinstance(definitionNode, DefnMdlDimensionRelationshipNode):
         hasCoveredAspect = True
         if modelTable.aspectModel == 'non-dimensional':
             modelXbrl.error("xbrlte:axisAspectModelMismatch",
@@ -165,7 +165,7 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisDispo
         if checkBreakdownDefinitionNode(modelXbrl, modelTable, axisSubtreeRel, tblAxisDisposition, uncoverableAspects, aspectsCovered):
             hasCoveredAspect = True # something below was covering
         definitionNodeHasChild = True
-    if isinstance(definitionNode, ModelAspectDefinitionNode):
+    if isinstance(definitionNode, DefnMdlAspectNode):
         for aspect in definitionNode.aspectsCovered():
             if isinstance(aspect, QName): # dimension aspect
                 concept = modelXbrl.qnameConcepts.get(aspect)
@@ -180,7 +180,7 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisDispo
             modelXbrl.error("xbrlte:aspectValueNotDefinedByOrdinate",
                 _("%(definitionNode)s %(xlinkLabel)s does not define an aspect"),
                 modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel, definitionNode=definitionNode.localName)
-        if (isinstance(definitionNode, ModelClosedDefinitionNode) and
+        if (isinstance(definitionNode, DefnMdlClosedDefinitionNode) and
             definitionNode.isAbstract):
             modelXbrl.error("xbrlte:abstractRuleNodeNoChildren",
                 _("Abstract %(definitionNode)s %(xlinkLabel)s has no children"),
@@ -190,7 +190,7 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisDispo
 def checkBreakdownLeafNodeAspects(modelXbrl, modelTable, tblAxisRel, parentAspectsCovered, breakdownAspects):
     definitionNode = tblAxisRel.toModelObject
     aspectsCovered = parentAspectsCovered.copy()
-    if isinstance(definitionNode, ModelDefinitionNode):
+    if isinstance(definitionNode, DefnMdlDefinitionNode):
         for aspect in definitionNode.aspectsCovered():
             aspectsCovered.add(aspect)
         definitionNodeHasChild = False
@@ -198,7 +198,7 @@ def checkBreakdownLeafNodeAspects(modelXbrl, modelTable, tblAxisRel, parentAspec
             checkBreakdownLeafNodeAspects(modelXbrl, modelTable, axisSubtreeRel, aspectsCovered, breakdownAspects)
             definitionNodeHasChild = True
         
-        if not definitionNode.isAbstract and not isinstance(definitionNode, ModelBreakdown): # this is a leaf node
+        if not definitionNode.isAbstract and not isinstance(definitionNode, DefnMdlBreakdown): # this is a leaf node
             missingAspects = set(aspect
                                  for aspect in breakdownAspects
                                  if aspect not in aspectsCovered and
