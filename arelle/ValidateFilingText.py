@@ -695,7 +695,7 @@ def validateFootnote(modelXbrl, footnote):
                 _("%(validatedObjectLabel)s causes the XML error %(error)s"),
                 modelObject=footnote, validatedObjectLabel=validatedObjectLabel,
                 error=', '.join(e.message for e in edbodyDTD.error_log.filter_from_errors()))
-        validateHtmlContent(modelXbrl, footnote, footnoteHtml, validatedObjectLabel, modelXbrl.modelManager.disclosureSystem.validationType + ".6.05.34.", supportedImageTypes=supportedImageTypes)
+        validateHtmlContent(modelXbrl, footnote, footnoteHtml, validatedObjectLabel, modelXbrl.modelManager.disclosureSystem.validationType + ".6.05.34.")
     except (XMLSyntaxError,
             UnicodeDecodeError) as err:
         #if not err.endswith("undefined entity"):
@@ -770,7 +770,7 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                             m = imgDataMediaBase64Pattern.match(attrValue)
                             if (not allowedImageTypes["data-scheme"] or
                                 not m or not m.group(1) or not m.group(2)
-                                or m.group(1)[1:] not in supportedImageTypes["mime-types"]
+                                or m.group(1)[1:] not in allowedImageTypes["mime-types"]
                                 or m.group(1)[1:] != validateGraphicHeaderType(base64.b64decode(m.group(3)))):
                                 modelXbrl.error(messageCodePrefix + "graphicDataUrl",
                                     _("%(validatedObjectLabel)s references a graphics data URL which isn't accepted '%(attribute)s' for <%(element)s>"),
@@ -781,7 +781,7 @@ def validateHtmlContent(modelXbrl, referenceElt, htmlEltTree, validatedObjectLab
                                     _("%(validatedObjectLabel)s references a graphics data URL with Base64 encoding error %(err)s in <%(element)s>"),
                                     modelObject=elt, validatedObjectLabel=validatedObjectLabel,
                                     element=eltTag, err=err)
-                    elif attrValue.lower()[-4:] not in allowedImageTypes["img-file-extensions"]:
+                    elif attrValue.lower()[-3:] not in allowedImageTypes["img-file-extensions"]:
                         modelXbrl.error(messageCodePrefix + "graphicFileType",
                             _("%(validatedObjectLabel)s references a graphics file which isn't %(allowedExtensions)s '%(attribute)s' for <%(element)s>"),
                             modelObject=elt, validatedObjectLabel=validatedObjectLabel,
