@@ -14,6 +14,7 @@ def viewFacts(modelXbrl, outfile, lang=None, labelrole=None, cols=None):
     view.close()
     
 COL_WIDTHS = {
+    "Concept": 80, # same as label
     "Label": 80,
     "Name":  40,
     "LocalName":  40,
@@ -27,7 +28,13 @@ COL_WIDTHS = {
     "EntityScheme": 40,
     "EntityIdentifier": 40,
     "Period": 40,
-    "Dimensions": 60
+    "Dimensions": 60,
+    # concept properties
+    "ID": 40,
+    "Type": 32,
+    "PeriodType": 16, 
+    "Balance": 16,
+    "Documentation": 100
     }
 class ViewFacts(ViewFile.View):
     def __init__(self, modelXbrl, outfile, labelrole, lang, cols):
@@ -52,11 +59,11 @@ class ViewFacts(ViewFile.View):
         else:
             self.cols = ["Label","contextRef","unitRef","Dec","Prec","Lang","Value"]
         col0 = self.cols[0]
-        if col0 not in ("Label", "Name", "LocalName"):
+        if col0 not in ("Concept", "Label", "Name", "LocalName"):
             self.modelXbrl.error("arelle:firstFactListColumn",
-                                 _("First column must be Label or Name: %(col1)s"),
+                                 _("First column must be Concept, Label, Name or LocalName: %(col1)s"),
                                  modelXbrl=self.modelXbrl, col1=col0)
-        self.isCol0Label = col0 == "Label"
+        self.isCol0Label = col0 in ("Concept", "Label")
         self.maxNumDims = 1
         self.tupleDepth(self.modelXbrl.facts, 0)
         if "Dimensions" == self.cols[-1]:
@@ -93,7 +100,7 @@ class ViewFacts(ViewFile.View):
             if concept is not None:
                 if modelFact.isItem:
                     for col in self.cols[1:]:
-                        if col == "Label": # label or name may be 2nd to nth col if name or label is 1st col
+                        if col in ("Concept", "Label"): # label or name may be 2nd to nth col if name or label is 1st col
                             cols.append( concept.label(preferredLabel=self.labelrole, lang=self.lang) )
                         elif col == "Name":
                             cols.append( modelFact.qname )
@@ -125,6 +132,16 @@ class ViewFacts(ViewFile.View):
                             for dimQname in sorted(modelFact.context.qnameDims.keys()):
                                 cols.append( str(dimQname) )
                                 cols.append( str(modelFact.context.dimMemberQname(dimQname)) )
+                        elif col == "ID":
+                            cols.append( concept.id )
+                        elif col == "Type":
+                            cols.append( concept.typeQname )
+                        elif col == "PeriodType":
+                            cols.append( concept.periodType )
+                        elif col == "Balance":
+                            cols.append( concept.balance )
+                        elif col == "Documentation":
+                            cols.append( concept.label(preferredLabel=XbrlConst.documentationLabel, fallbackToQname=False, lang=self.lang, strip=True, linkroleHint=XbrlConst.defaultLinkRole) )
                 elif modelFact.isTuple:
                     xmlRowElementName = 'tuple'
             self.addRow(cols, treeIndent=indent, xmlRowElementName=xmlRowElementName, xmlRowEltAttr=attr, xmlCol0skipElt=xmlCol0skipElt)
