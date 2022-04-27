@@ -750,7 +750,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.modelManager.disclosureSystem.select(None) # just load ordinary mappings
             self.modelManager.validateDisclosureSystem = False
         if options.utrUrl:  # override disclosureSystem utrUrl
-            self.modelManager.disclosureSystem.utrUrl = options.utrUrl
+            self.modelManager.disclosureSystem.utrUrl = [options.utrUrl]
             # can be set now because the utr is first loaded at validation time 
         if options.skipDTS: # skip DTS loading, discovery, etc
             self.modelManager.skipDTS = True
