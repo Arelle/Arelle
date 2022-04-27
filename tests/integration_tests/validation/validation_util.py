@@ -2,7 +2,7 @@ import os
 import pytest
 
 from arelle.CntlrCmdLine import parseAndRun
-from arelle import ModelDocument
+from arelle import ModelDocument, PackageManager, PluginManager
 
 
 def get_test_data(args):
@@ -34,4 +34,6 @@ def get_test_data(args):
                         )
                         results.append(param)
     cntlr.modelManager.close()
+    PackageManager.close()
+    PluginManager.close()
     return results

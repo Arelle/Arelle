@@ -296,7 +296,7 @@ def init(cntlr, loadPackagesConfig=True):
             packagesConfigChanged = False
         except Exception:
             pass # on GAE no userAppDir, will always come here
-    if packagesConfig is None:
+    if not packagesConfig:
         packagesConfig = {  # savable/reloadable plug in configuration
             "packages": [], # list taxonomy packages loaded and their remappings
             "remappings": {}  # dict by prefix of remappings in effect
