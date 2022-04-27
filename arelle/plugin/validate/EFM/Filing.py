@@ -887,10 +887,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                     
 
         #6.5.15 facts with xml in text blocks
-        ValidateFilingText.validateTextBlockFacts(modelXbrl, {
-                                    True: ("gif", "jpg"), # img file extensions
-                                    False: () # mime types: none at this time
-                                    })
+        ValidateFilingText.validateTextBlockFacts(modelXbrl)
         
         isDei2018orLater = any(doc.targetNamespace.startswith("http://xbrl.sec.gov/dei/") and doc.targetNamespace >= "http://xbrl.sec.gov/dei/2018"
                                for doc in modelXbrl.urlDocs.values() if doc.targetNamespace)
