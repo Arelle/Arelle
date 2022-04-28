@@ -647,7 +647,7 @@ def normalizeExpr(expr):
                 prior = None
             else:
                 prior = '\n'
-        elif c == '\85' or c == '\u2028':
+        elif c == '\x85' or c == '\u2028':
             c = '\n'
         elif prior == '(' and c == ':':
             commentNesting += 1
