@@ -6,11 +6,10 @@ Created on Jun 6, 2012
 '''
 from arelle import XPathContext, XbrlConst, XmlUtil
 from arelle.ModelFormulaObject import (aspectModels, aspectStr, Aspect)
-from arelle.ModelRenderingObject import (CHILD_ROLLUP_FIRST, CHILD_ROLLUP_LAST,
-                                         DefnMdlDefinitionNode, 
+from arelle.ModelRenderingObject import (DefnMdlDefinitionNode, 
                                          DefnMdlBreakdown,
                                          DefnMdlClosedDefinitionNode, 
-                                         DefnMdlRuleNode,
+                                         DefnMdlRuleDefinitionNode,
                                          DefnMdlAspectNode,
                                          DefnMdlDimensionRelationshipNode)
 from arelle.ModelValue import (QName)
@@ -62,11 +61,11 @@ def init(modelXbrl):
             oppositeAspectModel = (_DICT_SET({'dimensional','non-dimensional'}) - _DICT_SET({modelTable.aspectModel})).pop()
             uncoverableAspects = ()
             aspectsCovered = set()
-            for tblAxisRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD)).fromModelObject(modelTable):
+            for tblBrkdnRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD)).fromModelObject(modelTable):
                 breakdownAspectsCovered = set()
-                hasCoveredAspect = checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisRel.axisDisposition, uncoverableAspects, breakdownAspectsCovered)
+                hasCoveredAspect = checkBreakdownDefinitionNode(modelXbrl, modelTable, tblBrkdnRel, tblBrkdnRel.axis, uncoverableAspects, breakdownAspectsCovered)
                 aspectsCovered |= breakdownAspectsCovered
-                checkBreakdownLeafNodeAspects(modelXbrl, modelTable, tblAxisRel, set(), breakdownAspectsCovered)
+                checkBreakdownLeafNodeAspects(modelXbrl, modelTable, tblBrkdnRel, set(), breakdownAspectsCovered)
             if Aspect.CONCEPT not in aspectsCovered:
                 modelXbrl.error("xbrlte:tableMissingConceptAspect",
                     _("Table %(xlinkLabel)s does not include the concept aspect as one of its participating aspects"),
@@ -85,8 +84,8 @@ def init(modelXbrl):
     
         modelXbrl.profileStat(_("compileTables"))
 
-def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisDisposition, uncoverableAspects, aspectsCovered):
-    definitionNode = tblAxisRel.toModelObject
+def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblBrkdnRel, tblAxisDisposition, uncoverableAspects, aspectsCovered):
+    definitionNode = tblBrkdnRel.toModelObject
     hasCoveredAspect = False
     if isinstance(definitionNode, DefnMdlDefinitionNode):
         for aspect in definitionNode.aspectsCovered():
@@ -125,7 +124,7 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisDispo
                 modelXbrl.error("xbrlte:nonAbstractMergedRuleNode",
                     _("Merged %(definitionNode)s %(xlinkLabel)s is not abstract"),
                     modelObject=(modelTable, definitionNode), definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel)
-    if isinstance(definitionNode, DefnMdlRuleNode):
+    if isinstance(definitionNode, DefnMdlRuleDefinitionNode):
         tagConstraintSets = {}
         otherConstraintSet = None
         # must look at xml constructs for duplicates
@@ -187,8 +186,8 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblAxisRel, tblAxisDispo
                 modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel, definitionNode=definitionNode.localName)
     return hasCoveredAspect
 
-def checkBreakdownLeafNodeAspects(modelXbrl, modelTable, tblAxisRel, parentAspectsCovered, breakdownAspects):
-    definitionNode = tblAxisRel.toModelObject
+def checkBreakdownLeafNodeAspects(modelXbrl, modelTable, tblBrkdnRel, parentAspectsCovered, breakdownAspects):
+    definitionNode = tblBrkdnRel.toModelObject
     aspectsCovered = parentAspectsCovered.copy()
     if isinstance(definitionNode, DefnMdlDefinitionNode):
         for aspect in definitionNode.aspectsCovered():

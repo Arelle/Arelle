@@ -283,7 +283,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                     self.treeView.set(childnode, "merge", '\u2713') # checkmark unicode character
                 if isRelation:
                     self.treeView.set(childnode, "axis", modelObject.axisDisposition)
-                    if isinstance(concept, ModelRuleDefinitionNode):
+                    if isinstance(concept, DefnMdlRuleDefinitionNode):
                         self.treeView.set(childnode, "priItem", concept.aspectValue(None, Aspect.CONCEPT))
                         self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim, concept.aspectValue(None, dim) or concept.variableRefs()) 
                                                                        for dim in (concept.aspectValue(None, Aspect.DIMENSIONS, inherit=False) or []))))
@@ -410,5 +410,5 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             return self.hasAncestor(self.treeView.parent(node), ancestor)
         return False
     
-from arelle.ModelRenderingObject import ModelRuleDefinitionNode
+from arelle.ModelRenderingObject import DefnMdlRuleDefinitionNode
 from arelle.ModelFormulaObject import Aspect

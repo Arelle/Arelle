@@ -6,6 +6,7 @@ Created on Mar 7, 2011
 '''
 import inspect, os
 from arelle import XmlUtil, XbrlConst, XPathParser, Locale, XPathContext
+from collections import defaultdict
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.ModelValue import qname, QName
@@ -22,7 +23,7 @@ OPEN_ASPECT_ENTRY_SURROGATE = '\uDBFF'
 EMPTY_SET = set()
 
 def definitionNodes(nodes):
-    return [(ord.definitionNodeObject if isinstance(node, StructuralNode) else node) for node in nodes]
+    return [(ord.definitionNodeObject if isinstance(node, StrctMdlStructuralNode) else node) for node in nodes]
 
 def parentChildOrder(node):
     _parentChildOrder = node.get("parentChildOrder")
@@ -38,248 +39,50 @@ def parentChildOrder(node):
 
 # Structural model
 class StrctMdlNode:
-    def __init__(self, strMdlParentNode, defnMdlNode=None):
+    def __init__(self, strctMdlParentNode, defnMdlNode=None):
         self.defnMdlNode = defnMdlNode
-        self.strMdlParentNode = strMdlParentNode
-        self.strMdlChildNodes = []
-        if strMdlParentNode:
-            strMdlParentNode.strMdlChildNodes.append(self)
+        self.strctMdlParentNode = strctMdlParentNode
+        self.strctMdlChildNodes = []
+        if strctMdlParentNode:
+            strctMdlParentNode.strctMdlChildNodes.append(self)
+        self.aspects = {}
 
     @property
     def axis(self):
-        return getattr(self, "_axis", self.strMdlParentNode.axis if self.strMdlParentNode else None)
+        return getattr(self, "_axis", self.strctMdlParentNode.axis if self.strctMdlParentNode else "")
     
     @property
     def leafNodeCount(self):
         childLeafCount = 0
-        if self.strMdlChildNodes:
-            for strMdlChildNode in self.strMdlChildNodes:
-                childLeafCount += strMdlChildNode.leafNodeCount
+        if self.strctMdlChildNodes:
+            for strctMdlChildNode in self.strctMdlChildNodes:
+                childLeafCount += strctMdlChildNode.leafNodeCount
         if childLeafCount == 0:
             return 1
-        if not self.isAbstract and isinstance(self.defnMdlObj, DefnMdlClosedDefinitionNode):
+        if not self.isAbstract and isinstance(self.defnMdlNode, DefnMdlClosedDefinitionNode):
             childLeafCount += 1 # has a roll up
         return childLeafCount
-        
-# Table set is not modeled.  
-#   GUI only operaties on a single table.  
-#   File (html and layout model) do all tables in the table set one-by-one.
 
-class StrctMdlTable(StrctMdlNode):
-    def __init__(self, defnMdlTable):
-        super(StrctMdlTableSet, self).init(None, defnMdlTable)
-        # childStrMdlNodes are StrctMdlBreakdowns
-        self.defnMdlBreakdowns = defaultdict(list)
-    
-class StrctMdlBreakdown:
-    def __init__(self, strMdlParentNode, axis, defnMdlBreakdown, zmostOrdCntx=None, rendrCntx=None):
-        super(StrctMdlBreakdown, self).init(strMdlParentNode, defnMdlBreakdown)
-        self._axis = axis
-        self.zmostOrdCntx = zmostOrdCntx
-        self.rendrCntx = rendrCntx
-        self.hasOpenNode = False
-        if axis == "z":
-            self._choiceStructuralNodes = []   
-             
-class StrctMdlStructuralNode:
-    def __init__(self, strMdlParentNode, defnMdlNode):
-        super(StrctMdlStructuralNode, self).init(strMdlParentNode, defnMdlNode)
-        
-''' not clear layout model needs to be explicitly represented
-    
-class LayoutMdlTableSet:
-    def __init__(self, strMdlTableSet):
-        self.strMdlTableSet = strMdlTableSet
-        self.layoutMdlTables = []
-    
-class LayoutMdlTable:
-    def __init__(self, strMdlTable):
-        self.strMdlTable = strMdlTable
-        self.layoutMdlXHeaders = [] # contains LayoutMdlAxisHeaders
-        self.layoutMdlYHeaders = []
-        self.layoutMdlZCells = []
-    
-class LayoutMdlAxisHeaders:
-    def __init__(self, strMdlNode):
-        self.strMdlNode = strMdlNode
-        self.layoutMdlGroups = []
-    
-class LayoutMdlGroup:
-    def __init__(self, strMdlNode):
-        self.strMdlNode = strMdlNode
-        self.layoutMdlGroups = []
-    
-class LayoutMdlHeader:
-    def __init__(self, strMdlNode):
-        self.strMdlNode = strMdlNode
-        self.layoutMdlGroups = []
-    
-'''    
-    
-    
-# table linkbase structural nodes for rendering
-class StructuralNode:
-    def __init__(self, parentStructuralNode, breakdownNode, definitionNode, zInheritance=None, contextItemFact=None, tableNode=None, rendrCntx=None):
-        self.parentStructuralNode = parentStructuralNode
-        self._rendrCntx = rendrCntx or parentStructuralNode._rendrCntx # copy from parent except at root
-        self.definitionNode = definitionNode
-        self.variables = {}
-        self.aspects = {}
-        self.childStructuralNodes = []
-        self.rollUpStructuralNode = None # child node which is roll-up, if any
-        self.zInheritance = zInheritance
-        if contextItemFact is not None:
-            self.contextItemBinding = VariableBinding(self._rendrCntx,
-                                                      boundFact=contextItemFact)
-            if isinstance(self.contextItemBinding.yieldedFact, FactPrototype):
-                for aspect in definitionNode.aspectsCovered():
-                    if aspect != Aspect.DIMENSIONS:
-                        self.aspectEntryObjectId = self.aspects[aspect] = contextItemFact.aspectEntryObjectId
-                        break
-        else:
-            self.contextItemBinding = None
-        self.depth = parentStructuralNode.depth + 1 if parentStructuralNode else 0
-        if tableNode is not None:
-            self.tableNode = tableNode
-        self.breakdownNode = breakdownNode # CR definition node
-        self.tagSelector = definitionNode.tagSelector if definitionNode is not None else None
-        self.isLabeled = True
-        
-    @property
-    def modelXbrl(self):
-        return self.definitionNode.modelXbrl
-    
-    @property
-    def choiceStructuralNodes(self):
-        if hasattr(self, "_choiceStructuralNodes"):
-            return self._choiceStructuralNodes
-        if self.parentStructuralNode is not None:
-            return self.parentStructuralNode.choiceStructuralNodes
-        # choiceStrNodes are on the breakdown node (if any)
-        return None
-    
-    @property
-    def isAbstract(self):
-        try:
-            try:
-                return self.abstract # ordinate may have an abstract attribute
-            except AttributeError: # if none use axis object
-                return self.definitionNode.isAbstract
-        except AttributeError: # axis may never be abstract
-            return False
-        
-    @property
-    def hasRollUpChild(self):
-        return self.rollUpStructuralNode is not None
-        
-    @property
-    def isRollUp(self):
-        return self.definitionNode is not None and self.definitionNode.isRollUp
-        
     @property
     def cardinalityAndDepth(self):
-        if self.definitionNode is not None:
-            return self.definitionNode.cardinalityAndDepth(self)
+        if self.defnMdlNode is not None:
+            return self.defnMdlNode.cardinalityAndDepth(self)
         return (1, 0) # no breakdown
-    
-    @property
-    def structuralDepth(self):
-        if self.parentStructuralNode is not None:
-            return self.parentStructuralNode.structuralDepth + 1
-        return 0
-    
-    '''
-    def breakdownNode(self, tableELR):
-        definitionNode = self.definitionNode
-        if isinstance(definitionNode, ModelBreakdown):
-            return definitionNode
-        axisSubtreeRelSet = definitionNode.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableBreakdownTree201305, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD, XbrlConst.tableDefinitionNodeSubtree201305, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011), tableELR)
-        while (True):
-            for parentRel in axisSubtreeRelSet.toModelObject(definitionNode):
-                definitionNode = parentRel.fromModelObject
-                if isinstance(definitionNode, ModelBreakdown):
-                    return definitionNode
-                break # recurse to move to this node's parent breakdown node
-        return definitionNode # give up here
-    '''
-   
-    def constraintSet(self, tagSelectors=None):
-        definitionNode = self.definitionNode
-        if not definitionNode:
-            return None # root node
-        if tagSelectors:
-            for tag in tagSelectors:
-                if tag in definitionNode.constraintSets:
-                    return definitionNode.constraintSets[tag]
-        return definitionNode.constraintSets.get(None) # returns None if no default constraint set
-    
-    def aspectsCovered(self, inherit=False):
-        aspectsCovered = _DICT_SET(self.aspects.keys())
-        if self.definitionNode is not None:
-            aspectsCovered |= self.definitionNode.aspectsCovered()
-        if inherit and self.parentStructuralNode is not None:
-            aspectsCovered.update(self.parentStructuralNode.aspectsCovered(inherit=inherit))
-        return aspectsCovered
-      
-    def hasAspect(self, aspect, inherit=True):
-        return (aspect in self.aspects or 
-                (self.definitionNode is not None and 
-                 self.definitionNode.hasAspect(self, aspect)) or 
-                (inherit and
-                 self.parentStructuralNode is not None and 
-                 self.parentStructuralNode.hasAspect(aspect, inherit)))
-    
-    def aspectValue(self, aspect, inherit=True, dims=None, depth=0, tagSelectors=None):
-        xc = self._rendrCntx
-        aspects = self.aspects
-        definitionNode = self.definitionNode
-        contextItemBinding = self.contextItemBinding
-        constraintSet = self.constraintSet(tagSelectors)
-        if aspect == Aspect.DIMENSIONS:
-            if dims is None: dims = set()
-            if inherit and self.parentStructuralNode is not None:
-                dims |= self.parentStructuralNode.aspectValue(aspect, dims=dims, depth=depth+1)
-            if aspect in aspects:
-                dims |= aspects[aspect]
-            elif constraintSet is not None and constraintSet.hasAspect(self, aspect):
-                dims |= set(definitionNode.aspectValue(xc, aspect) or {})
-            if constraintSet is not None and constraintSet.hasAspect(self, Aspect.OMIT_DIMENSIONS):
-                dims -= set(constraintSet.aspectValue(xc, Aspect.OMIT_DIMENSIONS))
-            return dims
-        if aspect in aspects:
-            return aspects[aspect]
-        elif constraintSet is not None and constraintSet.hasAspect(self, aspect):
-            if isinstance(definitionNode, ModelAspectDefinitionNode):
-                if contextItemBinding:
-                    return contextItemBinding.aspectValue(aspect)
-            else:
-                return constraintSet.aspectValue(xc, aspect)
-        if inherit and self.parentStructuralNode is not None:
-            return self.parentStructuralNode.aspectValue(aspect, depth=depth+1)
-        return None
-
-    '''
-    @property   
-    def primaryItemQname(self):  # for compatibility with viewRelationsihps
-        if Aspect.CONCEPT in self.aspects:
-            return self.aspects[Aspect.CONCEPT]
-        return self.definitionNode.primaryItemQname
-        
-    @property
-    def explicitDims(self):
-        return self.definitionNode.explicitDims
-    '''
         
     def objectId(self, refId=""):
-        if self.definitionNode is not None:
-            return self.definitionNode.objectId(refId)
+        if self.defnMdlNode is not None:
+            return self.defnMdlNode.objectId(refId)
         return None
         
+    @property
+    def structuralDepth(self):
+        return 0
+        
     def headerAndSource(self, role=None, lang=None, evaluate=True, returnGenLabel=True, returnMsgFormatString=False, recurseParent=True, returnStdLabel=True):
-        if not self.definitionNode: # root
+        if self.defnMdlNode is None: # root
             return None, None
         if returnGenLabel:
-            label = self.definitionNode.genLabel(role=role, lang=lang)
+            label = self.defnMdlNode.genLabel(role=role, lang=lang)
             if label:
                 return label, None # explicit is default source
         if self.isEntryAspect and role is None:
@@ -312,8 +115,8 @@ class StructuralNode:
             if label:
                 return label, "processor"
         # if there is a role, check if it's available on a parent node
-        if role and recurseParent and self.parentStructuralNode is not None:
-            return self.parentStructuralNode.headerAndSource(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent)
+        if role and recurseParent and self.strctMdlParentNode is not None:
+            return self.strctMdlParentNode.headerAndSource(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent)
         return None, None
     
     def header(self, role=None, lang=None, evaluate=True, returnGenLabel=True, returnMsgFormatString=False, recurseParent=True, returnStdLabel=True):
@@ -336,8 +139,8 @@ class StructuralNode:
                 if qn not in xc.inScopeVars:
                     removeVarQnames.append(qn)
                     xc.inScopeVars[qn] = value
-        if self.parentStructuralNode is not None:
-            result = self.parentStructuralNode.evaluate(evalObject, evalMethod, otherAxisStructuralNode, evalArgs)
+        if self.strctMdlParentNode is not None:
+            result = self.strctMdlParentNode.evaluate(evalObject, evalMethod, otherAxisStructuralNode, evalArgs)
         elif otherAxisStructuralNode is not None:
             # recurse to other ordinate (which will recurse to z axis)
             result = otherAxisStructuralNode.evaluate(evalObject, evalMethod, None, evalArgs)
@@ -361,19 +164,182 @@ class StructuralNode:
         return result
     
     def hasValueExpression(self, otherAxisStructuralNode=None):
-        return (self.definitionNode.hasValueExpression or 
+        return (self.defnMdlNode.hasValueExpression or 
                 (otherAxisStructuralNode is not None and 
-                 otherAxisStructuralNode.definitionNode is not None and
-                 otherAxisStructuralNode.definitionNode.hasValueExpression))
+                 otherAxisStructuralNode.defnMdlNode is not None and
+                 otherAxisStructuralNode.defnMdlNode.hasValueExpression))
     
     def evalValueExpression(self, fact, otherAxisStructuralNode=None):
         for structuralNode in (self, otherAxisStructuralNode):
             if (structuralNode is not None and 
-                structuralNode.definitionNode is not None and 
-                structuralNode.definitionNode.hasValueExpression):
-                return self.evaluate(self.definitionNode, structuralNode.definitionNode.evalValueExpression, otherAxisStructuralNode=otherAxisStructuralNode, evalArgs=(fact,))
+                structuralNode.defnMdlNode is not None and 
+                structuralNode.defnMdlNode.hasValueExpression):
+                return self.evaluate(self.defnMdlNode, structuralNode.defnMdlNode.evalValueExpression, otherAxisStructuralNode=otherAxisStructuralNode, evalArgs=(fact,))
         return None
     
+    @property
+    def isAbstract(self):
+        try:
+            try:
+                return self.abstract # ordinate may have an abstract attribute
+            except AttributeError: # if none use axis object
+                return self.defnMdlNode.isAbstract
+        except AttributeError: # axis may never be abstract
+            return False
+    
+        
+class StrctMdlTableSet(StrctMdlNode):
+    def __init__(self, defnMdlTable):
+        super(StrctMdlTableSet, self).__init__(None, defnMdlTable)
+
+class StrctMdlTable(StrctMdlNode):
+    def __init__(self, defnMdlTable):
+        super(StrctMdlTable, self).__init__(None, defnMdlTable)
+        self._rendrCntx = defnMdlTable.renderingXPathContext
+        # childStrctMdlNodes are StrctMdlBreakdowns
+        self.defnMdlBreakdowns = defaultdict(list)
+    
+class StrctMdlBreakdown(StrctMdlNode):
+    def __init__(self, strctMdlParentNode, defnMdlBreakdown, axis):
+        super(StrctMdlBreakdown, self).__init__(strctMdlParentNode, defnMdlBreakdown)
+        self._rendrCntx = strctMdlParentNode._rendrCntx # copy from parent except at root
+        self._axis = axis
+        self.rendrCntx = strctMdlParentNode._rendrCntx
+        self.hasOpenNode = False
+        self.depth = 0
+        if axis == "z":
+            self._choiceStructuralNodes = []   
+             
+class StrctMdlStructuralNode(StrctMdlNode):
+    def __init__(self, strctMdlParentNode, defnMdlNode, zInheritance=None, contextItemFact=None, tableNode=None, rendrCntx=None):
+        super(StrctMdlStructuralNode, self).__init__(strctMdlParentNode, defnMdlNode)
+        self._rendrCntx = rendrCntx or strctMdlParentNode._rendrCntx # copy from parent except at root
+        self.variables = {}
+        self.rollUpChildStrctMdlNode = None # child node which is roll-up, if any
+        self.zInheritance = zInheritance
+        if contextItemFact is not None:
+            self.contextItemBinding = VariableBinding(self._rendrCntx,
+                                                      boundFact=contextItemFact)
+            if isinstance(self.contextItemBinding.yieldedFact, FactPrototype):
+                for aspect in defnMdlNode.aspectsCovered():
+                    if aspect != Aspect.DIMENSIONS:
+                        self.aspectEntryObjectId = self.aspects[aspect] = contextItemFact.aspectEntryObjectId
+                        break
+        else:
+            self.contextItemBinding = None
+        if tableNode is not None:
+            self.tableNode = tableNode
+        self.tagSelector = getattr(defnMdlNode, "tagSelector", None)
+        self.isLabeled = True
+        
+    @property
+    def modelXbrl(self):
+        return self.defnMdlNode.modelXbrl
+    
+    @property
+    def choiceStructuralNodes(self):
+        if hasattr(self, "_choiceStructuralNodes"):
+            return self._choiceStructuralNodes
+        if self.strctMdlParentNode is not None:
+            return self.strctMdlParentNode.choiceStructuralNodes
+        # choiceStrNodes are on the breakdown node (if any)
+        return None
+        
+    @property
+    def hasRollUpChild(self):
+        return any(c.isRollUp or c.hasRollUpChild for c in self.strctMdlChildNodes)
+        
+    @property
+    def isRollUp(self):
+        return self.defnMdlNode is not None and self.defnMdlNode.isRollUp
+        
+    @property
+    def structuralDepth(self):
+        if self.strctMdlParentNode is not None:
+            return self.strctMdlParentNode.structuralDepth + 1
+        return 0
+    
+    '''
+    def breakdownNode(self, tableELR):
+        defnMdlNode = self.defnMdlNode
+        if isinstance(defnMdlNode, ModelBreakdown):
+            return defnMdlNode
+        axisSubtreeRelSet = defnMdlNode.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableBreakdownTree201305, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD, XbrlConst.tableDefinitionNodeSubtree201305, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011), tableELR)
+        while (True):
+            for parentRel in axisSubtreeRelSet.toModelObject(defnMdlNode):
+                defnMdlNode = parentRel.fromModelObject
+                if isinstance(defnMdlNode, ModelBreakdown):
+                    return defnMdlNode
+                break # recurse to move to this node's parent breakdown node
+        return defnMdlNode # give up here
+    '''
+   
+    def constraintSet(self, tagSelectors=None):
+        defnMdlNode = self.defnMdlNode
+        if not defnMdlNode:
+            return None # root node
+        if tagSelectors:
+            for tag in tagSelectors:
+                if tag in defnMdlNode.constraintSets:
+                    return defnMdlNode.constraintSets[tag]
+        return defnMdlNode.constraintSets.get(None) # returns None if no default constraint set
+    
+    def aspectsCovered(self, inherit=False):
+        aspectsCovered = _DICT_SET(self.aspects.keys())
+        if self.defnMdlNode is not None:
+            aspectsCovered |= self.defnMdlNode.aspectsCovered()
+        if inherit and self.strctMdlParentNode is not None:
+            aspectsCovered.update(self.strctMdlParentNode.aspectsCovered(inherit=inherit))
+        return aspectsCovered
+      
+    def hasAspect(self, aspect, inherit=True):
+        return (aspect in self.aspects or 
+                (self.defnMdlNode is not None and 
+                 self.defnMdlNode.hasAspect(self, aspect)) or 
+                (inherit and
+                 self.strctMdlParentNode is not None and 
+                 self.strctMdlParentNode.hasAspect(aspect, inherit)))
+    
+    def aspectValue(self, aspect, inherit=True, dims=None, depth=0, tagSelectors=None):
+        xc = self._rendrCntx
+        aspects = self.aspects
+        defnMdlNode = self.defnMdlNode
+        contextItemBinding = self.contextItemBinding
+        constraintSet = self.constraintSet(tagSelectors)
+        if aspect == Aspect.DIMENSIONS:
+            if dims is None: dims = set()
+            if inherit and self.strctMdlParentNode is not None:
+                dims |= self.strctMdlParentNode.aspectValue(aspect, dims=dims, depth=depth+1)
+            if aspect in aspects:
+                dims |= aspects[aspect]
+            elif constraintSet is not None and constraintSet.hasAspect(self, aspect):
+                dims |= set(defnMdlNode.aspectValue(xc, aspect) or {})
+            if constraintSet is not None and constraintSet.hasAspect(self, Aspect.OMIT_DIMENSIONS):
+                dims -= set(constraintSet.aspectValue(xc, Aspect.OMIT_DIMENSIONS))
+            return dims
+        if aspect in aspects:
+            return aspects[aspect]
+        elif constraintSet is not None and constraintSet.hasAspect(self, aspect):
+            if isinstance(defnMdlNode, ModelAspectDefinitionNode):
+                if contextItemBinding:
+                    return contextItemBinding.aspectValue(aspect)
+            else:
+                return constraintSet.aspectValue(xc, aspect)
+        if inherit and self.strctMdlParentNode is not None:
+            return self.strctMdlParentNode.aspectValue(aspect, depth=depth+1)
+        return None
+
+    '''
+    @property   
+    def primaryItemQname(self):  # for compatibility with viewRelationsihps
+        if Aspect.CONCEPT in self.aspects:
+            return self.aspects[Aspect.CONCEPT]
+        return self.defnMdlNode.primaryItemQname
+        
+    @property
+    def explicitDims(self):
+        return self.defnMdlNode.explicitDims
+    '''
     @property
     def isEntryAspect(self):
         # true if open node and bound to a fact prototype
@@ -384,32 +350,32 @@ class StructuralNode:
         if self.contextItemBinding is not None:
             # True if open node bound to a prototype, false if bound to a real fact
             return isinstance(self.contextItemBinding.yieldedFact, FactPrototype)
-        if self.parentStructuralNode is not None:
-            return self.parentStructuralNode.isEntryPrototype(default)
+        if self.strctMdlParentNode is not None:
+            return self.strctMdlParentNode.isEntryPrototype(default)
         return default # nothing open to be bound to a fact
     
     @property
     def parentChildOrder(self):
-        if self.definitionNode is not None:
-            return self.definitionNode.parentChildOrder
+        if self.defnMdlNode is not None:
+            return self.defnMdlNode.parentChildOrder
         return "parent-first" # default value
             
     @property
     def tableDefinitionNode(self):
-        if self.parentStructuralNode is None:
+        if self.strctMdlParentNode is None:
             return self.tableNode
         else:
-            return self.parentStructuralNode.tableDefinitionNode
+            return self.strctMdlParentNode.tableDefinitionNode
         
     @property
     def tagSelectors(self):
         try:
             return self._tagSelectors
         except AttributeError:
-            if self.parentStructuralNode is None:
+            if self.strctMdlParentNode is None:
                 self._tagSelectors = set()
             else:
-                self._tagSelectors = self.parentStructuralNode.tagSelectors
+                self._tagSelectors = self.strctMdlParentNode.tagSelectors
             if self.tagSelector:
                 self._tagSelectors.add(self.tagSelector)
             return self._tagSelectors
@@ -417,28 +383,28 @@ class StructuralNode:
     @property
     def leafNodeCount(self):
         childLeafCount = 0
-        if self.childStructuralNodes:
-            for childStructuralNode in self.childStructuralNodes:
+        if self.strctMdlChildNodes:
+            for childStructuralNode in self.strctMdlChildNodes:
                 childLeafCount += childStructuralNode.leafNodeCount
         if childLeafCount == 0:
             return 1
-        if not self.isAbstract and isinstance(self.definitionNode, ModelClosedDefinitionNode):
+        if not self.isAbstract and isinstance(self.defnMdlNode, DefnMdlClosedDefinitionNode):
             childLeafCount += 1 # has a roll up
         return childLeafCount
     
     def setHasOpenNode(self):
-        if self.parentStructuralNode is not None:
-            self.parentStructuralNode.setHasOpenNode()
+        if self.strctMdlParentNode is not None:
+            self.strctMdlParentNode.setHasOpenNode()
         else:
             self.hasOpenNode = True
 
     def inheritedPrimaryItemQname(self, view):
-        return (self.primaryItemQname or self.inheritedPrimaryItemQname(self.parentStructuralNode, view))
+        return (self.primaryItemQname or self.inheritedPrimaryItemQname(self.strctMdlParentNode, view))
             
     def inheritedExplicitDims(self, view, dims=None, nested=False):
         if dims is None: dims = {}
         if self.parentOrdinateContext:
-            self.parentStructuralNode.inheritedExplicitDims(view, dims, True)
+            self.strctMdlParentNode.inheritedExplicitDims(view, dims, True)
         for dim, mem in self.explicitDims:
             dims[dim] = mem
         if not nested:
@@ -455,7 +421,7 @@ class StructuralNode:
             if aspect == Aspect.LOCATION:
                 hasClash = False
                 for _aspectStructuralNode in aspectStructuralNodes:
-                    if not _aspectStructuralNode.definitionNode.aspectValueDependsOnVars(aspect):
+                    if not _aspectStructuralNode.defnMdlNode.aspectValueDependsOnVars(aspect):
                         if structuralNode:
                             hasClash = True
                         else:
@@ -481,9 +447,39 @@ class StructuralNode:
             return structuralNode.aspectValue(aspect, tagSelectors=tagSelectors)
         return None 
 
-                      
-    def __repr__(self):
-        return ("structuralNode[{0}]{1})".format(self.objectId(),self.definitionNode))
+
+        
+''' not clear layout model needs to be explicitly represented
+    
+class LayoutMdlTableSet:
+    def __init__(self, strctMdlTableSet):
+        self.strctMdlTableSet = strctMdlTableSet
+        self.layoutMdlTables = []
+    
+class LayoutMdlTable:
+    def __init__(self, strctMdlTable):
+        self.strctMdlTable = strctMdlTable
+        self.layoutMdlXHeaders = [] # contains LayoutMdlAxisHeaders
+        self.layoutMdlYHeaders = []
+        self.layoutMdlZCells = []
+    
+class LayoutMdlAxisHeaders:
+    def __init__(self, strctMdlNode):
+        self.strctMdlNode = strctMdlNode
+        self.layoutMdlGroups = []
+    
+class LayoutMdlGroup:
+    def __init__(self, strctMdlNode):
+        self.strctMdlNode = strctMdlNode
+        self.layoutMdlGroups = []
+    
+class LayoutMdlHeader:
+    def __init__(self, strctMdlNode):
+        self.strctMdlNode = strctMdlNode
+        self.layoutMdlGroups = []
+    
+'''    
+
         
 # Root class for rendering is formula, to allow linked and nested compiled expressions
 def definitionModelLabelsView(mdlObj):
@@ -522,6 +518,10 @@ class DefnMdlTable(ModelFormulaResource):
     @property
     def ancestorArcroles(self):        
         return ()
+                   
+    @property
+    def aspectModel(self):
+        return "dimensional" # attribute removed 2013-06, always dimensional
                 
     @property
     def filterRelationships(self):
@@ -575,9 +575,9 @@ class DefnMdlTable(ModelFormulaResource):
     def __repr__(self):
         return ("modlTable[{0}]{1})".format(self.objectId(),self.propertyView))
   
-class DefnMdlBreakdown(ModelDefinitionNode):
+class DefnMdlBreakdown(ModelFormulaResource):
     def init(self, modelDocument):
-        super(ModelBreakdown, self).init(modelDocument)
+        super(DefnMdlBreakdown, self).init(modelDocument)
         
     @property
     def parentChildOrder(self):
@@ -594,7 +594,14 @@ class DefnMdlBreakdown(ModelDefinitionNode):
     @property
     def isRollUp(self):
         return False
-    
+        
+    @property
+    def isAbstract(self):
+        return False
+        
+    def cardinalityAndDepth(self, structuralNode, **kwargs):
+        return (1, 
+                1 if (structuralNode.header(evaluate=False) is not None) else 0)
     @property
     def propertyView(self):
         return ((("id", self.id),
@@ -604,7 +611,7 @@ class DefnMdlBreakdown(ModelDefinitionNode):
 
 class DefnMdlDefinitionNode(ModelFormulaResource):
     def init(self, modelDocument):
-        super(ModelDefinitionNode, self).init(modelDocument)
+        super(DefnMdlDefinitionNode, self).init(modelDocument)
     
     @property
     def parentDefinitionNode(self):
@@ -660,7 +667,7 @@ class DefnMdlDefinitionNode(ModelFormulaResource):
             value = self.valueExpression
             self.valueProg = XPathParser.parse(self, value, self, "value", Trace.VARIABLE)
         # duplicates formula resource for RuleAxis but not for other subclasses
-        super(ModelDefinitionNode, self).compile()
+        super(DefnMdlDefinitionNode, self).compile()
         
     def evalValueExpression(self, xpCtx, fact):
         # compiled by FormulaResource compile()
@@ -1210,7 +1217,7 @@ coveredAspectToken = {"concept": Aspect.CONCEPT,
                       "period-instant": Aspect.INSTANT, "period-instant-end": Aspect.INSTANT_END, 
                       "unit": Aspect.UNIT}
 
-class DefnMdlOpenDefinitionNode(ModelDefinitionNode):
+class DefnMdlOpenDefinitionNode(DefnMdlDefinitionNode):
     def init(self, modelDocument):
         super(DefnMdlOpenDefinitionNode, self).init(modelDocument)
 

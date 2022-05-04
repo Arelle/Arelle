@@ -677,7 +677,7 @@ consecutiveArcrole = { # can be list of or single arcrole
     dimensionDefault: ()}
 
 def isTableRenderingArcrole(arcrole):
-    return arcrole in {# current PWD 2013-05-17
+    return arcrole in {# REC
                        tableBreakdown, tableBreakdownTree, tableFilter, tableParameter,
                        tableDefinitionNodeSubtree, tableAspectNodeFilter,
                        # current IWD

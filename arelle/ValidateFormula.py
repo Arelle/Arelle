@@ -15,7 +15,7 @@ from arelle.ModelFormulaObject import (ModelParameter, ModelInstance, ModelVaria
                                        ModelPrecondition, ModelConceptName, Trace,
                                        Aspect, aspectModels, ModelAspectCover,
                                        ModelMessage)
-from arelle.ModelRenderingObject import (ModelRuleDefinitionNode, ModelRelationshipDefinitionNode, ModelAspectDefinitionNode)
+from arelle.ModelRenderingObject import (DefnMdlRuleDefinitionNode, DefnMdlRelationshipNode, DefnMdlAspectNode)
 from arelle.ModelObject import (ModelObject)
 from arelle.ModelValue import (qname,QName)
 from arelle.PluginManager import pluginClassMethods

@@ -11,11 +11,10 @@ from arelle import (ViewWinTkTable, ModelDocument, ModelDtsObject, ModelInstance
                     ModelXbrl, Locale, FunctionXfi,
                     ValidateXbrlDimensions)
 from arelle.ModelValue import qname, QName
-from arelle.RenderingResolver import resolveAxesStructure, RENDER_UNITS_PER_CHAR
+from arelle.RenderingResolution import resolveTableStructure, RENDER_UNITS_PER_CHAR
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectModelAspect
 from arelle.ModelInstanceObject import ModelDimensionValue
-from arelle.ModelRenderingObject import (ModelClosedDefinitionNode,
-                                         ModelAspectDefinitionNode,
+from arelle.ModelRenderingObject import (DefnMdlClosedDefinitionNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.FormulaEvaluator import init as formulaEvaluatorInit, aspectMatches
 
@@ -79,7 +78,7 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     saveMenu.add_command(label=_("Layout model"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(view=view, fileType="xml"))
     saveMenu.add_command(label=_("XBRL instance"), underline=0, command=view.saveInstance)
     menu.add_cascade(label=_("Save"), menu=saveMenu, underline=0)
-    view.view()
+    #view.view()
     view.blockSelectEvent = 1
     view.blockViewModelObject = 0
     view.viewFrame.bind("<Enter>", view.cellEnter, '+')
@@ -208,7 +207,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         # remove old widgets
         self.viewFrame.clearGrid()
 
-        strMdlTableSet = resolveTableSetStructure(self, viewTblELR)
+        strctMdlTable = resolveTableStructure(self, viewTblELR)
         #tblAxisRelSet, xTopStructuralNode, yTopStructuralNode, zTopStructuralNode = resolveAxesStructure(self, viewTblELR)
         colAdjustment = 1 if zTopStructuralNode is not None else 0
         self.table.resizeTable(self.dataFirstRow+self.dataRows-1, self.dataFirstCol+self.dataCols+colAdjustment-1, titleRows=self.dataFirstRow-1, titleColumns=self.dataFirstCol-1)
@@ -302,7 +301,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         break
                 # for open filter nodes of explicit dimension allow selection of all values
                 zAxisAspectEntryMode = False
-                if isinstance(chosenStructuralNode.definitionNode, ModelAspectDefinitionNode):
+                if isinstance(chosenStructuralNode.defnMdlNode, ModelAspectDefinitionNode):
                     if isinstance(aspect, QName):
                         dimConcept = self.modelXbrl.qnameConcepts[aspect]
                         if dimConcept.isExplicitDimension:
@@ -351,7 +350,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 #process aspect on this node before child nodes in case it is overridden
                 self.setZStructuralNodeAspects(zStructuralNode)
             # nested nodes override parent nodes
-            for zStructuralNode in zStructuralNode.childStructuralNodes:
+            for zStructuralNode in zStructuralNode.strMdlChildNodes:
                 self.zAxis(row + 1, zStructuralNode, clearZchoices)
                     
     def setZStructuralNodeAspects(self, zStructuralNode, add=True):
@@ -376,7 +375,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         if combobox.zAxisAspectEntryMode:
             aspectValue = structuralNode.aspectEntryHeaderValues.get(combobox.get())
             if aspectValue is not None:
-                self.zOrdinateChoices[structuralNode.definitionNode] = \
+                self.zOrdinateChoices[structuralNode.defnMdlNode] = \
                     structuralNode.aspects = {combobox.zAxisAspect: aspectValue, 'aspectValueLabel': combobox.get()}
                 self.view() # redraw grid
         elif combobox.zAxisIsOpenExplicitDimension and combobox.get() == "(all members)":
@@ -397,7 +396,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 aspectValue = FunctionXfi.create_element(self.rendrCntx, 
                                                          None, 
                                                          (combobox.zAxisTypedDimension.typedDomainElement.qname, (), result))
-                self.zOrdinateChoices[structuralNode.definitionNode] = \
+                self.zOrdinateChoices[structuralNode.defnMdlNode] = \
                     structuralNode.aspects = {combobox.zAxisAspect: aspectValue, 
                                               Aspect.DIMENSIONS: {combobox.zAxisTypedDimension.qname},
                                               'aspectValueLabel': result}
@@ -412,7 +411,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             # remove prior combo choice aspect
             self.setZStructuralNodeAspects(structuralNode.choiceStructuralNodes[structuralNode.choiceNodeIndex], add=False)
             i = combobox.valueIndex
-            self.zOrdinateChoices[combobox.zStructuralNode.definitionNode] =  structuralNode.choiceNodeIndex = i
+            self.zOrdinateChoices[combobox.zStructuralNode.defnMdlNode] =  structuralNode.choiceNodeIndex = i
             # set current combo choice aspect
             self.setZStructuralNodeAspects(structuralNode.choiceStructuralNodes[i])
             self.view() # redraw grid
@@ -423,14 +422,14 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             noDescendants = True
             rightCol = leftCol
             widthToSpanParent = 0
-            for xStructuralNode in xParentStructuralNode.childStructuralNodes:
+            for xStructuralNode in xParentStructuralNode.strMdlChildNodes:
                 if True: # not xStructuralNode.isRollUp:
                     childrenFirst = not xStructuralNode.isRollUp or xStructuralNode.parentChildOrder == "children-first"
                     noDescendants = False
                     isLabeled = xStructuralNode.isLabeled
                     isAbstract = (xStructuralNode.isAbstract or
-                                  (xStructuralNode.childStructuralNodes and
-                                   not isinstance(xStructuralNode.definitionNode, ModelClosedDefinitionNode)))
+                                  (xStructuralNode.strMdlChildNodes and
+                                   not isinstance(xStructuralNode.defnMdlNode, ModelClosedDefinitionNode)))
                     isNonAbstract = not isAbstract
                     isRollUp = xStructuralNode.isRollUp
                     rightCol, row, width, leafNode = self.xAxis(leftCol, topRow + isLabeled, rowBelow, xStructuralNode, xStructuralNodes, # nested items before totals
@@ -449,7 +448,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     if renderNow and isLabeled:
                         columnspan = (rightCol - leftCol + (1 if isNonAbstract else 0))
                         label = xStructuralNode.header(lang=self.lang,
-                                                       returnGenLabel=isinstance(xStructuralNode.definitionNode, ModelClosedDefinitionNode))
+                                                       returnGenLabel=isinstance(xStructuralNode.defnMdlNode, ModelClosedDefinitionNode))
                         if label != OPEN_ASPECT_ENTRY_SURROGATE:
                             xValue = leftCol-1
                             yValue = topRow-1
@@ -460,7 +459,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                            ((row - topRow) if leafNode else 0),
                                                            XbrlTable.TG_CENTERED,
                                                            objectId=xStructuralNode.objectId(),
-                                                           isRollUp=isRollUp) #columnspan>1 and isNonAbstract and len(xStructuralNode.childStructuralNodes)<columnspan)
+                                                           isRollUp=isRollUp) #columnspan>1 and isNonAbstract and len(xStructuralNode.strMdlChildNodes)<columnspan)
                         else:
                             self.aspectEntryObjectIdsNode[xStructuralNode.aspectEntryObjectId] = xStructuralNode
                             self.aspectEntryObjectIdsCell[xStructuralNode.aspectEntryObjectId] = self.table.initHeaderCombobox(leftCol-1,
@@ -492,12 +491,12 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
     def yAxis(self, leftCol, row, yParentStructuralNode, renderNow, atLeft):
         if yParentStructuralNode is not None:
             nestedBottomRow = row
-            for yStructuralNode in yParentStructuralNode.childStructuralNodes:
+            for yStructuralNode in yParentStructuralNode.strMdlChildNodes:
                 if not yStructuralNode.isRollUp:
                     childrenFirst = not yStructuralNode.isRollUp or yStructuralNode.parentChildOrder == "children-first"
                     isAbstract = (yStructuralNode.isAbstract or 
-                                  (yStructuralNode.childStructuralNodes and
-                                   not isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode)))
+                                  (yStructuralNode.strMdlChildNodes and
+                                   not isinstance(yStructuralNode.defnMdlNode, ModelClosedDefinitionNode)))
                     isNonAbstract = not isAbstract
                     isLabeled = yStructuralNode.isLabeled
                     nestRow, nextRow = self.yAxis(leftCol + isLabeled, row, yStructuralNode,  # nested items before totals
@@ -514,8 +513,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         if wraplength < 0:
                             wraplength = self.rowHdrColWidth[depth]
                         label = yStructuralNode.header(lang=self.lang,
-                                                       returnGenLabel=isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode),
-                                                       recurseParent=not isinstance(yStructuralNode.definitionNode, ModelAspectDefinitionNode))
+                                                       returnGenLabel=isinstance(yStructuralNode.defnMdlNode, ModelClosedDefinitionNode),
+                                                       recurseParent=not isinstance(yStructuralNode.defnMdlNode, ModelAspectDefinitionNode))
                         if label != OPEN_ASPECT_ENTRY_SURROGATE:
                             xValue = leftCol-1
                             yValue = row-1
@@ -592,7 +591,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspectStructuralNodes)
                 if not (yStructuralNode.isAbstract or 
                         (yStructuralNode.childStructuralNodes and
-                         not isinstance(yStructuralNode.definitionNode, ModelClosedDefinitionNode))) and yStructuralNode.isLabeled:
+                         not isinstance(yStructuralNode.defnMdlNode, ModelClosedDefinitionNode))) and yStructuralNode.isLabeled:
                     isYEntryPrototype = yStructuralNode.isEntryPrototype(default=False) # row to enter open aspects
                     yAspectStructuralNodes = defaultdict(set)
                     for aspect in aspectModels["dimensional"]:
@@ -604,7 +603,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 yAspectStructuralNodes[aspect].add(yStructuralNode)
                     yTagSelectors = yStructuralNode.tagSelectors
                     # data for columns of row
-                    #print ("row " + str(row) + "yNode " + yStructuralNode.definitionNode.objectId() )
+                    #print ("row " + str(row) + "yNode " + yStructuralNode.defnMdlNode.objectId() )
                     ignoreDimValidity = self.ignoreDimValidity.get()
                     
                     # Reuse already computed facts partition in case of open Y axis
@@ -1131,9 +1130,9 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         # otherwise return aspect value matching header if any
         depth = 0
         n = structuralNode
-        while (n.parentStructuralNode is not None):
+        while (n.strMdlParentNode is not None):
             depth += 1
-            root = n = n.parentStructuralNode
+            root = n = n.strMdlParentNode
             
         headers = set()
         headerValues = {}
@@ -1179,7 +1178,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         if structuralNode is not None:
             headerValues = {}
             # check for dimension filter(s)
-            dimFilterRels = structuralNodeWithFilter.definitionNode.filterRelationships
+            dimFilterRels = structuralNodeWithFilter.defnMdlNode.filterRelationships
             if dimFilterRels:
                 for rel in dimFilterRels:
                     dimFilter = rel.toModelObject
