@@ -796,6 +796,8 @@ def xpointerElement(modelDocument, fragmentIdentifier):
                     node = modelDocument.xmlDocument.find("//*[@id='{0}']".format(id))
                 if node is None:
                     continue    # this scheme fails
+                elif len(pathParts) > 1:
+                    iter = node
             else:
                 node = modelDocument.xmlDocument
                 iter = (node.getroot(),)
