@@ -155,6 +155,8 @@ class FileSource:
         try:
             if zipfile.is_zipfile(self.url):
                 filetype = '.zip'
+            elif tarfile.is_tarfile(self.url):
+                filetype = '.tar.gz'
         except Exception:  # if the value of self.url is incompatible with the methods used
             pass
         # If no advanced methods gave a result, fall back to file extension
