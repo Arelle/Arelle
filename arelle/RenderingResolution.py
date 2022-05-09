@@ -10,7 +10,7 @@ from arelle import XbrlConst
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelValue import QName
-from arelle.ModelFormulaObject import Aspect
+from arelle.ModelFormulaObject import Aspect, aspectStr
 from arelle.ModelRenderingObject import (DefnMdlTable, DefnMdlBreakdown,
                                          DefnMdlDefinitionNode, DefnMdlClosedDefinitionNode, DefnMdlRuleDefinitionNode,
                                          DefnMdlRelationshipNode, DefnMdlAspectNode,
@@ -116,10 +116,10 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
             strctMdlBreakdown = resolveDefinition(view, strctMdlTable, None, 1, facts, 1, tblBrkdnRels, axis=axis)
             if axis == "x":
                 view.dataCols += strctMdlBreakdown.leafNodeCount
-                strctMdlBreakdown.hasOpenNode = True
+                strctMdlBreakdown.setHasOpenNode()
             elif axis == "y":
                 view.dataRows += strctMdlBreakdown.leafNodeCount
-                strctMdlBreakdown.hasOpenNode = True
+                strctMdlBreakdown.setHasOpenNode()
                 
     # uncomment below for debugging Definition and Structural Models             
     def jsonStrctMdlEncoder(obj, indent="\n"):
@@ -133,12 +133,14 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
             if obj.isAbstract:
                 o["abstract"] = True
             if isinstance(obj, StrctMdlStructuralNode):
-                if obj.hasRollUpChild:
-                    o["hasRollUpChild"] = True
-                if obj.isRollUp:
-                    o["isRollUp"] = True
+                if obj.hasChildRollup:
+                    o["hasChildRollup"] = True
+                if obj.rollup:
+                    o["rollup"] = True
                 o["structuralDepth"] = obj.structuralDepth
-                o["aspectsCovered"] = str(obj.aspectsCovered)
+                _aspectsCovered = obj.aspectsCovered()
+                if _aspectsCovered:
+                    o["aspectsCovered"] = OrderedDict((aspectStr(a),str(obj.aspectValue(a)).replace(OPEN_ASPECT_ENTRY_SURROGATE, "OPEN_ASPECT_ENTRY_")) for a in _aspectsCovered)
             if obj.defnMdlNode is not None:
                 o["defnMdlNode"] = str(obj.defnMdlNode)
             if obj.strctMdlChildNodes:
@@ -232,29 +234,28 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, i=None, t
                 # note: reduced set of facts should always be passed to subsequent open nodes
                 for subtreeRel in subtreeRels:
                     childDefnMdlNode = subtreeRel.toModelObject
+                    childStrctNode = resolveDefinition(view, strctMdlNode, childDefnMdlNode, depth, facts, i, tblBrkdnRels)
                     if childDefnMdlNode.isRollUp:
-                        rollUpStrctNode = StrctMdlStructuralNode(strctMdlParent, childDefnMdlNode)
+                        rollUpStrctNode = StrctMdlStructuralNode(childStrctNode, childDefnMdlNode)
+                        rollUpStrctNode.rollup = True
+                        childStrctNode.hasChildRollup = True
+                        strctMdlNode.rollUpChildStrctMdlNode = rollUpStrctNode
                         if childDefnMdlNode.parentChildOrder == "parent-first":
-                            rollUpStrctNode.rollUpChildStrctMdlNode = \
-                                resolveDefinition(view, rollUpStrctNode, childDefnMdlNode, depth, axis, facts, i, tblBrkdnRels) #recurse
-                        resolveDefinition(view, rollUpStrctNode, childDefnMdlNode, depth, axis, facts, i, tblBrkdnRels) #recurse
-                        if childDefnMdlNode.parentChildOrder == "children-first":
-                            rollUpStrctNode.rollUpChildStrctMdlNode = \
-                                resolveDefinition(view, rollUpStrctNode, childDefnMdlNode, depth, axis, facts, i, tblBrkdnRels) #recurse
-                    else:
-                        childStrctNode = resolveDefinition(view, strctMdlNode, childDefnMdlNode, depth, axis, facts, i, tblBrkdnRels)
+                            childStrctNode.strctMdlChildNodes = childStrctNode.strctMdlChildNodes[-1:] + childStrctNode.strctMdlChildNodes[0:-1]
             if isinstance(defnMdlNode, DefnMdlRelationshipNode):
                 strctMdlNode.isLabeled = False
                 selfStructuralNodes = {} if defnMdlNode.axis.endswith('-or-self') else None
                 for rel in defnMdlNode.relationships(strctMdlNode):
                     if not isinstance(rel, list):
-                        relChildStructuralNode = addRelationship(breakdownNode, defnMdlNode, rel, strctMdlNode, selfStructuralNodes)
+                        relChildStructuralNode = addRelationship(defnMdlNode, rel, strctMdlParent, selfStructuralNodes)
                     else:
-                        addRelationships(breakdownNode, defnMdlNode, rel, relChildStructuralNode)
+                        addRelationships(defnMdlNode, rel, strctMdlParent)
+                # relationship strct mdl nodes were added to strctMdlNode, move them to parent and dereference strctMdlNode
+                del strctMdlParent.strctMdlChildNodes[0] # remove unused strctMdlNode as rel str mdl nodes are owned by parent
                 if axis == "z":
                     # if defnMdlNode is first structural node child remove it
-                    if strctMdlNode.choiceStructuralNodes and strctMdlNode.choiceStructuralNodes[0].defnMdlNode == defnMdlNode:
-                        del strctMdlNode.choiceStructuralNodes[0]
+                    if strctMdlParent.choiceStructuralNodes and strctMdlParent.choiceStructuralNodes[0].defnMdlNode == defnMdlNode:
+                        del strctMdlParent.choiceStructuralNodes[0]
                     # flatten hierarchy of nested structural nodes inot choice nodes (for single listbox)
                     def flattenChildNodesToChoices(strctMdlChildNodes, indent):
                         while strctMdlChildNodes:
@@ -262,8 +263,8 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, i=None, t
                             choiceStructuralNode.indent = indent
                             strctMdlNode.choiceStructuralNodes.append(choiceStructuralNode)
                             flattenChildNodesToChoices(choiceStructuralNode.strctMdlChildNodes, indent + 1)
-                    if strctMdlNode.strctMdlChildNodes:
-                        flattenChildNodesToChoices(strctMdlNode.strctMdlChildNodes, 0)
+                    if strctMdlParent.strctMdlChildNodes:
+                        flattenChildNodesToChoices(strctMdlParent.strctMdlChildNodes, 0)
                 # set up by defnMdlNode.relationships
                 if isinstance(defnMdlNode, DefnMdlConceptRelationshipNode):
                     if (defnMdlNode._sourceQname != XbrlConst.qnXfiRoot and
@@ -315,22 +316,23 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, i=None, t
                 else:
                     childList = strctMdlNode.choiceStructuralNodes
                 for factsPartition in filteredFactsPartitions:
-                    childStructuralNode = StrctMdlStructuralNode(strctMdlNode, breakdownNode, defnMdlNode, contextItemFact=factsPartition[0])
+                    childStructuralNode = StrctMdlStructuralNode(strctMdlNode, defnMdlNode, contextItemFact=factsPartition[0])
                     
                     # store the partition for later reuse when spreading facts in body cells
                     childStructuralNode.factsPartition = factsPartition
                              
                     childStructuralNode.indent = 0
-                    childStructuralNode.depth -= 1  # for label width; parent is merged/invisible
-                    childList.append(childStructuralNode)
-                    checkLabelWidth(childStructuralNode, checkBoundFact=True)
-                    #resolveDefinition(view, childStructuralNode, breakdownNode, defnMdlNode, depth, axis, factsPartition, processOpenDefinitionNode=False) #recurse
+                    # childStructuralNode.depth -= 1  # for label width; parent is merged/invisible
+                    if axis == "z":
+                        childList.append(childStructuralNode)
+                    # checkLabelWidth(childStructuralNode, checkBoundFact=True)
+                    #resolveDefinition(view, childStructuralNode, defnMdlNode, depth, axis, factsPartition, processOpenDefinitionNode=False) #recurse
                     if subtreeRels:
                         for subtreeRel in subtreeRels:
                             child2DefinitionNode = subtreeRel.toModelObject
-                            child2StructuralNode = StrctMdlStructuralNode(childStructuralNode, breakdownNode, child2DefinitionNode) # others are nested structuralNode
+                            child2StructuralNode = StrctMdlStructuralNode(childStructuralNode, child2DefinitionNode) # others are nested structuralNode
                             childStructuralNode.strctMdlChildNodes.append(child2StructuralNode)
-                            resolveDefinition(view, child2StructuralNode, breakdownNode, child2DefinitionNode, depth+ordDepth, axis, factsPartition) #recurse
+                            resolveDefinition(view, child2StructuralNode, child2DefinitionNode, depth+ordDepth, factsPartition) #recurse
                 # sort by header (which is likely to be typed dim value, for example)
                 childList.sort(key=lambda childStructuralNode: 
                                childStructuralNode.header(lang=view.lang, 
@@ -374,7 +376,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, i=None, t
                         strctMdlNode.choiceNodeIndex = 0
                 view.zmostOrdCntx = strctMdlNode
                     
-            if isinstance(strctMdlNode, StrctMdlBreakdown) and not strctMdlNode.strctMdlChildNodes: # childless root ordinate, make a child to iterate in producing table
+            if isinstance(defnMdlNode, (NoneType, DefnMdlBreakdown)) and not strctMdlNode.strctMdlChildNodes: # childless root ordinate, make a child to iterate in producing table
                 subOrdContext = StrctMdlStructuralNode(strctMdlNode, defnMdlNode)
         except ResolutionException as ex:
             if sys.version[0] >= '3':
@@ -395,7 +397,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, i=None, t
         
     return strctMdlNode
             
-def addRelationship(breakdownNode, relDefinitionNode, rel, strctMdlNode, selfStructuralNodes=None):
+def addRelationship(relDefinitionNode, rel, strctMdlNode, selfStructuralNodes=None):
     variableQname = relDefinitionNode.variableQname
     conceptQname = relDefinitionNode.conceptQname
     coveredAspect = relDefinitionNode.coveredAspect(strctMdlNode)
@@ -407,19 +409,16 @@ def addRelationship(breakdownNode, relDefinitionNode, rel, strctMdlNode, selfStr
         if fromConceptQname in selfStructuralNodes:
             childStructuralNode = selfStructuralNodes[fromConceptQname]
         else:
-            childStructuralNode = StrctMdlStructuralNode(strctMdlNode, breakdownNode, relDefinitionNode)
-            strctMdlNode.strctMdlChildNodes.append(childStructuralNode)
+            childStructuralNode = StrctMdlStructuralNode(strctMdlNode, relDefinitionNode)
             selfStructuralNodes[fromConceptQname] = childStructuralNode
             if variableQname:
                 childStructuralNode.variables[variableQname] = []
             if conceptQname:
                 childStructuralNode.variables[conceptQname] = fromConceptQname
             childStructuralNode.aspects[coveredAspect] = fromConceptQname
-        relChildStructuralNode = StrctMdlStructuralNode(childStructuralNode, breakdownNode, relDefinitionNode)
-        childStructuralNode.strctMdlChildNodes.append(relChildStructuralNode)
+        relChildStructuralNode = StrctMdlStructuralNode(childStructuralNode, relDefinitionNode)
     else:
-        relChildStructuralNode = StrctMdlStructuralNode(strctMdlNode, breakdownNode, relDefinitionNode)
-        strctMdlNode.strctMdlChildNodes.append(relChildStructuralNode)
+        relChildStructuralNode = StrctMdlStructuralNode(strctMdlNode, relDefinitionNode)
     preferredLabel = rel.preferredLabel
     if preferredLabel == XbrlConst.periodStartLabel:
         relChildStructuralNode.tagSelector = "table.periodStart"
@@ -433,18 +432,17 @@ def addRelationship(breakdownNode, relDefinitionNode, rel, strctMdlNode, selfStr
     relChildStructuralNode.aspects[coveredAspect] = toConceptQname
     return relChildStructuralNode
 
-def addRelationships(breakdownNode, relDefinitionNode, rels, strctMdlNode):
+def addRelationships(relDefinitionNode, rels, strctMdlNode):
     childStructuralNode = None # holder for nested relationships
     for rel in rels:
         if not isinstance(rel, list):
             # first entry can be parent of nested list relationships
-            childStructuralNode = addRelationship(breakdownNode, relDefinitionNode, rel, strctMdlNode)
+            childStructuralNode = addRelationship(relDefinitionNode, rel, strctMdlNode)
         elif childStructuralNode is None:
-            childStructuralNode = StrctMdlStructuralNode(strctMdlNode, breakdownNode, relDefinitionNode)
-            strctMdlNode.strctMdlChildNodes.append(childStructuralNode)
-            addRelationships(breakdownNode, relDefinitionNode, rel, childStructuralNode)
+            childStructuralNode = StrctMdlStructuralNode(strctMdlNode, relDefinitionNode)
+            addRelationships(relDefinitionNode, rel, childStructuralNode)
         else:
-            addRelationships(breakdownNode, relDefinitionNode, rel, childStructuralNode)
+            addRelationships(relDefinitionNode, rel, childStructuralNode)
             
 
 

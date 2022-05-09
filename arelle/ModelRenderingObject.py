@@ -46,7 +46,12 @@ class StrctMdlNode:
         if strctMdlParentNode:
             strctMdlParentNode.strctMdlChildNodes.append(self)
         self.aspects = {}
-
+        self.hasChildRollup = False
+        self.contextItemBinding = None
+        self.variables = {}
+        self.zInheritance = None
+        self.rollup = False # true when this is the rollup node among its siblings
+        
     @property
     def axis(self):
         return getattr(self, "_axis", self.strctMdlParentNode.axis if self.strctMdlParentNode else "")
@@ -77,6 +82,25 @@ class StrctMdlNode:
     @property
     def structuralDepth(self):
         return 0
+    
+    @property
+    def choiceStructuralNodes(self):
+        if hasattr(self, "_choiceStructuralNodes"):
+            return self._choiceStructuralNodes
+        if self.strctMdlParentNode is not None:
+            return self.strctMdlParentNode.choiceStructuralNodes
+        # choiceStrNodes are on the breakdown node (if any)
+        return None
+    
+    @property
+    def childRollupStrctNode(self):
+        for childStrctNode in self.strctMdlChildNodes:
+            if childStrctNode.rollup:
+                return childStrctNode
+            grandchildStrctRollup = childStrctNode.childRollupStrctNode
+            if grandchildStrctRollup:
+                return grandchildStrctRollup
+        return None
         
     def headerAndSource(self, role=None, lang=None, evaluate=True, returnGenLabel=True, returnMsgFormatString=False, recurseParent=True, returnStdLabel=True):
         if self.defnMdlNode is None: # root
@@ -89,8 +113,8 @@ class StrctMdlNode:
             # True if open node bound to a prototype, false if boudn to a real fact
             return OPEN_ASPECT_ENTRY_SURROGATE, None # sort pretty high, work ok for python 2.7/3.2 as well as 3.3
         # if there's a child roll up, check for it
-        if self.rollUpStructuralNode is not None:  # check the rolling-up child too
-            return self.rollUpStructuralNode.headerAndSource(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent)
+        if self.childRollupStrctNode is not None:  # check the rolling-up child too
+            return self.childRollupStrctNode.headerAndSource(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent)
         # if aspect is a concept of dimension, return its standard label
         concept = None
         if role is None and returnStdLabel:
@@ -122,6 +146,16 @@ class StrctMdlNode:
     def header(self, role=None, lang=None, evaluate=True, returnGenLabel=True, returnMsgFormatString=False, recurseParent=True, returnStdLabel=True):
         return self.headerAndSource(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent, returnStdLabel)[0]
     
+    @property
+    def isAbstract(self):
+        try:
+            try:
+                return self.abstract # ordinate may have an abstract attribute
+            except AttributeError: # if none use axis object
+                return self.defnMdlNode.isAbstract
+        except AttributeError: # axis may never be abstract
+            return False
+    
     def evaluate(self, evalObject, evalMethod, otherAxisStructuralNode=None, evalArgs=(), handleXPathException=True, **kwargs):
         xc = self._rendrCntx
         if self.contextItemBinding and not isinstance(xc.contextItem, ModelFact):
@@ -139,7 +173,7 @@ class StrctMdlNode:
                 if qn not in xc.inScopeVars:
                     removeVarQnames.append(qn)
                     xc.inScopeVars[qn] = value
-        if self.strctMdlParentNode is not None:
+        if isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
             result = self.strctMdlParentNode.evaluate(evalObject, evalMethod, otherAxisStructuralNode, evalArgs)
         elif otherAxisStructuralNode is not None:
             # recurse to other ordinate (which will recurse to z axis)
@@ -177,16 +211,6 @@ class StrctMdlNode:
                 return self.evaluate(self.defnMdlNode, structuralNode.defnMdlNode.evalValueExpression, otherAxisStructuralNode=otherAxisStructuralNode, evalArgs=(fact,))
         return None
     
-    @property
-    def isAbstract(self):
-        try:
-            try:
-                return self.abstract # ordinate may have an abstract attribute
-            except AttributeError: # if none use axis object
-                return self.defnMdlNode.isAbstract
-        except AttributeError: # axis may never be abstract
-            return False
-    
         
 class StrctMdlTableSet(StrctMdlNode):
     def __init__(self, defnMdlTable):
@@ -209,13 +233,14 @@ class StrctMdlBreakdown(StrctMdlNode):
         self.depth = 0
         if axis == "z":
             self._choiceStructuralNodes = []   
+
+    def setHasOpenNode(self):
+        self.hasOpenNode = True
              
 class StrctMdlStructuralNode(StrctMdlNode):
     def __init__(self, strctMdlParentNode, defnMdlNode, zInheritance=None, contextItemFact=None, tableNode=None, rendrCntx=None):
         super(StrctMdlStructuralNode, self).__init__(strctMdlParentNode, defnMdlNode)
         self._rendrCntx = rendrCntx or strctMdlParentNode._rendrCntx # copy from parent except at root
-        self.variables = {}
-        self.rollUpChildStrctMdlNode = None # child node which is roll-up, if any
         self.zInheritance = zInheritance
         if contextItemFact is not None:
             self.contextItemBinding = VariableBinding(self._rendrCntx,
@@ -235,23 +260,10 @@ class StrctMdlStructuralNode(StrctMdlNode):
     @property
     def modelXbrl(self):
         return self.defnMdlNode.modelXbrl
-    
-    @property
-    def choiceStructuralNodes(self):
-        if hasattr(self, "_choiceStructuralNodes"):
-            return self._choiceStructuralNodes
-        if self.strctMdlParentNode is not None:
-            return self.strctMdlParentNode.choiceStructuralNodes
-        # choiceStrNodes are on the breakdown node (if any)
-        return None
         
     @property
     def hasRollUpChild(self):
-        return any(c.isRollUp or c.hasRollUpChild for c in self.strctMdlChildNodes)
-        
-    @property
-    def isRollUp(self):
-        return self.defnMdlNode is not None and self.defnMdlNode.isRollUp
+        return any(c.hasRollUpChild for c in self.strctMdlChildNodes)
         
     @property
     def structuralDepth(self):
@@ -276,7 +288,7 @@ class StrctMdlStructuralNode(StrctMdlNode):
    
     def constraintSet(self, tagSelectors=None):
         defnMdlNode = self.defnMdlNode
-        if not defnMdlNode:
+        if defnMdlNode is None:
             return None # root node
         if tagSelectors:
             for tag in tagSelectors:
@@ -285,10 +297,12 @@ class StrctMdlStructuralNode(StrctMdlNode):
         return defnMdlNode.constraintSets.get(None) # returns None if no default constraint set
     
     def aspectsCovered(self, inherit=False):
+        if self.aspects is None:
+            return ()
         aspectsCovered = _DICT_SET(self.aspects.keys())
-        if self.defnMdlNode is not None:
+        if self.defnMdlNode is not None and hasattr(self.defnMdlNode, "aspectsCovered"):
             aspectsCovered |= self.defnMdlNode.aspectsCovered()
-        if inherit and self.strctMdlParentNode is not None:
+        if inherit and isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
             aspectsCovered.update(self.strctMdlParentNode.aspectsCovered(inherit=inherit))
         return aspectsCovered
       
@@ -320,12 +334,12 @@ class StrctMdlStructuralNode(StrctMdlNode):
         if aspect in aspects:
             return aspects[aspect]
         elif constraintSet is not None and constraintSet.hasAspect(self, aspect):
-            if isinstance(defnMdlNode, ModelAspectDefinitionNode):
+            if isinstance(defnMdlNode, DefnMdlAspectNode):
                 if contextItemBinding:
                     return contextItemBinding.aspectValue(aspect)
             else:
                 return constraintSet.aspectValue(xc, aspect)
-        if inherit and self.strctMdlParentNode is not None:
+        if inherit and isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
             return self.strctMdlParentNode.aspectValue(aspect, depth=depth+1)
         return None
 
@@ -350,7 +364,7 @@ class StrctMdlStructuralNode(StrctMdlNode):
         if self.contextItemBinding is not None:
             # True if open node bound to a prototype, false if bound to a real fact
             return isinstance(self.contextItemBinding.yieldedFact, FactPrototype)
-        if self.strctMdlParentNode is not None:
+        if isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
             return self.strctMdlParentNode.isEntryPrototype(default)
         return default # nothing open to be bound to a fact
     
@@ -757,6 +771,7 @@ class DefnMdlClosedDefinitionNode(DefnMdlDefinitionNode):
         
     @property
     def isRollUp(self):
+        # indicates this definition node has children with same aspect
         descendantRels = self.modelXbrl.relationshipSet(self.descendantArcroles).fromModelObject(self)
         if descendantRels:
             selfAspectsCovered = self.aspectsCovered()
@@ -964,13 +979,13 @@ class DefnMdlRelationshipNode(DefnMdlClosedDefinitionNode):
             self.linkroleExpressionProg = XPathParser.parse(self, self.linkroleExpression, self, "linkroleQnameExpressionProg", Trace.VARIABLE)
             self.axisExpressionProg = XPathParser.parse(self, self.axisExpression, self, "axisExpressionProg", Trace.VARIABLE)
             self.generationsExpressionProg = XPathParser.parse(self, self.generationsExpression, self, "generationsExpressionProg", Trace.VARIABLE)
-            super(ModelRelationshipDefinitionNode, self).compile()
+            super(DefnMdlRelationshipNode, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
         if self.relationshipSourceQname and self.relationshipSourceQname != XbrlConst.qnXfiRoot:
             if varRefSet is None: varRefSet = set()
             varRefSet.add(self.relationshipSourceQname)
-        return super(ModelRelationshipDefinitionNode, self).variableRefs(
+        return super(DefnMdlRelationshipNode, self).variableRefs(
                                                 [p for p in (self.relationshipSourceQnameExpressionProg,
                                                              self.linkroleExpressionProg, self.axisExpressionProg,
                                                              self.generationsExpressionProg)
@@ -1059,10 +1074,10 @@ class DefnMdlConceptRelationshipNode(DefnMdlRelationshipNode):
             self.arcroleExpressionProg = XPathParser.parse(self, self.arcroleExpression, self, "arcroleExpressionProg", Trace.VARIABLE)
             self.linkQnameExpressionProg = XPathParser.parse(self, self.linkQnameExpression, self, "linkQnameExpressionProg", Trace.VARIABLE)
             self.arcQnameExpressionProg = XPathParser.parse(self, self.arcQnameExpression, self, "arcQnameExpressionProg", Trace.VARIABLE)
-            super(ModelConceptRelationshipDefinitionNode, self).compile()
+            super(DefnMdlConceptRelationshipNode, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
-        return super(ModelConceptRelationshipDefinitionNode, self).variableRefs(
+        return super(DefnMdlConceptRelationshipNode, self).variableRefs(
                                                 [p for p in (self.arcroleExpressionProg,
                                                              self.linkQnameExpressionProg, self.arcQnameExpressionProg)
                                                  if p], varRefSet)
@@ -1150,7 +1165,7 @@ class DefnMdlDimensionRelationshipNode(DefnMdlRelationshipNode):
             super(DefnMdlDimensionRelationshipNode, self).compile()
         
     def variableRefs(self, progs=[], varRefSet=None):
-        return super(ModelDimensionRelationshipDefinitionNode, self).variableRefs(self.dimensionQnameExpressionProg, varRefSet)
+        return super(DefnMdlDimensionRelationshipNode, self).variableRefs(self.dimensionQnameExpressionProg, varRefSet)
 
     def evalDimensionQname(self, xpCtx, fact=None):
         if self.dimensionQname:

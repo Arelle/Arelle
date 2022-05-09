@@ -213,7 +213,7 @@ class ViewRelationshipSet(ViewFile.View):
                 except AttributeError:
                     header = None # could be a filter
                 if isRelation:
-                    cols.append(modelObject.axisDisposition)
+                    cols.append(modelObject.axis)
                 else:
                     cols.append('')
                 if isRelation and header is None:

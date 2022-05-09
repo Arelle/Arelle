@@ -282,7 +282,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 if concept.get("merge") == "true":
                     self.treeView.set(childnode, "merge", '\u2713') # checkmark unicode character
                 if isRelation:
-                    self.treeView.set(childnode, "axis", modelObject.axisDisposition)
+                    self.treeView.set(childnode, "axis", modelObject.axis)
                     if isinstance(concept, DefnMdlRuleDefinitionNode):
                         self.treeView.set(childnode, "priItem", concept.aspectValue(None, Aspect.CONCEPT))
                         self.treeView.set(childnode, "dims", ' '.join(("{0},{1}".format(dim, concept.aspectValue(None, dim) or concept.variableRefs()) 
