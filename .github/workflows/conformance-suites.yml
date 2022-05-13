@@ -1,0 +1,27 @@
+name: Run Xbrl Conformance Suites
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  run-conformance-suite:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-path:
+          - tests/integration_tests/validation/ESEF/test_esef_ixbrl_conformance_suite.py
+          - tests/integration_tests/validation/ESEF/test_esef_xhtml_conformance_suite.py
+          - tests/integration_tests/validation/test_utr_conformance_suite.py
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Python 3
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      - name: Run integration tests with pytest
+        run: pytest --disable-warnings ${{ matrix.test-path }}
