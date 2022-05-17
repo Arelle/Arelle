@@ -30,51 +30,17 @@ from distutils.command.build_py import build_py as _build_py
 
 def get_version():
     """
-    Utility function to return the current version of the library, as defined
-    by the version string in the arelle's _pkg_meta.py file. The format follows
-    the standard Major.Minor.Fix notation.
-
-    :return: The version string in the standard Major.Minor.Fix notation.
-    :rtype: str
+    Retrieving version string from git tag using Github Actions environment variables.
+    Returns 0.0.0 if no tag included.
     """
-    import imp
-
-    source_dir = 'arelle'
-
-    with open('{}/_pkg_meta.py'.format(source_dir), 'rb') as fp:
-        mod = imp.load_source('_pkg_meta', source_dir, fp)
-
-    return mod.version
+    github_ref_type = os.getenv('GITHUB_REF_TYPE')
+    github_ref_name = os.getenv('GITHUB_REF_NAME')
+    return github_ref_name if github_ref_type == 'tag' else '0.0.0'
 
 
-setup_requires = ['lxml']
-# install_requires specifies a list of package dependencies that are 
-# installed when 'python setup.py install' is run. On Linux/Mac systems 
-# this also allows installation directly from the github repository 
-# (using 'pip install -e git+git://github.com/rheimbuchArelle.git#egg=Arelle') 
-# and the install_requires packages are auto-installed as well.
-install_requires = ['lxml', 'isodate', 'openpyxl'] # , 'pycountry']
+
 options = {}
-scripts = []
 cxFreezeExecutables = []
-cmdclass = {}
-
-# Files that should not be passed through 3to2 conversion
-# in python 2.7 builds
-build_py27_unmodified = [
-    'arelle/webserver/bottle.py',
-    'arelle/PythonUtil.py'
-]
-# Files that should be excluded from python 2.7 builds
-build_py27_excluded = [
-    'arelle/CntlrQuickBooks.py',
-    'arelle/CntlrWinMain.py',
-    'arelle/CntlrWinTooltip.py',
-    'arelle/Dialog*.py',
-    'arelle/UiUtil.py',
-    'arelle/ViewWin*.py',
-    'arelle/WatchRss.py'
-]
 
 def match_patterns(path, pattern_list=[]):
     from fnmatch import fnmatch
@@ -83,83 +49,6 @@ def match_patterns(path, pattern_list=[]):
             return True
     return False
 
-# When building under python 2.7, run refactorings from lib3to2
-class build_py27(_build_py):
-    def __init__(self, *args, **kwargs):
-        _build_py.__init__(self, *args, **kwargs)
-        import logging
-        from lib2to3 import refactor
-        import lib3to2.main
-        rt_logger = logging.getLogger("RefactoringTool")
-        rt_logger.addHandler(logging.StreamHandler())
-        fixers = refactor.get_fixers_from_package('lib3to2.fixes')
-        fixers.remove('lib3to2.fixes.fix_print')
-        self.rtool = lib3to2.main.StdoutRefactoringTool(
-            fixers,
-            None,
-            [],
-            False,
-            False
-        )
-    
-    def copy_file(self, source, target, preserve_mode=True):
-
-        if match_patterns(source, build_py27_unmodified):
-            _build_py.copy_file(self, source, target, preserve_mode)
-        elif match_patterns(source, build_py27_excluded):
-            print("excluding: %s" % source)
-        elif source.endswith('.py'):
-            try:
-                print("3to2 converting: %s => %s" % (source, target))
-                with open(source, 'rt') as input:
-                    # ensure file contents have trailing newline
-                    source_content = input.read() + "\n"
-                    nval = self.rtool.refactor_string(source_content, source)
-                if nval is not None:
-                    with open(target, 'wt') as output:
-                        output.write('from __future__ import print_function\n')
-                        output.write(str(nval))
-                else:
-                    raise(Exception("Failed to parse: %s" % source))
-            except Exception as e:
-                print("3to2 error (%s => %s): %s" % (source,target,e))
-
-if sys.version_info[0] < 3:
-    setup_requires.append('3to2')
-    # cmdclass allows you to override the distutils commands that are 
-    # run through 'python setup.py somecmd'. Under python 2.7 replace 
-    # the 'build_py' with a custom subclass (build_py27) that invokes 
-    # 3to2 refactoring on each python file as its copied to the build
-    # directory.
-    cmdclass['build_py'] = build_py27
-
-# (Under python3 no commands are replaced, so the default command classes are used.)
-
-try:
-    # Under python2.7, run build before running build_sphinx
-    import sphinx.setup_command
-
-    class build_sphinx_py27(sphinx.setup_command.BuildDoc):
-        def run(self):
-            self.run_command('build_py')
-            # Ensure sphinx looks at the "built" arelle libs that
-            # have passed through the 3to2 refactorings
-            # in `build_py27`.
-            sys.path.insert(0, os.path.abspath("./build/lib"))
-            sphinx.setup_command.BuildDoc.run(self)
-                
-    if sys.version_info[0] < 3:
-        setup_requires.append('3to2')
-        setup_requires.append('sphinx')
-        # do a similar override of the 'build_sphinx' command to ensure 
-        # that the 3to2-enabled build command runs before calling back to 
-        # the default build_sphinx superclass. 
-        cmdclass['build_sphinx'] = build_sphinx_py27
-        # There is also a python 2.x conditional switch in 'apidocs/conf.py' 
-        # that sets sphinx to look at the 3to2 converted build files instead 
-        # of the original unconverted source.
-except ImportError as e:
-    print("Documentation production by Sphinx is not available: %s" % e)
 
 
 ''' this section was for py2app which no longer works on Mavericks,
@@ -445,41 +334,45 @@ else:
 
 timestamp = datetime.datetime.utcnow()
 setup(
-    name='Arelle',
-    version=get_version(),
+    name='Arelle-ac',
+    version='0.0.2',#get_version(),
     description='An open source XBRL platform',
     long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
     author='arelle.org',
     author_email='support@arelle.org',
     url='http://www.arelle.org',
     download_url='http://www.arelle.org/pub',
-    cmdclass=cmdclass,
-    # include_package_data=True,  # note: this uses MANIFEST.in
+    include_package_data=True,
     packages=packages,
     data_files=dataFiles,
     platforms=['OS Independent'],
     license='Apache-2',
     keywords=['xbrl'],
-    classifiers=[
-        'Development Status :: 1 - Active',
+    classifiers=[ # valid classifiers here: https://pypi.org/classifiers/
+        'Development Status :: 5 - Production/Stable', # 'Development Status :: 1 - Active
         'Intended Audience :: End Users/Desktop',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: Apache-2 License',
+        'License :: OSI Approved :: Apache Software License', # License :: OSI Approved :: Apache-2 License
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Operating System :: OS Independent',
-        'Topic :: XBRL Validation and Versioning',
+        'Topic :: Text Processing :: Markup :: XML', # Topic :: XBRL Validation and Versioning
     ],
-    scripts=scripts,
     entry_points={
         'console_scripts': [
             'arelle=arelle.CntlrCmdLine:main',
             'arelle-gui=arelle.CntlrWinMain:main',
         ]
     },
-    setup_requires=setup_requires,
-    install_requires=install_requires,
+    setup_requires=['lxml'],
+    # install_requires specifies a list of package dependencies that are
+    # installed when 'python setup.py install' is run. On Linux/Mac systems
+    # this also allows installation directly from the github repository
+    # (using 'pip install -e git+git://github.com/rheimbuchArelle.git#egg=Arelle')
+    # and the install_requires packages are auto-installed as well.
+    install_requires=['lxml', 'isodate', 'openpyxl'],
     options=options,
     executables=cx_FreezeExecutables,
 )

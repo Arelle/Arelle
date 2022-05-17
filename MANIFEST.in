@@ -1,8 +1,8 @@
-include README.txt
-recursive-include arelle *.gif
-recursive-include arelle *.ico
-recursive-include arelle *.xbm
-recursive-include arelle *.xsd
-recursive-include arelle *.xml
-recursive-include arelle *.pot
-
+include README.md
+include CONTRIBUTING.md
+include LICENSE.md
+include INSTALLATION.md
+include arelleCmdLine.py
+include requirements.txt
+include arelleGUI.pyw
+graft arelle

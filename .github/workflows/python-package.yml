@@ -1,0 +1,26 @@
+name: Build, test, publish python package
+
+on:
+  pull_request:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Python 3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+      - name: Build python package
+        run: |
+          pip install setuptools wheel twine
+          python -m build
+      - name: Publish package on release
+        if: startsWith(github.ref, 'refs/tags')
+        env:
+          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+        run: twine upload dist/*
