@@ -208,12 +208,17 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         self.viewFrame.clearGrid()
 
         strctMdlTable = resolveTableStructure(self, viewTblELR)
+        
         #tblAxisRelSet, xTopStructuralNode, yTopStructuralNode, zTopStructuralNode = resolveAxesStructure(self, viewTblELR)
-        colAdjustment = 1 if zTopStructuralNode is not None else 0
+        # TBD: fix for multiple top level breakdown nodes
+        xTopStructuralNode = strctMdlTable.xTopStructuralNode
+        yTopStructuralNode = strctMdlTable.yTopStructuralNode
+        zTopStructuralNode = strctMdlTable.zTopStructuralNode
+        colAdjustment = 1 if zTopStructuralNode else 0
         self.table.resizeTable(self.dataFirstRow+self.dataRows-1, self.dataFirstCol+self.dataCols+colAdjustment-1, titleRows=self.dataFirstRow-1, titleColumns=self.dataFirstCol-1)
         self.hasTableFilters = bool(self.defnMdlTable.filterRelationships)
         
-        if tblAxisRelSet:
+        if self.tblBrkdnRels:
             # review row header wrap widths and limit to 2/3 of the frame width (all are screen units)
             fontWidth = tkFont.Font(font='TkTextFont').configure()['size']
             fontWidth = fontWidth * 3 // 2
@@ -244,7 +249,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                            (self.dataFirstRow - 2),
                                            XbrlTable.TG_TOP_LEFT_JUSTIFIED)
             self.zAspectStructuralNodes = defaultdict(set)
-            self.zAxis(1, zTopStructuralNode, clearZchoices)
+            self.zAxis(1, zTopStructuralNodes, clearZchoices)
             xStructuralNodes = []
             colsFoundPlus1, _, _, _ = self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1, 
                                                  xTopStructuralNode, xStructuralNodes, True, True)

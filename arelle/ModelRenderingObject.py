@@ -222,6 +222,9 @@ class StrctMdlTable(StrctMdlNode):
         self._rendrCntx = defnMdlTable.renderingXPathContext
         # childStrctMdlNodes are StrctMdlBreakdowns
         self.defnMdlBreakdowns = defaultdict(list)
+        
+    def axisBreakdownNodes(self, axis):
+        return (c for c in self.strctMdlChildNodes if c._axis == axis)
     
 class StrctMdlBreakdown(StrctMdlNode):
     def __init__(self, strctMdlParentNode, defnMdlBreakdown, axis):
@@ -322,7 +325,7 @@ class StrctMdlStructuralNode(StrctMdlNode):
         constraintSet = self.constraintSet(tagSelectors)
         if aspect == Aspect.DIMENSIONS:
             if dims is None: dims = set()
-            if inherit and self.strctMdlParentNode is not None:
+            if inherit and isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
                 dims |= self.strctMdlParentNode.aspectValue(aspect, dims=dims, depth=depth+1)
             if aspect in aspects:
                 dims |= aspects[aspect]

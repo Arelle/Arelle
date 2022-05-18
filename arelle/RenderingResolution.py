@@ -63,7 +63,8 @@ def resolveTableStructure(view, viewTblELR):
     try:
         for defnMdlTable in tblBrkdnRelSet.rootConcepts:
             strctMdlTable = StrctMdlTable(defnMdlTable)
-            return resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet)
+            resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet)
+            return strctMdlTable
     except ResolutionException as ex:
         view.modelXbrl.error(ex.code, ex.message, exc_info=True, **ex.kwargs);        
     
@@ -92,7 +93,8 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
     view.rendrCntx = defnMdlTable.renderingXPathContext
     
     # must be cartesian product of top level relationships
-    tblBrkdnRels = tblBrkdnRelSet.fromModelObject(defnMdlTable)
+    view.tblBrkdnRels = tblBrkdnRels = tblBrkdnRelSet.fromModelObject(defnMdlTable)
+    
     facts = view.modelXbrl.factsInInstance
     if facts:
         facts = defnMdlTable.filteredFacts(view.rendrCntx, view.modelXbrl.factsInInstance) # apply table filters
@@ -120,6 +122,14 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
             elif axis == "y":
                 view.dataRows += strctMdlBreakdown.leafNodeCount
                 strctMdlBreakdown.setHasOpenNode()
+                
+    # create top level table parent of breakdown nodes for each axis for rendering
+    strctMdlTable.xTopStructuralNode = StrctMdlTable(strctMdlTable.defnMdlNode)
+    strctMdlTable.xTopStructuralNode.strctMdlChildNodes = strctMdlTable.axisBreakdownNodes("x")
+    strctMdlTable.yTopStructuralNode = StrctMdlTable(strctMdlTable.defnMdlNode)
+    strctMdlTable.yTopStructuralNode.strctMdlChildNodes = strctMdlTable.axisBreakdownNodes("y")
+    strctMdlTable.zTopStructuralNode = StrctMdlTable(strctMdlTable.defnMdlNode)
+    strctMdlTable.zTopStructuralNode.strctMdlChildNodes = strctMdlTable.axisBreakdownNodes("z")
                 
     # uncomment below for debugging Definition and Structural Models             
     def jsonStrctMdlEncoder(obj, indent="\n"):
