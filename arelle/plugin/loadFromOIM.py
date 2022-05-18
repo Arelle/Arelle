@@ -96,7 +96,7 @@ NSReservedAliasURIs = {
     "xbrl": nsOims,
     "xs": (XbrlConst.xsd,),
     "enum2": XbrlConst.enum2s,
-    "oimce": nsOimCes,
+    # "oimce": nsOimCes,
     "xbrli": (XbrlConst.xbrli,),
     "xs": (XbrlConst.xsd,),
     "utr": (XbrlConst.utr,),
@@ -692,7 +692,7 @@ def checkForDuplicates(modelXbrl, allowedDups, footnoteIDs):
                                     for f in fList[1:]:
                                         _d = inferredDecimals(f)
                                         _v = f.xValue
-                                        if isnan(_v):
+                                        if isnan(_v) or _inConsistent: # may have been inconsistent from f0.value
                                             _inConsistent = True
                                             break
                                         if _d in decVals:
