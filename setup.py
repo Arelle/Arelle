@@ -334,7 +334,7 @@ else:
 
 timestamp = datetime.datetime.utcnow()
 setup(
-    name='Arelle-ac',
+    name='arelle-release',
     version=get_version(),
     description='An open source XBRL platform',
     long_description=open('README.md').read(),
@@ -349,16 +349,17 @@ setup(
     platforms=['OS Independent'],
     license='Apache-2',
     keywords=['xbrl'],
-    classifiers=[ # valid classifiers here: https://pypi.org/classifiers/
-        'Development Status :: 5 - Production/Stable', # 'Development Status :: 1 - Active
+    # Valid classifiers here: https://pypi.org/classifiers/
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: End Users/Desktop',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: Apache Software License', # License :: OSI Approved :: Apache-2 License
+        'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.9',
         'Operating System :: OS Independent',
-        'Topic :: Text Processing :: Markup :: XML', # Topic :: XBRL Validation and Versioning
+        'Topic :: Text Processing :: Markup :: XML',
     ],
     entry_points={
         'console_scripts': [
