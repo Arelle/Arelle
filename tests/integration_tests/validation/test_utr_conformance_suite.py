@@ -16,6 +16,10 @@ ARGS = [
     '--utr',
     '--validate',
 ]
+
+if os.getenv('CONFORMANCE_SUITES_TEST_MODE') == 'OFFLINE':
+    ARGS.extend(['--internetConnectivity','offline'])
+
 REGISTRY_ARGS = ARGS + [
     '--file', os.path.join(REGISTRY_CONFORMANCE_SUITE, 'index.xml'),
     '--utrUrl', 'tests/resources/conformance_suites/utr/registry/utr.xml',

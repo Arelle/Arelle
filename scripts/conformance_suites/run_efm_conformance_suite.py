@@ -4,7 +4,6 @@ from arelle.CntlrCmdLine import parseAndRun
 
 
 CONFORMANCE_SUITE = 'tests/resources/conformance_suites/efm_conformance_suite_2022.zip/conf'
-TAXONOMY_PACKAGE = 'tests/resources/taxonomy_packages/edgarTaxonomiesPackage-22.1.zip'
 EFM_PLUGIN = 'validate/EFM'
 IXDS_PLUGIN = 'inlineXbrlDocumentSet'
 FILTER = '(?!arelle:testcaseDataUnexpected)'
@@ -16,7 +15,6 @@ BASE_ARGS = [
     '--formula', 'run',
     '--logCodeFilter', FILTER,
     '--logFile', './EFM-conf-log.txt',
-    '--packages', '{}'.format(os.path.abspath(TAXONOMY_PACKAGE)),
     '--plugins', '{}|{}'.format(EFM_PLUGIN, IXDS_PLUGIN),
     '--testcaseResultsCaptureWarnings',
     '--validate'
