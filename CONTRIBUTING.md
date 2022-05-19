@@ -41,6 +41,15 @@ return it. Once we receive it, we'll be able to accept your pull requests.
 
 ***NOTE***: Only original source code from you and other people that have signed the CLA can be accepted into the main repository.
 
+### Setting up an environment
+1. Install [pyenv](https://github.com/pyenv/pyenv#installation)
+2. Install a [supported version of Python](https://github.com/Arelle/Arelle/blob/master/INSTALLATION.md). For example, `pyenv install 3.9.9`
+3. Create a virtual env using the minimum python version. For example, `PYENV_VERSION=3.9.9 pyenv exec python -m venv venv`
+4. Activate your environment `source venv/bin/activate`
+5. Install dependencies `pip install -r requirements-dev.txt`
+6. Verify you can run the app
+   1. GUI `python arelleGUI.pyw`
+   2. CLI `python arelleCmdLine.py`
 
 ### Contributing code
 
