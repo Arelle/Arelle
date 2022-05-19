@@ -13,6 +13,7 @@ jobs:
           - tests/integration_tests/validation/ESEF/test_esef_ixbrl_conformance_suite.py
           - tests/integration_tests/validation/ESEF/test_esef_xhtml_conformance_suite.py
           - tests/integration_tests/validation/test_utr_conformance_suite.py
+    environment: Production
     steps:
       - name: Download XBRL validation config
         run: |
