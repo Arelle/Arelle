@@ -1,5 +1,7 @@
 name: Run Xbrl Conformance Suites
 on: pull_request_target
+  release:
+    types: [created]
 
 jobs:
   run-conformance-suite:
