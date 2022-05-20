@@ -13,15 +13,14 @@ jobs:
           - tests/integration_tests/validation/ESEF/test_esef_ixbrl_conformance_suite.py
           - tests/integration_tests/validation/ESEF/test_esef_xhtml_conformance_suite.py
           - tests/integration_tests/validation/test_utr_conformance_suite.py
-    environment: Production
+    environment: integration-tests
     steps:
       - name: Download XBRL validation config
         run: |
-          curl -L ${{ secrets.XBRL_VALIDATION_CONFIG_URL }} -o xbrl_validation_config.zip
-          unzip -q xbrl_validation_config.zip
-          mkdir -p $XDG_CONFIG_HOME/arelle/cache
-          mv http $XDG_CONFIG_HOME/arelle/cache
-          mv https $XDG_CONFIG_HOME/arelle/cache
+          mkdir -p "$XDG_CONFIG_HOME/arelle/cache"
+          curl -L "${{ secrets.XBRL_VALIDATION_CONFIG_URL }}" -o config.zip 
+          unzip -d "$XDG_CONFIG_HOME/arelle/cache" config.zip 'http/*' 'https/*'
+          rm config.zip
       - uses: actions/checkout@v3
       - name: Install Python 3
         uses: actions/setup-python@v3
