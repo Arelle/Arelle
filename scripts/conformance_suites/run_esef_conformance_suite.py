@@ -4,13 +4,11 @@ from arelle.CntlrCmdLine import parseAndRun
 
 
 CONFORMANCE_SUITE = 'tests/resources/conformance_suites/esef_conformance_suite_2021.zip/esef_conformance_suite_2021/esef_conformance_suite_2021'
-TAXONOMY_PACKAGE = 'tests/resources/taxonomy_packages/esef_taxonomy_2021.zip'
 PLUGIN = 'validate/ESEF'
 FILTER = '(?!arelle:testcaseDataUnexpected)'
 
 BASE_ARGS = [
     '--logCodeFilter', FILTER,
-    '--packages', os.path.abspath(TAXONOMY_PACKAGE),
     '--plugins', PLUGIN,
     '--testcaseResultsCaptureWarnings',
     '--validate'
