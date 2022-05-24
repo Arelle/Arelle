@@ -9,7 +9,7 @@ Created on Sept 1, 2013
 from arelle import XbrlConst, XmlUtil, XmlValidate, ValidateFilingText, UrlUtil
 from arelle.ModelValue import qname
 from arelle.ModelObject import ModelObject, ModelComment
-from arelle.PythonUtil import normalizeSpace
+from arelle.PythonUtil import normalizeSpace, strTruncate
 from lxml import etree
 import os, re, posixpath
 
@@ -581,10 +581,14 @@ def xhtmlValidate(modelXbrl, elt):
                         if "ixNestedContent" in msg and isinstance(errElt,ModelObject):
                             msg = msg.replace("ixNestedContent", str(errElt.elementQname))
                         msg += " line {}".format(errElt.sourceline)
+                        # many inline docs have very long lines, help locate element by attributes, children and inner text
+                        msg += " element {}".format(strTruncate(XmlUtil.xmlstring(errElt, stripXmlns=True), 100))
+                        msg += " innerText {}".format(strTruncate(errElt.stringValue, 100))
                         elts.append(errElt)
                 # also show use element path
                 msg += ", at path {}".format(path)
-            errs.append(msg)
+            if msg not in errs: # when message is repeated in error_log, just show it once
+                errs.append(msg)
         return errs, elts
     try:
         # uncomment to debug:with open("/users/hermf/temp/testDtd.htm", "wb") as fh:

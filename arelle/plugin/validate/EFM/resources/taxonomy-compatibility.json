@@ -32,6 +32,18 @@
         "The messages object contains messages which may be produced by validation. "
     ],
     "taxonomy-classes": {
+    
+        "comment1": "entries for currently-supported taxonomies",
+    	"stx-2021": [
+    		"dei/2021", "dei/2021q4", "country/2021", "currency/2021", "exch/2021", "naics/2021", "sic/2021", "stpr/2021"
+    	],
+    	"stx-2022": [
+    		"dei/2022", "country/2022", "currency/2022", "exch/2022", "naics/2022", "sic/2022", "stpr/2022"
+    	],
+        
+
+        "comment2": "entries for previously-supported taxonomies, such as disclosure mode efm-pragmatic-all-years",
+    	"us-gaap-to-2020": ["us-gaap/2019", "us-gaap/2020"],
     	"stx-to-2020": [
     		"dei/2019", "dei/2020", 
     		"country/2017", "country/2020", 
@@ -40,29 +52,30 @@
     		"naics/2011", "naics/2017", 
     		"sic/2011", "sic/2020", 
     		"stpr/2018"
-    	],
-    	"stx-2021": [
-    		"dei/2021", "dei/2021q4", "country/2021", "currency/2021", "exch/2021", "naics/2021", "sic/2021", "stpr/2021"
-    	],
-    	"stx-2022": [
-    		"dei/2022", "country/2022", "currency/2022", "exch/2022", "naics/2022", "sic/2022", "stpr/2022"
-    	],
-    	"us-gaap-to-2020": ["us-gaap/2019", "us-gaap/2020"]
+    	]
     },
     "compatible-classes": {
-        "rr/2012": ["@stx-to-2020"],
-        "rr/2018": ["@stx-to-2020"],
+    
+        "comment1": "entries for currently-supported taxonomies",
         "rr/2021": ["@stx-2021"],
         "rr/2022": ["@stx-2022"],
+
+        "comment2": "latest us-gaap is compatible with prior year ifrs from Q1 to Q2, after Q2 must use same-year ifrs",
+        "us-gaap/2021": ["@stx-2021", "srt/2021", "ifrs/2021", "cef/2021q4"],
+        "us-gaap/2022": ["@stx-2022", "srt/2022", "ifrs/2022", "cef/2022"],
+        "ifrs/2021": ["us-gaap/2021", "srt/2021", "@stx-2021"],
+        "ifrs/2022": ["us-gaap/2022", "srt/2022", "@stx-2022"],
+        "cef/2021q4": ["dei/2021q4", "us-gaap/2021", "srt/2021", "country/2021", "currency/2021", "exch/2021", "naics/2021", "sic/2021", "stpr/2021"],
+        "cef/2022": ["@stx-2022", "us-gaap/2022", "srt/2022"],
+        "vip/2022": ["@stx-2022"],
+        "vip/2022q2": ["@stx-2022"],
+        
+        "comment3": "entries for previously-supported taxonomies, such as disclosure mode efm-pragmatic-all-years",
+        "rr/2012": ["@stx-to-2020"],
+        "rr/2018": ["@stx-to-2020"],
         "us-gaap/2019": ["srt/2019", "ifrs/2019", "@stx-to-2020"],
         "us-gaap/2020": ["srt/2020", "ifrs/2019", "ifrs/2020", "@stx-to-2020"],
-        "us-gaap/2021": ["srt/2021", "ifrs/2021", "@stx-2021", "cef/2021q4"],
-        "us-gaap/2022": ["@stx-2022", "srt/2022", "ifrs/2021", "cef/2022"],
-        "ifrs/2019": ["srt/2019", "srt/2020", "@stx-to-2020"],
-        "ifrs/2020": ["srt/2020", "@stx-to-2020"],
-        "ifrs/2021": ["srt/2021", "@stx-2021"],
-        "cef/2021q4": ["dei/2021q4", "us-gaap/2021", "srt/2021", "country/2021", "currency/2021", "exch/2021", "naics/2021", "sic/2021", "stpr/2021"],
-        "cef/2022": ["dei/2022", "us-gaap/2022", "srt/2022", "country/2022", "currency/2022", "exch/2022", "naics/2022", "sic/2022", "stpr/2022"],
-        "vip/2022": ["@stx-2022"]
+        "ifrs/2019": ["srt/2019", "srt/2020", "@stx-to-2020", "us-gaap/2019"],
+        "ifrs/2020": ["us-gaap/2020", "srt/2020", "@stx-to-2020"]
     }
 }
