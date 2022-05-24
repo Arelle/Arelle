@@ -114,7 +114,7 @@ class ViewRenderedGrid(ViewFile.View):
                                                  "rowspan": str(self.dataFirstRow - 1)}
                                          ).text = tableLabel
                     elif self.type == XML:
-                        self.structuralNodeModelElements = []
+                        self.StrctNodeModelElements = []
                         if discriminator == 1:
                             # headers structure only build once for table
                             tableSetElt = etree.SubElement(self.tblElt, self.tableModelQName("tableSet"))
@@ -123,7 +123,7 @@ class ViewRenderedGrid(ViewFile.View):
                             tableSetElt.append(etree.Comment("TableSet linkrole: {0}".format(tblELR)))
                             etree.SubElement(tableSetElt, self.tableModelQName("label")
                                              ).text = tableLabel
-                            zAspectStructuralNodes = defaultdict(set)
+                            zAspectStrctNodes = defaultdict(set)
             
                             tableElt = etree.SubElement(tableSetElt, self.tableModelQName("table"))
                             self.groupElts = {}
@@ -145,24 +145,24 @@ class ViewRenderedGrid(ViewFile.View):
                                         self.headerElts[brkdownNode] = etree.SubElement(groupElt, self.tableModelQName("header"))
                                 else:
                                     tableElt.append(etree.Comment("No breakdown group for \"{0}\" axis".format(axis)))
-                            self.zAxis(1, zTopStructuralNode, zAspectStructuralNodes, True)
+                            self.zAxis(1, zTopStrctNode, zAspectStrctNodes, True)
                             self.cellsTableElt = tableElt
                             self.cellsZElt = etree.SubElement(self.cellsTableElt, self.tableModelQName("cells"),
                                                                    attrib={"axis": "z"})
                         self.cellsYElt = etree.SubElement(self.cellsZElt, self.tableModelQName("cells"),
                                                                attrib={"axis": "y"})
                     # rows/cols only on firstTime for infoset XML, but on each time for xhtml
-                    zAspectStructuralNodes = defaultdict(set)
-                    self.zAxis(1, zTopStructuralNode, zAspectStructuralNodes, False)
-                    xStructuralNodes = []
-                    if self.type == HTML or (xTopStructuralNode and xTopStructuralNode.strMdlChildNodes):
+                    zAspectStrctNodes = defaultdict(set)
+                    self.zAxis(1, zTopStrctNode, zAspectStrctNodes, False)
+                    xStrctNodes = []
+                    if self.type == HTML or (xTopStrctNode and xTopStrctNode.strctMdlChildNodes):
                         self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1, 
-                                   xTopStructuralNode, xStructuralNodes, True, True)
+                                   xTopStrctNode, xStrctNodes, True, True)
                     if self.type == HTML: # table/tr goes by row
-                        self.yAxisByRow(1, self.dataFirstRow, yTopStructuralNode, True, True)
+                        self.yAxisByRow(1, self.dataFirstRow, yTopStrctNode, True, True)
                     elif self.type == XML and discriminator == 1: # infoset goes by col of row header
-                        if yTopStructuralNode and yTopStructuralNode.strMdlChildNodes: # no row header element if no rows
-                            self.yAxisByCol(1, self.dataFirstRow, yTopStructuralNode, True, True)
+                        if yTopStrctNode and yTopStrctNode.strctMdlChildNodes: # no row header element if no rows
+                            self.yAxisByCol(1, self.dataFirstRow, yTopStrctNode, True, True)
                         # add header cells to header elements cycling through nested repeats
                         moreHeaderCells = True
                         while moreHeaderCells:
@@ -173,31 +173,31 @@ class ViewRenderedGrid(ViewFile.View):
                                     if breakdownNode in self.headerElts:
                                         self.headerElts[breakdownNode].append(headerCell)
                                     moreHeaderCells = True
-                        for structuralNode,modelElt in self.structuralNodeModelElements: # must do after elements are all arragned
+                        for StrctNode,modelElt in self.StrctNodeModelElements: # must do after elements are all arragned
                             modelElt.addprevious(etree.Comment("{0}: label {1}, file {2}, line {3}"
-                                                          .format(structuralNode.defnMdlNode.localName,
-                                                                  structuralNode.defnMdlNode.xlinkLabel,
-                                                                  structuralNode.defnMdlNode.modelDocument.basename, 
-                                                                  structuralNode.defnMdlNode.sourceline)))
-                            if structuralNode.defnMdlNode.get('value'):
-                                modelElt.addprevious(etree.Comment("   @value {0}".format(structuralNode.defnMdlNode.get('value'))))
-                            for aspect in sorted(structuralNode.aspectsCovered(), key=lambda a: aspectStr(a)):
-                                if structuralNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
-                                    aspectValue = structuralNode.aspectValue(aspect)
+                                                          .format(StrctNode.defnMdlNode.localName,
+                                                                  StrctNode.defnMdlNode.xlinkLabel,
+                                                                  StrctNode.defnMdlNode.modelDocument.basename, 
+                                                                  StrctNode.defnMdlNode.sourceline)))
+                            if StrctNode.defnMdlNode.get('value'):
+                                modelElt.addprevious(etree.Comment("   @value {0}".format(StrctNode.defnMdlNode.get('value'))))
+                            for aspect in sorted(StrctNode.aspectsCovered(), key=lambda a: aspectStr(a)):
+                                if StrctNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
+                                    aspectValue = StrctNode.aspectValue(aspect)
                                     if aspectValue is None: aspectValue = "(bound dynamically)"
                                     modelElt.addprevious(etree.Comment("   aspect {0}: {1}".format(aspectStr(aspect), xsString(None,None,aspectValue))))
-                            for varName, varValue in structuralNode.variables.items():
+                            for varName, varValue in StrctNode.variables.items():
                                     modelElt.addprevious(etree.Comment("   variable ${0}: {1}".format(varName, varValue)))
                         for headerElt in self.headerElts.values(): # remove empty header elements
                             if not any(e is not None for e in headerElt.iterchildren()):
                                 if headerElt.getparent() is not None:
                                     headerElt.getparent().remove(headerElt)
-                    self.bodyCells(self.dataFirstRow, yTopStructuralNode, xStructuralNodes, zAspectStructuralNodes)
+                    self.bodyCells(self.dataFirstRow, yTopStrctNode, xStrctNodes, zAspectStrctNodes)
                 # find next choice structural node
                 moreDiscriminators = False
                 for zStrNodeWithChoices in self.zStrNodesWithChoices:
                     currentIndex = zStrNodeWithChoices.choiceNodeIndex + 1
-                    if currentIndex < len(zStrNodeWithChoices.choiceStructuralNodes):
+                    if currentIndex < len(zStrNodeWithChoices.chosenStrctNode):
                         zStrNodeWithChoices.choiceNodeIndex = currentIndex
                         self.zOrdinateChoices[zStrNodeWithChoices.defnMdlNode] = currentIndex
                         moreDiscriminators = True
@@ -210,19 +210,19 @@ class ViewRenderedGrid(ViewFile.View):
                     break
 
             
-    def zAxis(self, row, zStructuralNode, zAspectStructuralNodes, discriminatorsTable):
-        if zStructuralNode is not None:
-            label, source = zStructuralNode.headerAndSource(lang=self.lang)
+    def zAxis(self, row, zStrctNode, zAspectStrctNodes, discriminatorsTable):
+        if zStrctNode is not None:
+            label, source = zStrctNode.headerAndSource(lang=self.lang)
             choiceLabel = None
-            effectiveStructuralNode = zStructuralNode
-            isRollUp = zStructuralNode.isRollUp
+            effectiveStrctNode = zStrctNode
+            isRollUp = zStrctNode.isRollUp
             span = 1
-            if zStructuralNode.choiceStructuralNodes: # same as combo box selection in GUI mode
+            if zStrctNode.chosenStrctNode: # same as combo box selection in GUI mode
                 if not discriminatorsTable:
-                    self.zStrNodesWithChoices.insert(0, zStructuralNode) # iteration from last is first
+                    self.zStrNodesWithChoices.insert(0, zStrctNode) # iteration from last is first
                 try:
-                    effectiveStructuralNode = zStructuralNode.choiceStructuralNodes[zStructuralNode.choiceNodeIndex]
-                    choiceLabel = effectiveStructuralNode.header(lang=self.lang)
+                    effectiveStrctNode = zStrctNode.chosenStrctNode[zStrctNode.choiceNodeIndex]
+                    choiceLabel = effectiveStrctNode.header(lang=self.lang)
                     if not label and choiceLabel:
                         label = choiceLabel # no header for choice
                         choiceLabel = None
@@ -251,32 +251,32 @@ class ViewRenderedGrid(ViewFile.View):
             elif self.type == XML:
                 # headers element built for first pass on z axis
                 if discriminatorsTable:
-                    brkdownNode = zStructuralNode.breakdownNode
-                    if zStructuralNode.choiceStructuralNodes: # same as combo box selection in GUI mode
+                    brkdownNode = zStrctNode.breakdownNode
+                    if zStrctNode.chosenStrctNode: # same as combo box selection in GUI mode
                         # hdrElt.set("label", label)
                         if discriminatorsTable:
                             def zSpan(zNode, startNode=False):
                                 if startNode:
                                     thisSpan = 0
-                                elif zStructuralNode.choiceStructuralNodes:
-                                    thisSpan = len(zStructuralNode.choiceStructuralNodes)
+                                elif zStrctNode.chosenStrctNode:
+                                    thisSpan = len(zStrctNode.chosenStrctNode)
                                 else:
                                     thisSpan = 1
-                                return sum(zSpan(z) for z in zNode.strMdlChildNodes) + thisSpan
-                            span = zSpan(zStructuralNode, True)
-                            for i, choiceStructuralNode in enumerate(zStructuralNode.choiceStructuralNodes):
-                                choiceLabel, source = choiceStructuralNode.headerAndSource(lang=self.lang)
+                                return sum(zSpan(z) for z in zNode.strctMdlChildNodes) + thisSpan
+                            span = zSpan(zStrctNode, True)
+                            for i, choiceStrctNode in enumerate(zStrctNode.chosenStrctNode):
+                                choiceLabel, source = choiceStrctNode.headerAndSource(lang=self.lang)
                                 cellElt = etree.Element(self.tableModelQName("cell"),
                                                         attrib={"span": str(span)} if span > 1 else None)
                                 self.headerCells[i].append((brkdownNode, cellElt))
-                                # self.structuralNodeModelElements.append((zStructuralNode, cellElt))
+                                # self.StrctNodeModelElements.append((zStrctNode, cellElt))
                                 elt = etree.SubElement(cellElt, self.tableModelQName("label"))
                                 if choiceLabel:
                                     elt.text = choiceLabel
                                     if source:
                                         elt.set("source", source)
                                 for i, role in enumerate(self.colHdrNonStdRoles):
-                                    roleLabel, source = choiceStructuralNode.headerAndSource(role=role, lang=self.lang, recurseParent=False) # infoset does not move parent label to decscndant
+                                    roleLabel, source = choiceStrctNode.headerAndSource(role=role, lang=self.lang, recurseParent=False) # infoset does not move parent label to decscndant
                                     if roleLabel is not None:
                                         cellElt.append(etree.Comment("Label role: {0}, lang {1}"
                                                                      .format(os.path.basename(role), self.lang)))
@@ -285,9 +285,9 @@ class ViewRenderedGrid(ViewFile.View):
                                         if source:
                                             labelElt.set("source", source)
                                                                 
-                                for aspect in sorted(choiceStructuralNode.aspectsCovered(), key=lambda a: aspectStr(a)):
-                                    if choiceStructuralNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
-                                        aspectValue = choiceStructuralNode.aspectValue(aspect)
+                                for aspect in sorted(choiceStrctNode.aspectsCovered(), key=lambda a: aspectStr(a)):
+                                    if choiceStrctNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
+                                        aspectValue = choiceStrctNode.aspectValue(aspect)
                                         if aspectValue is None: aspectValue = "(bound dynamically)"
                                         if isinstance(aspectValue, ModelObject): # typed dimension value
                                             aspectValue = innerTextList(aspectValue)
@@ -308,7 +308,7 @@ class ViewRenderedGrid(ViewFile.View):
                     else: # no combo choices, single label
                         cellElt = etree.Element(self.tableModelQName("cell"))
                         self.headerCells[0].append((brkdownNode, cellElt))
-                        # self.structuralNodeModelElements.append((zStructuralNode, cellElt))
+                        # self.StrctNodeModelElements.append((zStrctNode, cellElt))
                         elt = etree.SubElement(cellElt, self.tableModelQName("label"))
                         if label:
                             elt.text = label
@@ -316,34 +316,34 @@ class ViewRenderedGrid(ViewFile.View):
                                 elt.set("source", source)
 
             for aspect in aspectModels["dimensional"]:
-                if effectiveStructuralNode.hasAspect(aspect, inherit=True): #implies inheriting from other z axes
+                if effectiveStrctNode.hasAspect(aspect, inherit=True): #implies inheriting from other z axes
                     if aspect == Aspect.DIMENSIONS:
-                        for dim in (effectiveStructuralNode.aspectValue(Aspect.DIMENSIONS, inherit=True) or emptyList):
-                            zAspectStructuralNodes[dim].add(effectiveStructuralNode)
+                        for dim in (effectiveStrctNode.aspectValue(Aspect.DIMENSIONS, inherit=True) or emptyList):
+                            zAspectStrctNodes[dim].add(effectiveStrctNode)
                     else:
-                        zAspectStructuralNodes[aspect].add(effectiveStructuralNode)
+                        zAspectStrctNodes[aspect].add(effectiveStrctNode)
             for i in range(span):
-                for zChildStructuralNode in zStructuralNode.strMdlChildNodes:
-                    self.zAxis(row + 1, zChildStructuralNode, zAspectStructuralNodes, discriminatorsTable)
+                for zChildStrctNode in zStrctNode.strctMdlChildNodes:
+                    self.zAxis(row + 1, zChildStrctNode, zAspectStrctNodes, discriminatorsTable)
                             
-    def xAxis(self, leftCol, topRow, rowBelow, xParentStructuralNode, xStructuralNodes, renderNow, atTop):
-        if xParentStructuralNode is not None:
+    def xAxis(self, leftCol, topRow, rowBelow, xParentStrctNode, xStrctNodes, renderNow, atTop):
+        if xParentStrctNode is not None:
             parentRow = rowBelow
             noDescendants = True
             rightCol = leftCol
             colsToSpanParent = 0
             widthToSpanParent = 0
-            sideBorder = not xStructuralNodes
-            rowsForThisBreakdown = 1 + xParentStructuralNode.hasRollUpChild
-            for xStructuralNode in xParentStructuralNode.strMdlChildNodes:
+            sideBorder = not xStrctNodes
+            rowsForThisBreakdown = 1 + xParentStrctNode.hasRollUpChild
+            for xStrctNode in xParentStrctNode.strctMdlChildNodes:
                 noDescendants = False
-                rightCol, row, cols, width, leafNode = self.xAxis(leftCol, topRow + rowsForThisBreakdown, rowBelow, xStructuralNode, xStructuralNodes, # nested items before totals
+                rightCol, row, cols, width, leafNode = self.xAxis(leftCol, topRow + rowsForThisBreakdown, rowBelow, xStrctNode, xStrctNodes, # nested items before totals
                                                                   True, False)
                 if row - 1 < parentRow:
                     parentRow = row - 1
                 #if not leafNode: 
                 #    rightCol -= 1
-                nonAbstract = not xStructuralNode.isAbstract
+                nonAbstract = not xStrctNode.isAbstract
                 if nonAbstract:
                     width += 100 # width for this label
                 widthToSpanParent += width
@@ -352,11 +352,11 @@ class ViewRenderedGrid(ViewFile.View):
                 else:
                     colsToSpanParent += rightCol + 1 - leftCol
                 thisCol = leftCol
-                isRollUp = xStructuralNode.isRollUp
+                isRollUp = xStrctNode.isRollUp
                  #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
                 if renderNow:
-                    label, source = xStructuralNode.headerAndSource(lang=self.lang,
-                                    returnGenLabel=isinstance(xStructuralNode.defnMdlNode, ModelClosedDefinitionNode))
+                    label, source = xStrctNode.headerAndSource(lang=self.lang,
+                                    returnGenLabel=isinstance(xStrctNode.defnMdlNode, ModelClosedDefinitionNode))
                     if cols:
                         columnspan = cols
                     else:
@@ -383,8 +383,8 @@ class ViewRenderedGrid(ViewFile.View):
                         self.rowElts[topRow-2+rowsForThisBreakdown-isRollUp].insert(leftCol,elt)
                     elif (self.type == XML and # is leaf or no sub-breakdown cardinality
                           # TBD: determine why following clause is needed
-                          (True or xStructuralNode.strMdlChildNodes is None or columnspan > 0)): # ignore no-breakdown situation
-                        brkdownNode = xStructuralNode.breakdownNode
+                          (True or xStrctNode.strctMdlChildNodes is None or columnspan > 0)): # ignore no-breakdown situation
+                        brkdownNode = xStrctNode.breakdownNode
                         attrib = {}
                         if columnspan > 1:
                             attrib["span"] = str(columnspan)
@@ -392,7 +392,7 @@ class ViewRenderedGrid(ViewFile.View):
                             attrib["rollup"] = "true"
                         cellElt = etree.Element(self.tableModelQName("cell"), attrib)
                         self.headerCells[thisCol].append((brkdownNode, cellElt))
-                        # self.structuralNodeModelElements.append((xStructuralNode, cellElt))
+                        # self.StrctNodeModelElements.append((xStrctNode, cellElt))
                         if isRollUp:
                             # preceding header element contains cell and aspects for rollup
                             rollUpHdrElt = etree.Element(self.tableModelQName("header"))
@@ -405,7 +405,7 @@ class ViewRenderedGrid(ViewFile.View):
                         #                                  attrib={"rollup":"true"})
                         #        self.headerCells[thisCol].append((brkdownNode, cellElt))
                         for i, role in enumerate(self.colHdrNonStdRoles):
-                            roleLabel, source = xStructuralNode.headerAndSource(role=role, lang=self.lang, recurseParent=False) # infoset does not move parent label to decscndant
+                            roleLabel, source = xStrctNode.headerAndSource(role=role, lang=self.lang, recurseParent=False) # infoset does not move parent label to decscndant
                             if roleLabel is not None:
                                 cellElt.append(etree.Comment("Label role: {0}, lang {1}"
                                                              .format(os.path.basename(role), self.lang)))
@@ -414,9 +414,9 @@ class ViewRenderedGrid(ViewFile.View):
                                     set(labelElt, "source", source)
                                 labelElt.text = roleLabel
                                                         
-                        for aspect in sorted(xStructuralNode.aspectsCovered(), key=lambda a: aspectStr(a)):
-                            if xStructuralNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
-                                aspectValue = xStructuralNode.aspectValue(aspect)
+                        for aspect in sorted(xStrctNode.aspectsCovered(), key=lambda a: aspectStr(a)):
+                            if xStrctNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
+                                aspectValue = xStrctNode.aspectValue(aspect)
                                 if aspectValue is None: aspectValue = "(bound dynamically)"
                                 if isinstance(aspectValue, ModelObject): # typed dimension value
                                     aspectValue = innerTextList(aspectValue)
@@ -453,10 +453,10 @@ class ViewRenderedGrid(ViewFile.View):
                                                     attrib={"class":"xAxisHdr",
                                                             "style":"text-align:center;max-width:100pt;{0}".format(edgeBorder)})
                                 self.rowElts[self.dataFirstRow - 1 - len(self.colHdrNonStdRoles) + i].insert(thisCol,elt)
-                                elt.text = xStructuralNode.header(role=role, lang=self.lang) or "\u00A0"
+                                elt.text = xStrctNode.header(role=role, lang=self.lang) or "\u00A0"
                         '''
                         if self.colHdrDocRow:
-                            doc = xStructuralNode.header(role="http://www.xbrl.org/2008/role/documentation", lang=self.lang)
+                            doc = xStrctNode.header(role="http://www.xbrl.org/2008/role/documentation", lang=self.lang)
                             if self.type == HTML:
                                 elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
                                                     attrib={"class":"xAxisHdr",
@@ -467,7 +467,7 @@ class ViewRenderedGrid(ViewFile.View):
                                 self.colHdrElts[self.colHdrRows - 1].insert(thisCol,elt)
                             elt.text = doc or "\u00A0"
                         if self.colHdrCodeRow:
-                            code = xStructuralNode.header(role="http://www.eurofiling.info/role/2010/coordinate-code")
+                            code = xStrctNode.header(role="http://www.eurofiling.info/role/2010/coordinate-code")
                             if self.type == HTML:
                                 elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
                                                     attrib={"class":"xAxisHdr",
@@ -479,13 +479,13 @@ class ViewRenderedGrid(ViewFile.View):
                             elt.text = code or "\u00A0"
                         '''
                     if nonAbstract:
-                        xStructuralNodes.append(xStructuralNode)
+                        xStrctNodes.append(xStrctNode)
                 if nonAbstract:
                     rightCol += 1
-            if xParentStructuralNode.hasRollUpChild:
+            if xParentStrctNode.hasRollUpChild:
                 # insert roll up span header
-                label = xParentStructuralNode.rollUpStructuralNode.header(lang=self.lang,
-                                               returnGenLabel=isinstance(xStructuralNode.defnMdlNode, ModelClosedDefinitionNode))
+                label = xParentStrctNode.rollUpStrctNode.header(lang=self.lang,
+                                               returnGenLabel=isinstance(xStrctNode.defnMdlNode, ModelClosedDefinitionNode))
                 columnspan = colsToSpanParent
                 if self.type == HTML:
                     if columnspan > 1:
@@ -495,25 +495,25 @@ class ViewRenderedGrid(ViewFile.View):
                         rollUpCellElt.set("span", str(columnspan))
             return (rightCol, parentRow, colsToSpanParent, widthToSpanParent, noDescendants)
             
-    def yAxisByRow(self, leftCol, row, yParentStructuralNode, renderNow, atLeft):
-        if yParentStructuralNode is not None:
+    def yAxisByRow(self, leftCol, row, yParentStrctNode, renderNow, atLeft):
+        if yParentStrctNode is not None:
             nestedBottomRow = row
-            for yStructuralNode in yParentStructuralNode.strMdlChildNodes:
-                nestRow, nextRow = self.yAxisByRow(leftCol + 1, row, yStructuralNode,  # nested items before totals
+            for yStrctNode in yParentStrctNode.strctMdlChildNodes:
+                nestRow, nextRow = self.yAxisByRow(leftCol + 1, row, yStrctNode,  # nested items before totals
                                         True, False)
-                isAbstract = (yStructuralNode.isAbstract or 
-                              (yStructuralNode.strMdlChildNodes and
-                               not isinstance(yStructuralNode.defnMdlNode, ModelClosedDefinitionNode)))
+                isAbstract = (yStrctNode.isAbstract or 
+                              (yStrctNode.strctMdlChildNodes and
+                               not isinstance(yStrctNode.defnMdlNode, ModelClosedDefinitionNode)))
                 isNonAbstract = not isAbstract
-                isLabeled = yStructuralNode.isLabeled
+                isLabeled = yStrctNode.isLabeled
                 topRow = row
                 #print ( "row {0} topRow {1} nxtRow {2} col {3} renderNow {4} label {5}".format(row, topRow, nextRow, leftCol, renderNow, label))
                 if renderNow and isLabeled:
-                    label = yStructuralNode.header(lang=self.lang,
-                                                   returnGenLabel=isinstance(yStructuralNode.defnMdlNode, ModelClosedDefinitionNode),
-                                                   recurseParent=not isinstance(yStructuralNode.defnMdlNode, DefnMdlRuleDefinitionNode))
+                    label = yStrctNode.header(lang=self.lang,
+                                                   returnGenLabel=isinstance(yStrctNode.defnMdlNode, ModelClosedDefinitionNode),
+                                                   recurseParent=not isinstance(yStrctNode.defnMdlNode, DefnMdlRuleDefinitionNode))
                     columnspan = self.rowHdrCols - leftCol + 1 if isNonAbstract or nextRow == row else 1
-                    childrenFirst = not yStructuralNode.isRollUp or yStructuralNode.parentChildOrder == "children-first"
+                    childrenFirst = not yStrctNode.isRollUp or yStrctNode.parentChildOrder == "children-first"
                     if childrenFirst and isNonAbstract and nextRow > row:
                         elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
                                             attrib={"class":"yAxisSpanArm",
@@ -536,7 +536,7 @@ class ViewRenderedGrid(ViewFile.View):
                     else:
                         if hdrRow == len(self.rowElts):
                             edgeBorder = "border-bottom:.5pt solid windowtext;"
-                    depth = yStructuralNode.depth
+                    depth = yStrctNode.depth
                     attrib = {"style":"text-align:{0};max-width:{1}em;{2}".format(
                                             self.langAlign if isNonAbstract or nestRow == hdrRow else "center",
                                             # this is a wrap length max width in characters
@@ -570,7 +570,7 @@ class ViewRenderedGrid(ViewFile.View):
                                              ).text = "\u00A0"
                         hdrClass = "yAxisHdr" if not childrenFirst else "yAxisHdrWithChildrenFirst"
                         for i, role in enumerate(self.rowHdrNonStdRoles):
-                            hdr = yStructuralNode.header(role=role, lang=self.lang)
+                            hdr = yStrctNode.header(role=role, lang=self.lang)
                             etree.SubElement(self.rowElts[hdrRow - 1], 
                                              "{http://www.w3.org/1999/xhtml}th",
                                              attrib={"class":hdrClass,
@@ -579,7 +579,7 @@ class ViewRenderedGrid(ViewFile.View):
                         '''
                         if self.rowHdrDocCol:
                             docCol = self.dataFirstCol - 1 - self.rowHdrCodeCol
-                            doc = yStructuralNode.header(role="http://www.xbrl.org/2008/role/documentation")
+                            doc = yStrctNode.header(role="http://www.xbrl.org/2008/role/documentation")
                             etree.SubElement(self.rowElts[hdrRow - 1], 
                                              "{http://www.w3.org/1999/xhtml}th",
                                              attrib={"class":hdrClass,
@@ -587,7 +587,7 @@ class ViewRenderedGrid(ViewFile.View):
                                              ).text = doc or "\u00A0"
                         if self.rowHdrCodeCol:
                             codeCol = self.dataFirstCol - 1
-                            code = yStructuralNode.header(role="http://www.eurofiling.info/role/2010/coordinate-code")
+                            code = yStrctNode.header(role="http://www.eurofiling.info/role/2010/coordinate-code")
                             etree.SubElement(self.rowElts[hdrRow - 1], 
                                              "{http://www.w3.org/1999/xhtml}th",
                                              attrib={"class":hdrClass,
@@ -610,22 +610,22 @@ class ViewRenderedGrid(ViewFile.View):
                 #if renderNow and not childrenFirst:
                 #    dummy, row = self.yAxis(leftCol + 1, row, yAxisHdrObj, childrenFirst, True, False) # render on this pass            
                 if not childrenFirst:
-                    dummy, row = self.yAxisByRow(leftCol + 1, row, yStructuralNode, renderNow, False) # render on this pass
+                    dummy, row = self.yAxisByRow(leftCol + 1, row, yStrctNode, renderNow, False) # render on this pass
             return (nestedBottomRow, row)
 
-    def yAxisByCol(self, leftCol, row, yParentStructuralNode, renderNow, atTop):
-        if yParentStructuralNode is not None:
+    def yAxisByCol(self, leftCol, row, yParentStrctNode, renderNow, atTop):
+        if yParentStrctNode is not None:
             nestedBottomRow = row
             rowsToSpanParent = 0
-            rowsForThisBreakdown = 1 + yParentStructuralNode.hasRollUpChild
-            for yStructuralNode in yParentStructuralNode.strMdlChildNodes:
-                nestRow, nextRow, rows = self.yAxisByCol(leftCol + 1, row, yStructuralNode,  # nested items before totals
+            rowsForThisBreakdown = 1 + yParentStrctNode.hasRollUpChild
+            for yStrctNode in yParentStrctNode.strctMdlChildNodes:
+                nestRow, nextRow, rows = self.yAxisByCol(leftCol + 1, row, yStrctNode,  # nested items before totals
                                                          True, False)
-                isAbstract = (yStructuralNode.isAbstract or 
-                              (yStructuralNode.strMdlChildNodes and
-                               not isinstance(yStructuralNode.defnMdlNode, ModelClosedDefinitionNode)))
+                isAbstract = (yStrctNode.isAbstract or 
+                              (yStrctNode.strctMdlChildNodes and
+                               not isinstance(yStrctNode.defnMdlNode, ModelClosedDefinitionNode)))
                 isNonAbstract = not isAbstract
-                isLabeled = yStructuralNode.isLabeled
+                isLabeled = yStrctNode.isLabeled
                 topRow = row
                 if isNonAbstract:
                     row = nextRow
@@ -633,13 +633,13 @@ class ViewRenderedGrid(ViewFile.View):
                     rowsToSpanParent += rows
                 else:
                     rowsToSpanParent = nestRow - row
-                isRollUp = yStructuralNode.isRollUp
+                isRollUp = yStrctNode.isRollUp
                 #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
                 if renderNow and isLabeled:
-                    label, source = yStructuralNode.headerAndSource(lang=self.lang,
-                                                   returnGenLabel=isinstance(yStructuralNode.defnMdlNode, ModelClosedDefinitionNode),
-                                                   recurseParent=not isinstance(yStructuralNode.defnMdlNode, DefnMdlRuleDefinitionNode))
-                    brkdownNode = yStructuralNode.breakdownNode
+                    label, source = yStrctNode.headerAndSource(lang=self.lang,
+                                                   returnGenLabel=isinstance(yStrctNode.defnMdlNode, ModelClosedDefinitionNode),
+                                                   recurseParent=not isinstance(yStrctNode.defnMdlNode, DefnMdlRuleDefinitionNode))
+                    brkdownNode = yStrctNode.breakdownNode
                     attrib = {}
                     if rows:
                         rowspan = rows
@@ -653,7 +653,7 @@ class ViewRenderedGrid(ViewFile.View):
                     elt = etree.SubElement(cellElt, self.tableModelQName("label"))
                     if source:
                         elt.set("source", source)
-                    # self.structuralNodeModelElements.append((yStructuralNode, cellElt))
+                    # self.StrctNodeModelElements.append((yStrctNode, cellElt))
                     ''' HF debug 2/22/22
                     for rollUpCol in range(leftCol, self.rowHdrCols - 1):
                         rollUpElt = etree.Element(self.tableModelQName("cell"),
@@ -665,7 +665,7 @@ class ViewRenderedGrid(ViewFile.View):
                         self.headerCells[leftCol].append((brkdownNode, cellElt))
                         i = -1 # for case where no enumeration takes place
                         for i, role in enumerate(self.rowHdrNonStdRoles):
-                            roleLabel, source = yStructuralNode.headerAndSource(role=role, lang=self.lang, recurseParent=False)
+                            roleLabel, source = yStrctNode.headerAndSource(role=role, lang=self.lang, recurseParent=False)
                             if roleLabel is not None:
                                 cellElt.append(etree.Comment("Label role: {0}, lang {1}"
                                                              .format(os.path.basename(role), self.lang)))
@@ -676,9 +676,9 @@ class ViewRenderedGrid(ViewFile.View):
                                 if source:
                                     labelElt.set("source", source)
                                 self.headerCells[leftCol].append((brkdownNode, cellElt))
-                        for aspect in sorted(yStructuralNode.aspectsCovered(), key=lambda a: aspectStr(a)):
-                            if yStructuralNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
-                                aspectValue = yStructuralNode.aspectValue(aspect)
+                        for aspect in sorted(yStrctNode.aspectsCovered(), key=lambda a: aspectStr(a)):
+                            if yStrctNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
+                                aspectValue = yStrctNode.aspectValue(aspect)
                                 if aspectValue is None: aspectValue = "(bound dynamically)"
                                 if isinstance(aspectValue, ModelObject): # typed dimension value
                                     aspectValue = innerTextList(aspectValue)
@@ -698,13 +698,13 @@ class ViewRenderedGrid(ViewFile.View):
                             if self.rowHdrDocCol:
                                 labelElt = etree.SubElement(cellElt, self.tableModelQName("label"),
                                                             attrib={"span": str(rowspan)} if rowspan > 1 else None)
-                                elt.text = yStructuralNode.header(role="http://www.xbrl.org/2008/role/documentation",
+                                elt.text = yStrctNode.header(role="http://www.xbrl.org/2008/role/documentation",
                                                            lang=self.lang)
                                 self.rowHdrElts[self.rowHdrCols - 1].append(elt)
                             if self.rowHdrCodeCol:
                                 elt = etree.Element(self.tableModelQName("label"),
                                                     attrib={"span": str(rowspan)} if rowspan > 1 else None)
-                                elt.text = yStructuralNode.header(role="http://www.eurofiling.info/role/2010/coordinate-code",
+                                elt.text = yStrctNode.header(role="http://www.eurofiling.info/role/2010/coordinate-code",
                                                            lang=self.lang)
                                 self.rowHdrElts[self.rowHdrCols - 1 + self.rowHdrDocCol].append(elt)
                             '''
@@ -717,50 +717,50 @@ class ViewRenderedGrid(ViewFile.View):
                 if row > nestedBottomRow:
                     nestedBottomRow = row
                 #if renderNow and not childrenFirst:
-                #    dummy, row = self.yAxis(leftCol + 1, row, yStructuralNode, childrenFirst, True, False) # render on this pass
+                #    dummy, row = self.yAxis(leftCol + 1, row, yStrctNode, childrenFirst, True, False) # render on this pass
                 #if not childrenFirst:
-                #    dummy, row = self.yAxisByCol(leftCol + 1, row, yStructuralNode, renderNow, False) # render on this pass
+                #    dummy, row = self.yAxisByCol(leftCol + 1, row, yStrctNode, renderNow, False) # render on this pass
             return (nestedBottomRow, row, rowsToSpanParent)
             
     
-    def bodyCells(self, row, yParentStructuralNode, xStructuralNodes, zAspectStructuralNodes):
-        if yParentStructuralNode is not None:
+    def bodyCells(self, row, yParentStrctNode, xStrctNodes, zAspectStrctNodes):
+        if yParentStrctNode is not None:
             dimDefaults = self.modelXbrl.qnameDimensionDefaults
-            for yStructuralNode in yParentStructuralNode.strMdlChildNodes:
-                row = self.bodyCells(row, yStructuralNode, xStructuralNodes, zAspectStructuralNodes)
-                if not (yStructuralNode.isAbstract or 
-                        (yStructuralNode.strMdlChildNodes and
-                         not isinstance(yStructuralNode.defnMdlNode, ModelClosedDefinitionNode))) and yStructuralNode.isLabeled:
+            for yStrctNode in yParentStrctNode.strctMdlChildNodes:
+                row = self.bodyCells(row, yStrctNode, xStrctNodes, zAspectStrctNodes)
+                if not (yStrctNode.isAbstract or 
+                        (yStrctNode.strctMdlChildNodes and
+                         not isinstance(yStrctNode.defnMdlNode, ModelClosedDefinitionNode))) and yStrctNode.isLabeled:
                     if self.type == XML:
                         cellsParentElt = etree.SubElement(self.cellsYElt, self.tableModelQName("cells"),
                                                        attrib={"axis": "x"})
-                    isEntryPrototype = yStructuralNode.isEntryPrototype(default=False) # row to enter open aspects
-                    yAspectStructuralNodes = defaultdict(set)
+                    isEntryPrototype = yStrctNode.isEntryPrototype(default=False) # row to enter open aspects
+                    yAspectStrctNodes = defaultdict(set)
                     for aspect in aspectModels["dimensional"]:
-                        if yStructuralNode.hasAspect(aspect):
+                        if yStrctNode.hasAspect(aspect):
                             if aspect == Aspect.DIMENSIONS:
-                                for dim in (yStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
-                                    yAspectStructuralNodes[dim].add(yStructuralNode)
+                                for dim in (yStrctNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
+                                    yAspectStrctNodes[dim].add(yStrctNode)
                             else:
-                                yAspectStructuralNodes[aspect].add(yStructuralNode)
-                    yTagSelectors = yStructuralNode.tagSelectors
+                                yAspectStrctNodes[aspect].add(yStrctNode)
+                    yTagSelectors = yStrctNode.tagSelectors
                     # data for columns of rows
                     ignoreDimValidity = self.ignoreDimValidity.get()
-                    for i, xStructuralNode in enumerate(xStructuralNodes):
-                        xAspectStructuralNodes = defaultdict(set)
+                    for i, xStrctNode in enumerate(xStrctNodes):
+                        xAspectStrctNodes = defaultdict(set)
                         for aspect in aspectModels["dimensional"]:
-                            if xStructuralNode.hasAspect(aspect):
+                            if xStrctNode.hasAspect(aspect):
                                 if aspect == Aspect.DIMENSIONS:
-                                    for dim in (xStructuralNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
-                                        xAspectStructuralNodes[dim].add(xStructuralNode)
+                                    for dim in (xStrctNode.aspectValue(Aspect.DIMENSIONS) or emptyList):
+                                        xAspectStrctNodes[dim].add(xStrctNode)
                                 else:
-                                    xAspectStructuralNodes[aspect].add(xStructuralNode)
-                        cellTagSelectors = yTagSelectors | xStructuralNode.tagSelectors
+                                    xAspectStrctNodes[aspect].add(xStrctNode)
+                        cellTagSelectors = yTagSelectors | xStrctNode.tagSelectors
                         cellAspectValues = {}
                         matchableAspects = set()
-                        for aspect in _DICT_SET(xAspectStructuralNodes.keys()) | _DICT_SET(yAspectStructuralNodes.keys()) | _DICT_SET(zAspectStructuralNodes.keys()):
-                            aspectValue = xStructuralNode.inheritedAspectValue(yStructuralNode,
-                                               xAspectStructuralNodes, yAspectStructuralNodes, zAspectStructuralNodes)
+                        for aspect in _DICT_SET(xAspectStrctNodes.keys()) | _DICT_SET(yAspectStrctNodes.keys()) | _DICT_SET(zAspectStrctNodes.keys()):
+                            aspectValue = xStrctNode.inheritedAspectValue(yStrctNode,
+                                               xAspectStrctNodes, yAspectStrctNodes, zAspectStrctNodes)
                             # value is None for a dimension whose value is to be not reported in this slice
                             if (isinstance(aspect, _INT) or  # not a dimension
                                 dimDefaults.get(aspect) != aspectValue or # explicit dim defaulted will equal the value
@@ -806,8 +806,8 @@ class ViewRenderedGrid(ViewFile.View):
                                     all(fact.context.dimMemberQname(dim,includeDefaults=True) in (dimDefaults[dim], None)
                                         for dim in cellDefaultedDims) and
                                         len(fp.context.qnameDims) == len(fact.context.qnameDims)):
-                                    if yStructuralNode.hasValueExpression(xStructuralNode):
-                                        value = yStructuralNode.evalValueExpression(fact, xStructuralNode)
+                                    if yStrctNode.hasValueExpression(xStrctNode):
+                                        value = yStrctNode.evalValueExpression(fact, xStrctNode)
                                     else:
                                         value = fact.effectiveValue
                                     justify = "right" if fact.isNumeric else "left"

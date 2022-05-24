@@ -122,15 +122,25 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
             elif axis == "y":
                 view.dataRows += strctMdlBreakdown.leafNodeCount
                 strctMdlBreakdown.setHasOpenNode()
-                
-    # create top level table parent of breakdown nodes for each axis for rendering
-    strctMdlTable.xTopStructuralNode = StrctMdlTable(strctMdlTable.defnMdlNode)
-    strctMdlTable.xTopStructuralNode.strctMdlChildNodes = strctMdlTable.axisBreakdownNodes("x")
-    strctMdlTable.yTopStructuralNode = StrctMdlTable(strctMdlTable.defnMdlNode)
-    strctMdlTable.yTopStructuralNode.strctMdlChildNodes = strctMdlTable.axisBreakdownNodes("y")
-    strctMdlTable.zTopStructuralNode = StrctMdlTable(strctMdlTable.defnMdlNode)
-    strctMdlTable.zTopStructuralNode.strctMdlChildNodes = strctMdlTable.axisBreakdownNodes("z")
-                
+    # height balance each breakdown
+    for strctMdlBrkdn in strctMdlTable.strctMdlChildNodes:
+        def checkDepth(strctMdlNode, depth):
+            m = depth
+            for childStrctMdlNode in strctMdlNode.strctMdlChildNodes:
+                m = checkDepth(childStrctMdlNode, depth + 1)
+            return m
+        breakdownDepth = checkDepth(strctMdlBrkdn, 0)
+        # add roll up nodes to make axis depth uniform
+        def heightBalance(strctMdlNode, depth):
+            noChildren = True
+            if depth < breakdownDepth and not strctMdlNode.strctMdlChildNodes:
+                # add extra strct mdl child to be a rollup
+                balancingChild = StrctMdlStructuralNode(strctMdlNode, strMdlNode.defnMdlNode)
+                balancingChild.rollup = True
+            for childStrctMdlNode in strctMdlNode.strctMdlChildNodes:
+                heightBalance(childStrctMdlNode, depth + 1)
+        heightBalance(strctMdlBrkdn, 0)        
+                                
     # uncomment below for debugging Definition and Structural Models             
     def jsonStrctMdlEncoder(obj, indent="\n"):
         if isinstance(obj, StrctMdlNode):
@@ -220,8 +230,6 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, i=None, t
     subtreeRels = view.defnSubtreeRelSet.fromModelObject(defnMdlNode)
     axis = strctMdlNode.axis
                         
-    if axis == "z" and not strctMdlNode.aspects:
-        strctMdlNode.aspects = view.zOrdinateChoices.get(defnMdlNode, None)
     if isinstance(defnMdlNode, (DefnMdlBreakdown, DefnMdlDefinitionNode)):
         try:
             try:
@@ -378,7 +386,6 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, i=None, t
                 if strctMdlNode.choiceStructuralNodes:
                     choiceNodeIndex = view.zOrdinateChoices.get(defnMdlNode, 0)
                     if isinstance(choiceNodeIndex, dict):  # aspect entry for open node
-                        strctMdlNode.aspects = choiceNodeIndex
                         strctMdlNode.choiceNodeIndex = -1
                     elif choiceNodeIndex < len(strctMdlNode.choiceStructuralNodes):
                         strctMdlNode.choiceNodeIndex = choiceNodeIndex

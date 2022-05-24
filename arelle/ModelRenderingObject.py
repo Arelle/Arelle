@@ -55,7 +55,17 @@ class StrctMdlNode:
     @property
     def axis(self):
         return getattr(self, "_axis", self.strctMdlParentNode.axis if self.strctMdlParentNode else "")
+ 
+    @property
+    def depth(self):
+        return self.strctMdlParentNode.depth + 1 if self.strctMdlParentNode else 0
+
+    def aspectsCovered(self, inherit=False):
+        return ()
     
+    def hasAspect(self, aspect, inherit=True):
+        return False
+     
     @property
     def leafNodeCount(self):
         childLeafCount = 0
@@ -84,11 +94,11 @@ class StrctMdlNode:
         return 0
     
     @property
-    def choiceStructuralNodes(self):
-        if hasattr(self, "_choiceStructuralNodes"):
-            return self._choiceStructuralNodes
+    def choiceStrctNodes(self):
+        if hasattr(self, "_choiceStrctNodes"):
+            return self._choiceStrctNodes
         if self.strctMdlParentNode is not None:
-            return self.strctMdlParentNode.choiceStructuralNodes
+            return self.strctMdlParentNode.choiceStrctNodes
         # choiceStrNodes are on the breakdown node (if any)
         return None
     
@@ -156,6 +166,20 @@ class StrctMdlNode:
         except AttributeError: # axis may never be abstract
             return False
     
+    @property
+    def isEntryAspect(self):
+        # true if open node and bound to a fact prototype
+        return self.contextItemBinding is not None and isinstance(self.contextItemBinding.yieldedFact, FactPrototype)
+    
+    def isEntryPrototype(self, default=False):
+        # true if all axis open nodes before this one are entry prototypes (or not open axes)
+        if self.contextItemBinding is not None:
+            # True if open node bound to a prototype, false if bound to a real fact
+            return isinstance(self.contextItemBinding.yieldedFact, FactPrototype)
+        if isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
+            return self.strctMdlParentNode.isEntryPrototype(default)
+        return default # nothing open to be bound to a fact
+    
     def evaluate(self, evalObject, evalMethod, otherAxisStructuralNode=None, evalArgs=(), handleXPathException=True, **kwargs):
         xc = self._rendrCntx
         if self.contextItemBinding and not isinstance(xc.contextItem, ModelFact):
@@ -163,8 +187,8 @@ class StrctMdlNode:
             xc.contextItem = self.contextItemBinding.yieldedFact
         else:
             previousContextItem = None
-        if self.choiceStructuralNodes and hasattr(self,"choiceNodeIndex"):
-            variables = self.choiceStructuralNodes[self.choiceNodeIndex].variables
+        if self.choiceStrctNodes and hasattr(self,"choiceNodeIndex"):
+            variables = self.choiceStrctNodes[self.choiceNodeIndex].variables
         else:
             variables = self.variables
         removeVarQnames = []
@@ -222,9 +246,13 @@ class StrctMdlTable(StrctMdlNode):
         self._rendrCntx = defnMdlTable.renderingXPathContext
         # childStrctMdlNodes are StrctMdlBreakdowns
         self.defnMdlBreakdowns = defaultdict(list)
+        self.axisDepth = {"x": 0, "y":0, "z":0}
         
-    def axisBreakdownNodes(self, axis):
-        return (c for c in self.strctMdlChildNodes if c._axis == axis)
+    def strctMdlFirstAxisBreakdown(self, axis):
+        for c in self.strctMdlChildNodes:
+            if c._axis == axis:
+                return c
+        return None
     
 class StrctMdlBreakdown(StrctMdlNode):
     def __init__(self, strctMdlParentNode, defnMdlBreakdown, axis):
@@ -233,9 +261,25 @@ class StrctMdlBreakdown(StrctMdlNode):
         self._axis = axis
         self.rendrCntx = strctMdlParentNode._rendrCntx
         self.hasOpenNode = False
-        self.depth = 0
+        self.isLabeled = True
         if axis == "z":
-            self._choiceStructuralNodes = []   
+            self._choiceStrctNodes = []
+            self.choiceNodeIndex = 0
+
+    def siblingBreakdownNode(self):
+        if self.strctMdlParentNode is not None:
+            for sibling in self.strctMdlParentNode.strctMdlChildNodes[
+                                    self.strctMdlParentNode.strctMdlChildNodes.index(self)+1:]:
+                if sibling._axis == self._axis:
+                    return (sibling,)
+        return ()
+
+    @property     
+    def strctMdlEffectiveChildNodes(self):
+        if self.strctMdlChildNodes: # not leaf
+            return self.strctMdlChildNodes
+        # effective child nodes at a leaf node is sibling beakdown node subtee
+        return self.siblingBreakdownNode()
 
     def setHasOpenNode(self):
         self.hasOpenNode = True
@@ -273,6 +317,19 @@ class StrctMdlStructuralNode(StrctMdlNode):
         if self.strctMdlParentNode is not None:
             return self.strctMdlParentNode.structuralDepth + 1
         return 0
+    
+    def siblingBreakdownNode(self):
+        if self.strctMdlParentNode is not None:
+            return self.strctMdlParentNode.siblingBreakdownNode()
+        return ()
+    
+    @property     
+    def strctMdlEffectiveChildNodes(self):
+        if self.strctMdlChildNodes: # not leaf
+            return self.strctMdlChildNodes
+        # effective child nodes at a leaf node is sibling beakdown node subtee
+        return self.siblingBreakdownNode()
+
     
     '''
     def breakdownNode(self, tableELR):
@@ -357,20 +414,6 @@ class StrctMdlStructuralNode(StrctMdlNode):
     def explicitDims(self):
         return self.defnMdlNode.explicitDims
     '''
-    @property
-    def isEntryAspect(self):
-        # true if open node and bound to a fact prototype
-        return self.contextItemBinding is not None and isinstance(self.contextItemBinding.yieldedFact, FactPrototype)
-    
-    def isEntryPrototype(self, default=False):
-        # true if all axis open nodes before this one are entry prototypes (or not open axes)
-        if self.contextItemBinding is not None:
-            # True if open node bound to a prototype, false if bound to a real fact
-            return isinstance(self.contextItemBinding.yieldedFact, FactPrototype)
-        if isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
-            return self.strctMdlParentNode.isEntryPrototype(default)
-        return default # nothing open to be bound to a fact
-    
     @property
     def parentChildOrder(self):
         if self.defnMdlNode is not None:
