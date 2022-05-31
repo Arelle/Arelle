@@ -113,13 +113,14 @@ def loadSchemalocatedSchemas(modelXbrl):
     if modelXbrl.modelDocument and modelXbrl.modelDocument.type < ModelDocument.Type.DTSENTRIES:
         # at this point DTS is fully discovered but schemaLocated xsd's are not yet loaded
         modelDocumentsSchemaLocated = set()
-        while True: # need this logic because each new pass may add new urlDocs
+        # loadSchemalocatedSchemas sometimes adds to modelXbrl.urlDocs
+        while True:
             modelDocuments = set(modelXbrl.urlDocs.values()) - modelDocumentsSchemaLocated
             if not modelDocuments:
                 break
-            modelDocument = modelDocuments.pop()
-            modelDocumentsSchemaLocated.add(modelDocument)
-            modelDocument.loadSchemalocatedSchemas()
+            for modelDocument in modelDocuments:
+                modelDocument.loadSchemalocatedSchemas()
+            modelDocumentsSchemaLocated |= modelDocuments
 
 
 class ModelXbrl:
