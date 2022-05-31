@@ -277,7 +277,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
 
             
     def zAxis(self, row, zStrctNode, clearZchoices):
-        if not isinstance(zStrctNode, StrctMdlBreakdown) or zStrctNode.axis == "z":
+        if ((not isinstance(zStrctNode, StrctMdlBreakdown) or zStrctNode.axis == "z")
+            and zStrctNode.defnMdlNode is not None):
             label = zStrctNode.header(lang=self.lang)
             xValue = self.dataFirstCol-1
             yValue = row-1
@@ -431,7 +432,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                           (xStrctNode.strctMdlChildNodes and
                            not isinstance(xDefnMdlNode, DefnMdlClosedDefinitionNode)))
             isNonAbstract = not isAbstract
-            isRollUp = xDefnMdlNode .isRollUp
+            isRollUp = xDefnMdlNode.isRollUp
             rightCol, row, width, leafNode = self.xAxis(leftCol, topRow + isLabeled, rowBelow, xStrctNode, xStrctNodes, # nested items before totals
                                                         childrenFirst, False)
             if row - 1 < parentRow:
@@ -470,8 +471,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 if isNonAbstract:
                     xValue = thisCol - 1
                     for i, role in enumerate(self.colHdrNonStdRoles):
-                        j = (self.dataFirstRow
-                             - len(self.colHdrNonStdRoles) + i)-1
+                        j = (self.dataFirstRow - len(self.colHdrNonStdRoles) + i)-1
                         self.table.initHeaderCellValue(xStrctNode.header(role=role, lang=self.lang),
                                                  xValue,
                                                  j,

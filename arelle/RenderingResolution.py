@@ -21,8 +21,6 @@ from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.XPathContext import XPathException
 NoneType = type(None)
 
-RENDER_UNITS_PER_CHAR = 16 # nominal screen units per char for wrapLength computation and adjustment
-
 class ResolutionException(Exception):
     def __init__(self, code, message, **kwargs):
         self.kwargs = kwargs
@@ -71,33 +69,11 @@ def resolveTableStructure(view, viewTblELR):
     return None
 
 def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
-    defnMdlTable = strctMdlTable.defnMdlNode
-    view.dataCols = 0
-    view.dataRows = 0
-    view.dataFirstCol = 0
-    view.dataFirstRow = 0
-    view.colHdrNonStdRoles = []
-    view.colHdrDocRow = False
-    view.colHdrCodeRow = False
-    view.colHdrRows = 0
-    view.rowHdrNonStdRoles = []
-    view.rowHdrCols = 0
-    view.rowHdrColWidth = [0,]
-    view.rowNonAbstractHdrSpanMin = [0,]
-    view.rowHdrDocCol = False
-    view.rowHdrCodeCol = False
-    view.zAxisRows = 0
-    view.zmostOrdCntx = None
-    view.defnMdlTable = defnMdlTable
-    view.aspectEntryObjectId = 0
-    view.rendrCntx = defnMdlTable.renderingXPathContext
+    view.defnMdlTable = defnMdlTable = strctMdlTable.defnMdlNode
     
     # must be cartesian product of top level relationships
     view.tblBrkdnRels = tblBrkdnRels = tblBrkdnRelSet.fromModelObject(defnMdlTable)
-    
-    facts = view.modelXbrl.factsInInstance
-    if facts:
-        facts = defnMdlTable.filteredFacts(view.rendrCntx, view.modelXbrl.factsInInstance) # apply table filters
+
     for tblBrkdnRel in tblBrkdnRels:
         defnMdlBreakdown = tblBrkdnRel.toModelObject
         strctMdlTable.defnMdlBreakdowns[tblBrkdnRel.axis].append(defnMdlBreakdown)
@@ -110,18 +86,9 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
             if tblBrkdnRel.axis == axis:
                 axisHasNoBreakdown = False
                 strctMdlBreakdown = resolveDefinition(view, strctMdlTable, defnMdlBreakdown, 1, facts, 1, tblBrkdnRels, axis=axis)
-                if axis == "x":
-                    view.dataCols += strctMdlBreakdown.leafNodeCount
-                elif axis == "y":
-                    view.dataRows += strctMdlBreakdown.leafNodeCount
         if axisHasNoBreakdown:
             strctMdlBreakdown = resolveDefinition(view, strctMdlTable, None, 1, facts, 1, tblBrkdnRels, axis=axis)
-            if axis == "x":
-                view.dataCols += strctMdlBreakdown.leafNodeCount
-                strctMdlBreakdown.setHasOpenNode()
-            elif axis == "y":
-                view.dataRows += strctMdlBreakdown.leafNodeCount
-                strctMdlBreakdown.setHasOpenNode()
+            strctMdlBreakdown.setHasOpenNode()
     # height balance each breakdown
     for strctMdlBrkdn in strctMdlTable.strctMdlChildNodes:
         def checkDepth(strctMdlNode, depth):
@@ -171,36 +138,6 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
     with io.open(r"/Users/hermf/temp/test.json", 'wt') as fh:
         json.dump(strctMdlTable, fh, ensure_ascii=False, indent=2, default=jsonStrctMdlEncoder)
    
-    view.colHdrTopRow = view.zAxisRows + 1 # need rest if combobox used (2 if view.zAxisRows else 1)
-    for i in range(view.rowHdrCols):
-        if view.rowNonAbstractHdrSpanMin[i]:
-            lastRowMinWidth = view.rowNonAbstractHdrSpanMin[i] - sum(view.rowHdrColWidth[i] for j in range(i, view.rowHdrCols - 1))
-            if lastRowMinWidth > view.rowHdrColWidth[view.rowHdrCols - 1]:
-                view.rowHdrColWidth[view.rowHdrCols - 1] = lastRowMinWidth 
-    #view.rowHdrColWidth = (60,60,60,60,60,60,60,60,60,60,60,60,60,60)
-    # use as wraplength for all row hdr name columns 200 + fixed indent and abstract mins (not incl last name col)
-    view.rowHdrWrapLength = 200 + sum(view.rowHdrColWidth[:view.rowHdrCols + 1])
-    if view.colHdrRows == 0:
-        view.colHdrRows = 1 # always reserve aa col header row even if no labels for col headers
-    view.dataFirstRow = view.colHdrTopRow + view.colHdrRows + len(view.colHdrNonStdRoles)
-    view.dataFirstCol = 1 + view.rowHdrCols + len(view.rowHdrNonStdRoles)
-    #view.dataFirstRow = view.colHdrTopRow + view.colHdrRows + view.colHdrDocRow + view.colHdrCodeRow
-    #view.dataFirstCol = 1 + view.rowHdrCols + view.rowHdrDocCol + view.rowHdrCodeCol
-    #for i in range(view.dataFirstRow + view.dataRows):
-    #    view.gridView.rowconfigure(i)
-    #for i in range(view.dataFirstCol + view.dataCols):
-    #    view.gridView.columnconfigure(i)
-    
-    # organize hdrNonStdRoles so code (if any) is after documentation (if any)
-    for hdrNonStdRoles in (view.colHdrNonStdRoles, view.rowHdrNonStdRoles):
-        iCodeRole = -1
-        for i, hdrNonStdRole in enumerate(hdrNonStdRoles):
-            if 'code' in os.path.basename(hdrNonStdRole).lower():
-                iCodeRole = i
-                break
-        if iCodeRole >= 0 and len(hdrNonStdRoles) > 1 and iCodeRole < len(hdrNonStdRoles) - 1:
-            del hdrNonStdRoles[iCodeRole]
-            hdrNonStdRoles.append(hdrNonStdRole)
 
 def sortkey(obj):
     if isinstance(obj, ModelObject):
@@ -219,6 +156,7 @@ def childContainsOpenNodes(childStructuralNode):
             if childContainsOpenNodes(node):
                 return True
         return False
+
 
 #def resolveDefinition(view, strctMdlNode, depth, facts, i=None, tblAxisRels=None, processOpenDefinitionNode=True, rollUpNode=None):
 def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, i=None, tblBrkdnRels=None, rollUpNode=None, axis=None):
@@ -248,6 +186,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, i=None, t
                     _("Closed definition node %(xlinkLabel)s does not contribute at least one structural node"),
                     modelObject=(view.defnMdlTable,defnMdlNode), xlinkLabel=defnMdlNode.xlinkLabel, axis=defnMdlNode.localName)
             nestedDepth = depth + ordDepth
+
             if not isinstance(defnMdlNode, DefnMdlAspectNode):
                 # note: reduced set of facts should always be passed to subsequent open nodes
                 for subtreeRel in subtreeRels:
@@ -343,8 +282,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, i=None, t
                     # childStructuralNode.depth -= 1  # for label width; parent is merged/invisible
                     if axis == "z":
                         childList.append(childStructuralNode)
-                    # checkLabelWidth(childStructuralNode, checkBoundFact=True)
-                    #resolveDefinition(view, childStructuralNode, defnMdlNode, depth, axis, factsPartition, processOpenDefinitionNode=False) #recurse
+
                     if subtreeRels:
                         for subtreeRel in subtreeRels:
                             child2DefinitionNode = subtreeRel.toModelObject

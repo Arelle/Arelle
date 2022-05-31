@@ -22,6 +22,27 @@ OPEN_ASPECT_ENTRY_SURROGATE = '\uDBFF'
 
 EMPTY_SET = set()
 
+class LayoutMdlHdrCells:
+    def __init__(self, strctMdlNode):
+        self.strctMdlNode = strctMdlNode
+        self.layoutMdlCells = [] # contains LayoutMdlCell objects
+        
+class LayoutMdlHdrCell:
+    def __init__(self, strctMdlNode):
+        self.strctMdlNode = strctMdlNode
+        self.parentLayoutMdlHdrCell = None
+
+class LayoutMdlBodyCells:
+    def __init__(self, strctMdlNode):
+        self.strctMdlNode = strctMdlNode
+        self.layoutMdlCells = [] # z body cells contain y's body cells; y body cells contain x's body cells; x's body cells contain individual cells
+        
+class LayoutMdlBodyCell:
+    def __init__(self, strctMdlNode):
+        self.strctMdlNode = strctMdlNode
+        self.layoutMdlHdrCell = None # leaf header cell
+        self.facts = [] # bound facts
+        
 def definitionNodes(nodes):
     return [(ord.definitionNodeObject if isinstance(node, StrctMdlStructuralNode) else node) for node in nodes]
 
@@ -65,6 +86,10 @@ class StrctMdlNode:
     
     def hasAspect(self, aspect, inherit=True):
         return False
+        
+    @property
+    def hasRollUpChild(self):
+        return any(c.hasChildRollup for c in self.strctMdlChildNodes)
      
     @property
     def leafNodeCount(self):
@@ -247,6 +272,7 @@ class StrctMdlTable(StrctMdlNode):
         # childStrctMdlNodes are StrctMdlBreakdowns
         self.defnMdlBreakdowns = defaultdict(list)
         self.axisDepth = {"x": 0, "y":0, "z":0}
+        self.layoutMdlCells = [] # z body cells
         
     def strctMdlFirstAxisBreakdown(self, axis):
         for c in self.strctMdlChildNodes:
@@ -255,6 +281,7 @@ class StrctMdlTable(StrctMdlNode):
         return None
     
 class StrctMdlBreakdown(StrctMdlNode):
+    # breakdown also acts as the layout model group containing headers of cells
     def __init__(self, strctMdlParentNode, defnMdlBreakdown, axis):
         super(StrctMdlBreakdown, self).__init__(strctMdlParentNode, defnMdlBreakdown)
         self._rendrCntx = strctMdlParentNode._rendrCntx # copy from parent except at root
@@ -265,6 +292,7 @@ class StrctMdlBreakdown(StrctMdlNode):
         if axis == "z":
             self._choiceStrctNodes = []
             self.choiceNodeIndex = 0
+        self.layoutMdlHdrCells = [] # layoutMdlHeaderCells objects
 
     def siblingBreakdownNode(self):
         if self.strctMdlParentNode is not None:
@@ -309,10 +337,6 @@ class StrctMdlStructuralNode(StrctMdlNode):
         return self.defnMdlNode.modelXbrl
         
     @property
-    def hasRollUpChild(self):
-        return any(c.hasRollUpChild for c in self.strctMdlChildNodes)
-        
-    @property
     def structuralDepth(self):
         if self.strctMdlParentNode is not None:
             return self.strctMdlParentNode.structuralDepth + 1
@@ -330,21 +354,11 @@ class StrctMdlStructuralNode(StrctMdlNode):
         # effective child nodes at a leaf node is sibling beakdown node subtee
         return self.siblingBreakdownNode()
 
-    
-    '''
-    def breakdownNode(self, tableELR):
-        defnMdlNode = self.defnMdlNode
-        if isinstance(defnMdlNode, ModelBreakdown):
-            return defnMdlNode
-        axisSubtreeRelSet = defnMdlNode.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableBreakdownTree201305, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD, XbrlConst.tableDefinitionNodeSubtree201305, XbrlConst.tableDefinitionNodeSubtree201301, XbrlConst.tableAxisSubtree2011), tableELR)
-        while (True):
-            for parentRel in axisSubtreeRelSet.toModelObject(defnMdlNode):
-                defnMdlNode = parentRel.fromModelObject
-                if isinstance(defnMdlNode, ModelBreakdown):
-                    return defnMdlNode
-                break # recurse to move to this node's parent breakdown node
-        return defnMdlNode # give up here
-    '''
+    @property     
+    def strctMdlAncestorBreakdownNode(self):
+        if isinstance(self.strctMdlParentNode, StrctMdlBreakdown):
+            return self.strctMdlParentNode
+        return self.strctMdlParentNode.strctMdlAncestorBreakdownNode
    
     def constraintSet(self, tagSelectors=None):
         defnMdlNode = self.defnMdlNode
@@ -432,7 +446,7 @@ class StrctMdlStructuralNode(StrctMdlNode):
         try:
             return self._tagSelectors
         except AttributeError:
-            if self.strctMdlParentNode is None:
+            if not isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
                 self._tagSelectors = set()
             else:
                 self._tagSelectors = self.strctMdlParentNode.tagSelectors
@@ -453,7 +467,7 @@ class StrctMdlStructuralNode(StrctMdlNode):
         return childLeafCount
     
     def setHasOpenNode(self):
-        if self.strctMdlParentNode is not None:
+        if isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
             self.strctMdlParentNode.setHasOpenNode()
         else:
             self.hasOpenNode = True
@@ -506,43 +520,9 @@ class StrctMdlStructuralNode(StrctMdlNode):
                                      evalArgs=(aspect,))
             return structuralNode.aspectValue(aspect, tagSelectors=tagSelectors)
         return None 
-
-
-        
-''' not clear layout model needs to be explicitly represented
-    
-class LayoutMdlTableSet:
-    def __init__(self, strctMdlTableSet):
-        self.strctMdlTableSet = strctMdlTableSet
-        self.layoutMdlTables = []
-    
-class LayoutMdlTable:
-    def __init__(self, strctMdlTable):
-        self.strctMdlTable = strctMdlTable
-        self.layoutMdlXHeaders = [] # contains LayoutMdlAxisHeaders
-        self.layoutMdlYHeaders = []
-        self.layoutMdlZCells = []
-    
-class LayoutMdlAxisHeaders:
-    def __init__(self, strctMdlNode):
-        self.strctMdlNode = strctMdlNode
-        self.layoutMdlGroups = []
-    
-class LayoutMdlGroup:
-    def __init__(self, strctMdlNode):
-        self.strctMdlNode = strctMdlNode
-        self.layoutMdlGroups = []
-    
-class LayoutMdlHeader:
-    def __init__(self, strctMdlNode):
-        self.strctMdlNode = strctMdlNode
-        self.layoutMdlGroups = []
-    
-'''    
-
         
 # Root class for rendering is formula, to allow linked and nested compiled expressions
-def definitionModelLabelsView(mdlObj):
+def defnMdlLabelsView(mdlObj):
     return tuple(sorted([("{} {} {} {}".format(label.localName,
                                             str(rel.order).rstrip("0").rstrip("."),
                                             os.path.basename(label.role or ""),
@@ -604,7 +584,7 @@ class DefnMdlTable(ModelFormulaResource):
   
     @property
     def definitionLabelsView(self):
-        return definitionModelLabelsView(self)
+        return defnMdlLabelsView(self)
     
     def filteredFacts(self, xpCtx, facts):
         return formulaEvaluatorFilterFacts(xpCtx, VariableBinding(xpCtx), 
@@ -629,11 +609,11 @@ class DefnMdlTable(ModelFormulaResource):
         
     @property
     def propertyView(self):
-        return ((("id", self.id),) +
+        return ((("id", self.id),("xlink:label", self.xlinkLabel)) +
                 self.definitionLabelsView)
         
     def __repr__(self):
-        return ("modlTable[{0}]{1})".format(self.objectId(),self.propertyView))
+        return ("DefnMdlTable[{0}]{1})".format(self.objectId(),self.propertyView))
   
 class DefnMdlBreakdown(ModelFormulaResource):
     def init(self, modelDocument):
@@ -665,9 +645,13 @@ class DefnMdlBreakdown(ModelFormulaResource):
     @property
     def propertyView(self):
         return ((("id", self.id),
-                 ("parent child order", self.get("parentChildOrder")),
-                 ("definition", self.definitionNodeView)) +
-                 self.definitionLabelsView)
+                 ("xlink:label", self.xlinkLabel),
+                 ("parent child order", self.get("parentChildOrder"))) +
+                 defnMdlLabelsView(self))
+
+        
+    def __repr__(self):
+        return ("DefnMdlBreakdown[{0}]{1})".format(self.objectId(),self.propertyView))
 
 class DefnMdlDefinitionNode(ModelFormulaResource):
     def init(self, modelDocument):
@@ -780,7 +764,7 @@ class DefnMdlDefinitionNode(ModelFormulaResource):
 
     @property
     def definitionLabelsView(self):
-        return definitionModelLabelsView(self)
+        return defnMdlLabelsView(self)
 
 class DefnMdlClosedDefinitionNode(DefnMdlDefinitionNode):
     def init(self, modelDocument):
@@ -953,13 +937,14 @@ class DefnMdlRuleDefinitionNode(DefnMdlConstraintSet, DefnMdlClosedDefinitionNod
     @property
     def propertyView(self):
         return ((("id", self.id),
+                 ("xlink:label", self.xlinkLabel),
                  ("abstract", self.abstract),
                  ("merge", self.merge),
                  ("definition", self.definitionNodeView)) +
                  self.definitionLabelsView)
         
     def __repr__(self):
-        return ("modelRuleDefinitionNode[{0}]{1})".format(self.objectId(),self.propertyView))
+        return ("DefnMdlRuleDefinitionNode[{0}]{1})".format(self.objectId(),self.propertyView))
 
 class DefnMdlRelationshipNode(DefnMdlClosedDefinitionNode):
     def init(self, modelDocument):
@@ -1082,12 +1067,13 @@ class DefnMdlRelationshipNode(DefnMdlClosedDefinitionNode):
     @property
     def propertyView(self):
         return ((("id", self.id),
+                 ("xlink:label", self.xlinkLabel),
                  ("abstract", self.abstract),
                  ("definition", self.definitionNodeView)) +
                 self.definitionLabelsView)
         
     def __repr__(self):
-        return ("modelRelationshipDefinitionNode[{0}]{1})".format(self.objectId(),self.propertyView))
+        return ("defnMdlRelationshipNode[{0}]{1})".format(self.objectId(),self.propertyView))
     
 class DefnMdlConceptRelationshipNode(DefnMdlRelationshipNode):
     def init(self, modelDocument):
@@ -1361,6 +1347,7 @@ class DefnMdlAspectNode(DefnMdlOpenDefinitionNode):
     @property
     def propertyView(self):
         return ((("id", self.id),
+                 ("xlink:label", self.xlinkLabel),
                  ("aspect", ", ".join(aspectStr(aspect)
                                       for aspect in self.aspectsCovered()
                                       if aspect != Aspect.DIMENSIONS)),

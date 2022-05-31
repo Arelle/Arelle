@@ -93,11 +93,15 @@ class ViewRenderedGrid(ViewFile.View):
             for discriminator in range(1, 65535):
                 # each table z production
                 strctMdlTable = resolveTableStructure(self, tblELR)
+                defnMdlTable = strctMdlTable.defnMdlNode
                 self.hasTableFilters = bool(self.defnMdlTable.filterRelationships)
                 
                 self.zStrNodesWithChoices = []
-                if tblAxisRelSet and self.tblElt is not None:
-                    tableLabel = (self.modelTable.genLabel(lang=self.lang, strip=True) or  # use table label, if any 
+                xTopStrctNode = strctMdlTable.strctMdlFirstAxisBreakdown("x")
+                yTopStrctNode = strctMdlTable.strctMdlFirstAxisBreakdown("y")
+                zTopStrctNode = strctMdlTable.strctMdlFirstAxisBreakdown("z")
+                if self.tblBrkdnRels and self.tblElt is not None:
+                    tableLabel = (defnMdlTable.genLabel(lang=self.lang, strip=True) or  # use table label, if any 
                                   self.roledefinition)
                     if self.type == HTML: # table on each Z
                         # each Z is a separate table in the outer table
@@ -118,8 +122,8 @@ class ViewRenderedGrid(ViewFile.View):
                         if discriminator == 1:
                             # headers structure only build once for table
                             tableSetElt = etree.SubElement(self.tblElt, self.tableModelQName("tableSet"))
-                            tableSetElt.append(etree.Comment("TableSet linkbase file: {0}, line {1}".format(self.modelTable.modelDocument.basename, self.modelTable.sourceline)))
-                            tableSetElt.append(etree.Comment("TableSet namespace: {0}".format(self.modelTable.namespaceURI)))
+                            tableSetElt.append(etree.Comment("TableSet linkbase file: {0}, line {1}".format(defnMdlTable.modelDocument.basename, defnMdlTable.sourceline)))
+                            tableSetElt.append(etree.Comment("TableSet namespace: {0}".format(defnMdlTable.namespaceURI)))
                             tableSetElt.append(etree.Comment("TableSet linkrole: {0}".format(tblELR)))
                             etree.SubElement(tableSetElt, self.tableModelQName("label")
                                              ).text = tableLabel
@@ -130,14 +134,14 @@ class ViewRenderedGrid(ViewFile.View):
                             self.headerElts = {}
                             self.headerCells = defaultdict(list) # order #: (breakdownNode, xml element)
                             for axis in ("z", "y", "x"):
-                                breakdownNodes = self.breakdownNodes.get(axis)
+                                breakdownNodes = [s for s in strctMdlTable.strctMdlChildNodes if s._axis == axis and s.defnMdlNode is not None]
                                 if breakdownNodes:
                                     hdrsElt = etree.SubElement(tableElt, self.tableModelQName("headers"),
                                                                attrib={"axis": axis})
-                                    for brkdownNode in self.breakdownNodes.get(axis):
+                                    for brkdownNode in breakdownNodes:
                                         groupElt = etree.SubElement(hdrsElt, self.tableModelQName("group"))
-                                        groupElt.append(etree.Comment("Breakdown node file: {0}, line {1}".format(brkdownNode.modelDocument.basename, brkdownNode.sourceline)))
-                                        label = brkdownNode.genLabel(lang=self.lang, strip=True)
+                                        groupElt.append(etree.Comment("Breakdown node file: {0}, line {1}".format(brkdownNode.defnMdlNode.modelDocument.basename, brkdownNode.defnMdlNode.sourceline)))
+                                        label = brkdownNode.defnMdlNode.genLabel(lang=self.lang, strip=True)
                                         if label:
                                             etree.SubElement(groupElt, self.tableModelQName("label")).text=label
                                         self.groupElts[brkdownNode] = groupElt
@@ -145,7 +149,7 @@ class ViewRenderedGrid(ViewFile.View):
                                         self.headerElts[brkdownNode] = etree.SubElement(groupElt, self.tableModelQName("header"))
                                 else:
                                     tableElt.append(etree.Comment("No breakdown group for \"{0}\" axis".format(axis)))
-                            self.zAxis(1, zTopStrctNode, zAspectStrctNodes, True)
+                            self.zAxis(1, strctMdlTable.strctMdlFirstAxisBreakdown("z"), zAspectStrctNodes, True)
                             self.cellsTableElt = tableElt
                             self.cellsZElt = etree.SubElement(self.cellsTableElt, self.tableModelQName("cells"),
                                                                    attrib={"axis": "z"})
@@ -211,11 +215,12 @@ class ViewRenderedGrid(ViewFile.View):
 
             
     def zAxis(self, row, zStrctNode, zAspectStrctNodes, discriminatorsTable):
-        if zStrctNode is not None:
+        if zStrctNode is not None and zStrctNode.defnMdlNode is not None:
+            zDefnMdlNode = zStrctNode.defnMdlNode
             label, source = zStrctNode.headerAndSource(lang=self.lang)
             choiceLabel = None
             effectiveStrctNode = zStrctNode
-            isRollUp = zStrctNode.isRollUp
+            isRollUp = zDefnMdlNode.isRollUp
             span = 1
             if zStrctNode.chosenStrctNode: # same as combo box selection in GUI mode
                 if not discriminatorsTable:
@@ -251,7 +256,7 @@ class ViewRenderedGrid(ViewFile.View):
             elif self.type == XML:
                 # headers element built for first pass on z axis
                 if discriminatorsTable:
-                    brkdownNode = zStrctNode.breakdownNode
+                    brkdownNode = zStrctNode.strctMdlAncestorBreakdownNode
                     if zStrctNode.chosenStrctNode: # same as combo box selection in GUI mode
                         # hdrElt.set("label", label)
                         if discriminatorsTable:
@@ -335,7 +340,8 @@ class ViewRenderedGrid(ViewFile.View):
             widthToSpanParent = 0
             sideBorder = not xStrctNodes
             rowsForThisBreakdown = 1 + xParentStrctNode.hasRollUpChild
-            for xStrctNode in xParentStrctNode.strctMdlChildNodes:
+            for xStrctNode in xParentStrctNode.strctMdlEffectiveChildNodes:
+                xDefnMdlNode = xStrctNode.defnMdlNode
                 noDescendants = False
                 rightCol, row, cols, width, leafNode = self.xAxis(leftCol, topRow + rowsForThisBreakdown, rowBelow, xStrctNode, xStrctNodes, # nested items before totals
                                                                   True, False)
@@ -352,11 +358,11 @@ class ViewRenderedGrid(ViewFile.View):
                 else:
                     colsToSpanParent += rightCol + 1 - leftCol
                 thisCol = leftCol
-                isRollUp = xStrctNode.isRollUp
+                isRollUp = xDefnMdlNode.isRollUp
                  #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
                 if renderNow:
                     label, source = xStrctNode.headerAndSource(lang=self.lang,
-                                    returnGenLabel=isinstance(xStrctNode.defnMdlNode, ModelClosedDefinitionNode))
+                                    returnGenLabel=isinstance(xStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode))
                     if cols:
                         columnspan = cols
                     else:
@@ -384,7 +390,7 @@ class ViewRenderedGrid(ViewFile.View):
                     elif (self.type == XML and # is leaf or no sub-breakdown cardinality
                           # TBD: determine why following clause is needed
                           (True or xStrctNode.strctMdlChildNodes is None or columnspan > 0)): # ignore no-breakdown situation
-                        brkdownNode = xStrctNode.breakdownNode
+                        brkdownNode = xStrctNode.strctMdlAncestorBreakdownNode
                         attrib = {}
                         if columnspan > 1:
                             attrib["span"] = str(columnspan)
@@ -485,7 +491,7 @@ class ViewRenderedGrid(ViewFile.View):
             if xParentStrctNode.hasRollUpChild:
                 # insert roll up span header
                 label = xParentStrctNode.rollUpStrctNode.header(lang=self.lang,
-                                               returnGenLabel=isinstance(xStrctNode.defnMdlNode, ModelClosedDefinitionNode))
+                                               returnGenLabel=isinstance(xStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode))
                 columnspan = colsToSpanParent
                 if self.type == HTML:
                     if columnspan > 1:
@@ -498,22 +504,23 @@ class ViewRenderedGrid(ViewFile.View):
     def yAxisByRow(self, leftCol, row, yParentStrctNode, renderNow, atLeft):
         if yParentStrctNode is not None:
             nestedBottomRow = row
-            for yStrctNode in yParentStrctNode.strctMdlChildNodes:
+            for yStrctNode in yParentStrctNode.strctMdlEffectiveChildNodes:
+                yDefnMdlNode = yStrctNode.defnMdlNode
                 nestRow, nextRow = self.yAxisByRow(leftCol + 1, row, yStrctNode,  # nested items before totals
                                         True, False)
                 isAbstract = (yStrctNode.isAbstract or 
                               (yStrctNode.strctMdlChildNodes and
-                               not isinstance(yStrctNode.defnMdlNode, ModelClosedDefinitionNode)))
+                               not isinstance(yStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode)))
                 isNonAbstract = not isAbstract
                 isLabeled = yStrctNode.isLabeled
                 topRow = row
                 #print ( "row {0} topRow {1} nxtRow {2} col {3} renderNow {4} label {5}".format(row, topRow, nextRow, leftCol, renderNow, label))
                 if renderNow and isLabeled:
                     label = yStrctNode.header(lang=self.lang,
-                                                   returnGenLabel=isinstance(yStrctNode.defnMdlNode, ModelClosedDefinitionNode),
+                                                   returnGenLabel=isinstance(yStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode),
                                                    recurseParent=not isinstance(yStrctNode.defnMdlNode, DefnMdlRuleDefinitionNode))
                     columnspan = self.rowHdrCols - leftCol + 1 if isNonAbstract or nextRow == row else 1
-                    childrenFirst = not yStrctNode.isRollUp or yStrctNode.parentChildOrder == "children-first"
+                    childrenFirst = not yDefnMdlNode.isRollUp or yStrctNode.parentChildOrder == "children-first"
                     if childrenFirst and isNonAbstract and nextRow > row:
                         elt = etree.Element("{http://www.w3.org/1999/xhtml}th",
                                             attrib={"class":"yAxisSpanArm",
@@ -618,12 +625,13 @@ class ViewRenderedGrid(ViewFile.View):
             nestedBottomRow = row
             rowsToSpanParent = 0
             rowsForThisBreakdown = 1 + yParentStrctNode.hasRollUpChild
-            for yStrctNode in yParentStrctNode.strctMdlChildNodes:
+            for yStrctNode in yParentStrctNode.strctMdlEffectiveChildNodes:
+                yDefnMdlNode = yStrctNode.defnMdlNode
                 nestRow, nextRow, rows = self.yAxisByCol(leftCol + 1, row, yStrctNode,  # nested items before totals
                                                          True, False)
                 isAbstract = (yStrctNode.isAbstract or 
                               (yStrctNode.strctMdlChildNodes and
-                               not isinstance(yStrctNode.defnMdlNode, ModelClosedDefinitionNode)))
+                               not isinstance(yStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode)))
                 isNonAbstract = not isAbstract
                 isLabeled = yStrctNode.isLabeled
                 topRow = row
@@ -633,13 +641,13 @@ class ViewRenderedGrid(ViewFile.View):
                     rowsToSpanParent += rows
                 else:
                     rowsToSpanParent = nestRow - row
-                isRollUp = yStrctNode.isRollUp
+                isRollUp = yDefnMdlNode.isRollUp
                 #print ( "thisCol {0} leftCol {1} rightCol {2} topRow{3} renderNow {4} label {5}".format(thisCol, leftCol, rightCol, topRow, renderNow, label))
                 if renderNow and isLabeled:
                     label, source = yStrctNode.headerAndSource(lang=self.lang,
-                                                   returnGenLabel=isinstance(yStrctNode.defnMdlNode, ModelClosedDefinitionNode),
+                                                   returnGenLabel=isinstance(yStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode),
                                                    recurseParent=not isinstance(yStrctNode.defnMdlNode, DefnMdlRuleDefinitionNode))
-                    brkdownNode = yStrctNode.breakdownNode
+                    brkdownNode = yStrctNode.strctMdlAncestorBreakdownNode
                     attrib = {}
                     if rows:
                         rowspan = rows
@@ -726,11 +734,12 @@ class ViewRenderedGrid(ViewFile.View):
     def bodyCells(self, row, yParentStrctNode, xStrctNodes, zAspectStrctNodes):
         if yParentStrctNode is not None:
             dimDefaults = self.modelXbrl.qnameDimensionDefaults
-            for yStrctNode in yParentStrctNode.strctMdlChildNodes:
+            for yStrctNode in yParentStrctNode.strctMdlEffectiveChildNodes:
+                yDefnMdlNode = yStrctNode.defnMdlNode
                 row = self.bodyCells(row, yStrctNode, xStrctNodes, zAspectStrctNodes)
                 if not (yStrctNode.isAbstract or 
                         (yStrctNode.strctMdlChildNodes and
-                         not isinstance(yStrctNode.defnMdlNode, ModelClosedDefinitionNode))) and yStrctNode.isLabeled:
+                         not isinstance(yStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode))) and yStrctNode.isLabeled:
                     if self.type == XML:
                         cellsParentElt = etree.SubElement(self.cellsYElt, self.tableModelQName("cells"),
                                                        attrib={"axis": "x"})
@@ -760,6 +769,7 @@ class ViewRenderedGrid(ViewFile.View):
                         matchableAspects = set()
                         for aspect in _DICT_SET(xAspectStrctNodes.keys()) | _DICT_SET(yAspectStrctNodes.keys()) | _DICT_SET(zAspectStrctNodes.keys()):
                             aspectValue = xStrctNode.inheritedAspectValue(yStrctNode,
+                                               self, aspect, cellTagSelectors, 
                                                xAspectStrctNodes, yAspectStrctNodes, zAspectStrctNodes)
                             # value is None for a dimension whose value is to be not reported in this slice
                             if (isinstance(aspect, _INT) or  # not a dimension
@@ -833,7 +843,7 @@ class ViewRenderedGrid(ViewFile.View):
                                     if len(factsVals) == 0:
                                         elt.text = "\u00A0"
                                     elif len(factsVals) == 1:
-                                        elt.text = v
+                                        elt.text = factsVals[0][1] or "\u00A0"
                                     else:
                                         for i, (_f, v, _j) in enumerate(factsVals):
                                             if i > 0:

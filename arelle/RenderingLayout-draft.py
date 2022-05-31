@@ -32,44 +32,7 @@ class ResolutionException(Exception):
     def __repr__(self):
         return _('[{0}] exception {1}').format(self.code, self.message % self.kwargs)
 
-def resolveTableStructure(view, viewTblELR):
-    if isinstance(viewTblELR, DefnMdlTable):
-        # called with a defnMdlTable instead of an ELR
-        
-        # find an ELR for this table object
-        defnMdlTable = viewTblELR
-        strctMdlTable = StrctMdlTable(defnMdlTable)
-        for rel in view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD)).fromModelObject(table):
-            # find relationships in table's linkrole
-            view.defnSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD), rel.linkrole)
-            return resolveTableAxesStructure(view, strctMdlTable,
-                                             view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD), rel.linkrole))
-        # no relationships from table found
-        return None
-    
-    # called with an ELR or list of ELRs
-    tblBrkdnRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD), viewTblELR)
-    view.defnSubtreeRelSet = view.modelXbrl.relationshipSet((XbrlConst.tableBreakdownTree, XbrlConst.tableBreakdownTreeMMDD, XbrlConst.tableDefinitionNodeSubtree, XbrlConst.tableDefinitionNodeSubtreeMMDD), viewTblELR)
-    if tblBrkdnRelSet is None or len(tblBrkdnRelSet.modelRelationships) == 0:
-        view.modelXbrl.modelManager.addToLog(_("no table relationships for {0}").format(viewTblELR))
-        return None
-    
-    # table name
-    modelRoleTypes = view.modelXbrl.roleTypes.get(viewTblELR)
-    if modelRoleTypes is not None and len(modelRoleTypes) > 0:
-        view.roledefinition = modelRoleTypes[0].definition
-        if view.roledefinition is None or view.roledefinition == "":
-            view.roledefinition = os.path.basename(viewTblELR)    
-    try:
-        for defnMdlTable in tblBrkdnRelSet.rootConcepts:
-            strctMdlTable = StrctMdlTable(defnMdlTable)
-            return resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet)
-    except ResolutionException as ex:
-        view.modelXbrl.error(ex.code, ex.message, exc_info=True, **ex.kwargs);        
-    
-    return None
-
-def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
+def layoutTableStructure(view, strctMdlTable):
     defnMdlTable = strctMdlTable.defnMdlNode
     view.dataCols = 0
     view.dataRows = 0
@@ -87,18 +50,11 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
     view.rowHdrCodeCol = False
     view.zAxisRows = 0
     view.zmostOrdCntx = None
-    view.defnMdlTable = defnMdlTable
-    view.aspectEntryObjectId = 0
     view.rendrCntx = defnMdlTable.renderingXPathContext
     
-    # must be cartesian product of top level relationships
-    tblBrkdnRels = tblBrkdnRelSet.fromModelObject(defnMdlTable)
     facts = view.modelXbrl.factsInInstance
     if facts:
         facts = defnMdlTable.filteredFacts(view.rendrCntx, view.modelXbrl.factsInInstance) # apply table filters
-    for tblBrkdnRel in tblBrkdnRels:
-        defnMdlBreakdown = tblBrkdnRel.toModelObject
-        strctMdlTable.defnMdlBreakdowns[tblBrkdnRel.axis].append(defnMdlBreakdown)
     
     # do z's first to set variables needed by x and y axes expressions
     for axis in ("z", "x", "y"):
@@ -197,6 +153,26 @@ def childContainsOpenNodes(childStructuralNode):
             if childContainsOpenNodes(node):
                 return True
         return False
+
+    
+def checkLabelWidth(view, strctMdlNode, subtreeRels, checkBoundFact=False):
+    if strctMdlNode.axis == "y":
+        # messages can't be evaluated, just use the text portion of format string
+        label = strctMdlNode.header(lang=view.lang, 
+                                      returnGenLabel=not checkBoundFact, 
+                                      returnMsgFormatString=not checkBoundFact)
+        if label:
+            # need to et more exact word length in screen units
+            widestWordLen = max(len(w) * RENDER_UNITS_PER_CHAR for w in label.split())
+            # abstract only pertains to subtree of closed nodesbut not cartesian products or open nodes
+            while strctMdlNode.depth >= len(view.rowHdrColWidth):
+                view.rowHdrColWidth.append(0)
+            if strctMdlNode.defnMdlNode.isAbstract or not subtreeRels:                   
+                if widestWordLen > view.rowHdrColWidth[strctMdlNode.depth]:
+                    view.rowHdrColWidth[strctMdlNode.depth] = widestWordLen
+            else:
+                if widestWordLen > view.rowNonAbstractHdrSpanMin[strctMdlNode.depth]:
+                    view.rowNonAbstractHdrSpanMin[strctMdlNode.depth] = widestWordLen
 
 #def resolveDefinition(view, strctMdlNode, depth, facts, i=None, tblAxisRels=None, processOpenDefinitionNode=True, rollUpNode=None):
 def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, i=None, tblBrkdnRels=None, rollUpNode=None, axis=None):
