@@ -2220,17 +2220,18 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     if lang is INVALID_REFERENCE_TARGET:
                         factProduced.invalidReferenceTarget = "language"
                         continue
-                    if not concept.type.isOimTextFactType:
+                    if concept.type.isOimTextFactType:
+                        if isJSON and not lang.islower():
+                            error("xbrlje:invalidLanguageCodeCase",
+                                  _("Language MUST be lower case: \"%(lang)s\", fact %(factId)s, concept %(concept)s."),
+                                  modelObject=modelXbrl, factId=id, concept=conceptSQName, lang=lang)
+                        factProduced.dimensionsUsed.add("language")
+                        attrs["{http://www.w3.org/XML/1998/namespace}lang"] = lang
+                    elif not isCSVorXL:
                         error("oime:misplacedLanguageDimension",
                               _("Language \"%(lang)s\" provided for non-text concept by fact %(factId)s, concept %(concept)s."),
                               modelObject=modelXbrl, factId=id, concept=conceptSQName, lang=lang)
                         continue # skip creating fact because language would be bad
-                    elif isJSON and not lang.islower():
-                        error("xbrlje:invalidLanguageCodeCase",
-                              _("Language MUST be lower case: \"%(lang)s\", fact %(factId)s, concept %(concept)s."),
-                              modelObject=modelXbrl, factId=id, concept=conceptSQName, lang=lang)
-                    factProduced.dimensionsUsed.add("language")
-                    attrs["{http://www.w3.org/XML/1998/namespace}lang"] = lang
                 entityAsQn = entityNaQName
                 entitySQName = dimensions.get("entity")
                 if entitySQName is INVALID_REFERENCE_TARGET:
