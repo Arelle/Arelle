@@ -363,7 +363,7 @@ def isValidAbsolute(url):
             )
     return absoluteUrlPattern.match(url) is not None
        
-def isValid(url):
+def isValidUriReference(url):
     return relativeUrlPattern.match(url) is not None
     
 def isAbsolute(url):

@@ -376,7 +376,7 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                     xValid = VALID_ID
                 elif baseXsdType == "anyURI":
                     if value:  # allow empty strings to be valid anyURIs
-                        if UrlUtil.relativeUrlPattern.match(value) is None:
+                        if UrlUtil.isValidUriReference(value) is None:
                             raise ValueError("IETF RFC 2396 4.3 syntax")
                     # encode PSVI xValue similarly to Xerces and other implementations
                     xValue = anyURI(UrlUtil.anyUriQuoteForPSVI(value))

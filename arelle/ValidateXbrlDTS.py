@@ -580,7 +580,7 @@ def checkElements(val, modelDocument, parent):
                     else: # parent is appinfo, element IS in the right location
                         XmlValidate.validate(val.modelXbrl, elt) # validate [arc]roleType
                         roleURI = elt.get(uriAttr)
-                        if roleURI is None or not UrlUtil.isValid(roleURI):
+                        if roleURI is None or not UrlUtil.isValidUriReference(roleURI):
                             val.modelXbrl.error("xbrl.{0}:{1}Missing".format(xbrlSection,uriAttr),
                                 _("%(element)s missing or invalid %(attribute)s"),
                                 modelObject=elt, element=elt.qname, attribute=uriAttr,

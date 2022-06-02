@@ -746,7 +746,7 @@ def doc(xc, p, contextItem, args):
         return ()
     if xc.progHeader is None or xc.progHeader.element is None:
         raise XPathContext.XPathException(p, 'err:FODC0005', _('Function xf:doc no formula resource element for {0}').format(uri))
-    if not UrlUtil.isValid(uri):
+    if not UrlUtil.isValidUriReference(uri):
         raise XPathContext.XPathException(p, 'err:FODC0005', _('Function xf:doc $uri is not valid {0}').format(uri))
     normalizedUri = xc.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(
                                 uri, 
