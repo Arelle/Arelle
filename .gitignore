@@ -15,3 +15,7 @@ Arelle.egg-info
 *.iml
 .idea
 /venv/
+scripts/conformance_suites/*.txt
+scripts/conformance_suites/*.csv
+scripts/conformance_suites/*.xlsx
+tests/resources/conformance_suites/*.zip
