@@ -9,6 +9,7 @@ BASE_ARGS = [
     '--file', os.path.abspath(os.path.join(CONFORMANCE_SUITE, 'xdt.xml')),
     '--formula', 'run',
     '--logFile', './xdt-conf-log.txt',
+    '--infoset',
     '--testcaseResultsCaptureWarnings',
     '--validate'
 ]

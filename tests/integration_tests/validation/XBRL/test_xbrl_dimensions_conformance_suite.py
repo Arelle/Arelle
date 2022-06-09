@@ -9,6 +9,7 @@ ARGS = [
     '--formula', 'run',
     '--keepOpen',
     '--testcaseResultsCaptureWarnings',
+    '--infoset',
     '--validate'
 ]
 
