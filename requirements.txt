@@ -24,5 +24,3 @@ rdflib
 # other
 graphviz
 Pillow
-# freezing
-cx_freeze
