@@ -12,6 +12,7 @@ jobs:
           - tests/integration_tests/validation/ESEF/test_esef_xhtml_conformance_suite.py
           - tests/integration_tests/validation/test_utr_conformance_suite.py
           - tests/integration_tests/validation/XBRL/test_xbrl_dimensions_conformance_suite.py
+          - tests/integration_tests/validation/XBRL/test_xbrl_conformance_suite.py
     environment: integration-tests
     steps:
       - name: Download XBRL validation config
