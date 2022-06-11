@@ -1,31 +1,33 @@
 #!/bin/sh
 
-# this file must have unix newlines (to prevent extraneous errors when running)
-# must run sudo on ubuntu
+set -xeu
 
-# create version with date and a shell file to name output with the date
-python3.2 buildVersion.py
+DISTRO="${1:-linux}"
+BUILD_DIR=build/arelle-linux
+DIST_DIR=dist
 
-BUILT64=exe.linux-x86_64-3.2
+rm -rf "${BUILD_DIR}" "${DIST_DIR}"
+mkdir -p "${BUILD_DIR}" "${DIST_DIR}"
 
-if [ -d build/${BUILT64} ]
-  then
-    rm -R build/${BUILT64}
-fi
-mkdir build/${BUILT64}
+cp -p arelleGUI.pyw arelleGUI.py
 
-if [ ! -d dist ]
-  then
-    mkdir dist
-fi
+python3 buildVersion.py
+python3 pygettext.py -v -o arelle/locale/messages.pot arelle/*.pyw arelle/*.py
+python3 generateMessagesCatalog.py
+python3 ./setup.py build_exe
 
-# run cx_Freeze setup
-python3.2 setup.py build_exe
-cp arelle/scripts-unix/* build/${BUILT64}
+cp -p arelle/scripts-unix/* "${BUILD_DIR}/"
+cp -pR libs/linux/Tktable2.11 "${BUILD_DIR}/lib/"
 
-cd build/${BUILT64}
-tar -czf ../../dist/${BUILT64}.tar.gz .
-cd ../..
+SITE_PACKAGES=$(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
+cp -pR "${SITE_PACKAGES}/mpl_toolkits" "${BUILD_DIR}/lib/"
+cp -pR "${SITE_PACKAGES}/numpy.libs" "${BUILD_DIR}/lib/"
+cp -pR "${SITE_PACKAGES}/Pillow.libs" "${BUILD_DIR}/lib/"
 
-/bin/sh buildRenameLinux-x86_64.sh
-# rm -R build2
+cp -p "$(find /lib /usr -name libexslt.so.0)" "${BUILD_DIR}/"
+cp -p "$(find /lib /usr -name libxml2.so)" "${BUILD_DIR}/"
+cp -p "$(find /lib /usr -name libxml2.so.2)" "${BUILD_DIR}/"
+cp -p "$(find /lib /usr -name libxslt.so.1)" "${BUILD_DIR}/"
+cp -p "$(find /lib /usr -name libz.so.1)" "${BUILD_DIR}/"
+
+tar -czf "${DIST_DIR}/arelle-${DISTRO}-x86_64-$(date +%Y-%m-%d).tgz" --directory "${BUILD_DIR}" .
