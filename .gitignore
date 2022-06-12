@@ -7,8 +7,13 @@ buildRenameX86.bat
 arelle/Version.py
 arelle/plugin/EdgarRenderer
 arelle/plugin/EdgarRendererWithBuiltinHtml
-arelle/plugin/validate/DQC_US_Rules
+arelle/plugin/FERC
+arelle/plugin/iXBRLViewerPlugin
 arelle/plugin/validate/DQC_test
+arelle/plugin/validate/DQC_US_Rules
+arelle/plugin/validate/DQC.py
+arelle/plugin/validate/eforms.py
+arelle/plugin/validate/ESEF-DQC.py
 arelle/plugin/xule
 Arelle.egg-info
 .eggs
