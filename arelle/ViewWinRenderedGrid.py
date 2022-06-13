@@ -423,7 +423,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         noDescendants = True
         rightCol = leftCol
         widthToSpanParent = 0
-        for xStrctNode in xParentStrctNode.strctMdlEffectiveChildNodes:
+        for xStrctNode in xParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
             xDefnMdlNode = xStrctNode.defnMdlNode
             childrenFirst = not xDefnMdlNode.isRollUp or xDefnMdlNode.parentChildOrder == "children-first"
             noDescendants = False
@@ -442,10 +442,11 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             if isNonAbstract and isLabeled:
                 width += ENTRY_WIDTH_SCREEN_UNITS # width for this label, in screen units
             widthToSpanParent += width
-            if childrenFirst:
-                thisCol = rightCol
-            else:
-                thisCol = leftCol
+            #if childrenFirst:
+            #    thisCol = rightCol
+            #else:
+            #    thisCol = leftCol
+            thisCol = leftCol
             if renderNow and isLabeled:
                 columnspan = (rightCol - leftCol + (1 if isNonAbstract else 0))
                 label = xStrctNode.header(lang=self.lang,
@@ -482,14 +483,14 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     xStrctNodes.append(xStrctNode)
             if isNonAbstract:
                 rightCol += 1
-            if renderNow and not childrenFirst:
+            if renderNow: # and not childrenFirst:
                 self.xAxis(leftCol + (1 if isNonAbstract else 0), topRow + isLabeled, rowBelow, xStrctNode, xStrctNodes, True, False) # render on this pass
             leftCol = rightCol
         return (rightCol, parentRow, widthToSpanParent, noDescendants)
             
     def yAxis(self, leftCol, row, yParentStrctNode, renderNow, atLeft):
         nestedBottomRow = row
-        for yStrctNode in yParentStrctNode.strctMdlEffectiveChildNodes:
+        for yStrctNode in yParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
             yDefnMdlNode = yStrctNode.defnMdlNode
             if not yDefnMdlNode.isRollUp:
                 childrenFirst = not yDefnMdlNode.isRollUp or yDefnMdlNode.parentChildOrder == "children-first"
@@ -502,8 +503,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                               childrenFirst, False)
                 
                 topRow = row
-                if childrenFirst and isNonAbstract:
-                    row = nextRow
+                #if childrenFirst and isNonAbstract:
+                #    row = nextRow
                 if renderNow and isLabeled:
                     columnspan = self.rowHdrCols - leftCol + 1 if isNonAbstract or nextRow == row else 1
                     depth = yStrctNode.depth
@@ -545,8 +546,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                            objectId=yStrctNode.objectId())
                 if isNonAbstract:
                     row += 1
-                elif childrenFirst:
-                    row = nextRow
+                #elif childrenFirst:
+                #    row = nextRow
                 if nestRow > nestedBottomRow:
                     nestedBottomRow = nestRow + (isNonAbstract and not childrenFirst)
                 if row > nestedBottomRow:
@@ -583,7 +584,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
     def bodyCells(self, row, yParentStrctNode, xStrctNodes, zAspectStrctNodes):
         if yParentStrctNode is not None:
             dimDefaults = self.modelXbrl.qnameDimensionDefaults
-            for yStrctNode in yParentStrctNode.strctMdlEffectiveChildNodes:
+            for yStrctNode in yParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
                 yDefnMdlNode = yStrctNode.defnMdlNode
                 yChildrenFirst = not yDefnMdlNode.isRollUp or yDefnMdlNode.parentChildOrder == "children-first"
                 if yChildrenFirst:

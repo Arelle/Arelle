@@ -58,24 +58,13 @@ def layoutTableStructure(view, strctMdlTable):
     
     # do z's first to set variables needed by x and y axes expressions
     for axis in ("z", "x", "y"):
-        axisHasNoBreakdown = True
-        for i, tblBrkdnRel in enumerate(tblBrkdnRels):
-            defnMdlBreakdown = tblBrkdnRel.toModelObject
-            if tblBrkdnRel.axis == axis:
-                axisHasNoBreakdown = False
-                strctMdlBreakdown = resolveDefinition(view, strctMdlTable, defnMdlBreakdown, 1, facts, 1, tblBrkdnRels, axis=axis)
+        for strctMdlBreakdown in strctMdlTable.strctMdlChildNodes:
+            if strctMdlBreakdown.axis == axis:
+                layoutStrMdlNode(view, strctMdlTable, strctMdlBreakdown, 1, facts, 1)
                 if axis == "x":
                     view.dataCols += strctMdlBreakdown.leafNodeCount
                 elif axis == "y":
                     view.dataRows += strctMdlBreakdown.leafNodeCount
-        if axisHasNoBreakdown:
-            strctMdlBreakdown = resolveDefinition(view, strctMdlTable, None, 1, facts, 1, tblBrkdnRels, axis=axis)
-            if axis == "x":
-                view.dataCols += strctMdlBreakdown.leafNodeCount
-                strctMdlBreakdown.hasOpenNode = True
-            elif axis == "y":
-                view.dataRows += strctMdlBreakdown.leafNodeCount
-                strctMdlBreakdown.hasOpenNode = True
                 
     # uncomment below for debugging Definition and Structural Models             
     def jsonStrctMdlEncoder(obj, indent="\n"):
@@ -175,54 +164,15 @@ def checkLabelWidth(view, strctMdlNode, subtreeRels, checkBoundFact=False):
                     view.rowNonAbstractHdrSpanMin[strctMdlNode.depth] = widestWordLen
 
 #def resolveDefinition(view, strctMdlNode, depth, facts, i=None, tblAxisRels=None, processOpenDefinitionNode=True, rollUpNode=None):
-def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, i=None, tblBrkdnRels=None, rollUpNode=None, axis=None):
-    if isinstance(defnMdlNode, (NoneType, DefnMdlBreakdown)):
-        strctMdlNode = StrctMdlBreakdown(strctMdlParent, defnMdlNode, axis)
-    else:
-        strctMdlNode = StrctMdlStructuralNode(strctMdlParent, defnMdlNode)
-        
-    subtreeRels = view.defnSubtreeRelSet.fromModelObject(defnMdlNode)
+def layoutStrMdlNode(view, strctMdlParent, strctMdlNode, depth, facts, i=None, rollUpNode=None):
     axis = strctMdlNode.axis
-    
-    def checkLabelWidth(strctMdlNode, checkBoundFact=False):
-        if axis == "y":
-            # messages can't be evaluated, just use the text portion of format string
-            label = strctMdlNode.header(lang=view.lang, 
-                                          returnGenLabel=not checkBoundFact, 
-                                          returnMsgFormatString=not checkBoundFact)
-            if label:
-                # need to et more exact word length in screen units
-                widestWordLen = max(len(w) * RENDER_UNITS_PER_CHAR for w in label.split())
-                # abstract only pertains to subtree of closed nodesbut not cartesian products or open nodes
-                while strctMdlNode.depth >= len(view.rowHdrColWidth):
-                    view.rowHdrColWidth.append(0)
-                if strctMdlNode.isAbstract or not subtreeRels: # isinstance(defnMdlNode, ModelOpenDefinitionNode):                    
-                    if widestWordLen > view.rowHdrColWidth[strctMdlNode.depth]:
-                        view.rowHdrColWidth[strctMdlNode.depth] = widestWordLen
-                else:
-                    if widestWordLen > view.rowNonAbstractHdrSpanMin[strctMdlNode.depth]:
-                        view.rowNonAbstractHdrSpanMin[strctMdlNode.depth] = widestWordLen
                         
     if axis == "z" and not strctMdlNode.aspects:
         strctMdlNode.aspects = view.zOrdinateChoices.get(defnMdlNode, None)
     if isinstance(defnMdlNode, (DefnMdlBreakdown, DefnMdlDefinitionNode)):
         try:
-            try:
-                ordCardinality, ordDepth = defnMdlNode.cardinalityAndDepth(strctMdlNode, handleXPathException=False)
-            except XPathException as ex:
-                if isinstance(defnMdlNode, DefnMdlConceptRelationshipNode):
-                    view.modelXbrl.error("xbrlte:expressionNotCastableToRequiredType",
-                        _("Relationship node %(xlinkLabel)s expression not castable to required type (%(xpathError)s)"),
-                        modelObject=(view.defnMdlTable,defnMdlNode), xlinkLabel=defnMdlNode.xlinkLabel, axis=defnMdlNode.localName,
-                        xpathError=str(ex))
-                    return
-            if (not defnMdlNode.isAbstract and
-                isinstance(defnMdlNode, DefnMdlClosedDefinitionNode) and 
-                ordCardinality == 0 and not defnMdlNode.isRollUp):
-                view.modelXbrl.error("xbrlte:closedDefinitionNodeZeroCardinality",
-                    _("Closed definition node %(xlinkLabel)s does not contribute at least one structural node"),
-                    modelObject=(view.defnMdlTable,defnMdlNode), xlinkLabel=defnMdlNode.xlinkLabel, axis=defnMdlNode.localName)
-            nestedDepth = depth + ordDepth
+            for strctMdlChild in strctMdlNode.strctMdlEffectiveChildNodes:
+                layoutStrMdlNode(view, strctMdlNode, strctMdlChild, depth, facts)
             # HF test
             cartesianProductNestedArgs = [view, nestedDepth, axis, facts, tblBrkdnRels, i]
             if axis == "z":
@@ -430,92 +380,4 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, i=None, t
                 raise e.with_traceback(ex.__traceback__)  # provide original traceback information
             else:
                 raise e
-    elif strctMdlNode and defnMdlNode is None: # no breakdown nodes for axis
-        cartesianProductNestedArgs = [view, depth+1, axis, facts, (), i]
-        cartesianProductExpander(strctMdlNode, *cartesianProductNestedArgs)
-        
     return strctMdlNode
-            
-def cartesianProductExpander(childStructuralNode, view, depth, axis, facts, tblAxisRels, i):
-    if i is not None: # recurse table relationships for cartesian product
-        for j, tblRel in enumerate(tblAxisRels[i+1:]):
-            tblObj = tblRel.toModelObject
-            if isinstance(tblObj, DefnMdlDefinitionNode) and axis == tblRel.axis:        
-                #addBreakdownNode(view, axis, tblObj)
-                #if tblObj.cardinalityAndDepth(childStructuralNode)[1] or axis == "z":
-                if axis == "z":
-                    subOrdTblCntx = StrctMdlStructuralNode(childStructuralNode, tblObj, tblObj)
-                    subOrdTblCntx._choiceStructuralNodes = []  # this is a breakdwon node
-                    subOrdTblCntx.indent = 0 # separate breakdown not indented]
-                    depth = 0 # cartesian next z is also depth 0
-                    childStructuralNode.strctMdlChildNodes.append(subOrdTblCntx)
-                else: # non-ordinate composition
-                    subOrdTblCntx = childStructuralNode
-                # predefined axes need facts sub-filtered
-                if isinstance(childStructuralNode.defnMdlNode, DefnMdlClosedDefinitionNode):
-                    matchingFacts = childStructuralNode.evaluate(childStructuralNode.defnMdlNode, 
-                                                        childStructuralNode.defnMdlNode.filteredFacts, 
-                                                        evalArgs=(facts,))
-                else:
-                    matchingFacts = facts
-                # returns whether there were no structural node results
-                subOrdTblCntx.abstract = True # can't be abstract across breakdown
-                resolveDefinition(view, subOrdTblCntx, tblObj, tblObj,
-                            depth, # depth + (0 if axis == 'z' else 1), 
-                            axis, matchingFacts, j + i + 1, tblAxisRels) #cartesian product
-                break
-                
-def addRelationship(breakdownNode, relDefinitionNode, rel, strctMdlNode, cartesianProductNestedArgs, selfStructuralNodes=None):
-    variableQname = relDefinitionNode.variableQname
-    conceptQname = relDefinitionNode.conceptQname
-    coveredAspect = relDefinitionNode.coveredAspect(strctMdlNode)
-    if not coveredAspect:
-        return None
-    if selfStructuralNodes is not None:
-        fromConceptQname = rel.fromModelObject.qname
-        # is there an ordinate for this root object?
-        if fromConceptQname in selfStructuralNodes:
-            childStructuralNode = selfStructuralNodes[fromConceptQname]
-        else:
-            childStructuralNode = StrctMdlStructuralNode(strctMdlNode, breakdownNode, relDefinitionNode)
-            strctMdlNode.strctMdlChildNodes.append(childStructuralNode)
-            selfStructuralNodes[fromConceptQname] = childStructuralNode
-            if variableQname:
-                childStructuralNode.variables[variableQname] = []
-            if conceptQname:
-                childStructuralNode.variables[conceptQname] = fromConceptQname
-            childStructuralNode.aspects[coveredAspect] = fromConceptQname
-        relChildStructuralNode = StrctMdlStructuralNode(childStructuralNode, breakdownNode, relDefinitionNode)
-        childStructuralNode.strctMdlChildNodes.append(relChildStructuralNode)
-    else:
-        relChildStructuralNode = StrctMdlStructuralNode(strctMdlNode, breakdownNode, relDefinitionNode)
-        strctMdlNode.strctMdlChildNodes.append(relChildStructuralNode)
-    preferredLabel = rel.preferredLabel
-    if preferredLabel == XbrlConst.periodStartLabel:
-        relChildStructuralNode.tagSelector = "table.periodStart"
-    elif preferredLabel == XbrlConst.periodStartLabel:
-        relChildStructuralNode.tagSelector = "table.periodEnd"
-    if variableQname:
-        relChildStructuralNode.variables[variableQname] = rel
-    toConceptQname = rel.toModelObject.qname
-    if conceptQname:
-        relChildStructuralNode.variables[conceptQname] = toConceptQname
-    relChildStructuralNode.aspects[coveredAspect] = toConceptQname
-    cartesianProductExpander(relChildStructuralNode, *cartesianProductNestedArgs)
-    return relChildStructuralNode
-
-def addRelationships(breakdownNode, relDefinitionNode, rels, strctMdlNode, cartesianProductNestedArgs):
-    childStructuralNode = None # holder for nested relationships
-    for rel in rels:
-        if not isinstance(rel, list):
-            # first entry can be parent of nested list relationships
-            childStructuralNode = addRelationship(breakdownNode, relDefinitionNode, rel, strctMdlNode, cartesianProductNestedArgs)
-        elif childStructuralNode is None:
-            childStructuralNode = StrctMdlStructuralNode(strctMdlNode, breakdownNode, relDefinitionNode)
-            strctMdlNode.strctMdlChildNodes.append(childStructuralNode)
-            addRelationships(breakdownNode, relDefinitionNode, rel, childStructuralNode, cartesianProductNestedArgs)
-        else:
-            addRelationships(breakdownNode, relDefinitionNode, rel, childStructuralNode, cartesianProductNestedArgs)
-            
-
-

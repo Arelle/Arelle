@@ -311,6 +311,18 @@ class StrctMdlBreakdown(StrctMdlNode):
 
     def setHasOpenNode(self):
         self.hasOpenNode = True
+        
+    @property
+    def tagSelectors(self):
+        if isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
+            return self.strctMdlParentNode.tagSelectors
+        else:
+            return set()
+    def inheritedAspectValue(self, *args):
+        if isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
+            return self.strctMdlParentNode.inheritedAspectValue(*args)
+        else:
+            return None
              
 class StrctMdlStructuralNode(StrctMdlNode):
     def __init__(self, strctMdlParentNode, defnMdlNode, zInheritance=None, contextItemFact=None, tableNode=None, rendrCntx=None):
@@ -350,6 +362,10 @@ class StrctMdlStructuralNode(StrctMdlNode):
     @property     
     def strctMdlEffectiveChildNodes(self):
         if self.strctMdlChildNodes: # not leaf
+            # if nested breakdown which is unlabeled return children of breakdown
+            if len(self.strctMdlChildNodes) == 1 and isinstance(self.strctMdlChildNodes[0], StrctMdlBreakdown): # nested layout node
+                if True: # TBD determine if labeled: not self.strctMdlChildNodes[0].isLabeled:
+                    return self.strctMdlChildNodes[0].strctMdlChildNodes
             return self.strctMdlChildNodes
         # effective child nodes at a leaf node is sibling beakdown node subtee
         return self.siblingBreakdownNode()
@@ -378,15 +394,21 @@ class StrctMdlStructuralNode(StrctMdlNode):
             aspectsCovered |= self.defnMdlNode.aspectsCovered()
         if inherit and isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
             aspectsCovered.update(self.strctMdlParentNode.aspectsCovered(inherit=inherit))
+        elif (inherit and isinstance(self.strctMdlParentNode, StrctMdlStructuralNode)):
+            aspectsCovered.update(self.strctMdlParentNode.strctMdlParentNode.aspectsCovered(inherit=inherit))
         return aspectsCovered
       
     def hasAspect(self, aspect, inherit=True):
         return (aspect in self.aspects or 
                 (self.defnMdlNode is not None and 
-                 self.defnMdlNode.hasAspect(self, aspect)) or 
+                 self.defnMdlNode.hasAspect(self, aspect)) or
                 (inherit and
-                 self.strctMdlParentNode is not None and 
-                 self.strctMdlParentNode.hasAspect(aspect, inherit)))
+                 isinstance(self.strctMdlParentNode, StrctMdlStructuralNode) and 
+                 self.strctMdlParentNode.hasAspect(aspect, inherit)) or 
+                (inherit and
+                 isinstance(self.strctMdlParentNode, StrctMdlBreakdown) and 
+                 self.strctMdlParentNode.strctMdlParentNode.hasAspect(aspect, inherit))
+                )
     
     def aspectValue(self, aspect, inherit=True, dims=None, depth=0, tagSelectors=None):
         xc = self._rendrCntx
@@ -398,6 +420,8 @@ class StrctMdlStructuralNode(StrctMdlNode):
             if dims is None: dims = set()
             if inherit and isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
                 dims |= self.strctMdlParentNode.aspectValue(aspect, dims=dims, depth=depth+1)
+            if inherit and isinstance(self.strctMdlParentNode, StrctMdlBreakdown) and isinstance(self.strctMdlParentNode.strctMdlParentNode, StrctMdlStructuralNode):
+                dims |= self.strctMdlParentNode.strctMdlParentNode.aspectValue(aspect, dims=dims, depth=depth+1)
             if aspect in aspects:
                 dims |= aspects[aspect]
             elif constraintSet is not None and constraintSet.hasAspect(self, aspect):
@@ -415,6 +439,8 @@ class StrctMdlStructuralNode(StrctMdlNode):
                 return constraintSet.aspectValue(xc, aspect)
         if inherit and isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
             return self.strctMdlParentNode.aspectValue(aspect, depth=depth+1)
+        elif inherit and isinstance(self.strctMdlParentNode, StrctMdlBreakdown) and isinstance(self.strctMdlParentNode.strctMdlParentNode, StrctMdlStructuralNode):
+            return self.strctMdlParentNode.strctMdlParentNode.aspectValue(aspect, depth=depth+1)
         return None
 
     '''
@@ -446,10 +472,7 @@ class StrctMdlStructuralNode(StrctMdlNode):
         try:
             return self._tagSelectors
         except AttributeError:
-            if not isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
-                self._tagSelectors = set()
-            else:
-                self._tagSelectors = self.strctMdlParentNode.tagSelectors
+            self._tagSelectors = self.strctMdlParentNode.tagSelectors
             if self.tagSelector:
                 self._tagSelectors.add(self.tagSelector)
             return self._tagSelectors

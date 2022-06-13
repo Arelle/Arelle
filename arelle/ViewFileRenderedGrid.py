@@ -340,7 +340,7 @@ class ViewRenderedGrid(ViewFile.View):
             widthToSpanParent = 0
             sideBorder = not xStrctNodes
             rowsForThisBreakdown = 1 + xParentStrctNode.hasRollUpChild
-            for xStrctNode in xParentStrctNode.strctMdlEffectiveChildNodes:
+            for xStrctNode in xParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
                 xDefnMdlNode = xStrctNode.defnMdlNode
                 noDescendants = False
                 rightCol, row, cols, width, leafNode = self.xAxis(leftCol, topRow + rowsForThisBreakdown, rowBelow, xStrctNode, xStrctNodes, # nested items before totals
@@ -490,7 +490,7 @@ class ViewRenderedGrid(ViewFile.View):
                     rightCol += 1
             if xParentStrctNode.hasRollUpChild:
                 # insert roll up span header
-                label = xParentStrctNode.rollUpStrctNode.header(lang=self.lang,
+                label = xParentStrctNode.header(lang=self.lang,
                                                returnGenLabel=isinstance(xStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode))
                 columnspan = colsToSpanParent
                 if self.type == HTML:
@@ -504,7 +504,7 @@ class ViewRenderedGrid(ViewFile.View):
     def yAxisByRow(self, leftCol, row, yParentStrctNode, renderNow, atLeft):
         if yParentStrctNode is not None:
             nestedBottomRow = row
-            for yStrctNode in yParentStrctNode.strctMdlEffectiveChildNodes:
+            for yStrctNode in yParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
                 yDefnMdlNode = yStrctNode.defnMdlNode
                 nestRow, nextRow = self.yAxisByRow(leftCol + 1, row, yStrctNode,  # nested items before totals
                                         True, False)
@@ -625,7 +625,7 @@ class ViewRenderedGrid(ViewFile.View):
             nestedBottomRow = row
             rowsToSpanParent = 0
             rowsForThisBreakdown = 1 + yParentStrctNode.hasRollUpChild
-            for yStrctNode in yParentStrctNode.strctMdlEffectiveChildNodes:
+            for yStrctNode in yParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
                 yDefnMdlNode = yStrctNode.defnMdlNode
                 nestRow, nextRow, rows = self.yAxisByCol(leftCol + 1, row, yStrctNode,  # nested items before totals
                                                          True, False)
@@ -734,7 +734,7 @@ class ViewRenderedGrid(ViewFile.View):
     def bodyCells(self, row, yParentStrctNode, xStrctNodes, zAspectStrctNodes):
         if yParentStrctNode is not None:
             dimDefaults = self.modelXbrl.qnameDimensionDefaults
-            for yStrctNode in yParentStrctNode.strctMdlEffectiveChildNodes:
+            for yStrctNode in yParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
                 yDefnMdlNode = yStrctNode.defnMdlNode
                 row = self.bodyCells(row, yStrctNode, xStrctNodes, zAspectStrctNodes)
                 if not (yStrctNode.isAbstract or 
