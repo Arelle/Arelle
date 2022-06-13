@@ -5,6 +5,7 @@ jobs:
   run-conformance-suite:
     permissions: read-all
     runs-on: ubuntu-latest
+    continue-on-error: true
     strategy:
       matrix:
         test-path:
