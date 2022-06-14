@@ -1,0 +1,85 @@
+name: Build for Windows
+
+on: workflow_dispatch
+
+jobs:
+  build-windows:
+    environment: release
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: ['3.9']
+
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout arelle
+      uses: actions/checkout@v3
+    - name: Checkout EdgarRenderer
+      uses: actions/checkout@v3
+      with:
+        repository: Arelle/EdgarRenderer
+        path: arelle/plugin/EdgarRenderer
+    - shell: cmd
+      run: rmdir /s /q arelle\plugin\EdgarRenderer\.git
+    - name: Checkout xule
+      uses: actions/checkout@v3
+      with:
+        repository: xbrlus/xule
+        path: xule
+    - name: Move plugins
+      run: |
+        mv xule\plugin\validate\* arelle\plugin\validate\
+        rmdir xule\plugin\validate
+        mv xule\plugin\* arelle\plugin\
+    - shell: cmd
+      run: rmdir /s /q xule
+    - name: Checkout ixbrl-viewer
+      uses: actions/checkout@v3
+      with:
+        repository: Workiva/ixbrl-viewer
+        path: ixbrl-viewer
+    - name: Set up Node JS
+      uses: actions/setup-node@v3
+    - name: Build ixbrl-viewer
+      working-directory: ixbrl-viewer
+      run: |
+        npm install
+        npm run prod
+    - shell: cmd
+      run: move ixbrl-viewer\iXBRLViewerPlugin arelle\plugin\iXBRLViewerPlugin && rmdir /s /q ixbrl-viewer
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install NSIS
+      run: choco install nsis
+    - name: Install requirements
+      run: |
+        pip install wheel
+        pip install -r requirements-dev.txt
+    - name: Make directories
+      run: mkdir build,dist
+    - name: Rebuild messages.pot internationalization file
+      run: python pygettext.py -v -o arelle\locale\messages.pot arelle\*.pyw arelle\*.py
+    - name: Regenerate messages catalog (doc/messagesCatalog.xml)
+      run: python generateMessagesCatalog.py
+    - name: Build version.py
+      run: python buildVersion.py
+    - name: Build exe
+      run: python setup.py build_exe
+    - name: Copy Tktable2.11
+      run: xcopy libs\win64\Tktable2.11 build\exe.win-amd64-3.9\lib\tkinter\tk8.6 /y
+    - name: Delete .git
+      shell: cmd
+      run: if exist "build\exe.win-amd64-3.9\.git" rmdir /s /q build\exe.win-amd64-3.9\.git
+    - name: Make installer
+      run: makensis installWin64.nsi
+    - name: Zip distribution
+      run: 7z a -tzip ..\..\dist\arelle-win-x64.zip *
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist
+        path: dist
