@@ -2,18 +2,29 @@ name: Run Xbrl Conformance Suites
 on: pull_request_target
 
 jobs:
+  find-tests:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.build-test-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - id: build-test-matrix
+        run: |
+          printf '::set-output name=matrix::'
+          find tests/integration_tests -name 'test_*.py' -not -name test_efm_conformance_suite.py | jq -Rsc 'split("\n") | map(select(length > 0))'
+
   run-conformance-suite:
+    needs: find-tests
     permissions: read-all
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
       matrix:
-        test-path:
-          - tests/integration_tests/validation/ESEF/test_esef_ixbrl_conformance_suite.py
-          - tests/integration_tests/validation/ESEF/test_esef_xhtml_conformance_suite.py
-          - tests/integration_tests/validation/test_utr_conformance_suite.py
-          - tests/integration_tests/validation/XBRL/test_xbrl_dimensions_conformance_suite.py
-          - tests/integration_tests/validation/XBRL/test_xbrl_conformance_suite.py
+        test-path: ${{ fromJson(needs.find-tests.outputs.matrix) }}
     environment: integration-tests
     steps:
       - name: Download XBRL validation config
