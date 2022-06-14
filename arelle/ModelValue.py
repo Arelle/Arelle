@@ -7,6 +7,9 @@ Created on Jan 4, 2011
 from arelle import PythonUtil # define 2.x or 3.x string types
 import copy, datetime, isodate
 from decimal import Decimal
+from functools import total_ordering
+from typing import Optional
+
 try:
     import regex as re
 except ImportError:
@@ -122,79 +125,62 @@ def qnameEltPfxName(element, prefixedName, prefixException=None):
             namespaceURI = None # cancel namespace if it is a zero length string
     return QName(prefix, namespaceURI, localName)
 
+
+def _default_to_empty(string: Optional[str]) -> str:
+    return string or ''
+
+
+@total_ordering
 class QName:
     __slots__ = ("prefix", "namespaceURI", "localName", "qnameValueHash")
-    def __init__(self,prefix,namespaceURI,localName):
+
+    def __init__(self, prefix: Optional[str], namespaceURI: Optional[str], localName: Optional[str]):
         self.prefix = prefix
         self.namespaceURI = namespaceURI
         self.localName = localName
-        self.qnameValueHash = hash( (namespaceURI, localName) )
+        self.qnameValueHash = hash((self.namespaceURI, self.localName))
+
     def __hash__(self):
         return self.qnameValueHash
+
+    @staticmethod
+    def _conforms(other):
+        return isinstance(other, QName) or (hasattr(other, 'namespaceURI') and hasattr(other, 'localName'))
+
     @property
-    def clarkNotation(self):
+    def clarkNotation(self) -> Optional[str]:
         if self.namespaceURI:
             return '{{{0}}}{1}'.format(self.namespaceURI, self.localName)
         else:
             return self.localName
+
     @property
-    def expandedName(self):
+    def expandedName(self) -> str:
         return '{0}#{1}'.format(self.namespaceURI or "", self.localName)
+
     def __repr__(self):
         return self.__str__() 
+
     def __str__(self):
-        if self.prefix and self.prefix != '':
-            return self.prefix + ':' + self.localName
+        if self.prefix:
+            return '{}:{}'.format(self.prefix, self.localName)
         else:
             return self.localName
-    def __eq__(self,other):
-        try:
-            return (self.qnameValueHash == other.qnameValueHash and 
-                    self.localName == other.localName and self.namespaceURI == other.namespaceURI)
-        except AttributeError:
-            return False
-        ''' don't think this is used any longer
-        if isinstance(other,_STR_BASE):
-            # only compare nsnames {namespace}localname format, if other has same hash
-            return self.__hash__() == other.__hash__() and self.clarkNotation == other
-        elif isinstance(other,QName):
-            return self.qnameValueHash == other.qnameValueHash and \
-                    self.namespaceURI == other.namespaceURI and self.localName == other.localName
-        elif isinstance(other,ModelObject):
-            return self.namespaceURI == other.namespaceURI and self.localName == other.localName
-        '''
-        '''
-        try:
-            return (self.qnameValueHash == other.qnameValueHash and 
-                    self.namespaceURI == other.namespaceURI and self.localName == other.localName)
-        except AttributeError:  # other may be a model object and not a QName
-            try:
-                return self.namespaceURI == other.namespaceURI and self.localName == other.localName
-            except AttributeError:
-                return False
+
+    def __eq__(self, other):
+        if QName._conforms(other):
+            return self.localName == other.localName and self.namespaceURI == other.namespaceURI
         return False
-        '''
-    def __ne__(self,other):
-        return not self.__eq__(other)
-    def __lt__(self,other):
-        return (self.namespaceURI is None and other.namespaceURI) or \
-                (self.namespaceURI and other.namespaceURI and self.namespaceURI < other.namespaceURI) or \
-                (self.namespaceURI == other.namespaceURI and self.localName < other.localName)
-    def __le__(self,other):
-        return (self.namespaceURI is None and other.namespaceURI) or \
-                (self.namespaceURI and other.namespaceURI and self.namespaceURI < other.namespaceURI) or \
-                (self.namespaceURI == other.namespaceURI and self.localName <= other.localName)
-    def __gt__(self,other):
-        return (self.namespaceURI and other.namespaceURI is None) or \
-                (self.namespaceURI and other.namespaceURI and self.namespaceURI > other.namespaceURI) or \
-                (self.namespaceURI == other.namespaceURI and self.localName > other.localName)
-    def __ge__(self,other):
-        return (self.namespaceURI and other.namespaceURI is None) or \
-                (self.namespaceURI and other.namespaceURI and self.namespaceURI > other.namespaceURI) or \
-                (self.namespaceURI == other.namespaceURI and self.localName >= other.localName)
+
+    def __lt__(self, other):
+        if QName._conforms(other):
+            return (_default_to_empty(self.namespaceURI), _default_to_empty(self.localName)) < (_default_to_empty(other.namespaceURI), _default_to_empty(other.localName))
+        return NotImplemented
+
     def __bool__(self):
         # QName object bool is false if there is no local name (even if there is a namespace URI).
         return bool(self.localName)
+
 
 from arelle.ModelObject import ModelObject
     
