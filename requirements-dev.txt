@@ -1,4 +1,5 @@
-cx_Freeze==6.11.0
+# The Ubuntu GUI exits immediately without error in 6.11.0.
+cx_Freeze==6.10
 mock==4.0.3
 pytest==7.1.1
 
