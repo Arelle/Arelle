@@ -197,7 +197,12 @@ def resolvePath(modelXbrl, namespaceId):
 def validateRenderingInfoset(modelXbrl, comparisonFile, sourceDoc):
     from lxml import etree
     try:
-        comparisonDoc = etree.parse(comparisonFile)
+        # etree.parse does not successfully parse files within archives
+        if modelXbrl.fileSource.isInArchive(comparisonFile):
+            file, encoding = modelXbrl.fileSource.file(comparisonFile)
+            comparisonDoc = etree.parse(file)
+        else:
+            comparisonDoc = etree.parse(comparisonFile)
         sourceIter = sourceDoc.iter()
         comparisonIter = comparisonDoc.iter()
         sourceElt = next(sourceIter, None)
