@@ -15,16 +15,17 @@ jobs:
       - id: build-test-matrix
         run: |
           printf '::set-output name=matrix::'
-          find tests/integration_tests -name 'test_*.py' -not -name test_efm_conformance_suite.py | jq -Rsc 'split("\n") | map(select(length > 0))'
+          find tests/integration_tests -name 'test_*.py' -not -name test_efm_conformance_suite.py | jq -Rsc 'split("\n") | map(select(length > 0) | capture("(?<path>.*/test_(?<name>.*)[.]py)"))'
 
   run-conformance-suite:
+    name: ${{ matrix.test.name }}
     needs: find-tests
     permissions: read-all
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
       matrix:
-        test-path: ${{ fromJson(needs.find-tests.outputs.matrix) }}
+        test: ${{ fromJson(needs.find-tests.outputs.matrix) }}
     environment: integration-tests
     steps:
       - name: Download XBRL validation config
@@ -57,4 +58,4 @@ jobs:
       - name: Run integration tests with pytest
         env:
           CONFORMANCE_SUITES_TEST_MODE: OFFLINE
-        run: pytest --disable-warnings ${{ matrix.test-path }}
+        run: pytest --disable-warnings ${{ matrix.test.path }}
