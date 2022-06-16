@@ -58,4 +58,4 @@ jobs:
       - name: Run integration tests with pytest
         env:
           CONFORMANCE_SUITES_TEST_MODE: OFFLINE
-        run: pytest --disable-warnings ${{ matrix.test.path }}
+        run: pytest -s --disable-warnings ${{ matrix.test.path }}
