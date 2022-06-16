@@ -90,6 +90,7 @@ class WebCache:
         
         self._noCertificateCheck = False
         self._httpUserAgent = HTTP_USER_AGENT # default user agent for product
+        self._httpsRedirect = False
         self.resetProxies(httpProxyTuple)
         
         self.opener.addheaders = [('User-agent', self.httpUserAgent)]
@@ -194,6 +195,14 @@ class WebCache:
         self._httpUserAgent = userAgent
         if priorValue != userAgent:
             self.resetProxies(self._httpProxyTuple)
+
+    @property
+    def httpsRedirect(self):
+        return self._httpsRedirect
+
+    @httpsRedirect.setter
+    def httpsRedirect(self, value):
+        self._httpsRedirect = value
 
     def resetProxies(self, httpProxyTuple):
         # for ntlm user and password are required
@@ -335,6 +344,16 @@ class WebCache:
                 return None
             # form cache file name (substituting _ for any illegal file characters)
             filepath = self.urlToCacheFilepath(url)
+            if self.httpsRedirect:
+                if not os.path.exists(filepath):
+                    # if enabled, check for missing files in their inverse http/https cache directory
+                    redirect = None
+                    if url.startswith('http://'):
+                        redirect = self.urlToCacheFilepath('https' + url[4:])
+                    elif url.startswith('https://'):
+                        redirect = self.urlToCacheFilepath('http' + url[5:])
+                    if redirect and os.path.exists(redirect):
+                        filepath = redirect
             if self.cacheDir == SERVER_WEB_CACHE:
                 # server web-cached files are downloaded when opening to prevent excessive memcache api calls
                 return filepath
