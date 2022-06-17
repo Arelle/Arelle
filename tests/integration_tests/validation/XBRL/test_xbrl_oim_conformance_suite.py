@@ -7,6 +7,7 @@ CONFORMANCE_SUITE = 'tests/resources/conformance_suites/oim-conf-2021-10-13.zip'
 ARGS = [
     '--file', os.path.abspath(os.path.join(CONFORMANCE_SUITE, 'oim-index.xml')),
     '--formula', 'run',
+    '--httpsRedirectCache',
     '--keepOpen',
     '--plugins', 'loadFromOIM',
     '--testcaseResultsCaptureWarnings',
