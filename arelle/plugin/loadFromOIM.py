@@ -1432,7 +1432,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             # OIM conformance suites expect this to be supported:
                             # oim-conf-2021-10-13.zip/300-csv-conformant-processor/V-11,
                             # oim-conf-2021-10-13.zip/300-csv-conformant-processor/V-12
-                            tablePath = tablePath.replace("\\.\\", "\\").replace("/./", "/")
+                            tablePath = os.path.normpath(tablePath)
                             if not modelXbrl.fileSource.exists(tablePath):
                                 if not tableIsOptional:
                                     error("xbrlce:missingRequiredCSVFile", 
