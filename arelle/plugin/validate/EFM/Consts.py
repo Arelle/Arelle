@@ -97,7 +97,7 @@ standardNamespacesPattern = re.compile(
             r"dei|us-gaap|srt|us-types|us-roles|srt-types|srt-roles|rr|cef|country|currency|exch|invest|naics|sic|stpr|vip"
             r")/([0-9]{4}|[0-9]{4}q[1-4])(-[0-9]{2}-[0-9]{2})?$"
     # ifrs groups 4 - year, 5 - taxonomy (e.g. ifrs-full)
-    r"|http://xbrl.ifrs.org/taxonomy/([0-9]{4})-[0-9]{2}-[0-9]{2}/(ifrs[\w-]*)$")
+    r"|https?://xbrl.ifrs.org/taxonomy/([0-9]{4})-[0-9]{2}-[0-9]{2}/(ifrs[\w-]*)$")
 
 # hidden references
 untransformableTypes = {"anyURI", "base64Binary", "hexBinary", "NOTATION", "QName", "time",
