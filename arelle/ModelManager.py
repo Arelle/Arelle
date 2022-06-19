@@ -57,7 +57,8 @@ class ModelManager:
         self.validateCalcLB = False # validate calc LB with XBRL v2.1 semantics
         self.validateInferDecimals = True
         self.validateDedupCalcs = False
-        self.validateCalc11 = False # validate calc LB with Calculation 1.1 semantics
+        self.validateCalc11r = False # validate calc LB with Calculation 1.1 rounding semantics
+        self.validateCalc11t = False # validate calc LB with Calculation 1.1 truncation semantics
         self.validateInfoset = False
         self.validateUtr = False
         self.skipDTS = False

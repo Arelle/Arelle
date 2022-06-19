@@ -108,16 +108,18 @@ def parseAndRun(args):
                              "If formulae are present they will be validated and run unless --formula=none is specified. "
                              ))
     parser.add_option("--calcDecimals", action="store_true", dest="calcDecimals",
-                      help=_("Specify calculation linkbase validation inferring decimals."))
+                      help=_("Specify XBRL v2.1 calculation linkbase validation inferring decimals."))
     parser.add_option("--calcdecimals", action="store_true", dest="calcDecimals", help=SUPPRESS_HELP)
-    parser.add_option("--calcPrecision", action="store_true", dest="calcPrecision",
-                      help=_("Specify calculation linkbase validation inferring precision."))
-    parser.add_option("--calcprecision", action="store_true", dest="calcPrecision", help=SUPPRESS_HELP)
+    #parser.add_option("--calcPrecision", action="store_true", dest="calcPrecision",
+    #                  help=_("Specify calculation linkbase validation inferring precision."))
+    #parser.add_option("--calcprecision", action="store_true", dest="calcPrecision", help=SUPPRESS_HELP)
     parser.add_option("--calcDeduplicate", action="store_true", dest="calcDeduplicate",
                       help=_("Specify de-duplication of consistent facts when performing calculation validation, chooses most accurate fact."))
     parser.add_option("--calcdeduplicate", action="store_true", dest="calcDeduplicate", help=SUPPRESS_HELP)
-    parser.add_option("--calc11", action="store_true", dest="calc11",
-                      help=_("Specify calculation linkbase 1.1 validation."))
+    parser.add_option("--calc11r", action="store_true", dest="calc11r",
+                      help=_("Specify calculation linkbase 1.1 rounding validation."))
+    parser.add_option("--calc11t", action="store_true", dest="calc11t",
+                      help=_("Specify calculation linkbase 1.1 truncation validation."))
     parser.add_option("--efm", action="store_true", dest="validateEFM",
                       help=_("Select Edgar Filer Manual (U.S. SEC) disclosure system validation (strict)."))
     parser.add_option("--gfm", action="store", dest="disclosureSystemName", help=SUPPRESS_HELP)
@@ -766,18 +768,20 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if options.logCodeFilter:
             self.setLogCodeFilter(options.logCodeFilter)
         if options.calcDecimals:
-            if options.calcPrecision:
-                self.addToLog(_("both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"),
-                              messageCode="info", file=options.entrypointFile)
+            #if options.calcPrecision:
+            #    self.addToLog(_("both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"),
+            #                  messageCode="info", file=options.entrypointFile)
             self.modelManager.validateInferDecimals = True
             self.modelManager.validateCalcLB = True # validate calc LB with 2.1 semantics
-        elif options.calcPrecision:
-            self.modelManager.validateInferDecimals = False
-            self.modelManager.validateCalcLB = True # validate calc LB with 2.1 semantics
+        #elif options.calcPrecision:
+        #    self.modelManager.validateInferDecimals = False
+        #    self.modelManager.validateCalcLB = True # validate calc LB with 2.1 semantics
         if options.calcDeduplicate:
             self.modelManager.validateDedupCalcs = True
-        if options.calc11:
-            self.modelManager.validateCalc11 = True # validate calc LB with calc 1.1 semantics
+        if options.calc11r:
+            self.modelManager.validateCalc11r = True # validate calc LB with calc 1.1 semantics
+        if options.calc11t:
+            self.modelManager.validateCalc11t = True # validate calc LB with calc 1.1 semantics
         if options.utrValidate:
             self.modelManager.validateUtr = True
         if options.infosetValidate:

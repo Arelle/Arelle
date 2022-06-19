@@ -73,7 +73,8 @@ class ValidateXbrl:
         self.validateCalcLB = modelXbrl.modelManager.validateCalcLB
         self.validateInferDecimals = modelXbrl.modelManager.validateInferDecimals
         self.validateDedupCalcs = modelXbrl.modelManager.validateDedupCalcs
-        self.validateCalc11 = modelXbrl.modelManager.validateCalc11
+        self.validateCalc11r = modelXbrl.modelManager.validateCalc11r
+        self.validateCalc11t = modelXbrl.modelManager.validateCalc11t
         self.validateUTR = (modelXbrl.modelManager.validateUtr or
                             (self.parameters and self.parameters.get(qname("forceUtrValidation",noPrefixIsNoNamespace=True),(None,"false"))[1] == "true") or
                             (self.validateEFM and 
@@ -382,7 +383,8 @@ class ValidateXbrl:
                                        inferDecimals=self.validateInferDecimals,
                                        deDuplicate=self.validateDedupCalcs,
                                        xbrl21=self.validateCalcLB,
-                                       calc11=self.validateCalc11)
+                                       calc11r=self.validateCalc11r,
+                                       calc11t=self.validateCalc11t)
             modelXbrl.profileStat(_("validateCalculations"))
             
         if self.validateUTR:
