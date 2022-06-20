@@ -47,12 +47,12 @@ def usgaapYear(modelXbrl):
     
 def loadNonNegativeFacts(modelXbrl, dqcRules, ugtRels):
     # for us-gaap newer than 2020 use DQCRT non-negative facts.
-    if dqcRules and ugtRels: # not used before 2020
+    if dqcRules and ugtRels: # not used for us-gaap before 2020
         if usgaapYear(modelXbrl) == "2020" and "dqcrt-2021-usgaap-2020" not in (modelXbrl.modelManager.disclosureSystem.options or ""):
             dqcRules.clear() # remove dqc rules
             return ugtRels["DQC.US.0015"] # use 20.1 2020 nonNegFacts test and warning
         return None # use all available DQCRT tests
-    # for us-gaap < dqcyear use EFM non-negative warning  insead of DQC rule
+    # for us-gaap < 2020 use EFM non-negative warning  instead of DQCRT rules
     _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "signwarnings.json"), 'rt', encoding='utf-8')
     signwarnings = json.load(_file) # {localName: date, ...}
     _file.close()
@@ -583,9 +583,15 @@ def loadDqcRules(modelXbrl): # returns match expression, standard patterns
         namespaceUsage[ns] = namespaceUsage.get(ns, 0) + 1
     numUsGaapFacts = sum(n for ns,n in namespaceUsage.items() if "us-gaap" in ns)
     numIfrsFacts = sum(n for ns,n in namespaceUsage.items() if "ifrs" in ns)
-    if (usgaapYear(modelXbrl) >= "2020" and
+    if (usgaapYear(modelXbrl) >= "2020" and # DQCRT usage begins in 2020
+        # if there are both us-gaap and ifrs facts in the instance the filing might be either
+        # an ifrs or a us-gaap filing.  If ifrs the FASB DQCRT rules do not apply.
+        # When a filing contains both ifrs and us-gaap facts deem the filing to be us-gaap
+        # when the majority of facts are us-gaap.  This appeared workable for current filings.
+        # In the future a model-based approach could be used based on submission type, e.g.
+        # consider primary reporting facts in main statements and dismiss facts only used
+        # in notes, disclosures or parenthetically in statements.
         ((numUsGaapFacts == 0 and numIfrsFacts == 0) or (numUsGaapFacts > numIfrsFacts))):
-        # found us-gaap facts present (more than ifrs facts present), load us-gaap DQC.US rules
         _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "dqc-us-rules.json"), 'rt', encoding='utf-8')
         dqcRules = json.load(_file, object_pairs_hook=OrderedDict) # preserve order of keys
         _file.close()
