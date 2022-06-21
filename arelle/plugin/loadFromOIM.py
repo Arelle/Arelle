@@ -1427,6 +1427,14 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 tableUrl, _sep, sheetAndRange = tableUrl.partition("#")
                                 xlSheetName, _sep, xlNamedRange = sheetAndRange.partition('!')
                             tablePath = os.path.join(_dir, tableUrl)
+                            # Remove unnecessary relative segments within path. Effected paths are handled fine
+                            # when loading from directories, but this fails when loading from ZIP archives.
+                            # OIM conformance suites expect this to be supported:
+                            # oim-conf-2021-10-13.zip/300-csv-conformant-processor/V-11,
+                            #  "/300-csv-conformant-processor/./helloWorld-value-date-table2-facts.csv"
+                            # oim-conf-2021-10-13.zip/300-csv-conformant-processor/V-12
+                            #  "/300-csv-conformant-processor/./helloWorld-SQNameSpecial-facts.csv"
+                            tablePath = os.path.normpath(tablePath)
                             if not modelXbrl.fileSource.exists(tablePath):
                                 if not tableIsOptional:
                                     error("xbrlce:missingRequiredCSVFile", 
