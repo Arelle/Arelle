@@ -107,19 +107,24 @@ def parseAndRun(args):
                              "are individually so validated. "
                              "If formulae are present they will be validated and run unless --formula=none is specified. "
                              ))
+    parser.add_option("--calc", action="store", dest="calcs",
+                      help=_("Specify calculations validations: "
+                             "none - default, "
+                             #"xbrl21precision - pre-2010 xbrl v2.1 calculations linkbase inferring precision, "
+                             "v21 - XBRL 2.1 calculations, "
+                             "v21-dedup - XBRK 2.1 calculations with de-duplication, "
+                             "round-to-nearest or c11r - Calc 1.1 round-to-nearest mode"
+                             "truncation or c11t - Calc 1.1 truncation mode"
+                             ))
     parser.add_option("--calcDecimals", action="store_true", dest="calcDecimals",
-                      help=_("Specify XBRL v2.1 calculation linkbase validation inferring decimals."))
+                      help=_("Deprecated - XBRL v2.1 calculation linkbase validation inferring decimals."))
     parser.add_option("--calcdecimals", action="store_true", dest="calcDecimals", help=SUPPRESS_HELP)
-    #parser.add_option("--calcPrecision", action="store_true", dest="calcPrecision",
-    #                  help=_("Specify calculation linkbase validation inferring precision."))
-    #parser.add_option("--calcprecision", action="store_true", dest="calcPrecision", help=SUPPRESS_HELP)
+    parser.add_option("--calcPrecision", action="store_true", dest="calcPrecision",
+                      help=_("Deprecated - pre-2010 XBRL v2.1 calculation linkbase validation inferring precision."))
+    parser.add_option("--calcprecision", action="store_true", dest="calcPrecision", help=SUPPRESS_HELP)
     parser.add_option("--calcDeduplicate", action="store_true", dest="calcDeduplicate",
-                      help=_("Specify de-duplication of consistent facts when performing calculation validation, chooses most accurate fact."))
+                      help=_("Deprecaated -  de-duplication of consistent facts when performing calculation validation, chooses most accurate fact."))
     parser.add_option("--calcdeduplicate", action="store_true", dest="calcDeduplicate", help=SUPPRESS_HELP)
-    parser.add_option("--calc11r", action="store_true", dest="calc11r",
-                      help=_("Specify calculation linkbase 1.1 rounding validation."))
-    parser.add_option("--calc11t", action="store_true", dest="calc11t",
-                      help=_("Specify calculation linkbase 1.1 truncation validation."))
     parser.add_option("--efm", action="store_true", dest="validateEFM",
                       help=_("Select Edgar Filer Manual (U.S. SEC) disclosure system validation (strict)."))
     parser.add_option("--gfm", action="store", dest="disclosureSystemName", help=SUPPRESS_HELP)
@@ -767,21 +772,31 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.setLogLevelFilter(options.logLevelFilter)
         if options.logCodeFilter:
             self.setLogCodeFilter(options.logCodeFilter)
+        from arelle.ValidateXbrlCalcs import ValidateCalcsMode as CalcsMode
         if options.calcDecimals:
-            #if options.calcPrecision:
-            #    self.addToLog(_("both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"),
-            #                  messageCode="info", file=options.entrypointFile)
-            self.modelManager.validateInferDecimals = True
-            self.modelManager.validateCalcLB = True # validate calc LB with 2.1 semantics
-        #elif options.calcPrecision:
-        #    self.modelManager.validateInferDecimals = False
-        #    self.modelManager.validateCalcLB = True # validate calc LB with 2.1 semantics
-        if options.calcDeduplicate:
-            self.modelManager.validateDedupCalcs = True
-        if options.calc11r:
-            self.modelManager.validateCalc11r = True # validate calc LB with calc 1.1 semantics
-        if options.calc11t:
-            self.modelManager.validateCalc11t = True # validate calc LB with calc 1.1 semantics
+            if options.calcPrecision:
+                self.addToLog(_("both --calcDecimals and --calcPrecision validation are requested, proceeding with --calcDecimals only"),
+                              messageCode="info", file=options.entrypointFile)
+            if options.calcs:
+                self.addToLog(_("both --calcDecimals and --calcs validation are requested, proceeding with --calcDecimals only"),
+                              messageCode="info", file=options.entrypointFile)
+            self.modelManager.validateCalcs = CalcsMode.XBRL_v2_1 + (options.calcDeduplicate or 0)
+        elif options.calcPrecision:
+            self.modelManager.validateCalcs = CalcsMode.XBRL_v2_1_INFER_PRECISION
+        else:
+            try:
+                self.modelManager.validateCalcs = {
+                     "xbrl21precision": CalcsMode.XBRL_v2_1_INFER_PRECISION,
+                     "v21": CalcsMode.XBRL_v2_1,
+                     "v21-dedup": CalcsMode.XBRL_v2_1_DEDUPLICATE,
+                     "round-to-nearest": CalcsMode.ROUND_TO_NEAREST,
+                     "c11r": CalcsMode.ROUND_TO_NEAREST,
+                     "truncation": CalcsMode.TRUNCATION,
+                     "c11t": CalcsMode.TRUNCATION
+                    }.get(options.calcs)
+            except KEYERROR:
+                self.addToLog(_("--calcs value invalid, request ignored"),
+                              messageCode="info", file=options.entrypointFile)
         if options.utrValidate:
             self.modelManager.validateUtr = True
         if options.infosetValidate:

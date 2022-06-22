@@ -13,7 +13,7 @@ if sys.platform == 'win32' and getattr(sys, 'frozen', False):
     # need the .dll directory in path to be able to access Tk and Tcl DLLs efore importinng Tk, etc.
     os.environ['PATH'] = os.path.dirname(sys.executable) + ";" + os.environ['PATH']
 
-from tkinter import (Tk, Tcl, TclError, Toplevel, Menu, PhotoImage, StringVar, BooleanVar, N, S, E, W, EW, 
+from tkinter import (Tk, Tcl, TclError, Toplevel, Menu, PhotoImage, StringVar, BooleanVar, IntVar, N, S, E, W, EW, 
                      HORIZONTAL, VERTICAL, END, font as tkFont)
 try:
     from tkinter.ttk import Frame, Button, Label, Combobox, Separator, PanedWindow, Notebook
@@ -33,6 +33,7 @@ from arelle.CntlrWinTooltip import ToolTip
 from arelle import XbrlConst
 from arelle.PluginManager import pluginClassMethods
 from arelle.UrlUtil import isHttpUrl
+from arelle.ValidateXbrlCalcs import ValidateCalcsMode as CalcsMode
 import logging
 
 import threading, queue
@@ -146,6 +147,17 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.validateDisclosureSystem.trace("w", self.setValidateDisclosureSystem)
         validateMenu.add_checkbutton(label=_("Disclosure system checks"), underline=0, variable=self.validateDisclosureSystem, onvalue=True, offvalue=False)
         validateMenu.add_command(label=_("Select disclosure system..."), underline=0, command=self.selectDisclosureSystem)
+        calcMenu = Menu(self.menubar, tearoff=0)
+        self.modelManager.validateCalcs = self.config.setdefault("validateCalcsEnum", CalcsMode.NONE)
+        self.calcChoiceEnumVar = IntVar(self.parent, value=self.modelManager.validateCalcs)
+        self.calcChoiceEnumVar.trace("w", self.setCalcChoiceEnumVar)
+        calcMenu.add_radiobutton(label=_('No calculation checks'), underline=0, var=self.calcChoiceEnumVar, value=CalcsMode.NONE)
+        calcMenu.add_radiobutton(label=_('XBRL 2.1 calculations'), underline=0, var=self.calcChoiceEnumVar, value=CalcsMode.XBRL_v2_1)
+        calcMenu.add_radiobutton(label=_('XBRL 2.1 calculations with de-duplication'), underline=0, var=self.calcChoiceEnumVar, value=CalcsMode.XBRL_v2_1_DEDUPLICATE)
+        calcMenu.add_radiobutton(label=_('Calc 1.1 round-to-nearest mode'), underline=0, var=self.calcChoiceEnumVar, value=CalcsMode.ROUND_TO_NEAREST)
+        calcMenu.add_radiobutton(label=_('Calc 1.1 truncation mode'), underline=0, var=self.calcChoiceEnumVar, value=CalcsMode.TRUNCATION)
+        toolsMenu.add_cascade(label=_("Calc linkbase"), menu=calcMenu, underline=0)
+        '''
         # validate calc LB with 2.1 semantics
         self.modelManager.validateCalcLB = self.config.setdefault("validateCalcLB",False)
         self.validateCalcLB = BooleanVar(value=self.modelManager.validateCalcLB)
@@ -159,15 +171,11 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.validateDedupCalcs = BooleanVar(value=self.modelManager.validateDedupCalcs)
         self.validateDedupCalcs.trace("w", self.setValidateDedupCalcs)
         validateMenu.add_checkbutton(label=_("De-duplicate calculations"), underline=0, variable=self.validateDedupCalcs, onvalue=True, offvalue=False)
+        '''
         self.modelManager.validateUtr = self.config.setdefault("validateUtr",True)
         self.validateUtr = BooleanVar(value=self.modelManager.validateUtr)
         self.validateUtr.trace("w", self.setValidateUtr)
         validateMenu.add_checkbutton(label=_("Unit Type Registry validation"), underline=0, variable=self.validateUtr, onvalue=True, offvalue=False)
-        # validate calc LB with calc 1.1 semantics
-        self.modelManager.validateCalc11 = self.config.setdefault("validateCalc11",False)
-        self.validateCalc11 = BooleanVar(value=self.modelManager.validateCalc11)
-        self.validateCalc11.trace("w", self.setValidateCalc11)
-        validateMenu.add_checkbutton(label=_("Calculations 1.1 checks"), underline=0, variable=self.validateCalc11, onvalue=True, offvalue=False)
         for pluginMenuExtender in pluginClassMethods("CntlrWinMain.Menu.Validation"):
             pluginMenuExtender(self, validateMenu)
 
@@ -1235,17 +1243,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             if valType == ModelDocument.Type.VERSIONINGREPORT:
                 v = _("Validate versioning report")
             else:
-                if self.modelManager.validateCalcLB:
-                    if self.modelManager.validateInferDecimals:
-                        c = _("\nCheck calculations (infer decimals)")
-                    else:
-                        c = _("\nCheck calculations (infer precision)")
-                    if self.modelManager.validateDedupCalcs:
-                        c += _("\nDeduplicate calculations")
-                else:
-                    c = ""
-                if self.modelManager.validateCalc11:
-                    c += _("\nCheck calculations 1.1")
+                c = "\n" + CalcsMode.label[self.modelManager.validateCalcs]
                 if self.modelManager.validateUtr:
                     u = _("\nCheck unit type registry")
                 else:
@@ -1259,6 +1257,13 @@ class CntlrWinMain (Cntlr.Cntlr):
             v = _("Validate")
         self.validateTooltipText.set(v)
             
+    def setCalcChoiceEnumVar(self, *args):
+        self.modelManager.validateCalcs = self.calcChoiceEnumVar.get()
+        self.config["validateCalcsEnum"] = self.modelManager.validateCalcs
+        self.saveConfig()
+        self.setValidateTooltipText()
+            
+    ''' remove
     def setValidateCalcLB(self, *args):
         self.modelManager.validateCalcLB = self.validateCalcLB.get()
         self.config["validateCalcLB"] = self.modelManager.validateCalcLB
@@ -1276,12 +1281,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         self.config["validateDedupCalcs"] = self.modelManager.validateDedupCalcs
         self.saveConfig()
         self.setValidateTooltipText()
-            
-    def setValidateCalc11(self, *args):
-        self.modelManager.validateCalc11 = self.validateCalc11.get()
-        self.config["validateCalc11"] = self.modelManager.validateCalc11
-        self.saveConfig()
-        self.setValidateTooltipText()
+    '''
             
     def setValidateUtr(self, *args):
         self.modelManager.validateUtr = self.validateUtr.get()
@@ -1617,3 +1617,5 @@ if __name__ == "__main__":
     else:
         # GUI mode
         main()
+        
+

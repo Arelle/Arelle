@@ -18,6 +18,25 @@ from arelle.PythonUtil import flattenSequence, strTruncate
 from arelle.XmlValidate import UNVALIDATED, VALID
 ModelFact = None
 
+
+class ValidateCalcsMode:
+    NONE = 0                        # no calculations linkbase validation
+    XBRL_v2_1_INFER_PRECISION = 1   # pre-2010 spec v2.1 mode
+    XBRL_v2_1 = 2                   # post-2010 spec v2.1 mode
+    XBRL_v2_1_DEDUPLICATE = 3       # post-2010 spec v2.1 with deduplication
+    ROUND_TO_NEAREST = 4            # calculations 1.1 round-to-nearest mode
+    TRUNCATION = 5                  # calculations 1.1 truncation mode
+    
+    label = {
+        NONE: "No calculations linkbase checks",
+        XBRL_v2_1_INFER_PRECISION: "Pre-2010 XBRL 2.1 calculations validation inferring precision",
+        XBRL_v2_1:  "XBRL 2.1 calculations linkbase checks",
+        XBRL_v2_1_DEDUPLICATE: "XBRL v2.1 calculations linkbase with de-duplication",
+        ROUND_TO_NEAREST: "Calculations 1.1 round-to-nearest mode",
+        TRUNCATION: "Calculations 1.1 truncation mode"
+        }
+    
+
 numberPattern = re_compile("[-+]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-+]?[0-9]*)?")
 ZERO = decimal.Decimal(0)
 ONE = decimal.Decimal(1)
@@ -31,27 +50,24 @@ NIL_FACT_SET = "*nilFactSet*" # singleton
 # RANGE values are (lower, upper, incl Lower bound, incl upper bound)
 ZERO_RANGE = (0,0,True,True)
 EMPTY_SET = set()
+def rangeToStr(a, b, inclA, inclB):
+    return {True:"[", False: "("}[inclA] + f"{a}, {b}" + {True:"]", False: ")"}[inclB]
 
-def validate(modelXbrl,
-             inferDecimals=False, # for XBRL v2.1 semantics, infer decimals (vs precision which was original REC)
-             deDuplicate=False,   # for XBRL v2.1 semantics, deduplicate by choosing most accurate value
-             xbrl21=True,         # validate calc LB with XBRL v2.1 semantics (default)
-             calc11r=False,       # validate calc LB with Calculation 1.1 rounding semantics
-             calc11t=False):      # validate calc LB with Calculation 1.1 truncation semantics
+def validate(modelXbrl, validateCalcs):
     global ModelFact
     if ModelFact is None:
         from arelle.ModelInstanceObject import ModelFact
-    ValidateXbrlCalcs(modelXbrl, inferDecimals, deDuplicate, xbrl21, calc11r).validate()
+    ValidateXbrlCalcs(modelXbrl, validateCalcs).validate()
     
 class ValidateXbrlCalcs:
-    def __init__(self, modelXbrl, inferDecimals=False, deDuplicate=False, xbrl21=True, calc11r=False):
+    def __init__(self, modelXbrl, validateCalcs):
         self.modelXbrl = modelXbrl
-        self.inferDecimals = inferDecimals
-        self.deDuplicate = deDuplicate
-        self.xbrl21 = xbrl21
-        self.calc11 = calc11r or calc11t
-        self.calc11t = calc11t
-        self.calc11suffix = "Truncation" if calc11t else "Rounding"
+        self.inferDecimals = validateCalcs == ValidateCalcsMode.XBRL_v2_1
+        self.deDuplicate = validateCalcs == ValidateCalcsMode.XBRL_v2_1_DEDUPLICATE
+        self.xbrl21 = ValidateCalcsMode.XBRL_v2_1_INFER_PRECISION <= validateCalcs <= ValidateCalcsMode.XBRL_v2_1_DEDUPLICATE
+        self.calc11 = ValidateCalcsMode.ROUND_TO_NEAREST <= validateCalcs <= ValidateCalcsMode.TRUNCATION
+        self.calc11t = validateCalcs == ValidateCalcsMode.TRUNCATION
+        self.calc11suffix = "Truncation" if self.calc11t else "Rounding"
         self.mapContext = {}
         self.mapUnit = {}
         self.sumFacts = defaultdict(list)
@@ -172,7 +188,7 @@ class ValidateXbrlCalcs:
                                                         boundSums[itemBindKey] += roundedValue * w
                                                         boundSummationItems[itemBindKey].append(wrappedFactWithWeight(fact,w,roundedValue))
                                         if calc11 and _itemFacts:
-                                            y1, y2, iY1, iY2 = self.oimConsistentInterval(_itemFacts, calc11t)
+                                            y1, y2, iY1, iY2 = self.consistentFactValueInterval(_itemFacts, calc11t)
                                             if y1 is INCONSISTENT:
                                                 blockedIntervals.add(itemBindKey)
                                             elif y1 is not NIL_FACT_SET:
@@ -216,18 +232,22 @@ class ValidateXbrlCalcs:
                                                             contextID=fact.context.id, unitID=fact.unit.id,
                                                             unreportedContributors=", ".join(unreportedContribingItemQnames) or "none")
                                                         del unreportedContribingItemQnames[:]
-                                    if calc11r:
-                                        s1, s2 = self.oimConsistentInterval(sumFacts, calc11t)
+                                    if calc11:
+                                        s1, s2, incls1, incls2 = self.consistentFactValueInterval(sumFacts, calc11t)
                                         if s1 is not INCONSISTENT and sumBindKey not in blockedIntervals and sumBindKey in boundIntervals:
-                                            x1, x2 = boundIntervals[sumBindKey]
-                                            if min(s2, x2) < max(s1, x1):
-                                                modelXbrl.error("calc11e:inconsistentCalculationUsing" + self.calc11Suffix,
+                                            x1, x2, inclx1, inclx2 = boundIntervals[sumBindKey]
+                                            a = max(s1, x1)
+                                            b = min(s2, x2)
+                                            inclA = incls1 | inclx1
+                                            inclB = incls2 | inclx2
+                                            if (a == b and not (inclA and inclB)) or (a > b):
+                                                modelXbrl.error("calc11e:inconsistentCalculationUsing" + self.calc11suffix,
                                                     _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s"),
                                                     modelObject=sumFacts + boundIntervalItems[sumBindKey],
                                                     concept=sumConcept.qname, linkrole=ELR, 
                                                     linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
-                                                    reportedSum="[{},{}]".format(s1, s2),
-                                                    computedSum="[{},{}]".format(x1, x2), 
+                                                    reportedSum=rangeToStr(s1,s2,incls1,incls2),
+                                                    computedSum=rangeToStr(x1,s2,inclx1,inclx2), 
                                                     contextID=sumFacts[0].context.id, unitID=sumFacts[0].unit.id)
                             boundSummationItems.clear() # dereference facts in list
                             boundIntervalItems.clear()
@@ -326,7 +346,7 @@ class ValidateXbrlCalcs:
                             self.duplicatedFacts.add(fDup)
                     elif self.xbrl21 and not f.isNil:
                         self.duplicateKeyFacts[calcKey] = f
-                    if self.calc11r:
+                    if self.calc11:
                         self.calc11KeyFacts[calcKey].append(f)
                 elif concept.isTuple and not f.isNil:
                     self.bindFacts(f.modelTupleFacts, ancestors + [f])
@@ -344,42 +364,53 @@ class ValidateXbrlCalcs:
                 if concept in self.conceptsInRequiresElement:
                     self.requiresElementFacts[concept].append(f)
 
-    def oimConsistentInterval(self, fList, truncate=False):
+    def consistentFactValueInterval(self, fList, truncate=False):
+        _excessDigitFacts = []
         if any(f.isNil for f in fList):
             if all(f.isNil for f in fList):
                 return (NIL_FACT_SET,NIL_FACT_SET,True,True)
             _inConsistent = True # provide error message 
         else: # not all have same decimals
-            f0 = fList[0]
-            _d = inferredDecimals(f0)
-            _v = f0.xValue
-            _inConsistent = isnan(_v) # NaN is incomparable, always makes dups inconsistent
-            decVals = {_d: _v}
-            aMax, bMin, inclA, inclB = rangeValue(_v, _d, truncate=truncate)
-            for f in fList[1:]:
+            a = b = None
+            inclA = inclB = _inConsistent = False
+            decVals = {}
+            for f in fList:
                 _d = inferredDecimals(f)
                 _v = f.xValue
                 if isnan(_v):
-                    _inConsistent = True
+                    if len(fList) > 1:
+                        _inConsistent = True
                     break
-                if _d in decVals:
+                elif insignificantDigits(_v, decimals=_d):
+                    _excessDigitFacts.append(f)
+                elif _d in decVals:
                     _inConsistent |= _v != decVals[_d]
                 else:
                     decVals[_d] = _v
-                    a, b, inclA, inclB = rangeValue(_v, _d, truncate=truncate)
-                    if a > aMax: aMax = a
-                    if b < bMin: bMin = b
-            if not _inConsistent:
-                _inConsistent = (bMin < aMax)
+                    _a, _b, _inclA, _inclB = rangeValue(_v, _d, truncate=truncate)
+                    if a is None or _a >= a: 
+                        a = _a
+                        inclA |= _inclA
+                    if b is None or _b <= b: 
+                        b = _b
+                        inclB |= _inclB 
+            _inConsistent = (a == b and not(inclA and inclB)) or (a > b)
+        if _excessDigitFacts:
+            self.modelXbrl.error("calc11e:excessDigits",
+                "Calculations check stopped for excess digits in fact values %(element)s: %(values)s, %(contextIDs)s.",
+                modelObject=fList, element=_excessDigitFacts[0].qname, 
+                contextIDs=", ".join(sorted(set(f.contextID for f in _excessDigitFacts))), 
+                values=", ".join(strTruncate(f.value,64) for f in _excessDigitFacts))
+            return (INCONSISTENT, INCONSISTENT,True,True)
         if _inConsistent:
-            self.modelXbrl.error("oime:disallowedDuplicateFacts",
+            self.modelXbrl.error(
+                "calc11e:disallowedDuplicateFactsUsingTruncation" if self.calc11t else "oime:disallowedDuplicateFacts",
                 "Calculations check stopped for duplicate fact values %(element)s: %(values)s, %(contextIDs)s.",
                 modelObject=fList, element=fList[0].qname, 
                 contextIDs=", ".join(sorted(set(f.contextID for f in fList))), 
                 values=", ".join(strTruncate(f.value,64) for f in fList))
             return (INCONSISTENT, INCONSISTENT,True,True)
-        return (aMax, bMin)
-        
+        return (a, b, inclA, inclB)
 
 def roundFact(fact, inferDecimals=False, vDecimal=None):
     if vDecimal is None:
