@@ -112,8 +112,8 @@ def parseAndRun(args):
                              "none - default, "
                              #"xbrl21precision - pre-2010 xbrl v2.1 calculations linkbase inferring precision, "
                              "v21 - XBRL 2.1 calculations, "
-                             "v21-dedup - XBRK 2.1 calculations with de-duplication, "
-                             "round-to-nearest or c11r - Calc 1.1 round-to-nearest mode"
+                             "v21-dedup - XBRL 2.1 calculations with de-duplication, "
+                             "round-to-nearest or c11r - Calc 1.1 round-to-nearest mode, "
                              "truncation or c11t - Calc 1.1 truncation mode"
                              ))
     parser.add_option("--calcDecimals", action="store_true", dest="calcDecimals",
