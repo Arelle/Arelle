@@ -15,7 +15,7 @@ matplotlib
 holidays
 tornado
 # security plugin
-pycrypto
+pycryptodome
 # xbrlDB plugin
 pg8000
 pymysql
