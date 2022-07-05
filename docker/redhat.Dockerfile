@@ -75,6 +75,6 @@ RUN pip3 install -r requirements-dev.txt
 
 ADD ../ /build
 
-RUN /bin/sh ./buildLinuxDist.sh redhat
+RUN /bin/sh ./scripts/buildLinuxDist.sh redhat
 
 ENTRYPOINT ["/bin/sh", "-c"]

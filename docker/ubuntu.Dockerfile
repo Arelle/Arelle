@@ -59,6 +59,6 @@ RUN pip3 install -r requirements-dev.txt
 
 ADD ../ /build
 
-RUN /bin/sh ./buildLinuxDist.sh ubuntu
+RUN /bin/sh ./scripts/buildLinuxDist.sh ubuntu
 
 ENTRYPOINT ["/bin/sh", "-c"]
