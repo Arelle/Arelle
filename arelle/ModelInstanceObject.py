@@ -1589,6 +1589,10 @@ class ModelInlineFootnote(ModelResource):
     def stringValue(self):
         """(str) -- override xml-level stringValue for transformed value descendants text"""
         return self.value
+
+    @property
+    def htmlValue(self):
+        return XmlUtil.innerText(self, ixExclude=True, ixContinuation=True, strip=False)
     
     @property
     def role(self):
@@ -1626,7 +1630,7 @@ class ModelInlineFootnote(ModelResource):
         return (("file", self.modelDocument.basename),
                 ("line", self.sourceline)) + \
                super(ModelInlineFootnote,self).propertyView + \
-               (("html value", XmlUtil.innerText(self)),)
+               (("html value", self.htmlValue),)
         
     def __repr__(self):
         return ("modelInlineFootnote[{0}]{1})".format(self.objectId(),self.propertyView))
