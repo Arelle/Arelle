@@ -19,10 +19,12 @@ def get_test_data(args):
     model_document = cntlr.modelManager.modelXbrl.modelDocument
     if model_document is not None:
         test_cases = []
-        if model_document.type == ModelDocument.Type.TESTCASE:
+        if model_document.type in (ModelDocument.Type.TESTCASE, ModelDocument.Type.REGISTRYTESTCASE):
             test_cases.append(model_document)
         elif model_document.type == ModelDocument.Type.TESTCASESINDEX:
             test_cases = sorted(model_document.referencesDocument.keys(), key=lambda doc: doc.uri)
+        else:
+            raise 'Unhandled model document type: {}'.format(model_document.type)
         for test_case in test_cases:
             uri_dir_parts = os.path.dirname(test_case.uri).split('/')
             test_case_dir = '/'.join(uri_dir_parts[-2:])
