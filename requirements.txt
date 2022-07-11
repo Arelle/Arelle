@@ -1,26 +1,26 @@
 # core modules
 lxml>=4.6.3
 openPyXL>=2.3.3
-regex
-isodate
-aniso8601
-cherrypy
-cheroot
+regex==2022.7.9
+isodate==0.6.1
+aniso8601==9.0.1
+CherryPy==18.7.0
+cheroot==8.6.0
 # special note: pip install --no-cache --use-pep517 pycountry
-pycountry
+pycountry==22.3.5
 # plugins
 # EdgarRenderer plugin
-numpy
-matplotlib
-holidays
-tornado
+numpy==1.23.1
+matplotlib==3.5.2
+holidays==0.14.2
+tornado==6.2
 # security plugin
-pycryptodome
+pycryptodome==3.15.0
 # xbrlDB plugin
-pg8000
-pymysql
-pyodbc
+pg8000==1.29.1
+PyMySQL==1.0.2
+pyodbc==4.0.32
 rdflib<6
 # other
-graphviz
-Pillow
+graphviz==0.20
+Pillow==9.2.0
