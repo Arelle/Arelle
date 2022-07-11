@@ -1,0 +1,22 @@
+{
+	"name": "Arelle dev container",
+	"context": "..",
+	"dockerFile": "Dockerfile.dev",
+	"containerEnv": {
+		"DEVCONTAINER": "1"
+	},
+	"settings": {
+		"python.pythonPath": "/opt/.venv/bin/python",
+		"python.defaultInterpreterPath": "/opt/.venv/bin/python",
+		"python.terminal.activateEnvInCurrentTerminal": true,
+		"python.linting.enabled": true,
+		"files.trimTrailingWhitespace": true,
+		"python.languageServer": "Pylance",
+		"python.testing.unittestEnabled": false,
+		"python.testing.pytestEnabled": true
+	},
+	"extensions": [
+		"ms-python.vscode-pylance",
+		"visualstudioexptteam.vscodeintellicode",
+	],
+}

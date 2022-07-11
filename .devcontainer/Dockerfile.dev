@@ -1,0 +1,25 @@
+ARG VARIANT=3.9-bullseye
+FROM mcr.microsoft.com/vscode/devcontainers/python:0-${VARIANT}
+
+ENV VIRTUAL_ENV=/opt/.venv
+ENV FILE_LOCATION "/usr/src/app"
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+ENV LOCAL_USER="vscode"
+
+USER $LOCAL_USER
+
+COPY . $FILE_LOCATION
+
+WORKDIR $FILE_LOCATION
+
+# Install base system requirements
+RUN sudo apt-get update \
+    && xargs sudo  apt-get install -y  < .devcontainer/requirements_system_dev.txt \
+    && sudo apt-get clean \
+    && sudo apt-get autoremove
+
+RUN sudo python3 -m venv $VIRTUAL_ENV && \
+    sudo chown -R $LOCAL_USER:$LOCAL_USER ${VIRTUAL_ENV} && \
+    . $VIRTUAL_ENV/bin/activate && \
+    python3 -m pip install --upgrade setuptools wheel && \
+    python3 -m pip install -r $FILE_LOCATION/requirements-dev.txt
