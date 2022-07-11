@@ -14,7 +14,7 @@ from arelle.ModelValue import qname, QName
 from arelle.RenderingResolution import resolveTableStructure, RENDER_UNITS_PER_CHAR
 from arelle.ModelFormulaObject import Aspect, aspectModels, aspectModelAspect
 from arelle.ModelInstanceObject import ModelDimensionValue
-from arelle.ModelRenderingObject import (StrctMdlBreakdown,
+from arelle.ModelRenderingObject import (StrctMdlBreakdown, DefnMdlDefinitionNode,
                                          DefnMdlClosedDefinitionNode, DefnMdlAspectNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE)
 from arelle.FormulaEvaluator import init as formulaEvaluatorInit, aspectMatches
@@ -27,6 +27,8 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XbrlConst import eurofilingModelNamespace, eurofilingModelPrefix
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 from arelle.XmlValidate import UNVALIDATED, validate as xmlValidate
+
+TRACE_TK = True # print trace messages of tk table interface
 
 try:
     from tkinter import ttk
@@ -99,7 +101,9 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         self.aspectEntryObjectIdsNode = {}
         self.aspectEntryObjectIdsCell = {}
         self.factPrototypeAspectEntryObjectIds = defaultdict(set)
-        self.zOrdinateChoices = None
+        self.zBreakdownStrctNodes = [] # effective structural node for each breakdown node
+        self.zBreakdownLeafParents = []
+        self.zBreakdownLeafNbr = []
         # context menu Boolean vars
         self.options = self.modelXbrl.modelManager.cntlr.config.setdefault("viewRenderedGridOptions", {})
         self.openBreakdownLines = self.options.setdefault("openBreakdownLines", 5) # ensure there is a default entry
@@ -194,13 +198,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             self.tblELR = viewTblELR
             clearZchoices = True
         else:   # first or subsequenct reloading (language, dimensions, other change)
-            clearZchoices = self.zOrdinateChoices is None
-            if clearZchoices: # also need first time initialization
-                self.loadTablesMenu()  # load menus (and initialize if first time
-            viewTblELR = self.tblELR
-            
-        if not self.tblELR:
-            return  # no table to display
+            clearZchoices = len(self.zBreakdownStrctNodes) == 0
 
         if clearZchoices:
             self.zOrdinateChoices = {}
@@ -209,9 +207,22 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         self.viewFrame.clearGrid()
 
         strctMdlTable = resolveTableStructure(self, viewTblELR)
+
+        if len(self.zBreakdownStrctNodes) == 0:
+            if clearZchoices: # also need first time initialization
+                self.loadTablesMenu()  # load menus (and initialize if first time
+                self.zBreakdownStrctNodes = [None] * self.zAxisBreakdowns
+                self.zBreakdownLeafNbr = [0] * self.zAxisBreakdowns
+                self.zBreakdownLeafParents = [None] * self.zAxisBreakdowns
+                viewTblELR = self.tblELR                 
+            
+        if not self.tblELR:
+            return  # no table to display
+        if not viewTblELR:
+            viewTblELR = self.tblELR
         
-        colAdjustment = 1 if strctMdlTable.strctMdlFirstAxisBreakdown("z") else 0
-        self.table.resizeTable(self.dataFirstRow+self.dataRows-1, self.dataFirstCol+self.dataCols+colAdjustment-1, titleRows=self.dataFirstRow-1, titleColumns=self.dataFirstCol-1)
+        if TRACE_TK: print(f"resizeTable rows {self.dataFirstRow+self.dataRows} cols {self.dataFirstCol+self.dataCols} titleRows {self.dataFirstRow} titleColumns {self.dataFirstCol})")
+        self.table.resizeTable(self.dataFirstRow+self.dataRows, self.dataFirstCol+self.dataCols, titleRows=self.dataFirstRow, titleColumns=self.dataFirstCol)
         self.hasTableFilters = bool(self.defnMdlTable.filterRelationships)
         
         if self.tblBrkdnRels:
@@ -239,21 +250,21 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             self.aspectEntryObjectIdsNode.clear()
             self.aspectEntryObjectIdsCell.clear()
             self.factPrototypeAspectEntryObjectIds.clear()
+            if TRACE_TK: print(f"tbl hdr x {0} y {0} cols {self.dataFirstCol} rows {self.dataFirstRow} value {(self.defnMdlTable.genLabel(lang=self.lang, strip=True) or self.roledefinition)}")
             self.table.initHeaderCellValue((self.defnMdlTable.genLabel(lang=self.lang, strip=True) or  # use table label, if any 
                                             self.roledefinition),
-                                           0, 0, (self.dataFirstCol - 2),
-                                           (self.dataFirstRow - 2),
+                                           0, 0, self.dataFirstCol-1, self.dataFirstRow-1,
                                            XbrlTable.TG_TOP_LEFT_JUSTIFIED)
             self.zAspectStrctNodes = defaultdict(set)
-            self.zAxis(1, strctMdlTable.strctMdlFirstAxisBreakdown("z"), clearZchoices)
+            self.zAxis(-1, strctMdlTable.strctMdlFirstAxisBreakdown("z"), clearZchoices)
             xStrctNodes = []
             colsFoundPlus1, _, _, _ = self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1, 
                                                  strctMdlTable.strctMdlFirstAxisBreakdown("x"), xStrctNodes, True, True)
-            _, rowsFoundPlus1 = self.yAxis(1, self.dataFirstRow,
+            _, rowsFoundPlus1, _, _, _ = self.yAxis(0, self.dataFirstRow,
                                            strctMdlTable.strctMdlFirstAxisBreakdown("y"), True, True)
-            self.table.resizeTable(rowsFoundPlus1-1,
-                                   colsFoundPlus1+colAdjustment-1,
-                                   clearData=False)
+            #self.table.resizeTable(rowsFoundPlus1,
+            #                       colsFoundPlus1+colAdjustment,
+            #                       clearData=False)
             for fp in self.factPrototypes: # dereference prior facts
                 if fp is not None:
                     fp.clear()
@@ -276,34 +287,44 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         self.blockMenuEvents -= 1
 
             
-    def zAxis(self, row, zStrctNode, clearZchoices):
-        if ((not isinstance(zStrctNode, StrctMdlBreakdown) or zStrctNode.axis == "z")
-            and zStrctNode.defnMdlNode is not None):
+    def zAxis(self, breakdownRow, zStrctNode, clearZchoices):
+        if (isinstance(zStrctNode, StrctMdlBreakdown) and zStrctNode.defnMdlNode is not None):
+            breakdownRow += 1
+            self.zBreakdownStrctNodes[breakdownRow] = zStrctNode
+        # find leaf nodes for current breakdown
+        if zStrctNode.strctMdlChildNodes and all(
+            not z.strctMdlChildNodes or all(isinstance(zc, StrctMdlBreakdown) for zc in z.strctMdlChildNodes)
+            for z in zStrctNode.strctMdlChildNodes):
+            # current strctMdlChildNodes represent leaf aspect nodes for this breakdown
+            zBreakdownStrctNode = self.zBreakdownStrctNodes[breakdownRow]
+            self.zBreakdownLeafParents[breakdownRow] = zStrctNode
             label = zStrctNode.header(lang=self.lang)
-            xValue = self.dataFirstCol-1
-            yValue = row-1
+            xValue = self.dataFirstCol
+            yValue = breakdownRow
+            if TRACE_TK: print(f"zAxis hdr x {xValue} y {yValue} value {label}")
             self.table.initHeaderCellValue(label,
                                            xValue, yValue,
                                            0, 0,
                                            XbrlTable.TG_LEFT_JUSTIFIED,
                                            objectId=zStrctNode.objectId())
     
-            if zStrctNode.choiceStrctNodes: # combo box
-                valueHeaders = [''.ljust(zChoiceStrctNode.indent * 4) + # indent if nested choices 
-                                (zChoiceStrctNode.header(lang=self.lang) or '')
-                                for zChoiceStrctNode in zStrctNode.choiceStrctNodes]
+            if not zBreakdownStrctNode.hasOpenNode: # combo box
+                valueHeaders = [# ''.ljust(zBreakdownStrctNode.indent * 4) + # indent if nested choices 
+                                (z.header(lang=self.lang) or '')
+                                for z in zStrctNode.strctMdlChildNodes]
                 zAxisIsOpenExplicitDimension = False
                 zAxisTypedDimension = None
-                i = zStrctNode.choiceNodeIndex # for aspect entry, use header selected
-                comboBoxValue = None if i >= 0 else zStrctNode.aspects.get('aspectValueLabel')
-                chosenStrctNode = zStrctNode.choiceStrctNodes[i]    
+                i = self.zBreakdownLeafNbr[breakdownRow] # for aspect entry, use header selected
+                choiceStrctNodes = zStrctNode.strctMdlChildNodes
+                comboBoxValue = None if i >= 0 else zchoiceStrctNodes[0].aspects.get('aspectValueLabel')
+                chosenStrctNode = choiceStrctNodes[i or 0]    
                 aspect = None
                 for aspect in chosenStrctNode.aspectsCovered():
                     if aspect != Aspect.DIMENSIONS:
                         break
                 # for open filter nodes of explicit dimension allow selection of all values
                 zAxisAspectEntryMode = False
-                if isinstance(chosenStrctNode.defnMdlNode, ModelAspectDefinitionNode):
+                if isinstance(chosenStrctNode.defnMdlNode, DefnMdlAspectNode):
                     if isinstance(aspect, QName):
                         dimConcept = self.modelXbrl.qnameConcepts[aspect]
                         if dimConcept.isExplicitDimension:
@@ -332,35 +353,35 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 i = -1
                             valueHeaders.append("(enter typed member)")
                             zAxisTypedDimension = dimConcept
-                combobox = self.table.initHeaderCombobox(self.dataFirstCol,
-                                                         row-1,
-                                                         colspan=0,
+                if TRACE_TK: print(f"zAxis comboBox x {xValue + 1} y {yValue} values {valueHeaders} value {comboBoxValue}")
+                combobox = self.table.initHeaderCombobox(xValue + 1,
+                                                         yValue,
                                                          values=valueHeaders,
                                                          value=comboBoxValue,
-                                                         selectindex=zStrctNode.choiceNodeIndex if i >= 0 else None,
+                                                         selectindex=self.zBreakdownLeafNbr[breakdownRow],
                                                          comboboxselected=self.onZComboBoxSelected)
-                combobox.zStrctNode = zStrctNode
+                combobox.zBreakdownRow = breakdownRow
                 combobox.zAxisIsOpenExplicitDimension = zAxisIsOpenExplicitDimension
                 combobox.zAxisTypedDimension = zAxisTypedDimension
                 combobox.zAxisAspectEntryMode = zAxisAspectEntryMode
                 combobox.zAxisAspect = aspect
-                combobox.zChoiceOrdIndex = row - 1
                 combobox.objectId = zStrctNode.objectId()
                 # add aspect for chosen node
                 self.setZStrctNodeAspects(chosenStrctNode)
             else:
                 #process aspect on this node before child nodes in case it is overridden
-                self.setZStrctNodeAspects(zStrctNode)
-            # nested nodes override parent nodes
-            for zStrctNode in zStrctNode.strctMdlChildNodes:
-                self.zAxis(row + 1, zStrctNode, clearZchoices)
+                self.setZStrctNodeAspects(self.zBreakdownStrctNodes[0])
+        # find nested breakdown nodes
+        for zStrctNode in zStrctNode.strctMdlChildNodes:
+            self.zAxis(breakdownRow, zStrctNode, clearZchoices)
+            break
+
                     
     def setZStrctNodeAspects(self, zStrctNode, add=True):
         for aspect in aspectModels["dimensional"]:
-            if (aspect in zStrctNode.aspects or # might be added as custom-entered value (typed dim)
-                zStrctNode.hasAspect(aspect, inherit=True)): #implies inheriting from other z axes
+            if zStrctNode.hasAspect(aspect, inherit=False):
                 if aspect == Aspect.DIMENSIONS:
-                    for dim in (zStrctNode.aspectValue(Aspect.DIMENSIONS, inherit=True) or emptyList):
+                    for dim in (zStrctNode.aspectValue(Aspect.DIMENSIONS, inherit=False) or emptyList):
                         if add:
                             self.zAspectStrctNodes[dim].add(zStrctNode)
                         else:
@@ -373,7 +394,10 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             
     def onZComboBoxSelected(self, event):
         combobox = event.widget
-        structuralNode = combobox.zStrctNode
+        breakdownRow = combobox.zBreakdownRow
+        breakdownLeafNbr = self.zBreakdownLeafNbr[breakdownRow]
+        choiceStrctNodes = self.zBreakdownLeafParents[breakdownRow].strctMdlChildNodes
+        structuralNode = choiceStrctNodes[breakdownLeafNbr]
         if combobox.zAxisAspectEntryMode:
             aspectValue = structuralNode.aspectEntryHeaderValues.get(combobox.get())
             if aspectValue is not None:
@@ -384,8 +408,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             # reload combo box
             self.comboboxLoadExplicitDimension(combobox, 
                                                structuralNode, # owner of combobox
-                                               structuralNode.choiceStrctNodes[structuralNode.choiceNodeIndex]) # aspect filter node
-            structuralNode.choiceNodeIndex = -1 # use entry aspect value
+                                               choiceStrctNodes[breakdownLeafNbr]) # aspect filter node
+            self.zBreakdownLeafNbr[breakdownRow] = -1 # use entry aspect value
             combobox.zAxisAspectEntryMode = True
         elif combobox.zAxisTypedDimension is not None and combobox.get() == "(enter typed member)":
             # ask typed member entry
@@ -394,7 +418,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                     combobox.zAxisTypedDimension.label(), 
                                                     parent=self.tabWin)
             if result:
-                structuralNode.choiceNodeIndex = -1 # use entry aspect value
+                self.zBreakdownLeafNbr[breakdownRow] = -1 # use entry aspect value
                 aspectValue = FunctionXfi.create_element(self.rendrCntx, 
                                                          None, 
                                                          (combobox.zAxisTypedDimension.typedDomainElement.qname, (), result))
@@ -409,13 +433,13 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 combobox["values"] = valueHeaders
                 combobox.zAxisAspectEntryMode = True
                 self.view() # redraw grid
-        else:
+        elif breakdownLeafNbr is not None:
             # remove prior combo choice aspect
-            self.setZStrctNodeAspects(structuralNode.choiceStrctNodes[structuralNode.choiceNodeIndex], add=False)
+            self.setZStrctNodeAspects(choiceStrctNodes[breakdownLeafNbr], add=False)
             i = combobox.valueIndex
-            self.zOrdinateChoices[combobox.zStrctNode.defnMdlNode] =  structuralNode.choiceNodeIndex = i
+            self.zBreakdownLeafNbr[breakdownRow] = i
             # set current combo choice aspect
-            self.setZStrctNodeAspects(structuralNode.choiceStrctNodes[i])
+            self.setZStrctNodeAspects(choiceStrctNodes[i])
             self.view() # redraw grid
             
     def xAxis(self, leftCol, topRow, rowBelow, xParentStrctNode, xStrctNodes, renderNow, atTop):
@@ -434,7 +458,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             isNonAbstract = not isAbstract
             isRollUp = xDefnMdlNode.isRollUp
             rightCol, row, width, leafNode = self.xAxis(leftCol, topRow + isLabeled, rowBelow, xStrctNode, xStrctNodes, # nested items before totals
-                                                        childrenFirst, False)
+                                                        True, #childrenFirst, 
+                                                        False)
             if row - 1 < parentRow:
                 parentRow = row - 1
             #if not leafNode: 
@@ -448,31 +473,38 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             #    thisCol = leftCol
             thisCol = leftCol
             if renderNow and isLabeled:
-                columnspan = (rightCol - leftCol + (1 if isNonAbstract else 0))
+                columnspan = (rightCol - leftCol) #  + (1 if isNonAbstract else 0))
                 label = xStrctNode.header(lang=self.lang,
                                                returnGenLabel=isinstance(xDefnMdlNode, DefnMdlClosedDefinitionNode))
+                xValue = leftCol
+                yValue = topRow
+                rowspan = (row - topRow) if leafNode else 0
+                headerLabel = label if label else "         "
+                if xStrctNode.rollup:
+                    headerLabel = None # just set span to block borders
                 if label != OPEN_ASPECT_ENTRY_SURROGATE:
-                    xValue = leftCol-1
-                    yValue = topRow-1
-                    headerLabel = label if label else "         "
+                    if TRACE_TK: print(f"xAxis hdr x {xValue} y {yValue} cols {columnspan} rows {rowspan} isRollUp {isRollUp} value \"{headerLabel}\"")
                     self.table.initHeaderCellValue(headerLabel,
                                                    xValue, yValue,
-                                                   columnspan-1,
-                                                   ((row - topRow) if leafNode else 0),
+                                                   columnspan - 1,
+                                                   rowspan - 1,
                                                    XbrlTable.TG_CENTERED,
                                                    objectId=xStrctNode.objectId(),
-                                                   isRollUp=isRollUp) #columnspan>1 and isNonAbstract and len(xStrctNode.strctMdlChildNodes)<columnspan)
+                                                   hasTopBorder=not (yValue > 0 and headerLabel is None), 
+                                                   hasBottomBorder=not isRollUp)
                 else:
                     self.aspectEntryObjectIdsNode[xStrctNode.aspectEntryObjectId] = xStrctNode
+                    if TRACE_TK: print(f"xAxis hdr combobox x {leftCol-1} y {topRow-1} values {self.aspectEntryValues(xStrctNode)}")
                     self.aspectEntryObjectIdsCell[xStrctNode.aspectEntryObjectId] = self.table.initHeaderCombobox(leftCol-1,
                                                                                                                        topRow-1,
                                                                                                                        values=self.aspectEntryValues(xStrctNode),
                                                                                                                        objectId=xStrctNode.aspectEntryObjectId,
                                                                                                                        comboboxselected=self.onAspectComboboxSelection)
-                if isNonAbstract:
-                    xValue = thisCol - 1
+                if not xStrctNode.strctMdlChildNodes: # isNonAbstract:
+                    xValue = thisCol
                     for i, role in enumerate(self.colHdrNonStdRoles):
-                        j = (self.dataFirstRow - len(self.colHdrNonStdRoles) + i)-1
+                        j = (self.dataFirstRow - len(self.colHdrNonStdRoles) + i)
+                        if TRACE_TK: print(f"xAxis hdr lbl x {xValue} y {j} value \"{xStrctNode.header(role=role, lang=self.lang)}\"")
                         self.table.initHeaderCellValue(xStrctNode.header(role=role, lang=self.lang),
                                                  xValue,
                                                  j,
@@ -483,80 +515,117 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     xStrctNodes.append(xStrctNode)
             if isNonAbstract:
                 rightCol += 1
-            if renderNow: # and not childrenFirst:
-                self.xAxis(leftCol + (1 if isNonAbstract else 0), topRow + isLabeled, rowBelow, xStrctNode, xStrctNodes, True, False) # render on this pass
+            #if renderNow: # and not childrenFirst:
+            #    self.xAxis(leftCol + (1 if isNonAbstract else 0), topRow + isLabeled, rowBelow, xStrctNode, xStrctNodes, True, False) # render on this pass
             leftCol = rightCol
         return (rightCol, parentRow, widthToSpanParent, noDescendants)
             
     def yAxis(self, leftCol, row, yParentStrctNode, renderNow, atLeft):
+        noDescendants = True
         nestedBottomRow = row
-        for yStrctNode in yParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
+        rowspan = 1
+        columnspan = 1
+        for yOrdinal, yStrctNode in enumerate(yParentStrctNode.strctMdlChildNodes): # strctMdlEffectiveChildNodes:
             yDefnMdlNode = yStrctNode.defnMdlNode
-            if not yDefnMdlNode.isRollUp:
-                childrenFirst = not yDefnMdlNode.isRollUp or yDefnMdlNode.parentChildOrder == "children-first"
-                isAbstract = (yStrctNode.isAbstract or 
-                              (yStrctNode.strctMdlChildNodes and
-                               not isinstance(yDefnMdlNode, DefnMdlClosedDefinitionNode)))
-                isNonAbstract = not isAbstract
-                isLabeled = yStrctNode.isLabeled
-                nestRow, nextRow = self.yAxis(leftCol + isLabeled, row, yStrctNode,  # nested items before totals
-                                              childrenFirst, False)
-                
-                topRow = row
-                #if childrenFirst and isNonAbstract:
-                #    row = nextRow
-                if renderNow and isLabeled:
-                    columnspan = self.rowHdrCols - leftCol + 1 if isNonAbstract or nextRow == row else 1
-                    depth = yStrctNode.depth
-                    wraplength = (self.rowHdrColWidth[depth] if isAbstract else
-                                  self.rowHdrWrapLength - sum(self.rowHdrColWidth[0:depth]))
-                    if wraplength < 0:
-                        wraplength = self.rowHdrColWidth[depth]
-                    label = yStrctNode.header(lang=self.lang,
-                                                   returnGenLabel=isinstance(yDefnMdlNode, DefnMdlClosedDefinitionNode),
-                                                   recurseParent=not isinstance(yDefnMdlNode, DefnMdlAspectNode))
-                    if label != OPEN_ASPECT_ENTRY_SURROGATE:
-                        xValue = leftCol-1
-                        yValue = row-1
-                        self.table.initHeaderCellValue(label if label is not None else "         ",
+            childrenFirst = not yDefnMdlNode.isRollUp or yDefnMdlNode.parentChildOrder == "children-first"
+            noDescendants = False
+            isAbstract = (yStrctNode.isAbstract or 
+                          (yStrctNode.strctMdlChildNodes and
+                           not isinstance(yDefnMdlNode, DefnMdlClosedDefinitionNode)))
+            isNonAbstract = not isAbstract
+            isLabeled = yStrctNode.isLabeled
+            nestRow, nextRow, leafNode, nestedColumnspan, nestedRowspan = self.yAxis(
+                leftCol + isLabeled, row, yStrctNode,  # nested items before totals
+                True, # childrenFirst, 
+                False)
+            
+            topRow = row
+            #if childrenFirst and isNonAbstract:
+            #    row = nextRow
+            if renderNow and isLabeled:
+                columnspan = 1 # self.rowHdrCols - leftCol #  + 1 if isNonAbstract else 0
+                depth = yStrctNode.depth
+                wraplength = (self.rowHdrColWidth[depth] if isAbstract else
+                              self.rowHdrWrapLength - sum(self.rowHdrColWidth[0:depth]))
+                if wraplength < 0:
+                    wraplength = self.rowHdrColWidth[depth]
+                label = yStrctNode.header(lang=self.lang,
+                                               returnGenLabel=isinstance(yDefnMdlNode, DefnMdlClosedDefinitionNode),
+                                               recurseParent=not isinstance(yDefnMdlNode, DefnMdlAspectNode))
+                headerLabel = label if label else "         "
+                if yStrctNode.rollup:
+                    headerLabel = None # just set span to block borders
+                if yOrdinal == 0 and yStrctNode.rollup:
+                    pass # leftmost spanning cells covers this cell
+                elif label != OPEN_ASPECT_ENTRY_SURROGATE:
+                    xValue = leftCol
+                    yValue = row
+                    rowspan = nestRow - row
+                    hasTopBorder = True
+                    isRollUp = rowspan>1 and isNonAbstract and (len(yStrctNode.strctMdlChildNodes)>1 or (len(yStrctNode.strctMdlChildNodes)==1 and not(yStrctNode.strctMdlChildNodes[0].isAbstract)))
+                    if rowspan > 1 and yOrdinal == 0 and isRollUp and yStrctNode.parentChildOrder == "parent-first":
+                        if TRACE_TK: print(f"yAxis hdr x {xValue} y {yValue} cols {columnspan +  nestedColumnspan} rows {rowspan} isRollUp {isRollUp} value \"{headerLabel}\"")
+                        self.table.initHeaderCellValue(headerLabel,
                                                        xValue, yValue,
-                                                       columnspan-1,
-                                                       (nestRow - row if isAbstract else 1)-1,
-                                                       (XbrlTable.TG_LEFT_JUSTIFIED
-                                                        if isNonAbstract or nestRow == row
-                                                        else XbrlTable.TG_CENTERED),
+                                                       columnspan + nestedColumnspan - 1,
+                                                       nestedRowspan - 1,
+                                                       XbrlTable.TG_LEFT_JUSTIFIED,
                                                        objectId=yStrctNode.objectId(),
-                                                       isRollUp=columnspan>1 and isNonAbstract and (len(yStrctNode.strctMdlChildNodes)>1 or (len(yStrctNode.strctMdlChildNodes)==1 and not(yStrctNode.strctMdlChildNodes[0].isAbstract))))
-                    else:
-                        self.aspectEntryObjectIdsNode[yStrctNode.aspectEntryObjectId] = yStrctNode
-                        self.aspectEntryObjectIdsCell[yStrctNode.aspectEntryObjectId] = self.table.initHeaderCombobox(leftCol-1,
-                                                                                                                           row-1,
-                                                                                                                           values=self.aspectEntryValues(yStrctNode),
-                                                                                                                           objectId=yStrctNode.aspectEntryObjectId,
-                                                                                                                           comboboxselected=self.onAspectComboboxSelection)
-                    if isNonAbstract:
-                        for i, role in enumerate(self.rowHdrNonStdRoles):
-                            isCode = "code" in role
-                            docCol = self.dataFirstCol - len(self.rowHdrNonStdRoles) + i-1
-                            yValue = row-1
-                            self.table.initHeaderCellValue(yStrctNode.header(role=role, lang=self.lang),
-                                                           docCol, yValue,
-                                                           0, 0,
-                                                           XbrlTable.TG_CENTERED if isCode else XbrlTable.TG_RIGHT_JUSTIFIED,
-                                                           objectId=yStrctNode.objectId())
+                                                       hasBottomBorder = not isRollUp,
+                                                       width=3 if isRollUp else None)
+                        rowspan -= nestedRowspan
+                        yValue += nestedRowspan
+                        headerLabel = None
+                        hasTopBorder = not isRollUp
+                    if TRACE_TK: print(f"yAxis hdr x {xValue} y {yValue} cols {columnspan} rows {rowspan} isRollUp {isRollUp} value \"{headerLabel}\"")
+                    # put column-spanning labels on top row of the span across columns, otherwise centered on left
+                    self.table.initHeaderCellValue(headerLabel,
+                                                   xValue, yValue,
+                                                   columnspan - 1,
+                                                   rowspan - 1,
+                                                   (XbrlTable.TG_LEFT_JUSTIFIED
+                                                    if isNonAbstract or nestRow == row
+                                                    else XbrlTable.TG_CENTERED),
+                                                   objectId=yStrctNode.objectId(),
+                                                   hasLeftBorder=not (xValue > 0 and headerLabel is None), 
+                                                   hasRightBorder=not isRollUp,
+                                                   hasTopBorder=hasTopBorder,
+                                                   width=3 if isRollUp else None)
+
+                else:
+                    self.aspectEntryObjectIdsNode[yStrctNode.aspectEntryObjectId] = yStrctNode
+                    if TRACE_TK: print(f"yAxis hdr combobox x {leftCol-1} y {row-1} values {self.aspectEntryValues(yStrctNode)}")
+                    self.aspectEntryObjectIdsCell[yStrctNode.aspectEntryObjectId] = self.table.initHeaderCombobox(leftCol-1,
+                                                                                                                       row-1,
+                                                                                                                       values=self.aspectEntryValues(yStrctNode),
+                                                                                                                       objectId=yStrctNode.aspectEntryObjectId,
+                                                                                                                       comboboxselected=self.onAspectComboboxSelection)
                 if isNonAbstract:
-                    row += 1
-                #elif childrenFirst:
-                #    row = nextRow
-                if nestRow > nestedBottomRow:
-                    nestedBottomRow = nestRow + (isNonAbstract and not childrenFirst)
-                if row > nestedBottomRow:
-                    nestedBottomRow = row
-                #if renderNow and not childrenFirst:
-                #    dummy, row = self.yAxis(leftCol + 1, row, yStrctNode, childrenFirst, True, False) # render on this pass
-                if not childrenFirst:
-                    dummy, row = self.yAxis(leftCol + isLabeled, row, yStrctNode, childrenFirst, renderNow, False) # render on this pass
-        return (nestedBottomRow, row)
+                    for i, role in enumerate(self.rowHdrNonStdRoles):
+                        isCode = "code" in role
+                        docCol = self.dataFirstCol - len(self.rowHdrNonStdRoles) + i
+                        yValue = row
+                        if TRACE_TK: print(f"yAxis hdr lbl x {docCol} y {yValue} value \"{yStrctNode.header(role=role, lang=self.lang)}\"")
+                        self.table.initHeaderCellValue(yStrctNode.header(role=role, lang=self.lang),
+                                                       docCol, yValue,
+                                                       0, 0,
+                                                       XbrlTable.TG_CENTERED if isCode else XbrlTable.TG_RIGHT_JUSTIFIED,
+                                                       objectId=yStrctNode.objectId())
+            if isNonAbstract:
+                row += 1
+            else:
+                row = nextRow
+            #elif childrenFirst:
+            #    row = nextRow
+            if nestRow > nestedBottomRow:
+                nestedBottomRow = nestRow + (isNonAbstract and not childrenFirst)
+            if row > nestedBottomRow:
+                nestedBottomRow = row
+            #if renderNow and not childrenFirst:
+            #    dummy, row = self.yAxis(leftCol + 1, row, yStrctNode, childrenFirst, True, False) # render on this pass
+            #if not childrenFirst:
+            #    dummy, row = self.yAxis(leftCol + isLabeled, row, yStrctNode, childrenFirst, renderNow, False) # render on this pass
+        return (nestedBottomRow, row, noDescendants, columnspan, rowspan)
 
     def getbackgroundColor(self, factPrototype):
         bgColor = XbrlTable.TG_BG_DEFAULT # default monetary
@@ -713,6 +782,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                     selectedIdx = 0
                                 xValue = self.dataFirstCol + i-1
                                 yValue = row-1
+                                if TRACE_TK: print(f"body comboBox enums x {xValue} y {yValue} values {effectiveValue} value {enumerationValues}")
                                 self.table.initCellCombobox(effectiveValue,
                                                             enumerationValues,
                                                             xValue,
@@ -751,8 +821,9 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 else:
                                     newAspectValues = None
                                 if newAspectValues is None:
-                                    xValue = self.dataFirstCol + i-1
-                                    yValue = row-1
+                                    xValue = self.dataFirstCol + i
+                                    yValue = row
+                                    if TRACE_TK: print(f"body cell qname x {xValue} y {yValue} value {value}")
                                     self.table.initCellValue(value,
                                                              xValue,
                                                              yValue,
@@ -767,8 +838,9 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                     except ValueError:
                                         effectiveValue = qNameValues[0]
                                         selectedIdx = 0
-                                    xValue = self.dataFirstCol + i-1
-                                    yValue = row-1
+                                    xValue = self.dataFirstCol + i
+                                    yValue = row
+                                    if TRACE_TK: print(f"body comboBox qnames x {xValue} y {yValue} values {effectiveValue} value {qNameValues}")
                                     self.table.initCellCombobox(effectiveValue,
                                                                 qNameValues,
                                                                 xValue,
@@ -786,8 +858,9 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 except ValueError:
                                     effectiveValue = booleanValues[0]
                                     selectedIdx = 0
-                                xValue = self.dataFirstCol + i-1
-                                yValue = row-1
+                                xValue = self.dataFirstCol + i
+                                yValue = row
+                                if TRACE_TK: print(f"body comboBox bools x {xValue} y {yValue} values {effectiveValue} value {booleanValues}")
                                 self.table.initCellCombobox(effectiveValue,
                                                             booleanValues,
                                                             xValue,
@@ -795,8 +868,9 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                             objectId=objectId,
                                                             selectindex=selectedIdx)
                             else:
-                                xValue = self.dataFirstCol + i-1
-                                yValue = row-1
+                                xValue = self.dataFirstCol + i
+                                yValue = row
+                                if TRACE_TK: print(f"body cell x {xValue} y {yValue} value {value}")
                                 self.table.initCellValue(value,
                                                          xValue,
                                                          yValue,

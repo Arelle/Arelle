@@ -119,15 +119,6 @@ class StrctMdlNode:
         return 0
     
     @property
-    def choiceStrctNodes(self):
-        if hasattr(self, "_choiceStrctNodes"):
-            return self._choiceStrctNodes
-        if self.strctMdlParentNode is not None:
-            return self.strctMdlParentNode.choiceStrctNodes
-        # choiceStrNodes are on the breakdown node (if any)
-        return None
-    
-    @property
     def childRollupStrctNode(self):
         for childStrctNode in self.strctMdlChildNodes:
             if childStrctNode.rollup:
@@ -212,10 +203,7 @@ class StrctMdlNode:
             xc.contextItem = self.contextItemBinding.yieldedFact
         else:
             previousContextItem = None
-        if self.choiceStrctNodes and hasattr(self,"choiceNodeIndex"):
-            variables = self.choiceStrctNodes[self.choiceNodeIndex].variables
-        else:
-            variables = self.variables
+        variables = self.variables
         removeVarQnames = []
         for variablesItems in variables.items():
             for qn, value in variablesItems:
@@ -288,10 +276,7 @@ class StrctMdlBreakdown(StrctMdlNode):
         self._axis = axis
         self.rendrCntx = strctMdlParentNode._rendrCntx
         self.hasOpenNode = False
-        self.isLabeled = True
-        if axis == "z":
-            self._choiceStrctNodes = []
-            self.choiceNodeIndex = 0
+        self.isLabeled = False
         self.layoutMdlHdrCells = [] # layoutMdlHeaderCells objects
 
     def siblingBreakdownNode(self):
@@ -485,8 +470,6 @@ class StrctMdlStructuralNode(StrctMdlNode):
                 childLeafCount += childStructuralNode.leafNodeCount
         if childLeafCount == 0:
             return 1
-        if not self.isAbstract and isinstance(self.defnMdlNode, DefnMdlClosedDefinitionNode):
-            childLeafCount += 1 # has a roll up
         return childLeafCount
     
     def setHasOpenNode(self):
@@ -637,6 +620,14 @@ class DefnMdlTable(ModelFormulaResource):
         
     def __repr__(self):
         return ("DefnMdlTable[{0}]{1})".format(self.objectId(),self.propertyView))
+
+    @property
+    def definitionNodeView(self):        
+        return XmlUtil.xmlstring(self, stripXmlns=True, prettyPrint=True)
+  
+    @property
+    def definitionLabelsView(self):
+        return defnMdlLabelsView(self)
   
 class DefnMdlBreakdown(ModelFormulaResource):
     def init(self, modelDocument):
@@ -675,6 +666,14 @@ class DefnMdlBreakdown(ModelFormulaResource):
         
     def __repr__(self):
         return ("DefnMdlBreakdown[{0}]{1})".format(self.objectId(),self.propertyView))
+
+    @property
+    def definitionNodeView(self):        
+        return XmlUtil.xmlstring(self, stripXmlns=True, prettyPrint=True)
+  
+    @property
+    def definitionLabelsView(self):
+        return defnMdlLabelsView(self)
 
 class DefnMdlDefinitionNode(ModelFormulaResource):
     def init(self, modelDocument):
@@ -784,7 +783,6 @@ class DefnMdlDefinitionNode(ModelFormulaResource):
     def definitionNodeView(self):        
         return XmlUtil.xmlstring(self, stripXmlns=True, prettyPrint=True)
   
-
     @property
     def definitionLabelsView(self):
         return defnMdlLabelsView(self)

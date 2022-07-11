@@ -21,6 +21,8 @@ from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.XPathContext import XPathException
 NoneType = type(None)
 
+TRACE_RESOLUTION = True
+
 RENDER_UNITS_PER_CHAR = 16 # nominal screen units per char for wrapLength computation and adjustment
 
 class ResolutionException(Exception):
@@ -85,7 +87,7 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
     view.rowNonAbstractHdrSpanMin = [0,]
     view.rowHdrDocCol = False
     view.rowHdrCodeCol = False
-    view.zAxisRows = 0
+    view.zAxisBreakdowns = 0
     view.zmostOrdCntx = None
     view.defnMdlTable = defnMdlTable = strctMdlTable.defnMdlNode
     view.aspectEntryObjectId = 0
@@ -107,11 +109,13 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
         axisBrkdnRels = [r for r in tblBrkdnRels if r.axis == axis]
         for tblBrkdnRel in axisBrkdnRels:
             defnMdlBreakdown = tblBrkdnRel.toModelObject
-            strctMdlBreakdown = resolveDefinition(view, strctMdlTable, defnMdlBreakdown, 1, facts, 0, axisBrkdnRels, axis=axis)
+            strctMdlBreakdown = resolveDefinition(view, strctMdlTable, defnMdlBreakdown, 0, facts, 0, axisBrkdnRels, axis=axis)
             if axis == "x":
                 view.dataCols += strctMdlBreakdown.leafNodeCount
             elif axis == "y":
                 view.dataRows += strctMdlBreakdown.leafNodeCount
+            elif axis == "z":
+                view.zAxisBreakdowns = len(axisBrkdnRels)
             break # 2nd and following breakdown nodes resolved by cartesianProductExpander within resolveDefinition
         if not axisBrkdnRels: # no breakdown rels
             strctMdlBreakdown = resolveDefinition(view, strctMdlTable, None, 1, facts, 0, axisBrkdnRels, axis=axis)
@@ -174,7 +178,7 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
     with io.open(r"/Users/hermf/temp/test.json", 'wt') as fh:
         json.dump(strctMdlTable, fh, ensure_ascii=False, indent=2, default=jsonStrctMdlEncoder)
    
-    view.colHdrTopRow = view.zAxisRows + 1 # need rest if combobox used (2 if view.zAxisRows else 1)
+    view.colHdrTopRow = view.zAxisBreakdowns # need rest if combobox used (2 if view.zAxisRows else 1)
     for i in range(view.rowHdrCols):
         if view.rowNonAbstractHdrSpanMin[i]:
             lastRowMinWidth = view.rowNonAbstractHdrSpanMin[i] - sum(view.rowHdrColWidth[i] for j in range(i, view.rowHdrCols - 1))
@@ -184,9 +188,9 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
     # use as wraplength for all row hdr name columns 200 + fixed indent and abstract mins (not incl last name col)
     view.rowHdrWrapLength = 200 + sum(view.rowHdrColWidth[:view.rowHdrCols + 1])
     if view.colHdrRows == 0:
-        view.colHdrRows = 1 # always reserve aa col header row even if no labels for col headers
+        view.colHdrRows = 1 # always reserve a col header row even if no labels for col headers
     view.dataFirstRow = view.colHdrTopRow + view.colHdrRows + len(view.colHdrNonStdRoles)
-    view.dataFirstCol = 1 + view.rowHdrCols + len(view.rowHdrNonStdRoles)
+    view.dataFirstCol = view.rowHdrCols + len(view.rowHdrNonStdRoles)
     #view.dataFirstRow = view.colHdrTopRow + view.colHdrRows + view.colHdrDocRow + view.colHdrCodeRow
     #view.dataFirstCol = 1 + view.rowHdrCols + view.rowHdrDocCol + view.rowHdrCodeCol
     #for i in range(view.dataFirstRow + view.dataRows):
@@ -204,12 +208,13 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
         if iCodeRole >= 0 and len(hdrNonStdRoles) > 1 and iCodeRole < len(hdrNonStdRoles) - 1:
             del hdrNonStdRoles[iCodeRole]
             hdrNonStdRoles.append(hdrNonStdRole)
-            
-    print(f"dataCols {view.dataCols} dataRows {view.dataRows} dataFirstCol {view.dataFirstCol} dataFirstRow {view.dataFirstRow} "
-          f"colHdrRows {view.colHdrRows} rowHdrCols {view.rowHdrCols} zAxisRows {view.zAxisRows} "
-          f"colHdrTopRow {view.colHdrTopRow} colHdrRows {view.colHdrRows} #colHdrNonStdRoles {len(view.colHdrNonStdRoles)} "
-          f"#rowHdrNonStdRoles {len(view.rowHdrNonStdRoles)}"
-          )
+    
+    if TRACE_RESOLUTION: print (        
+        f"dataCols {view.dataCols} dataRows {view.dataRows} dataFirstCol {view.dataFirstCol} dataFirstRow {view.dataFirstRow} "
+        f"colHdrRows {view.colHdrRows} rowHdrCols {view.rowHdrCols} zAxisBreakdowns {view.zAxisBreakdowns} "
+        f"colHdrTopRow {view.colHdrTopRow} colHdrRows {view.colHdrRows} colHdrNonStdRoles {len(view.colHdrNonStdRoles)} "
+        f"rowHdrNonStdRoles {len(view.rowHdrNonStdRoles)}"
+        )
 
 def sortkey(obj):
     if isinstance(obj, ModelObject):
@@ -277,17 +282,14 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     modelObject=(view.defnMdlTable,defnMdlNode), xlinkLabel=defnMdlNode.xlinkLabel, axis=defnMdlNode.localName)
             nestedDepth = depth + ordDepth
             cartesianProductNestedArgs = [view, nestedDepth, axis, facts, axisBrkdnRels, iBrkdn]
-            if axis == "z":
-                if depth == 1: # choices (combo boxes) don't add to z row count
-                    view.zAxisRows += 1 
-            elif axis == "x":
+            if axis == "x":
                 if ordDepth:
-                    if nestedDepth - 1 > view.colHdrRows:
+                    if nestedDepth > view.colHdrRows:
                         view.colHdrRows = nestedDepth - 1
                 hdrNonStdRoles = view.colHdrNonStdRoles
             elif axis == "y":
                 if ordDepth:
-                    if nestedDepth - 1 > view.rowHdrCols: 
+                    if nestedDepth > view.rowHdrCols: 
                         view.rowHdrCols = nestedDepth - 1
                         for j in range(1 + ordDepth):
                             view.rowHdrColWidth.append(RENDER_UNITS_PER_CHAR)  # min width for 'tail' of nonAbstract coordinate
@@ -338,19 +340,6 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                         addRelationships(defnMdlNode, rel, strctMdlParent)
                 # relationship strct mdl nodes were added to strctMdlNode, move them to parent and dereference strctMdlNode
                 del strctMdlParent.strctMdlChildNodes[0] # remove unused strctMdlNode as rel str mdl nodes are owned by parent
-                if axis == "z":
-                    # if defnMdlNode is first structural node child remove it
-                    if strctMdlParent.choiceStructuralNodes and strctMdlParent.choiceStructuralNodes[0].defnMdlNode == defnMdlNode:
-                        del strctMdlParent.choiceStructuralNodes[0]
-                    # flatten hierarchy of nested structural nodes inot choice nodes (for single listbox)
-                    def flattenChildNodesToChoices(strctMdlChildNodes, indent):
-                        while strctMdlChildNodes:
-                            choiceStructuralNode = strctMdlChildNodes.pop(0)
-                            choiceStructuralNode.indent = indent
-                            strctMdlNode.choiceStructuralNodes.append(choiceStructuralNode)
-                            flattenChildNodesToChoices(choiceStructuralNode.strctMdlChildNodes, indent + 1)
-                    if strctMdlParent.strctMdlChildNodes:
-                        flattenChildNodesToChoices(strctMdlParent.strctMdlChildNodes, 0)
                 # set up by defnMdlNode.relationships
                 if isinstance(defnMdlNode, DefnMdlConceptRelationshipNode):
                     if (defnMdlNode._sourceQname != XbrlConst.qnXfiRoot and
@@ -390,18 +379,15 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                         factsPartitions=str(filteredFactsPartitions))
                     
                 # ohly for fact entry (true if no parent open nodes or all are on entry prototype row)
-                if axis != "z":
-                    childList = strctMdlNode.strctMdlChildNodes
-                    if strctMdlNode.isEntryPrototype(default=True):
-                        for i in range(getattr(view, "openBreakdownLines", 
-                                               # for file output, 1 entry row if no facts
-                                               0 if filteredFactsPartitions else 1)):
-                            view.aspectEntryObjectId += 1
-                            filteredFactsPartitions.append([FactPrototype(view, {"aspectEntryObjectId": OPEN_ASPECT_ENTRY_SURROGATE + str(view.aspectEntryObjectId)})])
-                            if strctMdlNode.isEntryPrototype(default=False):
-                                break # only one node per cartesian product under outermost nested open entry row
-                else:
-                    childList = strctMdlNode.choiceStructuralNodes
+                childList = strctMdlNode.strctMdlChildNodes
+                if strctMdlNode.isEntryPrototype(default=True):
+                    for i in range(getattr(view, "openBreakdownLines", 
+                                           # for file output, 1 entry row if no facts
+                                           0 if filteredFactsPartitions else 1)):
+                        view.aspectEntryObjectId += 1
+                        filteredFactsPartitions.append([FactPrototype(view, {"aspectEntryObjectId": OPEN_ASPECT_ENTRY_SURROGATE + str(view.aspectEntryObjectId)})])
+                        if strctMdlNode.isEntryPrototype(default=False):
+                            break # only one node per cartesian product under outermost nested open entry row
                 for factsPartition in filteredFactsPartitions:
                     childStructuralNode = StrctMdlStructuralNode(strctMdlNode, defnMdlNode, contextItemFact=factsPartition[0])
                     
@@ -413,8 +399,6 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     childList.append(childStructuralNode)
                     checkLabelWidth(childStructuralNode, checkBoundFact=True)
                     #resolveDefinition(view, childStructuralNode, breakdownNode, defnMdlNode, depth, axis, factsPartition, processOpenDefinitionNode=False) #recurse
-                    if axis == "z":
-                        childList.append(childStructuralNode)
 
                     if subtreeRels:
                         for subtreeRel in subtreeRels:
@@ -453,19 +437,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                 #    view.modelXbrl.error("xbrlte:incompleteAspectRule",
                 #        _("Rule node %(xlinkLabel)s does not specify an aspect value."),
                 #        modelObject=defnMdlNode, xlinkLabel=defnMdlNode.xlinkLabel)
-            if axis == "z":
-                if strctMdlNode.choiceStructuralNodes:
-                    choiceNodeIndex = view.zOrdinateChoices.get(defnMdlNode, 0)
-                    if isinstance(choiceNodeIndex, dict):  # aspect entry for open node
-                        strctMdlNode.choiceNodeIndex = -1
-                    elif choiceNodeIndex < len(strctMdlNode.choiceStructuralNodes):
-                        strctMdlNode.choiceNodeIndex = choiceNodeIndex
-                    else:
-                        strctMdlNode.choiceNodeIndex = 0
-                view.zmostOrdCntx = strctMdlNode
-
-            if (not isCartesianProductExpanded 
-                or (axis == "z" and strctMdlNode.choiceStructuralNodes is not None)):
+            if not isCartesianProductExpanded:
                 cartesianProductExpander(strctMdlNode, *cartesianProductNestedArgs)
                                         
             if isinstance(defnMdlNode, (NoneType, DefnMdlBreakdown)) and not strctMdlNode.strctMdlChildNodes: # childless root ordinate, make a child to iterate in producing table
@@ -497,17 +469,8 @@ def cartesianProductExpander(childStructuralNode, view, depth, axis, facts, axis
     if iBrkdn is not None: # recurse table relationships for cartesian product
         for j, axisBrkdnRel in enumerate(axisBrkdnRels[iBrkdn+1:]):
             brkdnDefnMdlNode = axisBrkdnRel.toModelObject
-            if isinstance(brkdnDefnMdlNode, DefnMdlBreakdown):        
-                #addBreakdownNode(view, axis, tblObj)
-                #if tblObj.cardinalityAndDepth(childStructuralNode)[1] or axis == "z":
-                if axis == "z":
-                    subOrdTblCntx = StrctMdlStructuralNode(childStructuralNode, tblObj, tblObj)
-                    subOrdTblCntx._choiceStructuralNodes = []  # this is a breakdwon node
-                    subOrdTblCntx.indent = 0 # separate breakdown not indented]
-                    depth = 0 # cartesian next z is also depth 0
-                    childStructuralNode.strctMdlChildNodes.append(subOrdTblCntx)
-                else: # non-ordinate composition
-                    subOrdTblCntx = childStructuralNode
+            if isinstance(brkdnDefnMdlNode, DefnMdlBreakdown):
+                subOrdTblCntx = childStructuralNode
                 # predefined axes need facts sub-filtered
                 if isinstance(childStructuralNode.defnMdlNode, DefnMdlClosedDefinitionNode):
                     matchingFacts = childStructuralNode.evaluate(childStructuralNode.defnMdlNode, 
