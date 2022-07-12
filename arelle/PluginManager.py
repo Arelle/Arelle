@@ -19,7 +19,7 @@ except ImportError:
     OrderedDict = dict # python 3.0 lacks OrderedDict, json file will be in weird order
 
 if TYPE_CHECKING:
-    # Prevent circular import error
+    # Prevent potential circular import error
     from .Cntlr import Cntlr
 
 PLUGIN_TRACE_FILE = None
@@ -338,7 +338,6 @@ def get_name_dir_prefix(
         if os.path.basename(moduleFilename) == "__init__.py" and os.path.isfile(
             moduleFilename
         ):
-            #missing
             moduleFilename = os.path.dirname(
                 moduleFilename
             )  # want just the dirpart of package
