@@ -1,7 +1,7 @@
 from mock import Mock
-
+import sys
 from arelle import PluginManager
-
+from arelle.Cntlr import Cntlr
 
 def test_plugin_manager_init_first_pass():
     """
@@ -73,3 +73,30 @@ def test_plugin_manager_reset():
     assert len(PluginManager.modulePluginInfos) == 0
     assert len(PluginManager.pluginMethodsForClasses) == 0
     assert PluginManager._cntlr == cntlr
+
+def test_function_loadModule():
+    """Test helper function loadModule."""
+
+    class Controller(Cntlr):  # type: ignore
+        """Controller."""
+
+        pluginDir = "tests/unit_tests/arelle"
+
+        def __init__(self) -> None:
+            """Init controller with logging."""
+            super().__init__(logFileName="logToPrint")
+
+    cntlr = Controller()
+    PluginManager.init(cntlr, loadPluginConfig=False)
+
+    PluginManager.loadModule(
+        moduleInfo={
+            "name": "Mock name",
+            "moduleURL": "functionsMath",
+        }
+    )
+
+    all_modules_list = [m.__name__ for m in sys.modules.values() if m]
+    assert "functionsMath" in all_modules_list
+
+    assert True

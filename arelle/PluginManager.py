@@ -7,18 +7,24 @@ Created on March 1, 2012
 based on pull request 4
 
 '''
+from __future__ import annotations
+from importlib.machinery import ModuleSpec
 import os, sys, types, time, ast, imp, io, json, gettext, traceback
+from importlib.util import find_spec
+
+from typing import Any
 from arelle.Locale import getLanguageCodes
 from arelle.FileSource import openFileStream
 from arelle.UrlUtil import isAbsolute
 try:
     from collections import OrderedDict
 except ImportError:
-    OrderedDict = dict # python 3.0 lacks OrderedDict, json file will be in weird order 
-    
+    OrderedDict = dict # python 3.0 lacks OrderedDict, json file will be in weird order
+
+
 PLUGIN_TRACE_FILE = None
 # PLUGIN_TRACE_FILE = "c:/temp/pluginerr.txt"
-    
+
 # plugin control is static to correspond to statically loaded modules
 pluginJsonFile = None
 pluginConfig = None
@@ -50,15 +56,15 @@ def init(cntlr, loadPluginConfig=True):
         pluginConfigChanged = False # don't save until something is added to pluginConfig
     modulePluginInfos = {}  # dict of loaded module pluginInfo objects by module names
     pluginMethodsForClasses = {} # dict by class of list of ordered callable function objects
-    
+
 def reset():  # force reloading modules and plugin infos
     modulePluginInfos.clear()  # dict of loaded module pluginInfo objects by module names
     pluginMethodsForClasses.clear() # dict by class of list of ordered callable function objects
-    
+
 def orderedPluginConfig():
     return OrderedDict(
-        (('modules',OrderedDict((moduleName, 
-                                 OrderedDict(sorted(moduleInfo.items(), 
+        (('modules',OrderedDict((moduleName,
+                                 OrderedDict(sorted(moduleInfo.items(),
                                                     key=lambda k: {'name': '01',
                                                                    'status': '02',
                                                                    'version': '03',
@@ -73,7 +79,7 @@ def orderedPluginConfig():
                                                                    'classMethods': '12'}.get(k[0],k[0]))))
                                 for moduleName, moduleInfo in sorted(pluginConfig['modules'].items()))),
          ('classes',OrderedDict(sorted(pluginConfig['classes'].items())))))
-    
+
 def save(cntlr):
     global pluginConfigChanged
     if pluginConfigChanged and cntlr.hasFileSystem:
@@ -82,7 +88,7 @@ def save(cntlr):
             jsonStr = _STR_UNICODE(json.dumps(orderedPluginConfig(), ensure_ascii=False, indent=2)) # might not be unicode in 2.7
             f.write(jsonStr)
         pluginConfigChanged = False
-    
+
 def close():  # close all loaded methods
     pluginConfig.clear()
     modulePluginInfos.clear()
@@ -128,7 +134,7 @@ moduleInfo = {
 
 
 '''
-    
+
 def modulesWithNewerFileDates():
     names = set()
     for moduleInfo in pluginConfig["modules"].values():
@@ -216,7 +222,7 @@ def moduleModuleInfo(moduleURL, reload=False, parentImportsSubtree=False):
                                     for elt in _value.elts:
                                         importURLs.append(elt.s)
                             elif _valueType in ('Str', 'Constant'): # Str < =python 3.7, Constant python 3.8+
-                                moduleInfo[_key] = _value.s                             
+                                moduleInfo[_key] = _value.s
                             elif _valueType == 'Name':
                                 if _value.id in constantStrings:
                                     moduleInfo[_key] = constantStrings[_value.id]
@@ -312,7 +318,10 @@ def moduleInfo(pluginInfo):
         elif isinstance(value, types.FunctionType):
             moduleInfo.getdefault('classes',[]).append(name)
 
-def loadModule(moduleInfo, packagePrefix=""):
+def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
+    print(f"a: {moduleInfo}")
+    print(f"b: {packagePrefix}")
+    print(f"c: {_pluginBase}")
     name = moduleInfo['name']
     moduleURL = moduleInfo['moduleURL']
     moduleFilename = _cntlr.webCache.getfilename(moduleURL, normalize=True, base=_pluginBase)
@@ -328,7 +337,34 @@ def loadModule(moduleInfo, packagePrefix=""):
                 moduleName = os.path.basename(moduleFilename).partition('.')[0]
                 moduleDir = os.path.dirname(moduleFilename)
                 packageImportPrefix = packagePrefix
+            print(f"d: {moduleName}")
+            print(f"e: {moduleDir}")
+
+            from importlib.machinery import PathFinder, ModuleSpec, FileFinder, all_suffixes
+            from importlib.util import module_from_spec
+            import importlib
+
+            def _get_description(moduleDir):
+                for suffix, mode, type_ in all_suffixes():
+                    file_name = name + suffix
+                    file_path = os.path.join(moduleDir, file_name)
+                    if os.path.isfile(file_path):
+                        return suffix, mode, type_
+
+            loader: ModuleSpec = PathFinder().find_spec(moduleName, [moduleDir])
+            path = loader.origin
+            #description = (".py", "r", 1,)
+            description = _get_description(moduleDir)
+            file = open(path, 'r')
+
+            #from pprint import pprint
+            #pprint(vars(loader))
+            #file, path, description = find_spec(moduleName, moduleDir)
+            #from importlib.abc import MetaPathFinder
             file, path, description = imp.find_module(moduleName, [moduleDir])
+            print(f"f: {file}")
+            print(f"g: {path}")
+            print(f"h: {description}")
             if file or path: # file returned if non-package module, otherwise just path for package
                 try:
                     module = imp.load_module(packagePrefix + moduleName, file, path, description)
@@ -386,7 +422,8 @@ def loadModule(moduleInfo, packagePrefix=""):
                     if file:
                         file.close() # non-package module
         except (EnvironmentError, ImportError, NameError, SyntaxError) as err: #find_module failed, no file to close
-            _msg = _("Exception finding plug-in {name}: {error}").format(name=name, error=err)
+            _msg = _("Exception obtaining plug-in module info: {moduleFilename}\n{error}\n{traceback}").format(
+                    error=err, moduleFilename=moduleFilename, traceback=traceback.format_tb(sys.exc_info()[2]))
             if PLUGIN_TRACE_FILE:
                 with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
                     fh.write(_msg + '\n')
