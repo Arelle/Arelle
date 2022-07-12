@@ -8,11 +8,8 @@ based on pull request 4
 
 '''
 from __future__ import annotations
-from importlib.machinery import ModuleSpec
 import os, sys, types, time, ast, imp, io, json, gettext, traceback
-from importlib.util import find_spec
-
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from arelle.Locale import getLanguageCodes
 from arelle.FileSource import openFileStream
 from arelle.UrlUtil import isAbsolute
@@ -21,6 +18,9 @@ try:
 except ImportError:
     OrderedDict = dict # python 3.0 lacks OrderedDict, json file will be in weird order
 
+if TYPE_CHECKING:
+    # Prevent circular import error
+    from .Cntlr import Cntlr
 
 PLUGIN_TRACE_FILE = None
 # PLUGIN_TRACE_FILE = "c:/temp/pluginerr.txt"
@@ -318,117 +318,117 @@ def moduleInfo(pluginInfo):
         elif isinstance(value, types.FunctionType):
             moduleInfo.getdefault('classes',[]).append(name)
 
+def get_name_dir_prefix(
+    controller: Cntlr,
+    pluginBase: str,
+    moduleInfo: dict[str, Any],
+    packagePrefix: str = "",
+) -> tuple[str, str, str] | tuple[None, None, None]:
+    """Get the name, directory and prefix of a module."""
+    moduleFilename: str
+    moduleDir: str
+    packageImportPrefix: str
+
+    moduleURL = moduleInfo["moduleURL"]
+    moduleFilename = controller.webCache.getfilename(
+        url=moduleURL, normalize=True, base=pluginBase
+    )
+
+    if moduleFilename is not None and moduleFilename:
+        if os.path.basename(moduleFilename) == "__init__.py" and os.path.isfile(
+            moduleFilename
+        ):
+            #missing
+            moduleFilename = os.path.dirname(
+                moduleFilename
+            )  # want just the dirpart of package
+
+        if os.path.isdir(moduleFilename) and os.path.isfile(
+            os.path.join(moduleFilename, "__init__.py")
+        ):
+            moduleDir = os.path.dirname(moduleFilename)
+            moduleName = os.path.basename(moduleFilename)
+            packageImportPrefix = moduleName + "."
+        else:
+            moduleName = os.path.basename(moduleFilename).partition(".")[0]
+            moduleDir = os.path.dirname(moduleFilename)
+            packageImportPrefix = packagePrefix
+
+        return (moduleName, moduleDir, packageImportPrefix)
+
+    return (None, None, None)
+
+
 def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
-    print(f"a: {moduleInfo}")
-    print(f"b: {packagePrefix}")
-    print(f"c: {_pluginBase}")
     name = moduleInfo['name']
     moduleURL = moduleInfo['moduleURL']
-    moduleFilename = _cntlr.webCache.getfilename(moduleURL, normalize=True, base=_pluginBase)
-    if moduleFilename:
-        try:
-            if os.path.basename(moduleFilename) == "__init__.py" and os.path.isfile(moduleFilename):
-                moduleFilename = os.path.dirname(moduleFilename) # want just the dirpart of package
-            if os.path.isdir(moduleFilename) and os.path.isfile(os.path.join(moduleFilename, "__init__.py")):
-                moduleDir = os.path.dirname(moduleFilename)
-                moduleName = os.path.basename(moduleFilename)
-                packageImportPrefix = moduleName + "."
-            else:
-                moduleName = os.path.basename(moduleFilename).partition('.')[0]
-                moduleDir = os.path.dirname(moduleFilename)
-                packageImportPrefix = packagePrefix
-            print(f"d: {moduleName}")
-            print(f"e: {moduleDir}")
 
-            from importlib.machinery import PathFinder, ModuleSpec, FileFinder, all_suffixes
-            from importlib.util import module_from_spec
-            import importlib
+    moduleName, moduleDir, packageImportPrefix = get_name_dir_prefix(
+        controller=_cntlr,
+        pluginBase=_pluginBase,
+        moduleInfo=moduleInfo,
+        packagePrefix=packagePrefix,
+    )
 
-            def _get_description(moduleDir):
-                for suffix, mode, type_ in all_suffixes():
-                    file_name = name + suffix
-                    file_path = os.path.join(moduleDir, file_name)
-                    if os.path.isfile(file_path):
-                        return suffix, mode, type_
-
-            loader: ModuleSpec = PathFinder().find_spec(moduleName, [moduleDir])
-            path = loader.origin
-            #description = (".py", "r", 1,)
-            description = _get_description(moduleDir)
-            file = open(path, 'r')
-
-            #from pprint import pprint
-            #pprint(vars(loader))
-            #file, path, description = find_spec(moduleName, moduleDir)
-            #from importlib.abc import MetaPathFinder
-            file, path, description = imp.find_module(moduleName, [moduleDir])
-            print(f"f: {file}")
-            print(f"g: {path}")
-            print(f"h: {description}")
-            if file or path: # file returned if non-package module, otherwise just path for package
-                try:
-                    module = imp.load_module(packagePrefix + moduleName, file, path, description)
-                    pluginInfo = module.__pluginInfo__.copy()
-                    elementSubstitutionClasses = None
-                    if name == pluginInfo.get('name'):
-                        pluginInfo["moduleURL"] = moduleURL
-                        modulePluginInfos[name] = pluginInfo
-                        if 'localeURL' in pluginInfo:
-                            # set L10N internationalization in loaded module
-                            localeDir = os.path.dirname(module.__file__) + os.sep + pluginInfo['localeURL']
-                            try:
-                                _gettext = gettext.translation(pluginInfo['localeDomain'], localeDir, getLanguageCodes())
-                            except IOError:
-                                _gettext = lambda x: x # no translation
-                        else:
-                            _gettext = lambda x: x
-                        for key, value in pluginInfo.items():
-                            if key == 'name':
-                                if name:
-                                    pluginConfig['modules'][name] = moduleInfo
-                            elif isinstance(value, types.FunctionType):
-                                classModuleNames = pluginConfig['classes'].setdefault(key, [])
-                                if name and name not in classModuleNames:
-                                    classModuleNames.append(name)
-                            if key == 'ModelObjectFactory.ElementSubstitutionClasses':
-                                elementSubstitutionClasses = value
-                        module._ = _gettext
-                        global pluginConfigChanged
-                        pluginConfigChanged = True
-                    if elementSubstitutionClasses:
+    if moduleName is not None and moduleName is not None and packageImportPrefix is not None:
+        file, path, description = imp.find_module(moduleName, [moduleDir])
+        if file or path: # file returned if non-package module, otherwise just path for package
+            try:
+                module = imp.load_module(packagePrefix + moduleName, file, path, description)
+                pluginInfo = module.__pluginInfo__.copy()
+                elementSubstitutionClasses = None
+                if name == pluginInfo.get('name'):
+                    pluginInfo["moduleURL"] = moduleURL
+                    modulePluginInfos[name] = pluginInfo
+                    if 'localeURL' in pluginInfo:
+                        # set L10N internationalization in loaded module
+                        localeDir = os.path.dirname(module.__file__) + os.sep + pluginInfo['localeURL']
                         try:
-                            from arelle.ModelObjectFactory import elementSubstitutionModelClass
-                            elementSubstitutionModelClass.update(elementSubstitutionClasses)
-                        except Exception as err:
-                            _msg = _("Exception loading plug-in {name}: processing ModelObjectFactory.ElementSubstitutionClasses").format(
-                                    name=name, error=err)
-                            if PLUGIN_TRACE_FILE:
-                                with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
-                                    fh.write(_msg + '\n')
-                            else:
-                                print(_msg, file=sys.stderr)
-                    for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
-                        loadModule(importModuleInfo, packageImportPrefix)
-                except (ImportError, AttributeError, TypeError, SystemError) as err:
-                    _msg = _("Exception loading plug-in {name}: {error}\n{traceback}").format(
-                            name=name, error=err, traceback=traceback.format_tb(sys.exc_info()[2]))
-                    if PLUGIN_TRACE_FILE:
-                        with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
-                            fh.write(_msg + '\n')
+                            _gettext = gettext.translation(pluginInfo['localeDomain'], localeDir, getLanguageCodes())
+                        except IOError:
+                            _gettext = lambda x: x # no translation
                     else:
-                        print(_msg, file=sys.stderr)
+                        _gettext = lambda x: x
+                    for key, value in pluginInfo.items():
+                        if key == 'name':
+                            if name:
+                                pluginConfig['modules'][name] = moduleInfo
+                        elif isinstance(value, types.FunctionType):
+                            classModuleNames = pluginConfig['classes'].setdefault(key, [])
+                            if name and name not in classModuleNames:
+                                classModuleNames.append(name)
+                        if key == 'ModelObjectFactory.ElementSubstitutionClasses':
+                            elementSubstitutionClasses = value
+                    module._ = _gettext
+                    global pluginConfigChanged
+                    pluginConfigChanged = True
+                if elementSubstitutionClasses:
+                    try:
+                        from arelle.ModelObjectFactory import elementSubstitutionModelClass
+                        elementSubstitutionModelClass.update(elementSubstitutionClasses)
+                    except Exception as err:
+                        _msg = _("Exception loading plug-in {name}: processing ModelObjectFactory.ElementSubstitutionClasses").format(
+                                name=name, error=err)
+                        if PLUGIN_TRACE_FILE:
+                            with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
+                                fh.write(_msg + '\n')
+                        else:
+                            print(_msg, file=sys.stderr)
+                for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
+                    loadModule(importModuleInfo, packageImportPrefix)
+            except (ImportError, AttributeError, TypeError, SystemError) as err:
+                _msg = _("Exception loading plug-in {name}: {error}\n{traceback}").format(
+                        name=name, error=err, traceback=traceback.format_tb(sys.exc_info()[2]))
+                if PLUGIN_TRACE_FILE:
+                    with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
+                        fh.write(_msg + '\n')
+                else:
+                    print(_msg, file=sys.stderr)
 
-                finally:
-                    if file:
-                        file.close() # non-package module
-        except (EnvironmentError, ImportError, NameError, SyntaxError) as err: #find_module failed, no file to close
-            _msg = _("Exception obtaining plug-in module info: {moduleFilename}\n{error}\n{traceback}").format(
-                    error=err, moduleFilename=moduleFilename, traceback=traceback.format_tb(sys.exc_info()[2]))
-            if PLUGIN_TRACE_FILE:
-                with open(PLUGIN_TRACE_FILE, "at", encoding='utf-8') as fh:
-                    fh.write(_msg + '\n')
-            else:
-                print(_msg, file=sys.stderr)
+            finally:
+                if file:
+                    file.close() # non-package module
+
 
 def pluginClassMethods(className):
     if pluginConfig:
