@@ -124,7 +124,7 @@ def test_function_get_name_dir_prefix(
     cntlr = Controller()
     PluginManager.init(cntlr, loadPluginConfig=False)
 
-    moduleName, moduleDir, packageImportPrefix = PluginManager.get_name_dir_prefix(
+    moduleName, moduleDir, packageImportPrefix = PluginManager._get_name_dir_prefix(
         controller=cntlr,
         pluginBase=Controller.pluginDir,
         moduleInfo={

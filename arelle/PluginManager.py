@@ -318,7 +318,7 @@ def moduleInfo(pluginInfo):
         elif isinstance(value, types.FunctionType):
             moduleInfo.getdefault('classes',[]).append(name)
 
-def get_name_dir_prefix(
+def _get_name_dir_prefix(
     controller: Cntlr,
     pluginBase: str,
     moduleInfo: dict[str, Any],
@@ -362,7 +362,7 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
     name = moduleInfo['name']
     moduleURL = moduleInfo['moduleURL']
 
-    moduleName, moduleDir, packageImportPrefix = get_name_dir_prefix(
+    moduleName, moduleDir, packageImportPrefix = _get_name_dir_prefix(
         controller=_cntlr,
         pluginBase=_pluginBase,
         moduleInfo=moduleInfo,
