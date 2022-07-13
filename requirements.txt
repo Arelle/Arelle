@@ -1,6 +1,6 @@
 # core modules
 lxml>=4.6.3
-openpyxl>=2.3.3
+OpenPyXL>=2.3.3
 regex==2022.7.9
 isodate==0.6.1
 aniso8601==9.0.1
