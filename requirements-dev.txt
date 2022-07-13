@@ -1,7 +1,7 @@
 # The Ubuntu GUI exits immediately without error in 6.11.0.
 cx_Freeze==6.10
-cx_Oracle
-sphinx
+cx_Oracle==8.3.0
+Sphinx==5.0.2
 
 mock==4.0.3
 pytest==7.1.1
