@@ -1,4 +1,6 @@
-import os
+from collections import Counter
+from pathlib import PurePosixPath
+
 import pytest
 
 from arelle.CntlrCmdLine import parseAndRun
@@ -30,13 +32,13 @@ def get_test_data(args, expected_failure_ids=frozenset()):
             else:
                 raise Exception('Unhandled model document type: {}'.format(model_document.type))
             for test_case in test_cases:
-                uri_dir_parts = os.path.dirname(test_case.uri).split('/')
-                test_case_dir = '/'.join(uri_dir_parts[-2:])
+                path = PurePosixPath(test_case.uri)
+                test_case_path_tail = path.parts[-3:-1] if path.name == 'index.xml' else path.parts[-2:]
                 if not getattr(test_case, "testcaseVariations", None):
-                    test_cases_with_no_variations.add(test_case_dir)
+                    test_cases_with_no_variations.add(test_case_path_tail)
                 else:
                     for mv in test_case.testcaseVariations:
-                        test_id = '{}/{}'.format(test_case_dir, str(mv.id or mv.name))
+                        test_id = '{}/{}'.format('/'.join(test_case_path_tail), mv.id)
                         param = pytest.param(
                             {
                                 'status': mv.status,
@@ -49,7 +51,11 @@ def get_test_data(args, expected_failure_ids=frozenset()):
                         results.append(param)
         if test_cases_with_no_variations:
             raise Exception(f"Some test cases don't have any variations: {sorted(test_cases_with_no_variations)}.")
-        nonexistent_expected_failure_ids = expected_failure_ids - {p.id for p in results}
+        test_id_frequencies = Counter(p.id for p in results)
+        nonunique_test_ids = {test_id: count for test_id, count in test_id_frequencies.items() if count > 1}
+        if nonunique_test_ids:
+            raise Exception(f'Some test IDs are not unique.  Frequencies of nonunique test IDs: {nonunique_test_ids}.')
+        nonexistent_expected_failure_ids = expected_failure_ids - set(test_id_frequencies)
         if nonexistent_expected_failure_ids:
             raise Exception(f"Some expected failure IDs don't match any test cases: {sorted(nonexistent_expected_failure_ids)}.")
         return results

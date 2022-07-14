@@ -19,16 +19,16 @@ if os.getenv('CONFORMANCE_SUITES_TEST_MODE') == 'OFFLINE':
 EXPECTED_FAILURE_IDS = frozenset([
     # The value of the xbrldt:targetRole attribute is valid
     # Expected: sche:XmlSchemaError, Actual: xbrldte:TargetRoleNotResolvedError
-    '000-Schema-invalid/001-Taxonomy/V-03',
+    '001-Taxonomy/001-TestCase-Taxonomy.xml/V-03',
     # An all hypercube has an msdos path in the targetRole attribute to locate the domain - dimension arc network
     # Expected: sche:XmlSchemaError, Actual: xbrldte:TargetRoleNotResolvedError
-    '000-Schema-invalid/001-Taxonomy/V-08',
+    '001-Taxonomy/001-TestCase-Taxonomy.xml/V-08',
     # A dimension-domain relationship has an msdos path in targetRole attribute to locate the domain-member arc network
     # Expected: sche:XmlSchemaError, Actual: xbrldte:TargetRoleNotResolvedError
-    '000-Schema-invalid/001-Taxonomy/V-09',
+    '001-Taxonomy/001-TestCase-Taxonomy.xml/V-09',
     # A domain-member relationship has an msdos path in targetRole attribute to locate the domain-member arc network
     # Expected: sche:XmlSchemaError, Actual: xbrldte:TargetRoleNotResolvedError
-    '000-Schema-invalid/001-Taxonomy/V-10',
+    '001-Taxonomy/001-TestCase-Taxonomy.xml/V-10',
 ])
 
 TEST_DATA = get_test_data(ARGS, expected_failure_ids=EXPECTED_FAILURE_IDS)
