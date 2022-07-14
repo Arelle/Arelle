@@ -5,12 +5,14 @@ from arelle.CntlrCmdLine import parseAndRun
 from arelle import ModelDocument, PackageManager, PluginManager
 
 
-def get_test_data(args):
+def get_test_data(args, expected_failure_ids=frozenset()):
     """
     Produces a list of Pytest Params that can be fed into a parameterized pytest function
 
     :param args: The args to be parsed by arelle in order to correctly produce the desired result set
     :type args: list of strings
+    :param expected_failure_ids: The set of string test IDs that are expected to fail
+    :type expected_failure_ids: frozenset of strings
     :return: A list of PyTest Params that can be used to run a parameterized pytest function
     :rtype: list of ::class:: `~pytest.param`
     """
@@ -31,15 +33,20 @@ def get_test_data(args):
                 test_case_dir = '/'.join(uri_dir_parts[-2:])
                 if hasattr(test_case, "testcaseVariations"):
                     for mv in test_case.testcaseVariations:
+                        test_id = '{}/{}'.format(test_case_dir, str(mv.id or mv.name))
                         param = pytest.param(
                             {
                                 'status': mv.status,
                                 'expected': mv.expected,
                                 'actual': mv.actual
                             },
-                            id='{}/{}'.format(test_case_dir, str(mv.id or mv.name))
+                            id=test_id,
+                            marks=[pytest.mark.xfail()] if test_id in expected_failure_ids else []
                         )
                         results.append(param)
+        nonexistent_expected_failure_ids = expected_failure_ids - {p.id for p in results}
+        if nonexistent_expected_failure_ids:
+            raise Exception(f"Some expected failure IDs don't match any test cases: {sorted(nonexistent_expected_failure_ids)}.")
         return results
     finally:
         cntlr.modelManager.close()

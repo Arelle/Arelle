@@ -15,18 +15,16 @@ ARGS = [
 if os.getenv('CONFORMANCE_SUITES_TEST_MODE') == 'OFFLINE':
     ARGS.extend(['--internetConnectivity', 'offline'])
 
-TEST_DATA = get_test_data(ARGS)
+EXPECTED_FAILURE_IDS = frozenset([])
 
-EXPECTED_FAILURE_IDS = []
+TEST_DATA = get_test_data(ARGS, expected_failure_ids=EXPECTED_FAILURE_IDS)
 
 
 @pytest.mark.parametrize("result", TEST_DATA)
-def test_xbrl_table_linkbase_conformance_suite(result, request):
+def test_xbrl_table_linkbase_conformance_suite(result):
     """
     Test the XBRL Table Linkbase Conformance Suite
     """
-    if request.node.callspec.id in EXPECTED_FAILURE_IDS:
-        pytest.xfail(f"Test '{request.node.callspec.id}' not supported yet")
     assert result.get('status') == 'pass', \
         'Expected these validation suffixes: {}, but received these validations: {}'.format(
             result.get('expected'), result.get('actual')

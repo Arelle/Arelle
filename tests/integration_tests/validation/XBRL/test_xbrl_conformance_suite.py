@@ -16,9 +16,7 @@ ARGS = [
 if os.getenv('CONFORMANCE_SUITES_TEST_MODE') == 'OFFLINE':
     ARGS.extend(['--internetConnectivity', 'offline'])
 
-TEST_DATA = get_test_data(ARGS)
-
-EXPECTED_FAILURE_IDS = [
+EXPECTED_FAILURE_IDS = frozenset([
     # 202.02b in the absence of source/target constraints, an empty href doesn't pose a problem
     # 202-02b-HrefResolutionCounterExample-custom.xml Expected: valid, Actual: arelle:hrefWarning
     'Common/200-linkbase/V-02b',
@@ -37,16 +35,16 @@ EXPECTED_FAILURE_IDS = [
     'Common/300-instance/V-340',
     # 397-28-PrecisionDifferentScales.xbrl Expected: valid, Actual: xbrl.5.2.5.2:calcInconsistency
     'Common/300-instance/V-281'
-]
+])
+
+TEST_DATA = get_test_data(ARGS, expected_failure_ids=EXPECTED_FAILURE_IDS)
 
 
 @pytest.mark.parametrize("result", TEST_DATA)
-def test_xbrl_conformance_suite(result, request):
+def test_xbrl_conformance_suite(result):
     """
     Test the XBRL 2.1 Conformance Suite
     """
-    if request.node.callspec.id in EXPECTED_FAILURE_IDS:
-        pytest.xfail(f"Test '{request.node.callspec.id}' not supported yet")
     assert result.get('status') == 'pass', \
         'Expected these validation suffixes: {}, but received these validations: {}'.format(
             result.get('expected'), result.get('actual')
