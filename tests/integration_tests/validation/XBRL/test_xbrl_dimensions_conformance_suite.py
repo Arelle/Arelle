@@ -16,31 +16,29 @@ ARGS = [
 if os.getenv('CONFORMANCE_SUITES_TEST_MODE') == 'OFFLINE':
     ARGS.extend(['--internetConnectivity', 'offline'])
 
-TEST_DATA = get_test_data(ARGS)
-
-EXPECTED_FAILURE_IDS = [
+EXPECTED_FAILURE_IDS = frozenset([
     # The value of the xbrldt:targetRole attribute is valid
     # Expected: sche:XmlSchemaError, Actual: xbrldte:TargetRoleNotResolvedError
-    '000-Schema-invalid/001-Taxonomy/V-03',
+    '001-Taxonomy/001-TestCase-Taxonomy.xml/V-03',
     # An all hypercube has an msdos path in the targetRole attribute to locate the domain - dimension arc network
     # Expected: sche:XmlSchemaError, Actual: xbrldte:TargetRoleNotResolvedError
-    '000-Schema-invalid/001-Taxonomy/V-08',
+    '001-Taxonomy/001-TestCase-Taxonomy.xml/V-08',
     # A dimension-domain relationship has an msdos path in targetRole attribute to locate the domain-member arc network
     # Expected: sche:XmlSchemaError, Actual: xbrldte:TargetRoleNotResolvedError
-    '000-Schema-invalid/001-Taxonomy/V-09',
+    '001-Taxonomy/001-TestCase-Taxonomy.xml/V-09',
     # A domain-member relationship has an msdos path in targetRole attribute to locate the domain-member arc network
     # Expected: sche:XmlSchemaError, Actual: xbrldte:TargetRoleNotResolvedError
-    '000-Schema-invalid/001-Taxonomy/V-10',
-]
+    '001-Taxonomy/001-TestCase-Taxonomy.xml/V-10',
+])
+
+TEST_DATA = get_test_data(ARGS, expected_failure_ids=EXPECTED_FAILURE_IDS)
 
 
 @pytest.mark.parametrize("result", TEST_DATA)
-def test_xbrl_dimensions_conformance_suite(result, request):
+def test_xbrl_dimensions_conformance_suite(result):
     """
     Test the XBRL Dimensions 1.0 Conformance Suite
     """
-    if request.node.callspec.id in EXPECTED_FAILURE_IDS:
-        pytest.xfail(f"Test '{request.node.callspec.id}' not supported yet")
     assert result.get('status') == 'pass', \
         'Expected these validation suffixes: {}, but received these validations: {}'.format(
             result.get('expected'), result.get('actual')
