@@ -127,15 +127,15 @@ def test_function_get_name_dir_prefix(
     moduleName, moduleDir, packageImportPrefix = PluginManager._get_name_dir_prefix(
         controller=cntlr,
         pluginBase=Controller.pluginDir,
-        moduleInfo={
-            "moduleURL": test_data[1],
-        },
+        moduleURL=test_data[1],
         packagePrefix=test_data[2],
     )
 
     assert moduleName == expected_result[0]
     assert moduleDir == expected_result[1]
     assert packageImportPrefix == expected_result[2]
+
+    PluginManager.close()
 
 def test_function_loadModule():
     """
@@ -173,3 +173,5 @@ def test_function_loadModule():
     all_modules_list: list[str] = [m.__name__ for m in sys.modules.values() if m]
 
     assert "functionsMath" in all_modules_list
+
+    PluginManager.close()

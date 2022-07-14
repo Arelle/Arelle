@@ -321,7 +321,7 @@ def moduleInfo(pluginInfo):
 def _get_name_dir_prefix(
     controller: Cntlr,
     pluginBase: str,
-    moduleInfo: dict[str, Any],
+    moduleURL: str,
     packagePrefix: str = "",
 ) -> tuple[str, str, str] | tuple[None, None, None]:
     """Get the name, directory and prefix of a module."""
@@ -329,12 +329,11 @@ def _get_name_dir_prefix(
     moduleDir: str
     packageImportPrefix: str
 
-    moduleURL = moduleInfo["moduleURL"]
     moduleFilename = controller.webCache.getfilename(
         url=moduleURL, normalize=True, base=pluginBase
     )
 
-    if moduleFilename is not None and moduleFilename:
+    if moduleFilename:
         if os.path.basename(moduleFilename) == "__init__.py" and os.path.isfile(
             moduleFilename
         ):
@@ -365,11 +364,11 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
     moduleName, moduleDir, packageImportPrefix = _get_name_dir_prefix(
         controller=_cntlr,
         pluginBase=_pluginBase,
-        moduleInfo=moduleInfo,
+        moduleURL=moduleURL,
         packagePrefix=packagePrefix,
     )
 
-    if moduleName is not None and moduleName is not None and packageImportPrefix is not None:
+    if moduleName is not None and moduleDir is not None and packageImportPrefix is not None:
         file, path, description = imp.find_module(moduleName, [moduleDir])
         if file or path: # file returned if non-package module, otherwise just path for package
             try:
