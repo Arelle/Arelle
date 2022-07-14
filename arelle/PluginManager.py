@@ -9,6 +9,7 @@ based on pull request 4
 '''
 from __future__ import annotations
 import os, sys, types, time, ast, imp, io, json, gettext, traceback
+import logging
 from typing import TYPE_CHECKING, Any
 from arelle.Locale import getLanguageCodes
 from arelle.FileSource import openFileStream
@@ -426,7 +427,8 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
             finally:
                 if file:
                     file.close() # non-package module
-
+    else:
+        _cntlr.addToLog(message=f"Unable to load module {name}", level=logging.WARNING)
 
 def pluginClassMethods(className):
     if pluginConfig:
