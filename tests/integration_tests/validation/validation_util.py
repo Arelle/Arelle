@@ -19,6 +19,7 @@ def get_test_data(args, expected_failure_ids=frozenset()):
     cntlr = parseAndRun(args)
     try:
         results = []
+        test_cases_with_no_variations = set()
         model_document = cntlr.modelManager.modelXbrl.modelDocument
         if model_document is not None:
             test_cases = []
@@ -31,7 +32,9 @@ def get_test_data(args, expected_failure_ids=frozenset()):
             for test_case in test_cases:
                 uri_dir_parts = os.path.dirname(test_case.uri).split('/')
                 test_case_dir = '/'.join(uri_dir_parts[-2:])
-                if hasattr(test_case, "testcaseVariations"):
+                if not getattr(test_case, "testcaseVariations", None):
+                    test_cases_with_no_variations.add(test_case_dir)
+                else:
                     for mv in test_case.testcaseVariations:
                         test_id = '{}/{}'.format(test_case_dir, str(mv.id or mv.name))
                         param = pytest.param(
@@ -44,6 +47,8 @@ def get_test_data(args, expected_failure_ids=frozenset()):
                             marks=[pytest.mark.xfail()] if test_id in expected_failure_ids else []
                         )
                         results.append(param)
+        if test_cases_with_no_variations:
+            raise Exception(f"Some test cases don't have any variations: {sorted(test_cases_with_no_variations)}.")
         nonexistent_expected_failure_ids = expected_failure_ids - {p.id for p in results}
         if nonexistent_expected_failure_ids:
             raise Exception(f"Some expected failure IDs don't match any test cases: {sorted(nonexistent_expected_failure_ids)}.")
