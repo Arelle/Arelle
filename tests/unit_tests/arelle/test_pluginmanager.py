@@ -122,7 +122,6 @@ def test_function_get_name_dir_prefix(
             super().__init__(logFileName="logToPrint")
 
     cntlr = Controller()
-    PluginManager.init(cntlr, loadPluginConfig=False)
 
     moduleName, moduleDir, packageImportPrefix = PluginManager._get_name_dir_prefix(
         controller=cntlr,
@@ -154,8 +153,7 @@ def test_function_loadModule():
             """Init controller with logging."""
             super().__init__(logFileName="logToPrint")
 
-    cntlr = Controller()
-    PluginManager.init(cntlr, loadPluginConfig=False)
+    Controller()
 
     PluginManager.loadModule(
         moduleInfo={
