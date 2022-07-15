@@ -389,7 +389,9 @@ class Cntlr:
            :type saveConfig: bool
         """
         PluginManager.save(self)
-        PackageManager.save(self)
+        PluginManager.save(self)
+        if self.hasGui:
+            PackageManager.save(self)
         if saveConfig:
             self.saveConfig()
         if self.logger is not None:
