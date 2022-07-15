@@ -1,6 +1,13 @@
+"""Tests for the PluginManager module."""
+from __future__ import annotations
+
+import sys
+
+import pytest
 from mock import Mock
 
 from arelle import PluginManager
+from arelle.Cntlr import Cntlr
 
 
 def test_plugin_manager_init_first_pass():
@@ -73,3 +80,99 @@ def test_plugin_manager_reset():
     assert len(PluginManager.modulePluginInfos) == 0
     assert len(PluginManager.pluginMethodsForClasses) == 0
     assert PluginManager._cntlr == cntlr
+
+@pytest.mark.parametrize(
+    "test_data, expected_result",
+    [
+        # Test case 1
+        (
+            # Test data
+            ("tests/unit_tests/arelle", "functionsMaths", "xyz"),
+            # Expected result
+            ("functionsMaths", "tests/unit_tests", "xyz")
+        ),
+        # Test case 2
+        (
+            # Test data
+            ("arelle/plugin/", "sphinx/__init__.py", "xyz"),
+            # Expected result
+            ("sphinx", "arelle/plugin", "sphinx.")
+        ),
+        # Test case 3
+        (
+            # Test data
+            ("plugin/sphinx", None, "xyz"),
+            # Expected result
+            (None, None, None)
+        ),
+    ]
+)
+def test_function_get_name_dir_prefix(
+    test_data: tuple[str, str, str],
+    expected_result: tuple[str, str, str],
+    ):
+    """Test util function get_name_dir_prefix."""
+    class Controller(Cntlr):
+        """Controller."""
+
+        pluginDir = test_data[0]
+
+        def __init__(self) -> None:
+            """Init controller with logging."""
+            super().__init__(logFileName="logToPrint")
+
+    cntlr = Controller()
+
+    moduleName, moduleDir, packageImportPrefix = PluginManager._get_name_dir_prefix(
+        controller=cntlr,
+        pluginBase=Controller.pluginDir,
+        moduleURL=test_data[1],
+        packagePrefix=test_data[2],
+    )
+
+    assert moduleName == expected_result[0]
+    assert moduleDir == expected_result[1]
+    assert packageImportPrefix == expected_result[2]
+
+    PluginManager.close()
+
+def test_function_loadModule():
+    """
+    Test helper function loadModule.
+
+    This test asserts that a plugin module is loaded when running
+    the function.
+    """
+
+    class Controller(Cntlr):
+        """Controller."""
+
+        pluginDir = "tests/unit_tests/arelle"
+
+        def __init__(self) -> None:
+            """Init controller with logging."""
+            super().__init__(logFileName="logToPrint")
+
+    Controller()
+
+    PluginManager.loadModule(
+        moduleInfo={
+            "name": "mock",
+            "moduleURL": "functionsMath",
+        }
+    )
+
+    # all_modules_list contains a list of all currently loaded modules, eg:
+    # arelle.XPathContext
+    # arelle.FunctionUtil
+    # arelle.FunctionXs
+    # isodate.isoduration
+    # functionsMath
+    all_modules_list: list[str] = [m.__name__ for m in sys.modules.values() if m]
+
+    assert "functionsMath" in all_modules_list
+
+    PluginManager.close()
+
+def teardown_function():
+    PluginManager.close()
