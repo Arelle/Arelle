@@ -389,7 +389,7 @@ class Cntlr:
            :type saveConfig: bool
         """
         PluginManager.save(self)
-        PluginManager.save(self)
+
         if self.hasGui:
             PackageManager.save(self)
         if saveConfig:
