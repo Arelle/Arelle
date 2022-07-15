@@ -173,3 +173,6 @@ def test_function_loadModule():
     assert "functionsMath" in all_modules_list
 
     PluginManager.close()
+
+def teardown_function():
+    PluginManager.close()
