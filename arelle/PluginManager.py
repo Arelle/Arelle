@@ -428,7 +428,7 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
                 if file:
                     file.close() # non-package module
     else:
-        _cntlr.addToLog(message=f"Unable to load module {name}", level=logging.WARNING)
+        _cntlr.addToLog(message=f"Unable to load module {name}", level=logging.ERROR)
 
 def pluginClassMethods(className):
     if pluginConfig:
