@@ -140,7 +140,6 @@ if sys.platform in ('darwin', 'linux'):
 
     options = dict(
         build_exe={
-            "build_exe": f"build/arelle-{sys.platform}",
             "include_files": include_files,
             #
             # rdflib & isodate egg files: rename .zip cpy lib & egg-info
