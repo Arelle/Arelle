@@ -393,7 +393,9 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
         packagePrefix=packagePrefix,
     )
 
-    if moduleName is not None and moduleDir is not None and packageImportPrefix is not None:
+    if moduleName is None and moduleDir is None and packageImportPrefix is None:
+        _cntlr.addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)
+    else:
         module = _find_and_load_module(moduleName=moduleName, moduleDir=moduleDir)
 
         if module is None:
@@ -453,8 +455,6 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
                     fh.write(_msg + '\n')
             else:
                 print(_msg, file=sys.stderr)
-    else:
-        _cntlr.addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)
 
 def pluginClassMethods(className):
     if pluginConfig:
