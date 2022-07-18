@@ -362,7 +362,7 @@ def _get_name_dir_prefix(
 
     return (None, None, None)
 
-def _find_and_load_module(moduleName: str, moduleDir: str) -> ModuleType | None:
+def _find_and_load_module(moduleDir: str, moduleName: str) -> ModuleType | None:
     """Load a module based on name and directory."""
     location = Path(f"{moduleDir}/{moduleName}.py")
     spec = importlib.util.spec_from_file_location(name=moduleName, location=location)
@@ -394,7 +394,7 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
         _cntlr.addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)
     else:
         try:
-            module = _find_and_load_module(moduleName=moduleName, moduleDir=moduleDir)
+            module = _find_and_load_module(moduleDir=moduleDir, moduleName=moduleName)
             pluginInfo = module.__pluginInfo__.copy()
             elementSubstitutionClasses = None
             if name == pluginInfo.get('name'):
