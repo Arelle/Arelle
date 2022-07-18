@@ -369,7 +369,7 @@ def _find_and_load_module(moduleName: str, moduleDir: str) -> ModuleType | None:
 
     # spec_from_file_location returns ModuleSpec or None.
     # spec.loader returns Loader or None.
-    # We want to make sure neither of them are are None before proceeding
+    # We want to make sure neither of them are None before proceeding
     if spec is None or spec.loader is None:
         return None
 
