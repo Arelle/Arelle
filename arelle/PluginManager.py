@@ -393,7 +393,7 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
         packagePrefix=packagePrefix,
     )
 
-    if moduleName is None and moduleDir is None and packageImportPrefix is None:
+    if all(p is None for p in [moduleName, moduleDir, packageImportPrefix]):
         _cntlr.addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)
     else:
         try:
