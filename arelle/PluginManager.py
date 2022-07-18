@@ -448,6 +448,9 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
             for importModuleInfo in moduleInfo.get('imports', EMPTYLIST):
                 loadModule(importModuleInfo, packageImportPrefix)
         except (AttributeError, ImportError, ModuleNotFoundError, TypeError, SystemError) as err:
+            # Send a summary of the error to the logger and retain the stacktrace for stderr
+            _cntlr.addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)
+
             _msg = _("Exception loading plug-in {name}: {error}\n{traceback}").format(
                     name=name, error=err, traceback=traceback.format_tb(sys.exc_info()[2]))
             if PLUGIN_TRACE_FILE:
