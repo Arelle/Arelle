@@ -396,16 +396,8 @@ def loadModule(moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
     if moduleName is None and moduleDir is None and packageImportPrefix is None:
         _cntlr.addToLog(message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(name), level=logging.ERROR)
     else:
-        module = _find_and_load_module(moduleName=moduleName, moduleDir=moduleDir)
-
-        if module is None:
-            _cntlr.addToLog(
-                message=_ERROR_MESSAGE_IMPORT_TEMPLATE.format(moduleName),
-                level=logging.ERROR,
-            )
-            return
-
         try:
+            module = _find_and_load_module(moduleName=moduleName, moduleDir=moduleDir)
             pluginInfo = module.__pluginInfo__.copy()
             elementSubstitutionClasses = None
             if name == pluginInfo.get('name'):
