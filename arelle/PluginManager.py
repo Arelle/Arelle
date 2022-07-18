@@ -373,12 +373,9 @@ def _find_and_load_module(moduleName: str, moduleDir: str) -> ModuleType | None:
     if spec is None or spec.loader is None:
         raise ModuleNotFoundError("Unable to load module")
 
-    try:
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[moduleName] = module # This line is required before exec_module
-        spec.loader.exec_module(sys.modules[moduleName])
-    except ImportError as err:
-        raise ImportError(f"Unable to load module due to {err}") from err
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[moduleName] = module # This line is required before exec_module
+    spec.loader.exec_module(sys.modules[moduleName])
 
     return sys.modules[moduleName]
 
