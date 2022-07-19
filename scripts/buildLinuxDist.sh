@@ -3,7 +3,7 @@
 set -xeu
 
 DISTRO="${1:-linux}"
-BUILD_DIR=build/arelle-linux
+BUILD_DIR=build/exe.linux-x86_64-3.9
 DIST_DIR=dist
 
 rm -rf "${BUILD_DIR}" "${DIST_DIR}"

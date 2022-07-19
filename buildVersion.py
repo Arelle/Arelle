@@ -63,6 +63,14 @@ if __name__ == "__main__":
     if sys.platform == "darwin":
         with open("buildRenameDmg.sh", "w") as fh:
             fh.write("cp dist_dmg/arelle.dmg dist/arelle-macOS-{}.dmg\n".format(date_dash_ymd))
+    elif sys.platform.startswith("linux"):
+        if len(sys.argv) > 1 and sys.argv[1]:
+            sysName = sys.argv[1]
+        else:
+            sysName = "linux"
+        with open("buildRenameLinux-x86_64.sh", "w") as fh:
+            fh.write("mv dist/exe.linux-x86_64-{}.{}.tgz dist/arelle-{}-x86_64-{}.tgz\n"
+                     .format(sys.version_info[0], sys.version_info[1], sysName, date_dash_ymd))
     elif sys.platform.startswith("win"):
         renameCmdFile = "buildRenamer.bat"
         with open("buildRenameX86.bat", "w") as fh:
