@@ -118,6 +118,7 @@ NSReservedAliasURIPrefixes = { # for starts-with checking
     }
 NSReservedURIAlias = {}
 
+OIMDefaultContextElement = "scenario"
 OIMReservedAliasURIs = {
     # "namespaces": NSReservedAliasURIs,  -- generated at load time
     "linkTypes": reservedLinkTypesAndGroups, 
@@ -740,7 +741,25 @@ def checkForDuplicates(modelXbrl, allowedDups, footnoteIDs):
                             value=fText[:64])
         del aspectEqualFootnotes
         '''
-        
+
+def getTaxonomyContextElement(modelXbrl):
+    # https://www.xbrl.org/Specification/xbrl-xml/REC-2021-10-13/xbrl-xml-REC-2021-10-13.html#sec-dimensions
+    # The spec states that if in the DTS:
+    # 1. neither segment nor scenario is present, scenario is used.
+    # 2. segment is present and scenario is not, segment is used.
+    # 3. scenario is present and segment is not, scenario is used.
+    # 4. segment and scenario are present and facts are valid against both of them, scenario is used.
+    # 5. segment and scenario are present and facts are only valid against scenario, scenario is used.
+    # 6. segment and scenario are present and facts are only valid against segment, segment is used.
+    # 7. segment and scenario are present and facts are invalid against both, the choice is made arbitrarily.
+    # We don't yet inspect dimensional validity and therefore incorrectly use scenario in case 6.
+    taxonomyContextRefTypes = {
+        modelRelationship.contextElement
+        for hasHypercubeRelationship in (XbrlConst.all, XbrlConst.notAll)
+        for modelRelationship in modelXbrl.relationshipSet(hasHypercubeRelationship).modelRelationships
+    }
+    return taxonomyContextRefTypes.pop() if len(taxonomyContextRefTypes) == 1 else OIMDefaultContextElement
+
 def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
     from openpyxl import load_workbook
     from openpyxl.cell import Cell
@@ -2106,6 +2125,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
         
         numFactCreationXbrlErrors = 0
         
+        contextElement = getTaxonomyContextElement(modelXbrl)
         for id, fact in factItems:
             factProduced.clear()
             
@@ -2360,7 +2380,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             else:
                                 mem = None # absent typed dimension
                             if mem is not None:
-                                qnameDims[dimQname] = DimValuePrototype(modelXbrl, None, dimQname, mem, "segment")
+                                qnameDims[dimQname] = DimValuePrototype(modelXbrl, None, dimQname, mem, contextElement)
                     if hasDimErr:
                         continue
                     try:
