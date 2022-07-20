@@ -18,6 +18,15 @@ arelle/plugin/xule
 Arelle.egg-info
 .eggs
 *.iml
-.idea
+
 /venv/
 tests/resources/conformance_suites/
+
+### IDE-specific ignores
+
+# PyCharm
+.idea
+
+# VS Code
+.devcontainer
+.vscode
