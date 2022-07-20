@@ -362,9 +362,16 @@ def _get_name_dir_prefix(
 
     return (None, None, None)
 
+def _get_location(moduleDir: str, moduleName: str) ->str:
+    """Get the file name of a plugin."""
+    if os.path.isfile(Path(f"{moduleDir}/{moduleName}.py")):
+        return Path(f"{moduleDir}/{moduleName}.py")
+
+    return Path(f"{moduleDir}/__init__.py")
+
 def _find_and_load_module(moduleDir: str, moduleName: str) -> ModuleType | None:
     """Load a module based on name and directory."""
-    location = Path(f"{moduleDir}/{moduleName}.py")
+    location = _get_location(moduleDir=moduleDir, moduleName=moduleName)
     spec = importlib.util.spec_from_file_location(name=moduleName, location=location)
 
     # spec_from_file_location returns ModuleSpec or None.
