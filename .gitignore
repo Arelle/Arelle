@@ -26,3 +26,7 @@ tests/resources/conformance_suites/
 
 # PyCharm
 .idea
+
+# VS Code
+.devcontainer
+.vscode
