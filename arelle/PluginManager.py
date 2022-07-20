@@ -367,7 +367,7 @@ def _get_location(moduleDir: str, moduleName: str) -> str:
     if os.path.isfile(Path(f"{moduleDir}/{moduleName}.py")):
         return Path(f"{moduleDir}/{moduleName}.py")
 
-    return Path(f"{moduleDir}/__init__.py")
+    return Path(f"{moduleDir}/{moduleName}/__init__.py")
 
 def _find_and_load_module(moduleDir: str, moduleName: str) -> ModuleType | None:
     """Load a module based on name and directory."""
