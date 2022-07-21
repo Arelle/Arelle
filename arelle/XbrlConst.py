@@ -873,4 +873,18 @@ lrrArcroleHrefs = {
     "http://www.xbrl.org/2009/arcrole/dep-mutuallyExclusiveConcept-deprecatedConcept": "http://www.xbrl.org/lrr/arcrole/deprecated-2009-12-16.xsd#dep-mutuallyExclusiveConcept-deprecatedConcept",
     "http://www.xbrl.org/2009/arcrole/dep-partConcept-deprecatedAggregateConcept": "http://www.xbrl.org/lrr/arcrole/deprecated-2009-12-16.xsd#dep-partConcept-deprecatedAggregateConcept",
     "http://www.xbrl.org/2013/arcrole/parent-child": "http://www.xbrl.org/lrr/arcrole/parent-child-2013-09-19.xsd#parent-child",
+    "http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower": "http://www.xbrl.org/lrr/arcrole/esma-arcrole-2018-11-21.xsd#wider-narrower",
+    }
+lrrUnapprovedRoles = { # lrr entries which are not REC or ACK status
+    "http://info.edinet-fsa.go.jp/jp/fr/gaap/role/NotesNumber":"IWD",
+    "http://info.edinet-fsa.go.jp/jp/fr/gaap/role/NotesNumberPeriodStart": "IWD",
+    "http://info.edinet-fsa.go.jp/jp/fr/gaap/role/NotesNumberPeriodEnd": "IWD",
+    # proposed but commented out in lrr
+    "http://www.xbrl.org/2013/arcrole/item-enumeration": "PROPOSED",
+    # only for test case use
+    "http://www.xbrl.org/2005/role/nieRole": "NIE",
+    }
+lrrUnapprovedArcroles = { # lrr entries which are not REC or ACK status
+    # only for test case use
+    "http://www.xbrl.org/2005/arcrole/nieRole": "NIE",
     }

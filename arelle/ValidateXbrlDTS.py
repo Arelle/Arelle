@@ -1310,6 +1310,10 @@ def checkLinkRole(val, elt, linkEltQname, xlinkRole, xlinkType, roleRefURIs):
                 val.modelXbrl.error("xbrlgene:missingResourceRoleUsedOnValue",
                     _("Generic resource role %(xlinkRole)s missing usedOn for %(element)s"),
                     modelObject=elt, xlinkRole=xlinkRole, element=linkEltQname)
+    if xlinkRole in XbrlConst.lrrUnapprovedRoles:
+        val.modelXbrl.warning("lrr:unApprovedRole",
+            _("LRR resource role %(xlinkRole)s on %(element)s has status %(status)s"),
+            modelObject=elt, xlinkRole=xlinkRole, element=linkEltQname, status=XbrlConst.lrrUnapprovedRoles[xlinkRole])
                 
 def checkArcrole(val, elt, arcEltQname, arcrole, arcroleRefURIs):
     if arcrole == "" and \
@@ -1351,6 +1355,10 @@ def checkArcrole(val, elt, arcEltQname, arcrole, arcroleRefURIs):
             val.modelXbrl.error("xbrl.5.1.4.5:custArcroleUsedOn",
                 _("Standard arcrole %(arcrole)s used on wrong arc %(element)s"),
                 modelObject=elt, element=arcEltQname, arcrole=arcrole)
+    if arcrole in XbrlConst.lrrUnapprovedArcroles:
+        val.modelXbrl.warning("lrr:unApprovedArcrole",
+            _("LRR arcrole %(arcrole)s on %(element)s has status %(status)s"),
+            modelObject=elt, arcrole=arcrole, element=arcEltQname, status=XbrlConst.lrrUnapprovedArcroles[arcrole])
 
 
 def checkIxContinuationChain(elt, chain=None):
