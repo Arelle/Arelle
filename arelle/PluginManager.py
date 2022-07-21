@@ -364,8 +364,9 @@ def _get_name_dir_prefix(
 
 def _get_location(moduleDir: str, moduleName: str) -> str:
     """Get the file name of a plugin."""
-    if os.path.isfile(Path(f"{moduleDir}/{moduleName}.py")):
-        return Path(f"{moduleDir}/{moduleName}.py")
+    module_name_path = os.path.isfile(Path(f"{moduleDir}/{moduleName}.py"))
+    if os.path.isfile(module_name_path):
+        return module_name_path
 
     return Path(f"{moduleDir}/{moduleName}/__init__.py")
 
