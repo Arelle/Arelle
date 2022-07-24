@@ -14,7 +14,7 @@ from decimal import Decimal, InvalidOperation
 from fractions import Fraction
 from arelle import XbrlConst, XmlUtil
 from arelle.ModelValue import (qname, qnameEltPfxName, qnameClarkName, qnameHref,
-                               dateTime, DATE, DATETIME, DATEUNION, 
+                               dateTime, DATE, DATETIME, DATEUNION, time,
                                anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay, isoDuration)
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.PythonUtil import strTruncate
@@ -67,6 +67,7 @@ lexicalPatterns = {
     "XBRLI_DATEUNION": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*$"),
     "dateTime": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*$"),
     "date": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}(Z|[+-][0-9]{2}:[0-9]{2})?\s*$"),
+    "time": re_compile(r"\s*-?[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*$"),
     }
 
 # patterns difficult to compile into python
@@ -504,6 +505,9 @@ def validateValue(modelXbrl, elt, attrTag, baseXsdType, value, isNillable=False,
                             sValue = value
                         elif baseXsdType == "date":
                             xValue = dateTime(value, type=DATE, castException=ValueError)
+                            sValue = value
+                        elif baseXsdType == "time":
+                            xValue = time(value, castException=ValueError)
                             sValue = value
                         elif baseXsdType == "gMonthDay":
                             month, day, zSign, zHrMin, zHr, zMin = match.groups()
