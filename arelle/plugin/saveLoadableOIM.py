@@ -678,7 +678,7 @@ def saveLoadableOIMCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs
  
 oimErrorPattern = re.compile("oime|oimce|xbrlje|xbrlce")
        
-def saveLoadableOIMAfterTestcaseValidated(testcaseDTS, testInstanceDTS, extraErrors):
+def saveLoadableOIMAfterTestcaseValidated(testcaseDTS, testInstanceDTS, extraErrors, *args, **kwargs):
     oimFileSuffix = getattr(testcaseDTS.modelManager, "saveTestcaseOimFileSuffix", None)
     if (oimFileSuffix and testInstanceDTS is not None and 
         testInstanceDTS.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET) and

@@ -409,7 +409,7 @@ class Validate:
                     self.instValidator.close()
                     extraErrors = []
                     for pluginXbrlMethod in pluginClassMethods("TestcaseVariation.Validated"):
-                        pluginXbrlMethod(self.modelXbrl, modelXbrl, extraErrors)
+                        pluginXbrlMethod(self.modelXbrl, modelXbrl, extraErrors, inputDTSes)
                     self.determineTestStatus(modelTestcaseVariation, [e for inputDTSlist in inputDTSes.values() for inputDTS in inputDTSlist for e in inputDTS.errors] + extraErrors) # include infoset errors in status
                     if modelXbrl.formulaOutputInstance and self.noErrorCodes(modelTestcaseVariation.actual): 
                         # if an output instance is created, and no string error codes, ignoring dict of assertion results, validate it
