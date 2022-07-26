@@ -6,7 +6,7 @@
    
   <DisclosureSystem 
      names="US SEC (Edgar Filing Manual, Strict)|efm|efm-strict"
-     description="US SEC Edgar Filing Manual v62 Release 22.2\n
+     description="US SEC Edgar Filing Manual v62 Release 22.2.2\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Disallowed references are blocked and not loaded (same as SEC production system)\n
@@ -16,7 +16,7 @@
      blockDisallowedReferences="true" 
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
-     standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-22-2.xml"
+     standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-22-2-2.xml"
      utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
      validateFileText="true"
      validateEntryText="true"
@@ -43,7 +43,7 @@
      />
   <DisclosureSystem 
      names="US SEC (Edgar Filing Manual, Pragmatic)|efm-blocking|efm-pragmatic"
-     description="US SEC Edgar Filing Manual v62 Release 22.2\n
+     description="US SEC Edgar Filing Manual v62 Release 22.2.2\n
      Default language en-US (en allowed in some cases per EFM)\n
      CIK identifier patterns\n
      Allowed references http://www.sec.gov/info/edgar/edgartaxonomies.shtml\n
@@ -54,7 +54,7 @@
      blockDisallowedReferences="true" 
      defaultXmlLang="en-US" 
      defaultLanguage="English" 
-     standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-22-2.xml"
+     standardTaxonomiesUrl="resources/edgartaxonomies/edgartaxonomies-22-2-2.xml"
      utrUrl="http://www.xbrl.org/utr/2022-02-16/utr.xml"
      validateFileText="true"
      validateEntryText="true"
