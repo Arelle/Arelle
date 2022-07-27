@@ -24,8 +24,8 @@ def variationInstanceLoaded(testcaseInstance, variationInstance, extraErrors, in
 def expectedInstanceLoaded(expectedInstance, outputInstanceToCompare):
     for f in expectedInstance.facts:
         if not f.isNumeric and f.text and "http://www.w3.org/1999/xhtml" in f.text:
-            f.text = re.sub("(<[^>]+)\s+xmlns=[\"']http://www.w3.org/1999/xhtml[\"']",r"\1", f.text)
-            
+            f.text = re.sub(r"""(<[^>]+)\s+xmlns=["']http://www.w3.org/1999/xhtml["']""",r"\1", f.text)
+
     # fixup relative urls in fact footnotes
     for elt in expectedInstance.modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/1999/xhtml}*"):
         for n in htmlEltUriAttrs.get(elt.localName, ()):
