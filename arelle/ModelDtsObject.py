@@ -885,7 +885,11 @@ class ModelAttribute(ModelNamableTerm):
         """(QName) -- QName of type of attribute"""
         if self.get("type"):
             return self.schemaNameQname(self.get("type"))
-        elif getattr(self,"xValid", 0) >= 4:
+        # check derivation
+        typeOrUnion = XmlUtil.schemaBaseTypeDerivedFrom(self)
+        if not isinstance(typeOrUnion,list): # not a union
+            return self.schemaNameQname(typeOrUnion)
+        if getattr(self,"xValid", 0) >= 4:
             # check if anonymous type exists
             typeqname = ModelValue.qname(self.qname.clarkNotation +  anonymousTypeSuffix)
             if typeqname in self.modelXbrl.qnameTypes:
