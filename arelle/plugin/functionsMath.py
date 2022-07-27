@@ -64,14 +64,20 @@ def xfm_pow(xc, p, contextItem, args):
         if x == 0:
             if math.copysign(1, x) < 0: # e.g., value is -0.0
                 if y < 0:
-                    return MINUSINF
+                    # special case for odd integer exponents
+                    _intY = int(y)
+                    if _intY & 1 and y == _intY: # special case for whole numbers
+                        return MINUSINF
+                    return INF
                 elif y == 0:
-                    return 0.0
+                    return 1.0
                 else:
                     return -0.0
             else: # value is +0.0
                 if y < 0:
                     return INF
+                elif y == 0:
+                    return 1.0
                 else:
                     return 0.0
         try:
