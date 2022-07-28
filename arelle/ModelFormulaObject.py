@@ -552,7 +552,8 @@ class ModelVariableSetAssertion(ModelVariableSet):
         msgsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.assertionUnsatisfiedSeverities)
         if msgsRelationshipSet:
             for rel in msgsRelationshipSet.fromModelObject(self):
-                return rel.toModelObject.evaluate(xpCtx, contextItem=contextItem)
+                if isinstance(rel.toModelObject, ModelAssertionSeverity):
+                    return rel.toModelObject.evaluate(xpCtx, contextItem=contextItem)
         return "ERROR"
     
     @property
