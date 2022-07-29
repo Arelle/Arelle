@@ -99,12 +99,12 @@ def checkImageContents(modelXbrl, imgElt, imgType, isFile, data):
 def resourcesFilePath(modelManager, fileName):
     # resourcesDir can be in cache dir (production) or in validate/EFM/resources (for development)
     _resourcesDir = os.path.join( os.path.dirname(__file__), "resources") # dev/testing location
-    _target = "validate/ESEF/resources"
+
     if not os.path.isabs(_resourcesDir):
         _resourcesDir = os.path.abspath(_resourcesDir)
     if not os.path.exists(_resourcesDir): # production location
         _resourcesDir = os.path.join(modelManager.cntlr.webCache.cacheDir, "resources", "validation", "ESEF")
-        _target = "web-cache/resources"
+
     return os.path.join(_resourcesDir, fileName)
 
 def loadAuthorityValidations(modelXbrl):
