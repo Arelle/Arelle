@@ -21,6 +21,7 @@ Arelle.egg-info
 
 .tox
 arelle_release.egg-info
+arelle-release*
 
 /venv/
 tests/resources/conformance_suites/
