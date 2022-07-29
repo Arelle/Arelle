@@ -30,7 +30,7 @@ def isInEsefTaxonomy(val, modelObject):
         return False
     ns = modelObject.qname.namespaceURI
     return (any(ns.startswith(esefNsPrefix) for esefNsPrefix in esefTaxonomyNamespaceURIs))
-    
+
 supportedImgTypes = {
     True: ("gif", "jpg", "jpeg", "png"), # file extensions
     False: ("gif", "jpeg", "png") # mime types: jpg is not a valid mime type
@@ -70,7 +70,7 @@ def checkImageContents(modelXbrl, imgElt, imgType, isFile, data):
     else:
         if data[:3] == b"GIF" and data[3:6] in (b'89a', b'89b', b'87a'):
             headerType = "gif"
-        elif ((data[:4] == b'\xff\xd8\xff\xe0' and data[6:11] == b'JFIF\x00') or 
+        elif ((data[:4] == b'\xff\xd8\xff\xe0' and data[6:11] == b'JFIF\x00') or
               (data[:4] == b'\xff\xd8\xff\xe1' and data[6:11] == b'Exif\x00')):
             headerType = "jpg"
         elif data[:8] == b"\x89PNG\r\n\x1a\n":
@@ -95,7 +95,7 @@ def checkImageContents(modelXbrl, imgElt, imgType, isFile, data):
                 _("Image type %(imgType)s has wrong header type: %(headerType)s"),
                 modelObject=imgElt, imgType=imgType, headerType=headerType,
                 messageCodes=("ESEF.2.5.1.imageDoesNotMatchItsFileExtension", "ESEF.2.5.1.incorrectMIMETypeSpecified"))
-            
+
 def resourcesFilePath(modelManager, fileName):
     # resourcesDir can be in cache dir (production) or in validate/EFM/resources (for development)
     _resourcesDir = os.path.join( os.path.dirname(__file__), "resources") # dev/testing location
@@ -112,4 +112,3 @@ def loadAuthorityValidations(modelXbrl):
     validations = json.load(_file) # {localName: date, ...}
     _file.close()
     return validations
-        
