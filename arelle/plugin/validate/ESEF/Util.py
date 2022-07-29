@@ -20,7 +20,7 @@ from arelle.ValidateXbrl import ValidateXbrl
 from typing import Any, Union, cast
 from collections.abc import Callable
 
-_: Callable  # Handle gettext
+_: Callable[[str], str]  # Handle gettext
 
 # check if a modelDocument URI is an extension URI (document URI)
 # also works on a uri passed in as well as modelObject
