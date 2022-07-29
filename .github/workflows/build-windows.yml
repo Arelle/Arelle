@@ -58,7 +58,7 @@ jobs:
     - name: Install requirements
       run: |
         pip install wheel
-        pip install -r requirements-dev.txt
+        pip install -r requirements-windows-build.txt
     - name: Make directories
       run: mkdir build,dist
     - name: Rebuild messages.pot internationalization file
