@@ -8,7 +8,6 @@ Filer Guidelines: ESMA_ESEF Manula 2019.pdf
 '''
 from __future__ import annotations
 import os, json
-import threading
 
 from arelle.ModelObject import ModelObject
 from .Const import esefTaxonomyNamespaceURIs
