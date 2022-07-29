@@ -19,6 +19,9 @@ Arelle.egg-info
 .eggs
 *.iml
 
+.tox
+arelle_release.egg-info
+
 /venv/
 tests/resources/conformance_suites/
 
