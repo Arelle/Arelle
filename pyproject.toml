@@ -39,28 +39,16 @@ exclude = "arelle/(plugin/validate/EFM-htm)"
 
 # --- per-module options ---
 [[tool.mypy.overrides]]
-module = [
-    'arelle.*',
-    'arelle.webserver.*',
-    'arelle.examples.plugin.*',
-    'arelle.plugin.*',
-    'arelle.plugin.sphinx.*',
-    'arelle.plugin.xbrlDB.*',
-    'arelle.plugin.transforms.SEC.*',
-    'arelle.plugin.logging.*',
-    'arelle.plugin.security.*',
-    'arelle.plugin.internet.proxyNTLM.*',
-    'arelle.plugin.validate.EFM.*',
-    'arelle.plugin.validate.ESEF.*',
-    'arelle.plugin.validate.SBRnl.*'
-]
+module = 'arelle.*'
 ignore_errors = true
 
 # --- strict typing ---
 # when a directory is converted, file entries are replaced by directory entry
 # when the library is converted, the above entry will be replaced (strict is demanded)
 [[tool.mypy.overrides]]
-module = 'arelle.plugin.validate.ESEF.util'
+module = [
+    'arelle.plugin.validate.ESEF.Util'
+]
 strict = true
 check_untyped_defs = true
 disallow_incomplete_defs = true
@@ -71,3 +59,4 @@ disallow_untyped_defs = true
 no_implicit_optional = true
 warn_return_any = true
 warn_unreachable = true
+ignore_errors = false
