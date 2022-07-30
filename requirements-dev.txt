@@ -6,4 +6,10 @@ Sphinx==5.0.2
 mock==4.0.3
 pytest==7.1.1
 
+types-PyMySQL==1.0.19
+types-pytz==2022.1.2
+types-simplejson==3.17.7
+types-ujson==5.4.0
+types-waitress==2.1.4
+
 -r requirements.txt
