@@ -59,15 +59,18 @@ def parseAndRun(args):
         hasWebServer = True
     except ImportError:
         hasWebServer = False
-    cntlr = CntlrCmdLine()  # need controller for plug ins to be loaded
-
+    uiLang = None
     # Check if there is UI language override to use the selected language
     # for help and error messages...
     for _i, _arg in enumerate(args):
-        if _arg.startswith('--uiLang'):
-            _uiLang = args[_i+1]
-            cntlr.setUiLanguage(_uiLang)
+        if _arg.startswith("--uiLang="):
+            uiLang = _arg[9:]
             break
+        elif _arg == "--uiLang" and _i + 1 < len(args):
+            uiLang = args[_i+1]
+            break
+
+    cntlr = CntlrCmdLine(uiLang=uiLang)  # need controller for plug ins to be loaded
 
     usage = "usage: %prog [options]"
 
@@ -538,8 +541,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
     Initialization sets up for platform via Cntlr.Cntlr.
     """
 
-    def __init__(self, logFileName=None):
-        super(CntlrCmdLine, self).__init__(hasGui=False)
+    def __init__(self, logFileName=None, uiLang=None):
+        super(CntlrCmdLine, self).__init__(hasGui=False, uiLang=uiLang)
         self.preloadedPlugins =  {}
 
     def run(self, options, sourceZipStream=None, responseZipStream=None):
@@ -590,8 +593,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
         setDisableRTL(options.disableRtl) # not saved to config
 
-        if options.uiLang: # set current UI Lang (but not config setting)
-            self.setUiLanguage(options.uiLang)
         if options.proxy:
             if options.proxy != "show":
                 proxySettings = proxyTuple(options.proxy)

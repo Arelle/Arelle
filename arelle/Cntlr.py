@@ -141,7 +141,8 @@ class Cntlr:
         logFileName: str | None = None,
         logFileMode: str | None = None,
         logFileEncoding: str | None = None,
-        logFormat: str | None = None
+        logFormat: str | None = None,
+        uiLang: str | None = None,
     ) -> None:
         self.hasWin32gui = False
         self.hasGui = hasGui
@@ -276,7 +277,7 @@ class Cntlr:
             }
 
         # start language translation for domain
-        self.setUiLanguage(self.config.get("userInterfaceLangOverride",None), fallbackToDefault=True)
+        self.setUiLanguage(uiLang or self.config.get("userInterfaceLangOverride",None), fallbackToDefault=True)
         setDisableRTL(self.config.get('disableRtl', False))
 
         self.webCache = WebCache(self, self.config.get("proxySettings"))
@@ -310,6 +311,9 @@ class Cntlr:
                 self.uiLangDir = "ltr"
                 gettext.install("arelle",
                                 self.localeDir)
+
+        if hasattr(self, "modelManager"): # not available on Cntlr __init_ call
+            self.modelManager.setLocale() # reset the modelManager uiLang locale
 
     def startLogging(
         self,
