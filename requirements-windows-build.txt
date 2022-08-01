@@ -1,0 +1,3 @@
+requests_negotiate_sspi==0.5.2
+
+-r requirements-dev.txt

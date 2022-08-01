@@ -205,6 +205,10 @@ class ModelXbrl:
 
         Set of variableSets in formula linkbases
 
+        .. attribute:: modelConsistencyAssertions
+
+        Set of modelConsistencyAssertions in formula linkbases
+
         .. attribute:: modelCustomFunctionSignatures
 
         Dict of custom function signatures by qname and by qname,arity
@@ -287,6 +291,7 @@ class ModelXbrl:
         self.modelObjects = []
         self.qnameParameters = {}
         self.modelVariableSets = set()
+        self.modelConsistencyAssertions = set()
         self.modelCustomFunctionSignatures = {}
         self.modelCustomFunctionImplementations = set()
         self.modelRenderingTables = set()

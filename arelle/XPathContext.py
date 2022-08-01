@@ -221,7 +221,7 @@ class XPathContext:
                         op1 = s1[0]
                         op2 = s2[0]
                         testTypeCompatiblity( self, p, op, op1, op2 )
-                        if type(op1) != type(op2) and op in ('+', '-', '*', 'div', 'idiv', 'mod'):
+                        if type(op1) != type(op2) and op in ('+', '-', '*', 'div', 'idiv', 'mod', 'ge', 'gt', 'le', 'lt', 'eq', 'ne'):
                             # check if type promotion needed (Decimal-float, not needed for integer-Decimal)
                             if isinstance(op1,Decimal) and isinstance(op2,float):
                                 op1 = float(op1) # per http://http://www.w3.org/TR/xpath20/#dt-type-promotion 1b

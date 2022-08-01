@@ -553,6 +553,12 @@ def start_equal(xc, p, args):
 def end_equal(xc, p, args):
     return date_equal_test(xc, p, args, True)
 
+def taxonomy_refs(xc, p, args):
+    return [ref.referringModelObject.xAttributes.get("{http://www.w3.org/1999/xlink}href").xValue # need typed value
+            for ref in sorted(xc.modelXbrl.modelDocument.referencesDocument.values(), 
+                              key=lambda r:r.referringModelObject.objectIndex)
+            if ref.referringModelObject.localName == "schemaRef"]
+
 def date_equal_test(xc, p, args, instantEndDate):
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
     date1 = atomicArg(xc, p, args, 0, "xbrldi:dateUnion", missingArgFallback=(), emptyFallback=None)
@@ -1448,6 +1454,7 @@ xfiFunctions = {
     'pcu-equal': pcu_equal,
     'start-equal': start_equal,
     'end-equal': end_equal,
+    'taxonomy-refs': taxonomy_refs,
     'nodes-correspond': nodes_correspond,
     'facts-in-instance': facts_in_instance,
     'items-in-instance': items_in_instance,

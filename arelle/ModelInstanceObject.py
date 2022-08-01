@@ -471,8 +471,6 @@ class ModelFact(ModelObject):
             return (other.concept.isFraction and
                     self.unit is not None and self.unit.isEqualTo(other.unit) and 
                     self.xValue == other.xValue)
-        elif type(self.xValue) == ModelValue.DateTime == type(other.xValue):
-            return self.xValue == other.xValue # required to handle date/time with 24 hrs.
         selfValue = self.value
         otherValue = other.value
         if normalizeSpace and isinstance(selfValue,str) and isinstance(otherValue,str): # normalized space comparison

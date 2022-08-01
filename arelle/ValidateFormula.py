@@ -244,7 +244,7 @@ def checkBaseSet(val, arcrole, ELR, relsSet):
                     _("Assertion-unsatisfied-severity relationship from %(xlinkLabel)s has more than one severity target"),
                      modelObject=[relFrom] + rels, xlinkLabel=relFrom.xlinkLabel)
         for relTo, rels in relsSet.toModelObjects().items():
-            if relTo.isStatic and relTo.modelDocument.basename != "severities.xml" or relTo.getparent().qname != XbrlConst.qnGenLink or relTo.getparent().getparent().qname != XbrlConst.qnLinkLinkbase:
+            if relTo.qname != XbrlConst.qnAssertionSeverityExpression20 and (relTo.modelDocument.basename != "severities.xml" or relTo.getparent().qname != XbrlConst.qnGenLink or relTo.getparent().getparent().qname != XbrlConst.qnLinkLinkbase):
                 val.modelXbrl.error("seve:assertionSeverityTargetError",
                     _("Target of assertion-unsatisfied-severity relationship must be a severity element in the published severities linkbase."),
                      modelObject=[relTo] + rels)
@@ -708,6 +708,12 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
         variableDependencies.clear()
         varSetInstanceDependencies.clear()
 
+    # check unlinked Consistency Assertions
+    for consisAsser in val.modelXbrl.modelConsistencyAssertions:
+        if not val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).fromModelObject(consisAsser):
+            checkValidationMessages(val, consisAsser)
+            checkValidationMessageVariables(val, consisAsser, {}, xpathContext.parameterQnames)
+
     val.modelXbrl.profileActivity("... assertion and formula checks and compilation", minTimeToShow=1.0)
             
     for modelTable in val.modelXbrl.modelRenderingTables:
@@ -771,30 +777,32 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                _("Variable instances processing order: %(dependencies)s"),
                 modelObject=val.modelXbrl, dependencies=orderedInstancesList)
 
+    # consistency assertions whether linked or not
+    for consisAsser in val.modelXbrl.modelConsistencyAssertions:
+        consisAsser.countSatisfied = 0
+        consisAsser.countNotSatisfied = 0
+        consisAsser.countOkMessages = 0
+        consisAsser.countWarningMessages = 0
+        consisAsser.countErrorMessages = 0
+        if consisAsser.hasProportionalAcceptanceRadius and consisAsser.hasAbsoluteAcceptanceRadius:
+            val.modelXbrl.error("xbrlcae:acceptanceRadiusConflict",
+                _("Consistency assertion %(xlinkLabel)s has both absolute and proportional acceptance radii"), 
+                modelObject=consisAsser, xlinkLabel=consisAsser.xlinkLabel)
+        consisAsser.orderedVariableRelationships = []
+        for consisParamRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionParameter).fromModelObject(consisAsser):
+            if isinstance(consisParamRel.toModelObject, ModelVariable):
+                val.modelXbrl.error("xbrlcae:variablesNotAllowed",
+                    _("Consistency assertion %(xlinkLabel)s has relationship to a %(elementTo)s %(xlinkLabelTo)s"),
+                    modelObject=consisAsser, xlinkLabel=consisAsser.xlinkLabel, 
+                    elementTo=consisParamRel.toModelObject.localName, xlinkLabelTo=consisParamRel.toModelObject.xlinkLabel)
+            elif isinstance(consisParamRel.toModelObject, ModelParameter):
+                consisAsser.orderedVariableRelationships.append(consisParamRel)
+        consisAsser.compile()
+        
     # linked consistency assertions
     for modelRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).modelRelationships:
         if (isinstance(modelRel.fromModelObject, ModelConsistencyAssertion) and 
             isinstance(modelRel.toModelObject,ModelFormula)):
-            consisAsser = modelRel.fromModelObject
-            consisAsser.countSatisfied = 0
-            consisAsser.countNotSatisfied = 0
-            consisAsser.countOkMessages = 0
-            consisAsser.countWarningMessages = 0
-            consisAsser.countErrorMessages = 0
-            if consisAsser.hasProportionalAcceptanceRadius and consisAsser.hasAbsoluteAcceptanceRadius:
-                val.modelXbrl.error("xbrlcae:acceptanceRadiusConflict",
-                    _("Consistency assertion %(xlinkLabel)s has both absolute and proportional acceptance radii"), 
-                    modelObject=consisAsser, xlinkLabel=consisAsser.xlinkLabel)
-            consisAsser.orderedVariableRelationships = []
-            for consisParamRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionParameter).fromModelObject(consisAsser):
-                if isinstance(consisParamRel.toModelObject, ModelVariable):
-                    val.modelXbrl.error("xbrlcae:variablesNotAllowed",
-                        _("Consistency assertion %(xlinkLabel)s has relationship to a %(elementTo)s %(xlinkLabelTo)s"),
-                        modelObject=consisAsser, xlinkLabel=consisAsser.xlinkLabel, 
-                        elementTo=consisParamRel.toModelObject.localName, xlinkLabelTo=consisParamRel.toModelObject.xlinkLabel)
-                elif isinstance(consisParamRel.toModelObject, ModelParameter):
-                    consisAsser.orderedVariableRelationships.append(consisParamRel)
-            consisAsser.compile()
             modelRel.toModelObject.hasConsistencyAssertion = True
     val.modelXbrl.profileActivity("... consistency assertion setup", minTimeToShow=1.0)
 
@@ -958,11 +966,8 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                     assertionType="Existence" if isinstance(exisValAsser, ModelExistenceAssertion) else "Value", 
                     id=exisValAsser.id, satisfiedCount=exisValAsser.countSatisfied, notSatisfiedCount=exisValAsser.countNotSatisfied)
 
-    for modelRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).modelRelationships:
-        if isinstance(modelRel.fromModelObject, ModelConsistencyAssertion) and \
-           isinstance(modelRel.toModelObject, ModelFormula) and \
-           (not runIDs or runIDs.match(modelRel.fromModelObject.id)):
-            consisAsser = modelRel.fromModelObject
+    for consisAsser in val.modelXbrl.modelConsistencyAssertions:
+        if (not runIDs or runIDs.match(consisAsser.id)):
             asserTests[consisAsser.id] = (consisAsser.countSatisfied, consisAsser.countNotSatisfied, consisAsser.countOkMessages, consisAsser.countWarningMessages, consisAsser.countErrorMessages)
             if formulaOptions.traceAssertionResultCounts:
                 val.modelXbrl.info("formula:trace",
@@ -1351,4 +1356,5 @@ def checkValidationMessageVariables(val, modelVariableSet, varNames, paramNames)
                         _("Existence Assertion depends on evaluation variable in message %(xlinkLabel)s, %(name)s"),
                         modelObject=message, xlinkLabel=message.xlinkLabel, name=msgVarQname)
     for modelRel in val.modelXbrl.relationshipSet(XbrlConst.assertionUnsatisfiedSeverity20).fromModelObject(modelVariableSet):
-        modelRel.toModelObject.compile()
+        if isinstance(modelRel.toModelObject, ModelAssertionSeverity):
+            modelRel.toModelObject.compile()

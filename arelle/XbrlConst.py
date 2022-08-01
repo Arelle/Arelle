@@ -294,16 +294,15 @@ qnVariableSetAssertion = qname("{http://xbrl.org/2008/validation}validation:vari
 qnAssertionSet = qname("{http://xbrl.org/2008/validation}validation:assertionSet")
 assertionSet = "http://xbrl.org/arcrole/2008/assertion-set"
 assertionUnsatisfiedSeverity = "http://xbrl.org/arcrole/2016/assertion-unsatisfied-severity"
-assertionUnsatisfiedSeverity20 = "http://xbrl.org/arcrole/WGWD/YYYY-MM-DD/assertion-unsatisfied-severity"
+assertionUnsatisfiedSeverity20 = "http://xbrl.org/arcrole/2022/assertion-unsatisfied-severity"
 assertionUnsatisfiedSeverities = (assertionUnsatisfiedSeverity, assertionUnsatisfiedSeverity20)
 qnAssertionSeverityError = qname("{http://xbrl.org/2016/assertion-severity}sev:error")
 qnAssertionSeverityWarning = qname("{http://xbrl.org/2016/assertion-severity}sev:warning")
 qnAssertionSeverityOk = qname("{http://xbrl.org/2016/assertion-severity}sev:ok")
-assertionUnsatisfiedSeverity20 = "http://xbrl.org/arcrole/WGWD/YYYY-MM-DD/assertion-unsatisfied-severity"
-qnAssertionSeverityError20 = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/assertion-severity}sev:error")
-qnAssertionSeverityWarning20 = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/assertion-severity}sev:warning")
-qnAssertionSeverityOk20 = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/assertion-severity}sev:ok")
-qnAssertionSeverityExpression20 = qname("{http://xbrl.org/WGWD/YYYY-MM-DD/assertion-severity}sev:expression")
+qnAssertionSeverityError20 = qname("{http://xbrl.org/2022/assertion-severity}sev:error")
+qnAssertionSeverityWarning20 = qname("{http://xbrl.org/2022/assertion-severity}sev:warning")
+qnAssertionSeverityOk20 = qname("{http://xbrl.org/2022/assertion-severity}sev:ok")
+qnAssertionSeverityExpression20 = qname("{http://xbrl.org/2022/assertion-severity}sev:expression")
 
 acf = "http://xbrl.org/2010/filter/aspect-cover"
 qnAspectCover = qname("{http://xbrl.org/2010/filter/aspect-cover}acf:aspectCover")
@@ -550,8 +549,8 @@ errMsgPrefixNS = { # err prefixes which are not declared, such as XPath's "err" 
 qnEuFiTuple = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}ef-find:fIndicators")
 qnEuFiIndFact = qname("{http://www.eurofiling.info/xbrl/ext/filing-indicators}ef-find:filingIndicator")
 cnEuFiIndAttr = "{http://www.eurofiling.info/xbrl/ext/filing-indicators}filed" # clark name
-qnFiFact = qname("{http://www.xbrl.org/taxonomy/int/fi/REC/2021-02-03}fi:filed")
-qnFiDim = qname("{http://www.xbrl.org/taxonomy/int/fi/REC/2021-02-03}fi:template")
+qnFiFact = qname("{http://www.xbrl.org/taxonomy/int/filing-indicators/REC/2021-02-03}fi:filed")
+qnFiDim = qname("{http://www.xbrl.org/taxonomy/int/filing-indicators/REC/2021-02-03}fi:template")
 
 arcroleGroupDetect = "*detect*"
 
