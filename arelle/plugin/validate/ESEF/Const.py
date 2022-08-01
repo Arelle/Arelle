@@ -101,7 +101,7 @@ esefMandatoryElementNames2020 = (
     "DescriptionOfNatureOfEntitysOperationsAndPrincipalActivities",
     "NameOfParentEntity",
     "NameOfUltimateParentOfGroup"
-    )     
+    )
 
 esefMandatoryElementNames2022 = (
     "AddressOfRegisteredOfficeOfEntity",
@@ -347,4 +347,4 @@ esefMandatoryElementNames2022 = (
     "NameOfUltimateParentOfGroup",
     "PrincipalPlaceOfBusiness",
     "StatementOfIFRSCompliance",
-)            
+)
