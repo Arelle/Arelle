@@ -47,6 +47,7 @@ ignore_errors = true
 # when the library is converted, the above entry will be replaced (strict is demanded)
 [[tool.mypy.overrides]]
 module = [
+    'arelle.plugin.validate.ESEF.Const',
     'arelle.plugin.validate.ESEF.Util'
 ]
 strict = true
