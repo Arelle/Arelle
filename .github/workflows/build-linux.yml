@@ -41,7 +41,7 @@ jobs:
           repository: Workiva/ixbrl-viewer
           path: ixbrl-viewer
       - name: Set up Node JS
-        uses: actions/checkout@v3.0.2
+        uses: actions/setup-node@v3.4.1
         with:
           node-version: lts/*
       - name: Build ixbrl-viewer
