@@ -9,9 +9,9 @@ jobs:
   build-and-publish-package:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.0.2
       - name: Install Python 3
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4.1.0
         with:
           python-version: '3.9'
       - name: Build python package
@@ -19,7 +19,7 @@ jobs:
           pip install setuptools wheel twine build
           python -m build
       - name: Upload build artifact
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3.1.0
         with:
           name: arelle.tar.gz
           path: dist/*.tar.gz
