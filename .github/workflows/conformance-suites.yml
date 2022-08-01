@@ -7,7 +7,7 @@ jobs:
     outputs:
       matrix: ${{ steps.build-test-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.0.2
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
@@ -34,13 +34,13 @@ jobs:
           curl -L "${{ secrets.XBRL_VALIDATION_CONFIG_URL }}" -o config.zip
           unzip -d "$XDG_CONFIG_HOME/arelle/cache" config.zip 'http/*' 'https/*'
           rm config.zip
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.0.2
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Install Python 3
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4.1.0
         with:
           python-version: 3.9
       - name: Install dependencies
@@ -48,7 +48,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v1.6.1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
