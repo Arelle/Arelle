@@ -35,7 +35,7 @@ warn_return_any = false
 warn_unreachable = false
 
 # EFM-htm is an invalid Python package name
-exclude = "arelle/(plugin/validate/EFM-htm)"
+exclude = "arelle/plugin/validate/EFM-htm"
 
 # --- per-module options ---
 [[tool.mypy.overrides]]
