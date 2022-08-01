@@ -15,16 +15,16 @@ jobs:
 
     steps:
       - name: Checkout arelle
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.0.2
       - name: Checkout EdgarRenderer
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.0.2
         with:
           repository: Arelle/EdgarRenderer
           path: arelle/plugin/EdgarRenderer
       - name: Cleanup EdgarRenderer
         run: rm -rf arelle/plugin/EdgarRenderer/.git
       - name: Checkout XULE
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.0.2
         with:
           repository: xbrlus/xule
           path: xule
@@ -36,12 +36,12 @@ jobs:
       - name: Cleanup XULE
         run: rm -rf xule
       - name: Checkout ixbrl-viewer
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.0.2
         with:
           repository: Workiva/ixbrl-viewer
           path: ixbrl-viewer
       - name: Set up Node JS
-        uses: actions/setup-node@v3
+        uses: actions/checkout@v3.0.2
         with:
           node-version: lts/*
       - name: Build ixbrl-viewer
@@ -80,7 +80,7 @@ jobs:
           docker cp arelle:/build/dist/ dist/
           docker rm -v arelle
       - name: Upload build artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3.1.0
         with:
           name: ${{ matrix.distro }} distribution
           path: dist/*.tgz
