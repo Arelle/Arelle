@@ -1,7 +1,7 @@
 # core modules
 lxml>=4.6.3
 OpenPyXL>=2.3.3
-regex==2022.7.9
+regex==2022.7.25
 isodate==0.6.1
 aniso8601==9.0.1
 CherryPy==18.7.0
