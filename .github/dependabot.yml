@@ -12,4 +12,5 @@ updates:
     open-pull-requests-limit: 10
     ignore:
       - dependency-name: "RDFLib"
-        versions: [">=6"]
+        versions:
+          - ">=6"
