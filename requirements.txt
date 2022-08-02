@@ -22,5 +22,5 @@ PyMySQL==1.0.2
 pyodbc==4.0.32
 RDFLib<6
 # other
-graphviz==0.20
+graphviz==0.20.1
 Pillow==9.2.0
