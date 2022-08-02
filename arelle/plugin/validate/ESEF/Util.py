@@ -24,7 +24,7 @@ _: Callable[[str], str]  # Handle gettext
 
 # check if a modelDocument URI is an extension URI (document URI)
 # also works on a uri passed in as well as modelObject
-def isExtension(val: ValidateXbrl, modelObject: ModelObject | None) -> bool:
+def isExtension(val: ValidateXbrl, modelObject: ModelObject | str | None) -> bool:
     if modelObject is None:
         return False
     if isinstance(modelObject, str):
