@@ -3,37 +3,12 @@ requires = ["setuptools~=62.3", "wheel~=0.37.1"]
 build-backend = "setuptools.build_meta"
 
 [tool.mypy]
-check_untyped_defs = false
-
-disallow_incomplete_defs = false
-disallow_subclassing_any = false
-disallow_untyped_calls = false
-disallow_untyped_decorators = false
-disallow_untyped_defs = false
-
 # Warn when a # type: ignore comment does not specify any error codes
 enable_error_code = "ignore-without-code"
-
-follow_imports = "normal"
-
-ignore_errors = false
-ignore_missing_imports = false
-
-no_implicit_reexport = false
-no_implicit_optional = false
 
 python_version = "3.9"
 
 show_error_codes = true
-strict_concatenate = false
-strict_equality = false
-
-warn_incomplete_stub = false
-warn_unused_configs = false
-warn_unused_ignores = false
-warn_redundant_casts = false
-warn_return_any = false
-warn_unreachable = false
 
 # EFM-htm is an invalid Python package name
 exclude = "arelle/plugin/validate/EFM-htm"
