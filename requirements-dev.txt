@@ -7,4 +7,11 @@ mock==4.0.3
 mypy==0.971
 pytest==7.1.2
 
+lxml-stubs==0.4.0
+types-PyMySQL==1.0.19
+types-pytz==2022.1.2
+types-simplejson==3.17.7
+types-ujson==5.4.0
+types-waitress==2.1.4
+
 -r requirements.txt
