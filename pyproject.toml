@@ -41,7 +41,7 @@ exclude = "arelle/plugin/validate/EFM-htm"
 # --- per-module options ---
 [[tool.mypy.overrides]]
 module = 'arelle.*'
-ignore_errors = false
+ignore_errors = true
 
 # --- strict typing ---
 # when a directory is converted, file entries are replaced by directory entry
