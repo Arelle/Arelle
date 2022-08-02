@@ -7,6 +7,7 @@ mock==4.0.3
 mypy==0.971
 pytest==7.1.1
 
+lxml-stubs==0.4.0
 types-PyMySQL==1.0.19
 types-pytz==2022.1.2
 types-simplejson==3.17.7
