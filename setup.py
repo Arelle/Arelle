@@ -47,7 +47,7 @@ if sys.platform in ('darwin', 'linux'):
     from setuptools import find_packages
     try:
         from cx_Freeze import setup, Executable  
-        cx_freeze_executables = [ 
+        cx_freeze_executables = [
             Executable(script="arelleGUI.py", target_name="arelleGUI"),
             Executable(script="arelleCmdLine.py")
         ]
@@ -81,7 +81,7 @@ if sys.platform in ('darwin', 'linux'):
         # include_files.append(('/Library/Frameworks/Tk.framework/Versions/8.6/Resources/Scripts', 'tk8.6'))
         # include_files.append(('/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/tkinter', 'lib/tkinter'))
         # include_files.append(('/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload/_tkinter.cpython-35m-darwin.so', 'lib/_tkinter.cpython-35m-darwin.so'))
-        include_files.append(('../libs/macos/Tktable2.11', 'Tktable2.11'))
+        include_files.append(('libs/macos/Tktable2.11', 'Tktable2.11'))
     else: 
         include_files.append(('arelle/scripts-unix', 'scripts'))
         if os.path.exists("/etc/redhat-release"):
@@ -93,8 +93,8 @@ if sys.platform in ('darwin', 'linux'):
             include_files.append(('/usr/lib64/libxslt.so.1', 'libxslt.so'))
             include_files.append(('/lib64/libz.so.1', 'libz.so.1')) # not standard in RHEL6
             include_files.append(('/usr/lib64/liblzma.so.5', 'liblzma.so.5')) # not standard in RHEL6
-            include_files.append(('/usr/local/lib/tcl8.6', 'tcl8.6')) 
-            include_files.append(('/usr/local/lib/tk8.6', 'tk8.6')) 
+            include_files.append(('/usr/local/lib/tcl8.6', 'tcl8.6'))
+            include_files.append(('/usr/local/lib/tk8.6', 'tk8.6'))
 
     if os.path.exists(VERSION_FILE):
         include_files.append((VERSION_FILE, VERSION_FILE))
@@ -150,16 +150,15 @@ if sys.platform in ('darwin', 'linux'):
             "packages": packages,
         }
     )
-    if sys.platform == 'darwin':
-        options["bdist_mac"] = {
-            "iconfile": 'arelle/images/arelle.icns',
-            "bundle_name": 'Arelle',
-        }
-        
+    options["bdist_mac"] = {
+        "iconfile": 'arelle/images/arelle.icns',
+        "bundle_name": 'Arelle',
+    }
+
     
 elif sys.platform == 'win32':
     from setuptools import find_packages
-    from cx_Freeze import setup, Executable 
+    from cx_Freeze import setup, Executable
     # FIXME: this should use the entry_points mechanism
     packages = find_packages('.')
     print("packages={}".format(packages))
@@ -241,7 +240,7 @@ elif sys.platform == 'win32':
             script="arelleCmdLine.py",
         )
     ]
-else:  
+else:
     from setuptools import os, setup, find_packages
     packages = find_packages(
         '.', # note that new setuptools finds plugin and lib unwanted stuff

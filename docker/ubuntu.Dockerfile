@@ -56,6 +56,7 @@ WORKDIR /build
 ADD ../requirements*.txt .
 
 RUN pip3 install -r requirements-dev.txt
+RUN pip3 install -r requirements-linux-build.txt
 
 ADD ../ /build
 

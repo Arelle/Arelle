@@ -12,6 +12,7 @@ jobs:
       - name: Install Python 3
         uses: actions/setup-python@v3
         with:
+          cache: 'pip' # caching pip dependencies
           python-version: 3.9
       - name: Install dependencies
         run: |

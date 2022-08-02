@@ -52,6 +52,7 @@ jobs:
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4.1.0
       with:
+        cache: 'pip' # caching pip dependencies
         python-version: ${{ matrix.python-version }}
     - name: Install NSIS
       run: choco install nsis

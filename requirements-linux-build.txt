@@ -1,0 +1,2 @@
+# The Ubuntu GUI exits immediately without error in 6.11.0.
+cx_Freeze==6.10

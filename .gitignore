@@ -30,3 +30,6 @@ tests/resources/conformance_suites/
 # VS Code
 .devcontainer
 .vscode
+
+Pipfile.lock
+Pipfile
