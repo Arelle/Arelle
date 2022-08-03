@@ -8,6 +8,7 @@ try:
     import regex as re
 except ImportError:
     import re
+from typing import Any
 from arelle import (ModelDocument, XmlUtil, XbrlUtil, XbrlConst,
                 ValidateXbrlCalcs, ValidateXbrlDimensions, ValidateXbrlDTS, ValidateFormula, ValidateUtr)
 from arelle import FunctionIxt
@@ -15,6 +16,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelValue import qname
+from arelle.ModelXbrl import ModelXbrlProtocol
 from arelle.PluginManager import pluginClassMethods
 from arelle.ValidateXbrlCalcs import inferredDecimals
 from arelle.XbrlConst import (ixbrlAll, dtrNoDecimalsItemTypes, dtrPrefixedContentItemTypes, dtrPrefixedContentTypes,
@@ -22,6 +24,9 @@ from arelle.XbrlConst import (ixbrlAll, dtrNoDecimalsItemTypes, dtrPrefixedConte
 from arelle.XhtmlValidate import ixMsgCode
 from arelle.XmlValidate import VALID
 from collections import defaultdict
+
+from typing_extensions import Protocol
+
 validateUniqueParticleAttribution = None # dynamic import
 
 arcNamesTo21Resource = {"labelArc","referenceArc"}
@@ -43,6 +48,16 @@ baseXbrliTypes = {
         "gYearItemType", "gMonthDayItemType", "gDayItemType", "gMonthItemType",
         "normalizedStringItemType", "tokenItemType", "languageItemType", "NameItemType", "NCNameItemType"
       }
+
+class ValidateXbrlProtocol(Protocol):
+    """Implements a protocol that helps typing of the ValidateXbrl class."""
+
+    @property
+    def authParam(self) -> dict[str, Any]: ...
+
+    @property
+    def modelXbrl(self) -> ModelXbrlProtocol: ...
+
 
 class ValidateXbrl:
     def __init__(self, testModelXbrl):
