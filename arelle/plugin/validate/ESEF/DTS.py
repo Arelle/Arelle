@@ -20,8 +20,8 @@ from collections import defaultdict
 from arelle import ModelDocument, XbrlConst
 from arelle.ModelDtsObject import ModelConcept, ModelType
 from arelle.ModelObject import ModelObject
-from arelle.XbrlConst import xbrli, standardLabelRoles, dimensionDefault, standardLinkbaseRefRoles
-from .Const import (qnDomainItemTypes, esefDefinitionArcroles, disallowedURIsPattern, DefaultDimensionLinkroles,
+from arelle.XbrlConst import xbrli, standardLabelRoles, dimensionDefault
+from .Const import (qnDomainItemTypes, esefDefinitionArcroles, DefaultDimensionLinkroles,
                     linkbaseRefTypes, filenamePatterns, filenameRegexes)
 from .Util import isExtension
 
