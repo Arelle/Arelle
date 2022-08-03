@@ -18,7 +18,6 @@ from arelle.PythonUtil import flattenSequence
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 
-from typing_extensions import Protocol
 
 ModelRelationshipSet = None # dynamic import
 ModelFact = None
@@ -116,12 +115,6 @@ def loadSchemalocatedSchemas(modelXbrl):
             modelDocument = modelDocuments.pop()
             modelDocumentsSchemaLocated.add(modelDocument)
             modelDocument.loadSchemalocatedSchemas()
-
-class ModelXbrlProtocol(Protocol):
-    """Implements a protocol that helps typing of the ValidateXbrl class."""
-
-    @property
-    def uriDir(self) -> str: ...
 
 
 class ModelXbrl:
@@ -268,6 +261,8 @@ class ModelXbrl:
         Logger for modelXbrl
 
     """
+
+    uriDir: str
 
     def __init__(self, modelManager, errorCaptureLevel=None):
         self.modelManager = modelManager
@@ -1225,7 +1220,7 @@ class ModelXbrl:
             """@messageCatalog=[]"""
             logger.log(numericLevel, *logArgs, exc_info=args.get("exc_info"), extra=extras)
 
-    def error(self, codes, msg, **args):
+    def error(self, codes, msg, **args) -> None:
         """Logs a message as info, by code, logging-system message text (using %(name)s named arguments
         to compose string by locale language), resolving model object references (such as qname),
         to prevent non-dereferencable memory usage.  Supports logging system parameters, and
