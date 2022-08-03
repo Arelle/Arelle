@@ -16,7 +16,7 @@ from arelle.FileSource import openFileStream
 from arelle.UrlUtil import scheme
 from arelle.ModelManager import ModelManager
 from arelle.ModelXbrl import ModelXbrl
-from arelle.ValidateXbrl import ValidateXbrl
+from arelle.ValidateXbrl import ValidateXbrlProtocol
 from typing import Any, Union, cast
 from collections.abc import Callable
 
@@ -24,7 +24,7 @@ _: Callable[[str], str]  # Handle gettext
 
 # check if a modelDocument URI is an extension URI (document URI)
 # also works on a uri passed in as well as modelObject
-def isExtension(val: ValidateXbrl, modelObject: ModelObject | str | None) -> bool:
+def isExtension(val: ValidateXbrlProtocol, modelObject: ModelObject | str | None) -> bool:
     if modelObject is None:
         return False
     if isinstance(modelObject, str):
@@ -32,10 +32,10 @@ def isExtension(val: ValidateXbrl, modelObject: ModelObject | str | None) -> boo
     else:
         uri = modelObject.modelDocument.uri
     return (uri.startswith(val.modelXbrl.uriDir) or
-            not any(uri.startswith(standardTaxonomyURI) for standardTaxonomyURI in val.authParam["standardTaxonomyURIs"]))  # type: ignore[attr-defined]
+            not any(uri.startswith(standardTaxonomyURI) for standardTaxonomyURI in val.authParam["standardTaxonomyURIs"]))
 
 # check if in core esef taxonomy (based on namespace URI)
-def isInEsefTaxonomy(val: Any, modelObject: ModelObject | None) -> bool:
+def isInEsefTaxonomy(val: ValidateXbrlProtocol, modelObject: ModelObject | None) -> bool:
     if modelObject is None:
         return False
     ns = modelObject.qname.namespaceURI
