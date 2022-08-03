@@ -6,6 +6,7 @@ Created on Oct 3, 2010
 '''
 import os, io
 from collections import defaultdict
+from typing import Any
 from lxml import etree
 from xml.sax import SAXParseException
 from arelle import (PackageManager, XbrlConst, XmlUtil, UrlUtil, ValidateFilingText,
@@ -647,6 +648,9 @@ class ModelDocument:
 
         Qualifies as a discovered schema per XBRL 2.1
     """
+
+    documentEncoding: str
+    xmlRootElement: Any
 
     def __init__(self, modelXbrl, type, uri, filepath, xmlDocument):
         self.modelXbrl = modelXbrl
