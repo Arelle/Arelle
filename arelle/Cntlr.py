@@ -15,7 +15,7 @@ import tempfile, os, io, sys, logging, gettext, json, re, subprocess, math
 from arelle import ModelManager
 from arelle.WebCache import WebCache
 from arelle.Locale import getLanguageCodes, setDisableRTL
-from arelle import PluginManager, PackageManager
+from arelle import PluginManager, PackageManager, XbrlConst
 from collections import defaultdict
 
 _: TypeGetText
@@ -314,9 +314,15 @@ class Cntlr:
                 self.uiLocale = self.uiLang
             self.uiLangDir = 'rtl' if self.uiLang[0:2].lower() in {"ar","he"} else 'ltr'
         except Exception as ex:
-            if fallbackToDefault or (lang and lang.lower().startswith("en")):
-                from arelle import XbrlConst
-                self.uiLang = XbrlConst.defaultLocale # must work with gettext or will raise an exception
+            if fallbackToDefault and not locale and langCodes:
+                locale = langCodes[0]
+            if fallbackToDefault or (locale and locale.lower().startswith("en")):
+                if locale and len(locale) == 5 and locale.lower().startswith("en"):
+                    self.uiLang = locale # may be en other than defaultLocale
+                else:
+                    self.uiLang = XbrlConst.defaultLocale # must work with gettext or will raise an exception
+                if not self.uiLocale:
+                    self.uiLocale = self.uiLang
                 self.uiLangDir = "ltr"
                 gettext.install("arelle",
                                 self.localeDir)

@@ -72,12 +72,17 @@ def getUserLocale(localeCode: str = '') -> LocaleDict:
     return (cast(LocaleDict, conv), message)
 
 def getLanguageCode() -> str:
+    if sys.platform == "darwin": # MacOS doesn't provide correct language codes
+        localeQueryResult = subprocess.getstatusoutput("defaults read -g AppleLocale")  # MacOS only
+        if localeQueryResult[0] == 0 and localeQueryResult[1]: # successful
+            return localeQueryResult[1][:5].replace("_","-")
     import locale
     languageCode, encoding = locale.getdefaultlocale()
+    # language code and encoding may be None if their values cannot be determined.
     if isinstance(languageCode, str):
         return languageCode.replace("_","-")
     from arelle.XbrlConst import defaultLocale
-    return defaultLocale
+    return defaultLocale # XBRL international default locale
 
 def getLanguageCodes(lang: str | None = None) -> list[str]:
     if lang is None:
