@@ -10,22 +10,28 @@ Taxonomy package expected to be installed:
 @author: Workiva
 (c) Copyright 2022 Workiva, All rights reserved.
 '''
-
+from __future__ import annotations
 import unicodedata
 try:
     import regex as re
 except ImportError:
-    import re
+    import re  # type: ignore[no-redef]
 from collections import defaultdict
-from arelle import ModelDocument, XbrlConst
+from arelle import XbrlConst, ModelDocument as ModelDocumentFile
 from arelle.ModelDtsObject import ModelConcept, ModelType
+from arelle.ModelDocument import ModelDocument
 from arelle.ModelObject import ModelObject
 from arelle.XbrlConst import xbrli, standardLabelRoles, dimensionDefault
 from .Const import (qnDomainItemTypes, esefDefinitionArcroles, DefaultDimensionLinkroles,
                     linkbaseRefTypes, filenamePatterns, filenameRegexes)
 from .Util import isExtension
+from arelle.ValidateXbrl import ValidateXbrl
+from collections.abc import Callable
 
-def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
+_: Callable[[str], str]  # Handle gettext
+
+
+def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, visited: list[ModelDocument], hrefXlinkRole: str | None =None) -> None:
     visited.append(modelDocument)
     for referencedDocument, modelDocumentReference in modelDocument.referencesDocument.items():
         if referencedDocument not in visited and referencedDocument.inDTS: # ignore non-DTS documents
@@ -35,7 +41,8 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
     filenamePattern = filenameRegex = None
     anchorAbstractExtensionElements = val.authParam["extensionElementsAnchoring"] == "include abstract"
     allowCapsInLc3Words = val.authParam["LC3AllowCapitalsInWord"]
-    def lc3wordAdjust(word):
+
+    def lc3wordAdjust(word: str) -> str:
         if allowCapsInLc3Words:
             return word.title()
         elif len(word) > 1:
@@ -46,12 +53,12 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
         pass
 
     # the following doc type sections only pertain to extensionDocuments
-    elif modelDocument.type == ModelDocument.Type.INLINEXBRL:
+    elif modelDocument.type == ModelDocumentFile.Type.INLINEXBRL:
         if val.authParam["reportFileNamePattern"]:
             filenamePattern = val.authParam["reportFileNamePattern"]
             filenameRegex = val.authParam["reportFileNameRegex"]
 
-    elif modelDocument.type == ModelDocument.Type.SCHEMA:
+    elif modelDocument.type == ModelDocumentFile.Type.SCHEMA:
 
         val.hasExtensionSchema = True
 
@@ -243,7 +250,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
              extLineItemsWithoutHypercube, extLineItemsNotAnchored, extLineItemsWronglyAnchored, extAbstractConcepts,
              extMonetaryConceptsWithoutBalance, langRoleLabels, conceptsWithNoLabel, conceptsWithoutStandardLabel)
 
-    elif modelDocument.type == ModelDocument.Type.LINKBASE:
+    elif modelDocument.type == ModelDocumentFile.Type.LINKBASE:
 
         linkbasesFound = set()
         disallowedArcroles = defaultdict(list)
@@ -256,6 +263,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
             filenamePattern = filenamePatterns[linkbaseRefType]
             filenameRegex = filenameRegexes[linkbaseRefType]
 
+        linkEltName: str | None # linkEltName is set to None further down
         for linkEltName in ("labelLink", "presentationLink", "calculationLink", "definitionLink", "referenceLink"):
             for linkElt in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}" + linkEltName):
                 if not filenamePattern:
@@ -353,7 +361,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
             val.modelXbrl.warning("ESEF.3.1.5.extensionTaxonomyDocumentNameDoesNotFollowNamingConvention",
                 _("%(fileType)s file name SHOULD match the %(pattern)s pattern: %(documentName)s."),
                 modelObject=modelDocument.xmlRootElement,
-                fileType="Report" if modelDocument.type == ModelDocument.Type.INLINEXBRL else "Extension taxonomy",
+                fileType="Report" if modelDocument.type == ModelDocumentFile.Type.INLINEXBRL else "Extension taxonomy",
                 pattern=filenamePattern, documentName=modelDocument.basename)
         elif len(m.group(1)) > 20:
             val.modelXbrl.warning("ESEF.3.1.5.baseComponentInNameOfTaxonomyFileExceedsTwentyCharacters",
@@ -361,7 +369,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                 modelObject=modelDocument.xmlRootElement, length=len(m.group(1)), documentName=modelDocument.basename)
 
     if isExtensionDoc and val.authority == "UKFRC":
-        if modelDocument.type == ModelDocument.Type.INLINEXBRL:
+        if modelDocument.type == ModelDocumentFile.Type.INLINEXBRL:
             if modelDocument.documentEncoding.lower() != "utf-8":
                 val.modelXbrl.error("UKFRC.1.1.instanceDocumentEncoding",
                     _("UKFRC instance documents should be UTF-8 encoded: %(encoding)s"),
