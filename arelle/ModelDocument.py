@@ -4,21 +4,20 @@ Created on Oct 3, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
-import os, io, sys, traceback
+import os, io
 from collections import defaultdict
-from decimal import Decimal
 from lxml import etree
 from xml.sax import SAXParseException
 from arelle import (PackageManager, XbrlConst, XmlUtil, UrlUtil, ValidateFilingText,
                     XhtmlValidate, XmlValidateSchema)
-from arelle.ModelObject import ModelObject, ModelComment
+from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
-from arelle.ModelDtsObject import ModelLink, ModelResource, ModelRelationship
-from arelle.ModelInstanceObject import ModelFact, ModelInlineFact
+from arelle.ModelDtsObject import ModelLink
+from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObjectFactory import parser
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype, DocumentPrototype, PrototypeElementTree
 from arelle.PluginManager import pluginClassMethods
-from arelle.PythonUtil import OrderedDefaultDict, Fraction, normalizeSpace
+from arelle.PythonUtil import OrderedDefaultDict, normalizeSpace
 from arelle.XhtmlValidate import ixMsgCode
 from arelle.XmlValidate import VALID, validate as xmlValidate, lxmlSchemaValidate
 
