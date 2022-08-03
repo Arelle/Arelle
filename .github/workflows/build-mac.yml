@@ -4,7 +4,6 @@ on: workflow_dispatch
 
 jobs:
   build-distribution:
-#    environment: release
     strategy:
       matrix:
         os: [ macos-12 ]
