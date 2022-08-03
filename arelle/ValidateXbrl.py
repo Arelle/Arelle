@@ -16,7 +16,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelInlineFact
 from arelle.ModelValue import qname
-from arelle.ModelXbrl import ModelXbrlProtocol
+from arelle.ModelXbrl import ModelXbrl
 from arelle.PluginManager import pluginClassMethods
 from arelle.ValidateXbrlCalcs import inferredDecimals
 from arelle.XbrlConst import (ixbrlAll, dtrNoDecimalsItemTypes, dtrPrefixedContentItemTypes, dtrPrefixedContentTypes,
@@ -25,7 +25,6 @@ from arelle.XhtmlValidate import ixMsgCode
 from arelle.XmlValidate import VALID
 from collections import defaultdict
 
-from typing_extensions import Protocol
 
 validateUniqueParticleAttribution = None # dynamic import
 
@@ -49,17 +48,11 @@ baseXbrliTypes = {
         "normalizedStringItemType", "tokenItemType", "languageItemType", "NameItemType", "NCNameItemType"
       }
 
-class ValidateXbrlProtocol(Protocol):
-    """Implements a protocol that helps typing of the ValidateXbrl class."""
-
-    @property
-    def authParam(self) -> dict[str, Any]: ...
-
-    @property
-    def modelXbrl(self) -> ModelXbrlProtocol: ...
-
 
 class ValidateXbrl:
+
+    authParam: dict[str, Any]
+
     def __init__(self, testModelXbrl):
         self.testModelXbrl = testModelXbrl
 
@@ -75,7 +68,7 @@ class ValidateXbrl:
         self.precisionPattern = re.compile("^([0-9]+|INF)$")
         self.decimalsPattern = re.compile("^(-?[0-9]+|INF)$")
         self.isoCurrencyPattern = re.compile(r"^[A-Z]{3}$")
-        self.modelXbrl = modelXbrl
+        self.modelXbrl: ModelXbrl = modelXbrl
         self.validateDisclosureSystem = modelXbrl.modelManager.validateDisclosureSystem
         self.disclosureSystem = modelXbrl.modelManager.disclosureSystem
         self.validateEFM = self.validateDisclosureSystem and self.disclosureSystem.EFM  # deprecated non-plugin validators
