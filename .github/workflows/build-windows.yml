@@ -50,15 +50,17 @@ jobs:
     - shell: cmd
       run: move ixbrl-viewer\iXBRLViewerPlugin arelle\plugin\iXBRLViewerPlugin && rmdir /s /q ixbrl-viewer
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4.1.0
+      uses: actions/setup-python@v4.2.0
       with:
         cache: 'pip' # caching pip dependencies
+        check-latest: true
         python-version: ${{ matrix.python-version }}
     - name: Install NSIS
       run: choco install nsis
     - name: Install requirements
       run: |
         pip install wheel
+        pip install -r requirements-dev.txt
         pip install -r requirements-windows-build.txt
     - name: Make directories
       run: mkdir build,dist

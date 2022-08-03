@@ -12,7 +12,7 @@ INSTALLER_NAME="macOSinstaller$(date +%d%m%Y)"
 # Make an image to create the bootable media in /tmp.
 # Make sure the size is enough for future images. 9000m is enough for Catalina 10.15.4.
 # Next steps did not work with a dmg. So creating a sparsebundle is important.
-hdiutil create -size 30g -type "SPARSEBUNDLE" -o "/tmp/$INSTALLER_NAME" -volname "$INSTALLER_NAME" -layout "SPUD" -fs "HFS+J"
+hdiutil create -size 25g -type "SPARSEBUNDLE" -o "/tmp/$INSTALLER_NAME" -volname "$INSTALLER_NAME" -layout "SPUD" -fs "HFS+J"
 
 # Mount the created disk.
 hdiutil attach "/tmp/$INSTALLER_NAME.sparsebundle" -noverify -mountpoint "/Volumes/$INSTALLER_NAME"
@@ -24,7 +24,6 @@ sudo "$APP_PATH/Contents/Resources/createinstallmedia" --volume "/Volumes/$INSTA
 # Unmount the created installer media volume.
 # Media creation renames the volume. Therefore grep is used to find and unmount the volume.
 hdiutil detach "/Volumes/$(ls "/Volumes" | grep "Install")"
-#hdiutil detach "/Volumes/Install macOs Big Sur" -force
 
 # Convert the sparsebundle to an iso. You can not get extension directly to iso.
 hdiutil convert "/tmp/$INSTALLER_NAME.sparsebundle" -format UDTO -o "$INSTALLER_NAME.cdr"

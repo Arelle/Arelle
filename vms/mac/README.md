@@ -1,6 +1,8 @@
 ## Creating a new ISO
 1. Download the `Install macOs <VERSION>` app
-   1. Google the OS version that you are trying to make an iso for.
+   1. Visit the app store for the os you would like to create an iso for.
+      1. [Monterey](https://apps.apple.com/us/app/macos-monterey/id1576738294?mt=12)
+      2. [Big Sure](https://apps.apple.com/us/app/macos-big-sur/id1526878132?mt=12)
    2. Click on the link to open in the app store
    3. After it finishes downloading and begins to run, right click on the open app and exit
    4. Note that the app `Install macOs <VERSION>` is now in your applications folder

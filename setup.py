@@ -76,11 +76,6 @@ if sys.platform in ('darwin', 'linux'):
     ]
     if sys.platform == 'darwin':
         include_files.append(('arelle/scripts-macOS', 'scripts'))
-        # copy tck and tk built as described: https://www.tcl.tk/doc/howto/compile.html#mac
-        # include_files.append(('/Library/Frameworks/Tcl.framework/Versions/8.6/Resources/Scripts', 'tcl8.6'))
-        # include_files.append(('/Library/Frameworks/Tk.framework/Versions/8.6/Resources/Scripts', 'tk8.6'))
-        # include_files.append(('/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/tkinter', 'lib/tkinter'))
-        # include_files.append(('/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/lib-dynload/_tkinter.cpython-35m-darwin.so', 'lib/_tkinter.cpython-35m-darwin.so'))
         include_files.append(('libs/macos/Tktable2.11', 'Tktable2.11'))
     else: 
         include_files.append(('arelle/scripts-unix', 'scripts'))

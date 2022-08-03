@@ -1,9 +1,6 @@
-name: Build installable mac distributions
-#on: workflow_dispatch
-on:
-  pull_request:
-    branches:
-      - master
+name: Build for Mac
+
+on: workflow_dispatch
 
 jobs:
   build-distribution:
@@ -12,16 +9,15 @@ jobs:
       matrix:
         os: [ macos-11, macos-12 ]
 
-#    permissions:
-#      contents: write
     runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v3.0.2
       - name: Install Python 3
-        uses: actions/setup-python@v4.1.0
+        uses: actions/setup-python@v4.2.0
         with:
           cache: 'pip' # caching pip dependencies
+          check-latest: true
           python-version: 3.9
       - run: pip install -r requirements-dev.txt
       - run: pip install -r requirements-mac-build.txt
@@ -45,7 +41,7 @@ jobs:
           path: tmp/ixbrl-viewer
       - uses: actions/setup-node@v3.4.1
         with:
-          node-version: 14.x
+          node-version: lts/*
       - run: |
           cd tmp/ixbrl-viewer
           npm install
@@ -60,17 +56,15 @@ jobs:
       - run: cp -p arelleGUI.pyw arelleGUI.py
       - name: Build version.py
         run: python buildVersion.py
-      - name: Print sys platform
-        run: python -c 'import sys; print(sys.platform);'
       - name: Build app
         run: python setup.py bdist_mac
+      - name: Remove git directories
         run: find build/Arelle.app/Contents/Resources -name .git -exec rm -fR {} \;
       - name: Build DMG
         run: |
           echo $PWD
           mkdir dist_dmg
-          SIZE=`du -sh build/Arelle.app | sed 's/\([0-9\.]*\)M\(.*\)/\1/'`
-          SIZE=`echo "${SIZE} + 20.0" | bc | awk '{print int($1+0.5)}'`
+          SIZE=`du -ms | awk '{print int($1 + 20 + 0.5)}'`
           ls build
           hdiutil create -srcfolder build/Arelle.app -volname Arelle -fs HFS+ -fsargs "-c c=64,a=16,e=16" -format UDRW -size ${SIZE}M dist_dmg/arelle_tmp.dmg
           echo "Created DMG: arelle_tmp.dmg"
