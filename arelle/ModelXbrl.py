@@ -17,6 +17,9 @@ from arelle.PrototypeInstanceObject import FactPrototype, DimValuePrototype
 from arelle.PythonUtil import flattenSequence
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
+
+from typing_extensions import Protocol
+
 ModelRelationshipSet = None # dynamic import
 ModelFact = None
 
@@ -113,6 +116,13 @@ def loadSchemalocatedSchemas(modelXbrl):
             modelDocument = modelDocuments.pop()
             modelDocumentsSchemaLocated.add(modelDocument)
             modelDocument.loadSchemalocatedSchemas()
+
+class ModelXbrlProtocol(Protocol):
+    """Implements a protocol that helps typing of the ValidateXbrl class."""
+
+    @property
+    def uriDir(self) -> str: ...
+
 
 class ModelXbrl:
     """
