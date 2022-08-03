@@ -16,7 +16,7 @@ from arelle.FileSource import openFileStream
 from arelle.UrlUtil import scheme
 from arelle.ModelManager import ModelManager
 from arelle.ModelXbrl import ModelXbrl
-from arelle.ValidateXbrl import ValidateXbrlProtocol
+from arelle.ValidateXbrl import ValidateXbrl
 from typing import Any, Union, cast
 from collections.abc import Callable
 
@@ -24,7 +24,7 @@ _: Callable[[str], str]  # Handle gettext
 
 # check if a modelDocument URI is an extension URI (document URI)
 # also works on a uri passed in as well as modelObject
-def isExtension(val: ValidateXbrlProtocol, modelObject: ModelObject | str | None) -> bool:
+def isExtension(val: ValidateXbrl, modelObject: ModelObject | str | None) -> bool:
     if modelObject is None:
         return False
     if isinstance(modelObject, str):
@@ -35,7 +35,7 @@ def isExtension(val: ValidateXbrlProtocol, modelObject: ModelObject | str | None
             not any(uri.startswith(standardTaxonomyURI) for standardTaxonomyURI in val.authParam["standardTaxonomyURIs"]))
 
 # check if in core esef taxonomy (based on namespace URI)
-def isInEsefTaxonomy(val: ValidateXbrlProtocol, modelObject: ModelObject | None) -> bool:
+def isInEsefTaxonomy(val: ValidateXbrl, modelObject: ModelObject | None) -> bool:
     if modelObject is None:
         return False
     ns = modelObject.qname.namespaceURI
@@ -53,7 +53,7 @@ def checkImageContents(modelXbrl: ModelXbrl, imgElt: ModelObject, imgType: str, 
             for elt in XML(data).iter():
                 if rootElement:
                     if elt.tag != "{http://www.w3.org/2000/svg}svg":
-                        modelXbrl.error("ESEF.2.5.1.imageFileCannotBeLoaded",  # type: ignore[no-untyped-call]
+                        modelXbrl.error("ESEF.2.5.1.imageFileCannotBeLoaded",
                             _("Image SVG has root element which is not svg"),
                             modelObject=imgElt)
                     rootElement = False
@@ -62,19 +62,19 @@ def checkImageContents(modelXbrl: ModelXbrl, imgElt: ModelObject, imgType: str, 
                     (eltTag in ("audio", "foreignObject", "iframe", "image", "use", "video"))):
                     href = elt.get("href","")
                     if eltTag in ("object", "script") or "javascript:" in href:
-                        modelXbrl.error("ESEF.2.5.1.executableCodePresent",  # type: ignore[no-untyped-call]
+                        modelXbrl.error("ESEF.2.5.1.executableCodePresent",
                             _("Inline XBRL images MUST NOT contain executable code: %(element)s"),
                             modelObject=imgElt, element=eltTag)
                     elif scheme(href) in ("http", "https", "ftp"):  # type: ignore[no-untyped-call]
-                        modelXbrl.error("ESEF.2.5.1.referencesPointingOutsideOfTheReportingPackagePresent",  # type: ignore[no-untyped-call]
+                        modelXbrl.error("ESEF.2.5.1.referencesPointingOutsideOfTheReportingPackagePresent",
                             _("Inline XBRL instance document [image] MUST NOT contain any reference pointing to resources outside the reporting package: %(element)s"),
                             modelObject=imgElt, element=eltTag)
         except (XMLSyntaxError, UnicodeDecodeError) as err:
-            modelXbrl.error("ESEF.2.5.1.imageFileCannotBeLoaded",  # type: ignore[no-untyped-call]
+            modelXbrl.error("ESEF.2.5.1.imageFileCannotBeLoaded",
                 _("Image SVG has XML error %(error)s"),
                 modelObject=imgElt, error=err)
     elif not any(it in imgType for it in supportedImgTypes[isFile]):
-        modelXbrl.error("ESEF.2.5.1.imageFormatNotSupported",  # type: ignore[no-untyped-call]
+        modelXbrl.error("ESEF.2.5.1.imageFormatNotSupported",
             _("Images included in the XHTML document MUST be saved in PNG, GIF, SVG or JPEG formats: %(imgType)s is not supported"),
             modelObject=imgElt, imgType=imgType)
     else:
@@ -100,7 +100,7 @@ def checkImageContents(modelXbrl: ModelXbrl, imgElt: ModelObject, imgType: str, 
         if (("gif" in imgType and headerType != "gif") or
             (("jpg" in imgType or "jpeg" in imgType) and headerType != "jpg") or
             ("png" in imgType and headerType != "png")):
-            modelXbrl.error("ESEF.2.5.1.imageDoesNotMatchItsFileExtension" if isFile  # type: ignore[no-untyped-call]
+            modelXbrl.error("ESEF.2.5.1.imageDoesNotMatchItsFileExtension" if isFile
                             else "ESEF.2.5.1.incorrectMIMETypeSpecified",
                 _("Image type %(imgType)s has wrong header type: %(headerType)s"),
                 modelObject=imgElt, imgType=imgType, headerType=headerType,
