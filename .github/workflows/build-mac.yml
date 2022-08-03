@@ -62,7 +62,7 @@ jobs:
         run: find build/Arelle.app/Contents/Resources -name .git -exec rm -fR {} \;
       - name: Build DMG
         run: |
-          echo $PWD
+          pwd
           mkdir dist_dmg
           SIZE=`du -ms | awk '{print int($1 + 20 + 0.5)}'`
           ls build
