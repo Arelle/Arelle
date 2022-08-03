@@ -1,10 +1,10 @@
 # core modules
 lxml>=4.6.3
 OpenPyXL>=2.3.3
-regex==2022.7.9
+regex==2022.7.25
 isodate==0.6.1
 aniso8601==9.0.1
-CherryPy==18.7.0
+CherryPy==18.8.0
 Cheroot==8.6.0
 # special note: pip install --no-cache --use-pep517 pycountry
 pycountry==22.3.5
@@ -19,8 +19,8 @@ PyCryptodome==3.15.0
 # xbrlDB plugin
 pg8000==1.29.1
 PyMySQL==1.0.2
-pyodbc==4.0.32
+pyodbc==4.0.34
 RDFLib<6
 # other
-graphviz==0.20
+graphviz==0.20.1
 Pillow==9.2.0
