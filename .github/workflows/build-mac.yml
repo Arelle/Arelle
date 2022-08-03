@@ -7,7 +7,7 @@ jobs:
 #    environment: release
     strategy:
       matrix:
-        os: [ macos-11, macos-12 ]
+        os: [ macos-12 ]
 
     runs-on: ${{ matrix.os }}
 
