@@ -36,55 +36,48 @@ LC_TIME = 2
 
 C_LOCALE = None # culture-invariant locale
 
+defaultLocaleCodes = {
+    "af": "ZA", "ar": "AE", "be": "BY", "bg": "BG", "ca": "ES", "cs": "CZ",
+    "da": "DK", "de": "DE", "el": "GR", "en": "GB", "es": "ES", "et": "EE",
+    "eu": "ES", "fa": "IR", "fi": "FI", "fo": "FO", "fr": "FR", "he": "IL",
+    "hi": "IN", "hr": "HR", "hu": "HU", "id": "ID", "is": "IS", "it": "IT",
+    "ja": "JP", "ko": "KR", "lt": "LT", "lv": "LV", "ms": "MY", "mt": "MT",
+    "nl": "NL", "no": "NO", "pl": "PL", "pt": "PT", "ro": "RO", "ru": "RU",
+    "sk": "SK", "sl": "SI", "sq": "AL", "sr": "RS", "sv": "SE", "th": "TH",
+    "tr": "TR", "uk": "UA", "ur": "PK", "vi": "VN", "zh": "CN"}
+
 def getUserLocale(localeCode: str = '') -> LocaleDict:
     # get system localeconv and reset system back to default
     import locale
     global C_LOCALE
     conv = None
-    if sys.platform == "darwin" and not localeCode:
-        # possibly this MacOS bug: http://bugs.python.org/issue18378
-        # macOS won't provide right default code for english-european culture combinations
-        localeQueryResult = subprocess.getstatusoutput("defaults read -g AppleLocale")  # MacOS only
-        if localeQueryResult[0] == 0 and '_' in localeQueryResult[1]: # successful
-            localeCode = localeQueryResult[1]
+    message = None
     try:
-        locale.setlocale(locale.LC_ALL, localeCode)
+        locale.setlocale(locale.LC_ALL, localeCode.replace("-", "_"))  # str needed for 3to2 2.7 python to work
         conv = locale.localeconv()
     except locale.Error:
-        if sys.platform == "darwin":
-            # possibly this MacOS bug: http://bugs.python.org/issue18378
-            # the fix to this bug will loose the monetary/number configuration with en_BE, en_FR, etc
-            # so use this alternative which gets the right culture code for numbers even if english default language
-            localeCulture = '-' + localeCode[3:]
-            # find culture (for any language) in available locales
-            for availableLocale in availableLocales():
-                if len(availableLocale) >= 5 and localeCulture in availableLocale:
-                    try:
-                        locale.setlocale(locale.LC_ALL, availableLocale.replace('-','_'))
-                        conv = locale.localeconv() # should get monetary and numeric codes
-                        break
-                    except locale.Error:
-                        pass # this one didn't work
-    locale.setlocale(locale.LC_ALL, str('C'))  # str needed for 3to2 2.7 python to work
+        if len(localeCode) == 2 and localeCode in defaultLocaleCodes:
+            try: # default locale code is required, prevent inabiility to continue
+                locale.setlocale(locale.LC_ALL, f"{localeCode}_{defaultLocaleCodes[localeCode]}")
+                conv = locale.localeconv()
+                message = f"locale code \"{localeCode}\" should include a country code, e.g. {localeCode}-{defaultLocaleCodes[localeCode]}"
+            except locale.Error:
+                pass
+    locale.setlocale(locale.LC_ALL, 'C')
     if conv is None: # some other issue prevents getting culture code, use 'C' defaults (no thousands sep, no currency, etc)
+        message = f"locale code \"{localeCode}\" is not available on this system"
         conv = locale.localeconv() # use 'C' environment, e.g., en_US
     if C_LOCALE is None: # load culture-invariant C locale
         C_LOCALE = locale.localeconv()
-    return cast(LocaleDict, conv)
+    return (cast(LocaleDict, conv), message)
 
 def getLanguageCode() -> str:
-    if sys.platform == "darwin":
-        # possibly this MacOS bug: http://bugs.python.org/issue18378
-        # even when fixed, macOS won't provide right default code for some language-culture combinations
-        localeQueryResult = subprocess.getstatusoutput("defaults read -g AppleLocale")  # MacOS only
-        if localeQueryResult[0] == 0 and localeQueryResult[1]: # successful
-            return localeQueryResult[1][:5].replace("_","-")
     import locale
-
     languageCode, encoding = locale.getdefaultlocale()
     if isinstance(languageCode, str):
         return languageCode.replace("_","-")
-    return "en"
+    from arelle.XbrlConst import defaultLocale
+    return defaultLocale
 
 def getLanguageCodes(lang: str | None = None) -> list[str]:
     if lang is None:
@@ -150,114 +143,114 @@ def languageCodes() -> dict[str, str]:  # dynamically initialize after gettext i
     if _languageCodes is not None:
         return _languageCodes
     else:
-        _languageCodes = { # language name (in English), code, and setlocale string which works in windows
-            _("Afrikaans (South Africa)"): "af-ZA afrikaans",
-            _("Albanian (Albania)"): "sq-AL albanian",
-            _("Arabic (Algeria)"): "ar-DZ arb_algeria",
-            _("Arabic (Bahrain)"): "ar-BH arabic_bahrain",
-            _("Arabic (Egypt)"): "ar-EG arb_egy",
-            _("Arabic (Iraq)"): "ar-IQ arb_irq",
-            _("Arabic (Jordan)"): "ar-JO arb_jor",
-            _("Arabic (Kuwait)"): "ar-KW arb_kwt",
-            _("Arabic (Lebanon)"): "ar-LB arb_lbn",
-            _("Arabic (Libya)"): "ar-LY arb_lby",
-            _("Arabic (Morocco)"): "ar-MA arb_morocco",
-            _("Arabic (Oman)"): "ar-OM arb_omn",
-            _("Arabic (Qatar)"): "ar-QA arabic_qatar",
-            _("Arabic (Saudi Arabia)"): "ar-SA arb_sau",
-            _("Arabic (Syria)"): "ar-SY arb_syr",
-            _("Arabic (Tunisia)"): "ar-TN arb_tunisia",
-            _("Arabic (U.A.E.)"): "ar-AE arb_are",
-            _("Arabic (Yemen)"): "ar-YE arb_yem",
-            _("Basque (Spain)"): "eu-ES basque",
-            _("Bulgarian (Bulgaria)"): "bg-BG bulgarian",
-            _("Belarusian (Belarus)"): "be-BY belarusian",
-            _("Catalan (Spain)"): "ca-ES catalan",
-            _("Chinese (PRC)"): "zh-CN chs",
-            _("Chinese (Taiwan)"): "zh-TW cht",
-            _("Chinese (Singapore)"): "zh-SG chs",
-            _("Croatian (Croatia)"): "hr-HR croatian",
-            _("Czech (Czech Republic)"): "cs-CZ czech",
-            _("Danish (Denmark)"): "da-DK danish",
-            _("Dutch (Belgium)"): "nl-BE nlb",
-            _("Dutch (Netherlands)"): "nl-NL nld",
-            _("English (Australia)"): "en-AU ena",
-            _("English (Belize)"): "en-BZ eng_belize",
-            _("English (Canada)"): "en-CA enc",
-            _("English (Caribbean)"): "en-029 eng_caribbean",
-            _("English (Ireland)"): "en-IE eni",
-            _("English (Jamaica)"): "en-JM enj",
-            _("English (New Zealand)"): "en-NZ enz",
-            _("English (South Africa)"): "en-ZA ens",
-            _("English (Trinidad)"): "en-TT eng",
-            _("English (United States)"): "en-US enu",
-            _("English (United Kingdom)"): "en-GB eng",
-            _("Estonian (Estonia)"): "et-EE estonian",
-            _("Faeroese (Faroe Islands)"): "fo-FO faroese",
-            _("Farsi (Iran)"): "fa-IR persian",
-            _("Finnish (Finland)"): "fi-FI fin",
-            _("French (Belgium)"): "fr-BE frb",
-            _("French (Canada)"): "fr-CA frc",
-            _("French (France)"): "fr-FR fra",
-            _("French (Luxembourg)"): "fr-LU frl",
-            _("French (Switzerland)"): "fr-CH frs",
-            _("German (Austria)"): "de-AT dea",
-            _("German (Germany)"): "de-DE deu",
-            _("German (Luxembourg)"): "de-LU del",
-            _("German (Switzerland)"): "de-CH des",
-            _("Greek (Greece)"): "el-GR ell",
-            _("Hebrew (Israel)"): "he-IL hebrew",
-            _("Hindi (India)"): "hi-IN hindi",
-            _("Hungarian (Hungary)"): "hu-HU hun",
-            _("Icelandic (Iceland)"): "is-IS icelandic",
-            _("Indonesian (Indonesia)"): "id-ID indonesian",
-            _("Italian (Italy)"): "it-IT ita",
-            _("Italian (Switzerland)"): "it-CH its",
-            _("Japanese (Japan)"): "ja-JP jpn",
-            _("Korean (Korea)"): "ko-KR kor",
-            _("Latvian (Latvia)"): "lv-LV latvian",
-            _("Lithuanian (Lituania)"): "lt-LT lithuanian",
-            _("Malaysian (Malaysia)"): "ms-MY malay",
-            _("Maltese (Malta)"): "mt-MT maltese",
-            _("Norwegian (Bokmal)"): "no-NO nor",
-            _("Norwegian (Nynorsk)"): "no-NO non",
-            _("Persian (Iran)"): "fa-IR persian",
-            _("Polish (Poland)"): "pl-PL plk",
-            _("Portuguese (Brazil)"): "pt-BR ptb",
-            _("Portuguese (Portugal)"): "pt-PT ptg",
-            _("Romanian (Romania)"): "ro-RO rom",
-            _("Russian (Russia)"): "ru-RU rus",
-            _("Serbian (Cyrillic)"): "sr-RS srb",
-            _("Serbian (Latin)"): "sr-RS srl",
-            _("Slovak (Slovakia)"): "sk-SK sky",
-            _("Slovenian (Slovania)"): "sl-SI slovenian",
-            _("Spanish (Argentina)"): "es-AR esr",
-            _("Spanish (Bolivia)"): "es-BO esb",
-            _("Spanish (Colombia)"): "es-CO eso",
-            _("Spanish (Chile)"): "es-CL esl",
-            _("Spanish (Costa Rica)"): "es-CR esc",
-            _("Spanish (Dominican Republic)"): "es-DO esd",
-            _("Spanish (Ecuador)"): "es-EC esf",
-            _("Spanish (El Salvador)"): "es-SV ese",
-            _("Spanish (Guatemala)"): "es-GT esg",
-            _("Spanish (Honduras)"): "es-HN esh",
-            _("Spanish (Mexico)"): "es-MX esm",
-            _("Spanish (Nicaragua)"): "es-NI esi",
-            _("Spanish (Panama)"): "es-PA esa",
-            _("Spanish (Paraguay)"): "es-PY esz",
-            _("Spanish (Peru)"): "es-PE esr",
-            _("Spanish (Puerto Rico)"): "es-PR esu",
-            _("Spanish (Spain)"): "es-ES esn",
-            _("Spanish (United States)"): "es-US est",
-            _("Spanish (Uruguay)"): "es-UY esy",
-            _("Spanish (Venezuela)"): "es-VE esv",
-            _("Swedish (Sweden)"): "sv-SE sve",
-            _("Swedish (Finland)"): "sv-FI svf",
-            _("Thai (Thailand)"): "th-TH thai",
-            _("Turkish (Turkey)"): "tr-TR trk",
-            _("Ukrainian (Ukraine)"): "uk-UA ukr",
-            _("Urdu (Pakistan)"): "ur-PK urdu",
-            _("Vietnamese (Vietnam)"): "vi-VN vietnamese",
+        _languageCodes = { # language name (in English) and lang code
+            _("Afrikaans (South Africa)"): "af-ZA",
+            _("Albanian (Albania)"): "sq-AL",
+            _("Arabic (Algeria)"): "ar-DZ",
+            _("Arabic (Bahrain)"): "ar-BH",
+            _("Arabic (Egypt)"): "ar-EG",
+            _("Arabic (Iraq)"): "ar-IQ",
+            _("Arabic (Jordan)"): "ar-JO",
+            _("Arabic (Kuwait)"): "ar-KW",
+            _("Arabic (Lebanon)"): "ar-LB",
+            _("Arabic (Libya)"): "ar-LY",
+            _("Arabic (Morocco)"): "ar-MA",
+            _("Arabic (Oman)"): "ar-OM",
+            _("Arabic (Qatar)"): "ar-QA",
+            _("Arabic (Saudi Arabia)"): "ar-SA",
+            _("Arabic (Syria)"): "ar-SY",
+            _("Arabic (Tunisia)"): "ar-TN",
+            _("Arabic (U.A.E.)"): "ar-AE",
+            _("Arabic (Yemen)"): "ar-YE",
+            _("Basque (Spain)"): "eu-ES",
+            _("Bulgarian (Bulgaria)"): "bg-BG",
+            _("Belarusian (Belarus)"): "be-BY",
+            _("Catalan (Spain)"): "ca-ES",
+            _("Chinese (PRC)"): "zh-CN",
+            _("Chinese (Taiwan)"): "zh-TW",
+            _("Chinese (Singapore)"): "zh-SG",
+            _("Croatian (Croatia)"): "hr-HR",
+            _("Czech (Czech Republic)"): "cs-CZ",
+            _("Danish (Denmark)"): "da-DK",
+            _("Dutch (Belgium)"): "nl-BE",
+            _("Dutch (Netherlands)"): "nl-NL",
+            _("English (Australia)"): "en-AU",
+            _("English (Belize)"): "en-BZ",
+            _("English (Canada)"): "en-CA",
+            _("English (Caribbean)"): "en-029", #en-CB does not work with windows or linux
+            _("English (Ireland)"): "en-IE",
+            _("English (Jamaica)"): "en-JM",
+            _("English (New Zealand)"): "en-NZ",
+            _("English (South Africa)"): "en-ZA",
+            _("English (Trinidad)"): "en-TT",
+            _("English (United States)"): "en-US",
+            _("English (United Kingdom)"): "en-GB",
+            _("Estonian (Estonia)"): "et-EE",
+            _("Faeroese (Faroe Islands)"): "fo-FO",
+            _("Farsi (Iran)"): "fa-IR",
+            _("Finnish (Finland)"): "fi-FI",
+            _("French (Belgium)"): "fr-BE",
+            _("French (Canada)"): "fr-CA",
+            _("French (France)"): "fr-FR",
+            _("French (Luxembourg)"): "fr-LU",
+            _("French (Switzerland)"): "fr-CH",
+            _("German (Austria)"): "de-AT",
+            _("German (Germany)"): "de-DE",
+            _("German (Luxembourg)"): "de-LU",
+            _("German (Switzerland)"): "de-CH",
+            _("Greek (Greece)"): "el-GR",
+            _("Hebrew (Israel)"): "he-IL",
+            _("Hindi (India)"): "hi-IN",
+            _("Hungarian (Hungary)"): "hu-HU",
+            _("Icelandic (Iceland)"): "is-IS",
+            _("Indonesian (Indonesia)"): "id-ID",
+            _("Italian (Italy)"): "it-IT",
+            _("Italian (Switzerland)"): "it-CH",
+            _("Japanese (Japan)"): "ja-JP",
+            _("Korean (Korea)"): "ko-KR",
+            _("Latvian (Latvia)"): "lv-LV",
+            _("Lithuanian (Lituania)"): "lt-LT",
+            _("Malaysian (Malaysia)"): "ms-MY",
+            _("Maltese (Malta)"): "mt-MT",
+            _("Norwegian (Bokmal)"): "no-NO",
+            _("Norwegian (Nynorsk)"): "no-NO",
+            _("Persian (Iran)"): "fa-IR",
+            _("Polish (Poland)"): "pl-PL",
+            _("Portuguese (Brazil)"): "pt-BR",
+            _("Portuguese (Portugal)"): "pt-PT",
+            _("Romanian (Romania)"): "ro-RO",
+            _("Russian (Russia)"): "ru-RU",
+            _("Serbian (Cyrillic)"): "sr-RS",
+            _("Serbian (Latin)"): "sr-RS",
+            _("Slovak (Slovakia)"): "sk-SK",
+            _("Slovenian (Slovania)"): "sl-SI",
+            _("Spanish (Argentina)"): "es-AR",
+            _("Spanish (Bolivia)"): "es-BO",
+            _("Spanish (Colombia)"): "es-CO",
+            _("Spanish (Chile)"): "es-CL",
+            _("Spanish (Costa Rica)"): "es-CR",
+            _("Spanish (Dominican Republic)"): "es-DO",
+            _("Spanish (Ecuador)"): "es-EC",
+            _("Spanish (El Salvador)"): "es-SV",
+            _("Spanish (Guatemala)"): "es-GT",
+            _("Spanish (Honduras)"): "es-HN",
+            _("Spanish (Mexico)"): "es-MX",
+            _("Spanish (Nicaragua)"): "es-NI",
+            _("Spanish (Panama)"): "es-PA",
+            _("Spanish (Paraguay)"): "es-PY",
+            _("Spanish (Peru)"): "es-PE",
+            _("Spanish (Puerto Rico)"): "es-PR",
+            _("Spanish (Spain)"): "es-ES",
+            _("Spanish (United States)"): "es-US",
+            _("Spanish (Uruguay)"): "es-UY",
+            _("Spanish (Venezuela)"): "es-VE",
+            _("Swedish (Sweden)"): "sv-SE",
+            _("Swedish (Finland)"): "sv-FI",
+            _("Thai (Thailand)"): "th-TH",
+            _("Turkish (Turkey)"): "tr-TR",
+            _("Ukrainian (Ukraine)"): "uk-UA",
+            _("Urdu (Pakistan)"): "ur-PK",
+            _("Vietnamese (Vietnam)"): "vi-VN",
         }
         return _languageCodes
 
@@ -650,15 +643,15 @@ def format_decimal(
     trailneg:optional trailing minus indicator:  '-', ')', space or blank
 
     >>> d = Decimal('-1234567.8901')
-    >>> format_decimal(getUserLocale(), d, curr='$')
+    >>> format_decimal(getUserLocale()[0], d, curr='$')
     '-$1,234,567.89'
-    >>> format_decimal(getUserLocale(), d, fractPlaces=0, sep='.', dp='', neg='', trailneg='-')
+    >>> format_decimal(getUserLocale()[0], d, fractPlaces=0, sep='.', dp='', neg='', trailneg='-')
     '1.234.568-'
-    >>> format_decimal(getUserLocale(), d, curr='$', neg='(', trailneg=')')
+    >>> format_decimal(getUserLocale()[0], d, curr='$', neg='(', trailneg=')')
     '($1,234,567.89)'
-    >>> format_decimal(getUserLocale(), Decimal(123456789), sep=' ')
+    >>> format_decimal(getUserLocale()[0], Decimal(123456789), sep=' ')
     '123 456 789.00'
-    >>> format_decimal(getUserLocale(), Decimal('-0.02'), neg='<', trailneg='>')
+    >>> format_decimal(getUserLocale()[0], Decimal('-0.02'), neg='<', trailneg='>')
     '<0.02>'
     """
     if conv is not None:

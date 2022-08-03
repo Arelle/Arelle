@@ -293,21 +293,30 @@ class Cntlr:
 
         self.startLogging(logFileName, logFileMode, logFileEncoding, logFormat)
 
+    def postLoggingInit(self):
+        message = self.modelManager.setLocale() # set locale after logger started
+        if message:
+            self.addToLog(message, messageCode="arelle:uiLocale", level=logging.WARNING)
+
         # Cntlr.Init after logging started
         for pluginMethod in PluginManager.pluginClassMethods("Cntlr.Init"):
             pluginMethod(self)
 
-    def setUiLanguage(self, lang: str, fallbackToDefault: bool = False) -> None:
+    def setUiLanguage(self, locale: str, fallbackToDefault: bool = False) -> None:
         try:
-            langCodes = getLanguageCodes(lang)
+            self.uiLocale = locale
+            langCodes = getLanguageCodes(locale)
             gettext.translation("arelle",
                                 self.localeDir,
                                 langCodes).install()
-            self.uiLang = langCodes[0].lower()
-            self.uiLangDir = 'rtl' if self.uiLang[0:2] in {"ar","he"} else 'ltr'
-        except Exception:
+            self.uiLang = langCodes[0]
+            if not locale and self.uiLang:
+                self.uiLocale = self.uiLang
+            self.uiLangDir = 'rtl' if self.uiLang[0:2].lower() in {"ar","he"} else 'ltr'
+        except Exception as ex:
             if fallbackToDefault or (lang and lang.lower().startswith("en")):
-                self.uiLang = "en"
+                from arelle import XbrlConst
+                self.uiLang = XbrlConst.defaultLocale # must work with gettext or will raise an exception
                 self.uiLangDir = "ltr"
                 gettext.install("arelle",
                                 self.localeDir)

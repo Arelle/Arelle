@@ -301,7 +301,7 @@ def parseAndRun(args):
     parser.add_option("--formulaCompileOnly", action="store_true", dest="formulaCompileOnly", help=_("Specify formula are to be compiled but not executed."))
     parser.add_option("--formulacompileonly", action="store_true", dest="formulaCompileOnly", help=SUPPRESS_HELP)
     parser.add_option("--uiLang", action="store", dest="uiLang",
-                      help=_("Language for user interface (override system settings, such as program messages).  Does not save setting."))
+                      help=_("Language for user interface (override system settings, such as program messages).  Does not save setting.  Requires locale country code, e.g. en-GB or en-US."))
     parser.add_option("--uilang", action="store", dest="uiLang", help=SUPPRESS_HELP)
     parser.add_option("--proxy", action="store", dest="proxy",
                       help=_("Modify and re-save proxy settings configuration.  "
@@ -473,6 +473,7 @@ def parseAndRun(args):
             cntlr.startLogging(logFileName='logToBuffer',
                                logTextMaxLength=options.logTextMaxLength,
                                logRefObjectProperties=options.logRefObjectProperties)
+            cntlr.postLoggingInit() # Cntlr options after logging is started
             from arelle import CntlrWebMain
             app = CntlrWebMain.startWebserver(cntlr, options)
             if options.webserver == '::wsgi':
@@ -485,6 +486,7 @@ def parseAndRun(args):
                            logToBuffer=getattr(options, "logToBuffer", False),
                            logTextMaxLength=options.logTextMaxLength, # e.g., used by EdgarRenderer to require buffered logging
                            logRefObjectProperties=options.logRefObjectProperties)
+        cntlr.postLoggingInit() # Cntlr options after logging is started
         cntlr.run(options)
 
         return cntlr

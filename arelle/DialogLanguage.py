@@ -117,8 +117,6 @@ class DialogLanguage(Toplevel):
                 localeCode = ""
             else:
                 langCode, sep, localeCode = self.languageCodes[self.cbUiLang.value].partition(" ")
-                if not self.mainWin.isMSW:  # Windows uses string language codes
-                    localeCode = langCode.replace("-", "_") + ".UTF-8" # Unix and Mac uses en_US.UTF-8
 
             newLocale = getUserLocale(localeCode)
             if newLocale is not None:

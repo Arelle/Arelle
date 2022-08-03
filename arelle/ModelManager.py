@@ -72,15 +72,15 @@ class ModelManager:
         self.collectProfileStats = False
         self.loadedModelXbrls = []
         self.customTransforms = None
-        self.setLocale()
 
     def shutdown(self):
         self.status = "shutdown"
 
     def setLocale(self):
         from arelle import Locale
-        self.locale = Locale.getUserLocale(self.cntlr.uiLang)
+        self.locale, message = Locale.getUserLocale(self.cntlr.uiLocale)
         self.defaultLang = Locale.getLanguageCode()
+        return message
 
     def addToLog(self, message, messageCode="", file="", refs=[], level=logging.INFO):
         """Add a simple info message to the default logger

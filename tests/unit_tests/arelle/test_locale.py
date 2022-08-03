@@ -13,7 +13,7 @@ d = Decimal('-1234567.8901')
     [
         (
             {
-                'conv': getUserLocale(),
+                'conv': getUserLocale()[0],
                 'value': d,
                 'curr': '$',
                 'neg': '-'
@@ -22,7 +22,7 @@ d = Decimal('-1234567.8901')
         ),
         (
             {
-                'conv': getUserLocale(),
+                'conv': getUserLocale()[0],
                 'value': d,
                 'fractPlaces': 0,
                 'sep': '.',
@@ -33,7 +33,7 @@ d = Decimal('-1234567.8901')
         ),
         (
             {
-                'conv': getUserLocale(),
+                'conv': getUserLocale()[0],
                 'value': d,
                 'curr': '$',
                 'neg': '(',
@@ -43,7 +43,7 @@ d = Decimal('-1234567.8901')
         ),
         (
             {
-                'conv': getUserLocale(),
+                'conv': getUserLocale()[0],
                 'value': Decimal(123456789),
                 'sep': ' '
             },
@@ -51,7 +51,7 @@ d = Decimal('-1234567.8901')
         ),
         (
             {
-                'conv': getUserLocale(),
+                'conv': getUserLocale()[0],
                 'value': Decimal('-0.02'),
                 'neg': '<',
                 'trailneg': '>'

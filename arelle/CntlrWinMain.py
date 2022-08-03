@@ -355,6 +355,7 @@ class CntlrWinMain (Cntlr.Cntlr):
         from arelle import ViewWinList
         self.logView = ViewWinList.ViewList(None, self.tabWinBtm, _("messages"), True)
         self.startLogging(logHandler=WinMainLogHandler(self)) # start logger
+        self.postLoggingInit() # Cntlr options after logging is started
         logViewMenu = self.logView.contextMenu(contextMenuClick=self.contextMenuClick)
         logViewMenu.add_command(label=_("Clear"), underline=0, command=self.logClear)
         logViewMenu.add_command(label=_("Save to file"), underline=0, command=self.logSaveToFile)
