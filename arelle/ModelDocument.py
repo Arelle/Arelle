@@ -327,7 +327,19 @@ def load(modelXbrl, uri, base=None, referringElement=None, isEntry=False, isDisc
         elif _type == Type.INSTANCE:
             modelDocument.instanceDiscover(rootNode)
         elif _type == Type.INLINEXBRL:
-            modelDocument.inlineXbrlDiscover(rootNode)
+            try:
+                modelDocument.inlineXbrlDiscover(rootNode)
+            except RecursionError as err:
+                schemaErrorCount = modelXbrl.errors.count("xmlSchema:syntax")
+                if schemaErrorCount > 100: # arbitrary count, in case of tons of unclosed or mismatched xhtml start-end elements
+                    modelXbrl.error("html:unprocessable",
+                        _("%(element)s error, unable to process html syntax due to %(schemaErrorCount)s schema syntax errors"),
+                        modelObject=rootNode, element=rootNode.localName.title(), schemaErrorCount=schemaErrorCount)
+                else:
+                    modelXbrl.error("html:validationException",
+                        _("%(element)s error %(error)s, unable to process html."),
+                        modelObject=rootNode, element=rootNode.localName.title(), error=type(err).__name__)
+                return None # rootNode is not processed further to find any facts because there could be many recursion errors                
         elif _type == Type.VERSIONINGREPORT:
             modelDocument.versioningReportDiscover(rootNode)
         elif _type == Type.TESTCASESINDEX:
