@@ -10,6 +10,7 @@ import logging
 from decimal import Decimal
 from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
 from arelle.FileSource import FileNamedStringIO
+from arelle.ModelDtsObject import ModelRelationship
 from arelle.ModelObject import ModelObject, ObjectPropertyViewWrapper
 from arelle.Locale import format_string
 from arelle.PluginManager import pluginClassMethods
@@ -378,7 +379,7 @@ class ModelXbrl:
         else:
             return self.fileSource.url
 
-    def relationshipSet(self, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False):
+    def relationshipSet(self, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False) -> ModelRelationship:
         """Returns a relationship set matching specified parameters (only arcrole is required).
 
         Resolve and determine relationship set.  If a relationship set of the same parameters was previously resolved, it is returned from a cache.
@@ -1190,13 +1191,13 @@ class ModelXbrl:
         """@messageCatalog=[]"""
         self.log('INFO', codes, msg, **args)
 
-    def warning(self, codes, msg, **args):
+    def warning(self, codes, msg, **args) -> None:
         """Same as error(), but as warning, and no error code saved for Validate
         """
         """@messageCatalog=[]"""
         self.log('WARNING', codes, msg, **args)
 
-    def log(self, level, codes, msg, **args):
+    def log(self, level, codes, msg, **args) -> None:
         """Same as error(), but level passed in as argument
         """
         logger = self.logger
