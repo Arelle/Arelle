@@ -14,3 +14,4 @@ updates:
       - dependency-name: "RDFLib"
         versions:
           - ">=6"
+      - dependency-name: "cx_Freeze"

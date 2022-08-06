@@ -1,0 +1,107 @@
+name: Build for Mac
+
+on: workflow_dispatch
+
+jobs:
+  build-distribution:
+    strategy:
+      matrix:
+        os: [ macos-12 ]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v3.0.2
+      - name: Install Python 3
+        uses: actions/setup-python@v4.2.0
+        with:
+          cache: 'pip' # caching pip dependencies
+          check-latest: true
+          python-version: 3.9
+      - run: pip install -r requirements-dev.txt
+      - run: pip install -r requirements-mac-build.txt
+      - uses: actions/checkout@v3.0.2
+        with:
+          repository: Arelle/EdgarRenderer
+          path: arelle/plugin/EdgarRenderer
+      - run: rm -rf arelle/plugin/EdgarRenderer/.git
+      - uses: actions/checkout@v3.0.2
+        with:
+          repository: xbrlus/xule
+          path: tmp
+      - run: |
+          mv tmp/plugin/validate/* arelle/plugin/validate/
+          rm -rf tmp/plugin/validate
+          mv tmp/plugin/* arelle/plugin/
+          rm -rf tmp
+      - uses: actions/checkout@v3.0.2
+        with:
+          repository: Workiva/ixbrl-viewer
+          path: tmp/ixbrl-viewer
+      - uses: actions/setup-node@v3.4.1
+        with:
+          node-version: lts/*
+      - run: |
+          cd tmp/ixbrl-viewer
+          npm install
+          npm run prod
+          cd ../..
+          mv tmp/ixbrl-viewer/iXBRLViewerPlugin arelle/plugin/
+          rm -rf tmp
+      - name: Rebuild messages.pot internationalization file
+        run: python pygettext.py -v -o arelle/locale/messages.pot arelle/*.pyw arelle/*.py
+      - name: Regenerate messages catalog (doc/messagesCatalog.xml)
+        run: python generateMessagesCatalog.py
+      - run: cp -p arelleGUI.pyw arelleGUI.py
+      - name: Build version.py
+        run: python buildVersion.py
+      - name: Build app
+        run: python setup.py bdist_mac
+      - name: Remove git directories
+        run: find build/Arelle.app/Contents/Resources -name .git -exec rm -fR {} \;
+      - name: Build DMG
+        run: |
+          pwd
+          mkdir dist_dmg
+          SIZE=`du -ms | awk '{print int($1 + 20 + 0.5)}'`
+          ls build
+          hdiutil create -srcfolder build/Arelle.app -volname Arelle -fs HFS+ -fsargs "-c c=64,a=16,e=16" -format UDRW -size ${SIZE}M dist_dmg/arelle_tmp.dmg
+          echo "Created DMG: arelle_tmp.dmg"
+          DEVICE=$(hdiutil attach -readwrite -noverify dist_dmg/arelle_tmp.dmg | egrep '^/dev/' | sed 1q | awk '{print $1}')
+          sleep 2
+          pushd /Volumes/Arelle
+          ln -s /Applications
+          popd
+          mkdir /Volumes/Arelle/.background
+          cp arelle/images/dmg_background.png /Volumes/Arelle/.background/
+          echo '
+             tell application "Finder"
+               tell disk "Arelle"
+                     open
+                     set current view of container window to icon view
+                     set toolbar visible of container window to false
+                     set statusbar visible of container window to false
+                     set the bounds of container window to {400, 100, 920, 440}
+                     set viewOptions to the icon view options of container window
+                     set arrangement of viewOptions to not arranged
+                     set icon size of viewOptions to 72
+                     set background picture of viewOptions to file ".background:dmg_background.png"
+                     set position of item ".background" of container window to {999,999}
+                     set position of item ".DS_Store" of container window to {999,1099}
+                     set position of item ".fseventsd" of container window to {999,1299}
+                     set position of item "Arelle.app" of container window to {150, 70}
+                     set position of item "Applications" of container window to {260, 240}
+                     close
+                     open
+                     update without registering applications
+                     delay 2
+               end tell
+             end tell
+          ' | osascript
+          sync
+          hdiutil detach "${DEVICE}"
+          hdiutil convert dist_dmg/arelle_tmp.dmg -format UDZO -imagekey zlib-level=9 -o dist_dmg/arelle-${{ matrix.os }}.dmg
+      - uses: actions/upload-artifact@v3.1.0
+        with:
+          name: arelle-${{ matrix.os }}
+          path: dist_dmg/arelle-${{ matrix.os }}.dmg

@@ -8,11 +8,12 @@ Filer Guidelines: esma32-60-254_esef_reporting_manual.pdf
 @author: Workiva
 (c) Copyright 2022 Workiva, All rights reserved.
 '''
-
+from __future__ import annotations
 try:
     import regex as re
 except ImportError:
-    import re
+    import re #  type: ignore[no-redef]
+from typing import Any, Callable
 from arelle.ModelValue import qname
 from arelle.XbrlConst import all, notAll, hypercubeDimension, dimensionDomain, domainMember, dimensionDefault, widerNarrower
 
@@ -32,8 +33,8 @@ disallowedURIsPattern = re.compile(
 DefaultDimensionLinkroles = ("http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000",)
 LineItemsNotQualifiedLinkrole = "http://www.esma.europa.eu/xbrl/role/cor/esef_role-999999"
 
-qnDomainItemTypes = {qname("{http://www.xbrl.org/dtr/type/non-numeric}nonnum:domainItemType"),
-                     qname("{http://www.xbrl.org/dtr/type/2020-01-21}nonnum:domainItemType")}
+qnDomainItemTypes = {qname("{http://www.xbrl.org/dtr/type/non-numeric}nonnum:domainItemType"), #  type: ignore[no-untyped-call]
+                     qname("{http://www.xbrl.org/dtr/type/2020-01-21}nonnum:domainItemType")} #  type: ignore[no-untyped-call]
 
 
 linkbaseRefTypes = {
@@ -60,7 +61,7 @@ filenameRegexes = {
     "ref": r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_ref[.]xml$"
     }
 
-mandatory = set() # mandatory element qnames
+mandatory: set[Callable[..., Any]] = set() # mandatory element qnames
 
 # hidden references
 untransformableTypes = {"anyURI", "base64Binary", "hexBinary", "NOTATION", "QName", "time",
@@ -101,7 +102,7 @@ esefMandatoryElementNames2020 = (
     "DescriptionOfNatureOfEntitysOperationsAndPrincipalActivities",
     "NameOfParentEntity",
     "NameOfUltimateParentOfGroup"
-    )     
+    )
 
 esefMandatoryElementNames2022 = (
     "AddressOfRegisteredOfficeOfEntity",
@@ -347,4 +348,4 @@ esefMandatoryElementNames2022 = (
     "NameOfUltimateParentOfGroup",
     "PrincipalPlaceOfBusiness",
     "StatementOfIFRSCompliance",
-)            
+)
