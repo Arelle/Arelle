@@ -19,12 +19,13 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
 from typing import Any, Union, cast
 from collections.abc import Callable
+from arelle.ModelDocument import ModelDocument
 
 _: Callable[[str], str]  # Handle gettext
 
 # check if a modelDocument URI is an extension URI (document URI)
 # also works on a uri passed in as well as modelObject
-def isExtension(val: ValidateXbrl, modelObject: ModelObject | str | None) -> bool:
+def isExtension(val: ValidateXbrl, modelObject: ModelObject | ModelDocument | str | None) -> bool:
     if modelObject is None:
         return False
     if isinstance(modelObject, str):

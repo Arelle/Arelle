@@ -51,7 +51,16 @@ baseXbrliTypes = {
 
 class ValidateXbrl:
 
+    authority: str
     authParam: dict[str, Any]
+    domainMembers: list
+    extensionImportedUrls: set
+    hasExtensionCal: bool
+    hasExtensionDef: bool
+    hasExtensionLbl: bool
+    hasExtensionPre: bool
+    hasExtensionSchema: bool
+    primaryItems: list
 
     def __init__(self, testModelXbrl):
         self.testModelXbrl = testModelXbrl

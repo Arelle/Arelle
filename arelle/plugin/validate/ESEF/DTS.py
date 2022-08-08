@@ -3,58 +3,65 @@ Created on June 6, 2018
 
 Filer Guidelines: ESMA_ESEF Manula 2019.pdf
 
-Taxonomy Architecture: 
+Taxonomy Architecture:
 
-Taxonomy package expected to be installed: 
+Taxonomy package expected to be installed:
 
 @author: Workiva
 (c) Copyright 2022 Workiva, All rights reserved.
 '''
-
+from __future__ import annotations
 import unicodedata
 try:
     import regex as re
 except ImportError:
-    import re
+    import re  # type: ignore[no-redef]
 from collections import defaultdict
-from arelle import ModelDocument, XbrlConst
+from arelle import XbrlConst, ModelDocument as ModelDocumentFile
 from arelle.ModelDtsObject import ModelConcept, ModelType
+from arelle.ModelDocument import ModelDocument
 from arelle.ModelObject import ModelObject
-from arelle.XbrlConst import xbrli, standardLabelRoles, dimensionDefault, standardLinkbaseRefRoles
-from .Const import (qnDomainItemTypes, esefDefinitionArcroles, disallowedURIsPattern, DefaultDimensionLinkroles, 
+from arelle.XbrlConst import xbrli, standardLabelRoles, dimensionDefault
+from .Const import (qnDomainItemTypes, esefDefinitionArcroles, DefaultDimensionLinkroles,
                     linkbaseRefTypes, filenamePatterns, filenameRegexes)
 from .Util import isExtension
+from arelle.ValidateXbrl import ValidateXbrl
+from collections.abc import Callable
 
-def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
+_: Callable[[str], str]  # Handle gettext
+
+
+def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, visited: list[ModelDocument], hrefXlinkRole: str | None =None) -> None:
     visited.append(modelDocument)
     for referencedDocument, modelDocumentReference in modelDocument.referencesDocument.items():
         if referencedDocument not in visited and referencedDocument.inDTS: # ignore non-DTS documents
             checkFilingDTS(val, referencedDocument, visited, modelDocumentReference.referringXlinkRole)
-            
+
     isExtensionDoc = isExtension(val, modelDocument)
     filenamePattern = filenameRegex = None
     anchorAbstractExtensionElements = val.authParam["extensionElementsAnchoring"] == "include abstract"
     allowCapsInLc3Words = val.authParam["LC3AllowCapitalsInWord"]
-    def lc3wordAdjust(word):
+
+    def lc3wordAdjust(word: str) -> str:
         if allowCapsInLc3Words:
             return word.title()
         elif len(word) > 1:
             return word[0].upper() + word[1:]
         return word
-    
+
     if not isExtensionDoc:
         pass
-    
+
     # the following doc type sections only pertain to extensionDocuments
-    elif modelDocument.type == ModelDocument.Type.INLINEXBRL:
+    elif modelDocument.type == ModelDocumentFile.Type.INLINEXBRL:
         if val.authParam["reportFileNamePattern"]:
             filenamePattern = val.authParam["reportFileNamePattern"]
             filenameRegex = val.authParam["reportFileNameRegex"]
-    
-    elif modelDocument.type == ModelDocument.Type.SCHEMA:
-        
+
+    elif modelDocument.type == ModelDocumentFile.Type.SCHEMA:
+
         val.hasExtensionSchema = True
-        
+
         filenamePattern = "{base}-{date}.xsd"
         filenameRegex = r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}[.]xsd$"
 
@@ -66,7 +73,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
             #        val.modelXbrl.warning("ESEF.3.1.1.extensionImportNotAllowed",
             #                            _("Taxonomy reference not allowed for extension schema: %(taxonomy)s"),
             #                            modelObject=modelDocument, taxonomy=doc.uri)
-        
+
         tuplesInExtTxmy = []
         fractionsInExtTxmy = []
         typedDimsInExtTxmy = []
@@ -88,7 +95,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
             for modelConcept in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}element"):
                 if isinstance(modelConcept,ModelConcept):
                     name = modelConcept.get("name")
-                    if name is None: 
+                    if name is None:
                         name = ""
                         if modelConcept.get("ref") is not None:
                             continue    # don't validate ref's here
@@ -114,7 +121,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                                     extLineItemsNotAnchored.append(modelConcept)
                                 else:
                                     extLineItemsWronglyAnchored.append(modelConcept)
-                    if (modelConcept.isAbstract and modelConcept not in val.domainMembers and 
+                    if (modelConcept.isAbstract and modelConcept not in val.domainMembers and
                         modelConcept.type is not None and not modelConcept.type.isDomainItemType and
                         not modelConcept.isHypercubeItem and not modelConcept.isDimensionItem):
                         extAbstractConcepts.append(modelConcept)
@@ -141,14 +148,14 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                                     hasStandardLabel = True
                                     # allow Joe's Bar, N.A.  to be JoesBarNA -- remove ', allow A. as not article "a"
                                     lc3name = ''.join(re.sub(r"['.-]", "", lc3wordAdjust(w[0] or w[2] or w[3] or w[4]))
-                                                      for w in re.findall(r"((\w+')+\w+)|(A[.-])|([.-]A(?=\W|$))|(\w+)", 
+                                                      for w in re.findall(r"((\w+')+\w+)|(A[.-])|([.-]A(?=\W|$))|(\w+)",
                                                                           unicodedata.normalize('NFKD', label.textValue)
-                                                                          .encode('ASCII', 'ignore').decode()  # remove diacritics 
+                                                                          .encode('ASCII', 'ignore').decode()  # remove diacritics
                                                                           )
                                                       # if w[4].lower() not in ("the", "a", "an")
                                                       )
                                     lc3names.append(lc3name)
-                                    if (name == lc3name or 
+                                    if (name == lc3name or
                                         (name and lc3name and lc3name[0].isdigit() and name[1:] == lc3name and (name[0].isalpha() or name[0] == '_'))):
                                         hasLc3Match = True
                                 else:
@@ -176,7 +183,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                                     modelObject=[modelConcept]+labels, concept=modelConcept.qname, lang=lang, labelrole=labelrole)
                     langRoleLabels.clear()
             for modelType in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}complexType"):
-                if (isinstance(modelType,ModelType) and isExtension(val, modelType) and 
+                if (isinstance(modelType,ModelType) and isExtension(val, modelType) and
                     modelType.typeDerivedFrom is not None and modelType.typeDerivedFrom.qname.namespaceURI == xbrli and
                     not modelType.particlesList):
                     val.modelXbrl.error("ESEF.RTS.Annex.IV.Par.11.customDataTypeDuplicatingXbrlOrDtrEntry",
@@ -218,7 +225,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                 _("Extension taxonomy %(severityVerb)s define abstract concepts: concept %(concepts)s."),
                 modelObject=extAbstractConcepts, concepts=", ".join(str(c.qname) for c in extAbstractConcepts),
                 severityVerb={"warning":"SHOULD NOT","error":"MUST NOT"}[val.authParam["extensionAbstractContexts"]])
-        if extMonetaryConceptsWithoutBalance:  
+        if extMonetaryConceptsWithoutBalance:
             val.modelXbrl.error("ESEF.RTS.Annex.IV.Par.4.2.monetaryConceptWithoutBalance",
                 _("Extension monetary concepts MUST provide balance attribute: concept %(concepts)s."),
                 modelObject=extMonetaryConceptsWithoutBalance, concepts=", ".join(str(c.qname) for c in extMonetaryConceptsWithoutBalance))
@@ -242,20 +249,21 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
         del (tuplesInExtTxmy, fractionsInExtTxmy, typedDimsInExtTxmy, domainMembersWrongType, generalSpecialRelSet,
              extLineItemsWithoutHypercube, extLineItemsNotAnchored, extLineItemsWronglyAnchored, extAbstractConcepts,
              extMonetaryConceptsWithoutBalance, langRoleLabels, conceptsWithNoLabel, conceptsWithoutStandardLabel)
-                            
-    elif modelDocument.type == ModelDocument.Type.LINKBASE:
-        
+
+    elif modelDocument.type == ModelDocumentFile.Type.LINKBASE:
+
         linkbasesFound = set()
         disallowedArcroles = defaultdict(list)
         prohibitedBaseConcepts = []
         prohibitingLbElts = []
         linkbaseRefType = None
-        
+
         if hrefXlinkRole in linkbaseRefTypes:
             linkbaseRefType = linkbaseRefTypes[hrefXlinkRole]
             filenamePattern = filenamePatterns[linkbaseRefType]
             filenameRegex = filenameRegexes[linkbaseRefType]
 
+        linkEltName: str | None # linkEltName is set to None further down
         for linkEltName in ("labelLink", "presentationLink", "calculationLink", "definitionLink", "referenceLink"):
             for linkElt in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}" + linkEltName):
                 if not filenamePattern:
@@ -278,7 +286,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                         filenameRegex = filenameRegexes["lab"]
                     # check for any unexpected definition arcrole which might be a custom wider-narrower arcrole
                     for arcElt in linkElt.iterchildren(tag="{http://www.xbrl.org/2003/linkbase}definitionArc"):
-                        arcrole = arcElt.get("{http://www.w3.org/1999/xlink}arcrole") 
+                        arcrole = arcElt.get("{http://www.w3.org/1999/xlink}arcrole")
                         if arcrole not in esefDefinitionArcroles:
                             disallowedArcroles[arcrole].append(arcElt)
                 if linkEltName in ("labelLink", "referenceLink"):
@@ -297,7 +305,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                         if prohibitingArcs and not isExtension(val, locElt.get("{http://www.w3.org/1999/xlink}href")):
                             prohibitingLbElts.extend(prohibitingArcs)
                             prohibitedBaseConcepts.append(locElt.dereference())
-                    del prohibitedArcFroms, prohibitedArcTos # dereference                   
+                    del prohibitedArcFroms, prohibitedArcTos # dereference
             for disallowedArcrole, arcs in disallowedArcroles.items():
                 val.modelXbrl.error("ESEF.RTS.Annex.IV.disallowedDefinitionArcrole",
                     _("Disallowed arcrole in definition linkbase %(arcrole)s."),
@@ -306,7 +314,7 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
             if prohibitingLbElts and prohibitedBaseConcepts:
                 val.modelXbrl.error("ESEF.RTS.Annex.IV.Par.8.coreTaxonomy{}Modification".format(linkEltName[:-4].title()),
                     _("Disallowed modification of core taxonomy %(resource)s for %(qnames)s."),
-                    modelObject=prohibitingLbElts+prohibitedBaseConcepts, 
+                    modelObject=prohibitingLbElts+prohibitedBaseConcepts,
                     resource=linkEltName[:-4],
                     qnames=", ".join(str(c.qname) for c in prohibitedBaseConcepts),
                     messageCodes=("ESEF.RTS.Annex.IV.Par.8.coreTaxonomyReferenceModification",
@@ -333,37 +341,37 @@ def checkFilingDTS(val, modelDocument, visited, hrefXlinkRole=None):
                 val.modelXbrl.error("ESEF.3.1.1.extensionTaxonomyWrongFilesStructure",
                     _("Each linkbase type MUST be provided in a separate linkbase file: %(linkbaseType)s linkbase has no %(extendedLinkElement)s element."),
                     modelObject=modelDocument.xmlRootElement, linkbaseType=linkbaseRefType, extendedLinkElement=linkEltName)
-                
+
         elif len(linkbasesFound) > 1:
             val.modelXbrl.warning("ESEF.3.1.1.linkbasesNotSeparateFiles",
                 _("Each linkbase type SHOULD be provided in a separate linkbase file, found: %(linkbasesFound)s."),
                 modelObject=modelDocument.xmlRootElement, linkbasesFound=", ".join(sorted(linkbasesFound)))
-            
+
         # check for any prohibiting dimensionArc's
         for prohibitingArcElt in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.xbrl.org/2003/linkbase}definitionArc"):
-            if (prohibitingArcElt.get("use") == "prohibited" and 
+            if (prohibitingArcElt.get("use") == "prohibited" and
                 prohibitingArcElt.get("{http://www.w3.org/1999/xlink}arcrole")  == XbrlConst.dimensionDefault):
                 val.modelXbrl.error("ESEF.3.4.3.extensionTaxonomyOverridesDefaultMembers",
                     _("The extension taxonomy MUST not prohibit default members assigned to dimensions by the ESEF taxonomy."),
                     modelObject=modelDocument.xmlRootElement, linkbasesFound=", ".join(sorted(linkbasesFound)))
-    
+
     if isExtensionDoc and filenamePattern is not None:
         m = re.compile(filenameRegex).match(modelDocument.basename)
         if not m:
             val.modelXbrl.warning("ESEF.3.1.5.extensionTaxonomyDocumentNameDoesNotFollowNamingConvention",
                 _("%(fileType)s file name SHOULD match the %(pattern)s pattern: %(documentName)s."),
                 modelObject=modelDocument.xmlRootElement,
-                fileType="Report" if modelDocument.type == ModelDocument.Type.INLINEXBRL else "Extension taxonomy", 
+                fileType="Report" if modelDocument.type == ModelDocumentFile.Type.INLINEXBRL else "Extension taxonomy",
                 pattern=filenamePattern, documentName=modelDocument.basename)
         elif len(m.group(1)) > 20:
             val.modelXbrl.warning("ESEF.3.1.5.baseComponentInNameOfTaxonomyFileExceedsTwentyCharacters",
                 _("Extension taxonomy document file name {base} component SHOULD be no longer than 20 characters, length is %(length)s:  %(documentName)s."),
                 modelObject=modelDocument.xmlRootElement, length=len(m.group(1)), documentName=modelDocument.basename)
-        
+
     if isExtensionDoc and val.authority == "UKFRC":
-        if modelDocument.type == ModelDocument.Type.INLINEXBRL:
+        if modelDocument.type == ModelDocumentFile.Type.INLINEXBRL:
             if modelDocument.documentEncoding.lower() != "utf-8":
                 val.modelXbrl.error("UKFRC.1.1.instanceDocumentEncoding",
                     _("UKFRC instance documents should be UTF-8 encoded: %(encoding)s"),
                     modelObject=modelDocument, encoding=modelDocument.documentEncoding)
-  
+
