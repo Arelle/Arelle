@@ -282,7 +282,6 @@ setup(
             'arelle-gui=arelle.CntlrWinMain:main',
         ]
     },
-    setup_requires=['lxml'],
     # install_requires specifies a list of package dependencies that are
     # installed when 'python setup.py install' is run. On Linux/Mac systems
     # this also allows installation directly from the github repository
