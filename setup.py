@@ -279,8 +279,10 @@ setup(
     entry_points={
         'console_scripts': [
             'arelle=arelle.CntlrCmdLine:main',
+        ],
+        'gui_scripts': [
             'arelle-gui=arelle.CntlrWinMain:main',
-        ]
+        ],
     },
     extras_require={
         'Crypto': [
