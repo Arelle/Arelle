@@ -156,8 +156,8 @@ class SqlDbConnection():
                 raise XPDBException("xpgDB:MissingMySQLInterface",
                                     _("MySQL interface is not installed"))
             self.conn = mysqlConnect(user=user, passwd=password, host=host,
-                                     port=int(port or 5432),
-                                     db=database,  # pymysql takes database or db but MySQLdb only takes db
+                                     port=int(port or 3306),
+                                     db=database,  # pymysql takes database or db but MySQLdb only takes db 
                                      connect_timeout=timeout or 60,
                                      charset='utf8')
             self.product = product
@@ -165,9 +165,9 @@ class SqlDbConnection():
             if not hasOracle:
                 raise XPDBException("xpgDB:MissingOracleInterface",
                                     _("Oracle interface is not installed"))
-            self.conn = oracleConnect('{}/{}@{}{}'
+            self.conn = oracleConnect('{}/{}@{}{}/{}'
                                             .format(user, password, host,
-                                                    ":{}".format(port) if port else ""))
+                                                    ":{}".format(port) if port else "", database))
             # self.conn.paramstyle = 'named'
             self.product = product
         elif product == "mssql":
@@ -309,7 +309,8 @@ class SqlDbConnection():
             some databases require locks per operation (such as MySQL), when isSessionTransaction=False
         '''
         if self.product in ("postgres", "orcl") and isSessionTransaction:
-            result = self.execute('LOCK {} IN SHARE ROW EXCLUSIVE MODE'.format(', '.join(tableNames)),
+            _tableNames = ', '.join(self.dbTableName(t) for t in tableNames)
+            result = self.execute('LOCK TABLE {} IN SHARE ROW EXCLUSIVE MODE'.format(_tableNames),
                                   close=False, commit=False, fetch=False, action="locking table")
         elif self.product in ("mysql",):
             result = self.execute('LOCK TABLES {}'
