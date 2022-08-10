@@ -29,6 +29,8 @@ begin
 end;
 /
 
+CREATE SEQUENCE seq_entity;
+
 CREATE TABLE "entity" (
     entity_id number(19) NOT NULL,
     legal_entity_number varchar2(30), -- LEI
@@ -347,11 +349,11 @@ CREATE TABLE "entity_identifier" (
     report_id number(19),
     scheme varchar2(1024) NOT NULL,
     identifier varchar2(1024) NOT NULL,
-    PRIMARY KEY (entity_id)
+    PRIMARY KEY (entity_identifier_id)
 );
 CREATE INDEX entity_identifier_index02 ON "entity_identifier" (report_id, scheme, identifier);
 
-CREATE TRIGGER entity_insert_trigger BEFORE INSERT ON "entity" 
+CREATE TRIGGER entity_identifier_insert_trigger BEFORE INSERT ON "entity_identifier"
   FOR EACH ROW
     BEGIN
        SELECT seq_object.NEXTVAL INTO :NEW.entity_identifier_id from dual;
@@ -423,10 +425,10 @@ CREATE INDEX aspect_value_selection_index01 ON "aspect_value_selection" (aspect_
 CREATE INDEX aspect_value_selection_index02 ON "aspect_value_selection" (aspect_id);
 
 CREATE TABLE "table_data_points"(
-    report_id bigint,
-    object_id bigint NOT NULL, -- may be any role_type or aspect defining a table table with 'seq_object' id
+    report_id number(19),
+    object_id number(19) NOT NULL, -- may be any role_type or aspect defining a table table with 'seq_object' id
     table_code varchar2(16),  -- short code of table, like BS, PL, or 4.15.221
-    datapoint_id bigint -- id of data_point in this table (according to its aspects)
+    datapoint_id number(19) -- id of data_point in this table (according to its aspects)
 );
 CREATE INDEX table_data_points_index01 ON "table_data_points" (report_id);
 CREATE INDEX table_data_points_index02 ON "table_data_points" (table_code);
