@@ -93,19 +93,20 @@ XBRLDBTABLES = {
 class XbrlSqlDatabaseConnection(SqlDbConnection):
     def verifyTables(self):
         missingTables = XBRLDBTABLES - self.tablesInDB()
-        # if no tables, initialize database
-        if missingTables == XBRLDBTABLES:
-            self.create(os.path.join("sql", "semantic", {"mssql": "xbrlSemanticMSSqlDB.sql",
-                                                         "mysql": "xbrlSemanticMySqlDB.ddl",
-                                                         "sqlite": "xbrlSemanticSQLiteDB.ddl",
-                                                         "orcl": "xbrlSemanticOracleDB.sql",
-                                                         "postgres": "xbrlSemanticPostgresDB.ddl"}[self.product]))
-            missingTables = XBRLDBTABLES - self.tablesInDB()
-        if missingTables and missingTables != {"sequences"}:
+        if missingTables:
+            # based on the on the documentation "SQL Schema Initialization" is expected be done manually
+            # https://arelle.org/arelle/documentation/xbrl-database/ ==> "SQL Schema Initialization"
+            # this disable creating tables and returns a useful error message to the user
+            ddlFile = os.path.join("sql", "semantic", {"mssql": "xbrlSemanticMSSqlDB.sql",
+                                                            "mysql": "xbrlSemanticMySqlDB.ddl",
+                                                            "sqlite": "xbrlSemanticSQLiteDB.ddl",
+                                                            "orcl": "xbrlSemanticOracleDB.sql",
+                                                            "postgres": "xbrlSemanticPostgresDB.ddl"}[self.product])
             raise XPDBException("sqlDB:MissingTables",
-                                _("The following tables are missing: %(missingTableNames)s"),
-                                missingTableNames=', '.join(t for t in sorted(missingTables)))
-
+                                _("The following tables are missing: %(missingTableNames)s\n"
+                                    "\nplease make sure that database \"%(db)s\" is initialized using the following ddl file:\n%(ddlFilesLocation)s"),
+                                missingTableNames=', '.join(t for t in sorted(missingTables)),
+                                db=self.dbname, ddlFilesLocation = os.path.join(os.path.dirname(__file__), ddlFile))
     def insertXbrl(self, entrypoint, rssItem):
         try:
             # must also have default dimensions loaded

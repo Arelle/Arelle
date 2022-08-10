@@ -189,6 +189,7 @@ class SqlDbConnection():
             self.syncSequences = False # for object_id coordination of autoincrement values
         else:
             self.product = None
+        self.dbname = database
         self.tableColTypes = {}
         self.tableColDeclaration = {}
         self.accessionId = "(None)"
