@@ -279,16 +279,40 @@ setup(
     entry_points={
         'console_scripts': [
             'arelle=arelle.CntlrCmdLine:main',
+        ],
+        'gui_scripts': [
             'arelle-gui=arelle.CntlrWinMain:main',
-        ]
+        ],
     },
-    setup_requires=['lxml'],
-    # install_requires specifies a list of package dependencies that are
-    # installed when 'python setup.py install' is run. On Linux/Mac systems
-    # this also allows installation directly from the github repository
-    # (using 'pip install -e git+git://github.com/rheimbuchArelle.git#egg=Arelle')
-    # and the install_requires packages are auto-installed as well.
-    install_requires=['lxml', 'isodate', 'openpyxl'],
+    extras_require={
+        'Crypto': [
+            'pycryptodome==3.*',
+        ],
+        'DB': [
+            'pg8000==1.*',
+            'PyMySQL==1.*',
+            'pyodbc==4.*',
+            'rdflib==5.*',
+        ],
+        'EFM': [
+            'holidays==0.*',
+        ],
+        'ObjectMaker': [
+            'graphviz==0.*',
+        ],
+        'WebServer': [
+            'cheroot==8.*',
+            'CherryPy==18.*',
+            'tornado==6.*',
+        ],
+    },
+    install_requires=[
+        'isodate==0.*',
+        'lxml==4.*',
+        'numpy==1.*',
+        'openpyxl==2.*',
+        'regex==2022.*',
+    ],
     options=options,
     executables=cx_freeze_executables,
 )
