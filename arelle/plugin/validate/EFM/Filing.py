@@ -85,6 +85,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-sec-ix-hidden\s*:\s*([\w.-]+).*")
     efmRoleDefinitionPattern = re.compile(r"([0-9]+) - (Statement|Disclosure|Schedule|Document) - (.+)")
     messageKeySectionPattern = re.compile(r"(.*[{]efmSection[}]|[a-z]{2}-[0-9]{4})(.*)")
+    secDomainPattern = re.compile(r"((fasb)|(xbrl\.sec))\.((org)|(gov))")
     
     val._isStandardUri = {}
     modelXbrl.modelManager.disclosureSystem.loadStandardTaxonomiesDict()
@@ -1149,7 +1150,10 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             if name.endswith(":*") and validation == "(supported-taxonomy)": # taxonomy-prefix filter
                                 txPrefix = name[:-2]
                                 ns = deiDefaultPrefixedNamespaces.get(txPrefix)
-                                if ns:
+                                # Its possible that extension concepts could have prefixes that match `cef` of `vip`
+                                # and trip this validation so we exclude all extension namespaces by making sure the
+                                # qname namespace matches known SEC domains.
+                                if ns and secDomainPattern.match(ns):
                                     unexpectedFacts = set()
                                     for qn, facts in modelXbrl.factsByQname.items():
                                         if qn.namespaceURI == ns:
