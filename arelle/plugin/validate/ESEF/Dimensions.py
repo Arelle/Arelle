@@ -7,8 +7,9 @@ Filer Guidelines: ESMA_ESEF Manula 2019.pdf
 @author: Mark V Systems Limited
 (c) Copyright 2018 Mark V Systems Limited, All rights reserved.
 '''
-
+from __future__ import annotations
 from collections import defaultdict
+from typing import Any
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelObject import ModelObject
 from arelle.PrototypeDtsObject import PrototypeObject
@@ -18,28 +19,40 @@ from .Util import isExtension, isInEsefTaxonomy
 try:
     import regex as re
 except ImportError:
-    import re
+    import re  # type: ignore[no-redef]
+from collections.abc import Callable
+from arelle.ValidateXbrl import ValidateXbrl
+from arelle.ModelDtsObject import ModelConcept
 
-def checkFilingDimensions(val):
+_: Callable[[str], str]  # Handle gettext
+
+
+def checkFilingDimensions(val: ValidateXbrl) -> None:
 
     val.primaryItems = set() # concepts which are line items (should not also be dimension members
-    val.domainMembers = set() # concepts which are dimension domain members
+    val.domainMembers = set()  # concepts which are dimension domain members
+
     elrPrimaryItems = defaultdict(set)
-    hcPrimaryItems = set()
-    hcMembers = set()
-    
-    def addDomMbrs(sourceDomMbr, ELR, membersSet):
+    hcPrimaryItems: set[ModelConcept] = set()
+    hcMembers: set[Any] = set()
+
+    def addDomMbrs(sourceDomMbr: ModelConcept, ELR: str, membersSet: set[ModelConcept]) -> None:
         if isinstance(sourceDomMbr, ModelConcept) and sourceDomMbr not in membersSet:
             membersSet.add(sourceDomMbr)
             for domMbrRel in val.modelXbrl.relationshipSet(XbrlConst.domainMember, ELR).fromModelObject(sourceDomMbr):
                 #if domMbrRel.isUsable:
                 addDomMbrs(domMbrRel.toModelObject, domMbrRel.consecutiveLinkrole, membersSet)
-            
+
     for hasHypercubeArcrole in (XbrlConst.all, XbrlConst.notAll):
         hasHypercubeRelationships = val.modelXbrl.relationshipSet(hasHypercubeArcrole).fromModelObjects()
+
+        # fromModelObjects() has an optional return type, we need to handle that here
+        if hasHypercubeRelationships is None:
+            continue
+
         for hasHcRels in hasHypercubeRelationships.values():
             for hasHcRel in hasHcRels:
-                sourceConcept = hasHcRel.fromModelObject
+                sourceConcept: ModelConcept = hasHcRel.fromModelObject
                 hcPrimaryItems.add(sourceConcept)
                 # find associated primary items to source concept
                 for domMbrRel in val.modelXbrl.relationshipSet(XbrlConst.domainMember).fromModelObject(sourceConcept):
@@ -79,8 +92,8 @@ def checkFilingDimensions(val):
                             elrPrimaryItems["*"].add(hcPrimaryItem) # members of any ELR
                 hcPrimaryItems.clear()
                 hcMembers.clear()
-                                 
-    # find primary items with other dimensions in 
+
+    # find primary items with other dimensions in
     #for ELR, priItems in elrPrimaryItems.items():
     #    if ELR != LineItemsNotQualifiedLinkrole:
     #        # consider any pri item in not reported non-dimensionally
@@ -100,7 +113,7 @@ def checkFilingDimensions(val):
             for qn, facts in val.modelXbrl.factsByQname.items()
             if any(not f.context.qnameDims for f in facts if f.context is not None)
             for concept in (val.modelXbrl.qnameConcepts.get(qn),)
-            if concept is not None and 
+            if concept is not None and
                concept not in elrPrimaryItems.get(LineItemsNotQualifiedLinkrole, set()) and
                concept not in elrPrimaryItems.get("*", set()) and
                (not nsExcl or not nsExclPat.match(qn.namespaceURI)))
@@ -112,7 +125,7 @@ def checkFilingDimensions(val):
     # check no longer in Filer Manual as of 2021
     #i = set(hcPrimaryItem
     #       for hcPrimaryItem in elrPrimaryItems.get(LineItemsNotQualifiedLinkrole, set())
-    #       if not any(not f.context.qnameDims 
+    #       if not any(not f.context.qnameDims
     #                  for f in val.modelXbrl.factsByQname.get(hcPrimaryItem.qname,())
     #                  if f.context is not None))
     #if i:
@@ -151,13 +164,13 @@ def checkFilingDimensions(val):
             val.modelXbrl.error("ESEF.3.3.2.anchoringRelationshipsForConceptsDefinedInElrContainingDimensionalRelationships",
                 _("Anchoring relationships for concepts MUST be defined in a dedicated extended link role (or roles if needed to properly represent the relationships), e.g. http://{issuer default pattern for roles}/Anchoring. %(anchoringDimensionalELR)s"),
                 modelObject=rels, anchoringDimensionalELR=ELR)
-        
+
     # check base set dimension default overrides in extension taxonomies
     for modelLink in val.modelXbrl.baseSets[XbrlConst.dimensionDefault, None, None, None]:
-        if isExtension(val, modelLink): 
+        if isExtension(val, modelLink):
             for linkChild in modelLink:
-                if (isinstance(linkChild,(ModelObject,PrototypeObject)) and 
-                    linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and 
+                if (isinstance(linkChild,(ModelObject,PrototypeObject)) and
+                    linkChild.get("{http://www.w3.org/1999/xlink}type") == "arc" and
                     linkChild.get("{http://www.w3.org/1999/xlink}arcrole") == XbrlConst.dimensionDefault):
                     fromLabel = linkChild.get("{http://www.w3.org/1999/xlink}from")
                     for fromResource in modelLink.labeledResources[fromLabel]:
@@ -169,4 +182,4 @@ def checkFilingDimensions(val):
                         val.modelXbrl.error("ESEF.3.4.3.dimensionDefaultLinkrole",
                             _("Each dimension in an issuer specific extension taxonomy MUST be assigned to a default member in the ELR with role URI http://www.esma.europa.eu/xbrl/role/cor/ifrs-dim_role-990000, but linkrole used is %(linkrole)s."),
                             modelObject=linkChild, linkrole=modelLink.role)
-                        
+

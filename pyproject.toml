@@ -24,6 +24,7 @@ ignore_errors = true
 [[tool.mypy.overrides]]
 module = [
     'arelle.plugin.validate.ESEF.Const',
+    'arelle.plugin.validate.ESEF.Dimensions',
     'arelle.plugin.validate.ESEF.DTS',
     'arelle.plugin.validate.ESEF.Util'
 ]
