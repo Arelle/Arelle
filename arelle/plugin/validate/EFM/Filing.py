@@ -85,7 +85,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
     styleIxHiddenPattern = re.compile(r"(.*[^\w]|^)-sec-ix-hidden\s*:\s*([\w.-]+).*")
     efmRoleDefinitionPattern = re.compile(r"([0-9]+) - (Statement|Disclosure|Schedule|Document) - (.+)")
     messageKeySectionPattern = re.compile(r"(.*[{]efmSection[}]|[a-z]{2}-[0-9]{4})(.*)")
-    secDomainPattern = re.compile(r"((fasb)|(xbrl\.sec))\.((org)|(gov))")
+    secDomainPattern = re.compile(r"(fasb|xbrl\.sec)\.(org|gov)")
     
     val._isStandardUri = {}
     modelXbrl.modelManager.disclosureSystem.loadStandardTaxonomiesDict()
@@ -1030,7 +1030,12 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                 
             sevs = deiValidations["sub-type-element-validations"]
             deiCAxes = deiValidations["axis-validations"]["c"]["axes"]
-            deiDefaultPrefixedNamespaces = deiValidations["prefixed-namespaces"]
+            # Its possible that extension concepts could have prefixes that match `cef` or `vip`
+            # and EFM.6.5.55 or EFM.6.5.56 validations so we exclude all extension namespaces by
+            # filtering out prefix namespace combos where the namespace matches known SEC domains.
+            deiDefaultPrefixedNamespaces = {
+                prefix: qname for prefix, qname in deiValidations["prefixed-namespaces"].items() if secDomainPattern.search(qname)
+            }
             # called with sev, returns iterator of sev facts for names and axes matching
             # called with sev and name, returns single fact for name matching axesMembers (if any)
             def sevFacts(sev=None, name=None, otherFact=None, requiredContext=False, axisKey=None, deduplicate=False):
@@ -1150,10 +1155,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
                             if name.endswith(":*") and validation == "(supported-taxonomy)": # taxonomy-prefix filter
                                 txPrefix = name[:-2]
                                 ns = deiDefaultPrefixedNamespaces.get(txPrefix)
-                                # Its possible that extension concepts could have prefixes that match `cef` of `vip`
-                                # and trip this validation so we exclude all extension namespaces by making sure the
-                                # qname namespace matches known SEC domains.
-                                if ns and secDomainPattern.match(ns):
+                                if ns:
                                     unexpectedFacts = set()
                                     for qn, facts in modelXbrl.factsByQname.items():
                                         if qn.namespaceURI == ns:
