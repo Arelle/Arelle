@@ -53,14 +53,14 @@ class ValidateXbrl:
 
     authority: str
     authParam: dict[str, Any]
-    domainMembers: list
+    domainMembers: set
     extensionImportedUrls: set
     hasExtensionCal: bool
     hasExtensionDef: bool
     hasExtensionLbl: bool
     hasExtensionPre: bool
     hasExtensionSchema: bool
-    primaryItems: list
+    primaryItems: set
 
     def __init__(self, testModelXbrl):
         self.testModelXbrl = testModelXbrl

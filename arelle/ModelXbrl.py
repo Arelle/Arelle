@@ -4,13 +4,14 @@ Created on Oct 3, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+from __future__ import annotations
 from collections import defaultdict
 import os, sys, re, traceback, uuid
+from typing import TYPE_CHECKING
 import logging
 from decimal import Decimal
 from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst, XmlValidate
 from arelle.FileSource import FileNamedStringIO
-from arelle.ModelDtsObject import ModelRelationship
 from arelle.ModelObject import ModelObject, ObjectPropertyViewWrapper
 from arelle.Locale import format_string
 from arelle.PluginManager import pluginClassMethods
@@ -19,8 +20,10 @@ from arelle.PythonUtil import flattenSequence
 from arelle.UrlUtil import isHttpUrl
 from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 
+if TYPE_CHECKING:
+    from arelle.ModelRelationshipSet import ModelRelationshipSet as ModelRelationshipSetClass
 
-ModelRelationshipSet = None # dynamic import
+
 ModelFact = None
 
 profileStatNumber = 0
@@ -379,7 +382,7 @@ class ModelXbrl:
         else:
             return self.fileSource.url
 
-    def relationshipSet(self, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False) -> ModelRelationship:
+    def relationshipSet(self, arcrole, linkrole=None, linkqname=None, arcqname=None, includeProhibits=False) -> ModelRelationshipSetClass:
         """Returns a relationship set matching specified parameters (only arcrole is required).
 
         Resolve and determine relationship set.  If a relationship set of the same parameters was previously resolved, it is returned from a cache.
@@ -394,9 +397,7 @@ class ModelXbrl:
         :type includeProhibits: bool
         :returns: [ModelRelationship] -- Ordered list of effective relationship objects per parameters
         """
-        global ModelRelationshipSet
-        if ModelRelationshipSet is None:
-            from arelle import ModelRelationshipSet
+        from arelle import ModelRelationshipSet
         key = (arcrole, linkrole, linkqname, arcqname, includeProhibits)
         if key not in self.relationshipSets:
             ModelRelationshipSet.create(self, arcrole, linkrole, linkqname, arcqname, includeProhibits)
