@@ -46,10 +46,6 @@ def checkFilingDimensions(val: ValidateXbrl) -> None:
     for hasHypercubeArcrole in (XbrlConst.all, XbrlConst.notAll):
         hasHypercubeRelationships = val.modelXbrl.relationshipSet(hasHypercubeArcrole).fromModelObjects()
 
-        # fromModelObjects() has an optional return type, we need to handle that here
-        if hasHypercubeRelationships is None:
-            continue
-
         for hasHcRels in hasHypercubeRelationships.values():
             for hasHcRel in hasHcRels:
                 sourceConcept: ModelConcept = hasHcRel.fromModelObject
