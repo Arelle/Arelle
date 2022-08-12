@@ -1034,7 +1034,7 @@ def validateFiling(val, modelXbrl, isEFM=False, isGFM=False):
             # and EFM.6.5.55 or EFM.6.5.56 validations so we exclude all extension namespaces by
             # filtering out prefix namespace combos where the namespace matches known SEC domains.
             deiDefaultPrefixedNamespaces = {
-                prefix: qname for prefix, qname in deiValidations["prefixed-namespaces"].items() if secDomainPattern.search(qname)
+                prefix: namespace for prefix, namespace in deiValidations["prefixed-namespaces"].items() if secDomainPattern.search(namespace)
             }
             # called with sev, returns iterator of sev facts for names and axes matching
             # called with sev and name, returns single fact for name matching axesMembers (if any)
