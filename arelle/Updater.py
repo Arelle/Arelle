@@ -20,7 +20,6 @@ def checkForUpdates(cntlr):
 
 
 def backgroundCheckForUpdates(cntlr):
-    actualUrl = None
     cntlr.showStatus(_("Checking for updates to Arelle"))
     try:
         attachmentFileName = cntlr.webCache.getAttachmentFilename(cntlr.updateURL)
@@ -55,7 +54,7 @@ def checkUpdateUrl(cntlr, attachmentFileName):
                     return False
                 if reply:
                     thread = threading.Thread(
-                        target=lambda u=actualUrl: backgroundDownload(cntlr, u)
+                        target=lambda u=attachmentFileName: backgroundDownload(cntlr, u)
                     )
                     thread.daemon = True
                     thread.start()
