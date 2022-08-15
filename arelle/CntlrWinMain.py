@@ -6,6 +6,8 @@ This module is Arelle's controller in windowing interactive UI mode
 @author: Mark V Systems Limited
 (c) Copyright 2010 Mark V Systems Limited, All rights reserved.
 '''
+from __future__ import annotations
+
 from arelle import PythonUtil # define 2.x or 3.x string types
 import os, sys, subprocess, pickle, time, locale, re, fnmatch, platform
 
@@ -1424,7 +1426,7 @@ class CntlrWinMain (Cntlr.Cntlr):
             view.view()
 
     # worker threads showStatus
-    def showStatus(self, message, clearAfter=None):
+    def showStatus(self, message: str, clearAfter: int | None = None) -> None:
         self.uiThreadQueue.put((self.uiShowStatus, [message, clearAfter]))
 
     # ui thread showStatus

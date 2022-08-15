@@ -27,6 +27,7 @@ ignore_errors = true
 [[tool.mypy.overrides]]
 module = [
     'arelle.plugin.validate.ESEF.*',
+    'arelle.Updater',
 ]
 ignore_errors = false
 strict = true

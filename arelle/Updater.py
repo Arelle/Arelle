@@ -4,14 +4,23 @@ Created on May 30, 2010
 @author: Mark V Systems Limited
 (c) Copyright 2011 Mark V Systems Limited, All rights reserved.
 """
+from __future__ import annotations
+
+import gettext
 import os
 import threading
 import tkinter.messagebox
+import typing
+
+if typing.TYPE_CHECKING:
+    from arelle.CntlrWinMain import CntlrWinMain
+
+_ = gettext.gettext
 
 _MESSAGE_HEADER = "arelle\u2122 - Updater"
 
 
-def checkForUpdates(cntlr):
+def checkForUpdates(cntlr: CntlrWinMain) -> None:
     if not cntlr.webCache.workOffline:
         # check for updates in background
         import threading
@@ -21,7 +30,7 @@ def checkForUpdates(cntlr):
         thread.start()
 
 
-def backgroundCheckForUpdates(cntlr):
+def backgroundCheckForUpdates(cntlr: CntlrWinMain) -> None:
     cntlr.showStatus(_("Checking for updates to Arelle"))
     try:
         attachmentFileName = cntlr.webCache.getAttachmentFilename(cntlr.updateURL)
@@ -33,7 +42,7 @@ def backgroundCheckForUpdates(cntlr):
     cntlr.showStatus("")  # clear web loading status entry
 
 
-def checkUpdateUrl(cntlr, attachmentFileName):
+def checkUpdateUrl(cntlr: CntlrWinMain, attachmentFileName: str) -> None:
     # get latest header file
     try:
         from arelle import WebCache, Version
@@ -74,7 +83,7 @@ def checkUpdateUrl(cntlr, attachmentFileName):
         pass
 
 
-def backgroundDownload(cntlr, url):
+def backgroundDownload(cntlr: CntlrWinMain, url: str) -> None:
     filepathTmp = cntlr.webCache.getfilename(cntlr.updateURL, reload=True)
     if not filepathTmp:
         _showWarning(cntlr, _("Failed to download update."))
@@ -85,7 +94,7 @@ def backgroundDownload(cntlr, url):
     cntlr.uiThreadQueue.put((install, [cntlr, filepath]))
 
 
-def install(cntlr, filepath):
+def install(cntlr: CntlrWinMain, filepath: str) -> None:
     import sys
 
     if sys.platform.startswith("win"):
@@ -104,9 +113,9 @@ def install(cntlr, filepath):
     cntlr.uiThreadQueue.put((cntlr.quit, []))
 
 
-def _showInfo(cntlr, msg):
+def _showInfo(cntlr: CntlrWinMain, msg: str) -> None:
     tkinter.messagebox.showinfo(_(_MESSAGE_HEADER), msg, parent=cntlr.parent)
 
 
-def _showWarning(cntlr, msg):
+def _showWarning(cntlr: CntlrWinMain, msg: str) -> None:
     tkinter.messagebox.showwarning(_(_MESSAGE_HEADER), msg, parent=cntlr.parent)
