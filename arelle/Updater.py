@@ -51,7 +51,7 @@ def checkUpdateUrl(cntlr, attachmentFileName):
                     parent=cntlr.parent,
                 )
                 if reply is None:
-                    return False
+                    return
                 if reply:
                     thread = threading.Thread(
                         target=lambda u=attachmentFileName: backgroundDownload(cntlr, u)
@@ -72,8 +72,6 @@ def checkUpdateUrl(cntlr, attachmentFileName):
                 )
     except:
         pass
-
-    return
 
 
 def backgroundDownload(cntlr, url):
